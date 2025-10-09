@@ -103,7 +103,16 @@ export default function App() {
     }
   }, [])
 
-  const { connected, messages, send, clearMessages, getRecordings } =
+  const {
+    connected,
+    messages,
+    send,
+    clearMessages,
+    getRecordings,
+    usageTotals,
+    latestUsage,
+    elapsedMinutes,
+  } =
     useRealtime({
       agentId: currentAgent,
       onMessage: handleWebRTCMessage,
@@ -242,6 +251,9 @@ export default function App() {
             onClear={clearMessages}
             onAnalyze={handleAnalyze}
             scenario={activeScenario}
+            tokenUsage={latestUsage}
+            tokenTotals={usageTotals}
+            elapsedMinutes={elapsedMinutes}
           />
         </div>
       )}

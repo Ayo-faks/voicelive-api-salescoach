@@ -18,6 +18,18 @@ export interface Message {
   timestamp: Date
 }
 
+export interface TokenUsageBreakdown {
+  topLevel: Record<string, number>
+  details: Record<string, Record<string, number>>
+}
+
+export interface TokenUsageEvent {
+  id: string
+  responseId?: string
+  timestamp: Date
+  usage: TokenUsageBreakdown
+}
+
 export interface Assessment {
   ai_assessment?: {
     speaking_tone_style: {

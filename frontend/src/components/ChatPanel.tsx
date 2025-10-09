@@ -3,20 +3,15 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-  Card,
-  Button,
-  Text,
-  makeStyles,
-  tokens,
-} from '@fluentui/react-components'
+import { Card, Button, Text, makeStyles, tokens } from '@fluentui/react-components'
 import {
   MicRegular,
   MicOffRegular,
   DeleteRegular,
   ChartMultipleRegular,
 } from '@fluentui/react-icons'
-import { Message, Scenario } from '../types'
+import { Message, Scenario, TokenUsageBreakdown } from '../types'
+import { TokenUsagePanel } from './TokenUsagePanel'
 
 const useStyles = makeStyles({
   card: {
@@ -74,6 +69,9 @@ const useStyles = makeStyles({
     gap: tokens.spacingHorizontalS,
     marginTop: tokens.spacingVerticalS,
   },
+  usagePanel: {
+    marginBottom: tokens.spacingVerticalM,
+  },
 })
 
 interface Props {
@@ -85,6 +83,9 @@ interface Props {
   onClear: () => void
   onAnalyze: () => void
   scenario?: Scenario | null
+  tokenUsage: TokenUsageBreakdown | null
+  tokenTotals: TokenUsageBreakdown
+  elapsedMinutes: number
 }
 
 export function ChatPanel({
@@ -96,6 +97,9 @@ export function ChatPanel({
   onClear,
   onAnalyze,
   scenario,
+  tokenUsage,
+  tokenTotals,
+  elapsedMinutes,
 }: Props) {
   const styles = useStyles()
 
@@ -141,6 +145,14 @@ export function ChatPanel({
               ))}
           </>
         )}
+      </div>
+
+      <div className={styles.usagePanel}>
+        <TokenUsagePanel
+          latestUsage={tokenUsage}
+          totals={tokenTotals}
+          elapsedMinutes={elapsedMinutes}
+        />
       </div>
 
       <div className={styles.controls}>
