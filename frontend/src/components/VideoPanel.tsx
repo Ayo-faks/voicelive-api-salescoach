@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React from 'react'
 import { Card, makeStyles, tokens } from '@fluentui/react-components'
+import React from 'react'
 
 const useStyles = makeStyles({
   card: {

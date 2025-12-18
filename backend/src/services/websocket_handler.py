@@ -3,17 +3,26 @@
 #  Licensed under the MIT License. See LICENSE in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-"""WebSocket handling for voice proxy connections."""
+"""WebSocket handling for voice proxy connections using Azure AI VoiceLive SDK."""
 
 import asyncio
 import json
 import logging
-import uuid
 from typing import Any, Dict, Optional
 
 import simple_websocket.ws  # pyright: ignore[reportMissingTypeStubs]
-import websockets
-import websockets.asyncio.client
+from azure.ai.voicelive.aio import ConnectionClosed, ConnectionError, VoiceLiveConnection, connect
+from azure.ai.voicelive.models import (
+    AudioEchoCancellation,
+    AudioNoiseReduction,
+    AvatarConfig,
+    AzureSemanticVad,
+    AzureStandardVoice,
+    Modality,
+    RequestSession,
+    ServerEventType,
+)
+from azure.core.credentials import AzureKeyCredential
 
 from src.config import config
 from src.services.managers import AgentManager
@@ -23,10 +32,8 @@ logger = logging.getLogger(__name__)
 # WebSocket constants
 AZURE_VOICE_API_VERSION = "2025-05-01-preview"
 AZURE_COGNITIVE_SERVICES_DOMAIN = "cognitiveservices.azure.com"
-VOICE_AGENT_ENDPOINT = "voice-agent/realtime"
 
-# Session configuration constants
-DEFAULT_MODALITIES = ["text", "audio"]
+# Session configuration defaults
 DEFAULT_TURN_DETECTION_TYPE = "azure_semantic_vad"
 DEFAULT_NOISE_REDUCTION_TYPE = "azure_deep_noise_suppression"
 DEFAULT_ECHO_CANCELLATION_TYPE = "server_echo_cancellation"
@@ -45,7 +52,7 @@ LOG_MESSAGE_MAX_LENGTH = 100
 
 
 class VoiceProxyHandler:
-    """Handles WebSocket proxy connections between client and Azure Voice API."""
+    """Handles WebSocket proxy connections between client and Azure Voice API using VoiceLive SDK."""
 
     def __init__(self, agent_manager: AgentManager):
         """
@@ -63,36 +70,49 @@ class VoiceProxyHandler:
         Args:
             client_ws: The client WebSocket connection
         """
-
-        azure_ws = None
         current_agent_id = None
 
         try:
             current_agent_id = await self._get_agent_id_from_client(client_ws)
+            agent_config = self.agent_manager.get_agent(current_agent_id) if current_agent_id else None
 
-            azure_ws = await self._connect_to_azure(current_agent_id)
-            if not azure_ws:
-                await self._send_error(client_ws, "Failed to connect to Azure Voice API")
+            endpoint = self._build_endpoint()
+            credential = self._get_credential()
+            model = self._get_model(agent_config)
+            query_params = self._build_query_params(current_agent_id, agent_config)
+
+            if not credential:
+                await self._send_error(client_ws, "No API key found in configuration")
                 return
 
-            await self._send_message(
-                client_ws,
-                {"type": "proxy.connected", "message": "Connected to Azure Voice API"},
-            )
+            async with connect(
+                endpoint=endpoint,
+                credential=credential,
+                model=model,
+                api_version=AZURE_VOICE_API_VERSION,
+                query=query_params,
+            ) as azure_conn:
+                logger.info("Connected to Azure Voice API via SDK with agent: %s", current_agent_id or "default")
 
-            await self._handle_message_forwarding(client_ws, azure_ws)
+                await self._send_message(
+                    client_ws,
+                    {"type": PROXY_CONNECTED_TYPE, "message": "Connected to Azure Voice API"},
+                )
 
+                await self._send_initial_config(azure_conn, agent_config)
+                await self._handle_message_forwarding(client_ws, azure_conn)
+
+        except ConnectionClosed as e:
+            logger.info("VoiceLive connection closed: code=%s, reason=%s", e.code, e.reason)
+        except ConnectionError as e:
+            logger.error("VoiceLive connection error: %s", e)
+            await self._send_error(client_ws, str(e))
         except Exception as e:
             logger.error("Proxy error: %s", e)
             await self._send_error(client_ws, str(e))
 
-        finally:
-            if azure_ws:
-                await azure_ws.close()
-
     async def _get_agent_id_from_client(self, client_ws: simple_websocket.ws.Server) -> Optional[str]:
         """Get agent ID from initial client message."""
-
         try:
             first_message: str | None = await asyncio.get_event_loop().run_in_executor(
                 None,
@@ -100,118 +120,93 @@ class VoiceProxyHandler:
             )
             if first_message:
                 msg = json.loads(first_message)
-                if msg.get("type") == "session.update":
+                if msg.get("type") == SESSION_UPDATE_TYPE:
                     return msg.get("session", {}).get("agent_id")
         except Exception as e:
             logger.error("Error getting agent ID: %s", e)
-            return None
+        return None
 
-    async def _connect_to_azure(self, agent_id: Optional[str]) -> Optional[websockets.asyncio.client.ClientConnection]:
-        """Connect to Azure Voice API with appropriate configuration."""
-        try:
-            agent_config = self.agent_manager.get_agent(agent_id) if agent_id else None
-
-            azure_url = self._build_azure_url(agent_id, agent_config)
-
-            api_key = config.get("azure_openai_api_key")
-            if not api_key:
-                logger.error("No API key found in configuration (azure_openai_api_key)")
-                return None
-
-            headers = {"api-key": api_key}
-
-            azure_ws = await websockets.connect(azure_url, additional_headers=headers)
-            logger.info("Connected to Azure Voice API with agent: %s", agent_id or "default")
-
-            await self._send_initial_config(azure_ws, agent_config)
-
-            return azure_ws
-
-        except Exception as e:
-            logger.error("Failed to connect to Azure: %s", e)
-            return None
-
-    def _build_azure_url(self, agent_id: Optional[str], agent_config: Optional[Dict[str, Any]]) -> str:
-        """Build the Azure WebSocket URL."""
-        base_url = self._build_base_azure_url()
-
-        if agent_config:
-            return self._build_agent_specific_url(base_url, agent_id, agent_config)
-        if config["agent_id"]:
-            return f"{base_url}&agent-id={config['agent_id']}"
-        model_name = config["model_deployment_name"]
-        return f"{base_url}&model={model_name}"
-
-    def _build_base_azure_url(self) -> str:
-        """Build the base Azure WebSocket URL."""
+    def _build_endpoint(self) -> str:
+        """Build the Azure endpoint URL."""
         resource_name = config["azure_ai_resource_name"]
+        return f"https://{resource_name}.{AZURE_COGNITIVE_SERVICES_DOMAIN}"
 
-        client_request_id = uuid.uuid4()
+    def _get_credential(self) -> Optional[AzureKeyCredential]:
+        """Get the Azure credential."""
+        api_key = config.get("azure_openai_api_key")
+        if not api_key:
+            logger.error("No API key found in configuration (azure_openai_api_key)")
+            return None
+        return AzureKeyCredential(api_key)
 
-        return (
-            f"wss://{resource_name}.{AZURE_COGNITIVE_SERVICES_DOMAIN}/"
-            f"{VOICE_AGENT_ENDPOINT}?api-version={AZURE_VOICE_API_VERSION}"
-            f"&x-ms-client-request-id={client_request_id}"
-        )
+    def _get_model(self, agent_config: Optional[Dict[str, Any]]) -> Optional[str]:
+        """Get the model name for the connection."""
+        if agent_config and agent_config.get("is_azure_agent"):
+            return None
+        if agent_config:
+            return agent_config.get("model", config["model_deployment_name"])
+        if config["agent_id"]:
+            return None
+        return config["model_deployment_name"]
 
-    def _build_agent_specific_url(self, base_url: str, agent_id: Optional[str], agent_config: Dict[str, Any]) -> str:
-        """Build URL for specific agent configuration."""
-        project_name = config["azure_ai_project_name"]
-        if agent_config.get("is_azure_agent"):
-            return f"{base_url}&agent-id={agent_id}" f"&agent-project-name={project_name}"
-        model_name = agent_config.get("model", config["model_deployment_name"])
-        return f"{base_url}&model={model_name}"
+    def _build_query_params(
+        self, agent_id: Optional[str], agent_config: Optional[Dict[str, Any]]
+    ) -> Dict[str, str]:
+        """Build additional query parameters for the connection."""
+        params: Dict[str, str] = {}
+
+        if agent_config and agent_config.get("is_azure_agent"):
+            params["agent-id"] = agent_id or ""
+            project_name = config["azure_ai_project_name"]
+            if project_name:
+                params["agent-project-name"] = project_name
+        elif not agent_config and config["agent_id"]:
+            params["agent-id"] = config["agent_id"]
+
+        return params
 
     async def _send_initial_config(
         self,
-        azure_ws: websockets.asyncio.client.ClientConnection,
+        azure_conn: VoiceLiveConnection,
         agent_config: Optional[Dict[str, Any]],
     ) -> None:
-        """Send initial configuration to Azure."""
-        config_message = self._build_session_config()
+        """Send initial configuration to Azure using SDK typed models."""
+        session_config = self._build_session_config(agent_config)
+        await azure_conn.session.update(session=session_config)
+        logger.debug("Sent initial session configuration via SDK")
+
+    def _build_session_config(self, agent_config: Optional[Dict[str, Any]]) -> RequestSession:
+        """Build the session configuration using SDK typed models."""
+        voice_name = config.get("azure_voice_name", DEFAULT_VOICE_NAME)
+        voice_type = config.get("azure_voice_type", DEFAULT_VOICE_TYPE)
+        avatar_character = config.get("azure_avatar_character", DEFAULT_AVATAR_CHARACTER)
+        avatar_style = config.get("azure_avatar_style", DEFAULT_AVATAR_STYLE)
+
+        session = RequestSession(
+            modalities=[Modality.TEXT, Modality.AUDIO, Modality.AVATAR],
+            turn_detection=AzureSemanticVad(type=DEFAULT_TURN_DETECTION_TYPE),
+            input_audio_noise_reduction=AudioNoiseReduction(type=DEFAULT_NOISE_REDUCTION_TYPE),
+            input_audio_echo_cancellation=AudioEchoCancellation(type=DEFAULT_ECHO_CANCELLATION_TYPE),
+            voice=AzureStandardVoice(name=voice_name, type=voice_type),
+            avatar=AvatarConfig(character=avatar_character, style=avatar_style),
+        )
 
         if agent_config and not agent_config.get("is_azure_agent"):
-            self._add_local_agent_config(config_message, agent_config)
+            session["instructions"] = agent_config.get("instructions")
+            session["temperature"] = agent_config.get("temperature")
+            session["max_response_output_tokens"] = agent_config.get("max_tokens")
 
-        await azure_ws.send(json.dumps(config_message))
-
-    def _build_session_config(self) -> Dict[str, Any]:
-        """Build the base session configuration."""
-        return {
-            "type": SESSION_UPDATE_TYPE,
-            "session": {
-                "modalities": DEFAULT_MODALITIES,
-                "turn_detection": {"type": DEFAULT_TURN_DETECTION_TYPE},
-                "input_audio_noise_reduction": {"type": DEFAULT_NOISE_REDUCTION_TYPE},
-                "input_audio_echo_cancellation": {"type": DEFAULT_ECHO_CANCELLATION_TYPE},
-                "avatar": {
-                    "character": DEFAULT_AVATAR_CHARACTER,
-                    "style": DEFAULT_AVATAR_STYLE,
-                },
-                "voice": {
-                    "name": config["azure_voice_name"],
-                    "type": config["azure_voice_type"],
-                },
-            },
-        }
-
-    def _add_local_agent_config(self, config_message: Dict[str, Any], agent_config: Dict[str, Any]) -> None:
-        """Add local agent configuration to session config."""
-        session = config_message["session"]
-        session["model"] = agent_config.get("model", config["model_deployment_name"])
-        session["instructions"] = agent_config["instructions"]
-        session["temperature"] = agent_config["temperature"]
-        session["max_response_output_tokens"] = agent_config["max_tokens"]
+        return session
 
     async def _handle_message_forwarding(
         self,
         client_ws: simple_websocket.ws.Server,
-        azure_ws: websockets.asyncio.client.ClientConnection,
+        azure_conn: VoiceLiveConnection,
     ) -> None:
         """Handle bidirectional message forwarding."""
         tasks = [
-            asyncio.create_task(self._forward_client_to_azure(client_ws, azure_ws)),
-            asyncio.create_task(self._forward_azure_to_client(azure_ws, client_ws)),
+            asyncio.create_task(self._forward_client_to_azure(client_ws, azure_conn)),
+            asyncio.create_task(self._forward_azure_to_client(azure_conn, client_ws)),
         ]
 
         _, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
@@ -222,9 +217,9 @@ class VoiceProxyHandler:
     async def _forward_client_to_azure(
         self,
         client_ws: simple_websocket.ws.Server,
-        azure_ws: websockets.asyncio.client.ClientConnection,
+        azure_conn: VoiceLiveConnection,
     ) -> None:
-        """Forward messages from client to Azure."""
+        """Forward messages from client to Azure using SDK."""
         try:
             while True:
                 message: Optional[Any] = await asyncio.get_event_loop().run_in_executor(
@@ -233,27 +228,49 @@ class VoiceProxyHandler:
                 )
                 if message is None:
                     break
-                logger.debug("Client->Azure: %s", message[:LOG_MESSAGE_MAX_LENGTH])
-                await azure_ws.send(message)
-        except Exception:
-            logger.debug("Client connection closed during forwarding")
+
+                logger.debug("Client->Azure: %s", str(message)[:LOG_MESSAGE_MAX_LENGTH])
+
+                if isinstance(message, str):
+                    parsed = json.loads(message)
+                    await azure_conn.send(parsed)
+                else:
+                    await azure_conn.send(message)
+
+        except ConnectionClosed:
+            logger.debug("Azure connection closed during client forwarding")
+        except Exception as e:
+            logger.debug("Client connection closed during forwarding: %s", e)
 
     async def _forward_azure_to_client(
         self,
-        azure_ws: websockets.asyncio.client.ClientConnection,
+        azure_conn: VoiceLiveConnection,
         client_ws: simple_websocket.ws.Server,
     ) -> None:
-        """Forward messages from Azure to client."""
+        """Forward messages from Azure to client using SDK typed events."""
         try:
-            async for message in azure_ws:
+            async for event in azure_conn:
+                event_dict = event.as_dict() if hasattr(event, "as_dict") else dict(event)
+                message = json.dumps(event_dict)
                 logger.debug("Azure->Client: %s", message[:LOG_MESSAGE_MAX_LENGTH])
+
                 await asyncio.get_event_loop().run_in_executor(
                     None,
                     client_ws.send,  # pyright: ignore[reportUnknownArgumentType,reportUnknownMemberType]
                     message,
                 )
-        except Exception:
-            logger.debug("Client connection closed during forwarding")
+
+                if event.type == ServerEventType.ERROR:
+                    logger.warning("Azure error event: %s", event_dict)
+                elif event.type == ServerEventType.SESSION_CREATED:
+                    logger.info("Session created: %s", event_dict.get("session", {}).get("id"))
+                elif event.type == ServerEventType.SESSION_UPDATED:
+                    logger.info("Session updated")
+
+        except ConnectionClosed as e:
+            logger.debug("Azure connection closed: code=%s, reason=%s", e.code, e.reason)
+        except Exception as e:
+            logger.debug("Error forwarding Azure messages: %s", e)
 
     async def _send_message(self, ws: simple_websocket.ws.Server, message: Dict[str, str | Dict[str, str]]) -> None:
         """Send a JSON message to a WebSocket."""
@@ -268,4 +285,4 @@ class VoiceProxyHandler:
 
     async def _send_error(self, ws: simple_websocket.ws.Server, error_message: str) -> None:
         """Send an error message to a WebSocket."""
-        await self._send_message(ws, {"type": "error", "error": {"message": error_message}})
+        await self._send_message(ws, {"type": ERROR_TYPE, "error": {"message": error_message}})
