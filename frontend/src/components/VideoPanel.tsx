@@ -28,7 +28,7 @@ const useStyles = makeStyles({
 })
 
 interface Props {
-  videoRef: React.RefObject<HTMLVideoElement>
+  videoRef: React.RefObject<HTMLVideoElement | null>
 }
 
 export function VideoPanel({ videoRef }: Props) {
