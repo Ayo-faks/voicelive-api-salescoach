@@ -91,7 +91,7 @@ export function useRealtime(options: RealtimeOptions) {
 
     ws.onclose = () => setConnected(false)
     wsRef.current = ws
-  }, [options.agentId])
+  }, [options.agentId, options.onMessage, options.onAudioDelta, options.onTranscript])
 
   const send = useCallback((data: any) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
