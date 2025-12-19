@@ -20,6 +20,7 @@ export function useRealtime(options: RealtimeOptions) {
   const audioRecording = useRef<any[]>([])
   const conversationRecording = useRef<any[]>([])
 
+   
   const connect = useCallback(async () => {
     const config = await fetch('/api/config').then(r => r.json())
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:'
@@ -91,7 +92,8 @@ export function useRealtime(options: RealtimeOptions) {
 
     ws.onclose = () => setConnected(false)
     wsRef.current = ws
-  }, [options])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options.agentId])
 
   const send = useCallback((data: any) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
