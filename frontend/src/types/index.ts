@@ -70,7 +70,11 @@ export interface AvatarOption {
 }
 
 export const AVATAR_OPTIONS: AvatarOption[] = [
-  { value: 'lisa-casual-sitting', label: 'Lisa (Casual Sitting)', isPhotoAvatar: false },
+  {
+    value: 'lisa-casual-sitting',
+    label: 'Lisa (Casual Sitting)',
+    isPhotoAvatar: false,
+  },
   { value: 'riya', label: 'Riya (Photo)', isPhotoAvatar: true },
   { value: 'simone', label: 'Simone (Photo)', isPhotoAvatar: true },
 ]

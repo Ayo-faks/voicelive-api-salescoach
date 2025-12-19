@@ -30,44 +30,62 @@ export function useScenarios() {
   const scenarios: Scenario[] = [...serverScenarios, ...customScenarios]
 
   // Get a specific custom scenario by ID
-  const getCustomScenario = useCallback((id: string): CustomScenario | null => {
-    return customScenarios.find(s => s.id === id) || null
-  }, [customScenarios])
+  const getCustomScenario = useCallback(
+    (id: string): CustomScenario | null => {
+      return customScenarios.find(s => s.id === id) || null
+    },
+    [customScenarios]
+  )
 
   // Add a new custom scenario
-  const addCustomScenario = useCallback((
-    name: string,
-    description: string,
-    scenarioData: CustomScenarioData
-  ): CustomScenario => {
-    const newScenario = customScenarioService.save(name, description, scenarioData)
-    setCustomScenarios(prev => [...prev, newScenario])
-    return newScenario
-  }, [])
+  const addCustomScenario = useCallback(
+    (
+      name: string,
+      description: string,
+      scenarioData: CustomScenarioData
+    ): CustomScenario => {
+      const newScenario = customScenarioService.save(
+        name,
+        description,
+        scenarioData
+      )
+      setCustomScenarios(prev => [...prev, newScenario])
+      return newScenario
+    },
+    []
+  )
 
   // Update a custom scenario
-  const updateCustomScenario = useCallback((
-    id: string,
-    updates: Partial<Pick<CustomScenario, 'name' | 'description' | 'scenarioData'>>
-  ): CustomScenario | null => {
-    const updated = customScenarioService.update(id, updates)
-    if (updated) {
-      setCustomScenarios(prev => prev.map(s => s.id === id ? updated : s))
-    }
-    return updated
-  }, [])
+  const updateCustomScenario = useCallback(
+    (
+      id: string,
+      updates: Partial<
+        Pick<CustomScenario, 'name' | 'description' | 'scenarioData'>
+      >
+    ): CustomScenario | null => {
+      const updated = customScenarioService.update(id, updates)
+      if (updated) {
+        setCustomScenarios(prev => prev.map(s => (s.id === id ? updated : s)))
+      }
+      return updated
+    },
+    []
+  )
 
   // Delete a custom scenario
-  const deleteCustomScenario = useCallback((id: string): boolean => {
-    const deleted = customScenarioService.delete(id)
-    if (deleted) {
-      setCustomScenarios(prev => prev.filter(s => s.id !== id))
-      if (selectedScenario === id) {
-        setSelectedScenario(null)
+  const deleteCustomScenario = useCallback(
+    (id: string): boolean => {
+      const deleted = customScenarioService.delete(id)
+      if (deleted) {
+        setCustomScenarios(prev => prev.filter(s => s.id !== id))
+        if (selectedScenario === id) {
+          setSelectedScenario(null)
+        }
       }
-    }
-    return deleted
-  }, [selectedScenario])
+      return deleted
+    },
+    [selectedScenario]
+  )
 
   return {
     scenarios,
