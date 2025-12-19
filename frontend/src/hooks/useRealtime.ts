@@ -20,7 +20,6 @@ export function useRealtime(options: RealtimeOptions) {
   const audioRecording = useRef<any[]>([])
   const conversationRecording = useRef<any[]>([])
 
-   
   const connect = useCallback(async () => {
     const config = await fetch('/api/config').then(r => r.json())
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:'
