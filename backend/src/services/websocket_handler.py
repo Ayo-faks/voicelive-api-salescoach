@@ -11,7 +11,12 @@ import logging
 from typing import Any, Dict, Optional
 
 import simple_websocket.ws  # pyright: ignore[reportMissingTypeStubs]
-from azure.ai.voicelive.aio import ConnectionClosed, ConnectionError, VoiceLiveConnection, connect
+from azure.ai.voicelive.aio import (
+    ConnectionClosed,
+    ConnectionError as VoiceLiveConnectionError,
+    VoiceLiveConnection,
+    connect,
+)
 from azure.ai.voicelive.models import (
     AudioEchoCancellation,
     AudioNoiseReduction,
@@ -104,7 +109,7 @@ class VoiceProxyHandler:
 
         except ConnectionClosed as e:
             logger.info("VoiceLive connection closed: code=%s, reason=%s", e.code, e.reason)
-        except ConnectionError as e:
+        except VoiceLiveConnectionError as e:
             logger.error("VoiceLive connection error: %s", e)
             await self._send_error(client_ws, str(e))
         except Exception as e:

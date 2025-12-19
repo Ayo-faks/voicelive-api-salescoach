@@ -193,7 +193,9 @@ CRITICAL INTERACTION GUIDELINES:
             logger.error("Failed to initialize AI Project client: %s", e)
             return None
 
-    def create_agent(self, scenario_id: str, scenario_data: Dict[str, Any], avatar_config: Optional[Dict[str, Any]] = None) -> str:
+    def create_agent(
+        self, scenario_id: str, scenario_data: Dict[str, Any], avatar_config: Optional[Dict[str, Any]] = None
+    ) -> str:
         """
         Create a new virtual agent for a scenario.
 
