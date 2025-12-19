@@ -7,6 +7,7 @@ import {
   Button,
   Card,
   CardHeader,
+  Divider,
   Dropdown,
   Label,
   Option,
@@ -15,9 +16,11 @@ import {
   makeStyles,
   tokens,
 } from '@fluentui/react-components'
+import { Edit24Regular } from '@fluentui/react-icons'
 import { useState } from 'react'
 import { api } from '../services/api'
-import { AVATAR_OPTIONS, DEFAULT_AVATAR, Scenario } from '../types'
+import { AVATAR_OPTIONS, CustomScenario, CustomScenarioData, DEFAULT_AVATAR, Scenario } from '../types'
+import { CustomScenarioEditor } from './CustomScenarioEditor'
 
 const useStyles = makeStyles({
   container: {
@@ -28,6 +31,12 @@ const useStyles = makeStyles({
   },
   header: {
     gridColumn: '1 / -1',
+  },
+  sectionHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: tokens.spacingVerticalM,
   },
   cardsGrid: {
     display: 'grid',
@@ -50,6 +59,9 @@ const useStyles = makeStyles({
   selected: {
     backgroundColor: tokens.colorBrandBackground2,
   },
+  customCard: {
+    borderLeft: `3px solid ${tokens.colorBrandForeground1}`,
+  },
   actions: {
     gridColumn: '1 / -1',
     display: 'flex',
@@ -71,6 +83,11 @@ const useStyles = makeStyles({
     fontSize: '24px',
     marginRight: tokens.spacingHorizontalS,
   },
+  customIcon: {
+    fontSize: '20px',
+    marginRight: tokens.spacingHorizontalXS,
+    color: tokens.colorBrandForeground1,
+  },
   avatarSelector: {
     display: 'flex',
     alignItems: 'center',
@@ -80,22 +97,43 @@ const useStyles = makeStyles({
   avatarDropdown: {
     minWidth: '200px',
   },
+  cardActions: {
+    display: 'flex',
+    gap: tokens.spacingHorizontalXS,
+  },
+  editButton: {
+    minWidth: 'auto',
+    padding: tokens.spacingHorizontalXS,
+  },
+  emptyCustom: {
+    textAlign: 'center',
+    padding: tokens.spacingVerticalL,
+    color: tokens.colorNeutralForeground3,
+  },
 })
 
 interface Props {
   scenarios: Scenario[]
+  customScenarios: CustomScenario[]
   selectedScenario: string | null
   onSelect: (id: string) => void
   onStart: (avatarValue: string) => void
   onScenarioGenerated?: (scenario: Scenario) => void
+  onAddCustomScenario: (name: string, description: string, data: CustomScenarioData) => void
+  onUpdateCustomScenario: (id: string, updates: Partial<Pick<CustomScenario, 'name' | 'description' | 'scenarioData'>>) => void
+  onDeleteCustomScenario: (id: string) => void
 }
 
 export function ScenarioList({
   scenarios,
+  customScenarios,
   selectedScenario,
   onSelect,
   onStart,
   onScenarioGenerated,
+  onAddCustomScenario,
+  onUpdateCustomScenario,
+  onDeleteCustomScenario,
 }: Props) {
   const styles = useStyles()
   const [loadingGraph, setLoadingGraph] = useState(false)
@@ -127,16 +165,22 @@ export function ScenarioList({
     }
   }
 
-  // Build the complete scenario list
+  // Build the complete scenario list (server scenarios only, custom handled separately)
   const allScenarios = generatedScenario
     ? [...scenarios.filter(s => !s.is_graph_scenario), generatedScenario]
     : scenarios
+
+  const handleEditCustomScenario = (scenario: CustomScenario, name: string, description: string, data: CustomScenarioData) => {
+    onUpdateCustomScenario(scenario.id, { name, description, scenarioData: data })
+  }
 
   return (
     <>
       <Text className={styles.header} size={500} weight="semibold">
         Select Training Scenario
       </Text>
+
+      {/* Server-side scenarios */}
       <div className={styles.cardsGrid}>
         {allScenarios.map(scenario => {
           const isSelected = selectedScenario === scenario.id
@@ -181,6 +225,62 @@ export function ScenarioList({
           )
         })}
       </div>
+
+      {/* Custom scenarios section */}
+      <Divider style={{ marginTop: tokens.spacingVerticalL }} />
+
+      <div className={styles.sectionHeader}>
+        <CustomScenarioEditor
+          onSave={onAddCustomScenario}
+        />
+      </div>
+
+      {customScenarios.length === 0 ? (
+        <Text className={styles.emptyCustom} size={200}>
+          No custom scenarios yet. Create one to practice with your own role-play situations.
+        </Text>
+      ) : (
+        <div className={styles.cardsGrid}>
+          {customScenarios.map(scenario => {
+            const isSelected = selectedScenario === scenario.id
+
+            return (
+              <Card
+                key={scenario.id}
+                className={`${styles.card} ${styles.customCard} ${isSelected ? styles.selected : ''}`}
+                onClick={() => onSelect(scenario.id)}
+              >
+                <CardHeader
+                  header={
+                    <Text weight="semibold">
+                      {scenario.name}
+                    </Text>
+                  }
+                  description={<Text size={200}>{scenario.description}</Text>}
+                  action={
+                    <div className={styles.cardActions} onClick={e => e.stopPropagation()}>
+                      <CustomScenarioEditor
+                        scenario={scenario}
+                        onSave={(name, description, data) => handleEditCustomScenario(scenario, name, description, data)}
+                        onDelete={onDeleteCustomScenario}
+                        trigger={
+                          <Button
+                            appearance="subtle"
+                            icon={<Edit24Regular />}
+                            className={styles.editButton}
+                            size="small"
+                          />
+                        }
+                      />
+                    </div>
+                  }
+                />
+              </Card>
+            )
+          })}
+        </div>
+      )}
+
       <div className={styles.actions}>
         <div className={styles.avatarSelector}>
           <Label htmlFor="avatar-select">Avatar:</Label>

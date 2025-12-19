@@ -51,6 +51,17 @@ AUDIO_BITS_PER_SAMPLE = 16
 MAX_STRENGTHS_COUNT = 3
 MAX_IMPROVEMENTS_COUNT = 3
 
+# Fallback evaluation prompt for custom scenarios
+FALLBACK_EVALUATION_PROMPT = """You are an expert communication coach evaluating a role-play conversation.
+
+Evaluate the user's performance based on:
+- Communication clarity and professionalism
+- Active listening and engagement
+- Problem-solving and responsiveness
+- Achievement of conversation objectives
+
+Provide constructive feedback to help improve their skills."""
+
 
 class ConversationAnalyzer:
     """Analyzes sales conversations using Azure OpenAI."""
@@ -136,8 +147,8 @@ class ConversationAnalyzer:
 
         evaluation_scenario = self.evaluation_scenarios.get(scenario_id)
         if not evaluation_scenario:
-            logger.error("Evaluation scenario not found: %s", scenario_id)
-            return None
+            logger.info("Using fallback evaluation for scenario: %s", scenario_id)
+            evaluation_scenario = {"messages": [{"content": FALLBACK_EVALUATION_PROMPT}]}
 
         if not self.openai_client:
             logger.error("OpenAI client not configured")

@@ -66,12 +66,14 @@ class TestConversationAnalyzer:
         mock_azure_openai.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_analyze_conversation_missing_scenario(self):
-        """Test analyzing conversation with missing scenario."""
+    async def test_analyze_conversation_uses_fallback_for_unknown_scenario(self):
+        """Test analyzing conversation uses fallback prompt for unknown scenarios."""
         analyzer = ConversationAnalyzer()
         analyzer.evaluation_scenarios = {}
+        analyzer.openai_client = None  # No client configured
 
         result = await analyzer.analyze_conversation("nonexistent", "test transcript")
+        # Returns None because openai_client is not configured, not because scenario is missing
         assert result is None
 
     def test_build_evaluation_prompt(self):

@@ -66,8 +66,18 @@ export default function App() {
   const [assessment, setAssessment] = useState<Assessment | null>(null)
   const [selectedScenarioData, setSelectedScenarioData] = useState<any>(null)
 
-  const { scenarios, selectedScenario, setSelectedScenario, loading } =
-    useScenarios()
+  const {
+    scenarios,
+    serverScenarios,
+    customScenarios,
+    selectedScenario,
+    setSelectedScenario,
+    loading,
+    getCustomScenario,
+    addCustomScenario,
+    updateCustomScenario,
+    deleteCustomScenario,
+  } = useScenarios()
   const { playAudio } = useAudioPlayer()
   const activeScenario =
     selectedScenarioData ||
@@ -134,7 +144,18 @@ export default function App() {
 
     try {
       const avatarConfig = parseAvatarValue(avatarValue)
-      const { agent_id } = await api.createAgent(selectedScenario, avatarConfig)
+      const customScenario = getCustomScenario(selectedScenario)
+
+      const { agent_id } = customScenario
+        ? await api.createAgentWithCustomScenario(
+            selectedScenario,
+            customScenario.name,
+            customScenario.description,
+            customScenario.scenarioData,
+            avatarConfig
+          )
+        : await api.createAgent(selectedScenario, avatarConfig)
+
       setCurrentAgent(agent_id)
       setShowSetup(false)
     } catch (error) {
@@ -189,11 +210,15 @@ export default function App() {
               <Spinner label="Loading scenarios..." />
             ) : (
               <ScenarioList
-                scenarios={scenarios}
+                scenarios={serverScenarios}
+                customScenarios={customScenarios}
                 selectedScenario={selectedScenario}
                 onSelect={setSelectedScenario}
                 onStart={handleStart}
                 onScenarioGenerated={handleScenarioGenerated}
+                onAddCustomScenario={addCustomScenario}
+                onUpdateCustomScenario={updateCustomScenario}
+                onDeleteCustomScenario={deleteCustomScenario}
               />
             )}
           </DialogBody>

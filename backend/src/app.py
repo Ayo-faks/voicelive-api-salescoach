@@ -96,23 +96,35 @@ def get_scenario(scenario_id: str):
 
 @app.route(API_AGENTS_CREATE_ENDPOINT, methods=["POST"])
 def create_agent():
-    """Create a new agent for a scenario."""
+    """Create a new agent for a scenario.
+
+    Supports two modes:
+    1. Server-side scenario: Pass scenario_id to use a pre-defined scenario
+    2. Custom scenario: Pass custom_scenario with full scenario data (for client-side scenarios)
+    """
     data = cast(Dict[str, Any], request.json)
     scenario_id = data.get("scenario_id")
+    custom_scenario = data.get("custom_scenario")
     avatar_config = data.get("avatar")
 
-    if not scenario_id:
-        return jsonify({"error": SCENARIO_ID_REQUIRED}), HTTP_BAD_REQUEST
+    # Support custom scenarios passed directly from the client
+    if custom_scenario:
+        scenario = custom_scenario
+        scenario_id = custom_scenario.get("id", f"custom-{int(time.time())}")
+        logger.info("Creating agent with custom scenario: %s", scenario_id)
+    else:
+        if not scenario_id:
+            return jsonify({"error": SCENARIO_ID_REQUIRED}), HTTP_BAD_REQUEST
 
-    scenario = scenario_manager.get_scenario(scenario_id)
-    if not scenario:
-        logger.error(
-            "Scenario not found: %s. Available scenarios: %s + generated: %s",
-            scenario_id,
-            list(scenario_manager.scenarios.keys()),
-            list(scenario_manager.generated_scenarios.keys()),
-        )
-        return jsonify({"error": SCENARIO_NOT_FOUND}), HTTP_NOT_FOUND
+        scenario = scenario_manager.get_scenario(scenario_id)
+        if not scenario:
+            logger.error(
+                "Scenario not found: %s. Available scenarios: %s + generated: %s",
+                scenario_id,
+                list(scenario_manager.scenarios.keys()),
+                list(scenario_manager.generated_scenarios.keys()),
+            )
+            return jsonify({"error": SCENARIO_NOT_FOUND}), HTTP_NOT_FOUND
 
     try:
         agent_id = agent_manager.create_agent(scenario_id, scenario, avatar_config)

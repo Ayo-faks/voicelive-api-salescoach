@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Assessment, AVATAR_OPTIONS, Scenario } from '../types'
+import { Assessment, AVATAR_OPTIONS, CustomScenarioData, Scenario } from '../types'
 
 export interface AvatarConfig {
   character: string
@@ -55,6 +55,34 @@ export const api = {
       }),
     })
     if (!res.ok) throw new Error('Failed to create agent')
+    return res.json()
+  },
+
+  /**
+   * Create an agent with a custom scenario
+   * Transforms the simplified scenario data into the backend format
+   */
+  async createAgentWithCustomScenario(
+    scenarioId: string,
+    name: string,
+    description: string,
+    scenarioData: CustomScenarioData,
+    avatarConfig?: AvatarConfig
+  ) {
+    const res = await fetch('/api/agents/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        custom_scenario: {
+          id: scenarioId,
+          name,
+          description,
+          messages: [{ role: 'system', content: scenarioData.systemPrompt }],
+        },
+        avatar: avatarConfig,
+      }),
+    })
+    if (!res.ok) throw new Error('Failed to create agent with custom scenario')
     return res.json()
   },
 

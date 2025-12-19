@@ -104,7 +104,31 @@ class TestFlaskApp:
         data = json.loads(response.data)
         assert data["agent_id"] == "agent-123"
         assert data["scenario_id"] == "test-scenario"
-        mock_agent_manager.create_agent.assert_called_once_with("test-scenario", mock_scenario)
+        mock_agent_manager.create_agent.assert_called_once_with("test-scenario", mock_scenario, None)
+
+    @patch("src.app.agent_manager")
+    @patch("src.app.scenario_manager")
+    def test_create_agent_with_custom_scenario(self, mock_scenario_manager, mock_agent_manager):
+        """Test agent creation with custom scenario data."""
+        custom_scenario = {
+            "id": "custom-123",
+            "name": "Custom Scenario",
+            "messages": [{"role": "system", "content": "You are a test assistant"}],
+        }
+        mock_agent_manager.create_agent.return_value = "agent-456"
+
+        response = self.client.post(
+            "/api/agents/create",
+            json={"custom_scenario": custom_scenario},
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["agent_id"] == "agent-456"
+        assert data["scenario_id"] == "custom-123"
+        # Should not call get_scenario for custom scenarios
+        mock_scenario_manager.get_scenario.assert_not_called()
+        mock_agent_manager.create_agent.assert_called_once_with("custom-123", custom_scenario, None)
 
     def test_create_agent_missing_scenario_id(self):
         """Test agent creation without scenario_id."""
@@ -222,16 +246,8 @@ class TestFlaskApp:
             assert response.status_code == 200
             mock_send.assert_called_once_with("static", "audio-processor.js")
 
-    def test_perform_conversation_analysis_success(self):
-        """Test the _perform_conversation_analysis function exists and can be imported."""
-        # This is a complex async function, so we just test it can be imported
-        from src.app import _perform_conversation_analysis  # pylint: disable=C0415
-
-        assert callable(_perform_conversation_analysis)
-
-    def test_perform_conversation_analysis_with_exceptions(self):
-        """Test _perform_conversation_analysis function exists."""
-        # This is a complex async function, so we just test it can be imported
+    def test_perform_conversation_analysis_exists(self):
+        """Test the _perform_conversation_analysis function can be imported."""
         from src.app import _perform_conversation_analysis  # pylint: disable=C0415
 
         assert callable(_perform_conversation_analysis)

@@ -9,6 +9,18 @@ export interface Scenario {
   description: string
   is_graph_scenario?: boolean
   generated_from_graph?: boolean
+  is_custom?: boolean
+}
+
+export interface CustomScenarioData {
+  systemPrompt: string
+}
+
+export interface CustomScenario extends Scenario {
+  is_custom: true
+  scenarioData: CustomScenarioData
+  createdAt: string
+  updatedAt: string
 }
 
 export interface Message {
