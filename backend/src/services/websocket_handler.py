@@ -149,9 +149,7 @@ class VoiceProxyHandler:
             return None
         return config["model_deployment_name"]
 
-    def _build_query_params(
-        self, agent_id: Optional[str], agent_config: Optional[Dict[str, Any]]
-    ) -> Dict[str, str]:
+    def _build_query_params(self, agent_id: Optional[str], agent_config: Optional[Dict[str, Any]]) -> Dict[str, str]:
         """Build additional query parameters for the connection."""
         params: Dict[str, str] = {}
 
