@@ -51,11 +51,16 @@ export interface Assessment {
   }
 }
 
-export interface AgentConfig {
-  agent_id: string
-  scenario_id: string
+export interface AvatarOption {
+  value: string
+  label: string
+  isPhotoAvatar: boolean
 }
-export interface AgentConfig {
-  agent_id: string
-  scenario_id: string
-}
+
+export const AVATAR_OPTIONS: AvatarOption[] = [
+  { value: 'lisa-casual-sitting', label: 'Lisa (Casual Sitting)', isPhotoAvatar: false },
+  { value: 'riya', label: 'Riya (Photo)', isPhotoAvatar: true },
+  { value: 'simone', label: 'Simone (Photo)', isPhotoAvatar: true },
+]
+
+export const DEFAULT_AVATAR = 'lisa-casual-sitting'

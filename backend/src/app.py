@@ -99,6 +99,7 @@ def create_agent():
     """Create a new agent for a scenario."""
     data = cast(Dict[str, Any], request.json)
     scenario_id = data.get("scenario_id")
+    avatar_config = data.get("avatar")
 
     if not scenario_id:
         return jsonify({"error": SCENARIO_ID_REQUIRED}), HTTP_BAD_REQUEST
@@ -114,7 +115,7 @@ def create_agent():
         return jsonify({"error": SCENARIO_NOT_FOUND}), HTTP_NOT_FOUND
 
     try:
-        agent_id = agent_manager.create_agent(scenario_id, scenario)
+        agent_id = agent_manager.create_agent(scenario_id, scenario, avatar_config)
         return jsonify({"agent_id": agent_id, "scenario_id": scenario_id})
     except Exception as e:
         logger.error("Failed to create agent: %s", e)

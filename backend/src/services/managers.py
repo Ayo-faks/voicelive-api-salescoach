@@ -193,13 +193,14 @@ CRITICAL INTERACTION GUIDELINES:
             logger.error("Failed to initialize AI Project client: %s", e)
             return None
 
-    def create_agent(self, scenario_id: str, scenario_data: Dict[str, Any]) -> str:
+    def create_agent(self, scenario_id: str, scenario_data: Dict[str, Any], avatar_config: Optional[Dict[str, Any]] = None) -> str:
         """
         Create a new virtual agent for a scenario.
 
         Args:
             scenario_id: The scenario identifier
             scenario_data: The scenario configuration data
+            avatar_config: Optional avatar configuration with character, style, is_photo_avatar
 
         Returns:
             str: The created agent's ID
@@ -216,8 +217,14 @@ CRITICAL INTERACTION GUIDELINES:
         max_tokens = scenario_data.get("modelParameters", {}).get("max_tokens", 2000)
 
         if self.use_azure_ai_agents and self.project_client:
-            return self._create_azure_agent(scenario_id, combined_instructions, model_name, temperature, max_tokens)
-        return self._create_local_agent(scenario_id, combined_instructions, model_name, temperature, max_tokens)
+            agent_id = self._create_azure_agent(scenario_id, combined_instructions, model_name, temperature, max_tokens)
+        else:
+            agent_id = self._create_local_agent(scenario_id, combined_instructions, model_name, temperature, max_tokens)
+
+        if avatar_config and agent_id in self.agents:
+            self.agents[agent_id]["avatar_config"] = avatar_config
+
+        return agent_id
 
     def _create_azure_agent(
         self,

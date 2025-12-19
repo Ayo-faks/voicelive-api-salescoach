@@ -177,16 +177,51 @@ class VoiceProxyHandler:
         """Build the session configuration using SDK typed models."""
         voice_name = config.get("azure_voice_name", DEFAULT_VOICE_NAME)
         voice_type = config.get("azure_voice_type", DEFAULT_VOICE_TYPE)
+
         avatar_character = config.get("azure_avatar_character", DEFAULT_AVATAR_CHARACTER)
         avatar_style = config.get("azure_avatar_style", DEFAULT_AVATAR_STYLE)
+        is_photo_avatar = False
 
+        if agent_config and agent_config.get("avatar_config"):
+            custom_avatar = agent_config["avatar_config"]
+            avatar_character = custom_avatar.get("character", avatar_character)
+            avatar_style = custom_avatar.get("style", avatar_style)
+            is_photo_avatar = custom_avatar.get("is_photo_avatar", False)
+
+        avatar_config_value = self._build_avatar_config(avatar_character, avatar_style, is_photo_avatar)
+
+        return self._create_request_session(voice_name, voice_type, avatar_config_value, agent_config)
+
+    def _build_avatar_config(self, character: str, style: str, is_photo: bool) -> Any:
+        """Build avatar configuration for photo or video avatars."""
+        if is_photo:
+            return {
+                "type": "photo-avatar",
+                "model": "vasa-1",
+                "character": character,
+                "customized": False,
+            }
+        return AvatarConfig(
+            character=character,
+            style=style if style else None,
+            customized=False,
+        )
+
+    def _create_request_session(
+        self,
+        voice_name: str,
+        voice_type: str,
+        avatar_config_value: Any,
+        agent_config: Optional[Dict[str, Any]],
+    ) -> RequestSession:
+        """Create the RequestSession with all configuration."""
         session = RequestSession(
             modalities=[Modality.TEXT, Modality.AUDIO, Modality.AVATAR],
             turn_detection=AzureSemanticVad(type=DEFAULT_TURN_DETECTION_TYPE),
             input_audio_noise_reduction=AudioNoiseReduction(type=DEFAULT_NOISE_REDUCTION_TYPE),
             input_audio_echo_cancellation=AudioEchoCancellation(type=DEFAULT_ECHO_CANCELLATION_TYPE),
             voice=AzureStandardVoice(name=voice_name, type=voice_type),
-            avatar=AvatarConfig(character=avatar_character, style=avatar_style),
+            avatar=avatar_config_value,
         )
 
         if agent_config and not agent_config.get("is_azure_agent"):

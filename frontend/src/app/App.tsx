@@ -3,26 +3,26 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { useState, useCallback } from 'react'
 import {
   Dialog,
-  DialogSurface,
   DialogBody,
+  DialogSurface,
   Spinner,
   Text,
   makeStyles,
   tokens,
 } from '@fluentui/react-components'
+import { useCallback, useState } from 'react'
+import { AssessmentPanel } from '../components/AssessmentPanel'
+import { ChatPanel } from '../components/ChatPanel'
 import { ScenarioList } from '../components/ScenarioList'
 import { VideoPanel } from '../components/VideoPanel'
-import { ChatPanel } from '../components/ChatPanel'
-import { AssessmentPanel } from '../components/AssessmentPanel'
-import { useScenarios } from '../hooks/useScenarios'
-import { useRealtime } from '../hooks/useRealtime'
-import { useWebRTC } from '../hooks/useWebRTC'
-import { useRecorder } from '../hooks/useRecorder'
 import { useAudioPlayer } from '../hooks/useAudioPlayer'
-import { api } from '../services/api'
+import { useRealtime } from '../hooks/useRealtime'
+import { useRecorder } from '../hooks/useRecorder'
+import { useScenarios } from '../hooks/useScenarios'
+import { useWebRTC } from '../hooks/useWebRTC'
+import { api, parseAvatarValue } from '../services/api'
 import { Assessment } from '../types'
 
 const useStyles = makeStyles({
@@ -129,11 +129,12 @@ export default function App() {
   const { recording, toggleRecording, getAudioRecording } =
     useRecorder(sendAudioChunk)
 
-  const handleStart = async () => {
+  const handleStart = async (avatarValue: string) => {
     if (!selectedScenario) return
 
     try {
-      const { agent_id } = await api.createAgent(selectedScenario)
+      const avatarConfig = parseAvatarValue(avatarValue)
+      const { agent_id } = await api.createAgent(selectedScenario, avatarConfig)
       setCurrentAgent(agent_id)
       setShowSetup(false)
     } catch (error) {

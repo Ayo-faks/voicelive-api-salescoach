@@ -4,17 +4,20 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+  Button,
   Card,
   CardHeader,
+  Dropdown,
+  Label,
+  Option,
+  Spinner,
   Text,
   makeStyles,
   tokens,
-  Button,
-  Spinner,
 } from '@fluentui/react-components'
-import { Scenario } from '../types'
 import { useState } from 'react'
 import { api } from '../services/api'
+import { AVATAR_OPTIONS, DEFAULT_AVATAR, Scenario } from '../types'
 
 const useStyles = makeStyles({
   container: {
@@ -52,6 +55,8 @@ const useStyles = makeStyles({
     display: 'flex',
     justifyContent: 'flex-end',
     marginTop: tokens.spacingVerticalL,
+    gap: tokens.spacingHorizontalM,
+    alignItems: 'center',
   },
   loadingCard: {
     display: 'flex',
@@ -66,13 +71,22 @@ const useStyles = makeStyles({
     fontSize: '24px',
     marginRight: tokens.spacingHorizontalS,
   },
+  avatarSelector: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: tokens.spacingHorizontalS,
+    flexGrow: 1,
+  },
+  avatarDropdown: {
+    minWidth: '200px',
+  },
 })
 
 interface Props {
   scenarios: Scenario[]
   selectedScenario: string | null
   onSelect: (id: string) => void
-  onStart: () => void
+  onStart: (avatarValue: string) => void
   onScenarioGenerated?: (scenario: Scenario) => void
 }
 
@@ -88,6 +102,7 @@ export function ScenarioList({
   const [generatedScenario, setGeneratedScenario] = useState<Scenario | null>(
     null
   )
+  const [selectedAvatar, setSelectedAvatar] = useState(DEFAULT_AVATAR)
 
   const handleScenarioClick = async (scenario: Scenario) => {
     if (scenario.is_graph_scenario && !scenario.generated_from_graph) {
@@ -167,10 +182,30 @@ export function ScenarioList({
         })}
       </div>
       <div className={styles.actions}>
+        <div className={styles.avatarSelector}>
+          <Label htmlFor="avatar-select">Avatar:</Label>
+          <Dropdown
+            id="avatar-select"
+            className={styles.avatarDropdown}
+            value={AVATAR_OPTIONS.find(opt => opt.value === selectedAvatar)?.label || ''}
+            selectedOptions={[selectedAvatar]}
+            onOptionSelect={(_, data) => {
+              if (data.optionValue) {
+                setSelectedAvatar(data.optionValue)
+              }
+            }}
+          >
+            {AVATAR_OPTIONS.map(option => (
+              <Option key={option.value} value={option.value}>
+                {option.label}
+              </Option>
+            ))}
+          </Dropdown>
+        </div>
         <Button
           appearance="primary"
           disabled={!selectedScenario || loadingGraph}
-          onClick={onStart}
+          onClick={() => onStart(selectedAvatar)}
           size="large"
         >
           Start Training

@@ -3,7 +3,28 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Scenario, Assessment } from '../types'
+import { Assessment, AVATAR_OPTIONS, Scenario } from '../types'
+
+export interface AvatarConfig {
+  character: string
+  style: string
+  is_photo_avatar: boolean
+}
+
+export function parseAvatarValue(value: string): AvatarConfig {
+  const avatarOption = AVATAR_OPTIONS.find(opt => opt.value === value)
+  const isPhotoAvatar = avatarOption?.isPhotoAvatar ?? false
+
+  if (isPhotoAvatar) {
+    return { character: value.toLowerCase(), style: '', is_photo_avatar: true }
+  }
+
+  const parts = value.split('-')
+  const character = parts[0].toLowerCase()
+  const style = parts.length >= 2 ? parts.slice(1).join('-') : 'casual-sitting'
+
+  return { character, style, is_photo_avatar: false }
+}
 
 function extractUserText(conversationMessages: any[]): string {
   return conversationMessages
@@ -24,11 +45,14 @@ export const api = {
     return res.json()
   },
 
-  async createAgent(scenarioId: string) {
+  async createAgent(scenarioId: string, avatarConfig?: AvatarConfig) {
     const res = await fetch('/api/agents/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ scenario_id: scenarioId }),
+      body: JSON.stringify({
+        scenario_id: scenarioId,
+        avatar: avatarConfig,
+      }),
     })
     if (!res.ok) throw new Error('Failed to create agent')
     return res.json()
