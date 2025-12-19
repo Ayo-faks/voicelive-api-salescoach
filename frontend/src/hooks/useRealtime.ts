@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Message } from '../types'
 
 interface RealtimeOptions {
@@ -91,7 +91,7 @@ export function useRealtime(options: RealtimeOptions) {
 
     ws.onclose = () => setConnected(false)
     wsRef.current = ws
-  }, [options.agentId, options.onMessage, options.onAudioDelta, options.onTranscript])
+  }, [options])
 
   const send = useCallback((data: any) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
