@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../services/api'
 import { customScenarioService } from '../services/customScenarios'
-import { CustomScenario, CustomScenarioData, Scenario } from '../types'
+import type { CustomScenario, CustomScenarioData, Scenario } from '../types'
 
 export function useScenarios() {
   const [serverScenarios, setServerScenarios] = useState<Scenario[]>([])
@@ -28,6 +28,25 @@ export function useScenarios() {
 
   // Combined scenarios list
   const scenarios: Scenario[] = [...serverScenarios, ...customScenarios]
+
+  useEffect(() => {
+    const availableScenarios = [...serverScenarios, ...customScenarios]
+
+    if (availableScenarios.length === 0) {
+      if (selectedScenario !== null) {
+        setSelectedScenario(null)
+      }
+      return
+    }
+
+    const selectedScenarioStillExists = availableScenarios.some(
+      scenario => scenario.id === selectedScenario
+    )
+
+    if (!selectedScenarioStillExists) {
+      setSelectedScenario(availableScenarios[0].id)
+    }
+  }, [customScenarios, selectedScenario, serverScenarios])
 
   // Get a specific custom scenario by ID
   const getCustomScenario = useCallback(

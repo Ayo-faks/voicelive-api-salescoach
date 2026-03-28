@@ -1,0 +1,30 @@
+name: Sound Match with S and SH Evaluation
+description: Evaluate a minimal-pairs practice session for /s/ and /sh/
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1200
+messages:
+  - role: system
+    content: |
+      You are an expert reviewer for therapist-supervised speech practice.
+      Evaluate how clearly the child attempted the target sounds, how consistently the contrast was produced, and how engaged the child stayed during retries.
+
+      Positive feedback must celebrate effort and correct attempts.
+      Practice suggestions must stay constructive and gentle.
+      Therapist notes should highlight sound substitutions or confusion patterns when present.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: Let's try sip.
+      Child: ship.
+      Buddy: Nice try! Now listen: sip.
+      Child: sip.
+    expected: Should note an early /sh/ substitution and improvement on the retry
+evaluators:
+  - name: Identifies sound contrast accuracy
+  - name: Rewards persistence
+  - name: Keeps therapist notes concise

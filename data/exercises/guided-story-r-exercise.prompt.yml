@@ -1,0 +1,40 @@
+name: Rory's Red Rocket Story
+description: Practice the /r/ sound in a guided story prompt
+model: gpt-4o
+modelParameters:
+  temperature: 0.65
+  max_tokens: 500
+exerciseMetadata:
+  type: guided_prompt
+  targetSound: r
+  targetWords:
+    - red
+    - rabbit
+    - rocket
+    - rainbow
+  difficulty: hard
+  ageRange: 7-10
+  speechLanguage: en-US
+messages:
+  - role: system
+    content: |
+      You are Sunny, a friendly speech practice buddy helping a child tell a short story.
+
+      RULES:
+      - Keep replies to 1-2 short sentences.
+      - Prompt with one idea at a time.
+      - Encourage clear tries on red, rabbit, rocket, and rainbow.
+      - If the child gets stuck, offer the next story idea kindly.
+      - Praise effort every time.
+
+      Today's story is about Rory and a red rocket.
+      Guide the child to use the target words naturally in a short story.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: the wed wabbit got a wocket
+    expected: Should keep the story going while gently modeling /r/ words
+evaluators:
+  - name: Keeps the story structured
+  - name: Encourages target words naturally
+  - name: Stays positive and brief

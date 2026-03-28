@@ -3,9 +3,59 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CustomScenario, CustomScenarioData } from '../types'
+import type { CustomScenario, CustomScenarioData } from '../types'
 
-const STORAGE_KEY = 'voicelive_custom_scenarios'
+const STORAGE_KEY = 'speakbright_custom_exercises'
+const LEGACY_STORAGE_KEY = 'voicelive_custom_scenarios'
+
+function getDefaultScenarioData(): CustomScenarioData {
+  return {
+    exerciseType: 'word_repetition',
+    targetSound: '',
+    targetWords: ['sun', 'sock', 'soap'],
+    difficulty: 'easy',
+    promptText:
+      'Let\'s practice the /s/ sound together. Say each word slowly after me.',
+    systemPrompt: `You are SpeakBright, a warm and playful speech practice buddy helping a child with a therapist-supervised exercise.
+
+EXERCISE STYLE:
+- Give one short instruction at a time
+- Celebrate effort and retries
+- Model the target sound clearly when needed
+- Keep every reply to one or two short sentences
+- Never sound clinical, corrective, or critical
+
+SESSION FLOW:
+1. Invite the child to listen and repeat
+2. Focus on the target sound or words for this exercise
+3. Encourage another try when needed with calm, positive language
+4. End with a short celebration of effort
+
+Use child-facing language like "Let\'s practice!", "Tap to talk!", and "Great trying!".`,
+  }
+}
+
+function normalizeScenarioData(
+  scenarioData?: Partial<CustomScenarioData> | null
+): CustomScenarioData {
+  const defaults = getDefaultScenarioData()
+
+  return {
+    ...defaults,
+    ...scenarioData,
+    targetWords:
+      Array.isArray(scenarioData?.targetWords) && scenarioData?.targetWords.length
+        ? scenarioData.targetWords
+        : defaults.targetWords,
+  }
+}
+
+function normalizeScenario(scenario: CustomScenario): CustomScenario {
+  return {
+    ...scenario,
+    scenarioData: normalizeScenarioData(scenario.scenarioData),
+  }
+}
 
 /**
  * Service for managing custom scenarios in browser localStorage
@@ -17,8 +67,20 @@ export const customScenarioService = {
   getAll(): CustomScenario[] {
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
+      const legacyStored = localStorage.getItem(LEGACY_STORAGE_KEY)
+
+      if (!stored && legacyStored) {
+        const migrated = (JSON.parse(legacyStored) as CustomScenario[]).map(
+          normalizeScenario
+        )
+        this._persist(migrated)
+        localStorage.removeItem(LEGACY_STORAGE_KEY)
+        return migrated
+      }
+
       if (!stored) return []
-      return JSON.parse(stored) as CustomScenario[]
+
+      return (JSON.parse(stored) as CustomScenario[]).map(normalizeScenario)
     } catch (error) {
       console.error('Failed to load custom scenarios:', error)
       return []
@@ -50,7 +112,7 @@ export const customScenarioService = {
       name,
       description,
       is_custom: true,
-      scenarioData,
+      scenarioData: normalizeScenarioData(scenarioData),
       createdAt: now,
       updatedAt: now,
     }
@@ -77,6 +139,9 @@ export const customScenarioService = {
     const updated: CustomScenario = {
       ...scenarios[index],
       ...updates,
+      scenarioData: updates.scenarioData
+        ? normalizeScenarioData(updates.scenarioData)
+        : scenarios[index].scenarioData,
       updatedAt: new Date().toISOString(),
     }
 
@@ -111,25 +176,14 @@ export const customScenarioService = {
    * Get default system prompt for new scenarios
    */
   getDefaultSystemPrompt(): string {
-    return `You are a professional playing a specific role in a business scenario.
+    return getDefaultScenarioData().systemPrompt
+  },
 
-BEHAVIORAL GUIDELINES:
-- Show genuine interest but maintain professional demeanor
-- Ask clarifying questions when information seems unclear
-- React appropriately to proposals and suggestions
-- Use natural conversational patterns
-
-YOUR CHARACTER PROFILE:
-- [Define the character's background and experience]
-- [Define their goals and motivations]
-- [Define their concerns and challenges]
-
-KEY TOPICS TO ADDRESS:
-1. [Topic 1]
-2. [Topic 2]
-3. [Topic 3]
-
-Respond naturally as this character would, maintaining a professional tone.`
+  /**
+   * Get the default custom exercise template
+   */
+  getDefaultScenarioData(): CustomScenarioData {
+    return getDefaultScenarioData()
   },
 
   /**

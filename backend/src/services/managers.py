@@ -3,7 +3,7 @@
 #  Licensed under the MIT License. See LICENSE in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-"""Business logic managers for the upskilling agent application."""
+"""Business logic managers for the speech practice application."""
 
 import logging
 import uuid
@@ -16,40 +16,38 @@ from azure.ai.projects import AIProjectClient
 from azure.identity import DefaultAzureCredential
 
 from src.config import config
-from src.services.graph_scenario_generator import GraphScenarioGenerator
 from src.services.scenario_utils import determine_scenario_directory
 
 # Constants
-ROLE_PLAY_FILE_SUFFIX = "-role-play.prompt.yml"
-ROLE_PLAY_SUFFIX_REMOVAL = "-role-play.prompt"
+ROLE_PLAY_FILE_SUFFIX = "-exercise.prompt.yml"
+ROLE_PLAY_SUFFIX_REMOVAL = "-exercise.prompt"
 AGENT_ID_PREFIX = "local-agent"
 AZURE_AGENT_NAME_PREFIX = "agent"
 UUID_SHORT_LENGTH = 8
-MAX_RESPONSE_LENGTH_SENTENCES = 3
-SCENARIO_DATA_DIR = "data/scenarios"
+MAX_RESPONSE_LENGTH_SENTENCES = 2
+SCENARIO_DATA_DIR = "data/exercises"
 DOCKER_APP_PATH = "/app"
 
 logger = logging.getLogger(__name__)
 
 
-class ScenarioManager:
-    """Manages training scenarios loaded from YAML files."""
+class ExerciseManager:
+    """Manages speech practice exercises loaded from YAML files."""
 
     def __init__(self, scenario_dir: Optional[Path] = None):
         """
-        Initialize the scenario manager.
+        Initialize the exercise manager.
 
         Args:
             scenario_dir: Directory containing scenario YAML files
         """
         self.scenario_dir = determine_scenario_directory(scenario_dir)
         self.scenarios = self._load_scenarios()
-        self.graph_generator = GraphScenarioGenerator()
         self.generated_scenarios: Dict[str, Any] = {}
 
     def _load_scenarios(self) -> Dict[str, Any]:
         """
-        Load scenarios from YAML files.
+        Load exercises from YAML files.
 
         Returns:
             Dict[str, Any]: Dictionary of scenarios keyed by ID
@@ -57,7 +55,7 @@ class ScenarioManager:
         scenarios: Dict[str, Any] = {}
 
         if not self.scenario_dir.exists():
-            logger.warning("Scenarios directory not found: %s", self.scenario_dir)
+            logger.warning("Exercises directory not found: %s", self.scenario_dir)
             return scenarios
 
         for file in self.scenario_dir.glob(f"*{ROLE_PLAY_FILE_SUFFIX}"):
@@ -65,9 +63,9 @@ class ScenarioManager:
             scenario = self._load_scenario_file(file)
             if scenario:
                 scenarios[scenario_id] = scenario
-                logger.info("Loaded scenario: %s", scenario_id)
+                logger.info("Loaded exercise: %s", scenario_id)
 
-        logger.info("Total scenarios loaded: %s", len(scenarios))
+            logger.info("Total exercises loaded: %s", len(scenarios))
         return scenarios
 
     def _extract_scenario_id(self, file: Path) -> str:
@@ -75,23 +73,23 @@ class ScenarioManager:
         return file.stem.replace(ROLE_PLAY_SUFFIX_REMOVAL, "")
 
     def _load_scenario_file(self, file: Path) -> Optional[Dict[str, Any]]:
-        """Load a single scenario file."""
+        """Load a single exercise file."""
         try:
             with open(file, encoding="utf-8") as f:
                 return yaml.safe_load(f)
         except Exception as e:
-            logger.error("Error loading scenario %s: %s", file, e)
+            logger.error("Error loading exercise %s: %s", file, e)
             return None
 
     def get_scenario(self, scenario_id: str) -> Optional[Dict[str, Any]]:
         """
-        Get a specific scenario by ID.
+        Get a specific exercise by ID.
 
         Args:
             scenario_id: The scenario identifier
 
         Returns:
-            Optional[Dict[str, Any]]: Scenario data or None if not found
+            Optional[Dict[str, Any]]: Exercise data or None if not found
         """
         scenario = self.scenarios.get(scenario_id)
         if scenario:
@@ -101,63 +99,40 @@ class ScenarioManager:
 
     def list_scenarios(self) -> List[Dict[str, str | bool]]:
         """
-        List all available scenarios.
+        List all available exercises.
 
         Returns:
-            List[Dict[str, str]]: List of scenario summaries
+            List[Dict[str, str]]: List of exercise summaries
         """
         scenarios: List[Dict[str, str | bool]] = [
             {
                 "id": scenario_id,
                 "name": scenario_data.get("name", "Unknown"),
                 "description": scenario_data.get("description", ""),
+                "exerciseMetadata": scenario_data.get("exerciseMetadata", {}),
             }
             for scenario_id, scenario_data in self.scenarios.items()
         ]
 
-        scenarios.append(
-            {
-                "id": "graph-api",
-                "name": "Personalized Scenario",
-                "description": "AI-generated scenario based on your upcoming meetings and context from Microsoft Graph",
-                "is_graph_scenario": True,
-            }
-        )
-
         return scenarios
 
-    def generate_scenario_from_graph(self, graph_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Generate a scenario based on Microsoft Graph API data.
-
-        Args:
-            graph_data: The Graph API response data
-
-        Returns:
-            Dict[str, Any]: Generated scenario
-        """
-        scenario = self.graph_generator.generate_scenario_from_graph(graph_data)
-
-        self.generated_scenarios[scenario["id"]] = scenario
-
-        return scenario
+ScenarioManager = ExerciseManager
 
 
 class AgentManager:
     """Manages virtual training agents."""
 
-    # Base instructions for human-like interactions
+    # Base instructions for child-friendly speech practice interactions
     BASE_INSTRUCTIONS = f"""
 
 CRITICAL INTERACTION GUIDELINES:
-- Keep responses SHORT and conversational ({MAX_RESPONSE_LENGTH_SENTENCES} sentences max, as if speaking on phone)
-- ALWAYS stay in character - never break role or acknowledge you're an AI
-- Simulate natural human speech patterns with pauses, "um", "well", occasional hesitation
-- Respond as a real person would in this business context
-- Use natural phone conversation style - direct, clear, but personable
-- Show genuine human emotions and reactions appropriate to the situation
-- Ask follow-up questions to keep the conversation flowing naturally
-- Avoid overly formal or robotic language - speak like a real business professional would
+- Keep responses SHORT and child-friendly ({MAX_RESPONSE_LENGTH_SENTENCES} short sentences max)
+- ALWAYS stay in character as a warm speech practice buddy
+- Use simple words a young child can understand
+- Celebrate effort and retries, not just accuracy
+- Never use critical, diagnostic, or discouraging language
+- Gently model target sounds and invite the child to try again
+- Keep the interaction calm, encouraging, and easy to follow
     """
 
     def __init__(self):
@@ -202,7 +177,7 @@ CRITICAL INTERACTION GUIDELINES:
         Args:
             scenario_id: The scenario identifier
             scenario_data: The scenario configuration data
-            avatar_config: Optional avatar configuration with character, style, is_photo_avatar
+            avatar_config: Optional avatar configuration with character, style, is_photo_avatar, voice_name
 
         Returns:
             str: The created agent's ID
@@ -212,7 +187,7 @@ CRITICAL INTERACTION GUIDELINES:
         """
 
         scenario_instructions = scenario_data.get("messages", [{}])[0].get("content", "")
-        combined_instructions = scenario_instructions + self.BASE_INSTRUCTIONS
+        combined_instructions = scenario_instructions + "\n" + self.BASE_INSTRUCTIONS
 
         model_name = scenario_data.get("model", config["model_deployment_name"])
         temperature = scenario_data.get("modelParameters", {}).get("temperature", 0.7)

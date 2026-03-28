@@ -5,6 +5,18 @@
 
 import { useRef, useState, useCallback } from 'react'
 
+export interface RecorderAudioChunk extends Record<string, unknown> {
+  type: 'user'
+  data: string
+  timestamp: string
+}
+
+interface UseRecorderOptions {
+  mode?: 'stream' | 'utterance'
+  onAudioChunk?: (base64: string) => void
+  onRecordingComplete?: (audio: RecorderAudioChunk[]) => void | Promise<void>
+}
+
 const audioProcessorCode = `
 class AudioRecorderProcessor extends AudioWorkletProcessor {
   constructor() {
@@ -39,11 +51,17 @@ class AudioRecorderProcessor extends AudioWorkletProcessor {
 registerProcessor('audio-recorder', AudioRecorderProcessor)
 `
 
-export function useRecorder(onAudioChunk: (base64: string) => void) {
+export function useRecorder({
+  mode = 'stream',
+  onAudioChunk,
+  onRecordingComplete,
+}: UseRecorderOptions = {}) {
   const [recording, setRecording] = useState(false)
   const audioCtxRef = useRef<AudioContext | null>(null)
   const workletRef = useRef<AudioWorkletNode | null>(null)
-  const audioRecording = useRef<any[]>([])
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const audioRecording = useRef<RecorderAudioChunk[]>([])
 
   const initAudio = useCallback(async () => {
     if (audioCtxRef.current) return
@@ -60,7 +78,13 @@ export function useRecorder(onAudioChunk: (base64: string) => void) {
 
   const startRecording = useCallback(async () => {
     await initAudio()
-    const audioCtx = audioCtxRef.current!
+    const audioCtx = audioCtxRef.current
+
+    if (!audioCtx) return
+
+    if (mode === 'utterance') {
+      audioRecording.current = []
+    }
 
     if (audioCtx.state === 'suspended') {
       await audioCtx.resume()
@@ -76,6 +100,8 @@ export function useRecorder(onAudioChunk: (base64: string) => void) {
 
     const source = audioCtx.createMediaStreamSource(stream)
     const worklet = new AudioWorkletNode(audioCtx, 'audio-recorder')
+    streamRef.current = stream
+    sourceRef.current = source
 
     worklet.port.onmessage = e => {
       if (e.data.eventType === 'audio') {
@@ -92,7 +118,9 @@ export function useRecorder(onAudioChunk: (base64: string) => void) {
           data: base64,
           timestamp: new Date().toISOString(),
         })
-        onAudioChunk(base64)
+        if (mode === 'stream') {
+          onAudioChunk?.(base64)
+        }
       }
     }
 
@@ -102,30 +130,54 @@ export function useRecorder(onAudioChunk: (base64: string) => void) {
 
     workletRef.current = worklet
     setRecording(true)
-  }, [onAudioChunk, initAudio])
+  }, [initAudio, mode, onAudioChunk])
 
-  const stopRecording = useCallback(() => {
+  const stopRecording = useCallback(async () => {
     if (workletRef.current) {
       workletRef.current.port.postMessage({ command: 'STOP' })
+      await new Promise(resolve => window.setTimeout(resolve, 60))
       workletRef.current.disconnect()
       workletRef.current = null
     }
+
+    sourceRef.current?.disconnect()
+    sourceRef.current = null
+    const mediaStream = streamRef.current
+    if (mediaStream) {
+      for (const track of mediaStream.getTracks()) {
+        track.stop()
+      }
+    }
+    streamRef.current = null
+
     setRecording(false)
-  }, [])
+
+    const utteranceAudio =
+      mode === 'utterance' ? [...audioRecording.current] : undefined
+
+    if (mode === 'utterance' && utteranceAudio?.length) {
+      await onRecordingComplete?.(utteranceAudio)
+      audioRecording.current = []
+    }
+  }, [mode, onRecordingComplete])
 
   const toggleRecording = useCallback(async () => {
     if (recording) {
-      stopRecording()
+      await stopRecording()
     } else {
       await startRecording()
     }
   }, [recording, startRecording, stopRecording])
 
   const getAudioRecording = useCallback(() => audioRecording.current, [])
+  const clearAudioRecording = useCallback(() => {
+    audioRecording.current = []
+  }, [])
 
   return {
     recording,
     toggleRecording,
     getAudioRecording,
+    clearAudioRecording,
   }
 }

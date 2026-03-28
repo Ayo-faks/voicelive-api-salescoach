@@ -7,13 +7,138 @@ export interface Scenario {
   id: string
   name: string
   description: string
-  is_graph_scenario?: boolean
-  generated_from_graph?: boolean
+  exerciseMetadata?: ExerciseMetadata
   is_custom?: boolean
 }
 
+export type ExerciseType =
+  | 'word_repetition'
+  | 'minimal_pairs'
+  | 'sentence_repetition'
+  | 'guided_prompt'
+
+export type ExerciseDifficulty = 'easy' | 'medium' | 'hard'
+
+export interface ExerciseMetadata {
+  type: ExerciseType
+  targetSound: string
+  targetWords: string[]
+  difficulty: ExerciseDifficulty
+  childAge?: number
+  ageRange?: string
+  speechLanguage?: string
+}
+
+export interface Exercise extends Scenario {
+  exerciseMetadata: ExerciseMetadata
+}
+
+export interface ChildProfile {
+  id: string
+  name: string
+  created_at?: string
+  session_count?: number
+  last_session_at?: string | null
+}
+
+export interface SessionExercise {
+  id: string
+  name: string
+  description: string
+  exerciseMetadata?: Partial<ExerciseMetadata>
+  is_custom?: boolean
+}
+
+export type TherapistFeedbackRating = 'up' | 'down'
+
+export interface TherapistFeedback {
+  rating: TherapistFeedbackRating
+  note?: string | null
+  submitted_at?: string | null
+}
+
+export interface PilotState {
+  consent_timestamp?: string | null
+  therapist_pin_configured: boolean
+}
+
+export interface SessionSummary {
+  id: string
+  timestamp: string
+  overall_score?: number | null
+  pronunciation_score?: number | null
+  accuracy_score?: number | null
+  therapist_notes?: string | null
+  therapist_feedback?: TherapistFeedback | null
+  exercise_metadata?: Partial<ExerciseMetadata>
+  exercise: SessionExercise
+}
+
+export interface SessionDetail {
+  id: string
+  timestamp: string
+  child: Pick<ChildProfile, 'id' | 'name'>
+  exercise: SessionExercise
+  exercise_metadata?: Partial<ExerciseMetadata>
+  assessment: Assessment
+  therapist_feedback?: TherapistFeedback | null
+  transcript?: string | null
+  reference_text?: string | null
+}
+
+export interface AvatarOption {
+  value: string
+  label: string
+  isPhotoAvatar: boolean
+  /** Accent colour used for buddy-specific tinting */
+  color: string
+  /** Optional persona hint used when introducing the buddy */
+  persona?: string
+  /** Optional voice override sent to the backend for this buddy */
+  voiceName?: string
+}
+
+export const AVATAR_OPTIONS: AvatarOption[] = [
+  {
+    value: 'lisa-casual-sitting',
+    label: 'Lisa (Adult British)',
+    isPhotoAvatar: false,
+    color: '#0d8a84',
+    persona: 'an adult British woman',
+    voiceName: 'en-GB-LibbyNeural',
+  },
+  { value: 'riya', label: 'Riya (Photo)', isPhotoAvatar: true, color: '#a855f7' },
+  { value: 'simone', label: 'Simone (Photo)', isPhotoAvatar: true, color: '#f97316' },
+]
+
+export const DEFAULT_AVATAR = 'lisa-casual-sitting'
+
 export interface CustomScenarioData {
   systemPrompt: string
+  exerciseType: ExerciseType
+  targetSound: string
+  targetWords: string[]
+  difficulty: ExerciseDifficulty
+  promptText: string
+  childAge?: number
+}
+
+export interface PronunciationWordResult {
+  word: string
+  accuracy: number
+  error_type: string
+  target_word?: string
+  age_adjusted?: boolean
+}
+
+export interface PronunciationAssessment {
+  accuracy_score: number
+  fluency_score: number
+  completeness_score: number
+  prosody_score?: number
+  pronunciation_score: number
+  adjustments_applied?: number
+  words?: PronunciationWordResult[]
 }
 
 export interface CustomScenario extends Scenario {
@@ -31,52 +156,24 @@ export interface Message {
 }
 
 export interface Assessment {
+  session_id?: string
   ai_assessment?: {
-    speaking_tone_style: {
-      professional_tone: number
-      active_listening: number
-      engagement_quality: number
+    articulation_clarity: {
+      target_sound_accuracy: number
+      overall_clarity: number
+      consistency: number
       total: number
     }
-    conversation_content: {
-      needs_assessment: number
-      value_proposition: number
-      objection_handling: number
+    engagement_and_effort: {
+      task_completion: number
+      willingness_to_retry: number
+      self_correction_attempts: number
       total: number
     }
     overall_score: number
-    strengths: string[]
-    improvements: string[]
-    specific_feedback?: string
+    celebration_points: string[]
+    practice_suggestions: string[]
+    therapist_notes?: string
   }
-  pronunciation_assessment?: {
-    accuracy_score: number
-    fluency_score: number
-    completeness_score: number
-    prosody_score?: number
-    pronunciation_score: number
-    words?: Array<{
-      word: string
-      accuracy: number
-      error_type: string
-    }>
-  }
+  pronunciation_assessment?: PronunciationAssessment
 }
-
-export interface AvatarOption {
-  value: string
-  label: string
-  isPhotoAvatar: boolean
-}
-
-export const AVATAR_OPTIONS: AvatarOption[] = [
-  {
-    value: 'lisa-casual-sitting',
-    label: 'Lisa (Casual Sitting)',
-    isPhotoAvatar: false,
-  },
-  { value: 'riya', label: 'Riya (Photo)', isPhotoAvatar: true },
-  { value: 'simone', label: 'Simone (Photo)', isPhotoAvatar: true },
-]
-
-export const DEFAULT_AVATAR = 'lisa-casual-sitting'

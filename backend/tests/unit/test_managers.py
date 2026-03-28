@@ -7,70 +7,72 @@ from unittest.mock import MagicMock, Mock, patch
 
 import yaml
 
-from src.services.managers import AgentManager, ScenarioManager
+from src.services.managers import AgentManager, ExerciseManager, ScenarioManager
 
 
-class TestScenarioManager:
-    """Test scenario manager functionality."""
+class TestExerciseManager:
+    """Test exercise manager functionality."""
 
-    def test_scenario_manager_with_nonexistent_directory(self):
-        """Test scenario manager with non-existent directory."""
+    def test_exercise_manager_with_nonexistent_directory(self):
+        """Test exercise manager with non-existent directory."""
         with tempfile.TemporaryDirectory() as temp_dir:
             non_existent_path = Path(temp_dir) / "nonexistent"
-            manager = ScenarioManager(scenario_dir=non_existent_path)
+            manager = ExerciseManager(scenario_dir=non_existent_path)
             assert len(manager.scenarios) == 0
 
-    def test_scenario_manager_with_valid_scenarios(self):
-        """Test scenario manager loading valid scenarios."""
+    def test_exercise_manager_with_valid_scenarios(self):
+        """Test exercise manager loading valid exercises."""
         with tempfile.TemporaryDirectory() as temp_dir:
             scenario_dir = Path(temp_dir)
 
-            # Create a test scenario file
+            # Create a test exercise file
             scenario_data = {
-                "name": "Test Scenario",
-                "description": "A test scenario",
+                "name": "Test Exercise",
+                "description": "A test exercise",
                 "messages": [{"content": "Test instructions"}],
             }
 
-            scenario_file = scenario_dir / "test-scenario-role-play.prompt.yml"
+            scenario_file = scenario_dir / "test-exercise-exercise.prompt.yml"
             with open(scenario_file, "w", encoding="utf-8") as f:
                 yaml.safe_dump(scenario_data, f)
 
-            manager = ScenarioManager(scenario_dir=scenario_dir)
+            manager = ExerciseManager(scenario_dir=scenario_dir)
             assert len(manager.scenarios) == 1
-            assert "test-scenario" in manager.scenarios
+            assert "test-exercise" in manager.scenarios
 
     def test_get_scenario_existing(self):
-        """Test getting an existing scenario."""
-        manager = ScenarioManager()
-        manager.scenarios = {"test": {"name": "Test Scenario"}}
+        """Test getting an existing exercise."""
+        manager = ExerciseManager()
+        manager.scenarios = {"test": {"name": "Test Exercise"}}
 
         scenario = manager.get_scenario("test")
         assert scenario is not None
-        assert scenario["name"] == "Test Scenario"
+        assert scenario["name"] == "Test Exercise"
 
     def test_get_scenario_nonexistent(self):
-        """Test getting a non-existent scenario."""
-        manager = ScenarioManager()
+        """Test getting a non-existent exercise."""
+        manager = ExerciseManager()
         manager.scenarios = {}
 
         scenario = manager.get_scenario("nonexistent")
         assert scenario is None
 
     def test_list_scenarios(self):
-        """Test listing scenarios."""
-        manager = ScenarioManager()
+        """Test listing exercises."""
+        manager = ExerciseManager()
         manager.scenarios = {
-            "scenario1": {"name": "Scenario 1", "description": "First scenario"},
-            "scenario2": {"name": "Scenario 2", "description": "Second scenario"},
+            "exercise1": {"name": "Exercise 1", "description": "First exercise"},
+            "exercise2": {"name": "Exercise 2", "description": "Second exercise"},
         }
 
         scenarios = manager.list_scenarios()
-        assert len(scenarios) == 3
-        assert scenarios[0]["id"] == "scenario1"
-        assert scenarios[1]["id"] == "scenario2"
-        assert scenarios[2]["id"] == "graph-api"
-        assert scenarios[2]["is_graph_scenario"] is True
+        assert len(scenarios) == 2
+        assert scenarios[0]["id"] == "exercise1"
+        assert scenarios[1]["id"] == "exercise2"
+
+    def test_scenario_manager_aliases_exercise_manager(self):
+        """Test backward-compatible ScenarioManager alias."""
+        assert ScenarioManager is ExerciseManager
 
 
 class TestAgentManager:

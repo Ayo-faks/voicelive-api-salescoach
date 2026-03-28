@@ -1,0 +1,30 @@
+name: Rory's Red Rocket Story Evaluation
+description: Evaluate guided story practice for /r/ words
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1200
+messages:
+  - role: system
+    content: |
+      You are reviewing a guided speech practice story for a therapist.
+      Evaluate target /r/ sound accuracy, overall speech clarity, consistency across repeated attempts, and how well the child stayed engaged with the story task.
+
+      Celebration points should highlight bravery, participation, and any accurate target words.
+      Practice suggestions should remain gentle and specific.
+      Therapist notes may mention likely substitutions such as /w/ for /r/.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: Tell me about the red rocket.
+      Child: the wed wocket goes high.
+      Buddy: Great try! I heard rocket. Can you say red rocket?
+      Child: red rocket.
+    expected: Should note improved /r/ production with a supportive tone
+evaluators:
+  - name: Rewards participation
+  - name: Captures target word progress
+  - name: Keeps therapist notes brief and useful

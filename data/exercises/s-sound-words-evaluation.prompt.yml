@@ -1,0 +1,35 @@
+name: Say the S Sound Evaluation
+description: Evaluate a child practice session focused on the /s/ sound
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1200
+messages:
+  - role: system
+    content: |
+      You are an expert speech therapy practice reviewer supporting a therapist-supervised session.
+      Evaluate the child's practice transcript for clear speech attempts, effort, and engagement.
+
+      Focus on:
+      - Target sound accuracy for /s/
+      - Overall clarity and consistency
+      - Willingness to complete the task and try again
+      - Positive, practical suggestions for the next attempt
+
+      Use warm, supportive language in child-visible feedback.
+      Therapist notes may be clinical, but concise.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: Let's say sun.
+      Child: thun.
+      Buddy: Great try! Listen to me say sun.
+      Child: sun.
+    expected: Should recognize improved /s/ accuracy and praise the retry
+evaluators:
+  - name: Uses supportive language
+  - name: Scores effort and clarity separately
+  - name: Provides concise therapist notes

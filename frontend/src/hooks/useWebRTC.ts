@@ -5,26 +5,72 @@
 
 import { useRef, useCallback, useEffect } from 'react'
 
-export function useWebRTC(onSendOffer: (sdp: string) => void) {
+type RTCIceServerInput =
+  | string
+  | RTCIceServer
+
+type RTCAnswerMessage = {
+  server_sdp?: unknown
+  sdp?: unknown
+  answer?: unknown
+}
+
+function normalizeIceServers(
+  iceServers: RTCIceServerInput | RTCIceServerInput[],
+  username?: string,
+  password?: string
+): RTCIceServer[] {
+  const normalized = (Array.isArray(iceServers) ? iceServers : [iceServers]).map(server =>
+    typeof server === 'string'
+      ? { urls: server }
+      : {
+          ...server,
+          urls: server.urls,
+        }
+  )
+
+  if (!username || !password) {
+    return normalized
+  }
+
+  return normalized.map(server => ({
+    ...server,
+    username,
+    credential: password,
+    credentialType: 'password',
+  }))
+}
+
+export function useWebRTC(
+  onSendOffer: (sdp: string) => void,
+  onVideoStreamReady?: () => void
+) {
   const pcRef = useRef<RTCPeerConnection | null>(null)
   const videoRef = useRef<HTMLVideoElement | null>(null)
 
+  const teardownPeerConnection = useCallback(() => {
+    if (pcRef.current) {
+      pcRef.current.onicecandidate = null
+      pcRef.current.ontrack = null
+      pcRef.current.close()
+      pcRef.current = null
+    }
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = null
+    }
+  }, [])
+
   const setupWebRTC = useCallback(
-    async (iceServers: any, username?: string, password?: string) => {
-      let servers = Array.isArray(iceServers)
-        ? iceServers
-        : [{ urls: iceServers }]
-      if (username && password) {
-        servers = servers.map(s => ({
-          urls: typeof s === 'string' ? s : s.urls,
-          username,
-          credential: password,
-          credentialType: 'password' as const,
-        }))
-      }
+    async (
+      iceServers: RTCIceServerInput | RTCIceServerInput[],
+      username?: string,
+      password?: string
+    ) => {
+      teardownPeerConnection()
 
       const pc = new RTCPeerConnection({
-        iceServers: servers,
+        iceServers: normalizeIceServers(iceServers, username, password),
         bundlePolicy: 'max-bundle',
       })
 
@@ -43,6 +89,7 @@ export function useWebRTC(onSendOffer: (sdp: string) => void) {
       pc.ontrack = e => {
         if (e.track.kind === 'video' && videoRef.current) {
           videoRef.current.srcObject = e.streams[0]
+          onVideoStreamReady?.()
           videoRef.current.play()
         } else if (e.track.kind === 'audio') {
           const audio = document.createElement('audio')
@@ -61,27 +108,35 @@ export function useWebRTC(onSendOffer: (sdp: string) => void) {
 
       pcRef.current = pc
     },
-    [onSendOffer]
+    [onSendOffer, onVideoStreamReady, teardownPeerConnection]
   )
 
-  const handleAnswer = useCallback(async (msg: any) => {
+  const handleAnswer = useCallback(async (msg: RTCAnswerMessage) => {
     if (!pcRef.current || pcRef.current.signalingState !== 'have-local-offer')
       return
 
-    const sdp = msg.server_sdp
-      ? JSON.parse(atob(msg.server_sdp)).sdp
-      : msg.sdp || msg.answer
+    const encodedServerSdp =
+      typeof msg.server_sdp === 'string' ? msg.server_sdp : null
+    const directSdp =
+      typeof msg.sdp === 'string'
+        ? msg.sdp
+        : typeof msg.answer === 'string'
+          ? msg.answer
+          : null
+    const sdp = encodedServerSdp
+      ? JSON.parse(atob(encodedServerSdp)).sdp
+      : directSdp
 
-    if (sdp) {
+    if (typeof sdp === 'string' && sdp) {
       await pcRef.current.setRemoteDescription({ type: 'answer', sdp })
     }
   }, [])
 
   useEffect(() => {
     return () => {
-      pcRef.current?.close()
+      teardownPeerConnection()
     }
-  }, [])
+  }, [teardownPeerConnection])
 
   return {
     setupWebRTC,

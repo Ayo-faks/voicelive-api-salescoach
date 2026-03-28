@@ -44,7 +44,7 @@ DEFAULT_NOISE_REDUCTION_TYPE = "azure_deep_noise_suppression"
 DEFAULT_ECHO_CANCELLATION_TYPE = "server_echo_cancellation"
 DEFAULT_AVATAR_CHARACTER = "lisa"
 DEFAULT_AVATAR_STYLE = "casual-sitting"
-DEFAULT_VOICE_NAME = "en-US-Ava:DragonHDLatestNeural"
+DEFAULT_VOICE_NAME = "en-GB-SoniaNeural"
 DEFAULT_VOICE_TYPE = "azure-standard"
 
 # Message types
@@ -192,6 +192,7 @@ class VoiceProxyHandler:
             avatar_character = custom_avatar.get("character", avatar_character)
             avatar_style = custom_avatar.get("style", avatar_style)
             is_photo_avatar = custom_avatar.get("is_photo_avatar", False)
+            voice_name = custom_avatar.get("voice_name", voice_name)
 
         avatar_config_value = self._build_avatar_config(avatar_character, avatar_style, is_photo_avatar)
 

@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional
 
 # Constants
-SCENARIO_DATA_DIR = "data/scenarios"
+SCENARIO_DATA_DIR = "data/exercises"
 DOCKER_APP_PATH = "/app"
 
 
@@ -25,4 +25,4 @@ def determine_scenario_directory(scenario_dir: Optional[Path] = None) -> Path:
     if docker_path.exists():
         return docker_path
 
-    return Path(__file__).parent.parent.parent.parent / "data" / "scenarios"
+    return Path(__file__).parent.parent.parent.parent / "data" / "exercises"

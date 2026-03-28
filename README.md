@@ -1,7 +1,7 @@
 <!--
 ---
-name: Voice Live API Sales Coach (Python + React)
-description: A demo application showcasing AI-powered voice training for sales professionals using Azure Voice Live API and Azure AI services.
+name: SpeakBright (Python + React)
+description: A therapist-supervised SEN speech therapy MVP using Azure Voice Live API, Azure Speech, and Azure OpenAI.
 languages:
 - python
 - typescript
@@ -17,49 +17,44 @@ urlFragment: voicelive-api-salescoach
 ---
 -->
 <p align="center">
-   <h1 align="center">Voice Live API: AI Sales Coach</h1>
+   <h1 align="center">SpeakBright</h1>
 </p>
-<p align="center">A demo application showcasing AI-powered voice training for sales professionals, built on Azure.</p>
+<p align="center">A warm, therapist-supervised speech practice app for children with SEN, built on Azure.</p>
 <p align="center">
    <a href="https://github.com/Azure-Samples/voicelive-api-salescoach/blob/main/LICENSE.md"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-green.svg" style="height:27px; vertical-align:middle;"/></a>
    <a href="https://github.com/Azure-Samples/voicelive-api-salescoach/actions/workflows/lint-and-test.yml"><img alt="Build Status" src="https://github.com/Azure-Samples/voicelive-api-salescoach/actions/workflows/lint-and-test.yml/badge.svg" style="height:27px; vertical-align:middle;"/></a>&nbsp;
    <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure-Samples%2Fvoicelive-api-salescoach%2Frefs%2Fheads%2Fmain%2Finfra%2Fdeployment.json"><img src="https://aka.ms/deploytoazurebutton" alt="Deploy to Azure" style="height:27px; vertical-align:middle;"/></a>&nbsp;
 </p>
 
-![Voice Live API Salescoach in Action](docs/assets/preview.png)
+![SpeakBright in Action](docs/assets/preview.png)
 
 ---
 
 ## Overview
 
-Voice Live API Salescoach is a demo application showcasing how AI-based training could be used in sales education using Azure AI services. Practice real-world sales scenarios with AI-powered virtual customers, receive instant feedback on your performance, and improve your sales skills through immersive voice conversations.
+SpeakBright is a therapist-supervised speech practice MVP adapted from the Voice Live API sample. It helps children work through guided speaking exercises with a calm voice buddy while giving therapists structured session review and pronunciation feedback.
 
 ### Features
 
-- **Real-time Voice Conversations** - Practice sales calls with AI agents that respond naturally using Azure Voice Live API
-- **Performance Analysis** - Get detailed feedback on your conversation skills
-- **Pronunciation Assessment** - Improve your speaking clarity and confidence with Azure Speech Services
-- **Scoring System** - Track your progress with metrics
+- **Guided Practice Sessions** - Run child-friendly voice exercises with short, supportive prompts
+- **Therapist Exercise Authoring** - Create and tailor exercises around target sounds and words
+- **Pronunciation Feedback** - Review word-level clarity and pronunciation support with Azure Speech
+- **Therapist Review** - Save sessions and open progress summaries for supervised practice
 
 ![Performance Analysis Dashboard](docs/assets/analysis.png)
 
 ## Demo
 
-See the Voice Live API Salescoach in action:
+See SpeakBright in action:
 
 https://github.com/user-attachments/assets/904f1555-6981-4780-ae64-c5757337bcad
 
 ### How It Works
 
-1. **Choose a Scenario** - Select from various industry-specific sales situations
-2. **Start the Conversation** - Click the microphone to start your simulation
-3. **Engage with AI** - The virtual customer responds realistically based on the scenario
-4. **Receive Feedback** - Get instant analysis on your performance including:
-   - Speaking tone and style
-   - Content quality
-   - Needs assessment
-   - Value proposition delivery
-   - Objection handling skills
+1. **Choose an Exercise** - Pick a therapist-authored or built-in speech practice card
+2. **Start Practice** - Tap the microphone to begin a guided voice turn
+3. **Work Through Retries** - The practice buddy responds with calm, child-friendly support
+4. **Review Results** - Open saved practice feedback and therapist notes after the session
 
 ## Getting Started
 
@@ -93,7 +88,7 @@ This project includes a dev container for easy setup and a build script for  dev
    cd backend && python src/app.py
    ```
 
-Visit `http://localhost:8000` to start training!
+Visit `http://localhost:8000` to start practising.
 
 ## Architecture
 
@@ -104,17 +99,17 @@ Visit `http://localhost:8000` to start training!
 </td>
 <td>
 
-The application leverages multiple Azure AI services to deliver real-time voice-based sales training:
+The application leverages multiple Azure AI services to deliver real-time speech practice:
 
 - **Azure AI Foundry** - AI platform including:
   - Voice Live API for real-time speech-to-speech conversations and avatar simulation
-  - Large language models (GPT-4o) as underlying LLM for performance analysis
-  - Speech Services for post-conversation pronunciation and fluency assessment
+   - Large language models (GPT-4o) for structured practice review
+   - Speech Services for pronunciation assessment and speech playback
   - Optional AI Agent Service
 - **React + Fluent UI** - Modern web interface
 - **Python Flask** - Backend API and WebSocket communication
 
-**Conversation Flow:** User speech → Voice Live API → GPT-4o processing → AI agent response → Performance analysis → Detailed feedback
+**Conversation Flow:** Child speech → Voice Live API → GPT-4o practice buddy → Azure Speech scoring → Therapist review
 
 </td>
 </tr>

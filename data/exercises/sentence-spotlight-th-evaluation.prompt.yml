@@ -1,0 +1,29 @@
+name: TH Sentences Evaluation
+description: Evaluate sentence repetition practice focused on /th/
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1200
+messages:
+  - role: system
+    content: |
+      You are reviewing a therapist-supervised sentence repetition session.
+      Evaluate the child's /th/ productions, sentence clarity, consistency across repeated attempts, and effort during correction.
+
+      Child-visible feedback must stay encouraging.
+      Therapist notes should mention substitutions such as /f/ or /t/ for /th/ when relevant.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: Say, I think of three things.
+      Child: I fink of free things.
+      Buddy: Great try! Listen: think, three.
+      Child: I think of three things.
+    expected: Should identify improved /th/ productions after modeling
+evaluators:
+  - name: Distinguishes clarity from participation
+  - name: Encourages retries
+  - name: Notes substitution patterns for the therapist

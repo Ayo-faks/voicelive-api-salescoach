@@ -3,9 +3,10 @@
 #  Licensed under the MIT License. See LICENSE in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-"""Configuration management for the upskilling agent application."""
+"""Configuration management for the SpeakBright application."""
 
 import os
+from pathlib import Path
 from typing import Any, Dict
 
 from dotenv import load_dotenv
@@ -21,10 +22,15 @@ DEFAULT_API_VERSION = "2024-12-01-preview"
 DEFAULT_SPEECH_LANGUAGE = "en-US"
 DEFAULT_INPUT_TRANSCRIPTION_MODEL = "azure-speech"
 DEFAULT_INPUT_NOISE_REDUCTION_TYPE = "azure_deep_noise_suppression"
-DEFAULT_VOICE_NAME = "en-US-Ava:DragonHDLatestNeural"
+DEFAULT_VOICE_NAME = "en-GB-SoniaNeural"
 DEFAULT_VOICE_TYPE = "azure-standard"
 DEFAULT_AVATAR_CHARACTER = "lisa"
 DEFAULT_AVATAR_STYLE = "casual-sitting"
+DEFAULT_THERAPIST_PIN = "2468"
+DEFAULT_CHILD_ID = "child-ava"
+
+DEFAULT_STORAGE_PATH = str(Path(__file__).resolve().parents[2] / "data" / "speakbright.db")
+DEFAULT_APP_INSIGHTS_CONNECTION_STRING = ""
 
 
 class Config:
@@ -68,6 +74,13 @@ class Config:
             "azure_voice_type": os.getenv("AZURE_VOICE_TYPE", DEFAULT_VOICE_TYPE),
             "azure_avatar_character": os.getenv("AZURE_AVATAR_CHARACTER", DEFAULT_AVATAR_CHARACTER),
             "azure_avatar_style": os.getenv("AZURE_AVATAR_STYLE", DEFAULT_AVATAR_STYLE),
+            "storage_path": os.getenv("STORAGE_PATH", DEFAULT_STORAGE_PATH),
+            "therapist_pin": os.getenv("THERAPIST_PIN", DEFAULT_THERAPIST_PIN),
+            "default_child_id": os.getenv("DEFAULT_CHILD_ID", DEFAULT_CHILD_ID),
+            "applicationinsights_connection_string": os.getenv(
+                "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                os.getenv("APPINSIGHTS_CONNECTIONSTRING", DEFAULT_APP_INSIGHTS_CONNECTION_STRING),
+            ),
         }
         return result
 

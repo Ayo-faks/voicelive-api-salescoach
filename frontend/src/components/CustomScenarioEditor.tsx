@@ -12,8 +12,10 @@ import {
   DialogSurface,
   DialogTitle,
   DialogTrigger,
+  Dropdown,
   Field,
   Input,
+  Option,
   Text,
   Textarea,
   makeStyles,
@@ -28,7 +30,13 @@ import {
 } from '@fluentui/react-icons'
 import { useRef, useState } from 'react'
 import { customScenarioService } from '../services/customScenarios'
-import { CustomScenario, CustomScenarioData } from '../types'
+import type { ChangeEvent, ReactElement } from 'react'
+import type {
+  CustomScenario,
+  CustomScenarioData,
+  ExerciseDifficulty,
+  ExerciseType,
+} from '../types'
 
 const useStyles = makeStyles({
   dialogContent: {
@@ -36,27 +44,53 @@ const useStyles = makeStyles({
     flexDirection: 'column',
     gap: tokens.spacingVerticalM,
   },
+  fieldGrid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: tokens.spacingHorizontalM,
+    '@media (max-width: 680px)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
   textarea: {
-    minHeight: '200px',
-    fontFamily: 'monospace',
-    fontSize: '12px',
+    minHeight: '120px',
+  },
+  promptTextarea: {
+    minHeight: '80px',
   },
   buttonGroup: {
     display: 'flex',
     gap: tokens.spacingHorizontalS,
+    flexWrap: 'wrap',
   },
   iconButton: {
     minWidth: 'auto',
   },
   errorText: {
-    color: tokens.colorPaletteRedForeground1,
-    fontSize: '12px',
+    color: 'var(--color-error)',
+    fontSize: '0.75rem',
   },
   helpText: {
-    color: tokens.colorNeutralForeground3,
-    fontSize: '12px',
+    color: 'var(--color-text-tertiary)',
+    fontSize: '0.75rem',
   },
 })
+
+const EXERCISE_TYPE_OPTIONS: Array<{ value: ExerciseType; label: string }> = [
+  { value: 'word_repetition', label: 'Word repetition' },
+  { value: 'minimal_pairs', label: 'Minimal pairs' },
+  { value: 'sentence_repetition', label: 'Sentence repetition' },
+  { value: 'guided_prompt', label: 'Guided prompt' },
+]
+
+const DIFFICULTY_OPTIONS: Array<{
+  value: ExerciseDifficulty
+  label: string
+}> = [
+  { value: 'easy', label: 'Easy' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'hard', label: 'Hard' },
+]
 
 interface CustomScenarioEditorProps {
   scenario?: CustomScenario | null
@@ -66,7 +100,7 @@ interface CustomScenarioEditorProps {
     scenarioData: CustomScenarioData
   ) => void
   onDelete?: (id: string) => void
-  trigger?: React.ReactNode
+  trigger?: ReactElement
 }
 
 export function CustomScenarioEditor({
@@ -79,6 +113,21 @@ export function CustomScenarioEditor({
   const [open, setOpen] = useState(false)
   const [name, setName] = useState(scenario?.name || '')
   const [description, setDescription] = useState(scenario?.description || '')
+  const [exerciseType, setExerciseType] = useState<ExerciseType>(
+    scenario?.scenarioData?.exerciseType || 'word_repetition'
+  )
+  const [targetSound, setTargetSound] = useState(
+    scenario?.scenarioData?.targetSound || ''
+  )
+  const [targetWords, setTargetWords] = useState(
+    scenario?.scenarioData?.targetWords?.join(', ') || ''
+  )
+  const [difficulty, setDifficulty] = useState<ExerciseDifficulty>(
+    scenario?.scenarioData?.difficulty || 'easy'
+  )
+  const [promptText, setPromptText] = useState(
+    scenario?.scenarioData?.promptText || ''
+  )
   const [systemPrompt, setSystemPrompt] = useState(
     scenario?.scenarioData?.systemPrompt || ''
   )
@@ -91,27 +140,58 @@ export function CustomScenarioEditor({
     if (scenario) {
       setName(scenario.name)
       setDescription(scenario.description)
+      setExerciseType(scenario.scenarioData.exerciseType)
+      setTargetSound(scenario.scenarioData.targetSound)
+      setTargetWords(scenario.scenarioData.targetWords.join(', '))
+      setDifficulty(scenario.scenarioData.difficulty)
+      setPromptText(scenario.scenarioData.promptText)
       setSystemPrompt(scenario.scenarioData.systemPrompt)
     } else {
+      const defaults = customScenarioService.getDefaultScenarioData()
       setName('')
       setDescription('')
-      setSystemPrompt(customScenarioService.getDefaultSystemPrompt())
+      setExerciseType(defaults.exerciseType)
+      setTargetSound(defaults.targetSound)
+      setTargetWords(defaults.targetWords.join(', '))
+      setDifficulty(defaults.difficulty)
+      setPromptText(defaults.promptText)
+      setSystemPrompt(defaults.systemPrompt)
     }
     setError(null)
     setOpen(true)
   }
 
   const handleSave = () => {
+    const parsedTargetWords = targetWords
+      .split(',')
+      .map(word => word.trim())
+      .filter(Boolean)
+
     if (!name.trim()) {
-      setError('Name is required')
+      setError('Exercise name is required')
+      return
+    }
+    if (!promptText.trim()) {
+      setError('Practice prompt is required')
+      return
+    }
+    if (!parsedTargetWords.length) {
+      setError('Add at least one target word')
       return
     }
     if (!systemPrompt.trim()) {
-      setError('System prompt is required')
+      setError('Coach instructions are required')
       return
     }
 
-    onSave(name.trim(), description.trim(), { systemPrompt })
+    onSave(name.trim(), description.trim(), {
+      exerciseType,
+      targetSound: targetSound.trim(),
+      targetWords: parsedTargetWords,
+      difficulty,
+      promptText: promptText.trim(),
+      systemPrompt: systemPrompt.trim(),
+    })
     setOpen(false)
   }
 
@@ -140,7 +220,7 @@ export function CustomScenarioEditor({
     fileInputRef.current?.click()
   }
 
-  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileImport = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
@@ -150,19 +230,22 @@ export function CustomScenarioEditor({
         const content = e.target?.result as string
         const data = JSON.parse(content) as CustomScenarioData
 
-        if (data.systemPrompt) {
+        if (data.systemPrompt && data.promptText) {
+          setExerciseType(data.exerciseType || 'word_repetition')
+          setTargetSound(data.targetSound || '')
+          setTargetWords((data.targetWords || []).join(', '))
+          setDifficulty(data.difficulty || 'easy')
+          setPromptText(data.promptText)
           setSystemPrompt(data.systemPrompt)
           setError(null)
         } else {
-          setError('Invalid format: systemPrompt is required')
+          setError('Invalid format: promptText and systemPrompt are required')
         }
       } catch {
         setError('Failed to parse JSON file')
       }
     }
     reader.readAsText(file)
-
-    // Reset input so same file can be selected again
     event.target.value = ''
   }
 
@@ -171,30 +254,40 @@ export function CustomScenarioEditor({
       appearance="subtle"
       icon={<Edit24Regular />}
       className={styles.iconButton}
-      title="Edit scenario"
+      title="Edit exercise"
     />
   ) : (
     <Button appearance="primary" icon={<Add24Regular />}>
-      Create Custom Scenario
+      Create Exercise
     </Button>
   )
 
   return (
-    <Dialog open={open} onOpenChange={(_, data) => setOpen(data.open)}>
+    <Dialog
+      open={open}
+      onOpenChange={(_, data) => {
+        if (data.open) {
+          handleOpen()
+          return
+        }
+
+        setOpen(false)
+      }}
+    >
       <DialogTrigger disableButtonEnhancement>
-        <span onClick={handleOpen}>{trigger || defaultTrigger}</span>
+        {trigger || defaultTrigger}
       </DialogTrigger>
       <DialogSurface>
         <DialogBody>
           <DialogTitle>
-            {isEditing ? 'Edit Custom Scenario' : 'Create Custom Scenario'}
+            {isEditing ? 'Edit Exercise' : 'Create Exercise'}
           </DialogTitle>
           <DialogContent className={styles.dialogContent}>
-            <Field label="Scenario Name" required>
+            <Field label="Exercise Name" required>
               <Input
                 value={name}
                 onChange={(_, data) => setName(data.value)}
-                placeholder="e.g., Product Demo Presentation"
+                placeholder="e.g., Sunny S Words"
               />
             </Field>
 
@@ -202,32 +295,103 @@ export function CustomScenarioEditor({
               <Input
                 value={description}
                 onChange={(_, data) => setDescription(data.value)}
-                placeholder="Brief description of the scenario"
+                placeholder="Brief note for the therapist"
+              />
+            </Field>
+
+            <div className={styles.fieldGrid}>
+              <Field label="Exercise Type" required>
+                <Dropdown
+                  value={
+                    EXERCISE_TYPE_OPTIONS.find(
+                      option => option.value === exerciseType
+                    )?.label
+                  }
+                  selectedOptions={[exerciseType]}
+                  onOptionSelect={(_, data) =>
+                    setExerciseType(data.optionValue as ExerciseType)
+                  }
+                >
+                  {EXERCISE_TYPE_OPTIONS.map(option => (
+                    <Option key={option.value} value={option.value}>
+                      {option.label}
+                    </Option>
+                  ))}
+                </Dropdown>
+              </Field>
+
+              <Field label="Difficulty" required>
+                <Dropdown
+                  value={
+                    DIFFICULTY_OPTIONS.find(
+                      option => option.value === difficulty
+                    )?.label
+                  }
+                  selectedOptions={[difficulty]}
+                  onOptionSelect={(_, data) =>
+                    setDifficulty(data.optionValue as ExerciseDifficulty)
+                  }
+                >
+                  {DIFFICULTY_OPTIONS.map(option => (
+                    <Option key={option.value} value={option.value}>
+                      {option.label}
+                    </Option>
+                  ))}
+                </Dropdown>
+              </Field>
+
+              <Field label="Target Sound">
+                <Input
+                  value={targetSound}
+                  onChange={(_, data) => setTargetSound(data.value)}
+                  placeholder="e.g., s"
+                />
+              </Field>
+
+              <Field label="Target Words" required hint="Comma-separated words">
+                <Input
+                  value={targetWords}
+                  onChange={(_, data) => setTargetWords(data.value)}
+                  placeholder="sun, sock, soap"
+                />
+              </Field>
+            </div>
+
+            <Field
+              label="Practice Prompt"
+              required
+              hint="What the child is asked to say or do"
+            >
+              <Textarea
+                value={promptText}
+                onChange={(_, data) => setPromptText(data.value)}
+                className={`${styles.textarea} ${styles.promptTextarea}`}
+                placeholder="Let's practice the /s/ sound together. Say each word after me."
+                resize="vertical"
               />
             </Field>
 
             <Field
-              label="System Prompt"
+              label="Coach Instructions"
               required
-              hint="Define the AI character's role, behavior, and conversation context"
+              hint="Define how the AI coach should guide the child during practice"
             >
               <Textarea
                 value={systemPrompt}
                 onChange={(_, data) => setSystemPrompt(data.value)}
                 className={styles.textarea}
-                placeholder="You are a professional playing a specific role..."
+                placeholder="You are SpeakBright, a warm and playful speech practice buddy..."
                 resize="vertical"
               />
             </Field>
 
             <Text className={styles.helpText}>
-              The system prompt defines how the AI will behave during the
-              role-play. Include character background, behavioral guidelines,
-              and key topics to address.
+              Use the practice prompt for the child-facing task and coach
+              instructions for the AI's tone, pacing, and encouragement.
             </Text>
 
             <Text className={styles.helpText}>
-              💾 Custom scenarios are stored locally in your browser and won't
+              💾 Custom exercises are stored locally in your browser and won't
               sync across devices.
             </Text>
 
@@ -275,7 +439,7 @@ export function CustomScenarioEditor({
               <Button appearance="secondary">Cancel</Button>
             </DialogTrigger>
             <Button appearance="primary" onClick={handleSave}>
-              {isEditing ? 'Save Changes' : 'Create Scenario'}
+              {isEditing ? 'Save Changes' : 'Create Exercise'}
             </Button>
           </DialogActions>
         </DialogBody>

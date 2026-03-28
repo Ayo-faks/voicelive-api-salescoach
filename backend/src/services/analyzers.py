@@ -3,16 +3,17 @@
 #  Licensed under the MIT License. See LICENSE in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-"""Analysis components for conversation and pronunciation assessment."""
+"""Analysis components for speech practice and pronunciation assessment."""
 
 import asyncio
 import base64
 import io
 import json
 import logging
+import re
 import wave
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 import azure.cognitiveservices.speech as speechsdk  # pyright: ignore[reportMissingTypeStubs]
 import yaml
@@ -30,15 +31,15 @@ SCENARIO_DATA_DIR = "data/scenarios"
 DOCKER_APP_PATH = "/app"
 
 # Scoring constants
-MAX_PROFESSIONAL_TONE_SCORE = 10
-MAX_ACTIVE_LISTENING_SCORE = 10
-MAX_ENGAGEMENT_QUALITY_SCORE = 10
-MAX_NEEDS_ASSESSMENT_SCORE = 25
-MAX_VALUE_PROPOSITION_SCORE = 25
-MAX_OBJECTION_HANDLING_SCORE = 20
+MAX_TARGET_SOUND_ACCURACY_SCORE = 10
+MAX_OVERALL_CLARITY_SCORE = 10
+MAX_CONSISTENCY_SCORE = 10
+MAX_TASK_COMPLETION_SCORE = 10
+MAX_WILLINGNESS_TO_RETRY_SCORE = 10
+MAX_SELF_CORRECTION_ATTEMPTS_SCORE = 10
 MAX_OVERALL_SCORE = 100
-MAX_TONE_STYLE_SCORE = 30
-MAX_CONTENT_SCORE = 70
+MAX_ARTICULATION_CLARITY_SCORE = 30
+MAX_ENGAGEMENT_AND_EFFORT_SCORE = 30
 
 # Audio processing constants
 MIN_AUDIO_SIZE_BYTES = 48000
@@ -48,23 +49,34 @@ AUDIO_SAMPLE_WIDTH = 2
 AUDIO_BITS_PER_SAMPLE = 16
 
 # Assessment constants
-MAX_STRENGTHS_COUNT = 3
-MAX_IMPROVEMENTS_COUNT = 3
+MAX_CELEBRATION_POINTS_COUNT = 3
+MAX_PRACTICE_SUGGESTIONS_COUNT = 3
+AGE_ADJUSTED_WORD_ACCURACY_FLOOR = 80
+REFERENCE_WORD_PATTERN = re.compile(r"[A-Za-z']+")
+AGE_BASED_SUBSTITUTION_RULES = (
+    {"target_sound": "r", "max_age": 5, "substitutions": (("r", "w"),)},
+    {"target_sound": "l", "max_age": 6, "substitutions": (("l", "w"),)},
+    {
+        "target_sound": "th",
+        "max_age": 6,
+        "substitutions": (("th", "f"), ("th", "d"), ("th", "t")),
+    },
+)
 
 # Fallback evaluation prompt for custom scenarios
-FALLBACK_EVALUATION_PROMPT = """You are an expert communication coach evaluating a role-play conversation.
+FALLBACK_EVALUATION_PROMPT = """You are an expert speech therapy practice reviewer supporting a therapist-supervised session.
 
-Evaluate the user's performance based on:
-- Communication clarity and professionalism
-- Active listening and engagement
-- Problem-solving and responsiveness
-- Achievement of conversation objectives
+Evaluate the child's practice based on:
+- Target sound accuracy and overall clarity
+- Consistency across repeated attempts
+- Engagement, persistence, and willingness to retry
+- Positive, constructive next steps for practice
 
-Provide constructive feedback to help improve their skills."""
+Keep child-visible feedback warm and encouraging. Keep therapist notes concise and clinically useful."""
 
 
 class ConversationAnalyzer:
-    """Analyzes sales conversations using Azure OpenAI."""
+    """Analyzes speech practice conversations using Azure OpenAI."""
 
     def __init__(self, scenario_dir: Optional[Path] = None):
         """
@@ -87,7 +99,7 @@ class ConversationAnalyzer:
         scenarios: Dict[str, Any] = {}
 
         if not self.scenario_dir.exists():
-            logger.warning("Scenarios directory not found: %s", self.scenario_dir)
+            logger.warning("Exercises directory not found: %s", self.scenario_dir)
             return scenarios
 
         for file in self.scenario_dir.glob(EVALUATION_FILE_SUFFIX):
@@ -96,11 +108,11 @@ class ConversationAnalyzer:
                     scenario = yaml.safe_load(f)
                     scenario_id = file.stem.replace(EVALUATION_SUFFIX_REMOVAL, "")
                     scenarios[scenario_id] = scenario
-                    logger.info("Loaded evaluation scenario: %s", scenario_id)
+                    logger.info("Loaded evaluation exercise: %s", scenario_id)
             except Exception as e:
-                logger.error("Error loading evaluation scenario %s: %s", file, e)
+                logger.error("Error loading evaluation exercise %s: %s", file, e)
 
-        logger.info("Total evaluation scenarios loaded: %s", len(scenarios))
+        logger.info("Total evaluation exercises loaded: %s", len(scenarios))
         return scenarios
 
     def _initialize_openai_client(self) -> Optional[AzureOpenAI]:
@@ -143,11 +155,11 @@ class ConversationAnalyzer:
         Returns:
             Optional[Dict[str, Any]]: Analysis results or None if analysis fails
         """
-        logger.info("Starting conversation analysis for scenario: %s", scenario_id)
+        logger.info("Starting conversation analysis for exercise: %s", scenario_id)
 
         evaluation_scenario = self.evaluation_scenarios.get(scenario_id)
         if not evaluation_scenario:
-            logger.info("Using fallback evaluation for scenario: %s", scenario_id)
+            logger.info("Using fallback evaluation for exercise: %s", scenario_id)
             evaluation_scenario = {"messages": [{"content": FALLBACK_EVALUATION_PROMPT}]}
 
         if not self.openai_client:
@@ -163,22 +175,25 @@ class ConversationAnalyzer:
 
         EVALUATION CRITERIA:
 
-        **SPEAKING TONE & STYLE ({MAX_TONE_STYLE_SCORE} points total):**
-        - professional_tone: 0-{MAX_PROFESSIONAL_TONE_SCORE} points for confident, consultative, appropriate business language
-        - active_listening: 0-{MAX_ACTIVE_LISTENING_SCORE} points for acknowledging concerns and asking clarifying questions
-        - engagement_quality: 0-{MAX_ENGAGEMENT_QUALITY_SCORE} points for encouraging dialogue and thoughtful responses
+        **ARTICULATION CLARITY ({MAX_ARTICULATION_CLARITY_SCORE} points total):**
+        - target_sound_accuracy: 0-{MAX_TARGET_SOUND_ACCURACY_SCORE} points for accurate production of the target sound(s)
+        - overall_clarity: 0-{MAX_OVERALL_CLARITY_SCORE} points for how clear and understandable the child's speech was
+        - consistency: 0-{MAX_CONSISTENCY_SCORE} points for maintaining accurate production across repeated attempts
 
-        **CONVERSATION CONTENT QUALITY ({MAX_CONTENT_SCORE} points total):**
-        - needs_assessment: 0-{MAX_NEEDS_ASSESSMENT_SCORE} points for understanding customer challenges and goals
-        - value_proposition: 0-{MAX_VALUE_PROPOSITION_SCORE} points for clear benefits with data/examples/reasoning
-        - objection_handling: 0-{MAX_OBJECTION_HANDLING_SCORE} points for addressing concerns with constructive solutions
+        **ENGAGEMENT AND EFFORT ({MAX_ENGAGEMENT_AND_EFFORT_SCORE} points total):**
+        - task_completion: 0-{MAX_TASK_COMPLETION_SCORE} points for staying with the practice task
+        - willingness_to_retry: 0-{MAX_WILLINGNESS_TO_RETRY_SCORE} points for trying again after support or modeling
+        - self_correction_attempts: 0-{MAX_SELF_CORRECTION_ATTEMPTS_SCORE} points for independently improving or adjusting speech
 
-        Calculate overall_score as the sum of all individual scores (max {MAX_OVERALL_SCORE}).
+        Set articulation_clarity.total and engagement_and_effort.total as the sum of their sub-scores.
+        Set overall_score on a 0-{MAX_OVERALL_SCORE} scale based on the whole practice session.
 
-        You are evaluating the conversation from perspective of the user (Starting the conversation)
-        DO NOT rate the conversation of the 'assistant'!
+        You are evaluating the child speaker only.
+        Do not score the assistant or practice buddy.
 
-        Provide maximum of {MAX_STRENGTHS_COUNT} strengths and {MAX_IMPROVEMENTS_COUNT} areas of improvement.
+        Provide up to {MAX_CELEBRATION_POINTS_COUNT} celebration points and up to {MAX_PRACTICE_SUGGESTIONS_COUNT} practice suggestions.
+        Celebration points must be positive.
+        Practice suggestions must stay constructive and never use negative language.
 
         CONVERSATION TO EVALUATE:
         {transcript}
@@ -229,7 +244,7 @@ class ConversationAnalyzer:
         return [
             {
                 "role": "system",
-                "content": "You are an expert sales conversation evaluator. "
+                "content": "You are an expert speech therapy practice evaluator. "
                 "Analyze the provided conversation and return a structured evaluation.",
             },
             {"role": "user", "content": evaluation_prompt},
@@ -240,61 +255,61 @@ class ConversationAnalyzer:
         return {
             "type": "json_schema",
             "json_schema": {
-                "name": "sales_evaluation",
+                "name": "speech_therapy_evaluation",
                 "strict": True,
                 "schema": {
                     "type": "object",
                     "properties": {
-                        "speaking_tone_style": {
+                        "articulation_clarity": {
                             "type": "object",
                             "properties": {
-                                "professional_tone": {"type": "integer"},
-                                "active_listening": {"type": "integer"},
-                                "engagement_quality": {"type": "integer"},
-                                "total": {"type": "integer"},
+                                "target_sound_accuracy": {"type": "integer", "minimum": 0, "maximum": 10},
+                                "overall_clarity": {"type": "integer", "minimum": 0, "maximum": 10},
+                                "consistency": {"type": "integer", "minimum": 0, "maximum": 10},
+                                "total": {"type": "integer", "minimum": 0, "maximum": 30},
                             },
                             "required": [
-                                "professional_tone",
-                                "active_listening",
-                                "engagement_quality",
+                                "target_sound_accuracy",
+                                "overall_clarity",
+                                "consistency",
                                 "total",
                             ],
                             "additionalProperties": False,
                         },
-                        "conversation_content": {
+                        "engagement_and_effort": {
                             "type": "object",
                             "properties": {
-                                "needs_assessment": {"type": "integer"},
-                                "value_proposition": {"type": "integer"},
-                                "objection_handling": {"type": "integer"},
-                                "total": {"type": "integer"},
+                                "task_completion": {"type": "integer", "minimum": 0, "maximum": 10},
+                                "willingness_to_retry": {"type": "integer", "minimum": 0, "maximum": 10},
+                                "self_correction_attempts": {"type": "integer", "minimum": 0, "maximum": 10},
+                                "total": {"type": "integer", "minimum": 0, "maximum": 30},
                             },
                             "required": [
-                                "needs_assessment",
-                                "value_proposition",
-                                "objection_handling",
+                                "task_completion",
+                                "willingness_to_retry",
+                                "self_correction_attempts",
                                 "total",
                             ],
                             "additionalProperties": False,
                         },
-                        "overall_score": {"type": "integer"},
-                        "strengths": {
+                        "overall_score": {"type": "integer", "minimum": 0, "maximum": 100},
+                        "celebration_points": {
                             "type": "array",
                             "items": {"type": "string"},
                         },
-                        "improvements": {
+                        "practice_suggestions": {
                             "type": "array",
                             "items": {"type": "string"},
                         },
-                        "specific_feedback": {"type": "string"},
+                        "therapist_notes": {"type": "string"},
                     },
                     "required": [
-                        "speaking_tone_style",
-                        "conversation_content",
+                        "articulation_clarity",
+                        "engagement_and_effort",
                         "overall_score",
-                        "strengths",
-                        "improvements",
-                        "specific_feedback",
+                        "celebration_points",
+                        "practice_suggestions",
+                        "therapist_notes",
                     ],
                     "additionalProperties": False,
                 },
@@ -303,20 +318,25 @@ class ConversationAnalyzer:
 
     def _process_evaluation_result(self, evaluation_json: Dict[str, Any]) -> Dict[str, Any]:
         """Process and validate evaluation results."""
-        evaluation_json["speaking_tone_style"]["total"] = sum(
+        evaluation_json["articulation_clarity"]["total"] = sum(
             [
-                evaluation_json["speaking_tone_style"]["professional_tone"],
-                evaluation_json["speaking_tone_style"]["active_listening"],
-                evaluation_json["speaking_tone_style"]["engagement_quality"],
+                evaluation_json["articulation_clarity"]["target_sound_accuracy"],
+                evaluation_json["articulation_clarity"]["overall_clarity"],
+                evaluation_json["articulation_clarity"]["consistency"],
             ]
         )
 
-        evaluation_json["conversation_content"]["total"] = sum(
+        evaluation_json["engagement_and_effort"]["total"] = sum(
             [
-                evaluation_json["conversation_content"]["needs_assessment"],
-                evaluation_json["conversation_content"]["value_proposition"],
-                evaluation_json["conversation_content"]["objection_handling"],
+                evaluation_json["engagement_and_effort"]["task_completion"],
+                evaluation_json["engagement_and_effort"]["willingness_to_retry"],
+                evaluation_json["engagement_and_effort"]["self_correction_attempts"],
             ]
+        )
+
+        evaluation_json["overall_score"] = max(
+            0,
+            min(MAX_OVERALL_SCORE, evaluation_json.get("overall_score", 0)),
         )
 
         logger.info("Evaluation processed with score: %s", evaluation_json.get("overall_score"))
@@ -351,10 +371,143 @@ class PronunciationAssessor:
         logger.info("Speech key configured: %s", "Yes" if self.speech_key else "No")
         logger.info("Speech region: %s", self.speech_region)
 
-    def _create_speech_config(self) -> speechsdk.SpeechConfig:
+    def _get_exercise_metadata_value(self, exercise_metadata: Optional[Dict[str, Any]], *keys: str) -> Any:
+        """Return the first present exercise metadata value for the provided keys."""
+        if not exercise_metadata:
+            return None
+
+        for key in keys:
+            value = exercise_metadata.get(key)
+            if value is not None:
+                return value
+
+        return None
+
+    def _normalize_sound(self, value: Optional[str]) -> str:
+        """Normalize a target sound or phoneme label for comparisons."""
+        return re.sub(r"[^a-z]", "", (value or "").lower())
+
+    def _extract_reference_words(
+        self,
+        reference_text: Optional[str],
+        exercise_metadata: Optional[Dict[str, Any]] = None,
+    ) -> List[str]:
+        """Extract the ordered reference words used to interpret word-level feedback."""
+        target_words = self._get_exercise_metadata_value(exercise_metadata, "targetWords", "target_words")
+        if isinstance(target_words, list):
+            return [str(word).strip() for word in target_words if str(word).strip()]
+
+        return [match.group(0) for match in REFERENCE_WORD_PATTERN.finditer(reference_text or "")]
+
+    def _get_child_age(self, exercise_metadata: Optional[Dict[str, Any]] = None) -> Optional[int]:
+        """Read an optional child age from exercise metadata."""
+        child_age = self._get_exercise_metadata_value(exercise_metadata, "childAge", "child_age")
+
+        if child_age is None:
+            return None
+
+        if isinstance(child_age, (int, float)):
+            return int(child_age)
+
+        if isinstance(child_age, str):
+            match = re.search(r"\d+", child_age)
+            if match:
+                return int(match.group(0))
+
+        return None
+
+    def _is_developmentally_expected_substitution(
+        self,
+        expected_word: str,
+        actual_word: str,
+        target_sound: Optional[str],
+        child_age: int,
+    ) -> bool:
+        """Return True when a word-level mispronunciation matches a small explicit age-based rule."""
+        normalized_target_sound = self._normalize_sound(target_sound)
+        normalized_expected = self._normalize_sound(expected_word)
+        normalized_actual = self._normalize_sound(actual_word)
+
+        if not normalized_expected or not normalized_actual:
+            return False
+
+        for rule in AGE_BASED_SUBSTITUTION_RULES:
+            if child_age > rule["max_age"]:
+                continue
+
+            if normalized_target_sound and normalized_target_sound != rule["target_sound"]:
+                continue
+
+            for expected_prefix, actual_prefix in rule["substitutions"]:
+                if normalized_expected.startswith(expected_prefix) and normalized_actual.startswith(actual_prefix):
+                    return True
+
+        return False
+
+    def _apply_age_calibration(
+        self,
+        assessment_result: Dict[str, Any],
+        reference_text: Optional[str],
+        exercise_metadata: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Suppress a small set of developmentally expected substitutions from child-facing feedback."""
+        child_age = self._get_child_age(exercise_metadata)
+        words = list(assessment_result.get("words") or [])
+
+        if child_age is None or not words:
+            return assessment_result
+
+        target_sound = self._get_exercise_metadata_value(exercise_metadata, "targetSound", "target_sound")
+        reference_words = self._extract_reference_words(reference_text, exercise_metadata)
+        adjustments_applied = 0
+        adjusted_words: List[Dict[str, Any]] = []
+
+        for index, word in enumerate(words):
+            adjusted_word = dict(word)
+            target_word = reference_words[index] if index < len(reference_words) else adjusted_word.get("word", "")
+            adjusted_word["target_word"] = target_word
+
+            if adjusted_word.get("error_type") == "Mispronunciation" and self._is_developmentally_expected_substitution(
+                str(target_word),
+                str(adjusted_word.get("word", "")),
+                cast(Optional[str], target_sound),
+                child_age,
+            ):
+                adjusted_word["age_adjusted"] = True
+                adjusted_word["error_type"] = "None"
+                adjusted_word["accuracy"] = max(
+                    float(adjusted_word.get("accuracy", 0)),
+                    float(AGE_ADJUSTED_WORD_ACCURACY_FLOOR),
+                )
+                adjustments_applied += 1
+
+            adjusted_words.append(adjusted_word)
+
+        if not adjustments_applied:
+            return {**assessment_result, "words": adjusted_words}
+
+        adjusted_average = sum(float(word.get("accuracy", 0)) for word in adjusted_words) / len(adjusted_words)
+
+        return {
+            **assessment_result,
+            "accuracy_score": max(float(assessment_result.get("accuracy_score", 0)), adjusted_average),
+            "pronunciation_score": max(
+                float(assessment_result.get("pronunciation_score", 0)),
+                adjusted_average,
+            ),
+            "words": adjusted_words,
+            "adjustments_applied": adjustments_applied,
+        }
+
+    def _create_speech_config(self, exercise_metadata: Optional[Dict[str, Any]] = None) -> speechsdk.SpeechConfig:
         """Create speech configuration."""
         speech_config = speechsdk.SpeechConfig(subscription=self.speech_key, region=self.speech_region)
-        speech_config.speech_recognition_language = config["azure_speech_language"]
+        speech_language = self._get_exercise_metadata_value(
+            exercise_metadata,
+            "speechLanguage",
+            "speech_language",
+        ) or config["azure_speech_language"]
+        speech_config.speech_recognition_language = speech_language
         return speech_config
 
     def _create_pronunciation_config(self, reference_text: Optional[str]) -> speechsdk.PronunciationAssessmentConfig:
@@ -387,9 +540,11 @@ class PronunciationAssessor:
         self,
         pronunciation_result: speechsdk.PronunciationAssessmentResult,
         result: speechsdk.SpeechRecognitionResult,
+        reference_text: Optional[str],
+        exercise_metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Build the final assessment result."""
-        return {
+        raw_result = {
             "accuracy_score": pronunciation_result.accuracy_score,
             "fluency_score": pronunciation_result.fluency_score,
             "completeness_score": pronunciation_result.completeness_score,
@@ -398,8 +553,13 @@ class PronunciationAssessor:
             "words": self._extract_word_details(result),
         }
 
+        return self._apply_age_calibration(raw_result, reference_text, exercise_metadata)
+
     async def assess_pronunciation(
-        self, audio_data: List[Dict[str, Any]], reference_text: Optional[str] = None
+        self,
+        audio_data: List[Dict[str, Any]],
+        reference_text: Optional[str] = None,
+        exercise_metadata: Optional[Dict[str, Any]] = None,
     ) -> Optional[Dict[str, Any]]:
         """
         Assess pronunciation of audio data.
@@ -427,7 +587,7 @@ class PronunciationAssessor:
                 logger.warning("Audio might be too short: %s bytes", len(combined_audio))
 
             wav_audio = self._create_wav_audio(combined_audio)
-            return await self._perform_assessment(wav_audio, reference_text)
+            return await self._perform_assessment(wav_audio, reference_text, exercise_metadata)
 
         except Exception as e:
             logger.error("Error in pronunciation assessment: %s", e)
@@ -447,25 +607,40 @@ class PronunciationAssessor:
 
         return combined_audio
 
-    async def _perform_assessment(self, wav_audio: bytes, reference_text: Optional[str]) -> Optional[Dict[str, Any]]:
+    async def _perform_assessment(
+        self,
+        wav_audio: bytes,
+        reference_text: Optional[str],
+        exercise_metadata: Optional[Dict[str, Any]] = None,
+    ) -> Optional[Dict[str, Any]]:
         """Perform the actual pronunciation assessment."""
         self._log_assessment_info(wav_audio, reference_text)
 
-        speech_config = self._create_speech_config()
+        speech_language = self._get_exercise_metadata_value(
+            exercise_metadata,
+            "speechLanguage",
+            "speech_language",
+        ) or config["azure_speech_language"]
+        speech_config = self._create_speech_config(exercise_metadata)
         pronunciation_config = self._create_pronunciation_config(reference_text)
         audio_config = self._create_audio_config(wav_audio)
 
         speech_recognizer = speechsdk.SpeechRecognizer(
             speech_config=speech_config,
             audio_config=audio_config,
-            language=config["azure_speech_language"],
+            language=speech_language,
         )
         pronunciation_config.apply_to(speech_recognizer)
 
         result = await asyncio.get_event_loop().run_in_executor(None, speech_recognizer.recognize_once)
 
         pronunciation_result = speechsdk.PronunciationAssessmentResult(result)
-        return self._build_assessment_result(pronunciation_result, result)
+        return self._build_assessment_result(
+            pronunciation_result,
+            result,
+            reference_text,
+            exercise_metadata,
+        )
 
     def _extract_word_details(self, result: speechsdk.SpeechRecognitionResult) -> List[Dict[str, Any]]:
         """Extract word-level pronunciation details."""

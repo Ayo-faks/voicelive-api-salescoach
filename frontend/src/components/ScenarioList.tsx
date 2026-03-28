@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+  Badge,
   Button,
   Card,
   CardHeader,
@@ -11,88 +12,167 @@ import {
   Dropdown,
   Label,
   Option,
-  Spinner,
   Text,
   makeStyles,
+  mergeClasses,
   tokens,
 } from '@fluentui/react-components'
-import { Edit24Regular } from '@fluentui/react-icons'
+import { Edit24Regular, PersonVoiceRegular } from '@fluentui/react-icons'
 import { useState } from 'react'
-import { api } from '../services/api'
-import {
-  AVATAR_OPTIONS,
-  CustomScenario,
-  CustomScenarioData,
-  DEFAULT_AVATAR,
-  Scenario,
-} from '../types'
+import type { CustomScenario, CustomScenarioData, Scenario } from '../types'
+import { AVATAR_OPTIONS, DEFAULT_AVATAR } from '../types'
 import { CustomScenarioEditor } from './CustomScenarioEditor'
 
 const useStyles = makeStyles({
   container: {
     display: 'flex',
     flexDirection: 'column',
-    gap: tokens.spacingVerticalM,
+    gap: 'var(--space-lg)',
     width: '100%',
   },
   header: {
-    gridColumn: '1 / -1',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+  },
+  title: {
+    fontFamily: 'var(--font-display)',
+    color: 'var(--color-text-primary)',
+    fontSize: '1.1rem',
+    fontWeight: '700',
+    letterSpacing: '-0.01em',
+  },
+  helperText: {
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.8125rem',
   },
   sectionHeader: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: tokens.spacingVerticalM,
+    gap: 'var(--space-md)',
+    flexWrap: 'wrap',
   },
   cardsGrid: {
     display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: tokens.spacingVerticalM,
-    gridColumn: '1 / span 2',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: 'var(--space-sm)',
     width: '100%',
-    '@media (max-width: 600px)': {
+    '@media (max-width: 980px)': {
       gridTemplateColumns: '1fr',
     },
   },
   card: {
     cursor: 'pointer',
-    transition: 'all 0.2s',
+    minHeight: '140px',
+    padding: 'var(--space-md)',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-bg-card)',
+    boxShadow: 'var(--shadow-soft, var(--shadow-md))',
+    transition: 'border-color var(--transition-fast), box-shadow var(--transition-fast)',
     '&:hover': {
-      transform: 'translateY(-2px)',
-      boxShadow: tokens.shadow16,
+      border: '1px solid var(--color-border-strong)',
+      boxShadow: 'var(--shadow-md)',
+    },
+    '@media (max-width: 640px)': {
+      minHeight: '120px',
     },
   },
   selected: {
-    backgroundColor: tokens.colorBrandBackground2,
+    border: '1px solid var(--color-primary)',
+    boxShadow: 'var(--shadow-glow)',
   },
   customCard: {
-    borderLeft: `3px solid ${tokens.colorBrandForeground1}`,
+    backgroundColor: 'var(--color-bg-secondary)',
   },
   actions: {
-    gridColumn: '1 / -1',
     display: 'flex',
-    justifyContent: 'flex-end',
-    marginTop: tokens.spacingVerticalL,
-    gap: tokens.spacingHorizontalM,
+    justifyContent: 'space-between',
+    marginTop: 'var(--space-sm)',
+    gap: 'var(--space-md)',
     alignItems: 'center',
-  },
-  loadingCard: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '120px',
-    textAlign: 'center',
-    gap: tokens.spacingVerticalM,
+    flexWrap: 'wrap',
   },
   graphIcon: {
-    fontSize: '24px',
-    marginRight: tokens.spacingHorizontalS,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '36px',
+    height: '36px',
+    borderRadius: 'var(--radius-md)',
+    backgroundColor: 'var(--color-primary-soft)',
+    fontSize: '18px',
+    flexShrink: 0,
   },
-  customIcon: {
-    fontSize: '20px',
-    marginRight: tokens.spacingHorizontalXS,
-    color: tokens.colorBrandForeground1,
+  cardActions: {
+    display: 'flex',
+    gap: 'var(--space-xs)',
+  },
+  editButton: {
+    minWidth: 'auto',
+    padding: 'var(--space-xs)',
+  },
+  emptyCustom: {
+    textAlign: 'center',
+    padding: 'var(--space-lg)',
+    color: 'var(--color-text-secondary)',
+    backgroundColor: 'var(--color-bg-muted)',
+    borderRadius: 'var(--radius-md)',
+    border: '1px dashed var(--color-border-strong)',
+    fontSize: '0.8125rem',
+  },
+  cardHeader: {
+    display: 'flex',
+    gap: 'var(--space-sm)',
+    alignItems: 'flex-start',
+  },
+  cardCopy: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+    flex: 1,
+  },
+  cardTitle: {
+    fontFamily: 'var(--font-display)',
+    color: 'var(--color-text-primary)',
+    fontSize: '0.875rem',
+    fontWeight: '600',
+  },
+  cardDescription: {
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.8125rem',
+    lineHeight: 1.5,
+  },
+  metadataRow: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '6px',
+    marginTop: 'var(--space-md)',
+  },
+  metaBadge: {
+    minHeight: '24px',
+    paddingInline: 'var(--space-sm)',
+    borderRadius: 'var(--radius-sm)',
+    backgroundColor: 'var(--color-primary-soft)',
+    color: 'var(--color-primary-dark)',
+    fontSize: '0.75rem',
+  },
+  startButton: {
+    minHeight: '44px',
+    paddingInline: 'var(--space-xl)',
+    borderRadius: 'var(--radius-md)',
+    fontFamily: 'var(--font-display)',
+    fontWeight: '600',
+    fontSize: '0.875rem',
+    background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
+    color: 'var(--color-text-inverse)',
+    boxShadow: '0 14px 28px rgba(13, 138, 132, 0.22)',
+    border: 'none',
+    '@media (max-width: 640px)': {
+      width: '100%',
+      minHeight: '48px',
+    },
   },
   avatarSelector: {
     display: 'flex',
@@ -103,28 +183,28 @@ const useStyles = makeStyles({
   avatarDropdown: {
     minWidth: '200px',
   },
-  cardActions: {
+  sectionCopy: {
     display: 'flex',
-    gap: tokens.spacingHorizontalXS,
-  },
-  editButton: {
-    minWidth: 'auto',
-    padding: tokens.spacingHorizontalXS,
-  },
-  emptyCustom: {
-    textAlign: 'center',
-    padding: tokens.spacingVerticalL,
-    color: tokens.colorNeutralForeground3,
+    flexDirection: 'column',
+    gap: '2px',
   },
 })
+
+function formatExerciseType(value?: string) {
+  if (!value) return 'Practice exercise'
+
+  return value
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
 
 interface Props {
   scenarios: Scenario[]
   customScenarios: CustomScenario[]
   selectedScenario: string | null
   onSelect: (id: string) => void
-  onStart: (avatarValue: string) => void
-  onScenarioGenerated?: (scenario: Scenario) => void
+  onStart?: (avatarValue: string) => void
   onAddCustomScenario: (
     name: string,
     description: string,
@@ -137,6 +217,12 @@ interface Props {
     >
   ) => void
   onDeleteCustomScenario: (id: string) => void
+  title?: string
+  helperText?: string
+  showFooter?: boolean
+  showCustomExercises?: boolean
+  selectedAvatar?: string
+  onAvatarChange?: (value: string) => void
 }
 
 export function ScenarioList({
@@ -145,45 +231,28 @@ export function ScenarioList({
   selectedScenario,
   onSelect,
   onStart,
-  onScenarioGenerated,
   onAddCustomScenario,
   onUpdateCustomScenario,
   onDeleteCustomScenario,
+  title = "Let's practice!",
+  helperText = 'Choose a SpeakBright exercise, then start a calm, guided speech practice session.',
+  showFooter = true,
+  showCustomExercises = true,
+  selectedAvatar,
+  onAvatarChange,
 }: Props) {
   const styles = useStyles()
-  const [loadingGraph, setLoadingGraph] = useState(false)
-  const [generatedScenario, setGeneratedScenario] = useState<Scenario | null>(
-    null
-  )
-  const [selectedAvatar, setSelectedAvatar] = useState(DEFAULT_AVATAR)
+  const [internalAvatar, setInternalAvatar] = useState(DEFAULT_AVATAR)
+  const activeAvatar = selectedAvatar ?? internalAvatar
 
-  const handleScenarioClick = async (scenario: Scenario) => {
-    if (scenario.is_graph_scenario && !scenario.generated_from_graph) {
-      setLoadingGraph(true)
-      try {
-        const generated = await api.generateGraphScenario()
-        const personalizedScenario = {
-          ...generated,
-          name: 'Personalized Scenario',
-          description: generated.description.split('.')[0] + '.',
-        }
-        setGeneratedScenario(personalizedScenario)
-        onScenarioGenerated?.(personalizedScenario)
-        onSelect(personalizedScenario.id)
-      } catch (error) {
-        console.error('Failed to generate Graph scenario:', error)
-      } finally {
-        setLoadingGraph(false)
-      }
-    } else {
-      onSelect(scenario.id)
+  const handleAvatarChange = (value: string) => {
+    if (onAvatarChange) {
+      onAvatarChange(value)
+      return
     }
-  }
 
-  // Build the complete scenario list (server scenarios only, custom handled separately)
-  const allScenarios = generatedScenario
-    ? [...scenarios.filter(s => !s.is_graph_scenario), generatedScenario]
-    : scenarios
+    setInternalAvatar(value)
+  }
 
   const handleEditCustomScenario = (
     scenario: CustomScenario,
@@ -199,150 +268,194 @@ export function ScenarioList({
   }
 
   return (
-    <>
-      <Text className={styles.header} size={500} weight="semibold">
-        Select Training Scenario
-      </Text>
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <Text className={styles.title} size={700} weight="semibold">
+          {title}
+        </Text>
+        <Text className={styles.helperText} size={300}>
+          {helperText}
+        </Text>
+      </div>
 
-      {/* Server-side scenarios */}
       <div className={styles.cardsGrid}>
-        {allScenarios.map(scenario => {
+        {scenarios.map(scenario => {
           const isSelected = selectedScenario === scenario.id
-          const isGraphLoading =
-            scenario.is_graph_scenario &&
-            loadingGraph &&
-            !scenario.generated_from_graph
-
-          if (isGraphLoading) {
-            return (
-              <Card key="graph-loading" className={styles.card}>
-                <div className={styles.loadingCard}>
-                  <Spinner size="medium" />
-                  <Text size={300}>
-                    Analyzing your calendar and generating personalized
-                    scenario...
-                  </Text>
-                </div>
-              </Card>
-            )
-          }
 
           return (
             <Card
               key={scenario.id}
-              className={`${styles.card} ${isSelected ? styles.selected : ''}`}
-              onClick={() => handleScenarioClick(scenario)}
+              className={mergeClasses(styles.card, isSelected && styles.selected)}
+              onClick={() => onSelect(scenario.id)}
             >
-              <CardHeader
-                header={
-                  <Text weight="semibold">
-                    {(scenario.is_graph_scenario ||
-                      scenario.generated_from_graph) && (
-                      <span className={styles.graphIcon}>✨</span>
-                    )}
+              <div className={styles.cardHeader}>
+                <span className={styles.graphIcon}>
+                  <PersonVoiceRegular />
+                </span>
+                <div className={styles.cardCopy}>
+                  <Text className={styles.cardTitle} size={500} weight="semibold">
                     {scenario.name}
                   </Text>
-                }
-                description={<Text size={200}>{scenario.description}</Text>}
-              />
+                  <Text className={styles.cardDescription} size={300}>
+                    {scenario.description}
+                  </Text>
+                </div>
+              </div>
+
+              <div className={styles.metadataRow}>
+                <Badge appearance="filled" className={styles.metaBadge}>
+                  {formatExerciseType(scenario.exerciseMetadata?.type)}
+                </Badge>
+                {scenario.exerciseMetadata?.targetSound && (
+                  <Badge appearance="tint" className={styles.metaBadge}>
+                    Sound: {scenario.exerciseMetadata.targetSound}
+                  </Badge>
+                )}
+                {scenario.exerciseMetadata?.difficulty && (
+                  <Badge appearance="tint" className={styles.metaBadge}>
+                    {scenario.exerciseMetadata.difficulty}
+                  </Badge>
+                )}
+              </div>
             </Card>
           )
         })}
       </div>
 
-      {/* Custom scenarios section */}
-      <Divider style={{ marginTop: tokens.spacingVerticalL }} />
+      {showCustomExercises ? (
+        <>
+          <Divider style={{ marginTop: tokens.spacingVerticalL }} />
 
-      <div className={styles.sectionHeader}>
-        <CustomScenarioEditor onSave={onAddCustomScenario} />
-      </div>
+          <div className={styles.sectionHeader}>
+            <div className={styles.sectionCopy}>
+              <Text className={styles.cardTitle} size={500} weight="semibold">
+                Therapist exercises
+              </Text>
+              <Text className={styles.helperText} size={300}>
+                Create a custom exercise with target sounds, target words, and a
+                guided practice prompt.
+              </Text>
+            </div>
+            <CustomScenarioEditor onSave={onAddCustomScenario} />
+          </div>
 
-      {customScenarios.length === 0 ? (
-        <Text className={styles.emptyCustom} size={200}>
-          No custom scenarios yet. Create one to practice with your own
-          role-play situations.
-        </Text>
-      ) : (
-        <div className={styles.cardsGrid}>
-          {customScenarios.map(scenario => {
-            const isSelected = selectedScenario === scenario.id
+          {customScenarios.length === 0 ? (
+            <Text className={styles.emptyCustom} size={200}>
+              No custom exercises yet. Create one for a specific child or target
+              sound.
+            </Text>
+          ) : (
+            <div className={styles.cardsGrid}>
+              {customScenarios.map(scenario => {
+                const isSelected = selectedScenario === scenario.id
 
-            return (
-              <Card
-                key={scenario.id}
-                className={`${styles.card} ${styles.customCard} ${isSelected ? styles.selected : ''}`}
-                onClick={() => onSelect(scenario.id)}
-              >
-                <CardHeader
-                  header={<Text weight="semibold">{scenario.name}</Text>}
-                  description={<Text size={200}>{scenario.description}</Text>}
-                  action={
-                    <div
-                      className={styles.cardActions}
-                      onClick={e => e.stopPropagation()}
-                    >
-                      <CustomScenarioEditor
-                        scenario={scenario}
-                        onSave={(name, description, data) =>
-                          handleEditCustomScenario(
-                            scenario,
-                            name,
-                            description,
-                            data
-                          )
-                        }
-                        onDelete={onDeleteCustomScenario}
-                        trigger={
-                          <Button
-                            appearance="subtle"
-                            icon={<Edit24Regular />}
-                            className={styles.editButton}
-                            size="small"
+                return (
+                  <Card
+                    key={scenario.id}
+                    className={mergeClasses(
+                      styles.card,
+                      styles.customCard,
+                      isSelected && styles.selected
+                    )}
+                    onClick={() => onSelect(scenario.id)}
+                  >
+                    <CardHeader
+                      header={
+                        <Text className={styles.cardTitle} weight="semibold">
+                          {scenario.name}
+                        </Text>
+                      }
+                      description={
+                        <Text className={styles.cardDescription} size={200}>
+                          {scenario.description || scenario.scenarioData.promptText}
+                        </Text>
+                      }
+                      action={
+                        <div
+                          className={styles.cardActions}
+                          onClick={e => e.stopPropagation()}
+                          onKeyDown={e => e.stopPropagation()}
+                        >
+                          <CustomScenarioEditor
+                            scenario={scenario}
+                            onSave={(name, description, data) =>
+                              handleEditCustomScenario(
+                                scenario,
+                                name,
+                                description,
+                                data
+                              )
+                            }
+                            onDelete={onDeleteCustomScenario}
+                            trigger={
+                              <Button
+                                appearance="subtle"
+                                icon={<Edit24Regular />}
+                                className={styles.editButton}
+                                size="small"
+                              />
+                            }
                           />
-                        }
-                      />
-                    </div>
-                  }
-                />
-              </Card>
-            )
-          })}
-        </div>
-      )}
+                        </div>
+                      }
+                    />
 
-      <div className={styles.actions}>
-        <div className={styles.avatarSelector}>
-          <Label htmlFor="avatar-select">Avatar:</Label>
-          <Dropdown
-            id="avatar-select"
-            className={styles.avatarDropdown}
-            value={
-              AVATAR_OPTIONS.find(opt => opt.value === selectedAvatar)?.label ||
-              ''
-            }
-            selectedOptions={[selectedAvatar]}
-            onOptionSelect={(_, data) => {
-              if (data.optionValue) {
-                setSelectedAvatar(data.optionValue)
+                    <div className={styles.metadataRow}>
+                      <Badge appearance="filled" className={styles.metaBadge}>
+                        {formatExerciseType(scenario.scenarioData.exerciseType)}
+                      </Badge>
+                      {scenario.scenarioData.targetSound && (
+                        <Badge appearance="tint" className={styles.metaBadge}>
+                          Sound: {scenario.scenarioData.targetSound}
+                        </Badge>
+                      )}
+                      <Badge appearance="tint" className={styles.metaBadge}>
+                        {scenario.scenarioData.targetWords.join(', ')}
+                      </Badge>
+                    </div>
+                  </Card>
+                )
+              })}
+            </div>
+          )}
+        </>
+      ) : null}
+
+      {showFooter ? (
+        <div className={styles.actions}>
+          <div className={styles.avatarSelector}>
+            <Label htmlFor="avatar-select">Avatar:</Label>
+            <Dropdown
+              id="avatar-select"
+              className={styles.avatarDropdown}
+              value={
+                AVATAR_OPTIONS.find(opt => opt.value === activeAvatar)?.label ||
+                ''
               }
-            }}
+              selectedOptions={[activeAvatar]}
+              onOptionSelect={(_, data) => {
+                if (data.optionValue) {
+                  handleAvatarChange(data.optionValue)
+                }
+              }}
+            >
+              {AVATAR_OPTIONS.map(opt => (
+                <Option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </Option>
+              ))}
+            </Dropdown>
+          </div>
+          <Button
+            appearance="primary"
+            className={styles.startButton}
+            disabled={!selectedScenario || !onStart}
+            onClick={() => onStart?.(activeAvatar)}
           >
-            {AVATAR_OPTIONS.map(option => (
-              <Option key={option.value} value={option.value}>
-                {option.label}
-              </Option>
-            ))}
-          </Dropdown>
+            Start child session
+          </Button>
         </div>
-        <Button
-          appearance="primary"
-          disabled={!selectedScenario || loadingGraph}
-          onClick={() => onStart(selectedAvatar)}
-          size="large"
-        >
-          Start Training
-        </Button>
-      </div>
-    </>
+      ) : null}
+    </div>
   )
 }

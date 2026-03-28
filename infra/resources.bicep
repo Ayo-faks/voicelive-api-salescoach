@@ -290,7 +290,7 @@ resource userAzureAIDeveloperRole 'Microsoft.Authorization/roleAssignments@2022-
   name: guid(resourceGroup().id, principalId, '64702f94-c441-49e6-a78b-ef80e0188fee')
   properties: {
     principalId: principalId
-    principalType: 'User'
+    principalType: principalType
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '64702f94-c441-49e6-a78b-ef80e0188fee')
   }
 }
@@ -299,7 +299,7 @@ resource userCognitiveServicesOpenAIUserRole 'Microsoft.Authorization/roleAssign
   name: guid(resourceGroup().id, principalId, '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd')
   properties: {
     principalId: principalId
-    principalType: 'User'
+    principalType: principalType
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd')
   }
 }

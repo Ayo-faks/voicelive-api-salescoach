@@ -86,7 +86,7 @@ class TestConversationAnalyzer:
         assert "Base evaluation prompt" in prompt
         assert "Test conversation" in prompt
         assert "EVALUATION CRITERIA" in prompt
-        assert "SPEAKING TONE & STYLE" in prompt
+        assert "ARTICULATION CLARITY" in prompt
 
     def test_get_response_format(self):
         """Test getting response format for structured output."""
@@ -94,11 +94,11 @@ class TestConversationAnalyzer:
         format_def = analyzer._get_response_format()
 
         assert format_def["type"] == "json_schema"
-        assert "sales_evaluation" in format_def["json_schema"]["name"]
+        assert "speech_therapy_evaluation" in format_def["json_schema"]["name"]
 
         schema = format_def["json_schema"]["schema"]
-        assert "speaking_tone_style" in schema["properties"]
-        assert "conversation_content" in schema["properties"]
+        assert "articulation_clarity" in schema["properties"]
+        assert "engagement_and_effort" in schema["properties"]
         assert "overall_score" in schema["properties"]
 
     def test_process_evaluation_result(self):
@@ -106,28 +106,28 @@ class TestConversationAnalyzer:
         analyzer = ConversationAnalyzer()
 
         evaluation_json = {
-            "speaking_tone_style": {
-                "professional_tone": 8,
-                "active_listening": 7,
-                "engagement_quality": 9,
+            "articulation_clarity": {
+                "target_sound_accuracy": 8,
+                "overall_clarity": 7,
+                "consistency": 9,
                 "total": 0,  # Will be recalculated
             },
-            "conversation_content": {
-                "needs_assessment": 20,
-                "value_proposition": 18,
-                "objection_handling": 15,
+            "engagement_and_effort": {
+                "task_completion": 10,
+                "willingness_to_retry": 8,
+                "self_correction_attempts": 7,
                 "total": 0,  # Will be recalculated
             },
             "overall_score": 77,
-            "strengths": ["Good engagement"],
-            "improvements": ["Better needs assessment"],
-            "specific_feedback": "Overall good performance",
+            "celebration_points": ["Kept trying after support"],
+            "practice_suggestions": ["Practice the target sound at the start of words"],
+            "therapist_notes": "Improved after a modeled retry.",
         }
 
         result = analyzer._process_evaluation_result(evaluation_json)
 
-        assert result["speaking_tone_style"]["total"] == 24
-        assert result["conversation_content"]["total"] == 53
+        assert result["articulation_clarity"]["total"] == 24
+        assert result["engagement_and_effort"]["total"] == 25
         assert result["overall_score"] == 77
 
     def test_build_evaluation_messages(self):
@@ -141,7 +141,7 @@ class TestConversationAnalyzer:
         assert messages[0]["role"] == "system"
         assert messages[1]["role"] == "user"
         assert messages[1]["content"] == prompt
-        assert "expert sales conversation evaluator" in messages[0]["content"]
+        assert "expert speech therapy practice evaluator" in messages[0]["content"]
 
     # pylint: disable=R0801
     def test_analyze_conversation_with_openai_client(self):
@@ -162,14 +162,22 @@ class TestConversationAnalyzer:
             mock_response.choices = [Mock()]
             mock_response.choices[0].message.content = json.dumps(
                 {
-                    "professional_tone": 8,
-                    "active_listening": 7,
-                    "engagement_quality": 9,
-                    "needs_assessment": 20,
-                    "value_proposition": 22,
-                    "objection_handling": 18,
-                    "strengths": ["Good rapport"],
-                    "improvements": ["Ask more questions"],
+                    "articulation_clarity": {
+                        "target_sound_accuracy": 8,
+                        "overall_clarity": 7,
+                        "consistency": 9,
+                        "total": 24,
+                    },
+                    "engagement_and_effort": {
+                        "task_completion": 10,
+                        "willingness_to_retry": 8,
+                        "self_correction_attempts": 7,
+                        "total": 25,
+                    },
+                    "overall_score": 82,
+                    "celebration_points": ["Kept trying"],
+                    "practice_suggestions": ["Practice the sound with picture cards"],
+                    "therapist_notes": "Responded well to modeling.",
                 }
             )
             mock_client.chat.completions.create.return_value = mock_response
@@ -336,6 +344,65 @@ class TestPronunciationAssessor:
         words = assessor._extract_word_details(mock_result)
 
         assert not words
+
+    def test_apply_age_calibration_suppresses_expected_r_substitution(self):
+        """Test that developmentally expected substitutions are softened for younger children."""
+        assessor = PronunciationAssessor()
+        assessment_result = {
+            "accuracy_score": 42,
+            "fluency_score": 64,
+            "completeness_score": 100,
+            "prosody_score": None,
+            "pronunciation_score": 44,
+            "words": [
+                {
+                    "word": "wabbit",
+                    "accuracy": 42,
+                    "error_type": "Mispronunciation",
+                }
+            ],
+        }
+
+        adjusted = assessor._apply_age_calibration(
+            assessment_result,
+            "rabbit",
+            {"targetSound": "r", "childAge": 4},
+        )
+
+        assert adjusted["adjustments_applied"] == 1
+        assert adjusted["words"][0]["error_type"] == "None"
+        assert adjusted["words"][0]["age_adjusted"] is True
+        assert adjusted["words"][0]["target_word"] == "rabbit"
+        assert adjusted["words"][0]["accuracy"] == 80
+        assert adjusted["accuracy_score"] == 80
+
+    def test_apply_age_calibration_keeps_nonmatching_errors(self):
+        """Test that older children or different substitutions still show explicit feedback."""
+        assessor = PronunciationAssessor()
+        assessment_result = {
+            "accuracy_score": 41,
+            "fluency_score": 70,
+            "completeness_score": 100,
+            "prosody_score": None,
+            "pronunciation_score": 41,
+            "words": [
+                {
+                    "word": "wabbit",
+                    "accuracy": 41,
+                    "error_type": "Mispronunciation",
+                }
+            ],
+        }
+
+        adjusted = assessor._apply_age_calibration(
+            assessment_result,
+            "rabbit",
+            {"targetSound": "r", "childAge": 7},
+        )
+
+        assert adjusted.get("adjustments_applied") is None
+        assert adjusted["words"][0]["error_type"] == "Mispronunciation"
+        assert adjusted["words"][0]["target_word"] == "rabbit"
 
     def test_assess_pronunciation_with_valid_audio(self):
         """Test pronunciation assessment with valid audio data setup."""

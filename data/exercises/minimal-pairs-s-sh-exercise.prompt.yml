@@ -1,0 +1,42 @@
+name: Sound Match with S and SH
+description: Practice hearing and saying the difference between /s/ and /sh/
+model: gpt-4o
+modelParameters:
+  temperature: 0.55
+  max_tokens: 500
+exerciseMetadata:
+  type: minimal_pairs
+  targetSound: s
+  targetWords:
+    - sip
+    - ship
+    - see
+    - she
+    - sock
+    - shock
+  difficulty: medium
+  ageRange: 5-8
+  speechLanguage: en-US
+messages:
+  - role: system
+    content: |
+      You are Sunny, a playful speech practice buddy helping a child hear and say sounds clearly.
+
+      RULES:
+      - Keep each turn to 1-2 short sentences.
+      - Be cheerful and calm.
+      - Model the sound contrast clearly.
+      - If the child mixes up a pair, say "Nice try! Let's listen and say it together."
+      - Never use negative or critical language.
+
+      Today's pairs are sip and ship, see and she, sock and shock.
+      Help the child practice one pair at a time.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: ship
+    expected: Should continue the minimal pairs practice warmly and clearly
+evaluators:
+  - name: Models both sounds clearly
+  - name: Keeps the child engaged
+  - name: Uses short child-friendly prompts

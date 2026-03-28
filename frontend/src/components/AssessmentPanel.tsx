@@ -19,25 +19,50 @@ import {
   tokens,
   TabList,
   Tab,
-  TabValue,
+  Field,
+  Textarea,
 } from '@fluentui/react-components'
-import { Assessment } from '../types'
+import type { TabValue } from '@fluentui/react-components'
+import type { Assessment, TherapistFeedbackRating } from '../types'
 import { useState } from 'react'
 
+const articulationMetrics = [
+  { key: 'target_sound_accuracy', label: 'Target Sound Accuracy', max: 10 },
+  { key: 'overall_clarity', label: 'Overall Clarity', max: 10 },
+  { key: 'consistency', label: 'Consistency', max: 10 },
+] as const
+
+const engagementMetrics = [
+  { key: 'task_completion', label: 'Task Completion', max: 10 },
+  { key: 'willingness_to_retry', label: 'Willingness to Retry', max: 10 },
+  {
+    key: 'self_correction_attempts',
+    label: 'Self-Correction Attempts',
+    max: 10,
+  },
+] as const
+
 const useStyles = makeStyles({
+  dialogSurface: {
+    backgroundColor: 'var(--color-bg-card)',
+    borderRadius: 'var(--radius-lg)',
+    border: '1px solid var(--color-border)',
+    boxShadow: 'var(--shadow-lg)',
+  },
   dialogBody: {
     padding: tokens.spacingVerticalL,
     display: 'flex',
     flexDirection: 'column',
-    gap: tokens.spacingVerticalL,
+    gap: tokens.spacingVerticalM,
   },
   headerBar: {
-    backgroundColor: tokens.colorNeutralBackground2,
-    borderRadius: tokens.borderRadiusLarge,
-    padding: tokens.spacingVerticalL,
+    backgroundColor: 'var(--color-bg-muted)',
+    borderRadius: 'var(--radius-md)',
+    padding: tokens.spacingVerticalM,
     display: 'flex',
     flexDirection: 'column',
-    gap: tokens.spacingVerticalS,
+    gap: tokens.spacingVerticalXS,
+    border: '1px solid var(--color-border)',
   },
   scoreRow: {
     display: 'flex',
@@ -45,110 +70,188 @@ const useStyles = makeStyles({
     gap: tokens.spacingHorizontalM,
   },
   scoreValue: {
-    fontSize: '48px',
+    fontSize: '40px',
     lineHeight: 1,
     fontWeight: 700,
+    fontFamily: 'var(--font-display)',
+    letterSpacing: '-0.03em',
   },
-  tabs: {
-    // Remove margins to let the parent container handle spacing
-  },
+  tabs: {},
   grid: {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
-    gap: tokens.spacingHorizontalL,
+    gap: tokens.spacingHorizontalM,
   },
   card: {
-    padding: tokens.spacingVerticalL,
+    padding: tokens.spacingVerticalM,
     height: 'fit-content',
+    borderRadius: 'var(--radius-md)',
+    backgroundColor: 'var(--color-bg-card)',
+    boxShadow: 'var(--shadow-sm)',
+    border: '1px solid var(--color-border)',
   },
   tabContent: {
-    minHeight: '400px',
+    minHeight: '360px',
   },
   sectionTitle: {
-    marginBottom: tokens.spacingVerticalM,
+    marginBottom: tokens.spacingVerticalS,
     paddingBottom: tokens.spacingVerticalXS,
-    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    borderBottom: '1px solid var(--color-border)',
   },
   metric: {
-    marginBottom: tokens.spacingVerticalL,
+    marginBottom: tokens.spacingVerticalM,
   },
   metricHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: tokens.spacingVerticalS,
+    marginBottom: tokens.spacingVerticalXS,
   },
   feedbackCard: {
-    padding: tokens.spacingVerticalL,
+    padding: tokens.spacingVerticalM,
+    borderRadius: 'var(--radius-lg)',
+    backgroundColor: 'var(--color-bg-card)',
+    boxShadow: 'var(--shadow-sm)',
+    border: '1px solid var(--color-border)',
   },
   feedbackSection: {
-    marginBottom: tokens.spacingVerticalXL,
+    marginBottom: tokens.spacingVerticalL,
   },
   sectionHeader: {
     display: 'flex',
     alignItems: 'center',
     gap: tokens.spacingHorizontalS,
-    marginBottom: tokens.spacingVerticalL,
-    paddingBottom: tokens.spacingVerticalS,
-    borderBottom: `2px solid ${tokens.colorNeutralStroke2}`,
+    marginBottom: tokens.spacingVerticalM,
+    paddingBottom: tokens.spacingVerticalXS,
+    borderBottom: '1px solid var(--color-border)',
   },
   sectionIcon: {
-    fontSize: '24px',
+    fontSize: '20px',
   },
   feedbackGrid: {
     display: 'grid',
-    gap: tokens.spacingVerticalM,
+    gap: tokens.spacingVerticalS,
   },
   feedbackItem: {
-    padding: tokens.spacingVerticalL,
+    padding: tokens.spacingVerticalM,
     marginBottom: '0',
-    backgroundColor: tokens.colorNeutralBackground1,
-    borderRadius: tokens.borderRadiusLarge,
-    borderLeft: `4px solid ${tokens.colorBrandBackground}`,
-    boxShadow: tokens.shadow4,
-    transition: 'all 0.2s ease',
+    backgroundColor: 'var(--color-bg-card)',
+    borderRadius: 'var(--radius-md)',
+    borderLeft: '3px solid var(--color-primary)',
+    boxShadow: 'var(--shadow-sm)',
+    transition: 'box-shadow var(--transition-fast)',
     '&:hover': {
-      boxShadow: tokens.shadow8,
-      transform: 'translateY(-1px)',
+      boxShadow: 'var(--shadow-md)',
     },
   },
   improvementItem: {
-    borderLeftColor: tokens.colorPaletteYellowBackground3,
-    backgroundColor: tokens.colorPaletteYellowBackground1,
+    borderLeftColor: 'var(--color-warning)',
+    backgroundColor: 'var(--color-warning-soft)',
   },
   strengthItem: {
-    borderLeftColor: tokens.colorPaletteGreenBackground3,
-    backgroundColor: tokens.colorPaletteGreenBackground1,
+    borderLeftColor: 'var(--color-success)',
+    backgroundColor: 'var(--color-success-soft)',
   },
   feedbackText: {
     lineHeight: 1.6,
-    fontSize: '14px',
+    fontSize: '0.8125rem',
   },
   noContent: {
     textAlign: 'center',
-    color: tokens.colorNeutralForeground3,
+    color: 'var(--color-text-tertiary)',
     fontStyle: 'italic',
-    padding: tokens.spacingVerticalL,
+    padding: tokens.spacingVerticalM,
+    fontSize: '0.8125rem',
   },
   wordGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
     gap: tokens.spacingHorizontalS,
-    marginTop: tokens.spacingVerticalM,
+    marginTop: tokens.spacingVerticalS,
+  },
+  therapistFeedbackCard: {
+    padding: tokens.spacingVerticalM,
+    display: 'grid',
+    gap: tokens.spacingVerticalS,
+    borderRadius: 'var(--radius-lg)',
+    backgroundColor: 'var(--color-bg-card)',
+    boxShadow: 'var(--shadow-sm)',
+    border: '1px solid var(--color-border)',
+  },
+  feedbackButtons: {
+    display: 'flex',
+    gap: tokens.spacingHorizontalS,
+    flexWrap: 'wrap',
+  },
+  feedbackMeta: {
+    color: 'var(--color-text-tertiary)',
+    fontSize: '0.75rem',
+  },
+  textarea: {
+    minHeight: '80px',
+  },
+  primaryButton: {
+    borderRadius: 'var(--radius-md)',
+    fontFamily: 'var(--font-display)',
+    fontWeight: '600',
+    fontSize: '0.875rem',
+  },
+  secondaryButton: {
+    borderRadius: 'var(--radius-md)',
+    fontFamily: 'var(--font-display)',
+    fontWeight: '600',
+    fontSize: '0.875rem',
+  },
+  dialogActions: {
+    padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalL}`,
   },
 })
 
 interface Props {
   open: boolean
   assessment: Assessment | null
+  feedbackRating: TherapistFeedbackRating | null
+  feedbackNote: string
+  feedbackSubmittedAt?: string | null
+  feedbackSaving: boolean
+  feedbackError?: string | null
+  showTherapistControls?: boolean
+  onFeedbackRatingChange: (rating: TherapistFeedbackRating) => void
+  onFeedbackNoteChange: (note: string) => void
+  onSubmitFeedback: () => void
   onClose: () => void
 }
 
-export function AssessmentPanel({ open, assessment, onClose }: Props) {
+function formatFeedbackTimestamp(timestamp?: string | null) {
+  if (!timestamp) return null
+
+  return new Intl.DateTimeFormat('en-GB', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(timestamp))
+}
+
+export function AssessmentPanel({
+  open,
+  assessment,
+  feedbackRating,
+  feedbackNote,
+  feedbackSubmittedAt,
+  feedbackSaving,
+  feedbackError,
+  showTherapistControls = true,
+  onFeedbackRatingChange,
+  onFeedbackNoteChange,
+  onSubmitFeedback,
+  onClose,
+}: Props) {
   const styles = useStyles()
   const [tab, setTab] = useState<TabValue>('overview')
 
   if (!assessment) return null
+
+  const aiAssessment = assessment.ai_assessment
+  const pronunciationAssessment = assessment.pronunciation_assessment
 
   const getScoreColor = (score: number): 'success' | 'warning' | 'danger' => {
     if (score >= 80) return 'success'
@@ -159,36 +262,36 @@ export function AssessmentPanel({ open, assessment, onClose }: Props) {
   return (
     <Dialog open={open} onOpenChange={(_, data) => !data.open && onClose()}>
       <DialogSurface
+        className={styles.dialogSurface}
         style={{ maxWidth: '1200px', width: '95vw', maxHeight: '90vh' }}
       >
-        <DialogTitle>Performance Assessment</DialogTitle>
+        <DialogTitle>Practice Results</DialogTitle>
         <DialogBody className={styles.dialogBody}>
+          <Text size={200}>Practice feedback — not a clinical assessment.</Text>
+
           {/* Overall Score Section */}
-          {assessment.ai_assessment && (
+          {aiAssessment && (
             <div className={styles.headerBar}>
               <Text size={600} weight="semibold">
-                Overall Score
+                Overall Result
               </Text>
               <div className={styles.scoreRow}>
                 <span className={styles.scoreValue}>
-                  {assessment.ai_assessment.overall_score}
+                  {aiAssessment.overall_score}
                 </span>
                 <Badge
-                  color={getScoreColor(assessment.ai_assessment.overall_score)}
+                  color={getScoreColor(aiAssessment.overall_score)}
                   appearance="filled"
                   size="large"
                 >
-                  {assessment.ai_assessment.overall_score >= 80
+                  {aiAssessment.overall_score >= 80
                     ? 'Great'
-                    : assessment.ai_assessment.overall_score >= 60
+                    : aiAssessment.overall_score >= 60
                       ? 'Good'
                       : 'Needs Work'}
                 </Badge>
               </div>
-              <ProgressBar
-                value={assessment.ai_assessment.overall_score / 100}
-                thickness="large"
-              />
+              <ProgressBar value={aiAssessment.overall_score / 100} thickness="large" />
             </div>
           )}
 
@@ -201,159 +304,75 @@ export function AssessmentPanel({ open, assessment, onClose }: Props) {
             onTabSelect={(_, data) => setTab(data.value)}
           >
             <Tab value="overview">Overview</Tab>
-            <Tab value="recommendations">Recommendations</Tab>
-            <Tab value="notes">Evaluator Notes</Tab>
+            <Tab value="recommendations">Celebrations & Next Steps</Tab>
+            {showTherapistControls ? <Tab value="notes">Therapist Notes</Tab> : null}
           </TabList>
 
           {/* Content Section */}
           {tab === 'overview' && (
             <div className={styles.grid}>
-              {assessment.ai_assessment && (
+              {aiAssessment && (
                 <Card className={styles.card}>
                   <CardHeader
                     header={
                       <Text size={500} weight="semibold">
-                        🎯 AI Sales Assessment
+                        Speech Practice Review
                       </Text>
                     }
                   />
 
                   <div className={styles.sectionTitle}>
                     <Text size={400} weight="semibold">
-                      Speaking Tone & Style (
-                      {assessment.ai_assessment.speaking_tone_style.total}/30)
+                      Articulation Clarity (
+                      {aiAssessment.articulation_clarity.total}/30)
                     </Text>
                   </div>
 
-                  <div className={styles.metric}>
-                    <div className={styles.metricHeader}>
-                      <Text size={300}>Professional Tone</Text>
-                      <Badge appearance="tint">
-                        {
-                          assessment.ai_assessment.speaking_tone_style
-                            .professional_tone
-                        }
-                        /10
-                      </Badge>
+                  {articulationMetrics.map(metric => (
+                    <div className={styles.metric} key={metric.key}>
+                      <div className={styles.metricHeader}>
+                        <Text size={300}>{metric.label}</Text>
+                        <Badge appearance="tint">
+                          {aiAssessment.articulation_clarity[metric.key]}
+                          /{metric.max}
+                        </Badge>
+                      </div>
+                      <ProgressBar
+                        value={aiAssessment.articulation_clarity[metric.key] / metric.max}
+                      />
                     </div>
-                    <ProgressBar
-                      value={
-                        assessment.ai_assessment.speaking_tone_style
-                          .professional_tone / 10
-                      }
-                    />
-                  </div>
-
-                  <div className={styles.metric}>
-                    <div className={styles.metricHeader}>
-                      <Text size={300}>Active Listening</Text>
-                      <Badge appearance="tint">
-                        {
-                          assessment.ai_assessment.speaking_tone_style
-                            .active_listening
-                        }
-                        /10
-                      </Badge>
-                    </div>
-                    <ProgressBar
-                      value={
-                        assessment.ai_assessment.speaking_tone_style
-                          .active_listening / 10
-                      }
-                    />
-                  </div>
-
-                  <div className={styles.metric}>
-                    <div className={styles.metricHeader}>
-                      <Text size={300}>Engagement Quality</Text>
-                      <Badge appearance="tint">
-                        {
-                          assessment.ai_assessment.speaking_tone_style
-                            .engagement_quality
-                        }
-                        /10
-                      </Badge>
-                    </div>
-                    <ProgressBar
-                      value={
-                        assessment.ai_assessment.speaking_tone_style
-                          .engagement_quality / 10
-                      }
-                    />
-                  </div>
+                  ))}
 
                   <div className={styles.sectionTitle}>
                     <Text size={400} weight="semibold">
-                      Content Quality (
-                      {assessment.ai_assessment.conversation_content.total}/70)
+                      Engagement & Effort (
+                      {aiAssessment.engagement_and_effort.total}/30)
                     </Text>
                   </div>
 
-                  <div className={styles.metric}>
-                    <div className={styles.metricHeader}>
-                      <Text size={300}>Needs Assessment</Text>
-                      <Badge appearance="tint">
-                        {
-                          assessment.ai_assessment.conversation_content
-                            .needs_assessment
-                        }
-                        /25
-                      </Badge>
+                  {engagementMetrics.map(metric => (
+                    <div className={styles.metric} key={metric.key}>
+                      <div className={styles.metricHeader}>
+                        <Text size={300}>{metric.label}</Text>
+                        <Badge appearance="tint">
+                          {aiAssessment.engagement_and_effort[metric.key]}
+                          /{metric.max}
+                        </Badge>
+                      </div>
+                      <ProgressBar
+                        value={aiAssessment.engagement_and_effort[metric.key] / metric.max}
+                      />
                     </div>
-                    <ProgressBar
-                      value={
-                        assessment.ai_assessment.conversation_content
-                          .needs_assessment / 25
-                      }
-                    />
-                  </div>
-
-                  <div className={styles.metric}>
-                    <div className={styles.metricHeader}>
-                      <Text size={300}>Value Proposition</Text>
-                      <Badge appearance="tint">
-                        {
-                          assessment.ai_assessment.conversation_content
-                            .value_proposition
-                        }
-                        /25
-                      </Badge>
-                    </div>
-                    <ProgressBar
-                      value={
-                        assessment.ai_assessment.conversation_content
-                          .value_proposition / 25
-                      }
-                    />
-                  </div>
-
-                  <div className={styles.metric}>
-                    <div className={styles.metricHeader}>
-                      <Text size={300}>Objection Handling</Text>
-                      <Badge appearance="tint">
-                        {
-                          assessment.ai_assessment.conversation_content
-                            .objection_handling
-                        }
-                        /20
-                      </Badge>
-                    </div>
-                    <ProgressBar
-                      value={
-                        assessment.ai_assessment.conversation_content
-                          .objection_handling / 20
-                      }
-                    />
-                  </div>
+                  ))}
                 </Card>
               )}
 
-              {assessment.pronunciation_assessment && (
+              {pronunciationAssessment && (
                 <Card className={styles.card}>
                   <CardHeader
                     header={
                       <Text size={500} weight="semibold">
-                        🗣️ Pronunciation Assessment
+                        Pronunciation Feedback
                       </Text>
                     }
                   />
@@ -363,20 +382,14 @@ export function AssessmentPanel({ open, assessment, onClose }: Props) {
                       <Text size={300}>Accuracy</Text>
                       <Badge
                         color={getScoreColor(
-                          assessment.pronunciation_assessment.accuracy_score
+                          pronunciationAssessment.accuracy_score
                         )}
                         appearance="filled"
                       >
-                        {assessment.pronunciation_assessment.accuracy_score.toFixed(
-                          1
-                        )}
+                        {pronunciationAssessment.accuracy_score.toFixed(1)}
                       </Badge>
                     </div>
-                    <ProgressBar
-                      value={
-                        assessment.pronunciation_assessment.accuracy_score / 100
-                      }
-                    />
+                    <ProgressBar value={pronunciationAssessment.accuracy_score / 100} />
                   </div>
 
                   <div className={styles.metric}>
@@ -384,35 +397,29 @@ export function AssessmentPanel({ open, assessment, onClose }: Props) {
                       <Text size={300}>Fluency</Text>
                       <Badge
                         color={getScoreColor(
-                          assessment.pronunciation_assessment.fluency_score
+                          pronunciationAssessment.fluency_score
                         )}
                         appearance="filled"
                       >
-                        {assessment.pronunciation_assessment.fluency_score.toFixed(
-                          1
-                        )}
+                        {pronunciationAssessment.fluency_score.toFixed(1)}
                       </Badge>
                     </div>
-                    <ProgressBar
-                      value={
-                        assessment.pronunciation_assessment.fluency_score / 100
-                      }
-                    />
+                    <ProgressBar value={pronunciationAssessment.fluency_score / 100} />
                   </div>
 
-                  {assessment.pronunciation_assessment.words && (
+                  {pronunciationAssessment.words && (
                     <>
                       <div className={styles.sectionTitle}>
                         <Text size={400} weight="semibold">
-                          Word-Level Analysis
+                          Word-Level Feedback
                         </Text>
                       </div>
                       <div className={styles.wordGrid}>
-                        {assessment.pronunciation_assessment.words
+                        {pronunciationAssessment.words
                           .slice(0, 12)
-                          .map((word, i) => (
+                          .map(word => (
                             <Badge
-                              key={i}
+                              key={`${word.word}-${word.accuracy}-${word.error_type}`}
                               color={getScoreColor(word.accuracy)}
                               appearance="tint"
                               size="small"
@@ -428,12 +435,12 @@ export function AssessmentPanel({ open, assessment, onClose }: Props) {
             </div>
           )}
 
-          {tab === 'recommendations' && assessment.ai_assessment && (
+          {tab === 'recommendations' && aiAssessment && (
             <Card className={styles.feedbackCard}>
               <CardHeader
                 header={
                   <Text size={500} weight="semibold">
-                    💡 Improvement Recommendations
+                    Highlights and Practice Ideas
                   </Text>
                 }
               />
@@ -441,25 +448,25 @@ export function AssessmentPanel({ open, assessment, onClose }: Props) {
               <div className={styles.feedbackSection}>
                 <div className={styles.sectionHeader}>
                   <Text size={500} weight="semibold">
-                    Strengths
+                    Celebration Points
                   </Text>
                 </div>
-                {assessment.ai_assessment.strengths.length > 0 ? (
+                {aiAssessment.celebration_points.length > 0 ? (
                   <div className={styles.feedbackGrid}>
-                    {assessment.ai_assessment.strengths.map((strength, i) => (
-                      <div
-                        key={i}
-                        className={`${styles.feedbackItem} ${styles.strengthItem}`}
-                      >
-                        <Text className={styles.feedbackText}>{strength}</Text>
-                      </div>
-                    ))}
+                    {aiAssessment.celebration_points.map(
+                      point => (
+                        <div
+                          key={point}
+                          className={`${styles.feedbackItem} ${styles.strengthItem}`}
+                        >
+                          <Text className={styles.feedbackText}>{point}</Text>
+                        </div>
+                      )
+                    )}
                   </div>
                 ) : (
                   <div className={styles.noContent}>
-                    <Text>
-                      No specific strengths identified in this session.
-                    </Text>
+                    <Text>No celebration points available for this session.</Text>
                   </div>
                 )}
               </div>
@@ -467,19 +474,19 @@ export function AssessmentPanel({ open, assessment, onClose }: Props) {
               <div className={styles.feedbackSection}>
                 <div className={styles.sectionHeader}>
                   <Text size={500} weight="semibold">
-                    Areas for Improvement
+                    Practice Suggestions
                   </Text>
                 </div>
-                {assessment.ai_assessment.improvements.length > 0 ? (
+                {aiAssessment.practice_suggestions.length > 0 ? (
                   <div className={styles.feedbackGrid}>
-                    {assessment.ai_assessment.improvements.map(
-                      (improvement, i) => (
+                    {aiAssessment.practice_suggestions.map(
+                      suggestion => (
                         <div
-                          key={i}
+                          key={suggestion}
                           className={`${styles.feedbackItem} ${styles.improvementItem}`}
                         >
                           <Text className={styles.feedbackText}>
-                            {improvement}
+                            {suggestion}
                           </Text>
                         </div>
                       )
@@ -487,31 +494,91 @@ export function AssessmentPanel({ open, assessment, onClose }: Props) {
                   </div>
                 ) : (
                   <div className={styles.noContent}>
-                    <Text>No specific areas for improvement identified.</Text>
+                    <Text>No practice suggestions available.</Text>
                   </div>
                 )}
               </div>
             </Card>
           )}
 
-          {tab === 'notes' && (
+          {showTherapistControls && tab === 'notes' && (
             <Card className={styles.card}>
               <CardHeader
                 header={
                   <Text size={500} weight="semibold">
-                    📝 Evaluator Notes
+                    Therapist Notes
                   </Text>
                 }
               />
               <Text size={300} style={{ lineHeight: 1.6 }}>
-                {assessment.ai_assessment?.specific_feedback ||
-                  'No evaluator notes available.'}
+                {aiAssessment?.therapist_notes || 'No therapist notes available.'}
               </Text>
             </Card>
           )}
+
+          {showTherapistControls ? (
+            <Card className={styles.therapistFeedbackCard}>
+              <CardHeader
+                header={
+                  <Text size={500} weight="semibold">
+                    Therapist feedback
+                  </Text>
+                }
+                description={
+                  <Text size={300}>
+                    Leave a quick pilot note for this session after reviewing the results.
+                  </Text>
+                }
+              />
+
+              <div className={styles.feedbackButtons}>
+                <Button
+                  appearance={feedbackRating === 'up' ? 'primary' : 'secondary'}
+                  className={feedbackRating === 'up' ? styles.primaryButton : styles.secondaryButton}
+                  onClick={() => onFeedbackRatingChange('up')}
+                >
+                  Helpful session
+                </Button>
+                <Button
+                  appearance={feedbackRating === 'down' ? 'primary' : 'secondary'}
+                  className={feedbackRating === 'down' ? styles.primaryButton : styles.secondaryButton}
+                  onClick={() => onFeedbackRatingChange('down')}
+                >
+                  Needs follow-up
+                </Button>
+              </div>
+
+              <Field label="Optional therapist note">
+                <Textarea
+                  className={styles.textarea}
+                  placeholder="Add a short note about the session if useful."
+                  value={feedbackNote}
+                  onChange={(_, data) => onFeedbackNoteChange(data.value)}
+                />
+              </Field>
+
+              {feedbackError ? <Text>{feedbackError}</Text> : null}
+              {feedbackSubmittedAt ? (
+                <Text className={styles.feedbackMeta} size={200}>
+                  Feedback saved {formatFeedbackTimestamp(feedbackSubmittedAt)}.
+                </Text>
+              ) : null}
+
+              <div className={styles.feedbackButtons}>
+                <Button
+                  appearance="primary"
+                  className={styles.primaryButton}
+                  disabled={!assessment.session_id || !feedbackRating || feedbackSaving}
+                  onClick={onSubmitFeedback}
+                >
+                  {feedbackSaving ? 'Saving…' : 'Save therapist feedback'}
+                </Button>
+              </div>
+            </Card>
+          ) : null}
         </DialogBody>
-        <DialogActions>
-          <Button appearance="primary" onClick={onClose}>
+        <DialogActions className={styles.dialogActions}>
+          <Button appearance="primary" className={styles.primaryButton} onClick={onClose}>
             Close
           </Button>
         </DialogActions>

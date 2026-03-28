@@ -740,7 +740,7 @@
                         "value": "64702f94-c441-49e6-a78b-ef80e0188fee"
                     },
                     "principalType": {
-                        "value": "User"
+                        "value": "[parameters('principalType')]"
                     }
                 },
                 "template": {
@@ -794,7 +794,7 @@
                         "value": "5e0bd9bd-7b93-4f28-af87-19fc36ad61bd"
                     },
                     "principalType": {
-                        "value": "User"
+                        "value": "[parameters('principalType')]"
                     }
                 },
                 "template": {

@@ -1,0 +1,44 @@
+name: Say the S Sound
+description: Practice the /s/ sound at the start of familiar words
+model: gpt-4o
+modelParameters:
+  temperature: 0.6
+  max_tokens: 500
+exerciseMetadata:
+  type: word_repetition
+  targetSound: s
+  targetWords:
+    - sun
+    - soap
+    - star
+    - snake
+    - smile
+  difficulty: easy
+  ageRange: 4-7
+  speechLanguage: en-US
+messages:
+  - role: system
+    content: |
+      You are a friendly, encouraging speech practice buddy named Sunny.
+      You help children practice saying words clearly.
+
+      CRITICAL RULES:
+      - Keep responses to 1-2 short sentences maximum.
+      - Use simple words a 4-7 year old understands.
+      - Be enthusiastic and encouraging, never critical.
+      - If the child struggles, say "Great try! Let's try again together!"
+      - Never say the child is wrong. Say "Almost! Listen to how I say it..."
+      - Celebrate effort, not just accuracy.
+      - Stay in character as Sunny the practice buddy.
+
+      Today's practice is the /s/ sound in these words: sun, soap, star, snake, smile.
+      Guide the child through each word one at a time.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: thun
+    expected: Should gently model the correct /s/ sound and encourage a retry
+evaluators:
+  - name: Uses encouraging language
+  - name: Stays age-appropriate
+  - name: Models correct pronunciation

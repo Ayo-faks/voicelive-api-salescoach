@@ -157,6 +157,31 @@ class TestVoiceProxyHandler:
         assert session["temperature"] == 0.8
         assert session["max_response_output_tokens"] == 1000
 
+    @patch("src.services.websocket_handler.config")
+    def test_build_session_config_prefers_avatar_voice_override(self, mock_config):
+        """Test avatar voice overrides the global voice selection."""
+        mock_config.get.side_effect = lambda key, default=None: {
+            "azure_voice_name": "en-US-TestVoice",
+            "azure_voice_type": "azure-standard",
+            "azure_avatar_character": "lisa",
+            "azure_avatar_style": "casual-sitting",
+        }.get(key, default)
+
+        handler = VoiceProxyHandler(Mock())
+        agent_config = {
+            "is_azure_agent": False,
+            "avatar_config": {
+                "character": "lisa",
+                "style": "casual-sitting",
+                "is_photo_avatar": False,
+                "voice_name": "en-GB-LibbyNeural",
+            },
+        }
+
+        session = handler._build_session_config(agent_config)
+
+        assert session["voice"]["name"] == "en-GB-LibbyNeural"
+
     @pytest.mark.asyncio
     async def test_send_message(self):
         """Test sending a message to WebSocket."""
