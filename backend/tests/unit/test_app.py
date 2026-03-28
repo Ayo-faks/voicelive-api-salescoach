@@ -270,7 +270,7 @@ class TestFlaskApp:
                 "scenario_id": "test-scenario",
                 "transcript": "user: sun\nassistant: Great try!",
                 "reference_text": "sun",
-                "child_id": "child-ava",
+                "child_id": "child-ayo",
                 "exercise_context": {
                     "id": "test-scenario",
                     "name": "Say the S Sound",
@@ -298,7 +298,7 @@ class TestFlaskApp:
 
     def test_get_child_sessions_requires_pin(self):
         """Test therapist review endpoints require the local PIN header."""
-        response = self.client.get("/api/children/child-ava/sessions")
+        response = self.client.get("/api/children/child-ayo/sessions")
 
         assert response.status_code == 401
         data = json.loads(response.data)
@@ -320,14 +320,14 @@ class TestFlaskApp:
             mock_config.__getitem__.side_effect = lambda key: {"therapist_pin": "2468"}.get(key)
 
             response = self.client.get(
-                "/api/children/child-ava/sessions",
+                "/api/children/child-ayo/sessions",
                 headers={"X-Therapist-Pin": "2468"},
             )
 
         assert response.status_code == 200
         data = json.loads(response.data)
         assert data[0]["id"] == "session-1"
-        mock_storage_service.list_sessions_for_child.assert_called_once_with("child-ava")
+        mock_storage_service.list_sessions_for_child.assert_called_once_with("child-ayo")
 
     @patch("src.app.storage_service")
     def test_get_session_detail_success(self, mock_storage_service):
@@ -335,7 +335,7 @@ class TestFlaskApp:
         mock_storage_service.get_session.return_value = {
             "id": "session-1",
             "timestamp": "2026-03-26T12:00:00+00:00",
-            "child": {"id": "child-ava", "name": "Ava"},
+            "child": {"id": "child-ayo", "name": "Ayo"},
             "exercise": {"id": "exercise-1", "name": "Say the S Sound"},
             "assessment": {"ai_assessment": {"overall_score": 82}},
         }

@@ -17,8 +17,8 @@ class TestConfig:
             assert config["host"] == "0.0.0.0"
             assert config["azure_ai_region"] == "swedencentral"
             assert config["therapist_pin"] == "2468"
-            assert config["default_child_id"] == "child-ava"
-            assert config["storage_path"].endswith("data/speakbright.db")
+            assert config["default_child_id"] == "child-ayo"
+            assert config["storage_path"].endswith("data/wulo.db")
 
     def test_config_with_environment_variables(self):
         """Test that config loads from environment variables."""

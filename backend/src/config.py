@@ -3,7 +3,7 @@
 #  Licensed under the MIT License. See LICENSE in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-"""Configuration management for the SpeakBright application."""
+"""Configuration management for the Wulo application."""
 
 import os
 from pathlib import Path
@@ -27,9 +27,9 @@ DEFAULT_VOICE_TYPE = "azure-standard"
 DEFAULT_AVATAR_CHARACTER = "lisa"
 DEFAULT_AVATAR_STYLE = "casual-sitting"
 DEFAULT_THERAPIST_PIN = "2468"
-DEFAULT_CHILD_ID = "child-ava"
+DEFAULT_CHILD_ID = "child-ayo"
 
-DEFAULT_STORAGE_PATH = str(Path(__file__).resolve().parents[2] / "data" / "speakbright.db")
+DEFAULT_STORAGE_PATH = str(Path(__file__).resolve().parents[2] / "data" / "wulo.db")
 DEFAULT_APP_INSIGHTS_CONNECTION_STRING = ""
 
 

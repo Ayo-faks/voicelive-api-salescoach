@@ -10,7 +10,7 @@ class TestStorageService:
 
     def test_list_children_seeds_defaults(self, tmp_path: Path):
         """Test default child profiles are available in a new database."""
-        service = StorageService(str(tmp_path / "speakbright.db"))
+        service = StorageService(str(tmp_path / "wulo.db"))
 
         children = service.list_children()
 
@@ -19,12 +19,12 @@ class TestStorageService:
 
     def test_save_and_get_session(self, tmp_path: Path):
         """Test saving a session record and reading it back for review."""
-        service = StorageService(str(tmp_path / "speakbright.db"))
+        service = StorageService(str(tmp_path / "wulo.db"))
 
         saved_session = service.save_session(
             {
-                "child_id": "child-ava",
-                "child_name": "Ava",
+                "child_id": "child-ayo",
+                "child_name": "Ayo",
                 "exercise": {
                     "id": "exercise-s",
                     "name": "Say the S Sound",
@@ -47,17 +47,17 @@ class TestStorageService:
         )
 
         session_detail = service.get_session(saved_session["id"])
-        session_history = service.list_sessions_for_child("child-ava")
+        session_history = service.list_sessions_for_child("child-ayo")
 
         assert session_detail is not None
-        assert session_detail["child"]["name"] == "Ava"
+        assert session_detail["child"]["name"] == "Ayo"
         assert session_detail["assessment"]["ai_assessment"]["overall_score"] == 84
         assert session_history[0]["overall_score"] == 84
         assert session_history[0]["exercise"]["name"] == "Say the S Sound"
 
     def test_save_consent_acknowledgement(self, tmp_path: Path):
         """Test pilot consent timestamps persist in app settings."""
-        service = StorageService(str(tmp_path / "speakbright.db"))
+        service = StorageService(str(tmp_path / "wulo.db"))
 
         timestamp = service.save_consent_acknowledgement("2026-03-26T12:00:00+00:00")
         pilot_state = service.get_pilot_state()
@@ -67,12 +67,12 @@ class TestStorageService:
 
     def test_save_session_feedback(self, tmp_path: Path):
         """Test therapist feedback can be attached to a saved session."""
-        service = StorageService(str(tmp_path / "speakbright.db"))
+        service = StorageService(str(tmp_path / "wulo.db"))
 
         saved_session = service.save_session(
             {
-                "child_id": "child-ava",
-                "child_name": "Ava",
+                "child_id": "child-ayo",
+                "child_name": "Ayo",
                 "exercise": {
                     "id": "exercise-s",
                     "name": "Say the S Sound",
@@ -90,7 +90,7 @@ class TestStorageService:
             "up",
             "Child stayed engaged with light prompting.",
         )
-        session_history = service.list_sessions_for_child("child-ava")
+        session_history = service.list_sessions_for_child("child-ayo")
 
         assert updated_session is not None
         assert updated_session["therapist_feedback"]["rating"] == "up"

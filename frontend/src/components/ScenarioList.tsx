@@ -235,7 +235,7 @@ export function ScenarioList({
   onUpdateCustomScenario,
   onDeleteCustomScenario,
   title = "Let's practice!",
-  helperText = 'Choose a SpeakBright exercise, then start a calm, guided speech practice session.',
+  helperText = 'Choose a Wulo exercise, then start a calm, guided speech practice session.',
   showFooter = true,
   showCustomExercises = true,
   selectedAvatar,

@@ -380,7 +380,7 @@ export function CustomScenarioEditor({
                 value={systemPrompt}
                 onChange={(_, data) => setSystemPrompt(data.value)}
                 className={styles.textarea}
-                placeholder="You are SpeakBright, a warm and playful speech practice buddy..."
+                placeholder="You are Wulo, a warm and playful speech practice buddy..."
                 resize="vertical"
               />
             </Field>

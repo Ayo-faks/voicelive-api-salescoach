@@ -3,7 +3,7 @@
 #  Licensed under the MIT License. See LICENSE in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-"""Lightweight SQLite persistence for SpeakBright pilot session review."""
+"""Lightweight SQLite persistence for Wulo pilot session review."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from uuid import uuid4
 from src.config import config
 
 DEFAULT_CHILDREN = (
-    {"id": "child-ava", "name": "Ava"},
+    {"id": "child-ayo", "name": "Ayo"},
     {"id": "child-noah", "name": "Noah"},
     {"id": "child-zuri", "name": "Zuri"},
 )

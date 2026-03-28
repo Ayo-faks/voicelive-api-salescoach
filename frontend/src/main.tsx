@@ -9,7 +9,7 @@ import { FluentProvider, webLightTheme } from '@fluentui/react-components'
 import App from './app/App'
 import './styles/global.css'
 
-const speakBrightTheme = {
+const wuloTheme = {
   ...webLightTheme,
   fontFamilyBase: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   fontFamilyMonospace: "'IBM Plex Mono', 'JetBrains Mono', monospace",
@@ -47,7 +47,7 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <FluentProvider theme={speakBrightTheme}>
+    <FluentProvider theme={wuloTheme}>
       <App />
     </FluentProvider>
   </React.StrictMode>

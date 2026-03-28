@@ -82,7 +82,7 @@ export function ConsentScreen({ open, saving, error, onAccept, onCancel }: Props
         <DialogBody>
           <div className={styles.body}>
             <Text className={styles.helperText} size={300}>
-              Before the first child session, please confirm that SpeakBright is being used for therapist-supervised speech practice.
+              Before the first child session, please confirm that Wulo is being used for therapist-supervised speech practice.
             </Text>
             <div className={styles.acknowledgement}>
               <Text className={styles.helperText} size={300}>
@@ -94,7 +94,7 @@ export function ConsentScreen({ open, saving, error, onAccept, onCancel }: Props
             </div>
             <Checkbox
               checked={acknowledged}
-              label="I understand that SpeakBright is for supervised practice only and not diagnosis."
+              label="I understand that Wulo is for supervised practice only and not diagnosis."
               onChange={(_, data) => setAcknowledged(Boolean(data.checked))}
             />
             {error ? <Text className={styles.errorText}>{error}</Text> : null}

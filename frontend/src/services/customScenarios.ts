@@ -5,7 +5,7 @@
 
 import type { CustomScenario, CustomScenarioData } from '../types'
 
-const STORAGE_KEY = 'speakbright_custom_exercises'
+const STORAGE_KEY = 'wulo_custom_exercises'
 const LEGACY_STORAGE_KEY = 'voicelive_custom_scenarios'
 
 function getDefaultScenarioData(): CustomScenarioData {
@@ -16,7 +16,7 @@ function getDefaultScenarioData(): CustomScenarioData {
     difficulty: 'easy',
     promptText:
       'Let\'s practice the /s/ sound together. Say each word slowly after me.',
-    systemPrompt: `You are SpeakBright, a warm and playful speech practice buddy helping a child with a therapist-supervised exercise.
+    systemPrompt: `You are Wulo, a warm and playful speech practice buddy helping a child with a therapist-supervised exercise.
 
 EXERCISE STYLE:
 - Give one short instruction at a time

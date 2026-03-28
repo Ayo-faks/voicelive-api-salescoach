@@ -138,7 +138,7 @@ export function OnboardingFlow({
           Set up a calm, supervised practice flow before you hand over the device.
         </Text>
         <Text className={styles.body} size={300}>
-          SpeakBright supports short speech practice sessions for children while a therapist stays nearby. It offers practice feedback for the session, not diagnosis.
+          Wulo supports short speech practice sessions for children while a therapist stays nearby. It offers practice feedback for the session, not diagnosis.
         </Text>
 
         <div className={styles.checklist}>

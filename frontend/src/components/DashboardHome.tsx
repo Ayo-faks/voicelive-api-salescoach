@@ -747,7 +747,7 @@ export function DashboardHome({
               <Text className={styles.heroTitle}>
                 {selectedChild
                   ? `Ready for ${selectedChild.name}'s next practice?`
-                  : 'Set up the next SpeakBright practice session.'}
+                  : 'Set up the next Wulo practice session.'}
               </Text>
             </div>
 

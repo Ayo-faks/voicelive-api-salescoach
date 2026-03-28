@@ -40,6 +40,8 @@ RUN apt-get update && apt-get install -y \
 
 RUN useradd --create-home --shell /bin/bash app
 
+RUN mkdir -p /data && chown app:app /data
+
 WORKDIR /app
 
 COPY backend/requirements.txt ./

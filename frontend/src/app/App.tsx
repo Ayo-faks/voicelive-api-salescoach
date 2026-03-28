@@ -425,7 +425,7 @@ export default function App() {
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null)
   const [onboardingComplete, setOnboardingComplete] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false
-    return window.localStorage.getItem('speakbright.onboarding.complete') === 'true'
+    return window.localStorage.getItem('wulo.onboarding.complete') === 'true'
   })
   const [showSetup, setShowSetup] = useState(true)
   const [showLoading, setShowLoading] = useState(false)
@@ -442,14 +442,14 @@ export default function App() {
   const [userMode, setUserMode] = useState<UserMode | null>(() => {
     if (typeof window === 'undefined') return null
 
-    const storedMode = window.sessionStorage.getItem('speakbright.user.mode')
+    const storedMode = window.sessionStorage.getItem('wulo.user.mode')
     return storedMode === 'therapist' || storedMode === 'child'
       ? storedMode
       : null
   })
   const [therapistPin, setTherapistPin] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null
-    return window.sessionStorage.getItem('speakbright.therapist.pin')
+    return window.sessionStorage.getItem('wulo.therapist.pin')
   })
   const [pinInput, setPinInput] = useState('')
   const [pinError, setPinError] = useState<string | null>(null)
@@ -505,8 +505,8 @@ export default function App() {
   const activeAvatarPersona = getAvatarPersona(selectedAvatar)
   const appTitle =
     isChildMode
-      ? 'SpeakBright child practice'
-      : 'SpeakBright therapist practice'
+      ? 'Wulo child practice'
+      : 'Wulo therapist practice'
   const launchOverlayVisible =
     !showSetup &&
     showLaunchTransition &&
@@ -971,7 +971,7 @@ export default function App() {
         setPinInput('')
 
         if (typeof window !== 'undefined') {
-          window.sessionStorage.setItem('speakbright.therapist.pin', trimmedPin)
+          window.sessionStorage.setItem('wulo.therapist.pin', trimmedPin)
         }
 
         return true
@@ -1160,8 +1160,8 @@ export default function App() {
     setOnboardingComplete(true)
     setUserMode(null)
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem('speakbright.onboarding.complete', 'true')
-      window.sessionStorage.removeItem('speakbright.user.mode')
+      window.localStorage.setItem('wulo.onboarding.complete', 'true')
+      window.sessionStorage.removeItem('wulo.user.mode')
     }
   }, [pilotState, therapistPin])
 
@@ -1207,8 +1207,8 @@ export default function App() {
     setPinError(null)
 
     if (typeof window !== 'undefined') {
-      window.sessionStorage.removeItem('speakbright.therapist.pin')
-      window.sessionStorage.removeItem('speakbright.user.mode')
+      window.sessionStorage.removeItem('wulo.therapist.pin')
+      window.sessionStorage.removeItem('wulo.user.mode')
     }
   }, [])
 
@@ -1229,7 +1229,7 @@ export default function App() {
     setShowSetup(true)
 
     if (typeof window !== 'undefined') {
-      window.sessionStorage.setItem('speakbright.user.mode', mode)
+      window.sessionStorage.setItem('wulo.user.mode', mode)
     }
   }, [pilotState?.consent_timestamp, selectedScenario, serverScenarios, setSelectedScenario])
 
@@ -1262,7 +1262,7 @@ export default function App() {
         setPendingModeSelection(null)
 
         if (typeof window !== 'undefined') {
-          window.sessionStorage.setItem('speakbright.user.mode', 'child')
+          window.sessionStorage.setItem('wulo.user.mode', 'child')
         }
 
         return
@@ -1412,7 +1412,7 @@ export default function App() {
               <Text size={400} weight="semibold">
                 Loading exercises...
               </Text>
-              <Text size={300}>Your SpeakBright library is getting ready.</Text>
+              <Text size={300}>Your Wulo library is getting ready.</Text>
             </div>
           ) : (
             userMode === 'child' ? (

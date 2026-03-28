@@ -16,7 +16,7 @@ try:
 except ImportError:  # pragma: no cover - handled gracefully until dependencies are installed
     configure_azure_monitor = None
 
-logger = logging.getLogger("speakbright.telemetry")
+logger = logging.getLogger("wulo.telemetry")
 bootstrap_logger = logging.getLogger(__name__)
 
 
@@ -35,7 +35,7 @@ class PilotTelemetryService:
         try:
             configure_azure_monitor(
                 connection_string=self.connection_string,
-                logger_name="speakbright.telemetry",
+                logger_name="wulo.telemetry",
             )
             PilotTelemetryService._configured = True
         except Exception as exc:  # pragma: no cover - defensive telemetry bootstrap
