@@ -13,8 +13,6 @@ import {
 import {
   ChartMultipleRegular,
   DeleteRegular,
-  MicOffRegular,
-  MicRegular,
 } from '@fluentui/react-icons'
 import type { CustomScenario, Message, Scenario } from '../types'
 
@@ -23,15 +21,15 @@ const useStyles = makeStyles({
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    padding: 'var(--space-lg)',
+    padding: 'var(--space-md)',
     borderRadius: 'var(--radius-lg)',
     border: '1px solid var(--color-border)',
     backgroundColor: 'var(--color-bg-card)',
     boxShadow: 'var(--shadow-sm)',
-    gap: 'var(--space-lg)',
+    gap: 'var(--space-md)',
     '@media (max-width: 720px)': {
-      padding: 'var(--space-md)',
-      gap: 'var(--space-md)',
+      padding: 'var(--space-sm)',
+      gap: 'var(--space-sm)',
     },
   },
   header: {
@@ -51,6 +49,28 @@ const useStyles = makeStyles({
     maxWidth: '720px',
     fontSize: '0.8125rem',
   },
+  compactHeader: {
+    display: 'grid',
+    gap: '8px',
+    padding: 'var(--space-sm) var(--space-sm) calc(var(--space-sm) + 2px)',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid rgba(13, 138, 132, 0.1)',
+    background:
+      'linear-gradient(180deg, rgba(13, 138, 132, 0.05), rgba(13, 138, 132, 0.015))',
+  },
+  compactHeaderTitle: {
+    fontFamily: 'var(--font-display)',
+    color: 'var(--color-text-primary)',
+    fontSize: '0.9rem',
+    fontWeight: '700',
+    letterSpacing: '-0.01em',
+    lineHeight: 1.3,
+  },
+  compactHeaderMeta: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '4px',
+  },
   exerciseMeta: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -69,145 +89,40 @@ const useStyles = makeStyles({
     fontSize: '0.75rem',
     fontWeight: '500',
   },
-  sessionBody: {
-    display: 'grid',
-    gridTemplateColumns: 'minmax(0, 0.7fr) minmax(260px, 0.3fr)',
-    gap: 'var(--space-lg)',
-    flex: 1,
-    minHeight: 0,
-    '@media (max-width: 960px)': {
-      gridTemplateColumns: '1fr',
-    },
-  },
-  heroPanel: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 'var(--space-md)',
-    padding: 'var(--space-xl)',
-    borderRadius: 'var(--radius-lg)',
-    backgroundColor: 'var(--color-bg-muted)',
-    border: '1px solid var(--color-border)',
-    minHeight: '380px',
-    textAlign: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-    '@media (max-width: 720px)': {
-      minHeight: 'unset',
-      padding: 'var(--space-lg)',
-    },
-  },
-  connectionBanner: {
-    width: '100%',
-    padding: '10px 14px',
-    borderRadius: 'var(--radius-md)',
-    backgroundColor: 'var(--color-warning-soft)',
-    border: '1px solid rgba(224, 146, 62, 0.2)',
-    color: 'var(--color-text-primary)',
-    fontSize: '0.8125rem',
-  },
-  heroHint: {
-    color: 'var(--color-text-tertiary)',
-    maxWidth: '360px',
-    lineHeight: 1.5,
-    fontSize: '0.8125rem',
-  },
-  micButton: {
-    position: 'relative',
-    width: '120px',
-    height: '120px',
-    minWidth: '120px',
-    borderRadius: '50%',
-    border: 'none',
-    background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
-    color: 'var(--color-text-inverse)',
-    boxShadow: '0 14px 28px rgba(13, 138, 132, 0.22)',
-    transition:
-      'transform var(--transition-normal), box-shadow var(--transition-normal), background-color var(--transition-normal)',
-    '&:hover': {
-      transform: 'scale(1.03)',
-    },
-    '&:active': {
-      transform: 'scale(0.97)',
-    },
-    '&::before': {
-      content: '""',
-      position: 'absolute',
-      inset: '-12px',
-      borderRadius: '50%',
-      border: '2px solid transparent',
-      opacity: 0,
-    },
-    '&::after': {
-      content: '""',
-      position: 'absolute',
-      inset: '-24px',
-      borderRadius: '50%',
-      border: '2px solid transparent',
-      opacity: 0,
-    },
-    '@media (max-width: 640px)': {
-      width: '100px',
-      height: '100px',
-      minWidth: '100px',
-    },
-  },
-  micButtonActive: {
-    background: 'linear-gradient(135deg, var(--color-primary-dark), var(--color-primary))',
-    boxShadow: '0 14px 28px rgba(13, 138, 132, 0.28), 0 0 0 18px rgba(13, 138, 132, 0.08)',
-    '&::before': {
-      opacity: 1,
-      border: '2px solid rgba(13, 138, 132, 0.4)',
-      animationName: {
-        '0%': { transform: 'scale(0.95)', opacity: 0.6 },
-        '100%': { transform: 'scale(1.2)', opacity: 0 },
-      },
-      animationDuration: '2s',
-      animationIterationCount: 'infinite',
-    },
-    '&::after': {
-      opacity: 1,
-      border: '2px solid rgba(13, 138, 132, 0.25)',
-      animationName: {
-        '0%': { transform: 'scale(0.9)', opacity: 0.4 },
-        '100%': { transform: 'scale(1.3)', opacity: 0 },
-      },
-      animationDuration: '2s',
-      animationDelay: '0.4s',
-      animationIterationCount: 'infinite',
-    },
-  },
-  micLabel: {
-    fontFamily: 'var(--font-display)',
-    color: 'var(--color-text-primary)',
-    fontSize: '1rem',
-    fontWeight: '600',
-  },
-  micSubLabel: {
-    color: 'var(--color-text-secondary)',
-    fontSize: '0.8125rem',
+  compactChip: {
+    minHeight: '22px',
+    paddingInline: '10px',
+    borderRadius: '999px',
+    backgroundColor: 'rgba(13, 138, 132, 0.1)',
+    color: 'var(--color-primary-dark)',
+    fontSize: '0.6875rem',
+    letterSpacing: '0.01em',
   },
   messagesPanel: {
     display: 'flex',
     flexDirection: 'column',
     minHeight: 0,
     border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius-lg)',
+    borderRadius: 'var(--radius-md)',
     backgroundColor: 'var(--color-bg-card)',
     overflow: 'hidden',
     '@media (max-width: 720px)': {
-      minHeight: '280px',
+      minHeight: '240px',
     },
   },
   messages: {
     flex: 1,
     overflowY: 'auto',
     minHeight: '280px',
-    padding: 'var(--space-md)',
+    padding: '12px',
     display: 'flex',
     flexDirection: 'column-reverse',
-    gap: 'var(--space-sm)',
+    gap: '10px',
+    '@media (max-width: 720px)': {
+      minHeight: '220px',
+      padding: '10px',
+      gap: '8px',
+    },
   },
   placeholder: {
     display: 'flex',
@@ -219,10 +134,15 @@ const useStyles = makeStyles({
     color: 'var(--color-text-tertiary)',
   },
   message: {
-    padding: 'var(--space-sm) var(--space-md)',
+    padding: '10px 12px',
     borderRadius: 'var(--radius-md)',
-    maxWidth: '88%',
+    maxWidth: '92%',
     fontSize: '0.875rem',
+    lineHeight: 1.45,
+    '@media (max-width: 720px)': {
+      maxWidth: '100%',
+      padding: '9px 11px',
+    },
   },
   messageContent: {
     display: 'inline-flex',
@@ -256,32 +176,40 @@ const useStyles = makeStyles({
     display: 'flex',
     gap: 'var(--space-sm)',
     flexWrap: 'wrap',
-    padding: 'var(--space-md)',
+    padding: '10px 12px',
     borderTop: '1px solid var(--color-border)',
     backgroundColor: 'var(--color-bg-secondary)',
     '@media (max-width: 640px)': {
-      gap: 'var(--space-xs)',
+      display: 'grid',
+      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+      gap: '8px',
+      padding: '10px',
     },
   },
   actionButton: {
-    minHeight: '36px',
+    minHeight: '34px',
     borderRadius: 'var(--radius-md)',
     fontFamily: 'var(--font-display)',
     fontWeight: '600',
-    fontSize: '0.8125rem',
+    fontSize: '0.78rem',
     border: '1px solid var(--color-border)',
     '@media (max-width: 640px)': {
-      flex: 1,
-      minHeight: '40px',
+      width: '100%',
+      minHeight: '38px',
     },
   },
   status: {
     display: 'flex',
     alignItems: 'center',
     gap: 'var(--space-sm)',
-    padding: '0 var(--space-md) var(--space-sm)',
+    padding: '10px 12px 12px',
+    borderTop: '1px solid rgba(15, 23, 42, 0.06)',
     color: 'var(--color-text-tertiary)',
     fontSize: '0.75rem',
+    lineHeight: 1.4,
+    '@media (max-width: 640px)': {
+      padding: '9px 10px 10px',
+    },
   },
 })
 
@@ -311,7 +239,6 @@ interface Props {
   audience?: 'therapist' | 'child'
   showClearControl?: boolean
   showAnalyzeControl?: boolean
-  compact?: boolean
 }
 
 function isCustomScenario(
@@ -337,28 +264,25 @@ export function ChatPanel({
   audience = 'therapist',
   showClearControl = true,
   showAnalyzeControl = true,
-  compact = false,
 }: Props) {
   const styles = useStyles()
   const customScenario = isCustomScenario(scenario) ? scenario : null
-  const canTalk = connected && introComplete && !sessionFinished
   const exerciseType = formatExerciseType(
     customScenario?.scenarioData.exerciseType || scenario?.exerciseMetadata?.type
   )
-  const subLabel =
-    sessionFinished && audience === 'child'
-      ? 'Practice is finished. Your last word feedback will stay here until you leave.'
-      : !introComplete && audience === 'child'
-      ? 'Listen to your buddy first. The microphone will open right after the welcome.'
-      : processing && audience === 'child'
-      ? 'Hold on while your buddy checks the last try.'
-      : audience === 'child'
-      ? 'Press the microphone when you are ready to speak.'
-      : 'Press the microphone when the child is ready to speak.'
   const statusText =
     sessionFinished && audience === 'child'
       ? 'Practice finished. Go home when you are ready.'
       : connectionMessage
+  const targetSound =
+    customScenario?.scenarioData.targetSound || scenario?.exerciseMetadata?.targetSound
+  const difficulty =
+    customScenario?.scenarioData.difficulty || scenario?.exerciseMetadata?.difficulty
+  const compactMeta = [
+    exerciseType,
+    targetSound ? `Sound: ${targetSound}` : null,
+    difficulty,
+  ].filter(Boolean)
 
   const messagesPanel = (
     <div className={styles.messagesPanel}>
@@ -368,15 +292,19 @@ export function ChatPanel({
             <Text size={400} weight="semibold">
               {sessionFinished && audience === 'child'
                 ? 'Practice finished'
-                : !introComplete && audience === 'child'
-                ? 'Your buddy is saying hello'
+                : !introComplete
+                ? audience === 'therapist'
+                  ? 'Opening welcome'
+                  : 'Your buddy is saying hello'
                 : 'Ready when you are'}
             </Text>
             <Text size={300}>
               {sessionFinished && audience === 'child'
                 ? 'Your last word feedback stays visible until you leave this screen.'
-                : !introComplete && audience === 'child'
-                ? 'Listen for the welcome, then the microphone will unlock.'
+                : !introComplete
+                ? audience === 'therapist'
+                  ? 'The avatar is greeting the session now. The dock microphone will unlock right after the welcome.'
+                  : 'Listen for the welcome, then the microphone will unlock.'
                 : 'Tap the microphone to begin the exercise.'}
             </Text>
           </div>
@@ -438,7 +366,24 @@ export function ChatPanel({
 
   return (
     <Card className={styles.card}>
-      {!compact && scenario && (
+      {audience === 'therapist' && scenario ? (
+        <div className={styles.compactHeader}>
+          <Text className={styles.compactHeaderTitle} size={500} weight="semibold">
+            {scenario.name}
+          </Text>
+          {compactMeta.length > 0 ? (
+            <div className={styles.compactHeaderMeta}>
+              {compactMeta.map(item => (
+                <span key={item} className={mergeClasses(styles.exerciseChip, styles.compactChip)}>
+                  {item}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {audience === 'child' && scenario ? (
         <div className={styles.header}>
           <Text className={styles.title} size={700} weight="semibold" block>
             {scenario.name}
@@ -472,55 +417,9 @@ export function ChatPanel({
             )}
           </div>
         </div>
-      )}
+      ) : null}
 
-      {compact ? (
-        messagesPanel
-      ) : (
-        <div className={styles.sessionBody}>
-          <div className={styles.heroPanel}>
-          {connectionState !== 'connected' && (
-            <div className={styles.connectionBanner}>
-              <Text size={300} weight="semibold">
-                {connectionMessage}
-              </Text>
-            </div>
-          )}
-          <Button
-            aria-label={recording ? 'Stop recording' : 'Start recording'}
-            appearance="transparent"
-            className={mergeClasses(
-              styles.micButton,
-              recording && styles.micButtonActive
-            )}
-            icon={recording ? <MicOffRegular fontSize={44} /> : <MicRegular fontSize={44} />}
-            onClick={onToggleRecording}
-            disabled={!canTalk}
-          />
-          <Text className={styles.micLabel} size={700} weight="semibold">
-            {sessionFinished && audience === 'child'
-              ? 'Practice finished'
-              : recording
-              ? 'Listening...'
-              : processing && audience === 'child'
-                ? 'Checking your try...'
-              : !introComplete && audience === 'child'
-                ? 'Listen to your buddy'
-                : 'Tap to talk'}
-          </Text>
-          <Text className={styles.micSubLabel} size={300}>
-            {recording
-              ? 'Say the words clearly and take your time.'
-              : subLabel}
-          </Text>
-          <Text className={styles.heroHint} size={300}>
-            Keep the session calm and brief. The practice buddy will respond in
-            short, friendly prompts.
-          </Text>
-          </div>
-          {messagesPanel}
-        </div>
-      )}
+      {messagesPanel}
     </Card>
   )
 }

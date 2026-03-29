@@ -97,6 +97,7 @@ type PrewarmedAgent = {
 
 const CHILD_TURN_LIMIT = 4
 const CHILD_MAX_TURNS = 8
+const THERAPIST_AUTO_SUMMARY_TURN_LIMIT = 4
 const AFFIRMATIVE_FINISH_PATTERN = /\b(yes|yeah|yep|ok|okay|sure|done|finished)\b/i
 
 function isCustomScenario(
@@ -185,6 +186,34 @@ function buildChildIntroInstructions({
     exerciseContext,
     'Never use the word "test". Always say "practice" or "exercise".',
     'Keep the tone calm, encouraging, and child-friendly. Keep it under 35 words.',
+  ].join(' ')
+}
+
+function buildTherapistIntroInstructions({
+  childName,
+  avatarName,
+  avatarPersona,
+  scenarioName,
+  scenarioDescription,
+}: {
+  childName?: string | null
+  avatarName: string
+  avatarPersona: string
+  scenarioName?: string | null
+  scenarioDescription?: string | null
+}): string {
+  const childLabel = childName || 'the child'
+  const exerciseLabel = scenarioName || "today's practice"
+  const exerciseContext = scenarioDescription
+    ? `Briefly mention this practice focus: ${scenarioDescription}.`
+    : 'Briefly mention that you will guide the practice together.'
+
+  return [
+    `You are ${avatarName}, ${avatarPersona}, and a warm speech-practice buddy supporting a therapist and ${childLabel}.`,
+    'Speak first to begin the session.',
+    `In two short sentences, welcome the therapist, say you are starting ${exerciseLabel} with ${childLabel}, and ask them to tap the microphone when they are ready to begin.`,
+    exerciseContext,
+    'Keep the tone calm, observational, and supportive. Keep it under 35 words.',
   ].join(' ')
 }
 
@@ -522,18 +551,26 @@ export default function App() {
   const launchOverlayVisible =
     !showSetup &&
     showLaunchTransition &&
-    (isChildMode ? !assistantSpeechStarted : !avatarVideoReady && !sessionReady)
+    !assistantSpeechStarted
 
   // Pre-compose intro instructions so they're ready the instant the session is ready
   useEffect(() => {
-    if (isChildMode && selectedScenario) {
-      pendingIntroRef.current = buildChildIntroInstructions({
-        childName: selectedChild?.name,
-        avatarName: activeAvatarName,
-        avatarPersona: activeAvatarPersona,
-        scenarioName: activeScenario?.name,
-        scenarioDescription: activeScenario?.description,
-      })
+    if (selectedScenario) {
+      pendingIntroRef.current = isChildMode
+        ? buildChildIntroInstructions({
+            childName: selectedChild?.name,
+            avatarName: activeAvatarName,
+            avatarPersona: activeAvatarPersona,
+            scenarioName: activeScenario?.name,
+            scenarioDescription: activeScenario?.description,
+          })
+        : buildTherapistIntroInstructions({
+            childName: selectedChild?.name,
+            avatarName: activeAvatarName,
+            avatarPersona: activeAvatarPersona,
+            scenarioName: activeScenario?.name,
+            scenarioDescription: activeScenario?.description,
+          })
     } else {
       pendingIntroRef.current = null
     }
@@ -672,7 +709,6 @@ export default function App() {
       if (
         role === 'assistant' &&
         text.trim() &&
-        isChildMode &&
         sessionIntroRequested &&
         !sessionIntroComplete
       ) {
@@ -692,10 +728,20 @@ export default function App() {
 
       if (
         role !== 'user' ||
-        !isChildMode ||
         !activeReferenceText ||
         sessionFinished
       ) {
+        return
+      }
+
+      const nextTurnCount = childTurnCount + 1
+      setChildTurnCount(nextTurnCount)
+
+      if (!isChildMode) {
+        if (nextTurnCount >= THERAPIST_AUTO_SUMMARY_TURN_LIMIT) {
+          setFinishRequested(true)
+        }
+
         return
       }
 
@@ -716,9 +762,6 @@ export default function App() {
         setFinishPromptTurnLimit(current => Math.min(current + 2, CHILD_MAX_TURNS))
         return
       }
-
-      const nextTurnCount = childTurnCount + 1
-      setChildTurnCount(nextTurnCount)
 
       if (nextTurnCount >= finishPromptTurnLimit) {
         setFinishConfirmationPending(true)
@@ -746,35 +789,14 @@ export default function App() {
   )
 
   useEffect(() => {
-    if (showSetup || !showLaunchTransition) {
-      return
-    }
-
-    if (isChildMode) {
-      return
-    }
-
-    const timer = window.setTimeout(() => {
-      setShowLaunchTransition(false)
-    }, 900)
-
-    return () => window.clearTimeout(timer)
-  }, [isChildMode, showLaunchTransition, showSetup])
-
-  useEffect(() => {
     if (!showLaunchTransition) {
       return
     }
 
-    if (isChildMode && assistantSpeechStarted) {
-      setShowLaunchTransition(false)
-      return
-    }
-
-    if (!isChildMode && (avatarVideoReady || sessionReady)) {
+    if (assistantSpeechStarted) {
       setShowLaunchTransition(false)
     }
-  }, [assistantSpeechStarted, avatarVideoReady, isChildMode, sessionReady, showLaunchTransition])
+  }, [assistantSpeechStarted, showLaunchTransition])
 
   const {
     connected,
@@ -797,7 +819,6 @@ export default function App() {
   useEffect(() => {
     if (
       !currentAgent ||
-      !isChildMode ||
       !sessionReady ||
       !avatarVideoReady ||
       sessionIntroRequested ||
@@ -817,7 +838,6 @@ export default function App() {
   }, [
     avatarVideoReady,
     currentAgent,
-    isChildMode,
     send,
     sessionIntroRequested,
     sessionReady,
@@ -1710,7 +1730,7 @@ export default function App() {
             connected={connected}
             connectionState={connectionState}
             connectionMessage={connectionMessage}
-            introComplete={!isChildMode || sessionIntroComplete}
+            introComplete={sessionIntroComplete}
             sessionFinished={sessionFinished}
             canAnalyze={messages.length > 0}
             onToggleRecording={handleToggleRecording}
@@ -1720,7 +1740,7 @@ export default function App() {
             isChildMode={isChildMode}
             selectedChild={selectedChild}
             selectedAvatar={selectedAvatar}
-            introPending={isChildMode && sessionIntroRequested && !sessionIntroComplete}
+            introPending={sessionIntroRequested && !sessionIntroComplete}
             onVideoLoaded={() => setAvatarVideoReady(true)}
             utteranceFeedback={utteranceFeedback}
             scoringUtterance={scoringUtterance}

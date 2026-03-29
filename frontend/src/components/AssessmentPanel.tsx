@@ -189,6 +189,28 @@ const useStyles = makeStyles({
     boxShadow: 'var(--shadow-sm)',
     border: '1px solid var(--color-border)',
   },
+  notesCard: {
+    padding: tokens.spacingVerticalM,
+    display: 'grid',
+    gap: tokens.spacingVerticalS,
+    borderRadius: 'var(--radius-lg)',
+    backgroundColor: 'var(--color-bg-card)',
+    boxShadow: 'var(--shadow-sm)',
+    border: '1px solid var(--color-border)',
+  },
+  notesScroll: {
+    maxHeight: '260px',
+    overflowY: 'auto',
+    paddingRight: tokens.spacingHorizontalXS,
+    scrollbarGutter: 'stable',
+  },
+  notesText: {
+    display: 'block',
+    lineHeight: 1.7,
+    fontSize: '0.875rem',
+    whiteSpace: 'pre-wrap',
+    overflowWrap: 'anywhere',
+  },
   feedbackButtons: {
     display: 'flex',
     gap: tokens.spacingHorizontalS,
@@ -275,7 +297,7 @@ export function AssessmentPanel({
   return (
     <Dialog open={open} onOpenChange={(_, data) => !data.open && onClose()}>
       <DialogSurface className={styles.dialogSurface}>
-        <DialogTitle>Practice Results</DialogTitle>
+        <DialogTitle>Session Summary</DialogTitle>
         <DialogBody className={styles.dialogBody}>
           <Text size={200}>Practice feedback — not a clinical assessment.</Text>
 
@@ -314,7 +336,7 @@ export function AssessmentPanel({
             onTabSelect={(_, data) => setTab(data.value)}
           >
             <Tab value="overview">Overview</Tab>
-            <Tab value="recommendations">Celebrations & Next Steps</Tab>
+            <Tab value="recommendations">Next Steps</Tab>
             {showTherapistControls ? <Tab value="notes">Therapist Notes</Tab> : null}
           </TabList>
 
@@ -512,7 +534,7 @@ export function AssessmentPanel({
           )}
 
           {showTherapistControls && tab === 'notes' && (
-            <Card className={styles.card}>
+            <Card className={styles.notesCard}>
               <CardHeader
                 header={
                   <Text size={500} weight="semibold">
@@ -520,9 +542,11 @@ export function AssessmentPanel({
                   </Text>
                 }
               />
-              <Text size={300} style={{ lineHeight: 1.6 }}>
-                {aiAssessment?.therapist_notes || 'No therapist notes available.'}
-              </Text>
+              <div className={styles.notesScroll}>
+                <Text size={300} className={styles.notesText} block>
+                  {aiAssessment?.therapist_notes || 'No therapist notes available.'}
+                </Text>
+              </div>
             </Card>
           )}
 

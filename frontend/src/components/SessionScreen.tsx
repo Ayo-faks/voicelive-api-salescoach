@@ -62,7 +62,7 @@ const useStyles = makeStyles({
   },
   sideColumn: {
     display: 'grid',
-    gap: 'var(--space-md)',
+    gap: 'var(--space-sm)',
     minWidth: 0,
     opacity: 0,
     transform: 'translateX(40px)',
@@ -71,6 +71,9 @@ const useStyles = makeStyles({
     overflow: 'hidden',
     transition:
       'opacity 320ms ease-out 140ms, transform 420ms cubic-bezier(0.22, 1, 0.36, 1) 120ms, max-width 420ms cubic-bezier(0.22, 1, 0.36, 1) 120ms',
+    '@media (max-width: 980px)': {
+      transform: 'translateY(18px)',
+    },
     '@media (prefers-reduced-motion: reduce)': {
       transition: 'none',
     },
@@ -80,6 +83,10 @@ const useStyles = makeStyles({
     transform: 'translateX(0)',
     pointerEvents: 'auto',
     maxWidth: '100%',
+    '@media (max-width: 980px)': {
+      transform: 'translateY(0)',
+      width: '100%',
+    },
   },
   scenarioCard: {
     padding: 'var(--space-lg)',
@@ -122,25 +129,6 @@ const useStyles = makeStyles({
     fontFamily: 'var(--font-display)',
     fontSize: '0.75rem',
     fontWeight: '500',
-  },
-  coachCard: {
-    padding: 'var(--space-md)',
-    borderRadius: 'var(--radius-lg)',
-    backgroundColor: 'var(--color-bg-card)',
-    border: '1px solid var(--color-border)',
-    boxShadow: 'var(--shadow-md)',
-  },
-  coachTitle: {
-    fontFamily: 'var(--font-display)',
-    color: 'var(--color-text-primary)',
-    marginBottom: 'var(--space-xs)',
-    fontSize: '0.875rem',
-    fontWeight: '600',
-  },
-  coachText: {
-    color: 'var(--color-text-secondary)',
-    lineHeight: 1.6,
-    fontSize: '0.8125rem',
   },
 })
 
@@ -207,7 +195,7 @@ export function SessionScreen({
   activeReferenceText,
 }: SessionScreenProps) {
   const styles = useStyles()
-  const [transcriptRevealed, setTranscriptRevealed] = useState(false)
+  const [transcriptRevealed, setTranscriptRevealed] = useState(!isChildMode)
   const customScenario = isCustomScenario(scenario) ? scenario : null
   const canTalk = connected && introComplete && !sessionFinished
   const exerciseType = formatExerciseType(
@@ -238,7 +226,7 @@ export function SessionScreen({
           transcriptRevealed && styles.heroColumnRevealed
         )}
       >
-        {scenario ? (
+        {isChildMode && scenario ? (
           <Card className={styles.scenarioCard}>
             <Text className={styles.scenarioTitle} size={700} weight="semibold" block>
               {scenario.name}
@@ -325,20 +313,7 @@ export function SessionScreen({
           scenario={scenario}
           audience={isChildMode ? 'child' : 'therapist'}
           showAnalyzeControl={!isChildMode}
-          compact
         />
-
-        {!isChildMode ? (
-          <Card className={styles.coachCard}>
-            <Text className={styles.coachTitle} size={500} weight="semibold">
-              Therapist view
-            </Text>
-            <Text className={styles.coachText} size={300}>
-              Stay nearby while the child practises. Practice feedback supports
-              the session and does not replace clinical judgement for {selectedChild?.name || 'this child'}.
-            </Text>
-          </Card>
-        ) : null}
       </div>
     </div>
   )

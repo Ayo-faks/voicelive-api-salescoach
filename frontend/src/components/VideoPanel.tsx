@@ -285,7 +285,9 @@ export function VideoPanel({
   const exerciseLabel = scenarioName || 'today\'s practice'
   const promptText =
     scenarioDescription ||
-    `We are going to practise ${exerciseLabel} together. Tap to talk when you are ready.`
+    (audience === 'therapist'
+      ? `Review ${exerciseLabel} and use the dock microphone when ${childLabel} is ready.`
+      : `We are going to practise ${exerciseLabel} together. Tap to talk when you are ready.`)
   const statusLabel =
     sessionFinished && audience === 'child'
       ? `${avatarName} has wrapped up ${childLabel}'s practice.`
@@ -302,8 +304,12 @@ export function VideoPanel({
       ? 'Practice finished'
     : processing && audience === 'child'
       ? 'Checking your try...'
-    : !introComplete && audience === 'child'
-      ? 'Listen to your buddy'
+    : !introComplete
+      ? audience === 'therapist'
+        ? 'Welcome in progress'
+        : 'Listen to your buddy'
+      : audience === 'therapist'
+        ? 'Mic ready'
       : 'Tap to talk'
   const statusText =
     sessionFinished && audience === 'child'
@@ -355,13 +361,21 @@ export function VideoPanel({
             <div className={styles.introCopy}>
               <Text className={styles.introTitle}>
                 {introPending
-                  ? `${avatarName} is saying hello to ${childLabel}.`
-                  : `${avatarName} is ready for ${exerciseLabel}.`}
+                  ? audience === 'therapist'
+                    ? `${avatarName} is opening the session for ${childLabel}.`
+                    : `${avatarName} is saying hello to ${childLabel}.`
+                  : audience === 'therapist'
+                    ? `${avatarName} is ready for ${childLabel}.`
+                    : `${avatarName} is ready for ${exerciseLabel}.`}
               </Text>
               <Text className={styles.introText}>
                 {introPending
-                  ? 'Listen for the welcome and watch for the microphone to unlock.'
-                  : introComplete
+                  ? audience === 'therapist'
+                    ? 'Listen for the opening welcome. The microphone will unlock as soon as it finishes.'
+                    : 'Listen for the welcome and watch for the microphone to unlock.'
+                  : audience === 'therapist'
+                    ? 'Keep the session moving and open the dock microphone when the child is ready.'
+                    : introComplete
                     ? 'The session is ready. Tap the microphone when you want to talk.'
                     : 'Your buddy is getting set up for a calm, friendly practice turn.'}
               </Text>
