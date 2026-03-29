@@ -18,6 +18,7 @@ from azure.ai.voicelive.aio import (
     connect,
 )
 from azure.ai.voicelive.models import (
+    AudioInputTranscriptionOptions,
     AudioEchoCancellation,
     AudioNoiseReduction,
     AvatarConfig,
@@ -224,6 +225,10 @@ class VoiceProxyHandler:
         session = RequestSession(
             modalities=[Modality.TEXT, Modality.AUDIO, Modality.AVATAR],
             turn_detection=AzureSemanticVad(type=DEFAULT_TURN_DETECTION_TYPE),
+            input_audio_transcription=AudioInputTranscriptionOptions(
+                model=config.get("azure_input_transcription_model", "azure-speech"),
+                language=config.get("azure_input_transcription_language", "en-US"),
+            ),
             input_audio_noise_reduction=AudioNoiseReduction(type=DEFAULT_NOISE_REDUCTION_TYPE),
             input_audio_echo_cancellation=AudioEchoCancellation(type=DEFAULT_ECHO_CANCELLATION_TYPE),
             voice=AzureStandardVoice(name=voice_name, type=voice_type),

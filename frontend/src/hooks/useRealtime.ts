@@ -58,6 +58,93 @@ export function useRealtime(options: RealtimeOptions) {
   })
   const audioRecording = useRef<AssistantAudioRecording[]>([])
   const conversationRecording = useRef<ConversationRecording[]>([])
+  const streamingUserMessageRef = useRef<{
+    id: string
+    content: string
+  } | null>(null)
+  const streamingAssistantMessageRef = useRef<{
+    id: string
+    content: string
+  } | null>(null)
+
+  const appendStreamingMessage = useCallback(
+    (role: 'user' | 'assistant', deltaText: string) => {
+      if (!deltaText) {
+        return
+      }
+
+      const targetRef =
+        role === 'user' ? streamingUserMessageRef : streamingAssistantMessageRef
+      const activeStreamingMessage = targetRef.current
+
+      if (!activeStreamingMessage) {
+        const id = crypto.randomUUID()
+        targetRef.current = {
+          id,
+          content: deltaText,
+        }
+        setMessages(prev => [
+          ...prev,
+          {
+            id,
+            role,
+            content: deltaText,
+            timestamp: new Date(),
+            streaming: true,
+          },
+        ])
+        return
+      }
+
+      const nextContent = `${activeStreamingMessage.content}${deltaText}`
+      targetRef.current = {
+        ...activeStreamingMessage,
+        content: nextContent,
+      }
+      setMessages(prev =>
+        prev.map(message =>
+          message.id === activeStreamingMessage.id
+            ? { ...message, content: nextContent, streaming: true }
+            : message
+        )
+      )
+    },
+    []
+  )
+
+  const finalizeStreamingMessage = useCallback(
+    (role: 'user' | 'assistant', finalTranscript: string) => {
+      const targetRef =
+        role === 'user' ? streamingUserMessageRef : streamingAssistantMessageRef
+      const activeStreamingMessage = targetRef.current
+
+      if (activeStreamingMessage) {
+        setMessages(prev =>
+          prev.map(message =>
+            message.id === activeStreamingMessage.id
+              ? {
+                ...message,
+                content: finalTranscript,
+                streaming: false,
+              }
+              : message
+          )
+        )
+        targetRef.current = null
+        return
+      }
+
+      const message: Message = {
+        id: crypto.randomUUID(),
+        role,
+        content: finalTranscript,
+        timestamp: new Date(),
+        streaming: false,
+      }
+      setMessages(prev => [...prev, message])
+    },
+    []
+  )
 
   useEffect(() => {
     callbackRefs.current = {
@@ -141,15 +228,20 @@ export function useRealtime(options: RealtimeOptions) {
             })
           }
           break
+        case 'conversation.item.input_audio_transcription.delta': {
+          const deltaText =
+            typeof msg.delta === 'string'
+              ? msg.delta
+              : typeof msg.transcript === 'string'
+                ? msg.transcript
+                : ''
+
+          appendStreamingMessage('user', deltaText)
+          break
+        }
         case 'conversation.item.input_audio_transcription.completed':
           if (msg.transcript) {
-            const message: Message = {
-              id: crypto.randomUUID(),
-              role: 'user',
-              content: msg.transcript,
-              timestamp: new Date(),
-            }
-            setMessages(prev => [...prev, message])
+            finalizeStreamingMessage('user', msg.transcript)
             conversationRecording.current.push({
               role: 'user',
               content: msg.transcript,
@@ -157,20 +249,34 @@ export function useRealtime(options: RealtimeOptions) {
             callbackRefs.current.onTranscript?.('user', msg.transcript)
           }
           break
+        case 'conversation.item.input_audio_transcription.failed':
+          if (streamingUserMessageRef.current) {
+            setMessages(prev =>
+              prev.filter(message => message.id !== streamingUserMessageRef.current?.id)
+            )
+            streamingUserMessageRef.current = null
+          }
+          break
+        case 'response.audio_transcript.delta': {
+          const deltaText =
+            typeof msg.delta === 'string'
+              ? msg.delta
+              : typeof msg.transcript === 'string'
+                ? msg.transcript
+                : ''
+
+          appendStreamingMessage('assistant', deltaText)
+          break
+        }
         case 'response.audio_transcript.done':
           if (msg.transcript) {
-            const message: Message = {
-              id: crypto.randomUUID(),
-              role: 'assistant',
-              content: msg.transcript,
-              timestamp: new Date(),
-            }
-            setMessages(prev => [...prev, message])
+            const finalTranscript = msg.transcript
+            finalizeStreamingMessage('assistant', finalTranscript)
             conversationRecording.current.push({
               role: 'assistant',
-              content: msg.transcript,
+              content: finalTranscript,
             })
-            callbackRefs.current.onTranscript?.('assistant', msg.transcript)
+            callbackRefs.current.onTranscript?.('assistant', finalTranscript)
           }
           break
         case 'proxy.connected':
@@ -221,7 +327,12 @@ export function useRealtime(options: RealtimeOptions) {
         void connect()
       }, retryDelay)
     }
-  }, [clearReconnectTimer, closeSocket])
+  }, [
+    appendStreamingMessage,
+    clearReconnectTimer,
+    closeSocket,
+    finalizeStreamingMessage,
+  ])
 
   const send = useCallback((data: unknown) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -242,6 +353,8 @@ export function useRealtime(options: RealtimeOptions) {
     setMessages([])
     conversationRecording.current = []
     audioRecording.current = []
+    streamingUserMessageRef.current = null
+    streamingAssistantMessageRef.current = null
   }, [])
 
   const getRecordings = useCallback(

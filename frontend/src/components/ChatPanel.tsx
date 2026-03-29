@@ -224,6 +224,12 @@ const useStyles = makeStyles({
     maxWidth: '88%',
     fontSize: '0.875rem',
   },
+  messageContent: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    flexWrap: 'wrap',
+  },
   userMessage: {
     backgroundColor: 'var(--color-secondary-soft)',
     alignSelf: 'flex-end',
@@ -231,6 +237,20 @@ const useStyles = makeStyles({
   assistantMessage: {
     backgroundColor: 'var(--color-primary-soft)',
     alignSelf: 'flex-start',
+  },
+  streamingCursor: {
+    width: '8px',
+    height: '1em',
+    borderRadius: '999px',
+    backgroundColor: 'currentColor',
+    opacity: 0.45,
+    animationName: {
+      '0%': { opacity: 0.2 },
+      '50%': { opacity: 0.85 },
+      '100%': { opacity: 0.2 },
+    },
+    animationDuration: '1s',
+    animationIterationCount: 'infinite',
   },
   controls: {
     display: 'flex',
@@ -277,10 +297,12 @@ function formatExerciseType(value?: string) {
 interface Props {
   messages: Message[]
   recording: boolean
+  processing?: boolean
   connected: boolean
   connectionState: 'connecting' | 'connected' | 'reconnecting' | 'disconnected'
   connectionMessage: string
   introComplete?: boolean
+  sessionFinished?: boolean
   canAnalyze: boolean
   onToggleRecording: () => void
   onClear: () => void
@@ -289,6 +311,7 @@ interface Props {
   audience?: 'therapist' | 'child'
   showClearControl?: boolean
   showAnalyzeControl?: boolean
+  compact?: boolean
 }
 
 function isCustomScenario(
@@ -300,10 +323,12 @@ function isCustomScenario(
 export function ChatPanel({
   messages,
   recording,
+  processing = false,
   connected,
   connectionState,
   connectionMessage,
   introComplete = true,
+  sessionFinished = false,
   canAnalyze,
   onToggleRecording,
   onClear,
@@ -312,23 +337,108 @@ export function ChatPanel({
   audience = 'therapist',
   showClearControl = true,
   showAnalyzeControl = true,
+  compact = false,
 }: Props) {
   const styles = useStyles()
   const customScenario = isCustomScenario(scenario) ? scenario : null
-  const canTalk = connected && introComplete
+  const canTalk = connected && introComplete && !sessionFinished
   const exerciseType = formatExerciseType(
     customScenario?.scenarioData.exerciseType || scenario?.exerciseMetadata?.type
   )
   const subLabel =
-    !introComplete && audience === 'child'
+    sessionFinished && audience === 'child'
+      ? 'Practice is finished. Your last word feedback will stay here until you leave.'
+      : !introComplete && audience === 'child'
       ? 'Listen to your buddy first. The microphone will open right after the welcome.'
+      : processing && audience === 'child'
+      ? 'Hold on while your buddy checks the last try.'
       : audience === 'child'
       ? 'Press the microphone when you are ready to speak.'
       : 'Press the microphone when the child is ready to speak.'
+  const statusText =
+    sessionFinished && audience === 'child'
+      ? 'Practice finished. Go home when you are ready.'
+      : connectionMessage
+
+  const messagesPanel = (
+    <div className={styles.messagesPanel}>
+      <div className={styles.messages}>
+        {messages.length === 0 ? (
+          <div className={styles.placeholder}>
+            <Text size={400} weight="semibold">
+              {sessionFinished && audience === 'child'
+                ? 'Practice finished'
+                : !introComplete && audience === 'child'
+                ? 'Your buddy is saying hello'
+                : 'Ready when you are'}
+            </Text>
+            <Text size={300}>
+              {sessionFinished && audience === 'child'
+                ? 'Your last word feedback stays visible until you leave this screen.'
+                : !introComplete && audience === 'child'
+                ? 'Listen for the welcome, then the microphone will unlock.'
+                : 'Tap the microphone to begin the exercise.'}
+            </Text>
+          </div>
+        ) : (
+          messages
+            .slice()
+            .reverse()
+            .map(msg => (
+              <div
+                key={msg.id}
+                className={mergeClasses(
+                  styles.message,
+                  msg.role === 'user'
+                    ? styles.userMessage
+                    : styles.assistantMessage
+                )}
+              >
+                <div className={styles.messageContent}>
+                  <Text size={300}>{msg.content}</Text>
+                  {msg.streaming ? <span className={styles.streamingCursor} /> : null}
+                </div>
+              </div>
+            ))
+        )}
+      </div>
+
+      {showClearControl || showAnalyzeControl ? (
+        <div className={styles.controls}>
+          {showClearControl ? (
+            <Button
+              appearance="secondary"
+              className={styles.actionButton}
+              icon={<DeleteRegular />}
+              onClick={onClear}
+            >
+              {audience === 'child' ? 'Finish practice' : 'Clear session'}
+            </Button>
+          ) : null}
+
+          {showAnalyzeControl ? (
+            <Button
+              appearance="primary"
+              className={styles.actionButton}
+              icon={<ChartMultipleRegular />}
+              onClick={onAnalyze}
+              disabled={!canAnalyze}
+            >
+              Session summary
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className={styles.status}>
+        <Text size={200}>{statusText}</Text>
+      </div>
+    </div>
+  )
 
   return (
     <Card className={styles.card}>
-      {scenario && (
+      {!compact && scenario && (
         <div className={styles.header}>
           <Text className={styles.title} size={700} weight="semibold" block>
             {scenario.name}
@@ -364,8 +474,11 @@ export function ChatPanel({
         </div>
       )}
 
-      <div className={styles.sessionBody}>
-        <div className={styles.heroPanel}>
+      {compact ? (
+        messagesPanel
+      ) : (
+        <div className={styles.sessionBody}>
+          <div className={styles.heroPanel}>
           {connectionState !== 'connected' && (
             <div className={styles.connectionBanner}>
               <Text size={300} weight="semibold">
@@ -385,11 +498,15 @@ export function ChatPanel({
             disabled={!canTalk}
           />
           <Text className={styles.micLabel} size={700} weight="semibold">
-            {recording
-              ? 'Listening now...'
+            {sessionFinished && audience === 'child'
+              ? 'Practice finished'
+              : recording
+              ? 'Listening...'
+              : processing && audience === 'child'
+                ? 'Checking your try...'
               : !introComplete && audience === 'child'
                 ? 'Listen to your buddy'
-                : 'Tap to talk!'}
+                : 'Tap to talk'}
           </Text>
           <Text className={styles.micSubLabel} size={300}>
             {recording
@@ -400,75 +517,10 @@ export function ChatPanel({
             Keep the session calm and brief. The practice buddy will respond in
             short, friendly prompts.
           </Text>
-        </div>
-
-        <div className={styles.messagesPanel}>
-          <div className={styles.messages}>
-            {messages.length === 0 ? (
-              <div className={styles.placeholder}>
-                <Text size={400} weight="semibold">
-                  {!introComplete && audience === 'child'
-                    ? 'Your buddy is saying hello'
-                    : 'Ready when you are'}
-                </Text>
-                <Text size={300}>
-                  {!introComplete && audience === 'child'
-                    ? 'Listen for the welcome, then the microphone will unlock.'
-                    : 'Tap the microphone to begin the exercise.'}
-                </Text>
-              </div>
-            ) : (
-              messages
-                .slice()
-                .reverse()
-                .map(msg => (
-                  <div
-                    key={msg.id}
-                    className={mergeClasses(
-                      styles.message,
-                      msg.role === 'user'
-                        ? styles.userMessage
-                        : styles.assistantMessage
-                    )}
-                  >
-                    <Text size={300}>{msg.content}</Text>
-                  </div>
-                ))
-            )}
           </div>
-
-          {showClearControl || showAnalyzeControl ? (
-            <div className={styles.controls}>
-              {showClearControl ? (
-                <Button
-                  appearance="secondary"
-                  className={styles.actionButton}
-                  icon={<DeleteRegular />}
-                  onClick={onClear}
-                >
-                  {audience === 'child' ? 'Start over' : 'Clear session'}
-                </Button>
-              ) : null}
-
-              {showAnalyzeControl ? (
-                <Button
-                  appearance="primary"
-                  className={styles.actionButton}
-                  icon={<ChartMultipleRegular />}
-                  onClick={onAnalyze}
-                  disabled={!canAnalyze}
-                >
-                  Your results
-                </Button>
-              ) : null}
-            </div>
-          ) : null}
-
-          <div className={styles.status}>
-            <Text size={200}>{connectionMessage}</Text>
-          </div>
+          {messagesPanel}
         </div>
-      </div>
+      )}
     </Card>
   )
 }

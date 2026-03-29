@@ -26,22 +26,21 @@ import {
 } from '@fluentui/react-icons'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AssessmentPanel } from '../components/AssessmentPanel'
-import { ChatPanel } from '../components/ChatPanel'
 import { ChildHome } from '../components/ChildHome'
 import { ConsentScreen } from '../components/ConsentScreen'
 import { DashboardHome } from '../components/DashboardHome'
-import { ExerciseFeedback } from '../components/ExerciseFeedback'
 import { HomeButton } from '../components/HomeButton'
 import { ModeSelector } from '../components/ModeSelector'
 import { OnboardingFlow } from '../components/OnboardingFlow'
 import { ProgressDashboard } from '../components/ProgressDashboard'
+import { SessionScreen } from '../components/SessionScreen'
 import { SessionLaunchOverlay } from '../components/SessionLaunchOverlay'
-import { VideoPanel } from '../components/VideoPanel'
 import { useAudioPlayer } from '../hooks/useAudioPlayer'
 import { useRealtime } from '../hooks/useRealtime'
 import type { RecorderAudioChunk } from '../hooks/useRecorder'
 import { useRecorder } from '../hooks/useRecorder'
 import { useScenarios } from '../hooks/useScenarios'
+import { useSessionTimer } from '../hooks/useSessionTimer'
 import { useWebRTC } from '../hooks/useWebRTC'
 import { api, parseAvatarValue } from '../services/api'
 import type {
@@ -95,6 +94,10 @@ type PrewarmedAgent = {
   key: string
   agentId: string
 }
+
+const CHILD_TURN_LIMIT = 4
+const CHILD_MAX_TURNS = 8
+const AFFIRMATIVE_FINISH_PATTERN = /\b(yes|yeah|yep|ok|okay|sure|done|finished)\b/i
 
 function isCustomScenario(
   scenario: Scenario | CustomScenario | null | undefined
@@ -464,9 +467,15 @@ export default function App() {
   const [sessionReady, setSessionReady] = useState(false)
   const [sessionIntroRequested, setSessionIntroRequested] = useState(false)
   const [sessionIntroComplete, setSessionIntroComplete] = useState(false)
+  const [sessionFinished, setSessionFinished] = useState(false)
   const [avatarVideoReady, setAvatarVideoReady] = useState(false)
   const [assistantSpeechStarted, setAssistantSpeechStarted] = useState(false)
   const [showLaunchTransition, setShowLaunchTransition] = useState(false)
+  const [childTurnCount, setChildTurnCount] = useState(0)
+  const [finishPromptTurnLimit, setFinishPromptTurnLimit] = useState(CHILD_TURN_LIMIT)
+  const [finishConfirmationPending, setFinishConfirmationPending] = useState(false)
+  const [finishPromptQueued, setFinishPromptQueued] = useState(false)
+  const [finishRequested, setFinishRequested] = useState(false)
   const [utteranceFeedback, setUtteranceFeedback] =
     useState<PronunciationAssessment | null>(null)
   const [scoringUtterance, setScoringUtterance] = useState(false)
@@ -477,10 +486,13 @@ export default function App() {
   const [feedbackError, setFeedbackError] = useState<string | null>(null)
   const [consentSaving, setConsentSaving] = useState(false)
   const [consentError, setConsentError] = useState<string | null>(null)
+  const [sessionActivityKey, setSessionActivityKey] = useState(0)
   const prewarmedAgentRef = useRef<PrewarmedAgent | null>(null)
   const prewarmingKeyRef = useRef<string | null>(null)
   const prewarmPromiseRef = useRef<Promise<PrewarmedAgent | null> | null>(null)
   const pendingIntroRef = useRef<string | null>(null)
+  const idleNudgePendingRef = useRef(false)
+  const skipNextWordFeedbackRef = useRef(false)
 
   const {
     scenarios,
@@ -666,8 +678,63 @@ export default function App() {
       ) {
         setSessionIntroComplete(true)
       }
+
+      if (!text.trim()) {
+        return
+      }
+
+      if (role === 'assistant' && idleNudgePendingRef.current) {
+        idleNudgePendingRef.current = false
+        return
+      }
+
+      setSessionActivityKey(current => current + 1)
+
+      if (
+        role !== 'user' ||
+        !isChildMode ||
+        !activeReferenceText ||
+        sessionFinished
+      ) {
+        return
+      }
+
+      if (finishConfirmationPending) {
+        if (AFFIRMATIVE_FINISH_PATTERN.test(text)) {
+          setFinishConfirmationPending(false)
+          setFinishRequested(true)
+          return
+        }
+
+        setFinishConfirmationPending(false)
+
+        if (finishPromptTurnLimit >= CHILD_MAX_TURNS) {
+          setFinishRequested(true)
+          return
+        }
+
+        setFinishPromptTurnLimit(current => Math.min(current + 2, CHILD_MAX_TURNS))
+        return
+      }
+
+      const nextTurnCount = childTurnCount + 1
+      setChildTurnCount(nextTurnCount)
+
+      if (nextTurnCount >= finishPromptTurnLimit) {
+        setFinishConfirmationPending(true)
+        setFinishPromptQueued(true)
+      }
     },
-    [isChildMode, sessionIntroComplete, sessionIntroRequested]
+    [
+      activeReferenceText,
+      childTurnCount,
+      finishConfirmationPending,
+      finishPromptTurnLimit,
+      isChildMode,
+      sessionFinished,
+      sessionIntroComplete,
+      sessionIntroRequested,
+    ]
   )
 
   const handleAudioDelta = useCallback(
@@ -775,15 +842,13 @@ export default function App() {
     [send]
   )
 
-  const {
-    recording,
-    toggleRecording,
-    getAudioRecording,
-    clearAudioRecording: clearStreamingAudioRecording,
-  } = useRecorder({ mode: 'stream', onAudioChunk: sendAudioChunk })
-
   const handleUtteranceComplete = useCallback(
     async (audioData: RecorderAudioChunk[]) => {
+      if (skipNextWordFeedbackRef.current) {
+        skipNextWordFeedbackRef.current = false
+        return
+      }
+
       if (!activeReferenceText) return
 
       setScoringUtterance(true)
@@ -807,11 +872,13 @@ export default function App() {
   )
 
   const {
-    recording: utteranceRecording,
-    toggleRecording: toggleUtteranceRecording,
-    clearAudioRecording: clearUtteranceAudioRecording,
+    recording,
+    toggleRecording,
+    getAudioRecording,
+    clearAudioRecording: clearConversationAudioRecording,
   } = useRecorder({
-    mode: 'utterance',
+    mode: 'stream',
+    onAudioChunk: sendAudioChunk,
     onRecordingComplete: handleUtteranceComplete,
   })
 
@@ -822,6 +889,172 @@ export default function App() {
       console.error('Failed to delete agent:', error)
     }
   }, [])
+
+  const handleToggleRecording = useCallback(async () => {
+    setSessionActivityKey(current => current + 1)
+
+    if (!recording && activeReferenceText) {
+      setUtteranceFeedback(null)
+    }
+
+    await toggleRecording()
+  }, [activeReferenceText, recording, toggleRecording])
+
+  const analyzeCurrentSession = useCallback(async () => {
+    if (!selectedScenario) return null
+
+    const recordings = getRecordings()
+    const audioData = getAudioRecording()
+
+    if (!recordings.conversation.length) {
+      return null
+    }
+
+    const transcript = recordings.conversation
+      .map((message: ConversationTurn) => `${message.role}: ${message.content}`)
+      .join('\n')
+
+    return api.analyzeConversation(
+      selectedScenario,
+      transcript,
+      [...audioData, ...recordings.audio],
+      recordings.conversation,
+      activeExerciseMetadata,
+      selectedChildId || undefined,
+      selectedChild?.name,
+      activeScenario,
+      sessionStartedAt
+    )
+  }, [
+    activeExerciseMetadata,
+    activeScenario,
+    getAudioRecording,
+    getRecordings,
+    selectedChild?.name,
+    selectedChildId,
+    selectedScenario,
+    sessionStartedAt,
+  ])
+
+  const applyAssessmentResult = useCallback(
+    async (result: Assessment) => {
+      setAssessment(result)
+      setShowAssessment(true)
+      setFeedbackRating(null)
+      setFeedbackNote('')
+      setFeedbackSubmittedAt(null)
+      setFeedbackError(null)
+
+      if (therapistView && therapistPin && selectedChildId) {
+        await loadSessionHistory(selectedChildId, therapistPin)
+      }
+    },
+    [loadSessionHistory, selectedChildId, therapistPin, therapistView]
+  )
+
+  const handleFinishPractice = useCallback(async () => {
+    if (recording) {
+      await handleToggleRecording()
+    }
+
+    disconnect()
+
+    if (currentAgent) {
+      void releaseAgent(currentAgent)
+    }
+
+    setCurrentAgent(null)
+    setSessionReady(false)
+    setSessionIntroRequested(false)
+    setSessionIntroComplete(false)
+    setAvatarVideoReady(false)
+    setAssistantSpeechStarted(false)
+    setShowLaunchTransition(false)
+    setScoringUtterance(false)
+    setSessionFinished(true)
+  }, [currentAgent, disconnect, handleToggleRecording, recording, releaseAgent])
+
+  const handleConfirmedFinish = useCallback(async () => {
+    await handleFinishPractice()
+
+    setShowLoading(true)
+
+    try {
+      const result = await analyzeCurrentSession()
+
+      if (result) {
+        await applyAssessmentResult(result)
+      }
+    } catch (error) {
+      console.error('Analysis failed:', error)
+    } finally {
+      setShowLoading(false)
+      setFinishRequested(false)
+    }
+  }, [analyzeCurrentSession, applyAssessmentResult, handleFinishPractice])
+
+  useEffect(() => {
+    if (!finishPromptQueued || !isChildMode || sessionFinished || !connected) {
+      return
+    }
+
+    skipNextWordFeedbackRef.current = true
+    send({
+      type: 'response.create',
+      response: {
+        modalities: ['audio', 'text'],
+        instructions:
+          'In one short sentence, ask if the child wants to finish practice and see their session summary now, or keep going for a few more tries. Ask for a yes or no answer.',
+      },
+    })
+    setFinishPromptQueued(false)
+  }, [connected, finishPromptQueued, isChildMode, send, sessionFinished])
+
+  useEffect(() => {
+    if (!finishRequested) {
+      return
+    }
+
+    void handleConfirmedFinish()
+  }, [finishRequested, handleConfirmedFinish])
+
+  const sendIdleNudge = useCallback(() => {
+    if (
+      !isChildMode ||
+      !connected ||
+      showSetup ||
+      sessionFinished ||
+      recording ||
+      scoringUtterance
+    ) {
+      return
+    }
+
+    idleNudgePendingRef.current = true
+    skipNextWordFeedbackRef.current = true
+    send({
+      type: 'response.create',
+      response: {
+        modalities: ['audio', 'text'],
+        instructions:
+          'In one short sentence, gently check whether the child wants to keep practising. Tell them to tap the microphone if they want another turn.',
+      },
+    })
+  }, [connected, isChildMode, recording, scoringUtterance, send, sessionFinished, showSetup])
+
+  useSessionTimer({
+    active:
+      isChildMode &&
+      !showSetup &&
+      sessionIntroComplete &&
+      !sessionFinished,
+    activityKey: sessionActivityKey,
+    recording,
+    onNudge: sendIdleNudge,
+    onAutoEnd: () => {
+      setFinishRequested(true)
+    },
+  })
 
   const createAgentForSelection = useCallback(
     async (scenarioId: string, avatarValue: string) => {
@@ -941,17 +1174,22 @@ export default function App() {
 
   const handleClearSession = useCallback(() => {
     clearMessages()
-    clearStreamingAudioRecording()
-    clearUtteranceAudioRecording()
-    setUtteranceFeedback(null)
+    clearConversationAudioRecording()
+    setScoringUtterance(false)
     setSessionStartedAt(null)
     setSessionReady(false)
     setSessionIntroRequested(false)
     setSessionIntroComplete(false)
+    setSessionFinished(false)
+    setChildTurnCount(0)
+    setFinishPromptTurnLimit(CHILD_TURN_LIMIT)
+    setFinishConfirmationPending(false)
+    setFinishPromptQueued(false)
+    setFinishRequested(false)
     setAvatarVideoReady(false)
     setAssistantSpeechStarted(false)
     setShowLaunchTransition(false)
-  }, [clearMessages, clearStreamingAudioRecording, clearUtteranceAudioRecording])
+  }, [clearConversationAudioRecording, clearMessages])
 
   const authenticateTherapistPin = useCallback(
     async (pin: string, openTherapistView = false) => {
@@ -1014,10 +1252,17 @@ export default function App() {
     setSessionReady(false)
     setSessionIntroRequested(false)
     setSessionIntroComplete(false)
+    setSessionFinished(false)
+    setChildTurnCount(0)
+    setFinishPromptTurnLimit(CHILD_TURN_LIMIT)
+    setFinishConfirmationPending(false)
+    setFinishPromptQueued(false)
+    setFinishRequested(false)
     setAvatarVideoReady(false)
     setAssistantSpeechStarted(false)
     setShowLaunchTransition(true)
     setUtteranceFeedback(null)
+    setScoringUtterance(false)
     setSessionStartedAt(new Date().toISOString())
     setFeedbackRating(null)
     setFeedbackNote('')
@@ -1069,41 +1314,13 @@ export default function App() {
   }, [pilotState, selectedScenario, setSelectedScenario, startPracticeSession, therapistPin])
 
   const handleAnalyze = async () => {
-    if (!selectedScenario) return
-
-    const recordings = getRecordings()
-    const audioData = getAudioRecording()
-
-    if (!recordings.conversation.length) return
-
     setShowLoading(true)
 
     try {
-      const transcript = recordings.conversation
-        .map((message: ConversationTurn) => `${message.role}: ${message.content}`)
-        .join('\n')
+      const result = await analyzeCurrentSession()
 
-      const result = await api.analyzeConversation(
-        selectedScenario,
-        transcript,
-        [...audioData, ...recordings.audio],
-        recordings.conversation,
-        activeExerciseMetadata,
-        selectedChildId || undefined,
-        selectedChild?.name,
-        activeScenario,
-        sessionStartedAt
-      )
-
-      setAssessment(result)
-      setShowAssessment(true)
-      setFeedbackRating(null)
-      setFeedbackNote('')
-      setFeedbackSubmittedAt(null)
-      setFeedbackError(null)
-
-      if (therapistView && therapistPin && selectedChildId) {
-        await loadSessionHistory(selectedChildId, therapistPin)
+      if (result) {
+        await applyAssessmentResult(result)
       }
     } catch (error) {
       console.error('Analysis failed:', error)
@@ -1171,6 +1388,12 @@ export default function App() {
 
   const handleReturnToEntry = useCallback(() => {
     setTherapistView(false)
+    setSessionFinished(false)
+    setChildTurnCount(0)
+    setFinishPromptTurnLimit(CHILD_TURN_LIMIT)
+    setFinishConfirmationPending(false)
+    setFinishPromptQueued(false)
+    setFinishRequested(false)
     setShowSetup(true)
     setUserMode(null)
   }, [])
@@ -1178,14 +1401,20 @@ export default function App() {
   const handleGoHome = useCallback(() => {
     disconnect()
     clearMessages()
-    clearStreamingAudioRecording()
-    clearUtteranceAudioRecording()
+    clearConversationAudioRecording()
     setUtteranceFeedback(null)
+    setScoringUtterance(false)
     setSessionStartedAt(null)
     setCurrentAgent(null)
     setSessionReady(false)
     setSessionIntroRequested(false)
     setSessionIntroComplete(false)
+    setSessionFinished(false)
+    setChildTurnCount(0)
+    setFinishPromptTurnLimit(CHILD_TURN_LIMIT)
+    setFinishConfirmationPending(false)
+    setFinishPromptQueued(false)
+    setFinishRequested(false)
     setAssessment(null)
     setShowAssessment(false)
     setShowLoading(false)
@@ -1195,7 +1424,7 @@ export default function App() {
     setFeedbackError(null)
     setTherapistView(false)
     setShowSetup(true)
-  }, [clearMessages, clearStreamingAudioRecording, clearUtteranceAudioRecording, disconnect])
+  }, [clearConversationAudioRecording, clearMessages, disconnect])
 
   const handleLockTherapistMode = useCallback(() => {
     setTherapistView(false)
@@ -1474,58 +1703,29 @@ export default function App() {
             )
           )
         ) : (
-          <div className={styles.sessionLayout}>
-            <div className={styles.sessionMain}>
-              <ChatPanel
-                messages={messages}
-                recording={recording}
-                connected={connected}
-                connectionState={connectionState}
-                connectionMessage={connectionMessage}
-                introComplete={!isChildMode || sessionIntroComplete}
-                canAnalyze={messages.length > 0}
-                onToggleRecording={toggleRecording}
-                onClear={handleClearSession}
-                onAnalyze={handleAnalyze}
-                scenario={activeScenario}
-                audience={isChildMode ? 'child' : 'therapist'}
-                showAnalyzeControl={!isChildMode}
-              />
-            </div>
-
-            <div className={styles.sessionAside}>
-              <VideoPanel
-                videoRef={videoRef}
-                childName={selectedChild?.name}
-                avatarValue={selectedAvatar}
-                scenarioName={activeScenario?.name}
-                scenarioDescription={activeScenario?.description}
-                connectionState={connectionState}
-                introPending={isChildMode && sessionIntroRequested && !sessionIntroComplete}
-                introComplete={!isChildMode || sessionIntroComplete}
-                onVideoLoaded={() => setAvatarVideoReady(true)}
-              />
-              {!isChildMode ? (
-                <Card className={styles.coachCard}>
-                  <Text className={styles.coachTitle} size={500} weight="semibold">
-                    Therapist view
-                  </Text>
-                  <Text className={styles.coachText} size={300}>
-                    Stay nearby while the child practises. Practice feedback supports the session and does not replace clinical judgement for {selectedChild?.name || 'this child'}.
-                  </Text>
-                </Card>
-              ) : null}
-              {isChildMode ? (
-                <ExerciseFeedback
-                  referenceText={activeReferenceText}
-                  feedback={utteranceFeedback}
-                  recording={utteranceRecording}
-                  loading={scoringUtterance}
-                  onToggleRecording={toggleUtteranceRecording}
-                />
-              ) : null}
-            </div>
-          </div>
+          <SessionScreen
+            videoRef={videoRef}
+            messages={messages}
+            recording={recording}
+            connected={connected}
+            connectionState={connectionState}
+            connectionMessage={connectionMessage}
+            introComplete={!isChildMode || sessionIntroComplete}
+            sessionFinished={sessionFinished}
+            canAnalyze={messages.length > 0}
+            onToggleRecording={handleToggleRecording}
+            onClear={isChildMode ? () => { void handleConfirmedFinish() } : handleClearSession}
+            onAnalyze={handleAnalyze}
+            scenario={activeScenario}
+            isChildMode={isChildMode}
+            selectedChild={selectedChild}
+            selectedAvatar={selectedAvatar}
+            introPending={isChildMode && sessionIntroRequested && !sessionIntroComplete}
+            onVideoLoaded={() => setAvatarVideoReady(true)}
+            utteranceFeedback={utteranceFeedback}
+            scoringUtterance={scoringUtterance}
+            activeReferenceText={activeReferenceText}
+          />
         )}
       </div>
 
@@ -1542,7 +1742,7 @@ export default function App() {
             <div className={styles.loadingContent}>
               <Spinner size="large" />
               <Text size={400} weight="semibold">
-                Preparing your results...
+                Preparing session summary...
               </Text>
               <Text size={300}>This may take up to 30 seconds.</Text>
             </div>

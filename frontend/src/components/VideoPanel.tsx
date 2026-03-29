@@ -3,7 +3,16 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Badge, Card, Text, makeStyles, tokens } from '@fluentui/react-components'
+import {
+  Badge,
+  Button,
+  Card,
+  Text,
+  makeStyles,
+  mergeClasses,
+  tokens,
+} from '@fluentui/react-components'
+import { MicOffRegular, MicRegular } from '@fluentui/react-icons'
 import { useMemo, useState } from 'react'
 import type React from 'react'
 import { AVATAR_OPTIONS } from '../types'
@@ -12,7 +21,7 @@ import { BuddyAvatar } from './BuddyAvatar'
 const useStyles = makeStyles({
   card: {
     width: '100%',
-    maxWidth: '400px',
+    maxWidth: '100%',
     height: '100%',
     padding: tokens.spacingVerticalS,
     alignSelf: 'center',
@@ -26,7 +35,7 @@ const useStyles = makeStyles({
   },
   videoContainer: {
     width: '100%',
-    aspectRatio: '3 / 4',
+    aspectRatio: '16 / 9',
     background:
       'radial-gradient(circle at top, rgba(13, 138, 132, 0.18), transparent 34%), radial-gradient(circle at bottom, rgba(212, 143, 75, 0.14), transparent 36%), linear-gradient(180deg, rgba(244, 247, 248, 0.96), rgba(240, 245, 247, 0.94))',
     borderRadius: 'var(--radius-md)',
@@ -50,6 +59,7 @@ const useStyles = makeStyles({
     gap: 'var(--space-md)',
     background:
       'linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08))',
+    paddingBottom: 'calc(var(--space-xl) + 88px)',
   },
   introBadge: {
     justifySelf: 'start',
@@ -107,6 +117,109 @@ const useStyles = makeStyles({
     fontSize: '0.875rem',
     lineHeight: 1.55,
   },
+  micDock: {
+    position: 'absolute',
+    left: '50%',
+    bottom: '36px',
+    transform: 'translateX(-50%)',
+    display: 'grid',
+    justifyItems: 'center',
+    gap: '10px',
+    zIndex: 2,
+    width: 'min(100%, 280px)',
+    '@media (max-width: 640px)': {
+      bottom: '28px',
+    },
+  },
+  connectionBadge: {
+    position: 'absolute',
+    top: '14px',
+    right: '14px',
+    zIndex: 2,
+    maxWidth: 'min(70%, 240px)',
+    padding: '6px 10px',
+    borderRadius: '999px',
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    color: 'var(--color-primary-dark)',
+    border: '1px solid rgba(13, 138, 132, 0.16)',
+    boxShadow: '0 10px 20px rgba(13, 138, 132, 0.12)',
+  },
+  micButton: {
+    position: 'relative',
+    width: '72px',
+    height: '72px',
+    minWidth: '72px',
+    borderRadius: '50%',
+    border: 'none',
+    background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
+    color: 'var(--color-text-inverse)',
+    boxShadow: '0 14px 28px rgba(13, 138, 132, 0.22)',
+    transition:
+      'transform var(--transition-normal), box-shadow var(--transition-normal), background-color var(--transition-normal), opacity var(--transition-normal)',
+    '&:hover': {
+      transform: 'scale(1.03)',
+    },
+    '&:active': {
+      transform: 'scale(0.97)',
+    },
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      inset: '-10px',
+      borderRadius: '50%',
+      border: '2px solid transparent',
+      opacity: 0,
+    },
+    '&::after': {
+      content: '""',
+      position: 'absolute',
+      inset: '-20px',
+      borderRadius: '50%',
+      border: '2px solid transparent',
+      opacity: 0,
+    },
+    '@media (max-width: 640px)': {
+      width: '64px',
+      height: '64px',
+      minWidth: '64px',
+    },
+  },
+  micButtonActive: {
+    background: 'linear-gradient(135deg, var(--color-primary-dark), var(--color-primary))',
+    boxShadow: '0 14px 28px rgba(13, 138, 132, 0.28), 0 0 0 18px rgba(13, 138, 132, 0.08)',
+    '&::before': {
+      opacity: 1,
+      border: '2px solid rgba(13, 138, 132, 0.4)',
+      animationName: {
+        '0%': { transform: 'scale(0.95)', opacity: 0.6 },
+        '100%': { transform: 'scale(1.2)', opacity: 0 },
+      },
+      animationDuration: '2s',
+      animationIterationCount: 'infinite',
+    },
+    '&::after': {
+      opacity: 1,
+      border: '2px solid rgba(13, 138, 132, 0.25)',
+      animationName: {
+        '0%': { transform: 'scale(0.9)', opacity: 0.4 },
+        '100%': { transform: 'scale(1.3)', opacity: 0 },
+      },
+      animationDuration: '2s',
+      animationDelay: '0.4s',
+      animationIterationCount: 'infinite',
+    },
+  },
+  micLabel: {
+    color: 'var(--color-text-inverse)',
+    backgroundColor: 'rgba(7, 24, 38, 0.6)',
+    borderRadius: '999px',
+    padding: '6px 12px',
+    backdropFilter: 'blur(10px)',
+    boxShadow: '0 10px 20px rgba(7, 24, 38, 0.16)',
+    fontSize: '0.78rem',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
 })
 
 interface Props {
@@ -118,7 +231,14 @@ interface Props {
   connectionState?: 'connecting' | 'connected' | 'reconnecting' | 'disconnected'
   introPending?: boolean
   introComplete?: boolean
+  sessionFinished?: boolean
   onVideoLoaded?: () => void
+  connectionMessage?: string
+  recording?: boolean
+  processing?: boolean
+  onToggleRecording?: () => void | Promise<void>
+  canTalk?: boolean
+  audience?: 'therapist' | 'child'
 }
 
 function markVideoReady(
@@ -139,7 +259,14 @@ export function VideoPanel({
   connectionState = 'connecting',
   introPending = false,
   introComplete = true,
+  sessionFinished = false,
   onVideoLoaded,
+  connectionMessage,
+  recording = false,
+  processing = false,
+  onToggleRecording,
+  canTalk = false,
+  audience = 'child',
 }: Props) {
   const styles = useStyles()
   const videoKey = `${avatarValue || 'avatar'}-${childName || 'child'}-${scenarioName || 'scenario'}`
@@ -160,17 +287,39 @@ export function VideoPanel({
     scenarioDescription ||
     `We are going to practise ${exerciseLabel} together. Tap to talk when you are ready.`
   const statusLabel =
-    connectionState === 'connected'
+    sessionFinished && audience === 'child'
+      ? `${avatarName} has wrapped up ${childLabel}'s practice.`
+      : connectionState === 'connected'
       ? introPending
         ? `${avatarName} is welcoming ${childLabel}.`
         : introComplete
           ? `${avatarName} is ready to begin.`
           : `${avatarName} is getting ready.`
       : `${avatarName} is getting ready for ${childLabel}.`
+  const micLabel = recording
+    ? 'Listening...'
+    : sessionFinished && audience === 'child'
+      ? 'Practice finished'
+    : processing && audience === 'child'
+      ? 'Checking your try...'
+    : !introComplete && audience === 'child'
+      ? 'Listen to your buddy'
+      : 'Tap to talk'
+  const statusText =
+    sessionFinished && audience === 'child'
+      ? 'Practice finished'
+      : connectionState === 'connected'
+      ? introComplete
+        ? 'Voice ready'
+        : 'Welcoming...'
+      : connectionMessage || 'Connecting...'
 
   return (
     <Card className={styles.card}>
       <div className={styles.videoContainer}>
+        <Badge appearance="filled" className={styles.connectionBadge}>
+          {statusText}
+        </Badge>
         <video
           key={videoKey}
           ref={videoRef}
@@ -224,6 +373,21 @@ export function VideoPanel({
             </div>
           </div>
         ) : null}
+
+        <div className={styles.micDock}>
+          <Button
+            aria-label={recording ? 'Stop recording' : 'Start recording'}
+            appearance="transparent"
+            className={mergeClasses(
+              styles.micButton,
+              recording && styles.micButtonActive
+            )}
+            icon={recording ? <MicOffRegular fontSize={28} /> : <MicRegular fontSize={28} />}
+            onClick={onToggleRecording}
+            disabled={!canTalk || !onToggleRecording}
+          />
+          <Text className={styles.micLabel}>{micLabel}</Text>
+        </div>
       </div>
     </Card>
   )

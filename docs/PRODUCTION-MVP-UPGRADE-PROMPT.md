@@ -23,6 +23,7 @@ For every section below, include:
   - therapist-guided speech sessions
   - child profile support
   - exercise selection
+  - guided session completion with a dedicated wrap-up screen
   - session evaluation
   - therapist review
 - Include non-functional MVP requirements:
@@ -237,3 +238,4 @@ For every section below, include:
 - Explicitly call out where the current implementation is unsafe, non-scalable, or not production-ready
 - Prioritize secure defaults and shift-left security practices throughout the architecture, developer workflow, and release process
 - Optimize for a practical MVP path: enough rigor for real users, without turning the plan into a full enterprise transformation program
+- Treat the child-facing per-turn pronunciation feedback as a separate experience from end-of-session review. Reserve the label "Session summary" for wrap-up or therapist-facing end-of-session analysis, and require a dedicated wrap-up screen in the MVP UX recommendation.

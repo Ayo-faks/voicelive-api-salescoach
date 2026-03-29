@@ -82,7 +82,7 @@ export function useRecorder({
 
     if (!audioCtx) return
 
-    if (mode === 'utterance') {
+    if (mode === 'utterance' || onRecordingComplete) {
       audioRecording.current = []
     }
 
@@ -130,7 +130,7 @@ export function useRecorder({
 
     workletRef.current = worklet
     setRecording(true)
-  }, [initAudio, mode, onAudioChunk])
+  }, [initAudio, mode, onAudioChunk, onRecordingComplete])
 
   const stopRecording = useCallback(async () => {
     if (workletRef.current) {
@@ -152,11 +152,13 @@ export function useRecorder({
 
     setRecording(false)
 
-    const utteranceAudio =
-      mode === 'utterance' ? [...audioRecording.current] : undefined
+    const completedAudio =
+      mode === 'utterance' || onRecordingComplete
+        ? [...audioRecording.current]
+        : undefined
 
-    if (mode === 'utterance' && utteranceAudio?.length) {
-      await onRecordingComplete?.(utteranceAudio)
+    if (completedAudio?.length && onRecordingComplete) {
+      await onRecordingComplete(completedAudio)
       audioRecording.current = []
     }
   }, [mode, onRecordingComplete])

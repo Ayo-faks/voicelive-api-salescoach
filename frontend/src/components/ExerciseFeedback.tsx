@@ -5,13 +5,11 @@
 
 import {
   Badge,
-  Button,
   Card,
   Spinner,
   Text,
   makeStyles,
 } from '@fluentui/react-components'
-import { MicOffRegular, MicRegular } from '@fluentui/react-icons'
 import type { PronunciationAssessment } from '../types'
 
 const useStyles = makeStyles({
@@ -42,14 +40,6 @@ const useStyles = makeStyles({
   disclaimer: {
     color: 'var(--color-text-tertiary)',
     fontSize: '0.6875rem',
-  },
-  actionButton: {
-    minHeight: '40px',
-    borderRadius: 'var(--radius-md)',
-    fontFamily: 'var(--font-display)',
-    fontWeight: '600',
-    fontSize: '0.875rem',
-    width: '100%',
   },
   words: {
     display: 'grid',
@@ -109,9 +99,7 @@ const useStyles = makeStyles({
 interface Props {
   referenceText: string
   feedback: PronunciationAssessment | null
-  recording: boolean
   loading: boolean
-  onToggleRecording: () => void | Promise<void>
 }
 
 function getScoreColor(score: number): 'success' | 'warning' | 'danger' {
@@ -130,56 +118,50 @@ function getWordCardClass(styles: ReturnType<typeof useStyles>, score: number) {
 
 function getPracticeLabel(score: number) {
   if (score >= 80) return 'Great try'
-  if (score >= 60) return 'Let\'s practice again'
+  if (score >= 60) return 'Almost there'
   return 'Try this sound with me'
+}
+
+function getEncouragementLabel(score: number) {
+  if (score >= 80) return 'Nice!'
+  if (score >= 60) return 'Almost!'
+  return 'Try again'
 }
 
 export function ExerciseFeedback({
   referenceText,
   feedback,
-  recording,
   loading,
-  onToggleRecording,
 }: Props) {
   const styles = useStyles()
-  const canRecord = Boolean(referenceText.trim())
+  const canScore = Boolean(referenceText.trim())
 
   return (
     <Card className={styles.card}>
       <Text className={styles.title} size={500} weight="semibold">
-        Your results
+        Word feedback
       </Text>
       <Text className={styles.bodyText} size={300}>
-        Record one try, then stop to see calm word-by-word feedback right away.
+        Word-by-word feedback for your last practice turn appears here when this exercise has target words.
       </Text>
       <Text className={styles.disclaimer}>Practice feedback — not a clinical assessment.</Text>
-
-      <Button
-        appearance="primary"
-        className={styles.actionButton}
-        disabled={!canRecord || loading}
-        icon={recording ? <MicOffRegular /> : <MicRegular />}
-        onClick={onToggleRecording}
-      >
-        {recording ? 'Stop and check this try' : 'Record one try'}
-      </Button>
 
       {loading && (
         <div className={styles.loadingRow}>
           <Spinner size="tiny" />
-          <Text size={300}>Checking this try...</Text>
+          <Text size={300}>Checking your try...</Text>
         </div>
       )}
 
-      {!canRecord && (
+      {!canScore && (
         <div className={styles.emptyState}>
           <Text size={300}>
-            Choose an exercise with target words to unlock one-try feedback.
+            This activity is in conversation mode, so practice feedback stays hidden until there are target words.
           </Text>
         </div>
       )}
 
-      {feedback?.words?.length ? (
+      {canScore && feedback?.words?.length ? (
         <div className={styles.words}>
           {feedback.words.map(word => (
             <div
@@ -191,20 +173,20 @@ export function ExerciseFeedback({
               </Text>
               <div className={styles.feedbackRow}>
                 <Badge color={getScoreColor(word.accuracy)} appearance="filled">
-                  {Math.round(word.accuracy)}%
+                  {getEncouragementLabel(word.accuracy)}
                 </Badge>
                 <Text size={200}>{getPracticeLabel(word.accuracy)}</Text>
               </div>
             </div>
           ))}
         </div>
-      ) : (
+      ) : canScore && !loading ? (
         <div className={styles.emptyState}>
           <Text size={300}>
-            Tap the button when you want quick word feedback for this exercise.
+            Say the target words, then stop talking to see quick feedback here.
           </Text>
         </div>
-      )}
+      ) : null}
     </Card>
   )
 }

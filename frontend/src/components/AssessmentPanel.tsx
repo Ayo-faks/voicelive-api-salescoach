@@ -44,16 +44,24 @@ const engagementMetrics = [
 
 const useStyles = makeStyles({
   dialogSurface: {
+    width: 'min(95vw, 1200px)',
+    maxWidth: '1200px',
+    maxHeight: '90vh',
     backgroundColor: 'var(--color-bg-card)',
     borderRadius: 'var(--radius-lg)',
     border: '1px solid var(--color-border)',
     boxShadow: 'var(--shadow-lg)',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
   },
   dialogBody: {
     padding: tokens.spacingVerticalL,
     display: 'flex',
     flexDirection: 'column',
     gap: tokens.spacingVerticalM,
+    overflowY: 'auto',
+    minHeight: 0,
   },
   headerBar: {
     backgroundColor: 'var(--color-bg-muted)',
@@ -81,6 +89,9 @@ const useStyles = makeStyles({
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
     gap: tokens.spacingHorizontalM,
+    '@media (max-width: 900px)': {
+      gridTemplateColumns: '1fr',
+    },
   },
   card: {
     padding: tokens.spacingVerticalM,
@@ -204,6 +215,8 @@ const useStyles = makeStyles({
   },
   dialogActions: {
     padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalL}`,
+    borderTop: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-bg-card)',
   },
 })
 
@@ -261,10 +274,7 @@ export function AssessmentPanel({
 
   return (
     <Dialog open={open} onOpenChange={(_, data) => !data.open && onClose()}>
-      <DialogSurface
-        className={styles.dialogSurface}
-        style={{ maxWidth: '1200px', width: '95vw', maxHeight: '90vh' }}
-      >
+      <DialogSurface className={styles.dialogSurface}>
         <DialogTitle>Practice Results</DialogTitle>
         <DialogBody className={styles.dialogBody}>
           <Text size={200}>Practice feedback — not a clinical assessment.</Text>
