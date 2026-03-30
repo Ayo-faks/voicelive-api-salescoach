@@ -13,12 +13,6 @@ import {
   Text,
   makeStyles,
 } from '@fluentui/react-components'
-import {
-  ClipboardTaskRegular,
-  PersonHeartRegular,
-  PersonVoiceRegular,
-  TargetRegular,
-} from '@fluentui/react-icons'
 import { ScenarioList } from './ScenarioList'
 import type {
   ChildProfile,
@@ -58,7 +52,8 @@ const useStyles = makeStyles({
   panel: {
     padding: 'var(--space-lg)',
     borderRadius: 'var(--radius-lg)',
-    backgroundColor: 'var(--color-bg-card)',
+    background:
+      'linear-gradient(135deg, rgba(233, 245, 246, 0.96), rgba(224, 239, 241, 0.96))',
     border: '1px solid var(--color-border)',
     boxShadow: 'var(--shadow-lg)',
     display: 'grid',
@@ -70,7 +65,8 @@ const useStyles = makeStyles({
   panelCompact: {
     padding: 'var(--space-md)',
     borderRadius: 'var(--radius-lg)',
-    backgroundColor: 'var(--color-bg-card)',
+    background:
+      'linear-gradient(135deg, rgba(233, 245, 246, 0.96), rgba(224, 239, 241, 0.96))',
     border: '1px solid var(--color-border)',
     boxShadow: 'var(--shadow-md)',
     display: 'grid',
@@ -104,6 +100,9 @@ const useStyles = makeStyles({
   },
   dropdown: {
     minWidth: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid rgba(13, 138, 132, 0.12)',
   },
   primaryAction: {
     minHeight: '48px',
@@ -133,7 +132,7 @@ const useStyles = makeStyles({
   selectedExercise: {
     padding: 'var(--space-md)',
     borderRadius: 'var(--radius-md)',
-    backgroundColor: 'var(--color-primary-softer)',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
     border: '1px solid rgba(13, 138, 132, 0.14)',
     display: 'grid',
     gap: '6px',
@@ -169,8 +168,8 @@ const useStyles = makeStyles({
   insightTile: {
     padding: 'var(--space-sm)',
     borderRadius: 'var(--radius-md)',
-    backgroundColor: 'var(--color-bg-muted)',
-    border: '1px solid var(--color-border)',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    border: '1px solid rgba(13, 138, 132, 0.12)',
     display: 'grid',
     gap: '2px',
   },
@@ -191,18 +190,20 @@ const useStyles = makeStyles({
     gap: 'var(--space-xl)',
   },
   hero: {
-    padding: 'var(--space-lg)',
-    borderRadius: 'var(--radius-xl)',
+    padding: 'clamp(1.4rem, 3vw, 2.2rem)',
+    borderRadius: 'calc(var(--radius-xl) + 4px)',
     border: '1px solid var(--color-border)',
     background:
-      'radial-gradient(circle at top right, rgba(13, 138, 132, 0.16), transparent 30%), radial-gradient(circle at bottom left, rgba(212, 143, 75, 0.12), transparent 34%), linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(240, 245, 247, 0.92))',
+      'radial-gradient(circle at top right, rgba(13, 138, 132, 0.16), transparent 32%), radial-gradient(circle at bottom left, rgba(13, 138, 132, 0.08), transparent 34%), linear-gradient(135deg, rgba(233, 245, 246, 0.98), rgba(224, 239, 241, 0.98))',
     boxShadow: 'var(--shadow-lg)',
     display: 'grid',
     gridTemplateColumns: 'minmax(0, 1.1fr) minmax(280px, 0.9fr)',
     gap: 'var(--space-lg)',
     alignItems: 'stretch',
+    minHeight: '420px',
     '@media (max-width: 980px)': {
       gridTemplateColumns: '1fr',
+      minHeight: 'unset',
     },
     '@media (max-width: 720px)': {
       padding: 'var(--space-md)',
@@ -211,15 +212,16 @@ const useStyles = makeStyles({
   heroCopy: {
     display: 'grid',
     gap: 'var(--space-md)',
-    alignContent: 'start',
+    alignContent: 'center',
   },
   heroTitle: {
     fontFamily: 'var(--font-display)',
     color: 'var(--color-text-primary)',
-    fontSize: 'clamp(1.9rem, 3.8vw, 2.8rem)',
+    fontSize: 'clamp(2.2rem, 4.2vw, 3.6rem)',
     fontWeight: '800',
     letterSpacing: '-0.04em',
-    lineHeight: 1.05,
+    lineHeight: 0.98,
+    maxWidth: '580px',
   },
   heroText: {
     color: 'var(--color-text-secondary)',
@@ -239,7 +241,7 @@ const useStyles = makeStyles({
     padding: 'var(--space-md)',
     borderRadius: 'var(--radius-md)',
     backgroundColor: 'rgba(255, 255, 255, 0.74)',
-    border: '1px solid rgba(17, 36, 58, 0.08)',
+    border: '1px solid rgba(13, 138, 132, 0.12)',
     display: 'grid',
     gap: '4px',
   },
@@ -259,32 +261,96 @@ const useStyles = makeStyles({
     color: 'var(--color-text-secondary)',
     fontSize: '0.78rem',
   },
+  heroActionRow: {
+    display: 'flex',
+    gap: 'var(--space-sm)',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    marginTop: 'var(--space-sm)',
+  },
+  heroPrimaryAction: {
+    minHeight: '46px',
+    paddingInline: 'var(--space-lg)',
+    borderRadius: 'var(--radius-md)',
+    fontFamily: 'var(--font-display)',
+    fontWeight: '700',
+    backgroundColor: 'var(--color-primary)',
+    color: 'var(--color-text-inverse)',
+    border: 'none',
+    boxShadow: '0 12px 26px rgba(13, 138, 132, 0.2)',
+  },
+  heroSecondaryAction: {
+    minHeight: '46px',
+    paddingInline: 'var(--space-lg)',
+    borderRadius: 'var(--radius-md)',
+    fontFamily: 'var(--font-display)',
+    fontWeight: '700',
+    backgroundColor: 'rgba(255,255,255,0.78)',
+    color: 'var(--color-text-primary)',
+    border: '1px solid rgba(17, 36, 58, 0.08)',
+  },
   avatarStage: {
     minHeight: '340px',
     borderRadius: 'var(--radius-xl)',
-    padding: 'var(--space-lg)',
+    padding: '18px',
     background:
-      'linear-gradient(180deg, rgba(13, 138, 132, 0.12), rgba(255, 255, 255, 0.94)), radial-gradient(circle at center, rgba(212, 143, 75, 0.18), transparent 52%)',
+      'radial-gradient(circle at center, rgba(255, 255, 255, 0.96), rgba(232, 245, 242, 0.84))',
     border: '1px solid rgba(13, 138, 132, 0.14)',
     display: 'grid',
     justifyItems: 'center',
-    alignContent: 'space-between',
+    alignContent: 'center',
+    gap: 'var(--space-md)',
     textAlign: 'center',
     boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.6)',
     '@media (max-width: 720px)': {
       minHeight: '280px',
     },
   },
-  avatarBubble: {
-    width: '140px',
-    height: '140px',
+  ambientOrbWrap: {
+    position: 'relative',
+    display: 'grid',
+    placeItems: 'center',
+    minHeight: '182px',
+    width: '100%',
+  },
+  ambientSignal: {
+    position: 'absolute',
     borderRadius: '50%',
-    background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-light))',
-    color: 'var(--color-text-inverse)',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: '0 24px 50px rgba(13, 138, 132, 0.24)',
+    border: '1px solid rgba(13, 138, 132, 0.14)',
+  },
+  ambientSignalOne: {
+    width: '184px',
+    height: '184px',
+  },
+  ambientSignalTwo: {
+    width: '226px',
+    height: '226px',
+    border: '1px solid rgba(13, 138, 132, 0.09)',
+  },
+  ambientOrb: {
+    width: '144px',
+    height: '144px',
+    borderRadius: '50%',
+    background:
+      'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.26), transparent 32%), linear-gradient(135deg, var(--color-primary), #f0b37a)',
+    boxShadow: '0 0 0 20px rgba(13, 138, 132, 0.08), 0 0 58px rgba(13, 138, 132, 0.22)',
+    animationName: {
+      '0%': { transform: 'scale(1)', opacity: 0.92 },
+      '50%': { transform: 'scale(1.06)', opacity: 1 },
+      '100%': { transform: 'scale(1)', opacity: 0.92 },
+    },
+    animationDuration: '1.8s',
+    animationTimingFunction: 'ease-in-out',
+    animationIterationCount: 'infinite',
+  },
+  ambientCore: {
+    position: 'absolute',
+    width: '68px',
+    height: '68px',
+    borderRadius: '50%',
+    background: 'rgba(255, 255, 255, 0.14)',
+    border: '1px solid rgba(255, 255, 255, 0.22)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)',
   },
   avatarMeta: {
     display: 'grid',
@@ -318,7 +384,8 @@ const useStyles = makeStyles({
     padding: 'var(--space-md)',
     borderRadius: 'var(--radius-lg)',
     border: '1px solid var(--color-border)',
-    backgroundColor: 'var(--color-bg-card)',
+    background:
+      'linear-gradient(135deg, rgba(233, 245, 246, 0.96), rgba(224, 239, 241, 0.96))',
     boxShadow: 'var(--shadow-md)',
     display: 'grid',
     gap: 'var(--space-sm)',
@@ -326,18 +393,7 @@ const useStyles = makeStyles({
   metricHeader: {
     display: 'flex',
     alignItems: 'center',
-    gap: 'var(--space-sm)',
-  },
-  metricIcon: {
-    width: '34px',
-    height: '34px',
-    borderRadius: 'var(--radius-md)',
-    backgroundColor: 'var(--color-primary-soft)',
-    color: 'var(--color-primary-dark)',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
+    gap: '0',
   },
   metricTitle: {
     color: 'var(--color-text-secondary)',
@@ -368,7 +424,8 @@ const useStyles = makeStyles({
     padding: 'var(--space-lg)',
     borderRadius: 'var(--radius-lg)',
     border: '1px solid var(--color-border)',
-    backgroundColor: 'var(--color-bg-card)',
+    background:
+      'linear-gradient(135deg, rgba(233, 245, 246, 0.96), rgba(224, 239, 241, 0.96))',
     boxShadow: 'var(--shadow-md)',
     display: 'grid',
     gap: 'var(--space-md)',
@@ -392,8 +449,8 @@ const useStyles = makeStyles({
     gap: '6px',
     padding: 'var(--space-md)',
     borderRadius: 'var(--radius-md)',
-    backgroundColor: 'var(--color-bg-muted)',
-    border: '1px solid rgba(17, 36, 58, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.66)',
+    border: '1px solid rgba(13, 138, 132, 0.1)',
   },
   sessionMeta: {
     display: 'flex',
@@ -415,8 +472,8 @@ const useStyles = makeStyles({
   emptyState: {
     padding: 'var(--space-lg)',
     borderRadius: 'var(--radius-md)',
-    border: '1px dashed var(--color-border-strong)',
-    backgroundColor: 'var(--color-bg-muted)',
+    border: '1px dashed rgba(13, 138, 132, 0.18)',
+    backgroundColor: 'rgba(255, 255, 255, 0.54)',
     textAlign: 'center',
     color: 'var(--color-text-secondary)',
     fontSize: '0.8125rem',
@@ -426,7 +483,8 @@ const useStyles = makeStyles({
     padding: 'var(--space-lg)',
     borderRadius: 'var(--radius-xl)',
     border: '1px solid var(--color-border)',
-    backgroundColor: 'var(--color-bg-card)',
+    background:
+      'linear-gradient(135deg, rgba(233, 245, 246, 0.96), rgba(224, 239, 241, 0.96))',
     boxShadow: 'var(--shadow-lg)',
     '@media (max-width: 720px)': {
       padding: 'var(--space-md)',
@@ -745,10 +803,28 @@ export function DashboardHome({
           <div className={styles.heroCopy}>
             <div>
               <Text className={styles.heroTitle}>
-                {selectedChild
-                  ? `Ready for ${selectedChild.name}'s next practice?`
-                  : 'Set up the next Wulo practice session.'}
+                {selectedScenarioDetail?.name || 'Recommended next Wulo practice'}
               </Text>
+            </div>
+
+            <div className={styles.heroActionRow}>
+              <Button
+                appearance="primary"
+                className={styles.heroPrimaryAction}
+                disabled={!canStartSession}
+                onClick={onStartSession}
+              >
+                Start practice
+              </Button>
+              {therapistUnlocked ? (
+                <Button
+                  appearance="secondary"
+                  className={styles.heroSecondaryAction}
+                  onClick={onOpenTherapistReview}
+                >
+                  More info
+                </Button>
+              ) : null}
             </div>
 
             <div className={styles.heroHighlights}>
@@ -781,11 +857,15 @@ export function DashboardHome({
           </div>
 
           <div className={styles.avatarStage}>
-            <Badge appearance="filled" className={styles.metaBadge}>
+            <Badge appearance="tint" className={styles.metaBadge}>
               {selectedAvatarOption.label}
             </Badge>
-            <div className={styles.avatarBubble}>
-              <PersonVoiceRegular fontSize={58} />
+            <div className={styles.ambientOrbWrap} aria-hidden="true">
+              <div className={`${styles.ambientSignal} ${styles.ambientSignalTwo}`} />
+              <div className={`${styles.ambientSignal} ${styles.ambientSignalOne}`} />
+              <div className={styles.ambientOrb}>
+                <div className={styles.ambientCore} />
+              </div>
             </div>
             <div className={styles.avatarMeta}>
               <Text className={styles.avatarName}>
@@ -801,9 +881,6 @@ export function DashboardHome({
         <section className={styles.metricsGrid}>
           <Card className={styles.metricCard}>
             <div className={styles.metricHeader}>
-              <span className={styles.metricIcon}>
-                <ClipboardTaskRegular />
-              </span>
               <Text className={styles.metricTitle}>Session count</Text>
             </div>
             <Text className={styles.metricValue}>{sessionCount}</Text>
@@ -814,9 +891,6 @@ export function DashboardHome({
 
           <Card className={styles.metricCard}>
             <div className={styles.metricHeader}>
-              <span className={styles.metricIcon}>
-                <TargetRegular />
-              </span>
               <Text className={styles.metricTitle}>Target sounds</Text>
             </div>
             <Text className={styles.metricValue}>{targetSoundSummary}</Text>
@@ -827,9 +901,6 @@ export function DashboardHome({
 
           <Card className={styles.metricCard}>
             <div className={styles.metricHeader}>
-              <span className={styles.metricIcon}>
-                <PersonHeartRegular />
-              </span>
               <Text className={styles.metricTitle}>Last review</Text>
             </div>
             <Text className={styles.metricValue}>{formatDateLabel(selectedChild?.last_session_at)}</Text>
@@ -840,9 +911,6 @@ export function DashboardHome({
 
           <Card className={styles.metricCard}>
             <div className={styles.metricHeader}>
-              <span className={styles.metricIcon}>
-                <PersonVoiceRegular />
-              </span>
               <Text className={styles.metricTitle}>Active avatar</Text>
             </div>
             <Text className={styles.metricValue}>{selectedAvatarOption.label.split(' (')[0]}</Text>

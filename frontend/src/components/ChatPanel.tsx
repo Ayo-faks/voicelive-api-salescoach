@@ -11,9 +11,9 @@ import {
   mergeClasses,
 } from '@fluentui/react-components'
 import {
-  ChartMultipleRegular,
-  DeleteRegular,
-} from '@fluentui/react-icons'
+  ChartBarIcon,
+  TrashIcon,
+} from '@heroicons/react/24/outline'
 import type { CustomScenario, Message, Scenario } from '../types'
 
 const useStyles = makeStyles({
@@ -337,7 +337,7 @@ export function ChatPanel({
             <Button
               appearance="secondary"
               className={styles.actionButton}
-              icon={<DeleteRegular />}
+              icon={<TrashIcon className="w-5 h-5" />}
               onClick={onClear}
             >
               {audience === 'child' ? 'Finish practice' : 'Clear session'}
@@ -348,7 +348,7 @@ export function ChatPanel({
             <Button
               appearance="primary"
               className={styles.actionButton}
-              icon={<ChartMultipleRegular />}
+              icon={<ChartBarIcon className="w-5 h-5" />}
               onClick={onAnalyze}
               disabled={!canAnalyze}
             >

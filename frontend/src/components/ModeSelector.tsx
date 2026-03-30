@@ -15,7 +15,7 @@ const useStyles = makeStyles({
     borderRadius: 'var(--radius-lg)',
     border: '1px solid var(--color-border)',
     background:
-      'radial-gradient(circle at top right, rgba(13, 138, 132, 0.12), transparent 34%), radial-gradient(circle at bottom left, rgba(212, 143, 75, 0.1), transparent 30%), var(--color-bg-card)',
+      'radial-gradient(circle at top right, rgba(13, 138, 132, 0.12), transparent 34%), radial-gradient(circle at bottom left, rgba(13, 138, 132, 0.08), transparent 30%), var(--color-bg-card)',
     boxShadow: 'var(--shadow-lg)',
     display: 'grid',
     gap: 'var(--space-sm)',
@@ -62,21 +62,14 @@ const useStyles = makeStyles({
     lineHeight: 1.6,
     fontSize: '0.875rem',
   },
-  checklist: {
-    display: 'grid',
-    gap: 'var(--space-xs)',
-  },
-  checklistItem: {
-    color: 'var(--color-text-primary)',
-    fontSize: '0.875rem',
-    lineHeight: 1.5,
-  },
   action: {
     minHeight: '46px',
+    paddingInline: 'var(--space-lg)',
     borderRadius: 'var(--radius-md)',
     fontFamily: 'var(--font-display)',
     fontSize: '0.875rem',
     fontWeight: '600',
+    justifySelf: 'start',
   },
 })
 
@@ -92,26 +85,12 @@ export function ModeSelector({ selectedChildName, onChooseMode }: Props) {
   return (
     <div className={styles.layout}>
       <Card className={styles.hero}>
-        <Text className={styles.title}>Pick the right view for this moment.</Text>
-        <Text className={styles.copy}>
-          Therapists can stay in the full dashboard. Children can enter a much
-          simpler practice screen with fewer decisions and less review-heavy
-          language.
-        </Text>
+        <Text className={styles.title}>Choose a profile to continue.</Text>
       </Card>
 
       <div className={styles.options}>
         <Card className={styles.card}>
           <Text className={styles.cardTitle}>Therapist dashboard</Text>
-          <Text className={styles.cardCopy}>
-            Use the full control surface for exercise planning, recent-session
-            review, and therapist-led setup.
-          </Text>
-          <div className={styles.checklist}>
-            <Text className={styles.checklistItem}>Session trends and recent history</Text>
-            <Text className={styles.checklistItem}>Custom exercise authoring</Text>
-            <Text className={styles.checklistItem}>Therapist review and handoff tools</Text>
-          </div>
           <Button
             appearance="primary"
             className={styles.action}
@@ -123,15 +102,6 @@ export function ModeSelector({ selectedChildName, onChooseMode }: Props) {
 
         <Card className={styles.card}>
           <Text className={styles.cardTitle}>Child practice mode</Text>
-          <Text className={styles.cardCopy}>
-            Open a lighter practice screen{childLabel} with a big avatar, a short
-            welcome, and one clear path into practice.
-          </Text>
-          <div className={styles.checklist}>
-            <Text className={styles.checklistItem}>Simple exercise choices</Text>
-            <Text className={styles.checklistItem}>No therapist review controls</Text>
-            <Text className={styles.checklistItem}>Fast path into the live session</Text>
-          </div>
           <Button
             appearance="secondary"
             className={styles.action}

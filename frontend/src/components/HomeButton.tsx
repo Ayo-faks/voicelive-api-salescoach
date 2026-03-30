@@ -13,7 +13,7 @@ import {
   Text,
   makeStyles,
 } from '@fluentui/react-components'
-import { HomeRegular } from '@fluentui/react-icons'
+import { HomeIcon } from '@heroicons/react/24/outline'
 import { useCallback, useState } from 'react'
 
 const useStyles = makeStyles({
@@ -52,7 +52,7 @@ export function HomeButton({ isSessionActive, onGoHome }: HomeButtonProps) {
     <>
       <Button
         appearance="subtle"
-        icon={<HomeRegular />}
+        icon={<HomeIcon className="w-5 h-5" />}
         onClick={handleClick}
       >
         Home

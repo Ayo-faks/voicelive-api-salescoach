@@ -20,10 +20,10 @@ import {
   makeStyles,
 } from '@fluentui/react-components'
 import {
-  ClipboardTaskRegular,
-  PersonHeartRegular,
-  TargetRegular,
-} from '@fluentui/react-icons'
+  ClipboardDocumentCheckIcon,
+  HeartIcon,
+  AdjustmentsHorizontalIcon,
+} from '@heroicons/react/24/outline'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AssessmentPanel } from '../components/AssessmentPanel'
 import { ChildHome } from '../components/ChildHome'
@@ -276,8 +276,7 @@ const useStyles = makeStyles({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 'var(--space-md)',
-    paddingBottom: 'var(--space-md)',
-    borderBottom: '1px solid var(--color-border)',
+    padding: 'var(--space-sm) 0 var(--space-md)',
     '@media (max-width: 760px)': {
       flexDirection: 'column',
       alignItems: 'flex-start',
@@ -285,17 +284,26 @@ const useStyles = makeStyles({
   },
   brandBlock: {
     display: 'flex',
-    alignItems: 'baseline',
+    alignItems: 'center',
     gap: 'var(--space-sm)',
+  },
+  brandLogo: {
+    width: '56px',
+    height: '56px',
+    objectFit: 'contain',
+    filter: 'drop-shadow(0 10px 18px rgba(13, 138, 132, 0.18))',
   },
   appTitle: {
     fontFamily: 'var(--font-display)',
     color: 'var(--color-text-primary)',
-    fontWeight: '700',
-    fontSize: '0.9rem',
+    fontWeight: '800',
+    fontSize: '1rem',
+    letterSpacing: '-0.03em',
   },
   appSubtitle: {
-    display: 'none',
+    display: 'block',
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.8rem',
   },
   brandActions: {
     display: 'flex',
@@ -576,10 +584,7 @@ export default function App() {
   const isChildMode = userMode === 'child' && !therapistView
   const activeAvatarName = getAvatarName(selectedAvatar)
   const activeAvatarPersona = getAvatarPersona(selectedAvatar)
-  const appTitle =
-    isChildMode
-      ? 'Wulo child practice'
-      : 'Wulo therapist practice'
+  const appTitle = 'Wulo'
   const launchOverlayVisible =
     !showSetup &&
     showLaunchTransition &&
@@ -1607,14 +1612,15 @@ export default function App() {
       <div className={styles.shell}>
         <div className={styles.brandRow}>
           <div className={styles.brandBlock}>
+            <img
+              src="/wulo-logo.png"
+              alt="Wulo logo"
+              className={styles.brandLogo}
+            />
             <Text className={styles.appTitle} size={600} weight="semibold">
               {appTitle}
             </Text>
           </div>
-          <Text className={styles.appSubtitle} size={300}>
-            Warm, calming exercise sessions for children, with custom practice
-            authoring for therapists.
-          </Text>
 
           <div className={styles.brandActions}>
             {(!showSetup || therapistView) && onboardingComplete && (
@@ -1623,33 +1629,18 @@ export default function App() {
                 onGoHome={handleGoHome}
               />
             )}
-            {therapistPin ? (
-              <>
-                {!therapistView && userMode !== 'child' ? (
-                  <Button appearance="secondary" onClick={() => setTherapistView(true)}>
-                    Open therapist review
-                  </Button>
-                ) : null}
-                {userMode !== 'child' ? (
-                  <Button appearance="subtle" onClick={handleLockTherapistMode}>
-                    Lock therapist mode
-                  </Button>
-                ) : null}
-              </>
-            ) : (
-              userMode !== 'child' ? (
-                <Button
-                  appearance="subtle"
-                  onClick={() => {
-                    setTherapistGateIntent('review')
-                    setPinError(null)
-                    setShowTherapistGate(true)
-                  }}
-                >
-                  Therapist access
-                </Button>
-              ) : null
-            )}
+            {!therapistPin && userMode !== 'child' ? (
+              <Button
+                appearance="subtle"
+                onClick={() => {
+                  setTherapistGateIntent('review')
+                  setPinError(null)
+                  setShowTherapistGate(true)
+                }}
+              >
+                Therapist access
+              </Button>
+            ) : null}
           </div>
         </div>
 

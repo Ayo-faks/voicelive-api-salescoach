@@ -127,7 +127,7 @@ export interface AvatarOption {
 export const AVATAR_OPTIONS: AvatarOption[] = [
   {
     value: 'lisa-casual-sitting',
-    label: 'Lisa (Adult British)',
+    label: 'Lisa',
     isPhotoAvatar: false,
     color: '#0d8a84',
     persona: 'an adult British woman',

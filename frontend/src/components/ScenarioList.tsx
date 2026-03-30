@@ -17,7 +17,7 @@ import {
   mergeClasses,
   tokens,
 } from '@fluentui/react-components'
-import { Edit24Regular, PersonVoiceRegular } from '@fluentui/react-icons'
+import { PencilSquareIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 import type { CustomScenario, CustomScenarioData, Scenario } from '../types'
 import { AVATAR_OPTIONS, DEFAULT_AVATAR } from '../types'
@@ -64,8 +64,8 @@ const useStyles = makeStyles({
     gap: 'var(--space-sm)',
     padding: 'var(--space-md)',
     borderRadius: 'var(--radius-md)',
-    backgroundColor: 'var(--color-bg-secondary)',
-    border: '1px solid var(--color-border)',
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    border: '1px solid rgba(13, 138, 132, 0.12)',
     '@media (max-width: 760px)': {
       padding: 'var(--space-sm)',
     },
@@ -103,16 +103,17 @@ const useStyles = makeStyles({
   filterButton: {
     minHeight: '34px',
     paddingInline: 'var(--space-md)',
-    borderRadius: '999px',
+    borderRadius: '6px',
     fontSize: '0.8125rem',
-    fontWeight: '600',
-    border: '1px solid var(--color-border)',
-    color: 'var(--color-text-secondary)',
-    backgroundColor: 'rgba(255, 255, 255, 0.82)',
+    fontWeight: '700',
+    letterSpacing: '-0.01em',
+    border: '1px solid transparent',
+    color: 'var(--color-primary-dark)',
+    backgroundColor: 'rgba(13, 138, 132, 0.12)',
   },
   activeFilterButton: {
-    border: '1px solid var(--color-primary)',
-    backgroundColor: 'var(--color-primary-soft)',
+    border: '1px solid rgba(13, 138, 132, 0.16)',
+    backgroundColor: 'rgba(13, 138, 132, 0.18)',
     color: 'var(--color-primary-dark)',
   },
   sectionHeader: {
@@ -136,24 +137,30 @@ const useStyles = makeStyles({
     minHeight: '140px',
     padding: 'var(--space-md)',
     borderRadius: 'var(--radius-md)',
-    border: '1px solid var(--color-border)',
-    backgroundColor: 'var(--color-bg-card)',
-    boxShadow: 'var(--shadow-soft, var(--shadow-md))',
+    border: '1px solid rgba(13, 138, 132, 0.12)',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    boxShadow: '0 12px 24px rgba(17, 36, 58, 0.08)',
     transition: 'border-color var(--transition-fast), box-shadow var(--transition-fast)',
     '&:hover': {
-      border: '1px solid var(--color-border-strong)',
-      boxShadow: 'var(--shadow-md)',
+      border: '1px solid rgba(13, 138, 132, 0.22)',
+      boxShadow: '0 16px 30px rgba(17, 36, 58, 0.12)',
     },
     '@media (max-width: 640px)': {
       minHeight: '120px',
     },
   },
   compactCard: {
-    minHeight: '104px',
-    padding: 'var(--space-sm) var(--space-md)',
-    boxShadow: 'none',
+    minHeight: 'unset',
+    aspectRatio: '1 / 1',
+    padding: 'var(--space-sm)',
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    boxShadow: '0 12px 24px rgba(17, 36, 58, 0.08)',
+    display: 'grid',
+    alignContent: 'space-between',
+    gap: 'var(--space-sm)',
+    overflow: 'hidden',
     '@media (max-width: 640px)': {
-      minHeight: '96px',
+      aspectRatio: '1 / 1',
     },
   },
   selected: {
@@ -199,9 +206,9 @@ const useStyles = makeStyles({
     textAlign: 'center',
     padding: 'var(--space-lg)',
     color: 'var(--color-text-secondary)',
-    backgroundColor: 'var(--color-bg-muted)',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
     borderRadius: 'var(--radius-md)',
-    border: '1px dashed var(--color-border-strong)',
+    border: '1px dashed rgba(13, 138, 132, 0.18)',
     fontSize: '0.8125rem',
   },
   cardHeader: {
@@ -209,22 +216,61 @@ const useStyles = makeStyles({
     gap: 'var(--space-sm)',
     alignItems: 'flex-start',
   },
+  compactCardHeader: {
+    display: 'grid',
+    gap: 'var(--space-sm)',
+    alignContent: 'start',
+  },
   cardCopy: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '2px',
+    gap: '10px',
     flex: 1,
   },
+  compactCardCopy: {
+    gap: 'var(--space-sm)',
+  },
   cardTitle: {
+    display: 'inline-flex',
+    alignSelf: 'start',
+    maxWidth: '100%',
+    padding: '8px 10px',
+    borderRadius: '6px',
+    backgroundColor: 'rgba(13, 138, 132, 0.12)',
     fontFamily: 'var(--font-display)',
-    color: 'var(--color-text-primary)',
-    fontSize: '0.875rem',
-    fontWeight: '600',
+    color: 'var(--color-primary-dark)',
+    fontSize: '0.88rem',
+    fontWeight: '700',
+    letterSpacing: '-0.01em',
+    lineHeight: 1.25,
+  },
+  compactCardTitle: {
+    display: 'inline-flex',
+    alignSelf: 'start',
+    maxWidth: '100%',
+    padding: '8px 10px',
+    borderRadius: '6px',
+    backgroundColor: 'rgba(13, 138, 132, 0.12)',
+    fontSize: '0.88rem',
+    fontWeight: '700',
+    letterSpacing: '-0.01em',
+    lineHeight: 1.25,
+    boxShadow: 'none',
+    color: 'var(--color-primary-dark)',
   },
   cardDescription: {
     color: 'var(--color-text-secondary)',
     fontSize: '0.8125rem',
     lineHeight: 1.5,
+    maxWidth: '28ch',
+  },
+  compactCardDescription: {
+    display: '-webkit-box',
+    WebkitLineClamp: '4',
+    WebkitBoxOrient: 'vertical',
+    overflow: 'hidden',
+    fontSize: '0.79rem',
+    lineHeight: 1.45,
   },
   metadataRow: {
     display: 'flex',
@@ -268,29 +314,45 @@ const useStyles = makeStyles({
     flexWrap: 'wrap',
   },
   stepTitle: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '6px 12px',
+    borderRadius: '6px',
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
     fontFamily: 'var(--font-display)',
     fontSize: '0.95rem',
     fontWeight: '700',
+    letterSpacing: '-0.01em',
     color: 'var(--color-text-primary)',
   },
   groupCount: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '4px 10px',
+    borderRadius: '6px',
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
     color: 'var(--color-text-secondary)',
     fontSize: '0.75rem',
+    fontWeight: '700',
   },
   groupCards: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(172px, 1fr))',
     gap: 'var(--space-sm)',
     '@media (max-width: 820px)': {
-      gridTemplateColumns: '1fr',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))',
     },
   },
   showMoreButton: {
     minHeight: '32px',
     paddingInline: 'var(--space-md)',
-    borderRadius: '999px',
+    borderRadius: '6px',
     fontSize: '0.8125rem',
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: '-0.01em',
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    color: 'var(--color-text-primary)',
+    border: '1px solid transparent',
     '@media (max-width: 760px)': {
       width: '100%',
       justifyContent: 'center',
@@ -477,52 +539,57 @@ export function ScenarioList({
         )}
         onClick={() => onSelect(scenario.id)}
       >
-        <div className={styles.cardHeader}>
-          <span
+        <div
+          className={mergeClasses(
+            styles.cardHeader,
+            compactChildMode && styles.compactCardHeader
+          )}
+        >
+          <div
             className={mergeClasses(
-              styles.graphIcon,
-              compactChildMode && styles.compactIcon
+              styles.cardCopy,
+              compactChildMode && styles.compactCardCopy
             )}
           >
-            <PersonVoiceRegular />
-          </span>
-          <div className={styles.cardCopy}>
-            <Text className={styles.cardTitle} size={500} weight="semibold">
+            <Text
+              className={mergeClasses(
+                styles.cardTitle,
+                compactChildMode && styles.compactCardTitle
+              )}
+              size={500}
+              weight="semibold"
+            >
               {scenario.name}
             </Text>
-            <Text className={styles.cardDescription} size={300}>
+            <Text
+              className={mergeClasses(
+                styles.cardDescription,
+                compactChildMode && styles.compactCardDescription
+              )}
+              size={300}
+            >
               {scenario.description}
             </Text>
           </div>
         </div>
 
-        <div
-          className={mergeClasses(
-            styles.metadataRow,
-            compactChildMode && styles.compactMetadataRow
-          )}
-        >
-          {stepNumber ? (
-            <Badge appearance="tint" className={styles.metaBadge}>
-              Step {stepNumber}
-            </Badge>
-          ) : null}
-          {!compactChildMode ? (
+        {!compactChildMode ? (
+          <div className={styles.metadataRow}>
             <Badge appearance="filled" className={styles.metaBadge}>
               {formatExerciseType(scenario.exerciseMetadata?.type)}
             </Badge>
-          ) : null}
-          {scenario.exerciseMetadata?.targetSound ? (
-            <Badge appearance="tint" className={styles.metaBadge}>
-              Sound: {scenario.exerciseMetadata.targetSound}
-            </Badge>
-          ) : null}
-          {!compactChildMode && scenario.exerciseMetadata?.difficulty ? (
-            <Badge appearance="tint" className={styles.metaBadge}>
-              {scenario.exerciseMetadata.difficulty}
-            </Badge>
-          ) : null}
-        </div>
+            {scenario.exerciseMetadata?.targetSound ? (
+              <Badge appearance="tint" className={styles.metaBadge}>
+                Sound: {scenario.exerciseMetadata.targetSound}
+              </Badge>
+            ) : null}
+            {scenario.exerciseMetadata?.difficulty ? (
+              <Badge appearance="tint" className={styles.metaBadge}>
+                {scenario.exerciseMetadata.difficulty}
+              </Badge>
+            ) : null}
+          </div>
+        ) : null}
       </Card>
     )
   }
@@ -740,7 +807,7 @@ export function ScenarioList({
                             trigger={
                               <Button
                                 appearance="subtle"
-                                icon={<Edit24Regular />}
+                                icon={<PencilSquareIcon className="w-5 h-5" />}
                                 className={styles.editButton}
                                 size="small"
                               />

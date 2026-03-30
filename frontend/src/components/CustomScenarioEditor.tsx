@@ -22,12 +22,12 @@ import {
   tokens,
 } from '@fluentui/react-components'
 import {
-  Add24Regular,
-  ArrowDownload24Regular,
-  ArrowUpload24Regular,
-  Delete24Regular,
-  Edit24Regular,
-} from '@fluentui/react-icons'
+  PlusIcon,
+  ArrowDownTrayIcon,
+  ArrowUpTrayIcon,
+  TrashIcon,
+  PencilSquareIcon,
+} from '@heroicons/react/24/outline'
 import { useRef, useState } from 'react'
 import { customScenarioService } from '../services/customScenarios'
 import type { ChangeEvent, ReactElement } from 'react'
@@ -256,12 +256,12 @@ export function CustomScenarioEditor({
   const defaultTrigger = isEditing ? (
     <Button
       appearance="subtle"
-      icon={<Edit24Regular />}
+      icon={<PencilSquareIcon className="w-5 h-5" />}
       className={styles.iconButton}
       title="Edit exercise"
     />
   ) : (
-    <Button appearance="primary" icon={<Add24Regular />}>
+    <Button appearance="primary" icon={<PlusIcon className="w-5 h-5" />}>
       Create Exercise
     </Button>
   )
@@ -404,7 +404,7 @@ export function CustomScenarioEditor({
             <div className={styles.buttonGroup}>
               <Button
                 appearance="subtle"
-                icon={<ArrowUpload24Regular />}
+                icon={<ArrowUpTrayIcon className="w-5 h-5" />}
                 onClick={handleImportClick}
               >
                 Import JSON
@@ -412,7 +412,7 @@ export function CustomScenarioEditor({
               {isEditing && (
                 <Button
                   appearance="subtle"
-                  icon={<ArrowDownload24Regular />}
+                  icon={<ArrowDownTrayIcon className="w-5 h-5" />}
                   onClick={handleExport}
                 >
                   Export JSON
@@ -432,7 +432,7 @@ export function CustomScenarioEditor({
             {isEditing && onDelete && (
               <Button
                 appearance="subtle"
-                icon={<Delete24Regular />}
+                icon={<TrashIcon className="w-5 h-5" />}
                 onClick={handleDelete}
                 style={{ marginRight: 'auto' }}
               >

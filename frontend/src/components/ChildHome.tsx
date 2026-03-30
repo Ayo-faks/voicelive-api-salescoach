@@ -6,7 +6,6 @@
 import { Badge, Button, Card, Text, makeStyles } from '@fluentui/react-components'
 import type { ChildProfile, Scenario } from '../types'
 import { AVATAR_OPTIONS } from '../types'
-import { BuddyAvatar } from './BuddyAvatar'
 import { ScenarioList } from './ScenarioList'
 
 const useStyles = makeStyles({
@@ -22,37 +21,46 @@ const useStyles = makeStyles({
   },
   hero: {
     display: 'grid',
-    gridTemplateColumns: 'minmax(0, 1.1fr) minmax(240px, 0.9fr)',
+    gridTemplateColumns: 'minmax(280px, 0.82fr) minmax(0, 1.18fr)',
+    gridTemplateAreas: '"avatar copy" "action copy"',
     gap: 'var(--space-lg)',
-    padding: 'var(--space-xl)',
-    borderRadius: 'var(--radius-lg)',
+    padding: 'clamp(1.4rem, 3vw, 2.25rem)',
+    borderRadius: 'calc(var(--radius-lg) + 6px)',
     border: '1px solid var(--color-border)',
     background:
-      'radial-gradient(circle at top right, rgba(13, 138, 132, 0.16), transparent 36%), radial-gradient(circle at bottom left, rgba(212, 143, 75, 0.12), transparent 34%), linear-gradient(135deg, rgba(244, 247, 248, 0.94), rgba(240, 245, 247, 0.9))',
+      'radial-gradient(circle at top right, rgba(13, 138, 132, 0.16), transparent 34%), radial-gradient(circle at bottom left, rgba(13, 138, 132, 0.08), transparent 32%), linear-gradient(135deg, rgba(233, 245, 246, 0.98), rgba(224, 239, 241, 0.98))',
     boxShadow: 'var(--shadow-lg)',
+    minHeight: '400px',
+    overflow: 'hidden',
     '@media (max-width: 920px)': {
       gridTemplateColumns: '1fr',
+      gridTemplateAreas: '"copy" "avatar" "action"',
       padding: 'var(--space-lg)',
+      minHeight: 'unset',
     },
   },
   heroCopy: {
+    gridArea: 'copy',
     display: 'grid',
-    gap: 'var(--space-sm)',
-    alignContent: 'start',
+    gap: 'var(--space-md)',
+    alignContent: 'center',
+    alignSelf: 'center',
+    minHeight: '100%',
   },
   title: {
     fontFamily: 'var(--font-display)',
     color: 'var(--color-text-primary)',
-    fontSize: 'clamp(2rem, 4vw, 3rem)',
+    fontSize: 'clamp(2.3rem, 5vw, 4rem)',
     fontWeight: '800',
-    lineHeight: 1.02,
+    lineHeight: 0.96,
     letterSpacing: '-0.05em',
+    maxWidth: '520px',
   },
   body: {
     color: 'var(--color-text-secondary)',
     lineHeight: 1.65,
     fontSize: '0.95rem',
-    maxWidth: '620px',
+    maxWidth: '560px',
   },
   chipRow: {
     display: 'flex',
@@ -62,36 +70,107 @@ const useStyles = makeStyles({
   chip: {
     minHeight: '28px',
     paddingInline: 'var(--space-sm)',
-    borderRadius: '999px',
-    backgroundColor: 'rgba(255, 255, 255, 0.72)',
+    borderRadius: '6px',
+    backgroundColor: 'rgba(255, 255, 255, 0.78)',
     color: 'var(--color-primary-dark)',
     border: '1px solid rgba(13, 138, 132, 0.12)',
   },
   action: {
-    marginTop: 'var(--space-sm)',
-    minHeight: '48px',
-    paddingInline: 'var(--space-xl)',
+    minHeight: '46px',
+    paddingInline: 'var(--space-lg)',
     borderRadius: 'var(--radius-md)',
     fontFamily: 'var(--font-display)',
     fontWeight: '700',
-    fontSize: '0.95rem',
+    fontSize: '0.92rem',
+    justifySelf: 'center',
+    backgroundColor: 'var(--color-primary)',
+    color: 'var(--color-text-inverse)',
+    border: 'none',
+    boxShadow: '0 12px 26px rgba(13, 138, 132, 0.2)',
     '@media (max-width: 760px)': {
       width: '100%',
+      justifySelf: 'stretch',
+    },
+  },
+  actionWrap: {
+    gridArea: 'action',
+    alignSelf: 'end',
+    justifySelf: 'start',
+    display: 'grid',
+    alignItems: 'end',
+    justifyItems: 'center',
+    width: '100%',
+    maxWidth: '340px',
+    '@media (max-width: 920px)': {
+      justifySelf: 'stretch',
+      maxWidth: 'none',
     },
   },
   avatarStage: {
+    gridArea: 'avatar',
     display: 'grid',
     placeItems: 'center',
-    minHeight: '280px',
+    minHeight: '252px',
     borderRadius: 'calc(var(--radius-lg) + 8px)',
     border: '1px solid rgba(13, 138, 132, 0.12)',
     background:
-      'radial-gradient(circle at center, rgba(255, 255, 255, 0.96), rgba(232, 245, 242, 0.8))',
+      'radial-gradient(circle at center, rgba(255, 255, 255, 0.96), rgba(232, 245, 242, 0.84))',
     textAlign: 'center',
-    padding: 'var(--space-lg)',
+    padding: '18px',
+    alignContent: 'center',
+    justifySelf: 'start',
+    width: '100%',
+    maxWidth: '340px',
+    '@media (max-width: 920px)': {
+      justifySelf: 'stretch',
+      maxWidth: 'none',
+    },
   },
-  buddyAvatarWrap: {
-    filter: 'drop-shadow(0 24px 40px rgba(13, 138, 132, 0.24))',
+  ambientOrbWrap: {
+    position: 'relative',
+    display: 'grid',
+    placeItems: 'center',
+    minHeight: '182px',
+    width: '100%',
+  },
+  ambientSignal: {
+    position: 'absolute',
+    borderRadius: '50%',
+    border: '1px solid rgba(13, 138, 132, 0.14)',
+  },
+  ambientSignalOne: {
+    width: '184px',
+    height: '184px',
+  },
+  ambientSignalTwo: {
+    width: '226px',
+    height: '226px',
+    border: '1px solid rgba(13, 138, 132, 0.09)',
+  },
+  ambientOrb: {
+    width: '144px',
+    height: '144px',
+    borderRadius: '50%',
+    background:
+      'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.26), transparent 32%), linear-gradient(135deg, var(--color-primary), #f0b37a)',
+    boxShadow: '0 0 0 20px rgba(13, 138, 132, 0.08), 0 0 58px rgba(13, 138, 132, 0.22)',
+    animationName: {
+      '0%': { transform: 'scale(1)', opacity: 0.92 },
+      '50%': { transform: 'scale(1.06)', opacity: 1 },
+      '100%': { transform: 'scale(1)', opacity: 0.92 },
+    },
+    animationDuration: '1.8s',
+    animationTimingFunction: 'ease-in-out',
+    animationIterationCount: 'infinite',
+  },
+  ambientCore: {
+    position: 'absolute',
+    width: '68px',
+    height: '68px',
+    borderRadius: '50%',
+    background: 'rgba(255, 255, 255, 0.14)',
+    border: '1px solid rgba(255, 255, 255, 0.22)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)',
   },
   avatarLabel: {
     marginTop: 'var(--space-md)',
@@ -110,7 +189,8 @@ const useStyles = makeStyles({
     padding: 'var(--space-lg)',
     borderRadius: 'var(--radius-lg)',
     border: '1px solid var(--color-border)',
-    backgroundColor: 'var(--color-bg-card)',
+    background:
+      'linear-gradient(135deg, rgba(233, 245, 246, 0.96), rgba(224, 239, 241, 0.96))',
     boxShadow: 'var(--shadow-md)',
     '@media (max-width: 760px)': {
       padding: 'var(--space-md)',
@@ -188,17 +268,26 @@ export function ChildHome({
       </div>
 
       <Card className={styles.hero}>
+        <div className={styles.avatarStage}>
+          <div className={styles.ambientOrbWrap} aria-hidden="true">
+            <div className={`${styles.ambientSignal} ${styles.ambientSignalTwo}`} />
+            <div className={`${styles.ambientSignal} ${styles.ambientSignalOne}`} />
+            <div className={styles.ambientOrb}>
+              <div className={styles.ambientCore} />
+            </div>
+          </div>
+          <Text className={styles.avatarLabel}>{avatarLabel}</Text>
+          <Text className={styles.avatarHint}>
+            Your practice buddy is ready with short prompts and calm feedback.
+          </Text>
+        </div>
+
         <div className={styles.heroCopy}>
           <Text className={styles.title}>
             {selectedChild ? `Hi ${selectedChild.name}, let's practise.` : 'Let\'s practise.'}
           </Text>
-          <Text className={styles.body}>
-            Pick one activity, tap start, and talk with your practice buddy.
-            The selected practice stays at the top so it is easy to check before
-            starting.
-          </Text>
           <div className={styles.chipRow}>
-            <Badge appearance="filled" className={styles.chip}>
+            <Badge appearance="tint" className={styles.chip}>
               Buddy: {avatarLabel}
             </Badge>
             {selectedExercise ? (
@@ -222,6 +311,9 @@ export function ChildHome({
               {selectedExercise.description}
             </Text>
           ) : null}
+        </div>
+
+        <div className={styles.actionWrap}>
           <Button
             appearance="primary"
             className={styles.action}
@@ -230,16 +322,6 @@ export function ChildHome({
           >
             Start practice
           </Button>
-        </div>
-
-        <div className={styles.avatarStage}>
-          <div className={styles.buddyAvatarWrap}>
-            <BuddyAvatar avatarValue={selectedAvatar} size={180} />
-          </div>
-          <Text className={styles.avatarLabel}>{avatarLabel}</Text>
-          <Text className={styles.avatarHint}>
-            Your practice buddy is ready with short prompts and calm feedback.
-          </Text>
         </div>
       </Card>
 

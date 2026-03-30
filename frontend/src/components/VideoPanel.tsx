@@ -12,7 +12,8 @@ import {
   mergeClasses,
   tokens,
 } from '@fluentui/react-components'
-import { MicOffRegular, MicRegular } from '@fluentui/react-icons'
+import { MicrophoneIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useMemo, useState } from 'react'
 import type React from 'react'
 import { AVATAR_OPTIONS } from '../types'
@@ -37,7 +38,7 @@ const useStyles = makeStyles({
     width: '100%',
     aspectRatio: '16 / 9',
     background:
-      'radial-gradient(circle at top, rgba(13, 138, 132, 0.18), transparent 34%), radial-gradient(circle at bottom, rgba(212, 143, 75, 0.14), transparent 36%), linear-gradient(180deg, rgba(244, 247, 248, 0.96), rgba(240, 245, 247, 0.94))',
+      'radial-gradient(circle at top, rgba(13, 138, 132, 0.18), transparent 34%), radial-gradient(circle at bottom, rgba(13, 138, 132, 0.1), transparent 36%), linear-gradient(180deg, rgba(244, 247, 248, 0.96), rgba(232, 243, 244, 0.94))',
     borderRadius: 'var(--radius-md)',
     overflow: 'hidden',
     position: 'relative',
@@ -119,16 +120,16 @@ const useStyles = makeStyles({
   },
   micDock: {
     position: 'absolute',
-    left: '50%',
-    bottom: '36px',
-    transform: 'translateX(-50%)',
+    left: '28px',
+    bottom: '28px',
     display: 'grid',
-    justifyItems: 'center',
+    justifyItems: 'start',
     gap: '10px',
     zIndex: 2,
     width: 'min(100%, 280px)',
     '@media (max-width: 640px)': {
-      bottom: '28px',
+      left: '18px',
+      bottom: '18px',
     },
   },
   connectionBadge: {
@@ -390,22 +391,20 @@ export function VideoPanel({
           </div>
         ) : null}
 
-        {showMicDock ? (
-          <div className={styles.micDock}>
-            <Button
-              aria-label={recording ? 'Stop recording' : 'Start recording'}
-              appearance="transparent"
-              className={mergeClasses(
-                styles.micButton,
-                recording && styles.micButtonActive
-              )}
-              icon={recording ? <MicOffRegular fontSize={28} /> : <MicRegular fontSize={28} />}
-              onClick={onToggleRecording}
-              disabled={!canTalk || !onToggleRecording}
-            />
-            <Text className={styles.micLabel}>{micLabel}</Text>
-          </div>
-        ) : null}
+        <div className={styles.micDock}>
+          <Button
+            aria-label={recording ? 'Stop recording' : 'Start recording'}
+            appearance="transparent"
+            className={mergeClasses(
+              styles.micButton,
+              recording && styles.micButtonActive
+            )}
+            icon={recording ? <XMarkIcon className="w-7 h-7" /> : <MicrophoneIcon className="w-7 h-7" />}
+            onClick={onToggleRecording}
+            disabled={!canTalk || !onToggleRecording}
+          />
+          <Text className={styles.micLabel}>{micLabel}</Text>
+        </div>
       </div>
     </Card>
   )

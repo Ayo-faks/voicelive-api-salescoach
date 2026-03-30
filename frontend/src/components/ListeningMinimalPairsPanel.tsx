@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, Card, Text, makeStyles } from '@fluentui/react-components'
-import { Speaker224Regular } from '@fluentui/react-icons'
+import { SpeakerWaveIcon } from '@heroicons/react/24/outline'
 import { useEffect, useMemo, useState } from 'react'
 import type { ExerciseMetadata } from '../types'
 import { ImageCard } from './ImageCard'
@@ -122,7 +122,7 @@ export function ListeningMinimalPairsPanel({ scenarioName, metadata, audience = 
       <div className={styles.controls}>
         <Button
           appearance="primary"
-          icon={<Speaker224Regular />}
+          icon={<SpeakerWaveIcon className="w-5 h-5" />}
           className={styles.speakButton}
           onClick={speakPrompt}
           disabled={!promptWord}
