@@ -5,7 +5,6 @@
 
 import {
   Badge,
-  Button,
   Card,
   Text,
   makeStyles,
@@ -147,6 +146,9 @@ const useStyles = makeStyles({
   },
   micButton: {
     position: 'relative',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     width: '72px',
     height: '72px',
     minWidth: '72px',
@@ -162,6 +164,11 @@ const useStyles = makeStyles({
     },
     '&:active': {
       transform: 'scale(0.97)',
+    },
+    '&:disabled': {
+      opacity: 0.55,
+      cursor: 'not-allowed',
+      transform: 'none',
     },
     '&::before': {
       content: '""',
@@ -180,9 +187,19 @@ const useStyles = makeStyles({
       opacity: 0,
     },
     '@media (max-width: 640px)': {
-      width: '64px',
-      height: '64px',
-      minWidth: '64px',
+      width: '56px',
+      height: '56px',
+      minWidth: '56px',
+    },
+  },
+  micIcon: {
+    width: '28px',
+    height: '28px',
+    color: 'var(--color-text-inverse)',
+    strokeWidth: '2.2',
+    '@media (max-width: 640px)': {
+      width: '24px',
+      height: '24px',
     },
   },
   micButtonActive: {
@@ -392,17 +409,22 @@ export function VideoPanel({
         ) : null}
 
         <div className={styles.micDock}>
-          <Button
+          <button
+            type="button"
             aria-label={recording ? 'Stop recording' : 'Start recording'}
-            appearance="transparent"
             className={mergeClasses(
               styles.micButton,
               recording && styles.micButtonActive
             )}
-            icon={recording ? <XMarkIcon className="w-7 h-7" /> : <MicrophoneIcon className="w-7 h-7" />}
             onClick={onToggleRecording}
             disabled={!canTalk || !onToggleRecording}
-          />
+          >
+            {recording ? (
+              <XMarkIcon className={styles.micIcon} />
+            ) : (
+              <MicrophoneIcon className={styles.micIcon} />
+            )}
+          </button>
           <Text className={styles.micLabel}>{micLabel}</Text>
         </div>
       </div>
