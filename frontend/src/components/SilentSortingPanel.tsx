@@ -34,6 +34,9 @@ const useStyles = makeStyles({
     display: 'grid',
     gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
     gap: 'var(--space-md)',
+    '@media (max-width: 640px)': {
+      gridTemplateColumns: '1fr',
+    },
   },
   home: {
     padding: 'var(--space-md)',
@@ -44,6 +47,9 @@ const useStyles = makeStyles({
     gap: 'var(--space-sm)',
     minHeight: '220px',
     alignContent: 'start',
+    '@media (max-width: 640px)': {
+      minHeight: '180px',
+    },
   },
   homeTitle: {
     fontFamily: 'var(--font-display)',
@@ -54,6 +60,9 @@ const useStyles = makeStyles({
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(108px, 1fr))',
     gap: 'var(--space-sm)',
+    '@media (max-width: 640px)': {
+      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    },
   },
   pool: {
     display: 'grid',

@@ -261,7 +261,10 @@ const useStyles = makeStyles({
     display: 'flex',
     justifyContent: 'center',
     '@media (max-width: 720px)': {
-      padding: 'var(--space-md)',
+      paddingTop: 'calc(env(safe-area-inset-top, 0px) + var(--space-lg))',
+      paddingRight: 'var(--space-md)',
+      paddingBottom: 'var(--space-md)',
+      paddingLeft: 'var(--space-md)',
     },
   },
   shell: {

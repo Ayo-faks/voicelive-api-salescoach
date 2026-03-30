@@ -28,7 +28,23 @@ from src.services.websocket_handler import VoiceProxyHandler
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 REPO_DIR = Path(__file__).resolve().parents[2]
 STATIC_FOLDER = str(BACKEND_DIR / "static")
-IMAGE_DATA_FOLDER = str(REPO_DIR / "data" / "images")
+
+
+def resolve_image_data_folder() -> str:
+    """Resolve image assets correctly both from source checkout and container image."""
+    candidate_paths = [
+        REPO_DIR / "data" / "images",
+        BACKEND_DIR / "data" / "images",
+    ]
+
+    for candidate in candidate_paths:
+        if candidate.exists():
+            return str(candidate)
+
+    return str(candidate_paths[0])
+
+
+IMAGE_DATA_FOLDER = resolve_image_data_folder()
 STATIC_URL_PATH = ""
 INDEX_FILE = "index.html"
 AUDIO_PROCESSOR_FILE = "audio-processor.js"
