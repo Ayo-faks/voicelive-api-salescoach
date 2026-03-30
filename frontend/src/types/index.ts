@@ -16,14 +16,40 @@ export type ExerciseType =
   | 'minimal_pairs'
   | 'sentence_repetition'
   | 'guided_prompt'
+  | 'listening_minimal_pairs'
+  | 'silent_sorting'
+  | 'sound_isolation'
+  | 'vowel_blending'
+  | 'two_word_phrase'
+  | 'generalisation'
+  | 'cluster_blending'
+  | 'syllable_practice'
 
 export type ExerciseDifficulty = 'easy' | 'medium' | 'hard'
+
+export type WordPosition = 'initial' | 'medial' | 'final' | 'all'
+
+export interface MinimalPairItem {
+  word_a: string
+  word_b: string
+}
 
 export interface ExerciseMetadata {
   type: ExerciseType
   targetSound: string
   targetWords: string[]
   difficulty: ExerciseDifficulty
+  wordPosition?: WordPosition
+  errorSound?: string
+  repetitionTarget?: number
+  masteryThreshold?: number
+  stepNumber?: number
+  requiresMic?: boolean
+  imageAssets?: string[]
+  modifiers?: string[]
+  sentenceStarters?: string[]
+  conversationPrompts?: string[]
+  pairs?: MinimalPairItem[]
   childAge?: number
   ageRange?: string
   speechLanguage?: string

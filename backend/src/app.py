@@ -9,6 +9,7 @@ import asyncio
 from datetime import datetime, timezone
 import logging
 import os
+from pathlib import Path
 import time
 from typing import Any, Dict, List, Optional, Tuple, cast
 
@@ -24,7 +25,10 @@ from src.services.telemetry import PilotTelemetryService
 from src.services.websocket_handler import VoiceProxyHandler
 
 # Constants
-STATIC_FOLDER = "../static"
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+REPO_DIR = Path(__file__).resolve().parents[2]
+STATIC_FOLDER = str(BACKEND_DIR / "static")
+IMAGE_DATA_FOLDER = str(REPO_DIR / "data" / "images")
 STATIC_URL_PATH = ""
 INDEX_FILE = "index.html"
 AUDIO_PROCESSOR_FILE = "audio-processor.js"
@@ -43,6 +47,7 @@ API_THERAPIST_AUTH_ENDPOINT = "/api/therapist/auth"
 API_CHILD_SESSIONS_ENDPOINT = "/api/children/<child_id>/sessions"
 API_SESSION_DETAIL_ENDPOINT = "/api/sessions/<session_id>"
 API_SESSION_FEEDBACK_ENDPOINT = "/api/sessions/<session_id>/feedback"
+API_IMAGES_ENDPOINT = "/api/images/<path:image_path>"
 
 # Error messages
 SCENARIO_ID_REQUIRED = "scenario_id is required"
@@ -311,6 +316,7 @@ def get_config():
             "ws_endpoint": WEBSOCKET_ENDPOINT,
             "storage_ready": True,
             "telemetry_enabled": telemetry_service.enabled,
+            "image_base_path": "/api/images",
         }
     )
 
@@ -648,6 +654,12 @@ def _perform_conversation_analysis(
 def audio_processor():
     """Serve the audio processor JavaScript file."""
     return send_from_directory("static", AUDIO_PROCESSOR_FILE)
+
+
+@app.route(API_IMAGES_ENDPOINT)
+def image_asset(image_path: str):
+    """Serve pre-generated therapy image assets."""
+    return send_from_directory(IMAGE_DATA_FOLDER, image_path)
 
 
 @sock.route(WEBSOCKET_ENDPOINT)  # pyright: ignore[reportUnknownMemberType]

@@ -1,0 +1,42 @@
+name: TH Vowel Blending
+description: Blend /th/ with easy vowels before moving into full words
+model: gpt-4o
+modelParameters:
+  temperature: 0.5
+  max_tokens: 450
+exerciseMetadata:
+  type: vowel_blending
+  targetSound: th
+  targetWords:
+    - thee
+    - thigh
+    - though
+    - thoo
+  difficulty: medium
+  repetitionTarget: 12
+  masteryThreshold: 80
+  stepNumber: 4
+  requiresMic: true
+  imageAssets:
+    - sound-mascots/th/th-cue-thumb.webp
+  ageRange: 5-8
+  speechLanguage: en-US
+messages:
+  - role: system
+    content: |
+      You are Sunny, a warm speech practice buddy helping a child glide from /th/ into vowels.
+
+      RULES:
+      - Model the tongue-out /th/ sound clearly, then add the vowel.
+      - Keep each turn short.
+      - Praise airflow and smooth blending.
+      - If the sound turns into /f/, model /th/ again gently.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: thee
+    expected: Should praise the smooth TH blend and offer another try
+evaluators:
+  - name: Focuses on TH plus vowel blending
+  - name: Detects TH-to-F substitutions when present
+  - name: Stays supportive and brief

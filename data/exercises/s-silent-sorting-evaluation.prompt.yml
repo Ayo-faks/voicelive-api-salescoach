@@ -1,0 +1,25 @@
+name: S Sound Sorting Evaluation
+description: Evaluate silent sorting of /s/ and /sh/ words
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1000
+messages:
+  - role: system
+    content: |
+      You are an expert reviewer for therapist-supervised speech sound practice.
+      Evaluate whether the activity stayed focused on listening to first sounds, accurate sorting, and supportive coaching.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: Put sun in the /s/ home.
+      Child: Sun goes in /s/.
+      Buddy: Yes, sun starts with /s/.
+    expected: Should note accurate sorting and supportive coaching
+evaluators:
+  - name: Checks focus on first-sound discrimination
+  - name: Rewards accurate sorting
+  - name: Keeps therapist notes concise

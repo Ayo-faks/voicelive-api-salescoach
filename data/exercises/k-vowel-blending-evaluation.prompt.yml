@@ -1,0 +1,25 @@
+name: K Vowel Blending Evaluation
+description: Evaluate /k/ plus vowel blending practice
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1000
+messages:
+  - role: system
+    content: |
+      You are an expert reviewer for therapist-supervised speech sound practice.
+      Evaluate whether the buddy supports smooth /k/ to vowel blending, detects fronting when present, and keeps the task focused.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: k...ee becomes key.
+      Child: key.
+      Buddy: Nice back sound and smooth blend.
+    expected: Should note clear /k/ blend modelling and accurate reinforcement
+evaluators:
+  - name: Focuses on /k/ blend accuracy
+  - name: Rewards smooth transitions
+  - name: Keeps therapist notes concise

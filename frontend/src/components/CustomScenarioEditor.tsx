@@ -79,6 +79,10 @@ const useStyles = makeStyles({
 const EXERCISE_TYPE_OPTIONS: Array<{ value: ExerciseType; label: string }> = [
   { value: 'word_repetition', label: 'Word repetition' },
   { value: 'minimal_pairs', label: 'Minimal pairs' },
+  { value: 'listening_minimal_pairs', label: 'Listening minimal pairs' },
+  { value: 'silent_sorting', label: 'Silent sorting' },
+  { value: 'sound_isolation', label: 'Sound isolation' },
+  { value: 'vowel_blending', label: 'Vowel blending' },
   { value: 'sentence_repetition', label: 'Sentence repetition' },
   { value: 'guided_prompt', label: 'Guided prompt' },
 ]

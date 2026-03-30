@@ -1,0 +1,26 @@
+name: TH Sound Words Evaluation
+description: Evaluate a child practice session focused on the /th/ sound
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1200
+messages:
+  - role: system
+    content: |
+      You are an expert speech practice reviewer supporting a therapist-supervised session.
+      Evaluate /th/ target sound accuracy, clarity, consistency, and effort.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: Let's say thumb.
+      Child: fumb.
+      Buddy: Nice try. Listen to thumb.
+      Child: thumb.
+    expected: Should note improved /th/ accuracy after a retry
+evaluators:
+  - name: Uses supportive language
+  - name: Scores effort and clarity separately
+  - name: Provides concise therapist notes

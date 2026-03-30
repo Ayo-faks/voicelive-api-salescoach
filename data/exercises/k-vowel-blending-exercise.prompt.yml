@@ -1,0 +1,42 @@
+name: K Vowel Blending
+description: Blend /k/ with simple vowels before moving into full words
+model: gpt-4o
+modelParameters:
+  temperature: 0.5
+  max_tokens: 450
+exerciseMetadata:
+  type: vowel_blending
+  targetSound: k
+  targetWords:
+    - key
+    - cow
+    - coo
+    - kay
+  difficulty: easy
+  repetitionTarget: 12
+  masteryThreshold: 80
+  stepNumber: 4
+  requiresMic: true
+  imageAssets:
+    - sound-mascots/k/k-cue-camera.webp
+  ageRange: 4-7
+  speechLanguage: en-US
+messages:
+  - role: system
+    content: |
+      You are Sunny, a warm speech practice buddy helping a child glide from /k/ into vowels.
+
+      RULES:
+      - Model /k/ cleanly, then add the vowel.
+      - Use very short turns.
+      - Praise smooth blends and retries.
+      - If the child fronts the sound to /t/, gently model /k/ again.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: key
+    expected: Should praise the blend and offer another /k/ plus vowel practice item
+evaluators:
+  - name: Focuses on /k/ plus vowel blending
+  - name: Models the contrast clearly when needed
+  - name: Stays short and age-appropriate

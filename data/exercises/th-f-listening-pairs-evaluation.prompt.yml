@@ -1,0 +1,25 @@
+name: Listen for TH or F Evaluation
+description: Evaluate listening discrimination between /th/ and /f/
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1000
+messages:
+  - role: system
+    content: |
+      You are an expert reviewer for therapist-supervised speech sound practice.
+      Evaluate whether the activity stays focused on hearing the /th/ versus /f/ contrast before production.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: Listen for thin or fin.
+      Child: thin.
+      Buddy: Yes, you heard thin.
+    expected: Should note clear contrastive listening and concise feedback
+evaluators:
+  - name: Checks TH versus F discrimination
+  - name: Rewards accurate listening choices
+  - name: Keeps therapist notes concise

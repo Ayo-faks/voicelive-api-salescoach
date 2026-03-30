@@ -49,6 +49,7 @@ RUN pip install --no-cache-dir --trusted-host pypi.org --trusted-host pypi.pytho
 
 COPY --chown=app:app backend/src/ ./src/
 COPY --chown=app:app data/exercises/ ./data/exercises/
+COPY --chown=app:app data/images/ ./data/images/
 
 COPY --from=frontend-builder --chown=app:app /app/static/ ./static/
 

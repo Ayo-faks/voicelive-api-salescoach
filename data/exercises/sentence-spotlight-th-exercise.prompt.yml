@@ -13,6 +13,19 @@ exerciseMetadata:
     - think
     - three
   difficulty: medium
+  repetitionTarget: 12
+  masteryThreshold: 75
+  stepNumber: 7
+  requiresMic: true
+  sentenceStarters:
+    - I can see
+    - I have
+    - The
+  imageAssets:
+    - object-cards/th/th-initial-thumb.webp
+    - object-cards/th/th-final-bath.webp
+    - object-cards/th/th-initial-think.webp
+    - object-cards/th/th-initial-three.webp
   ageRange: 6-9
   speechLanguage: en-US
 messages:

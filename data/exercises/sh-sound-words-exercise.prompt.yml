@@ -1,0 +1,43 @@
+name: SH Sound Words
+description: Practice the /sh/ sound at the start of familiar words
+model: gpt-4o
+modelParameters:
+  temperature: 0.55
+  max_tokens: 500
+exerciseMetadata:
+  type: word_repetition
+  targetSound: sh
+  targetWords:
+    - ship
+    - shell
+    - shark
+    - shoe
+    - sheep
+  difficulty: easy
+  wordPosition: initial
+  repetitionTarget: 25
+  masteryThreshold: 80
+  stepNumber: 5
+  requiresMic: true
+  imageAssets:
+    - object-cards/sh/sh-initial-ship.webp
+    - object-cards/sh/sh-initial-shell.webp
+    - object-cards/sh/sh-initial-shark.webp
+    - object-cards/sh/sh-initial-shoe.webp
+    - object-cards/sh/sh-initial-sheep.webp
+  ageRange: 4-7
+  speechLanguage: en-US
+messages:
+  - role: system
+    content: |
+      You are a friendly, encouraging speech practice buddy named Sunny.
+      Help the child practice the /sh/ sound at the start of words.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: sip
+    expected: Should gently model the /sh/ sound and encourage a retry
+evaluators:
+  - name: Uses encouraging language
+  - name: Models correct pronunciation
+  - name: Stays age-appropriate

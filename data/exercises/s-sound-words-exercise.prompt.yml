@@ -14,6 +14,17 @@ exerciseMetadata:
     - snake
     - smile
   difficulty: easy
+  wordPosition: initial
+  repetitionTarget: 25
+  masteryThreshold: 80
+  stepNumber: 5
+  requiresMic: true
+  imageAssets:
+    - object-cards/s/s-initial-sun.webp
+    - object-cards/s/s-initial-soap.webp
+    - object-cards/s/s-initial-star.webp
+    - object-cards/s/s-initial-snake.webp
+    - object-cards/s/s-initial-smile.webp
   ageRange: 4-7
   speechLanguage: en-US
 messages:

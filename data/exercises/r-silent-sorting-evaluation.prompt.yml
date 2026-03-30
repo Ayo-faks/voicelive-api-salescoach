@@ -1,0 +1,25 @@
+name: R Sound Sorting Evaluation
+description: Evaluate sorting /r/ and /w/ words by first sound
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1000
+messages:
+  - role: system
+    content: |
+      You are an expert reviewer for therapist-supervised speech sound practice.
+      Evaluate whether the session stays focused on sorting the /r/ versus /w/ contrast with concise, supportive coaching.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: Put wake in the /w/ home.
+      Child: wake goes in /w/.
+      Buddy: Yes, wake starts with /w/.
+    expected: Should note accurate sorting and clear contrastive coaching
+evaluators:
+  - name: Checks discrimination of /r/ and /w/
+  - name: Rewards accurate sorting
+  - name: Keeps therapist notes concise

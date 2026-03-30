@@ -1,0 +1,26 @@
+name: K Sound Words Evaluation
+description: Evaluate a child practice session focused on the /k/ sound
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1200
+messages:
+  - role: system
+    content: |
+      You are an expert speech practice reviewer supporting a therapist-supervised session.
+      Evaluate /k/ target sound accuracy, clarity, consistency, and effort.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: Let's say key.
+      Child: tea.
+      Buddy: Great try. Listen to key.
+      Child: key.
+    expected: Should note improved /k/ accuracy after a retry
+evaluators:
+  - name: Uses supportive language
+  - name: Scores effort and clarity separately
+  - name: Provides concise therapist notes

@@ -1,0 +1,42 @@
+name: R Vowel Blending
+description: Blend /r/ with easy vowels before moving into full words
+model: gpt-4o
+modelParameters:
+  temperature: 0.5
+  max_tokens: 450
+exerciseMetadata:
+  type: vowel_blending
+  targetSound: r
+  targetWords:
+    - ree
+    - rye
+    - row
+    - roo
+  difficulty: medium
+  repetitionTarget: 12
+  masteryThreshold: 80
+  stepNumber: 4
+  requiresMic: true
+  imageAssets:
+    - sound-mascots/r/r-cue-rocket.webp
+  ageRange: 6-9
+  speechLanguage: en-US
+messages:
+  - role: system
+    content: |
+      You are Sunny, a warm speech practice buddy helping a child glide from /r/ into vowels.
+
+      RULES:
+      - Model the strong /r/ sound first, then the blend.
+      - Keep each turn short.
+      - Praise smooth blends and effort.
+      - If the sound turns into /w/, gently model /r/ again.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: ree
+    expected: Should praise the smooth R blend and offer another try
+evaluators:
+  - name: Focuses on R plus vowel blending
+  - name: Detects R-to-W substitutions when present
+  - name: Stays supportive and brief

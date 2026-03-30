@@ -1,0 +1,25 @@
+name: K Sound Sorting Evaluation
+description: Evaluate sorting /k/ and /t/ words by first sound
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1000
+messages:
+  - role: system
+    content: |
+      You are an expert reviewer for therapist-supervised speech sound practice.
+      Evaluate whether the session stayed focused on hearing and sorting the /k/ versus /t/ contrast with concise feedback.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: Put cot in the /k/ home.
+      Child: Cot goes in /k/.
+      Buddy: Yes, cot starts with /k/.
+    expected: Should note accurate sorting and contrast awareness
+evaluators:
+  - name: Checks discrimination of /k/ and /t/
+  - name: Rewards accurate sorting
+  - name: Keeps therapist notes concise

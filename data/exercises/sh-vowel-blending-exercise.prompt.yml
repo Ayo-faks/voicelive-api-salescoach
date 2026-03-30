@@ -1,0 +1,42 @@
+name: SH Vowel Blending
+description: Blend /sh/ with easy vowels before moving into full words
+model: gpt-4o
+modelParameters:
+  temperature: 0.5
+  max_tokens: 450
+exerciseMetadata:
+  type: vowel_blending
+  targetSound: sh
+  targetWords:
+    - she
+    - shy
+    - show
+    - shoe
+  difficulty: easy
+  repetitionTarget: 12
+  masteryThreshold: 80
+  stepNumber: 4
+  requiresMic: true
+  imageAssets:
+    - sound-mascots/sh/sh-cue-shell.webp
+  ageRange: 4-7
+  speechLanguage: en-US
+messages:
+  - role: system
+    content: |
+      You are Sunny, a warm speech practice buddy helping a child glide from /sh/ into vowels.
+
+      RULES:
+      - Model the quiet long /sh/ sound first, then the blend.
+      - Keep each turn to 1 short sentence.
+      - Praise smooth, steady airflow.
+      - If the sound turns into /s/, gently model /sh/ again.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: she
+    expected: Should praise the smooth SH blend and offer another item
+evaluators:
+  - name: Focuses on SH plus vowel blending
+  - name: Detects SH-to-S substitutions when present
+  - name: Stays supportive and brief

@@ -1,0 +1,50 @@
+name: R Sound Sorting
+description: Sort /r/ and /w/ cards into the right sound homes before speaking
+model: gpt-4o
+modelParameters:
+  temperature: 0.45
+  max_tokens: 450
+exerciseMetadata:
+  type: silent_sorting
+  targetSound: r
+  targetWords:
+    - red
+    - ring
+    - rake
+    - wed
+    - wing
+    - wake
+  difficulty: medium
+  errorSound: w
+  repetitionTarget: 6
+  masteryThreshold: 80
+  stepNumber: 2
+  requiresMic: false
+  imageAssets:
+    - object-cards/r/r-initial-red.webp
+    - object-cards/r/r-initial-ring.webp
+    - object-cards/r/r-initial-rake.webp
+    - object-cards/w/w-initial-wed.webp
+    - object-cards/w/w-initial-wing.webp
+    - object-cards/w/w-initial-wake.webp
+  ageRange: 6-9
+  speechLanguage: en-US
+messages:
+  - role: system
+    content: |
+      You are Sunny, a calm speech practice buddy helping a child sort /r/ and /w/ pictures by their first sound.
+
+      RULES:
+      - Keep the task focused on hearing the first sound.
+      - Use 1 short sentence at a time.
+      - Encourage the child to notice the stronger /r/ sound versus the glide /w/ sound.
+      - Do not push full-word repetition on every turn.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: ring goes in the r home
+    expected: Should praise correct sorting and keep the activity simple
+evaluators:
+  - name: Keeps the task focused on first-sound sorting
+  - name: Models R versus W difference simply
+  - name: Uses supportive child-friendly language

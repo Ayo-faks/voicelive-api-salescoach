@@ -75,6 +75,9 @@ const useStyles = makeStyles({
     fontFamily: 'var(--font-display)',
     fontWeight: '700',
     fontSize: '0.95rem',
+    '@media (max-width: 760px)': {
+      width: '100%',
+    },
   },
   avatarStage: {
     display: 'grid',
@@ -109,6 +112,9 @@ const useStyles = makeStyles({
     border: '1px solid var(--color-border)',
     backgroundColor: 'var(--color-bg-card)',
     boxShadow: 'var(--shadow-md)',
+    '@media (max-width: 760px)': {
+      padding: 'var(--space-md)',
+    },
   },
   exitButton: {
     minHeight: '36px',
@@ -159,7 +165,8 @@ export function ChildHome({
     'Practice buddy'
   const selectedExercise =
     scenarios.find(scenario => scenario.id === selectedScenario) || null
-  const targetWords = selectedExercise?.exerciseMetadata?.targetWords?.slice(0, 3) || []
+  const stepNumber = selectedExercise?.exerciseMetadata?.stepNumber
+  const targetSound = selectedExercise?.exerciseMetadata?.targetSound
 
   return (
     <div className={styles.layout}>
@@ -187,8 +194,8 @@ export function ChildHome({
           </Text>
           <Text className={styles.body}>
             Pick one activity, tap start, and talk with your practice buddy.
-            This screen keeps things short and simple so the child can get into
-            the session without therapist dashboard noise.
+            The selected practice stays at the top so it is easy to check before
+            starting.
           </Text>
           <div className={styles.chipRow}>
             <Badge appearance="filled" className={styles.chip}>
@@ -199,12 +206,22 @@ export function ChildHome({
                 Exercise: {selectedExercise.name}
               </Badge>
             ) : null}
-            {targetWords.map(word => (
-              <Badge key={word} appearance="tint" className={styles.chip}>
-                {word}
+            {stepNumber ? (
+              <Badge appearance="tint" className={styles.chip}>
+                Step {stepNumber}
               </Badge>
-            ))}
+            ) : null}
+            {targetSound ? (
+              <Badge appearance="tint" className={styles.chip}>
+                Sound: {targetSound}
+              </Badge>
+            ) : null}
           </div>
+          {selectedExercise ? (
+            <Text className={styles.body}>
+              {selectedExercise.description}
+            </Text>
+          ) : null}
           <Button
             appearance="primary"
             className={styles.action}
@@ -236,9 +253,10 @@ export function ChildHome({
           onUpdateCustomScenario={() => undefined}
           onDeleteCustomScenario={() => undefined}
           title="Choose one practice"
-          helperText="Tap one exercise below. When it feels right, start the session and talk with your buddy."
+          helperText="Use the filters to narrow the list, then tap one card to load it into the start panel."
           showFooter={false}
           showCustomExercises={false}
+          compactChildMode
         />
       </Card>
     </div>

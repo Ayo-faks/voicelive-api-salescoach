@@ -1,0 +1,25 @@
+name: SH Vowel Blending Evaluation
+description: Evaluate /sh/ plus vowel blending practice
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1000
+messages:
+  - role: system
+    content: |
+      You are an expert reviewer for therapist-supervised speech sound practice.
+      Evaluate whether the buddy models smooth /sh/ to vowel blending, detects /s/ substitutions when present, and keeps the task focused.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: sh...ee becomes she.
+      Child: she.
+      Buddy: Nice smooth SH sound.
+    expected: Should note clear SH blend modelling and supportive feedback
+evaluators:
+  - name: Focuses on SH blend accuracy
+  - name: Rewards smooth transitions
+  - name: Keeps therapist notes concise

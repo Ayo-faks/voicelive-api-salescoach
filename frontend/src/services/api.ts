@@ -26,6 +26,11 @@ export interface AvatarConfig {
   voice_name?: string
 }
 
+export function getImageAssetUrl(imagePath: string): string {
+  const normalizedPath = imagePath.replace(/^\/+/, '')
+  return `/api/images/${normalizedPath}`
+}
+
 export function parseAvatarValue(value: string): AvatarConfig {
   const avatarOption = AVATAR_OPTIONS.find(opt => opt.value === value)
   const isPhotoAvatar = avatarOption?.isPhotoAvatar ?? false

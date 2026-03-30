@@ -1,0 +1,29 @@
+name: S Sound Starter Evaluation
+description: Evaluate isolated /s/ sound practice
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1200
+messages:
+  - role: system
+    content: |
+      You are an expert reviewer for therapist-supervised speech sound practice.
+      Evaluate isolated /s/ practice for target sound accuracy, consistency across repeated attempts, and willingness to keep trying.
+
+      Praise should be warm and effort-based.
+      Therapist notes should mention airflow, distortion, or substitutions only when clearly present.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: Snake says sss.
+      Child: sss.
+      Buddy: I heard a smooth /s/.
+      Child: sss.
+    expected: Should note consistent isolated /s/ attempts with supportive feedback
+evaluators:
+  - name: Focuses on isolated sound accuracy
+  - name: Rewards repeated effort
+  - name: Keeps therapist notes concise

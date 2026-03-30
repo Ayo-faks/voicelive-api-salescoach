@@ -239,6 +239,7 @@ interface Props {
   onToggleRecording?: () => void | Promise<void>
   canTalk?: boolean
   audience?: 'therapist' | 'child'
+  showMicDock?: boolean
 }
 
 function markVideoReady(
@@ -267,6 +268,7 @@ export function VideoPanel({
   onToggleRecording,
   canTalk = false,
   audience = 'child',
+  showMicDock = true,
 }: Props) {
   const styles = useStyles()
   const videoKey = `${avatarValue || 'avatar'}-${childName || 'child'}-${scenarioName || 'scenario'}`
@@ -388,20 +390,22 @@ export function VideoPanel({
           </div>
         ) : null}
 
-        <div className={styles.micDock}>
-          <Button
-            aria-label={recording ? 'Stop recording' : 'Start recording'}
-            appearance="transparent"
-            className={mergeClasses(
-              styles.micButton,
-              recording && styles.micButtonActive
-            )}
-            icon={recording ? <MicOffRegular fontSize={28} /> : <MicRegular fontSize={28} />}
-            onClick={onToggleRecording}
-            disabled={!canTalk || !onToggleRecording}
-          />
-          <Text className={styles.micLabel}>{micLabel}</Text>
-        </div>
+        {showMicDock ? (
+          <div className={styles.micDock}>
+            <Button
+              aria-label={recording ? 'Stop recording' : 'Start recording'}
+              appearance="transparent"
+              className={mergeClasses(
+                styles.micButton,
+                recording && styles.micButtonActive
+              )}
+              icon={recording ? <MicOffRegular fontSize={28} /> : <MicRegular fontSize={28} />}
+              onClick={onToggleRecording}
+              disabled={!canTalk || !onToggleRecording}
+            />
+            <Text className={styles.micLabel}>{micLabel}</Text>
+          </div>
+        ) : null}
       </div>
     </Card>
   )

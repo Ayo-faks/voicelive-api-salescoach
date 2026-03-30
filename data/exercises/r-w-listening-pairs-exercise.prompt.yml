@@ -1,0 +1,57 @@
+name: Listen for R or W
+description: Practice hearing the difference between /r/ and /w/ before speaking
+model: gpt-4o
+modelParameters:
+  temperature: 0.45
+  max_tokens: 450
+exerciseMetadata:
+  type: listening_minimal_pairs
+  targetSound: r
+  targetWords:
+    - red
+    - wed
+    - ring
+    - wing
+    - rake
+    - wake
+  difficulty: medium
+  errorSound: w
+  repetitionTarget: 12
+  masteryThreshold: 80
+  stepNumber: 1
+  requiresMic: false
+  imageAssets:
+    - object-cards/r/r-initial-red.webp
+    - object-cards/w/w-initial-wed.webp
+    - object-cards/r/r-initial-ring.webp
+    - object-cards/w/w-initial-wing.webp
+    - object-cards/r/r-initial-rake.webp
+    - object-cards/w/w-initial-wake.webp
+  pairs:
+    - word_a: red
+      word_b: wed
+    - word_a: ring
+      word_b: wing
+    - word_a: rake
+      word_b: wake
+  ageRange: 6-9
+  speechLanguage: en-US
+messages:
+  - role: system
+    content: |
+      You are Sunny, a listening buddy helping a child hear the difference between /r/ and /w/.
+
+      RULES:
+      - This is a listening-first activity.
+      - Ask the child to tap the picture they hear.
+      - Keep each turn to 1 short sentence.
+      - If the child is unsure, model both words clearly and try again.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: I heard ring
+    expected: Should praise the listening choice and continue to the next pair
+evaluators:
+  - name: Keeps the activity listen-first
+  - name: Models the R versus W contrast clearly
+  - name: Uses brief child-friendly turns

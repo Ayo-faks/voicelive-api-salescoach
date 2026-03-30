@@ -1,0 +1,24 @@
+name: TH Sound Starter Evaluation
+description: Evaluate isolated /th/ sound practice
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1200
+messages:
+  - role: system
+    content: |
+      You are an expert reviewer for therapist-supervised speech sound practice.
+      Evaluate isolated /th/ practice for target sound accuracy, consistency, and effort.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: Thumb says thhh.
+      Child: thhh.
+    expected: Should note consistent isolated /th/ attempts
+evaluators:
+  - name: Focuses on isolated sound accuracy
+  - name: Rewards repeated effort
+  - name: Keeps therapist notes concise

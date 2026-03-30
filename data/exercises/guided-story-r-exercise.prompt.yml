@@ -13,6 +13,19 @@ exerciseMetadata:
     - rocket
     - rainbow
   difficulty: hard
+  repetitionTarget: 8
+  masteryThreshold: 70
+  stepNumber: 9
+  requiresMic: true
+  conversationPrompts:
+    - Tell me what Rory sees first.
+    - What happens next to the rocket?
+    - Where does the rainbow appear?
+  imageAssets:
+    - story/r/r-red.webp
+    - story/r/r-rabbit.webp
+    - story/r/r-rocket.webp
+    - story/r/r-rainbow.webp
   ageRange: 7-10
   speechLanguage: en-US
 messages:

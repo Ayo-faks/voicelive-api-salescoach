@@ -14,12 +14,17 @@ import type React from 'react'
 import type {
   ChildProfile,
   CustomScenario,
+  ExerciseMetadata,
   Message,
   PronunciationAssessment,
   Scenario,
 } from '../types'
 import { ChatPanel } from './ChatPanel'
 import { ExerciseFeedback } from './ExerciseFeedback'
+import { ListeningMinimalPairsPanel } from './ListeningMinimalPairsPanel'
+import { SilentSortingPanel } from './SilentSortingPanel'
+import { SoundIsolationPanel } from './SoundIsolationPanel'
+import { VowelBlendingPanel } from './VowelBlendingPanel'
 import { VideoPanel } from './VideoPanel'
 
 const useStyles = makeStyles({
@@ -171,6 +176,23 @@ function isCustomScenario(
   return Boolean(scenario && 'scenarioData' in scenario)
 }
 
+function getScenarioExerciseMetadata(
+  scenario: Scenario | CustomScenario | null
+): Partial<ExerciseMetadata> | undefined {
+  if (!scenario) return undefined
+
+  if (isCustomScenario(scenario)) {
+    return {
+      type: scenario.scenarioData.exerciseType,
+      targetSound: scenario.scenarioData.targetSound,
+      targetWords: scenario.scenarioData.targetWords,
+      difficulty: scenario.scenarioData.difficulty,
+    }
+  }
+
+  return scenario.exerciseMetadata
+}
+
 export function SessionScreen({
   videoRef,
   messages,
@@ -197,10 +219,43 @@ export function SessionScreen({
   const styles = useStyles()
   const [transcriptRevealed, setTranscriptRevealed] = useState(!isChildMode)
   const customScenario = isCustomScenario(scenario) ? scenario : null
+  const exerciseMetadata = getScenarioExerciseMetadata(scenario)
   const canTalk = connected && introComplete && !sessionFinished
   const exerciseType = formatExerciseType(
     customScenario?.scenarioData.exerciseType || scenario?.exerciseMetadata?.type
   )
+  const showMicDock = exerciseMetadata?.requiresMic !== false
+  const isListeningMinimalPairs = exerciseMetadata?.type === 'listening_minimal_pairs'
+  const isSilentSorting = exerciseMetadata?.type === 'silent_sorting'
+  const isSoundIsolation = exerciseMetadata?.type === 'sound_isolation'
+  const isVowelBlending = exerciseMetadata?.type === 'vowel_blending'
+
+  const activityPanel = isListeningMinimalPairs ? (
+    <ListeningMinimalPairsPanel
+      scenarioName={scenario?.name}
+      metadata={exerciseMetadata}
+      audience={isChildMode ? 'child' : 'therapist'}
+    />
+  ) : isSilentSorting ? (
+    <SilentSortingPanel
+      scenarioName={scenario?.name}
+      metadata={exerciseMetadata}
+      audience={isChildMode ? 'child' : 'therapist'}
+    />
+  ) : isSoundIsolation ? (
+    <SoundIsolationPanel
+      scenarioName={scenario?.name}
+      metadata={exerciseMetadata}
+      attempts={messages.filter(message => message.role === 'user').length}
+    />
+  ) : isVowelBlending ? (
+    <VowelBlendingPanel
+      scenarioName={scenario?.name}
+      metadata={exerciseMetadata}
+      attempts={messages.filter(message => message.role === 'user').length}
+    />
+  ) : null
+
   const handleToggleRecording = () => {
     if (sessionFinished) {
       return
@@ -279,9 +334,12 @@ export function SessionScreen({
           onToggleRecording={handleToggleRecording}
           canTalk={canTalk && !scoringUtterance}
           audience={isChildMode ? 'child' : 'therapist'}
+          showMicDock={showMicDock}
         />
 
-        {isChildMode ? (
+        {activityPanel}
+
+        {isChildMode && !isListeningMinimalPairs && !isSilentSorting ? (
           <ExerciseFeedback
             referenceText={activeReferenceText}
             feedback={utteranceFeedback}

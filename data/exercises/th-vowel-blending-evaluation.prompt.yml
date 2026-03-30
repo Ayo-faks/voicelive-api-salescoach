@@ -1,0 +1,25 @@
+name: TH Vowel Blending Evaluation
+description: Evaluate /th/ plus vowel blending practice
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1000
+messages:
+  - role: system
+    content: |
+      You are an expert reviewer for therapist-supervised speech sound practice.
+      Evaluate whether the buddy models smooth /th/ to vowel blending, detects /f/ substitutions when present, and keeps the task focused.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: th...ee becomes thee.
+      Child: thee.
+      Buddy: Nice smooth TH sound.
+    expected: Should note clear TH blend modelling and supportive feedback
+evaluators:
+  - name: Focuses on TH blend accuracy
+  - name: Rewards smooth transitions
+  - name: Keeps therapist notes concise

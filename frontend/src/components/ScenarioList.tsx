@@ -18,10 +18,23 @@ import {
   tokens,
 } from '@fluentui/react-components'
 import { Edit24Regular, PersonVoiceRegular } from '@fluentui/react-icons'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { CustomScenario, CustomScenarioData, Scenario } from '../types'
 import { AVATAR_OPTIONS, DEFAULT_AVATAR } from '../types'
+import {
+  ACTIVITY_FILTERS,
+  SOUND_FILTERS,
+  filterScenarios,
+  getStepLabel,
+  groupByStep,
+  type ActivityFilterId,
+  type SoundFamilyId,
+} from '../utils/exerciseFilters'
 import { CustomScenarioEditor } from './CustomScenarioEditor'
+
+const CHILD_ACTIVITY_FILTER_KEY = 'wulo.child.activityFilter'
+const CHILD_SOUND_FILTER_KEY = 'wulo.child.soundFilter'
+const MAX_CHILD_CARDS_PER_GROUP = 4
 
 const useStyles = makeStyles({
   container: {
@@ -45,6 +58,62 @@ const useStyles = makeStyles({
   helperText: {
     color: 'var(--color-text-secondary)',
     fontSize: '0.8125rem',
+  },
+  filterPanel: {
+    display: 'grid',
+    gap: 'var(--space-sm)',
+    padding: 'var(--space-md)',
+    borderRadius: 'var(--radius-md)',
+    backgroundColor: 'var(--color-bg-secondary)',
+    border: '1px solid var(--color-border)',
+    '@media (max-width: 760px)': {
+      padding: 'var(--space-sm)',
+    },
+  },
+  filterGroup: {
+    display: 'grid',
+    gap: '6px',
+  },
+  filterLabel: {
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.75rem',
+    fontWeight: '600',
+    letterSpacing: '0.02em',
+    textTransform: 'uppercase',
+  },
+  desktopFilterRow: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap',
+    '@media (max-width: 760px)': {
+      display: 'none',
+    },
+  },
+  mobileFilterRow: {
+    display: 'none',
+    gap: 'var(--space-sm)',
+    gridTemplateColumns: '1fr',
+    '@media (max-width: 760px)': {
+      display: 'grid',
+    },
+  },
+  filterDropdown: {
+    width: '100%',
+  },
+  filterButton: {
+    minHeight: '34px',
+    paddingInline: 'var(--space-md)',
+    borderRadius: '999px',
+    fontSize: '0.8125rem',
+    fontWeight: '600',
+    border: '1px solid var(--color-border)',
+    color: 'var(--color-text-secondary)',
+    backgroundColor: 'rgba(255, 255, 255, 0.82)',
+  },
+  activeFilterButton: {
+    border: '1px solid var(--color-primary)',
+    backgroundColor: 'var(--color-primary-soft)',
+    color: 'var(--color-primary-dark)',
   },
   sectionHeader: {
     display: 'flex',
@@ -79,6 +148,14 @@ const useStyles = makeStyles({
       minHeight: '120px',
     },
   },
+  compactCard: {
+    minHeight: '104px',
+    padding: 'var(--space-sm) var(--space-md)',
+    boxShadow: 'none',
+    '@media (max-width: 640px)': {
+      minHeight: '96px',
+    },
+  },
   selected: {
     border: '1px solid var(--color-primary)',
     boxShadow: 'var(--shadow-glow)',
@@ -104,6 +181,11 @@ const useStyles = makeStyles({
     backgroundColor: 'var(--color-primary-soft)',
     fontSize: '18px',
     flexShrink: 0,
+  },
+  compactIcon: {
+    width: '30px',
+    height: '30px',
+    fontSize: '16px',
   },
   cardActions: {
     display: 'flex',
@@ -150,6 +232,9 @@ const useStyles = makeStyles({
     gap: '6px',
     marginTop: 'var(--space-md)',
   },
+  compactMetadataRow: {
+    marginTop: 'var(--space-sm)',
+  },
   metaBadge: {
     minHeight: '24px',
     paddingInline: 'var(--space-sm)',
@@ -157,6 +242,67 @@ const useStyles = makeStyles({
     backgroundColor: 'var(--color-primary-soft)',
     color: 'var(--color-primary-dark)',
     fontSize: '0.75rem',
+  },
+  stepGroups: {
+    display: 'grid',
+    gap: 'var(--space-md)',
+  },
+  stepGroup: {
+    display: 'grid',
+    gap: 'var(--space-sm)',
+  },
+  stepHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 'var(--space-sm)',
+    flexWrap: 'wrap',
+    '@media (max-width: 760px)': {
+      alignItems: 'stretch',
+    },
+  },
+  stepHeading: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    flexWrap: 'wrap',
+  },
+  stepTitle: {
+    fontFamily: 'var(--font-display)',
+    fontSize: '0.95rem',
+    fontWeight: '700',
+    color: 'var(--color-text-primary)',
+  },
+  groupCount: {
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.75rem',
+  },
+  groupCards: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: 'var(--space-sm)',
+    '@media (max-width: 820px)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+  showMoreButton: {
+    minHeight: '32px',
+    paddingInline: 'var(--space-md)',
+    borderRadius: '999px',
+    fontSize: '0.8125rem',
+    fontWeight: '600',
+    '@media (max-width: 760px)': {
+      width: '100%',
+      justifyContent: 'center',
+    },
+  },
+  emptyState: {
+    padding: 'var(--space-lg)',
+    textAlign: 'center',
+    color: 'var(--color-text-secondary)',
+    borderRadius: 'var(--radius-md)',
+    backgroundColor: 'var(--color-bg-secondary)',
+    border: '1px dashed var(--color-border-strong)',
   },
   startButton: {
     minHeight: '44px',
@@ -223,6 +369,7 @@ interface Props {
   showCustomExercises?: boolean
   selectedAvatar?: string
   onAvatarChange?: (value: string) => void
+  compactChildMode?: boolean
 }
 
 export function ScenarioList({
@@ -240,10 +387,59 @@ export function ScenarioList({
   showCustomExercises = true,
   selectedAvatar,
   onAvatarChange,
+  compactChildMode = false,
 }: Props) {
   const styles = useStyles()
   const [internalAvatar, setInternalAvatar] = useState(DEFAULT_AVATAR)
+  const [activityFilter, setActivityFilter] = useState<ActivityFilterId>(() => {
+    if (typeof window === 'undefined') {
+      return 'recommended'
+    }
+
+    const stored = window.sessionStorage.getItem(CHILD_ACTIVITY_FILTER_KEY)
+    return ACTIVITY_FILTERS.some(filter => filter.id === stored)
+      ? (stored as ActivityFilterId)
+      : 'recommended'
+  })
+  const [soundFilter, setSoundFilter] = useState<SoundFamilyId>(() => {
+    if (typeof window === 'undefined') {
+      return 'all'
+    }
+
+    const stored = window.sessionStorage.getItem(CHILD_SOUND_FILTER_KEY)
+    return SOUND_FILTERS.some(filter => filter.id === stored)
+      ? (stored as SoundFamilyId)
+      : 'all'
+  })
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
   const activeAvatar = selectedAvatar ?? internalAvatar
+  const filteredScenarios = compactChildMode
+    ? filterScenarios(scenarios, activityFilter, soundFilter)
+    : scenarios
+  const stepGroups = compactChildMode ? groupByStep(filteredScenarios) : []
+
+  useEffect(() => {
+    if (!compactChildMode || typeof window === 'undefined') {
+      return
+    }
+
+    window.sessionStorage.setItem(CHILD_ACTIVITY_FILTER_KEY, activityFilter)
+    window.sessionStorage.setItem(CHILD_SOUND_FILTER_KEY, soundFilter)
+  }, [activityFilter, compactChildMode, soundFilter])
+
+  useEffect(() => {
+    if (!compactChildMode || filteredScenarios.length === 0) {
+      return
+    }
+
+    const selectedVisible = filteredScenarios.some(
+      scenario => scenario.id === selectedScenario
+    )
+
+    if (!selectedVisible && filteredScenarios[0].id !== selectedScenario) {
+      onSelect(filteredScenarios[0].id)
+    }
+  }, [compactChildMode, filteredScenarios, onSelect, selectedScenario])
 
   const handleAvatarChange = (value: string) => {
     if (onAvatarChange) {
@@ -267,6 +463,70 @@ export function ScenarioList({
     })
   }
 
+  const renderScenarioCard = (scenario: Scenario) => {
+    const isSelected = selectedScenario === scenario.id
+    const stepNumber = scenario.exerciseMetadata?.stepNumber
+
+    return (
+      <Card
+        key={scenario.id}
+        className={mergeClasses(
+          styles.card,
+          compactChildMode && styles.compactCard,
+          isSelected && styles.selected
+        )}
+        onClick={() => onSelect(scenario.id)}
+      >
+        <div className={styles.cardHeader}>
+          <span
+            className={mergeClasses(
+              styles.graphIcon,
+              compactChildMode && styles.compactIcon
+            )}
+          >
+            <PersonVoiceRegular />
+          </span>
+          <div className={styles.cardCopy}>
+            <Text className={styles.cardTitle} size={500} weight="semibold">
+              {scenario.name}
+            </Text>
+            <Text className={styles.cardDescription} size={300}>
+              {scenario.description}
+            </Text>
+          </div>
+        </div>
+
+        <div
+          className={mergeClasses(
+            styles.metadataRow,
+            compactChildMode && styles.compactMetadataRow
+          )}
+        >
+          {stepNumber ? (
+            <Badge appearance="tint" className={styles.metaBadge}>
+              Step {stepNumber}
+            </Badge>
+          ) : null}
+          {!compactChildMode ? (
+            <Badge appearance="filled" className={styles.metaBadge}>
+              {formatExerciseType(scenario.exerciseMetadata?.type)}
+            </Badge>
+          ) : null}
+          {scenario.exerciseMetadata?.targetSound ? (
+            <Badge appearance="tint" className={styles.metaBadge}>
+              Sound: {scenario.exerciseMetadata.targetSound}
+            </Badge>
+          ) : null}
+          {!compactChildMode && scenario.exerciseMetadata?.difficulty ? (
+            <Badge appearance="tint" className={styles.metaBadge}>
+              {scenario.exerciseMetadata.difficulty}
+            </Badge>
+          ) : null}
+        </div>
+      </Card>
+    )
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -278,49 +538,139 @@ export function ScenarioList({
         </Text>
       </div>
 
-      <div className={styles.cardsGrid}>
-        {scenarios.map(scenario => {
-          const isSelected = selectedScenario === scenario.id
-
-          return (
-            <Card
-              key={scenario.id}
-              className={mergeClasses(styles.card, isSelected && styles.selected)}
-              onClick={() => onSelect(scenario.id)}
-            >
-              <div className={styles.cardHeader}>
-                <span className={styles.graphIcon}>
-                  <PersonVoiceRegular />
-                </span>
-                <div className={styles.cardCopy}>
-                  <Text className={styles.cardTitle} size={500} weight="semibold">
-                    {scenario.name}
-                  </Text>
-                  <Text className={styles.cardDescription} size={300}>
-                    {scenario.description}
-                  </Text>
-                </div>
+      {compactChildMode ? (
+        <>
+          <div className={styles.filterPanel}>
+            <div className={styles.filterGroup}>
+              <Text className={styles.filterLabel}>Activity</Text>
+              <div className={styles.desktopFilterRow}>
+                {ACTIVITY_FILTERS.map(filter => (
+                  <Button
+                    key={filter.id}
+                    appearance="secondary"
+                    className={mergeClasses(
+                      styles.filterButton,
+                      activityFilter === filter.id && styles.activeFilterButton
+                    )}
+                    onClick={() => setActivityFilter(filter.id)}
+                  >
+                    {filter.label}
+                  </Button>
+                ))}
               </div>
+            </div>
 
-              <div className={styles.metadataRow}>
-                <Badge appearance="filled" className={styles.metaBadge}>
-                  {formatExerciseType(scenario.exerciseMetadata?.type)}
-                </Badge>
-                {scenario.exerciseMetadata?.targetSound && (
-                  <Badge appearance="tint" className={styles.metaBadge}>
-                    Sound: {scenario.exerciseMetadata.targetSound}
-                  </Badge>
-                )}
-                {scenario.exerciseMetadata?.difficulty && (
-                  <Badge appearance="tint" className={styles.metaBadge}>
-                    {scenario.exerciseMetadata.difficulty}
-                  </Badge>
-                )}
+            <div className={styles.filterGroup}>
+              <Text className={styles.filterLabel}>Target sound</Text>
+              <div className={styles.desktopFilterRow}>
+                {SOUND_FILTERS.map(filter => (
+                  <Button
+                    key={filter.id}
+                    appearance="secondary"
+                    className={mergeClasses(
+                      styles.filterButton,
+                      soundFilter === filter.id && styles.activeFilterButton
+                    )}
+                    onClick={() => setSoundFilter(filter.id)}
+                  >
+                    {filter.label}
+                  </Button>
+                ))}
               </div>
-            </Card>
-          )
-        })}
-      </div>
+            </div>
+
+            <div className={styles.mobileFilterRow}>
+              <Dropdown
+                className={styles.filterDropdown}
+                value={ACTIVITY_FILTERS.find(filter => filter.id === activityFilter)?.label || ''}
+                selectedOptions={[activityFilter]}
+                onOptionSelect={(_, data) => {
+                  if (data.optionValue) {
+                    setActivityFilter(data.optionValue as ActivityFilterId)
+                  }
+                }}
+              >
+                {ACTIVITY_FILTERS.map(filter => (
+                  <Option key={filter.id} value={filter.id}>
+                    {filter.label}
+                  </Option>
+                ))}
+              </Dropdown>
+              <Dropdown
+                className={styles.filterDropdown}
+                value={SOUND_FILTERS.find(filter => filter.id === soundFilter)?.label || ''}
+                selectedOptions={[soundFilter]}
+                onOptionSelect={(_, data) => {
+                  if (data.optionValue) {
+                    setSoundFilter(data.optionValue as SoundFamilyId)
+                  }
+                }}
+              >
+                {SOUND_FILTERS.map(filter => (
+                  <Option key={filter.id} value={filter.id}>
+                    {filter.label}
+                  </Option>
+                ))}
+              </Dropdown>
+            </div>
+          </div>
+
+          {stepGroups.length === 0 ? (
+            <Text className={styles.emptyState} size={300}>
+              No practice matches this filter yet. Try another activity or sound.
+            </Text>
+          ) : (
+            <div className={styles.stepGroups}>
+              {stepGroups.map(group => {
+                const isExpanded = expandedGroups[group.id] ?? false
+                const visibleScenarios = isExpanded
+                  ? group.scenarios
+                  : group.scenarios.slice(0, MAX_CHILD_CARDS_PER_GROUP)
+
+                return (
+                  <section key={group.id} className={styles.stepGroup}>
+                    <div className={styles.stepHeader}>
+                      <div className={styles.stepHeading}>
+                        <Text className={styles.stepTitle}>
+                          {group.stepNumber
+                            ? `Step ${group.stepNumber} · ${getStepLabel(group.stepNumber)}`
+                            : group.label}
+                        </Text>
+                        <Text className={styles.groupCount}>
+                          {group.scenarios.length} exercise{group.scenarios.length === 1 ? '' : 's'}
+                        </Text>
+                      </div>
+
+                      {group.scenarios.length > MAX_CHILD_CARDS_PER_GROUP ? (
+                        <Button
+                          appearance="subtle"
+                          className={styles.showMoreButton}
+                          onClick={() =>
+                            setExpandedGroups(current => ({
+                              ...current,
+                              [group.id]: !isExpanded,
+                            }))
+                          }
+                        >
+                          {isExpanded ? 'Show less' : `Show all ${group.scenarios.length}`}
+                        </Button>
+                      ) : null}
+                    </div>
+
+                    <div className={styles.groupCards}>
+                      {visibleScenarios.map(renderScenarioCard)}
+                    </div>
+                  </section>
+                )
+              })}
+            </div>
+          )}
+        </>
+      ) : (
+        <div className={styles.cardsGrid}>
+          {scenarios.map(renderScenarioCard)}
+        </div>
+      )}
 
       {showCustomExercises ? (
         <>
@@ -401,6 +751,11 @@ export function ScenarioList({
                     />
 
                     <div className={styles.metadataRow}>
+                      {scenario.scenarioData.exerciseType ? (
+                        <Badge appearance="tint" className={styles.metaBadge}>
+                          Custom
+                        </Badge>
+                      ) : null}
                       <Badge appearance="filled" className={styles.metaBadge}>
                         {formatExerciseType(scenario.scenarioData.exerciseType)}
                       </Badge>

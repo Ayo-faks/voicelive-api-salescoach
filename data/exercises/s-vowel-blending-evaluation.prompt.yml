@@ -1,0 +1,25 @@
+name: S Vowel Blending Evaluation
+description: Evaluate /s/ plus vowel blending practice
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1000
+messages:
+  - role: system
+    content: |
+      You are an expert reviewer for therapist-supervised speech sound practice.
+      Evaluate whether the buddy models smooth /s/ to vowel blending, reinforces retries, and keeps the task narrow.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: sss...ee becomes see.
+      Child: see.
+      Buddy: Nice smooth blend.
+    expected: Should note clear blend modelling and supportive feedback
+evaluators:
+  - name: Focuses on sound-to-vowel blending
+  - name: Rewards smooth transitions
+  - name: Keeps therapist notes concise

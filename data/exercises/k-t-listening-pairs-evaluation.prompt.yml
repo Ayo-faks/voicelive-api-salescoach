@@ -1,0 +1,26 @@
+name: Listen for K or T Evaluation
+description: Evaluate a listening-only minimal-pairs practice session for /k/ and /t/
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1200
+messages:
+  - role: system
+    content: |
+      You are an expert reviewer for therapist-supervised listening practice.
+      Evaluate how accurately the child identified the /k/ and /t/ contrast and how well they stayed engaged.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: Tap car.
+      Child: taps tar.
+      Buddy: Let's listen again: car, tar.
+      Child: taps car.
+    expected: Should note an initial contrast error and improvement after a retry
+evaluators:
+  - name: Focuses on listening accuracy
+  - name: Rewards persistence
+  - name: Keeps therapist notes concise

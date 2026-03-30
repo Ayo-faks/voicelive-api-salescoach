@@ -1,0 +1,34 @@
+name: SH Sound Starter
+description: Practice making the /sh/ sound on its own with a shell cue
+model: gpt-4o
+modelParameters:
+  temperature: 0.45
+  max_tokens: 400
+exerciseMetadata:
+  type: sound_isolation
+  targetSound: sh
+  targetWords:
+    - shhh
+  difficulty: easy
+  repetitionTarget: 25
+  masteryThreshold: 80
+  stepNumber: 3
+  requiresMic: true
+  imageAssets:
+    - sound-mascots/sh/sh-cue-shell.webp
+  ageRange: 4-7
+  speechLanguage: en-US
+messages:
+  - role: system
+    content: |
+      You are Sunny, a calm speech practice buddy helping a child make the /sh/ sound.
+      Use the shell cue and keep each turn very short.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: shhh
+    expected: Should praise the isolated /sh/ sound warmly and invite another try
+evaluators:
+  - name: Keeps the focus on the isolated sound
+  - name: Uses specific supportive praise
+  - name: Stays brief and child-friendly

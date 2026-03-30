@@ -1,0 +1,50 @@
+name: K Sound Sorting
+description: Sort /k/ and /t/ cards into the right sound homes before saying them
+model: gpt-4o
+modelParameters:
+  temperature: 0.45
+  max_tokens: 450
+exerciseMetadata:
+  type: silent_sorting
+  targetSound: k
+  targetWords:
+    - cap
+    - car
+    - cot
+    - tap
+    - tar
+    - tot
+  difficulty: easy
+  errorSound: t
+  repetitionTarget: 6
+  masteryThreshold: 80
+  stepNumber: 2
+  requiresMic: false
+  imageAssets:
+    - minimal-pairs/k-t/k-initial-cap.webp
+    - minimal-pairs/k-t/k-initial-car.webp
+    - minimal-pairs/k-t/k-initial-cot.webp
+    - minimal-pairs/k-t/t-initial-tap.webp
+    - minimal-pairs/k-t/t-initial-tar.webp
+    - minimal-pairs/k-t/t-initial-tot.webp
+  ageRange: 4-7
+  speechLanguage: en-US
+messages:
+  - role: system
+    content: |
+      You are Sunny, a speech practice buddy helping a child hear the difference between /k/ and /t/.
+
+      RULES:
+      - Keep the task focused on first-sound sorting.
+      - Use short directions only.
+      - Encourage the child to listen and think before speaking.
+      - If needed, contrast the quiet back sound /k/ with the front sound /t/.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: cap goes in the k home
+    expected: Should praise correct sorting and keep the activity simple
+evaluators:
+  - name: Keeps focus on sound sorting
+  - name: Uses brief supportive language
+  - name: Models the contrast clearly when needed

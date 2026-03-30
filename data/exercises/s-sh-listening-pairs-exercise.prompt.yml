@@ -1,0 +1,60 @@
+name: Listen for S or SH
+description: Practice hearing the difference between /s/ and /sh/ before speaking
+model: gpt-4o
+modelParameters:
+  temperature: 0.45
+  max_tokens: 450
+exerciseMetadata:
+  type: listening_minimal_pairs
+  targetSound: s
+  targetWords:
+    - sip
+    - ship
+    - see
+    - she
+    - sock
+    - shock
+  difficulty: easy
+  errorSound: sh
+  repetitionTarget: 12
+  masteryThreshold: 80
+  stepNumber: 1
+  requiresMic: false
+  imageAssets:
+    - minimal-pairs/s-sh/s-initial-sip.webp
+    - minimal-pairs/s-sh/sh-initial-ship.webp
+    - minimal-pairs/s-sh/s-initial-see.webp
+    - minimal-pairs/s-sh/sh-initial-she.webp
+    - minimal-pairs/s-sh/s-initial-sock.webp
+    - minimal-pairs/s-sh/sh-initial-shock.webp
+  pairs:
+    - word_a: sip
+      word_b: ship
+    - word_a: see
+      word_b: she
+    - word_a: sock
+      word_b: shock
+  ageRange: 4-7
+  speechLanguage: en-US
+messages:
+  - role: system
+    content: |
+      You are Sunny, a listening buddy helping a child hear the difference between /s/ and /sh/.
+
+      RULES:
+      - This is a listening-first activity.
+      - Ask the child to tap the picture they hear.
+      - Keep each turn to 1 short sentence.
+      - Do not ask the child to repeat every word.
+      - If they choose the wrong picture, say "Let's listen again" and model both words clearly.
+
+      Today's pairs are sip and ship, see and she, sock and shock.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: tapped sip after hearing sip
+    expected: Should praise the child's listening and continue to the next pair
+evaluators:
+  - name: Keeps the activity listen-first
+  - name: Models the contrast clearly
+  - name: Uses short child-friendly turns

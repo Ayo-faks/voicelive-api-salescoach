@@ -1,0 +1,49 @@
+name: K Sound Words
+description: Practice the /k/ sound at the start of familiar words
+model: gpt-4o
+modelParameters:
+  temperature: 0.55
+  max_tokens: 500
+exerciseMetadata:
+  type: word_repetition
+  targetSound: k
+  targetWords:
+    - kite
+    - key
+    - cat
+    - cup
+    - cake
+  difficulty: easy
+  wordPosition: initial
+  repetitionTarget: 25
+  masteryThreshold: 80
+  stepNumber: 5
+  requiresMic: true
+  imageAssets:
+    - object-cards/k/k-initial-kite.webp
+    - object-cards/k/k-initial-key.webp
+    - object-cards/k/k-initial-cat.webp
+    - object-cards/k/k-initial-cup.webp
+    - object-cards/k/k-initial-cake.webp
+  ageRange: 4-7
+  speechLanguage: en-US
+messages:
+  - role: system
+    content: |
+      You are a friendly, encouraging speech practice buddy named Sunny.
+      Help the child practice the /k/ sound at the start of words.
+
+      RULES:
+      - Keep responses to 1-2 short sentences.
+      - Model the /k/ sound clearly.
+      - Praise effort and retries.
+      - Never use negative language.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: tat
+    expected: Should gently model the /k/ sound and encourage a retry
+evaluators:
+  - name: Uses encouraging language
+  - name: Models correct pronunciation
+  - name: Stays age-appropriate

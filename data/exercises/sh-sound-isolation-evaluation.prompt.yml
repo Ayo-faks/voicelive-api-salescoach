@@ -1,0 +1,24 @@
+name: SH Sound Starter Evaluation
+description: Evaluate isolated /sh/ sound practice
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1200
+messages:
+  - role: system
+    content: |
+      You are an expert reviewer for therapist-supervised speech sound practice.
+      Evaluate isolated /sh/ practice for target sound accuracy, consistency, and effort.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: Shell says shhh.
+      Child: shhh.
+    expected: Should note consistent isolated /sh/ attempts
+evaluators:
+  - name: Focuses on isolated sound accuracy
+  - name: Rewards repeated effort
+  - name: Keeps therapist notes concise

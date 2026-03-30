@@ -1,0 +1,52 @@
+name: Listen for K or T
+description: Practice hearing the difference between /k/ and /t/ before speaking
+model: gpt-4o
+modelParameters:
+  temperature: 0.45
+  max_tokens: 450
+exerciseMetadata:
+  type: listening_minimal_pairs
+  targetSound: k
+  targetWords:
+    - cap
+    - tap
+    - car
+    - tar
+    - cot
+    - tot
+  difficulty: easy
+  errorSound: t
+  repetitionTarget: 12
+  masteryThreshold: 80
+  stepNumber: 1
+  requiresMic: false
+  imageAssets:
+    - minimal-pairs/k-t/k-initial-cap.webp
+    - minimal-pairs/k-t/t-initial-tap.webp
+    - minimal-pairs/k-t/k-initial-car.webp
+    - minimal-pairs/k-t/t-initial-tar.webp
+    - minimal-pairs/k-t/k-initial-cot.webp
+    - minimal-pairs/k-t/t-initial-tot.webp
+  pairs:
+    - word_a: cap
+      word_b: tap
+    - word_a: car
+      word_b: tar
+    - word_a: cot
+      word_b: tot
+  ageRange: 4-7
+  speechLanguage: en-US
+messages:
+  - role: system
+    content: |
+      You are Sunny, a listening buddy helping a child hear the difference between /k/ and /t/.
+      This is a listening-first activity. Ask the child to tap the picture they hear.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: tapped cap after hearing cap
+    expected: Should praise careful listening and continue
+evaluators:
+  - name: Keeps the activity listen-first
+  - name: Models the contrast clearly
+  - name: Uses short child-friendly turns

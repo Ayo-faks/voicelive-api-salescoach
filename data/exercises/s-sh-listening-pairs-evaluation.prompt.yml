@@ -1,0 +1,29 @@
+name: Listen for S or SH Evaluation
+description: Evaluate a listening-only minimal-pairs practice session for /s/ and /sh/
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1200
+messages:
+  - role: system
+    content: |
+      You are an expert reviewer for therapist-supervised listening practice.
+      Evaluate how accurately the child identified the target sound contrast, how well they stayed engaged, and whether additional listening support is needed.
+
+      Praise should celebrate careful listening and persistence.
+      Therapist notes should highlight confusion patterns between /s/ and /sh/.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: Tap ship.
+      Child: taps sip.
+      Buddy: Let's listen again: sip, ship.
+      Child: taps ship.
+    expected: Should note an initial contrast error and improvement after a retry
+evaluators:
+  - name: Focuses on listening accuracy
+  - name: Rewards persistence
+  - name: Keeps therapist notes concise

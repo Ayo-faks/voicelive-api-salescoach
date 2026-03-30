@@ -1,0 +1,25 @@
+name: SH Sound Sorting Evaluation
+description: Evaluate sorting /sh/ and /s/ words by first sound
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1000
+messages:
+  - role: system
+    content: |
+      You are an expert reviewer for therapist-supervised speech sound practice.
+      Evaluate whether the session stays focused on hearing and sorting /sh/ versus /s/ with concise, supportive coaching.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: Put shell in the /sh/ home.
+      Child: shell goes in /sh/.
+      Buddy: Yes, shell starts with /sh/.
+    expected: Should note accurate sorting and supportive coaching
+evaluators:
+  - name: Checks discrimination of /sh/ and /s/
+  - name: Rewards accurate sorting
+  - name: Keeps therapist notes concise

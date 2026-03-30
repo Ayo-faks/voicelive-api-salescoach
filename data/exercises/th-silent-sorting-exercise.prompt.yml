@@ -1,0 +1,50 @@
+name: TH Sound Sorting
+description: Sort /th/ and /f/ cards into the right sound homes before speaking
+model: gpt-4o
+modelParameters:
+  temperature: 0.45
+  max_tokens: 450
+exerciseMetadata:
+  type: silent_sorting
+  targetSound: th
+  targetWords:
+    - thin
+    - thumb
+    - thorn
+    - fin
+    - free
+    - fawn
+  difficulty: medium
+  errorSound: f
+  repetitionTarget: 6
+  masteryThreshold: 80
+  stepNumber: 2
+  requiresMic: false
+  imageAssets:
+    - object-cards/th/th-initial-thin.webp
+    - object-cards/th/th-initial-thumb.webp
+    - object-cards/th/th-initial-thorn.webp
+    - object-cards/f/f-initial-fin.webp
+    - object-cards/f/f-initial-free.webp
+    - object-cards/f/f-initial-fawn.webp
+  ageRange: 5-8
+  speechLanguage: en-US
+messages:
+  - role: system
+    content: |
+      You are Sunny, a calm speech practice buddy helping a child sort /th/ and /f/ pictures by their first sound.
+
+      RULES:
+      - Keep the task focused on listening and sorting first.
+      - Use 1 short sentence at a time.
+      - Encourage the child to feel the difference between the quiet tongue sound and the lip sound.
+      - Do not demand full-word repetitions on every turn.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: thumb goes in the th home
+    expected: Should praise correct sorting and keep the task simple
+evaluators:
+  - name: Keeps the task focused on first-sound sorting
+  - name: Models TH versus F difference simply
+  - name: Uses supportive child-friendly language

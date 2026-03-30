@@ -15,6 +15,25 @@ exerciseMetadata:
     - sock
     - shock
   difficulty: medium
+  errorSound: sh
+  repetitionTarget: 12
+  masteryThreshold: 80
+  stepNumber: 1
+  requiresMic: true
+  imageAssets:
+    - minimal-pairs/s-sh/s-initial-sip.webp
+    - minimal-pairs/s-sh/sh-initial-ship.webp
+    - minimal-pairs/s-sh/s-initial-see.webp
+    - minimal-pairs/s-sh/sh-initial-she.webp
+    - minimal-pairs/s-sh/s-initial-sock.webp
+    - minimal-pairs/s-sh/sh-initial-shock.webp
+  pairs:
+    - word_a: sip
+      word_b: ship
+    - word_a: see
+      word_b: she
+    - word_a: sock
+      word_b: shock
   ageRange: 5-8
   speechLanguage: en-US
 messages:

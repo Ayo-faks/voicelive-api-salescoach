@@ -1,0 +1,25 @@
+name: K Sound Starter Evaluation
+description: Evaluate isolated /k/ sound practice
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1200
+messages:
+  - role: system
+    content: |
+      You are an expert reviewer for therapist-supervised speech sound practice.
+      Evaluate isolated /k/ practice for target sound accuracy, consistency, and willingness to keep trying.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: Camera goes kkk.
+      Child: kkk.
+      Buddy: Nice back sound.
+    expected: Should note consistent isolated /k/ attempts
+evaluators:
+  - name: Focuses on isolated sound accuracy
+  - name: Rewards repeated effort
+  - name: Keeps therapist notes concise

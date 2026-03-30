@@ -14,7 +14,13 @@ export function useScenarios() {
   const [customScenarios, setCustomScenarios] = useState<CustomScenario[]>(() =>
     customScenarioService.getAll()
   )
-  const [selectedScenario, setSelectedScenario] = useState<string | null>(null)
+  const [selectedScenario, setSelectedScenario] = useState<string | null>(() => {
+    if (typeof window === 'undefined') {
+      return null
+    }
+
+    return window.sessionStorage.getItem('wulo.selectedScenario')
+  })
   const [loading, setLoading] = useState(true)
 
   // Load scenarios on mount
@@ -47,6 +53,19 @@ export function useScenarios() {
       setSelectedScenario(availableScenarios[0].id)
     }
   }, [customScenarios, selectedScenario, serverScenarios])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    if (!selectedScenario) {
+      window.sessionStorage.removeItem('wulo.selectedScenario')
+      return
+    }
+
+    window.sessionStorage.setItem('wulo.selectedScenario', selectedScenario)
+  }, [selectedScenario])
 
   // Get a specific custom scenario by ID
   const getCustomScenario = useCallback(

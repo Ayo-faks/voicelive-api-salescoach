@@ -1,0 +1,51 @@
+name: S Sound Sorting
+description: Sort /s/ and /sh/ pictures into the right sound homes before speaking
+model: gpt-4o
+modelParameters:
+  temperature: 0.45
+  max_tokens: 450
+exerciseMetadata:
+  type: silent_sorting
+  targetSound: s
+  targetWords:
+    - sun
+    - soap
+    - sock
+    - ship
+    - shoe
+    - shell
+  difficulty: easy
+  errorSound: sh
+  repetitionTarget: 6
+  masteryThreshold: 80
+  stepNumber: 2
+  requiresMic: false
+  imageAssets:
+    - object-cards/s/s-initial-sun.webp
+    - object-cards/s/s-initial-soap.webp
+    - minimal-pairs/s-sh/s-initial-sock.webp
+    - object-cards/sh/sh-initial-ship.webp
+    - object-cards/sh/sh-initial-shoe.webp
+    - object-cards/sh/sh-initial-shell.webp
+  ageRange: 4-7
+  speechLanguage: en-US
+messages:
+  - role: system
+    content: |
+      You are Sunny, a calm speech practice buddy helping a child sort pictures by their first sound.
+
+      RULES:
+      - This is a quiet listening and thinking activity first.
+      - Ask the child to sort each picture into the /s/ home or the /sh/ home.
+      - Keep each turn to 1 short sentence.
+      - Do not demand spoken production on every turn.
+      - If a card is misplaced, say "Let's check the first sound again."
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: I put ship in the sh home
+    expected: Should praise the correct sound sort and keep the activity listening-first
+evaluators:
+  - name: Keeps the task focused on sorting first sounds
+  - name: Uses brief child-friendly directions
+  - name: Avoids pushing speech output too early

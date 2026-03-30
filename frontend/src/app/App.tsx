@@ -110,6 +110,22 @@ function getReferenceText(scenario: Scenario | CustomScenario | null): string {
   if (!scenario) return ''
 
   if (isCustomScenario(scenario)) {
+    if (scenario.scenarioData.exerciseType === 'listening_minimal_pairs') {
+      return ''
+    }
+
+    if (scenario.scenarioData.exerciseType === 'silent_sorting') {
+      return ''
+    }
+
+    if (scenario.scenarioData.exerciseType === 'sound_isolation') {
+      return scenario.scenarioData.targetWords[0] || scenario.scenarioData.targetSound
+    }
+
+    if (scenario.scenarioData.exerciseType === 'vowel_blending') {
+      return scenario.scenarioData.targetWords[0] || scenario.scenarioData.targetSound
+    }
+
     if (
       scenario.scenarioData.exerciseType === 'sentence_repetition' ||
       scenario.scenarioData.exerciseType === 'guided_prompt'
@@ -121,6 +137,22 @@ function getReferenceText(scenario: Scenario | CustomScenario | null): string {
     }
 
     return scenario.scenarioData.targetWords.join(' ')
+  }
+
+  if (scenario.exerciseMetadata?.type === 'listening_minimal_pairs') {
+    return ''
+  }
+
+  if (scenario.exerciseMetadata?.type === 'silent_sorting') {
+    return ''
+  }
+
+  if (scenario.exerciseMetadata?.type === 'sound_isolation') {
+    return scenario.exerciseMetadata.targetWords?.[0] || scenario.exerciseMetadata.targetSound || ''
+  }
+
+  if (scenario.exerciseMetadata?.type === 'vowel_blending') {
+    return scenario.exerciseMetadata.targetWords?.[0] || scenario.exerciseMetadata.targetSound || ''
   }
 
   return scenario.exerciseMetadata?.targetWords?.join(' ') || ''
@@ -1674,7 +1706,6 @@ export default function App() {
                 onExitToEntry={handleReturnToEntry}
                 onSelectScenario={(scenarioId: string) => {
                   setSelectedScenario(scenarioId)
-                  void handleStart(selectedAvatar, scenarioId)
                 }}
                 onStartSession={() => {
                   void handleStart(selectedAvatar)

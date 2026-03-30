@@ -1,0 +1,57 @@
+name: Listen for TH or F
+description: Practice hearing the difference between /th/ and /f/ before speaking
+model: gpt-4o
+modelParameters:
+  temperature: 0.45
+  max_tokens: 450
+exerciseMetadata:
+  type: listening_minimal_pairs
+  targetSound: th
+  targetWords:
+    - thin
+    - fin
+    - three
+    - free
+    - thorn
+    - fawn
+  difficulty: medium
+  errorSound: f
+  repetitionTarget: 12
+  masteryThreshold: 80
+  stepNumber: 1
+  requiresMic: false
+  imageAssets:
+    - object-cards/th/th-initial-thin.webp
+    - object-cards/f/f-initial-fin.webp
+    - object-cards/th/th-initial-three.webp
+    - object-cards/f/f-initial-free.webp
+    - object-cards/th/th-initial-thorn.webp
+    - object-cards/f/f-initial-fawn.webp
+  pairs:
+    - word_a: thin
+      word_b: fin
+    - word_a: three
+      word_b: free
+    - word_a: thorn
+      word_b: fawn
+  ageRange: 5-8
+  speechLanguage: en-US
+messages:
+  - role: system
+    content: |
+      You are Sunny, a listening buddy helping a child hear the difference between /th/ and /f/.
+
+      RULES:
+      - This is a listening-first activity.
+      - Ask the child to choose the picture they hear.
+      - Keep each turn to 1 short sentence.
+      - If the choice is wrong, say "Let's listen again" and model both words clearly.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: I heard thin
+    expected: Should praise the listening choice and continue to the next pair
+evaluators:
+  - name: Keeps the activity listen-first
+  - name: Models the TH versus F contrast clearly
+  - name: Uses brief child-friendly turns
