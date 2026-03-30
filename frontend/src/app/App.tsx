@@ -298,6 +298,9 @@ const useStyles = makeStyles({
   },
   appTitle: {
     fontFamily: 'var(--font-display)',
+    background: 'linear-gradient(135deg, var(--color-primary-dark), var(--color-primary))',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
     color: 'var(--color-text-primary)',
     fontWeight: '800',
     fontSize: '1rem',
@@ -576,7 +579,7 @@ export default function App() {
   const isChildMode = userMode === 'child' && !therapistView
   const activeAvatarName = getAvatarName(selectedAvatar)
   const activeAvatarPersona = getAvatarPersona(selectedAvatar)
-  const appTitle = 'SpeakBright'
+  const appTitle = 'Wulo'
   const launchOverlayVisible =
     !showSetup &&
     showLaunchTransition &&
@@ -1631,7 +1634,6 @@ export default function App() {
         ) : !userMode ? (
           <ModeSelector
             isTherapist={isTherapist}
-            selectedChildName={selectedChild?.name}
             onChooseMode={handleChooseMode}
           />
         ) : showSetup ? (
@@ -1758,7 +1760,7 @@ export default function App() {
             <Text>
               {roleNoticeIntent === 'mode-switch'
                 ? 'Therapist-only tools require a therapist role on your account.'
-                : 'This part of SpeakBright is available only to therapist accounts.'}
+                : 'This part of Wulo is available only to therapist accounts.'}
             </Text>
           </DialogBody>
           <DialogActions>

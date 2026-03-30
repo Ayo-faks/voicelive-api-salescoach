@@ -110,7 +110,7 @@ export function AuthGateScreen({
   return (
     <div className={styles.shell}>
       <section className={styles.card}>
-        <Text className={styles.eyebrow}>SpeakBright</Text>
+        <Text className={styles.eyebrow}>Wulo</Text>
 
         {status === 'loading' ? (
           <>

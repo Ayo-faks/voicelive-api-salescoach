@@ -19,6 +19,8 @@ const useStyles = makeStyles({
     boxShadow: 'var(--shadow-lg)',
     display: 'grid',
     gap: 'var(--space-sm)',
+    justifyItems: 'center',
+    textAlign: 'center',
   },
   title: {
     fontFamily: 'var(--font-display)',
@@ -44,12 +46,17 @@ const useStyles = makeStyles({
   },
   card: {
     padding: 'var(--space-xl)',
+    aspectRatio: '1 / 1',
+    minHeight: '320px',
     borderRadius: 'var(--radius-lg)',
     border: '1px solid var(--color-border)',
     backgroundColor: 'var(--color-bg-card)',
     boxShadow: 'var(--shadow-md)',
     display: 'grid',
     gap: 'var(--space-md)',
+    alignContent: 'center',
+    justifyItems: 'center',
+    textAlign: 'center',
   },
   cardTitle: {
     fontFamily: 'var(--font-display)',
@@ -69,19 +76,17 @@ const useStyles = makeStyles({
     fontFamily: 'var(--font-display)',
     fontSize: '0.875rem',
     fontWeight: '600',
-    justifySelf: 'start',
+    justifySelf: 'center',
   },
 })
 
 interface Props {
   isTherapist: boolean
-  selectedChildName?: string | null
   onChooseMode: (mode: 'therapist' | 'child') => void
 }
 
-export function ModeSelector({ isTherapist, selectedChildName, onChooseMode }: Props) {
+export function ModeSelector({ isTherapist, onChooseMode }: Props) {
   const styles = useStyles()
-  const childLabel = selectedChildName ? ` for ${selectedChildName}` : ''
 
   return (
     <div className={styles.layout}>
@@ -91,27 +96,19 @@ export function ModeSelector({ isTherapist, selectedChildName, onChooseMode }: P
 
       <div className={styles.options}>
         <Card className={styles.card}>
-          <Text className={styles.cardTitle}>Therapist dashboard</Text>
-          <Text className={styles.cardCopy}>
-            {isTherapist
-              ? 'Open child setup, therapist-authored exercises, and saved session review.'
-              : 'This area is available only to therapist accounts.'}
-          </Text>
+          <Text className={styles.cardTitle}>Therapist</Text>
           <Button
             appearance="primary"
             className={styles.action}
             disabled={!isTherapist}
             onClick={() => onChooseMode('therapist')}
           >
-            Open therapist dashboard
+            Open therapist mode
           </Button>
         </Card>
 
         <Card className={styles.card}>
-          <Text className={styles.cardTitle}>Child practice mode</Text>
-          <Text className={styles.cardCopy}>
-            Start the voice session directly{childLabel} and hand over the device when you are ready.
-          </Text>
+          <Text className={styles.cardTitle}>Child</Text>
           <Button
             appearance="secondary"
             className={styles.action}
