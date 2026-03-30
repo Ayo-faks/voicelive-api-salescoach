@@ -79,6 +79,15 @@ class VoiceProxyHandler:
         current_agent_id = None
 
         try:
+            if not self._has_authenticated_principal(client_ws):
+                logger.warning("Rejected WebSocket connection without X-MS-CLIENT-PRINCIPAL-ID")
+                await self._send_error(client_ws, "Authentication required")
+                await asyncio.get_event_loop().run_in_executor(
+                    None,
+                    client_ws.close,  # pyright: ignore[reportUnknownMemberType]
+                )
+                return
+
             current_agent_id = await self._get_agent_id_from_client(client_ws)
             agent_config = self.agent_manager.get_agent(current_agent_id) if current_agent_id else None
 
@@ -116,6 +125,12 @@ class VoiceProxyHandler:
         except Exception as e:
             logger.error("Proxy error: %s", e)
             await self._send_error(client_ws, str(e))
+
+    def _has_authenticated_principal(self, client_ws: simple_websocket.ws.Server) -> bool:
+        """Validate that Easy Auth principal headers survived the WebSocket upgrade."""
+        environ = getattr(client_ws, "environ", {}) or {}
+        principal_id = str(environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_ID") or "").strip()
+        return bool(principal_id)
 
     async def _get_agent_id_from_client(self, client_ws: simple_websocket.ws.Server) -> Optional[str]:
         """Get agent ID from initial client message."""

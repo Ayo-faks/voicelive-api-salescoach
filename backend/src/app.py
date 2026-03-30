@@ -6,12 +6,14 @@
 """Flask application for the Wulo agent."""
 
 import asyncio
+import base64
 from datetime import datetime, timezone
+import json
 import logging
 import os
 from pathlib import Path
 import time
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Mapping, Optional, Tuple, cast
 
 import simple_websocket.ws  # pyright: ignore[reportMissingTypeStubs]
 from flask import Flask, jsonify, request, send_from_directory
@@ -52,17 +54,19 @@ WEBSOCKET_ENDPOINT = "/ws/voice"
 
 # API endpoints
 API_CONFIG_ENDPOINT = "/api/config"
+API_HEALTH_ENDPOINT = "/api/health"
 API_SCENARIOS_ENDPOINT = "/api/scenarios"
+API_AUTH_SESSION_ENDPOINT = "/api/auth/session"
 API_PILOT_STATE_ENDPOINT = "/api/pilot/state"
 API_CONSENT_ENDPOINT = "/api/pilot/consent"
 API_AGENTS_CREATE_ENDPOINT = "/api/agents/create"
 API_ANALYZE_ENDPOINT = "/api/analyze"
 API_ASSESS_UTTERANCE_ENDPOINT = "/api/assess-utterance"
 API_CHILDREN_ENDPOINT = "/api/children"
-API_THERAPIST_AUTH_ENDPOINT = "/api/therapist/auth"
 API_CHILD_SESSIONS_ENDPOINT = "/api/children/<child_id>/sessions"
 API_SESSION_DETAIL_ENDPOINT = "/api/sessions/<session_id>"
 API_SESSION_FEEDBACK_ENDPOINT = "/api/sessions/<session_id>/feedback"
+API_USER_ROLE_ENDPOINT = "/api/users/<user_id>/role"
 API_IMAGES_ENDPOINT = "/api/images/<path:image_path>"
 
 # Error messages
@@ -70,17 +74,40 @@ SCENARIO_ID_REQUIRED = "scenario_id is required"
 SCENARIO_NOT_FOUND = "Scenario not found"
 TRANSCRIPT_REQUIRED = "scenario_id and transcript are required"
 UTTERANCE_REQUIRED = "utterance and reference_text are required"
-THERAPIST_PIN_REQUIRED = "Valid therapist PIN required"
+AUTH_REQUIRED = "Authentication required"
+THERAPIST_ROLE_REQUIRED = "Therapist role required"
 SESSION_NOT_FOUND = "Session not found"
+USER_NOT_FOUND = "User not found"
+INVALID_ROLE = "Role must be 'therapist' or 'user'"
 INVALID_FEEDBACK_RATING = "Feedback rating must be 'up' or 'down'"
 
 # HTTP status codes
 HTTP_BAD_REQUEST = 400
+HTTP_FORBIDDEN = 403
 HTTP_NOT_FOUND = 404
 HTTP_UNAUTHORIZED = 401
 HTTP_INTERNAL_SERVER_ERROR = 500
 
-THERAPIST_PIN_HEADER = "X-Therapist-Pin"
+ROLE_THERAPIST = "therapist"
+ROLE_USER = "user"
+LOCAL_DEV_AUTH = bool(config["local_dev_auth"])
+
+
+def _is_azure_hosted_environment() -> bool:
+    """Detect Azure-hosted runtime markers so LOCAL_DEV_AUTH fails closed in production."""
+    azure_runtime_markers = (
+        "CONTAINER_APP_NAME",
+        "CONTAINER_APP_REVISION",
+        "CONTAINER_APP_ENV_DNS_SUFFIX",
+        "WEBSITE_SITE_NAME",
+        "WEBSITE_HOSTNAME",
+        "IDENTITY_ENDPOINT",
+    )
+    return any(_normalize_context_value(os.environ.get(marker)) for marker in azure_runtime_markers)
+
+
+if LOCAL_DEV_AUTH and _is_azure_hosted_environment():
+    raise RuntimeError("FATAL: LOCAL_DEV_AUTH=true is forbidden in Azure-hosted environments.")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -281,16 +308,111 @@ def _save_completed_session(
     return cast(str, session.get("id"))
 
 
-def _therapist_authorized() -> bool:
-    expected_pin = str(config["therapist_pin"] or "").strip()
-    provided_pin = request.headers.get(THERAPIST_PIN_HEADER, "").strip()
-    return bool(expected_pin) and provided_pin == expected_pin
+def _normalize_context_value(value: Any) -> str:
+    if value is None:
+        return ""
+
+    text = str(value).strip()
+    return text
 
 
-def _therapist_guard():
-    if _therapist_authorized():
-        return None
-    return jsonify({"error": THERAPIST_PIN_REQUIRED}), HTTP_UNAUTHORIZED
+def _decode_client_principal(principal_header: str) -> Dict[str, Any]:
+    try:
+        padding = "=" * (-len(principal_header) % 4)
+        decoded = base64.b64decode(f"{principal_header}{padding}").decode("utf-8")
+        payload = json.loads(decoded)
+        return cast(Dict[str, Any], payload)
+    except (ValueError, json.JSONDecodeError):
+        logger.warning("Failed to decode X-MS-CLIENT-PRINCIPAL header")
+        return {}
+
+
+def _extract_principal_claims(principal: Dict[str, Any]) -> Dict[str, str]:
+    claims: Dict[str, str] = {}
+
+    for claim in cast(List[Dict[str, Any]], principal.get("claims") or []):
+        claim_type = _normalize_context_value(claim.get("typ"))
+        claim_value = _normalize_context_value(claim.get("val"))
+        if not claim_type or not claim_value:
+            continue
+
+        claims[claim_type.split("/")[-1]] = claim_value
+
+    return claims
+
+
+def _normalize_identity_provider(provider: Any) -> str:
+    normalized = _normalize_context_value(provider).lower()
+    if not normalized:
+        return "unknown"
+
+    return normalized
+
+
+def _get_authenticated_user_from_headers(headers: Mapping[str, Any]) -> Optional[Dict[str, Any]]:
+    principal_header = _normalize_context_value(headers.get("X-MS-CLIENT-PRINCIPAL"))
+    principal = _decode_client_principal(principal_header) if principal_header else {}
+    claims = _extract_principal_claims(principal)
+
+    user_id = (
+        _normalize_context_value(headers.get("X-MS-CLIENT-PRINCIPAL-ID"))
+        or _normalize_context_value(principal.get("userId"))
+        or claims.get("sub", "")
+        or claims.get("nameidentifier", "")
+    )
+    if user_id:
+        name = (
+            _normalize_context_value(headers.get("X-MS-CLIENT-PRINCIPAL-NAME"))
+            or claims.get("name", "")
+            or claims.get("preferred_username", "")
+            or _normalize_context_value(principal.get("userDetails"))
+            or "Authenticated User"
+        )
+        email = (
+            _normalize_context_value(headers.get("X-MS-CLIENT-PRINCIPAL-EMAIL"))
+            or _normalize_context_value(principal.get("userDetails"))
+            or claims.get("emailaddress", "")
+            or claims.get("email", "")
+            or claims.get("preferred_username", "")
+        )
+        provider = _normalize_identity_provider(
+            _normalize_context_value(headers.get("X-MS-CLIENT-PRINCIPAL-IDP"))
+            or _normalize_context_value(principal.get("auth_typ"))
+            or _normalize_context_value(principal.get("identityProvider"))
+        )
+        return storage_service.get_or_create_user(user_id, email, name, provider)
+
+    if LOCAL_DEV_AUTH:
+        user_id = os.environ.get("LOCAL_DEV_USER_ID", "local-dev-user")
+        name = os.environ.get("LOCAL_DEV_USER_NAME", "Local Developer")
+        email = os.environ.get("LOCAL_DEV_USER_EMAIL", "dev@localhost")
+        provider = _normalize_identity_provider(os.environ.get("LOCAL_DEV_USER_PROVIDER", "local-dev"))
+        return storage_service.get_or_create_user(user_id, email, name, provider)
+
+    return None
+
+
+def _get_authenticated_user() -> Optional[Dict[str, Any]]:
+    return _get_authenticated_user_from_headers(request.headers)
+
+
+def _require_authenticated() -> Tuple[Optional[Dict[str, Any]], Optional[Tuple[Any, int]]]:
+    user = _get_authenticated_user()
+    if user is None:
+        return None, (jsonify({"error": AUTH_REQUIRED}), HTTP_UNAUTHORIZED)
+
+    return user, None
+
+
+def _require_therapist() -> Optional[Tuple[Any, int]]:
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
+    if user is None or user.get("role") != ROLE_THERAPIST:
+        return jsonify({"error": THERAPIST_ROLE_REQUIRED}), HTTP_FORBIDDEN
+
+    return None
 
 
 def _prepare_custom_scenario(custom_scenario: Dict[str, Any]) -> Dict[str, Any]:
@@ -325,6 +447,10 @@ def index():
 @app.route(API_CONFIG_ENDPOINT)
 def get_config():
     """Get client configuration."""
+    _, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
     return jsonify(
         {
             "status": "ok",
@@ -337,16 +463,45 @@ def get_config():
     )
 
 
+@app.route(API_HEALTH_ENDPOINT)
+def health():
+    """Return a minimal health payload for ingress and auth exclusions."""
+    return jsonify({"status": "ok"})
+
+
+@app.route(API_AUTH_SESSION_ENDPOINT)
+def get_auth_session():
+    """Return the authenticated user session derived from Easy Auth headers."""
+    user = _get_authenticated_user()
+    if user is None:
+        return jsonify({"authenticated": False}), HTTP_UNAUTHORIZED
+
+    return jsonify(
+        {
+            "authenticated": True,
+            "user_id": user["id"],
+            "name": user["name"],
+            "email": user["email"],
+            "provider": user["provider"],
+            "role": user["role"],
+        }
+    )
+
+
 @app.route(API_PILOT_STATE_ENDPOINT)
 def get_pilot_state():
     """Return minimal onboarding and consent state for Sprint 6 pilot flow."""
+    guard_response = _require_therapist()
+    if guard_response is not None:
+        return guard_response
+
     return jsonify(storage_service.get_pilot_state())
 
 
 @app.route(API_CONSENT_ENDPOINT, methods=["POST"])
 def acknowledge_consent():
     """Persist therapist acknowledgement for supervised practice consent."""
-    guard_response = _therapist_guard()
+    guard_response = _require_therapist()
     if guard_response is not None:
         return guard_response
 
@@ -357,12 +512,20 @@ def acknowledge_consent():
 @app.route(API_SCENARIOS_ENDPOINT)
 def get_scenarios():
     """Get list of available scenarios."""
+    _, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
     return jsonify(scenario_manager.list_scenarios())
 
 
 @app.route(f"{API_SCENARIOS_ENDPOINT}/<scenario_id>")
 def get_scenario(scenario_id: str):
     """Get a specific scenario by ID."""
+    _, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
     scenario = scenario_manager.get_scenario(scenario_id)
     if scenario:
         return jsonify(scenario)
@@ -372,19 +535,11 @@ def get_scenario(scenario_id: str):
 @app.route(API_CHILDREN_ENDPOINT)
 def get_children():
     """Return the available child profiles for therapist-guided sessions."""
+    guard_response = _require_therapist()
+    if guard_response is not None:
+        return guard_response
+
     return jsonify(storage_service.list_children())
-
-
-@app.route(API_THERAPIST_AUTH_ENDPOINT, methods=["POST"])
-def authenticate_therapist():
-    """Validate the local therapist PIN for pilot therapist mode."""
-    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
-    pin = str(data.get("pin") or "").strip()
-
-    if pin and pin == str(config["therapist_pin"]):
-        return jsonify({"authorized": True})
-
-    return jsonify({"error": THERAPIST_PIN_REQUIRED}), HTTP_UNAUTHORIZED
 
 
 @app.route(API_AGENTS_CREATE_ENDPOINT, methods=["POST"])
@@ -395,6 +550,10 @@ def create_agent():
     1. Server-side scenario: Pass scenario_id to use a pre-defined scenario
     2. Custom scenario: Pass custom_scenario with full scenario data (for client-side scenarios)
     """
+    _, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
     data = cast(Dict[str, Any], request.get_json(silent=True) or {})
     scenario_id = data.get("scenario_id")
     custom_scenario = data.get("custom_scenario")
@@ -450,6 +609,10 @@ def create_agent():
 @app.route("/api/agents/<agent_id>", methods=["DELETE"])
 def delete_agent(agent_id: str):
     """Delete an agent."""
+    _, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
     try:
         agent_manager.delete_agent(agent_id)
         return jsonify({"success": True})
@@ -461,6 +624,10 @@ def delete_agent(agent_id: str):
 @app.route(API_ANALYZE_ENDPOINT, methods=["POST"])
 def analyze_conversation():
     """Analyze a conversation for performance assessment."""
+    _, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
     data = cast(Dict[str, Any], request.get_json(silent=True) or {})
     scenario_id = cast(str, data.get("scenario_id"))
     transcript = cast(str, data.get("transcript"))
@@ -530,6 +697,10 @@ def analyze_conversation():
 @app.route(API_ASSESS_UTTERANCE_ENDPOINT, methods=["POST"])
 def assess_utterance():
     """Assess a single recorded utterance and return immediate pronunciation feedback."""
+    _, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
     data = cast(Dict[str, Any], request.get_json(silent=True) or {})
     scenario_id = cast(str, data.get("scenario_id") or "")
     reference_text = cast(str, data.get("reference_text") or "")
@@ -571,7 +742,7 @@ def assess_utterance():
 @app.route(API_CHILD_SESSIONS_ENDPOINT)
 def get_child_sessions(child_id: str):
     """Return a therapist-friendly session history for one child."""
-    guard_response = _therapist_guard()
+    guard_response = _require_therapist()
     if guard_response is not None:
         return guard_response
 
@@ -581,7 +752,7 @@ def get_child_sessions(child_id: str):
 @app.route(API_SESSION_DETAIL_ENDPOINT)
 def get_session_detail(session_id: str):
     """Return the full saved session detail for therapist review."""
-    guard_response = _therapist_guard()
+    guard_response = _require_therapist()
     if guard_response is not None:
         return guard_response
 
@@ -603,7 +774,7 @@ def get_session_detail(session_id: str):
 @app.route(API_SESSION_FEEDBACK_ENDPOINT, methods=["POST"])
 def save_session_feedback(session_id: str):
     """Store lightweight therapist feedback for a completed session."""
-    guard_response = _therapist_guard()
+    guard_response = _require_therapist()
     if guard_response is not None:
         return guard_response
 
@@ -619,6 +790,29 @@ def save_session_feedback(session_id: str):
         return jsonify({"error": SESSION_NOT_FOUND}), HTTP_NOT_FOUND
 
     return jsonify(session)
+
+
+@app.route(API_USER_ROLE_ENDPOINT, methods=["POST"])
+def update_user_role(user_id: str):
+    """Promote or demote a user role. Therapist access only."""
+    guard_response = _require_therapist()
+    if guard_response is not None:
+        return guard_response
+
+    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+    role = str(data.get("role") or "").strip().lower()
+    if role not in {ROLE_THERAPIST, ROLE_USER}:
+        return jsonify({"error": INVALID_ROLE}), HTTP_BAD_REQUEST
+
+    try:
+        user = storage_service.update_user_role(user_id, role)
+    except ValueError:
+        return jsonify({"error": INVALID_ROLE}), HTTP_BAD_REQUEST
+
+    if user is None:
+        return jsonify({"error": USER_NOT_FOUND}), HTTP_NOT_FOUND
+
+    return jsonify(user)
 
 
 def _log_analyze_request(scenario_id: str, transcript: str, reference_text: str):
@@ -675,6 +869,10 @@ def audio_processor():
 @app.route(API_IMAGES_ENDPOINT)
 def image_asset(image_path: str):
     """Serve pre-generated therapy image assets."""
+    _, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
     return send_from_directory(IMAGE_DATA_FOLDER, image_path)
 
 
@@ -683,6 +881,20 @@ def voice_proxy(ws: simple_websocket.ws.Server):
     """WebSocket endpoint for voice proxy."""
 
     logger.info("New WebSocket connection")
+
+    environ = cast(Dict[str, Any], getattr(ws, "environ", {}) or {})
+    ws_headers = {
+        "X-MS-CLIENT-PRINCIPAL": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL", ""),
+        "X-MS-CLIENT-PRINCIPAL-ID": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_ID", ""),
+        "X-MS-CLIENT-PRINCIPAL-NAME": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_NAME", ""),
+        "X-MS-CLIENT-PRINCIPAL-IDP": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_IDP", ""),
+        "X-MS-CLIENT-PRINCIPAL-EMAIL": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_EMAIL", ""),
+    }
+
+    if _get_authenticated_user_from_headers(ws_headers) is None:
+        logger.warning("Rejected unauthenticated WebSocket connection")
+        ws.close()
+        return
 
     try:
         loop = asyncio.get_event_loop()

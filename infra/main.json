@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.37.4.10188",
-      "templateHash": "12593867876309703773"
+      "templateHash": "11791450365942729686"
     }
   },
   "parameters": {
@@ -42,6 +42,34 @@
     "useFoundryAgents": {
       "type": "bool",
       "defaultValue": false
+    },
+    "microsoftProviderClientId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Microsoft Entra app registration client ID for Easy Auth."
+      }
+    },
+    "microsoftProviderClientSecret": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Microsoft Entra client secret for Easy Auth."
+      }
+    },
+    "googleProviderClientId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Google OAuth client ID for Easy Auth."
+      }
+    },
+    "googleProviderClientSecret": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Google OAuth client secret for Easy Auth."
+      }
     }
   },
   "variables": {
@@ -85,6 +113,18 @@
           },
           "useFoundryAgents": {
             "value": "[parameters('useFoundryAgents')]"
+          },
+          "microsoftProviderClientId": {
+            "value": "[parameters('microsoftProviderClientId')]"
+          },
+          "microsoftProviderClientSecret": {
+            "value": "[parameters('microsoftProviderClientSecret')]"
+          },
+          "googleProviderClientId": {
+            "value": "[parameters('googleProviderClientId')]"
+          },
+          "googleProviderClientSecret": {
+            "value": "[parameters('googleProviderClientSecret')]"
           }
         },
         "template": {
@@ -94,7 +134,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.37.4.10188",
-              "templateHash": "3537326907259781717"
+              "templateHash": "12126020627479823919"
             }
           },
           "parameters": {
@@ -117,6 +157,34 @@
             },
             "useFoundryAgents": {
               "type": "bool"
+            },
+            "microsoftProviderClientId": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Microsoft Entra app registration client ID for Easy Auth."
+              }
+            },
+            "microsoftProviderClientSecret": {
+              "type": "securestring",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Microsoft Entra client secret for Easy Auth."
+              }
+            },
+            "googleProviderClientId": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Google OAuth client ID for Easy Auth."
+              }
+            },
+            "googleProviderClientSecret": {
+              "type": "securestring",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Google OAuth client secret for Easy Auth."
+              }
             },
             "principalId": {
               "type": "string",
@@ -303,7 +371,8 @@
               "webStaticSites": "stapp-"
             },
             "abbrs": "[variables('$fxv#0')]",
-            "resourceToken": "[uniqueString(subscription().id, resourceGroup().id, parameters('location'))]"
+            "resourceToken": "[uniqueString(subscription().id, resourceGroup().id, parameters('location'))]",
+            "easyAuthEnabled": "[or(not(empty(parameters('microsoftProviderClientId'))), not(empty(parameters('googleProviderClientId'))))]"
           },
           "resources": [
             {
@@ -362,6 +431,117 @@
                 "customSubDomainName": "[format('speech-voicelab-{0}', variables('resourceToken'))]",
                 "publicNetworkAccess": "Enabled"
               }
+            },
+            {
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2023-01-01",
+              "name": "[format('{0}{1}data', variables('abbrs').storageStorageAccounts, variables('resourceToken'))]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "Standard_LRS"
+              },
+              "kind": "StorageV2",
+              "properties": {
+                "minimumTlsVersion": "TLS1_2",
+                "supportsHttpsTrafficOnly": true
+              }
+            },
+            {
+              "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+              "apiVersion": "2023-01-01",
+              "name": "[format('{0}/default/wulo-data', format('{0}{1}data', variables('abbrs').storageStorageAccounts, variables('resourceToken')))]",
+              "properties": {
+                "shareQuota": 1
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}data', variables('abbrs').storageStorageAccounts, variables('resourceToken')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.App/managedEnvironments/storages",
+              "apiVersion": "2025-10-02-preview",
+              "name": "[format('{0}/{1}', format('{0}{1}', variables('abbrs').appManagedEnvironments, variables('resourceToken')), 'wulo-data')]",
+              "properties": {
+                "azureFile": {
+                  "accessMode": "ReadWrite",
+                  "accountName": "[format('{0}{1}data', variables('abbrs').storageStorageAccounts, variables('resourceToken'))]",
+                  "accountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}data', variables('abbrs').storageStorageAccounts, variables('resourceToken'))), '2023-01-01').keys[0].value]",
+                  "shareName": "wulo-data"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}data', variables('abbrs').storageStorageAccounts, variables('resourceToken')))]"
+              ]
+            },
+            {
+              "condition": "[variables('easyAuthEnabled')]",
+              "type": "Microsoft.App/containerApps/authConfigs",
+              "apiVersion": "2024-03-01",
+              "name": "[format('{0}/{1}', 'voicelab', 'current')]",
+              "properties": {
+                "platform": {
+                  "enabled": true
+                },
+                "globalValidation": {
+                  "unauthenticatedClientAction": "Return401",
+                  "excludedPaths": [
+                    "/",
+                    "/index.html",
+                    "/assets/*",
+                    "/js/*",
+                    "/manifest.json",
+                    "/api/health",
+                    "/wulo-logo.png",
+                    "/favicon.ico"
+                  ]
+                },
+                "identityProviders": {
+                  "azureActiveDirectory": {
+                    "enabled": "[not(empty(parameters('microsoftProviderClientId')))]",
+                    "registration": {
+                      "clientId": "[parameters('microsoftProviderClientId')]",
+                      "clientSecretSettingName": "microsoft-provider-auth-secret",
+                      "openIdIssuer": "[format('{0}organizations/v2.0', environment().authentication.loginEndpoint)]"
+                    },
+                    "login": {
+                      "loginParameters": [
+                        "scope=openid profile email"
+                      ]
+                    }
+                  },
+                  "google": {
+                    "enabled": "[not(empty(parameters('googleProviderClientId')))]",
+                    "registration": {
+                      "clientId": "[parameters('googleProviderClientId')]",
+                      "clientSecretSettingName": "google-provider-auth-secret"
+                    },
+                    "login": {
+                      "scopes": [
+                        "openid",
+                        "profile",
+                        "email"
+                      ]
+                    }
+                  }
+                },
+                "login": {
+                  "tokenStore": {
+                    "enabled": false
+                  },
+                  "allowedExternalRedirectUrls": [
+                    "https://sen.wulo.ai",
+                    "[format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.defaultDomain.value)]"
+                  ]
+                },
+                "httpSettings": {
+                  "requireHttps": true
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'container-apps-environment')]",
+                "[resourceId('Microsoft.Resources/deployments', 'voicelab')]"
+              ]
             },
             {
               "type": "Microsoft.Authorization/roleAssignments",
@@ -8145,6 +8325,27 @@
                   "ingressTransport": {
                     "value": "http"
                   },
+                  "corsPolicy": {
+                    "value": {
+                      "allowCredentials": true,
+                      "allowedHeaders": [
+                        "Content-Type",
+                        "Authorization",
+                        "X-Requested-With"
+                      ],
+                      "allowedMethods": [
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "DELETE",
+                        "OPTIONS"
+                      ],
+                      "allowedOrigins": [
+                        "https://sen.wulo.ai",
+                        "[format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.defaultDomain.value)]"
+                      ]
+                    }
+                  },
                   "scaleMinReplicas": {
                     "value": 1
                   },
@@ -8153,17 +8354,17 @@
                   },
                   "secrets": {
                     "value": {
-                      "secureList": [
-                        {
-                          "name": "ai-foundry-api-key",
-                          "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').key1]"
-                        },
-                        {
-                          "name": "speech-api-key",
-                          "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('speech-voicelab-{0}', variables('resourceToken'))), '2024-10-01').key1]"
-                        }
-                      ]
+                      "secureList": "[concat(createArray(createObject('name', 'ai-foundry-api-key', 'value', listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').key1), createObject('name', 'speech-api-key', 'value', listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('speech-voicelab-{0}', variables('resourceToken'))), '2024-10-01').key1)), if(not(empty(parameters('microsoftProviderClientSecret'))), createArray(createObject('name', 'microsoft-provider-auth-secret', 'value', parameters('microsoftProviderClientSecret'))), createArray()), if(not(empty(parameters('googleProviderClientSecret'))), createArray(createObject('name', 'google-provider-auth-secret', 'value', parameters('googleProviderClientSecret'))), createArray()))]"
                     }
+                  },
+                  "volumes": {
+                    "value": [
+                      {
+                        "name": "wulo-data",
+                        "storageName": "wulo-data",
+                        "storageType": "AzureFile"
+                      }
+                    ]
                   },
                   "containers": {
                     "value": [
@@ -8174,68 +8375,13 @@
                           "cpu": "[json('1.0')]",
                           "memory": "2.0Gi"
                         },
-                        "env": [
+                        "volumeMounts": [
                           {
-                            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-                            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2022-09-01').outputs.applicationInsightsConnectionString.value]"
-                          },
-                          {
-                            "name": "AZURE_CLIENT_ID",
-                            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.clientId.value]"
-                          },
-                          {
-                            "name": "AZURE_OPENAI_ENDPOINT",
-                            "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint]"
-                          },
-                          {
-                            "name": "AZURE_OPENAI_API_KEY",
-                            "secretRef": "ai-foundry-api-key"
-                          },
-                          {
-                            "name": "PROJECT_ENDPOINT",
-                            "value": "[format('{0}api/projects/default-project', reference(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint)]"
-                          },
-                          {
-                            "name": "MODEL_DEPLOYMENT_NAME",
-                            "value": "[parameters('gptDeploymentName')]"
-                          },
-                          {
-                            "name": "AZURE_SPEECH_KEY",
-                            "secretRef": "speech-api-key"
-                          },
-                          {
-                            "name": "AZURE_SPEECH_REGION",
-                            "value": "swedencentral"
-                          },
-                          {
-                            "name": "AZURE_AI_RESOURCE_NAME",
-                            "value": "[format('aifoundry-voicelab-{0}', variables('resourceToken'))]"
-                          },
-                          {
-                            "name": "AZURE_AI_REGION",
-                            "value": "swedencentral"
-                          },
-                          {
-                            "name": "SUBSCRIPTION_ID",
-                            "value": "[subscription().subscriptionId]"
-                          },
-                          {
-                            "name": "RESOURCE_GROUP_NAME",
-                            "value": "[resourceGroup().name]"
-                          },
-                          {
-                            "name": "USE_AZURE_AI_AGENTS",
-                            "value": "[if(parameters('useFoundryAgents'), 'true', 'false')]"
-                          },
-                          {
-                            "name": "PORT",
-                            "value": "8000"
-                          },
-                          {
-                            "name": "HOST",
-                            "value": "0.0.0.0"
+                            "volumeName": "wulo-data",
+                            "mountPath": "/app/persistence"
                           }
-                        ]
+                        ],
+                        "env": "[concat(createArray(createObject('name', 'APPLICATIONINSIGHTS_CONNECTION_STRING', 'value', reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2022-09-01').outputs.applicationInsightsConnectionString.value), createObject('name', 'AZURE_CLIENT_ID', 'value', reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.clientId.value), createObject('name', 'AZURE_OPENAI_ENDPOINT', 'value', reference(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint), createObject('name', 'AZURE_OPENAI_API_KEY', 'secretRef', 'ai-foundry-api-key'), createObject('name', 'PROJECT_ENDPOINT', 'value', format('{0}api/projects/default-project', reference(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint)), createObject('name', 'MODEL_DEPLOYMENT_NAME', 'value', parameters('gptDeploymentName')), createObject('name', 'AZURE_SPEECH_KEY', 'secretRef', 'speech-api-key'), createObject('name', 'AZURE_SPEECH_REGION', 'value', 'swedencentral'), createObject('name', 'AZURE_AI_RESOURCE_NAME', 'value', format('aifoundry-voicelab-{0}', variables('resourceToken'))), createObject('name', 'AZURE_AI_REGION', 'value', 'swedencentral'), createObject('name', 'SUBSCRIPTION_ID', 'value', subscription().subscriptionId), createObject('name', 'RESOURCE_GROUP_NAME', 'value', resourceGroup().name), createObject('name', 'USE_AZURE_AI_AGENTS', 'value', if(parameters('useFoundryAgents'), 'true', 'false')), createObject('name', 'PORT', 'value', '8000'), createObject('name', 'HOST', 'value', '0.0.0.0'), createObject('name', 'STORAGE_PATH', 'value', '/app/persistence/wulo.db')), if(not(empty(parameters('microsoftProviderClientSecret'))), createArray(createObject('name', 'MICROSOFT_PROVIDER_AUTHENTICATION_SECRET', 'secretRef', 'microsoft-provider-auth-secret')), createArray()), if(not(empty(parameters('googleProviderClientSecret'))), createArray(createObject('name', 'GOOGLE_PROVIDER_AUTHENTICATION_SECRET', 'secretRef', 'google-provider-auth-secret')), createArray()))]"
                       }
                     ]
                   },
@@ -9177,6 +9323,7 @@
               "dependsOn": [
                 "[resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken')))]",
                 "[resourceId('Microsoft.Resources/deployments', 'container-apps-environment')]",
+                "[resourceId('Microsoft.App/managedEnvironments/storages', format('{0}{1}', variables('abbrs').appManagedEnvironments, variables('resourceToken')), 'wulo-data')]",
                 "[resourceId('Microsoft.Resources/deployments', 'registry')]",
                 "[resourceId('Microsoft.Resources/deployments', 'monitoring')]",
                 "[resourceId('Microsoft.CognitiveServices/accounts', format('speech-voicelab-{0}', variables('resourceToken')))]",

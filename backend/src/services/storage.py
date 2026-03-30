@@ -8,8 +8,10 @@
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 import threading
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -17,11 +19,16 @@ from uuid import uuid4
 
 from src.config import config
 
+logger = logging.getLogger(__name__)
+
 DEFAULT_CHILDREN = (
     {"id": "child-ayo", "name": "Ayo"},
     {"id": "child-noah", "name": "Noah"},
     {"id": "child-zuri", "name": "Zuri"},
 )
+SQLITE_LOCK_RETRY_COUNT = 10
+SQLITE_LOCK_RETRY_DELAY_SECONDS = 1.0
+SQLITE_LOCK_TIMEOUT_SECONDS = 30.0
 
 
 class StorageService:
@@ -31,63 +38,95 @@ class StorageService:
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
+        logger.info("StorageService init: db_path=%s", self.db_path)
         self._initialize()
+        logger.info("StorageService init complete")
 
-    def _connect(self) -> sqlite3.Connection:
-        connection = sqlite3.connect(self.db_path)
+    def _connect(self, journal_mode: str = "DELETE") -> sqlite3.Connection:
+        logger.info("SQLite connect: %s (journal=%s)", self.db_path, journal_mode)
+        connection = sqlite3.connect(self.db_path, timeout=SQLITE_LOCK_TIMEOUT_SECONDS)
         connection.row_factory = sqlite3.Row
+        connection.execute("PRAGMA busy_timeout = 5000")
+        connection.execute(f"PRAGMA journal_mode = {journal_mode}")
         connection.execute("PRAGMA foreign_keys = ON")
+        logger.info("SQLite connected OK")
         return connection
 
     def _initialize(self):
         with self._lock:
-            with self._connect() as connection:
-                connection.executescript(
-                    """
-                    CREATE TABLE IF NOT EXISTS app_settings (
-                        key TEXT PRIMARY KEY,
-                        value TEXT,
-                        updated_at TEXT NOT NULL
-                    );
-
-                    CREATE TABLE IF NOT EXISTS children (
-                        id TEXT PRIMARY KEY,
-                        name TEXT NOT NULL,
-                        created_at TEXT NOT NULL
-                    );
-
-                    CREATE TABLE IF NOT EXISTS exercises (
-                        id TEXT PRIMARY KEY,
-                        name TEXT NOT NULL,
-                        description TEXT NOT NULL,
-                        metadata_json TEXT NOT NULL,
-                        is_custom INTEGER NOT NULL DEFAULT 0,
-                        updated_at TEXT NOT NULL
-                    );
-
-                    CREATE TABLE IF NOT EXISTS sessions (
-                        id TEXT PRIMARY KEY,
-                        child_id TEXT NOT NULL,
-                        exercise_id TEXT NOT NULL,
-                        timestamp TEXT NOT NULL,
-                        ai_assessment_json TEXT,
-                        pronunciation_json TEXT,
-                        exercise_metadata_json TEXT,
-                        transcript TEXT,
-                        reference_text TEXT,
-                        feedback_rating TEXT,
-                        feedback_note TEXT,
-                        feedback_submitted_at TEXT,
-                        FOREIGN KEY (child_id) REFERENCES children(id),
-                        FOREIGN KEY (exercise_id) REFERENCES exercises(id)
-                    );
-                    """
-                )
-                self._ensure_migrations(connection)
-                self._seed_children(connection)
-                connection.commit()
+            for attempt in range(SQLITE_LOCK_RETRY_COUNT):
+                try:
+                    with self._connect(journal_mode="OFF") as connection:
+                        connection.execute(
+                            """CREATE TABLE IF NOT EXISTS app_settings (
+                                key TEXT PRIMARY KEY,
+                                value TEXT,
+                                updated_at TEXT NOT NULL
+                            )"""
+                        )
+                        connection.execute(
+                            """CREATE TABLE IF NOT EXISTS children (
+                                id TEXT PRIMARY KEY,
+                                name TEXT NOT NULL,
+                                created_at TEXT NOT NULL
+                            )"""
+                        )
+                        connection.execute(
+                            """CREATE TABLE IF NOT EXISTS users (
+                                id TEXT PRIMARY KEY,
+                                email TEXT,
+                                name TEXT,
+                                provider TEXT,
+                                role TEXT NOT NULL DEFAULT 'user',
+                                created_at TEXT NOT NULL
+                            )"""
+                        )
+                        connection.execute(
+                            """CREATE TABLE IF NOT EXISTS exercises (
+                                id TEXT PRIMARY KEY,
+                                name TEXT NOT NULL,
+                                description TEXT NOT NULL,
+                                metadata_json TEXT NOT NULL,
+                                is_custom INTEGER NOT NULL DEFAULT 0,
+                                updated_at TEXT NOT NULL
+                            )"""
+                        )
+                        connection.execute(
+                            """CREATE TABLE IF NOT EXISTS sessions (
+                                id TEXT PRIMARY KEY,
+                                child_id TEXT NOT NULL,
+                                exercise_id TEXT NOT NULL,
+                                timestamp TEXT NOT NULL,
+                                ai_assessment_json TEXT,
+                                pronunciation_json TEXT,
+                                exercise_metadata_json TEXT,
+                                transcript TEXT,
+                                reference_text TEXT,
+                                feedback_rating TEXT,
+                                feedback_note TEXT,
+                                feedback_submitted_at TEXT,
+                                FOREIGN KEY (child_id) REFERENCES children(id),
+                                FOREIGN KEY (exercise_id) REFERENCES exercises(id)
+                            )"""
+                        )
+                        self._ensure_migrations(connection)
+                        self._seed_children(connection)
+                        logger.info("SQLite committing...")
+                        connection.commit()
+                        logger.info("SQLite init complete")
+                    return
+                except sqlite3.OperationalError as error:
+                    logger.warning("SQLite init attempt %d failed: %s", attempt + 1, error)
+                    if "database is locked" not in str(error).lower() or attempt == SQLITE_LOCK_RETRY_COUNT - 1:
+                        raise
+                    time.sleep(SQLITE_LOCK_RETRY_DELAY_SECONDS)
 
     def _ensure_migrations(self, connection: sqlite3.Connection):
+        self._ensure_column(connection, "users", "email", "TEXT")
+        self._ensure_column(connection, "users", "name", "TEXT")
+        self._ensure_column(connection, "users", "provider", "TEXT")
+        self._ensure_column(connection, "users", "role", "TEXT NOT NULL DEFAULT 'user'")
+        self._ensure_column(connection, "users", "created_at", "TEXT")
         self._ensure_column(connection, "sessions", "feedback_rating", "TEXT")
         self._ensure_column(connection, "sessions", "feedback_note", "TEXT")
         self._ensure_column(connection, "sessions", "feedback_submitted_at", "TEXT")
@@ -170,8 +209,94 @@ class StorageService:
     def get_pilot_state(self) -> Dict[str, Any]:
         return {
             "consent_timestamp": self._get_setting("consent_timestamp"),
-            "therapist_pin_configured": bool(str(config["therapist_pin"] or "").strip()),
+            "roles_enabled": True,
+            "therapist_pin_configured": False,
         }
+
+    def get_user(self, user_id: str) -> Optional[Dict[str, Any]]:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT id, email, name, provider, role, created_at FROM users WHERE id = ?",
+                (user_id,),
+            ).fetchone()
+
+        if row is None:
+            return None
+
+        return {
+            "id": row["id"],
+            "email": row["email"],
+            "name": row["name"],
+            "provider": row["provider"],
+            "role": row["role"],
+            "created_at": row["created_at"],
+        }
+
+    def get_or_create_user(self, user_id: str, email: str, name: str, provider: str) -> Dict[str, Any]:
+        now = self._utc_now()
+
+        with self._lock:
+            with self._connect() as connection:
+                existing = connection.execute(
+                    "SELECT id, email, name, provider, role, created_at FROM users WHERE id = ?",
+                    (user_id,),
+                ).fetchone()
+
+                if existing is not None:
+                    connection.execute(
+                        """
+                        UPDATE users
+                        SET email = ?, name = ?, provider = ?
+                        WHERE id = ?
+                        """,
+                        (email, name, provider, user_id),
+                    )
+                    connection.commit()
+                    return {
+                        "id": existing["id"],
+                        "email": email,
+                        "name": name,
+                        "provider": provider,
+                        "role": existing["role"],
+                        "created_at": existing["created_at"],
+                    }
+
+                user_count = connection.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+                role = "therapist" if user_count == 0 else "user"
+                connection.execute(
+                    """
+                    INSERT INTO users (id, email, name, provider, role, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (user_id, email, name, provider, role, now),
+                )
+                connection.commit()
+
+        return {
+            "id": user_id,
+            "email": email,
+            "name": name,
+            "provider": provider,
+            "role": role,
+            "created_at": now,
+        }
+
+    def update_user_role(self, user_id: str, role: str) -> Optional[Dict[str, Any]]:
+        if role not in {"therapist", "user"}:
+            raise ValueError("Unsupported role")
+
+        with self._lock:
+            with self._connect() as connection:
+                cursor = connection.execute(
+                    "UPDATE users SET role = ? WHERE id = ?",
+                    (role, user_id),
+                )
+                connection.commit()
+
+        if cursor.rowcount == 0:
+            return None
+
+        return self.get_user(user_id)
 
     def save_consent_acknowledgement(self, timestamp: Optional[str] = None) -> str:
         consent_timestamp = timestamp or self._utc_now()

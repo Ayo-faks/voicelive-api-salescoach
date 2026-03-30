@@ -221,7 +221,7 @@ interface Props {
   selectedAvatar: string
   selectedScenario: string | null
   scenarios: Scenario[]
-  therapistUnlocked: boolean
+  isTherapist: boolean
   onExitToEntry: () => void
   onSelectScenario: (scenarioId: string) => void
   onStartSession: () => void
@@ -233,7 +233,7 @@ export function ChildHome({
   selectedAvatar,
   selectedScenario,
   scenarios,
-  therapistUnlocked,
+  isTherapist,
   onExitToEntry,
   onSelectScenario,
   onStartSession,
@@ -263,7 +263,7 @@ export function ChildHome({
           className={styles.therapistButton}
           onClick={onOpenTherapistTools}
         >
-          {therapistUnlocked ? 'Therapist tools' : 'Therapist access'}
+          {isTherapist ? 'Therapist tools' : 'Therapist access'}
         </Button>
       </div>
 

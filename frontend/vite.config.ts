@@ -9,6 +9,25 @@ export default defineConfig({
     rollupOptions: {
       input: 'index.html',
       output: {
+        manualChunks: (id) => {
+          if (!id.includes('node_modules')) {
+            return undefined
+          }
+
+          if (id.includes('@fluentui')) {
+            return 'fluent'
+          }
+
+          if (id.includes('@heroicons')) {
+            return 'icons'
+          }
+
+          if (id.includes('/react/') || id.includes('/react-dom/')) {
+            return 'react-vendor'
+          }
+
+          return 'vendor'
+        },
         entryFileNames: 'js/index.js',
         chunkFileNames: 'js/[name]-[hash].js',
         assetFileNames: (assetInfo) => {

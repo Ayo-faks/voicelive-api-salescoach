@@ -8,6 +8,20 @@ param voicelabExists bool
 
 param useFoundryAgents bool
 
+@description('Microsoft Entra app registration client ID for Easy Auth.')
+param microsoftProviderClientId string = ''
+
+@secure()
+@description('Microsoft Entra client secret for Easy Auth.')
+param microsoftProviderClientSecret string = ''
+
+@description('Google OAuth client ID for Easy Auth.')
+param googleProviderClientId string = ''
+
+@secure()
+@description('Google OAuth client secret for Easy Auth.')
+param googleProviderClientSecret string = ''
+
 @description('Id of the user or app to assign application roles')
 param principalId string
 
@@ -16,6 +30,8 @@ param principalType string
 
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = uniqueString(subscription().id, resourceGroup().id, location)
+var defaultVoicelabHost = 'https://voicelab.${containerAppsEnvironment.outputs.defaultDomain}'
+var easyAuthEnabled = !empty(microsoftProviderClientId) || !empty(googleProviderClientId)
 
 param gptModelName string = 'gpt-4o'
 param gptModelVersion string = '2024-08-06'
@@ -92,6 +108,35 @@ resource speechService 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
   }
 }
 
+resource persistenceStorage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+  name: '${abbrs.storageStorageAccounts}${resourceToken}data'
+  location: location
+  tags: tags
+  sku: {
+    name: 'Standard_LRS'
+  }
+  kind: 'StorageV2'
+  properties: {
+    minimumTlsVersion: 'TLS1_2'
+    supportsHttpsTrafficOnly: true
+  }
+}
+
+resource persistenceFileShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2023-01-01' = {
+  name: '${persistenceStorage.name}/default/wulo-data'
+  properties: {
+    shareQuota: 1
+  }
+}
+
+resource containerAppsManagedEnvironment 'Microsoft.App/managedEnvironments@2025-10-02-preview' existing = {
+  name: '${abbrs.appManagedEnvironments}${resourceToken}'
+}
+
+resource voicelabContainerApp 'Microsoft.App/containerApps@2024-03-01' existing = {
+  name: 'voicelab'
+}
+
 // Monitor application with Azure Monitor
 module monitoring 'br/public:avm/ptn/azd/monitoring:0.1.0' = {
   name: 'monitoring'
@@ -135,6 +180,19 @@ module containerAppsEnvironment 'br/public:avm/res/app/managed-environment:0.4.5
   }
 }
 
+resource containerAppsManagedEnvironmentStorage 'Microsoft.App/managedEnvironments/storages@2025-10-02-preview' = {
+  parent: containerAppsManagedEnvironment
+  name: 'wulo-data'
+  properties: {
+    azureFile: {
+      accessMode: 'ReadWrite'
+      accountName: persistenceStorage.name
+      accountKey: persistenceStorage.listKeys().keys[0].value
+      shareName: 'wulo-data'
+    }
+  }
+}
+
 module voicelabIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.2.1' = {
   name: 'voicelabidentity'
   params: {
@@ -157,20 +215,64 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
     ingressTargetPort: 8000
     ingressExternal: true
     ingressTransport: 'http'
+    corsPolicy: {
+      allowCredentials: true
+      allowedHeaders: [
+        'Content-Type'
+        'Authorization'
+        'X-Requested-With'
+      ]
+      allowedMethods: [
+        'GET'
+        'POST'
+        'PUT'
+        'DELETE'
+        'OPTIONS'
+      ]
+      allowedOrigins: [
+        'https://sen.wulo.ai'
+        defaultVoicelabHost
+      ]
+    }
     scaleMinReplicas: 1
     scaleMaxReplicas: 10
     secrets: {
-      secureList: [
-         {
-          name: 'ai-foundry-api-key'
-          value: aiFoundryResource.listKeys().key1
-        }
-        {
-          name: 'speech-api-key'
-          value: speechService.listKeys().key1
-        }
-      ]
+      secureList: concat(
+        [
+          {
+            name: 'ai-foundry-api-key'
+            value: aiFoundryResource.listKeys().key1
+          }
+          {
+            name: 'speech-api-key'
+            value: speechService.listKeys().key1
+          }
+        ],
+        !empty(microsoftProviderClientSecret)
+          ? [
+              {
+                name: 'microsoft-provider-auth-secret'
+                value: microsoftProviderClientSecret
+              }
+            ]
+          : [],
+        !empty(googleProviderClientSecret)
+          ? [
+              {
+                name: 'google-provider-auth-secret'
+                value: googleProviderClientSecret
+              }
+            ]
+          : []
+      )
     }
+    volumes: [
+      {
+        name: 'wulo-data'
+        storageName: 'wulo-data'
+        storageType: 'AzureFile'
+      }
+    ]
     containers: [
       {
         image: voicelabFetchLatestImage.outputs.?containers[?0].?image ?? 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
@@ -179,68 +281,96 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
           cpu: json('1.0')
           memory: '2.0Gi'
         }
-        env: [
+        volumeMounts: [
           {
-            name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-            value: monitoring.outputs.applicationInsightsConnectionString
-          }
-          {
-            name: 'AZURE_CLIENT_ID'
-            value: voicelabIdentity.outputs.clientId
-          }
-          {
-            name: 'AZURE_OPENAI_ENDPOINT'
-            value: aiFoundryResource.properties.endpoint
-          }
-          {
-            name: 'AZURE_OPENAI_API_KEY'
-            secretRef: 'ai-foundry-api-key'
-          }
-          {
-            name: 'PROJECT_ENDPOINT'
-            value: '${aiFoundryResource.properties.endpoint}api/projects/default-project'
-          }
-          {
-            name: 'MODEL_DEPLOYMENT_NAME'
-            value: gptDeploymentName
-          }
-          {
-            name: 'AZURE_SPEECH_KEY'
-            secretRef: 'speech-api-key'
-          }
-          {
-            name: 'AZURE_SPEECH_REGION'
-            value: 'swedencentral'
-          }
-          {
-            name: 'AZURE_AI_RESOURCE_NAME'
-            value: aiFoundryResource.name
-          }
-          {
-            name: 'AZURE_AI_REGION'
-            value: 'swedencentral'
-          }
-          {
-            name: 'SUBSCRIPTION_ID'
-            value: subscription().subscriptionId
-          }
-          {
-            name: 'RESOURCE_GROUP_NAME'
-            value: resourceGroup().name
-          }
-          {
-            name: 'USE_AZURE_AI_AGENTS'
-            value: useFoundryAgents ? 'true' : 'false'
-          }
-          {
-            name: 'PORT'
-            value: '8000'
-          }
-          {
-            name: 'HOST'
-            value: '0.0.0.0'
+            volumeName: 'wulo-data'
+            mountPath: '/app/persistence'
           }
         ]
+        env: concat(
+          [
+            {
+              name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+              value: monitoring.outputs.applicationInsightsConnectionString
+            }
+            {
+              name: 'AZURE_CLIENT_ID'
+              value: voicelabIdentity.outputs.clientId
+            }
+            {
+              name: 'AZURE_OPENAI_ENDPOINT'
+              value: aiFoundryResource.properties.endpoint
+            }
+            {
+              name: 'AZURE_OPENAI_API_KEY'
+              secretRef: 'ai-foundry-api-key'
+            }
+            {
+              name: 'PROJECT_ENDPOINT'
+              value: '${aiFoundryResource.properties.endpoint}api/projects/default-project'
+            }
+            {
+              name: 'MODEL_DEPLOYMENT_NAME'
+              value: gptDeploymentName
+            }
+            {
+              name: 'AZURE_SPEECH_KEY'
+              secretRef: 'speech-api-key'
+            }
+            {
+              name: 'AZURE_SPEECH_REGION'
+              value: 'swedencentral'
+            }
+            {
+              name: 'AZURE_AI_RESOURCE_NAME'
+              value: aiFoundryResource.name
+            }
+            {
+              name: 'AZURE_AI_REGION'
+              value: 'swedencentral'
+            }
+            {
+              name: 'SUBSCRIPTION_ID'
+              value: subscription().subscriptionId
+            }
+            {
+              name: 'RESOURCE_GROUP_NAME'
+              value: resourceGroup().name
+            }
+            {
+              name: 'USE_AZURE_AI_AGENTS'
+              value: useFoundryAgents ? 'true' : 'false'
+            }
+            {
+              name: 'PORT'
+              value: '8000'
+            }
+            {
+              name: 'HOST'
+              value: '0.0.0.0'
+            }
+            {
+              name: 'STORAGE_PATH'
+              value: '/app/persistence/wulo.db'
+            }
+          ],
+          !empty(microsoftProviderClientSecret)
+            ? [
+                {
+                  name: 'MICROSOFT_PROVIDER_AUTHENTICATION_SECRET'
+                  secretRef: 'microsoft-provider-auth-secret'
+                }
+              ]
+            : [],
+          !empty(googleProviderClientSecret)
+            ? [
+                {
+                  name: 'GOOGLE_PROVIDER_AUTHENTICATION_SECRET'
+                  secretRef: 'google-provider-auth-secret'
+                }
+              ]
+            : []
+        )
       }
     ]
     managedIdentities: {
@@ -257,6 +387,76 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
     location: location
     tags: union(tags, { 'azd-service-name': 'voicelab' })
   }
+  dependsOn: [
+    containerAppsManagedEnvironmentStorage
+  ]
+}
+
+resource voicelabAuth 'Microsoft.App/containerApps/authConfigs@2024-03-01' = if (easyAuthEnabled) {
+  parent: voicelabContainerApp
+  name: 'current'
+  properties: {
+    platform: {
+      enabled: true
+    }
+    globalValidation: {
+      unauthenticatedClientAction: 'Return401'
+      excludedPaths: [
+        '/'
+        '/index.html'
+        '/assets/*'
+        '/js/*'
+        '/manifest.json'
+        '/api/health'
+        '/wulo-logo.png'
+        '/favicon.ico'
+      ]
+    }
+    identityProviders: {
+      azureActiveDirectory: {
+        enabled: !empty(microsoftProviderClientId)
+        registration: {
+          clientId: microsoftProviderClientId
+          clientSecretSettingName: 'microsoft-provider-auth-secret'
+          openIdIssuer: '${environment().authentication.loginEndpoint}organizations/v2.0'
+        }
+        login: {
+          loginParameters: [
+            'scope=openid profile email'
+          ]
+        }
+      }
+      google: {
+        enabled: !empty(googleProviderClientId)
+        registration: {
+          clientId: googleProviderClientId
+          clientSecretSettingName: 'google-provider-auth-secret'
+        }
+        login: {
+          scopes: [
+            'openid'
+            'profile'
+            'email'
+          ]
+        }
+      }
+    }
+    login: {
+      tokenStore: {
+        enabled: false
+      }
+      allowedExternalRedirectUrls: [
+        'https://sen.wulo.ai'
+        defaultVoicelabHost
+      ]
+    }
+    httpSettings: {
+      requireHttps: true
+    }
+  }
+  dependsOn: [
+    voicelab
+  ]
 }
 
 resource containerAppAzureAIDeveloperRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {

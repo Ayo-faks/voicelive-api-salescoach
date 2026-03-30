@@ -1,16 +1,36 @@
 """Tests for the Flask application endpoints."""
 
+import base64
 import json
 from unittest.mock import AsyncMock, patch
 
 import pytest
 from flask.testing import FlaskClient
 
-from src.app import app
+from src.app import _get_authenticated_user_from_headers, _is_azure_hosted_environment, app
 
 
 class TestFlaskApp:
     """Test cases for Flask application endpoints."""
+
+    @staticmethod
+    def _auth_headers() -> dict[str, str]:
+        return {
+            "X-MS-CLIENT-PRINCIPAL-ID": "user-123",
+            "X-MS-CLIENT-PRINCIPAL-NAME": "Test User",
+            "X-MS-CLIENT-PRINCIPAL-EMAIL": "user@example.com",
+            "X-MS-CLIENT-PRINCIPAL-IDP": "aad",
+        }
+
+    @staticmethod
+    def _user_payload(role: str = "user") -> dict[str, str]:
+        return {
+            "id": "user-123",
+            "name": "Test User",
+            "email": "user@example.com",
+            "provider": "aad",
+            "role": role,
+        }
 
     def setup_method(self):
         """Set up test fixtures."""
@@ -38,9 +58,12 @@ class TestFlaskApp:
         # Restore original static folder
         app.static_folder = original_static_folder
 
-    def test_get_config_route(self):
+    @patch("src.app.storage_service")
+    def test_get_config_route(self, mock_storage_service):
         """Test the /api/config endpoint."""
-        response = self.client.get("/api/config")
+        mock_storage_service.get_or_create_user.return_value = self._user_payload()
+
+        response = self.client.get("/api/config", headers=self._auth_headers())
 
         assert response.status_code == 200
         data = json.loads(response.data)
@@ -49,55 +72,89 @@ class TestFlaskApp:
         assert data["ws_endpoint"] == "/ws/voice"
         assert "telemetry_enabled" in data
 
+    def test_get_config_route_requires_authentication(self):
+        """Test the /api/config endpoint requires an authenticated user."""
+        response = self.client.get("/api/config")
+
+        assert response.status_code == 401
+        data = json.loads(response.data)
+        assert data["error"] == "Authentication required"
+
     @patch("src.app.storage_service")
     def test_get_pilot_state_route(self, mock_storage_service):
         """Test the Sprint 6 pilot state endpoint."""
         mock_storage_service.get_pilot_state.return_value = {
             "consent_timestamp": "2026-03-26T12:00:00+00:00",
-            "therapist_pin_configured": True,
+            "therapist_pin_configured": False,
         }
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
 
-        response = self.client.get("/api/pilot/state")
+        response = self.client.get("/api/pilot/state", headers=self._auth_headers())
 
         assert response.status_code == 200
         data = json.loads(response.data)
         assert data["consent_timestamp"] == "2026-03-26T12:00:00+00:00"
 
+    @patch("src.app.storage_service")
+    def test_get_pilot_state_requires_therapist_role(self, mock_storage_service):
+        """Test pilot state is therapist-only."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("user")
+
+        response = self.client.get("/api/pilot/state", headers=self._auth_headers())
+
+        assert response.status_code == 403
+        data = json.loads(response.data)
+        assert data["error"] == "Therapist role required"
+
+    @patch("src.app.storage_service")
     @patch("src.app.scenario_manager")
-    def test_get_scenarios_route(self, mock_scenario_manager):
+    def test_get_scenarios_route(self, mock_scenario_manager, mock_storage_service):
         """Test the /api/scenarios endpoint."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload()
         mock_scenarios = [
             {"id": "scenario1", "name": "Test Scenario 1"},
             {"id": "scenario2", "name": "Test Scenario 2"},
         ]
         mock_scenario_manager.list_scenarios.return_value = mock_scenarios
 
-        response = self.client.get("/api/scenarios")
+        response = self.client.get("/api/scenarios", headers=self._auth_headers())
 
         assert response.status_code == 200
         data = json.loads(response.data)
         assert data == mock_scenarios
         mock_scenario_manager.list_scenarios.assert_called_once()
 
+    def test_get_scenarios_route_requires_authentication(self):
+        """Test the /api/scenarios endpoint requires auth."""
+        response = self.client.get("/api/scenarios")
+
+        assert response.status_code == 401
+        data = json.loads(response.data)
+        assert data["error"] == "Authentication required"
+
+    @patch("src.app.storage_service")
     @patch("src.app.scenario_manager")
-    def test_get_scenario_existing(self, mock_scenario_manager):
+    def test_get_scenario_existing(self, mock_scenario_manager, mock_storage_service):
         """Test getting an existing scenario by ID."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload()
         mock_scenario = {"id": "test-scenario", "name": "Test Scenario"}
         mock_scenario_manager.get_scenario.return_value = mock_scenario
 
-        response = self.client.get("/api/scenarios/test-scenario")
+        response = self.client.get("/api/scenarios/test-scenario", headers=self._auth_headers())
 
         assert response.status_code == 200
         data = json.loads(response.data)
         assert data == mock_scenario
         mock_scenario_manager.get_scenario.assert_called_once_with("test-scenario")
 
+    @patch("src.app.storage_service")
     @patch("src.app.scenario_manager")
-    def test_get_scenario_not_found(self, mock_scenario_manager):
+    def test_get_scenario_not_found(self, mock_scenario_manager, mock_storage_service):
         """Test getting a non-existent scenario."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload()
         mock_scenario_manager.get_scenario.return_value = None
 
-        response = self.client.get("/api/scenarios/nonexistent")
+        response = self.client.get("/api/scenarios/nonexistent", headers=self._auth_headers())
 
         assert response.status_code == 404
         data = json.loads(response.data)
@@ -114,6 +171,7 @@ class TestFlaskApp:
         response = self.client.post(
             "/api/agents/create",
             json={"scenario_id": "test-scenario"},
+            headers=self._auth_headers(),
         )
 
         assert response.status_code == 200
@@ -144,6 +202,7 @@ class TestFlaskApp:
         response = self.client.post(
             "/api/agents/create",
             json={"custom_scenario": custom_scenario},
+            headers=self._auth_headers(),
         )
 
         assert response.status_code == 200
@@ -163,6 +222,7 @@ class TestFlaskApp:
         response = self.client.post(
             "/api/agents/create",
             json={},
+            headers=self._auth_headers(),
         )
 
         assert response.status_code == 400
@@ -179,6 +239,7 @@ class TestFlaskApp:
         response = self.client.post(
             "/api/agents/create",
             json={"scenario_id": "nonexistent"},
+            headers=self._auth_headers(),
         )
 
         assert response.status_code == 404
@@ -196,6 +257,7 @@ class TestFlaskApp:
         response = self.client.post(
             "/api/agents/create",
             json={"scenario_id": "test-scenario"},
+            headers=self._auth_headers(),
         )
 
         assert response.status_code == 500
@@ -207,7 +269,7 @@ class TestFlaskApp:
         """Test successful agent deletion."""
         mock_agent_manager.delete_agent.return_value = None
 
-        response = self.client.delete("/api/agents/agent-123")
+        response = self.client.delete("/api/agents/agent-123", headers=self._auth_headers())
 
         assert response.status_code == 200
         data = json.loads(response.data)
@@ -219,7 +281,7 @@ class TestFlaskApp:
         """Test agent deletion with exception."""
         mock_agent_manager.delete_agent.side_effect = Exception("Deletion failed")
 
-        response = self.client.delete("/api/agents/agent-123")
+        response = self.client.delete("/api/agents/agent-123", headers=self._auth_headers())
 
         assert response.status_code == 500
         data = json.loads(response.data)
@@ -236,11 +298,12 @@ class TestFlaskApp:
                 "transcript": "Hello, how are you?",
                 "reference_text": "Hello, how are you?",
             },
+            headers=self._auth_headers(),
         )
 
         # The response might be 200 or 500 depending on analysis function
         # but it should not be 400 (bad request) since we provided required fields
-        assert response.status_code != 400
+        assert response.status_code not in {400, 401}
 
     def test_analyze_conversation_missing_data(self):
         """Test conversation analysis with missing required data."""
@@ -248,6 +311,7 @@ class TestFlaskApp:
         response = self.client.post(
             "/api/analyze",
             json={"transcript": "Hello"},
+            headers=self._auth_headers(),
         )
 
         assert response.status_code == 400
@@ -278,6 +342,7 @@ class TestFlaskApp:
                     "exerciseMetadata": {"targetSound": "s"},
                 },
             },
+            headers=self._auth_headers(),
         )
 
         assert response.status_code == 200
@@ -285,28 +350,81 @@ class TestFlaskApp:
         assert data["session_id"] == "session-123"
         mock_save_session.assert_called_once()
 
-    def test_authenticate_therapist_success(self):
-        """Test therapist PIN validation success."""
-        with patch("src.app.config") as mock_config:
-            mock_config.__getitem__.side_effect = lambda key: {"therapist_pin": "2468"}.get(key)
+    @patch("src.app.storage_service")
+    def test_get_auth_session(self, mock_storage_service):
+        """Test auth session payload is returned for authenticated users."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
 
-            response = self.client.post("/api/therapist/auth", json={"pin": "2468"})
+        response = self.client.get("/api/auth/session", headers=self._auth_headers())
 
         assert response.status_code == 200
         data = json.loads(response.data)
-        assert data["authorized"] is True
+        assert data["authenticated"] is True
+        assert data["role"] == "therapist"
 
-    def test_get_child_sessions_requires_pin(self):
-        """Test therapist review endpoints require the local PIN header."""
+    @patch("src.app.storage_service")
+    def test_authenticated_user_uses_encoded_principal_payload(self, mock_storage_service):
+        """Test Easy Auth principal decoding works even without split header fields."""
+        principal_payload = {
+            "userId": "principal-user-123",
+            "userDetails": "principal@example.com",
+            "identityProvider": "aad",
+            "claims": [
+                {"typ": "name", "val": "Principal User"},
+                {"typ": "preferred_username", "val": "principal@example.com"},
+            ],
+        }
+        encoded_principal = base64.b64encode(json.dumps(principal_payload).encode("utf-8")).decode("utf-8")
+        mock_storage_service.get_or_create_user.return_value = {
+            "id": "principal-user-123",
+            "name": "Principal User",
+            "email": "principal@example.com",
+            "provider": "aad",
+            "role": "user",
+        }
+
+        user = _get_authenticated_user_from_headers({"X-MS-CLIENT-PRINCIPAL": encoded_principal})
+
+        assert user is not None
+        mock_storage_service.get_or_create_user.assert_called_once_with(
+            "principal-user-123",
+            "principal@example.com",
+            "Principal User",
+            "aad",
+        )
+
+    def test_is_azure_hosted_environment_detects_container_apps_marker(self, monkeypatch: pytest.MonkeyPatch):
+        """Test Azure Container Apps markers trigger the LOCAL_DEV_AUTH production guard."""
+        monkeypatch.delenv("WEBSITE_SITE_NAME", raising=False)
+        monkeypatch.delenv("WEBSITE_HOSTNAME", raising=False)
+        monkeypatch.delenv("IDENTITY_ENDPOINT", raising=False)
+        monkeypatch.setenv("CONTAINER_APP_NAME", "speakbright-api")
+
+        assert _is_azure_hosted_environment() is True
+
+    def test_get_child_sessions_requires_authentication(self):
+        """Test therapist review endpoints require an authenticated session."""
         response = self.client.get("/api/children/child-ayo/sessions")
 
         assert response.status_code == 401
         data = json.loads(response.data)
-        assert data["error"] == "Valid therapist PIN required"
+        assert data["error"] == "Authentication required"
+
+    @patch("src.app.storage_service")
+    def test_get_child_sessions_requires_therapist_role(self, mock_storage_service):
+        """Test therapist review endpoints reject authenticated non-therapist users."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("user")
+
+        response = self.client.get("/api/children/child-ayo/sessions", headers=self._auth_headers())
+
+        assert response.status_code == 403
+        data = json.loads(response.data)
+        assert data["error"] == "Therapist role required"
 
     @patch("src.app.storage_service")
     def test_get_child_sessions_success(self, mock_storage_service):
         """Test therapist session history endpoint payload."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
         mock_storage_service.list_sessions_for_child.return_value = [
             {
                 "id": "session-1",
@@ -316,13 +434,10 @@ class TestFlaskApp:
             }
         ]
 
-        with patch("src.app.config") as mock_config:
-            mock_config.__getitem__.side_effect = lambda key: {"therapist_pin": "2468"}.get(key)
-
-            response = self.client.get(
-                "/api/children/child-ayo/sessions",
-                headers={"X-Therapist-Pin": "2468"},
-            )
+        response = self.client.get(
+            "/api/children/child-ayo/sessions",
+            headers=self._auth_headers(),
+        )
 
         assert response.status_code == 200
         data = json.loads(response.data)
@@ -332,6 +447,7 @@ class TestFlaskApp:
     @patch("src.app.storage_service")
     def test_get_session_detail_success(self, mock_storage_service):
         """Test therapist session detail endpoint payload."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
         mock_storage_service.get_session.return_value = {
             "id": "session-1",
             "timestamp": "2026-03-26T12:00:00+00:00",
@@ -340,13 +456,10 @@ class TestFlaskApp:
             "assessment": {"ai_assessment": {"overall_score": 82}},
         }
 
-        with patch("src.app.config") as mock_config:
-            mock_config.__getitem__.side_effect = lambda key: {"therapist_pin": "2468"}.get(key)
-
-            response = self.client.get(
-                "/api/sessions/session-1",
-                headers={"X-Therapist-Pin": "2468"},
-            )
+        response = self.client.get(
+            "/api/sessions/session-1",
+            headers=self._auth_headers(),
+        )
 
         assert response.status_code == 200
         data = json.loads(response.data)
@@ -356,23 +469,91 @@ class TestFlaskApp:
     @patch("src.app.storage_service")
     def test_acknowledge_consent_success(self, mock_storage_service):
         """Test supervised-practice consent acknowledgement is stored."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
         mock_storage_service.save_consent_acknowledgement.return_value = "2026-03-26T12:00:00+00:00"
 
-        with patch("src.app.config") as mock_config:
-            mock_config.__getitem__.side_effect = lambda key: {"therapist_pin": "2468"}.get(key)
-
-            response = self.client.post(
-                "/api/pilot/consent",
-                headers={"X-Therapist-Pin": "2468"},
-            )
+        response = self.client.post(
+            "/api/pilot/consent",
+            headers=self._auth_headers(),
+        )
 
         assert response.status_code == 200
         data = json.loads(response.data)
         assert data["consent_timestamp"] == "2026-03-26T12:00:00+00:00"
 
     @patch("src.app.storage_service")
+    def test_acknowledge_consent_requires_therapist_role(self, mock_storage_service):
+        """Test consent acknowledgement is therapist-only."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("user")
+
+        response = self.client.post(
+            "/api/pilot/consent",
+            headers=self._auth_headers(),
+        )
+
+        assert response.status_code == 403
+        data = json.loads(response.data)
+        assert data["error"] == "Therapist role required"
+
+    @patch("src.app.storage_service")
+    def test_get_children_requires_therapist_role(self, mock_storage_service):
+        """Test child profile listing is therapist-only."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("user")
+
+        response = self.client.get("/api/children", headers=self._auth_headers())
+
+        assert response.status_code == 403
+        data = json.loads(response.data)
+        assert data["error"] == "Therapist role required"
+
+    @patch("src.app.storage_service")
+    def test_get_children_success(self, mock_storage_service):
+        """Test therapist child profile listing."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
+        mock_storage_service.list_children.return_value = [{"id": "child-ayo", "name": "Ayo"}]
+
+        response = self.client.get("/api/children", headers=self._auth_headers())
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data == [{"id": "child-ayo", "name": "Ayo"}]
+
+    @patch("src.app.storage_service")
+    def test_update_user_role_success(self, mock_storage_service):
+        """Test therapist role updates are persisted."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
+        mock_storage_service.update_user_role.return_value = self._user_payload("therapist")
+
+        response = self.client.post(
+            "/api/users/user-123/role",
+            headers=self._auth_headers(),
+            json={"role": "therapist"},
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["role"] == "therapist"
+        mock_storage_service.update_user_role.assert_called_once_with("user-123", "therapist")
+
+    @patch("src.app.storage_service")
+    def test_update_user_role_requires_therapist_role(self, mock_storage_service):
+        """Test only therapists can update another user's role."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("user")
+
+        response = self.client.post(
+            "/api/users/user-123/role",
+            headers=self._auth_headers(),
+            json={"role": "therapist"},
+        )
+
+        assert response.status_code == 403
+        data = json.loads(response.data)
+        assert data["error"] == "Therapist role required"
+
+    @patch("src.app.storage_service")
     def test_save_session_feedback_success(self, mock_storage_service):
         """Test therapist post-session feedback can be saved."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
         mock_storage_service.save_session_feedback.return_value = {
             "id": "session-1",
             "therapist_feedback": {
@@ -382,14 +563,11 @@ class TestFlaskApp:
             },
         }
 
-        with patch("src.app.config") as mock_config:
-            mock_config.__getitem__.side_effect = lambda key: {"therapist_pin": "2468"}.get(key)
-
-            response = self.client.post(
-                "/api/sessions/session-1/feedback",
-                headers={"X-Therapist-Pin": "2468"},
-                json={"rating": "up", "note": "Steady focus throughout."},
-            )
+        response = self.client.post(
+            "/api/sessions/session-1/feedback",
+            headers=self._auth_headers(),
+            json={"rating": "up", "note": "Steady focus throughout."},
+        )
 
         assert response.status_code == 200
         data = json.loads(response.data)
@@ -402,12 +580,12 @@ class TestFlaskApp:
 
     def test_save_session_feedback_rejects_invalid_rating(self):
         """Test therapist feedback validation rejects unsupported ratings."""
-        with patch("src.app.config") as mock_config:
-            mock_config.__getitem__.side_effect = lambda key: {"therapist_pin": "2468"}.get(key)
+        with patch("src.app.storage_service") as mock_storage_service:
+            mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
 
             response = self.client.post(
                 "/api/sessions/session-1/feedback",
-                headers={"X-Therapist-Pin": "2468"},
+                headers=self._auth_headers(),
                 json={"rating": "maybe"},
             )
 
@@ -419,6 +597,7 @@ class TestFlaskApp:
         response = self.client.post(
             "/api/analyze",
             json={"scenario_id": "test"},
+            headers=self._auth_headers(),
         )
 
         assert response.status_code == 400
@@ -470,6 +649,7 @@ class TestFlaskApp:
                 "reference_text": "rabbit",
                 "exercise_metadata": {"targetSound": "r", "childAge": 4},
             },
+            headers=self._auth_headers(),
         )
 
         assert response.status_code == 200
@@ -492,6 +672,7 @@ class TestFlaskApp:
         response = self.client.post(
             "/api/assess-utterance",
             json={"reference_text": "rabbit"},
+            headers=self._auth_headers(),
         )
 
         assert response.status_code == 400

@@ -74,11 +74,12 @@ const useStyles = makeStyles({
 })
 
 interface Props {
+  isTherapist: boolean
   selectedChildName?: string | null
   onChooseMode: (mode: 'therapist' | 'child') => void
 }
 
-export function ModeSelector({ selectedChildName, onChooseMode }: Props) {
+export function ModeSelector({ isTherapist, selectedChildName, onChooseMode }: Props) {
   const styles = useStyles()
   const childLabel = selectedChildName ? ` for ${selectedChildName}` : ''
 
@@ -91,9 +92,15 @@ export function ModeSelector({ selectedChildName, onChooseMode }: Props) {
       <div className={styles.options}>
         <Card className={styles.card}>
           <Text className={styles.cardTitle}>Therapist dashboard</Text>
+          <Text className={styles.cardCopy}>
+            {isTherapist
+              ? 'Open child setup, therapist-authored exercises, and saved session review.'
+              : 'This area is available only to therapist accounts.'}
+          </Text>
           <Button
             appearance="primary"
             className={styles.action}
+            disabled={!isTherapist}
             onClick={() => onChooseMode('therapist')}
           >
             Open therapist dashboard
@@ -102,6 +109,9 @@ export function ModeSelector({ selectedChildName, onChooseMode }: Props) {
 
         <Card className={styles.card}>
           <Text className={styles.cardTitle}>Child practice mode</Text>
+          <Text className={styles.cardCopy}>
+            Start the voice session directly{childLabel} and hand over the device when you are ready.
+          </Text>
           <Button
             appearance="secondary"
             className={styles.action}

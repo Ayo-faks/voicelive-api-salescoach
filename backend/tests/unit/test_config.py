@@ -16,7 +16,7 @@ class TestConfig:
             assert config["port"] == 8000
             assert config["host"] == "0.0.0.0"
             assert config["azure_ai_region"] == "swedencentral"
-            assert config["therapist_pin"] == "2468"
+            assert config["local_dev_auth"] is False
             assert config["default_child_id"] == "child-ayo"
             assert config["storage_path"].endswith("data/wulo.db")
 

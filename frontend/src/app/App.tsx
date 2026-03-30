@@ -12,8 +12,6 @@ import {
   DialogSurface,
   DialogTitle,
   Dropdown,
-  Field,
-  Input,
   Option,
   Spinner,
   Text,
@@ -26,6 +24,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AssessmentPanel } from '../components/AssessmentPanel'
+import { AuthGateScreen } from '../components/AuthGateScreen'
 import { ChildHome } from '../components/ChildHome'
 import { ConsentScreen } from '../components/ConsentScreen'
 import { DashboardHome } from '../components/DashboardHome'
@@ -42,7 +41,7 @@ import { useRecorder } from '../hooks/useRecorder'
 import { useScenarios } from '../hooks/useScenarios'
 import { useSessionTimer } from '../hooks/useSessionTimer'
 import { useWebRTC } from '../hooks/useWebRTC'
-import { api, parseAvatarValue } from '../services/api'
+import { api, parseAvatarValue, type AuthSession } from '../services/api'
 import type {
   Assessment,
   AvatarOption,
@@ -89,6 +88,7 @@ type RealtimeMessage = {
 
 type UserMode = 'therapist' | 'child'
 type TherapistGateIntent = 'review' | 'start-session' | 'mode-switch'
+type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated' | 'error'
 
 type PrewarmedAgent = {
   key: string
@@ -481,14 +481,6 @@ const useStyles = makeStyles({
     lineHeight: 1.6,
     fontSize: '0.8125rem',
   },
-  pinField: {
-    display: 'grid',
-    gap: 'var(--space-sm)',
-    minWidth: '280px',
-  },
-  pinError: {
-    color: 'var(--color-error)',
-  },
 })
 
 export default function App() {
@@ -497,6 +489,9 @@ export default function App() {
   const [pilotStateLoading, setPilotStateLoading] = useState(true)
   const [children, setChildren] = useState<ChildProfile[]>([])
   const [childrenLoading, setChildrenLoading] = useState(true)
+  const [authStatus, setAuthStatus] = useState<AuthStatus>('loading')
+  const [authError, setAuthError] = useState<string | null>(null)
+  const [authUser, setAuthUser] = useState<AuthSession | null>(null)
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null)
   const [onboardingComplete, setOnboardingComplete] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false
@@ -505,13 +500,13 @@ export default function App() {
   const [showSetup, setShowSetup] = useState(true)
   const [showLoading, setShowLoading] = useState(false)
   const [showAssessment, setShowAssessment] = useState(false)
-  const [showTherapistGate, setShowTherapistGate] = useState(false)
+  const [showRoleNotice, setShowRoleNotice] = useState(false)
   const [showConsentScreen, setShowConsentScreen] = useState(false)
   const [selectedAvatar, setSelectedAvatar] = useState(DEFAULT_AVATAR)
   const [pendingAvatarValue, setPendingAvatarValue] = useState<string>('lisa-casual-sitting')
   const [pendingModeSelection, setPendingModeSelection] =
     useState<UserMode | null>(null)
-  const [therapistGateIntent, setTherapistGateIntent] =
+  const [roleNoticeIntent, setRoleNoticeIntent] =
     useState<TherapistGateIntent>('review')
   const [therapistView, setTherapistView] = useState(false)
   const [userMode, setUserMode] = useState<UserMode | null>(() => {
@@ -522,13 +517,6 @@ export default function App() {
       ? storedMode
       : null
   })
-  const [therapistPin, setTherapistPin] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null
-    return window.sessionStorage.getItem('wulo.therapist.pin')
-  })
-  const [pinInput, setPinInput] = useState('')
-  const [pinError, setPinError] = useState<string | null>(null)
-  const [validatingPin, setValidatingPin] = useState(false)
   const [sessionSummaries, setSessionSummaries] = useState<SessionSummary[]>([])
   const [selectedSession, setSelectedSession] = useState<SessionDetail | null>(null)
   const [loadingSessions, setLoadingSessions] = useState(false)
@@ -584,14 +572,35 @@ export default function App() {
     children.find(child => child.id === selectedChildId) || null
   const activeReferenceText = getReferenceText(activeScenario)
   const activeExerciseMetadata = getExerciseMetadata(activeScenario)
+  const isTherapist = authUser?.role === 'therapist'
   const isChildMode = userMode === 'child' && !therapistView
   const activeAvatarName = getAvatarName(selectedAvatar)
   const activeAvatarPersona = getAvatarPersona(selectedAvatar)
-  const appTitle = 'Wulo'
+  const appTitle = 'SpeakBright'
   const launchOverlayVisible =
     !showSetup &&
     showLaunchTransition &&
     !assistantSpeechStarted
+
+  const refreshAuthSession = useCallback(async () => {
+    try {
+      const session = await api.getAuthSession()
+      setAuthUser(session)
+      setAuthStatus('authenticated')
+      setAuthError(null)
+      return session
+    } catch (error) {
+      setAuthUser(null)
+      if (error instanceof Error && error.message === 'UNAUTHORIZED') {
+        setAuthStatus('unauthenticated')
+        setAuthError(null)
+      } else {
+        setAuthStatus('error')
+        setAuthError(error instanceof Error ? error.message : 'Failed to load authentication state')
+      }
+      throw error
+    }
+  }, [])
 
   // Pre-compose intro instructions so they're ready the instant the session is ready
   useEffect(() => {
@@ -619,53 +628,86 @@ export default function App() {
   useEffect(() => {
     let cancelled = false
 
-    // Eagerly cache /api/config so WebSocket URL is ready before a session starts
-    api.getConfig().catch(() => {/* best-effort prefetch */})
-
-    api
-      .getPilotState()
-      .then(state => {
+    refreshAuthSession()
+      .then(session => {
         if (cancelled) return
-        setPilotState(state)
+
+        api.getConfig().catch(() => {/* best-effort prefetch */})
+
+        if (session.role !== 'therapist') {
+          setPilotState(null)
+          setPilotStateLoading(false)
+          setChildren([])
+          setChildrenLoading(false)
+          setSelectedChildId(null)
+          return
+        }
+
+        api
+          .getPilotState()
+          .then(state => {
+            if (cancelled) return
+            setPilotState(state)
+          })
+          .catch(error => {
+            console.error('Failed to load pilot state:', error)
+          })
+          .finally(() => {
+            if (!cancelled) {
+              setPilotStateLoading(false)
+            }
+          })
+
+        api
+          .getChildren()
+          .then(childProfiles => {
+            if (cancelled) return
+            setChildren(childProfiles)
+            setSelectedChildId(current => current || childProfiles[0]?.id || null)
+          })
+          .catch(error => {
+            console.error('Failed to load child profiles:', error)
+          })
+          .finally(() => {
+            if (!cancelled) {
+              setChildrenLoading(false)
+            }
+          })
       })
-      .catch(error => {
-        console.error('Failed to load pilot state:', error)
-      })
-      .finally(() => {
+      .catch(() => {
         if (!cancelled) {
           setPilotStateLoading(false)
-        }
-      })
-
-    api
-      .getChildren()
-      .then(childProfiles => {
-        if (cancelled) return
-        setChildren(childProfiles)
-        setSelectedChildId(current => current || childProfiles[0]?.id || null)
-      })
-      .catch(error => {
-        console.error('Failed to load child profiles:', error)
-      })
-      .finally(() => {
-        if (!cancelled) {
           setChildrenLoading(false)
         }
       })
 
+    const handleAuthExpired = () => {
+      if (cancelled) return
+      setAuthUser(null)
+      setAuthStatus('unauthenticated')
+      setAuthError(null)
+      setTherapistView(false)
+      setUserMode(null)
+      setShowRoleNotice(false)
+      setShowSetup(true)
+    }
+
+    window.addEventListener('auth:expired', handleAuthExpired)
+
     return () => {
       cancelled = true
+      window.removeEventListener('auth:expired', handleAuthExpired)
     }
-  }, [])
+  }, [refreshAuthSession])
 
   const handleOpenSession = useCallback(
     async (sessionId: string) => {
-      if (!therapistPin) return
+      if (!isTherapist) return
 
       setLoadingSessionDetail(true)
 
       try {
-        const detail = await api.getSession(therapistPin, sessionId)
+        const detail = await api.getSession(sessionId)
         setSelectedSession(detail)
       } catch (error) {
         console.error('Failed to load session detail:', error)
@@ -674,15 +716,15 @@ export default function App() {
         setLoadingSessionDetail(false)
       }
     },
-    [therapistPin]
+    [isTherapist]
   )
 
   const loadSessionHistory = useCallback(
-    async (childId: string, pin: string) => {
+    async (childId: string) => {
       setLoadingSessions(true)
 
       try {
-        const summaries = await api.getChildSessions(pin, childId)
+        const summaries = await api.getChildSessions(childId)
         setSessionSummaries(summaries)
 
         if (summaries.length > 0) {
@@ -702,10 +744,10 @@ export default function App() {
   )
 
   useEffect(() => {
-    if (!therapistPin || !selectedChildId) return
+    if (!isTherapist || !selectedChildId) return
 
-    void loadSessionHistory(selectedChildId, therapistPin)
-  }, [loadSessionHistory, selectedChildId, therapistPin])
+    void loadSessionHistory(selectedChildId)
+  }, [isTherapist, loadSessionHistory, selectedChildId])
 
   const handleWebRTCMessage = useCallback((msg: RealtimeMessage) => {
     if (msg.type === 'proxy.connected' || msg.type === 'session.updated') {
@@ -1005,11 +1047,11 @@ export default function App() {
       setFeedbackSubmittedAt(null)
       setFeedbackError(null)
 
-      if (therapistView && therapistPin && selectedChildId) {
-        await loadSessionHistory(selectedChildId, therapistPin)
+      if (therapistView && isTherapist && selectedChildId) {
+        await loadSessionHistory(selectedChildId)
       }
     },
-    [loadSessionHistory, selectedChildId, therapistPin, therapistView]
+    [isTherapist, loadSessionHistory, selectedChildId, therapistView]
   )
 
   const handleFinishPractice = useCallback(async () => {
@@ -1251,39 +1293,6 @@ export default function App() {
     setShowLaunchTransition(false)
   }, [clearConversationAudioRecording, clearMessages])
 
-  const authenticateTherapistPin = useCallback(
-    async (pin: string, openTherapistView = false) => {
-      const trimmedPin = pin.trim()
-      if (!trimmedPin) {
-        setPinError('Enter the therapist PIN to continue.')
-        return false
-      }
-
-      setValidatingPin(true)
-      setPinError(null)
-
-      try {
-        await api.authenticateTherapist(trimmedPin)
-        setTherapistPin(trimmedPin)
-        setTherapistView(openTherapistView)
-        setPinInput('')
-
-        if (typeof window !== 'undefined') {
-          window.sessionStorage.setItem('wulo.therapist.pin', trimmedPin)
-        }
-
-        return true
-      } catch (error) {
-        console.error('Therapist PIN validation failed:', error)
-        setPinError('The therapist PIN was not recognised.')
-        return false
-      } finally {
-        setValidatingPin(false)
-      }
-    },
-    []
-  )
-
   const startPracticeSession = useCallback(async (avatarValue: string, scenarioOverride?: string) => {
     const activeScenarioId = scenarioOverride ?? selectedScenario
     if (!activeScenarioId) return
@@ -1355,15 +1364,7 @@ export default function App() {
 
     setPendingModeSelection(null)
 
-    if (pilotState?.therapist_pin_configured && !therapistPin) {
-      setPendingAvatarValue(avatarValue)
-      setTherapistGateIntent('start-session')
-      setShowTherapistGate(true)
-      setPinError('Confirm the therapist PIN before starting a child session.')
-      return
-    }
-
-    if (!pilotState?.consent_timestamp) {
+    if (isTherapist && !pilotState?.consent_timestamp) {
       setPendingAvatarValue(avatarValue)
       setConsentError(null)
       setShowConsentScreen(true)
@@ -1371,7 +1372,7 @@ export default function App() {
     }
 
     await startPracticeSession(avatarValue, activeScenarioId)
-  }, [pilotState, selectedScenario, setSelectedScenario, startPracticeSession, therapistPin])
+  }, [isTherapist, pilotState, selectedScenario, setSelectedScenario, startPracticeSession])
 
   const handleAnalyze = async () => {
     setShowLoading(true)
@@ -1389,58 +1390,14 @@ export default function App() {
     }
   }
 
-  const handleTherapistUnlock = useCallback(async () => {
-    const authorized = await authenticateTherapistPin(
-      pinInput,
-      therapistGateIntent === 'review'
-    )
-
-    if (!authorized) {
-      return
-    }
-
-    setShowTherapistGate(false)
-
-    if (therapistGateIntent === 'mode-switch') {
-      setUserMode(null)
-      return
-    }
-
-    if (therapistGateIntent === 'start-session') {
-      if (!pilotState?.consent_timestamp) {
-        setConsentError(null)
-        setShowConsentScreen(true)
-        return
-      }
-
-      await startPracticeSession(pendingAvatarValue)
-    }
-  }, [
-    authenticateTherapistPin,
-    pendingAvatarValue,
-    pinInput,
-    pilotState?.consent_timestamp,
-    startPracticeSession,
-    therapistGateIntent,
-  ])
-
-  const handleOnboardingPinConfirm = useCallback(async () => {
-    await authenticateTherapistPin(pinInput, false)
-  }, [authenticateTherapistPin, pinInput])
-
   const handleCompleteOnboarding = useCallback(() => {
-    if (pilotState?.therapist_pin_configured && !therapistPin) {
-      setPinError('Confirm the therapist PIN before continuing.')
-      return
-    }
-
     setOnboardingComplete(true)
     setUserMode(null)
     if (typeof window !== 'undefined') {
       window.localStorage.setItem('wulo.onboarding.complete', 'true')
       window.sessionStorage.removeItem('wulo.user.mode')
     }
-  }, [pilotState, therapistPin])
+  }, [])
 
   const handleExitTherapistView = useCallback(() => {
     setTherapistView(false)
@@ -1483,26 +1440,18 @@ export default function App() {
     setFeedbackSubmittedAt(null)
     setFeedbackError(null)
     setTherapistView(false)
+    setShowRoleNotice(false)
     setShowSetup(true)
   }, [clearConversationAudioRecording, clearMessages, disconnect])
 
-  const handleLockTherapistMode = useCallback(() => {
-    setTherapistView(false)
-    setTherapistPin(null)
-    setUserMode(null)
-    setShowSetup(true)
-    setSessionSummaries([])
-    setSelectedSession(null)
-    setPinError(null)
-
-    if (typeof window !== 'undefined') {
-      window.sessionStorage.removeItem('wulo.therapist.pin')
-      window.sessionStorage.removeItem('wulo.user.mode')
-    }
-  }, [])
-
   const handleChooseMode = useCallback((mode: UserMode) => {
-    if (mode === 'child' && !pilotState?.consent_timestamp) {
+    if (mode === 'therapist' && !isTherapist) {
+      setRoleNoticeIntent('review')
+      setShowRoleNotice(true)
+      return
+    }
+
+    if (mode === 'child' && isTherapist && !pilotState?.consent_timestamp) {
       setPendingModeSelection('child')
       setConsentError(null)
       setShowConsentScreen(true)
@@ -1520,24 +1469,16 @@ export default function App() {
     if (typeof window !== 'undefined') {
       window.sessionStorage.setItem('wulo.user.mode', mode)
     }
-  }, [pilotState?.consent_timestamp, selectedScenario, serverScenarios, setSelectedScenario])
+  }, [isTherapist, pilotState?.consent_timestamp, selectedScenario, serverScenarios, setSelectedScenario])
 
   const handleConsentAccept = useCallback(async () => {
-    if (!therapistPin) {
-      setConsentError('Confirm the therapist PIN before starting a child session.')
-      setShowConsentScreen(false)
-      setShowTherapistGate(true)
-      return
-    }
-
     setConsentSaving(true)
     setConsentError(null)
 
     try {
-      const updatedState = await api.acknowledgeConsent(therapistPin)
+      const updatedState = await api.acknowledgeConsent()
       setPilotState(current => ({
         ...current,
-        therapist_pin_configured: current?.therapist_pin_configured ?? true,
         ...updatedState,
       }))
       setShowConsentScreen(false)
@@ -1571,11 +1512,10 @@ export default function App() {
     serverScenarios,
     setSelectedScenario,
     startPracticeSession,
-    therapistPin,
   ])
 
   const handleSubmitFeedback = useCallback(async () => {
-    if (!assessment?.session_id || !therapistPin || !feedbackRating) {
+    if (!assessment?.session_id || !isTherapist || !feedbackRating) {
       setFeedbackError('Choose a quick rating before saving therapist feedback.')
       return
     }
@@ -1585,7 +1525,6 @@ export default function App() {
 
     try {
       const updatedSession = await api.submitSessionFeedback(
-        therapistPin,
         assessment.session_id,
         feedbackRating,
         feedbackNote
@@ -1593,7 +1532,7 @@ export default function App() {
       setFeedbackSubmittedAt(updatedSession.therapist_feedback?.submitted_at || null)
 
       if (selectedChildId) {
-        await loadSessionHistory(selectedChildId, therapistPin)
+        await loadSessionHistory(selectedChildId)
       }
     } catch (error) {
       console.error('Failed to save therapist feedback:', error)
@@ -1605,10 +1544,33 @@ export default function App() {
     assessment?.session_id,
     feedbackNote,
     feedbackRating,
+    isTherapist,
     loadSessionHistory,
     selectedChildId,
-    therapistPin,
   ])
+
+  const handleMicrosoftSignIn = useCallback(() => {
+    window.location.href = `/.auth/login/aad?post_login_redirect_uri=${encodeURIComponent(`${window.location.origin}/`)}`
+  }, [])
+
+  const handleGoogleSignIn = useCallback(() => {
+    window.location.href = `/.auth/login/google?post_login_redirect_uri=${encodeURIComponent(`${window.location.origin}/`)}`
+  }, [])
+
+  if (authStatus !== 'authenticated') {
+    return (
+      <AuthGateScreen
+        status={authStatus}
+        error={authError}
+        onRetry={() => {
+          setAuthStatus('loading')
+          void refreshAuthSession()
+        }}
+        onMicrosoftSignIn={handleMicrosoftSignIn}
+        onGoogleSignIn={handleGoogleSignIn}
+      />
+    )
+  }
 
   return (
     <div className={styles.page}>
@@ -1632,13 +1594,12 @@ export default function App() {
                 onGoHome={handleGoHome}
               />
             )}
-            {!therapistPin && userMode !== 'child' ? (
+            {!isTherapist && userMode !== 'child' ? (
               <Button
                 appearance="subtle"
                 onClick={() => {
-                  setTherapistGateIntent('review')
-                  setPinError(null)
-                  setShowTherapistGate(true)
+                  setRoleNoticeIntent('review')
+                  setShowRoleNotice(true)
                 }}
               >
                 Therapist access
@@ -1664,19 +1625,12 @@ export default function App() {
         ) : !onboardingComplete ? (
           <OnboardingFlow
             loading={pilotStateLoading}
-            therapistPinConfigured={pilotState?.therapist_pin_configured ?? true}
-            therapistUnlocked={Boolean(therapistPin)}
-            pinValue={pinInput}
-            pinError={pinError}
-            validatingPin={validatingPin}
-            onPinChange={setPinInput}
-            onConfirmPin={() => {
-              void handleOnboardingPinConfirm()
-            }}
+            isTherapist={isTherapist}
             onContinue={handleCompleteOnboarding}
           />
         ) : !userMode ? (
           <ModeSelector
+            isTherapist={isTherapist}
             selectedChildName={selectedChild?.name}
             onChooseMode={handleChooseMode}
           />
@@ -1696,7 +1650,7 @@ export default function App() {
                 selectedAvatar={selectedAvatar}
                 selectedScenario={selectedScenario}
                 scenarios={serverScenarios}
-                therapistUnlocked={Boolean(therapistPin)}
+                isTherapist={isTherapist}
                 onExitToEntry={handleReturnToEntry}
                 onSelectScenario={(scenarioId: string) => {
                   setSelectedScenario(scenarioId)
@@ -1705,14 +1659,13 @@ export default function App() {
                   void handleStart(selectedAvatar)
                 }}
                 onOpenTherapistTools={() => {
-                  if (therapistPin) {
+                  if (isTherapist) {
                     setUserMode(null)
                     return
                   }
 
-                  setTherapistGateIntent('mode-switch')
-                  setPinError(null)
-                  setShowTherapistGate(true)
+                  setRoleNoticeIntent('mode-switch')
+                  setShowRoleNotice(true)
                 }}
               />
             ) : (
@@ -1727,7 +1680,7 @@ export default function App() {
                 customScenarios={customScenarios}
                 sessionSummaries={sessionSummaries}
                 loadingSessions={loadingSessions}
-                therapistUnlocked={Boolean(therapistPin)}
+                isTherapist={isTherapist}
                 onSelectChild={childId => setSelectedChildId(childId)}
                 onSelectAvatar={setSelectedAvatar}
                 onSelectScenario={(scenarioId: string) => {
@@ -1796,37 +1749,24 @@ export default function App() {
       </Dialog>
 
       <Dialog
-        open={showTherapistGate}
-        onOpenChange={(_, data) => setShowTherapistGate(data.open)}
+        open={showRoleNotice}
+        onOpenChange={(_, data) => setShowRoleNotice(data.open)}
       >
         <DialogSurface>
-          <DialogTitle>Therapist access</DialogTitle>
+          <DialogTitle>Role required</DialogTitle>
           <DialogBody>
-            <Field
-              className={styles.pinField}
-              label="Enter therapist PIN"
-              validationMessage={pinError || undefined}
-            >
-              <Input
-                type="password"
-                value={pinInput}
-                onChange={(_, data) => setPinInput(data.value)}
-                placeholder="PIN"
-              />
-            </Field>
+            <Text>
+              {roleNoticeIntent === 'mode-switch'
+                ? 'Therapist-only tools require a therapist role on your account.'
+                : 'This part of SpeakBright is available only to therapist accounts.'}
+            </Text>
           </DialogBody>
           <DialogActions>
-            <Button appearance="secondary" onClick={() => setShowTherapistGate(false)}>
+            <Button appearance="secondary" onClick={() => setShowRoleNotice(false)}>
               Cancel
             </Button>
-            <Button appearance="primary" disabled={validatingPin} onClick={handleTherapistUnlock}>
-              {validatingPin
-                ? 'Checking…'
-                : therapistGateIntent === 'start-session'
-                  ? 'Confirm and continue'
-                  : therapistGateIntent === 'mode-switch'
-                    ? 'Open therapist tools'
-                    : 'Open therapist review'}
+            <Button appearance="primary" onClick={() => setShowRoleNotice(false)}>
+              Close
             </Button>
           </DialogActions>
         </DialogSurface>
@@ -1840,7 +1780,7 @@ export default function App() {
         feedbackSubmittedAt={feedbackSubmittedAt}
         feedbackSaving={feedbackSaving}
         feedbackError={feedbackError}
-        showTherapistControls={!isChildMode}
+        showTherapistControls={!isChildMode && isTherapist}
         onFeedbackRatingChange={setFeedbackRating}
         onFeedbackNoteChange={setFeedbackNote}
         onSubmitFeedback={() => {

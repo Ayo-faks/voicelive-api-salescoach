@@ -19,6 +19,18 @@
       },
       "useFoundryAgents": {
         "value": false
+      },
+      "microsoftProviderClientId": {
+        "value": "${MICROSOFT_PROVIDER_CLIENT_ID=}"
+      },
+      "microsoftProviderClientSecret": {
+        "value": "${MICROSOFT_PROVIDER_CLIENT_SECRET=}"
+      },
+      "googleProviderClientId": {
+        "value": "${GOOGLE_PROVIDER_CLIENT_ID=}"
+      },
+      "googleProviderClientSecret": {
+        "value": "${GOOGLE_PROVIDER_CLIENT_SECRET=}"
       }
     }
 }

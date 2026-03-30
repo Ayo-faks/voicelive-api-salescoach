@@ -20,6 +20,20 @@ param principalType string
 
 param useFoundryAgents bool = false
 
+@description('Microsoft Entra app registration client ID for Easy Auth.')
+param microsoftProviderClientId string = ''
+
+@secure()
+@description('Microsoft Entra client secret for Easy Auth.')
+param microsoftProviderClientSecret string = ''
+
+@description('Google OAuth client ID for Easy Auth.')
+param googleProviderClientId string = ''
+
+@secure()
+@description('Google OAuth client secret for Easy Auth.')
+param googleProviderClientSecret string = ''
+
 // Tags that should be applied to all resources.
 //
 // Note that 'azd-service-name' tags should be applied separately to service host resources.
@@ -46,6 +60,10 @@ module resources 'resources.bicep' = {
     principalType: principalType
     voicelabExists: voicelabExists
     useFoundryAgents: useFoundryAgents
+    microsoftProviderClientId: microsoftProviderClientId
+    microsoftProviderClientSecret: microsoftProviderClientSecret
+    googleProviderClientId: googleProviderClientId
+    googleProviderClientSecret: googleProviderClientSecret
   }
 }
 

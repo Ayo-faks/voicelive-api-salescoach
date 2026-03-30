@@ -26,6 +26,15 @@ export interface AvatarConfig {
   voice_name?: string
 }
 
+export interface AuthSession {
+  authenticated: boolean
+  user_id: string
+  name: string
+  email: string
+  provider: string
+  role: 'therapist' | 'user'
+}
+
 export function getImageAssetUrl(imagePath: string): string {
   const normalizedPath = imagePath.replace(/^\/+/, '')
   return `/api/images/${normalizedPath}`
@@ -62,11 +71,21 @@ type ExerciseMetadataPayload = Partial<ExerciseMetadata> & {
 
 type ConversationTurn = Pick<Message, 'role' | 'content'>
 
-function buildTherapistHeaders(pin: string): HeadersInit {
+function withCredentials(init?: RequestInit): RequestInit {
   return {
-    'Content-Type': 'application/json',
-    'X-Therapist-Pin': pin,
+    ...init,
+    credentials: init?.credentials ?? 'include',
   }
+}
+
+async function fetchWithAuth(input: string, init?: RequestInit): Promise<Response> {
+  const response = await fetch(input, withCredentials(init))
+
+  if (response.status === 401) {
+    window.dispatchEvent(new CustomEvent('auth:expired'))
+  }
+
+  return response
 }
 
 function buildExerciseContext(
@@ -111,10 +130,17 @@ let cachedConfig: Record<string, unknown> | null = null
 let configPromise: Promise<Record<string, unknown>> | null = null
 
 export const api = {
+  async getAuthSession(): Promise<AuthSession> {
+    const res = await fetchWithAuth('/api/auth/session')
+    if (res.status === 401) throw new Error('UNAUTHORIZED')
+    if (!res.ok) throw new Error('Failed to load auth session')
+    return res.json()
+  },
+
   async getConfig() {
     if (cachedConfig) return cachedConfig
     if (configPromise) return configPromise
-    configPromise = fetch('/api/config')
+    configPromise = fetchWithAuth('/api/config')
       .then(r => r.json() as Promise<Record<string, unknown>>)
       .then(cfg => {
         cachedConfig = cfg
@@ -127,44 +153,33 @@ export const api = {
   },
 
   async getScenarios(): Promise<Scenario[]> {
-    const res = await fetch('/api/scenarios')
+    const res = await fetchWithAuth('/api/scenarios')
     return res.json()
   },
 
   async getChildren(): Promise<ChildProfile[]> {
-    const res = await fetch('/api/children')
+    const res = await fetchWithAuth('/api/children')
     if (!res.ok) throw new Error('Failed to load child profiles')
     return res.json()
   },
 
   async getPilotState(): Promise<PilotState> {
-    const res = await fetch('/api/pilot/state')
+    const res = await fetchWithAuth('/api/pilot/state')
     if (!res.ok) throw new Error('Failed to load pilot state')
     return res.json()
   },
 
-  async acknowledgeConsent(pin: string): Promise<Partial<PilotState>> {
-    const res = await fetch('/api/pilot/consent', {
+  async acknowledgeConsent(): Promise<Partial<PilotState>> {
+    const res = await fetchWithAuth('/api/pilot/consent', {
       method: 'POST',
-      headers: buildTherapistHeaders(pin),
+      headers: { 'Content-Type': 'application/json' },
     })
     if (!res.ok) throw new Error('Failed to save consent acknowledgement')
     return res.json()
   },
 
-  async authenticateTherapist(pin: string): Promise<boolean> {
-    const res = await fetch('/api/therapist/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin }),
-    })
-
-    if (!res.ok) throw new Error('Invalid therapist PIN')
-    return true
-  },
-
   async createAgent(scenarioId: string, avatarConfig?: AvatarConfig) {
-    const res = await fetch('/api/agents/create', {
+    const res = await fetchWithAuth('/api/agents/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -187,7 +202,7 @@ export const api = {
     scenarioData: CustomScenarioData,
     avatarConfig?: AvatarConfig
   ) {
-    const res = await fetch('/api/agents/create', {
+    const res = await fetchWithAuth('/api/agents/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -212,7 +227,7 @@ export const api = {
   },
 
   async deleteAgent(agentId: string) {
-    const res = await fetch(`/api/agents/${agentId}`, {
+    const res = await fetchWithAuth(`/api/agents/${agentId}`, {
       method: 'DELETE',
     })
     if (!res.ok) throw new Error('Failed to delete agent')
@@ -232,7 +247,7 @@ export const api = {
   ): Promise<Assessment> {
     const referenceText = extractUserText(conversationMessages)
 
-    const res = await fetch('/api/analyze', {
+    const res = await fetchWithAuth('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -257,7 +272,7 @@ export const api = {
     exerciseMetadata?: ExerciseMetadataPayload,
     scenarioId?: string
   ): Promise<PronunciationAssessment | null> {
-    const res = await fetch('/api/assess-utterance', {
+    const res = await fetchWithAuth('/api/assess-utterance', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -271,31 +286,26 @@ export const api = {
     const data = await res.json()
     return data.pronunciation_assessment
   },
-  async getChildSessions(pin: string, childId: string): Promise<SessionSummary[]> {
-    const res = await fetch(`/api/children/${childId}/sessions`, {
-      headers: buildTherapistHeaders(pin),
-    })
+  async getChildSessions(childId: string): Promise<SessionSummary[]> {
+    const res = await fetchWithAuth(`/api/children/${childId}/sessions`)
     if (!res.ok) throw new Error('Failed to load session history')
     return res.json()
   },
 
-  async getSession(pin: string, sessionId: string): Promise<SessionDetail> {
-    const res = await fetch(`/api/sessions/${sessionId}`, {
-      headers: buildTherapistHeaders(pin),
-    })
+  async getSession(sessionId: string): Promise<SessionDetail> {
+    const res = await fetchWithAuth(`/api/sessions/${sessionId}`)
     if (!res.ok) throw new Error('Failed to load session detail')
     return res.json()
   },
 
   async submitSessionFeedback(
-    pin: string,
     sessionId: string,
     rating: TherapistFeedbackRating,
     note?: string
   ): Promise<SessionDetail> {
-    const res = await fetch(`/api/sessions/${sessionId}/feedback`, {
+    const res = await fetchWithAuth(`/api/sessions/${sessionId}/feedback`, {
       method: 'POST',
-      headers: buildTherapistHeaders(pin),
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rating, note }),
     })
     if (!res.ok) throw new Error('Failed to save therapist feedback')

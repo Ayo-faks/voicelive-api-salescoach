@@ -6,8 +6,6 @@
 import {
   Button,
   Card,
-  Field,
-  Input,
   Spinner,
   Text,
   makeStyles,
@@ -72,10 +70,6 @@ const useStyles = makeStyles({
     fontSize: '0.875rem',
     fontWeight: '600',
   },
-  pinField: {
-    display: 'grid',
-    gap: 'var(--space-sm)',
-  },
   statusCard: {
     padding: 'var(--space-md)',
     borderRadius: 'var(--radius-md)',
@@ -99,25 +93,13 @@ const useStyles = makeStyles({
 
 interface Props {
   loading: boolean
-  therapistPinConfigured: boolean
-  therapistUnlocked: boolean
-  pinValue: string
-  pinError: string | null
-  validatingPin: boolean
-  onPinChange: (value: string) => void
-  onConfirmPin: () => void
+  isTherapist: boolean
   onContinue: () => void
 }
 
 export function OnboardingFlow({
   loading,
-  therapistPinConfigured,
-  therapistUnlocked,
-  pinValue,
-  pinError,
-  validatingPin,
-  onPinChange,
-  onConfirmPin,
+  isTherapist,
   onContinue,
 }: Props) {
   const styles = useStyles()
@@ -144,10 +126,10 @@ export function OnboardingFlow({
         <div className={styles.checklist}>
           <div className={styles.checklistItem}>
             <Text className={styles.checklistTitle} size={400} weight="semibold">
-              1. Confirm therapist access
+              1. Confirm adult access
             </Text>
             <Text className={styles.body} size={300}>
-              Use the therapist PIN so review tools and pilot consent stay in therapist hands.
+              Sign in with your account so child sessions and review tools stay with the right adult.
             </Text>
           </div>
           <div className={styles.checklistItem}>
@@ -174,47 +156,18 @@ export function OnboardingFlow({
           Before the first child session
         </Text>
         <Text className={styles.body} size={300}>
-          Keep this short. Confirm therapist access once for this browser session, then continue to child setup.
+          Keep this short. Check access once for this browser session, then continue to child setup.
         </Text>
 
-        {therapistPinConfigured ? (
-          therapistUnlocked ? (
-            <div className={styles.statusCard}>
-              <Text size={300} weight="semibold">
-                Therapist PIN confirmed for this browser session.
-              </Text>
-            </div>
-          ) : (
-            <Field
-              className={styles.pinField}
-              label="Therapist PIN"
-              validationMessage={pinError || undefined}
-            >
-              <Input
-                type="password"
-                placeholder="Enter PIN"
-                value={pinValue}
-                onChange={(_, data) => onPinChange(data.value)}
-              />
-            </Field>
-          )
-        ) : (
-          <div className={styles.statusCard}>
-            <Text size={300}>Therapist access is available without an additional local PIN.</Text>
-          </div>
-        )}
+        <div className={styles.statusCard}>
+          <Text size={300} weight="semibold">
+            {isTherapist
+              ? 'Your therapist role is active for child setup, saved review, and consent flows.'
+              : 'Your signed-in account can start practice, and therapist-only tools stay locked until your role is upgraded.'}
+          </Text>
+        </div>
 
         <div className={styles.actionRow}>
-          {therapistPinConfigured && !therapistUnlocked ? (
-            <Button
-              appearance="secondary"
-              className={styles.button}
-              disabled={validatingPin}
-              onClick={onConfirmPin}
-            >
-              {validatingPin ? 'Checking…' : 'Confirm therapist PIN'}
-            </Button>
-          ) : null}
           <Button appearance="primary" className={styles.button} onClick={onContinue}>
             Continue to child setup
           </Button>

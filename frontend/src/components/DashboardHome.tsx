@@ -598,7 +598,7 @@ interface DashboardHomeProps {
   customScenarios: CustomScenario[]
   sessionSummaries: SessionSummary[]
   loadingSessions: boolean
-  therapistUnlocked: boolean
+  isTherapist: boolean
   onSelectChild: (childId: string) => void
   onSelectAvatar: (avatarValue: string) => void
   onSelectScenario: (scenarioId: string) => void
@@ -630,7 +630,7 @@ export function DashboardHome({
   customScenarios,
   sessionSummaries,
   loadingSessions,
-  therapistUnlocked,
+  isTherapist,
   onSelectChild,
   onSelectAvatar,
   onSelectScenario,
@@ -764,7 +764,7 @@ export function DashboardHome({
             </Text>
           ) : null}
 
-          {therapistUnlocked ? (
+          {isTherapist ? (
             <Button
               appearance="secondary"
               className={styles.secondaryAction}
@@ -816,7 +816,7 @@ export function DashboardHome({
               >
                 Start practice
               </Button>
-              {therapistUnlocked ? (
+              {isTherapist ? (
                 <Button
                   appearance="secondary"
                   className={styles.heroSecondaryAction}
@@ -973,7 +973,7 @@ export function DashboardHome({
               </Badge>
             </div>
             <Text className={styles.helperText}>{getTrendLabel(sessionSummaries)}</Text>
-            {therapistUnlocked ? (
+            {isTherapist ? (
               <Button
                 appearance="secondary"
                 className={styles.secondaryAction}

@@ -85,7 +85,7 @@ export interface TherapistFeedback {
 
 export interface PilotState {
   consent_timestamp?: string | null
-  therapist_pin_configured: boolean
+  roles_enabled?: boolean
 }
 
 export interface SessionSummary {

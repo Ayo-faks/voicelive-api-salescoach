@@ -8,6 +8,28 @@ from src.services.storage import StorageService
 class TestStorageService:
     """Test cases for persistence and therapist review records."""
 
+    def test_first_user_is_bootstrapped_as_therapist(self, tmp_path: Path):
+        """Test the first authenticated user is promoted to therapist automatically."""
+        service = StorageService(str(tmp_path / "wulo.db"))
+
+        first_user = service.get_or_create_user("user-1", "first@example.com", "First User", "google")
+        second_user = service.get_or_create_user("user-2", "second@example.com", "Second User", "aad")
+
+        assert first_user["role"] == "therapist"
+        assert second_user["role"] == "user"
+
+    def test_update_user_role(self, tmp_path: Path):
+        """Test user roles can be promoted and demoted."""
+        service = StorageService(str(tmp_path / "wulo.db"))
+        service.get_or_create_user("user-1", "first@example.com", "First User", "google")
+        service.get_or_create_user("user-2", "second@example.com", "Second User", "aad")
+
+        updated_user = service.update_user_role("user-2", "therapist")
+
+        assert updated_user is not None
+        assert updated_user["role"] == "therapist"
+        assert service.get_user("user-2")["role"] == "therapist"
+
     def test_list_children_seeds_defaults(self, tmp_path: Path):
         """Test default child profiles are available in a new database."""
         service = StorageService(str(tmp_path / "wulo.db"))

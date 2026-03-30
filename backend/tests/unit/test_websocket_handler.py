@@ -18,6 +18,37 @@ class TestVoiceProxyHandler:
 
         assert handler.agent_manager == agent_manager
 
+    def test_has_authenticated_principal_with_principal_id(self):
+        """Test websocket auth fallback accepts upgraded requests with a principal id."""
+        handler = VoiceProxyHandler(Mock())
+        mock_ws = Mock(environ={"HTTP_X_MS_CLIENT_PRINCIPAL_ID": "user-123"})
+
+        assert handler._has_authenticated_principal(mock_ws) is True
+
+    def test_has_authenticated_principal_without_principal_id(self):
+        """Test websocket auth fallback rejects upgraded requests without a principal id."""
+        handler = VoiceProxyHandler(Mock())
+        mock_ws = Mock(environ={})
+
+        assert handler._has_authenticated_principal(mock_ws) is False
+
+    @pytest.mark.asyncio
+    async def test_handle_connection_rejects_missing_principal(self):
+        """Test handle_connection fails closed when Easy Auth headers are missing."""
+        handler = VoiceProxyHandler(Mock())
+        handler._send_error = AsyncMock()
+        mock_ws = Mock(environ={})
+
+        mock_loop = Mock()
+        mock_loop.run_in_executor = AsyncMock(return_value=None)
+
+        with patch("asyncio.get_event_loop", return_value=mock_loop):
+            await handler.handle_connection(mock_ws)
+
+        handler._send_error.assert_awaited_once_with(mock_ws, "Authentication required")
+        mock_loop.run_in_executor.assert_awaited_once()
+        assert mock_loop.run_in_executor.await_args.args[1] == mock_ws.close
+
     @patch("src.services.websocket_handler.config")
     def test_build_endpoint(self, mock_config):
         """Test building the Azure endpoint URL."""

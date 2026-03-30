@@ -1,5 +1,10 @@
 # Production-Grade MVP Upgrade Prompt
 
+> **Auth setup is documented and ready:** See [`docs/MVP-AUTH-PLAN.md`](./MVP-AUTH-PLAN.md) for the concrete login flow, exact Google OAuth and Azure Easy Auth values, Cloudflare DNS setup, and code changes required. That document is the P0 action item before anything else in this plan.
+>
+> **User flow:** `wulo.ai` (landing) → `sen.wulo.ai/login` (SPA login page) → Google OAuth via Azure Container Apps EasyAuth → `sen.wulo.ai/` (app)  
+> **Container App:** `voicelab.wittyground-443dbaba.swedencentral.azurecontainerapps.io` | **Resource group:** `rg-salescoach-swe`
+
 Using the analysis of the `voicelive-api-salescoach` (SpeakBright) codebase established in this conversation as the baseline, generate a detailed **Production-Grade MVP Upgrade Plan** that explains how to evolve the app from its current prototype state into a secure, production-ready MVP.
 
 The document must be grounded in the actual codebase and should cover both **functional maturity** and **security-by-design**, with the explicit principle that **security is shifted left**: security requirements, controls, testing, and verification must be introduced during design and development, not deferred until release.

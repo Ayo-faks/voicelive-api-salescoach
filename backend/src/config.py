@@ -26,7 +26,6 @@ DEFAULT_VOICE_NAME = "en-GB-SoniaNeural"
 DEFAULT_VOICE_TYPE = "azure-standard"
 DEFAULT_AVATAR_CHARACTER = "lisa"
 DEFAULT_AVATAR_STYLE = "casual-sitting"
-DEFAULT_THERAPIST_PIN = "2468"
 DEFAULT_CHILD_ID = "child-ayo"
 
 DEFAULT_STORAGE_PATH = str(Path(__file__).resolve().parents[2] / "data" / "wulo.db")
@@ -75,7 +74,7 @@ class Config:
             "azure_avatar_character": os.getenv("AZURE_AVATAR_CHARACTER", DEFAULT_AVATAR_CHARACTER),
             "azure_avatar_style": os.getenv("AZURE_AVATAR_STYLE", DEFAULT_AVATAR_STYLE),
             "storage_path": os.getenv("STORAGE_PATH", DEFAULT_STORAGE_PATH),
-            "therapist_pin": os.getenv("THERAPIST_PIN", DEFAULT_THERAPIST_PIN),
+            "local_dev_auth": self._parse_bool_env("LOCAL_DEV_AUTH"),
             "default_child_id": os.getenv("DEFAULT_CHILD_ID", DEFAULT_CHILD_ID),
             "applicationinsights_connection_string": os.getenv(
                 "APPLICATIONINSIGHTS_CONNECTION_STRING",
