@@ -7,17 +7,26 @@ import { Button, Card, Text, makeStyles } from '@fluentui/react-components'
 
 const useStyles = makeStyles({
   layout: {
+    width: '100%',
     display: 'grid',
     gap: 'var(--space-lg)',
     justifyItems: 'center',
+    padding: 'clamp(1.4rem, 3vw, 2.2rem)',
+    borderRadius: 'calc(var(--radius-xl) + 4px)',
+    border: '1px solid var(--color-border)',
+    background:
+      'radial-gradient(circle at top right, rgba(13, 138, 132, 0.16), transparent 32%), radial-gradient(circle at bottom left, rgba(13, 138, 132, 0.08), transparent 34%), linear-gradient(135deg, rgba(233, 245, 246, 0.98), rgba(224, 239, 241, 0.98))',
+    boxShadow: 'var(--shadow-lg)',
+    '@media (max-width: 720px)': {
+      padding: 'var(--space-md)',
+    },
   },
   hero: {
     width: 'min(720px, 100%)',
     padding: 'var(--space-xl)',
     borderRadius: 'var(--radius-lg)',
     border: '1px solid var(--color-border)',
-    background:
-      'radial-gradient(circle at top right, rgba(13, 138, 132, 0.12), transparent 34%), radial-gradient(circle at bottom left, rgba(13, 138, 132, 0.08), transparent 30%), var(--color-bg-card)',
+    background: 'rgba(255, 255, 255, 0.84)',
     boxShadow: 'var(--shadow-lg)',
     display: 'grid',
     gap: 'var(--space-sm)',
@@ -57,7 +66,7 @@ const useStyles = makeStyles({
     minHeight: '200px',
     borderRadius: 'var(--radius-lg)',
     border: '1px solid var(--color-border)',
-    backgroundColor: 'var(--color-bg-card)',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
     boxShadow: 'var(--shadow-md)',
     display: 'grid',
     gap: 'var(--space-md)',
