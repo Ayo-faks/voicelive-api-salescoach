@@ -9,8 +9,10 @@ const useStyles = makeStyles({
   layout: {
     display: 'grid',
     gap: 'var(--space-lg)',
+    justifyItems: 'center',
   },
   hero: {
+    width: 'min(720px, 100%)',
     padding: 'var(--space-xl)',
     borderRadius: 'var(--radius-lg)',
     border: '1px solid var(--color-border)',
@@ -38,16 +40,21 @@ const useStyles = makeStyles({
   },
   options: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gridTemplateColumns: 'repeat(2, minmax(180px, 220px))',
     gap: 'var(--space-lg)',
+    justifyContent: 'center',
+    width: '100%',
     '@media (max-width: 900px)': {
+      gridTemplateColumns: 'repeat(2, minmax(160px, 200px))',
+    },
+    '@media (max-width: 520px)': {
       gridTemplateColumns: '1fr',
     },
   },
   card: {
-    padding: 'var(--space-xl)',
+    padding: 'var(--space-lg)',
     aspectRatio: '1 / 1',
-    minHeight: '320px',
+    minHeight: '200px',
     borderRadius: 'var(--radius-lg)',
     border: '1px solid var(--color-border)',
     backgroundColor: 'var(--color-bg-card)',
@@ -61,7 +68,7 @@ const useStyles = makeStyles({
   cardTitle: {
     fontFamily: 'var(--font-display)',
     color: 'var(--color-text-primary)',
-    fontSize: '1.2rem',
+    fontSize: '1.05rem',
     fontWeight: '700',
   },
   cardCopy: {
@@ -70,11 +77,11 @@ const useStyles = makeStyles({
     fontSize: '0.875rem',
   },
   action: {
-    minHeight: '46px',
-    paddingInline: 'var(--space-lg)',
+    minHeight: '40px',
+    paddingInline: 'var(--space-md)',
     borderRadius: 'var(--radius-md)',
     fontFamily: 'var(--font-display)',
-    fontSize: '0.875rem',
+    fontSize: '0.8125rem',
     fontWeight: '600',
     justifySelf: 'center',
   },
