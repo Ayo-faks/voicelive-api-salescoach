@@ -21,6 +21,7 @@ import {
   Tab,
   Field,
   Textarea,
+  mergeClasses,
 } from '@fluentui/react-components'
 import type { TabValue } from '@fluentui/react-components'
 import type { Assessment, TherapistFeedbackRating } from '../types'
@@ -489,7 +490,7 @@ export function AssessmentPanel({
                       point => (
                         <div
                           key={point}
-                          className={`${styles.feedbackItem} ${styles.strengthItem}`}
+                          className={mergeClasses(styles.feedbackItem, styles.strengthItem)}
                         >
                           <Text className={styles.feedbackText}>{point}</Text>
                         </div>
@@ -515,7 +516,7 @@ export function AssessmentPanel({
                       suggestion => (
                         <div
                           key={suggestion}
-                          className={`${styles.feedbackItem} ${styles.improvementItem}`}
+                          className={mergeClasses(styles.feedbackItem, styles.improvementItem)}
                         >
                           <Text className={styles.feedbackText}>
                             {suggestion}

@@ -38,6 +38,7 @@ logger = logging.getLogger(__name__)
 # WebSocket constants
 AZURE_VOICE_API_VERSION = "2025-05-01-preview"
 AZURE_COGNITIVE_SERVICES_DOMAIN = "cognitiveservices.azure.com"
+LOCAL_DEV_AUTH = bool(config["local_dev_auth"])
 
 # Session configuration defaults
 DEFAULT_TURN_DETECTION_TYPE = "azure_semantic_vad"
@@ -128,6 +129,9 @@ class VoiceProxyHandler:
 
     def _has_authenticated_principal(self, client_ws: simple_websocket.ws.Server) -> bool:
         """Validate that Easy Auth principal headers survived the WebSocket upgrade."""
+        if LOCAL_DEV_AUTH:
+            return True
+
         environ = getattr(client_ws, "environ", {}) or {}
         principal_id = str(environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_ID") or "").strip()
         return bool(principal_id)

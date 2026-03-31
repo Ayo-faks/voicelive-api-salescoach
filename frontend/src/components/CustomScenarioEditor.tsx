@@ -19,6 +19,7 @@ import {
   Text,
   Textarea,
   makeStyles,
+  mergeClasses,
   tokens,
 } from '@fluentui/react-components'
 import {
@@ -369,7 +370,7 @@ export function CustomScenarioEditor({
               <Textarea
                 value={promptText}
                 onChange={(_, data) => setPromptText(data.value)}
-                className={`${styles.textarea} ${styles.promptTextarea}`}
+                className={mergeClasses(styles.textarea, styles.promptTextarea)}
                 placeholder="Let's practice the /s/ sound together. Say each word after me."
                 resize="vertical"
               />

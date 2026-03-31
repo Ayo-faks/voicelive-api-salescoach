@@ -9,6 +9,7 @@ import {
   Spinner,
   Text,
   makeStyles,
+  mergeClasses,
 } from '@fluentui/react-components'
 import type { PronunciationAssessment } from '../types'
 
@@ -111,9 +112,9 @@ function getScoreColor(score: number): 'success' | 'warning' | 'danger' {
 function getWordCardClass(styles: ReturnType<typeof useStyles>, score: number) {
   const scoreColor = getScoreColor(score)
 
-  if (scoreColor === 'success') return `${styles.wordCard} ${styles.wordCardSuccess}`
-  if (scoreColor === 'warning') return `${styles.wordCard} ${styles.wordCardWarning}`
-  return `${styles.wordCard} ${styles.wordCardDanger}`
+  if (scoreColor === 'success') return mergeClasses(styles.wordCard, styles.wordCardSuccess)
+  if (scoreColor === 'warning') return mergeClasses(styles.wordCard, styles.wordCardWarning)
+  return mergeClasses(styles.wordCard, styles.wordCardDanger)
 }
 
 function getPracticeLabel(score: number) {

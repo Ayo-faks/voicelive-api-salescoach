@@ -92,7 +92,7 @@ const useStyles = makeStyles({
   compactChip: {
     minHeight: '22px',
     paddingInline: '10px',
-    borderRadius: '999px',
+    borderRadius: '4px',
     backgroundColor: 'rgba(13, 138, 132, 0.1)',
     color: 'var(--color-primary-dark)',
     fontSize: '0.6875rem',

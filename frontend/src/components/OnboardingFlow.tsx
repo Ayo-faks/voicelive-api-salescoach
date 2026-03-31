@@ -83,7 +83,8 @@ const useStyles = makeStyles({
   },
   button: {
     minHeight: '40px',
-    borderRadius: 'var(--radius-md)',
+    minWidth: '180px',
+    borderRadius: '4px',
     fontFamily: 'var(--font-display)',
     fontWeight: '600',
     fontSize: '0.875rem',

@@ -39,6 +39,47 @@ const useStyles = makeStyles({
     gap: 'var(--space-lg)',
     width: '100%',
   },
+  summaryStrip: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+    gap: 'var(--space-md)',
+    '@media (max-width: 1080px)': {
+      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    },
+    '@media (max-width: 640px)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+  summaryCard: {
+    padding: 'var(--space-md)',
+    borderRadius: 'var(--radius-lg)',
+    border: '1px solid var(--color-border)',
+    background:
+      'linear-gradient(135deg, rgba(233, 245, 246, 0.96), rgba(224, 239, 241, 0.96))',
+    boxShadow: 'var(--shadow-md)',
+    display: 'grid',
+    gap: '4px',
+  },
+  summaryLabel: {
+    color: 'var(--color-text-tertiary)',
+    fontSize: '0.72rem',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.04em',
+    fontWeight: '600',
+  },
+  summaryValue: {
+    color: 'var(--color-text-primary)',
+    fontFamily: 'var(--font-display)',
+    fontSize: '1.6rem',
+    fontWeight: '800',
+    lineHeight: 1,
+    letterSpacing: '-0.03em',
+  },
+  summaryCopy: {
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.78rem',
+    lineHeight: 1.5,
+  },
   header: {
     display: 'flex',
     alignItems: 'center',
@@ -83,7 +124,8 @@ const useStyles = makeStyles({
     boxShadow: 'var(--shadow-md)',
   },
   backButton: {
-    borderRadius: 'var(--radius-md)',
+    minWidth: '140px',
+    borderRadius: '4px',
     fontFamily: 'var(--font-display)',
     fontWeight: '600',
     minHeight: '36px',
@@ -96,7 +138,8 @@ const useStyles = makeStyles({
     flexWrap: 'wrap',
   },
   exitButton: {
-    borderRadius: 'var(--radius-md)',
+    minWidth: '140px',
+    borderRadius: '4px',
     fontFamily: 'var(--font-display)',
     fontWeight: '600',
     minHeight: '36px',
@@ -266,6 +309,56 @@ function getScoreColor(score?: number | null): 'success' | 'warning' | 'danger' 
   return 'danger'
 }
 
+function formatShortDate(timestamp?: string | null) {
+  if (!timestamp) return 'No sessions yet'
+
+  return new Intl.DateTimeFormat('en-GB', {
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(timestamp))
+}
+
+function getAverageScore(sessions: SessionSummary[]) {
+  const scores = sessions
+    .map(session => session.overall_score)
+    .filter((score): score is number => typeof score === 'number')
+
+  if (scores.length === 0) return null
+
+  return Math.round(scores.reduce((total, score) => total + score, 0) / scores.length)
+}
+
+function getTrendLabel(sessions: SessionSummary[]) {
+  const scores = [...sessions]
+    .sort((left, right) => new Date(left.timestamp).getTime() - new Date(right.timestamp).getTime())
+    .map(session => session.overall_score)
+    .filter((score): score is number => typeof score === 'number')
+
+  if (scores.length < 2) return 'Build a baseline with a few sessions.'
+
+  const midpoint = Math.max(1, Math.floor(scores.length / 2))
+  const earlyAverage = scores.slice(0, midpoint).reduce((total, score) => total + score, 0) / midpoint
+  const recentScores = scores.slice(midpoint)
+  const recentAverage = recentScores.reduce((total, score) => total + score, 0) / recentScores.length
+  const delta = Math.round(recentAverage - earlyAverage)
+
+  if (delta >= 6) return `Trending up by ${delta} points.`
+  if (delta <= -6) return `Trending down by ${Math.abs(delta)} points.`
+  return 'Recent sessions are holding steady.'
+}
+
+function getTargetSoundSummary(sessions: SessionSummary[]) {
+  const sounds = sessions
+    .map(session => session.exercise_metadata?.targetSound || session.exercise.exerciseMetadata?.targetSound)
+    .filter((sound): sound is string => Boolean(sound))
+
+  if (sounds.length === 0) {
+    return 'General practice'
+  }
+
+  return Array.from(new Set(sounds)).slice(0, 3).join(', ')
+}
+
 interface Props {
   childProfiles: ChildProfile[]
   selectedChildId: string | null
@@ -296,6 +389,10 @@ export function ProgressDashboard({
   const styles = useStyles()
   const aiAssessment = selectedSession?.assessment.ai_assessment
   const pronunciationAssessment = selectedSession?.assessment.pronunciation_assessment
+  const selectedChild = childProfiles.find(child => child.id === selectedChildId) || null
+  const averageScore = getAverageScore(sessions)
+  const trendLabel = getTrendLabel(sessions)
+  const targetSoundSummary = getTargetSoundSummary(sessions)
 
   return (
     <div className={styles.shell}>
@@ -319,6 +416,42 @@ export function ProgressDashboard({
             Back to practice
           </Button>
         </div>
+      </div>
+
+      <div className={styles.summaryStrip}>
+        <Card className={styles.summaryCard}>
+          <Text className={styles.summaryLabel}>Selected child</Text>
+          <Text className={styles.summaryValue}>{selectedChild?.name || 'Choose child'}</Text>
+          <Text className={styles.summaryCopy}>
+            {selectedChild
+              ? `${selectedChild.session_count ?? sessions.length} saved sessions on record.`
+              : 'Pick a child to reveal session history and detailed trends.'}
+          </Text>
+        </Card>
+
+        <Card className={styles.summaryCard}>
+          <Text className={styles.summaryLabel}>Average score</Text>
+          <Text className={styles.summaryValue}>{averageScore != null ? `${averageScore}%` : '—'}</Text>
+          <Text className={styles.summaryCopy}>
+            {averageScore != null
+              ? 'Based on saved reviewed sessions for this child.'
+              : 'Scores appear after analysed sessions are saved.'}
+          </Text>
+        </Card>
+
+        <Card className={styles.summaryCard}>
+          <Text className={styles.summaryLabel}>Recent trend</Text>
+          <Text className={styles.summaryValue}>{sessions.length > 1 ? 'Trend' : 'Starting'}</Text>
+          <Text className={styles.summaryCopy}>{trendLabel}</Text>
+        </Card>
+
+        <Card className={styles.summaryCard}>
+          <Text className={styles.summaryLabel}>Focus sounds</Text>
+          <Text className={styles.summaryValue}>{targetSoundSummary}</Text>
+          <Text className={styles.summaryCopy}>
+            Last saved session: {formatShortDate(selectedChild?.last_session_at)}
+          </Text>
+        </Card>
       </div>
 
       <div className={styles.grid}>

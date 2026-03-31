@@ -9,6 +9,10 @@ import {
   Card,
   CardHeader,
   Divider,
+  Dialog,
+  DialogBody,
+  DialogSurface,
+  DialogTitle,
   Dropdown,
   Label,
   Option,
@@ -17,8 +21,10 @@ import {
   mergeClasses,
   tokens,
 } from '@fluentui/react-components'
+import { AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline'
 import { PencilSquareIcon } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
+import type { ReactElement } from 'react'
 import type { CustomScenario, CustomScenarioData, Scenario } from '../types'
 import { AVATAR_OPTIONS, DEFAULT_AVATAR } from '../types'
 import {
@@ -35,6 +41,8 @@ import { CustomScenarioEditor } from './CustomScenarioEditor'
 const CHILD_ACTIVITY_FILTER_KEY = 'wulo.child.activityFilter'
 const CHILD_SOUND_FILTER_KEY = 'wulo.child.soundFilter'
 const MAX_CHILD_CARDS_PER_GROUP = 4
+const ALL_STEPS_ID = 'all-steps'
+const MOBILE_BROWSER_BREAKPOINT = 960
 
 const useStyles = makeStyles({
   container: {
@@ -66,9 +74,100 @@ const useStyles = makeStyles({
     borderRadius: 'var(--radius-md)',
     backgroundColor: 'rgba(255, 255, 255, 0.94)',
     border: '1px solid rgba(13, 138, 132, 0.12)',
-    '@media (max-width: 760px)': {
+    '@media (max-width: 960px)': {
       padding: 'var(--space-sm)',
     },
+  },
+  browserShell: {
+    display: 'grid',
+    gridTemplateColumns: '220px minmax(0, 1fr)',
+    gap: 'var(--space-md)',
+    alignItems: 'start',
+    '@media (max-width: 960px)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+  categoryRail: {
+    display: 'grid',
+    gap: '8px',
+    padding: 'var(--space-md)',
+    borderRadius: 'var(--radius-md)',
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    border: '1px solid rgba(13, 138, 132, 0.12)',
+    '@media (max-width: 960px)': {
+      display: 'none',
+    },
+  },
+  categoryRailTitle: {
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.75rem',
+    fontWeight: '600',
+    letterSpacing: '0.04em',
+    textTransform: 'uppercase',
+  },
+  categoryButton: {
+    justifyContent: 'space-between',
+    minHeight: '40px',
+    paddingInline: 'var(--space-md)',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid transparent',
+    color: 'var(--color-text-primary)',
+    backgroundColor: 'rgba(13, 138, 132, 0.08)',
+    fontWeight: '700',
+  },
+  categoryButtonActive: {
+    border: '1px solid rgba(13, 138, 132, 0.2)',
+    backgroundColor: 'rgba(13, 138, 132, 0.18)',
+    color: 'var(--color-primary-dark)',
+  },
+  categoryCount: {
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.74rem',
+  },
+  browserContent: {
+    display: 'grid',
+    gap: 'var(--space-md)',
+    minWidth: 0,
+  },
+  mobileCategoryRow: {
+    display: 'none',
+    '@media (max-width: 960px)': {
+      display: 'grid',
+      gap: 'var(--space-sm)',
+    },
+  },
+  mobileCategoryTrigger: {
+    minHeight: '42px',
+    justifyContent: 'space-between',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid rgba(13, 138, 132, 0.14)',
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    color: 'var(--color-text-primary)',
+    fontWeight: '700',
+  },
+  drawerSurface: {
+    width: 'min(92vw, 360px)',
+    minHeight: '100vh',
+    marginLeft: 'auto',
+    borderRadius: '24px 0 0 24px',
+    padding: 'var(--space-lg)',
+    display: 'grid',
+    gap: 'var(--space-md)',
+  },
+  drawerBody: {
+    display: 'grid',
+    gap: 'var(--space-md)',
+  },
+  drawerSection: {
+    display: 'grid',
+    gap: '8px',
+  },
+  drawerSectionTitle: {
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.75rem',
+    fontWeight: '600',
+    letterSpacing: '0.04em',
+    textTransform: 'uppercase',
   },
   filterGroup: {
     display: 'grid',
@@ -85,7 +184,7 @@ const useStyles = makeStyles({
     display: 'flex',
     gap: '8px',
     flexWrap: 'wrap',
-    '@media (max-width: 760px)': {
+    '@media (max-width: 960px)': {
       display: 'none',
     },
   },
@@ -93,7 +192,7 @@ const useStyles = makeStyles({
     display: 'none',
     gap: 'var(--space-sm)',
     gridTemplateColumns: '1fr',
-    '@media (max-width: 760px)': {
+    '@media (max-width: 960px)': {
       display: 'grid',
     },
   },
@@ -148,6 +247,11 @@ const useStyles = makeStyles({
     '@media (max-width: 640px)': {
       minHeight: '120px',
     },
+  },
+  cardBusy: {
+    cursor: 'progress',
+    opacity: 0.72,
+    pointerEvents: 'none',
   },
   compactCard: {
     minHeight: 'unset',
@@ -345,18 +449,15 @@ const useStyles = makeStyles({
   },
   showMoreButton: {
     minHeight: '32px',
+    minWidth: '120px',
     paddingInline: 'var(--space-md)',
-    borderRadius: '6px',
+    borderRadius: '4px',
     fontSize: '0.8125rem',
     fontWeight: '700',
     letterSpacing: '-0.01em',
     backgroundColor: 'rgba(255, 255, 255, 0.94)',
     color: 'var(--color-text-primary)',
     border: '1px solid transparent',
-    '@media (max-width: 760px)': {
-      width: '100%',
-      justifyContent: 'center',
-    },
   },
   emptyState: {
     padding: 'var(--space-lg)',
@@ -368,19 +469,16 @@ const useStyles = makeStyles({
   },
   startButton: {
     minHeight: '44px',
-    paddingInline: 'var(--space-xl)',
-    borderRadius: 'var(--radius-md)',
+    minWidth: '160px',
+    paddingInline: 'var(--space-lg)',
+    borderRadius: '4px',
     fontFamily: 'var(--font-display)',
     fontWeight: '600',
     fontSize: '0.875rem',
-    background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
+    backgroundColor: 'var(--color-primary)',
     color: 'var(--color-text-inverse)',
-    boxShadow: '0 14px 28px rgba(13, 138, 132, 0.22)',
+    boxShadow: 'none',
     border: 'none',
-    '@media (max-width: 640px)': {
-      width: '100%',
-      minHeight: '48px',
-    },
   },
   avatarSelector: {
     display: 'flex',
@@ -412,6 +510,7 @@ interface Props {
   customScenarios: CustomScenario[]
   selectedScenario: string | null
   onSelect: (id: string) => void
+  onStartScenario?: (id: string) => void
   onStart?: (avatarValue: string) => void
   onAddCustomScenario: (
     name: string,
@@ -429,9 +528,12 @@ interface Props {
   helperText?: string
   showFooter?: boolean
   showCustomExercises?: boolean
+  showCustomCreateTrigger?: boolean
+  customExerciseTrigger?: ReactElement
   selectedAvatar?: string
   onAvatarChange?: (value: string) => void
   compactChildMode?: boolean
+  launchInFlight?: boolean
 }
 
 export function ScenarioList({
@@ -439,6 +541,7 @@ export function ScenarioList({
   customScenarios,
   selectedScenario,
   onSelect,
+  onStartScenario,
   onStart,
   onAddCustomScenario,
   onUpdateCustomScenario,
@@ -447,21 +550,33 @@ export function ScenarioList({
   helperText = 'Choose a Wulo exercise, then start a calm, guided speech practice session.',
   showFooter = true,
   showCustomExercises = true,
+  showCustomCreateTrigger = true,
+  customExerciseTrigger,
   selectedAvatar,
   onAvatarChange,
   compactChildMode = false,
+  launchInFlight = false,
 }: Props) {
   const styles = useStyles()
+  const [isMobileBrowser, setIsMobileBrowser] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false
+    }
+
+    return window.innerWidth <= MOBILE_BROWSER_BREAKPOINT
+  })
   const [internalAvatar, setInternalAvatar] = useState(DEFAULT_AVATAR)
   const [activityFilter, setActivityFilter] = useState<ActivityFilterId>(() => {
     if (typeof window === 'undefined') {
-      return 'recommended'
+      return compactChildMode ? 'recommended' : 'all'
     }
 
     const stored = window.sessionStorage.getItem(CHILD_ACTIVITY_FILTER_KEY)
     return ACTIVITY_FILTERS.some(filter => filter.id === stored)
       ? (stored as ActivityFilterId)
-      : 'recommended'
+      : compactChildMode
+        ? 'recommended'
+        : 'all'
   })
   const [soundFilter, setSoundFilter] = useState<SoundFamilyId>(() => {
     if (typeof window === 'undefined') {
@@ -474,11 +589,15 @@ export function ScenarioList({
       : 'all'
   })
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
+  const [activeStepId, setActiveStepId] = useState(ALL_STEPS_ID)
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
   const activeAvatar = selectedAvatar ?? internalAvatar
-  const filteredScenarios = compactChildMode
-    ? filterScenarios(scenarios, activityFilter, soundFilter)
-    : scenarios
-  const stepGroups = compactChildMode ? groupByStep(filteredScenarios) : []
+  const categoryNavigationEnabled = compactChildMode || !showFooter
+  const filteredScenarios = filterScenarios(scenarios, activityFilter, soundFilter)
+  const stepGroups = groupByStep(filteredScenarios)
+  const visibleStepGroups = categoryNavigationEnabled && activeStepId !== ALL_STEPS_ID
+    ? stepGroups.filter(group => group.id === activeStepId)
+    : stepGroups
 
   useEffect(() => {
     if (!compactChildMode || typeof window === 'undefined') {
@@ -488,6 +607,47 @@ export function ScenarioList({
     window.sessionStorage.setItem(CHILD_ACTIVITY_FILTER_KEY, activityFilter)
     window.sessionStorage.setItem(CHILD_SOUND_FILTER_KEY, soundFilter)
   }, [activityFilter, compactChildMode, soundFilter])
+
+  useEffect(() => {
+    if (activeStepId === ALL_STEPS_ID) {
+      return
+    }
+
+    const activeStepStillVisible = stepGroups.some(group => group.id === activeStepId)
+
+    if (!activeStepStillVisible) {
+      setActiveStepId(ALL_STEPS_ID)
+    }
+  }, [activeStepId, stepGroups])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined
+    }
+
+    const mediaQuery = window.matchMedia(
+      `(max-width: ${MOBILE_BROWSER_BREAKPOINT}px)`
+    )
+    const updateMobileBrowser = (event?: MediaQueryListEvent) => {
+      setIsMobileBrowser(event ? event.matches : mediaQuery.matches)
+    }
+
+    updateMobileBrowser()
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', updateMobileBrowser)
+      return () => mediaQuery.removeEventListener('change', updateMobileBrowser)
+    }
+
+    mediaQuery.addListener(updateMobileBrowser)
+    return () => mediaQuery.removeListener(updateMobileBrowser)
+  }, [])
+
+  useEffect(() => {
+    if (!isMobileBrowser && mobileDrawerOpen) {
+      setMobileDrawerOpen(false)
+    }
+  }, [isMobileBrowser, mobileDrawerOpen])
 
   useEffect(() => {
     if (!compactChildMode || filteredScenarios.length === 0) {
@@ -503,6 +663,21 @@ export function ScenarioList({
     }
   }, [compactChildMode, filteredScenarios, onSelect, selectedScenario])
 
+  const categoryOptions = [
+    {
+      id: ALL_STEPS_ID,
+      label: 'All steps',
+      count: filteredScenarios.length,
+    },
+    ...stepGroups.map(group => ({
+      id: group.id,
+      label: group.stepNumber
+        ? `Step ${group.stepNumber} · ${getStepLabel(group.stepNumber)}`
+        : group.label,
+      count: group.scenarios.length,
+    })),
+  ]
+
   const handleAvatarChange = (value: string) => {
     if (onAvatarChange) {
       onAvatarChange(value)
@@ -511,6 +686,9 @@ export function ScenarioList({
 
     setInternalAvatar(value)
   }
+
+  const activeCategoryLabel =
+    categoryOptions.find(option => option.id === activeStepId)?.label || 'All steps'
 
   const handleEditCustomScenario = (
     scenario: CustomScenario,
@@ -525,9 +703,21 @@ export function ScenarioList({
     })
   }
 
+  const handleScenarioClick = (scenarioId: string) => {
+    if (launchInFlight) {
+      return
+    }
+
+    if (onStartScenario) {
+      onStartScenario(scenarioId)
+      return
+    }
+
+    onSelect(scenarioId)
+  }
+
   const renderScenarioCard = (scenario: Scenario) => {
     const isSelected = selectedScenario === scenario.id
-    const stepNumber = scenario.exerciseMetadata?.stepNumber
 
     return (
       <Card
@@ -535,9 +725,10 @@ export function ScenarioList({
         className={mergeClasses(
           styles.card,
           compactChildMode && styles.compactCard,
-          isSelected && styles.selected
+          isSelected && styles.selected,
+          launchInFlight && styles.cardBusy
         )}
-        onClick={() => onSelect(scenario.id)}
+        onClick={() => handleScenarioClick(scenario.id)}
       >
         <div
           className={mergeClasses(
@@ -605,90 +796,194 @@ export function ScenarioList({
         </Text>
       </div>
 
-      {compactChildMode ? (
+      {categoryNavigationEnabled ? (
         <>
-          <div className={styles.filterPanel}>
-            <div className={styles.filterGroup}>
-              <Text className={styles.filterLabel}>Activity</Text>
-              <div className={styles.desktopFilterRow}>
-                {ACTIVITY_FILTERS.map(filter => (
+          <div className={styles.browserShell}>
+            {!isMobileBrowser ? (
+              <aside className={styles.categoryRail}>
+                <Text className={styles.categoryRailTitle}>Browse by step</Text>
+                {categoryOptions.map(option => (
                   <Button
-                    key={filter.id}
+                    key={option.id}
                     appearance="secondary"
                     className={mergeClasses(
-                      styles.filterButton,
-                      activityFilter === filter.id && styles.activeFilterButton
+                      styles.categoryButton,
+                      activeStepId === option.id && styles.categoryButtonActive
                     )}
-                    onClick={() => setActivityFilter(filter.id)}
+                    onClick={() => setActiveStepId(option.id)}
                   >
-                    {filter.label}
+                    {option.label}
+                    <span className={styles.categoryCount}>{option.count}</span>
                   </Button>
                 ))}
-              </div>
-            </div>
+              </aside>
+            ) : null}
 
-            <div className={styles.filterGroup}>
-              <Text className={styles.filterLabel}>Target sound</Text>
-              <div className={styles.desktopFilterRow}>
-                {SOUND_FILTERS.map(filter => (
-                  <Button
-                    key={filter.id}
-                    appearance="secondary"
-                    className={mergeClasses(
-                      styles.filterButton,
-                      soundFilter === filter.id && styles.activeFilterButton
-                    )}
-                    onClick={() => setSoundFilter(filter.id)}
+            <div className={styles.browserContent}>
+              <div className={styles.filterPanel}>
+                {isMobileBrowser ? (
+                  <div className={styles.mobileCategoryRow}>
+                    <Button
+                      appearance="secondary"
+                      className={styles.mobileCategoryTrigger}
+                      icon={<AdjustmentsHorizontalIcon className="w-5 h-5" />}
+                      onClick={() => setMobileDrawerOpen(true)}
+                    >
+                      Browse steps
+                      <span className={styles.categoryCount}>{activeCategoryLabel}</span>
+                    </Button>
+                  </div>
+                ) : null}
+
+                <div className={styles.filterGroup}>
+                  <Text className={styles.filterLabel}>Activity</Text>
+                  <div className={styles.desktopFilterRow}>
+                    {ACTIVITY_FILTERS.map(filter => (
+                      <Button
+                        key={filter.id}
+                        appearance="secondary"
+                        className={mergeClasses(
+                          styles.filterButton,
+                          activityFilter === filter.id && styles.activeFilterButton
+                        )}
+                        onClick={() => setActivityFilter(filter.id)}
+                      >
+                        {filter.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className={styles.filterGroup}>
+                  <Text className={styles.filterLabel}>Target sound</Text>
+                  <div className={styles.desktopFilterRow}>
+                    {SOUND_FILTERS.map(filter => (
+                      <Button
+                        key={filter.id}
+                        appearance="secondary"
+                        className={mergeClasses(
+                          styles.filterButton,
+                          soundFilter === filter.id && styles.activeFilterButton
+                        )}
+                        onClick={() => setSoundFilter(filter.id)}
+                      >
+                        {filter.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className={styles.mobileFilterRow}>
+                  <Dropdown
+                    className={styles.filterDropdown}
+                    value={ACTIVITY_FILTERS.find(filter => filter.id === activityFilter)?.label || ''}
+                    selectedOptions={[activityFilter]}
+                    onOptionSelect={(_, data) => {
+                      if (data.optionValue) {
+                        setActivityFilter(data.optionValue as ActivityFilterId)
+                      }
+                    }}
                   >
-                    {filter.label}
-                  </Button>
-                ))}
+                    {ACTIVITY_FILTERS.map(filter => (
+                      <Option key={filter.id} value={filter.id}>
+                        {filter.label}
+                      </Option>
+                    ))}
+                  </Dropdown>
+                  <Dropdown
+                    className={styles.filterDropdown}
+                    value={SOUND_FILTERS.find(filter => filter.id === soundFilter)?.label || ''}
+                    selectedOptions={[soundFilter]}
+                    onOptionSelect={(_, data) => {
+                      if (data.optionValue) {
+                        setSoundFilter(data.optionValue as SoundFamilyId)
+                      }
+                    }}
+                  >
+                    {SOUND_FILTERS.map(filter => (
+                      <Option key={filter.id} value={filter.id}>
+                        {filter.label}
+                      </Option>
+                    ))}
+                  </Dropdown>
+                </div>
               </div>
-            </div>
 
-            <div className={styles.mobileFilterRow}>
-              <Dropdown
-                className={styles.filterDropdown}
-                value={ACTIVITY_FILTERS.find(filter => filter.id === activityFilter)?.label || ''}
-                selectedOptions={[activityFilter]}
-                onOptionSelect={(_, data) => {
-                  if (data.optionValue) {
-                    setActivityFilter(data.optionValue as ActivityFilterId)
-                  }
-                }}
-              >
-                {ACTIVITY_FILTERS.map(filter => (
-                  <Option key={filter.id} value={filter.id}>
-                    {filter.label}
-                  </Option>
-                ))}
-              </Dropdown>
-              <Dropdown
-                className={styles.filterDropdown}
-                value={SOUND_FILTERS.find(filter => filter.id === soundFilter)?.label || ''}
-                selectedOptions={[soundFilter]}
-                onOptionSelect={(_, data) => {
-                  if (data.optionValue) {
-                    setSoundFilter(data.optionValue as SoundFamilyId)
-                  }
-                }}
-              >
-                {SOUND_FILTERS.map(filter => (
-                  <Option key={filter.id} value={filter.id}>
-                    {filter.label}
-                  </Option>
-                ))}
-              </Dropdown>
-            </div>
-          </div>
+              <Dialog open={mobileDrawerOpen} onOpenChange={(_, data) => setMobileDrawerOpen(data.open)}>
+                <DialogSurface className={styles.drawerSurface}>
+                  <DialogTitle>Browse exercises</DialogTitle>
+                  <DialogBody className={styles.drawerBody}>
+                    <div className={styles.drawerSection}>
+                      <Text className={styles.drawerSectionTitle}>Steps</Text>
+                      {categoryOptions.map(option => (
+                        <Button
+                          key={option.id}
+                          appearance="secondary"
+                          className={mergeClasses(
+                            styles.categoryButton,
+                            activeStepId === option.id && styles.categoryButtonActive
+                          )}
+                          onClick={() => {
+                            setActiveStepId(option.id)
+                            setMobileDrawerOpen(false)
+                          }}
+                        >
+                          {option.label}
+                          <span className={styles.categoryCount}>{option.count}</span>
+                        </Button>
+                      ))}
+                    </div>
 
-          {stepGroups.length === 0 ? (
-            <Text className={styles.emptyState} size={300}>
-              No practice matches this filter yet. Try another activity or sound.
-            </Text>
-          ) : (
-            <div className={styles.stepGroups}>
-              {stepGroups.map(group => {
+                    <div className={styles.drawerSection}>
+                      <Text className={styles.drawerSectionTitle}>Activity</Text>
+                      <Dropdown
+                        className={styles.filterDropdown}
+                        value={ACTIVITY_FILTERS.find(filter => filter.id === activityFilter)?.label || ''}
+                        selectedOptions={[activityFilter]}
+                        onOptionSelect={(_, data) => {
+                          if (data.optionValue) {
+                            setActivityFilter(data.optionValue as ActivityFilterId)
+                          }
+                        }}
+                      >
+                        {ACTIVITY_FILTERS.map(filter => (
+                          <Option key={filter.id} value={filter.id}>
+                            {filter.label}
+                          </Option>
+                        ))}
+                      </Dropdown>
+                    </div>
+
+                    <div className={styles.drawerSection}>
+                      <Text className={styles.drawerSectionTitle}>Target sound</Text>
+                      <Dropdown
+                        className={styles.filterDropdown}
+                        value={SOUND_FILTERS.find(filter => filter.id === soundFilter)?.label || ''}
+                        selectedOptions={[soundFilter]}
+                        onOptionSelect={(_, data) => {
+                          if (data.optionValue) {
+                            setSoundFilter(data.optionValue as SoundFamilyId)
+                          }
+                        }}
+                      >
+                        {SOUND_FILTERS.map(filter => (
+                          <Option key={filter.id} value={filter.id}>
+                            {filter.label}
+                          </Option>
+                        ))}
+                      </Dropdown>
+                    </div>
+                  </DialogBody>
+                </DialogSurface>
+              </Dialog>
+
+              {visibleStepGroups.length === 0 ? (
+                <Text className={styles.emptyState} size={300}>
+                  No practice matches this filter yet. Try another activity or sound.
+                </Text>
+              ) : (
+                <div className={styles.stepGroups}>
+                  {visibleStepGroups.map(group => {
                 const isExpanded = expandedGroups[group.id] ?? false
                 const visibleScenarios = isExpanded
                   ? group.scenarios
@@ -730,8 +1025,10 @@ export function ScenarioList({
                   </section>
                 )
               })}
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </>
       ) : (
         <div className={styles.cardsGrid}>
@@ -743,18 +1040,23 @@ export function ScenarioList({
         <>
           <Divider style={{ marginTop: tokens.spacingVerticalL }} />
 
-          <div className={styles.sectionHeader}>
-            <div className={styles.sectionCopy}>
-              <Text className={styles.cardTitle} size={500} weight="semibold">
-                Therapist exercises
-              </Text>
-              <Text className={styles.helperText} size={300}>
-                Create a custom exercise with target sounds, target words, and a
-                guided practice prompt.
-              </Text>
+          {showCustomCreateTrigger ? (
+            <div className={styles.sectionHeader}>
+              <div className={styles.sectionCopy}>
+                <Text className={styles.cardTitle} size={500} weight="semibold">
+                  Therapist exercises
+                </Text>
+                <Text className={styles.helperText} size={300}>
+                  Create a custom exercise with target sounds, target words, and a
+                  guided practice prompt.
+                </Text>
+              </div>
+              <CustomScenarioEditor
+                onSave={onAddCustomScenario}
+                trigger={customExerciseTrigger}
+              />
             </div>
-            <CustomScenarioEditor onSave={onAddCustomScenario} />
-          </div>
+          ) : null}
 
           {customScenarios.length === 0 ? (
             <Text className={styles.emptyCustom} size={200}>

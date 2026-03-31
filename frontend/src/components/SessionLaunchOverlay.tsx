@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Text, makeStyles } from '@fluentui/react-components'
-import { useEffect, useState } from 'react'
+import { Text, makeStyles, mergeClasses } from '@fluentui/react-components'
+import { useEffect, useState, useRef } from 'react'
 import { BuddyAvatar } from './BuddyAvatar'
 
 const useStyles = makeStyles({
@@ -17,14 +17,56 @@ const useStyles = makeStyles({
     justifyItems: 'center',
     gap: 'var(--space-lg)',
     background:
-      'radial-gradient(circle at 50% 40%, rgba(13,138,132,0.10), transparent 60%), var(--color-bg)',
+      'radial-gradient(circle at 50% 34%, rgba(13,138,132,0.14), transparent 56%), rgba(241, 247, 247, 0.96)',
     opacity: 1,
-    transition: 'opacity 0.45s ease-out',
+    transition: 'opacity 0.38s ease-out',
     pointerEvents: 'auto',
+    padding: '24px',
   },
   overlayHidden: {
     opacity: 0,
     pointerEvents: 'none',
+  },
+  stage: {
+    width: 'min(820px, calc(100vw - 48px))',
+    aspectRatio: '16 / 9',
+    borderRadius: '28px',
+    overflow: 'hidden',
+    display: 'grid',
+    alignContent: 'space-between',
+    justifyItems: 'center',
+    padding: 'var(--space-lg)',
+    background:
+      'radial-gradient(circle at top, rgba(13, 138, 132, 0.18), transparent 34%), radial-gradient(circle at bottom, rgba(13, 138, 132, 0.1), transparent 36%), linear-gradient(180deg, rgba(244, 247, 248, 0.98), rgba(232, 243, 244, 0.96))',
+    border: '1px solid rgba(13, 138, 132, 0.12)',
+    boxShadow: '0 26px 70px rgba(17, 36, 58, 0.12)',
+    transform: 'translateY(0) scale(1)',
+    transition: 'transform 0.44s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.38s ease-out',
+    '@media (max-width: 720px)': {
+      width: 'calc(100vw - 24px)',
+      minHeight: 'min(76vh, 560px)',
+      aspectRatio: 'auto',
+      padding: 'var(--space-md)',
+      borderRadius: '24px',
+    },
+  },
+  stageHidden: {
+    transform: 'translateY(18px) scale(0.985)',
+    opacity: 0.94,
+  },
+  statusBadge: {
+    justifySelf: 'start',
+    display: 'inline-flex',
+    alignItems: 'center',
+    minHeight: '34px',
+    paddingInline: '12px',
+    borderRadius: '4px',
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    color: 'var(--color-primary-dark)',
+    border: '1px solid rgba(13, 138, 132, 0.16)',
+    boxShadow: '0 10px 20px rgba(13, 138, 132, 0.12)',
+    fontSize: '0.8rem',
+    fontWeight: '700',
   },
   avatarWrap: {
     animationName: {
@@ -56,20 +98,25 @@ const useStyles = makeStyles({
     display: 'grid',
     alignItems: 'center',
     justifyItems: 'center',
+    alignSelf: 'center',
   },
   textWrap: {
     display: 'grid',
     gap: 'var(--space-xs)',
     textAlign: 'center',
-    maxWidth: '280px',
-    animationName: {
-      '0%': { transform: 'translateY(12px)', opacity: 0 },
-      '100%': { transform: 'translateY(0)', opacity: 1 },
-    },
-    animationDuration: '0.5s',
-    animationDelay: '0.3s',
-    animationFillMode: 'forwards',
+    maxWidth: '320px',
+    minHeight: '3.6rem',
+    alignContent: 'center',
+    marginTop: 'var(--space-md)',
+  },
+  textLine: {
+    transition: 'opacity 0.4s ease-out, transform 0.4s ease-out',
+    opacity: 1,
+    transform: 'translateY(0)',
+  },
+  textLineHidden: {
     opacity: 0,
+    transform: 'translateY(8px)',
   },
   title: {
     fontFamily: 'var(--font-display)',
@@ -82,6 +129,28 @@ const useStyles = makeStyles({
     color: 'var(--color-text-secondary)',
     fontSize: '0.9rem',
     lineHeight: 1.5,
+  },
+  promptCard: {
+    width: 'min(100%, 520px)',
+    padding: 'var(--space-md)',
+    borderRadius: 'var(--radius-md)',
+    backgroundColor: 'rgba(255,255,255,0.84)',
+    border: '1px solid rgba(13, 138, 132, 0.12)',
+    boxShadow: 'var(--shadow-sm)',
+    display: 'grid',
+    gap: '4px',
+  },
+  promptLabel: {
+    color: 'var(--color-text-tertiary)',
+    fontSize: '0.72rem',
+    fontWeight: '700',
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase',
+  },
+  promptText: {
+    color: 'var(--color-text-primary)',
+    fontSize: '0.875rem',
+    lineHeight: 1.55,
   },
   dots: {
     display: 'flex',
@@ -136,53 +205,90 @@ interface Props {
   avatarValue: string
   avatarName: string
   exerciseName?: string | null
+  childName?: string | null
+  exercisePrompt?: string | null
 }
 
 export function SessionLaunchOverlay({
   visible,
   avatarValue,
   avatarName,
-  exerciseName,
+  exerciseName: _exerciseName,
+  childName: _childName,
+  exercisePrompt: _exercisePrompt,
 }: Props) {
   const styles = useStyles()
   // Keep mounted during the fade-out transition, then fully unmount
   const [mounted, setMounted] = useState(false)
+  const [phraseIndex, setPhraseIndex] = useState(0)
+  const [phraseVisible, setPhraseVisible] = useState(true)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const phrases = [
+    `${avatarName} is getting ready`,
+    'Hold on for a moment',
+    'Almost there',
+  ]
 
   useEffect(() => {
     if (visible) {
       setMounted(true)
+      setPhraseIndex(0)
+      setPhraseVisible(true)
     } else {
       const timer = setTimeout(() => setMounted(false), 500)
       return () => clearTimeout(timer)
     }
   }, [visible])
 
+  useEffect(() => {
+    if (!visible) return
+
+    timerRef.current = setTimeout(() => {
+      setPhraseVisible(false)
+
+      timerRef.current = setTimeout(() => {
+        setPhraseIndex(i => (i + 1) % phrases.length)
+        setPhraseVisible(true)
+      }, 400)
+    }, 2400)
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [visible, phraseIndex, phrases.length])
+
   if (!mounted) return null
 
   return (
-    <div className={`${styles.overlay} ${!visible ? styles.overlayHidden : ''}`}>
-      <div className={styles.avatarContainer}>
-        <div className={styles.pulseRing} />
-        <div className={styles.avatarWrap}>
-          <BuddyAvatar avatarValue={avatarValue} size={160} />
+    <div className={mergeClasses(styles.overlay, !visible && styles.overlayHidden)}>
+      <div className={mergeClasses(styles.stage, !visible && styles.stageHidden)}>
+        <div className={styles.statusBadge}>Preparing live session</div>
+
+        <div className={styles.avatarContainer}>
+          <div className={styles.pulseRing} />
+          <div className={styles.avatarWrap}>
+            <BuddyAvatar avatarValue={avatarValue} size={160} />
+          </div>
         </div>
-      </div>
 
-      <div className={styles.textWrap}>
-        <Text className={styles.title}>
-          {avatarName} is getting ready
-        </Text>
-        <Text className={styles.subtitle}>
-          {exerciseName
-            ? `Setting up ${exerciseName} for you.`
-            : 'Setting up your practice session.'}
-        </Text>
-      </div>
+        <div className={styles.textWrap}>
+          <Text
+            className={mergeClasses(
+              styles.title,
+              styles.textLine,
+              !phraseVisible && styles.textLineHidden
+            )}
+          >
+            {phrases[phraseIndex]}
+          </Text>
+        </div>
 
-      <div className={styles.dots}>
-        <span className={`${styles.dot} ${styles.dot1}`} />
-        <span className={`${styles.dot} ${styles.dot2}`} />
-        <span className={`${styles.dot} ${styles.dot3}`} />
+        <div className={styles.dots}>
+          <span className={mergeClasses(styles.dot, styles.dot1)} />
+          <span className={mergeClasses(styles.dot, styles.dot2)} />
+          <span className={mergeClasses(styles.dot, styles.dot3)} />
+        </div>
       </div>
     </div>
   )

@@ -42,10 +42,17 @@ const useStyles = makeStyles({
   heroCopy: {
     gridArea: 'copy',
     display: 'grid',
-    gap: 'var(--space-md)',
+    gap: 'var(--space-sm)',
     alignContent: 'center',
     alignSelf: 'center',
     minHeight: '100%',
+  },
+  eyebrow: {
+    color: 'var(--color-text-tertiary)',
+    fontSize: '0.74rem',
+    fontWeight: '700',
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
   },
   title: {
     fontFamily: 'var(--font-display)',
@@ -62,6 +69,12 @@ const useStyles = makeStyles({
     fontSize: '0.95rem',
     maxWidth: '560px',
   },
+  heroHint: {
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.84rem',
+    lineHeight: 1.55,
+    maxWidth: '48ch',
+  },
   chipRow: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -70,15 +83,16 @@ const useStyles = makeStyles({
   chip: {
     minHeight: '28px',
     paddingInline: 'var(--space-sm)',
-    borderRadius: '6px',
+    borderRadius: '4px',
     backgroundColor: 'rgba(255, 255, 255, 0.78)',
     color: 'var(--color-primary-dark)',
     border: '1px solid rgba(13, 138, 132, 0.12)',
   },
   action: {
     minHeight: '46px',
+    minWidth: '152px',
     paddingInline: 'var(--space-lg)',
-    borderRadius: 'var(--radius-md)',
+    borderRadius: '4px',
     fontFamily: 'var(--font-display)',
     fontWeight: '700',
     fontSize: '0.92rem',
@@ -86,11 +100,7 @@ const useStyles = makeStyles({
     backgroundColor: 'var(--color-primary)',
     color: 'var(--color-text-inverse)',
     border: 'none',
-    boxShadow: '0 12px 26px rgba(13, 138, 132, 0.2)',
-    '@media (max-width: 760px)': {
-      width: '100%',
-      justifySelf: 'stretch',
-    },
+    boxShadow: 'none',
   },
   actionWrap: {
     gridArea: 'action',
@@ -126,51 +136,18 @@ const useStyles = makeStyles({
       maxWidth: 'none',
     },
   },
-  ambientOrbWrap: {
-    position: 'relative',
-    display: 'grid',
-    placeItems: 'center',
-    minHeight: '182px',
-    width: '100%',
-  },
-  ambientSignal: {
-    position: 'absolute',
-    borderRadius: '50%',
-    border: '1px solid rgba(13, 138, 132, 0.14)',
-  },
-  ambientSignalOne: {
-    width: '184px',
-    height: '184px',
-  },
-  ambientSignalTwo: {
-    width: '226px',
-    height: '226px',
-    border: '1px solid rgba(13, 138, 132, 0.09)',
-  },
-  ambientOrb: {
-    width: '144px',
-    height: '144px',
-    borderRadius: '50%',
-    background:
-      'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.26), transparent 32%), linear-gradient(135deg, var(--color-primary), #f0b37a)',
-    boxShadow: '0 0 0 20px rgba(13, 138, 132, 0.08), 0 0 58px rgba(13, 138, 132, 0.22)',
+  buddyImage: {
+    width: 'min(220px, 100%)',
+    height: 'auto',
+    filter: 'drop-shadow(0 18px 36px rgba(13, 138, 132, 0.24))',
     animationName: {
-      '0%': { transform: 'scale(1)', opacity: 0.92 },
-      '50%': { transform: 'scale(1.06)', opacity: 1 },
-      '100%': { transform: 'scale(1)', opacity: 0.92 },
+      '0%, 100%': { transform: 'translateY(0) rotate(0)' },
+      '25%': { transform: 'translateY(-6px) rotate(1.25deg)' },
+      '75%': { transform: 'translateY(-4px) rotate(-1.25deg)' },
     },
-    animationDuration: '1.8s',
+    animationDuration: '3.2s',
     animationTimingFunction: 'ease-in-out',
     animationIterationCount: 'infinite',
-  },
-  ambientCore: {
-    position: 'absolute',
-    width: '68px',
-    height: '68px',
-    borderRadius: '50%',
-    background: 'rgba(255, 255, 255, 0.14)',
-    border: '1px solid rgba(255, 255, 255, 0.22)',
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)',
   },
   avatarLabel: {
     marginTop: 'var(--space-md)',
@@ -198,8 +175,9 @@ const useStyles = makeStyles({
   },
   exitButton: {
     minHeight: '36px',
+    minWidth: '132px',
     paddingInline: 'var(--space-md)',
-    borderRadius: 'var(--radius-md)',
+    borderRadius: '4px',
     color: 'var(--color-text-secondary)',
     fontSize: '0.8125rem',
     fontFamily: 'var(--font-display)',
@@ -207,8 +185,9 @@ const useStyles = makeStyles({
   },
   therapistButton: {
     minHeight: '36px',
+    minWidth: '132px',
     paddingInline: 'var(--space-md)',
-    borderRadius: 'var(--radius-md)',
+    borderRadius: '4px',
     color: 'var(--color-text-tertiary)',
     fontSize: '0.8125rem',
     fontFamily: 'var(--font-display)',
@@ -220,10 +199,12 @@ interface Props {
   selectedChild: ChildProfile | null
   selectedAvatar: string
   selectedScenario: string | null
+  launchInFlight: boolean
   scenarios: Scenario[]
   isTherapist: boolean
   onExitToEntry: () => void
   onSelectScenario: (scenarioId: string) => void
+  onStartScenario: (scenarioId: string) => void
   onStartSession: () => void
   onOpenTherapistTools: () => void
 }
@@ -232,10 +213,12 @@ export function ChildHome({
   selectedChild,
   selectedAvatar,
   selectedScenario,
+  launchInFlight,
   scenarios,
   isTherapist,
   onExitToEntry,
   onSelectScenario,
+  onStartScenario,
   onStartSession,
   onOpenTherapistTools,
 }: Props) {
@@ -256,7 +239,7 @@ export function ChildHome({
           className={styles.exitButton}
           onClick={onExitToEntry}
         >
-          Return to start
+          Switch profile
         </Button>
         <Button
           appearance="subtle"
@@ -269,13 +252,11 @@ export function ChildHome({
 
       <Card className={styles.hero}>
         <div className={styles.avatarStage}>
-          <div className={styles.ambientOrbWrap} aria-hidden="true">
-            <div className={`${styles.ambientSignal} ${styles.ambientSignalTwo}`} />
-            <div className={`${styles.ambientSignal} ${styles.ambientSignalOne}`} />
-            <div className={styles.ambientOrb}>
-              <div className={styles.ambientCore} />
-            </div>
-          </div>
+          <img
+            src="/wulo-robot.webp"
+            alt="Wulo practice buddy"
+            className={styles.buddyImage}
+          />
           <Text className={styles.avatarLabel}>{avatarLabel}</Text>
           <Text className={styles.avatarHint}>
             Your practice buddy is ready with short prompts and calm feedback.
@@ -283,8 +264,12 @@ export function ChildHome({
         </div>
 
         <div className={styles.heroCopy}>
+          <Text className={styles.eyebrow}>Recommended next practice</Text>
           <Text className={styles.title}>
             {selectedChild ? `Hi ${selectedChild.name}, let's practise.` : 'Let\'s practise.'}
+          </Text>
+          <Text className={styles.heroHint}>
+            Start the recommended exercise from here, or browse by step below and tap any card to jump straight in.
           </Text>
           <div className={styles.chipRow}>
             <Badge appearance="tint" className={styles.chip}>
@@ -317,10 +302,10 @@ export function ChildHome({
           <Button
             appearance="primary"
             className={styles.action}
-            disabled={!selectedScenario}
+            disabled={!selectedScenario || launchInFlight}
             onClick={onStartSession}
           >
-            Start practice
+            {launchInFlight ? 'Starting...' : 'Start practice'}
           </Button>
         </div>
       </Card>
@@ -331,11 +316,13 @@ export function ChildHome({
           customScenarios={[]}
           selectedScenario={selectedScenario}
           onSelect={onSelectScenario}
+          onStartScenario={onStartScenario}
           onAddCustomScenario={() => undefined}
           onUpdateCustomScenario={() => undefined}
           onDeleteCustomScenario={() => undefined}
+          launchInFlight={launchInFlight}
           title="Choose one practice"
-          helperText="Use the filters to narrow the list, then tap one card to load it into the start panel."
+          helperText="Pick a step or sound, then tap any exercise to start right away."
           showFooter={false}
           showCustomExercises={false}
           compactChildMode

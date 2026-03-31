@@ -103,7 +103,7 @@ def _is_azure_hosted_environment() -> bool:
         "WEBSITE_HOSTNAME",
         "IDENTITY_ENDPOINT",
     )
-    return any(_normalize_context_value(os.environ.get(marker)) for marker in azure_runtime_markers)
+    return any(str(os.environ.get(marker, "")).strip() for marker in azure_runtime_markers)
 
 
 if LOCAL_DEV_AUTH and _is_azure_hosted_environment():

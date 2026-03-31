@@ -37,6 +37,47 @@ interface RealtimeOptions {
   onTranscript?: (role: 'user' | 'assistant', text: string) => void
 }
 
+function resolveWebSocketUrl(config: Record<string, unknown>): string {
+  const configuredUrl =
+    typeof config.ws_url === 'string' && config.ws_url.trim().length > 0
+      ? config.ws_url
+      : null
+
+  if (configuredUrl) {
+    return configuredUrl
+  }
+
+  const endpoint =
+    typeof config.ws_endpoint === 'string' && config.ws_endpoint.trim().length > 0
+      ? config.ws_endpoint
+      : '/ws/voice'
+
+  if (/^wss?:\/\//.test(endpoint)) {
+    return endpoint
+  }
+
+  const isLocalDevServer = location.port !== '8000'
+
+  if (isLocalDevServer) {
+    const backendOrigin = `${location.protocol}//${location.hostname}:8000`
+    const backendUrl = new URL(endpoint, backendOrigin)
+
+    backendUrl.protocol = backendUrl.protocol === 'https:' ? 'wss:' : 'ws:'
+    return backendUrl.toString()
+  }
+
+  const wsOrigin = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}`
+  return new URL(endpoint, wsOrigin).toString()
+}
+
+function createClientMessageId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+
+  return `msg-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
+
 export function useRealtime(options: RealtimeOptions) {
   const [connected, setConnected] = useState(false)
   const [connectionState, setConnectionState] =
@@ -78,7 +119,7 @@ export function useRealtime(options: RealtimeOptions) {
       const activeStreamingMessage = targetRef.current
 
       if (!activeStreamingMessage) {
-        const id = crypto.randomUUID()
+        const id = createClientMessageId()
         targetRef.current = {
           id,
           content: deltaText,
@@ -135,7 +176,7 @@ export function useRealtime(options: RealtimeOptions) {
       }
 
       const message: Message = {
-        id: crypto.randomUUID(),
+        id: createClientMessageId(),
         role,
         content: finalTranscript,
         timestamp: new Date(),
@@ -190,10 +231,7 @@ export function useRealtime(options: RealtimeOptions) {
 
     try {
       const config = await api.getConfig()
-      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:'
-      const ws = new WebSocket(
-        `${protocol}//${location.host}${config.ws_endpoint}`
-      )
+      const ws = new WebSocket(resolveWebSocketUrl(config))
 
       ws.onopen = () => {
         reconnectAttemptsRef.current = 0

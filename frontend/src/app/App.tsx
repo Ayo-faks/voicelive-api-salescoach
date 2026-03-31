@@ -16,6 +16,7 @@ import {
   Spinner,
   Text,
   makeStyles,
+  mergeClasses,
 } from '@fluentui/react-components'
 import {
   ClipboardDocumentCheckIcon,
@@ -99,6 +100,7 @@ const CHILD_TURN_LIMIT = 4
 const CHILD_MAX_TURNS = 8
 const THERAPIST_AUTO_SUMMARY_TURN_LIMIT = 4
 const AFFIRMATIVE_FINISH_PATTERN = /\b(yes|yeah|yep|ok|okay|sure|done|finished)\b/i
+const LAUNCH_HANDOFF_DELAY_MS = 240
 
 function isCustomScenario(
   scenario: Scenario | CustomScenario | null | undefined
@@ -257,9 +259,11 @@ const useStyles = makeStyles({
   page: {
     width: '100%',
     minHeight: '100vh',
-    padding: 'var(--space-xl) var(--space-xl)',
+    maxHeight: '100vh',
     display: 'flex',
     justifyContent: 'center',
+    overflow: 'auto',
+    padding: 'var(--space-xl) var(--space-xl)',
     '@media (max-width: 720px)': {
       paddingTop: 'calc(env(safe-area-inset-top, 0px) + var(--space-lg))',
       paddingRight: 'var(--space-md)',
@@ -289,6 +293,29 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     gap: 'var(--space-sm)',
+  },
+  brandHomeButton: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-sm)',
+    padding: 0,
+    border: 'none',
+    backgroundColor: 'transparent',
+    cursor: 'pointer',
+    textAlign: 'left',
+    borderRadius: 'var(--radius-md)',
+    transition: 'transform var(--transition-fast), opacity var(--transition-fast)',
+    '&:hover': {
+      transform: 'translateY(-1px)',
+    },
+    '&:focus-visible': {
+      outline: '2px solid var(--color-primary)',
+      outlineOffset: '4px',
+    },
+    '&:disabled': {
+      cursor: 'default',
+      opacity: 0.9,
+    },
   },
   brandLogo: {
     width: '56px',
@@ -507,6 +534,7 @@ export default function App() {
   const [showConsentScreen, setShowConsentScreen] = useState(false)
   const [selectedAvatar, setSelectedAvatar] = useState(DEFAULT_AVATAR)
   const [pendingAvatarValue, setPendingAvatarValue] = useState<string>('lisa-casual-sitting')
+  const [pendingScenarioId, setPendingScenarioId] = useState<string | null>(null)
   const [pendingModeSelection, setPendingModeSelection] =
     useState<UserMode | null>(null)
   const [roleNoticeIntent, setRoleNoticeIntent] =
@@ -515,7 +543,7 @@ export default function App() {
   const [userMode, setUserMode] = useState<UserMode | null>(() => {
     if (typeof window === 'undefined') return null
 
-    const storedMode = window.sessionStorage.getItem('wulo.user.mode')
+    const storedMode = window.localStorage.getItem('wulo.user.mode')
     return storedMode === 'therapist' || storedMode === 'child'
       ? storedMode
       : null
@@ -534,6 +562,7 @@ export default function App() {
   const [avatarVideoReady, setAvatarVideoReady] = useState(false)
   const [assistantSpeechStarted, setAssistantSpeechStarted] = useState(false)
   const [showLaunchTransition, setShowLaunchTransition] = useState(false)
+  const [launchHandoffReady, setLaunchHandoffReady] = useState(false)
   const [childTurnCount, setChildTurnCount] = useState(0)
   const [finishPromptTurnLimit, setFinishPromptTurnLimit] = useState(CHILD_TURN_LIMIT)
   const [finishConfirmationPending, setFinishConfirmationPending] = useState(false)
@@ -550,6 +579,7 @@ export default function App() {
   const [consentSaving, setConsentSaving] = useState(false)
   const [consentError, setConsentError] = useState<string | null>(null)
   const [sessionActivityKey, setSessionActivityKey] = useState(0)
+  const [launchInFlight, setLaunchInFlight] = useState(false)
   const prewarmedAgentRef = useRef<PrewarmedAgent | null>(null)
   const prewarmingKeyRef = useRef<string | null>(null)
   const prewarmPromiseRef = useRef<Promise<PrewarmedAgent | null> | null>(null)
@@ -583,7 +613,7 @@ export default function App() {
   const launchOverlayVisible =
     !showSetup &&
     showLaunchTransition &&
-    !assistantSpeechStarted
+    !launchHandoffReady
 
   const refreshAuthSession = useCallback(async () => {
     try {
@@ -636,6 +666,15 @@ export default function App() {
         if (cancelled) return
 
         api.getConfig().catch(() => {/* best-effort prefetch */})
+
+        // Role guard: clear persisted therapist mode if user isn't a therapist
+        if (session.role !== 'therapist') {
+          const storedMode = window.localStorage.getItem('wulo.user.mode')
+          if (storedMode === 'therapist') {
+            window.localStorage.removeItem('wulo.user.mode')
+            setUserMode(null)
+          }
+        }
 
         if (session.role !== 'therapist') {
           setPilotState(null)
@@ -691,6 +730,9 @@ export default function App() {
       setAuthError(null)
       setTherapistView(false)
       setUserMode(null)
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem('wulo.user.mode')
+      }
       setShowRoleNotice(false)
       setShowSetup(true)
     }
@@ -875,13 +917,25 @@ export default function App() {
 
   useEffect(() => {
     if (!showLaunchTransition) {
+      setLaunchHandoffReady(false)
       return
     }
 
-    if (assistantSpeechStarted) {
+    if (assistantSpeechStarted || avatarVideoReady) {
+      setLaunchHandoffReady(true)
+      return
+    }
+  }, [assistantSpeechStarted, avatarVideoReady, showLaunchTransition])
+
+  useEffect(() => {
+    if (!showLaunchTransition || !launchHandoffReady) {
+      return
+    }
+
+    if (launchHandoffReady) {
       setShowLaunchTransition(false)
     }
-  }, [assistantSpeechStarted, showLaunchTransition])
+  }, [launchHandoffReady, showLaunchTransition])
 
   const {
     connected,
@@ -1075,6 +1129,7 @@ export default function App() {
     setAvatarVideoReady(false)
     setAssistantSpeechStarted(false)
     setShowLaunchTransition(false)
+    setLaunchHandoffReady(false)
     setScoringUtterance(false)
     setSessionFinished(true)
   }, [currentAgent, disconnect, handleToggleRecording, recording, releaseAgent])
@@ -1294,11 +1349,16 @@ export default function App() {
     setAvatarVideoReady(false)
     setAssistantSpeechStarted(false)
     setShowLaunchTransition(false)
+    setLaunchHandoffReady(false)
+    setLaunchInFlight(false)
   }, [clearConversationAudioRecording, clearMessages])
 
   const startPracticeSession = useCallback(async (avatarValue: string, scenarioOverride?: string) => {
     const activeScenarioId = scenarioOverride ?? selectedScenario
-    if (!activeScenarioId) return
+    if (!activeScenarioId) {
+      setLaunchInFlight(false)
+      return
+    }
 
     const agentKey = buildAgentWarmKey(activeScenarioId, avatarValue)
     let agentId = prewarmedAgentRef.current?.key === agentKey
@@ -1333,6 +1393,7 @@ export default function App() {
     setAvatarVideoReady(false)
     setAssistantSpeechStarted(false)
     setShowLaunchTransition(true)
+    setLaunchHandoffReady(false)
     setUtteranceFeedback(null)
     setScoringUtterance(false)
     setSessionStartedAt(new Date().toISOString())
@@ -1348,17 +1409,22 @@ export default function App() {
       }
 
       setCurrentAgent(agentId)
+      setLaunchInFlight(false)
     } catch (error) {
       console.error('Failed to create agent:', error)
       // Revert to home on failure so the child isn't stuck
       setShowLaunchTransition(false)
+      setLaunchHandoffReady(false)
       setShowSetup(true)
+      setLaunchInFlight(false)
     }
   }, [createAgentForSelection, selectedScenario])
 
   const handleStart = useCallback(async (avatarValue: string, scenarioOverride?: string) => {
     const activeScenarioId = scenarioOverride ?? selectedScenario
-    if (!activeScenarioId) return
+    if (!activeScenarioId || launchInFlight) return
+
+    setLaunchInFlight(true)
 
     // Ensure React state is in sync when called with an override
     if (scenarioOverride && scenarioOverride !== selectedScenario) {
@@ -1366,16 +1432,19 @@ export default function App() {
     }
 
     setPendingModeSelection(null)
+    setPendingScenarioId(null)
 
     if (isTherapist && !pilotState?.consent_timestamp) {
       setPendingAvatarValue(avatarValue)
+      setPendingScenarioId(activeScenarioId)
       setConsentError(null)
       setShowConsentScreen(true)
+      setLaunchInFlight(false)
       return
     }
 
     await startPracticeSession(avatarValue, activeScenarioId)
-  }, [isTherapist, pilotState, selectedScenario, setSelectedScenario, startPracticeSession])
+  }, [isTherapist, launchInFlight, pilotState, selectedScenario, setSelectedScenario, startPracticeSession])
 
   const handleAnalyze = async () => {
     setShowLoading(true)
@@ -1398,7 +1467,7 @@ export default function App() {
     setUserMode(null)
     if (typeof window !== 'undefined') {
       window.localStorage.setItem('wulo.onboarding.complete', 'true')
-      window.sessionStorage.removeItem('wulo.user.mode')
+      window.localStorage.removeItem('wulo.user.mode')
     }
   }, [])
 
@@ -1414,8 +1483,13 @@ export default function App() {
     setFinishConfirmationPending(false)
     setFinishPromptQueued(false)
     setFinishRequested(false)
+    setLaunchHandoffReady(false)
+    setLaunchInFlight(false)
     setShowSetup(true)
     setUserMode(null)
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('wulo.user.mode')
+    }
   }, [])
 
   const handleGoHome = useCallback(() => {
@@ -1442,10 +1516,22 @@ export default function App() {
     setFeedbackNote('')
     setFeedbackSubmittedAt(null)
     setFeedbackError(null)
+    setLaunchHandoffReady(false)
+    setLaunchInFlight(false)
     setTherapistView(false)
     setShowRoleNotice(false)
     setShowSetup(true)
   }, [clearConversationAudioRecording, clearMessages, disconnect])
+
+  const canNavigateToProfileHome = onboardingComplete && (Boolean(userMode) || therapistView || !showSetup)
+
+  const handleBrandHome = useCallback(() => {
+    if (!canNavigateToProfileHome) {
+      return
+    }
+
+    handleGoHome()
+  }, [canNavigateToProfileHome, handleGoHome])
 
   const handleChooseMode = useCallback((mode: UserMode) => {
     if (mode === 'therapist' && !isTherapist) {
@@ -1470,7 +1556,7 @@ export default function App() {
     setShowSetup(true)
 
     if (typeof window !== 'undefined') {
-      window.sessionStorage.setItem('wulo.user.mode', mode)
+      window.localStorage.setItem('wulo.user.mode', mode)
     }
   }, [isTherapist, pilotState?.consent_timestamp, selectedScenario, serverScenarios, setSelectedScenario])
 
@@ -1495,21 +1581,26 @@ export default function App() {
         setPendingModeSelection(null)
 
         if (typeof window !== 'undefined') {
-          window.sessionStorage.setItem('wulo.user.mode', 'child')
+          window.localStorage.setItem('wulo.user.mode', 'child')
         }
+
+        setLaunchInFlight(false)
 
         return
       }
 
-      await startPracticeSession(pendingAvatarValue)
+      await startPracticeSession(pendingAvatarValue, pendingScenarioId ?? undefined)
+      setPendingScenarioId(null)
     } catch (error) {
       console.error('Failed to save consent:', error)
       setConsentError('Consent could not be saved right now.')
+      setLaunchInFlight(false)
     } finally {
       setConsentSaving(false)
     }
   }, [
     pendingAvatarValue,
+    pendingScenarioId,
     pendingModeSelection,
     selectedScenario,
     serverScenarios,
@@ -1579,7 +1670,13 @@ export default function App() {
     <div className={styles.page}>
       <div className={styles.shell}>
         <div className={styles.brandRow}>
-          <div className={styles.brandBlock}>
+          <button
+            type="button"
+            className={mergeClasses(styles.brandBlock, styles.brandHomeButton)}
+            onClick={handleBrandHome}
+            disabled={!canNavigateToProfileHome}
+            aria-label={canNavigateToProfileHome ? 'Go to home page' : 'Wulo'}
+          >
             <img
               src="/wulo-logo.png"
               alt="Wulo logo"
@@ -1588,7 +1685,7 @@ export default function App() {
             <Text className={styles.appTitle} size={600} weight="semibold">
               {appTitle}
             </Text>
-          </div>
+          </button>
 
           <div className={styles.brandActions}>
             {(!showSetup || therapistView) && onboardingComplete && (
@@ -1651,11 +1748,15 @@ export default function App() {
                 selectedChild={selectedChild}
                 selectedAvatar={selectedAvatar}
                 selectedScenario={selectedScenario}
+                launchInFlight={launchInFlight}
                 scenarios={serverScenarios}
                 isTherapist={isTherapist}
                 onExitToEntry={handleReturnToEntry}
                 onSelectScenario={(scenarioId: string) => {
                   setSelectedScenario(scenarioId)
+                }}
+                onStartScenario={(scenarioId: string) => {
+                  void handleStart(selectedAvatar, scenarioId)
                 }}
                 onStartSession={() => {
                   void handleStart(selectedAvatar)
@@ -1678,18 +1779,13 @@ export default function App() {
                 selectedChild={selectedChild}
                 selectedAvatar={selectedAvatar}
                 selectedScenario={selectedScenario}
+                launchInFlight={launchInFlight}
                 scenarios={serverScenarios}
                 customScenarios={customScenarios}
-                sessionSummaries={sessionSummaries}
-                loadingSessions={loadingSessions}
-                isTherapist={isTherapist}
                 onSelectChild={childId => setSelectedChildId(childId)}
                 onSelectAvatar={setSelectedAvatar}
                 onSelectScenario={(scenarioId: string) => {
                   setSelectedScenario(scenarioId)
-                  if (selectedChildId) {
-                    void handleStart(selectedAvatar, scenarioId)
-                  }
                 }}
                 onStartSession={() => {
                   void handleStart(selectedAvatar)
@@ -1706,6 +1802,7 @@ export default function App() {
           <SessionScreen
             videoRef={videoRef}
             messages={messages}
+            launching={showLaunchTransition}
             recording={recording}
             connected={connected}
             connectionState={connectionState}
@@ -1734,6 +1831,8 @@ export default function App() {
         avatarValue={selectedAvatar}
         avatarName={activeAvatarName}
         exerciseName={activeScenario?.name}
+        childName={selectedChild?.name}
+        exercisePrompt={activeScenario?.description}
       />
 
       <Dialog open={showLoading}>

@@ -47,10 +47,12 @@ const useStyles = makeStyles({
   actionStack: {
     display: 'grid',
     gap: 'var(--space-sm)',
+    justifyItems: 'start',
   },
   primaryButton: {
     minHeight: '50px',
-    borderRadius: 'var(--radius-md)',
+    minWidth: '220px',
+    borderRadius: '4px',
     fontFamily: 'var(--font-display)',
     fontWeight: '700',
     backgroundColor: 'var(--color-primary)',
@@ -59,7 +61,8 @@ const useStyles = makeStyles({
   },
   secondaryButton: {
     minHeight: '50px',
-    borderRadius: 'var(--radius-md)',
+    minWidth: '220px',
+    borderRadius: '4px',
     fontFamily: 'var(--font-display)',
     fontWeight: '700',
     backgroundColor: 'rgba(255,255,255,0.9)',
@@ -73,7 +76,7 @@ const useStyles = makeStyles({
   },
   trustPill: {
     padding: '6px 10px',
-    borderRadius: '999px',
+    borderRadius: '4px',
     backgroundColor: 'rgba(13, 138, 132, 0.08)',
     color: 'var(--color-primary-dark)',
     border: '1px solid rgba(13, 138, 132, 0.12)',

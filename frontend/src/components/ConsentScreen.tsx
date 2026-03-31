@@ -13,6 +13,7 @@ import {
   DialogTitle,
   Text,
   makeStyles,
+  mergeClasses,
 } from '@fluentui/react-components'
 import { useEffect, useState } from 'react'
 
@@ -44,15 +45,16 @@ const useStyles = makeStyles({
   },
   actionButton: {
     minHeight: '40px',
-    borderRadius: 'var(--radius-md)',
+    minWidth: '160px',
+    borderRadius: '4px',
     fontFamily: 'var(--font-display)',
     fontWeight: '600',
     fontSize: '0.875rem',
   },
   primaryButton: {
-    background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
+    backgroundColor: 'var(--color-primary)',
     color: 'var(--color-text-inverse)',
-    boxShadow: '0 14px 28px rgba(13, 138, 132, 0.22)',
+    boxShadow: 'none',
     border: 'none',
   },
 })
@@ -104,7 +106,7 @@ export function ConsentScreen({ open, saving, error, onAccept, onCancel }: Props
           <Button appearance="secondary" className={styles.actionButton} onClick={onCancel}>
             Cancel
           </Button>
-          <Button appearance="primary" className={`${styles.actionButton} ${styles.primaryButton}`} disabled={!acknowledged || saving} onClick={onAccept}>
+          <Button appearance="primary" className={mergeClasses(styles.actionButton, styles.primaryButton)} disabled={!acknowledged || saving} onClick={onAccept}>
             {saving ? 'Saving…' : 'Acknowledge and continue'}
           </Button>
         </DialogActions>

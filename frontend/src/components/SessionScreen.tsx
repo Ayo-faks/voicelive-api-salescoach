@@ -28,6 +28,19 @@ import { VowelBlendingPanel } from './VowelBlendingPanel'
 import { VideoPanel } from './VideoPanel'
 
 const useStyles = makeStyles({
+  stage: {
+    opacity: 1,
+    transform: 'translateY(0) scale(1)',
+    transition: 'opacity 360ms ease-out, transform 420ms cubic-bezier(0.22, 1, 0.36, 1)',
+    willChange: 'opacity, transform',
+    '@media (prefers-reduced-motion: reduce)': {
+      transition: 'none',
+    },
+  },
+  stageLaunching: {
+    opacity: 0.82,
+    transform: 'translateY(18px) scale(0.985)',
+  },
   layout: {
     display: 'grid',
     gridTemplateColumns: 'minmax(0, 1fr) 0fr',
@@ -140,6 +153,7 @@ const useStyles = makeStyles({
 interface SessionScreenProps {
   videoRef: React.RefObject<HTMLVideoElement | null>
   messages: Message[]
+  launching?: boolean
   recording: boolean
   connected: boolean
   connectionState: 'connecting' | 'connected' | 'reconnecting' | 'disconnected'
@@ -196,6 +210,7 @@ function getScenarioExerciseMetadata(
 export function SessionScreen({
   videoRef,
   messages,
+  launching = false,
   recording,
   connected,
   connectionState,
@@ -271,107 +286,114 @@ export function SessionScreen({
   return (
     <div
       className={mergeClasses(
-        styles.layout,
-        transcriptRevealed && styles.layoutRevealed
+        styles.stage,
+        launching && styles.stageLaunching
       )}
     >
       <div
         className={mergeClasses(
-          styles.heroColumn,
-          transcriptRevealed && styles.heroColumnRevealed
+          styles.layout,
+          transcriptRevealed && styles.layoutRevealed
         )}
       >
-        {isChildMode && scenario ? (
-          <Card className={styles.scenarioCard}>
-            <Text className={styles.scenarioTitle} size={700} weight="semibold" block>
-              {scenario.name}
-            </Text>
-            <Text size={300} block className={styles.scenarioDescription}>
-              {scenario.description || "Let's practice together."}
-            </Text>
-            <div className={styles.exerciseMeta}>
-              {exerciseType ? (
-                <span className={styles.exerciseChip}>{exerciseType}</span>
-              ) : null}
-              {scenario.exerciseMetadata?.targetSound ? (
-                <span className={styles.exerciseChip}>
-                  Sound: {scenario.exerciseMetadata.targetSound}
-                </span>
-              ) : null}
-              {customScenario?.scenarioData.targetSound ? (
-                <span className={styles.exerciseChip}>
-                  Sound: {customScenario.scenarioData.targetSound}
-                </span>
-              ) : null}
-              {scenario.exerciseMetadata?.difficulty ? (
-                <span className={styles.exerciseChip}>
-                  {scenario.exerciseMetadata.difficulty}
-                </span>
-              ) : null}
-              {customScenario?.scenarioData.difficulty ? (
-                <span className={styles.exerciseChip}>
-                  {customScenario.scenarioData.difficulty}
-                </span>
-              ) : null}
-            </div>
-          </Card>
-        ) : null}
+        <div
+          className={mergeClasses(
+            styles.heroColumn,
+            transcriptRevealed && styles.heroColumnRevealed
+          )}
+        >
+          {isChildMode && scenario ? (
+            <Card className={styles.scenarioCard}>
+              <Text className={styles.scenarioTitle} size={700} weight="semibold" block>
+                {scenario.name}
+              </Text>
+              <Text size={300} block className={styles.scenarioDescription}>
+                {scenario.description || "Let's practice together."}
+              </Text>
+              <div className={styles.exerciseMeta}>
+                {exerciseType ? (
+                  <span className={styles.exerciseChip}>{exerciseType}</span>
+                ) : null}
+                {scenario.exerciseMetadata?.targetSound ? (
+                  <span className={styles.exerciseChip}>
+                    Sound: {scenario.exerciseMetadata.targetSound}
+                  </span>
+                ) : null}
+                {customScenario?.scenarioData.targetSound ? (
+                  <span className={styles.exerciseChip}>
+                    Sound: {customScenario.scenarioData.targetSound}
+                  </span>
+                ) : null}
+                {scenario.exerciseMetadata?.difficulty ? (
+                  <span className={styles.exerciseChip}>
+                    {scenario.exerciseMetadata.difficulty}
+                  </span>
+                ) : null}
+                {customScenario?.scenarioData.difficulty ? (
+                  <span className={styles.exerciseChip}>
+                    {customScenario.scenarioData.difficulty}
+                  </span>
+                ) : null}
+              </div>
+            </Card>
+          ) : null}
 
-        <VideoPanel
-          videoRef={videoRef}
-          childName={selectedChild?.name}
-          avatarValue={selectedAvatar}
-          scenarioName={scenario?.name}
-          scenarioDescription={scenario?.description}
-          connectionState={connectionState}
-          introPending={introPending}
-          introComplete={introComplete}
-          sessionFinished={sessionFinished}
-          onVideoLoaded={onVideoLoaded}
-          connectionMessage={connectionMessage}
-          recording={recording}
-          processing={scoringUtterance}
-          onToggleRecording={handleToggleRecording}
-          canTalk={canTalk && !scoringUtterance}
-          audience={isChildMode ? 'child' : 'therapist'}
-          showMicDock={showMicDock}
-        />
-
-        {activityPanel}
-
-        {isChildMode && !isListeningMinimalPairs && !isSilentSorting ? (
-          <ExerciseFeedback
-            referenceText={activeReferenceText}
-            feedback={utteranceFeedback}
-            loading={scoringUtterance}
+          <VideoPanel
+            videoRef={videoRef}
+            childName={selectedChild?.name}
+            avatarValue={selectedAvatar}
+            scenarioName={scenario?.name}
+            scenarioDescription={scenario?.description}
+            connectionState={connectionState}
+            introPending={introPending}
+            introComplete={introComplete}
+            sessionFinished={sessionFinished}
+            onVideoLoaded={onVideoLoaded}
+            connectionMessage={connectionMessage}
+            recording={recording}
+            processing={scoringUtterance}
+            onToggleRecording={handleToggleRecording}
+            canTalk={canTalk && !scoringUtterance}
+            audience={isChildMode ? 'child' : 'therapist'}
+            showMicDock={showMicDock}
           />
-        ) : null}
-      </div>
 
-      <div
-        className={mergeClasses(
-          styles.sideColumn,
-          transcriptRevealed && styles.sideColumnRevealed
-        )}
-        aria-hidden={!transcriptRevealed}
-      >
-        <ChatPanel
-          messages={messages}
-          recording={recording}
-          connected={connected}
-          connectionState={connectionState}
-          connectionMessage={connectionMessage}
-          introComplete={introComplete}
-          sessionFinished={sessionFinished}
-          processing={scoringUtterance}
-          canAnalyze={canAnalyze}
-          onToggleRecording={handleToggleRecording}
-          onClear={onClear}
-          onAnalyze={onAnalyze}
-          scenario={scenario}
-          audience={isChildMode ? 'child' : 'therapist'}
-          showAnalyzeControl={!isChildMode}
-        />
+          {activityPanel}
+
+          {isChildMode && !isListeningMinimalPairs && !isSilentSorting ? (
+            <ExerciseFeedback
+              referenceText={activeReferenceText}
+              feedback={utteranceFeedback}
+              loading={scoringUtterance}
+            />
+          ) : null}
+        </div>
+
+        <div
+          className={mergeClasses(
+            styles.sideColumn,
+            transcriptRevealed && styles.sideColumnRevealed
+          )}
+          aria-hidden={!transcriptRevealed}
+        >
+          <ChatPanel
+            messages={messages}
+            recording={recording}
+            connected={connected}
+            connectionState={connectionState}
+            connectionMessage={connectionMessage}
+            introComplete={introComplete}
+            sessionFinished={sessionFinished}
+            processing={scoringUtterance}
+            canAnalyze={canAnalyze}
+            onToggleRecording={handleToggleRecording}
+            onClear={onClear}
+            onAnalyze={onAnalyze}
+            scenario={scenario}
+            audience={isChildMode ? 'child' : 'therapist'}
+            showAnalyzeControl={!isChildMode}
+          />
+        </div>
       </div>
     </div>
   )

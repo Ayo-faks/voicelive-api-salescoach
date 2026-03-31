@@ -3,96 +3,138 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, Card, Text, makeStyles } from '@fluentui/react-components'
+import { Text, makeStyles, mergeClasses } from '@fluentui/react-components'
+import { useEffect, useState } from 'react'
 
 const useStyles = makeStyles({
-  layout: {
+  wrapper: {
     width: '100%',
+    flex: 1,
+    minHeight: 0,
     display: 'grid',
-    gap: 'var(--space-lg)',
-    justifyItems: 'center',
-    padding: 'clamp(1.4rem, 3vw, 2.2rem)',
-    borderRadius: 'calc(var(--radius-xl) + 4px)',
-    border: '1px solid var(--color-border)',
-    background:
-      'radial-gradient(circle at top right, rgba(13, 138, 132, 0.16), transparent 32%), radial-gradient(circle at bottom left, rgba(13, 138, 132, 0.08), transparent 34%), linear-gradient(135deg, rgba(233, 245, 246, 0.98), rgba(224, 239, 241, 0.98))',
-    boxShadow: 'var(--shadow-lg)',
-    '@media (max-width: 720px)': {
-      padding: 'var(--space-md)',
-    },
-  },
-  hero: {
-    width: 'min(720px, 100%)',
-    padding: 'var(--space-xl)',
-    borderRadius: 'var(--radius-lg)',
-    border: '1px solid var(--color-border)',
-    background: 'rgba(255, 255, 255, 0.84)',
-    boxShadow: 'var(--shadow-lg)',
-    display: 'grid',
-    gap: 'var(--space-sm)',
-    justifyItems: 'center',
-    textAlign: 'center',
-  },
-  title: {
-    fontFamily: 'var(--font-display)',
-    color: 'var(--color-text-primary)',
-    fontSize: 'clamp(1.8rem, 4vw, 2.5rem)',
-    fontWeight: '800',
-    letterSpacing: '-0.04em',
-    lineHeight: 1.05,
-  },
-  copy: {
-    color: 'var(--color-text-secondary)',
-    maxWidth: '720px',
-    lineHeight: 1.6,
-    fontSize: '0.9375rem',
-  },
-  options: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, minmax(180px, 220px))',
-    gap: 'var(--space-lg)',
-    justifyContent: 'center',
-    width: '100%',
-    '@media (max-width: 900px)': {
-      gridTemplateColumns: 'repeat(2, minmax(160px, 200px))',
-    },
-    '@media (max-width: 520px)': {
-      gridTemplateColumns: '1fr',
-    },
-  },
-  card: {
-    padding: 'var(--space-lg)',
-    aspectRatio: '1 / 1',
-    minHeight: '200px',
-    borderRadius: 'var(--radius-lg)',
-    border: '1px solid var(--color-border)',
-    backgroundColor: 'rgba(255, 255, 255, 0.92)',
-    boxShadow: 'var(--shadow-md)',
-    display: 'grid',
-    gap: 'var(--space-md)',
     alignContent: 'center',
     justifyItems: 'center',
+    background:
+      'radial-gradient(ellipse at 50% 0%, rgba(13, 138, 132, 0.22), transparent 52%), linear-gradient(160deg, #e0f2f1 0%, #f1f8f8 40%, #f0f7f7 100%)',
+    borderRadius: 'calc(var(--radius-xl) + 4px)',
+    overflow: 'hidden',
+    padding: 'clamp(1rem, 3vw, 2rem)',
+  },
+  stage: {
+    width: 'min(520px, 100%)',
+    display: 'grid',
+    gap: 'var(--space-lg)',
+    justifyItems: 'center',
     textAlign: 'center',
   },
-  cardTitle: {
+  heroImage: {
+    display: 'flex',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    perspective: '800px',
+  },
+  /* --- Robot animation phases --- */
+  robotImg: {
+    width: 'min(180px, 35vw)',
+    height: 'auto',
+    filter: 'drop-shadow(0 16px 32px rgba(13, 138, 132, 0.28))',
+    willChange: 'transform, opacity, filter',
+    '@media (prefers-reduced-motion: reduce)': {
+      animationDuration: '0.01s !important',
+    },
+  },
+  /* Phase 1: Drop in from above with a tilt */
+  robotEntrance: {
+    animationName: {
+      '0%': { transform: 'translateY(-120px) scale(0.5) rotateX(20deg)', opacity: 0, filter: 'drop-shadow(0 0 0 transparent) blur(6px)' },
+      '60%': { transform: 'translateY(14px) scale(1.06) rotateX(-4deg)', opacity: 1, filter: 'drop-shadow(0 20px 40px rgba(13,138,132,0.3)) blur(0)' },
+      '80%': { transform: 'translateY(-8px) scale(0.97) rotateX(2deg)' },
+      '100%': { transform: 'translateY(0) scale(1) rotateX(0)', filter: 'drop-shadow(0 16px 32px rgba(13,138,132,0.28)) blur(0)' },
+    },
+    animationDuration: '0.9s',
+    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    animationFillMode: 'forwards',
+  },
+  /* Phase 2: Continuous gentle idle float */
+  robotIdle: {
+    animationName: {
+      '0%, 100%': { transform: 'translateY(0) rotate(0)' },
+      '25%': { transform: 'translateY(-6px) rotate(1.5deg)' },
+      '75%': { transform: 'translateY(-4px) rotate(-1.5deg)' },
+    },
+    animationDuration: '3.2s',
+    animationTimingFunction: 'ease-in-out',
+    animationIterationCount: 'infinite',
+  },
+  heading: {
     fontFamily: 'var(--font-display)',
     color: 'var(--color-text-primary)',
-    fontSize: '1.05rem',
-    fontWeight: '700',
+    fontSize: 'clamp(1.5rem, 4.5vw, 2.2rem)',
+    fontWeight: '800',
+    letterSpacing: '-0.03em',
+    lineHeight: 1.1,
+    animationName: {
+      '0%': { transform: 'translateY(10px)', opacity: 0 },
+      '100%': { transform: 'translateY(0)', opacity: 1 },
+    },
+    animationDuration: '0.5s',
+    animationDelay: '0.25s',
+    animationFillMode: 'forwards',
+    opacity: 0,
   },
-  cardCopy: {
-    color: 'var(--color-text-secondary)',
-    lineHeight: 1.6,
-    fontSize: '0.875rem',
+  buttons: {
+    display: 'flex',
+    gap: 'var(--space-md)',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    animationName: {
+      '0%': { transform: 'translateY(10px)', opacity: 0 },
+      '100%': { transform: 'translateY(0)', opacity: 1 },
+    },
+    animationDuration: '0.5s',
+    animationDelay: '0.4s',
+    animationFillMode: 'forwards',
+    opacity: 0,
   },
-  action: {
-    minHeight: '40px',
-    paddingInline: 'var(--space-md)',
-    borderRadius: 'var(--radius-md)',
+  btn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: '156px',
+    minHeight: '46px',
+    paddingInline: 'var(--space-lg)',
+    borderRadius: '4px',
     fontFamily: 'var(--font-display)',
-    fontSize: '0.8125rem',
-    fontWeight: '600',
-    justifySelf: 'center',
+    fontSize: '0.92rem',
+    fontWeight: '700',
+    letterSpacing: '0.03em',
+    border: 'none',
+    cursor: 'pointer',
+    transition: 'transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease',
+    '&:hover': {
+      transform: 'translateY(-1px)',
+    },
+    '&:active': {
+      transform: 'translateY(0)',
+    },
+    '&:focus-visible': {
+      outline: '3px solid var(--color-primary)',
+      outlineOffset: '3px',
+    },
+    '&:disabled': {
+      opacity: 0.45,
+      cursor: 'not-allowed',
+      transform: 'none',
+    },
+  },
+  btnChild: {
+    backgroundColor: 'var(--color-primary)',
+    color: '#fff',
+  },
+  btnTherapist: {
+    backgroundColor: '#fff',
+    color: 'var(--color-text-primary)',
+    border: '2px solid var(--color-border)',
   },
 })
 
@@ -103,36 +145,47 @@ interface Props {
 
 export function ModeSelector({ isTherapist, onChooseMode }: Props) {
   const styles = useStyles()
+  const [phase, setPhase] = useState<'entrance' | 'idle'>('entrance')
+
+  useEffect(() => {
+    const t = setTimeout(() => setPhase('idle'), 900)
+    return () => clearTimeout(t)
+  }, [])
+
+  const phaseClass = phase === 'entrance' ? styles.robotEntrance : styles.robotIdle
 
   return (
-    <div className={styles.layout}>
-      <Card className={styles.hero}>
-        <Text className={styles.title}>Choose a profile to continue.</Text>
-      </Card>
+    <div className={styles.wrapper}>
+      <div className={styles.stage}>
+        <div className={styles.heroImage}>
+          <img
+            src="/wulo-robot.webp"
+            alt="Wulo robot mascot"
+            className={mergeClasses(styles.robotImg, phaseClass)}
+          />
+        </div>
 
-      <div className={styles.options}>
-        <Card className={styles.card}>
-          <Text className={styles.cardTitle}>Therapist</Text>
-          <Button
-            appearance="primary"
-            className={styles.action}
+        <Text className={styles.heading}>
+          Who's practicing today?
+        </Text>
+
+        <div className={styles.buttons}>
+          <button
+            type="button"
+            className={mergeClasses(styles.btn, styles.btnChild)}
+            onClick={() => onChooseMode('child')}
+          >
+            I'm a Kid
+          </button>
+          <button
+            type="button"
+            className={mergeClasses(styles.btn, styles.btnTherapist)}
             disabled={!isTherapist}
             onClick={() => onChooseMode('therapist')}
           >
-            Open therapist mode
-          </Button>
-        </Card>
-
-        <Card className={styles.card}>
-          <Text className={styles.cardTitle}>Child</Text>
-          <Button
-            appearance="secondary"
-            className={styles.action}
-            onClick={() => onChooseMode('child')}
-          >
-            Open child practice mode
-          </Button>
-        </Card>
+            I'm a Therapist
+          </button>
+        </div>
       </div>
     </div>
   )
