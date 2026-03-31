@@ -34,7 +34,7 @@ var defaultVoicelabHost = 'https://voicelab.${containerAppsEnvironment.outputs.d
 var easyAuthEnabled = !empty(microsoftProviderClientId) || !empty(googleProviderClientId)
 
 param gptModelName string = 'gpt-4o'
-param gptModelVersion string = '2024-08-06'
+param gptModelVersion string = '2024-11-20'
 param gptDeploymentName string = 'gpt-4o'
 
 param openAiModelDeployments array = [

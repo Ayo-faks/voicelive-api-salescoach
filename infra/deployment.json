@@ -33,7 +33,7 @@
         },
         "gptModelVersion": {
             "type": "string",
-            "defaultValue": "2024-08-06",
+            "defaultValue": "2024-11-20",
             "metadata": {
                 "description": "Azure OpenAI GPT Model Version"
             }
