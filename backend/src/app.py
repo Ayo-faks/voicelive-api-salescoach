@@ -439,6 +439,7 @@ def _prepare_custom_scenario(custom_scenario: Dict[str, Any]) -> Dict[str, Any]:
 
 
 @app.route("/")
+@app.route("/logout")
 def index():
     """Serve the main application page."""
     if app.static_folder is None:

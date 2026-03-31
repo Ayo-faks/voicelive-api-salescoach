@@ -430,6 +430,7 @@ resource voicelabAuth 'Microsoft.App/containerApps/authConfigs@2024-03-01' = if 
         '/js/*'
         '/manifest.json'
         '/api/health'
+        '/logout'
         '/wulo-logo.png'
         '/favicon.ico'
       ]

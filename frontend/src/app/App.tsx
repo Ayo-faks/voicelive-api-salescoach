@@ -26,6 +26,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AssessmentPanel } from '../components/AssessmentPanel'
 import { AuthGateScreen } from '../components/AuthGateScreen'
+import { LogoutScreen } from '../components/LogoutScreen'
 import { ChildHome } from '../components/ChildHome'
 import { ConsentScreen } from '../components/ConsentScreen'
 import { DashboardHome } from '../components/DashboardHome'
@@ -1650,6 +1651,10 @@ export default function App() {
   const handleGoogleSignIn = useCallback(() => {
     window.location.href = `/.auth/login/google?post_login_redirect_uri=${encodeURIComponent(`${window.location.origin}/`)}`
   }, [])
+
+  if (window.location.pathname === '/logout') {
+    return <LogoutScreen />
+  }
 
   if (authStatus !== 'authenticated') {
     return (
