@@ -235,7 +235,7 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
       ]
     }
     scaleMinReplicas: 1
-    scaleMaxReplicas: 10
+    scaleMaxReplicas: 1
     secrets: {
       secureList: concat(
         [
