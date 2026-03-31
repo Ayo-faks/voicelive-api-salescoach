@@ -56,7 +56,7 @@ class StorageService:
         with self._lock:
             for attempt in range(SQLITE_LOCK_RETRY_COUNT):
                 try:
-                    with self._connect(journal_mode="OFF") as connection:
+                    with self._connect(journal_mode="DELETE") as connection:
                         connection.execute(
                             """CREATE TABLE IF NOT EXISTS app_settings (
                                 key TEXT PRIMARY KEY,
