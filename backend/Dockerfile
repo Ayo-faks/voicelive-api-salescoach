@@ -40,7 +40,7 @@ RUN apt-get update && apt-get install -y \
 
 RUN useradd --create-home --shell /bin/bash app
 
-RUN mkdir -p /data && chown app:app /data
+RUN mkdir -p /data /app/bootstrap && chown -R app:app /data /app/bootstrap
 
 WORKDIR /app
 
@@ -50,6 +50,9 @@ RUN pip install --no-cache-dir --trusted-host pypi.org --trusted-host pypi.pytho
 COPY --chown=app:app backend/src/ ./src/
 COPY --chown=app:app data/exercises/ ./data/exercises/
 COPY --chown=app:app data/images/ ./data/images/
+
+RUN python -c "from src.services.storage import StorageService; StorageService('/app/bootstrap/wulo.db')" \
+    && chown -R app:app /app/bootstrap
 
 COPY --from=frontend-builder --chown=app:app /app/static/ ./static/
 

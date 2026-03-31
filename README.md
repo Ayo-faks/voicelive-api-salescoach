@@ -67,6 +67,8 @@ https://github.com/user-attachments/assets/904f1555-6981-4780-ae64-c5757337bcad
 2. **Access your application**:
    The deployment will output the URL where your application is running.
 
+Fresh Azure Container Apps deployments seed `/app/persistence/wulo.db` from an image-baked bootstrap database when the mounted Azure File Share is empty. This avoids first-boot SQLite schema creation against an empty share.
+
 ### Local Development
 
 This project includes a dev container for easy setup and a build script for  development.

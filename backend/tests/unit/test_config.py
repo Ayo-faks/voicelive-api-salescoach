@@ -19,6 +19,7 @@ class TestConfig:
             assert config["local_dev_auth"] is False
             assert config["default_child_id"] == "child-ayo"
             assert config["storage_path"].endswith("data/wulo.db")
+            assert config["bootstrap_storage_seed_path"].endswith("bootstrap/wulo.db")
 
     def test_config_with_environment_variables(self):
         """Test that config loads from environment variables."""

@@ -59,9 +59,10 @@ const useStyles = makeStyles({
     backdropFilter: 'blur(14px)',
   },
   brandRow: {
-    display: 'flex',
+    display: 'grid',
     alignItems: 'center',
-    gap: '12px',
+    justifyItems: 'center',
+    gap: '8px',
   },
   brandMark: {
     width: '30px',
@@ -84,18 +85,25 @@ const useStyles = makeStyles({
   },
   title: {
     fontFamily: 'var(--font-display)',
-    fontSize: 'clamp(2rem, 4vw, 3.05rem)',
-    lineHeight: 1,
+    fontSize: 'clamp(1.5rem, 3vw, 2rem)',
+    lineHeight: 1.1,
     fontWeight: '800',
     letterSpacing: '-0.05em',
     color: 'var(--color-text-primary)',
-    maxWidth: '9ch',
+    maxWidth: '14ch',
+    textAlign: 'center',
+    justifySelf: 'center',
+  },
+  loadingTitle: {
+    fontSize: 'clamp(1.35rem, 2.6vw, 1.75rem)',
+    maxWidth: '16ch',
   },
   body: {
     color: 'var(--color-text-secondary)',
     lineHeight: 1.55,
     fontSize: '0.92rem',
     maxWidth: '28ch',
+    textAlign: 'center',
   },
   actionStack: {
     display: 'grid',
@@ -128,33 +136,6 @@ const useStyles = makeStyles({
     justifyContent: 'center',
     gap: '12px',
     width: '100%',
-  },
-  securityDivider: {
-    width: '100%',
-    paddingTop: '2px',
-    borderTop: '1px solid rgba(17, 36, 58, 0.08)',
-  },
-  securityLabel: {
-    color: 'var(--color-text-placeholder)',
-    fontSize: '0.74rem',
-    fontWeight: '700',
-    letterSpacing: '0.18em',
-    textTransform: 'uppercase',
-  },
-  trustRow: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '10px',
-    justifyContent: 'center',
-  },
-  trustPill: {
-    padding: '7px 12px',
-    borderRadius: '999px',
-    backgroundColor: 'rgba(13, 138, 132, 0.08)',
-    color: 'var(--color-primary-dark)',
-    border: '1px solid rgba(13, 138, 132, 0.12)',
-    fontSize: '0.78rem',
-    fontWeight: '600',
   },
   errorText: {
     color: '#a11a17',
@@ -194,7 +175,7 @@ export function AuthGateScreen({
         {status === 'loading' ? (
           <>
             <Text className={styles.eyebrow}>Welcome back</Text>
-            <Text className={styles.title}>Checking your secure session</Text>
+            <Text className={`${styles.title} ${styles.loadingTitle}`}>Checking your secure session</Text>
             <Text className={styles.body}>
               Loading your practice workspace and verifying your sign-in state.
             </Text>
@@ -216,9 +197,6 @@ export function AuthGateScreen({
           <>
             <Text className={styles.eyebrow}>Welcome back</Text>
             <Text className={styles.title}>Speech practice for every child</Text>
-            <Text className={styles.body}>
-              Sign in to start a supervised practice session, review progress, and keep session data saved securely.
-            </Text>
 
             {isLocalAuthOrigin() ? (
               <div className={styles.actionStack}>
@@ -245,14 +223,6 @@ export function AuthGateScreen({
                 </Button>
               </div>
             )}
-
-            <div className={styles.securityDivider} />
-            <Text className={styles.securityLabel}>Enterprise-grade security</Text>
-            <div className={styles.trustRow}>
-              <span className={styles.trustPill}>Authenticated access</span>
-              <span className={styles.trustPill}>Saved session history</span>
-              <span className={styles.trustPill}>Role-based review tools</span>
-            </div>
           </>
         )}
       </section>

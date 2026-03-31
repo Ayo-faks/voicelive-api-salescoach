@@ -4,6 +4,9 @@ param location string = resourceGroup().location
 @description('Tags that will be applied to all resources')
 param tags object = {}
 
+@description('Name of the azd environment to drive environment-specific auth redirect configuration')
+param environmentName string
+
 param voicelabExists bool
 
 param useFoundryAgents bool
@@ -31,6 +34,11 @@ param principalType string
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = uniqueString(subscription().id, resourceGroup().id, location)
 var defaultVoicelabHost = 'https://voicelab.${containerAppsEnvironment.outputs.defaultDomain}'
+var customRedirectHost = environmentName == 'salescoach-swe'
+  ? 'https://staging-sen.wulo.ai'
+  : environmentName == 'salescoach-prod'
+    ? 'https://sen.wulo.ai'
+    : ''
 var easyAuthEnabled = !empty(microsoftProviderClientId) || !empty(googleProviderClientId)
 
 param gptModelName string = 'gpt-4o'
@@ -126,6 +134,19 @@ resource persistenceFileShare 'Microsoft.Storage/storageAccounts/fileServices/sh
   name: '${persistenceStorage.name}/default/wulo-data'
   properties: {
     shareQuota: 1
+  }
+}
+
+resource blobServices 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {
+  parent: persistenceStorage
+  name: 'default'
+}
+
+resource backupBlobContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {
+  parent: blobServices
+  name: 'wulo-backup'
+  properties: {
+    publicAccess: 'None'
   }
 }
 
@@ -247,6 +268,10 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
             name: 'speech-api-key'
             value: speechService.listKeys().key1
           }
+          {
+            name: 'blob-backup-account-key'
+            value: persistenceStorage.listKeys().keys[0].value
+          }
         ],
         !empty(microsoftProviderClientSecret)
           ? [
@@ -266,13 +291,7 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
           : []
       )
     }
-    volumes: [
-      {
-        name: 'wulo-data'
-        storageName: 'wulo-data'
-        storageType: 'AzureFile'
-      }
-    ]
+    volumes: []
     containers: [
       {
         image: voicelabFetchLatestImage.outputs.?containers[?0].?image ?? 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
@@ -281,12 +300,7 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
           cpu: json('1.0')
           memory: '2.0Gi'
         }
-        volumeMounts: [
-          {
-            volumeName: 'wulo-data'
-            mountPath: '/app/persistence'
-          }
-        ]
+        volumeMounts: []
         env: concat(
           [
             {
@@ -351,7 +365,15 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
             }
             {
               name: 'STORAGE_PATH'
-              value: '/app/persistence/wulo.db'
+              value: '/tmp/wulo.db'
+            }
+            {
+              name: 'BLOB_BACKUP_ACCOUNT_NAME'
+              value: persistenceStorage.name
+            }
+            {
+              name: 'BLOB_BACKUP_ACCOUNT_KEY'
+              secretRef: 'blob-backup-account-key'
             }
           ],
           !empty(microsoftProviderClientSecret)
@@ -445,10 +467,14 @@ resource voicelabAuth 'Microsoft.App/containerApps/authConfigs@2024-03-01' = if 
       tokenStore: {
         enabled: false
       }
-      allowedExternalRedirectUrls: [
-        'https://sen.wulo.ai'
-        defaultVoicelabHost
-      ]
+      allowedExternalRedirectUrls: empty(customRedirectHost)
+        ? [
+            defaultVoicelabHost
+          ]
+        : [
+            customRedirectHost
+            defaultVoicelabHost
+          ]
     }
     httpSettings: {
       requireHttps: true

@@ -19,6 +19,7 @@ import simple_websocket.ws  # pyright: ignore[reportMissingTypeStubs]
 from flask import Flask, jsonify, request, send_from_directory
 from flask_sock import Sock  # pyright: ignore[reportMissingTypeStubs]
 
+from src.bootstrap_storage import bootstrap_storage
 from src.config import config
 from src.services.analyzers import ConversationAnalyzer, PronunciationAssessor
 from src.services.managers import AgentManager, ScenarioManager
@@ -123,6 +124,10 @@ agent_manager = AgentManager()
 conversation_analyzer = ConversationAnalyzer()
 pronunciation_assessor = PronunciationAssessor()
 voice_proxy_handler = VoiceProxyHandler(agent_manager)
+bootstrap_storage(
+    str(config["storage_path"]),
+    str(config["bootstrap_storage_seed_path"]),
+)
 storage_service = StorageService(config["storage_path"])
 telemetry_service = PilotTelemetryService(config["applicationinsights_connection_string"])
 

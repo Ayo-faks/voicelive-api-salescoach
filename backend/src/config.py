@@ -29,7 +29,10 @@ DEFAULT_AVATAR_STYLE = "casual-sitting"
 DEFAULT_CHILD_ID = "child-ayo"
 
 DEFAULT_STORAGE_PATH = str(Path(__file__).resolve().parents[2] / "data" / "wulo.db")
+DEFAULT_BOOTSTRAP_STORAGE_SEED_PATH = str(Path(__file__).resolve().parents[1] / "bootstrap" / "wulo.db")
 DEFAULT_APP_INSIGHTS_CONNECTION_STRING = ""
+DEFAULT_BLOB_BACKUP_CONTAINER = "wulo-backup"
+DEFAULT_BLOB_BACKUP_NAME = "wulo.db"
 
 
 class Config:
@@ -74,12 +77,19 @@ class Config:
             "azure_avatar_character": os.getenv("AZURE_AVATAR_CHARACTER", DEFAULT_AVATAR_CHARACTER),
             "azure_avatar_style": os.getenv("AZURE_AVATAR_STYLE", DEFAULT_AVATAR_STYLE),
             "storage_path": os.getenv("STORAGE_PATH", DEFAULT_STORAGE_PATH),
+            "bootstrap_storage_seed_path": os.getenv(
+                "BOOTSTRAP_STORAGE_SEED_PATH", DEFAULT_BOOTSTRAP_STORAGE_SEED_PATH
+            ),
             "local_dev_auth": self._parse_bool_env("LOCAL_DEV_AUTH"),
             "default_child_id": os.getenv("DEFAULT_CHILD_ID", DEFAULT_CHILD_ID),
             "applicationinsights_connection_string": os.getenv(
                 "APPLICATIONINSIGHTS_CONNECTION_STRING",
                 os.getenv("APPINSIGHTS_CONNECTIONSTRING", DEFAULT_APP_INSIGHTS_CONNECTION_STRING),
             ),
+            "blob_backup_account_name": os.getenv("BLOB_BACKUP_ACCOUNT_NAME", ""),
+            "blob_backup_account_key": os.getenv("BLOB_BACKUP_ACCOUNT_KEY", ""),
+            "blob_backup_container": os.getenv("BLOB_BACKUP_CONTAINER", DEFAULT_BLOB_BACKUP_CONTAINER),
+            "blob_backup_name": os.getenv("BLOB_BACKUP_NAME", DEFAULT_BLOB_BACKUP_NAME),
         }
         return result
 

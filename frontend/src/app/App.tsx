@@ -1761,15 +1761,6 @@ export default function App() {
                 onStartSession={() => {
                   void handleStart(selectedAvatar)
                 }}
-                onOpenTherapistTools={() => {
-                  if (isTherapist) {
-                    setUserMode(null)
-                    return
-                  }
-
-                  setRoleNoticeIntent('mode-switch')
-                  setShowRoleNotice(true)
-                }}
               />
             ) : (
               <DashboardHome

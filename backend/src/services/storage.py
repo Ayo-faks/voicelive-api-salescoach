@@ -14,10 +14,11 @@ import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, TypeVar
 from uuid import uuid4
 
 from src.config import config
+from src.services.blob_backup import backup_to_blob
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,7 @@ DEFAULT_CHILDREN = (
 SQLITE_LOCK_RETRY_COUNT = 10
 SQLITE_LOCK_RETRY_DELAY_SECONDS = 1.0
 SQLITE_LOCK_TIMEOUT_SECONDS = 30.0
+WriteResult = TypeVar("WriteResult")
 
 
 class StorageService:
@@ -182,20 +184,41 @@ class StorageService:
             "submitted_at": submitted_at,
         }
 
-    def _set_setting(self, key: str, value: Optional[str]):
+    def _execute_write(self, operation: Callable[[sqlite3.Connection], WriteResult]) -> WriteResult:
         with self._lock:
             with self._connect() as connection:
-                connection.execute(
-                    """
-                    INSERT INTO app_settings (key, value, updated_at)
-                    VALUES (?, ?, ?)
-                    ON CONFLICT(key) DO UPDATE SET
-                        value = excluded.value,
-                        updated_at = excluded.updated_at
-                    """,
-                    (key, value, self._utc_now()),
-                )
+                result = operation(connection)
                 connection.commit()
+            self._trigger_blob_backup()
+            return result
+
+    def _trigger_blob_backup(self) -> None:
+        """Best-effort upload of the local database to Azure Blob Storage."""
+        try:
+            backup_to_blob(
+                str(self.db_path),
+                account_name=str(config["blob_backup_account_name"]),
+                account_key=str(config["blob_backup_account_key"]),
+                container=str(config["blob_backup_container"]),
+                blob_name=str(config["blob_backup_name"]),
+            )
+        except Exception as exc:
+            logger.warning("Blob backup after write failed: %s", exc)
+
+    def _set_setting(self, key: str, value: Optional[str]):
+        def persist_setting(connection: sqlite3.Connection) -> None:
+            connection.execute(
+                """
+                INSERT INTO app_settings (key, value, updated_at)
+                VALUES (?, ?, ?)
+                ON CONFLICT(key) DO UPDATE SET
+                    value = excluded.value,
+                    updated_at = excluded.updated_at
+                """,
+                (key, value, self._utc_now()),
+            )
+
+        self._execute_write(persist_setting)
 
     def _get_setting(self, key: str) -> Optional[str]:
         with self._connect() as connection:
@@ -235,65 +258,63 @@ class StorageService:
     def get_or_create_user(self, user_id: str, email: str, name: str, provider: str) -> Dict[str, Any]:
         now = self._utc_now()
 
-        with self._lock:
-            with self._connect() as connection:
-                existing = connection.execute(
-                    "SELECT id, email, name, provider, role, created_at FROM users WHERE id = ?",
-                    (user_id,),
-                ).fetchone()
+        def persist_user(connection: sqlite3.Connection) -> Dict[str, Any]:
+            existing = connection.execute(
+                "SELECT id, email, name, provider, role, created_at FROM users WHERE id = ?",
+                (user_id,),
+            ).fetchone()
 
-                if existing is not None:
-                    connection.execute(
-                        """
-                        UPDATE users
-                        SET email = ?, name = ?, provider = ?
-                        WHERE id = ?
-                        """,
-                        (email, name, provider, user_id),
-                    )
-                    connection.commit()
-                    return {
-                        "id": existing["id"],
-                        "email": email,
-                        "name": name,
-                        "provider": provider,
-                        "role": existing["role"],
-                        "created_at": existing["created_at"],
-                    }
-
-                user_count = connection.execute("SELECT COUNT(*) FROM users").fetchone()[0]
-                role = "therapist" if user_count == 0 else "user"
+            if existing is not None:
                 connection.execute(
                     """
-                    INSERT INTO users (id, email, name, provider, role, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    UPDATE users
+                    SET email = ?, name = ?, provider = ?
+                    WHERE id = ?
                     """,
-                    (user_id, email, name, provider, role, now),
+                    (email, name, provider, user_id),
                 )
-                connection.commit()
+                return {
+                    "id": existing["id"],
+                    "email": email,
+                    "name": name,
+                    "provider": provider,
+                    "role": existing["role"],
+                    "created_at": existing["created_at"],
+                }
 
-        return {
-            "id": user_id,
-            "email": email,
-            "name": name,
-            "provider": provider,
-            "role": role,
-            "created_at": now,
-        }
+            user_count = connection.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+            role = "therapist" if user_count == 0 else "user"
+            connection.execute(
+                """
+                INSERT INTO users (id, email, name, provider, role, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (user_id, email, name, provider, role, now),
+            )
+            return {
+                "id": user_id,
+                "email": email,
+                "name": name,
+                "provider": provider,
+                "role": role,
+                "created_at": now,
+            }
+
+        return self._execute_write(persist_user)
 
     def update_user_role(self, user_id: str, role: str) -> Optional[Dict[str, Any]]:
         if role not in {"therapist", "user"}:
             raise ValueError("Unsupported role")
 
-        with self._lock:
-            with self._connect() as connection:
-                cursor = connection.execute(
-                    "UPDATE users SET role = ? WHERE id = ?",
-                    (role, user_id),
-                )
-                connection.commit()
+        def persist_role(connection: sqlite3.Connection) -> int:
+            cursor = connection.execute(
+                "UPDATE users SET role = ? WHERE id = ?",
+                (role, user_id),
+            )
+            return cursor.rowcount
 
-        if cursor.rowcount == 0:
+        rowcount = self._execute_write(persist_role)
+        if rowcount == 0:
             return None
 
         return self.get_user(user_id)
@@ -304,17 +325,17 @@ class StorageService:
         return consent_timestamp
 
     def upsert_child(self, child_id: str, child_name: str):
-        with self._lock:
-            with self._connect() as connection:
-                connection.execute(
-                    """
-                    INSERT INTO children (id, name, created_at)
-                    VALUES (?, ?, ?)
-                    ON CONFLICT(id) DO UPDATE SET name = excluded.name
-                    """,
-                    (child_id, child_name, self._utc_now()),
-                )
-                connection.commit()
+        def persist_child(connection: sqlite3.Connection) -> None:
+            connection.execute(
+                """
+                INSERT INTO children (id, name, created_at)
+                VALUES (?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET name = excluded.name
+                """,
+                (child_id, child_name, self._utc_now()),
+            )
+
+        self._execute_write(persist_child)
 
     def upsert_exercise(
         self,
@@ -324,29 +345,29 @@ class StorageService:
         metadata: Dict[str, Any],
         is_custom: bool = False,
     ):
-        with self._lock:
-            with self._connect() as connection:
-                connection.execute(
-                    """
-                    INSERT INTO exercises (id, name, description, metadata_json, is_custom, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(id) DO UPDATE SET
-                        name = excluded.name,
-                        description = excluded.description,
-                        metadata_json = excluded.metadata_json,
-                        is_custom = excluded.is_custom,
-                        updated_at = excluded.updated_at
-                    """,
-                    (
-                        exercise_id,
-                        name,
-                        description,
-                        self._dumps_json(metadata),
-                        1 if is_custom else 0,
-                        self._utc_now(),
-                    ),
-                )
-                connection.commit()
+        def persist_exercise(connection: sqlite3.Connection) -> None:
+            connection.execute(
+                """
+                INSERT INTO exercises (id, name, description, metadata_json, is_custom, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    name = excluded.name,
+                    description = excluded.description,
+                    metadata_json = excluded.metadata_json,
+                    is_custom = excluded.is_custom,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    exercise_id,
+                    name,
+                    description,
+                    self._dumps_json(metadata),
+                    1 if is_custom else 0,
+                    self._utc_now(),
+                ),
+            )
+
+        self._execute_write(persist_exercise)
 
     def list_children(self) -> List[Dict[str, Any]]:
         with self._connect() as connection:
@@ -396,42 +417,42 @@ class StorageService:
             bool(exercise.get("is_custom")),
         )
 
-        with self._lock:
-            with self._connect() as connection:
-                connection.execute(
-                    """
-                    INSERT INTO sessions (
-                        id,
-                        child_id,
-                        exercise_id,
-                        timestamp,
-                        ai_assessment_json,
-                        pronunciation_json,
-                        exercise_metadata_json,
-                        transcript,
-                        reference_text,
-                        feedback_rating,
-                        feedback_note,
-                        feedback_submitted_at
-                    )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """,
-                    (
-                        session_id,
-                        child_id,
-                        exercise_id,
-                        timestamp,
-                        self._dumps_json(session_payload.get("ai_assessment")),
-                        self._dumps_json(session_payload.get("pronunciation_assessment")),
-                        self._dumps_json(exercise_metadata),
-                        session_payload.get("transcript"),
-                        session_payload.get("reference_text"),
-                        None,
-                        None,
-                        None,
-                    ),
+        def persist_session(connection: sqlite3.Connection) -> None:
+            connection.execute(
+                """
+                INSERT INTO sessions (
+                    id,
+                    child_id,
+                    exercise_id,
+                    timestamp,
+                    ai_assessment_json,
+                    pronunciation_json,
+                    exercise_metadata_json,
+                    transcript,
+                    reference_text,
+                    feedback_rating,
+                    feedback_note,
+                    feedback_submitted_at
                 )
-                connection.commit()
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    session_id,
+                    child_id,
+                    exercise_id,
+                    timestamp,
+                    self._dumps_json(session_payload.get("ai_assessment")),
+                    self._dumps_json(session_payload.get("pronunciation_assessment")),
+                    self._dumps_json(exercise_metadata),
+                    session_payload.get("transcript"),
+                    session_payload.get("reference_text"),
+                    None,
+                    None,
+                    None,
+                ),
+            )
+
+        self._execute_write(persist_session)
 
         session = self.get_session(session_id)
         if session is None:
@@ -569,19 +590,19 @@ class StorageService:
         feedback_note = (note or "").strip() or None
         submitted_at = self._utc_now()
 
-        with self._lock:
-            with self._connect() as connection:
-                cursor = connection.execute(
-                    """
-                    UPDATE sessions
-                    SET feedback_rating = ?, feedback_note = ?, feedback_submitted_at = ?
-                    WHERE id = ?
-                    """,
-                    (rating, feedback_note, submitted_at, session_id),
-                )
-                connection.commit()
+        def persist_feedback(connection: sqlite3.Connection) -> int:
+            cursor = connection.execute(
+                """
+                UPDATE sessions
+                SET feedback_rating = ?, feedback_note = ?, feedback_submitted_at = ?
+                WHERE id = ?
+                """,
+                (rating, feedback_note, submitted_at, session_id),
+            )
+            return cursor.rowcount
 
-        if cursor.rowcount == 0:
+        rowcount = self._execute_write(persist_feedback)
+        if rowcount == 0:
             return None
 
         return self.get_session(session_id)

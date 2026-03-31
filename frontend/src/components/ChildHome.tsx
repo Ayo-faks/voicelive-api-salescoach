@@ -183,16 +183,6 @@ const useStyles = makeStyles({
     fontFamily: 'var(--font-display)',
     fontWeight: '600',
   },
-  therapistButton: {
-    minHeight: '36px',
-    minWidth: '132px',
-    paddingInline: 'var(--space-md)',
-    borderRadius: '4px',
-    color: 'var(--color-text-tertiary)',
-    fontSize: '0.8125rem',
-    fontFamily: 'var(--font-display)',
-    fontWeight: '600',
-  },
 })
 
 interface Props {
@@ -206,7 +196,6 @@ interface Props {
   onSelectScenario: (scenarioId: string) => void
   onStartScenario: (scenarioId: string) => void
   onStartSession: () => void
-  onOpenTherapistTools: () => void
 }
 
 export function ChildHome({
@@ -220,7 +209,6 @@ export function ChildHome({
   onSelectScenario,
   onStartScenario,
   onStartSession,
-  onOpenTherapistTools,
 }: Props) {
   const styles = useStyles()
   const avatarLabel =
@@ -240,13 +228,6 @@ export function ChildHome({
           onClick={onExitToEntry}
         >
           Switch profile
-        </Button>
-        <Button
-          appearance="subtle"
-          className={styles.therapistButton}
-          onClick={onOpenTherapistTools}
-        >
-          {isTherapist ? 'Therapist tools' : 'Therapist access'}
         </Button>
       </div>
 
