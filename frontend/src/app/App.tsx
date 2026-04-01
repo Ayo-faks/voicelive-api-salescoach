@@ -600,7 +600,7 @@ export default function App() {
     updateCustomScenario,
     deleteCustomScenario,
   } = useScenarios()
-  const { playAudio } = useAudioPlayer()
+  const { playAudio, stopAudio } = useAudioPlayer()
   const activeScenario = scenarios.find(scenario => scenario.id === selectedScenario) || null
   const selectedChild =
     children.find(child => child.id === selectedChildId) || null
@@ -1818,6 +1818,10 @@ export default function App() {
             utteranceFeedback={utteranceFeedback}
             scoringUtterance={scoringUtterance}
             activeReferenceText={activeReferenceText}
+            onInterruptAvatar={() => {
+              send({ type: 'response.cancel' })
+              stopAudio()
+            }}
           />
         )}
       </div>

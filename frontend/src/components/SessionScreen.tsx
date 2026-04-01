@@ -173,6 +173,7 @@ interface SessionScreenProps {
   utteranceFeedback: PronunciationAssessment | null
   scoringUtterance: boolean
   activeReferenceText: string
+  onInterruptAvatar?: () => void
 }
 
 function formatExerciseType(value?: string) {
@@ -230,6 +231,7 @@ export function SessionScreen({
   utteranceFeedback,
   scoringUtterance,
   activeReferenceText,
+  onInterruptAvatar,
 }: SessionScreenProps) {
   const styles = useStyles()
   const [transcriptRevealed, setTranscriptRevealed] = useState(!isChildMode)
@@ -250,6 +252,7 @@ export function SessionScreen({
       scenarioName={scenario?.name}
       metadata={exerciseMetadata}
       audience={isChildMode ? 'child' : 'therapist'}
+      onInterruptAvatar={onInterruptAvatar}
     />
   ) : isSilentSorting ? (
     <SilentSortingPanel

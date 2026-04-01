@@ -63,6 +63,7 @@ API_CONSENT_ENDPOINT = "/api/pilot/consent"
 API_AGENTS_CREATE_ENDPOINT = "/api/agents/create"
 API_ANALYZE_ENDPOINT = "/api/analyze"
 API_ASSESS_UTTERANCE_ENDPOINT = "/api/assess-utterance"
+API_TTS_ENDPOINT = "/api/tts"
 API_CHILDREN_ENDPOINT = "/api/children"
 API_CHILD_SESSIONS_ENDPOINT = "/api/children/<child_id>/sessions"
 API_SESSION_DETAIL_ENDPOINT = "/api/sessions/<session_id>"
@@ -743,6 +744,47 @@ def assess_utterance():
         return jsonify({"pronunciation_assessment": pronunciation})
     finally:
         loop.close()
+
+
+@app.route(API_TTS_ENDPOINT, methods=["POST"])
+def synthesize_speech():
+    """Synthesize a short text string using Azure AI Speech and return WAV audio."""
+    _, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
+    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+    text = cast(str, data.get("text") or "").strip()
+    if not text or len(text) > 200:
+        return jsonify({"error": "text is required (max 200 chars)"}), HTTP_BAD_REQUEST
+
+    voice_name = config["azure_voice_name"]
+    speech_key = config["azure_speech_key"]
+    speech_region = config["azure_speech_region"]
+
+    if not speech_key:
+        return jsonify({"error": "Speech service not configured"}), HTTP_INTERNAL_SERVER_ERROR
+
+    try:
+        import azure.cognitiveservices.speech as speechsdk  # pyright: ignore[reportMissingTypeStubs]
+
+        speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=speech_region)
+        speech_config.speech_synthesis_voice_name = voice_name
+        speech_config.set_speech_synthesis_output_format(
+            speechsdk.SpeechSynthesisOutputFormat.Audio16Khz32KBitRateMonoMp3
+        )
+        synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=None)
+        result = synthesizer.speak_text_async(text).get()
+
+        if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
+            audio_b64 = base64.b64encode(result.audio_data).decode("ascii")
+            return jsonify({"audio": audio_b64, "format": "mp3"})
+        else:
+            logger.error("TTS synthesis failed: %s", result.reason)
+            return jsonify({"error": "Speech synthesis failed"}), HTTP_INTERNAL_SERVER_ERROR
+    except Exception:
+        logger.exception("TTS endpoint error")
+        return jsonify({"error": "Speech synthesis error"}), HTTP_INTERNAL_SERVER_ERROR
 
 
 @app.route(API_CHILD_SESSIONS_ENDPOINT)

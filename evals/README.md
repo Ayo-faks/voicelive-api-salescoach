@@ -1,5 +1,100 @@
 # Speech Therapy Platform — Evaluation Framework
 
+This framework covers **two distinct evaluation dimensions**:
+
+| Dimension | What We're Evaluating | Who Benefits |
+|---|---|---|
+| **Student Evaluation** | The child's speech progress, accuracy, engagement over time | Therapists, parents, the child |
+| **System Evaluation** | The AI buddy's behaviour, scoring accuracy, prompt quality | Engineers, product team |
+
+---
+
+# PART 1: STUDENT EVALUATION
+
+> _"Is the child improving?"_
+
+Student evaluation measures the child's speech production, engagement, and progress across sessions. This is the clinical output of the platform.
+
+## What We Measure Per Session
+
+| Metric | Source | Range | What It Tells the Therapist |
+|---|---|---|---|
+| `target_sound_accuracy` | AI Eval | 0-10 | Can the child produce the target phoneme? |
+| `overall_clarity` | AI Eval | 0-10 | Is the child's speech intelligible? |
+| `consistency` | AI Eval | 0-10 | Can they do it repeatedly, not just once? |
+| `task_completion` | AI Eval | 0-10 | Did they stay on task? |
+| `willingness_to_retry` | AI Eval | 0-10 | Do they try again after a miss? |
+| `self_correction_attempts` | AI Eval | 0-10 | Do they self-correct without prompting? |
+| `overall_score` | AI Eval | 0-100 | Holistic session quality |
+| `accuracy_score` | Azure Speech | 0-100 | Word-level pronunciation accuracy |
+| `fluency_score` | Azure Speech | 0-100 | Speech rhythm and flow |
+| `completeness_score` | Azure Speech | 0-100 | % of reference words attempted |
+| `pronunciation_score` | Azure Speech | 0-100 | Composite pronunciation rating |
+
+## What We Should Measure Across Sessions (not yet implemented)
+
+| Metric | Computation | Clinical Value |
+|---|---|---|
+| **Sound Mastery Rate** | % sessions where accuracy_score ≥ masteryThreshold, per target sound | Core clinical outcome — is the child mastering sounds? |
+| **Improvement Velocity** | Slope of accuracy_score over last N sessions per sound | Is practice actually working? |
+| **Phoneme Error Heatmap** | Frequency of each error type across all sessions | Which sounds need more work? |
+| **Session Completion Rate** | completed / started sessions | Is the child engaged enough to finish? |
+| **Avg Session Duration** | mean(session_duration_seconds) | Attention span indicator |
+| **Exercise Difficulty Calibration** | mean(score) grouped by difficulty level | Are "easy" exercises actually easy for this child? |
+| **Drop-off Point** | Turn number where child most often stops | Where do we lose them? |
+
+## Student Evaluation Golden Cases
+
+### SG1: Measurable Improvement Over Time
+```
+Session 1: /r/ accuracy_score = 45, "wed wocket"
+Session 5: /r/ accuracy_score = 62, "red wocket" 
+Session 10: /r/ accuracy_score = 78, "red rocket"
+Expected: Progress visible in therapist dashboard, mastery trending toward threshold
+```
+
+### SG2: Mastery Achievement
+```
+Exercise: k-sound-words, masteryThreshold = 80
+Sessions 1-7: accuracy_score = [55, 60, 65, 72, 75, 80, 85]
+Expected: System flags mastery reached, suggests advancing difficulty
+```
+
+### SG3: Age-Appropriate Baseline
+```
+Child age: 4, target: /r/
+accuracy_score = 50 with /w/ substitutions
+Expected: NOT flagged as concerning — age calibration applied, therapist_notes say "developmentally expected"
+```
+
+## Student Evaluation Edge Cases
+
+### SE1: Regression After Progress
+```
+Sessions 1-5: accuracy improving → Session 6: sharp drop
+Expected: therapist_notes flag regression, NOT treated as normal variance
+```
+
+### SE2: High Engagement, Low Accuracy
+```
+willingness_to_retry = 9, self_correction_attempts = 8, but accuracy_score = 35
+Expected: Celebration points emphasize effort. Practice suggestions focus on technique, not effort.
+```
+
+### SE3: Perfect Scores With No Generalization
+```
+/k/ isolation: 95 accuracy. /k/ in words: 40 accuracy.
+Expected: System recognizes isolation mastery doesn't mean word-level mastery
+```
+
+---
+
+# PART 2: SYSTEM EVALUATION
+
+> _"Is the AI doing its job correctly?"_
+
+System evaluation measures whether the AI buddy, the scoring pipeline, and the evaluation prompts behave correctly. This is engineering/product quality assurance.
+
 ## System Behaviour Contract
 
 When an **input** (child utterance + exercise context) arrives, the system must produce an **output** that satisfies three contracts:
@@ -10,9 +105,21 @@ When an **input** (child utterance + exercise context) arrives, the system must 
 | **AI Evaluation** | Full session transcript + evaluation prompt | Structured JSON: scores (0-100), celebration points, practice suggestions, therapist notes |
 | **Pronunciation Assessment** | Raw audio + reference text | Per-word accuracy, phoneme-level errors, fluency/completeness scores |
 
----
+## What We Measure About the System
 
-## Golden Use Cases
+| Metric | What It Tells Us | How to Compute |
+|---|---|---|
+| **Therapist Agreement Rate** | Does the AI score match therapist judgment? | % of sessions where feedback_rating = "up" |
+| **Score Consistency** | Do AI eval and pronunciation scores agree? | correlation(pronunciation_score, overall_score) |
+| **Buddy Response Length** | Is the buddy staying brief? | avg word count of buddy responses |
+| **Buddy Character Compliance** | Does the buddy stay in character? | % responses matching exercise rules (1 sentence, no clinical terms) |
+| **Celebration Positivity** | Are celebration points always positive? | % without negative language |
+| **Assessment Coverage** | Are sessions being scored? | % of transcribed sessions with non-null ai_assessment_json |
+| **Eval Latency** | Is scoring fast enough? | p95 latency of /api/analyze endpoint |
+| **Pronunciation Pipeline Reliability** | Does Azure Speech return results? | % of audio inputs with non-null pronunciation_json |
+| **Fallback Rate** | How often do we fall back to generic eval? | % of sessions using FALLBACK_EVALUATION_PROMPT |
+
+## System Evaluation Golden Cases
 
 These represent ideal interactions the system must handle correctly every time.
 
@@ -179,41 +286,7 @@ Severity: HIGH — child-facing content must be positive
 
 ---
 
-## Scoring System Reference
-
-### Per-Session Scores (already implemented)
-
-| Metric | Source | Range | What It Measures |
-|---|---|---|---|
-| `target_sound_accuracy` | AI Eval | 0-10 | Correct production of the target phoneme |
-| `overall_clarity` | AI Eval | 0-10 | General intelligibility |
-| `consistency` | AI Eval | 0-10 | Stability across repeated attempts |
-| `task_completion` | AI Eval | 0-10 | Stayed on the exercise task |
-| `willingness_to_retry` | AI Eval | 0-10 | Tried again after prompting |
-| `self_correction_attempts` | AI Eval | 0-10 | Independent adjustment |
-| `overall_score` | AI Eval | 0-100 | Holistic session quality |
-| `accuracy_score` | Azure Speech | 0-100 | Word-level pronunciation accuracy |
-| `fluency_score` | Azure Speech | 0-100 | Speech rhythm and flow |
-| `completeness_score` | Azure Speech | 0-100 | % of reference words attempted |
-| `pronunciation_score` | Azure Speech | 0-100 | Composite pronunciation rating |
-
-### Recommended Aggregate Metrics (not yet implemented)
-
-| Metric | Computation | Why It Matters |
-|---|---|---|
-| **Sound Mastery Rate** | % sessions where accuracy_score ≥ masteryThreshold, per target sound | Core clinical outcome |
-| **Improvement Velocity** | Slope of accuracy_score over last N sessions per sound | Is practice working? |
-| **Session Completion Rate** | completed_sessions / started_sessions | Engagement health |
-| **Avg Session Duration** | mean(session_duration_seconds) | Attention span / engagement |
-| **Therapist Agreement** | % of sessions where feedback_rating = "up" | AI eval quality signal |
-| **Score Consistency** | correlation(pronunciation_score, overall_score) | Internal validity |
-| **Exercise Difficulty Calibration** | mean(score) grouped by difficulty level | Are "easy" exercises actually easy? |
-| **Drop-off Point** | Turn number where children most often stop | UX insight |
-| **Phoneme Error Heatmap** | Frequency of each error type across all sessions | Population-level clinical insight |
-
----
-
-## Running Evals
+# PART 3: RUNNING EVALS
 
 ### 1. Unit Tests (existing)
 ```bash

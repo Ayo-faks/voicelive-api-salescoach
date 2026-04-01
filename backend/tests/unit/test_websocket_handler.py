@@ -205,13 +205,13 @@ class TestVoiceProxyHandler:
                 "character": "lisa",
                 "style": "casual-sitting",
                 "is_photo_avatar": False,
-                "voice_name": "en-GB-LibbyNeural",
+                "voice_name": "en-GB-AbbiNeural",
             },
         }
 
         session = handler._build_session_config(agent_config)
 
-        assert session["voice"]["name"] == "en-GB-LibbyNeural"
+        assert session["voice"]["name"] == "en-GB-AbbiNeural"
 
     @pytest.mark.asyncio
     async def test_send_message(self):

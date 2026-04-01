@@ -311,4 +311,15 @@ export const api = {
     if (!res.ok) throw new Error('Failed to save therapist feedback')
     return res.json()
   },
+
+  async synthesizeSpeech(text: string): Promise<string> {
+    const res = await fetchWithAuth('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+    })
+    if (!res.ok) throw new Error('TTS request failed')
+    const data = await res.json()
+    return data.audio as string
+  },
 }

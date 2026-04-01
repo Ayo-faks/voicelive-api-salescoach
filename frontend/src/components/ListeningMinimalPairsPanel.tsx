@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, Card, Text, makeStyles } from '@fluentui/react-components'
-import { SpeakerWaveIcon } from '@heroicons/react/24/outline'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ExerciseMetadata } from '../types'
+import { api } from '../services/api'
 import { ImageCard } from './ImageCard'
 import { RepetitionCounter } from './RepetitionCounter'
 
@@ -62,9 +62,10 @@ interface Props {
   scenarioName?: string | null
   metadata?: Partial<ExerciseMetadata>
   audience?: 'therapist' | 'child'
+  onInterruptAvatar?: () => void
 }
 
-export function ListeningMinimalPairsPanel({ scenarioName, metadata, audience = 'child' }: Props) {
+export function ListeningMinimalPairsPanel({ scenarioName, metadata, audience = 'child', onInterruptAvatar }: Props) {
   const styles = useStyles()
   const pairs = metadata?.pairs || []
   const [pairIndex, setPairIndex] = useState(0)
@@ -96,19 +97,58 @@ export function ListeningMinimalPairsPanel({ scenarioName, metadata, audience = 
     setPromptWord(Math.random() > 0.5 ? currentPair.word_a : currentPair.word_b)
   }, [currentPair])
 
-  const speakPrompt = () => {
-    if (!promptWord || typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      return
+  const speakWord = useCallback(async (word: string) => {
+    try {
+      const audioB64 = await api.synthesizeSpeech(word)
+      const bytes = Uint8Array.from(atob(audioB64), c => c.charCodeAt(0))
+      const blob = new Blob([bytes], { type: 'audio/mpeg' })
+      const url = URL.createObjectURL(blob)
+      const audio = new Audio(url)
+      audio.addEventListener('ended', () => URL.revokeObjectURL(url))
+      await audio.play()
+    } catch {
+      // Fallback to browser TTS if Azure fails
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+        const utterance = new SpeechSynthesisUtterance(word)
+        utterance.lang = metadata?.speechLanguage || 'en-US'
+        utterance.rate = 0.85
+        window.speechSynthesis.speak(utterance)
+      }
     }
+  }, [metadata?.speechLanguage])
 
-    window.speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(promptWord)
-    utterance.lang = metadata?.speechLanguage || 'en-US'
-    utterance.rate = 0.85
-    window.speechSynthesis.speak(utterance)
+  const audioCache = useRef<Map<string, string>>(new Map())
+
+  // Pre-fetch audio for current pair words
+  useEffect(() => {
+    if (!currentPair) return
+    for (const w of [currentPair.word_a, currentPair.word_b]) {
+      if (!audioCache.current.has(w)) {
+        api.synthesizeSpeech(w).then(b64 => audioCache.current.set(w, b64)).catch(() => {})
+      }
+    }
+  }, [currentPair])
+
+  const playWord = useCallback(async (word: string) => {
+    const cached = audioCache.current.get(word)
+    if (cached) {
+      const bytes = Uint8Array.from(atob(cached), c => c.charCodeAt(0))
+      const blob = new Blob([bytes], { type: 'audio/mpeg' })
+      const url = URL.createObjectURL(blob)
+      const audio = new Audio(url)
+      audio.addEventListener('ended', () => URL.revokeObjectURL(url))
+      await audio.play()
+    } else {
+      await speakWord(word)
+    }
+  }, [speakWord])
+
+  const handleSelect = (word: string) => {
+    onInterruptAvatar?.()
+    setSelectedWord(word)
+    playWord(word)
   }
-
-  const handleSelect = (word: string) => setSelectedWord(word)
   const isCorrect = selectedWord && promptWord ? selectedWord === promptWord : null
 
   return (
@@ -116,19 +156,10 @@ export function ListeningMinimalPairsPanel({ scenarioName, metadata, audience = 
       <Text className={styles.title}>{scenarioName || 'Listening practice'}</Text>
       <Text className={styles.body}>
         {audience === 'therapist'
-          ? 'Use the speaker button to model the target word, then have the child tap the matching picture.'
-          : 'Tap the picture that matches the word you hear.'}
+          ? 'Have the child tap a picture to hear the word, then tap the one that matches the target sound.'
+          : 'Tap a picture to hear the word.'}
       </Text>
       <div className={styles.controls}>
-        <Button
-          appearance="primary"
-          icon={<SpeakerWaveIcon className="w-5 h-5" />}
-          className={styles.speakButton}
-          onClick={speakPrompt}
-          disabled={!promptWord}
-        >
-          Hear it
-        </Button>
         <RepetitionCounter
           current={pairIndex + (selectedWord ? 1 : 0)}
           target={metadata?.repetitionTarget}

@@ -46,5 +46,13 @@ export function useAudioPlayer() {
     [initAudio]
   )
 
-  return { playAudio }
+  const stopAudio = useCallback(() => {
+    if (audioCtxRef.current) {
+      void audioCtxRef.current.close()
+      audioCtxRef.current = null
+      nextPlayTimeRef.current = 0
+    }
+  }, [])
+
+  return { playAudio, stopAudio }
 }
