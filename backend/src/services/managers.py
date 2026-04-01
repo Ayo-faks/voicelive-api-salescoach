@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional
 
 import yaml
 from azure.ai.projects import AIProjectClient
+from azure.ai.voicelive.models import FunctionTool
 from azure.identity import DefaultAzureCredential
 
 from src.config import config
@@ -29,14 +30,11 @@ SCENARIO_DATA_DIR = "data/exercises"
 DOCKER_APP_PATH = "/app"
 
 # Tool definition for session finish (used by both Azure AI Agents and Realtime session)
-FINISH_SESSION_TOOL = {
-    "type": "function",
-    "function": {
-        "name": "finish_session",
-        "description": "End the practice session. Call this when the child says they are done, want to stop, or want to finish practising.",
-        "parameters": {"type": "object", "properties": {}, "required": []},
-    },
-}
+FINISH_SESSION_TOOL = FunctionTool(
+    name="finish_session",
+    description="End the practice session. Call this when the child says they are done, want to stop, or want to finish practising.",
+    parameters={"type": "object", "properties": {}, "required": []},
+)
 
 logger = logging.getLogger(__name__)
 
