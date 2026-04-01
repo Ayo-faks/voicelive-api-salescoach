@@ -165,6 +165,28 @@ const useStyles = makeStyles({
     animationFillMode: 'forwards',
     opacity: 0,
   },
+  cancelButton: {
+    position: 'absolute',
+    top: '16px',
+    right: '16px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '34px',
+    paddingInline: '14px',
+    borderRadius: '8px',
+    border: '1px solid rgba(13, 138, 132, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.8rem',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s, color 0.2s',
+    ':hover': {
+      backgroundColor: 'rgba(255, 255, 255, 1)',
+      color: 'var(--color-text-primary)',
+    },
+  },
   dot: {
     width: '8px',
     height: '8px',
@@ -207,6 +229,7 @@ interface Props {
   exerciseName?: string | null
   childName?: string | null
   exercisePrompt?: string | null
+  onCancel?: () => void
 }
 
 export function SessionLaunchOverlay({
@@ -216,6 +239,7 @@ export function SessionLaunchOverlay({
   exerciseName: _exerciseName,
   childName: _childName,
   exercisePrompt: _exercisePrompt,
+  onCancel,
 }: Props) {
   const styles = useStyles()
   // Keep mounted during the fade-out transition, then fully unmount
@@ -264,6 +288,11 @@ export function SessionLaunchOverlay({
     <div className={mergeClasses(styles.overlay, !visible && styles.overlayHidden)}>
       <div className={mergeClasses(styles.stage, !visible && styles.stageHidden)}>
         <div className={styles.statusBadge}>Preparing live session</div>
+        {onCancel && (
+          <button className={styles.cancelButton} onClick={onCancel} type="button">
+            ✕ Cancel
+          </button>
+        )}
 
         <div className={styles.avatarContainer}>
           <div className={styles.pulseRing} />

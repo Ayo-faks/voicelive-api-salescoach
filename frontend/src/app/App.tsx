@@ -1829,6 +1829,7 @@ export default function App() {
         exerciseName={activeScenario?.name}
         childName={selectedChild?.name}
         exercisePrompt={activeScenario?.description}
+        onCancel={handleClearSession}
       />
 
       <Dialog open={showLoading}>
