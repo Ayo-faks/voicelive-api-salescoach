@@ -25,6 +25,7 @@ from azure.ai.voicelive.models import (
     AzureSemanticVad,
     AzureStandardVoice,
     Modality,
+    OpenAIVoice,
     RequestSession,
     ServerEventType,
 )
@@ -46,8 +47,8 @@ DEFAULT_NOISE_REDUCTION_TYPE = "azure_deep_noise_suppression"
 DEFAULT_ECHO_CANCELLATION_TYPE = "server_echo_cancellation"
 DEFAULT_AVATAR_CHARACTER = "lisa"
 DEFAULT_AVATAR_STYLE = "casual-sitting"
-DEFAULT_VOICE_NAME = "en-GB-AbbiNeural"
-DEFAULT_VOICE_TYPE = "azure-standard"
+DEFAULT_VOICE_NAME = "shimmer"
+DEFAULT_VOICE_TYPE = "openai"
 
 # Message types
 SESSION_UPDATE_TYPE = "session.update"
@@ -250,7 +251,7 @@ class VoiceProxyHandler:
             ),
             input_audio_noise_reduction=AudioNoiseReduction(type=DEFAULT_NOISE_REDUCTION_TYPE),
             input_audio_echo_cancellation=AudioEchoCancellation(type=DEFAULT_ECHO_CANCELLATION_TYPE),
-            voice=AzureStandardVoice(name=voice_name, type=voice_type),
+            voice=OpenAIVoice(name=voice_name) if voice_type == "openai" else AzureStandardVoice(name=voice_name, type=voice_type),
             avatar=avatar_config_value,
             tools=[FINISH_SESSION_TOOL],
         )

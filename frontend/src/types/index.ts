@@ -131,7 +131,7 @@ export const AVATAR_OPTIONS: AvatarOption[] = [
     isPhotoAvatar: false,
     color: '#0d8a84',
     persona: 'an adult British woman',
-    voiceName: 'en-GB-AbbiNeural',
+    voiceName: 'shimmer',
   },
   { value: 'riya', label: 'Riya (Photo)', isPhotoAvatar: true, color: '#a855f7' },
   { value: 'simone', label: 'Simone (Photo)', isPhotoAvatar: true, color: '#f97316' },
