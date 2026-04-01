@@ -242,8 +242,13 @@ class VoiceProxyHandler:
         agent_config: Optional[Dict[str, Any]],
     ) -> RequestSession:
         """Create the RequestSession with all configuration."""
+        is_openai_voice = voice_type == "openai"
+        modalities = [Modality.TEXT, Modality.AUDIO]
+        if not is_openai_voice:
+            modalities.append(Modality.AVATAR)
+
         session = RequestSession(
-            modalities=[Modality.TEXT, Modality.AUDIO, Modality.AVATAR],
+            modalities=modalities,
             turn_detection=AzureSemanticVad(type=DEFAULT_TURN_DETECTION_TYPE),
             input_audio_transcription=AudioInputTranscriptionOptions(
                 model=config.get("azure_input_transcription_model", "azure-speech"),
@@ -251,8 +256,8 @@ class VoiceProxyHandler:
             ),
             input_audio_noise_reduction=AudioNoiseReduction(type=DEFAULT_NOISE_REDUCTION_TYPE),
             input_audio_echo_cancellation=AudioEchoCancellation(type=DEFAULT_ECHO_CANCELLATION_TYPE),
-            voice=OpenAIVoice(name=voice_name) if voice_type == "openai" else AzureStandardVoice(name=voice_name, type=voice_type),
-            avatar=avatar_config_value,
+            voice=OpenAIVoice(name=voice_name) if is_openai_voice else AzureStandardVoice(name=voice_name, type=voice_type),
+            avatar=None if is_openai_voice else avatar_config_value,
             tools=[FINISH_SESSION_TOOL],
         )
 

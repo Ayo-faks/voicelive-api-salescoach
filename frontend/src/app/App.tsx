@@ -845,6 +845,9 @@ export default function App() {
 
       if (servers) {
         setupWebRTC(servers, username, credential)
+      } else {
+        // Audio-only mode (e.g. OpenAI voice) — no avatar video expected
+        setAvatarVideoReady(true)
       }
     } else if (
       (msg.server_sdp || msg.sdp || msg.answer) &&
