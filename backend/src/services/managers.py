@@ -28,6 +28,16 @@ MAX_RESPONSE_LENGTH_SENTENCES = 2
 SCENARIO_DATA_DIR = "data/exercises"
 DOCKER_APP_PATH = "/app"
 
+# Tool definition for session finish (used by both Azure AI Agents and Realtime session)
+FINISH_SESSION_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "finish_session",
+        "description": "End the practice session. Call this when the child says they are done, want to stop, or want to finish practising.",
+        "parameters": {"type": "object", "properties": {}, "required": []},
+    },
+}
+
 logger = logging.getLogger(__name__)
 
 
@@ -133,6 +143,7 @@ CRITICAL INTERACTION GUIDELINES:
 - Never use critical, diagnostic, or discouraging language
 - Gently model target sounds and invite the child to try again
 - Keep the interaction calm, encouraging, and easy to follow
+- If the child says they are done, want to stop, want to finish, or no longer want to practise, call the finish_session tool immediately
     """
 
     def __init__(self):
@@ -225,7 +236,7 @@ CRITICAL INTERACTION GUIDELINES:
                     model=model,
                     name=agent_name,
                     instructions=instructions,
-                    tools=[],
+                    tools=[FINISH_SESSION_TOOL],
                     temperature=temperature,
                 )
 

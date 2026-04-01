@@ -66,6 +66,8 @@ type ConversationTurn = {
 
 type RealtimeMessage = {
   type?: string
+  name?: string
+  call_id?: string
   session?: {
     avatar?: {
       ice_servers?: string[]
@@ -587,6 +589,7 @@ export default function App() {
   const pendingIntroRef = useRef<string | null>(null)
   const idleNudgePendingRef = useRef(false)
   const skipNextWordFeedbackRef = useRef(false)
+  const sendRef = useRef<(msg: unknown) => void>(() => {})
 
   const {
     scenarios,
@@ -800,6 +803,29 @@ export default function App() {
       setSessionReady(true)
     }
 
+    if (msg.type === 'response.function_call_arguments.done' && msg.name === 'finish_session') {
+      if (msg.call_id) {
+        sendRef.current({
+          type: 'conversation.item.create',
+          item: {
+            type: 'function_call_output',
+            call_id: msg.call_id,
+            output: '{"status": "closing"}',
+          },
+        })
+        sendRef.current({
+          type: 'response.create',
+          response: {
+            modalities: ['audio', 'text'],
+            instructions:
+              'Say a very short, warm goodbye to the child. One sentence only, like "Great job today, bye bye!"',
+          },
+        })
+      }
+      setFinishRequested(true)
+      return
+    }
+
     if (msg.type === 'session.updated') {
       const session = msg.session
       const servers =
@@ -955,6 +981,10 @@ export default function App() {
       onTranscript: handleRealtimeTranscript,
     })
 
+  useEffect(() => {
+    sendRef.current = send
+  }, [send])
+
   // Trigger the greeting only after the avatar video is actually rendered.
   useEffect(() => {
     if (
@@ -1057,8 +1087,13 @@ export default function App() {
       setUtteranceFeedback(null)
     }
 
+    const wasRecording = recording
     await toggleRecording()
-  }, [activeReferenceText, recording, toggleRecording])
+
+    if (wasRecording) {
+      send({ type: 'input_audio_buffer.commit' })
+    }
+  }, [activeReferenceText, recording, send, toggleRecording])
 
   const analyzeCurrentSession = useCallback(async () => {
     if (!selectedScenario) return null

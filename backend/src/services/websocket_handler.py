@@ -31,7 +31,7 @@ from azure.ai.voicelive.models import (
 from azure.core.credentials import AzureKeyCredential
 
 from src.config import config
-from src.services.managers import AgentManager
+from src.services.managers import AgentManager, FINISH_SESSION_TOOL
 
 logger = logging.getLogger(__name__)
 
@@ -252,6 +252,7 @@ class VoiceProxyHandler:
             input_audio_echo_cancellation=AudioEchoCancellation(type=DEFAULT_ECHO_CANCELLATION_TYPE),
             voice=AzureStandardVoice(name=voice_name, type=voice_type),
             avatar=avatar_config_value,
+            tools=[FINISH_SESSION_TOOL],
         )
 
         if agent_config and not agent_config.get("is_azure_agent"):
