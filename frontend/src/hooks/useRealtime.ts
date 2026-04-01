@@ -56,7 +56,7 @@ function resolveWebSocketUrl(config: Record<string, unknown>): string {
     return endpoint
   }
 
-  const isLocalDevServer = location.port !== '8000'
+  const isLocalDevServer = location.port !== '' && location.port !== '8000'
 
   if (isLocalDevServer) {
     const backendOrigin = `${location.protocol}//${location.hostname}:8000`
