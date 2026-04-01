@@ -25,7 +25,6 @@ from azure.ai.voicelive.models import (
     AzureSemanticVad,
     AzureStandardVoice,
     Modality,
-    OpenAIVoice,
     RequestSession,
     ServerEventType,
 )
@@ -47,8 +46,8 @@ DEFAULT_NOISE_REDUCTION_TYPE = "azure_deep_noise_suppression"
 DEFAULT_ECHO_CANCELLATION_TYPE = "server_echo_cancellation"
 DEFAULT_AVATAR_CHARACTER = "lisa"
 DEFAULT_AVATAR_STYLE = "casual-sitting"
-DEFAULT_VOICE_NAME = "shimmer"
-DEFAULT_VOICE_TYPE = "openai"
+DEFAULT_VOICE_NAME = "en-GB-AbbiNeural"
+DEFAULT_VOICE_TYPE = "azure-standard"
 
 # Message types
 SESSION_UPDATE_TYPE = "session.update"
@@ -242,13 +241,8 @@ class VoiceProxyHandler:
         agent_config: Optional[Dict[str, Any]],
     ) -> RequestSession:
         """Create the RequestSession with all configuration."""
-        is_openai_voice = voice_type == "openai"
-        modalities = [Modality.TEXT, Modality.AUDIO]
-        if not is_openai_voice:
-            modalities.append(Modality.AVATAR)
-
         session = RequestSession(
-            modalities=modalities,
+            modalities=[Modality.TEXT, Modality.AUDIO, Modality.AVATAR],
             turn_detection=AzureSemanticVad(type=DEFAULT_TURN_DETECTION_TYPE),
             input_audio_transcription=AudioInputTranscriptionOptions(
                 model=config.get("azure_input_transcription_model", "azure-speech"),
@@ -256,8 +250,8 @@ class VoiceProxyHandler:
             ),
             input_audio_noise_reduction=AudioNoiseReduction(type=DEFAULT_NOISE_REDUCTION_TYPE),
             input_audio_echo_cancellation=AudioEchoCancellation(type=DEFAULT_ECHO_CANCELLATION_TYPE),
-            voice=OpenAIVoice(name=voice_name) if is_openai_voice else AzureStandardVoice(name=voice_name, type=voice_type),
-            avatar=None if is_openai_voice else avatar_config_value,
+            voice=AzureStandardVoice(name=voice_name, type=voice_type),
+            avatar=avatar_config_value,
             tools=[FINISH_SESSION_TOOL],
         )
 
