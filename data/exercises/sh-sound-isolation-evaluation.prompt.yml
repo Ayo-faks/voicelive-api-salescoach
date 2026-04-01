@@ -15,8 +15,8 @@ messages:
       {{conversation_transcript}}
 testData:
   - conversation_transcript: |
-      Buddy: Shell says shhh.
-      Child: shhh.
+      Buddy: Can you make the quiet shell sound?
+      Child: (makes the shell sound)
     expected: Should note consistent isolated /sh/ attempts
 evaluators:
   - name: Focuses on isolated sound accuracy

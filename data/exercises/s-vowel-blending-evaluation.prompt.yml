@@ -15,7 +15,7 @@ messages:
       {{conversation_transcript}}
 testData:
   - conversation_transcript: |
-      Buddy: sss...ee becomes see.
+      Buddy: Start with the snake sound, then add ee — see!
       Child: see.
       Buddy: Nice smooth blend.
     expected: Should note clear blend modelling and supportive feedback

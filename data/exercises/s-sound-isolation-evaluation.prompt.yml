@@ -18,10 +18,10 @@ messages:
       {{conversation_transcript}}
 testData:
   - conversation_transcript: |
-      Buddy: Snake says sss.
-      Child: sss.
-      Buddy: I heard a smooth /s/.
-      Child: sss.
+      Buddy: Can you make the long snake sound?
+      Child: (makes the snake sound)
+      Buddy: I heard a lovely snake sound!
+      Child: (makes the snake sound again)
     expected: Should note consistent isolated /s/ attempts with supportive feedback
 evaluators:
   - name: Focuses on isolated sound accuracy

@@ -46,7 +46,7 @@ DEFAULT_NOISE_REDUCTION_TYPE = "azure_deep_noise_suppression"
 DEFAULT_ECHO_CANCELLATION_TYPE = "server_echo_cancellation"
 DEFAULT_AVATAR_CHARACTER = "lisa"
 DEFAULT_AVATAR_STYLE = "casual-sitting"
-DEFAULT_VOICE_NAME = "en-GB-SoniaNeural"
+DEFAULT_VOICE_NAME = "en-GB-LibbyNeural"
 DEFAULT_VOICE_TYPE = "azure-standard"
 
 # Message types

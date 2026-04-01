@@ -15,8 +15,8 @@ messages:
       {{conversation_transcript}}
 testData:
   - conversation_transcript: |
-      Buddy: Rocket says rrr.
-      Child: rrr.
+      Buddy: Can you make the rocket sound?
+      Child: (makes the rocket sound)
     expected: Should note consistent isolated /r/ attempts
 evaluators:
   - name: Focuses on isolated sound accuracy
