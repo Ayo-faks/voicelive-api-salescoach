@@ -210,7 +210,7 @@ class VoiceProxyHandler:
             avatar_character = custom_avatar.get("character", avatar_character)
             avatar_style = custom_avatar.get("style", avatar_style)
             is_photo_avatar = custom_avatar.get("is_photo_avatar", False)
-            voice_name = custom_avatar.get("voice_name", voice_name)
+            voice_name = custom_avatar.get("voice_name") or voice_name
 
         avatar_config_value = self._build_avatar_config(avatar_character, avatar_style, is_photo_avatar)
 
