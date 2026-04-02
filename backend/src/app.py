@@ -771,7 +771,7 @@ def synthesize_speech():
         speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=speech_region)
         speech_config.speech_synthesis_voice_name = voice_name
         speech_config.set_speech_synthesis_output_format(
-            speechsdk.SpeechSynthesisOutputFormat.Audio16Khz32KBitRateMonoMp3
+            speechsdk.SpeechSynthesisOutputFormat.Audio48Khz192KBitRateMonoMp3
         )
         synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=None)
         result = synthesizer.speak_text_async(text).get()
