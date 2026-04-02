@@ -214,6 +214,8 @@ class VoiceProxyHandler:
 
         avatar_config_value = self._build_avatar_config(avatar_character, avatar_style, is_photo_avatar)
 
+        logger.info("Session voice config: voice_name=%s, voice_type=%s, agent_override=%s", voice_name, voice_type, bool(agent_config and agent_config.get("avatar_config", {}).get("voice_name")))
+
         return self._create_request_session(voice_name, voice_type, avatar_config_value, agent_config)
 
     def _build_avatar_config(self, character: str, style: str, is_photo: bool) -> Any:
