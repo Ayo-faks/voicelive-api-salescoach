@@ -46,8 +46,6 @@ DEFAULT_NOISE_REDUCTION_TYPE = "azure_deep_noise_suppression"
 DEFAULT_ECHO_CANCELLATION_TYPE = "server_echo_cancellation"
 DEFAULT_AVATAR_CHARACTER = "lisa"
 DEFAULT_AVATAR_STYLE = "casual-sitting"
-DEFAULT_VOICE_NAME = "en-US-Andrew3:DragonHDLatestNeural"
-DEFAULT_VOICE_TYPE = "azure-standard"
 
 # Message types
 SESSION_UPDATE_TYPE = "session.update"
@@ -200,8 +198,8 @@ class VoiceProxyHandler:
 
     def _build_session_config(self, agent_config: Optional[Dict[str, Any]]) -> RequestSession:
         """Build the session configuration using SDK typed models."""
-        voice_name = config.get("azure_voice_name", DEFAULT_VOICE_NAME)
-        voice_type = config.get("azure_voice_type", DEFAULT_VOICE_TYPE)
+        voice_name = config.get("azure_voice_name")
+        voice_type = config.get("azure_voice_type")
 
         avatar_character = config.get("azure_avatar_character", DEFAULT_AVATAR_CHARACTER)
         avatar_style = config.get("azure_avatar_style", DEFAULT_AVATAR_STYLE)
