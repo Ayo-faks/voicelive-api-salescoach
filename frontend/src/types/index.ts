@@ -125,6 +125,7 @@ export interface AvatarOption {
 }
 
 export const AVATAR_OPTIONS: AvatarOption[] = [
+  // --- Video avatars (real-time animated) ---
   {
     value: 'lisa-casual-sitting',
     label: 'Lisa',
@@ -132,6 +133,105 @@ export const AVATAR_OPTIONS: AvatarOption[] = [
     color: '#0d8a84',
     persona: 'an adult British woman',
   },
+  {
+    value: 'harry-casual',
+    label: 'Harry',
+    isPhotoAvatar: false,
+    color: '#3b82f6',
+    persona: 'an adult man in casual attire',
+  },
+  {
+    value: 'harry-business',
+    label: 'Harry (Business)',
+    isPhotoAvatar: false,
+    color: '#1e3a5f',
+    persona: 'a professional man in business attire',
+  },
+  {
+    value: 'harry-youthful',
+    label: 'Harry (Youthful)',
+    isPhotoAvatar: false,
+    color: '#06b6d4',
+    persona: 'a youthful man',
+  },
+  {
+    value: 'jeff-business',
+    label: 'Jeff (Business)',
+    isPhotoAvatar: false,
+    color: '#6366f1',
+    persona: 'a professional man in business attire',
+  },
+  {
+    value: 'jeff-formal',
+    label: 'Jeff (Formal)',
+    isPhotoAvatar: false,
+    color: '#4f46e5',
+    persona: 'a man in formal attire',
+  },
+  {
+    value: 'lori-casual',
+    label: 'Lori',
+    isPhotoAvatar: false,
+    color: '#ec4899',
+    persona: 'an adult woman in casual attire',
+  },
+  {
+    value: 'lori-graceful',
+    label: 'Lori (Graceful)',
+    isPhotoAvatar: false,
+    color: '#d946ef',
+    persona: 'an elegant woman',
+  },
+  {
+    value: 'lori-formal',
+    label: 'Lori (Formal)',
+    isPhotoAvatar: false,
+    color: '#be185d',
+    persona: 'a professional woman in formal attire',
+  },
+  {
+    value: 'max-casual',
+    label: 'Max',
+    isPhotoAvatar: false,
+    color: '#f59e0b',
+    persona: 'an adult man in casual attire',
+  },
+  {
+    value: 'max-business',
+    label: 'Max (Business)',
+    isPhotoAvatar: false,
+    color: '#d97706',
+    persona: 'a professional man in business attire',
+  },
+  {
+    value: 'max-formal',
+    label: 'Max (Formal)',
+    isPhotoAvatar: false,
+    color: '#b45309',
+    persona: 'a man in formal attire',
+  },
+  {
+    value: 'meg-casual',
+    label: 'Meg',
+    isPhotoAvatar: false,
+    color: '#10b981',
+    persona: 'an adult woman in casual attire',
+  },
+  {
+    value: 'meg-business',
+    label: 'Meg (Business)',
+    isPhotoAvatar: false,
+    color: '#059669',
+    persona: 'a professional woman in business attire',
+  },
+  {
+    value: 'meg-formal',
+    label: 'Meg (Formal)',
+    isPhotoAvatar: false,
+    color: '#047857',
+    persona: 'a woman in formal attire',
+  },
+  // --- Photo avatars (static image) ---
   { value: 'riya', label: 'Riya (Photo)', isPhotoAvatar: true, color: '#a855f7' },
   { value: 'simone', label: 'Simone (Photo)', isPhotoAvatar: true, color: '#f97316' },
 ]
