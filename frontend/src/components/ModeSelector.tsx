@@ -37,7 +37,7 @@ const useStyles = makeStyles({
   robotImg: {
     width: 'min(180px, 35vw)',
     height: 'auto',
-    filter: 'drop-shadow(0 16px 32px rgba(13, 138, 132, 0.28))',
+    filter: 'none',
     willChange: 'transform, opacity, filter',
     '@media (prefers-reduced-motion: reduce)': {
       animationDuration: '0.01s !important',
@@ -46,10 +46,10 @@ const useStyles = makeStyles({
   /* Phase 1: Drop in from above with a tilt */
   robotEntrance: {
     animationName: {
-      '0%': { transform: 'translateY(-120px) scale(0.5) rotateX(20deg)', opacity: 0, filter: 'drop-shadow(0 0 0 transparent) blur(6px)' },
-      '60%': { transform: 'translateY(14px) scale(1.06) rotateX(-4deg)', opacity: 1, filter: 'drop-shadow(0 20px 40px rgba(13,138,132,0.3)) blur(0)' },
+      '0%': { transform: 'translateY(-120px) scale(0.5) rotateX(20deg)', opacity: 0, filter: 'blur(6px)' },
+      '60%': { transform: 'translateY(14px) scale(1.06) rotateX(-4deg)', opacity: 1, filter: 'blur(0)' },
       '80%': { transform: 'translateY(-8px) scale(0.97) rotateX(2deg)' },
-      '100%': { transform: 'translateY(0) scale(1) rotateX(0)', filter: 'drop-shadow(0 16px 32px rgba(13,138,132,0.28)) blur(0)' },
+      '100%': { transform: 'translateY(0) scale(1) rotateX(0)', filter: 'none' },
     },
     animationDuration: '0.9s',
     animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',

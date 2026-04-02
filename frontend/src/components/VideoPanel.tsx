@@ -69,7 +69,7 @@ const useStyles = makeStyles({
     borderRadius: '4px',
   },
   buddyAvatarWrap: {
-    filter: 'drop-shadow(0 24px 40px rgba(13, 138, 132, 0.22))',
+    filter: 'none',
     animationName: {
       '0%': { transform: 'scale(1)' },
       '50%': { transform: 'scale(1.06)' },

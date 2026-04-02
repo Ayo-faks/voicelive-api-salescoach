@@ -324,7 +324,7 @@ const useStyles = makeStyles({
     width: '56px',
     height: '56px',
     objectFit: 'contain',
-    filter: 'drop-shadow(0 10px 18px rgba(13, 138, 132, 0.18))',
+    filter: 'none',
   },
   appTitle: {
     fontFamily: 'var(--font-display)',

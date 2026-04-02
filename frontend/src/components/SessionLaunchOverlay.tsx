@@ -77,7 +77,7 @@ const useStyles = makeStyles({
     animationDuration: '0.7s',
     animationTimingFunction: 'cubic-bezier(0.34,1.56,0.64,1)',
     animationFillMode: 'forwards',
-    filter: 'drop-shadow(0 20px 40px rgba(13,138,132,0.28))',
+    filter: 'none',
   },
   pulseRing: {
     position: 'absolute',

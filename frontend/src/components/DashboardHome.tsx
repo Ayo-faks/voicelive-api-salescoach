@@ -104,7 +104,7 @@ const useStyles = makeStyles({
     width: 'min(170px, 78%)',
     height: 'auto',
     zIndex: 1,
-    filter: 'drop-shadow(0 18px 36px rgba(13, 138, 132, 0.24))',
+    filter: 'none',
     animationName: {
       '0%, 100%': { transform: 'translateY(0) scale(1)' },
       '50%': { transform: 'translateY(-5px) scale(1.03)' },

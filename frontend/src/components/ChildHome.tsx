@@ -139,7 +139,7 @@ const useStyles = makeStyles({
   buddyImage: {
     width: 'min(220px, 100%)',
     height: 'auto',
-    filter: 'drop-shadow(0 18px 36px rgba(13, 138, 132, 0.24))',
+    filter: 'none',
     animationName: {
       '0%, 100%': { transform: 'translateY(0) rotate(0)' },
       '25%': { transform: 'translateY(-6px) rotate(1.25deg)' },
