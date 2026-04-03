@@ -1310,7 +1310,7 @@ export function ProgressDashboard({
                     Next-session plan
                   </Text>
                   <Text className={styles.helperText} size={300}>
-                    Generate or refine the next step for the next visit.
+                    Generate or refine the plan for the next visit.
                   </Text>
                 </div>
 
@@ -1335,7 +1335,7 @@ export function ProgressDashboard({
                           <Text size={300} weight="semibold">
                             {selectedPlan.draft.objective}
                           </Text>
-                          {selectedPlan.draft.focus_sound ? <Text size={200}>Focus sound: {selectedPlan.draft.focus_sound}</Text> : null}
+                          {selectedPlan.draft.focus_sound ? <Text size={200}>Target sound: {selectedPlan.draft.focus_sound}</Text> : null}
                         </div>
                       </div>
 
