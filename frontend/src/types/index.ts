@@ -112,6 +112,82 @@ export interface SessionDetail {
   reference_text?: string | null
 }
 
+export interface PlannerMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export interface PracticePlanActivity {
+  title: string
+  exercise_id: string
+  exercise_name: string
+  reason: string
+  target_duration_minutes: number
+}
+
+export interface PracticePlanDraft {
+  objective: string
+  focus_sound: string
+  rationale: string
+  estimated_duration_minutes: number
+  activities: PracticePlanActivity[]
+  therapist_cues: string[]
+  success_criteria: string[]
+  carryover: string[]
+}
+
+export interface PracticePlan {
+  id: string
+  child_id: string
+  source_session_id?: string | null
+  status: 'draft' | 'approved'
+  title: string
+  plan_type: string
+  constraints: Record<string, unknown>
+  draft: PracticePlanDraft
+  conversation: PlannerMessage[]
+  planner_session_id?: string | null
+  created_by_user_id?: string | null
+  created_at: string
+  updated_at: string
+  approved_at?: string | null
+}
+
+export interface PlannerReadinessCliStatus {
+  configured_path?: string | null
+  resolved_path?: string | null
+  available: boolean
+  version?: string | null
+  auth_checked?: boolean
+  authenticated: boolean
+  auth_message?: string | null
+}
+
+export interface PlannerReadinessAuthStatus {
+  github_token_configured: boolean
+  azure_byok_configured: boolean
+}
+
+export interface PlannerReadiness {
+  ready: boolean
+  model: string
+  sdk_installed: boolean
+  cli: PlannerReadinessCliStatus
+  auth: PlannerReadinessAuthStatus
+  reasons: string[]
+}
+
+export interface AppConfig {
+  status: string
+  proxy_enabled: boolean
+  ws_url?: string
+  ws_endpoint: string
+  storage_ready: boolean
+  telemetry_enabled: boolean
+  image_base_path: string
+  planner?: PlannerReadiness
+}
+
 export interface AvatarOption {
   value: string
   label: string

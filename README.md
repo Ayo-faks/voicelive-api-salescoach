@@ -92,6 +92,41 @@ This project includes a dev container for easy setup and a build script for  dev
 
 Visit `http://localhost:8000` to start practising.
 
+### Copilot Planner Requirements
+
+The therapist planning workflow now uses the GitHub Copilot SDK in the backend.
+
+Runtime requirements:
+
+- `github-copilot-sdk` installed in the backend Python environment
+- GitHub Copilot CLI available to the backend process
+- One authentication mode configured:
+   - GitHub Copilot CLI already logged in, or
+   - `COPILOT_GITHUB_TOKEN` / `GITHUB_TOKEN`, or
+   - Azure BYOK values already used by the app: `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_API_KEY`
+
+The backend container image now installs the GitHub Copilot CLI at `/usr/local/bin/copilot`, and the Azure Container App wiring sets `COPILOT_CLI_PATH` to that location by default.
+
+Optional planner-specific environment variables:
+
+- `COPILOT_CLI_PATH` - absolute path to the Copilot CLI executable if it is not on `PATH`
+- `COPILOT_GITHUB_TOKEN` - optional token-based auth path for backend-service scenarios
+- `COPILOT_PLANNER_MODEL` - overrides the planner model, default `gpt-5`
+- `COPILOT_PLANNER_REASONING_EFFORT` - optional reasoning level: `low`, `medium`, `high`, or `xhigh`
+- `COPILOT_AZURE_API_VERSION` - Azure BYOK API version, default `2024-10-21`
+
+For `azd` environments, the planner override inputs now flow through `infra/main.parameters.json`:
+
+- `COPILOT_CLI_PATH`
+- `COPILOT_GITHUB_TOKEN`
+- `COPILOT_PLANNER_MODEL`
+- `COPILOT_PLANNER_REASONING_EFFORT`
+- `COPILOT_AZURE_API_VERSION`
+
+In the current Azure Container Apps deployment, `COPILOT_PLANNER_MODEL` defaults to the deployed Azure OpenAI model name when no override is provided, which keeps the BYOK path aligned with the existing `gpt-4o` deployment.
+
+The authenticated config payload at `/api/config` now includes a `planner` object that reports backend readiness, including whether the SDK is installed, whether the CLI is executable, and whether planner authentication is available.
+
 ## Architecture
 
 <table>

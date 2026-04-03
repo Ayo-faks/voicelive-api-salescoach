@@ -23,6 +23,7 @@ from src.bootstrap_storage import bootstrap_storage
 from src.config import config
 from src.services.analyzers import ConversationAnalyzer, PronunciationAssessor
 from src.services.managers import AgentManager, ScenarioManager
+from src.services.planning_service import PracticePlanningService
 from src.services.storage import StorageService
 from src.services.telemetry import PilotTelemetryService
 from src.services.websocket_handler import VoiceProxyHandler
@@ -66,8 +67,13 @@ API_ASSESS_UTTERANCE_ENDPOINT = "/api/assess-utterance"
 API_TTS_ENDPOINT = "/api/tts"
 API_CHILDREN_ENDPOINT = "/api/children"
 API_CHILD_SESSIONS_ENDPOINT = "/api/children/<child_id>/sessions"
+API_CHILD_PLANS_ENDPOINT = "/api/children/<child_id>/plans"
 API_SESSION_DETAIL_ENDPOINT = "/api/sessions/<session_id>"
 API_SESSION_FEEDBACK_ENDPOINT = "/api/sessions/<session_id>/feedback"
+API_PLANS_ENDPOINT = "/api/plans"
+API_PLAN_DETAIL_ENDPOINT = "/api/plans/<plan_id>"
+API_PLAN_MESSAGES_ENDPOINT = "/api/plans/<plan_id>/messages"
+API_PLAN_APPROVE_ENDPOINT = "/api/plans/<plan_id>/approve"
 API_USER_ROLE_ENDPOINT = "/api/users/<user_id>/role"
 API_IMAGES_ENDPOINT = "/api/images/<path:image_path>"
 
@@ -82,6 +88,9 @@ SESSION_NOT_FOUND = "Session not found"
 USER_NOT_FOUND = "User not found"
 INVALID_ROLE = "Role must be 'therapist' or 'user'"
 INVALID_FEEDBACK_RATING = "Feedback rating must be 'up' or 'down'"
+PLAN_NOT_FOUND = "Practice plan not found"
+PLAN_MESSAGE_REQUIRED = "message is required"
+PLANNER_SERVICE_UNAVAILABLE = "Planner service unavailable"
 
 # HTTP status codes
 HTTP_BAD_REQUEST = 400
@@ -130,7 +139,11 @@ bootstrap_storage(
     str(config["bootstrap_storage_seed_path"]),
 )
 storage_service = StorageService(config["storage_path"])
+planning_service = PracticePlanningService(storage_service, scenario_manager)
 telemetry_service = PilotTelemetryService(config["applicationinsights_connection_string"])
+planner_startup_readiness = planning_service.get_readiness(force_refresh=True)
+if not planner_startup_readiness.get("ready"):
+    logger.warning("Planner readiness check failed at startup: %s", planner_startup_readiness)
 
 
 def _normalize_utterance_audio(utterance_payload: Any) -> List[Dict[str, Any]]:
@@ -411,14 +424,19 @@ def _require_authenticated() -> Tuple[Optional[Dict[str, Any]], Optional[Tuple[A
 
 
 def _require_therapist() -> Optional[Tuple[Any, int]]:
+    _, guard_response = _require_therapist_user()
+    return guard_response
+
+
+def _require_therapist_user() -> Tuple[Optional[Dict[str, Any]], Optional[Tuple[Any, int]]]:
     user, guard_response = _require_authenticated()
     if guard_response is not None:
-        return guard_response
+        return None, guard_response
 
     if user is None or user.get("role") != ROLE_THERAPIST:
-        return jsonify({"error": THERAPIST_ROLE_REQUIRED}), HTTP_FORBIDDEN
+        return None, (jsonify({"error": THERAPIST_ROLE_REQUIRED}), HTTP_FORBIDDEN)
 
-    return None
+    return user, None
 
 
 def _prepare_custom_scenario(custom_scenario: Dict[str, Any]) -> Dict[str, Any]:
@@ -466,6 +484,7 @@ def get_config():
             "storage_ready": True,
             "telemetry_enabled": telemetry_service.enabled,
             "image_base_path": "/api/images",
+            "planner": planning_service.get_readiness(),
         }
     )
 
@@ -795,6 +814,115 @@ def get_child_sessions(child_id: str):
         return guard_response
 
     return jsonify(storage_service.list_sessions_for_child(child_id))
+
+
+@app.route(API_CHILD_PLANS_ENDPOINT)
+def get_child_plans(child_id: str):
+    """Return saved practice plans for one child."""
+    guard_response = _require_therapist()
+    if guard_response is not None:
+        return guard_response
+
+    return jsonify(storage_service.list_practice_plans_for_child(child_id))
+
+
+@app.route(API_PLANS_ENDPOINT, methods=["POST"])
+def create_practice_plan():
+    """Create a therapist-facing practice plan from a saved session."""
+    user, guard_response = _require_therapist_user()
+    if guard_response is not None:
+        return guard_response
+
+    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+    child_id = str(data.get("child_id") or "").strip()
+    source_session_id = str(data.get("source_session_id") or "").strip()
+    therapist_message = str(data.get("message") or "").strip()
+
+    if not child_id or not source_session_id:
+        return jsonify({"error": "child_id and source_session_id are required"}), HTTP_BAD_REQUEST
+
+    try:
+        plan = planning_service.create_plan(
+            child_id=child_id,
+            source_session_id=source_session_id,
+            created_by_user_id=str(cast(Dict[str, Any], user).get("id")),
+            therapist_message=therapist_message,
+        )
+    except ValueError as error:
+        return jsonify({"error": str(error)}), HTTP_NOT_FOUND
+    except RuntimeError as error:
+        logger.exception("Planner create error")
+        return jsonify({"error": str(error) or PLANNER_SERVICE_UNAVAILABLE}), HTTP_INTERNAL_SERVER_ERROR
+
+    telemetry_service.track_event(
+        "planner_plan_created",
+        properties={
+            "child_id": child_id,
+            "source_session_id": source_session_id,
+            "plan_id": plan["id"],
+        },
+    )
+    return jsonify(plan)
+
+
+@app.route(API_PLAN_DETAIL_ENDPOINT)
+def get_practice_plan(plan_id: str):
+    """Return a single practice plan."""
+    guard_response = _require_therapist()
+    if guard_response is not None:
+        return guard_response
+
+    plan = storage_service.get_practice_plan(plan_id)
+    if plan is None:
+        return jsonify({"error": PLAN_NOT_FOUND}), HTTP_NOT_FOUND
+
+    return jsonify(plan)
+
+
+@app.route(API_PLAN_MESSAGES_ENDPOINT, methods=["POST"])
+def refine_practice_plan(plan_id: str):
+    """Refine an existing practice plan using a therapist instruction."""
+    guard_response = _require_therapist()
+    if guard_response is not None:
+        return guard_response
+
+    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+    therapist_message = str(data.get("message") or "").strip()
+    if not therapist_message:
+        return jsonify({"error": PLAN_MESSAGE_REQUIRED}), HTTP_BAD_REQUEST
+
+    try:
+        plan = planning_service.refine_plan(plan_id, therapist_message)
+    except ValueError as error:
+        status_code = HTTP_NOT_FOUND if "not found" in str(error).lower() else HTTP_BAD_REQUEST
+        return jsonify({"error": str(error)}), status_code
+    except RuntimeError as error:
+        logger.exception("Planner refine error")
+        return jsonify({"error": str(error) or PLANNER_SERVICE_UNAVAILABLE}), HTTP_INTERNAL_SERVER_ERROR
+
+    telemetry_service.track_event(
+        "planner_plan_refined",
+        properties={"plan_id": plan_id},
+    )
+    return jsonify(plan)
+
+
+@app.route(API_PLAN_APPROVE_ENDPOINT, methods=["POST"])
+def approve_practice_plan(plan_id: str):
+    """Approve a practice plan for therapist use."""
+    guard_response = _require_therapist()
+    if guard_response is not None:
+        return guard_response
+
+    plan = storage_service.approve_practice_plan(plan_id)
+    if plan is None:
+        return jsonify({"error": PLAN_NOT_FOUND}), HTTP_NOT_FOUND
+
+    telemetry_service.track_event(
+        "planner_plan_approved",
+        properties={"plan_id": plan_id, "child_id": plan["child_id"]},
+    )
+    return jsonify(plan)
 
 
 @app.route(API_SESSION_DETAIL_ENDPOINT)

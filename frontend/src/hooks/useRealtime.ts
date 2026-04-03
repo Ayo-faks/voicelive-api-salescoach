@@ -5,7 +5,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../services/api'
-import type { Message } from '../types'
+import type { AppConfig, Message } from '../types'
 
 type RealtimeEvent = Record<string, unknown> & {
   type?: string
@@ -37,7 +37,7 @@ interface RealtimeOptions {
   onTranscript?: (role: 'user' | 'assistant', text: string) => void
 }
 
-function resolveWebSocketUrl(config: Record<string, unknown>): string {
+function resolveWebSocketUrl(config: AppConfig): string {
   const configuredUrl =
     typeof config.ws_url === 'string' && config.ws_url.trim().length > 0
       ? config.ws_url

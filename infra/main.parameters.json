@@ -31,6 +31,21 @@
       },
       "googleProviderClientSecret": {
         "value": "${GOOGLE_PROVIDER_CLIENT_SECRET=}"
+      },
+      "copilotCliPath": {
+        "value": "${COPILOT_CLI_PATH=}"
+      },
+      "copilotGithubToken": {
+        "value": "${COPILOT_GITHUB_TOKEN=}"
+      },
+      "copilotPlannerModel": {
+        "value": "${COPILOT_PLANNER_MODEL=}"
+      },
+      "copilotPlannerReasoningEffort": {
+        "value": "${COPILOT_PLANNER_REASONING_EFFORT=}"
+      },
+      "copilotAzureApiVersion": {
+        "value": "${COPILOT_AZURE_API_VERSION=}"
       }
     }
 }

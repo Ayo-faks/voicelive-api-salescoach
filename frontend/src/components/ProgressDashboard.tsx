@@ -14,7 +14,8 @@ import {
   Text,
   makeStyles,
 } from '@fluentui/react-components'
-import type { ChildProfile, SessionDetail, SessionSummary } from '../types'
+import { useState } from 'react'
+import type { ChildProfile, PlannerReadiness, PracticePlan, SessionDetail, SessionSummary } from '../types'
 
 const articulationMetrics = [
   { key: 'target_sound_accuracy', label: 'Target Sound Accuracy', max: 10 },
@@ -291,6 +292,67 @@ const useStyles = makeStyles({
     alignItems: 'center',
     minHeight: '120px',
   },
+  planSection: {
+    display: 'grid',
+    gap: 'var(--space-md)',
+    paddingTop: 'var(--space-sm)',
+    borderTop: '1px solid var(--color-border)',
+  },
+  plannerStatusCard: {
+    display: 'grid',
+    gap: '4px',
+    padding: 'var(--space-sm)',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'rgba(233, 245, 246, 0.45)',
+  },
+  plannerStatusCardWarning: {
+    border: '1px solid rgba(180, 35, 24, 0.22)',
+    backgroundColor: 'rgba(254, 243, 242, 0.92)',
+  },
+  plannerStatusList: {
+    display: 'grid',
+    gap: '4px',
+  },
+  planComposer: {
+    width: '100%',
+    minHeight: '92px',
+    resize: 'vertical' as const,
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--color-border)',
+    padding: 'var(--space-sm)',
+    font: 'inherit',
+    color: 'var(--color-text-primary)',
+    backgroundColor: 'var(--color-bg-card)',
+  },
+  planActions: {
+    display: 'flex',
+    gap: 'var(--space-sm)',
+    flexWrap: 'wrap',
+  },
+  planList: {
+    display: 'grid',
+    gap: 'var(--space-sm)',
+  },
+  planItem: {
+    padding: 'var(--space-sm)',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'rgba(233, 245, 246, 0.4)',
+    display: 'grid',
+    gap: '4px',
+  },
+  conversationItem: {
+    padding: 'var(--space-sm)',
+    borderRadius: 'var(--radius-md)',
+    backgroundColor: 'var(--color-bg-card)',
+    border: '1px solid var(--color-border)',
+    display: 'grid',
+    gap: '2px',
+  },
+  errorText: {
+    color: '#b42318',
+  },
 })
 
 function formatTimestamp(timestamp?: string | null) {
@@ -364,11 +426,19 @@ interface Props {
   selectedChildId: string | null
   sessions: SessionSummary[]
   selectedSession: SessionDetail | null
+  selectedPlan: PracticePlan | null
+  plannerReadiness: PlannerReadiness | null
   loadingChildren: boolean
   loadingSessions: boolean
   loadingSessionDetail: boolean
+  loadingPlans: boolean
+  planSaving: boolean
+  planError: string | null
   onSelectChild: (childId: string) => void
   onOpenSession: (sessionId: string) => void
+  onCreatePlan: (message: string) => void | Promise<void>
+  onRefinePlan: (message: string) => void | Promise<void>
+  onApprovePlan: () => void | Promise<void>
   onBackToPractice: () => void
   onExitToEntry: () => void
 }
@@ -378,15 +448,25 @@ export function ProgressDashboard({
   selectedChildId,
   sessions,
   selectedSession,
+  selectedPlan,
+  plannerReadiness,
   loadingChildren,
   loadingSessions,
   loadingSessionDetail,
+  loadingPlans,
+  planSaving,
+  planError,
   onSelectChild,
   onOpenSession,
+  onCreatePlan,
+  onRefinePlan,
+  onApprovePlan,
   onBackToPractice,
   onExitToEntry,
 }: Props) {
   const styles = useStyles()
+  const [planPrompt, setPlanPrompt] = useState('')
+  const plannerReady = plannerReadiness?.ready ?? false
   const aiAssessment = selectedSession?.assessment.ai_assessment
   const pronunciationAssessment = selectedSession?.assessment.pronunciation_assessment
   const selectedChild = childProfiles.find(child => child.id === selectedChildId) || null
@@ -778,6 +858,221 @@ export function ProgressDashboard({
                   <Text size={300}>
                     {aiAssessment?.therapist_notes || 'No therapist notes saved for this session.'}
                   </Text>
+                </div>
+              </div>
+
+              <div className={styles.planSection}>
+                <div>
+                  <Text className={styles.sectionTitle} size={400} weight="semibold">
+                    Plan next session
+                  </Text>
+                  <Text className={styles.helperText} size={300}>
+                    Create a therapist-facing next-step plan from this saved review and refine it before the next visit.
+                  </Text>
+                </div>
+
+                {plannerReadiness ? (
+                  <div
+                    className={mergeClasses(
+                      styles.plannerStatusCard,
+                      !plannerReadiness.ready && styles.plannerStatusCardWarning,
+                    )}
+                  >
+                    <div className={styles.summaryRow}>
+                      <Badge appearance="filled">
+                        {plannerReadiness.ready ? 'Planner ready' : 'Planner unavailable'}
+                      </Badge>
+                      <Badge appearance="tint">Model {plannerReadiness.model}</Badge>
+                      <Badge appearance="outline">
+                        {plannerReadiness.auth.azure_byok_configured ? 'Azure BYOK configured' : 'Azure BYOK missing'}
+                      </Badge>
+                    </div>
+
+                    <Text size={300}>
+                      {plannerReadiness.ready
+                        ? 'The backend planner runtime is ready for generation and refinement.'
+                        : 'Plan generation is disabled until the backend planner runtime prerequisites are satisfied.'}
+                    </Text>
+
+                    {!plannerReadiness.ready && plannerReadiness.reasons.length ? (
+                      <div className={styles.plannerStatusList}>
+                        {plannerReadiness.reasons.map(reason => (
+                          <Text className={styles.errorText} size={300} key={reason}>
+                            {reason}
+                          </Text>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    <Text className={styles.helperText} size={200}>
+                      CLI {plannerReadiness.cli.available ? 'available' : 'missing'}
+                      {plannerReadiness.cli.version ? ` • ${plannerReadiness.cli.version}` : ''}
+                      {plannerReadiness.cli.auth_message ? ` • ${plannerReadiness.cli.auth_message}` : ''}
+                    </Text>
+                  </div>
+                ) : null}
+
+                {loadingPlans ? (
+                  <div className={styles.loading}>
+                    <Spinner size="medium" />
+                  </div>
+                ) : selectedPlan ? (
+                  <div className={styles.planList}>
+                    <div className={styles.summaryRow}>
+                      <Badge appearance="filled">
+                        {selectedPlan.status === 'approved' ? 'Approved plan' : 'Draft plan'}
+                      </Badge>
+                      <Badge appearance="tint">
+                        {selectedPlan.draft.estimated_duration_minutes} min
+                      </Badge>
+                    </div>
+
+                    <div className={styles.textItem}>
+                      <Text size={300} weight="semibold">
+                        {selectedPlan.draft.objective}
+                      </Text>
+                      <Text size={300}>{selectedPlan.draft.rationale}</Text>
+                    </div>
+
+                    <div>
+                      <Text className={styles.sectionTitle} size={300} weight="semibold">
+                        Activity sequence
+                      </Text>
+                      <div className={styles.planList}>
+                        {selectedPlan.draft.activities.map(activity => (
+                          <div className={styles.planItem} key={`${activity.exercise_id}-${activity.title}`}>
+                            <Text size={300} weight="semibold">
+                              {activity.title}
+                            </Text>
+                            <Text size={200}>
+                              {activity.exercise_name} • {activity.target_duration_minutes} min
+                            </Text>
+                            <Text size={200}>{activity.reason}</Text>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className={styles.metricsGrid}>
+                      <div>
+                        <Text className={styles.sectionTitle} size={300} weight="semibold">
+                          Therapist cues
+                        </Text>
+                        <div className={styles.textList}>
+                          {selectedPlan.draft.therapist_cues.map(cue => (
+                            <div className={styles.textItem} key={cue}>
+                              <Text size={300}>{cue}</Text>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <Text className={styles.sectionTitle} size={300} weight="semibold">
+                          Success criteria
+                        </Text>
+                        <div className={styles.textList}>
+                          {selectedPlan.draft.success_criteria.map(criterion => (
+                            <div className={styles.textItem} key={criterion}>
+                              <Text size={300}>{criterion}</Text>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Text className={styles.sectionTitle} size={300} weight="semibold">
+                        Carryover
+                      </Text>
+                      <div className={styles.textList}>
+                        {selectedPlan.draft.carryover.map(item => (
+                          <div className={styles.textItem} key={item}>
+                            <Text size={300}>{item}</Text>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {selectedPlan.conversation.length ? (
+                      <div>
+                        <Text className={styles.sectionTitle} size={300} weight="semibold">
+                          Recent plan conversation
+                        </Text>
+                        <div className={styles.planList}>
+                          {selectedPlan.conversation.slice(-4).map((message, index) => (
+                            <div className={styles.conversationItem} key={`${message.role}-${index}-${message.content}`}>
+                              <Text size={200} weight="semibold">
+                                {message.role === 'user' ? 'Therapist' : 'Planner'}
+                              </Text>
+                              <Text size={300}>{message.content}</Text>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className={styles.emptyState}>
+                    <Text>No practice plan has been generated for this saved session yet.</Text>
+                  </div>
+                )}
+
+                <label>
+                  <Text className={styles.sectionTitle} size={300} weight="semibold">
+                    {selectedPlan ? 'Refine plan' : 'Optional planning note'}
+                  </Text>
+                  <textarea
+                    className={styles.planComposer}
+                    value={planPrompt}
+                    onChange={event => setPlanPrompt(event.target.value)}
+                    placeholder={
+                      selectedPlan
+                        ? 'Example: Make this shorter and lead with a listening task.'
+                        : 'Example: Keep this playful and confidence-building for home carryover.'
+                    }
+                  />
+                </label>
+
+                {planError ? (
+                  <Text className={styles.errorText} size={300}>
+                    {planError}
+                  </Text>
+                ) : null}
+
+                <div className={styles.planActions}>
+                  {!selectedPlan ? (
+                    <Button
+                      appearance="primary"
+                      onClick={() => {
+                        void onCreatePlan(planPrompt)
+                      }}
+                      disabled={planSaving || !selectedSession || !plannerReady}
+                    >
+                      {planSaving ? 'Generating…' : plannerReady ? 'Generate plan' : 'Planner unavailable'}
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        appearance="primary"
+                        onClick={() => {
+                          void onRefinePlan(planPrompt)
+                        }}
+                        disabled={planSaving || !planPrompt.trim() || !plannerReady}
+                      >
+                        {planSaving ? 'Updating…' : plannerReady ? 'Refine plan' : 'Planner unavailable'}
+                      </Button>
+                      <Button
+                        appearance="secondary"
+                        onClick={() => {
+                          void onApprovePlan()
+                        }}
+                        disabled={planSaving || selectedPlan.status === 'approved'}
+                      >
+                        {selectedPlan.status === 'approved' ? 'Approved' : 'Approve plan'}
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
 

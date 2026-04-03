@@ -33,6 +33,8 @@ DEFAULT_BOOTSTRAP_STORAGE_SEED_PATH = str(Path(__file__).resolve().parents[1] / 
 DEFAULT_APP_INSIGHTS_CONNECTION_STRING = ""
 DEFAULT_BLOB_BACKUP_CONTAINER = "wulo-backup"
 DEFAULT_BLOB_BACKUP_NAME = "wulo.db"
+DEFAULT_COPILOT_PLANNER_MODEL = "gpt-5"
+DEFAULT_COPILOT_AZURE_API_VERSION = "2024-10-21"
 
 
 class Config:
@@ -85,6 +87,17 @@ class Config:
             "applicationinsights_connection_string": os.getenv(
                 "APPLICATIONINSIGHTS_CONNECTION_STRING",
                 os.getenv("APPINSIGHTS_CONNECTIONSTRING", DEFAULT_APP_INSIGHTS_CONNECTION_STRING),
+            ),
+            "copilot_cli_path": os.getenv("COPILOT_CLI_PATH", ""),
+            "copilot_github_token": os.getenv(
+                "COPILOT_GITHUB_TOKEN",
+                os.getenv("GITHUB_TOKEN", os.getenv("GH_TOKEN", "")),
+            ),
+            "copilot_planner_model": os.getenv("COPILOT_PLANNER_MODEL", DEFAULT_COPILOT_PLANNER_MODEL),
+            "copilot_planner_reasoning_effort": os.getenv("COPILOT_PLANNER_REASONING_EFFORT", ""),
+            "copilot_azure_api_version": os.getenv(
+                "COPILOT_AZURE_API_VERSION",
+                DEFAULT_COPILOT_AZURE_API_VERSION,
             ),
             "blob_backup_account_name": os.getenv("BLOB_BACKUP_ACCOUNT_NAME", ""),
             "blob_backup_account_key": os.getenv("BLOB_BACKUP_ACCOUNT_KEY", ""),

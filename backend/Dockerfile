@@ -28,15 +28,23 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     FLASK_ENV=production \
     PIP_TRUSTED_HOST="pypi.org files.pythonhosted.org pypi.python.org" \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PYTHONPATH=/app
+    PYTHONPATH=/app \
+    COPILOT_CLI_PATH=/usr/local/bin/copilot
+
+ARG COPILOT_CLI_VERSION=v1.0.17
 
 RUN apt-get update && apt-get install -y \
     build-essential \
+    bash \
     curl \
     ca-certificates \
     libasound2 \
     && update-ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
+RUN curl -fsSL https://gh.io/copilot-install -o /tmp/copilot-install.sh \
+    && VERSION="${COPILOT_CLI_VERSION}" PREFIX=/usr/local bash /tmp/copilot-install.sh \
+    && rm -f /tmp/copilot-install.sh
 
 RUN useradd --create-home --shell /bin/bash app
 

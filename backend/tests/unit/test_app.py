@@ -71,6 +71,36 @@ class TestFlaskApp:
         assert data["proxy_enabled"] is True
         assert data["ws_endpoint"] == "/ws/voice"
         assert "telemetry_enabled" in data
+        assert "planner" in data
+
+    @patch("src.app.planning_service")
+    @patch("src.app.storage_service")
+    def test_get_config_route_includes_planner_readiness(self, mock_storage_service, mock_planning_service):
+        """Test the /api/config endpoint surfaces planner readiness details."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload()
+        mock_planning_service.get_readiness.return_value = {
+            "ready": False,
+            "model": "gpt-5",
+            "sdk_installed": True,
+            "cli": {
+                "available": False,
+                "authenticated": False,
+                "auth_checked": True,
+                "auth_message": "Copilot CLI not available.",
+            },
+            "auth": {
+                "github_token_configured": False,
+                "azure_byok_configured": False,
+            },
+            "reasons": ["Copilot CLI is not configured or not executable."],
+        }
+
+        response = self.client.get("/api/config", headers=self._auth_headers())
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["planner"]["ready"] is False
+        assert data["planner"]["reasons"]
 
     def test_get_config_route_requires_authentication(self):
         """Test the /api/config endpoint requires an authenticated user."""

@@ -111,6 +111,27 @@ class StorageService:
                                 FOREIGN KEY (exercise_id) REFERENCES exercises(id)
                             )"""
                         )
+                        connection.execute(
+                            """CREATE TABLE IF NOT EXISTS practice_plans (
+                                id TEXT PRIMARY KEY,
+                                child_id TEXT NOT NULL,
+                                source_session_id TEXT,
+                                status TEXT NOT NULL,
+                                title TEXT NOT NULL,
+                                plan_type TEXT NOT NULL,
+                                constraints_json TEXT NOT NULL,
+                                draft_json TEXT NOT NULL,
+                                conversation_json TEXT NOT NULL,
+                                planner_session_id TEXT,
+                                created_by_user_id TEXT,
+                                created_at TEXT NOT NULL,
+                                updated_at TEXT NOT NULL,
+                                approved_at TEXT,
+                                FOREIGN KEY (child_id) REFERENCES children(id),
+                                FOREIGN KEY (source_session_id) REFERENCES sessions(id),
+                                FOREIGN KEY (created_by_user_id) REFERENCES users(id)
+                            )"""
+                        )
                         self._ensure_migrations(connection)
                         self._seed_children(connection)
                         logger.info("SQLite committing...")
@@ -182,6 +203,24 @@ class StorageService:
             "rating": rating,
             "note": note,
             "submitted_at": submitted_at,
+        }
+
+    def _build_practice_plan_payload(self, row: sqlite3.Row) -> Dict[str, Any]:
+        return {
+            "id": row["id"],
+            "child_id": row["child_id"],
+            "source_session_id": row["source_session_id"],
+            "status": row["status"],
+            "title": row["title"],
+            "plan_type": row["plan_type"],
+            "constraints": self._loads_json(row["constraints_json"], {}),
+            "draft": self._loads_json(row["draft_json"], {}),
+            "conversation": self._loads_json(row["conversation_json"], []),
+            "planner_session_id": row["planner_session_id"],
+            "created_by_user_id": row["created_by_user_id"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+            "approved_at": row["approved_at"],
         }
 
     def _execute_write(self, operation: Callable[[sqlite3.Connection], WriteResult]) -> WriteResult:
@@ -606,3 +645,152 @@ class StorageService:
             return None
 
         return self.get_session(session_id)
+
+    def save_practice_plan(self, plan_payload: Dict[str, Any]) -> Dict[str, Any]:
+        plan_id = str(plan_payload.get("id") or f"plan-{uuid4().hex[:12]}")
+        child_id = str(plan_payload.get("child_id") or "")
+        if not child_id:
+            raise ValueError("child_id is required")
+
+        source_session_id = plan_payload.get("source_session_id")
+        now = self._utc_now()
+        created_at = str(plan_payload.get("created_at") or now)
+        updated_at = str(plan_payload.get("updated_at") or now)
+        approved_at = plan_payload.get("approved_at")
+
+        def persist_plan(connection: sqlite3.Connection) -> None:
+            connection.execute(
+                """
+                INSERT INTO practice_plans (
+                    id,
+                    child_id,
+                    source_session_id,
+                    status,
+                    title,
+                    plan_type,
+                    constraints_json,
+                    draft_json,
+                    conversation_json,
+                    planner_session_id,
+                    created_by_user_id,
+                    created_at,
+                    updated_at,
+                    approved_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    child_id = excluded.child_id,
+                    source_session_id = excluded.source_session_id,
+                    status = excluded.status,
+                    title = excluded.title,
+                    plan_type = excluded.plan_type,
+                    constraints_json = excluded.constraints_json,
+                    draft_json = excluded.draft_json,
+                    conversation_json = excluded.conversation_json,
+                    planner_session_id = excluded.planner_session_id,
+                    created_by_user_id = excluded.created_by_user_id,
+                    updated_at = excluded.updated_at,
+                    approved_at = excluded.approved_at
+                """,
+                (
+                    plan_id,
+                    child_id,
+                    source_session_id,
+                    str(plan_payload.get("status") or "draft"),
+                    str(plan_payload.get("title") or "Next session plan"),
+                    str(plan_payload.get("plan_type") or "next_session"),
+                    self._dumps_json(plan_payload.get("constraints") or {}),
+                    self._dumps_json(plan_payload.get("draft") or {}),
+                    self._dumps_json(plan_payload.get("conversation") or []),
+                    str(plan_payload.get("planner_session_id") or plan_id),
+                    plan_payload.get("created_by_user_id"),
+                    created_at,
+                    updated_at,
+                    approved_at,
+                ),
+            )
+
+        self._execute_write(persist_plan)
+
+        plan = self.get_practice_plan(plan_id)
+        if plan is None:
+            raise RuntimeError("Practice plan could not be reloaded after save")
+        return plan
+
+    def list_practice_plans_for_child(self, child_id: str) -> List[Dict[str, Any]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT
+                    id,
+                    child_id,
+                    source_session_id,
+                    status,
+                    title,
+                    plan_type,
+                    constraints_json,
+                    draft_json,
+                    conversation_json,
+                    planner_session_id,
+                    created_by_user_id,
+                    created_at,
+                    updated_at,
+                    approved_at
+                FROM practice_plans
+                WHERE child_id = ?
+                ORDER BY updated_at DESC, created_at DESC
+                """,
+                (child_id,),
+            ).fetchall()
+
+        return [self._build_practice_plan_payload(row) for row in rows]
+
+    def get_practice_plan(self, plan_id: str) -> Optional[Dict[str, Any]]:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    id,
+                    child_id,
+                    source_session_id,
+                    status,
+                    title,
+                    plan_type,
+                    constraints_json,
+                    draft_json,
+                    conversation_json,
+                    planner_session_id,
+                    created_by_user_id,
+                    created_at,
+                    updated_at,
+                    approved_at
+                FROM practice_plans
+                WHERE id = ?
+                """,
+                (plan_id,),
+            ).fetchone()
+
+        if row is None:
+            return None
+
+        return self._build_practice_plan_payload(row)
+
+    def approve_practice_plan(self, plan_id: str) -> Optional[Dict[str, Any]]:
+        approved_at = self._utc_now()
+
+        def persist_approval(connection: sqlite3.Connection) -> int:
+            cursor = connection.execute(
+                """
+                UPDATE practice_plans
+                SET status = ?, approved_at = ?, updated_at = ?
+                WHERE id = ?
+                """,
+                ("approved", approved_at, approved_at, plan_id),
+            )
+            return cursor.rowcount
+
+        rowcount = self._execute_write(persist_approval)
+        if rowcount == 0:
+            return None
+
+        return self.get_practice_plan(plan_id)

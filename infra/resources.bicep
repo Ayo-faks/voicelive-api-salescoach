@@ -25,6 +25,22 @@ param googleProviderClientId string = ''
 @description('Google OAuth client secret for Easy Auth.')
 param googleProviderClientSecret string = ''
 
+@description('Optional override for the Copilot CLI path inside the runtime container.')
+param copilotCliPath string = ''
+
+@secure()
+@description('Optional GitHub token for Copilot SDK authentication in backend-service scenarios.')
+param copilotGithubToken string = ''
+
+@description('Optional model override for the Copilot planner. Defaults to the deployed Azure OpenAI model.')
+param copilotPlannerModel string = ''
+
+@description('Optional reasoning effort override for the Copilot planner.')
+param copilotPlannerReasoningEffort string = ''
+
+@description('Optional API version override for the Copilot Azure BYOK provider.')
+param copilotAzureApiVersion string = ''
+
 @description('Id of the user or app to assign application roles')
 param principalId string
 
@@ -252,6 +268,7 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
       ]
       allowedOrigins: [
         'https://sen.wulo.ai'
+        'https://staging-sen.wulo.ai'
         defaultVoicelabHost
       ]
     }
@@ -273,6 +290,14 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
             value: persistenceStorage.listKeys().keys[0].value
           }
         ],
+        !empty(copilotGithubToken)
+          ? [
+              {
+                name: 'copilot-github-token'
+                value: copilotGithubToken
+              }
+            ]
+          : [],
         !empty(microsoftProviderClientSecret)
           ? [
               {
@@ -375,7 +400,31 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
               name: 'BLOB_BACKUP_ACCOUNT_KEY'
               secretRef: 'blob-backup-account-key'
             }
+            {
+              name: 'COPILOT_CLI_PATH'
+              value: empty(copilotCliPath) ? '/usr/local/bin/copilot' : copilotCliPath
+            }
+            {
+              name: 'COPILOT_PLANNER_MODEL'
+              value: empty(copilotPlannerModel) ? gptDeploymentName : copilotPlannerModel
+            }
+            {
+              name: 'COPILOT_PLANNER_REASONING_EFFORT'
+              value: copilotPlannerReasoningEffort
+            }
+            {
+              name: 'COPILOT_AZURE_API_VERSION'
+              value: empty(copilotAzureApiVersion) ? '2024-10-21' : copilotAzureApiVersion
+            }
           ],
+          !empty(copilotGithubToken)
+            ? [
+                {
+                  name: 'COPILOT_GITHUB_TOKEN'
+                  secretRef: 'copilot-github-token'
+                }
+              ]
+            : [],
           !empty(microsoftProviderClientSecret)
             ? [
                 {

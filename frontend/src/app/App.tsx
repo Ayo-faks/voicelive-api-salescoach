@@ -46,12 +46,15 @@ import { useWebRTC } from '../hooks/useWebRTC'
 import { api, parseAvatarValue, type AuthSession } from '../services/api'
 import type {
   Assessment,
+  AppConfig,
   AvatarOption,
   ChildProfile,
   CustomScenario,
   ExerciseMetadata,
   PilotState,
+  PlannerReadiness,
   PronunciationAssessment,
+  PracticePlan,
   Scenario,
   SessionDetail,
   SessionSummary,
@@ -553,8 +556,14 @@ export default function App() {
   })
   const [sessionSummaries, setSessionSummaries] = useState<SessionSummary[]>([])
   const [selectedSession, setSelectedSession] = useState<SessionDetail | null>(null)
+  const [childPlans, setChildPlans] = useState<PracticePlan[]>([])
+  const [selectedPlan, setSelectedPlan] = useState<PracticePlan | null>(null)
+  const [appConfig, setAppConfig] = useState<AppConfig | null>(null)
   const [loadingSessions, setLoadingSessions] = useState(false)
   const [loadingSessionDetail, setLoadingSessionDetail] = useState(false)
+  const [loadingPlans, setLoadingPlans] = useState(false)
+  const [planSaving, setPlanSaving] = useState(false)
+  const [planError, setPlanError] = useState<string | null>(null)
   const [currentAgent, setCurrentAgent] = useState<string | null>(null)
   const [sessionStartedAt, setSessionStartedAt] = useState<string | null>(null)
   const [assessment, setAssessment] = useState<Assessment | null>(null)
@@ -618,6 +627,7 @@ export default function App() {
     !showSetup &&
     showLaunchTransition &&
     !launchHandoffReady
+  const plannerReadiness: PlannerReadiness | null = appConfig?.planner ?? null
 
   const refreshAuthSession = useCallback(async () => {
     try {
@@ -669,7 +679,17 @@ export default function App() {
       .then(session => {
         if (cancelled) return
 
-        api.getConfig().catch(() => {/* best-effort prefetch */})
+        api.getConfig()
+          .then(cfg => {
+            if (!cancelled) {
+              setAppConfig(cfg)
+            }
+          })
+          .catch(() => {
+            if (!cancelled) {
+              setAppConfig(null)
+            }
+          })
 
         // Role guard: clear persisted therapist mode if user isn't a therapist
         if (session.role !== 'therapist') {
@@ -771,26 +791,132 @@ export default function App() {
   const loadSessionHistory = useCallback(
     async (childId: string) => {
       setLoadingSessions(true)
+      setLoadingPlans(true)
+      setPlanError(null)
 
       try {
-        const summaries = await api.getChildSessions(childId)
+        const [summaries, plans] = await Promise.all([
+          api.getChildSessions(childId),
+          api.getChildPlans(childId),
+        ])
         setSessionSummaries(summaries)
+        setChildPlans(plans)
 
         if (summaries.length > 0) {
           await handleOpenSession(summaries[0].id)
         } else {
           setSelectedSession(null)
+          setSelectedPlan(null)
         }
       } catch (error) {
         console.error('Failed to load session history:', error)
         setSessionSummaries([])
         setSelectedSession(null)
+        setChildPlans([])
+        setSelectedPlan(null)
+        setPlanError('Practice plans could not be loaded right now.')
       } finally {
         setLoadingSessions(false)
+        setLoadingPlans(false)
       }
     },
     [handleOpenSession]
   )
+
+  useEffect(() => {
+    if (!selectedSession) {
+      setSelectedPlan(null)
+      return
+    }
+
+    const matchingPlan = childPlans.find(plan => plan.source_session_id === selectedSession.id) || null
+    setSelectedPlan(matchingPlan)
+  }, [childPlans, selectedSession])
+
+  const upsertPlan = useCallback((updatedPlan: PracticePlan) => {
+    setChildPlans(current => [updatedPlan, ...current.filter(plan => plan.id !== updatedPlan.id)])
+    setSelectedPlan(updatedPlan)
+  }, [])
+
+  const handleCreatePlan = useCallback(
+    async (message: string) => {
+      if (!selectedChildId || !selectedSession) {
+        setPlanError('Select a reviewed session before creating a practice plan.')
+        return
+      }
+
+      if (plannerReadiness && !plannerReadiness.ready) {
+        setPlanError(plannerReadiness.reasons[0] || 'Planner runtime is not ready yet.')
+        return
+      }
+
+      setPlanSaving(true)
+      setPlanError(null)
+
+      try {
+        const createdPlan = await api.createPracticePlan({
+          child_id: selectedChildId,
+          source_session_id: selectedSession.id,
+          message,
+        })
+        upsertPlan(createdPlan)
+      } catch (error) {
+        console.error('Failed to create practice plan:', error)
+        setPlanError('Practice plan generation failed. Try again in a moment.')
+      } finally {
+        setPlanSaving(false)
+      }
+    },
+    [plannerReadiness, selectedChildId, selectedSession, upsertPlan]
+  )
+
+  const handleRefinePlan = useCallback(
+    async (message: string) => {
+      if (!selectedPlan) {
+        setPlanError('Create a practice plan before sending a refinement request.')
+        return
+      }
+
+      if (plannerReadiness && !plannerReadiness.ready) {
+        setPlanError(plannerReadiness.reasons[0] || 'Planner runtime is not ready yet.')
+        return
+      }
+
+      setPlanSaving(true)
+      setPlanError(null)
+
+      try {
+        const updatedPlan = await api.refinePracticePlan(selectedPlan.id, message)
+        upsertPlan(updatedPlan)
+      } catch (error) {
+        console.error('Failed to refine practice plan:', error)
+        setPlanError('Practice plan refinement failed. Try again in a moment.')
+      } finally {
+        setPlanSaving(false)
+      }
+    },
+    [plannerReadiness, selectedPlan, upsertPlan]
+  )
+
+  const handleApprovePlan = useCallback(async () => {
+    if (!selectedPlan) {
+      setPlanError('Choose or create a practice plan before approving it.')
+      return
+    }
+
+    setPlanSaving(true)
+    setPlanError(null)
+
+    try {
+      const approvedPlan = await api.approvePracticePlan(selectedPlan.id)
+      upsertPlan(approvedPlan)
+    } catch (error) {
+      console.error('Failed to approve practice plan:', error)
+      setPlanError('Practice plan approval failed. Try again in a moment.')
+    } finally {
+      setPlanSaving(false)
+    }
+  }, [selectedPlan, upsertPlan])
 
   useEffect(() => {
     if (!isTherapist || !selectedChildId) return
@@ -1754,11 +1880,21 @@ export default function App() {
             selectedChildId={selectedChildId}
             sessions={sessionSummaries}
             selectedSession={selectedSession}
+            selectedPlan={selectedPlan}
+            plannerReadiness={plannerReadiness}
             loadingChildren={childrenLoading}
             loadingSessions={loadingSessions}
             loadingSessionDetail={loadingSessionDetail}
+            loadingPlans={loadingPlans}
+            planSaving={planSaving}
+            planError={planError}
             onSelectChild={setSelectedChildId}
             onOpenSession={handleOpenSession}
+            onCreatePlan={handleCreatePlan}
+            onRefinePlan={handleRefinePlan}
+            onApprovePlan={() => {
+              void handleApprovePlan()
+            }}
             onBackToPractice={handleExitTherapistView}
             onExitToEntry={handleReturnToEntry}
           />

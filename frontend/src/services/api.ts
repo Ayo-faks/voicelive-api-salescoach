@@ -5,6 +5,7 @@
 
 import type {
   Assessment,
+  AppConfig,
   ChildProfile,
   CustomScenarioData,
   CustomScenario,
@@ -12,6 +13,7 @@ import type {
   Message,
   PilotState,
   PronunciationAssessment,
+  PracticePlan,
   SessionDetail,
   SessionSummary,
   Scenario,
@@ -126,8 +128,8 @@ function extractUserText(conversationMessages: ConversationTurn[]): string {
     .trim()
 }
 
-let cachedConfig: Record<string, unknown> | null = null
-let configPromise: Promise<Record<string, unknown>> | null = null
+let cachedConfig: AppConfig | null = null
+let configPromise: Promise<AppConfig> | null = null
 
 export const api = {
   async getAuthSession(): Promise<AuthSession> {
@@ -137,11 +139,11 @@ export const api = {
     return res.json()
   },
 
-  async getConfig() {
+  async getConfig(): Promise<AppConfig> {
     if (cachedConfig) return cachedConfig
     if (configPromise) return configPromise
     configPromise = fetchWithAuth('/api/config')
-      .then(r => r.json() as Promise<Record<string, unknown>>)
+      .then(r => r.json() as Promise<AppConfig>)
       .then(cfg => {
         cachedConfig = cfg
         return cfg
@@ -295,6 +297,45 @@ export const api = {
   async getSession(sessionId: string): Promise<SessionDetail> {
     const res = await fetchWithAuth(`/api/sessions/${sessionId}`)
     if (!res.ok) throw new Error('Failed to load session detail')
+    return res.json()
+  },
+
+  async getChildPlans(childId: string): Promise<PracticePlan[]> {
+    const res = await fetchWithAuth(`/api/children/${childId}/plans`)
+    if (!res.ok) throw new Error('Failed to load practice plans')
+    return res.json()
+  },
+
+  async createPracticePlan(payload: {
+    child_id: string
+    source_session_id: string
+    message?: string
+  }): Promise<PracticePlan> {
+    const res = await fetchWithAuth('/api/plans', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) throw new Error('Failed to create practice plan')
+    return res.json()
+  },
+
+  async refinePracticePlan(planId: string, message: string): Promise<PracticePlan> {
+    const res = await fetchWithAuth(`/api/plans/${planId}/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message }),
+    })
+    if (!res.ok) throw new Error('Failed to refine practice plan')
+    return res.json()
+  },
+
+  async approvePracticePlan(planId: string): Promise<PracticePlan> {
+    const res = await fetchWithAuth(`/api/plans/${planId}/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })
+    if (!res.ok) throw new Error('Failed to approve practice plan')
     return res.json()
   },
 

@@ -34,6 +34,22 @@ param googleProviderClientId string = ''
 @description('Google OAuth client secret for Easy Auth.')
 param googleProviderClientSecret string = ''
 
+@description('Optional override for the Copilot CLI path inside the runtime container.')
+param copilotCliPath string = ''
+
+@secure()
+@description('Optional GitHub token for Copilot SDK authentication in backend-service scenarios.')
+param copilotGithubToken string = ''
+
+@description('Optional model override for the Copilot planner. Defaults to the deployed Azure OpenAI model.')
+param copilotPlannerModel string = ''
+
+@description('Optional reasoning effort override for the Copilot planner.')
+param copilotPlannerReasoningEffort string = ''
+
+@description('Optional API version override for the Copilot Azure BYOK provider.')
+param copilotAzureApiVersion string = ''
+
 // Tags that should be applied to all resources.
 //
 // Note that 'azd-service-name' tags should be applied separately to service host resources.
@@ -65,6 +81,11 @@ module resources 'resources.bicep' = {
     microsoftProviderClientSecret: microsoftProviderClientSecret
     googleProviderClientId: googleProviderClientId
     googleProviderClientSecret: googleProviderClientSecret
+    copilotCliPath: copilotCliPath
+    copilotGithubToken: copilotGithubToken
+    copilotPlannerModel: copilotPlannerModel
+    copilotPlannerReasoningEffort: copilotPlannerReasoningEffort
+    copilotAzureApiVersion: copilotAzureApiVersion
   }
 }
 
