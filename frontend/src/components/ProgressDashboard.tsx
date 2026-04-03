@@ -170,8 +170,9 @@ const useStyles = makeStyles({
   card: {
     padding: 'var(--space-lg)',
     borderRadius: 'var(--radius-lg)',
-    border: '1px solid var(--color-border)',
-    backgroundColor: 'var(--color-bg-card)',
+    border: '1px solid rgba(13, 138, 132, 0.12)',
+    background:
+      'radial-gradient(circle at top right, rgba(13, 138, 132, 0.06), transparent 40%), linear-gradient(135deg, rgba(233, 245, 246, 0.6), rgba(224, 239, 241, 0.5) 60%, rgba(250, 246, 239, 0.96))',
     boxShadow: 'var(--shadow-md)',
   },
   backButton: {
@@ -203,7 +204,7 @@ const useStyles = makeStyles({
   },
   columnTitle: {
     fontFamily: 'var(--font-display)',
-    color: 'var(--color-primary)',
+    color: 'var(--color-text-primary)',
     fontSize: '0.94rem',
     fontWeight: '700',
   },
@@ -335,7 +336,7 @@ const useStyles = makeStyles({
   },
   sectionTitle: {
     fontFamily: 'var(--font-display)',
-    color: 'var(--color-primary)',
+    color: 'var(--color-text-primary)',
     marginBottom: 'var(--space-sm)',
     fontSize: '0.8125rem',
     fontWeight: '600',
@@ -372,8 +373,9 @@ const useStyles = makeStyles({
   transcript: {
     padding: 'var(--space-md)',
     borderRadius: 'var(--radius-md)',
-    backgroundColor: 'var(--color-bg-muted)',
-    border: '1px solid var(--color-border)',
+    background:
+      'linear-gradient(135deg, rgba(233, 245, 246, 0.5), rgba(224, 239, 241, 0.4) 60%, rgba(242, 233, 216, 0.5))',
+    border: '1px solid rgba(13, 138, 132, 0.1)',
     color: 'var(--color-text-secondary)',
     whiteSpace: 'pre-wrap',
     lineHeight: 1.6,
