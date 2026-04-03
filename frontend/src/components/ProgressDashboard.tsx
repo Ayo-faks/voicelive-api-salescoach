@@ -14,6 +14,8 @@ import {
   Text,
   makeStyles,
 } from '@fluentui/react-components'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { useState } from 'react'
 import {
   CelebrationDonut,
@@ -625,6 +627,58 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: '4px',
   },
+  markdownContent: {
+    display: 'grid',
+    gap: '6px',
+    color: 'inherit',
+    fontSize: 'inherit',
+    lineHeight: 'inherit',
+  },
+  markdownParagraph: {
+    margin: 0,
+    whiteSpace: 'pre-wrap' as const,
+  },
+  markdownList: {
+    margin: 0,
+    paddingLeft: '18px',
+    display: 'grid',
+    gap: '4px',
+  },
+  markdownListItem: {
+    margin: 0,
+  },
+  markdownCode: {
+    fontFamily: 'var(--font-mono)',
+    fontSize: '0.8em',
+    padding: '1px 4px',
+    backgroundColor: 'rgba(15, 42, 58, 0.06)',
+  },
+  transcriptList: {
+    display: 'grid',
+    gap: '10px',
+  },
+  transcriptTurn: {
+    display: 'grid',
+    gap: '6px',
+    padding: '12px 14px',
+    border: '1px solid rgba(15, 42, 58, 0.12)',
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+  },
+  transcriptTurnUser: {
+    border: '1px solid rgba(13, 138, 132, 0.18)',
+    backgroundColor: 'rgba(13, 138, 132, 0.08)',
+  },
+  transcriptTurnAssistant: {
+    border: '1px solid rgba(184, 148, 85, 0.18)',
+    backgroundColor: 'rgba(242, 233, 216, 0.36)',
+  },
+  transcriptTurnLabel: {
+    color: 'var(--color-text-tertiary)',
+    fontSize: '0.68rem',
+    fontWeight: '700',
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase' as const,
+  },
   transcript: {
     padding: 'var(--space-md)',
     borderRadius: 'var(--radius-md)',
@@ -801,6 +855,65 @@ function SparseStateMarker({ className, dividerClassName }: { className: string;
   )
 }
 
+type TranscriptTurn = {
+  role: 'user' | 'assistant' | 'other'
+  content: string
+}
+
+function parseTranscriptTurns(transcript?: string | null): TranscriptTurn[] {
+  if (!transcript?.trim()) return []
+
+  const lines = transcript
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(Boolean)
+
+  const turns: TranscriptTurn[] = []
+
+  for (const line of lines) {
+    const match = line.match(/^(user|assistant)\s*:\s*(.*)$/i)
+
+    if (match) {
+      turns.push({
+        role: match[1].toLowerCase() as 'user' | 'assistant',
+        content: match[2].trim(),
+      })
+      continue
+    }
+
+    const previousTurn = turns[turns.length - 1]
+    if (previousTurn) {
+      previousTurn.content = `${previousTurn.content}\n${line}`.trim()
+    } else {
+      turns.push({ role: 'other', content: line })
+    }
+  }
+
+  return turns
+}
+
+function renderMarkdown(content: string, styles: ReturnType<typeof useStyles>) {
+  return (
+    <div className={styles.markdownContent}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          p: ({ children }) => <p className={styles.markdownParagraph}>{children}</p>,
+          ul: ({ children }) => <ul className={styles.markdownList}>{children}</ul>,
+          ol: ({ children }) => <ol className={styles.markdownList}>{children}</ol>,
+          li: ({ children }) => <li className={styles.markdownListItem}>{children}</li>,
+          code: ({ children }) => <code className={styles.markdownCode}>{children}</code>,
+          h1: ({ children }) => <p className={styles.markdownParagraph}><strong>{children}</strong></p>,
+          h2: ({ children }) => <p className={styles.markdownParagraph}><strong>{children}</strong></p>,
+          h3: ({ children }) => <p className={styles.markdownParagraph}><strong>{children}</strong></p>,
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
+  )
+}
+
 interface Props {
   childProfiles: ChildProfile[]
   selectedChildId: string | null
@@ -867,6 +980,7 @@ export function ProgressDashboard({
     ? (getAverageFromSeries(sessions, 'overall_score') as number) / 10
     : null
   const planConfidence = getPlanConfidence(sessions, selectedPlan)
+  const transcriptTurns = parseTranscriptTurns(selectedSession?.transcript)
   const celebrationCount = aiAssessment?.celebration_points?.length ?? 0
   const hasArticulationBreakdown = Boolean(aiAssessment?.articulation_clarity)
   const hasEngagementBreakdown = Boolean(aiAssessment?.engagement_and_effort)
@@ -1282,7 +1396,7 @@ export function ProgressDashboard({
                         : ['No celebration points saved for this session.']
                       ).slice(0, 3).map(point => (
                         <div className={styles.textItem} key={point}>
-                          <Text size={300}>{point}</Text>
+                          {renderMarkdown(point, styles)}
                         </div>
                       ))}
                     </div>
@@ -1296,7 +1410,7 @@ export function ProgressDashboard({
                         : ['No follow-up suggestions saved for this session.']
                       ).slice(0, 3).map(suggestion => (
                         <div className={styles.textItem} key={suggestion}>
-                          <Text size={300}>{suggestion}</Text>
+                          {renderMarkdown(suggestion, styles)}
                         </div>
                       ))}
                     </div>
@@ -1305,9 +1419,7 @@ export function ProgressDashboard({
                 <div className={styles.notePanel}>
                   <Text className={styles.combinedReviewLabel}>Therapist note</Text>
                   <div className={styles.textItem}>
-                    <Text size={300}>
-                      {aiAssessment?.therapist_notes || 'No therapist notes saved for this session.'}
-                    </Text>
+                    {renderMarkdown(aiAssessment?.therapist_notes || 'No therapist notes saved for this session.', styles)}
                   </div>
                 </div>
               </div>
@@ -1342,7 +1454,7 @@ export function ProgressDashboard({
                         <div className={styles.textItem}>
                           <div className={styles.textStack}>
                             <Text size={300} weight="semibold">
-                              {selectedPlan.draft.objective}
+                              {selectedPlan.draft.objective.replace(/[*_#`]/g, '').trim()}
                             </Text>
                             {selectedPlan.draft.focus_sound ? <Text size={200}>Target sound: {selectedPlan.draft.focus_sound}</Text> : null}
                           </div>
@@ -1365,7 +1477,7 @@ export function ProgressDashboard({
                             <Text size={200}>
                               {activity.exercise_name} • {activity.target_duration_minutes} min
                             </Text>
-                            <Text size={200}>{activity.reason}</Text>
+                            {renderMarkdown(activity.reason, styles)}
                           </div>
                         ))}
                       </div>
@@ -1379,7 +1491,7 @@ export function ProgressDashboard({
                         <div className={styles.textList}>
                           {selectedPlan.draft.therapist_cues.map(cue => (
                             <div className={styles.textItem} key={cue}>
-                              <Text size={300}>{cue}</Text>
+                              {renderMarkdown(cue, styles)}
                             </div>
                           ))}
                         </div>
@@ -1392,7 +1504,7 @@ export function ProgressDashboard({
                         <div className={styles.textList}>
                           {selectedPlan.draft.success_criteria.map(criterion => (
                             <div className={styles.textItem} key={criterion}>
-                              <Text size={300}>{criterion}</Text>
+                              {renderMarkdown(criterion, styles)}
                             </div>
                           ))}
                         </div>
@@ -1406,7 +1518,7 @@ export function ProgressDashboard({
                       <div className={styles.textList}>
                         {selectedPlan.draft.carryover.map(item => (
                           <div className={styles.textItem} key={item}>
-                            <Text size={300}>{item}</Text>
+                            {renderMarkdown(item, styles)}
                           </div>
                         ))}
                       </div>
@@ -1423,7 +1535,7 @@ export function ProgressDashboard({
                               <Text size={200} weight="semibold">
                                 {message.role === 'user' ? 'Therapist' : 'Planner'}
                               </Text>
-                              <Text size={300}>{message.content}</Text>
+                              {renderMarkdown(message.content, styles)}
                             </div>
                           ))}
                         </div>
@@ -1500,7 +1612,27 @@ export function ProgressDashboard({
                     Transcript
                   </Text>
                   <div className={styles.transcript}>
-                    <Text size={300}>{selectedSession.transcript}</Text>
+                    {transcriptTurns.length > 1 ? (
+                      <div className={styles.transcriptList}>
+                        {transcriptTurns.map((turn, index) => (
+                          <div
+                            className={mergeClasses(
+                              styles.transcriptTurn,
+                              turn.role === 'user' && styles.transcriptTurnUser,
+                              turn.role === 'assistant' && styles.transcriptTurnAssistant
+                            )}
+                            key={`${turn.role}-${index}-${turn.content}`}
+                          >
+                            <Text className={styles.transcriptTurnLabel} size={200}>
+                              {turn.role === 'user' ? 'User' : turn.role === 'assistant' ? 'Assistant' : 'Transcript'}
+                            </Text>
+                            {renderMarkdown(turn.content, styles)}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      renderMarkdown(selectedSession.transcript, styles)
+                    )}
                   </div>
                 </div>
               ) : null}
