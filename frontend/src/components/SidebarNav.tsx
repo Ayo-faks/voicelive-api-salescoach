@@ -60,7 +60,7 @@ const useStyles = makeStyles({
     minHeight: '100vh',
     position: 'sticky',
     top: 0,
-    transition: 'width var(--transition-normal), min-width var(--transition-normal), padding var(--transition-normal), transform var(--transition-normal), background-color var(--transition-normal)',
+    transition: 'width var(--transition-normal), min-width var(--transition-normal), padding var(--transition-normal), transform var(--transition-normal)',
     '@media (max-width: 720px)': {
       position: 'fixed',
       top: 0,
@@ -163,38 +163,6 @@ const useStyles = makeStyles({
     backgroundColor: 'rgba(13, 138, 132, 0.06)',
     color: 'var(--color-text-primary)',
   },
-  asideDashboard: {
-    backgroundColor: 'var(--color-primary)',
-    borderRight: '1px solid rgba(255, 255, 255, 0.12)',
-  },
-  navButtonDashboard: {
-    color: 'rgba(255, 255, 255, 0.78)',
-  },
-  navButtonDashboardActive: {
-    border: '1px solid rgba(255, 255, 255, 0.18)',
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    color: '#ffffff',
-  },
-  brandTitleDashboard: {
-    color: '#ffffff',
-  },
-  selectorLabelDashboard: {
-    color: 'rgba(255, 255, 255, 0.64)',
-  },
-  dropdownDashboard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    border: '1px solid rgba(255, 255, 255, 0.18)',
-    color: '#ffffff',
-  },
-  footerDashboard: {
-    borderTop: '1px solid rgba(255, 255, 255, 0.12)',
-  },
-  footerButtonDashboard: {
-    color: 'rgba(255, 255, 255, 0.78)',
-  },
-  selectorCardDashboard: {
-    borderTop: '1px solid rgba(255, 255, 255, 0.12)',
-  },
   selectorCard: {
     display: 'grid',
     gap: 'var(--space-xs)',
@@ -273,7 +241,6 @@ export function SidebarNav({
 }: SidebarNavProps) {
   const styles = useStyles()
   const isExpanded = mobileOpen || !collapsed
-  const isDashboard = activeSection === 'dashboard'
 
   return (
     <div className={styles.root}>
@@ -289,7 +256,6 @@ export function SidebarNav({
           styles.aside,
           collapsed && styles.asideCollapsed,
           mobileOpen && styles.asideMobileOpen,
-          isDashboard && styles.asideDashboard,
         )}
       >
         <div className={styles.top}>
@@ -297,7 +263,7 @@ export function SidebarNav({
             <button type="button" className={styles.brandButton} onClick={onBrandClick}>
               <img src="/wulo-logo.png" alt="Wulo logo" className={styles.brandLogo} />
               <div className={mergeClasses(styles.brandText, !isExpanded && styles.collapsedHidden)}>
-                <Text className={mergeClasses(styles.brandTitle, isDashboard && styles.brandTitleDashboard)}>{appTitle}</Text>
+                <Text className={styles.brandTitle}>{appTitle}</Text>
               </div>
             </button>
 
@@ -317,8 +283,7 @@ export function SidebarNav({
               className={mergeClasses(
                 styles.navButton,
                 !isExpanded && styles.navButtonCollapsed,
-                isDashboard && styles.navButtonDashboard,
-                activeSection === 'home' && (isDashboard ? styles.navButtonDashboardActive : styles.navButtonActive),
+                activeSection === 'home' && styles.navButtonActive,
               )}
               onClick={onNavigateHome}
             >
@@ -330,8 +295,7 @@ export function SidebarNav({
               className={mergeClasses(
                 styles.navButton,
                 !isExpanded && styles.navButtonCollapsed,
-                isDashboard && styles.navButtonDashboard,
-                activeSection === 'dashboard' && (isDashboard ? styles.navButtonDashboardActive : styles.navButtonActive),
+                activeSection === 'dashboard' && styles.navButtonActive,
               )}
               onClick={onNavigateDashboard}
             >
@@ -343,8 +307,7 @@ export function SidebarNav({
               className={mergeClasses(
                 styles.navButton,
                 !isExpanded && styles.navButtonCollapsed,
-                isDashboard && styles.navButtonDashboard,
-                activeSection === 'settings' && (isDashboard ? styles.navButtonDashboardActive : styles.navButtonActive),
+                activeSection === 'settings' && styles.navButtonActive,
               )}
               onClick={onNavigateSettings}
             >
@@ -353,10 +316,10 @@ export function SidebarNav({
           </nav>
 
           {isTherapist && isExpanded ? (
-            <div className={mergeClasses(styles.selectorCard, isDashboard && styles.selectorCardDashboard)}>
-              <Text className={mergeClasses(styles.selectorLabel, isDashboard && styles.selectorLabelDashboard)}>Active child</Text>
+            <div className={styles.selectorCard}>
+              <Text className={styles.selectorLabel}>Active child</Text>
               <Dropdown
-                className={mergeClasses(styles.dropdown, isDashboard && styles.dropdownDashboard)}
+                className={styles.dropdown}
                 disabled={childrenLoading || childProfiles.length === 0}
                 placeholder={childrenLoading ? 'Loading child profiles...' : 'Select child'}
                 selectedOptions={selectedChildId ? [selectedChildId] : []}
@@ -377,9 +340,9 @@ export function SidebarNav({
           ) : null}
         </div>
 
-        <div className={mergeClasses(styles.footer, isDashboard && styles.footerDashboard)}>
+        <div className={styles.footer}>
           {showTherapistAccess && isExpanded ? (
-            <Button appearance="subtle" className={mergeClasses(styles.footerButton, isDashboard && styles.footerButtonDashboard)} onClick={onOpenTherapistAccess}>
+            <Button appearance="subtle" className={styles.footerButton} onClick={onOpenTherapistAccess}>
               Therapist access
             </Button>
           ) : null}
@@ -393,7 +356,7 @@ export function SidebarNav({
                 <ChevronDoubleLeftIcon className="w-5 h-5" />
               )
             }
-            className={mergeClasses(styles.footerButton, styles.desktopOnly, isDashboard && styles.footerButtonDashboard)}
+            className={mergeClasses(styles.footerButton, styles.desktopOnly)}
             onClick={onToggleCollapse}
           >
             {isExpanded ? 'Collapse sidebar' : ''}
