@@ -1,33 +1,53 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+function getPackageChunkName(id: string) {
+  if (!id.includes('node_modules')) {
+    return undefined
+  }
+
+  const reactPackages = [
+    '/react/',
+    '/react-dom/',
+    '/scheduler/',
+    '/react-is/',
+    '/use-sync-external-store/',
+    '/react-redux/',
+    '/redux/',
+    '/redux-thunk/',
+    '/reselect/',
+    '/@reduxjs/toolkit/',
+  ]
+
+  if (reactPackages.some(packageName => id.includes(packageName))) {
+    return 'framework'
+  }
+
+  if (id.includes('/recharts/') || id.includes('/victory-vendor/') || id.includes('/d3-')) {
+    return 'charts'
+  }
+
+  if (id.includes('@fluentui')) {
+    return 'fluent'
+  }
+
+  if (id.includes('@heroicons')) {
+    return 'icons'
+  }
+
+  return 'framework'
+}
+
 export default defineConfig({
   plugins: [react()],
   build: {
     outDir: 'static',
     emptyOutDir: true,
+    chunkSizeWarningLimit: 650,
     rollupOptions: {
       input: 'index.html',
       output: {
-        manualChunks: (id) => {
-          if (!id.includes('node_modules')) {
-            return undefined
-          }
-
-          if (id.includes('@fluentui')) {
-            return 'fluent'
-          }
-
-          if (id.includes('@heroicons')) {
-            return 'icons'
-          }
-
-          if (id.includes('/react/') || id.includes('/react-dom/')) {
-            return 'react-vendor'
-          }
-
-          return 'vendor'
-        },
+        manualChunks: getPackageChunkName,
         entryFileNames: 'js/index.js',
         chunkFileNames: 'js/[name]-[hash].js',
         assetFileNames: (assetInfo) => {

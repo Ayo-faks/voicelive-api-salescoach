@@ -15,6 +15,21 @@ import {
   makeStyles,
 } from '@fluentui/react-components'
 import { useState } from 'react'
+import {
+  CelebrationDonut,
+  ComparisonMetricBar,
+  PlanConfidenceGauge,
+  SessionFrequencyHeatmap,
+  SessionQualityRadar,
+  SoundBreakdownCard,
+  SummaryTrendCard,
+  WordAccuracyHeatmap,
+  getAverageFromSeries,
+  getPlanConfidence,
+  getSoundAccuracyBreakdown,
+  getTrendChartData,
+} from './charts'
+import { progressDashboardChartStyleSlots } from './charts/progressDashboardChartStyles'
 import type { ChildProfile, PlannerReadiness, PracticePlan, SessionDetail, SessionSummary } from '../types'
 
 const articulationMetrics = [
@@ -42,18 +57,18 @@ const useStyles = makeStyles({
   },
   hero: {
     display: 'grid',
-    gap: 'var(--space-lg)',
-    padding: 'clamp(1.4rem, 3vw, 2.25rem)',
+    gap: 'var(--space-md)',
+    padding: 'clamp(1.1rem, 2.2vw, 1.6rem)',
     borderRadius: '0px',
     border: '1px solid var(--color-border)',
     background:
-      'radial-gradient(circle at top right, rgba(13, 138, 132, 0.14), transparent 36%), radial-gradient(circle at bottom left, rgba(13, 138, 132, 0.06), transparent 34%), linear-gradient(135deg, rgba(233, 245, 246, 0.98), rgba(224, 239, 241, 0.98))',
+      'radial-gradient(circle at top right, rgba(13, 138, 132, 0.09), transparent 34%), radial-gradient(circle at bottom left, rgba(13, 138, 132, 0.04), transparent 32%), linear-gradient(135deg, rgba(240, 247, 247, 0.94), rgba(234, 243, 243, 0.92))',
     color: 'var(--color-text-primary)',
   },
   summaryStrip: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-    gap: 'var(--space-md)',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: '12px',
     '@media (max-width: 1080px)': {
       gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
     },
@@ -61,14 +76,20 @@ const useStyles = makeStyles({
       gridTemplateColumns: '1fr',
     },
   },
+  summaryStripCompact: {
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    '@media (max-width: 640px)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
   summaryCard: {
-    padding: 'var(--space-lg)',
+    padding: '14px 16px',
     borderRadius: 'var(--radius-lg)',
     border: '1px solid var(--color-border)',
-    backgroundColor: 'rgba(255, 255, 255, 0.82)',
+    backgroundColor: 'rgba(255, 252, 247, 0.9)',
     boxShadow: 'var(--shadow-md)',
     display: 'grid',
-    gap: 'var(--space-xs)',
+    gap: '6px',
     alignContent: 'start',
   },
   summaryLabel: {
@@ -81,15 +102,41 @@ const useStyles = makeStyles({
   summaryValue: {
     color: 'var(--color-text-primary)',
     fontFamily: 'var(--font-display)',
-    fontSize: '1.5rem',
+    fontSize: '1.26rem',
     fontWeight: '800',
     lineHeight: 1,
     letterSpacing: '-0.03em',
   },
   summaryCopy: {
     color: 'var(--color-text-secondary)',
-    fontSize: '0.8rem',
-    lineHeight: 1.5,
+    fontSize: '0.78rem',
+    lineHeight: 1.45,
+  },
+  summaryCopyQuiet: {
+    color: 'var(--color-text-tertiary)',
+    fontSize: '0.74rem',
+    lineHeight: 1.35,
+  },
+  summaryCardQuiet: {
+    gap: '4px',
+    backgroundColor: 'rgba(255, 252, 247, 0.82)',
+  },
+  sparseHeroMarker: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    paddingTop: '4px',
+  },
+  sparseHeroDivider: {
+    width: '42px',
+    height: '1px',
+    backgroundColor: 'rgba(15, 42, 58, 0.16)',
+  },
+  sparseHeroIcon: {
+    width: '28px',
+    height: '28px',
+    color: 'var(--color-text-tertiary)',
+    opacity: 0.8,
   },
   summaryTrendWrap: {
     display: 'grid',
@@ -148,19 +195,19 @@ const useStyles = makeStyles({
   title: {
     fontFamily: 'var(--font-display)',
     color: 'var(--color-text-primary)',
-    fontSize: 'clamp(1.8rem, 3.5vw, 2.4rem)',
+    fontSize: 'clamp(1.55rem, 3vw, 2rem)',
     fontWeight: '800',
     letterSpacing: '-0.04em',
   },
   subtitle: {
     color: 'var(--color-text-secondary)',
-    maxWidth: '58ch',
-    lineHeight: 1.55,
-    fontSize: '0.92rem',
+    maxWidth: '52ch',
+    lineHeight: 1.45,
+    fontSize: '0.84rem',
   },
   grid: {
     display: 'grid',
-    gridTemplateColumns: '220px minmax(260px, 0.8fr) minmax(360px, 1.2fr)',
+    gridTemplateColumns: '196px minmax(280px, 0.82fr) minmax(380px, 1.18fr)',
     gap: 'var(--space-md)',
     alignItems: 'start',
     '@media (max-width: 1200px)': {
@@ -170,9 +217,9 @@ const useStyles = makeStyles({
   card: {
     padding: 'var(--space-lg)',
     borderRadius: 'var(--radius-lg)',
-    border: '1px solid rgba(13, 138, 132, 0.12)',
+    border: '1px solid rgba(15, 42, 58, 0.16)',
     background:
-      'radial-gradient(circle at top right, rgba(13, 138, 132, 0.06), transparent 40%), linear-gradient(135deg, rgba(233, 245, 246, 0.6), rgba(224, 239, 241, 0.5) 60%, rgba(250, 246, 239, 0.96))',
+      'radial-gradient(circle at top right, rgba(13, 138, 132, 0.08), transparent 38%), linear-gradient(135deg, rgba(244, 249, 249, 0.94), rgba(238, 245, 245, 0.9) 52%, rgba(252, 248, 240, 0.98))',
     boxShadow: 'var(--shadow-md)',
   },
   backButton: {
@@ -211,17 +258,23 @@ const useStyles = makeStyles({
   helperText: {
     color: 'var(--color-text-secondary)',
     fontSize: '0.8125rem',
+    lineHeight: 1.55,
   },
   list: {
     display: 'grid',
+    gap: '6px',
+    marginTop: '12px',
+  },
+  childList: {
+    display: 'grid',
     gap: '4px',
-    marginTop: 'var(--space-md)',
+    marginTop: '10px',
   },
   listButton: {
     justifyContent: 'flex-start',
-    minHeight: '52px',
+    minHeight: '58px',
     borderRadius: 'var(--radius-md)',
-    padding: '12px 14px',
+    padding: '10px 12px',
     border: '1px solid transparent',
     backgroundColor: 'transparent',
     borderBottom: '1px solid rgba(15, 42, 58, 0.06)',
@@ -236,7 +289,7 @@ const useStyles = makeStyles({
   },
   listButtonContent: {
     display: 'grid',
-    gap: '6px',
+    gap: '4px',
     width: '100%',
   },
   rowHeader: {
@@ -248,7 +301,7 @@ const useStyles = makeStyles({
   },
   rowMain: {
     display: 'grid',
-    gap: '2px',
+    gap: '3px',
     minWidth: 0,
   },
   rowValue: {
@@ -262,12 +315,12 @@ const useStyles = makeStyles({
   },
   listTitle: {
     color: 'var(--color-text-primary)',
-    fontSize: '0.8125rem',
-    fontWeight: '600',
+    fontSize: '0.84rem',
+    fontWeight: '700',
   },
   listMeta: {
     color: 'var(--color-text-tertiary)',
-    fontSize: '0.75rem',
+    fontSize: '0.72rem',
   },
   rowMeta: {
     display: 'flex',
@@ -300,36 +353,155 @@ const useStyles = makeStyles({
   summaryRow: {
     display: 'flex',
     alignItems: 'center',
-    gap: '6px',
+    gap: '8px',
     flexWrap: 'wrap',
-    marginTop: '4px',
+    marginTop: '8px',
+  },
+  sessionHistoryList: {
+    display: 'grid',
+    gap: '10px',
+    marginTop: 'var(--space-md)',
+  },
+  sessionHistoryButton: {
+    justifyContent: 'flex-start',
+    minHeight: '92px',
+    padding: '16px',
+    border: '1px solid rgba(15, 42, 58, 0.1)',
+    backgroundColor: 'rgba(255, 252, 247, 0.74)',
+    borderBottom: '1px solid rgba(15, 42, 58, 0.12)',
+    '@media (max-width: 720px)': {
+      minHeight: '88px',
+    },
+  },
+  sessionHistoryButtonSelected: {
+    border: '1px solid rgba(13, 138, 132, 0.26)',
+    backgroundColor: 'rgba(13, 138, 132, 0.08)',
+  },
+  sessionHistoryContent: {
+    display: 'grid',
+    gap: '10px',
+    width: '100%',
+  },
+  sessionHistoryHeader: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1fr) auto',
+    gap: '12px',
+    alignItems: 'start',
+    width: '100%',
+  },
+  sessionHistoryTitleWrap: {
+    display: 'grid',
+    gap: '6px',
+    minWidth: 0,
+  },
+  sessionHistoryTitle: {
+    color: 'var(--color-text-primary)',
+    fontSize: '0.88rem',
+    fontWeight: '700',
+    lineHeight: 1.35,
+  },
+  sessionHistoryMeta: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    flexWrap: 'wrap',
+    color: 'var(--color-text-tertiary)',
+    fontSize: '0.75rem',
+  },
+  sessionHistoryScoreWrap: {
+    display: 'grid',
+    gap: '2px',
+    justifyItems: 'end',
+    textAlign: 'right',
+    flexShrink: 0,
+  },
+  sessionHistoryScore: {
+    color: 'var(--color-text-primary)',
+    fontFamily: 'var(--font-display)',
+    fontSize: '1.35rem',
+    fontWeight: '800',
+    lineHeight: 1,
+    letterSpacing: '-0.03em',
+  },
+  sessionHistoryScoreLabel: {
+    color: 'var(--color-text-tertiary)',
+    fontSize: '0.68rem',
+    fontWeight: '700',
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase' as const,
+  },
+  sessionHistoryMetrics: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    flexWrap: 'wrap',
+  },
+  sessionHistoryMetric: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '4px 8px',
+    border: '1px solid rgba(15, 42, 58, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.74rem',
+    lineHeight: 1.35,
+  },
+  sessionHistoryMetricLabel: {
+    color: 'var(--color-text-tertiary)',
+    fontWeight: '700',
+  },
+  sessionHistoryMetricValue: {
+    color: 'var(--color-text-primary)',
+    fontWeight: '700',
+  },
+  sessionHistoryFeedback: {
+    color: 'var(--color-primary-dark)',
+    backgroundColor: 'rgba(13, 138, 132, 0.1)',
+    border: '1px solid rgba(13, 138, 132, 0.18)',
   },
   detailLayout: {
     display: 'grid',
-    gap: 'var(--space-md)',
+    gap: 'var(--space-lg)',
   },
   scoreHeader: {
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'start',
     gap: 'var(--space-md)',
     flexWrap: 'wrap',
   },
   scoreValue: {
     fontFamily: 'var(--font-display)',
-    fontSize: '2.5rem',
+    fontSize: '1.75rem',
     lineHeight: 1,
-    fontWeight: '700',
+    fontWeight: '800',
     color: 'var(--color-text-primary)',
     letterSpacing: '-0.03em',
     '@media (max-width: 640px)': {
-      fontSize: '2rem',
+      fontSize: '1.5rem',
     },
+  },
+  scorePanel: {
+    display: 'grid',
+    gap: '6px',
+    minWidth: '116px',
+    padding: '10px 12px',
+    border: '1px solid rgba(15, 42, 58, 0.12)',
+    backgroundColor: 'rgba(255, 252, 247, 0.96)',
+    justifyItems: 'end',
+  },
+  scoreLabel: {
+    color: 'var(--color-text-tertiary)',
+    fontSize: '0.68rem',
+    fontWeight: '700',
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase' as const,
   },
   metricsGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-    gap: 'var(--space-md)',
+    gap: 'var(--space-lg)',
     '@media (max-width: 960px)': {
       gridTemplateColumns: '1fr',
     },
@@ -337,14 +509,89 @@ const useStyles = makeStyles({
   sectionTitle: {
     fontFamily: 'var(--font-display)',
     color: 'var(--color-text-primary)',
-    marginBottom: 'var(--space-sm)',
-    fontSize: '0.8125rem',
-    fontWeight: '600',
+    marginBottom: '10px',
+    fontSize: '0.92rem',
+    fontWeight: '700',
+  },
+  tabRow: {
+    display: 'flex',
+    gap: '6px',
+    flexWrap: 'wrap',
+  },
+  tabButton: {
+    minHeight: '32px',
+    padding: '0 10px',
+    border: '1px solid rgba(15, 42, 58, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.86)',
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.76rem',
+    fontWeight: '700',
+  },
+  tabButtonActive: {
+    border: '1px solid rgba(13, 138, 132, 0.22)',
+    backgroundColor: 'rgba(13, 138, 132, 0.12)',
+    color: 'var(--color-primary-dark)',
+  },
+  compactMetricsBlock: {
+    display: 'grid',
+    gap: '10px',
+  },
+  analysisSection: {
+    display: 'grid',
+    gap: '12px',
+  },
+  analysisGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(260px, 0.9fr) minmax(0, 1.1fr)',
+    gap: '16px',
+    alignItems: 'start',
+    '@media (max-width: 960px)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+  analysisCopy: {
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.78rem',
+    lineHeight: 1.45,
+    maxWidth: '54ch',
+  },
+  sectionBlock: {
+    display: 'grid',
+    gap: '12px',
+    padding: '16px',
+    border: '1px solid rgba(15, 42, 58, 0.12)',
+    backgroundColor: 'rgba(255, 252, 247, 0.94)',
+  },
+  combinedReviewGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 180px) minmax(0, 1fr) minmax(0, 1fr)',
+    gap: '12px',
+    alignItems: 'start',
+    '@media (max-width: 900px)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+  combinedReviewColumn: {
+    display: 'grid',
+    gap: '10px',
+  },
+  combinedReviewLabel: {
+    color: 'var(--color-text-tertiary)',
+    fontSize: '0.7rem',
+    fontWeight: '700',
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase' as const,
+  },
+  notePanel: {
+    display: 'grid',
+    gap: '8px',
+    paddingTop: '10px',
+    borderTop: '1px solid rgba(15, 42, 58, 0.08)',
   },
   metric: {
     display: 'grid',
-    gap: '2px',
-    marginBottom: 'var(--space-sm)',
+    gap: '8px',
+    marginBottom: 'var(--space-md)',
   },
   metricHeader: {
     display: 'flex',
@@ -359,16 +606,16 @@ const useStyles = makeStyles({
   },
   textList: {
     display: 'grid',
-    gap: 'var(--space-sm)',
+    gap: '12px',
   },
   textItem: {
-    padding: 'var(--space-sm) var(--space-md)',
+    padding: '12px 14px',
     borderRadius: 'var(--radius-md)',
-    backgroundColor: 'rgba(255, 255, 255, 0.96)',
-    border: '1px solid rgba(15, 42, 58, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    border: '1px solid rgba(15, 42, 58, 0.14)',
     color: 'var(--color-text-primary)',
-    fontSize: '0.8125rem',
-    lineHeight: 1.5,
+    fontSize: '0.84rem',
+    lineHeight: 1.6,
   },
   transcript: {
     padding: 'var(--space-md)',
@@ -399,13 +646,14 @@ const useStyles = makeStyles({
   },
   planSection: {
     display: 'grid',
-    gap: 'var(--space-md)',
-    paddingTop: 'var(--space-sm)',
+    gap: '12px',
+    paddingTop: '12px',
     borderTop: '1px solid var(--color-border)',
   },
+  ...progressDashboardChartStyleSlots,
   planComposer: {
     width: '100%',
-    minHeight: '92px',
+    minHeight: '72px',
     resize: 'vertical' as const,
     borderRadius: 'var(--radius-md)',
     border: '1px solid rgba(15, 42, 58, 0.14)',
@@ -416,23 +664,23 @@ const useStyles = makeStyles({
   },
   planActions: {
     display: 'flex',
-    gap: 'var(--space-sm)',
+    gap: '6px',
     flexWrap: 'wrap',
   },
   planList: {
     display: 'grid',
-    gap: 'var(--space-sm)',
+    gap: '6px',
   },
   planItem: {
-    padding: 'var(--space-sm)',
+    padding: '10px 12px',
     borderRadius: 'var(--radius-md)',
     border: '1px solid rgba(15, 42, 58, 0.1)',
     backgroundColor: 'rgba(255, 255, 255, 0.96)',
     display: 'grid',
-    gap: '4px',
+    gap: '2px',
   },
   conversationItem: {
-    padding: 'var(--space-sm)',
+    padding: '10px 12px',
     borderRadius: 'var(--radius-md)',
     backgroundColor: 'rgba(255, 255, 255, 0.96)',
     border: '1px solid rgba(15, 42, 58, 0.1)',
@@ -521,44 +769,28 @@ function getTrendLabel(sessions: SessionSummary[]) {
   return 'Recent sessions are holding steady.'
 }
 
-function getTargetSoundSummary(sessions: SessionSummary[]) {
-  const sounds = sessions
-    .map(session => session.exercise_metadata?.targetSound || session.exercise.exerciseMetadata?.targetSound)
-    .filter((sound): sound is string => Boolean(sound))
-
-  if (sounds.length === 0) {
-    return 'General practice'
-  }
-
-  return Array.from(new Set(sounds)).slice(0, 3).join(', ')
+function getSummaryStripMode(hasTrendVisualization: boolean, hasSoundVisualization: boolean) {
+  return hasTrendVisualization && hasSoundVisualization ? 'rich' : 'compact'
 }
 
-function getScoreSeries(sessions: SessionSummary[]) {
-  return [...sessions]
-    .sort((left, right) => new Date(left.timestamp).getTime() - new Date(right.timestamp).getTime())
-    .map(session => session.overall_score)
-    .filter((score): score is number => typeof score === 'number')
+function getHeroSubtitle(isSparseDashboard: boolean) {
+  return isSparseDashboard
+    ? 'Use saved reviews to build the dashboard for the active child.'
+    : 'Track session quality, scan score movement, and turn saved reviews into next-step action for the active child.'
 }
 
-function buildSparklinePath(scores: number[], width: number, height: number) {
-  if (scores.length === 0) {
-    return { line: '', area: '', lastPoint: null as { x: number; y: number } | null }
-  }
-
-  const step = scores.length > 1 ? width / (scores.length - 1) : 0
-  const points = scores.map((score, index) => {
-    const x = scores.length > 1 ? index * step : width / 2
-    const y = height - (Math.max(0, Math.min(100, score)) / 100) * height
-    return { x, y }
-  })
-
-  const line = points
-    .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
-    .join(' ')
-
-  const area = `${line} L ${points[points.length - 1].x} ${height} L ${points[0].x} ${height} Z`
-
-  return { line, area, lastPoint: points[points.length - 1] }
+function SparseStateMarker({ className, dividerClassName }: { className: string; dividerClassName: string }) {
+  return (
+    <div className={className} aria-hidden="true">
+      <span className={dividerClassName} />
+      <svg viewBox="0 0 28 28" fill="none">
+        <rect x="4" y="17" width="4" height="7" fill="currentColor" opacity="0.55" />
+        <rect x="12" y="11" width="4" height="13" fill="currentColor" opacity="0.75" />
+        <rect x="20" y="7" width="4" height="17" fill="currentColor" />
+      </svg>
+      <span className={dividerClassName} />
+    </div>
+  )
 }
 
 interface Props {
@@ -606,15 +838,45 @@ export function ProgressDashboard({
 }: Props) {
   const styles = useStyles()
   const [planPrompt, setPlanPrompt] = useState('')
+  const [breakdownViewBySession, setBreakdownViewBySession] = useState<Record<string, 'articulation' | 'engagement'>>({})
   const plannerReady = plannerReadiness?.ready ?? false
   const aiAssessment = selectedSession?.assessment.ai_assessment
   const pronunciationAssessment = selectedSession?.assessment.pronunciation_assessment
   const selectedChild = childProfiles.find(child => child.id === selectedChildId) || null
   const averageScore = getAverageScore(sessions)
   const trendLabel = getTrendLabel(sessions)
-  const targetSoundSummary = getTargetSoundSummary(sessions)
-  const scoreSeries = getScoreSeries(sessions)
-  const sparkline = buildSparklinePath(scoreSeries, 180, 44)
+  const trendChartData = getTrendChartData(sessions, formatShortDate, formatTimestamp)
+  const soundBreakdown = getSoundAccuracyBreakdown(sessions)
+  const hasTrendVisualization = trendChartData.some(point => point.overall != null || point.accuracy != null || point.pronunciation != null)
+  const hasSoundVisualization = soundBreakdown.length > 0
+  const isSparseDashboard = sessions.length < 2 && !hasSoundVisualization
+  const summaryStripMode = getSummaryStripMode(hasTrendVisualization, hasSoundVisualization)
+  const heroSubtitle = getHeroSubtitle(isSparseDashboard)
+  const articulationAverageMarker = getAverageFromSeries(sessions, 'accuracy_score') != null
+    ? (getAverageFromSeries(sessions, 'accuracy_score') as number) / 10
+    : null
+  const engagementAverageMarker = getAverageFromSeries(sessions, 'overall_score') != null
+    ? (getAverageFromSeries(sessions, 'overall_score') as number) / 10
+    : null
+  const planConfidence = getPlanConfidence(sessions, selectedPlan)
+  const celebrationCount = aiAssessment?.celebration_points?.length ?? 0
+  const hasArticulationBreakdown = Boolean(aiAssessment?.articulation_clarity)
+  const hasEngagementBreakdown = Boolean(aiAssessment?.engagement_and_effort)
+  const selectedSessionBreakdown = selectedSession?.id ? breakdownViewBySession[selectedSession.id] : undefined
+  const activeBreakdown = hasArticulationBreakdown && hasEngagementBreakdown
+    ? selectedSessionBreakdown ?? 'articulation'
+    : hasArticulationBreakdown
+      ? 'articulation'
+      : 'engagement'
+
+  function setSessionBreakdownView(view: 'articulation' | 'engagement') {
+    if (!selectedSession?.id) return
+
+    setBreakdownViewBySession(current => ({
+      ...current,
+      [selectedSession.id]: view,
+    }))
+  }
 
   return (
     <div className={styles.shell}>
@@ -626,8 +888,11 @@ export function ProgressDashboard({
               Session intelligence dashboard
             </Text>
             <Text className={styles.subtitle} size={300}>
-              Track session quality, scan score movement, and turn saved reviews into next-step action for the active child.
+              {heroSubtitle}
             </Text>
+            {isSparseDashboard ? (
+              <SparseStateMarker className={styles.sparseHeroMarker} dividerClassName={styles.sparseHeroDivider} />
+            ) : null}
           </div>
 
           <div className={styles.headerActions}>
@@ -640,54 +905,44 @@ export function ProgressDashboard({
           </div>
         </div>
 
-        <div className={styles.summaryStrip}>
-        <Card className={styles.summaryCard}>
-          <Text className={styles.summaryLabel}>Selected child</Text>
-          <Text className={styles.summaryValue}>{selectedChild?.name || 'Choose child'}</Text>
-          <Text className={styles.summaryCopy}>
-            {selectedChild
-              ? `${selectedChild.session_count ?? sessions.length} reviewed sessions available.`
-              : 'Select a child to populate this workspace.'}
-          </Text>
-        </Card>
-
-        <Card className={styles.summaryCard}>
-          <Text className={styles.summaryLabel}>Average score</Text>
-          <Text className={styles.summaryValue}>{averageScore != null ? `${averageScore}%` : '—'}</Text>
-          <div className={styles.summaryTrendWrap}>
-            {scoreSeries.length > 1 ? (
-              <svg viewBox="0 0 180 44" aria-hidden="true" className={styles.sparkline}>
-                <path d="M 0 43.5 L 180 43.5" className={styles.sparklineTrack} />
-                <path d={sparkline.area} className={styles.sparklineArea} />
-                <path d={sparkline.line} className={styles.sparklineLine} />
-                {sparkline.lastPoint ? (
-                  <circle cx={sparkline.lastPoint.x} cy={sparkline.lastPoint.y} r="3.5" className={styles.sparklineDot} />
-                ) : null}
-              </svg>
-            ) : (
-              <div className={styles.sparklineEmpty}>More sessions needed for a trend line.</div>
-            )}
-            <Text className={styles.summaryCopy}>
-              {averageScore != null
-                ? 'Calculated from saved scored sessions.'
-                : 'Scores populate after reviewed sessions are saved.'}
+        <div className={mergeClasses(styles.summaryStrip, summaryStripMode === 'compact' && styles.summaryStripCompact)}>
+          <Card className={styles.summaryCard}>
+            <Text className={styles.summaryLabel}>Selected child</Text>
+            <Text className={styles.summaryValue}>{selectedChild?.name || 'Choose child'}</Text>
+            <Text className={mergeClasses(styles.summaryCopy, isSparseDashboard && styles.summaryCopyQuiet)}>
+              {selectedChild
+                ? isSparseDashboard
+                  ? `${selectedChild.session_count ?? sessions.length} reviews saved.`
+                  : `${selectedChild.session_count ?? sessions.length} reviewed sessions available.`
+                : 'Select a child to populate this workspace.'}
             </Text>
-          </div>
-        </Card>
+          </Card>
 
-        <Card className={styles.summaryCard}>
-          <Text className={styles.summaryLabel}>Recent trend</Text>
-          <Text className={styles.summaryValue}>{sessions.length > 1 ? 'Trend' : 'Starting'}</Text>
-          <Text className={styles.summaryCopy}>{trendLabel}</Text>
-        </Card>
+          {hasTrendVisualization ? (
+            <SummaryTrendCard
+              averageScore={averageScore}
+              data={trendChartData}
+              styles={styles}
+              trendLabel={trendLabel}
+            />
+          ) : (
+            <Card className={mergeClasses(styles.summaryCard, styles.summaryCardQuiet)}>
+              <Text className={styles.summaryLabel}>Reviewed sessions</Text>
+              <Text className={styles.summaryValue}>{sessions.length}</Text>
+              <Text className={mergeClasses(styles.summaryCopy, styles.summaryCopyQuiet)}>{isSparseDashboard ? 'More reviews unlock the charts.' : trendLabel}</Text>
+              {isSparseDashboard ? (
+                <SparseStateMarker className={styles.sparseHeroMarker} dividerClassName={styles.sparseHeroDivider} />
+              ) : null}
+            </Card>
+          )}
 
-        <Card className={styles.summaryCard}>
-          <Text className={styles.summaryLabel}>Focus sounds</Text>
-          <Text className={styles.summaryValue}>{targetSoundSummary}</Text>
-          <Text className={styles.summaryCopy}>
-            Last saved session: {formatShortDate(selectedChild?.last_session_at)}
-          </Text>
-        </Card>
+          {hasSoundVisualization ? (
+            <SoundBreakdownCard
+              lastSessionLabel={formatShortDate(selectedChild?.last_session_at)}
+              soundBreakdown={soundBreakdown}
+              styles={styles}
+            />
+          ) : null}
         </div>
       </div>
 
@@ -706,7 +961,7 @@ export function ProgressDashboard({
               <Spinner size="medium" />
             </div>
           ) : (
-            <div className={styles.list}>
+            <div className={styles.childList}>
               {childProfiles.map(child => {
                 const isSelected = child.id === selectedChildId
 
@@ -763,65 +1018,73 @@ export function ProgressDashboard({
               <Text>No saved sessions for this child yet.</Text>
             </div>
           ) : (
-            <div className={styles.list}>
-              {sessions.map(session => {
-                const isSelected = session.id === selectedSession?.id
+            <>
+              <SessionFrequencyHeatmap sessions={sessions} styles={styles} />
+              <div className={styles.sessionHistoryList}>
+                {sessions.map(session => {
+                  const isSelected = session.id === selectedSession?.id
+                  const targetSound = session.exercise_metadata?.targetSound || session.exercise.exerciseMetadata?.targetSound
+                  const feedbackLabel = session.therapist_feedback?.rating === 'up' ? 'Helpful' : 'Follow-up'
 
-                return (
-                  <Button
-                    key={session.id}
-                    appearance="subtle"
-                    className={mergeClasses(
-                      styles.listButton,
-                      isSelected && styles.listButtonSelected
-                    )}
-                    onClick={() => onOpenSession(session.id)}
-                  >
-                    <div className={styles.listButtonContent}>
-                      <div className={styles.rowHeader}>
-                        <div className={styles.rowMain}>
-                          <Text className={styles.listTitle} weight="semibold">
-                            {session.exercise.name}
-                          </Text>
-                          <div className={styles.rowMeta}>
-                            <Text className={styles.listMeta} size={200}>
-                              {formatShortDate(session.timestamp)}
+                  return (
+                    <Button
+                      key={session.id}
+                      appearance="subtle"
+                      className={mergeClasses(
+                        styles.sessionHistoryButton,
+                        isSelected && styles.sessionHistoryButtonSelected
+                      )}
+                      onClick={() => onOpenSession(session.id)}
+                    >
+                      <div className={styles.sessionHistoryContent}>
+                        <div className={styles.sessionHistoryHeader}>
+                          <div className={styles.sessionHistoryTitleWrap}>
+                            <Text className={styles.sessionHistoryTitle} weight="semibold">
+                              {session.exercise.name}
                             </Text>
-                            {session.exercise_metadata?.targetSound || session.exercise.exerciseMetadata?.targetSound ? (
-                              <>
-                                <span className={styles.metaDivider} />
-                                <Text className={styles.listMeta} size={200}>
-                                  {session.exercise_metadata?.targetSound || session.exercise.exerciseMetadata?.targetSound}
-                                </Text>
-                              </>
-                            ) : null}
+                            <div className={styles.sessionHistoryMeta}>
+                              <Text size={200}>
+                                {formatShortDate(session.timestamp)}
+                              </Text>
+                              {targetSound ? (
+                                <>
+                                  <span className={styles.metaDivider} />
+                                  <Text size={200}>
+                                    Focus {targetSound}
+                                  </Text>
+                                </>
+                              ) : null}
+                            </div>
+                          </div>
+                          <div className={styles.sessionHistoryScoreWrap}>
+                            <Text className={styles.sessionHistoryScore}>{session.overall_score ?? '—'}</Text>
+                            <Text className={styles.sessionHistoryScoreLabel}>Overall</Text>
                           </div>
                         </div>
-                        <Text className={styles.rowValue}>{session.overall_score ?? '—'}</Text>
-                      </div>
-                      <div className={styles.summaryRow}>
-                        <Badge appearance="filled" className={getScoreBadgeClass(styles, session.overall_score)}>
-                          Overall {session.overall_score ?? '—'}
-                        </Badge>
-                        <Badge appearance="tint" className={getScoreBadgeClass(styles, session.accuracy_score)}>
-                          Accuracy {session.accuracy_score ?? '—'}
-                        </Badge>
-                        {session.pronunciation_score != null ? (
-                          <div className={styles.miniMetric}>
-                            Pron {Math.round(session.pronunciation_score)}
+                        <div className={styles.sessionHistoryMetrics}>
+                          <div className={styles.sessionHistoryMetric}>
+                            <span className={styles.sessionHistoryMetricLabel}>Accuracy</span>
+                            <span className={styles.sessionHistoryMetricValue}>{session.accuracy_score ?? '—'}</span>
                           </div>
-                        ) : null}
-                        {session.therapist_feedback?.rating ? (
-                          <Badge appearance="outline" className={styles.scoreBadge}>
-                            Feedback {session.therapist_feedback.rating === 'up' ? 'helpful' : 'follow-up'}
-                          </Badge>
-                        ) : null}
+                          {session.pronunciation_score != null ? (
+                            <div className={styles.sessionHistoryMetric}>
+                              <span className={styles.sessionHistoryMetricLabel}>Pron</span>
+                              <span className={styles.sessionHistoryMetricValue}>{Math.round(session.pronunciation_score)}</span>
+                            </div>
+                          ) : null}
+                          {session.therapist_feedback?.rating ? (
+                            <div className={mergeClasses(styles.sessionHistoryMetric, styles.sessionHistoryFeedback)}>
+                              <span className={styles.sessionHistoryMetricLabel}>Feedback</span>
+                              <span className={styles.sessionHistoryMetricValue}>{feedbackLabel}</span>
+                            </div>
+                          ) : null}
+                        </div>
                       </div>
-                    </div>
-                  </Button>
-                )
-              })}
-            </div>
+                    </Button>
+                  )
+                })}
+              </div>
+            </>
           )}
         </Card>
 
@@ -859,64 +1122,77 @@ export function ProgressDashboard({
                   </Text>
                 </div>
 
-                <div>
+                <div className={styles.scorePanel}>
+                  <Text className={styles.scoreLabel}>Overall result</Text>
                   <Text className={styles.scoreValue}>
                     {aiAssessment?.overall_score ?? '—'}
                   </Text>
                   <Badge appearance="filled" className={getScoreBadgeClass(styles, aiAssessment?.overall_score)}>
-                    Overall result
+                    Session score
                   </Badge>
                 </div>
               </div>
 
               {aiAssessment && (
                 <>
-                  <div className={styles.metricsGrid}>
-                    {aiAssessment.articulation_clarity && (
-                    <div>
-                      <Text className={styles.sectionTitle} size={400} weight="semibold">
-                        Articulation breakdown
-                      </Text>
-                      {articulationMetrics.map(metric => (
-                        <div className={styles.metric} key={metric.key}>
-                          <div className={styles.metricHeader}>
-                            <Text size={300}>{metric.label}</Text>
-                            <Badge appearance="tint" className={styles.scoreBadge}>
-                              {aiAssessment.articulation_clarity[metric.key] ?? 0}/{metric.max}
-                            </Badge>
+                  {(hasArticulationBreakdown || hasEngagementBreakdown) ? (
+                    <div className={styles.sectionBlock}>
+                      <div className={styles.analysisSection}>
+                        <Text className={styles.sectionTitle} size={400} weight="semibold">
+                          Session analysis
+                        </Text>
+                        <Text className={styles.analysisCopy} size={200}>
+                          The radar shows the overall session profile. The tabbed metrics compare detailed scores against the reviewed-session average.
+                        </Text>
+                        <div className={styles.analysisGrid}>
+                          <SessionQualityRadar selectedSession={selectedSession} showHeading={false} styles={styles} />
+                          <div className={styles.compactMetricsBlock}>
+                            {hasArticulationBreakdown && hasEngagementBreakdown ? (
+                              <div className={styles.tabRow}>
+                                <Button
+                                  appearance="subtle"
+                                  className={mergeClasses(styles.tabButton, activeBreakdown === 'articulation' && styles.tabButtonActive)}
+                                  onClick={() => setSessionBreakdownView('articulation')}
+                                >
+                                  Articulation
+                                </Button>
+                                <Button
+                                  appearance="subtle"
+                                  className={mergeClasses(styles.tabButton, activeBreakdown === 'engagement' && styles.tabButtonActive)}
+                                  onClick={() => setSessionBreakdownView('engagement')}
+                                >
+                                  Engagement
+                                </Button>
+                              </div>
+                            ) : null}
+                            {activeBreakdown === 'articulation' && aiAssessment.articulation_clarity ? articulationMetrics.map(metric => (
+                              <ComparisonMetricBar
+                                key={metric.key}
+                                averageValue={articulationAverageMarker}
+                                label={metric.label}
+                                max={metric.max}
+                                styles={styles}
+                                value={aiAssessment.articulation_clarity[metric.key] ?? 0}
+                              />
+                            )) : null}
+                            {activeBreakdown === 'engagement' && aiAssessment.engagement_and_effort ? engagementMetrics.map(metric => (
+                              <ComparisonMetricBar
+                                key={metric.key}
+                                averageValue={engagementAverageMarker}
+                                label={metric.label}
+                                max={metric.max}
+                                styles={styles}
+                                value={aiAssessment.engagement_and_effort[metric.key] ?? 0}
+                              />
+                            )) : null}
                           </div>
-                          <ProgressBar
-                            value={(aiAssessment.articulation_clarity[metric.key] ?? 0) / metric.max}
-                          />
                         </div>
-                      ))}
+                      </div>
                     </div>
-                    )}
-
-                    {aiAssessment.engagement_and_effort && (
-                    <div>
-                      <Text className={styles.sectionTitle} size={400} weight="semibold">
-                        Engagement breakdown
-                      </Text>
-                      {engagementMetrics.map(metric => (
-                        <div className={styles.metric} key={metric.key}>
-                          <div className={styles.metricHeader}>
-                            <Text size={300}>{metric.label}</Text>
-                            <Badge appearance="tint" className={styles.scoreBadge}>
-                              {aiAssessment.engagement_and_effort[metric.key] ?? 0}/{metric.max}
-                            </Badge>
-                          </div>
-                          <ProgressBar
-                            value={(aiAssessment.engagement_and_effort[metric.key] ?? 0) / metric.max}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                    )}
-                  </div>
+                  ) : null}
 
                   {selectedSession.therapist_feedback ? (
-                    <div>
+                    <div className={styles.sectionBlock}>
                       <Text className={styles.sectionTitle} size={400} weight="semibold">
                         Therapist feedback
                       </Text>
@@ -938,27 +1214,27 @@ export function ProgressDashboard({
               )}
 
               {!aiAssessment && selectedSession.therapist_feedback ? (
-                  <div>
-                    <Text className={styles.sectionTitle} size={400} weight="semibold">
-                      Therapist feedback
-                    </Text>
-                    <div className={styles.summaryRow}>
-                      <Badge appearance="filled" className={mergeClasses(styles.scoreBadge, selectedSession.therapist_feedback.rating === 'up' ? styles.scoreBadgeTeal : styles.scoreBadgeSand)}>
-                        {selectedSession.therapist_feedback.rating === 'up'
-                          ? 'Helpful session'
-                          : 'Needs follow-up'}
-                      </Badge>
-                    </div>
-                    {selectedSession.therapist_feedback.note ? (
-                      <div className={styles.textItem}>
-                        <Text>{selectedSession.therapist_feedback.note}</Text>
-                      </div>
-                    ) : null}
+                <div className={styles.sectionBlock}>
+                  <Text className={styles.sectionTitle} size={400} weight="semibold">
+                    Therapist feedback
+                  </Text>
+                  <div className={styles.summaryRow}>
+                    <Badge appearance="filled" className={mergeClasses(styles.scoreBadge, selectedSession.therapist_feedback.rating === 'up' ? styles.scoreBadgeTeal : styles.scoreBadgeSand)}>
+                      {selectedSession.therapist_feedback.rating === 'up'
+                        ? 'Helpful session'
+                        : 'Needs follow-up'}
+                    </Badge>
                   </div>
-                ) : null}
+                  {selectedSession.therapist_feedback.note ? (
+                    <div className={styles.textItem}>
+                      <Text>{selectedSession.therapist_feedback.note}</Text>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
 
               {pronunciationAssessment && (
-                <div>
+                <div className={styles.sectionBlock}>
                   <Text className={styles.sectionTitle} size={400} weight="semibold">
                     Pronunciation review
                   </Text>
@@ -975,73 +1251,66 @@ export function ProgressDashboard({
                   </div>
 
                   {pronunciationAssessment.words?.length ? (
-                    <div className={styles.chipGrid}>
-                      {pronunciationAssessment.words.map(word => (
-                        <Badge
-                          key={`${word.word}-${word.accuracy}-${word.error_type}`}
-                          appearance="tint"
-                          className={getScoreBadgeClass(styles, word.accuracy)}
-                        >
-                          {word.word} {Math.round(word.accuracy)}%
-                        </Badge>
-                      ))}
-                    </div>
+                    <WordAccuracyHeatmap styles={styles} words={pronunciationAssessment.words} />
                   ) : null}
                 </div>
               )}
 
-              <div className={styles.metricsGrid}>
-                <div>
-                  <Text className={styles.sectionTitle} size={400} weight="semibold">
-                    Celebration points
-                  </Text>
-                  <div className={styles.textList}>
-                    {(aiAssessment?.celebration_points?.length
-                      ? aiAssessment.celebration_points
-                      : ['No celebration points saved for this session.']
-                    ).map(point => (
-                      <div className={styles.textItem} key={point}>
-                        <Text size={300}>{point}</Text>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <Text className={styles.sectionTitle} size={400} weight="semibold">
-                    Practice suggestions
-                  </Text>
-                  <div className={styles.textList}>
-                    {(aiAssessment?.practice_suggestions?.length
-                      ? aiAssessment.practice_suggestions
-                      : ['No follow-up suggestions saved for this session.']
-                    ).map(suggestion => (
-                      <div className={styles.textItem} key={suggestion}>
-                        <Text size={300}>{suggestion}</Text>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div>
+              <div className={styles.sectionBlock}>
                 <Text className={styles.sectionTitle} size={400} weight="semibold">
-                  Therapist notes
+                  Review summary
                 </Text>
-                <div className={styles.textItem}>
-                  <Text size={300}>
-                    {aiAssessment?.therapist_notes || 'No therapist notes saved for this session.'}
-                  </Text>
+                <div className={styles.combinedReviewGrid}>
+                  <div className={styles.combinedReviewColumn}>
+                    <Text className={styles.combinedReviewLabel}>Celebration</Text>
+                    <CelebrationDonut earned={celebrationCount} styles={styles} />
+                  </div>
+
+                  <div className={styles.combinedReviewColumn}>
+                    <Text className={styles.combinedReviewLabel}>Highlights</Text>
+                    <div className={styles.textList}>
+                      {(aiAssessment?.celebration_points?.length
+                        ? aiAssessment.celebration_points
+                        : ['No celebration points saved for this session.']
+                      ).slice(0, 3).map(point => (
+                        <div className={styles.textItem} key={point}>
+                          <Text size={300}>{point}</Text>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className={styles.combinedReviewColumn}>
+                    <Text className={styles.combinedReviewLabel}>Next steps</Text>
+                    <div className={styles.textList}>
+                      {(aiAssessment?.practice_suggestions?.length
+                        ? aiAssessment.practice_suggestions
+                        : ['No follow-up suggestions saved for this session.']
+                      ).slice(0, 3).map(suggestion => (
+                        <div className={styles.textItem} key={suggestion}>
+                          <Text size={300}>{suggestion}</Text>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className={styles.notePanel}>
+                  <Text className={styles.combinedReviewLabel}>Therapist note</Text>
+                  <div className={styles.textItem}>
+                    <Text size={300}>
+                      {aiAssessment?.therapist_notes || 'No therapist notes saved for this session.'}
+                    </Text>
+                  </div>
                 </div>
               </div>
 
               <div className={styles.planSection}>
                 <div>
                   <Text className={styles.sectionTitle} size={400} weight="semibold">
-                    Plan next session
+                    Next-session plan
                   </Text>
                   <Text className={styles.helperText} size={300}>
-                    Create a therapist-facing next-step plan from this saved review and refine it before the next visit.
+                    Generate or refine the next step for the next visit.
                   </Text>
                 </div>
 
@@ -1051,25 +1320,31 @@ export function ProgressDashboard({
                   </div>
                 ) : selectedPlan ? (
                   <div className={styles.planList}>
-                    <div className={styles.summaryRow}>
-                      <Badge appearance="filled" className={mergeClasses(styles.scoreBadge, selectedPlan.status === 'approved' ? styles.scoreBadgeTeal : styles.scoreBadgeInk)}>
-                        {selectedPlan.status === 'approved' ? 'Approved plan' : 'Draft plan'}
-                      </Badge>
-                      <Badge appearance="tint" className={styles.scoreBadge}>
-                        {selectedPlan.draft.estimated_duration_minutes} min
-                      </Badge>
-                    </div>
+                    <div className={styles.planSummaryGrid}>
+                      <div className={styles.planList}>
+                        <div className={styles.summaryRow}>
+                          <Badge appearance="filled" className={mergeClasses(styles.scoreBadge, selectedPlan.status === 'approved' ? styles.scoreBadgeTeal : styles.scoreBadgeInk)}>
+                            {selectedPlan.status === 'approved' ? 'Approved plan' : 'Draft plan'}
+                          </Badge>
+                          <Badge appearance="tint" className={styles.scoreBadge}>
+                            {selectedPlan.draft.estimated_duration_minutes} min
+                          </Badge>
+                        </div>
 
-                    <div className={styles.textItem}>
-                      <Text size={300} weight="semibold">
-                        {selectedPlan.draft.objective}
-                      </Text>
-                      <Text size={300}>{selectedPlan.draft.rationale}</Text>
+                        <div className={styles.textItem}>
+                          <Text size={300} weight="semibold">
+                            {selectedPlan.draft.objective}
+                          </Text>
+                          {selectedPlan.draft.focus_sound ? <Text size={200}>Focus sound: {selectedPlan.draft.focus_sound}</Text> : null}
+                        </div>
+                      </div>
+
+                      {planConfidence ? <PlanConfidenceGauge confidence={planConfidence} styles={styles} /> : null}
                     </div>
 
                     <div>
                       <Text className={styles.sectionTitle} size={300} weight="semibold">
-                        Activity sequence
+                        Activities
                       </Text>
                       <div className={styles.planList}>
                         {selectedPlan.draft.activities.map(activity => (
@@ -1089,7 +1364,7 @@ export function ProgressDashboard({
                     <div className={styles.metricsGrid}>
                       <div>
                         <Text className={styles.sectionTitle} size={300} weight="semibold">
-                          Therapist cues
+                          Cues
                         </Text>
                         <div className={styles.textList}>
                           {selectedPlan.draft.therapist_cues.map(cue => (
@@ -1102,7 +1377,7 @@ export function ProgressDashboard({
 
                       <div>
                         <Text className={styles.sectionTitle} size={300} weight="semibold">
-                          Success criteria
+                          Success markers
                         </Text>
                         <div className={styles.textList}>
                           {selectedPlan.draft.success_criteria.map(criterion => (
@@ -1130,10 +1405,10 @@ export function ProgressDashboard({
                     {selectedPlan.conversation.length ? (
                       <div>
                         <Text className={styles.sectionTitle} size={300} weight="semibold">
-                          Recent plan conversation
+                          Recent conversation
                         </Text>
                         <div className={styles.planList}>
-                          {selectedPlan.conversation.slice(-4).map((message, index) => (
+                          {selectedPlan.conversation.slice(-2).map((message, index) => (
                             <div className={styles.conversationItem} key={`${message.role}-${index}-${message.content}`}>
                               <Text size={200} weight="semibold">
                                 {message.role === 'user' ? 'Therapist' : 'Planner'}
@@ -1153,7 +1428,7 @@ export function ProgressDashboard({
 
                 <label>
                   <Text className={styles.sectionTitle} size={300} weight="semibold">
-                    {selectedPlan ? 'Refine plan' : 'Optional planning note'}
+                    {selectedPlan ? 'Refine plan' : 'Planning note'}
                   </Text>
                   <textarea
                     className={styles.planComposer}
@@ -1161,8 +1436,8 @@ export function ProgressDashboard({
                     onChange={event => setPlanPrompt(event.target.value)}
                     placeholder={
                       selectedPlan
-                        ? 'Example: Make this shorter and lead with a listening task.'
-                        : 'Example: Keep this playful and confidence-building for home carryover.'
+                        ? 'Example: Start with listening and shorten the sequence.'
+                        : 'Example: Keep it playful for home carryover.'
                     }
                   />
                 </label>
