@@ -52,14 +52,13 @@ const useStyles = makeStyles({
     },
   },
   summaryCard: {
-    padding: 'var(--space-md)',
+    padding: 'var(--space-lg)',
     borderRadius: 'var(--radius-lg)',
-    border: '1px solid var(--color-border)',
-    background:
-      'linear-gradient(135deg, rgba(233, 245, 246, 0.96), rgba(224, 239, 241, 0.96))',
+    border: '1px solid var(--color-border-strong)',
+    backgroundColor: 'var(--color-surface-strong)',
     boxShadow: 'var(--shadow-md)',
     display: 'grid',
-    gap: '4px',
+    gap: 'var(--space-xs)',
   },
   summaryLabel: {
     color: 'var(--color-text-tertiary)',
@@ -118,10 +117,10 @@ const useStyles = makeStyles({
     },
   },
   card: {
-    padding: 'var(--space-md)',
+    padding: 'var(--space-lg)',
     borderRadius: 'var(--radius-lg)',
-    border: '1px solid var(--color-border)',
-    backgroundColor: 'var(--color-bg-card)',
+    border: '1px solid var(--color-border-strong)',
+    backgroundColor: 'var(--color-surface-strong)',
     boxShadow: 'var(--shadow-md)',
   },
   backButton: {
@@ -174,8 +173,8 @@ const useStyles = makeStyles({
     },
   },
   listButtonSelected: {
-    border: '1px solid var(--color-primary)',
-    backgroundColor: 'var(--color-primary-soft)',
+    border: '1px solid var(--color-border-strong)',
+    backgroundColor: 'rgba(13, 138, 132, 0.05)',
     boxShadow: 'var(--shadow-glow)',
   },
   listButtonContent: {
@@ -261,8 +260,8 @@ const useStyles = makeStyles({
   textItem: {
     padding: 'var(--space-sm) var(--space-md)',
     borderRadius: 'var(--radius-md)',
-    backgroundColor: 'var(--color-bg-muted)',
-    borderLeft: '3px solid var(--color-primary)',
+    backgroundColor: 'rgba(255, 255, 255, 0.82)',
+    border: '1px solid var(--color-border)',
     color: 'var(--color-text-primary)',
     fontSize: '0.8125rem',
     lineHeight: 1.5,
@@ -270,7 +269,8 @@ const useStyles = makeStyles({
   transcript: {
     padding: 'var(--space-md)',
     borderRadius: 'var(--radius-md)',
-    backgroundColor: 'var(--color-bg-muted)',
+    backgroundColor: 'rgba(255, 255, 255, 0.82)',
+    border: '1px solid var(--color-border)',
     color: 'var(--color-text-secondary)',
     whiteSpace: 'pre-wrap',
     lineHeight: 1.6,
@@ -281,7 +281,7 @@ const useStyles = makeStyles({
     padding: 'var(--space-lg)',
     borderRadius: 'var(--radius-md)',
     border: '1px dashed var(--color-border-strong)',
-    backgroundColor: 'var(--color-bg-muted)',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
     color: 'var(--color-text-tertiary)',
     fontSize: '0.8125rem',
@@ -338,20 +338,40 @@ const useStyles = makeStyles({
     padding: 'var(--space-sm)',
     borderRadius: 'var(--radius-md)',
     border: '1px solid var(--color-border)',
-    backgroundColor: 'rgba(233, 245, 246, 0.4)',
+    backgroundColor: 'rgba(255, 255, 255, 0.82)',
     display: 'grid',
     gap: '4px',
   },
   conversationItem: {
     padding: 'var(--space-sm)',
     borderRadius: 'var(--radius-md)',
-    backgroundColor: 'var(--color-bg-card)',
+    backgroundColor: 'rgba(255, 255, 255, 0.82)',
     border: '1px solid var(--color-border)',
     display: 'grid',
     gap: '2px',
   },
+  scoreBadge: {
+    border: '1px solid var(--color-border-strong)',
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    color: 'var(--color-text-primary)',
+  },
+  scoreBadgeTeal: {
+    border: '1px solid rgba(13, 138, 132, 0.18)',
+    backgroundColor: 'rgba(13, 138, 132, 0.1)',
+    color: 'var(--color-primary-dark)',
+  },
+  scoreBadgeSand: {
+    border: '1px solid rgba(184, 148, 85, 0.24)',
+    backgroundColor: 'rgba(184, 148, 85, 0.12)',
+    color: '#7a6131',
+  },
+  scoreBadgeInk: {
+    border: '1px solid rgba(15, 42, 58, 0.18)',
+    backgroundColor: 'rgba(15, 42, 58, 0.08)',
+    color: 'var(--color-text-primary)',
+  },
   errorText: {
-    color: '#b42318',
+    color: '#7a6131',
   },
 })
 
@@ -369,6 +389,16 @@ function getScoreColor(score?: number | null): 'success' | 'warning' | 'danger' 
   if (score >= 80) return 'success'
   if (score >= 60) return 'warning'
   return 'danger'
+}
+
+function getScoreBadgeClass(
+  styles: ReturnType<typeof useStyles>,
+  score?: number | null
+) {
+  if (score == null) return styles.scoreBadge
+  if (score >= 80) return mergeClasses(styles.scoreBadge, styles.scoreBadgeTeal)
+  if (score >= 60) return mergeClasses(styles.scoreBadge, styles.scoreBadgeSand)
+  return mergeClasses(styles.scoreBadge, styles.scoreBadgeInk)
 }
 
 function formatShortDate(timestamp?: string | null) {
@@ -631,14 +661,14 @@ export function ProgressDashboard({
                         {formatTimestamp(session.timestamp)}
                       </Text>
                       <div className={styles.summaryRow}>
-                        <Badge appearance="filled" color={getScoreColor(session.overall_score)}>
+                        <Badge appearance="filled" className={getScoreBadgeClass(styles, session.overall_score)}>
                           Overall {session.overall_score ?? '—'}
                         </Badge>
-                        <Badge appearance="tint" color={getScoreColor(session.accuracy_score)}>
+                        <Badge appearance="tint" className={getScoreBadgeClass(styles, session.accuracy_score)}>
                           Accuracy {session.accuracy_score ?? '—'}
                         </Badge>
                           {session.therapist_feedback?.rating ? (
-                            <Badge appearance="outline">
+                            <Badge appearance="outline" className={styles.scoreBadge}>
                               Feedback {session.therapist_feedback.rating === 'up' ? 'helpful' : 'follow-up'}
                             </Badge>
                           ) : null}
@@ -689,7 +719,7 @@ export function ProgressDashboard({
                   <Text className={styles.scoreValue}>
                     {aiAssessment?.overall_score ?? '—'}
                   </Text>
-                  <Badge appearance="filled" color={getScoreColor(aiAssessment?.overall_score)}>
+                  <Badge appearance="filled" className={getScoreBadgeClass(styles, aiAssessment?.overall_score)}>
                     Overall result
                   </Badge>
                 </div>
@@ -707,7 +737,7 @@ export function ProgressDashboard({
                         <div className={styles.metric} key={metric.key}>
                           <div className={styles.metricHeader}>
                             <Text size={300}>{metric.label}</Text>
-                            <Badge appearance="tint">
+                            <Badge appearance="tint" className={styles.scoreBadge}>
                               {aiAssessment.articulation_clarity[metric.key] ?? 0}/{metric.max}
                             </Badge>
                           </div>
@@ -728,7 +758,7 @@ export function ProgressDashboard({
                         <div className={styles.metric} key={metric.key}>
                           <div className={styles.metricHeader}>
                             <Text size={300}>{metric.label}</Text>
-                            <Badge appearance="tint">
+                            <Badge appearance="tint" className={styles.scoreBadge}>
                               {aiAssessment.engagement_and_effort[metric.key] ?? 0}/{metric.max}
                             </Badge>
                           </div>
@@ -747,7 +777,7 @@ export function ProgressDashboard({
                         Therapist feedback
                       </Text>
                       <div className={styles.summaryRow}>
-                        <Badge appearance="filled">
+                        <Badge appearance="filled" className={mergeClasses(styles.scoreBadge, selectedSession.therapist_feedback.rating === 'up' ? styles.scoreBadgeTeal : styles.scoreBadgeSand)}>
                           {selectedSession.therapist_feedback.rating === 'up'
                             ? 'Helpful session'
                             : 'Needs follow-up'}
@@ -769,7 +799,7 @@ export function ProgressDashboard({
                       Therapist feedback
                     </Text>
                     <div className={styles.summaryRow}>
-                      <Badge appearance="filled">
+                      <Badge appearance="filled" className={mergeClasses(styles.scoreBadge, selectedSession.therapist_feedback.rating === 'up' ? styles.scoreBadgeTeal : styles.scoreBadgeSand)}>
                         {selectedSession.therapist_feedback.rating === 'up'
                           ? 'Helpful session'
                           : 'Needs follow-up'}
@@ -789,13 +819,13 @@ export function ProgressDashboard({
                     Pronunciation review
                   </Text>
                   <div className={styles.summaryRow}>
-                    <Badge appearance="filled" color={getScoreColor(pronunciationAssessment.accuracy_score)}>
+                    <Badge appearance="filled" className={getScoreBadgeClass(styles, pronunciationAssessment.accuracy_score)}>
                       Accuracy {pronunciationAssessment.accuracy_score?.toFixed(1) ?? '—'}
                     </Badge>
-                    <Badge appearance="filled" color={getScoreColor(pronunciationAssessment.pronunciation_score)}>
+                    <Badge appearance="filled" className={getScoreBadgeClass(styles, pronunciationAssessment.pronunciation_score)}>
                       Pronunciation {pronunciationAssessment.pronunciation_score?.toFixed(1) ?? '—'}
                     </Badge>
-                    <Badge appearance="tint" color={getScoreColor(pronunciationAssessment.fluency_score)}>
+                    <Badge appearance="tint" className={getScoreBadgeClass(styles, pronunciationAssessment.fluency_score)}>
                       Fluency {pronunciationAssessment.fluency_score?.toFixed(1) ?? '—'}
                     </Badge>
                   </div>
@@ -806,7 +836,7 @@ export function ProgressDashboard({
                         <Badge
                           key={`${word.word}-${word.accuracy}-${word.error_type}`}
                           appearance="tint"
-                          color={getScoreColor(word.accuracy)}
+                          className={getScoreBadgeClass(styles, word.accuracy)}
                         >
                           {word.word} {Math.round(word.accuracy)}%
                         </Badge>
@@ -878,10 +908,10 @@ export function ProgressDashboard({
                 ) : selectedPlan ? (
                   <div className={styles.planList}>
                     <div className={styles.summaryRow}>
-                      <Badge appearance="filled">
+                      <Badge appearance="filled" className={mergeClasses(styles.scoreBadge, selectedPlan.status === 'approved' ? styles.scoreBadgeTeal : styles.scoreBadgeInk)}>
                         {selectedPlan.status === 'approved' ? 'Approved plan' : 'Draft plan'}
                       </Badge>
-                      <Badge appearance="tint">
+                      <Badge appearance="tint" className={styles.scoreBadge}>
                         {selectedPlan.draft.estimated_duration_minutes} min
                       </Badge>
                     </div>

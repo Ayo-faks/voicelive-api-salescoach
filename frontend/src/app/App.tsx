@@ -292,8 +292,7 @@ const useStyles = makeStyles({
     minHeight: '100vh',
     display: 'grid',
     gridTemplateColumns: 'auto minmax(0, 1fr)',
-    background:
-      'linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.18))',
+    backgroundColor: 'rgba(255, 251, 244, 0.9)',
     '@media (max-width: 720px)': {
       gridTemplateColumns: '1fr',
     },
@@ -312,7 +311,7 @@ const useStyles = makeStyles({
     gap: 'var(--space-md)',
     padding: 'var(--space-lg) var(--space-xl) var(--space-md)',
     borderBottom: '1px solid var(--color-border)',
-    backgroundColor: 'rgba(251, 248, 242, 0.82)',
+    backgroundColor: 'rgba(253, 250, 244, 0.94)',
     backdropFilter: 'blur(14px)',
     position: 'sticky',
     top: 0,
@@ -361,7 +360,7 @@ const useStyles = makeStyles({
     color: 'var(--color-text-secondary)',
     fontSize: '0.82rem',
     lineHeight: 1.45,
-    maxWidth: '44ch',
+    maxWidth: '48ch',
   },
   contentBody: {
     width: '100%',

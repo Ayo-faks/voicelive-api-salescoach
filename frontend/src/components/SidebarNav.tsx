@@ -55,7 +55,7 @@ const useStyles = makeStyles({
     gap: 'var(--space-lg)',
     padding: 'var(--space-lg)',
     borderRight: '1px solid var(--color-border)',
-    backgroundColor: 'rgba(251, 248, 242, 0.94)',
+    backgroundColor: 'rgba(253, 250, 244, 0.98)',
     backdropFilter: 'blur(16px)',
     minHeight: '100vh',
     position: 'sticky',
@@ -165,7 +165,7 @@ const useStyles = makeStyles({
   },
   navButtonActive: {
     border: '1px solid var(--color-border-strong)',
-    backgroundColor: 'rgba(13, 138, 132, 0.08)',
+    backgroundColor: 'rgba(13, 138, 132, 0.06)',
     color: 'var(--color-text-primary)',
   },
   selectorCard: {
@@ -188,7 +188,7 @@ const useStyles = makeStyles({
   },
   dropdown: {
     minWidth: '100%',
-    backgroundColor: 'rgba(255,255,255,0.88)',
+    backgroundColor: 'rgba(255,255,255,0.96)',
     border: '1px solid var(--color-border)',
   },
   footer: {

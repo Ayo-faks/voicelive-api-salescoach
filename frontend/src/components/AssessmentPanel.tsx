@@ -65,7 +65,7 @@ const useStyles = makeStyles({
     minHeight: 0,
   },
   headerBar: {
-    backgroundColor: 'var(--color-bg-muted)',
+    backgroundColor: 'var(--color-surface-strong)',
     borderRadius: 'var(--radius-md)',
     padding: tokens.spacingVerticalM,
     display: 'flex',
@@ -98,7 +98,7 @@ const useStyles = makeStyles({
     padding: tokens.spacingVerticalM,
     height: 'fit-content',
     borderRadius: 'var(--radius-md)',
-    backgroundColor: 'var(--color-bg-card)',
+    backgroundColor: 'var(--color-surface-strong)',
     boxShadow: 'var(--shadow-sm)',
     border: '1px solid var(--color-border)',
   },
@@ -122,7 +122,7 @@ const useStyles = makeStyles({
   feedbackCard: {
     padding: tokens.spacingVerticalM,
     borderRadius: 'var(--radius-lg)',
-    backgroundColor: 'var(--color-bg-card)',
+    backgroundColor: 'var(--color-surface-strong)',
     boxShadow: 'var(--shadow-sm)',
     border: '1px solid var(--color-border)',
   },
@@ -147,7 +147,7 @@ const useStyles = makeStyles({
   feedbackItem: {
     padding: tokens.spacingVerticalM,
     marginBottom: '0',
-    backgroundColor: 'var(--color-bg-card)',
+    backgroundColor: 'rgba(255,255,255,0.84)',
     borderRadius: 'var(--radius-md)',
     borderLeft: '3px solid var(--color-primary)',
     boxShadow: 'var(--shadow-sm)',
@@ -158,11 +158,11 @@ const useStyles = makeStyles({
   },
   improvementItem: {
     borderLeftColor: 'var(--color-warning)',
-    backgroundColor: 'var(--color-warning-soft)',
+    backgroundColor: 'rgba(184, 148, 85, 0.12)',
   },
   strengthItem: {
     borderLeftColor: 'var(--color-success)',
-    backgroundColor: 'var(--color-success-soft)',
+    backgroundColor: 'rgba(13, 138, 132, 0.08)',
   },
   feedbackText: {
     lineHeight: 1.6,
@@ -186,7 +186,7 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: tokens.spacingVerticalS,
     borderRadius: 'var(--radius-lg)',
-    backgroundColor: 'var(--color-bg-card)',
+    backgroundColor: 'var(--color-surface-strong)',
     boxShadow: 'var(--shadow-sm)',
     border: '1px solid var(--color-border)',
   },
@@ -195,7 +195,7 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: tokens.spacingVerticalS,
     borderRadius: 'var(--radius-lg)',
-    backgroundColor: 'var(--color-bg-card)',
+    backgroundColor: 'var(--color-surface-strong)',
     boxShadow: 'var(--shadow-sm)',
     border: '1px solid var(--color-border)',
   },
@@ -240,6 +240,26 @@ const useStyles = makeStyles({
     padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalL}`,
     borderTop: '1px solid var(--color-border)',
     backgroundColor: 'var(--color-bg-card)',
+  },
+  scoreBadge: {
+    border: '1px solid var(--color-border-strong)',
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    color: 'var(--color-text-primary)',
+  },
+  scoreBadgeTeal: {
+    border: '1px solid rgba(13, 138, 132, 0.18)',
+    backgroundColor: 'rgba(13, 138, 132, 0.1)',
+    color: 'var(--color-primary-dark)',
+  },
+  scoreBadgeSand: {
+    border: '1px solid rgba(184, 148, 85, 0.24)',
+    backgroundColor: 'rgba(184, 148, 85, 0.12)',
+    color: '#7a6131',
+  },
+  scoreBadgeInk: {
+    border: '1px solid rgba(15, 42, 58, 0.18)',
+    backgroundColor: 'rgba(15, 42, 58, 0.08)',
+    color: 'var(--color-text-primary)',
   },
 })
 
@@ -289,10 +309,10 @@ export function AssessmentPanel({
   const aiAssessment = assessment.ai_assessment
   const pronunciationAssessment = assessment.pronunciation_assessment
 
-  const getScoreColor = (score: number): 'success' | 'warning' | 'danger' => {
-    if (score >= 80) return 'success'
-    if (score >= 60) return 'warning'
-    return 'danger'
+  const getScoreBadgeClass = (score: number) => {
+    if (score >= 80) return mergeClasses(styles.scoreBadge, styles.scoreBadgeTeal)
+    if (score >= 60) return mergeClasses(styles.scoreBadge, styles.scoreBadgeSand)
+    return mergeClasses(styles.scoreBadge, styles.scoreBadgeInk)
   }
 
   return (
@@ -313,8 +333,8 @@ export function AssessmentPanel({
                   {aiAssessment.overall_score}
                 </span>
                 <Badge
-                  color={getScoreColor(aiAssessment.overall_score)}
                   appearance="filled"
+                  className={getScoreBadgeClass(aiAssessment.overall_score)}
                   size="large"
                 >
                   {aiAssessment.overall_score >= 80
@@ -365,7 +385,7 @@ export function AssessmentPanel({
                     <div className={styles.metric} key={metric.key}>
                       <div className={styles.metricHeader}>
                         <Text size={300}>{metric.label}</Text>
-                        <Badge appearance="tint">
+                        <Badge appearance="tint" className={styles.scoreBadge}>
                           {aiAssessment.articulation_clarity[metric.key]}
                           /{metric.max}
                         </Badge>
@@ -387,7 +407,7 @@ export function AssessmentPanel({
                     <div className={styles.metric} key={metric.key}>
                       <div className={styles.metricHeader}>
                         <Text size={300}>{metric.label}</Text>
-                        <Badge appearance="tint">
+                        <Badge appearance="tint" className={styles.scoreBadge}>
                           {aiAssessment.engagement_and_effort[metric.key]}
                           /{metric.max}
                         </Badge>
@@ -413,12 +433,7 @@ export function AssessmentPanel({
                   <div className={styles.metric}>
                     <div className={styles.metricHeader}>
                       <Text size={300}>Accuracy</Text>
-                      <Badge
-                        color={getScoreColor(
-                          pronunciationAssessment.accuracy_score
-                        )}
-                        appearance="filled"
-                      >
+                      <Badge appearance="filled" className={getScoreBadgeClass(pronunciationAssessment.accuracy_score)}>
                         {pronunciationAssessment.accuracy_score.toFixed(1)}
                       </Badge>
                     </div>
@@ -428,12 +443,7 @@ export function AssessmentPanel({
                   <div className={styles.metric}>
                     <div className={styles.metricHeader}>
                       <Text size={300}>Fluency</Text>
-                      <Badge
-                        color={getScoreColor(
-                          pronunciationAssessment.fluency_score
-                        )}
-                        appearance="filled"
-                      >
+                      <Badge appearance="filled" className={getScoreBadgeClass(pronunciationAssessment.fluency_score)}>
                         {pronunciationAssessment.fluency_score.toFixed(1)}
                       </Badge>
                     </div>
@@ -453,8 +463,8 @@ export function AssessmentPanel({
                           .map(word => (
                             <Badge
                               key={`${word.word}-${word.accuracy}-${word.error_type}`}
-                              color={getScoreColor(word.accuracy)}
                               appearance="tint"
+                              className={getScoreBadgeClass(word.accuracy)}
                               size="small"
                             >
                               {word.word} ({word.accuracy}%)

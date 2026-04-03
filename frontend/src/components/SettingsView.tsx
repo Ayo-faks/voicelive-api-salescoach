@@ -21,8 +21,7 @@ const useStyles = makeStyles({
     gap: 'var(--space-md)',
     padding: 'clamp(1.5rem, 3vw, 2.25rem)',
     border: '1px solid var(--color-border)',
-    background:
-      'radial-gradient(circle at top right, rgba(13, 138, 132, 0.12), transparent 36%), var(--color-bg-card)',
+    backgroundColor: 'var(--color-surface-strong)',
   },
   eyebrow: {
     color: 'var(--color-text-tertiary)',

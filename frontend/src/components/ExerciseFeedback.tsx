@@ -60,16 +60,16 @@ const useStyles = makeStyles({
     minHeight: '68px',
   },
   wordCardSuccess: {
-    backgroundColor: 'var(--color-success-soft)',
-    border: '1px solid var(--color-success-light)',
+    backgroundColor: 'rgba(13, 138, 132, 0.08)',
+    border: '1px solid rgba(13, 138, 132, 0.18)',
   },
   wordCardWarning: {
-    backgroundColor: 'var(--color-warning-soft)',
-    border: '1px solid var(--color-warning)',
+    backgroundColor: 'rgba(184, 148, 85, 0.12)',
+    border: '1px solid rgba(184, 148, 85, 0.24)',
   },
   wordCardDanger: {
-    backgroundColor: 'var(--color-error-soft)',
-    border: '1px solid var(--color-error-light)',
+    backgroundColor: 'rgba(15, 42, 58, 0.08)',
+    border: '1px solid rgba(15, 42, 58, 0.18)',
   },
   wordLabel: {
     fontFamily: 'var(--font-display)',
@@ -94,6 +94,26 @@ const useStyles = makeStyles({
     alignItems: 'center',
     gap: 'var(--space-sm)',
     fontSize: '0.8125rem',
+  },
+  feedbackBadge: {
+    border: '1px solid var(--color-border-strong)',
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    color: 'var(--color-text-primary)',
+  },
+  feedbackBadgeTeal: {
+    border: '1px solid rgba(13, 138, 132, 0.18)',
+    backgroundColor: 'rgba(13, 138, 132, 0.1)',
+    color: 'var(--color-primary-dark)',
+  },
+  feedbackBadgeSand: {
+    border: '1px solid rgba(184, 148, 85, 0.24)',
+    backgroundColor: 'rgba(184, 148, 85, 0.12)',
+    color: '#7a6131',
+  },
+  feedbackBadgeInk: {
+    border: '1px solid rgba(15, 42, 58, 0.18)',
+    backgroundColor: 'rgba(15, 42, 58, 0.08)',
+    color: 'var(--color-text-primary)',
   },
 })
 
@@ -121,6 +141,14 @@ function getPracticeLabel(score: number) {
   if (score >= 80) return 'Great try'
   if (score >= 60) return 'Almost there'
   return 'Try this sound with me'
+}
+
+function getFeedbackBadgeClass(styles: ReturnType<typeof useStyles>, score: number) {
+  const scoreColor = getScoreColor(score)
+
+  if (scoreColor === 'success') return mergeClasses(styles.feedbackBadge, styles.feedbackBadgeTeal)
+  if (scoreColor === 'warning') return mergeClasses(styles.feedbackBadge, styles.feedbackBadgeSand)
+  return mergeClasses(styles.feedbackBadge, styles.feedbackBadgeInk)
 }
 
 function getEncouragementLabel(score: number) {
@@ -173,7 +201,7 @@ export function ExerciseFeedback({
                 {word.target_word || word.word}
               </Text>
               <div className={styles.feedbackRow}>
-                <Badge color={getScoreColor(word.accuracy)} appearance="filled">
+                <Badge appearance="filled" className={getFeedbackBadgeClass(styles, word.accuracy)}>
                   {getEncouragementLabel(word.accuracy)}
                 </Badge>
                 <Text size={200}>{getPracticeLabel(word.accuracy)}</Text>
