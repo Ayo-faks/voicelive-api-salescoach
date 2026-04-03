@@ -618,6 +618,7 @@ export function ProgressDashboard({
               {aiAssessment && (
                 <>
                   <div className={styles.metricsGrid}>
+                    {aiAssessment.articulation_clarity && (
                     <div>
                       <Text className={styles.sectionTitle} size={400} weight="semibold">
                         Articulation breakdown
@@ -627,16 +628,18 @@ export function ProgressDashboard({
                           <div className={styles.metricHeader}>
                             <Text size={300}>{metric.label}</Text>
                             <Badge appearance="tint">
-                              {aiAssessment.articulation_clarity[metric.key]}/{metric.max}
+                              {aiAssessment.articulation_clarity[metric.key] ?? 0}/{metric.max}
                             </Badge>
                           </div>
                           <ProgressBar
-                            value={aiAssessment.articulation_clarity[metric.key] / metric.max}
+                            value={(aiAssessment.articulation_clarity[metric.key] ?? 0) / metric.max}
                           />
                         </div>
                       ))}
                     </div>
+                    )}
 
+                    {aiAssessment.engagement_and_effort && (
                     <div>
                       <Text className={styles.sectionTitle} size={400} weight="semibold">
                         Engagement breakdown
@@ -646,15 +649,16 @@ export function ProgressDashboard({
                           <div className={styles.metricHeader}>
                             <Text size={300}>{metric.label}</Text>
                             <Badge appearance="tint">
-                              {aiAssessment.engagement_and_effort[metric.key]}/{metric.max}
+                              {aiAssessment.engagement_and_effort[metric.key] ?? 0}/{metric.max}
                             </Badge>
                           </div>
                           <ProgressBar
-                            value={aiAssessment.engagement_and_effort[metric.key] / metric.max}
+                            value={(aiAssessment.engagement_and_effort[metric.key] ?? 0) / metric.max}
                           />
                         </div>
                       ))}
                     </div>
+                    )}
                   </div>
 
                   {selectedSession.therapist_feedback ? (
@@ -706,13 +710,13 @@ export function ProgressDashboard({
                   </Text>
                   <div className={styles.summaryRow}>
                     <Badge appearance="filled" color={getScoreColor(pronunciationAssessment.accuracy_score)}>
-                      Accuracy {pronunciationAssessment.accuracy_score.toFixed(1)}
+                      Accuracy {pronunciationAssessment.accuracy_score?.toFixed(1) ?? '—'}
                     </Badge>
                     <Badge appearance="filled" color={getScoreColor(pronunciationAssessment.pronunciation_score)}>
-                      Pronunciation {pronunciationAssessment.pronunciation_score.toFixed(1)}
+                      Pronunciation {pronunciationAssessment.pronunciation_score?.toFixed(1) ?? '—'}
                     </Badge>
                     <Badge appearance="tint" color={getScoreColor(pronunciationAssessment.fluency_score)}>
-                      Fluency {pronunciationAssessment.fluency_score.toFixed(1)}
+                      Fluency {pronunciationAssessment.fluency_score?.toFixed(1) ?? '—'}
                     </Badge>
                   </div>
 
