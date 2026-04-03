@@ -203,7 +203,7 @@ const useStyles = makeStyles({
   },
   columnTitle: {
     fontFamily: 'var(--font-display)',
-    color: 'var(--color-text-primary)',
+    color: 'var(--color-primary)',
     fontSize: '0.94rem',
     fontWeight: '700',
   },
@@ -335,7 +335,7 @@ const useStyles = makeStyles({
   },
   sectionTitle: {
     fontFamily: 'var(--font-display)',
-    color: 'var(--color-text-primary)',
+    color: 'var(--color-primary)',
     marginBottom: 'var(--space-sm)',
     fontSize: '0.8125rem',
     fontWeight: '600',
