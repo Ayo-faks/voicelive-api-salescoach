@@ -28,7 +28,7 @@ const useStyles = makeStyles({
     width: '100%',
     aspectRatio: '1 / 1',
     overflow: 'hidden',
-    borderRadius: 'calc(var(--radius-lg) - 4px)',
+    borderRadius: '0px',
     backgroundColor: '#B2DFDB',
     display: 'grid',
     placeItems: 'center',

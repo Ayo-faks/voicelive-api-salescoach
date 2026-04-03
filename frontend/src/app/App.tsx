@@ -22,6 +22,7 @@ import {
   ClipboardDocumentCheckIcon,
   HeartIcon,
   AdjustmentsHorizontalIcon,
+  Bars3Icon,
 } from '@heroicons/react/24/outline'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AssessmentPanel } from '../components/AssessmentPanel'
@@ -30,12 +31,13 @@ import { LogoutScreen } from '../components/LogoutScreen'
 import { ChildHome } from '../components/ChildHome'
 import { ConsentScreen } from '../components/ConsentScreen'
 import { DashboardHome } from '../components/DashboardHome'
-import { HomeButton } from '../components/HomeButton'
 import { ModeSelector } from '../components/ModeSelector'
 import { OnboardingFlow } from '../components/OnboardingFlow'
 import { ProgressDashboard } from '../components/ProgressDashboard'
 import { SessionScreen } from '../components/SessionScreen'
 import { SessionLaunchOverlay } from '../components/SessionLaunchOverlay'
+import { SettingsView } from '../components/SettingsView'
+import { SidebarNav } from '../components/SidebarNav'
 import { useAudioPlayer } from '../hooks/useAudioPlayer'
 import { useRealtime } from '../hooks/useRealtime'
 import type { RecorderAudioChunk } from '../hooks/useRecorder'
@@ -96,6 +98,7 @@ type RealtimeMessage = {
 type UserMode = 'therapist' | 'child'
 type TherapistGateIntent = 'review' | 'start-session' | 'mode-switch'
 type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated' | 'error'
+type SidebarSection = 'home' | 'dashboard' | 'settings'
 
 type PrewarmedAgent = {
   key: string
@@ -265,17 +268,8 @@ const useStyles = makeStyles({
   page: {
     width: '100%',
     minHeight: '100vh',
-    maxHeight: '100vh',
     display: 'flex',
-    justifyContent: 'center',
-    overflow: 'auto',
-    padding: 'var(--space-xl) var(--space-xl)',
-    '@media (max-width: 720px)': {
-      paddingTop: 'calc(env(safe-area-inset-top, 0px) + var(--space-lg))',
-      paddingRight: 'var(--space-md)',
-      paddingBottom: 'var(--space-md)',
-      paddingLeft: 'var(--space-md)',
-    },
+    overflow: 'hidden',
   },
   shell: {
     width: '100%',
@@ -283,6 +277,104 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     gap: 'var(--space-xl)',
+    margin: '0 auto',
+    padding: 'var(--space-xl)',
+    overflow: 'auto',
+    '@media (max-width: 720px)': {
+      paddingTop: 'calc(env(safe-area-inset-top, 0px) + var(--space-lg))',
+      paddingRight: 'var(--space-md)',
+      paddingBottom: 'var(--space-md)',
+      paddingLeft: 'var(--space-md)',
+    },
+  },
+  appShell: {
+    width: '100%',
+    minHeight: '100vh',
+    display: 'grid',
+    gridTemplateColumns: 'auto minmax(0, 1fr)',
+    background:
+      'linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.18))',
+    '@media (max-width: 720px)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+  contentArea: {
+    minWidth: 0,
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'auto',
+  },
+  contentHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 'var(--space-md)',
+    padding: 'var(--space-lg) var(--space-xl) var(--space-md)',
+    borderBottom: '1px solid var(--color-border)',
+    backgroundColor: 'rgba(251, 248, 242, 0.82)',
+    backdropFilter: 'blur(14px)',
+    position: 'sticky',
+    top: 0,
+    zIndex: 10,
+    '@media (max-width: 720px)': {
+      paddingTop: 'calc(env(safe-area-inset-top, 0px) + var(--space-md))',
+      paddingRight: 'var(--space-md)',
+      paddingBottom: 'var(--space-sm)',
+      paddingLeft: 'var(--space-md)',
+      alignItems: 'flex-start',
+      flexDirection: 'column',
+    },
+  },
+  headerLead: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-md)',
+    minWidth: 0,
+  },
+  contentMenuButton: {
+    display: 'none',
+    '@media (max-width: 720px)': {
+      display: 'inline-flex',
+    },
+  },
+  contentHeading: {
+    display: 'grid',
+    gap: '2px',
+    minWidth: 0,
+  },
+  contentEyebrow: {
+    color: 'var(--color-text-tertiary)',
+    fontSize: '0.72rem',
+    fontWeight: '700',
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+  },
+  contentTitle: {
+    fontFamily: 'var(--font-display)',
+    color: 'var(--color-text-primary)',
+    fontSize: '1.25rem',
+    fontWeight: '800',
+    letterSpacing: '-0.03em',
+  },
+  contentSubtitle: {
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.82rem',
+    lineHeight: 1.45,
+    maxWidth: '44ch',
+  },
+  contentBody: {
+    width: '100%',
+    maxWidth: '1320px',
+    margin: '0 auto',
+    padding: 'var(--space-xl)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-xl)',
+    '@media (max-width: 720px)': {
+      padding: 'var(--space-md)',
+      gap: 'var(--space-lg)',
+    },
   },
   brandRow: {
     display: 'flex',
@@ -538,6 +630,11 @@ export default function App() {
   const [showAssessment, setShowAssessment] = useState(false)
   const [showRoleNotice, setShowRoleNotice] = useState(false)
   const [showConsentScreen, setShowConsentScreen] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
+  const [pendingSection, setPendingSection] = useState<SidebarSection | null>(null)
+  const [showNavigationConfirm, setShowNavigationConfirm] = useState(false)
   const [selectedAvatar, setSelectedAvatar] = useState(DEFAULT_AVATAR)
   const [pendingAvatarValue, setPendingAvatarValue] = useState<string>('lisa-casual-sitting')
   const [pendingScenarioId, setPendingScenarioId] = useState<string | null>(null)
@@ -628,6 +725,41 @@ export default function App() {
     showLaunchTransition &&
     !launchHandoffReady
   const plannerReadiness: PlannerReadiness | null = appConfig?.planner ?? null
+  const activeSection: SidebarSection = therapistView
+    ? 'dashboard'
+    : showSettings
+      ? 'settings'
+      : 'home'
+  const showSidebarShell =
+    onboardingComplete &&
+    (Boolean(userMode) || therapistView || !showSetup || showSettings)
+  const contentEyebrow = therapistView
+    ? 'Dashboard'
+    : showSettings
+      ? 'Settings'
+      : !showSetup
+        ? 'Live session'
+        : userMode === 'therapist'
+          ? 'Therapist workspace'
+          : 'Practice home'
+  const contentTitle = therapistView
+    ? 'Progress and planning'
+    : showSettings
+      ? 'Workspace settings'
+      : !showSetup
+        ? activeScenario?.name || 'Session in progress'
+        : userMode === 'therapist'
+          ? 'Prepare the next visit'
+          : 'Ready to practise'
+  const contentSubtitle = therapistView
+    ? 'Review saved sessions, refine plans, and move back into practice without changing routes.'
+    : showSettings
+      ? 'Adjust the current workspace context and switch between the key state-driven surfaces.'
+      : !showSetup
+        ? 'The session stays live while navigation remains inside the same app state machine.'
+        : userMode === 'therapist'
+          ? 'Choose a child, pick an exercise, and move into guided practice.'
+          : 'Launch the next exercise and keep the practice flow simple for the child.'
 
   const refreshAuthSession = useCallback(async () => {
     try {
@@ -758,6 +890,7 @@ export default function App() {
         window.localStorage.removeItem('wulo.user.mode')
       }
       setShowRoleNotice(false)
+      setShowSettings(false)
       setShowSetup(true)
     }
 
@@ -1106,6 +1239,7 @@ export default function App() {
       onAudioDelta: handleAudioDelta,
       onTranscript: handleRealtimeTranscript,
     })
+  const isSessionActive = !showSetup && (connected || messages.length > 0 || Boolean(currentAgent))
 
   useEffect(() => {
     sendRef.current = send
@@ -1563,6 +1697,7 @@ export default function App() {
     setFeedbackNote('')
     setFeedbackSubmittedAt(null)
     setFeedbackError(null)
+    setShowSettings(false)
     setShowSetup(false)
 
     try {
@@ -1627,6 +1762,7 @@ export default function App() {
   const handleCompleteOnboarding = useCallback(() => {
     setOnboardingComplete(true)
     setUserMode(null)
+    setShowSettings(false)
     if (typeof window !== 'undefined') {
       window.localStorage.setItem('wulo.onboarding.complete', 'true')
       window.localStorage.removeItem('wulo.user.mode')
@@ -1639,6 +1775,7 @@ export default function App() {
 
   const handleReturnToEntry = useCallback(() => {
     setTherapistView(false)
+    setShowSettings(false)
     setSessionFinished(false)
     setChildTurnCount(0)
     setFinishPromptTurnLimit(CHILD_TURN_LIMIT)
@@ -1649,6 +1786,7 @@ export default function App() {
     setLaunchInFlight(false)
     setShowSetup(true)
     setUserMode(null)
+    setMobileSidebarOpen(false)
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem('wulo.user.mode')
     }
@@ -1681,19 +1819,11 @@ export default function App() {
     setLaunchHandoffReady(false)
     setLaunchInFlight(false)
     setTherapistView(false)
+    setShowSettings(false)
     setShowRoleNotice(false)
     setShowSetup(true)
+    setMobileSidebarOpen(false)
   }, [clearConversationAudioRecording, clearMessages, disconnect])
-
-  const canNavigateToProfileHome = onboardingComplete && (Boolean(userMode) || therapistView || !showSetup)
-
-  const handleBrandHome = useCallback(() => {
-    if (!canNavigateToProfileHome) {
-      return
-    }
-
-    handleGoHome()
-  }, [canNavigateToProfileHome, handleGoHome])
 
   const handleChooseMode = useCallback((mode: UserMode) => {
     if (mode === 'therapist' && !isTherapist) {
@@ -1715,12 +1845,76 @@ export default function App() {
 
     setUserMode(mode)
     setTherapistView(false)
+    setShowSettings(false)
     setShowSetup(true)
 
     if (typeof window !== 'undefined') {
       window.localStorage.setItem('wulo.user.mode', mode)
     }
   }, [isTherapist, pilotState?.consent_timestamp, selectedScenario, serverScenarios, setSelectedScenario])
+
+  const openSection = useCallback((section: SidebarSection) => {
+    setMobileSidebarOpen(false)
+
+    if (section === 'dashboard') {
+      if (!isTherapist) {
+        setRoleNoticeIntent('review')
+        setShowRoleNotice(true)
+        return
+      }
+
+      setShowSettings(false)
+      setTherapistView(true)
+      setShowSetup(true)
+      return
+    }
+
+    if (section === 'settings') {
+      setTherapistView(false)
+      setShowSettings(true)
+      setShowSetup(true)
+      return
+    }
+
+    handleGoHome()
+  }, [handleGoHome, isTherapist])
+
+  const requestSection = useCallback((section: SidebarSection) => {
+    if (section === activeSection && !isSessionActive) {
+      setMobileSidebarOpen(false)
+      return
+    }
+
+    if (isSessionActive) {
+      setPendingSection(section)
+      setShowNavigationConfirm(true)
+      setMobileSidebarOpen(false)
+      return
+    }
+
+    openSection(section)
+  }, [activeSection, isSessionActive, openSection])
+
+  const handleConfirmSectionChange = useCallback(() => {
+    const nextSection = pendingSection
+    setShowNavigationConfirm(false)
+    setPendingSection(null)
+    handleGoHome()
+
+    if (nextSection === 'dashboard') {
+      setTherapistView(true)
+    }
+
+    if (nextSection === 'settings') {
+      setShowSettings(true)
+    }
+  }, [handleGoHome, pendingSection])
+
+  useEffect(() => {
+    if (!showSidebarShell) {
+      setMobileSidebarOpen(false)
+    }
+  }, [showSidebarShell])
 
   const handleConsentAccept = useCallback(async () => {
     setConsentSaving(true)
@@ -1832,170 +2026,192 @@ export default function App() {
     )
   }
 
+  const mainContent = therapistView ? (
+    <ProgressDashboard
+      childProfiles={children}
+      selectedChildId={selectedChildId}
+      sessions={sessionSummaries}
+      selectedSession={selectedSession}
+      selectedPlan={selectedPlan}
+      plannerReadiness={plannerReadiness}
+      loadingChildren={childrenLoading}
+      loadingSessions={loadingSessions}
+      loadingSessionDetail={loadingSessionDetail}
+      loadingPlans={loadingPlans}
+      planSaving={planSaving}
+      planError={planError}
+      onSelectChild={setSelectedChildId}
+      onOpenSession={handleOpenSession}
+      onCreatePlan={handleCreatePlan}
+      onRefinePlan={handleRefinePlan}
+      onApprovePlan={() => {
+        void handleApprovePlan()
+      }}
+      onBackToPractice={handleExitTherapistView}
+      onExitToEntry={handleReturnToEntry}
+    />
+  ) : !onboardingComplete ? (
+    <OnboardingFlow
+      loading={pilotStateLoading}
+      isTherapist={isTherapist}
+      onContinue={handleCompleteOnboarding}
+    />
+  ) : !userMode ? (
+    <ModeSelector
+      isTherapist={isTherapist}
+      onChooseMode={handleChooseMode}
+    />
+  ) : showSettings ? (
+    <SettingsView
+      isTherapist={isTherapist}
+      currentMode={userMode}
+      authRole={authUser?.role}
+      selectedChild={selectedChild}
+      onGoHome={handleGoHome}
+      onOpenDashboard={() => openSection('dashboard')}
+      onReturnToEntry={handleReturnToEntry}
+    />
+  ) : showSetup ? (
+    loading ? (
+      <div className={styles.loadingContent}>
+        <Spinner size="large" />
+        <Text size={400} weight="semibold">
+          Loading exercises...
+        </Text>
+        <Text size={300}>Your Wulo library is getting ready.</Text>
+      </div>
+    ) : (
+      userMode === 'child' ? (
+        <ChildHome
+          selectedChild={selectedChild}
+          selectedAvatar={selectedAvatar}
+          selectedScenario={selectedScenario}
+          launchInFlight={launchInFlight}
+          scenarios={serverScenarios}
+          isTherapist={isTherapist}
+          onExitToEntry={handleReturnToEntry}
+          onSelectScenario={(scenarioId: string) => {
+            setSelectedScenario(scenarioId)
+          }}
+          onStartScenario={(scenarioId: string) => {
+            void handleStart(selectedAvatar, scenarioId)
+          }}
+          onStartSession={() => {
+            void handleStart(selectedAvatar)
+          }}
+        />
+      ) : (
+        <DashboardHome
+          childProfiles={children}
+          childrenLoading={childrenLoading}
+          selectedChildId={selectedChildId}
+          selectedChild={selectedChild}
+          selectedAvatar={selectedAvatar}
+          selectedScenario={selectedScenario}
+          launchInFlight={launchInFlight}
+          scenarios={serverScenarios}
+          customScenarios={customScenarios}
+          onSelectChild={childId => setSelectedChildId(childId)}
+          onSelectAvatar={setSelectedAvatar}
+          onSelectScenario={(scenarioId: string) => {
+            setSelectedScenario(scenarioId)
+          }}
+          onStartSession={() => {
+            void handleStart(selectedAvatar)
+          }}
+          onExitToEntry={handleReturnToEntry}
+          onOpenTherapistReview={() => openSection('dashboard')}
+          onAddCustomScenario={addCustomScenario}
+          onUpdateCustomScenario={updateCustomScenario}
+          onDeleteCustomScenario={deleteCustomScenario}
+        />
+      )
+    )
+  ) : (
+    <SessionScreen
+      videoRef={videoRef}
+      messages={messages}
+      launching={showLaunchTransition}
+      recording={recording}
+      connected={connected}
+      connectionState={connectionState}
+      connectionMessage={connectionMessage}
+      introComplete={sessionIntroComplete}
+      sessionFinished={sessionFinished}
+      canAnalyze={messages.length > 0}
+      onToggleRecording={handleToggleRecording}
+      onClear={isChildMode ? () => { void handleConfirmedFinish() } : handleClearSession}
+      onAnalyze={handleAnalyze}
+      scenario={activeScenario}
+      isChildMode={isChildMode}
+      selectedChild={selectedChild}
+      selectedAvatar={selectedAvatar}
+      introPending={sessionIntroRequested && !sessionIntroComplete}
+      onVideoLoaded={() => setAvatarVideoReady(true)}
+      utteranceFeedback={utteranceFeedback}
+      scoringUtterance={scoringUtterance}
+      activeReferenceText={activeReferenceText}
+      onInterruptAvatar={() => {
+        send({ type: 'response.cancel' })
+        stopAudio()
+      }}
+    />
+  )
+
   return (
     <div className={styles.page}>
-      <div className={styles.shell}>
-        <div className={styles.brandRow}>
-          <button
-            type="button"
-            className={mergeClasses(styles.brandBlock, styles.brandHomeButton)}
-            onClick={handleBrandHome}
-            disabled={!canNavigateToProfileHome}
-            aria-label={canNavigateToProfileHome ? 'Go to home page' : 'Wulo'}
-          >
-            <img
-              src="/wulo-logo.png"
-              alt="Wulo logo"
-              className={styles.brandLogo}
-            />
-            <Text className={styles.appTitle} size={600} weight="semibold">
-              {appTitle}
-            </Text>
-          </button>
+      {showSidebarShell ? (
+        <div className={styles.appShell}>
+          <SidebarNav
+            appTitle={appTitle}
+            activeSection={activeSection}
+            collapsed={sidebarCollapsed}
+            mobileOpen={mobileSidebarOpen}
+            isTherapist={isTherapist}
+            childProfiles={children}
+            childrenLoading={childrenLoading}
+            selectedChildId={selectedChildId}
+            selectedChild={selectedChild}
+            showTherapistAccess={!isTherapist && userMode !== 'child'}
+            onBrandClick={() => requestSection('home')}
+            onNavigateHome={() => requestSection('home')}
+            onNavigateDashboard={() => requestSection('dashboard')}
+            onNavigateSettings={() => requestSection('settings')}
+            onSelectChild={setSelectedChildId}
+            onToggleCollapse={() => setSidebarCollapsed(current => !current)}
+            onCloseMobile={() => setMobileSidebarOpen(false)}
+            onOpenTherapistAccess={() => {
+              setRoleNoticeIntent('review')
+              setShowRoleNotice(true)
+            }}
+          />
 
-          <div className={styles.brandActions}>
-            {(!showSetup || therapistView) && onboardingComplete && (
-              <HomeButton
-                isSessionActive={!showSetup && (connected || messages.length > 0)}
-                onGoHome={handleGoHome}
-              />
-            )}
-            {!isTherapist && userMode !== 'child' ? (
-              <Button
-                appearance="subtle"
-                onClick={() => {
-                  setRoleNoticeIntent('review')
-                  setShowRoleNotice(true)
-                }}
-              >
-                Therapist access
-              </Button>
-            ) : null}
+          <div className={styles.contentArea}>
+            <div className={styles.contentHeader}>
+              <div className={styles.headerLead}>
+                <Button
+                  appearance="subtle"
+                  icon={<Bars3Icon className="w-5 h-5" />}
+                  className={styles.contentMenuButton}
+                  onClick={() => setMobileSidebarOpen(true)}
+                  aria-label="Open navigation"
+                />
+
+                <div className={styles.contentHeading}>
+                  <Text className={styles.contentEyebrow}>{contentEyebrow}</Text>
+                  <Text className={styles.contentTitle}>{contentTitle}</Text>
+                </div>
+              </div>
+
+              <Text className={styles.contentSubtitle}>{contentSubtitle}</Text>
+            </div>
+
+            <div className={styles.contentBody}>{mainContent}</div>
           </div>
         </div>
-
-        {therapistView ? (
-          <ProgressDashboard
-            childProfiles={children}
-            selectedChildId={selectedChildId}
-            sessions={sessionSummaries}
-            selectedSession={selectedSession}
-            selectedPlan={selectedPlan}
-            plannerReadiness={plannerReadiness}
-            loadingChildren={childrenLoading}
-            loadingSessions={loadingSessions}
-            loadingSessionDetail={loadingSessionDetail}
-            loadingPlans={loadingPlans}
-            planSaving={planSaving}
-            planError={planError}
-            onSelectChild={setSelectedChildId}
-            onOpenSession={handleOpenSession}
-            onCreatePlan={handleCreatePlan}
-            onRefinePlan={handleRefinePlan}
-            onApprovePlan={() => {
-              void handleApprovePlan()
-            }}
-            onBackToPractice={handleExitTherapistView}
-            onExitToEntry={handleReturnToEntry}
-          />
-        ) : !onboardingComplete ? (
-          <OnboardingFlow
-            loading={pilotStateLoading}
-            isTherapist={isTherapist}
-            onContinue={handleCompleteOnboarding}
-          />
-        ) : !userMode ? (
-          <ModeSelector
-            isTherapist={isTherapist}
-            onChooseMode={handleChooseMode}
-          />
-        ) : showSetup ? (
-          loading ? (
-            <div className={styles.loadingContent}>
-              <Spinner size="large" />
-              <Text size={400} weight="semibold">
-                Loading exercises...
-              </Text>
-              <Text size={300}>Your Wulo library is getting ready.</Text>
-            </div>
-          ) : (
-            userMode === 'child' ? (
-              <ChildHome
-                selectedChild={selectedChild}
-                selectedAvatar={selectedAvatar}
-                selectedScenario={selectedScenario}
-                launchInFlight={launchInFlight}
-                scenarios={serverScenarios}
-                isTherapist={isTherapist}
-                onExitToEntry={handleReturnToEntry}
-                onSelectScenario={(scenarioId: string) => {
-                  setSelectedScenario(scenarioId)
-                }}
-                onStartScenario={(scenarioId: string) => {
-                  void handleStart(selectedAvatar, scenarioId)
-                }}
-                onStartSession={() => {
-                  void handleStart(selectedAvatar)
-                }}
-              />
-            ) : (
-              <DashboardHome
-                childProfiles={children}
-                childrenLoading={childrenLoading}
-                selectedChildId={selectedChildId}
-                selectedChild={selectedChild}
-                selectedAvatar={selectedAvatar}
-                selectedScenario={selectedScenario}
-                launchInFlight={launchInFlight}
-                scenarios={serverScenarios}
-                customScenarios={customScenarios}
-                onSelectChild={childId => setSelectedChildId(childId)}
-                onSelectAvatar={setSelectedAvatar}
-                onSelectScenario={(scenarioId: string) => {
-                  setSelectedScenario(scenarioId)
-                }}
-                onStartSession={() => {
-                  void handleStart(selectedAvatar)
-                }}
-                onExitToEntry={handleReturnToEntry}
-                onOpenTherapistReview={() => setTherapistView(true)}
-                onAddCustomScenario={addCustomScenario}
-                onUpdateCustomScenario={updateCustomScenario}
-                onDeleteCustomScenario={deleteCustomScenario}
-              />
-            )
-          )
-        ) : (
-          <SessionScreen
-            videoRef={videoRef}
-            messages={messages}
-            launching={showLaunchTransition}
-            recording={recording}
-            connected={connected}
-            connectionState={connectionState}
-            connectionMessage={connectionMessage}
-            introComplete={sessionIntroComplete}
-            sessionFinished={sessionFinished}
-            canAnalyze={messages.length > 0}
-            onToggleRecording={handleToggleRecording}
-            onClear={isChildMode ? () => { void handleConfirmedFinish() } : handleClearSession}
-            onAnalyze={handleAnalyze}
-            scenario={activeScenario}
-            isChildMode={isChildMode}
-            selectedChild={selectedChild}
-            selectedAvatar={selectedAvatar}
-            introPending={sessionIntroRequested && !sessionIntroComplete}
-            onVideoLoaded={() => setAvatarVideoReady(true)}
-            utteranceFeedback={utteranceFeedback}
-            scoringUtterance={scoringUtterance}
-            activeReferenceText={activeReferenceText}
-            onInterruptAvatar={() => {
-              send({ type: 'response.cancel' })
-              stopAudio()
-            }}
-          />
-        )}
-      </div>
+      ) : (
+        <div className={styles.shell}>{mainContent}</div>
+      )}
 
       <SessionLaunchOverlay
         visible={launchOverlayVisible}
@@ -2040,6 +2256,39 @@ export default function App() {
             </Button>
             <Button appearance="primary" onClick={() => setShowRoleNotice(false)}>
               Close
+            </Button>
+          </DialogActions>
+        </DialogSurface>
+      </Dialog>
+
+      <Dialog
+        open={showNavigationConfirm}
+        onOpenChange={(_, data) => {
+          setShowNavigationConfirm(data.open)
+          if (!data.open) {
+            setPendingSection(null)
+          }
+        }}
+      >
+        <DialogSurface>
+          <DialogTitle>Leave this session?</DialogTitle>
+          <DialogBody>
+            <Text>
+              The current session has unsaved progress. Leaving now will end the live session and clear any unanalysed practice from this screen.
+            </Text>
+          </DialogBody>
+          <DialogActions>
+            <Button
+              appearance="secondary"
+              onClick={() => {
+                setShowNavigationConfirm(false)
+                setPendingSection(null)
+              }}
+            >
+              Stay here
+            </Button>
+            <Button appearance="primary" onClick={handleConfirmSectionChange}>
+              Leave session
             </Button>
           </DialogActions>
         </DialogSurface>

@@ -57,11 +57,11 @@
   --space-3xl: 64px;
 
   /* --- Radii --- */
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 10px;
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
   --radius-full: 9999px;
 
   /* --- Typography --- */
@@ -130,7 +130,7 @@ a {
 }
 
 button.fui-Button {
-  border-radius: 4px !important;
+  border-radius: 0px !important;
   font-weight: 700 !important;
   letter-spacing: -0.01em;
   box-shadow: none !important;

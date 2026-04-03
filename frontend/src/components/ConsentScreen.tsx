@@ -46,7 +46,7 @@ const useStyles = makeStyles({
   actionButton: {
     minHeight: '40px',
     minWidth: '160px',
-    borderRadius: '4px',
+    borderRadius: '0px',
     fontFamily: 'var(--font-display)',
     fontWeight: '600',
     fontSize: '0.875rem',

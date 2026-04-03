@@ -47,7 +47,7 @@ const useStyles = makeStyles({
   },
   card: {
     width: 'min(372px, 100%)',
-    borderRadius: '24px',
+    borderRadius: '0px',
     border: '1px solid rgba(17, 36, 58, 0.08)',
     background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.92))',
     boxShadow: '0 32px 80px rgba(17, 36, 58, 0.12)',
@@ -113,7 +113,7 @@ const useStyles = makeStyles({
   buttonBase: {
     minHeight: '46px',
     width: '100%',
-    borderRadius: '4px',
+    borderRadius: '0px',
     fontFamily: 'var(--font-display)',
     fontWeight: '700',
     fontSize: '0.95rem',

@@ -9,7 +9,6 @@ import {
   makeStyles,
   mergeClasses,
 } from '@fluentui/react-components'
-import { useState } from 'react'
 import type React from 'react'
 import type {
   ChildProfile,
@@ -43,67 +42,39 @@ const useStyles = makeStyles({
   },
   layout: {
     display: 'grid',
-    gridTemplateColumns: 'minmax(0, 1fr) 0fr',
+    gridTemplateColumns: 'minmax(0, 1.18fr) minmax(380px, 0.92fr)',
     gap: 'var(--space-xl)',
     alignItems: 'start',
-    transition: 'grid-template-columns 520ms cubic-bezier(0.22, 1, 0.36, 1), gap 520ms cubic-bezier(0.22, 1, 0.36, 1)',
-    overflow: 'hidden',
-    '@media (prefers-reduced-motion: reduce)': {
-      transition: 'none',
-    },
-  },
-  layoutRevealed: {
-    gridTemplateColumns: 'minmax(0, 1.45fr) minmax(340px, 0.62fr)',
-    '@media (max-width: 1240px)': {
-      gridTemplateColumns: 'minmax(0, 1.18fr) minmax(320px, 0.82fr)',
+    '@media (max-width: 1180px)': {
+      gridTemplateColumns: 'minmax(0, 1fr) minmax(340px, 0.86fr)',
     },
     '@media (max-width: 980px)': {
       gridTemplateColumns: '1fr',
       gap: 'var(--space-lg)',
     },
+    '@media (prefers-reduced-motion: reduce)': {
+      transition: 'none',
+    },
   },
   heroColumn: {
     display: 'grid',
-    gap: 'var(--space-md)',
+    gap: 'var(--space-lg)',
     minWidth: 0,
-    maxWidth: '960px',
     width: '100%',
-    justifySelf: 'center',
-    transition: 'max-width 520ms cubic-bezier(0.22, 1, 0.36, 1), transform 520ms cubic-bezier(0.22, 1, 0.36, 1)',
+    justifySelf: 'stretch',
     '@media (prefers-reduced-motion: reduce)': {
       transition: 'none',
     },
-  },
-  heroColumnRevealed: {
-    maxWidth: '100%',
-    justifySelf: 'stretch',
   },
   sideColumn: {
     display: 'grid',
-    gap: 'var(--space-sm)',
+    gap: 'var(--space-md)',
     minWidth: 0,
-    opacity: 0,
-    transform: 'translateX(40px)',
-    pointerEvents: 'none',
-    maxWidth: 0,
-    overflow: 'hidden',
-    transition:
-      'opacity 320ms ease-out 140ms, transform 420ms cubic-bezier(0.22, 1, 0.36, 1) 120ms, max-width 420ms cubic-bezier(0.22, 1, 0.36, 1) 120ms',
     '@media (max-width: 980px)': {
-      transform: 'translateY(18px)',
+      width: '100%',
     },
     '@media (prefers-reduced-motion: reduce)': {
       transition: 'none',
-    },
-  },
-  sideColumnRevealed: {
-    opacity: 1,
-    transform: 'translateX(0)',
-    pointerEvents: 'auto',
-    maxWidth: '100%',
-    '@media (max-width: 980px)': {
-      transform: 'translateY(0)',
-      width: '100%',
     },
   },
   scenarioCard: {
@@ -234,7 +205,6 @@ export function SessionScreen({
   onInterruptAvatar,
 }: SessionScreenProps) {
   const styles = useStyles()
-  const [transcriptRevealed, setTranscriptRevealed] = useState(!isChildMode)
   const customScenario = isCustomScenario(scenario) ? scenario : null
   const exerciseMetadata = getScenarioExerciseMetadata(scenario)
   const canTalk = connected && introComplete && !sessionFinished
@@ -274,18 +244,6 @@ export function SessionScreen({
     />
   ) : null
 
-  const handleToggleRecording = () => {
-    if (sessionFinished) {
-      return
-    }
-
-    if (!transcriptRevealed) {
-      setTranscriptRevealed(true)
-    }
-
-    onToggleRecording()
-  }
-
   return (
     <div
       className={mergeClasses(
@@ -293,18 +251,8 @@ export function SessionScreen({
         launching && styles.stageLaunching
       )}
     >
-      <div
-        className={mergeClasses(
-          styles.layout,
-          transcriptRevealed && styles.layoutRevealed
-        )}
-      >
-        <div
-          className={mergeClasses(
-            styles.heroColumn,
-            transcriptRevealed && styles.heroColumnRevealed
-          )}
-        >
+      <div className={styles.layout}>
+        <div className={styles.heroColumn}>
           {isChildMode && scenario ? (
             <Card className={styles.scenarioCard}>
               <Text className={styles.scenarioTitle} size={700} weight="semibold" block>
@@ -355,7 +303,7 @@ export function SessionScreen({
             connectionMessage={connectionMessage}
             recording={recording}
             processing={scoringUtterance}
-            onToggleRecording={handleToggleRecording}
+            onToggleRecording={onToggleRecording}
             canTalk={canTalk && !scoringUtterance}
             audience={isChildMode ? 'child' : 'therapist'}
             showMicDock={showMicDock}
@@ -372,13 +320,7 @@ export function SessionScreen({
           ) : null}
         </div>
 
-        <div
-          className={mergeClasses(
-            styles.sideColumn,
-            transcriptRevealed && styles.sideColumnRevealed
-          )}
-          aria-hidden={!transcriptRevealed}
-        >
+        <div className={styles.sideColumn}>
           <ChatPanel
             messages={messages}
             recording={recording}
@@ -389,7 +331,7 @@ export function SessionScreen({
             sessionFinished={sessionFinished}
             processing={scoringUtterance}
             canAnalyze={canAnalyze}
-            onToggleRecording={handleToggleRecording}
+            onToggleRecording={onToggleRecording}
             onClear={onClear}
             onAnalyze={onAnalyze}
             scenario={scenario}

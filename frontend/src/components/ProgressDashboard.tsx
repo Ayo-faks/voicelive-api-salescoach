@@ -126,7 +126,7 @@ const useStyles = makeStyles({
   },
   backButton: {
     minWidth: '140px',
-    borderRadius: '4px',
+    borderRadius: '0px',
     fontFamily: 'var(--font-display)',
     fontWeight: '600',
     minHeight: '36px',
@@ -140,7 +140,7 @@ const useStyles = makeStyles({
   },
   exitButton: {
     minWidth: '140px',
-    borderRadius: '4px',
+    borderRadius: '0px',
     fontFamily: 'var(--font-display)',
     fontWeight: '600',
     minHeight: '36px',
@@ -870,47 +870,6 @@ export function ProgressDashboard({
                     Create a therapist-facing next-step plan from this saved review and refine it before the next visit.
                   </Text>
                 </div>
-
-                {plannerReadiness ? (
-                  <div
-                    className={mergeClasses(
-                      styles.plannerStatusCard,
-                      !plannerReadiness.ready && styles.plannerStatusCardWarning,
-                    )}
-                  >
-                    <div className={styles.summaryRow}>
-                      <Badge appearance="filled">
-                        {plannerReadiness.ready ? 'Planner ready' : 'Planner unavailable'}
-                      </Badge>
-                      <Badge appearance="tint">Model {plannerReadiness.model}</Badge>
-                      <Badge appearance="outline">
-                        {plannerReadiness.auth.azure_byok_configured ? 'Azure BYOK configured' : 'Azure BYOK missing'}
-                      </Badge>
-                    </div>
-
-                    <Text size={300}>
-                      {plannerReadiness.ready
-                        ? 'The backend planner runtime is ready for generation and refinement.'
-                        : 'Plan generation is disabled until the backend planner runtime prerequisites are satisfied.'}
-                    </Text>
-
-                    {!plannerReadiness.ready && plannerReadiness.reasons.length ? (
-                      <div className={styles.plannerStatusList}>
-                        {plannerReadiness.reasons.map(reason => (
-                          <Text className={styles.errorText} size={300} key={reason}>
-                            {reason}
-                          </Text>
-                        ))}
-                      </div>
-                    ) : null}
-
-                    <Text className={styles.helperText} size={200}>
-                      CLI {plannerReadiness.cli.available ? 'available' : 'missing'}
-                      {plannerReadiness.cli.version ? ` • ${plannerReadiness.cli.version}` : ''}
-                      {plannerReadiness.cli.auth_message ? ` • ${plannerReadiness.cli.auth_message}` : ''}
-                    </Text>
-                  </div>
-                ) : null}
 
                 {loadingPlans ? (
                   <div className={styles.loading}>

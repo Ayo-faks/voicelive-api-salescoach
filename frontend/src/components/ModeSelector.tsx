@@ -16,7 +16,7 @@ const useStyles = makeStyles({
     justifyItems: 'center',
     background:
       'radial-gradient(ellipse at 50% 0%, rgba(13, 138, 132, 0.22), transparent 52%), linear-gradient(160deg, #e0f2f1 0%, #f1f8f8 40%, #f0f7f7 100%)',
-    borderRadius: 'calc(var(--radius-xl) + 4px)',
+    borderRadius: '0px',
     overflow: 'hidden',
     padding: 'clamp(1rem, 3vw, 2rem)',
   },
@@ -103,7 +103,7 @@ const useStyles = makeStyles({
     minWidth: '156px',
     minHeight: '46px',
     paddingInline: 'var(--space-lg)',
-    borderRadius: '4px',
+    borderRadius: '0px',
     fontFamily: 'var(--font-display)',
     fontSize: '0.92rem',
     fontWeight: '700',

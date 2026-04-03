@@ -21,42 +21,51 @@ const useStyles = makeStyles({
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    padding: 'var(--space-md)',
+    padding: 'var(--space-lg)',
     borderRadius: 'var(--radius-lg)',
-    border: '1px solid var(--color-border)',
-    backgroundColor: 'var(--color-bg-card)',
+    border: '1px solid var(--color-border-strong)',
+    backgroundColor: 'rgba(255, 251, 244, 0.92)',
     boxShadow: 'var(--shadow-sm)',
-    gap: 'var(--space-md)',
+    gap: 'var(--space-lg)',
     '@media (max-width: 720px)': {
-      padding: 'var(--space-sm)',
-      gap: 'var(--space-sm)',
+      padding: 'var(--space-md)',
+      gap: 'var(--space-md)',
     },
   },
   header: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '4px',
+    gap: 'var(--space-xs)',
+    paddingBottom: 'var(--space-sm)',
+    borderBottom: '1px solid var(--color-border)',
+  },
+  eyebrow: {
+    color: 'var(--color-text-tertiary)',
+    fontSize: '0.72rem',
+    fontWeight: '700',
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
   },
   title: {
     fontFamily: 'var(--font-display)',
     color: 'var(--color-text-primary)',
-    fontSize: '1.1rem',
-    fontWeight: '700',
-    letterSpacing: '-0.01em',
+    fontSize: '1.28rem',
+    fontWeight: '800',
+    letterSpacing: '-0.03em',
   },
   headerDescription: {
     color: 'var(--color-text-secondary)',
-    maxWidth: '720px',
-    fontSize: '0.8125rem',
+    maxWidth: '58ch',
+    fontSize: '0.84rem',
+    lineHeight: 1.55,
   },
   compactHeader: {
     display: 'grid',
     gap: '8px',
-    padding: 'var(--space-sm) var(--space-sm) calc(var(--space-sm) + 2px)',
+    padding: 'var(--space-md)',
     borderRadius: 'var(--radius-md)',
-    border: '1px solid rgba(13, 138, 132, 0.1)',
-    background:
-      'linear-gradient(180deg, rgba(13, 138, 132, 0.05), rgba(13, 138, 132, 0.015))',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'rgba(255,255,255,0.62)',
   },
   compactHeaderTitle: {
     fontFamily: 'var(--font-display)',
@@ -92,7 +101,7 @@ const useStyles = makeStyles({
   compactChip: {
     minHeight: '22px',
     paddingInline: '10px',
-    borderRadius: '4px',
+    borderRadius: '0px',
     backgroundColor: 'rgba(13, 138, 132, 0.1)',
     color: 'var(--color-primary-dark)',
     fontSize: '0.6875rem',
@@ -102,25 +111,25 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     minHeight: 0,
-    border: '1px solid var(--color-border)',
+    border: '1px solid var(--color-border-strong)',
     borderRadius: 'var(--radius-md)',
-    backgroundColor: 'var(--color-bg-card)',
+    backgroundColor: 'rgba(255,255,255,0.78)',
     overflow: 'hidden',
     '@media (max-width: 720px)': {
-      minHeight: '240px',
+      minHeight: '280px',
     },
   },
   messages: {
     flex: 1,
     overflowY: 'auto',
-    minHeight: '280px',
-    padding: '12px',
+    minHeight: '360px',
+    padding: 'var(--space-md)',
     display: 'flex',
     flexDirection: 'column-reverse',
-    gap: '10px',
+    gap: 'var(--space-sm)',
     '@media (max-width: 720px)': {
-      minHeight: '220px',
-      padding: '10px',
+      minHeight: '240px',
+      padding: 'var(--space-sm)',
       gap: '8px',
     },
   },
@@ -139,6 +148,7 @@ const useStyles = makeStyles({
     maxWidth: '92%',
     fontSize: '0.875rem',
     lineHeight: 1.45,
+    border: '1px solid var(--color-border)',
     '@media (max-width: 720px)': {
       maxWidth: '100%',
       padding: '9px 11px',
@@ -151,17 +161,17 @@ const useStyles = makeStyles({
     flexWrap: 'wrap',
   },
   userMessage: {
-    backgroundColor: 'var(--color-secondary-soft)',
+    backgroundColor: 'rgba(242, 233, 216, 0.62)',
     alignSelf: 'flex-end',
   },
   assistantMessage: {
-    backgroundColor: 'var(--color-primary-soft)',
+    backgroundColor: 'rgba(13, 138, 132, 0.08)',
     alignSelf: 'flex-start',
   },
   streamingCursor: {
     width: '8px',
     height: '1em',
-    borderRadius: '999px',
+    borderRadius: 'var(--radius-full)',
     backgroundColor: 'currentColor',
     opacity: 0.45,
     animationName: {
@@ -176,9 +186,9 @@ const useStyles = makeStyles({
     display: 'flex',
     gap: 'var(--space-sm)',
     flexWrap: 'wrap',
-    padding: '10px 12px',
+    padding: 'var(--space-md)',
     borderTop: '1px solid var(--color-border)',
-    backgroundColor: 'var(--color-bg-secondary)',
+    backgroundColor: 'rgba(255,255,255,0.7)',
     '@media (max-width: 640px)': {
       display: 'grid',
       gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
@@ -202,8 +212,7 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     gap: 'var(--space-sm)',
-    padding: '10px 12px 12px',
-    borderTop: '1px solid rgba(15, 23, 42, 0.06)',
+    padding: '0 var(--space-md) var(--space-md)',
     color: 'var(--color-text-tertiary)',
     fontSize: '0.75rem',
     lineHeight: 1.4,
@@ -366,7 +375,17 @@ export function ChatPanel({
 
   return (
     <Card className={styles.card}>
-      {audience === 'therapist' && scenario ? (
+      <div className={styles.header}>
+        <Text className={styles.eyebrow}>Session transcript</Text>
+        <Text className={styles.title} size={700} weight="semibold" block>
+          Session Transcript
+        </Text>
+        <Text size={300} block className={styles.headerDescription}>
+          Follow the live conversation as it unfolds and keep the session controls within reach.
+        </Text>
+      </div>
+
+      {scenario ? (
         <div className={styles.compactHeader}>
           <Text className={styles.compactHeaderTitle} size={500} weight="semibold">
             {scenario.name}
@@ -380,42 +399,6 @@ export function ChatPanel({
               ))}
             </div>
           ) : null}
-        </div>
-      ) : null}
-
-      {audience === 'child' && scenario ? (
-        <div className={styles.header}>
-          <Text className={styles.title} size={700} weight="semibold" block>
-            {scenario.name}
-          </Text>
-          <Text size={300} block className={styles.headerDescription}>
-            {scenario.description || 'Let\'s practice together.'}
-          </Text>
-          <div className={styles.exerciseMeta}>
-            {exerciseType && (
-              <span className={styles.exerciseChip}>{exerciseType}</span>
-            )}
-            {scenario.exerciseMetadata?.targetSound && (
-              <span className={styles.exerciseChip}>
-                Sound: {scenario.exerciseMetadata.targetSound}
-              </span>
-            )}
-            {customScenario?.scenarioData.targetSound && (
-              <span className={styles.exerciseChip}>
-                Sound: {customScenario.scenarioData.targetSound}
-              </span>
-            )}
-            {scenario.exerciseMetadata?.difficulty && (
-              <span className={styles.exerciseChip}>
-                {scenario.exerciseMetadata.difficulty}
-              </span>
-            )}
-            {customScenario?.scenarioData.difficulty && (
-              <span className={styles.exerciseChip}>
-                {customScenario.scenarioData.difficulty}
-              </span>
-            )}
-          </div>
         </div>
       ) : null}
 
