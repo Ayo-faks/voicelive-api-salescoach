@@ -2081,9 +2081,6 @@ export default function App() {
       currentMode={userMode}
       authRole={authUser?.role}
       selectedChild={selectedChild}
-      onGoHome={handleGoHome}
-      onOpenDashboard={() => openSection('dashboard')}
-      onReturnToEntry={handleReturnToEntry}
     />
   ) : showSetup ? (
     loading ? (
