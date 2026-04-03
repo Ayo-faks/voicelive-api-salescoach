@@ -298,8 +298,6 @@ const useStyles = makeStyles({
     },
   },
   appShellDashboard: {
-    background:
-      'linear-gradient(180deg, rgba(6, 98, 94, 0.98) 0%, rgba(13, 138, 132, 0.96) 26%, rgba(10, 117, 112, 0.96) 100%)',
   },
   contentArea: {
     minWidth: 0,
@@ -309,8 +307,6 @@ const useStyles = makeStyles({
     overflow: 'auto',
   },
   contentAreaDashboard: {
-    background:
-      'linear-gradient(180deg, rgba(6, 98, 94, 0.18) 0%, rgba(13, 138, 132, 0.06) 22%, rgba(251, 248, 242, 0) 42%)',
   },
   contentHeader: {
     display: 'flex',
@@ -334,8 +330,6 @@ const useStyles = makeStyles({
     },
   },
   contentHeaderDashboard: {
-    borderBottom: '1px solid rgba(255, 255, 255, 0.14)',
-    backgroundColor: 'rgba(6, 98, 94, 0.76)',
   },
   headerLead: {
     display: 'flex',
