@@ -297,12 +297,20 @@ const useStyles = makeStyles({
       gridTemplateColumns: '1fr',
     },
   },
+  appShellDashboard: {
+    background:
+      'linear-gradient(180deg, rgba(6, 98, 94, 0.98) 0%, rgba(13, 138, 132, 0.96) 26%, rgba(10, 117, 112, 0.96) 100%)',
+  },
   contentArea: {
     minWidth: 0,
     minHeight: '100vh',
     display: 'flex',
     flexDirection: 'column',
     overflow: 'auto',
+  },
+  contentAreaDashboard: {
+    background:
+      'linear-gradient(180deg, rgba(6, 98, 94, 0.18) 0%, rgba(13, 138, 132, 0.06) 22%, rgba(251, 248, 242, 0) 42%)',
   },
   contentHeader: {
     display: 'flex',
@@ -324,6 +332,10 @@ const useStyles = makeStyles({
       alignItems: 'flex-start',
       flexDirection: 'column',
     },
+  },
+  contentHeaderDashboard: {
+    borderBottom: '1px solid rgba(255, 255, 255, 0.14)',
+    backgroundColor: 'rgba(6, 98, 94, 0.76)',
   },
   headerLead: {
     display: 'flex',
@@ -349,6 +361,9 @@ const useStyles = makeStyles({
     letterSpacing: '0.08em',
     textTransform: 'uppercase',
   },
+  contentEyebrowDashboard: {
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
   contentTitle: {
     fontFamily: 'var(--font-display)',
     color: 'var(--color-text-primary)',
@@ -356,11 +371,17 @@ const useStyles = makeStyles({
     fontWeight: '800',
     letterSpacing: '-0.03em',
   },
+  contentTitleDashboard: {
+    color: 'var(--color-text-inverse)',
+  },
   contentSubtitle: {
     color: 'var(--color-text-secondary)',
     fontSize: '0.82rem',
     lineHeight: 1.45,
     maxWidth: '48ch',
+  },
+  contentSubtitleDashboard: {
+    color: 'rgba(255, 255, 255, 0.82)',
   },
   contentBody: {
     width: '100%',
@@ -751,7 +772,7 @@ export default function App() {
           ? 'Prepare the next visit'
           : 'Ready to practise'
   const contentSubtitle = therapistView
-    ? 'Review saved sessions, refine plans, and move back into practice without changing routes.'
+    ? 'Performance review, session history, and planning in one workspace.'
     : showSettings
       ? 'Adjust the current workspace context and switch between the key state-driven surfaces.'
       : !showSetup
@@ -2160,7 +2181,7 @@ export default function App() {
   return (
     <div className={styles.page}>
       {showSidebarShell ? (
-        <div className={styles.appShell}>
+        <div className={mergeClasses(styles.appShell, therapistView && styles.appShellDashboard)}>
           <SidebarNav
             appTitle={appTitle}
             activeSection={activeSection}
@@ -2185,8 +2206,8 @@ export default function App() {
             }}
           />
 
-          <div className={styles.contentArea}>
-            <div className={styles.contentHeader}>
+          <div className={mergeClasses(styles.contentArea, therapistView && styles.contentAreaDashboard)}>
+            <div className={mergeClasses(styles.contentHeader, therapistView && styles.contentHeaderDashboard)}>
               <div className={styles.headerLead}>
                 <Button
                   appearance="subtle"
@@ -2197,12 +2218,12 @@ export default function App() {
                 />
 
                 <div className={styles.contentHeading}>
-                  <Text className={styles.contentEyebrow}>{contentEyebrow}</Text>
-                  <Text className={styles.contentTitle}>{contentTitle}</Text>
+                  <Text className={mergeClasses(styles.contentEyebrow, therapistView && styles.contentEyebrowDashboard)}>{contentEyebrow}</Text>
+                  <Text className={mergeClasses(styles.contentTitle, therapistView && styles.contentTitleDashboard)}>{contentTitle}</Text>
                 </div>
               </div>
 
-              <Text className={styles.contentSubtitle}>{contentSubtitle}</Text>
+              <Text className={mergeClasses(styles.contentSubtitle, therapistView && styles.contentSubtitleDashboard)}>{contentSubtitle}</Text>
             </div>
 
             <div className={styles.contentBody}>{mainContent}</div>

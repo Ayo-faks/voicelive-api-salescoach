@@ -40,6 +40,16 @@ const useStyles = makeStyles({
     gap: 'var(--space-lg)',
     width: '100%',
   },
+  hero: {
+    display: 'grid',
+    gap: 'var(--space-lg)',
+    padding: 'clamp(1.4rem, 3vw, 2.1rem)',
+    borderRadius: '0px',
+    border: '1px solid rgba(255, 255, 255, 0.14)',
+    background:
+      'linear-gradient(145deg, rgba(6, 98, 94, 0.96), rgba(13, 138, 132, 0.92) 58%, rgba(32, 163, 158, 0.9))',
+    color: 'var(--color-text-inverse)',
+  },
   summaryStrip: {
     display: 'grid',
     gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
@@ -54,21 +64,22 @@ const useStyles = makeStyles({
   summaryCard: {
     padding: 'var(--space-lg)',
     borderRadius: 'var(--radius-lg)',
-    border: '1px solid var(--color-border-strong)',
-    backgroundColor: 'var(--color-surface-strong)',
+    border: '1px solid rgba(255, 255, 255, 0.16)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     boxShadow: 'var(--shadow-md)',
     display: 'grid',
     gap: 'var(--space-xs)',
+    alignContent: 'start',
   },
   summaryLabel: {
-    color: 'var(--color-text-tertiary)',
+    color: 'rgba(255, 255, 255, 0.72)',
     fontSize: '0.72rem',
     textTransform: 'uppercase' as const,
-    letterSpacing: '0.04em',
-    fontWeight: '600',
+    letterSpacing: '0.08em',
+    fontWeight: '700',
   },
   summaryValue: {
-    color: 'var(--color-text-primary)',
+    color: 'var(--color-text-inverse)',
     fontFamily: 'var(--font-display)',
     fontSize: '1.6rem',
     fontWeight: '800',
@@ -76,36 +87,76 @@ const useStyles = makeStyles({
     letterSpacing: '-0.03em',
   },
   summaryCopy: {
-    color: 'var(--color-text-secondary)',
+    color: 'rgba(255, 255, 255, 0.82)',
     fontSize: '0.78rem',
     lineHeight: 1.5,
   },
+  summaryTrendWrap: {
+    display: 'grid',
+    gap: '8px',
+  },
+  sparkline: {
+    width: '100%',
+    height: '44px',
+    overflow: 'visible',
+  },
+  sparklineTrack: {
+    fill: 'none',
+    stroke: 'rgba(255, 255, 255, 0.14)',
+    strokeWidth: 1,
+  },
+  sparklineLine: {
+    fill: 'none',
+    stroke: 'rgba(255, 255, 255, 0.96)',
+    strokeWidth: 2,
+    vectorEffect: 'non-scaling-stroke',
+  },
+  sparklineArea: {
+    fill: 'rgba(255, 255, 255, 0.12)',
+  },
+  sparklineDot: {
+    fill: 'var(--color-text-inverse)',
+  },
+  sparklineEmpty: {
+    height: '44px',
+    display: 'grid',
+    placeItems: 'center',
+    border: '1px dashed rgba(255, 255, 255, 0.18)',
+    color: 'rgba(255, 255, 255, 0.66)',
+    fontSize: '0.72rem',
+  },
   header: {
     display: 'flex',
-    alignItems: 'center',
     justifyContent: 'space-between',
     gap: 'var(--space-md)',
     flexWrap: 'wrap',
-    paddingBottom: 'var(--space-md)',
-    borderBottom: '1px solid var(--color-border)',
+    alignItems: 'flex-end',
   },
   headerCopy: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '2px',
+    gap: '6px',
+    maxWidth: '720px',
+  },
+  eyebrow: {
+    color: 'rgba(255, 255, 255, 0.74)',
+    fontSize: '0.72rem',
+    fontWeight: '700',
+    letterSpacing: '0.12em',
+    textTransform: 'uppercase' as const,
   },
   title: {
     fontFamily: 'var(--font-display)',
-    color: 'var(--color-text-primary)',
-    fontSize: '1.25rem',
-    fontWeight: '700',
-    letterSpacing: '-0.02em',
+    color: 'var(--color-text-inverse)',
+    fontSize: 'clamp(1.9rem, 4vw, 2.8rem)',
+    fontWeight: '800',
+    letterSpacing: '-0.05em',
   },
   subtitle: {
-    color: 'var(--color-text-secondary)',
-    maxWidth: '600px',
+    color: 'rgba(255, 255, 255, 0.86)',
+    maxWidth: '58ch',
     lineHeight: 1.5,
-    fontSize: '0.8125rem',
+    fontSize: '0.94rem',
   },
   grid: {
     display: 'grid',
@@ -119,18 +170,20 @@ const useStyles = makeStyles({
   card: {
     padding: 'var(--space-lg)',
     borderRadius: 'var(--radius-lg)',
-    border: '1px solid var(--color-border-strong)',
+    border: '1px solid rgba(255, 255, 255, 0.16)',
     backgroundColor: 'var(--color-surface-strong)',
     boxShadow: 'var(--shadow-md)',
   },
   backButton: {
-    minWidth: '140px',
+    minWidth: '148px',
     borderRadius: '0px',
     fontFamily: 'var(--font-display)',
-    fontWeight: '600',
-    minHeight: '36px',
-    fontSize: '0.8125rem',
-    border: '1px solid var(--color-border)',
+    fontWeight: '700',
+    minHeight: '44px',
+    fontSize: '0.92rem',
+    backgroundColor: 'var(--color-primary)',
+    color: 'var(--color-text-inverse)',
+    border: '1px solid rgba(255, 255, 255, 0.14)',
   },
   headerActions: {
     display: 'flex',
@@ -138,19 +191,21 @@ const useStyles = makeStyles({
     flexWrap: 'wrap',
   },
   exitButton: {
-    minWidth: '140px',
+    minWidth: '148px',
     borderRadius: '0px',
     fontFamily: 'var(--font-display)',
     fontWeight: '600',
-    minHeight: '36px',
-    fontSize: '0.8125rem',
-    color: 'var(--color-text-secondary)',
+    minHeight: '44px',
+    fontSize: '0.92rem',
+    color: 'var(--color-text-inverse)',
+    border: '1px solid rgba(255, 255, 255, 0.18)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
   columnTitle: {
     fontFamily: 'var(--font-display)',
     color: 'var(--color-text-primary)',
-    fontSize: '0.875rem',
-    fontWeight: '600',
+    fontSize: '0.94rem',
+    fontWeight: '700',
   },
   helperText: {
     color: 'var(--color-text-secondary)',
@@ -165,7 +220,7 @@ const useStyles = makeStyles({
     justifyContent: 'flex-start',
     minHeight: '52px',
     borderRadius: 'var(--radius-md)',
-    paddingInline: 'var(--space-sm)',
+    padding: '10px 12px',
     border: '1px solid transparent',
     backgroundColor: 'transparent',
     '@media (max-width: 720px)': {
@@ -173,16 +228,35 @@ const useStyles = makeStyles({
     },
   },
   listButtonSelected: {
-    border: '1px solid var(--color-border-strong)',
-    backgroundColor: 'rgba(13, 138, 132, 0.05)',
+    border: '1px solid rgba(13, 138, 132, 0.18)',
+    backgroundColor: 'rgba(13, 138, 132, 0.12)',
     boxShadow: 'var(--shadow-glow)',
   },
   listButtonContent: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    gap: '2px',
+    display: 'grid',
+    gap: '6px',
     width: '100%',
+  },
+  rowHeader: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 'var(--space-sm)',
+    width: '100%',
+  },
+  rowMain: {
+    display: 'grid',
+    gap: '2px',
+    minWidth: 0,
+  },
+  rowValue: {
+    color: 'var(--color-text-primary)',
+    fontFamily: 'var(--font-display)',
+    fontSize: '1rem',
+    fontWeight: '800',
+    lineHeight: 1,
+    letterSpacing: '-0.03em',
+    flexShrink: 0,
   },
   listTitle: {
     color: 'var(--color-text-primary)',
@@ -192,6 +266,34 @@ const useStyles = makeStyles({
   listMeta: {
     color: 'var(--color-text-tertiary)',
     fontSize: '0.75rem',
+  },
+  rowMeta: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    flexWrap: 'wrap',
+  },
+  metaDivider: {
+    width: '4px',
+    height: '4px',
+    borderRadius: '9999px',
+    backgroundColor: 'rgba(15, 42, 58, 0.18)',
+  },
+  miniTrend: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, auto))',
+    gap: '6px',
+    alignItems: 'center',
+    justifyContent: 'start',
+  },
+  miniMetric: {
+    padding: '3px 8px',
+    border: '1px solid rgba(15, 42, 58, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.7rem',
+    fontWeight: '700',
+    letterSpacing: '0.02em',
   },
   summaryRow: {
     display: 'flex',
@@ -260,8 +362,8 @@ const useStyles = makeStyles({
   textItem: {
     padding: 'var(--space-sm) var(--space-md)',
     borderRadius: 'var(--radius-md)',
-    backgroundColor: 'rgba(255, 255, 255, 0.82)',
-    border: '1px solid var(--color-border)',
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    border: '1px solid rgba(15, 42, 58, 0.1)',
     color: 'var(--color-text-primary)',
     fontSize: '0.8125rem',
     lineHeight: 1.5,
@@ -269,8 +371,8 @@ const useStyles = makeStyles({
   transcript: {
     padding: 'var(--space-md)',
     borderRadius: 'var(--radius-md)',
-    backgroundColor: 'rgba(255, 255, 255, 0.82)',
-    border: '1px solid var(--color-border)',
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    border: '1px solid rgba(15, 42, 58, 0.1)',
     color: 'var(--color-text-secondary)',
     whiteSpace: 'pre-wrap',
     lineHeight: 1.6,
@@ -281,7 +383,7 @@ const useStyles = makeStyles({
     padding: 'var(--space-lg)',
     borderRadius: 'var(--radius-md)',
     border: '1px dashed var(--color-border-strong)',
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
     textAlign: 'center',
     color: 'var(--color-text-tertiary)',
     fontSize: '0.8125rem',
@@ -298,32 +400,16 @@ const useStyles = makeStyles({
     paddingTop: 'var(--space-sm)',
     borderTop: '1px solid var(--color-border)',
   },
-  plannerStatusCard: {
-    display: 'grid',
-    gap: '4px',
-    padding: 'var(--space-sm)',
-    borderRadius: 'var(--radius-md)',
-    border: '1px solid var(--color-border)',
-    backgroundColor: 'rgba(233, 245, 246, 0.45)',
-  },
-  plannerStatusCardWarning: {
-    border: '1px solid rgba(180, 35, 24, 0.22)',
-    backgroundColor: 'rgba(254, 243, 242, 0.92)',
-  },
-  plannerStatusList: {
-    display: 'grid',
-    gap: '4px',
-  },
   planComposer: {
     width: '100%',
     minHeight: '92px',
     resize: 'vertical' as const,
     borderRadius: 'var(--radius-md)',
-    border: '1px solid var(--color-border)',
+    border: '1px solid rgba(15, 42, 58, 0.14)',
     padding: 'var(--space-sm)',
     font: 'inherit',
     color: 'var(--color-text-primary)',
-    backgroundColor: 'var(--color-bg-card)',
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
   },
   planActions: {
     display: 'flex',
@@ -337,16 +423,16 @@ const useStyles = makeStyles({
   planItem: {
     padding: 'var(--space-sm)',
     borderRadius: 'var(--radius-md)',
-    border: '1px solid var(--color-border)',
-    backgroundColor: 'rgba(255, 255, 255, 0.82)',
+    border: '1px solid rgba(15, 42, 58, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
     display: 'grid',
     gap: '4px',
   },
   conversationItem: {
     padding: 'var(--space-sm)',
     borderRadius: 'var(--radius-md)',
-    backgroundColor: 'rgba(255, 255, 255, 0.82)',
-    border: '1px solid var(--color-border)',
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    border: '1px solid rgba(15, 42, 58, 0.1)',
     display: 'grid',
     gap: '2px',
   },
@@ -382,13 +468,6 @@ function formatTimestamp(timestamp?: string | null) {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(timestamp))
-}
-
-function getScoreColor(score?: number | null): 'success' | 'warning' | 'danger' | 'informative' {
-  if (score == null) return 'informative'
-  if (score >= 80) return 'success'
-  if (score >= 60) return 'warning'
-  return 'danger'
 }
 
 function getScoreBadgeClass(
@@ -451,6 +530,34 @@ function getTargetSoundSummary(sessions: SessionSummary[]) {
   return Array.from(new Set(sounds)).slice(0, 3).join(', ')
 }
 
+function getScoreSeries(sessions: SessionSummary[]) {
+  return [...sessions]
+    .sort((left, right) => new Date(left.timestamp).getTime() - new Date(right.timestamp).getTime())
+    .map(session => session.overall_score)
+    .filter((score): score is number => typeof score === 'number')
+}
+
+function buildSparklinePath(scores: number[], width: number, height: number) {
+  if (scores.length === 0) {
+    return { line: '', area: '', lastPoint: null as { x: number; y: number } | null }
+  }
+
+  const step = scores.length > 1 ? width / (scores.length - 1) : 0
+  const points = scores.map((score, index) => {
+    const x = scores.length > 1 ? index * step : width / 2
+    const y = height - (Math.max(0, Math.min(100, score)) / 100) * height
+    return { x, y }
+  })
+
+  const line = points
+    .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+    .join(' ')
+
+  const area = `${line} L ${points[points.length - 1].x} ${height} L ${points[0].x} ${height} Z`
+
+  return { line, area, lastPoint: points[points.length - 1] }
+}
+
 interface Props {
   childProfiles: ChildProfile[]
   selectedChildId: string | null
@@ -503,50 +610,66 @@ export function ProgressDashboard({
   const averageScore = getAverageScore(sessions)
   const trendLabel = getTrendLabel(sessions)
   const targetSoundSummary = getTargetSoundSummary(sessions)
+  const scoreSeries = getScoreSeries(sessions)
+  const sparkline = buildSparklinePath(scoreSeries, 180, 44)
 
   return (
     <div className={styles.shell}>
-      <div className={styles.header}>
-        <div className={styles.headerCopy}>
-          <Text className={styles.title} size={700} weight="semibold">
-            Progress dashboard for supervised practice
-          </Text>
-          <Text className={styles.subtitle} size={300}>
-            Review saved exercise sessions over time, scan pronunciation trends,
-            and open the full session detail without changing the child-facing
-            practice flow.
-          </Text>
+      <div className={styles.hero}>
+        <div className={styles.header}>
+          <div className={styles.headerCopy}>
+            <Text className={styles.eyebrow}>Therapist analytics</Text>
+            <Text className={styles.title} size={700} weight="semibold">
+              Session intelligence dashboard
+            </Text>
+            <Text className={styles.subtitle} size={300}>
+              Track session quality, scan score movement, and turn saved reviews into next-step action for the active child.
+            </Text>
+          </div>
+
+          <div className={styles.headerActions}>
+            <Button appearance="subtle" className={styles.exitButton} onClick={onExitToEntry}>
+              Return to start
+            </Button>
+            <Button appearance="primary" className={styles.backButton} onClick={onBackToPractice}>
+              Back to practice
+            </Button>
+          </div>
         </div>
 
-        <div className={styles.headerActions}>
-          <Button appearance="subtle" className={styles.exitButton} onClick={onExitToEntry}>
-            Return to start
-          </Button>
-          <Button appearance="secondary" className={styles.backButton} onClick={onBackToPractice}>
-            Back to practice
-          </Button>
-        </div>
-      </div>
-
-      <div className={styles.summaryStrip}>
+        <div className={styles.summaryStrip}>
         <Card className={styles.summaryCard}>
           <Text className={styles.summaryLabel}>Selected child</Text>
           <Text className={styles.summaryValue}>{selectedChild?.name || 'Choose child'}</Text>
           <Text className={styles.summaryCopy}>
             {selectedChild
-              ? `${selectedChild.session_count ?? sessions.length} saved sessions on record.`
-              : 'Pick a child to reveal session history and detailed trends.'}
+              ? `${selectedChild.session_count ?? sessions.length} reviewed sessions available.`
+              : 'Select a child to populate this workspace.'}
           </Text>
         </Card>
 
         <Card className={styles.summaryCard}>
           <Text className={styles.summaryLabel}>Average score</Text>
           <Text className={styles.summaryValue}>{averageScore != null ? `${averageScore}%` : '—'}</Text>
-          <Text className={styles.summaryCopy}>
-            {averageScore != null
-              ? 'Based on saved reviewed sessions for this child.'
-              : 'Scores appear after analysed sessions are saved.'}
-          </Text>
+          <div className={styles.summaryTrendWrap}>
+            {scoreSeries.length > 1 ? (
+              <svg viewBox="0 0 180 44" aria-hidden="true" className={styles.sparkline}>
+                <path d="M 0 43.5 L 180 43.5" className={styles.sparklineTrack} />
+                <path d={sparkline.area} className={styles.sparklineArea} />
+                <path d={sparkline.line} className={styles.sparklineLine} />
+                {sparkline.lastPoint ? (
+                  <circle cx={sparkline.lastPoint.x} cy={sparkline.lastPoint.y} r="3.5" className={styles.sparklineDot} />
+                ) : null}
+              </svg>
+            ) : (
+              <div className={styles.sparklineEmpty}>More sessions needed for a trend line.</div>
+            )}
+            <Text className={styles.summaryCopy}>
+              {averageScore != null
+                ? 'Calculated from saved scored sessions.'
+                : 'Scores populate after reviewed sessions are saved.'}
+            </Text>
+          </div>
         </Card>
 
         <Card className={styles.summaryCard}>
@@ -562,6 +685,7 @@ export function ProgressDashboard({
             Last saved session: {formatShortDate(selectedChild?.last_session_at)}
           </Text>
         </Card>
+        </div>
       </div>
 
       <div className={styles.grid}>
@@ -570,11 +694,6 @@ export function ProgressDashboard({
             header={
               <Text className={styles.columnTitle} size={500} weight="semibold">
                 Children
-              </Text>
-            }
-            description={
-              <Text className={styles.helperText} size={300}>
-                Choose the child whose sessions you want to review.
               </Text>
             }
           />
@@ -599,15 +718,22 @@ export function ProgressDashboard({
                     onClick={() => onSelectChild(child.id)}
                   >
                     <div className={styles.listButtonContent}>
-                      <Text className={styles.listTitle} weight="semibold">
-                        {child.name}
-                      </Text>
-                      <Text className={styles.listMeta} size={200}>
-                        {child.session_count ?? 0} saved sessions
-                      </Text>
-                      <Text className={styles.listMeta} size={200}>
-                        Last session: {formatTimestamp(child.last_session_at)}
-                      </Text>
+                      <div className={styles.rowHeader}>
+                        <div className={styles.rowMain}>
+                          <Text className={styles.listTitle} weight="semibold">
+                            {child.name}
+                          </Text>
+                          <div className={styles.rowMeta}>
+                            <Text className={styles.listMeta} size={200}>
+                              {child.session_count ?? 0} saved sessions
+                            </Text>
+                            <span className={styles.metaDivider} />
+                            <Text className={styles.listMeta} size={200}>
+                              {formatShortDate(child.last_session_at)}
+                            </Text>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </Button>
                 )
@@ -621,11 +747,6 @@ export function ProgressDashboard({
             header={
               <Text className={styles.columnTitle} size={500} weight="semibold">
                 Session history
-              </Text>
-            }
-            description={
-              <Text className={styles.helperText} size={300}>
-                Recent sessions appear first so progress is easy to scan.
               </Text>
             }
           />
@@ -654,12 +775,27 @@ export function ProgressDashboard({
                     onClick={() => onOpenSession(session.id)}
                   >
                     <div className={styles.listButtonContent}>
-                      <Text className={styles.listTitle} weight="semibold">
-                        {session.exercise.name}
-                      </Text>
-                      <Text className={styles.listMeta} size={200}>
-                        {formatTimestamp(session.timestamp)}
-                      </Text>
+                      <div className={styles.rowHeader}>
+                        <div className={styles.rowMain}>
+                          <Text className={styles.listTitle} weight="semibold">
+                            {session.exercise.name}
+                          </Text>
+                          <div className={styles.rowMeta}>
+                            <Text className={styles.listMeta} size={200}>
+                              {formatShortDate(session.timestamp)}
+                            </Text>
+                            {session.exercise_metadata?.targetSound || session.exercise.exerciseMetadata?.targetSound ? (
+                              <>
+                                <span className={styles.metaDivider} />
+                                <Text className={styles.listMeta} size={200}>
+                                  {session.exercise_metadata?.targetSound || session.exercise.exerciseMetadata?.targetSound}
+                                </Text>
+                              </>
+                            ) : null}
+                          </div>
+                        </div>
+                        <Text className={styles.rowValue}>{session.overall_score ?? '—'}</Text>
+                      </div>
                       <div className={styles.summaryRow}>
                         <Badge appearance="filled" className={getScoreBadgeClass(styles, session.overall_score)}>
                           Overall {session.overall_score ?? '—'}
@@ -667,11 +803,16 @@ export function ProgressDashboard({
                         <Badge appearance="tint" className={getScoreBadgeClass(styles, session.accuracy_score)}>
                           Accuracy {session.accuracy_score ?? '—'}
                         </Badge>
-                          {session.therapist_feedback?.rating ? (
-                            <Badge appearance="outline" className={styles.scoreBadge}>
-                              Feedback {session.therapist_feedback.rating === 'up' ? 'helpful' : 'follow-up'}
-                            </Badge>
-                          ) : null}
+                        {session.pronunciation_score != null ? (
+                          <div className={styles.miniMetric}>
+                            Pron {Math.round(session.pronunciation_score)}
+                          </div>
+                        ) : null}
+                        {session.therapist_feedback?.rating ? (
+                          <Badge appearance="outline" className={styles.scoreBadge}>
+                            Feedback {session.therapist_feedback.rating === 'up' ? 'helpful' : 'follow-up'}
+                          </Badge>
+                        ) : null}
                       </div>
                     </div>
                   </Button>

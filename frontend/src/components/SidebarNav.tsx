@@ -123,11 +123,6 @@ const useStyles = makeStyles({
     fontWeight: '800',
     letterSpacing: '-0.03em',
   },
-  brandSubtitle: {
-    color: 'var(--color-text-tertiary)',
-    fontSize: '0.75rem',
-    lineHeight: 1.4,
-  },
   collapsedHidden: {
     '@media (min-width: 721px)': {
       display: 'none',
@@ -180,11 +175,6 @@ const useStyles = makeStyles({
     fontWeight: '700',
     letterSpacing: '0.06em',
     textTransform: 'uppercase',
-  },
-  selectorHint: {
-    color: 'var(--color-text-secondary)',
-    fontSize: '0.78rem',
-    lineHeight: 1.45,
   },
   dropdown: {
     minWidth: '100%',
@@ -274,7 +264,6 @@ export function SidebarNav({
               <img src="/wulo-logo.png" alt="Wulo logo" className={styles.brandLogo} />
               <div className={mergeClasses(styles.brandText, !isExpanded && styles.collapsedHidden)}>
                 <Text className={styles.brandTitle}>{appTitle}</Text>
-                <Text className={styles.brandSubtitle}>Speech practice workspace</Text>
               </div>
             </button>
 
@@ -329,9 +318,6 @@ export function SidebarNav({
           {isTherapist && isExpanded ? (
             <div className={styles.selectorCard}>
               <Text className={styles.selectorLabel}>Active child</Text>
-              <Text className={styles.selectorHint}>
-                Keep the therapist context pointed at the child you are working with.
-              </Text>
               <Dropdown
                 className={styles.dropdown}
                 disabled={childrenLoading || childProfiles.length === 0}
