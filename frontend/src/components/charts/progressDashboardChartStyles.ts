@@ -97,7 +97,7 @@ export const progressDashboardChartStyleSlots = {
   },
   planSummaryGrid: {
     display: 'grid',
-    gridTemplateColumns: 'minmax(0, 1fr) 160px',
+    gridTemplateColumns: 'minmax(0, 1fr) 188px',
     gap: 'var(--space-md)',
     alignItems: 'start',
     '@media (max-width: 640px)': {

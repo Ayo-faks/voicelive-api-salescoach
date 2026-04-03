@@ -170,29 +170,37 @@ export function PlanConfidenceGauge({
 }) {
   const color = getGaugeColor(confidence.value)
   const endAngle = 180 - (confidence.value / 100) * 180
-  const radius = 58
-  const needleAngle = endAngle
-  const angleInRadians = ((needleAngle - 90) * Math.PI) / 180
-  const needleEnd = {
-    x: 80 + 48 * Math.cos(angleInRadians),
-    y: 80 + 48 * Math.sin(angleInRadians),
+  const radius = 52
+  const angleInRadians = ((endAngle - 90) * Math.PI) / 180
+  const marker = {
+    x: 90 + radius * Math.cos(angleInRadians),
+    y: 90 + radius * Math.sin(angleInRadians),
   }
 
   return (
-    <div style={{ width: '160px' }}>
-      <svg viewBox="0 0 160 100" width="160" height="100" role="img" aria-label="Plan confidence gauge">
-        <path d={describeArc(80, 80, radius, 180, 0)} fill="none" stroke="rgba(15, 42, 58, 0.06)" strokeWidth="12" />
-        <path d={describeArc(80, 80, radius, 180, endAngle)} fill="none" stroke={color} strokeWidth="12" />
-        <line x1="80" y1="80" x2={needleEnd.x} y2={needleEnd.y} stroke={chartPalette.accent} strokeWidth="3" />
-        <circle cx="80" cy="80" r="5" fill={chartPalette.accent} />
-        <text x="80" y="68" textAnchor="middle" fill={chartPalette.accent} fontSize="20" fontWeight="700" fontFamily="Manrope">
+    <div
+      style={{
+        width: '188px',
+        display: 'grid',
+        gap: '8px',
+        justifyItems: 'center',
+        padding: '10px 10px 12px',
+        border: '1px solid rgba(15, 42, 58, 0.12)',
+        backgroundColor: 'rgba(255, 253, 249, 0.98)',
+      }}
+    >
+      <svg viewBox="0 0 180 120" width="180" height="120" role="img" aria-label="Plan confidence gauge">
+        <path d={describeArc(90, 90, radius, 180, 0)} fill="none" stroke="rgba(15, 42, 58, 0.08)" strokeWidth="12" />
+        <path d={describeArc(90, 90, radius, 180, endAngle)} fill="none" stroke={color} strokeWidth="12" />
+        <circle cx={marker.x} cy={marker.y} r="4" fill={color} />
+        <text x="90" y="80" textAnchor="middle" fill={chartPalette.accent} fontSize="38" fontWeight="700" fontFamily="Manrope">
           {confidence.value}
         </text>
-        <text x="80" y="88" textAnchor="middle" fill={chartPalette.axis} fontSize="10" fontFamily="Manrope">
+        <text x="90" y="98" textAnchor="middle" fill={chartPalette.axis} fontSize="11" fontFamily="Manrope">
           confidence
         </text>
       </svg>
-      <Text className={styles.helperText} size={200}>
+      <Text className={styles.helperText} size={200} style={{ textAlign: 'center' }}>
         {confidence.label}
       </Text>
     </div>

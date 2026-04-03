@@ -93,6 +93,7 @@ const useStyles = makeStyles({
     alignContent: 'start',
   },
   summaryLabel: {
+    display: 'block',
     color: 'var(--color-text-tertiary)',
     fontSize: '0.74rem',
     textTransform: 'uppercase' as const,
@@ -108,6 +109,7 @@ const useStyles = makeStyles({
     letterSpacing: '-0.03em',
   },
   summaryCopy: {
+    display: 'block',
     color: 'var(--color-text-secondary)',
     fontSize: '0.78rem',
     lineHeight: 1.45,
@@ -256,6 +258,7 @@ const useStyles = makeStyles({
     fontWeight: '700',
   },
   helperText: {
+    display: 'block',
     color: 'var(--color-text-secondary)',
     fontSize: '0.8125rem',
     lineHeight: 1.55,
@@ -507,6 +510,7 @@ const useStyles = makeStyles({
     },
   },
   sectionTitle: {
+    display: 'block',
     fontFamily: 'var(--font-display)',
     color: 'var(--color-text-primary)',
     marginBottom: '10px',
@@ -616,6 +620,10 @@ const useStyles = makeStyles({
     color: 'var(--color-text-primary)',
     fontSize: '0.84rem',
     lineHeight: 1.6,
+  },
+  textStack: {
+    display: 'grid',
+    gap: '4px',
   },
   transcript: {
     padding: 'var(--space-md)',
@@ -1332,10 +1340,12 @@ export function ProgressDashboard({
                         </div>
 
                         <div className={styles.textItem}>
-                          <Text size={300} weight="semibold">
-                            {selectedPlan.draft.objective}
-                          </Text>
-                          {selectedPlan.draft.focus_sound ? <Text size={200}>Target sound: {selectedPlan.draft.focus_sound}</Text> : null}
+                          <div className={styles.textStack}>
+                            <Text size={300} weight="semibold">
+                              {selectedPlan.draft.objective}
+                            </Text>
+                            {selectedPlan.draft.focus_sound ? <Text size={200}>Target sound: {selectedPlan.draft.focus_sound}</Text> : null}
+                          </div>
                         </div>
                       </div>
 
