@@ -47,6 +47,22 @@ class TestFlaskApp:
             assert response.status_code == 200
             mock_send.assert_called_once_with(app.static_folder, "index.html")
 
+    def test_spa_route_serves_index(self):
+        """Test SPA deep links resolve to the frontend entry point."""
+        with patch("src.app.send_from_directory") as mock_send:
+            mock_send.return_value = "index.html content"
+
+            response = self.client.get("/dashboard")
+
+            assert response.status_code == 200
+            mock_send.assert_called_once_with(app.static_folder, "index.html")
+
+    def test_asset_like_route_is_not_swallowed_by_spa_fallback(self):
+        """Test asset requests still return 404 when the file is missing."""
+        response = self.client.get("/assets/does-not-exist.css")
+
+        assert response.status_code == 404
+
     def test_index_route_no_static_folder(self):
         """Test index route behavior when static folder is None."""
         original_static_folder = app.static_folder

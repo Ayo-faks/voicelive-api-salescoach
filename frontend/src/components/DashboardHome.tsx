@@ -12,8 +12,6 @@ import {
   Text,
   makeStyles,
 } from '@fluentui/react-components'
-import { PlusIcon } from '@heroicons/react/24/outline'
-import { CustomScenarioEditor } from './CustomScenarioEditor'
 import { ScenarioList } from './ScenarioList'
 import type {
   ChildProfile,
@@ -27,34 +25,6 @@ const useStyles = makeStyles({
   layout: {
     display: 'grid',
     gap: 'var(--space-lg)',
-  },
-  topBar: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    gap: 'var(--space-sm)',
-    flexWrap: 'wrap',
-  },
-  createAction: {
-    minHeight: '36px',
-    minWidth: '148px',
-    paddingInline: 'var(--space-md)',
-    borderRadius: '0px',
-    fontFamily: 'var(--font-display)',
-    fontWeight: '600',
-    fontSize: '0.8125rem',
-    backgroundColor: 'var(--color-primary)',
-    color: 'var(--color-text-inverse)',
-    border: 'none',
-  },
-  tertiaryAction: {
-    minHeight: '36px',
-    minWidth: '132px',
-    paddingInline: 'var(--space-md)',
-    borderRadius: '0px',
-    fontFamily: 'var(--font-display)',
-    fontWeight: '600',
-    color: 'var(--color-text-secondary)',
-    fontSize: '0.8125rem',
   },
   hero: {
     display: 'grid',
@@ -201,6 +171,17 @@ const useStyles = makeStyles({
     border: '1px solid var(--color-border)',
     backgroundColor: 'rgba(255, 255, 255, 0.82)',
   },
+  exerciseSection: {
+    padding: 'var(--space-lg)',
+    borderRadius: 'var(--radius-lg)',
+    border: '1px solid var(--color-border)',
+    background:
+      'linear-gradient(135deg, rgba(233, 245, 246, 0.96), rgba(224, 239, 241, 0.96))',
+    boxShadow: 'var(--shadow-md)',
+    '@media (max-width: 760px)': {
+      padding: 'var(--space-md)',
+    },
+  },
   library: {
     display: 'grid',
   },
@@ -244,7 +225,6 @@ interface DashboardHomeProps {
   onSelectScenario: (scenarioId: string) => void
   onStartScenario: (scenarioId: string) => void
   onStartSession: () => void
-  onExitToEntry: () => void
   onOpenTherapistReview: () => void
   onAddCustomScenario: (
     name: string,
@@ -275,7 +255,6 @@ export function DashboardHome({
   onSelectScenario,
   onStartScenario,
   onStartSession,
-  onExitToEntry,
   onOpenTherapistReview,
   onAddCustomScenario,
   onUpdateCustomScenario,
@@ -305,28 +284,6 @@ export function DashboardHome({
 
   return (
     <div className={styles.layout}>
-      <div className={styles.topBar}>
-        <CustomScenarioEditor
-          onSave={onAddCustomScenario}
-          trigger={
-            <Button
-              appearance="primary"
-              className={styles.createAction}
-              icon={<PlusIcon className="w-5 h-5" />}
-            >
-              Create Exercise
-            </Button>
-          }
-        />
-        <Button
-          appearance="subtle"
-          className={styles.tertiaryAction}
-          onClick={onExitToEntry}
-        >
-          Switch profile
-        </Button>
-      </div>
-
       <Card className={styles.hero}>
         <div className={styles.heroControls}>
           <div>
@@ -386,9 +343,6 @@ export function DashboardHome({
             <Text className={styles.heroHint}>{heroHint}</Text>
             <div className={styles.chipRow}>
               <Badge appearance="tint" className={styles.metaBadge}>
-                Child: {selectedChild?.name || 'Choose child'}
-              </Badge>
-              <Badge appearance="tint" className={styles.metaBadge}>
                 Buddy: {selectedAvatarOption.label}
               </Badge>
               {selectedScenarioDetail ? (
@@ -432,7 +386,7 @@ export function DashboardHome({
         </div>
       </Card>
 
-      <section className={styles.library}>
+      <Card className={styles.exerciseSection}>
         <ScenarioList
           scenarios={scenarios}
           customScenarios={customScenarios}
@@ -447,8 +401,9 @@ export function DashboardHome({
           helperText="Choose an exercise to launch next."
           showFooter={false}
           showCustomCreateTrigger={false}
+          compactChildMode
         />
-      </section>
+      </Card>
     </div>
   )
 }

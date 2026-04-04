@@ -23,6 +23,8 @@ import {
   HeartIcon,
   AdjustmentsHorizontalIcon,
   Bars3Icon,
+  ChevronDownIcon,
+  PlusIcon,
 } from '@heroicons/react/24/outline'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
@@ -39,6 +41,7 @@ import { SessionScreen } from '../components/SessionScreen'
 import { SessionLaunchOverlay } from '../components/SessionLaunchOverlay'
 import { SettingsView } from '../components/SettingsView'
 import { SidebarNav } from '../components/SidebarNav'
+import { CustomScenarioEditor } from '../components/CustomScenarioEditor'
 import { useAudioPlayer } from '../hooks/useAudioPlayer'
 import { useRealtime } from '../hooks/useRealtime'
 import type { RecorderAudioChunk } from '../hooks/useRecorder'
@@ -205,6 +208,22 @@ function getAvatarPersona(avatarValue: string | undefined): string {
   return avatar?.persona || 'a warm adult speech-practice buddy'
 }
 
+function getProfileInitials(label: string | null | undefined): string {
+  if (!label) return 'WP'
+
+  const parts = label
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+
+  if (parts.length === 0) return 'WP'
+
+  return parts
+    .slice(0, 2)
+    .map(part => part.charAt(0).toUpperCase())
+    .join('')
+}
+
 function getSectionRoute(section: SidebarSection): AppRoute {
   if (section === 'dashboard') {
     return APP_ROUTES.dashboard
@@ -322,7 +341,7 @@ const useStyles = makeStyles({
     minHeight: '100vh',
     display: 'grid',
     gridTemplateColumns: 'auto minmax(0, 1fr)',
-    backgroundColor: 'rgba(255, 251, 244, 0.9)',
+    backgroundColor: 'rgba(233, 245, 246, 0.56)',
     '@media (max-width: 720px)': {
       gridTemplateColumns: '1fr',
     },
@@ -341,11 +360,10 @@ const useStyles = makeStyles({
   contentHeader: {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between',
     gap: 'var(--space-md)',
     padding: 'var(--space-lg) var(--space-xl) var(--space-md)',
     borderBottom: '1px solid var(--color-border)',
-    backgroundColor: 'rgba(253, 250, 244, 0.94)',
+    background: 'linear-gradient(135deg, rgba(233, 245, 246, 0.97), rgba(224, 239, 241, 0.97))',
     backdropFilter: 'blur(14px)',
     position: 'sticky',
     top: 0,
@@ -356,16 +374,30 @@ const useStyles = makeStyles({
       paddingBottom: 'var(--space-sm)',
       paddingLeft: 'var(--space-md)',
       alignItems: 'flex-start',
-      flexDirection: 'column',
     },
   },
   contentHeaderDashboard: {
+  },
+  contentHeaderMain: {
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 'var(--space-md)',
+    '@media (max-width: 720px)': {
+      flexDirection: 'column',
+      alignItems: 'stretch',
+    },
   },
   headerLead: {
     display: 'flex',
     alignItems: 'center',
     gap: 'var(--space-md)',
     minWidth: 0,
+    flex: 1,
+    '@media (max-width: 720px)': {
+      width: '100%',
+    },
   },
   contentMenuButton: {
     display: 'none',
@@ -377,6 +409,63 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: '2px',
     minWidth: 0,
+  },
+  contentHeaderActions: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 'var(--space-sm)',
+    flexWrap: 'wrap',
+    '@media (max-width: 720px)': {
+      width: '100%',
+      justifyContent: 'space-between',
+    },
+  },
+  profileSwitchButton: {
+    minHeight: '44px',
+    minWidth: '44px',
+    paddingInline: '8px',
+    borderRadius: '999px',
+    border: '1px solid rgba(13, 138, 132, 0.12)',
+    backgroundColor: 'rgba(255, 255, 255, 0.78)',
+    color: 'var(--color-text-primary)',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+    boxShadow: 'none',
+  },
+  profileAvatar: {
+    width: '28px',
+    height: '28px',
+    borderRadius: '50%',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'linear-gradient(135deg, rgba(13, 138, 132, 0.9), rgba(73, 177, 171, 0.9))',
+    color: 'white',
+    fontSize: '0.78rem',
+    fontWeight: '800',
+    letterSpacing: '0.03em',
+    flexShrink: 0,
+  },
+  profileSwitchChevron: {
+    width: '14px',
+    height: '14px',
+    color: 'var(--color-text-secondary)',
+    flexShrink: 0,
+  },
+  headerCreateAction: {
+    minHeight: '42px',
+    paddingInline: 'var(--space-md)',
+    borderRadius: '999px',
+    fontFamily: 'var(--font-display)',
+    fontWeight: '700',
+    fontSize: '0.84rem',
+    backgroundColor: 'var(--color-primary)',
+    color: 'var(--color-text-inverse)',
+    border: 'none',
+    boxShadow: 'none',
   },
   contentEyebrow: {
     color: 'var(--color-text-tertiary)',
@@ -797,7 +886,7 @@ export default function App() {
   const contentEyebrow = isDashboardRoute
     ? 'Dashboard'
     : isSettingsRoute
-      ? 'Settings'
+      ? 'Workspace'
       : isSessionRoute
         ? 'Live session'
         : userMode === 'therapist'
@@ -806,7 +895,7 @@ export default function App() {
   const contentTitle = isDashboardRoute
     ? 'Progress and planning'
     : isSettingsRoute
-      ? 'Workspace settings'
+      ? 'Workspace'
       : isSessionRoute
         ? activeScenario?.name || 'Session in progress'
         : userMode === 'therapist'
@@ -815,12 +904,20 @@ export default function App() {
   const contentSubtitle = isDashboardRoute
     ? 'Performance review, session history, and planning in one workspace.'
     : isSettingsRoute
-      ? 'Adjust the current workspace context and switch between the key state-driven surfaces.'
+      ? 'Change the active mode, child, and practice buddy for this workspace.'
       : isSessionRoute
         ? 'The session stays live while navigation remains inside the same app state machine.'
         : userMode === 'therapist'
           ? 'Choose a child, pick an exercise, and move into guided practice.'
           : 'Launch the next exercise and keep the practice flow simple for the child.'
+  const isHomeShellRoute = !isDashboardRoute && !isSettingsRoute && !isSessionRoute
+  const showProfileHeader = showSidebarShell && isHomeShellRoute
+  const showHeaderCreateAction = showProfileHeader && userMode === 'therapist'
+  const showDashboardNav = userMode !== 'child'
+  const profileHeaderName = userMode === 'child'
+    ? selectedChild?.name || authUser?.name || 'Child profile'
+    : authUser?.name || 'Therapist profile'
+  const profileHeaderInitials = getProfileInitials(profileHeaderName)
   const validChildIds = new Set(children.map(child => child.id))
   const homeScenarioIds = new Set(
     (userMode === 'therapist'
@@ -1497,9 +1594,11 @@ export default function App() {
       return
     }
 
-    if (currentRoute === APP_ROUTES.dashboard && !isTherapist) {
+    if (currentRoute === APP_ROUTES.dashboard && (!isTherapist || userMode === 'child')) {
       setRoleNoticeIntent('review')
-      setShowRoleNotice(true)
+      if (!isTherapist) {
+        setShowRoleNotice(true)
+      }
       navigate(APP_ROUTES.home, { replace: true })
       return
     }
@@ -2132,9 +2231,11 @@ export default function App() {
     const nextRoute = getSectionRoute(section)
 
     if (section === 'dashboard') {
-      if (!isTherapist) {
+      if (!isTherapist || userMode === 'child') {
         setRoleNoticeIntent('review')
-        setShowRoleNotice(true)
+        if (!isTherapist) {
+          setShowRoleNotice(true)
+        }
         return
       }
 
@@ -2149,7 +2250,7 @@ export default function App() {
 
     handleGoHome()
     navigate(nextRoute)
-  }, [handleGoHome, isTherapist, navigate])
+  }, [handleGoHome, isTherapist, navigate, userMode])
 
   const requestSection = useCallback((section: SidebarSection) => {
     const nextRoute = getSectionRoute(section)
@@ -2342,6 +2443,11 @@ export default function App() {
       currentMode={userMode}
       authRole={authUser?.role}
       selectedChild={selectedChild}
+      childProfiles={children}
+      selectedAvatar={selectedAvatar}
+      onChooseMode={handleChooseMode}
+      onSelectChild={setSelectedChildId}
+      onSelectAvatar={setSelectedAvatar}
     />
   ) : currentRoute === APP_ROUTES.home ? (
     loading ? (
@@ -2360,8 +2466,6 @@ export default function App() {
           selectedScenario={selectedScenario}
           launchInFlight={launchInFlight}
           scenarios={serverScenarios}
-          isTherapist={isTherapist}
-          onExitToEntry={handleReturnToEntry}
           onSelectScenario={(scenarioId: string) => {
             setSelectedScenario(scenarioId)
           }}
@@ -2394,7 +2498,6 @@ export default function App() {
           onStartSession={() => {
             void handleStart(selectedAvatar)
           }}
-          onExitToEntry={handleReturnToEntry}
           onOpenTherapistReview={() => openSection('dashboard')}
           onAddCustomScenario={addCustomScenario}
           onUpdateCustomScenario={updateCustomScenario}
@@ -2443,6 +2546,7 @@ export default function App() {
             collapsed={sidebarCollapsed}
             mobileOpen={mobileSidebarOpen}
             isTherapist={isTherapist}
+            showDashboardNav={showDashboardNav}
             childProfiles={children}
             childrenLoading={childrenLoading}
             selectedChildId={selectedChildId}
@@ -2463,22 +2567,55 @@ export default function App() {
 
           <div className={mergeClasses(styles.contentArea, isDashboardRoute && styles.contentAreaDashboard)}>
             <div className={mergeClasses(styles.contentHeader, isDashboardRoute && styles.contentHeaderDashboard)}>
-              <div className={styles.headerLead}>
-                <Button
-                  appearance="subtle"
-                  icon={<Bars3Icon className="w-5 h-5" />}
-                  className={styles.contentMenuButton}
-                  onClick={() => setMobileSidebarOpen(true)}
-                  aria-label="Open navigation"
-                />
+              <div className={styles.contentHeaderMain}>
+                <div className={styles.headerLead}>
+                  <Button
+                    appearance="subtle"
+                    icon={<Bars3Icon className="w-5 h-5" />}
+                    className={styles.contentMenuButton}
+                    onClick={() => setMobileSidebarOpen(true)}
+                    aria-label="Open navigation"
+                  />
 
-                <div className={styles.contentHeading}>
-                  <Text className={mergeClasses(styles.contentEyebrow, isDashboardRoute && styles.contentEyebrowDashboard)}>{contentEyebrow}</Text>
-                  <Text className={mergeClasses(styles.contentTitle, isDashboardRoute && styles.contentTitleDashboard)}>{contentTitle}</Text>
+                  {showProfileHeader ? null : (
+                    <div className={styles.contentHeading}>
+                      <Text className={mergeClasses(styles.contentEyebrow, isDashboardRoute && styles.contentEyebrowDashboard)}>{contentEyebrow}</Text>
+                      <Text className={mergeClasses(styles.contentTitle, isDashboardRoute && styles.contentTitleDashboard)}>{contentTitle}</Text>
+                    </div>
+                  )}
                 </div>
-              </div>
 
-              <Text className={mergeClasses(styles.contentSubtitle, isDashboardRoute && styles.contentSubtitleDashboard)}>{contentSubtitle}</Text>
+                {showProfileHeader ? (
+                  <div className={styles.contentHeaderActions}>
+                    {showHeaderCreateAction ? (
+                      <CustomScenarioEditor
+                        onSave={addCustomScenario}
+                        trigger={
+                          <Button
+                            appearance="primary"
+                            className={styles.headerCreateAction}
+                            icon={<PlusIcon className="w-5 h-5" />}
+                          >
+                            Create exercise
+                          </Button>
+                        }
+                      />
+                    ) : null}
+                    <Button
+                      appearance="subtle"
+                      className={styles.profileSwitchButton}
+                      icon={<span className={styles.profileAvatar}>{profileHeaderInitials}</span>}
+                      onClick={handleReturnToEntry}
+                      aria-label={`Switch profile: ${profileHeaderName}`}
+                      title={`Switch profile: ${profileHeaderName}`}
+                    >
+                      <ChevronDownIcon className={styles.profileSwitchChevron} />
+                    </Button>
+                  </div>
+                ) : (
+                  <Text className={mergeClasses(styles.contentSubtitle, isDashboardRoute && styles.contentSubtitleDashboard)}>{contentSubtitle}</Text>
+                )}
+              </div>
             </div>
 
             <div className={styles.contentBody}>{mainContent}</div>

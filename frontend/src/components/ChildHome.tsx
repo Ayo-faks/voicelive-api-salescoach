@@ -13,12 +13,6 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: 'var(--space-lg)',
   },
-  topBar: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    gap: 'var(--space-sm)',
-    flexWrap: 'wrap',
-  },
   hero: {
     display: 'grid',
     gridTemplateColumns: 'minmax(280px, 0.82fr) minmax(0, 1.18fr)',
@@ -173,16 +167,6 @@ const useStyles = makeStyles({
       padding: 'var(--space-md)',
     },
   },
-  exitButton: {
-    minHeight: '36px',
-    minWidth: '132px',
-    paddingInline: 'var(--space-md)',
-    borderRadius: '0px',
-    color: 'var(--color-text-secondary)',
-    fontSize: '0.8125rem',
-    fontFamily: 'var(--font-display)',
-    fontWeight: '600',
-  },
 })
 
 interface Props {
@@ -191,8 +175,6 @@ interface Props {
   selectedScenario: string | null
   launchInFlight: boolean
   scenarios: Scenario[]
-  isTherapist: boolean
-  onExitToEntry: () => void
   onSelectScenario: (scenarioId: string) => void
   onStartScenario: (scenarioId: string) => void
   onStartSession: () => void
@@ -204,8 +186,6 @@ export function ChildHome({
   selectedScenario,
   launchInFlight,
   scenarios,
-  isTherapist,
-  onExitToEntry,
   onSelectScenario,
   onStartScenario,
   onStartSession,
@@ -221,16 +201,6 @@ export function ChildHome({
 
   return (
     <div className={styles.layout}>
-      <div className={styles.topBar}>
-        <Button
-          appearance="subtle"
-          className={styles.exitButton}
-          onClick={onExitToEntry}
-        >
-          Switch profile
-        </Button>
-      </div>
-
       <Card className={styles.hero}>
         <div className={styles.avatarStage}>
           <img

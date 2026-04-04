@@ -16,7 +16,7 @@ import time
 from typing import Any, Dict, List, Mapping, Optional, Tuple, cast
 
 import simple_websocket.ws  # pyright: ignore[reportMissingTypeStubs]
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, abort, jsonify, request, send_from_directory
 from flask_sock import Sock  # pyright: ignore[reportMissingTypeStubs]
 
 from src.bootstrap_storage import bootstrap_storage
@@ -457,16 +457,44 @@ def _prepare_custom_scenario(custom_scenario: Dict[str, Any]) -> Dict[str, Any]:
     return scenario
 
 
-@app.route("/")
-@app.route("/logout")
-def index():
-    """Serve the main application page."""
+def _serve_index() -> Any:
+    """Serve the SPA entry point for browser routes."""
     if app.static_folder is None:
         logger.error("STATIC_FOLDER is not set. Cannot serve index.html.")
         import sys  # pylint: disable=C0415
 
         sys.exit(1)
+
     return send_from_directory(app.static_folder, INDEX_FILE)
+
+
+def _should_serve_spa_route(path: str) -> bool:
+    """Return True when the path should fall back to the frontend SPA."""
+    normalized_path = path.lstrip("/")
+
+    if normalized_path.startswith("api/") or normalized_path.startswith(".auth/"):
+        return False
+
+    if normalized_path == AUDIO_PROCESSOR_FILE:
+        return False
+
+    return "." not in Path(normalized_path).name
+
+
+@app.route("/")
+@app.route("/logout")
+def index():
+    """Serve the main application page."""
+    return _serve_index()
+
+
+@app.errorhandler(404)
+def spa_fallback(error: Any):
+    """Serve index.html for SPA deep links after static and API routes miss."""
+    if _should_serve_spa_route(request.path):
+        return _serve_index(), 200
+
+    return error
 
 
 @app.route(API_CONFIG_ENDPOINT)

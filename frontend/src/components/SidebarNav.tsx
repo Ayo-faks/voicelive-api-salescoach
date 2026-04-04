@@ -55,7 +55,7 @@ const useStyles = makeStyles({
     gap: 'var(--space-lg)',
     padding: 'var(--space-lg)',
     borderRight: '1px solid var(--color-border)',
-    backgroundColor: 'rgba(253, 250, 244, 0.98)',
+    background: 'linear-gradient(135deg, rgba(233, 245, 246, 0.98), rgba(224, 239, 241, 0.98))',
     backdropFilter: 'blur(16px)',
     minHeight: '100vh',
     position: 'sticky',
@@ -204,6 +204,7 @@ interface SidebarNavProps {
   collapsed: boolean
   mobileOpen: boolean
   isTherapist: boolean
+  showDashboardNav: boolean
   childProfiles: ChildProfile[]
   childrenLoading: boolean
   selectedChildId: string | null
@@ -225,6 +226,7 @@ export function SidebarNav({
   collapsed,
   mobileOpen,
   isTherapist,
+  showDashboardNav,
   childProfiles,
   childrenLoading,
   selectedChildId,
@@ -298,6 +300,7 @@ export function SidebarNav({
                 activeSection === 'dashboard' && styles.navButtonActive,
               )}
               onClick={onNavigateDashboard}
+              style={{ display: showDashboardNav ? undefined : 'none' }}
             >
               {isExpanded ? 'Dashboard' : ''}
             </Button>
@@ -311,11 +314,11 @@ export function SidebarNav({
               )}
               onClick={onNavigateSettings}
             >
-              {isExpanded ? 'Settings' : ''}
+              {isExpanded ? 'Workspace' : ''}
             </Button>
           </nav>
 
-          {isTherapist && isExpanded ? (
+          {isTherapist && isExpanded && activeSection === 'dashboard' ? (
             <div className={styles.selectorCard}>
               <Text className={styles.selectorLabel}>Active child</Text>
               <Dropdown
