@@ -2388,6 +2388,9 @@ export default function App() {
           onSelectScenario={(scenarioId: string) => {
             setSelectedScenario(scenarioId)
           }}
+          onStartScenario={(scenarioId: string) => {
+            void handleStart(selectedAvatar, scenarioId)
+          }}
           onStartSession={() => {
             void handleStart(selectedAvatar)
           }}

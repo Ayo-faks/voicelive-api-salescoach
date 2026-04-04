@@ -82,13 +82,16 @@ vi.mock('../components/ChildHome', () => ({
   ChildHome: ({
     selectedScenario,
     onSelectScenario,
+    onStartScenario,
   }: {
     selectedScenario: string | null
     onSelectScenario: (scenarioId: string) => void
+    onStartScenario: (scenarioId: string) => void
   }) => (
     <div>
       <div>child-home:{selectedScenario ?? 'none'}</div>
       <button type="button" onClick={() => onSelectScenario('scenario-2')}>select-scenario-2</button>
+      <button type="button" onClick={() => onStartScenario('scenario-2')}>start-scenario-2</button>
     </div>
   ),
 }))
@@ -98,7 +101,16 @@ vi.mock('../components/ConsentScreen', () => ({
 }))
 
 vi.mock('../components/DashboardHome', () => ({
-  DashboardHome: () => <div>dashboard-home</div>,
+  DashboardHome: ({
+    onStartScenario,
+  }: {
+    onStartScenario: (scenarioId: string) => void
+  }) => (
+    <div>
+      <div>dashboard-home</div>
+      <button type="button" onClick={() => onStartScenario('scenario-2')}>start-dashboard-scenario-2</button>
+    </div>
+  ),
 }))
 
 vi.mock('../components/ModeSelector', () => ({
@@ -516,6 +528,23 @@ describe('App routing integration', () => {
     expect(screen.getByText('child-home:scenario-2')).toBeTruthy()
   })
 
+  it('navigates to the session route when a child exercise is started directly', async () => {
+    window.localStorage.setItem('wulo.onboarding.complete', 'true')
+    window.localStorage.setItem('wulo.user.mode', 'child')
+
+    renderApp(APP_ROUTES.home)
+
+    await waitFor(() => {
+      expect(screen.getByText('child-home:scenario-1')).toBeTruthy()
+    })
+
+    fireEvent.click(screen.getByText('start-scenario-2'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location').textContent).toBe(APP_ROUTES.session)
+    })
+  })
+
   it('updates the childId query param after dashboard child selection changes', async () => {
     window.localStorage.setItem('wulo.onboarding.complete', 'true')
     window.localStorage.setItem('wulo.user.mode', 'therapist')
@@ -536,6 +565,26 @@ describe('App routing integration', () => {
       expect(params.get(APP_ROUTE_PARAMS.childId)).toBe('child-2')
       expect(params.get(APP_ROUTE_PARAMS.sessionId)).toBe('session-2')
       expect(params.get(APP_ROUTE_PARAMS.planId)).toBe('plan-2')
+    })
+  })
+
+  it('navigates to the session route when a therapist starts an exercise directly from home', async () => {
+    window.localStorage.setItem('wulo.onboarding.complete', 'true')
+    window.localStorage.setItem('wulo.user.mode', 'therapist')
+    mockedApi.getAuthSession.mockResolvedValue(therapistUser)
+    mockedApi.getChildren.mockResolvedValue(childProfiles as never)
+    mockedApi.getPilotState.mockResolvedValue({ consent_timestamp: '2026-04-01T10:00:00.000Z', therapist_pin_configured: false } as never)
+
+    renderApp(`${APP_ROUTES.home}?${APP_ROUTE_PARAMS.childId}=child-1&${APP_ROUTE_PARAMS.scenarioId}=scenario-1`)
+
+    await waitFor(() => {
+      expect(screen.getByText('dashboard-home')).toBeTruthy()
+    })
+
+    fireEvent.click(screen.getByText('start-dashboard-scenario-2'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location').textContent).toBe(APP_ROUTES.session)
     })
   })
 

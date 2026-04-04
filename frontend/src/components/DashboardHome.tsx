@@ -242,6 +242,7 @@ interface DashboardHomeProps {
   onSelectChild: (childId: string) => void
   onSelectAvatar: (avatarValue: string) => void
   onSelectScenario: (scenarioId: string) => void
+  onStartScenario: (scenarioId: string) => void
   onStartSession: () => void
   onExitToEntry: () => void
   onOpenTherapistReview: () => void
@@ -272,6 +273,7 @@ export function DashboardHome({
   onSelectChild,
   onSelectAvatar,
   onSelectScenario,
+  onStartScenario,
   onStartSession,
   onExitToEntry,
   onOpenTherapistReview,
@@ -436,6 +438,7 @@ export function DashboardHome({
           customScenarios={customScenarios}
           selectedScenario={selectedScenario}
           onSelect={onSelectScenario}
+          onStartScenario={onStartScenario}
           onAddCustomScenario={onAddCustomScenario}
           onUpdateCustomScenario={onUpdateCustomScenario}
           onDeleteCustomScenario={onDeleteCustomScenario}
