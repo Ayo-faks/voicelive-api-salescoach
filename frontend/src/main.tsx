@@ -6,6 +6,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { FluentProvider, webLightTheme } from '@fluentui/react-components'
+import { BrowserRouter } from 'react-router-dom'
 import App from './app/App'
 import './styles/global.css'
 
@@ -47,8 +48,10 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <FluentProvider theme={wuloTheme}>
-      <App />
-    </FluentProvider>
+    <BrowserRouter>
+      <FluentProvider theme={wuloTheme}>
+        <App />
+      </FluentProvider>
+    </BrowserRouter>
   </React.StrictMode>
 )

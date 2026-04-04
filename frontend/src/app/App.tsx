@@ -25,6 +25,7 @@ import {
   Bars3Icon,
 } from '@heroicons/react/24/outline'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { AssessmentPanel } from '../components/AssessmentPanel'
 import { AuthGateScreen } from '../components/AuthGateScreen'
 import { LogoutScreen } from '../components/LogoutScreen'
@@ -63,6 +64,7 @@ import type {
   TherapistFeedbackRating,
 } from '../types'
 import { AVATAR_OPTIONS, DEFAULT_AVATAR } from '../types'
+import { APP_ROUTE_PARAMS, APP_ROUTES, getDefaultAuthenticatedRoute, resolveAppRoute, type AppRoute } from './routes'
 
 type ConversationTurn = {
   role: string
@@ -201,6 +203,34 @@ function getAvatarPersona(avatarValue: string | undefined): string {
   )
 
   return avatar?.persona || 'a warm adult speech-practice buddy'
+}
+
+function getSectionRoute(section: SidebarSection): AppRoute {
+  if (section === 'dashboard') {
+    return APP_ROUTES.dashboard
+  }
+
+  if (section === 'settings') {
+    return APP_ROUTES.settings
+  }
+
+  return APP_ROUTES.home
+}
+
+function getSectionForRoute(route: AppRoute | null): SidebarSection | null {
+  if (route === APP_ROUTES.dashboard) {
+    return 'dashboard'
+  }
+
+  if (route === APP_ROUTES.settings) {
+    return 'settings'
+  }
+
+  if (route === APP_ROUTES.home) {
+    return 'home'
+  }
+
+  return null
 }
 
 function buildChildIntroInstructions({
@@ -627,6 +657,9 @@ const useStyles = makeStyles({
 
 export default function App() {
   const styles = useStyles()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [pilotState, setPilotState] = useState<PilotState | null>(null)
   const [pilotStateLoading, setPilotStateLoading] = useState(true)
   const [children, setChildren] = useState<ChildProfile[]>([])
@@ -639,15 +672,14 @@ export default function App() {
     if (typeof window === 'undefined') return false
     return window.localStorage.getItem('wulo.onboarding.complete') === 'true'
   })
-  const [showSetup, setShowSetup] = useState(true)
   const [showLoading, setShowLoading] = useState(false)
   const [showAssessment, setShowAssessment] = useState(false)
   const [showRoleNotice, setShowRoleNotice] = useState(false)
   const [showConsentScreen, setShowConsentScreen] = useState(false)
-  const [showSettings, setShowSettings] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [pendingSection, setPendingSection] = useState<SidebarSection | null>(null)
+  const [pendingPath, setPendingPath] = useState<AppRoute | null>(null)
   const [showNavigationConfirm, setShowNavigationConfirm] = useState(false)
   const [selectedAvatar, setSelectedAvatar] = useState(DEFAULT_AVATAR)
   const [pendingAvatarValue, setPendingAvatarValue] = useState<string>('lisa-casual-sitting')
@@ -656,7 +688,6 @@ export default function App() {
     useState<UserMode | null>(null)
   const [roleNoticeIntent, setRoleNoticeIntent] =
     useState<TherapistGateIntent>('review')
-  const [therapistView, setTherapistView] = useState(false)
   const [userMode, setUserMode] = useState<UserMode | null>(() => {
     if (typeof window === 'undefined') return null
 
@@ -710,6 +741,10 @@ export default function App() {
   const idleNudgePendingRef = useRef(false)
   const skipNextWordFeedbackRef = useRef(false)
   const sendRef = useRef<(msg: unknown) => void>(() => {})
+  const previousPathRef = useRef(location.pathname)
+  const navigationBypassRef = useRef(false)
+  const lastQueryChildIdRef = useRef<string | null>(null)
+  const lastQueryScenarioIdRef = useRef<string | null>(null)
 
   const {
     scenarios,
@@ -729,51 +764,75 @@ export default function App() {
     children.find(child => child.id === selectedChildId) || null
   const activeReferenceText = getReferenceText(activeScenario)
   const activeExerciseMetadata = getExerciseMetadata(activeScenario)
+  const currentRoute = resolveAppRoute(location.pathname)
+  const isDashboardRoute = currentRoute === APP_ROUTES.dashboard
+  const isSettingsRoute = currentRoute === APP_ROUTES.settings
+  const isSessionRoute = currentRoute === APP_ROUTES.session
+  const isHomeRoute = currentRoute === APP_ROUTES.home
+  const isSetupRoute = currentRoute === APP_ROUTES.home || currentRoute === APP_ROUTES.dashboard
   const isTherapist = authUser?.role === 'therapist'
-  const isChildMode = userMode === 'child' && !therapistView
+  const isChildMode = userMode === 'child' && !isDashboardRoute
+  const queryChildId = searchParams.get(APP_ROUTE_PARAMS.childId)
+  const queryScenarioId = searchParams.get(APP_ROUTE_PARAMS.scenarioId)
+  const querySessionId = searchParams.get(APP_ROUTE_PARAMS.sessionId)
+  const queryPlanId = searchParams.get(APP_ROUTE_PARAMS.planId)
+  const currentSearch = location.search.startsWith('?') ? location.search.slice(1) : location.search
   const activeAvatarName = getAvatarName(selectedAvatar)
   const activeAvatarPersona = getAvatarPersona(selectedAvatar)
   const appTitle = 'Wulo'
   const launchOverlayVisible =
-    !showSetup &&
+    isSessionRoute &&
     showLaunchTransition &&
     !launchHandoffReady
   const plannerReadiness: PlannerReadiness | null = appConfig?.planner ?? null
-  const activeSection: SidebarSection = therapistView
+  const activeSection: SidebarSection = isDashboardRoute
     ? 'dashboard'
-    : showSettings
+    : isSettingsRoute
       ? 'settings'
       : 'home'
   const showSidebarShell =
+    authStatus === 'authenticated' &&
     onboardingComplete &&
-    (Boolean(userMode) || therapistView || !showSetup || showSettings)
-  const contentEyebrow = therapistView
+    (Boolean(userMode) || isDashboardRoute || isSessionRoute || isSettingsRoute)
+  const contentEyebrow = isDashboardRoute
     ? 'Dashboard'
-    : showSettings
+    : isSettingsRoute
       ? 'Settings'
-      : !showSetup
+      : isSessionRoute
         ? 'Live session'
         : userMode === 'therapist'
           ? 'Therapist workspace'
           : 'Practice home'
-  const contentTitle = therapistView
+  const contentTitle = isDashboardRoute
     ? 'Progress and planning'
-    : showSettings
+    : isSettingsRoute
       ? 'Workspace settings'
-      : !showSetup
+      : isSessionRoute
         ? activeScenario?.name || 'Session in progress'
         : userMode === 'therapist'
           ? 'Prepare the next visit'
           : 'Ready to practise'
-  const contentSubtitle = therapistView
+  const contentSubtitle = isDashboardRoute
     ? 'Performance review, session history, and planning in one workspace.'
-    : showSettings
+    : isSettingsRoute
       ? 'Adjust the current workspace context and switch between the key state-driven surfaces.'
-      : !showSetup
+      : isSessionRoute
         ? 'The session stays live while navigation remains inside the same app state machine.'
         : userMode === 'therapist'
           ? 'Choose a child, pick an exercise, and move into guided practice.'
           : 'Launch the next exercise and keep the practice flow simple for the child.'
+  const validChildIds = new Set(children.map(child => child.id))
+  const homeScenarioIds = new Set(
+    (userMode === 'therapist'
+      ? [...serverScenarios, ...customScenarios]
+      : serverScenarios).map(scenario => scenario.id)
+  )
+  const dashboardSessionIds = new Set(sessionSummaries.map(session => session.id))
+  const dashboardPlanIds = new Set(childPlans.map(plan => plan.id))
+  const queryPlan = queryPlanId
+    ? childPlans.find(plan => plan.id === queryPlanId) || null
+    : null
+  const effectiveDashboardSessionId = queryPlan?.source_session_id || querySessionId
 
   const refreshAuthSession = useCallback(async () => {
     try {
@@ -898,14 +957,12 @@ export default function App() {
       setAuthUser(null)
       setAuthStatus('unauthenticated')
       setAuthError(null)
-      setTherapistView(false)
       setUserMode(null)
       if (typeof window !== 'undefined') {
         window.localStorage.removeItem('wulo.user.mode')
       }
       setShowRoleNotice(false)
-      setShowSettings(false)
-      setShowSetup(true)
+      navigate(APP_ROUTES.login, { replace: true })
     }
 
     window.addEventListener('auth:expired', handleAuthExpired)
@@ -914,7 +971,7 @@ export default function App() {
       cancelled = true
       window.removeEventListener('auth:expired', handleAuthExpired)
     }
-  }, [refreshAuthSession])
+  }, [navigate, refreshAuthSession])
 
   const handleOpenSession = useCallback(
     async (sessionId: string) => {
@@ -971,6 +1028,11 @@ export default function App() {
   )
 
   useEffect(() => {
+    if (queryPlan) {
+      setSelectedPlan(queryPlan)
+      return
+    }
+
     if (!selectedSession) {
       setSelectedPlan(null)
       return
@@ -978,7 +1040,7 @@ export default function App() {
 
     const matchingPlan = childPlans.find(plan => plan.source_session_id === selectedSession.id) || null
     setSelectedPlan(matchingPlan)
-  }, [childPlans, selectedSession])
+  }, [childPlans, queryPlan, selectedSession])
 
   const upsertPlan = useCallback((updatedPlan: PracticePlan) => {
     setChildPlans(current => [updatedPlan, ...current.filter(plan => plan.id !== updatedPlan.id)])
@@ -1070,6 +1132,20 @@ export default function App() {
 
     void loadSessionHistory(selectedChildId)
   }, [isTherapist, loadSessionHistory, selectedChildId])
+
+  useEffect(() => {
+    if (
+      !isDashboardRoute ||
+      !effectiveDashboardSessionId ||
+      !dashboardSessionIds.has(effectiveDashboardSessionId) ||
+      selectedSession?.id === effectiveDashboardSessionId ||
+      loadingSessionDetail
+    ) {
+      return
+    }
+
+    void handleOpenSession(effectiveDashboardSessionId)
+  }, [dashboardSessionIds, effectiveDashboardSessionId, handleOpenSession, isDashboardRoute, loadingSessionDetail, selectedSession?.id])
 
   const handleWebRTCMessage = useCallback((msg: RealtimeMessage) => {
     if (msg.type === 'proxy.connected' || msg.type === 'session.updated') {
@@ -1253,11 +1329,202 @@ export default function App() {
       onAudioDelta: handleAudioDelta,
       onTranscript: handleRealtimeTranscript,
     })
-  const isSessionActive = !showSetup && (connected || messages.length > 0 || Boolean(currentAgent))
+  const isSessionActive = isSessionRoute && (connected || messages.length > 0 || Boolean(currentAgent))
 
   useEffect(() => {
     sendRef.current = send
   }, [send])
+
+  useEffect(() => {
+    const previousRoute = resolveAppRoute(previousPathRef.current)
+
+    if (
+      previousRoute === APP_ROUTES.session &&
+      currentRoute !== APP_ROUTES.session &&
+      currentRoute !== null &&
+      isSessionActive &&
+      !navigationBypassRef.current
+    ) {
+      setPendingSection(getSectionForRoute(currentRoute))
+      setPendingPath(currentRoute)
+      setShowNavigationConfirm(true)
+      navigate(APP_ROUTES.session, { replace: true })
+      previousPathRef.current = APP_ROUTES.session
+      return
+    }
+
+    previousPathRef.current = location.pathname
+
+    if (navigationBypassRef.current) {
+      navigationBypassRef.current = false
+    }
+  }, [currentRoute, isSessionActive, location.pathname, navigate])
+
+  useEffect(() => {
+    if (authStatus !== 'authenticated' || !isSetupRoute) {
+      return
+    }
+
+    if (
+      queryChildId !== lastQueryChildIdRef.current &&
+      isTherapist &&
+      queryChildId &&
+      validChildIds.has(queryChildId) &&
+      queryChildId !== selectedChildId
+    ) {
+      lastQueryChildIdRef.current = queryChildId
+      setSelectedChildId(queryChildId)
+    } else {
+      lastQueryChildIdRef.current = queryChildId
+    }
+
+    if (
+      queryScenarioId !== lastQueryScenarioIdRef.current &&
+      isHomeRoute &&
+      queryScenarioId &&
+      homeScenarioIds.has(queryScenarioId) &&
+      queryScenarioId !== selectedScenario
+    ) {
+      lastQueryScenarioIdRef.current = queryScenarioId
+      setSelectedScenario(queryScenarioId)
+    } else {
+      lastQueryScenarioIdRef.current = queryScenarioId
+    }
+  }, [
+    authStatus,
+    homeScenarioIds,
+    isHomeRoute,
+    isSetupRoute,
+    isTherapist,
+    queryChildId,
+    queryScenarioId,
+    selectedChildId,
+    selectedScenario,
+    setSelectedScenario,
+    validChildIds,
+  ])
+
+  useEffect(() => {
+    if (authStatus !== 'authenticated' || !isSetupRoute) {
+      return
+    }
+
+    const nextParams = new URLSearchParams(currentSearch)
+
+    if (isTherapist && selectedChildId) {
+      nextParams.set(APP_ROUTE_PARAMS.childId, selectedChildId)
+    } else {
+      nextParams.delete(APP_ROUTE_PARAMS.childId)
+    }
+
+    if (isDashboardRoute && selectedSession?.id && dashboardSessionIds.has(selectedSession.id)) {
+      nextParams.set(APP_ROUTE_PARAMS.sessionId, selectedSession.id)
+    } else {
+      nextParams.delete(APP_ROUTE_PARAMS.sessionId)
+    }
+
+    if (isDashboardRoute && selectedPlan?.id && dashboardPlanIds.has(selectedPlan.id)) {
+      nextParams.set(APP_ROUTE_PARAMS.planId, selectedPlan.id)
+    } else {
+      nextParams.delete(APP_ROUTE_PARAMS.planId)
+    }
+
+    if (isHomeRoute && selectedScenario && homeScenarioIds.has(selectedScenario)) {
+      nextParams.set(APP_ROUTE_PARAMS.scenarioId, selectedScenario)
+    } else {
+      nextParams.delete(APP_ROUTE_PARAMS.scenarioId)
+    }
+
+    if (nextParams.toString() !== currentSearch) {
+      setSearchParams(nextParams, { replace: true })
+    }
+  }, [
+    authStatus,
+    dashboardPlanIds,
+    currentSearch,
+    dashboardSessionIds,
+    isDashboardRoute,
+    homeScenarioIds,
+    isHomeRoute,
+    isSetupRoute,
+    isTherapist,
+    selectedChildId,
+    selectedPlan?.id,
+    selectedSession?.id,
+    selectedScenario,
+    setSearchParams,
+  ])
+
+  useEffect(() => {
+    if (currentRoute === APP_ROUTES.logout) {
+      return
+    }
+
+    if (currentRoute === null) {
+      navigate(APP_ROUTES.root, { replace: true })
+      return
+    }
+
+    if (authStatus === 'loading') {
+      return
+    }
+
+    if (authStatus !== 'authenticated') {
+      if (currentRoute !== APP_ROUTES.login) {
+        navigate(APP_ROUTES.login, { replace: true })
+      }
+      return
+    }
+
+    if (currentRoute === APP_ROUTES.root || currentRoute === APP_ROUTES.login) {
+      navigate(
+        getDefaultAuthenticatedRoute({
+          onboardingComplete,
+          userMode,
+        }),
+        { replace: true }
+      )
+      return
+    }
+
+    if (!onboardingComplete && currentRoute !== APP_ROUTES.onboarding) {
+      navigate(APP_ROUTES.onboarding, { replace: true })
+      return
+    }
+
+    if (onboardingComplete && !userMode && currentRoute !== APP_ROUTES.mode) {
+      navigate(APP_ROUTES.mode, { replace: true })
+      return
+    }
+
+    if (currentRoute === APP_ROUTES.dashboard && !isTherapist) {
+      setRoleNoticeIntent('review')
+      setShowRoleNotice(true)
+      navigate(APP_ROUTES.home, { replace: true })
+      return
+    }
+
+    if (
+      currentRoute === APP_ROUTES.session &&
+      !showLaunchTransition &&
+      !connected &&
+      messages.length === 0 &&
+      !currentAgent
+    ) {
+      navigate(APP_ROUTES.home, { replace: true })
+    }
+  }, [
+    authStatus,
+    connected,
+    currentAgent,
+    currentRoute,
+    isTherapist,
+    messages.length,
+    navigate,
+    onboardingComplete,
+    showLaunchTransition,
+    userMode,
+  ])
 
   // Trigger the greeting only after the avatar video is actually rendered.
   useEffect(() => {
@@ -1414,11 +1681,11 @@ export default function App() {
       setFeedbackSubmittedAt(null)
       setFeedbackError(null)
 
-      if (therapistView && isTherapist && selectedChildId) {
+      if (isDashboardRoute && isTherapist && selectedChildId) {
         await loadSessionHistory(selectedChildId)
       }
     },
-    [isTherapist, loadSessionHistory, selectedChildId, therapistView]
+    [isDashboardRoute, isTherapist, loadSessionHistory, selectedChildId]
   )
 
   const handleFinishPractice = useCallback(async () => {
@@ -1492,7 +1759,7 @@ export default function App() {
     if (
       !isChildMode ||
       !connected ||
-      showSetup ||
+      !isSessionRoute ||
       sessionFinished ||
       recording ||
       scoringUtterance
@@ -1510,12 +1777,12 @@ export default function App() {
           'In one short sentence, gently check whether the child wants to keep practising. Tell them to tap the microphone if they want another turn.',
       },
     })
-  }, [connected, isChildMode, recording, scoringUtterance, send, sessionFinished, showSetup])
+  }, [connected, isChildMode, isSessionRoute, recording, scoringUtterance, send, sessionFinished])
 
   useSessionTimer({
     active:
       isChildMode &&
-      !showSetup &&
+      isSessionRoute &&
       sessionIntroComplete &&
       !sessionFinished,
     activityKey: sessionActivityKey,
@@ -1548,7 +1815,7 @@ export default function App() {
 
   useEffect(() => {
     const shouldPrewarm =
-      ((userMode === 'therapist' && !therapistView && Boolean(selectedChildId)) ||
+      ((userMode === 'therapist' && !isDashboardRoute && Boolean(selectedChildId)) ||
         userMode === 'child') &&
       Boolean(selectedScenario) &&
       !currentAgent
@@ -1621,11 +1888,11 @@ export default function App() {
   }, [
     createAgentForSelection,
     currentAgent,
+    isDashboardRoute,
     releaseAgent,
     selectedAvatar,
     selectedChildId,
     selectedScenario,
-    therapistView,
     userMode,
   ])
 
@@ -1711,8 +1978,7 @@ export default function App() {
     setFeedbackNote('')
     setFeedbackSubmittedAt(null)
     setFeedbackError(null)
-    setShowSettings(false)
-    setShowSetup(false)
+    navigate(APP_ROUTES.session)
 
     try {
       if (!agentId) {
@@ -1721,15 +1987,16 @@ export default function App() {
 
       setCurrentAgent(agentId)
       setLaunchInFlight(false)
+      navigate(APP_ROUTES.session)
     } catch (error) {
       console.error('Failed to create agent:', error)
       // Revert to home on failure so the child isn't stuck
       setShowLaunchTransition(false)
       setLaunchHandoffReady(false)
-      setShowSetup(true)
       setLaunchInFlight(false)
+      navigate(APP_ROUTES.home)
     }
-  }, [createAgentForSelection, selectedScenario])
+  }, [createAgentForSelection, navigate, selectedScenario])
 
   const handleStart = useCallback(async (avatarValue: string, scenarioOverride?: string) => {
     const activeScenarioId = scenarioOverride ?? selectedScenario
@@ -1776,20 +2043,18 @@ export default function App() {
   const handleCompleteOnboarding = useCallback(() => {
     setOnboardingComplete(true)
     setUserMode(null)
-    setShowSettings(false)
     if (typeof window !== 'undefined') {
       window.localStorage.setItem('wulo.onboarding.complete', 'true')
       window.localStorage.removeItem('wulo.user.mode')
     }
-  }, [])
+    navigate(APP_ROUTES.mode)
+  }, [navigate])
 
   const handleExitTherapistView = useCallback(() => {
-    setTherapistView(false)
-  }, [])
+    navigate(APP_ROUTES.home)
+  }, [navigate])
 
   const handleReturnToEntry = useCallback(() => {
-    setTherapistView(false)
-    setShowSettings(false)
     setSessionFinished(false)
     setChildTurnCount(0)
     setFinishPromptTurnLimit(CHILD_TURN_LIMIT)
@@ -1798,13 +2063,13 @@ export default function App() {
     setFinishRequested(false)
     setLaunchHandoffReady(false)
     setLaunchInFlight(false)
-    setShowSetup(true)
     setUserMode(null)
     setMobileSidebarOpen(false)
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem('wulo.user.mode')
     }
-  }, [])
+    navigate(APP_ROUTES.mode)
+  }, [navigate])
 
   const handleGoHome = useCallback(() => {
     disconnect()
@@ -1832,10 +2097,7 @@ export default function App() {
     setFeedbackError(null)
     setLaunchHandoffReady(false)
     setLaunchInFlight(false)
-    setTherapistView(false)
-    setShowSettings(false)
     setShowRoleNotice(false)
-    setShowSetup(true)
     setMobileSidebarOpen(false)
   }, [clearConversationAudioRecording, clearMessages, disconnect])
 
@@ -1858,17 +2120,16 @@ export default function App() {
     }
 
     setUserMode(mode)
-    setTherapistView(false)
-    setShowSettings(false)
-    setShowSetup(true)
 
     if (typeof window !== 'undefined') {
       window.localStorage.setItem('wulo.user.mode', mode)
     }
-  }, [isTherapist, pilotState?.consent_timestamp, selectedScenario, serverScenarios, setSelectedScenario])
+    navigate(APP_ROUTES.home)
+  }, [isTherapist, navigate, pilotState?.consent_timestamp, selectedScenario, serverScenarios, setSelectedScenario])
 
   const openSection = useCallback((section: SidebarSection) => {
     setMobileSidebarOpen(false)
+    const nextRoute = getSectionRoute(section)
 
     if (section === 'dashboard') {
       if (!isTherapist) {
@@ -1877,23 +2138,22 @@ export default function App() {
         return
       }
 
-      setShowSettings(false)
-      setTherapistView(true)
-      setShowSetup(true)
+      navigate(nextRoute)
       return
     }
 
     if (section === 'settings') {
-      setTherapistView(false)
-      setShowSettings(true)
-      setShowSetup(true)
+      navigate(nextRoute)
       return
     }
 
     handleGoHome()
-  }, [handleGoHome, isTherapist])
+    navigate(nextRoute)
+  }, [handleGoHome, isTherapist, navigate])
 
   const requestSection = useCallback((section: SidebarSection) => {
+    const nextRoute = getSectionRoute(section)
+
     if (section === activeSection && !isSessionActive) {
       setMobileSidebarOpen(false)
       return
@@ -1901,6 +2161,7 @@ export default function App() {
 
     if (isSessionActive) {
       setPendingSection(section)
+      setPendingPath(nextRoute)
       setShowNavigationConfirm(true)
       setMobileSidebarOpen(false)
       return
@@ -1910,19 +2171,17 @@ export default function App() {
   }, [activeSection, isSessionActive, openSection])
 
   const handleConfirmSectionChange = useCallback(() => {
-    const nextSection = pendingSection
+    const nextPath = pendingPath
     setShowNavigationConfirm(false)
     setPendingSection(null)
+    setPendingPath(null)
     handleGoHome()
 
-    if (nextSection === 'dashboard') {
-      setTherapistView(true)
+    if (nextPath) {
+      navigationBypassRef.current = true
+      navigate(nextPath)
     }
-
-    if (nextSection === 'settings') {
-      setShowSettings(true)
-    }
-  }, [handleGoHome, pendingSection])
+  }, [handleGoHome, navigate, pendingPath])
 
   useEffect(() => {
     if (!showSidebarShell) {
@@ -1955,6 +2214,7 @@ export default function App() {
         }
 
         setLaunchInFlight(false)
+        navigate(APP_ROUTES.home)
 
         return
       }
@@ -1969,6 +2229,7 @@ export default function App() {
       setConsentSaving(false)
     }
   }, [
+    navigate,
     pendingAvatarValue,
     pendingScenarioId,
     pendingModeSelection,
@@ -2021,14 +2282,14 @@ export default function App() {
     window.location.href = `/.auth/login/google?post_login_redirect_uri=${encodeURIComponent(`${window.location.origin}/`)}`
   }, [])
 
-  if (window.location.pathname === '/logout') {
+  if (currentRoute === APP_ROUTES.logout) {
     return <LogoutScreen />
   }
 
-  if (authStatus !== 'authenticated') {
+  if (currentRoute === APP_ROUTES.login || authStatus !== 'authenticated') {
     return (
       <AuthGateScreen
-        status={authStatus}
+        status={authStatus === 'authenticated' ? 'loading' : authStatus}
         error={authError}
         onRetry={() => {
           setAuthStatus('loading')
@@ -2040,7 +2301,7 @@ export default function App() {
     )
   }
 
-  const mainContent = therapistView ? (
+  const mainContent = currentRoute === APP_ROUTES.dashboard ? (
     <ProgressDashboard
       childProfiles={children}
       selectedChildId={selectedChildId}
@@ -2064,25 +2325,25 @@ export default function App() {
       onBackToPractice={handleExitTherapistView}
       onExitToEntry={handleReturnToEntry}
     />
-  ) : !onboardingComplete ? (
+  ) : currentRoute === APP_ROUTES.onboarding ? (
     <OnboardingFlow
       loading={pilotStateLoading}
       isTherapist={isTherapist}
       onContinue={handleCompleteOnboarding}
     />
-  ) : !userMode ? (
+  ) : currentRoute === APP_ROUTES.mode ? (
     <ModeSelector
       isTherapist={isTherapist}
       onChooseMode={handleChooseMode}
     />
-  ) : showSettings ? (
+  ) : currentRoute === APP_ROUTES.settings ? (
     <SettingsView
       isTherapist={isTherapist}
       currentMode={userMode}
       authRole={authUser?.role}
       selectedChild={selectedChild}
     />
-  ) : showSetup ? (
+  ) : currentRoute === APP_ROUTES.home ? (
     loading ? (
       <div className={styles.loadingContent}>
         <Spinner size="large" />
@@ -2172,7 +2433,7 @@ export default function App() {
   return (
     <div className={styles.page}>
       {showSidebarShell ? (
-        <div className={mergeClasses(styles.appShell, therapistView && styles.appShellDashboard)}>
+        <div className={mergeClasses(styles.appShell, isDashboardRoute && styles.appShellDashboard)}>
           <SidebarNav
             appTitle={appTitle}
             activeSection={activeSection}
@@ -2197,8 +2458,8 @@ export default function App() {
             }}
           />
 
-          <div className={mergeClasses(styles.contentArea, therapistView && styles.contentAreaDashboard)}>
-            <div className={mergeClasses(styles.contentHeader, therapistView && styles.contentHeaderDashboard)}>
+          <div className={mergeClasses(styles.contentArea, isDashboardRoute && styles.contentAreaDashboard)}>
+            <div className={mergeClasses(styles.contentHeader, isDashboardRoute && styles.contentHeaderDashboard)}>
               <div className={styles.headerLead}>
                 <Button
                   appearance="subtle"
@@ -2209,12 +2470,12 @@ export default function App() {
                 />
 
                 <div className={styles.contentHeading}>
-                  <Text className={mergeClasses(styles.contentEyebrow, therapistView && styles.contentEyebrowDashboard)}>{contentEyebrow}</Text>
-                  <Text className={mergeClasses(styles.contentTitle, therapistView && styles.contentTitleDashboard)}>{contentTitle}</Text>
+                  <Text className={mergeClasses(styles.contentEyebrow, isDashboardRoute && styles.contentEyebrowDashboard)}>{contentEyebrow}</Text>
+                  <Text className={mergeClasses(styles.contentTitle, isDashboardRoute && styles.contentTitleDashboard)}>{contentTitle}</Text>
                 </div>
               </div>
 
-              <Text className={mergeClasses(styles.contentSubtitle, therapistView && styles.contentSubtitleDashboard)}>{contentSubtitle}</Text>
+              <Text className={mergeClasses(styles.contentSubtitle, isDashboardRoute && styles.contentSubtitleDashboard)}>{contentSubtitle}</Text>
             </div>
 
             <div className={styles.contentBody}>{mainContent}</div>
@@ -2278,6 +2539,7 @@ export default function App() {
           setShowNavigationConfirm(data.open)
           if (!data.open) {
             setPendingSection(null)
+            setPendingPath(null)
           }
         }}
       >
@@ -2294,6 +2556,7 @@ export default function App() {
               onClick={() => {
                 setShowNavigationConfirm(false)
                 setPendingSection(null)
+                setPendingPath(null)
               }}
             >
               Stay here

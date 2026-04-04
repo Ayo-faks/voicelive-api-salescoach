@@ -708,12 +708,12 @@ export function ScenarioList({
       return
     }
 
+    onSelect(scenarioId)
+
     if (onStartScenario) {
       onStartScenario(scenarioId)
       return
     }
-
-    onSelect(scenarioId)
   }
 
   const renderScenarioCard = (scenario: Scenario) => {
