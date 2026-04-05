@@ -58,7 +58,7 @@ export function parseAvatarValue(value: string): AvatarConfig {
 
   const parts = value.split('-')
   const character = parts[0].toLowerCase()
-  const style = parts.length >= 2 ? parts.slice(1).join('-') : 'casual-sitting'
+  const style = parts.length >= 2 ? parts.slice(1).join('-') : 'casual'
 
   return { character, style, is_photo_avatar: false, voice_name: voiceName }
 }

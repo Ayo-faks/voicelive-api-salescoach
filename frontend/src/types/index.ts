@@ -202,17 +202,17 @@ export interface AvatarOption {
 
 export const AVATAR_OPTIONS: AvatarOption[] = [
   {
-    value: 'lisa-casual-sitting',
-    label: 'Lisa',
+    value: 'meg-casual',
+    label: 'Meg',
     isPhotoAvatar: false,
     color: '#0d8a84',
-    persona: 'an adult British woman',
+    persona: 'an adult woman',
   },
   { value: 'riya', label: 'Riya (Photo)', isPhotoAvatar: true, color: '#a855f7' },
   { value: 'simone', label: 'Simone (Photo)', isPhotoAvatar: true, color: '#f97316' },
 ]
 
-export const DEFAULT_AVATAR = 'lisa-casual-sitting'
+export const DEFAULT_AVATAR = 'meg-casual'
 
 export interface CustomScenarioData {
   systemPrompt: string

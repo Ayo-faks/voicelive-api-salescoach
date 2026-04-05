@@ -153,8 +153,8 @@ class TestVoiceProxyHandler:
         mock_config.get.side_effect = lambda key, default=None: {
             "azure_voice_name": "en-US-TestVoice",
             "azure_voice_type": "azure-standard",
-            "azure_avatar_character": "lisa",
-            "azure_avatar_style": "casual-sitting",
+            "azure_avatar_character": "meg",
+            "azure_avatar_style": "casual",
         }.get(key, default)
 
         handler = VoiceProxyHandler(Mock())
@@ -170,8 +170,8 @@ class TestVoiceProxyHandler:
         mock_config.get.side_effect = lambda key, default=None: {
             "azure_voice_name": "en-US-TestVoice",
             "azure_voice_type": "azure-standard",
-            "azure_avatar_character": "lisa",
-            "azure_avatar_style": "casual-sitting",
+            "azure_avatar_character": "meg",
+            "azure_avatar_style": "casual",
         }.get(key, default)
 
         handler = VoiceProxyHandler(Mock())
@@ -194,16 +194,16 @@ class TestVoiceProxyHandler:
         mock_config.get.side_effect = lambda key, default=None: {
             "azure_voice_name": "en-US-TestVoice",
             "azure_voice_type": "azure-standard",
-            "azure_avatar_character": "lisa",
-            "azure_avatar_style": "casual-sitting",
+            "azure_avatar_character": "meg",
+            "azure_avatar_style": "casual",
         }.get(key, default)
 
         handler = VoiceProxyHandler(Mock())
         agent_config = {
             "is_azure_agent": False,
             "avatar_config": {
-                "character": "lisa",
-                "style": "casual-sitting",
+                "character": "meg",
+                "style": "casual",
                 "is_photo_avatar": False,
                 "voice_name": "en-GB-AbbiNeural",
             },

@@ -206,7 +206,7 @@ vi.mock('../hooks/useWebRTC', () => ({
 }))
 
 vi.mock('../services/api', () => ({
-  parseAvatarValue: vi.fn(() => ({ character: 'lisa', style: 'casual-sitting', is_photo_avatar: false })),
+  parseAvatarValue: vi.fn(() => ({ character: 'meg', style: 'casual', is_photo_avatar: false })),
   api: {
     getAuthSession: vi.fn(),
     getConfig: vi.fn(),

@@ -771,7 +771,7 @@ export default function App() {
   const [pendingPath, setPendingPath] = useState<AppRoute | null>(null)
   const [showNavigationConfirm, setShowNavigationConfirm] = useState(false)
   const [selectedAvatar, setSelectedAvatar] = useState(DEFAULT_AVATAR)
-  const [pendingAvatarValue, setPendingAvatarValue] = useState<string>('lisa-casual-sitting')
+  const [pendingAvatarValue, setPendingAvatarValue] = useState<string>('meg-casual')
   const [pendingScenarioId, setPendingScenarioId] = useState<string | null>(null)
   const [pendingModeSelection, setPendingModeSelection] =
     useState<UserMode | null>(null)

@@ -24,8 +24,8 @@ DEFAULT_INPUT_TRANSCRIPTION_MODEL = "azure-speech"
 DEFAULT_INPUT_NOISE_REDUCTION_TYPE = "azure_deep_noise_suppression"
 DEFAULT_VOICE_NAME = "en-GB-RubiGanges:DragonHDOmniLatestNeural"
 DEFAULT_VOICE_TYPE = "azure-standard"
-DEFAULT_AVATAR_CHARACTER = "lisa"
-DEFAULT_AVATAR_STYLE = "casual-sitting"
+DEFAULT_AVATAR_CHARACTER = "meg"
+DEFAULT_AVATAR_STYLE = "casual"
 DEFAULT_CHILD_ID = "child-ayo"
 
 DEFAULT_STORAGE_PATH = str(Path(__file__).resolve().parents[2] / "data" / "wulo.db")

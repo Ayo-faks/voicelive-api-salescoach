@@ -44,8 +44,8 @@ LOCAL_DEV_AUTH = bool(config["local_dev_auth"])
 DEFAULT_TURN_DETECTION_TYPE = "azure_semantic_vad"
 DEFAULT_NOISE_REDUCTION_TYPE = "azure_deep_noise_suppression"
 DEFAULT_ECHO_CANCELLATION_TYPE = "server_echo_cancellation"
-DEFAULT_AVATAR_CHARACTER = "lisa"
-DEFAULT_AVATAR_STYLE = "casual-sitting"
+DEFAULT_AVATAR_CHARACTER = "meg"
+DEFAULT_AVATAR_STYLE = "casual"
 
 # Message types
 SESSION_UPDATE_TYPE = "session.update"
