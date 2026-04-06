@@ -1,0 +1,1033 @@
+{
+  "generatedAt": "2026-04-05T06:06:50.396Z",
+  "total": 12,
+  "contacts": [
+    {
+      "name": "Alison Treloar",
+      "profileUrl": "https://asltip.com/members/mrs-alison-treloar/",
+      "memberSince": "13/10/2022",
+      "postcode": "",
+      "website": "https://buildmywords.co.uk/",
+      "hasPhone": true,
+      "bio": "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Magnam nobis quas quo voluptate voluptatibus.",
+      "conditions": [
+        "Articulation and phonology",
+        "Developmental Language Disorder",
+        "Early childhood language development",
+        "Language disorder",
+        "Mainstream Schools",
+        "Online therapy / Telehealth",
+        "Stammering",
+        "Supervision",
+        "Training",
+        "Training for educational settings/schools/SEN staff"
+      ],
+      "ageRanges": [
+        "Preschool",
+        "Primary School",
+        "Secondary school and adolescent"
+      ],
+      "icpScore": 100,
+      "traits": {
+        "childFocus": true,
+        "adultOnly": false,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingConsultancy": true,
+        "telehealthSignal": true,
+        "broadChildCaseload": true,
+        "speechPracticeAligned": true,
+        "medicallyComplex": false,
+        "privatePracticeSignal": true,
+        "ownerOperatorSignal": false,
+        "consultancyHeavy": false,
+        "ownWebsite": true
+      },
+      "buyerProblems": [
+        "I need engaging home practice",
+        "I need to personalize exercises quickly",
+        "I need visible progress for parents",
+        "I need continuity between weekly sessions",
+        "I need to review sessions without doing everything manually"
+      ],
+      "persona": {
+        "practiceType": "private independent or small clinic",
+        "ownWebsite": true,
+        "broadChildCaseload": true,
+        "telehealthAvailability": true,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingOrConsultancy": true,
+        "ownerOperatorLikely": false
+      },
+      "matchedSegments": [
+        "Pediatric articulation and phonology therapists",
+        "Pediatric DLD therapists",
+        "Telehealth-capable pediatric therapists",
+        "School-facing or parent-facing private therapists"
+      ],
+      "primarySegment": "Pediatric articulation and phonology therapists",
+      "rank": 2,
+      "shortlistScore": 125,
+      "outreachSegment": "telehealth-continuity",
+      "email": "ali@buildmywords.co.uk",
+      "emailSource": "website",
+      "allEmails": [
+        "ali@buildmywords.co.uk"
+      ],
+      "scanMeta": {
+        "profileEmails": [
+          "ali@buildmywords.co.uk"
+        ],
+        "websiteEmails": [
+          "ali@buildmywords.co.uk"
+        ],
+        "checkedUrls": [
+          "https://buildmywords.co.uk/",
+          "https://img1.wsimg.com/isteam/ip/254808d4-3337-4102-b901-092924108a12/build%20my%20words%20logo%20landscape%20reversed.jpg/:/rs=w:57,h:57,m",
+          "https://img1.wsimg.com/isteam/ip/254808d4-3337-4102-b901-092924108a12/build%20my%20words%20logo%20landscape%20reversed.jpg/:/rs=w:60,h:60,m",
+          "https://img1.wsimg.com/isteam/ip/254808d4-3337-4102-b901-092924108a12/build%20my%20words%20logo%20landscape%20reversed.jpg/:/rs=w:72,h:72,m",
+          "https://img1.wsimg.com/isteam/ip/254808d4-3337-4102-b901-092924108a12/build%20my%20words%20logo%20landscape%20reversed.jpg/:/rs=w:114,h:114,m"
+        ],
+        "websiteError": ""
+      }
+    },
+    {
+      "name": "Amanda Duncan",
+      "profileUrl": "https://asltip.com/members/mrs-amanda-duncan/",
+      "memberSince": "26/03/2014",
+      "postcode": "",
+      "website": "https://adslt.co.uk/",
+      "hasPhone": true,
+      "bio": "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Magnam nobis quas quo voluptate voluptatibus.",
+      "conditions": [
+        "Articulation and phonology",
+        "Dyspraxia/Childhood Apraxia of speech",
+        "Early childhood language development",
+        "Online therapy / Telehealth",
+        "Orofacial myofunctional disorders",
+        "Stammering",
+        "Training",
+        "Training for educational settings/schools/SEN staff"
+      ],
+      "ageRanges": [
+        "Preschool",
+        "Primary School"
+      ],
+      "icpScore": 100,
+      "traits": {
+        "childFocus": true,
+        "adultOnly": false,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingConsultancy": true,
+        "telehealthSignal": true,
+        "broadChildCaseload": true,
+        "speechPracticeAligned": true,
+        "medicallyComplex": false,
+        "privatePracticeSignal": true,
+        "ownerOperatorSignal": false,
+        "consultancyHeavy": false,
+        "ownWebsite": true
+      },
+      "buyerProblems": [
+        "I need engaging home practice",
+        "I need to personalize exercises quickly",
+        "I need visible progress for parents",
+        "I need continuity between weekly sessions",
+        "I need to review sessions without doing everything manually"
+      ],
+      "persona": {
+        "practiceType": "private independent or small clinic",
+        "ownWebsite": true,
+        "broadChildCaseload": true,
+        "telehealthAvailability": true,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingOrConsultancy": true,
+        "ownerOperatorLikely": false
+      },
+      "matchedSegments": [
+        "Telehealth-capable pediatric therapists",
+        "School-facing or parent-facing private therapists"
+      ],
+      "primarySegment": "Telehealth-capable pediatric therapists",
+      "rank": 4,
+      "shortlistScore": 125,
+      "outreachSegment": "telehealth-continuity",
+      "email": "amanda.duncan@adslt.co.uk",
+      "emailSource": "website",
+      "allEmails": [
+        "amanda.duncan@adslt.co.uk"
+      ],
+      "scanMeta": {
+        "profileEmails": [],
+        "websiteEmails": [
+          "amanda.duncan@adslt.co.uk"
+        ],
+        "checkedUrls": [
+          "https://adslt.co.uk/"
+        ],
+        "websiteError": ""
+      }
+    },
+    {
+      "name": "Beth Aulton",
+      "profileUrl": "https://asltip.com/members/beth-aulton/",
+      "memberSince": "29/07/2025",
+      "postcode": "",
+      "website": "https://www.thrivecomtherapy.co.uk/",
+      "hasPhone": true,
+      "bio": "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Magnam nobis quas quo voluptate voluptatibus.",
+      "conditions": [
+        "AAC (augmentative and alternative communication)",
+        "Articulation and phonology",
+        "Attention related difficulties (ADD, ADHD)",
+        "Auditory Processing Disorder",
+        "Autism spectrum",
+        "Behavioural difficulties",
+        "Bilingualism",
+        "Case management",
+        "Cerebral palsy",
+        "Communication skills at work",
+        "Developmental Language Disorder",
+        "Down's syndrome",
+        "Dyspraxia/Childhood Apraxia of speech",
+        "Early childhood language development",
+        "Language disorder",
+        "Learning disability",
+        "Mainstream Schools",
+        "Motor speech disorders",
+        "Online therapy / Telehealth",
+        "Play skills",
+        "Selective mutism",
+        "Social and emotional difficulties",
+        "Stammering",
+        "Supervision",
+        "Training",
+        "Training for educational settings/schools/SEN staff"
+      ],
+      "ageRanges": [
+        "Preschool",
+        "Primary School",
+        "Secondary school and adolescent"
+      ],
+      "icpScore": 100,
+      "traits": {
+        "childFocus": true,
+        "adultOnly": false,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingConsultancy": true,
+        "telehealthSignal": true,
+        "broadChildCaseload": true,
+        "speechPracticeAligned": true,
+        "medicallyComplex": false,
+        "privatePracticeSignal": true,
+        "ownerOperatorSignal": false,
+        "consultancyHeavy": false,
+        "ownWebsite": true
+      },
+      "buyerProblems": [
+        "I need engaging home practice",
+        "I need to personalize exercises quickly",
+        "I need visible progress for parents",
+        "I need continuity between weekly sessions",
+        "I need to review sessions without doing everything manually"
+      ],
+      "persona": {
+        "practiceType": "private independent or small clinic",
+        "ownWebsite": true,
+        "broadChildCaseload": true,
+        "telehealthAvailability": true,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingOrConsultancy": true,
+        "ownerOperatorLikely": false
+      },
+      "matchedSegments": [
+        "Autism-support therapists using structured communication practice",
+        "School-facing or parent-facing private therapists"
+      ],
+      "primarySegment": "Autism-support therapists using structured communication practice",
+      "rank": 8,
+      "shortlistScore": 125,
+      "outreachSegment": "telehealth-continuity",
+      "email": "info@thrivecomtherapy.co.uk",
+      "emailSource": "website",
+      "allEmails": [
+        "info@thrivecomtherapy.co.uk"
+      ],
+      "scanMeta": {
+        "profileEmails": [],
+        "websiteEmails": [
+          "info@thrivecomtherapy.co.uk"
+        ],
+        "checkedUrls": [
+          "https://www.thrivecomtherapy.co.uk/",
+          "https://www.thrivecomtherapy.co.uk/about",
+          "https://www.thrivecomtherapy.co.uk/contact"
+        ],
+        "websiteError": ""
+      }
+    },
+    {
+      "name": "Claire Elliott",
+      "profileUrl": "https://asltip.com/members/mrs-claire-elliott/",
+      "memberSince": "21/07/2015",
+      "postcode": "",
+      "website": "http://www.surreyspeechtherapy.co.uk/",
+      "hasPhone": true,
+      "bio": "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Magnam nobis quas quo voluptate voluptatibus.",
+      "conditions": [
+        "AAC (augmentative and alternative communication)",
+        "Articulation and phonology",
+        "Attention related difficulties (ADD, ADHD)",
+        "Autism spectrum",
+        "Cleft palate",
+        "Down's syndrome",
+        "Dyspraxia/Childhood Apraxia of speech",
+        "Early childhood language development",
+        "Language disorder",
+        "Learning disability",
+        "Mainstream Schools",
+        "Motor speech disorders",
+        "Online therapy / Telehealth",
+        "Play skills",
+        "Prevention",
+        "Signing",
+        "Social and emotional difficulties",
+        "Stammering",
+        "Supervision",
+        "Training",
+        "Training for educational settings/schools/SEN staff"
+      ],
+      "ageRanges": [
+        "Preschool",
+        "Primary School"
+      ],
+      "icpScore": 100,
+      "traits": {
+        "childFocus": true,
+        "adultOnly": false,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingConsultancy": true,
+        "telehealthSignal": true,
+        "broadChildCaseload": true,
+        "speechPracticeAligned": true,
+        "medicallyComplex": false,
+        "privatePracticeSignal": true,
+        "ownerOperatorSignal": false,
+        "consultancyHeavy": false,
+        "ownWebsite": true
+      },
+      "buyerProblems": [
+        "I need engaging home practice",
+        "I need to personalize exercises quickly",
+        "I need visible progress for parents",
+        "I need continuity between weekly sessions",
+        "I need to review sessions without doing everything manually"
+      ],
+      "persona": {
+        "practiceType": "private independent or small clinic",
+        "ownWebsite": true,
+        "broadChildCaseload": true,
+        "telehealthAvailability": true,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingOrConsultancy": true,
+        "ownerOperatorLikely": false
+      },
+      "matchedSegments": [
+        "Pediatric articulation and phonology therapists",
+        "Autism-support therapists using structured communication practice",
+        "School-facing or parent-facing private therapists"
+      ],
+      "primarySegment": "Pediatric articulation and phonology therapists",
+      "rank": 11,
+      "shortlistScore": 125,
+      "outreachSegment": "telehealth-continuity",
+      "email": "claire@surreyspeechtherapy.co.uk",
+      "emailSource": "website",
+      "allEmails": [
+        "claire@surreyspeechtherapy.co.uk"
+      ],
+      "scanMeta": {
+        "profileEmails": [],
+        "websiteEmails": [
+          "claire@surreyspeechtherapy.co.uk"
+        ],
+        "checkedUrls": [
+          "http://www.surreyspeechtherapy.co.uk/"
+        ],
+        "websiteError": ""
+      }
+    },
+    {
+      "name": "Alison Wainwright",
+      "profileUrl": "https://asltip.com/members/mrs-alison-wainwright/",
+      "memberSince": "08/11/2016",
+      "postcode": "",
+      "website": "https://www.awslt.co.uk/",
+      "hasPhone": true,
+      "bio": "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Magnam nobis quas quo voluptate voluptatibus.",
+      "conditions": [
+        "Articulation and phonology",
+        "Developmental Language Disorder",
+        "Early childhood language development",
+        "Language disorder",
+        "Learning disability",
+        "Mainstream Schools",
+        "Prevention",
+        "Selective mutism",
+        "Social and emotional difficulties",
+        "Supervision"
+      ],
+      "ageRanges": [
+        "Preschool",
+        "Primary School",
+        "Secondary school and adolescent"
+      ],
+      "icpScore": 100,
+      "traits": {
+        "childFocus": true,
+        "adultOnly": false,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingConsultancy": true,
+        "telehealthSignal": false,
+        "broadChildCaseload": true,
+        "speechPracticeAligned": true,
+        "medicallyComplex": false,
+        "privatePracticeSignal": true,
+        "ownerOperatorSignal": false,
+        "consultancyHeavy": false,
+        "ownWebsite": true
+      },
+      "buyerProblems": [
+        "I need engaging home practice",
+        "I need to personalize exercises quickly",
+        "I need visible progress for parents",
+        "I need to review sessions without doing everything manually"
+      ],
+      "persona": {
+        "practiceType": "private independent or small clinic",
+        "ownWebsite": true,
+        "broadChildCaseload": true,
+        "telehealthAvailability": false,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingOrConsultancy": true,
+        "ownerOperatorLikely": false
+      },
+      "matchedSegments": [
+        "Pediatric articulation and phonology therapists",
+        "Pediatric DLD therapists"
+      ],
+      "primarySegment": "Pediatric articulation and phonology therapists",
+      "rank": 3,
+      "shortlistScore": 123,
+      "outreachSegment": "school-and-parent-reporting",
+      "email": "alison@awslt.co.uk",
+      "emailSource": "website",
+      "allEmails": [
+        "alison@awslt.co.uk"
+      ],
+      "scanMeta": {
+        "profileEmails": [],
+        "websiteEmails": [
+          "alison@awslt.co.uk"
+        ],
+        "checkedUrls": [
+          "https://www.awslt.co.uk/",
+          "https://awslt.co.uk/about-me",
+          "https://awslt.co.uk/contact-us"
+        ],
+        "websiteError": ""
+      }
+    },
+    {
+      "name": "Anne Richardson",
+      "profileUrl": "https://asltip.com/members/anne-richardson/",
+      "memberSince": "21/04/2023",
+      "postcode": "",
+      "website": "http://www.tinycommunicators.co.uk/",
+      "hasPhone": true,
+      "bio": "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Magnam nobis quas quo voluptate voluptatibus.",
+      "conditions": [
+        "Articulation and phonology",
+        "Dyspraxia/Childhood Apraxia of speech",
+        "Early childhood language development",
+        "Motor speech disorders",
+        "Stammering",
+        "Training for educational settings/schools/SEN staff"
+      ],
+      "ageRanges": [
+        "Preschool",
+        "Primary School"
+      ],
+      "icpScore": 100,
+      "traits": {
+        "childFocus": true,
+        "adultOnly": false,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingConsultancy": true,
+        "telehealthSignal": false,
+        "broadChildCaseload": true,
+        "speechPracticeAligned": true,
+        "medicallyComplex": false,
+        "privatePracticeSignal": true,
+        "ownerOperatorSignal": false,
+        "consultancyHeavy": false,
+        "ownWebsite": true
+      },
+      "buyerProblems": [
+        "I need engaging home practice",
+        "I need to personalize exercises quickly",
+        "I need visible progress for parents",
+        "I need to review sessions without doing everything manually"
+      ],
+      "persona": {
+        "practiceType": "private independent or small clinic",
+        "ownWebsite": true,
+        "broadChildCaseload": true,
+        "telehealthAvailability": false,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingOrConsultancy": true,
+        "ownerOperatorLikely": false
+      },
+      "matchedSegments": [
+        "Pediatric articulation and phonology therapists",
+        "School-facing or parent-facing private therapists"
+      ],
+      "primarySegment": "Pediatric articulation and phonology therapists",
+      "rank": 7,
+      "shortlistScore": 123,
+      "outreachSegment": "school-and-parent-reporting",
+      "email": "anne@tinycommunicators.co.uk",
+      "emailSource": "website",
+      "allEmails": [
+        "annerichardson030@gmail.com",
+        "anne@tinycommunicators.co.uk"
+      ],
+      "scanMeta": {
+        "profileEmails": [
+          "annerichardson030@gmail.com"
+        ],
+        "websiteEmails": [
+          "annerichardson030@gmail.com",
+          "anne@tinycommunicators.co.uk"
+        ],
+        "checkedUrls": [
+          "http://www.tinycommunicators.co.uk/",
+          "https://www.tinycommunicators.co.uk/about",
+          "https://www.tinycommunicators.co.uk/contact"
+        ],
+        "websiteError": ""
+      }
+    },
+    {
+      "name": "Natalie Zahn",
+      "profileUrl": "https://asltip.com/members/ms-natalie-zahn/",
+      "memberSince": "08/09/2016",
+      "postcode": "",
+      "website": "http://www.e3speechandlanguagetherapy.co.uk/",
+      "hasPhone": true,
+      "bio": "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Magnam nobis quas quo voluptate voluptatibus.",
+      "conditions": [
+        "Articulation and phonology",
+        "Autism spectrum",
+        "Bilingualism",
+        "Dyspraxia/Childhood Apraxia of speech",
+        "Early childhood language development",
+        "Language disorder",
+        "Mainstream Schools",
+        "Stammering",
+        "Supervision",
+        "Training",
+        "Training for educational settings/schools/SEN staff"
+      ],
+      "ageRanges": [
+        "Preschool",
+        "Primary School"
+      ],
+      "icpScore": 100,
+      "traits": {
+        "childFocus": true,
+        "adultOnly": false,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingConsultancy": true,
+        "telehealthSignal": false,
+        "broadChildCaseload": true,
+        "speechPracticeAligned": true,
+        "medicallyComplex": false,
+        "privatePracticeSignal": true,
+        "ownerOperatorSignal": false,
+        "consultancyHeavy": false,
+        "ownWebsite": true
+      },
+      "buyerProblems": [
+        "I need engaging home practice",
+        "I need to personalize exercises quickly",
+        "I need visible progress for parents",
+        "I need to review sessions without doing everything manually"
+      ],
+      "persona": {
+        "practiceType": "private independent or small clinic",
+        "ownWebsite": true,
+        "broadChildCaseload": true,
+        "telehealthAvailability": false,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingOrConsultancy": true,
+        "ownerOperatorLikely": false
+      },
+      "matchedSegments": [
+        "Pediatric articulation and phonology therapists",
+        "Autism-support therapists using structured communication practice",
+        "School-facing or parent-facing private therapists"
+      ],
+      "primarySegment": "Pediatric articulation and phonology therapists",
+      "rank": 13,
+      "shortlistScore": 123,
+      "outreachSegment": "school-and-parent-reporting",
+      "email": "natalie@e3speechandlanguagetherapy.co.uk",
+      "emailSource": "website",
+      "allEmails": [
+        "natalie@e3speechandlanguagetherapy.co.uk"
+      ],
+      "scanMeta": {
+        "profileEmails": [],
+        "websiteEmails": [
+          "natalie@e3speechandlanguagetherapy.co.uk"
+        ],
+        "checkedUrls": [
+          "http://www.e3speechandlanguagetherapy.co.uk/",
+          "https://www.e3speechandlanguagetherapy.co.uk/about",
+          "https://www.e3speechandlanguagetherapy.co.uk/contact"
+        ],
+        "websiteError": ""
+      }
+    },
+    {
+      "name": "Alina Palmer",
+      "profileUrl": "https://asltip.com/members/mrs-alina-palmer/",
+      "memberSince": "18/08/2014",
+      "postcode": "",
+      "website": "https://alinaspeechtherapy.com/",
+      "hasPhone": true,
+      "bio": "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Magnam nobis quas quo voluptate voluptatibus.",
+      "conditions": [
+        "Articulation and phonology",
+        "Autism spectrum",
+        "Language disorder",
+        "Learning disability",
+        "Mainstream Schools"
+      ],
+      "ageRanges": [
+        "Newborn",
+        "Preschool",
+        "Primary School"
+      ],
+      "icpScore": 95,
+      "traits": {
+        "childFocus": true,
+        "adultOnly": false,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingConsultancy": false,
+        "telehealthSignal": false,
+        "broadChildCaseload": true,
+        "speechPracticeAligned": true,
+        "medicallyComplex": false,
+        "privatePracticeSignal": true,
+        "ownerOperatorSignal": false,
+        "consultancyHeavy": false,
+        "ownWebsite": true
+      },
+      "buyerProblems": [
+        "I need engaging home practice",
+        "I need to personalize exercises quickly",
+        "I need visible progress for parents"
+      ],
+      "persona": {
+        "practiceType": "private independent or small clinic",
+        "ownWebsite": true,
+        "broadChildCaseload": true,
+        "telehealthAvailability": false,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingOrConsultancy": false,
+        "ownerOperatorLikely": false
+      },
+      "matchedSegments": [
+        "Pediatric articulation and phonology therapists",
+        "Autism-support therapists using structured communication practice"
+      ],
+      "primarySegment": "Pediatric articulation and phonology therapists",
+      "rank": 19,
+      "shortlistScore": 121,
+      "outreachSegment": "school-and-parent-reporting",
+      "email": "info@alinaspeechtherapy.com",
+      "emailSource": "website",
+      "allEmails": [
+        "info@alinaspeechtherapy.com"
+      ],
+      "scanMeta": {
+        "profileEmails": [],
+        "websiteEmails": [
+          "info@alinaspeechtherapy.com"
+        ],
+        "checkedUrls": [
+          "https://alinaspeechtherapy.com/",
+          "https://alinaspeechtherapy.com/about/",
+          "https://alinaspeechtherapy.com/contact/"
+        ],
+        "websiteError": ""
+      }
+    },
+    {
+      "name": "Katie Yoe",
+      "profileUrl": "https://asltip.com/members/mrs-katie-yoe/",
+      "memberSince": "19/03/2003",
+      "postcode": "",
+      "website": "http://speechlanguage-therapy.co.uk/",
+      "hasPhone": true,
+      "bio": "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Magnam nobis quas quo voluptate voluptatibus.",
+      "conditions": [
+        "Articulation and phonology",
+        "Cleft palate",
+        "Dyspraxia/Childhood Apraxia of speech",
+        "Language disorder",
+        "Mainstream Schools",
+        "Motor speech disorders",
+        "Play skills",
+        "Stammering"
+      ],
+      "ageRanges": [
+        "Preschool",
+        "Primary School"
+      ],
+      "icpScore": 95,
+      "traits": {
+        "childFocus": true,
+        "adultOnly": false,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingConsultancy": false,
+        "telehealthSignal": false,
+        "broadChildCaseload": true,
+        "speechPracticeAligned": true,
+        "medicallyComplex": false,
+        "privatePracticeSignal": true,
+        "ownerOperatorSignal": false,
+        "consultancyHeavy": false,
+        "ownWebsite": true
+      },
+      "buyerProblems": [
+        "I need engaging home practice",
+        "I need to personalize exercises quickly",
+        "I need visible progress for parents"
+      ],
+      "persona": {
+        "practiceType": "private independent or small clinic",
+        "ownWebsite": true,
+        "broadChildCaseload": true,
+        "telehealthAvailability": false,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingOrConsultancy": false,
+        "ownerOperatorLikely": false
+      },
+      "matchedSegments": [
+        "Pediatric articulation and phonology therapists"
+      ],
+      "primarySegment": "Pediatric articulation and phonology therapists",
+      "rank": 33,
+      "shortlistScore": 121,
+      "outreachSegment": "school-and-parent-reporting",
+      "email": "info@speechlanguage-therapy.co.uk",
+      "emailSource": "website",
+      "allEmails": [
+        "info@speechlanguage-therapy.co.uk"
+      ],
+      "scanMeta": {
+        "profileEmails": [],
+        "websiteEmails": [
+          "info@speechlanguage-therapy.co.uk"
+        ],
+        "checkedUrls": [
+          "http://speechlanguage-therapy.co.uk/"
+        ],
+        "websiteError": ""
+      }
+    },
+    {
+      "name": "Anila Shah",
+      "profileUrl": "https://asltip.com/members/mrs-anila-shah/",
+      "memberSince": "17/02/2007",
+      "postcode": "",
+      "website": "https://arkspeechtherapy.co.uk/",
+      "hasPhone": true,
+      "bio": "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Magnam nobis quas quo voluptate voluptatibus.",
+      "conditions": [
+        "Articulation and phonology",
+        "Attention related difficulties (ADD, ADHD)",
+        "Autism spectrum",
+        "Behavioural difficulties",
+        "Developmental Language Disorder",
+        "Language disorder",
+        "Mainstream Schools",
+        "Selective mutism",
+        "Training",
+        "Training for educational settings/schools/SEN staff",
+        "Tribunal assessments or reports"
+      ],
+      "ageRanges": [
+        "Preschool",
+        "Primary School",
+        "Secondary school and adolescent"
+      ],
+      "icpScore": 90,
+      "traits": {
+        "childFocus": true,
+        "adultOnly": false,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingConsultancy": true,
+        "telehealthSignal": false,
+        "broadChildCaseload": true,
+        "speechPracticeAligned": true,
+        "medicallyComplex": false,
+        "privatePracticeSignal": true,
+        "ownerOperatorSignal": false,
+        "consultancyHeavy": false,
+        "ownWebsite": true
+      },
+      "buyerProblems": [
+        "I need engaging home practice",
+        "I need to personalize exercises quickly",
+        "I need visible progress for parents",
+        "I need to review sessions without doing everything manually"
+      ],
+      "persona": {
+        "practiceType": "private independent or small clinic",
+        "ownWebsite": true,
+        "broadChildCaseload": true,
+        "telehealthAvailability": false,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingOrConsultancy": true,
+        "ownerOperatorLikely": false
+      },
+      "matchedSegments": [
+        "School-facing or parent-facing private therapists"
+      ],
+      "primarySegment": "School-facing or parent-facing private therapists",
+      "rank": 36,
+      "shortlistScore": 113,
+      "outreachSegment": "school-and-parent-reporting",
+      "email": "info@arkspeechtherapy.co.uk",
+      "emailSource": "website",
+      "allEmails": [
+        "info@arkspeechtherapy.co.uk"
+      ],
+      "scanMeta": {
+        "profileEmails": [],
+        "websiteEmails": [
+          "info@arkspeechtherapy.co.uk"
+        ],
+        "checkedUrls": [
+          "https://arkspeechtherapy.co.uk/",
+          "https://www.arkspeechtherapy.co.uk/about"
+        ],
+        "websiteError": ""
+      }
+    },
+    {
+      "name": "Alison Greig",
+      "profileUrl": "https://asltip.com/members/mrs-alison-greig/",
+      "memberSince": "13/02/2008",
+      "postcode": "",
+      "website": "http://www.ag-therapy.com/",
+      "hasPhone": true,
+      "bio": "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Magnam nobis quas quo voluptate voluptatibus.",
+      "conditions": [
+        "Articulation and phonology",
+        "Dyspraxia/Childhood Apraxia of speech",
+        "Early childhood language development",
+        "Language disorder",
+        "Motor speech disorders",
+        "Play skills"
+      ],
+      "ageRanges": [
+        "Preschool"
+      ],
+      "icpScore": 85,
+      "traits": {
+        "childFocus": true,
+        "adultOnly": false,
+        "schoolFacing": false,
+        "parentFacing": false,
+        "trainingConsultancy": false,
+        "telehealthSignal": false,
+        "broadChildCaseload": true,
+        "speechPracticeAligned": true,
+        "medicallyComplex": false,
+        "privatePracticeSignal": true,
+        "ownerOperatorSignal": false,
+        "consultancyHeavy": false,
+        "ownWebsite": true
+      },
+      "buyerProblems": [
+        "I need engaging home practice",
+        "I need to personalize exercises quickly"
+      ],
+      "persona": {
+        "practiceType": "private independent or small clinic",
+        "ownWebsite": true,
+        "broadChildCaseload": true,
+        "telehealthAvailability": false,
+        "schoolFacing": false,
+        "parentFacing": false,
+        "trainingOrConsultancy": false,
+        "ownerOperatorLikely": false
+      },
+      "matchedSegments": [
+        "Pediatric articulation and phonology therapists"
+      ],
+      "primarySegment": "Pediatric articulation and phonology therapists",
+      "rank": 44,
+      "shortlistScore": 108,
+      "outreachSegment": "articulation-dld-carryover",
+      "email": "alison@ag-therapy.com",
+      "emailSource": "website",
+      "allEmails": [
+        "alison@ag-therapy.com"
+      ],
+      "scanMeta": {
+        "profileEmails": [],
+        "websiteEmails": [
+          "alison@ag-therapy.com"
+        ],
+        "checkedUrls": [
+          "http://www.ag-therapy.com/"
+        ],
+        "websiteError": ""
+      }
+    },
+    {
+      "name": "Cassandra Pierson",
+      "profileUrl": "https://asltip.com/members/mrs-cassandra-pierson/",
+      "memberSince": "02/12/2014",
+      "postcode": "",
+      "website": "http://www.cdspeechtherapy.co.uk/",
+      "hasPhone": true,
+      "bio": "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Magnam nobis quas quo voluptate voluptatibus.",
+      "conditions": [
+        "AAC (augmentative and alternative communication)",
+        "Acquired brain injury (including stroke)",
+        "Articulation and phonology",
+        "Attention related difficulties (ADD, ADHD)",
+        "Autism spectrum",
+        "Bilingualism",
+        "Case management",
+        "Cerebral palsy",
+        "Developmental Language Disorder",
+        "Down's syndrome",
+        "Dyslexia",
+        "Dyspraxia/Childhood Apraxia of speech",
+        "Early childhood language development",
+        "Language disorder",
+        "Learning disability",
+        "Mainstream Schools",
+        "Medico-legal (including reports for legal proceedings)",
+        "Motor speech disorders",
+        "Online therapy / Telehealth",
+        "Play skills",
+        "Prevention",
+        "Signing",
+        "Social and emotional difficulties",
+        "Stammering",
+        "Supervision",
+        "Training",
+        "Training for educational settings/schools/SEN staff",
+        "Tribunal assessments or reports"
+      ],
+      "ageRanges": [
+        "Newborn",
+        "Preschool",
+        "Primary School",
+        "Secondary school and adolescent"
+      ],
+      "icpScore": 95,
+      "traits": {
+        "childFocus": true,
+        "adultOnly": false,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingConsultancy": true,
+        "telehealthSignal": true,
+        "broadChildCaseload": true,
+        "speechPracticeAligned": true,
+        "medicallyComplex": true,
+        "privatePracticeSignal": true,
+        "ownerOperatorSignal": false,
+        "consultancyHeavy": false,
+        "ownWebsite": true
+      },
+      "buyerProblems": [
+        "I need engaging home practice",
+        "I need to personalize exercises quickly",
+        "I need visible progress for parents",
+        "I need continuity between weekly sessions",
+        "I need to review sessions without doing everything manually"
+      ],
+      "persona": {
+        "practiceType": "private independent or small clinic",
+        "ownWebsite": true,
+        "broadChildCaseload": true,
+        "telehealthAvailability": true,
+        "schoolFacing": true,
+        "parentFacing": false,
+        "trainingOrConsultancy": true,
+        "ownerOperatorLikely": false
+      },
+      "matchedSegments": [
+        "Pediatric DLD therapists",
+        "Telehealth-capable pediatric therapists",
+        "School-facing or parent-facing private therapists"
+      ],
+      "primarySegment": "Pediatric DLD therapists",
+      "rank": 28,
+      "shortlistScore": 102,
+      "outreachSegment": "telehealth-continuity",
+      "email": "info@cdspeechtherapy.co.uk",
+      "emailSource": "profile",
+      "allEmails": [
+        "web@cdspeeechtherapy.co.uk",
+        "info@cdspeechtherapy.co.uk"
+      ],
+      "scanMeta": {
+        "profileEmails": [
+          "info@cdspeechtherapy.co.uk"
+        ],
+        "websiteEmails": [
+          "web@cdspeeechtherapy.co.uk"
+        ],
+        "checkedUrls": [
+          "http://www.cdspeechtherapy.co.uk/",
+          "https://cdspeechtherapy.co.uk/about-us",
+          "https://cdspeechtherapy.co.uk/essex-team",
+          "https://cdspeechtherapy.co.uk/south-west-team",
+          "https://cdspeechtherapy.co.uk/contact"
+        ],
+        "websiteError": ""
+      }
+    }
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wulo.ai/schemas/asltip-prospect.schema.json",
+  "title": "ASLTIP ICP Prospect",
+  "type": "object",
+  "required": [
+    "name",
+    "profileUrl",
+    "icpScore",
+    "primarySegment",
+    "matchedSegments",
+    "traits",
+    "persona",
+    "buyerProblems",
+    "conditions",
+    "ageRanges"
+  ],
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "profileUrl": {
+      "type": "string",
+      "format": "uri"
+    },
+    "memberSince": {
+      "type": "string"
+    },
+    "postcode": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "emailSource": {
+      "type": "string"
+    },
+    "hasPhone": {
+      "type": "boolean"
+    },
+    "bio": {
+      "type": "string"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ageRanges": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "icpScore": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "primarySegment": {
+      "type": "string"
+    },
+    "matchedSegments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "traits": {
+      "type": "object",
+      "required": [
+        "childFocus",
+        "adultOnly",
+        "schoolFacing",
+        "parentFacing",
+        "trainingConsultancy",
+        "telehealthSignal",
+        "broadChildCaseload",
+        "speechPracticeAligned",
+        "medicallyComplex",
+        "privatePracticeSignal",
+        "ownerOperatorSignal",
+        "consultancyHeavy",
+        "ownWebsite"
+      ],
+      "properties": {
+        "childFocus": { "type": "boolean" },
+        "adultOnly": { "type": "boolean" },
+        "schoolFacing": { "type": "boolean" },
+        "parentFacing": { "type": "boolean" },
+        "trainingConsultancy": { "type": "boolean" },
+        "telehealthSignal": { "type": "boolean" },
+        "broadChildCaseload": { "type": "boolean" },
+        "speechPracticeAligned": { "type": "boolean" },
+        "medicallyComplex": { "type": "boolean" },
+        "privatePracticeSignal": { "type": "boolean" },
+        "ownerOperatorSignal": { "type": "boolean" },
+        "consultancyHeavy": { "type": "boolean" },
+        "ownWebsite": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "persona": {
+      "type": "object",
+      "required": [
+        "practiceType",
+        "ownWebsite",
+        "broadChildCaseload",
+        "telehealthAvailability",
+        "schoolFacing",
+        "parentFacing",
+        "trainingOrConsultancy",
+        "ownerOperatorLikely"
+      ],
+      "properties": {
+        "practiceType": { "type": "string" },
+        "ownWebsite": { "type": "boolean" },
+        "broadChildCaseload": { "type": "boolean" },
+        "telehealthAvailability": { "type": "boolean" },
+        "schoolFacing": { "type": "boolean" },
+        "parentFacing": { "type": "boolean" },
+        "trainingOrConsultancy": { "type": "boolean" },
+        "ownerOperatorLikely": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "buyerProblems": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}
