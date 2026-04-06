@@ -5,10 +5,16 @@
 # Documentation
 README.md
 LICENSE
+docs/
 docs/assets/
 
 # CI/CD
 .github/
+
+# Business and local tooling assets not needed at runtime
+evals/
+fixes/
+scripts/
 
 # IDE and editor files
 .vscode/
@@ -49,6 +55,7 @@ pids
 *.pid
 *.seed
 *.pid.lock
+data/wulo.db
 
 # Coverage directory used by tools like istanbul
 coverage/
