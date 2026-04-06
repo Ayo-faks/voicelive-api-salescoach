@@ -427,7 +427,7 @@ Day 1 (morning):
 Day 1 (afternoon):
   6. Backend: add /api/auth/session, replace _therapist_authorized(), add LOCAL_DEV_AUTH guard
   7. Frontend: add AuthGateScreen, auth check in App.tsx, credentials: "include" wrapper, 401 interceptor
-  8. Build + deploy: scripts/build.sh && azd deploy
+  8. Build + deploy: scripts/build.sh && AZURE_EXTENSION_DIR=/tmp/az-noext DOCKER_CONFIG=$(mktemp -d) azd deploy --environment salescoach-swe
 
 Day 1 (evening):
   9. Cloudflare DNS setup (CNAME → grey cloud → wait for cert → orange cloud)

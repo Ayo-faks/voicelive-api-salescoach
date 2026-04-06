@@ -102,12 +102,12 @@ def _build_endpoint(self) -> str:
 
 1. `cd backend && python -m pytest tests/unit/ -v` — all tests pass
 2. `cd frontend && npm run build` — no regressions
-3. Deploy to staging: `docker builder prune -af && DOCKER_CONFIG=$(mktemp -d) azd deploy --environment salescoach-swe --no-prompt`
+3. Deploy to staging: `docker builder prune -af && AZURE_EXTENSION_DIR=/tmp/az-noext DOCKER_CONFIG=$(mktemp -d) azd deploy --environment salescoach-swe --no-prompt`
 4. Test on `staging-sen.wulo.ai`:
    - Start a voice session → avatar loads, AbbiNeural voice plays, overlay clears
    - Verify logs show `Voice Live endpoint: https://aifoundry-voicelab-*.services.ai.azure.com`
    - No "Only Azure voice is supported" or any other error
-5. Deploy to production: `azd deploy --environment salescoach-prod --no-prompt`
+5. Deploy to production: `AZURE_EXTENSION_DIR=/tmp/az-noext DOCKER_CONFIG=$(mktemp -d) azd deploy --environment salescoach-prod --no-prompt`
 6. Test on `sen.wulo.ai` — same checks
 
 ## Future: Enable OpenAI voices (separate PR after this lands)

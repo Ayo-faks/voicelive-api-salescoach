@@ -331,5 +331,5 @@ Not directly to Google OAuth — the SPA login page handles the provider selecti
 4. Update `backend/src/app.py` with auth endpoints and EasyAuth header check
 5. Add `LoginPage` component and session check to frontend
 6. Add `credentials: "include"` to all fetch calls in `api.ts`
-7. `azd deploy` to push the updated container
+7. `AZURE_EXTENSION_DIR=/tmp/az-noext DOCKER_CONFIG=$(mktemp -d) azd deploy --environment salescoach-prod` to push the updated container
 8. Verify: visit `sen.wulo.ai`, confirm redirect to login page, sign in with Google, enter app

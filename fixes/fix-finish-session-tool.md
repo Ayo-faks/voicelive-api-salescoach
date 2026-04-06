@@ -44,11 +44,11 @@ FINISH_SESSION_TOOL = FunctionTool(
 ```bash
 cd /home/ayoola/sen/voicelive-api-salescoach
 docker builder prune -af
-azd deploy --no-prompt
+AZURE_EXTENSION_DIR=/tmp/az-noext DOCKER_CONFIG=$(mktemp -d) azd deploy --environment salescoach-swe --no-prompt
 ```
 
-Default azd env is `salescoach-swe` (staging: `voicelab.wittyground-443dbaba.swedencentral.azurecontainerapps.io`).
-Production deploy requires: `azd deploy --environment salescoach-prod`
+Staging deploy target is `salescoach-swe` (staging: `voicelab.wittyground-443dbaba.swedencentral.azurecontainerapps.io`).
+Production deploy requires: `AZURE_EXTENSION_DIR=/tmp/az-noext DOCKER_CONFIG=$(mktemp -d) azd deploy --environment salescoach-prod`
 
 5. Verify the fix is in the deployed bundle:
 

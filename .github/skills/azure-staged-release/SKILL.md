@@ -21,7 +21,8 @@ Use this skill for the repo's normal release path from validated source changes 
 2. Prefer multiple coherent commits over a single mixed commit when product work and business docs are unrelated.
 3. Run validation before deployment.
 4. Always run `azd provision --preview` before infrastructure-affecting deploys.
-5. Verify both the ACA hostname and bound custom domains after each deployment.
+5. Use `AZURE_EXTENSION_DIR=/tmp/az-noext DOCKER_CONFIG=$(mktemp -d)` for `azd deploy` commands to avoid local Azure CLI extension and Docker credential side effects.
+6. Verify both the ACA hostname and bound custom domains after each deployment.
 
 ## Standard Validation Set
 

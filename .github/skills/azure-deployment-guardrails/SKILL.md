@@ -12,8 +12,9 @@ Use this skill before any Azure deployment or release review in this repository.
 1. Do not commit `data/wulo.db`.
 2. Do not enable `LOCAL_DEV_AUTH=true` in Azure-hosted environments.
 3. Do not deploy infra-affecting changes without `azd provision --preview`.
-4. Do not proceed to production if staging health checks fail.
-5. Do not ignore custom-domain drift in preview output.
+4. Use `AZURE_EXTENSION_DIR=/tmp/az-noext DOCKER_CONFIG=$(mktemp -d)` for `azd deploy` commands in this repo.
+5. Do not proceed to production if staging health checks fail.
+6. Do not ignore custom-domain drift in preview output.
 
 ## Repo-Specific Environment Conventions
 

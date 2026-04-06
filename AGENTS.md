@@ -45,14 +45,14 @@ If the target environment is already provisioned:
 
 ```bash
 cd /home/ayoola/sen/voicelive-api-salescoach
-DOCKER_CONFIG=$(mktemp -d) azd deploy --environment salescoach-prod
+AZURE_EXTENSION_DIR=/tmp/az-noext DOCKER_CONFIG=$(mktemp -d) azd deploy --environment salescoach-prod
 ```
 
 If `salescoach-prod` fails with `ERROR: infrastructure has not been provisioned`, use the currently provisioned environment:
 
 ```bash
 cd /home/ayoola/sen/voicelive-api-salescoach
-DOCKER_CONFIG=$(mktemp -d) azd deploy --environment salescoach-swe
+AZURE_EXTENSION_DIR=/tmp/az-noext DOCKER_CONFIG=$(mktemp -d) azd deploy --environment salescoach-swe
 ```
 
 ## Provision `salescoach-prod`
@@ -75,15 +75,15 @@ Preview first, then provision:
 
 ```bash
 cd /home/ayoola/sen/voicelive-api-salescoach
-azd provision --preview --environment salescoach-prod
-DOCKER_CONFIG=$(mktemp -d) azd provision --environment salescoach-prod
+AZURE_EXTENSION_DIR=/tmp/az-noext azd provision --preview --environment salescoach-prod
+AZURE_EXTENSION_DIR=/tmp/az-noext DOCKER_CONFIG=$(mktemp -d) azd provision --environment salescoach-prod
 ```
 
 After successful provision, deploy:
 
 ```bash
 cd /home/ayoola/sen/voicelive-api-salescoach
-DOCKER_CONFIG=$(mktemp -d) azd deploy --environment salescoach-prod
+AZURE_EXTENSION_DIR=/tmp/az-noext DOCKER_CONFIG=$(mktemp -d) azd deploy --environment salescoach-prod
 ```
 
 ## Post-Deploy Verification
@@ -91,7 +91,7 @@ DOCKER_CONFIG=$(mktemp -d) azd deploy --environment salescoach-prod
 Verify health and root response:
 
 ```bash
-FQDN=$(az containerapp show --name voicelab --resource-group rg-salescoach-prod --query 'properties.configuration.ingress.fqdn' -o tsv)
+FQDN=$(AZURE_EXTENSION_DIR=/tmp/az-noext az containerapp show --name voicelab --resource-group rg-salescoach-prod --query 'properties.configuration.ingress.fqdn' -o tsv)
 curl --max-time 20 -s -o /dev/null -w 'health_http=%{http_code}\n' "https://$FQDN/api/health"
 curl --max-time 20 -s -o /dev/null -w 'root_http=%{http_code}\n' "https://$FQDN/"
 ```
