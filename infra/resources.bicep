@@ -41,6 +41,34 @@ param copilotPlannerReasoningEffort string = ''
 @description('Optional API version override for the Copilot Azure BYOK provider.')
 param copilotAzureApiVersion string = ''
 
+@description('Enable Azure Database for PostgreSQL Flexible Server resources and secret wiring.')
+param enablePostgresPersistence bool = false
+
+@description('Admin username for Azure Database for PostgreSQL Flexible Server.')
+param postgresAdminUsername string = 'wuloadmin'
+
+@secure()
+@description('Admin password for Azure Database for PostgreSQL Flexible Server.')
+param postgresAdminPassword string = ''
+
+@description('Database name for Azure Database for PostgreSQL Flexible Server.')
+param postgresDatabaseName string = 'wulo'
+
+@description('Flexible Server SKU name for Azure Database for PostgreSQL.')
+param postgresSkuName string = 'Standard_B1ms'
+
+@description('Database backend the application should use at runtime.')
+param databaseBackend string = 'sqlite'
+
+@description('Whether startup migrations should run automatically when DATABASE_BACKEND=postgres.')
+param databaseRunMigrationsOnStartup bool = false
+
+@description('Comma-separated AZD environment names allowed to run PostgreSQL startup migrations in Azure-hosted environments.')
+param databaseMigrationAllowedEnvironments string = ''
+
+@description('Optional custom domain bindings for the voicelab Container App ingress.')
+param voicelabCustomDomains array = []
+
 @description('Id of the user or app to assign application roles')
 param principalId string
 
@@ -50,6 +78,7 @@ param principalType string
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = uniqueString(subscription().id, resourceGroup().id, location)
 var defaultVoicelabHost = 'https://voicelab.${containerAppsEnvironment.outputs.defaultDomain}'
+var postgresServerName = 'psql-voicelab-${take(resourceToken, 18)}'
 var customRedirectHost = environmentName == 'salescoach-swe'
   ? 'https://staging-sen.wulo.ai'
   : environmentName == 'salescoach-prod'
@@ -166,6 +195,53 @@ resource backupBlobContainer 'Microsoft.Storage/storageAccounts/blobServices/con
   }
 }
 
+resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2023-12-01-preview' = if (enablePostgresPersistence) {
+  name: postgresServerName
+  location: location
+  tags: tags
+  sku: {
+    name: postgresSkuName
+    tier: 'Burstable'
+  }
+  properties: {
+    administratorLogin: postgresAdminUsername
+    administratorLoginPassword: postgresAdminPassword
+    version: '16'
+    storage: {
+      storageSizeGB: 32
+      autoGrow: 'Enabled'
+    }
+    backup: {
+      backupRetentionDays: 7
+      geoRedundantBackup: 'Disabled'
+    }
+    network: {
+      publicNetworkAccess: 'Enabled'
+    }
+    highAvailability: {
+      mode: 'Disabled'
+    }
+  }
+}
+
+resource postgresDatabase 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2023-12-01-preview' = if (enablePostgresPersistence) {
+  parent: postgresServer
+  name: postgresDatabaseName
+  properties: {
+    charset: 'UTF8'
+    collation: 'en_US.utf8'
+  }
+}
+
+resource postgresAllowAzureServices 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2023-12-01-preview' = if (enablePostgresPersistence) {
+  parent: postgresServer
+  name: 'AllowAzureServices'
+  properties: {
+    startIpAddress: '0.0.0.0'
+    endIpAddress: '0.0.0.0'
+  }
+}
+
 resource containerAppsManagedEnvironment 'Microsoft.App/managedEnvironments@2025-10-02-preview' existing = {
   name: '${abbrs.appManagedEnvironments}${resourceToken}'
 }
@@ -228,6 +304,9 @@ resource containerAppsManagedEnvironmentStorage 'Microsoft.App/managedEnvironmen
       shareName: 'wulo-data'
     }
   }
+  dependsOn: [
+    containerAppsEnvironment
+  ]
 }
 
 module voicelabIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.2.1' = {
@@ -252,6 +331,7 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
     ingressTargetPort: 8000
     ingressExternal: true
     ingressTransport: 'http'
+    customDomains: voicelabCustomDomains
     corsPolicy: {
       allowCredentials: true
       allowedHeaders: [
@@ -290,6 +370,14 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
             value: persistenceStorage.listKeys().keys[0].value
           }
         ],
+        enablePostgresPersistence
+          ? [
+              {
+                name: 'postgres-database-url'
+                value: 'postgresql://${postgresAdminUsername}:${postgresAdminPassword}@${postgresServer!.properties.fullyQualifiedDomainName}:5432/${postgresDatabaseName}?sslmode=require'
+              }
+            ]
+          : [],
         !empty(copilotGithubToken)
           ? [
               {
@@ -389,6 +477,22 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
               value: '0.0.0.0'
             }
             {
+              name: 'AZD_ENV_NAME'
+              value: environmentName
+            }
+            {
+              name: 'DATABASE_BACKEND'
+              value: databaseBackend
+            }
+            {
+              name: 'DATABASE_RUN_MIGRATIONS_ON_STARTUP'
+              value: databaseRunMigrationsOnStartup ? 'true' : 'false'
+            }
+            {
+              name: 'DATABASE_MIGRATION_ALLOWED_ENVIRONMENTS'
+              value: databaseMigrationAllowedEnvironments
+            }
+            {
               name: 'STORAGE_PATH'
               value: '/tmp/wulo.db'
             }
@@ -417,6 +521,14 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
               value: empty(copilotAzureApiVersion) ? '2024-10-21' : copilotAzureApiVersion
             }
           ],
+          enablePostgresPersistence
+            ? [
+                {
+                  name: 'DATABASE_URL'
+                  secretRef: 'postgres-database-url'
+                }
+              ]
+            : [],
           !empty(copilotGithubToken)
             ? [
                 {
@@ -592,3 +704,5 @@ output PROJECT_ENDPOINT string = '${aiFoundryResource.properties.endpoint}api/pr
 output AZURE_OPENAI_ENDPOINT string = aiFoundryResource.properties.endpoint
 output AZURE_SPEECH_REGION string =  location
 output AI_FOUNDRY_RESOURCE_NAME string = aiFoundryResource.name
+output POSTGRES_SERVER_FQDN string = enablePostgresPersistence ? postgresServer!.properties.fullyQualifiedDomainName : ''
+output POSTGRES_DATABASE_NAME string = enablePostgresPersistence ? postgresDatabaseName : ''

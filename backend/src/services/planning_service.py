@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Mapping, Optional
 from uuid import uuid4
 
@@ -34,6 +35,10 @@ logger = logging.getLogger(__name__)
 PLANNER_SESSION_PREFIX = "practice-planner"
 DEFAULT_CREATE_MESSAGE = "Create a focused next-session plan from the selected session."
 READINESS_CACHE_TTL_SECONDS = 60.0
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 def _approve_all_permissions(request: Any, invocation: Any) -> Any:
@@ -570,7 +575,7 @@ class PracticePlanningService:
                 "draft": updated_draft,
                 "conversation": updated_conversation,
                 "planner_session_id": turn_result.planner_session_id,
-                "updated_at": self.storage_service._utc_now(),
+                "updated_at": _utc_now(),
             }
         )
 

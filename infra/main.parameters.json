@@ -46,6 +46,33 @@
       },
       "copilotAzureApiVersion": {
         "value": "${COPILOT_AZURE_API_VERSION=}"
+      },
+      "enablePostgresPersistence": {
+        "value": "${ENABLE_POSTGRES_PERSISTENCE=false}"
+      },
+      "postgresAdminUsername": {
+        "value": "${POSTGRES_ADMIN_USERNAME=wuloadmin}"
+      },
+      "postgresAdminPassword": {
+        "value": "${POSTGRES_ADMIN_PASSWORD=}"
+      },
+      "postgresDatabaseName": {
+        "value": "${POSTGRES_DATABASE_NAME=wulo}"
+      },
+      "postgresSkuName": {
+        "value": "${POSTGRES_SKU_NAME=Standard_B1ms}"
+      },
+      "databaseBackend": {
+        "value": "${DATABASE_BACKEND=sqlite}"
+      },
+      "databaseRunMigrationsOnStartup": {
+        "value": "${DATABASE_RUN_MIGRATIONS_ON_STARTUP=false}"
+      },
+      "databaseMigrationAllowedEnvironments": {
+        "value": "${DATABASE_MIGRATION_ALLOWED_ENVIRONMENTS=}"
+      },
+      "voicelabCustomDomains": {
+        "value": "${VOICELAB_CUSTOM_DOMAINS=[]}"
       }
     }
 }

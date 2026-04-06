@@ -40,9 +40,6 @@ class _FakeStorage:
 	def get_practice_plan(self, plan_id: str):
 		return self.saved_plan
 
-	def _utc_now(self):
-		return "2026-04-03T12:07:00+00:00"
-
 
 class _FakeScenarioManager:
 	def list_scenarios(self):

@@ -50,6 +50,34 @@ param copilotPlannerReasoningEffort string = ''
 @description('Optional API version override for the Copilot Azure BYOK provider.')
 param copilotAzureApiVersion string = ''
 
+@description('Enable Azure Database for PostgreSQL Flexible Server resources and secret wiring.')
+param enablePostgresPersistence bool = false
+
+@description('Admin username for Azure Database for PostgreSQL Flexible Server.')
+param postgresAdminUsername string = 'wuloadmin'
+
+@secure()
+@description('Admin password for Azure Database for PostgreSQL Flexible Server.')
+param postgresAdminPassword string = ''
+
+@description('Database name for Azure Database for PostgreSQL Flexible Server.')
+param postgresDatabaseName string = 'wulo'
+
+@description('Flexible Server SKU name for Azure Database for PostgreSQL.')
+param postgresSkuName string = 'Standard_B1ms'
+
+@description('Database backend the application should use at runtime.')
+param databaseBackend string = 'sqlite'
+
+@description('Whether startup migrations should run automatically when DATABASE_BACKEND=postgres.')
+param databaseRunMigrationsOnStartup bool = false
+
+@description('Comma-separated AZD environment names allowed to run PostgreSQL startup migrations in Azure-hosted environments.')
+param databaseMigrationAllowedEnvironments string = ''
+
+@description('Optional custom domain bindings for the voicelab Container App ingress.')
+param voicelabCustomDomains array = []
+
 // Tags that should be applied to all resources.
 //
 // Note that 'azd-service-name' tags should be applied separately to service host resources.
@@ -86,6 +114,15 @@ module resources 'resources.bicep' = {
     copilotPlannerModel: copilotPlannerModel
     copilotPlannerReasoningEffort: copilotPlannerReasoningEffort
     copilotAzureApiVersion: copilotAzureApiVersion
+    enablePostgresPersistence: enablePostgresPersistence
+    postgresAdminUsername: postgresAdminUsername
+    postgresAdminPassword: postgresAdminPassword
+    postgresDatabaseName: postgresDatabaseName
+    postgresSkuName: postgresSkuName
+    databaseBackend: databaseBackend
+    databaseRunMigrationsOnStartup: databaseRunMigrationsOnStartup
+    databaseMigrationAllowedEnvironments: databaseMigrationAllowedEnvironments
+    voicelabCustomDomains: voicelabCustomDomains
   }
 }
 
@@ -98,3 +135,5 @@ output PROJECT_ENDPOINT string = resources.outputs.PROJECT_ENDPOINT
 output AZURE_OPENAI_ENDPOINT string = resources.outputs.AZURE_OPENAI_ENDPOINT
 output AZURE_SPEECH_REGION string = resources.outputs.AZURE_SPEECH_REGION
 output AI_FOUNDRY_RESOURCE_NAME string = resources.outputs.AI_FOUNDRY_RESOURCE_NAME
+output POSTGRES_SERVER_FQDN string = resources.outputs.POSTGRES_SERVER_FQDN
+output POSTGRES_DATABASE_NAME string = resources.outputs.POSTGRES_DATABASE_NAME

@@ -19,12 +19,11 @@ import simple_websocket.ws  # pyright: ignore[reportMissingTypeStubs]
 from flask import Flask, abort, jsonify, request, send_from_directory
 from flask_sock import Sock  # pyright: ignore[reportMissingTypeStubs]
 
-from src.bootstrap_storage import bootstrap_storage
 from src.config import config
 from src.services.analyzers import ConversationAnalyzer, PronunciationAssessor
 from src.services.managers import AgentManager, ScenarioManager
 from src.services.planning_service import PracticePlanningService
-from src.services.storage import StorageService
+from src.services.storage_factory import create_storage_service
 from src.services.telemetry import PilotTelemetryService
 from src.services.websocket_handler import VoiceProxyHandler
 
@@ -134,16 +133,26 @@ agent_manager = AgentManager()
 conversation_analyzer = ConversationAnalyzer()
 pronunciation_assessor = PronunciationAssessor()
 voice_proxy_handler = VoiceProxyHandler(agent_manager)
-bootstrap_storage(
-    str(config["storage_path"]),
-    str(config["bootstrap_storage_seed_path"]),
-)
-storage_service = StorageService(config["storage_path"])
-planning_service = PracticePlanningService(storage_service, scenario_manager)
 telemetry_service = PilotTelemetryService(config["applicationinsights_connection_string"])
-planner_startup_readiness = planning_service.get_readiness(force_refresh=True)
-if not planner_startup_readiness.get("ready"):
-    logger.warning("Planner readiness check failed at startup: %s", planner_startup_readiness)
+storage_service = None
+planning_service = None
+planner_startup_readiness: Dict[str, Any] = {}
+
+
+def initialize_runtime_services() -> None:
+    """Initialize storage-backed services for the application runtime."""
+    global storage_service
+    global planning_service
+    global planner_startup_readiness
+
+    storage_service = create_storage_service(config.as_dict)
+    planning_service = PracticePlanningService(storage_service, scenario_manager)
+    planner_startup_readiness = planning_service.get_readiness(force_refresh=True)
+    if not planner_startup_readiness.get("ready"):
+        logger.warning("Planner readiness check failed at startup: %s", planner_startup_readiness)
+
+
+initialize_runtime_services()
 
 
 def _normalize_utterance_audio(utterance_payload: Any) -> List[Dict[str, Any]]:
