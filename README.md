@@ -80,6 +80,7 @@ This project includes a dev container for easy setup and a build script for  dev
 2. **Fill in the .env file**
    - Copy `.env.template` to `.env`
    - Fill in your Azure AI Foundry and Speech service keys and endpoints (you can run `azd provision` to create these resources if you haven't already)
+   - For local auth testing, set `LOCAL_DEV_AUTH=true` and keep `LOCAL_DEV_USER_ROLE=therapist`
 
 3. **Build and run**
    ```bash
@@ -87,7 +88,7 @@ This project includes a dev container for easy setup and a build script for  dev
    ./scripts/build.sh
 
    # Start the server
-   cd backend && python src/app.py
+   cd backend && python -m src.app
    ```
 
 Visit `http://localhost:8000` to start practising.

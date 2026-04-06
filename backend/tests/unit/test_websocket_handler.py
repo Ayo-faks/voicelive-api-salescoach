@@ -1,5 +1,6 @@
 """Tests for the websocket_handler module."""
 
+import os
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -9,6 +10,14 @@ from src.services.websocket_handler import VoiceProxyHandler
 
 class TestVoiceProxyHandler:
     """Test cases for VoiceProxyHandler."""
+
+    def setup_method(self):
+        """Disable local dev auth by default for websocket tests."""
+        os.environ["LOCAL_DEV_AUTH"] = "false"
+
+    def teardown_method(self):
+        """Reset local dev auth override after websocket tests."""
+        os.environ.pop("LOCAL_DEV_AUTH", None)
 
     def test_voice_proxy_handler_initialization(self):
         """Test handler initialization."""
@@ -187,6 +196,37 @@ class TestVoiceProxyHandler:
         assert session["instructions"] == "Test instructions"
         assert session["temperature"] == 0.8
         assert session["max_response_output_tokens"] == 1000
+
+    @patch("src.services.websocket_handler.config")
+    def test_build_session_config_injects_runtime_personalization(self, mock_config):
+        """Test approved live-session personalization is appended to session instructions."""
+        mock_config.get.side_effect = lambda key, default=None: {
+            "azure_voice_name": "en-US-TestVoice",
+            "azure_voice_type": "azure-standard",
+            "azure_avatar_character": "meg",
+            "azure_avatar_style": "casual",
+        }.get(key, default)
+
+        handler = VoiceProxyHandler(Mock())
+        agent_config = {
+            "is_azure_agent": False,
+            "instructions": "Base instructions",
+            "temperature": 0.8,
+            "max_tokens": 1000,
+            "runtime_personalization": {
+                "active_target_sound": "r",
+                "approved_targets": [{"statement": "Keep /r/ as an active therapy target."}],
+                "approved_constraints": [{"statement": "Keep cues short and specific."}],
+                "approved_effective_cues": [{"statement": "Short verbal models help Ayo reset quickly."}],
+            },
+        }
+
+        session = handler._build_session_config(agent_config)
+
+        assert "Base instructions" in session["instructions"]
+        assert "Active target sound: /r/" in session["instructions"]
+        assert "Approved constraints: Keep cues short and specific." in session["instructions"]
+        assert "Approved effective cues: Short verbal models help Ayo reset quickly." in session["instructions"]
 
     @patch("src.services.websocket_handler.config")
     def test_build_session_config_prefers_avatar_voice_override(self, mock_config):

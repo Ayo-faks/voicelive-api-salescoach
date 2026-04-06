@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Wulo Therapist Guide Preview</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Wulo Therapist Guide Preview</h1>
+</header>
+<h1 id="wulo-therapist-user-guide">Wulo Therapist User Guide</h1>
+<p><strong>Version:</strong> 1.0 <strong>Last Updated:</strong> April 6,
+2026 <strong>Platform:</strong> Web application (desktop and tablet
+supported)</p>
+<figure>
+<img src="screenshots/title-page-overview.png"
+alt="Wulo therapist workspace overview" />
+<figcaption aria-hidden="true">Wulo therapist workspace
+overview</figcaption>
+</figure>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol type="1">
+<li><a href="#1-welcome-to-wulo">Welcome to Wulo</a></li>
+<li><a href="#2-getting-started">Getting Started</a>
+<ol type="1">
+<li><a href="#21-signing-in">Signing in</a></li>
+<li><a href="#22-choosing-a-mode">Choosing a mode</a></li>
+<li><a href="#23-consent-and-safe-use-framing">Consent and safe use
+framing</a></li>
+</ol></li>
+<li><a href="#3-understanding-the-therapist-workspace">Understanding the
+Therapist Workspace</a>
+<ol type="1">
+<li><a href="#31-home">Home</a></li>
+<li><a href="#32-dashboard">Dashboard</a></li>
+<li><a href="#33-workspace">Workspace</a></li>
+</ol></li>
+<li><a href="#4-managing-the-active-child">Managing the Active
+Child</a></li>
+<li><a href="#5-exercise-library-and-session-preparation">Exercise
+Library and Session Preparation</a></li>
+<li><a href="#6-running-a-practice-session">Running a Practice
+Session</a></li>
+<li><a href="#7-reviewing-a-saved-session">Reviewing a Saved
+Session</a></li>
+<li><a href="#8-child-memory-what-it-is-and-how-it-works">Child Memory:
+What It Is and How It Works</a>
+<ol type="1">
+<li><a href="#81-memory-overview-cards">Memory overview cards</a></li>
+<li><a href="#82-approved-memory-sections">Approved memory
+sections</a></li>
+<li><a href="#83-therapist-memory-note">Therapist memory note</a></li>
+<li><a href="#84-pending-proposals">Pending proposals</a></li>
+<li><a href="#85-memory-refresh-and-evidence-freshness">Memory refresh
+and evidence freshness</a></li>
+</ol></li>
+<li><a
+href="#9-recommendations-inspectable-next-exercise-suggestions">Recommendations:
+Inspectable Next-Exercise Suggestions</a>
+<ol type="1">
+<li><a href="#91-recommendation-overview-cards">Recommendation overview
+cards</a></li>
+<li><a href="#92-generating-a-recommendation-run">Generating a
+recommendation run</a></li>
+<li><a href="#93-recommendation-history">Recommendation history</a></li>
+<li><a href="#94-inspecting-the-selected-recommendation">Inspecting the
+selected recommendation</a></li>
+<li><a href="#95-why-the-system-recommended-an-exercise">Why the system
+recommended an exercise</a></li>
+<li><a href="#96-institutional-memory">Institutional memory</a></li>
+<li><a href="#97-evidence-status-on-the-therapist-home-surface">Evidence
+status on the therapist home surface</a></li>
+</ol></li>
+<li><a href="#10-planning-the-next-session">Planning the Next
+Session</a>
+<ol type="1">
+<li><a href="#101-plan-overview-cards">Plan overview cards</a></li>
+<li><a href="#102-generating-a-plan">Generating a plan</a></li>
+<li><a href="#103-refining-a-plan">Refining a plan</a></li>
+<li><a href="#104-approving-a-plan">Approving a plan</a></li>
+<li><a href="#105-memory-that-informed-this-plan">Memory that informed
+this plan</a></li>
+</ol></li>
+<li><a href="#11-charts-and-dashboard-interpretation">Charts and
+Dashboard Interpretation</a></li>
+<li><a href="#12-session-history-and-review-workflow">Session History
+and Review Workflow</a></li>
+<li><a href="#13-custom-exercises-and-local-management">Custom Exercises
+and Local Management</a></li>
+<li><a href="#14-workspace-settings-and-everyday-checks">Workspace
+Settings and Everyday Checks</a></li>
+<li><a href="#15-best-practice-tips-for-therapists">Best-Practice Tips
+for Therapists</a></li>
+<li><a href="#16-glossary">Glossary</a></li>
+<li><a href="#17-troubleshooting">Troubleshooting</a></li>
+</ol>
+<h2 id="welcome-to-wulo">1. Welcome to Wulo</h2>
+<p>Wulo is a therapist-supervised AI speech practice platform for
+structured articulation and phonological awareness work. It helps
+children practise with a voice buddy while keeping the therapist in
+control of review, interpretation, and next-step planning.</p>
+<p>It is designed for therapists and clinical educators supporting
+children in clinics, schools, or supervised home practice.</p>
+<p>At a high level, the workflow is:</p>
+<ol type="1">
+<li>Choose the active child.</li>
+<li>Choose an exercise and avatar.</li>
+<li>Run a guided session.</li>
+<li>Review the saved session.</li>
+<li>Review child memory and recommendations.</li>
+<li>Generate or refine a next-session plan.</li>
+</ol>
+<p>The key principle is simple: Wulo is a practice and review tool, not
+a diagnostic tool. It can surface patterns, suggestions, and evidence,
+but it does not replace therapist judgement.</p>
+<h3 id="what-wulo-helps-you-do">What Wulo helps you do</h3>
+<ul>
+<li>Deliver structured practice with an AI buddy.</li>
+<li>Review pronunciation and engagement results.</li>
+<li>Preserve therapist-approved child memory over time.</li>
+<li>Inspect recommendation evidence instead of treating AI suggestions
+as black-box output.</li>
+<li>Create therapist-guided next-session plans.</li>
+</ul>
+<blockquote>
+<p>Note: Wulo supports supervised practice. It should be used alongside
+professional judgement, not instead of it.</p>
+</blockquote>
+<figure>
+<img src="screenshots/welcome-workflow.png"
+alt="Therapist home and review workflow" />
+<figcaption aria-hidden="true">Therapist home and review
+workflow</figcaption>
+</figure>
+<h2 id="getting-started">2. Getting Started</h2>
+<h3 id="signing-in">2.1 Signing in</h3>
+<p>Therapists can sign in with Microsoft or Google. On the sign-in
+screen, choose the provider you normally use for work. After sign-in,
+Wulo keeps your session active until it expires, so you do not need to
+sign in again each time you return during normal use.</p>
+<p>If the session expires, Wulo returns you to the login screen and asks
+you to sign in again.</p>
+<p>To sign in:</p>
+<ol type="1">
+<li>Open Wulo in your browser.</li>
+<li>Select <code>Continue with Microsoft</code> or
+<code>Continue with Google</code>.</li>
+<li>Complete the sign-in process.</li>
+<li>Wait for Wulo to load your workspace.</li>
+</ol>
+<blockquote>
+<p>Tip: If your organisation uses more than one account, try to use the
+same sign-in provider each time so your normal therapist workspace opens
+consistently.</p>
+</blockquote>
+<figure>
+<img src="screenshots/sign-in-screen.png" alt="Sign-in screen" />
+<figcaption aria-hidden="true">Sign-in screen</figcaption>
+</figure>
+<h3 id="choosing-a-mode">2.2 Choosing a mode</h3>
+<p>After sign-in, Wulo asks which workspace mode you want to use.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Mode</th>
+<th>Intended user</th>
+<th>What is visible</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Therapist mode</td>
+<td>Therapist or supervisor</td>
+<td>Therapist home, dashboard review workspace, planning, memory review,
+recommendations, workspace settings</td>
+</tr>
+<tr class="even">
+<td>Child mode</td>
+<td>Child during a session</td>
+<td>Simplified practice home and live session surfaces</td>
+</tr>
+</tbody>
+</table>
+<p>Therapists usually prepare the session in Therapist mode, then either
+switch to Child mode or hand the device over once the practice is ready
+to begin.</p>
+<p>A short onboarding screen appears before first use in that browser.
+It reminds the therapist to confirm adult access, choose the child and
+exercise, and stay nearby during practice.</p>
+<p>To choose a mode:</p>
+<ol type="1">
+<li>Sign in.</li>
+<li>Select <code>Therapist mode</code> when you want review and planning
+tools.</li>
+<li>Select <code>Child mode</code> when the child is ready to
+practise.</li>
+<li>Use the Workspace page later if you need to switch modes.</li>
+</ol>
+<h3 id="consent-and-safe-use-framing">2.3 Consent and safe use
+framing</h3>
+<p>Before the first child session, Wulo asks the therapist to
+acknowledge supervised-practice consent.</p>
+<p>This consent makes three things clear:</p>
+<ul>
+<li>Wulo is intended for supervised practice.</li>
+<li>It does not replace therapist judgement or diagnosis.</li>
+<li>Therapists remain responsible for interpreting results and deciding
+next steps.</li>
+</ul>
+<p>To acknowledge consent:</p>
+<ol type="1">
+<li>Read the supervised-practice message.</li>
+<li>Tick the acknowledgement box.</li>
+<li>Select <code>Acknowledge and continue</code>.</li>
+</ol>
+<blockquote>
+<p>Note: Wulo does not currently use a therapist PIN flow. The
+implemented first-use steps are the onboarding screen plus
+supervised-practice consent acknowledgement.</p>
+</blockquote>
+<h2 id="understanding-the-therapist-workspace">3. Understanding the
+Therapist Workspace</h2>
+<p>The therapist-facing experience has three different surfaces. They
+work together, but each has a different job.</p>
+<h3 id="home">3.1 Home</h3>
+<p>The therapist home screen is the launch and preparation surface. It
+is where you choose who is practising, which buddy the child will see,
+which exercise is active, and whether you want to start practice or move
+into review.</p>
+<p>On the home screen you can see:</p>
+<ul>
+<li>The child selector.</li>
+<li>The avatar selector.</li>
+<li>The selected exercise context.</li>
+<li>The <code>Start session</code> action.</li>
+<li>The <code>Review progress</code> action.</li>
+<li>The exercise library below.</li>
+</ul>
+<p>The compact insight cards on the home surface are quick signals only.
+Full review happens in the dashboard workspace.</p>
+<h4 id="compact-insight-cards-on-home">Compact insight cards on
+Home</h4>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Card</th>
+<th>What it means</th>
+<th>How to use it</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Active memory</td>
+<td>How many approved child-memory items currently exist, with a short
+leading example</td>
+<td>Use this as a quick reminder of the child’s current working picture,
+not as a full case summary</td>
+</tr>
+<tr class="even">
+<td>Needs review</td>
+<td>How many pending memory proposals are waiting for therapist
+review</td>
+<td>If this number is above zero, consider checking the dashboard before
+relying on older recommendations</td>
+</tr>
+<tr class="odd">
+<td>Last memory refresh</td>
+<td>Whether approved memory has been compiled recently</td>
+<td>This tells you whether therapist-reviewed memory is current enough
+to support planning</td>
+</tr>
+<tr class="even">
+<td>Top recommendation</td>
+<td>The current top-ranked saved recommendation, if one exists</td>
+<td>Use it as a prompt to review, not as an automatic instruction</td>
+</tr>
+<tr class="odd">
+<td>Last recommendation run</td>
+<td>When recommendations were last generated and how many options were
+ranked</td>
+<td>Helps you judge how recent the suggestion is</td>
+</tr>
+<tr class="even">
+<td>Evidence status</td>
+<td>Whether the saved recommendation evidence is current, stale, or not
+yet run</td>
+<td>Review this before treating any recommendation as reliable for
+today’s session</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Tip: Think of the home cards as traffic lights. They tell you where
+to look next, but they are not the full clinical review.</p>
+</blockquote>
+<figure>
+<img src="screenshots/therapist-home-surface.png"
+alt="Therapist home surface" />
+<figcaption aria-hidden="true">Therapist home surface</figcaption>
+</figure>
+<h3 id="dashboard">3.2 Dashboard</h3>
+<p>The dashboard is the deep review workspace for one active child. This
+is where therapists inspect saved sessions, child memory,
+recommendations, and plans in one place.</p>
+<p>The dashboard has four main tabs:</p>
+<ul>
+<li><code>Session detail</code></li>
+<li><code>Memory</code></li>
+<li><code>Recommendations</code></li>
+<li><code>Plan</code></li>
+</ul>
+<p>It also includes a child list, session history, summary cards at the
+top, and review charts that help you understand the child’s recent work
+over time.</p>
+<p>Use the dashboard when you want to:</p>
+<ol type="1">
+<li>Open a saved session.</li>
+<li>Review evidence in more detail.</li>
+<li>Approve or reject memory proposals.</li>
+<li>Inspect why an exercise was recommended.</li>
+<li>Generate, refine, or approve a next-session plan.</li>
+</ol>
+<h3 id="workspace">3.3 Workspace</h3>
+<p>The Workspace page is the settings surface for everyday session
+setup. It is where you:</p>
+<ul>
+<li>Change therapist versus child mode.</li>
+<li>Confirm the active child.</li>
+<li>Change the active practice buddy or avatar.</li>
+</ul>
+<p>It also shows a simple summary of the current role, current mode,
+current child, and current buddy so you can confirm that the environment
+is set correctly.</p>
+<p>The active child should stay aligned across Therapist home,
+Dashboard, and Workspace. If you change it in one place, your review
+context should follow that child.</p>
+<figure>
+<img src="screenshots/workspace-settings.png"
+alt="Workspace settings page" />
+<figcaption aria-hidden="true">Workspace settings page</figcaption>
+</figure>
+<h2 id="managing-the-active-child">4. Managing the Active Child</h2>
+<p>Wulo uses an active-child model. This means the app is always working
+in the context of one selected child at a time.</p>
+<p>When you change the active child, all of the following change with
+it:</p>
+<ul>
+<li>Saved sessions.</li>
+<li>Review charts.</li>
+<li>Child memory.</li>
+<li>Recommendation history.</li>
+<li>Planning context.</li>
+</ul>
+<p>You can switch the active child from therapist-facing surfaces such
+as the sidebar child list, the child dropdown, or the home screen child
+selector.</p>
+<p>To change the active child safely:</p>
+<ol type="1">
+<li>Check the current child name before starting or reviewing
+anything.</li>
+<li>Open the child selector or child list.</li>
+<li>Select the correct child.</li>
+<li>Wait for the dashboard or home surface to refresh.</li>
+<li>Re-check the child name before continuing.</li>
+</ol>
+<p>This matters because Wulo does not treat sessions, memory,
+recommendations, and plans as separate floating items. They all follow
+the active child context.</p>
+<blockquote>
+<p>Tip: Confirm the active child before launching a session, reviewing
+recommendations, or approving memory. This is one of the most important
+everyday checks in Wulo.</p>
+</blockquote>
+<h3 id="if-the-wrong-child-context-appears">If the wrong child context
+appears</h3>
+<ol type="1">
+<li>Open the therapist shell and verify the active child name.</li>
+<li>Re-select the correct child from the child list or selector.</li>
+<li>Re-open the dashboard for that child.</li>
+<li>Check that the session history and summary cards now match the
+correct case.</li>
+</ol>
+<h2 id="exercise-library-and-session-preparation">5. Exercise Library
+and Session Preparation</h2>
+<p>The exercise library sits on the therapist home screen below the main
+launch area. It is the main place to choose what the child will practise
+next.</p>
+<p>Wulo includes both built-in exercises and custom exercises.</p>
+<ul>
+<li>Built-in exercises give you a structured library organised by step,
+activity type, and target sound.</li>
+<li>Custom exercises let you add your own therapist-authored practice
+items for a particular child or target.</li>
+</ul>
+<p>Exercise cards and filters help you see useful context quickly,
+including:</p>
+<ul>
+<li>Target sound badges.</li>
+<li>Exercise type labels.</li>
+<li>Difficulty labels where available.</li>
+<li>Step-based browsing for progression.</li>
+</ul>
+<p>To prepare a session:</p>
+<ol type="1">
+<li>Choose the active child.</li>
+<li>Choose the avatar or practice buddy.</li>
+<li>Browse or filter the exercise library.</li>
+<li>Select the exercise you want.</li>
+<li>Start the session.</li>
+</ol>
+<p>On the therapist home surface, you can start in two ways:</p>
+<ol type="1">
+<li>Select an exercise and use the main <code>Start session</code>
+button.</li>
+<li>Select an exercise card directly from the library to move straight
+into session launch.</li>
+</ol>
+<p>This makes it easy to use the home page either as a slower
+preparation space or a quick-start surface.</p>
+<h3 id="a-practical-progression-through-exercise-types">A practical
+progression through exercise types</h3>
+<p>Wulo supports a sensible progression from easier listening work
+towards more expressive speech work, but it does not force a single
+clinical sequence.</p>
+<p>A common pattern is:</p>
+<ol type="1">
+<li>Listening minimal pairs.</li>
+<li>Silent sorting.</li>
+<li>Sound isolation.</li>
+<li>Vowel blending.</li>
+<li>Word repetition.</li>
+<li>Minimal pairs or sentence work.</li>
+<li>Guided prompt or carryover conversation.</li>
+</ol>
+<blockquote>
+<p>Note: Use progression as a clinical guide, not a rigid rule. A child
+may need to move back to an easier listening or cueing task before
+moving forward again.</p>
+</blockquote>
+<figure>
+<img src="screenshots/exercise-library.png"
+alt="Exercise library and filters" />
+<figcaption aria-hidden="true">Exercise library and filters</figcaption>
+</figure>
+<h2 id="running-a-practice-session">6. Running a Practice Session</h2>
+<p>A Wulo session begins once the child, exercise, and buddy are
+selected.</p>
+<h3 id="what-the-live-session-includes">What the live session
+includes</h3>
+<p>During a session, Wulo can show:</p>
+<ul>
+<li>The buddy video or avatar panel.</li>
+<li>The microphone control for speaking activities.</li>
+<li>A live conversation panel.</li>
+<li>Exercise-specific activity panels for tasks such as listening
+minimal pairs, silent sorting, sound isolation, or vowel blending.</li>
+<li>Live speaking feedback for relevant activities.</li>
+</ul>
+<p>The exact layout depends on the activity type. Receptive exercises
+show more task panels, while speaking tasks rely more on voice
+interaction and live feedback.</p>
+<h3 id="how-to-run-a-session">How to run a session</h3>
+<ol type="1">
+<li>Confirm the active child.</li>
+<li>Choose the exercise.</li>
+<li>Choose the avatar.</li>
+<li>Start the session.</li>
+<li>Let the AI buddy guide the child through the practice.</li>
+<li>Support the child as needed while staying nearby.</li>
+<li>End the session and review the saved results.</li>
+</ol>
+<h3 id="live-interaction-and-transcript-behaviour">Live interaction and
+transcript behaviour</h3>
+<p>The AI buddy speaks first to open the session. For child sessions,
+the screen stays simple and the conversation appears in the transcript
+panel as it unfolds.</p>
+<p>For speaking activities, the microphone stays available once the
+session is ready. For listening or sorting tasks, the interactive task
+panel may be more central than the microphone.</p>
+<h3 id="how-sessions-finish-and-save">How sessions finish and save</h3>
+<p>Once the live interaction finishes, Wulo saves the session so it can
+feed review, memory, recommendations, and planning.</p>
+<blockquote>
+<p>Tip: A live session is only the first step. The real clinical value
+comes from reviewing the saved evidence afterwards.</p>
+</blockquote>
+<figure>
+<img src="screenshots/live-session-screen.png"
+alt="Live practice session" />
+<figcaption aria-hidden="true">Live practice session</figcaption>
+</figure>
+<h2 id="reviewing-a-saved-session">7. Reviewing a Saved Session</h2>
+<p>Saved sessions are reviewed from the dashboard. Open the active
+child, then choose a session from the history list. The
+<code>Session detail</code> tab is the place for full review.</p>
+<h3 id="how-to-open-a-saved-session">How to open a saved session</h3>
+<ol type="1">
+<li>Open the dashboard.</li>
+<li>Confirm the active child.</li>
+<li>Use the session history list on the left.</li>
+<li>Select the session you want to inspect.</li>
+<li>Stay on <code>Session detail</code> for the full review.</li>
+</ol>
+<h3 id="what-you-see-in-session-detail">What you see in Session
+detail</h3>
+<p>The Session detail tab includes several layers of review.</p>
+<h4 id="summary-strip-at-the-top-of-the-dashboard">Summary strip at the
+top of the dashboard</h4>
+<p>At the top of the dashboard you will usually see a selected-child
+summary and, when enough data exists, trend or sound summaries. This
+gives context before you open an individual session.</p>
+<h4 id="session-overview-cards">Session overview cards</h4>
+<p>When a session is selected, the top cards in
+<code>Session detail</code> show:</p>
+<ul>
+<li>Session date.</li>
+<li>Overall score.</li>
+<li>Transcript turns.</li>
+</ul>
+<p>This is a quick orientation layer before you read deeper.</p>
+<h4 id="session-analysis">Session analysis</h4>
+<p>The session analysis area brings together the overall profile of the
+session. It uses a radar-style view and score bars for articulation and
+engagement areas such as target sound accuracy, clarity, consistency,
+task completion, willingness to retry, and self-correction attempts.</p>
+<p>Clinically, this can help you tell the difference between:</p>
+<ul>
+<li>A child who was engaged but not yet accurate.</li>
+<li>A child who was accurate in parts but inconsistent.</li>
+<li>A child who may have needed more support, more time, or a lower task
+load.</li>
+</ul>
+<h4 id="pronunciation-review">Pronunciation review</h4>
+<p>The pronunciation review area shows saved speech scores and, when
+available, a word-level heatmap so you can see which words or attempts
+were easier or harder.</p>
+<h4 id="review-summary">Review summary</h4>
+<p>The review summary combines several therapist-friendly elements:</p>
+<ul>
+<li>Celebration.</li>
+<li>Highlights.</li>
+<li>Next steps.</li>
+<li>Therapist note.</li>
+</ul>
+<p>This area is useful for preparing your clinical summary or
+next-session focus.</p>
+<h4 id="transcript-access">Transcript access</h4>
+<p>The transcript area shows the saved conversation. This can help when
+you want to check how the child responded, what the buddy asked, or
+whether a moment in the session should be interpreted with more
+caution.</p>
+<h4 id="therapist-feedback-markers">Therapist feedback markers</h4>
+<p>If feedback has been saved, the session can be marked as:</p>
+<ul>
+<li><code>Helpful session</code></li>
+<li><code>Needs follow-up</code></li>
+</ul>
+<p>This is useful when you want to flag sessions that should shape
+planning or closer review later.</p>
+<blockquote>
+<p>Tip: Use the full Session detail view when you need to explain why a
+session felt successful or why it needs follow-up. It gives you more
+than a headline score.</p>
+</blockquote>
+<figure>
+<img src="screenshots/session-detail-tab.png"
+alt="Saved session review" />
+<figcaption aria-hidden="true">Saved session review</figcaption>
+</figure>
+<h2 id="child-memory-what-it-is-and-how-it-works">8. Child Memory: What
+It Is and How It Works</h2>
+<p>Child memory is a governed, therapist-facing knowledge layer built
+from reviewed session evidence. It is separate from raw session
+history.</p>
+<p>Raw session history shows what happened. Child memory preserves what
+has been reviewed and judged useful enough to carry forward.</p>
+<p>This matters because:</p>
+<ul>
+<li>Clinically useful facts can be preserved over time.</li>
+<li>Approved memory improves planning and recommendation quality.</li>
+<li>Higher-risk inferences stay reviewable rather than silently turning
+into durable facts.</li>
+</ul>
+<p>Wulo separates child memory into two states:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Memory state</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Approved child memory</td>
+<td>Reviewed information that a therapist has accepted as part of the
+child’s working picture</td>
+</tr>
+<tr class="even">
+<td>Pending memory proposals</td>
+<td>Proposed updates that are still waiting for therapist review</td>
+</tr>
+</tbody>
+</table>
+<h3 id="memory-overview-cards">8.1 Memory overview cards</h3>
+<p>At the top of the <code>Memory</code> tab, Wulo shows three overview
+cards.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Card</th>
+<th>Meaning</th>
+<th>Why it matters</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Approved memory</td>
+<td>Number of approved memory items, with last update time</td>
+<td>Shows how much reviewed context exists for this child</td>
+</tr>
+<tr class="even">
+<td>Pending review</td>
+<td>Number of proposals awaiting decision</td>
+<td>Signals whether therapist review is needed before relying on older
+summaries</td>
+</tr>
+<tr class="odd">
+<td>Planner signal</td>
+<td>Whether memory is ready enough to support planning</td>
+<td>A quick indicator of whether planning has meaningful approved
+context behind it</td>
+</tr>
+</tbody>
+</table>
+<h3 id="approved-memory-sections">8.2 Approved memory sections</h3>
+<p>Approved memory is grouped into categories such as:</p>
+<ul>
+<li>Targets.</li>
+<li>Effective cues.</li>
+<li>Ineffective cues.</li>
+<li>Preferences.</li>
+<li>Constraints.</li>
+<li>Blockers.</li>
+<li>General notes.</li>
+</ul>
+<p>Each memory item is shown as a short statement. Where evidence links
+are available, you can open the source session directly from the memory
+item.</p>
+<p>In practice:</p>
+<ul>
+<li><code>Targets</code> helps you see what is currently being worked
+on.</li>
+<li><code>Effective cues</code> helps you reuse approaches that have
+already helped.</li>
+<li><code>Ineffective cues</code> helps you avoid repeating strategies
+that have not worked well.</li>
+<li><code>Preferences</code> and <code>constraints</code> help with
+practical session design.</li>
+<li><code>Blockers</code> can highlight barriers such as fatigue, pace,
+or frustration.</li>
+<li><code>General notes</code> can hold broader therapist-approved
+observations.</li>
+</ul>
+<h3 id="therapist-memory-note">8.3 Therapist memory note</h3>
+<p>Wulo also lets therapists write a memory item directly when they want
+to preserve an important practical observation without waiting for
+another synthesis cycle.</p>
+<p>To add a therapist memory note:</p>
+<ol type="1">
+<li>Open the <code>Memory</code> tab.</li>
+<li>Go to <code>Therapist memory note</code>.</li>
+<li>Choose a category.</li>
+<li>Write a concise statement.</li>
+<li>Select <code>Save approved memory</code>.</li>
+</ol>
+<p>Common uses include:</p>
+<ul>
+<li>Preserving a cueing strategy that worked especially well.</li>
+<li>Recording a clear preference that affects cooperation.</li>
+<li>Saving a practical constraint that should shape future
+sessions.</li>
+</ul>
+<blockquote>
+<p>Tip: Keep therapist-authored memory notes short and concrete. Wulo
+works best when memory statements describe observable patterns rather
+than broad conclusions.</p>
+</blockquote>
+<h3 id="pending-proposals">8.4 Pending proposals</h3>
+<p>Pending proposals are possible memory updates that still need
+therapist review.</p>
+<p>Each proposal shows:</p>
+<ul>
+<li>The proposed statement.</li>
+<li>Its category.</li>
+<li>Its type.</li>
+<li>Confidence, where available.</li>
+<li>Evidence links back to source sessions.</li>
+</ul>
+<p>To review a proposal:</p>
+<ol type="1">
+<li>Open the <code>Memory</code> tab.</li>
+<li>Go to <code>Pending proposals</code>.</li>
+<li>Read the statement.</li>
+<li>Open the evidence links if needed.</li>
+<li>Select <code>Approve</code> or <code>Reject</code>.</li>
+</ol>
+<p>The actions mean:</p>
+<ul>
+<li><code>Approve</code> moves the proposal into approved memory so it
+can support planning and recommendations.</li>
+<li><code>Reject</code> keeps it out of approved memory.</li>
+</ul>
+<p>Pending proposals are kept separate from approved memory on purpose.
+This is a governance and safety feature. It lets the system surface
+useful ideas without silently converting them into durable clinical
+facts.</p>
+<h3 id="memory-refresh-and-evidence-freshness">8.5 Memory refresh and
+evidence freshness</h3>
+<p>On the home surface, <code>Last memory refresh</code> tells you
+whether approved memory has been compiled recently enough to act as a
+current summary.</p>
+<p>If memory has not been refreshed, or if there are pending proposals
+waiting, review the Memory tab before trusting an older recommendation
+run.</p>
+<p>That is especially important when:</p>
+<ul>
+<li>A new session has been reviewed.</li>
+<li>Pending proposals are waiting.</li>
+<li>Approved memory may have changed since the last recommendation
+run.</li>
+</ul>
+<figure>
+<img src="screenshots/memory-tab.png" alt="Child memory review tab" />
+<figcaption aria-hidden="true">Child memory review tab</figcaption>
+</figure>
+<h2 id="recommendations-inspectable-next-exercise-suggestions">9.
+Recommendations: Inspectable Next-Exercise Suggestions</h2>
+<p>Wulo can generate therapist-facing exercise recommendations, but
+these are inspectable, evidence-linked suggestions rather than automatic
+decisions.</p>
+<p>The Recommendations tab is built to answer three questions:
+<code>What does Wulo suggest next?</code>, <code>Why?</code>, and
+<code>What would change that answer?</code></p>
+<h3 id="recommendation-overview-cards">9.1 Recommendation overview
+cards</h3>
+<p>At the top of the Recommendations tab, Wulo shows:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Card</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Saved runs</td>
+<td>How many recommendation runs have been logged for this child</td>
+</tr>
+<tr class="even">
+<td>Target sound</td>
+<td>The target sound for the currently opened run</td>
+</tr>
+<tr class="odd">
+<td>Ranked options</td>
+<td>How many options were ranked in the selected run</td>
+</tr>
+</tbody>
+</table>
+<h3 id="generating-a-recommendation-run">9.2 Generating a recommendation
+run</h3>
+<p>A recommendation run is created for the active child and saved so it
+can be reopened later.</p>
+<p>To generate recommendations:</p>
+<ol type="1">
+<li>Open the <code>Recommendations</code> tab.</li>
+<li>Optionally add a therapist note or constraint.</li>
+<li>Select <code>Generate recommendations</code>.</li>
+<li>Open the saved run that appears.</li>
+</ol>
+<p>Useful therapist notes include:</p>
+<ul>
+<li><code>Keep this playful.</code></li>
+<li><code>Avoid moving above medium difficulty.</code></li>
+<li><code>Favour short verbal models.</code></li>
+<li><code>Stay with word-level work for now.</code></li>
+</ul>
+<p>These notes do not remove therapist judgement. They help the ranking
+reflect your practical intent for that moment.</p>
+<h3 id="recommendation-history">9.3 Recommendation history</h3>
+<p>Recommendation runs are saved and reopenable, so therapists can
+compare runs over time instead of relying only on the latest output.</p>
+<p>This is useful when:</p>
+<ul>
+<li>The child’s approved memory has changed.</li>
+<li>A newer session has been reviewed.</li>
+<li>You want to compare how different therapist notes affected the
+ranking.</li>
+</ul>
+<h3 id="inspecting-the-selected-recommendation">9.4 Inspecting the
+selected recommendation</h3>
+<p>When you open a saved run, the detail view shows:</p>
+<ul>
+<li>Current target.</li>
+<li>Top score.</li>
+<li>Therapist note.</li>
+<li>Top recommendation summary.</li>
+<li>Ranked options list.</li>
+</ul>
+<p>The top recommendation is clearly marked, but the full ranked list
+stays visible so you can compare alternatives.</p>
+<h3 id="why-the-system-recommended-an-exercise">9.5 Why the system
+recommended an exercise</h3>
+<p>Each ranked candidate includes a detailed explanation layer.</p>
+<p>For each candidate, Wulo can show:</p>
+<ul>
+<li>Why it was recommended.</li>
+<li>How it compares to approved memory.</li>
+<li>Ranking factors.</li>
+<li>Supporting approved memory items.</li>
+<li>Supporting sessions.</li>
+<li>What evidence might change the recommendation.</li>
+</ul>
+<p>This matters clinically because it makes the recommendation
+discussable and challengeable.</p>
+<p>A therapist can ask questions such as:</p>
+<ul>
+<li>Is this recommendation leaning too heavily on old evidence?</li>
+<li>Does the supporting memory still reflect the child accurately?</li>
+<li>Are the linked sessions still the ones I would prioritise?</li>
+<li>Would a different note or a newer review change the ranking?</li>
+</ul>
+<p>That is the point of this design. Recommendation quality is meant to
+be inspected, not blindly obeyed.</p>
+<h3 id="institutional-memory">9.6 Institutional memory</h3>
+<p>The Recommendations tab may also show a clinic-level institutional
+memory section.</p>
+<p>In plain language, this is a set of de-identified patterns or
+strategy insights drawn from reviewed outcomes across the clinic. It may
+help tune recommendation ranking, but it does not become child-specific
+approved memory.</p>
+<p>Treat it as a clinic-level support signal, not a diagnostic system
+and not a substitute for case-specific reasoning.</p>
+<h3 id="evidence-status-on-the-therapist-home-surface">9.7 Evidence
+status on the therapist home surface</h3>
+<p>On the home surface, the <code>Evidence status</code> card can
+show:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Status</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Current</td>
+<td>The saved recommendation run still matches the latest approved
+memory and reviewed session picture</td>
+</tr>
+<tr class="even">
+<td>Stale</td>
+<td>Something important has changed since the recommendation was
+generated</td>
+</tr>
+<tr class="odd">
+<td>Not run</td>
+<td>No recommendation run exists yet</td>
+</tr>
+</tbody>
+</table>
+<p>A recommendation may become stale if:</p>
+<ul>
+<li>Pending memory proposals exist.</li>
+<li>Approved memory changed after the recommendation was generated.</li>
+<li>A newer reviewed session exists than the saved recommendation
+run.</li>
+</ul>
+<blockquote>
+<p>Note: <code>Stale</code> does not mean the recommendation is wrong.
+It means the therapist should review it again before treating it as
+current.</p>
+</blockquote>
+<figure>
+<img src="screenshots/recommendations-tab.png"
+alt="Recommendations tab" />
+<figcaption aria-hidden="true">Recommendations tab</figcaption>
+</figure>
+<h2 id="planning-the-next-session">10. Planning the Next Session</h2>
+<p>The Plan tab supports next-session planning using the selected saved
+session, approved child memory, and therapist input.</p>
+<h3 id="plan-overview-cards">10.1 Plan overview cards</h3>
+<p>At the top of the <code>Plan</code> tab, Wulo shows:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Card</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Planner</td>
+<td>Whether planning context is ready for this child</td>
+</tr>
+<tr class="even">
+<td>Plan status</td>
+<td>Whether the current plan is a draft, approved, or absent</td>
+</tr>
+<tr class="odd">
+<td>Memory inputs</td>
+<td>How many memory items were used in the saved memory snapshot</td>
+</tr>
+</tbody>
+</table>
+<h3 id="generating-a-plan">10.2 Generating a plan</h3>
+<p>To generate a plan:</p>
+<ol type="1">
+<li>Select a saved session from the dashboard.</li>
+<li>Open the <code>Plan</code> tab.</li>
+<li>Add a planning note if needed.</li>
+<li>Select <code>Generate plan</code>.</li>
+</ol>
+<p>A generated plan can include:</p>
+<ul>
+<li>Objective.</li>
+<li>Focus sound.</li>
+<li>Activities.</li>
+<li>Therapist cues.</li>
+<li>Success markers.</li>
+<li>Carryover ideas.</li>
+<li>Estimated duration.</li>
+</ul>
+<p>This keeps the plan practical rather than just descriptive.</p>
+<h3 id="refining-a-plan">10.3 Refining a plan</h3>
+<p>If the first draft does not fit your judgement, you can refine
+it.</p>
+<p>To refine a plan:</p>
+<ol type="1">
+<li>Open the current draft.</li>
+<li>Enter a refinement instruction.</li>
+<li>Select <code>Refine plan</code>.</li>
+<li>Review the updated version.</li>
+</ol>
+<p>Examples of useful refinement notes:</p>
+<ul>
+<li><code>Start with listening and shorten the sequence.</code></li>
+<li><code>Keep this playful for home carryover.</code></li>
+<li><code>Reduce verbal load and use shorter modelling.</code></li>
+</ul>
+<h3 id="approving-a-plan">10.4 Approving a plan</h3>
+<p>Approving a plan marks it as the therapist-accepted version for that
+child and saved session context. A draft is still a working suggestion;
+an approved plan is the version you have accepted for use.</p>
+<p>To approve a plan:</p>
+<ol type="1">
+<li>Review the full draft.</li>
+<li>Check the activities, cues, and success markers.</li>
+<li>Confirm the plan fits the child’s current needs.</li>
+<li>Select <code>Approve plan</code>.</li>
+</ol>
+<h3 id="memory-that-informed-this-plan">10.5 Memory that informed this
+plan</h3>
+<p>One of the most important parts of the Plan tab is the provenance
+section: <code>Memory that informed this plan</code>.</p>
+<p>This section shows:</p>
+<ul>
+<li>How many memory inputs were used.</li>
+<li>When the memory snapshot was compiled.</li>
+<li>Which approved memory statements informed the draft.</li>
+<li>Evidence links back to source sessions where available.</li>
+</ul>
+<p>This improves transparency. Therapists can see not only what the plan
+says, but what reviewed memory the planner relied on when building
+it.</p>
+<blockquote>
+<p>Tip: Use the provenance section when you want to explain why a plan
+was chosen, especially during supervision, team handover, or parent
+discussion.</p>
+</blockquote>
+<figure>
+<img src="screenshots/plan-tab.png" alt="Plan tab and provenance" />
+<figcaption aria-hidden="true">Plan tab and provenance</figcaption>
+</figure>
+<h2 id="charts-and-dashboard-interpretation">11. Charts and Dashboard
+Interpretation</h2>
+<p>The dashboard includes visual summaries to help you understand recent
+work for the selected child. These are designed to support review, not
+replace detailed interpretation.</p>
+<h3 id="selected-child-summary-card">Selected child summary card</h3>
+<p>What it shows:</p>
+<ul>
+<li>The currently selected child.</li>
+<li>How many saved or reviewed sessions are available.</li>
+</ul>
+<p>What it does not show:</p>
+<ul>
+<li>It is not a full case summary.</li>
+</ul>
+<p>Useful use:</p>
+<ul>
+<li>Use it as a quick confirmation that you are looking at the right
+child before reviewing anything else.</li>
+</ul>
+<h3 id="progress-trendline">Progress trendline</h3>
+<p>What it shows:</p>
+<ul>
+<li>A score trend over recent reviewed sessions when enough data
+exists.</li>
+</ul>
+<p>What it does not show:</p>
+<ul>
+<li>It does not explain why a change happened.</li>
+</ul>
+<p>Useful use:</p>
+<ul>
+<li>Use it to spot whether performance looks broadly stable, improving,
+or variable across recent sessions.</li>
+</ul>
+<h3 id="reviewed-sessions-summary">Reviewed sessions summary</h3>
+<p>What it shows:</p>
+<ul>
+<li>How many saved sessions are currently available.</li>
+</ul>
+<p>What it does not show:</p>
+<ul>
+<li>It does not tell you whether those sessions were clinically
+equivalent or equally useful.</li>
+</ul>
+<p>Useful use:</p>
+<ul>
+<li>Use it to judge whether you have enough recent evidence to trust
+trend patterns.</li>
+</ul>
+<h3 id="sound-breakdown-or-focus-sound-chart">Sound breakdown or
+focus-sound chart</h3>
+<p>What it shows:</p>
+<ul>
+<li>A summary of sound-related performance across saved sessions when
+enough data exists.</li>
+</ul>
+<p>What it does not show:</p>
+<ul>
+<li>It is not a complete phonological profile.</li>
+</ul>
+<p>Useful use:</p>
+<ul>
+<li>Use it to see which focus sounds may need more attention or a
+different task type.</li>
+</ul>
+<h3 id="session-frequency-heatmap">Session frequency heatmap</h3>
+<p>What it shows:</p>
+<ul>
+<li>When sessions were saved across recent weeks.</li>
+</ul>
+<p>What it does not show:</p>
+<ul>
+<li>It does not tell you whether practice quality was high.</li>
+</ul>
+<p>Useful use:</p>
+<ul>
+<li>Use it to spot gaps in practice frequency or compare consistency
+across periods.</li>
+</ul>
+<h3 id="session-history-metrics">Session history metrics</h3>
+<p>What it shows:</p>
+<ul>
+<li>Exercise name.</li>
+<li>Date.</li>
+<li>Overall score.</li>
+<li>Accuracy score.</li>
+<li>Pronunciation score where available.</li>
+<li>Therapist feedback markers where saved.</li>
+</ul>
+<p>What it does not show:</p>
+<ul>
+<li>It is not a replacement for the full session review.</li>
+</ul>
+<p>Useful use:</p>
+<ul>
+<li>Use the history list to identify which sessions should be opened
+first, especially flagged sessions or those with unusual changes.</li>
+</ul>
+<blockquote>
+<p>Note: Charts summarise patterns. They do not explain cause on their
+own. Always return to the saved session, memory evidence, and your own
+observations before making decisions.</p>
+</blockquote>
+<h2 id="session-history-and-review-workflow">12. Session History and
+Review Workflow</h2>
+<p>A practical dashboard workflow after a session often looks like
+this:</p>
+<ol type="1">
+<li>Open the saved session from the dashboard.</li>
+<li>Check the Session detail review.</li>
+<li>Review pending memory proposals.</li>
+<li>Approve or reject what should become durable memory.</li>
+<li>Generate or inspect recommendations.</li>
+<li>Create or refine a next-session plan.</li>
+</ol>
+<p>In day-to-day work, this often becomes a repeatable pattern:</p>
+<ul>
+<li>First, use the saved session to understand what happened.</li>
+<li>Next, decide what should become durable child memory.</li>
+<li>Then inspect whether the recommendation logic still fits the updated
+evidence.</li>
+<li>Finally, turn that review into a therapist-guided next-session
+plan.</li>
+</ul>
+<p>This workflow links session evidence, reviewed memory,
+recommendations, and planning in one place.</p>
+<h2 id="custom-exercises-and-local-management">13. Custom Exercises and
+Local Management</h2>
+<p>Custom exercises are available for therapist-authored practice
+tasks.</p>
+<p>They are useful when you want to:</p>
+<ul>
+<li>Tailor the task to a specific child.</li>
+<li>Use your own word list.</li>
+<li>Adjust the prompt or tone.</li>
+<li>Work on a target not covered exactly the way you want in the
+built-in library.</li>
+</ul>
+<p>To create a custom exercise:</p>
+<ol type="1">
+<li>Open the custom exercise editor.</li>
+<li>Add a name.</li>
+<li>Add a short therapist description.</li>
+<li>Choose an exercise type.</li>
+<li>Add the target sound.</li>
+<li>Add target words.</li>
+<li>Set the difficulty.</li>
+<li>Add the child-facing prompt.</li>
+<li>Add the coach instructions.</li>
+<li>Save the exercise.</li>
+</ol>
+<p>To edit or delete a custom exercise:</p>
+<ol type="1">
+<li>Open the exercise from the custom-exercise area.</li>
+<li>Change the fields you want.</li>
+<li>Save the update, or use delete if the exercise is no longer
+needed.</li>
+</ol>
+<p>To export or import a custom exercise:</p>
+<ol type="1">
+<li>Open the custom exercise.</li>
+<li>Use export to save it as a JSON file.</li>
+<li>Use import to load a previously saved JSON file.</li>
+</ol>
+<blockquote>
+<p>Note: Custom exercises are stored in local browser storage. They do
+not automatically sync across devices. If browser data is cleared, local
+custom exercises can be lost unless they have been exported.</p>
+</blockquote>
+<figure>
+<img src="screenshots/custom-exercise-editor.png"
+alt="Custom exercise editor" />
+<figcaption aria-hidden="true">Custom exercise editor</figcaption>
+</figure>
+<h2 id="workspace-settings-and-everyday-checks">14. Workspace Settings
+and Everyday Checks</h2>
+<p>The Workspace page is intentionally simple. It is for quick
+environment checks rather than deep configuration.</p>
+<p>Use it to:</p>
+<ul>
+<li>Switch between therapist and child mode.</li>
+<li>Confirm the active child.</li>
+<li>Confirm the active buddy or avatar.</li>
+</ul>
+<p>A sensible everyday check before practice is:</p>
+<ol type="1">
+<li>Open Workspace.</li>
+<li>Confirm the mode.</li>
+<li>Confirm the active child.</li>
+<li>Confirm the active buddy.</li>
+<li>Return to Home and start the session.</li>
+</ol>
+<p>This is especially useful when:</p>
+<ul>
+<li>More than one child is being seen in a row.</li>
+<li>A different therapist has just used the device.</li>
+<li>You are moving from review back into practice.</li>
+</ul>
+<h2 id="best-practice-tips-for-therapists">15. Best-Practice Tips for
+Therapists</h2>
+<ul>
+<li>Confirm the active child before you launch or review anything.</li>
+<li>Use child memory to preserve stable clinical observations over
+time.</li>
+<li>Review pending proposals before trusting an older recommendation
+run.</li>
+<li>Treat recommendation output as evidence-linked support, not an
+instruction to obey.</li>
+<li>Use plan provenance when discussing why a session plan was
+chosen.</li>
+<li>Flag sessions that need follow-up so later review is easier.</li>
+<li>Use the home cards for quick orientation, then move into the
+dashboard for detailed review.</li>
+<li>Write therapist memory notes when a short practical observation
+should shape the next few sessions.</li>
+</ul>
+<blockquote>
+<p>Tip: Wulo works best when the therapist uses it as a cycle: practise,
+review, govern memory, inspect recommendations, then plan.</p>
+</blockquote>
+<h2 id="glossary">16. Glossary</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Term</th>
+<th>Plain-language definition</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Active child</td>
+<td>The child currently selected in Wulo. Sessions, memory,
+recommendations, and plans all follow this context.</td>
+</tr>
+<tr class="even">
+<td>Approved child memory</td>
+<td>Therapist-reviewed memory items that have been accepted as part of
+the child’s durable working picture.</td>
+</tr>
+<tr class="odd">
+<td>Pending proposal</td>
+<td>A proposed memory update that still needs therapist approval or
+rejection.</td>
+</tr>
+<tr class="even">
+<td>Evidence link</td>
+<td>A link back to the saved session evidence that supports a memory
+item or recommendation.</td>
+</tr>
+<tr class="odd">
+<td>Recommendation run</td>
+<td>One saved set of next-exercise rankings generated for the active
+child.</td>
+</tr>
+<tr class="even">
+<td>Ranked candidate</td>
+<td>One exercise option inside a recommendation run, shown with score
+and explanation.</td>
+</tr>
+<tr class="odd">
+<td>Institutional memory</td>
+<td>De-identified clinic-level pattern information that may help tune
+recommendations without becoming child-specific fact storage.</td>
+</tr>
+<tr class="even">
+<td>Memory snapshot</td>
+<td>The saved set of approved memory inputs that were available when a
+plan was generated.</td>
+</tr>
+<tr class="odd">
+<td>Planner status</td>
+<td>A quick indicator showing whether enough context is available for
+planning.</td>
+</tr>
+<tr class="even">
+<td>Therapist note</td>
+<td>A therapist-entered note used to guide a recommendation run, shape a
+plan, or save an approved memory item.</td>
+</tr>
+<tr class="odd">
+<td>Source session</td>
+<td>A saved session that provides evidence for memory, recommendation
+explanations, or plan provenance.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="troubleshooting">17. Troubleshooting</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Issue</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Session expired or login problems</td>
+<td>Return to the login screen and sign in again with Microsoft or
+Google. If the session cannot be loaded, retry the session check or sign
+in again.</td>
+</tr>
+<tr class="even">
+<td>Planner unavailable</td>
+<td>Check whether the planner is showing <code>Limited</code>. If so,
+review whether the child has enough approved memory and saved-session
+context for planning.</td>
+</tr>
+<tr class="odd">
+<td>No saved sessions visible for the active child</td>
+<td>Confirm that the correct child is selected. The session history list
+only shows sessions for the active child.</td>
+</tr>
+<tr class="even">
+<td>No approved memory yet</td>
+<td>Open the Memory tab. If nothing has been approved yet, review
+pending proposals or add a therapist memory note if clinically
+appropriate.</td>
+</tr>
+<tr class="odd">
+<td>Recommendation history is empty</td>
+<td>Open the Recommendations tab and generate a recommendation run for
+the active child.</td>
+</tr>
+<tr class="even">
+<td>Recommendation evidence looks stale</td>
+<td>Check whether pending proposals exist, approved memory changed after
+the last run, or a newer reviewed session exists. Generate a fresh run
+if needed.</td>
+</tr>
+<tr class="odd">
+<td>Dashboard seems to show the wrong child</td>
+<td>Verify the active child in the therapist shell, re-select the
+correct child, then re-open the dashboard for that child.</td>
+</tr>
+<tr class="even">
+<td>Microphone or audio problems</td>
+<td>Check browser microphone permissions, device input selection, and
+whether the current exercise expects speech input.</td>
+</tr>
+<tr class="odd">
+<td>Avatar or session launch problems</td>
+<td>Return to Home, confirm the child, avatar, and exercise, then launch
+again. If the problem continues, refresh the workspace after checking
+your sign-in state.</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Note: When in doubt, first verify three things: signed-in session,
+active child, and current mode. Most everyday workspace confusion comes
+from one of these three settings being out of date.</p>
+</blockquote>
+</body>
+</html>

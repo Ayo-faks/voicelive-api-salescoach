@@ -20,7 +20,7 @@ from src.services.storage import StorageService
 from src.services.storage_postgres import PostgresStorageService
 
 
-TIMESTAMP_KEYS = {"created_at", "updated_at", "approved_at", "submitted_at"}
+TIMESTAMP_KEYS = {"created_at", "updated_at", "approved_at", "submitted_at", "reviewed_at", "last_compiled_at"}
 
 
 def _find_free_port() -> int:
@@ -173,6 +173,153 @@ def _exercise_storage_backend(service: Any) -> dict[str, Any]:
     )
     approved_plan = service.approve_practice_plan(saved_plan["id"])
 
+    memory_proposal = service.save_child_memory_proposal(
+        {
+            "id": "proposal-parity-1",
+            "child_id": "child-ayo",
+            "category": "effective_cues",
+            "memory_type": "inference",
+            "status": "pending",
+            "statement": "Responds best to a spoken model before imitation.",
+            "detail": {"cue": "spoken model"},
+            "confidence": 0.8,
+            "provenance": {"session_ids": [saved_session["id"]]},
+            "author_type": "system",
+        }
+    )
+    memory_item = service.save_child_memory_item(
+        {
+            "id": "item-parity-1",
+            "child_id": "child-ayo",
+            "category": "targets",
+            "memory_type": "constraint",
+            "status": "approved",
+            "statement": "Keep /r/ as the active target.",
+            "detail": {"target_sound": "r"},
+            "confidence": 0.9,
+            "provenance": {"session_ids": [saved_session["id"]]},
+            "author_type": "therapist",
+            "author_user_id": "user-1",
+            "source_proposal_id": memory_proposal["id"],
+        }
+    )
+    reviewed_proposal = service.review_child_memory_proposal(
+        memory_proposal["id"],
+        "approved",
+        reviewer_user_id="user-1",
+        review_note="Seen repeatedly.",
+        approved_item_id=memory_item["id"],
+    )
+    expired_item = service.update_child_memory_item_status(
+        memory_item["id"],
+        "expired",
+        expires_at="2026-05-01T00:00:00+00:00",
+    )
+    evidence_link = service.save_child_memory_evidence_link(
+        {
+            "id": "evidence-parity-1",
+            "child_id": "child-ayo",
+            "subject_type": "proposal",
+            "subject_id": memory_proposal["id"],
+            "session_id": saved_session["id"],
+            "practice_plan_id": approved_plan["id"],
+            "evidence_kind": "session",
+            "snippet": "Needed less prompting after the therapist modeled once.",
+            "metadata": {"source": "analysis"},
+        }
+    )
+    summary = service.upsert_child_memory_summary(
+        "child-ayo",
+        {
+            "targets": ["Keep /r/ as the active target."],
+            "effective_cues": [reviewed_proposal["statement"]],
+        },
+        summary_text="Active target remains /r/ with strong response to spoken-model cues.",
+        source_item_count=1,
+    )
+    institutional_insights = service.replace_institutional_memory_insights(
+        [
+            {
+                "id": "institutional-insight-parity-1",
+                "insight_type": "recommendation_tuning",
+                "status": "active",
+                "target_sound": "r",
+                "title": "Recommendation tuning input for /r/",
+                "summary": "De-identified reviewed outcomes favour phrase practice for /r/ when child-specific memory does not conflict.",
+                "detail": {
+                    "target_sound": "r",
+                    "recommended_exercise_types": ["two_word_phrase"],
+                },
+                "provenance": {
+                    "evidence_basis": "approved_child_memory_and_reviewed_sessions",
+                    "deidentified_child_count": 1,
+                    "reviewed_session_count": 1,
+                    "approved_memory_item_count": 1,
+                },
+                "source_child_count": 1,
+                "source_session_count": 1,
+                "source_memory_item_count": 1,
+                "created_at": "2026-04-05T10:06:30+00:00",
+                "updated_at": "2026-04-05T10:06:30+00:00",
+            }
+        ]
+    )
+    recommendation_log = service.save_recommendation_log(
+        {
+            "id": "recommendation-log-parity-1",
+            "child_id": "child-ayo",
+            "source_session_id": saved_session["id"],
+            "target_sound": "r",
+            "therapist_constraints": {
+                "note": "Keep it playful.",
+                "parsed": {"playful": True},
+            },
+            "ranking_context": {
+                "current_target_sound": "r",
+                "approved_memory_item_ids": [memory_item["id"]],
+            },
+            "rationale": "Matches the active /r/ target and approved memory.",
+            "created_by_user_id": "user-1",
+            "candidate_count": 1,
+            "top_recommendation_score": 78,
+            "created_at": "2026-04-05T10:07:00+00:00",
+        }
+    )
+    recommendation_candidates = service.replace_recommendation_candidates(
+        recommendation_log["id"],
+        [
+            {
+                "id": "recommendation-candidate-parity-1",
+                "rank": 1,
+                "exercise_id": "exercise-r",
+                "exercise_name": "R Warmup",
+                "exercise_description": "Practice /r/ words",
+                "exercise_metadata": {"targetSound": "r", "difficulty": "medium", "type": "word_repetition"},
+                "score": 78,
+                "ranking_factors": {
+                    "target_sound_match": {
+                        "score": 40,
+                        "reason": "matches the active /r/ target",
+                        "supporting_memory_item_ids": [memory_item["id"]],
+                        "supporting_session_ids": [saved_session["id"]],
+                    }
+                },
+                "rationale": "Matches the active /r/ target and approved memory.",
+                "explanation": {
+                    "why_recommended": "It stayed aligned with the active /r/ target.",
+                    "comparison_to_approved_memory": "This recommendation stays aligned with approved memory.",
+                    "evidence_that_could_change_recommendation": "If engagement falls, step back difficulty.",
+                    "supporting_memory_items": [],
+                    "supporting_sessions": [],
+                    "score_summary": "Deterministic score 78",
+                },
+                "supporting_memory_item_ids": [memory_item["id"]],
+                "supporting_session_ids": [saved_session["id"]],
+                "created_at": "2026-04-05T10:07:00+00:00",
+            }
+        ],
+    )
+
     return {
         "pilot_state": service.get_pilot_state(),
         "first_user": service.get_user("user-1"),
@@ -184,6 +331,23 @@ def _exercise_storage_backend(service: Any) -> dict[str, Any]:
         "saved_plan": service.get_practice_plan(saved_plan["id"]),
         "approved_plan": approved_plan,
         "plans": service.list_practice_plans_for_child("child-ayo"),
+        "memory_proposal": service.get_child_memory_proposal(memory_proposal["id"]),
+        "reviewed_proposal": reviewed_proposal,
+        "pending_proposals": service.list_child_memory_proposals("child-ayo", status="pending"),
+        "approved_proposals": service.list_child_memory_proposals("child-ayo", status="approved"),
+        "memory_item": service.get_child_memory_item(memory_item["id"]),
+        "expired_item": expired_item,
+        "approved_items": service.list_child_memory_items("child-ayo", status="approved"),
+        "expired_items": service.list_child_memory_items("child-ayo", status="expired"),
+        "evidence_link": evidence_link,
+        "evidence_links": service.list_child_memory_evidence_links("proposal", memory_proposal["id"]),
+        "summary": summary,
+        "summary_reload": service.get_child_memory_summary("child-ayo"),
+        "institutional_insights": institutional_insights,
+        "institutional_insights_reload": service.list_institutional_memory_insights(status="active"),
+        "recommendation_log": service.get_recommendation_log(recommendation_log["id"]),
+        "recommendation_history": service.list_recommendation_logs_for_child("child-ayo"),
+        "recommendation_candidates": recommendation_candidates,
     }
 
 

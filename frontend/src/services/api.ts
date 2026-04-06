@@ -7,6 +7,15 @@ import type {
   Assessment,
   AppConfig,
   ChildProfile,
+  ChildMemoryItem,
+  ChildMemoryProposal,
+  RecommendationDetail,
+  RecommendationLog,
+  RecommendationRequest,
+  ChildMemoryCreateResult,
+  ChildMemoryEvidenceLink,
+  ChildMemoryReviewResult,
+  ChildMemorySummary,
   CustomScenarioData,
   CustomScenario,
   ExerciseMetadata,
@@ -180,13 +189,14 @@ export const api = {
     return res.json()
   },
 
-  async createAgent(scenarioId: string, avatarConfig?: AvatarConfig) {
+  async createAgent(scenarioId: string, avatarConfig?: AvatarConfig, childId?: string) {
     const res = await fetchWithAuth('/api/agents/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         scenario_id: scenarioId,
         avatar: avatarConfig,
+        child_id: childId,
       }),
     })
     if (!res.ok) throw new Error('Failed to create agent')
@@ -202,7 +212,8 @@ export const api = {
     name: string,
     description: string,
     scenarioData: CustomScenarioData,
-    avatarConfig?: AvatarConfig
+    avatarConfig?: AvatarConfig,
+    childId?: string
   ) {
     const res = await fetchWithAuth('/api/agents/create', {
       method: 'POST',
@@ -222,6 +233,7 @@ export const api = {
           },
         },
         avatar: avatarConfig,
+        child_id: childId,
       }),
     })
     if (!res.ok) throw new Error('Failed to create agent with custom scenario')
@@ -303,6 +315,115 @@ export const api = {
   async getChildPlans(childId: string): Promise<PracticePlan[]> {
     const res = await fetchWithAuth(`/api/children/${childId}/plans`)
     if (!res.ok) throw new Error('Failed to load practice plans')
+    return res.json()
+  },
+
+  async getChildMemorySummary(childId: string): Promise<ChildMemorySummary> {
+    const res = await fetchWithAuth(`/api/children/${childId}/memory/summary`)
+    if (!res.ok) throw new Error('Failed to load child memory summary')
+    return res.json()
+  },
+
+  async getChildMemoryItems(
+    childId: string,
+    options?: { status?: string; category?: string; includeEvidence?: boolean }
+  ): Promise<ChildMemoryItem[]> {
+    const params = new URLSearchParams()
+    if (options?.status) params.set('status', options.status)
+    if (options?.category) params.set('category', options.category)
+    if (options?.includeEvidence) params.set('include_evidence', 'true')
+    const query = params.toString()
+    const res = await fetchWithAuth(`/api/children/${childId}/memory/items${query ? `?${query}` : ''}`)
+    if (!res.ok) throw new Error('Failed to load child memory items')
+    return res.json()
+  },
+
+  async getChildMemoryProposals(
+    childId: string,
+    options?: { status?: string; category?: string; includeEvidence?: boolean }
+  ): Promise<ChildMemoryProposal[]> {
+    const params = new URLSearchParams()
+    if (options?.status) params.set('status', options.status)
+    if (options?.category) params.set('category', options.category)
+    if (options?.includeEvidence) params.set('include_evidence', 'true')
+    const query = params.toString()
+    const res = await fetchWithAuth(`/api/children/${childId}/memory/proposals${query ? `?${query}` : ''}`)
+    if (!res.ok) throw new Error('Failed to load child memory proposals')
+    return res.json()
+  },
+
+  async getChildRecommendations(childId: string, limit = 10): Promise<RecommendationLog[]> {
+    const params = new URLSearchParams()
+    params.set('limit', String(limit))
+    const res = await fetchWithAuth(`/api/children/${childId}/recommendations?${params.toString()}`)
+    if (!res.ok) throw new Error('Failed to load recommendation history')
+    return res.json()
+  },
+
+  async generateChildRecommendations(
+    childId: string,
+    payload: RecommendationRequest
+  ): Promise<RecommendationDetail> {
+    const res = await fetchWithAuth(`/api/children/${childId}/recommendations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to generate recommendations')
+    }
+    return res.json()
+  },
+
+  async getRecommendationDetail(recommendationId: string): Promise<RecommendationDetail> {
+    const res = await fetchWithAuth(`/api/recommendations/${recommendationId}`)
+    if (!res.ok) throw new Error('Failed to load recommendation detail')
+    return res.json()
+  },
+
+  async getChildMemoryEvidence(subjectType: 'item' | 'proposal', subjectId: string): Promise<ChildMemoryEvidenceLink[]> {
+    const res = await fetchWithAuth(`/api/memory/${subjectType}/${subjectId}/evidence`)
+    if (!res.ok) throw new Error('Failed to load child memory evidence')
+    return res.json()
+  },
+
+  async createChildMemoryItem(
+    childId: string,
+    payload: {
+      category: string
+      statement: string
+      memory_type?: string
+      detail?: Record<string, unknown>
+      confidence?: number
+    }
+  ): Promise<ChildMemoryCreateResult> {
+    const res = await fetchWithAuth(`/api/children/${childId}/memory/items`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) throw new Error('Failed to create child memory item')
+    return res.json()
+  },
+
+  async approveChildMemoryProposal(proposalId: string, note?: string): Promise<ChildMemoryReviewResult> {
+    const res = await fetchWithAuth(`/api/memory/proposals/${proposalId}/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(note ? { note } : {}),
+    })
+    if (!res.ok) throw new Error('Failed to approve child memory proposal')
+    return res.json()
+  },
+
+  async rejectChildMemoryProposal(proposalId: string, note?: string): Promise<ChildMemoryReviewResult> {
+    const res = await fetchWithAuth(`/api/memory/proposals/${proposalId}/reject`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(note ? { note } : {}),
+    })
+    if (!res.ok) throw new Error('Failed to reject child memory proposal')
     return res.json()
   },
 

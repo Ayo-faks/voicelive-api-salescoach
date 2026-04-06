@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+import os
 from pathlib import Path
 
 import pytest
@@ -26,10 +27,13 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[FlaskCli
     """Create a Flask test client backed by an isolated SQLite database."""
     storage_service = StorageService(str(tmp_path / "integration.db"))
     monkeypatch.setattr(app_module, "storage_service", storage_service)
+    monkeypatch.setenv("LOCAL_DEV_AUTH", "false")
     app_module.app.config["TESTING"] = True
 
     with app_module.app.test_client() as test_client:
         yield test_client
+
+    os.environ.pop("LOCAL_DEV_AUTH", None)
 
 
 def test_protected_routes_require_authentication(client: FlaskClient):

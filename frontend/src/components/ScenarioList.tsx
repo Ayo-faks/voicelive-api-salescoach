@@ -525,7 +525,6 @@ interface Props {
   ) => void
   onDeleteCustomScenario: (id: string) => void
   title?: string
-  helperText?: string
   showFooter?: boolean
   showCustomExercises?: boolean
   showCustomCreateTrigger?: boolean
@@ -547,7 +546,6 @@ export function ScenarioList({
   onUpdateCustomScenario,
   onDeleteCustomScenario,
   title = "Let's practice!",
-  helperText = 'Choose a Wulo exercise, then start a calm, guided speech practice session.',
   showFooter = true,
   showCustomExercises = true,
   showCustomCreateTrigger = true,
@@ -790,9 +788,6 @@ export function ScenarioList({
       <div className={styles.header}>
         <Text className={styles.title} size={700} weight="semibold">
           {title}
-        </Text>
-        <Text className={styles.helperText} size={300}>
-          {helperText}
         </Text>
       </div>
 
@@ -1045,10 +1040,6 @@ export function ScenarioList({
               <div className={styles.sectionCopy}>
                 <Text className={styles.cardTitle} size={500} weight="semibold">
                   Therapist exercises
-                </Text>
-                <Text className={styles.helperText} size={300}>
-                  Create a custom exercise with target sounds, target words, and a
-                  guided practice prompt.
                 </Text>
               </div>
               <CustomScenarioEditor

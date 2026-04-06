@@ -102,12 +102,17 @@ vi.mock('../components/ConsentScreen', () => ({
 
 vi.mock('../components/DashboardHome', () => ({
   DashboardHome: ({
+    selectedChildId,
+    onSelectChild,
     onStartScenario,
   }: {
+    selectedChildId: string | null
+    onSelectChild: (childId: string) => void
     onStartScenario: (scenarioId: string) => void
   }) => (
     <div>
-      <div>dashboard-home</div>
+      <div>dashboard-home:{selectedChildId ?? 'none'}</div>
+      <button type="button" onClick={() => onSelectChild('child-2')}>home-select-child-2</button>
       <button type="button" onClick={() => onStartScenario('scenario-2')}>start-dashboard-scenario-2</button>
     </div>
   ),
@@ -156,7 +161,19 @@ vi.mock('../components/SessionScreen', () => ({
 }))
 
 vi.mock('../components/SettingsView', () => ({
-  SettingsView: () => <div>settings-view</div>,
+  SettingsView: ({
+    selectedChild,
+    onSelectChild,
+  }: {
+    selectedChild: { id: string } | null
+    onSelectChild: (childId: string) => void
+  }) => (
+    <div>
+      <div>settings-view:{selectedChild?.id ?? 'none'}</div>
+      <button type="button" onClick={() => onSelectChild('child-1')}>settings-select-child-1</button>
+      <button type="button" onClick={() => onSelectChild('child-2')}>settings-select-child-2</button>
+    </div>
+  ),
 }))
 
 vi.mock('../components/AssessmentPanel', () => ({
@@ -165,18 +182,24 @@ vi.mock('../components/AssessmentPanel', () => ({
 
 vi.mock('../components/SidebarNav', () => ({
   SidebarNav: ({
+    selectedChildId,
+    onSelectChild,
     onNavigateHome,
     onNavigateDashboard,
     onNavigateSettings,
   }: {
+    selectedChildId: string | null
+    onSelectChild: (childId: string) => void
     onNavigateHome: () => void
     onNavigateDashboard: () => void
     onNavigateSettings: () => void
   }) => (
     <div>
+      <div>sidebar-nav:{selectedChildId ?? 'none'}</div>
       <button type="button" onClick={onNavigateHome}>nav-home</button>
       <button type="button" onClick={onNavigateDashboard}>nav-dashboard</button>
       <button type="button" onClick={onNavigateSettings}>nav-settings</button>
+      <button type="button" onClick={() => onSelectChild('child-2')}>sidebar-select-child-2</button>
     </div>
   ),
 }))
@@ -215,6 +238,16 @@ vi.mock('../services/api', () => ({
     getChildren: vi.fn(),
     getChildSessions: vi.fn(),
     getChildPlans: vi.fn(),
+    getChildMemorySummary: vi.fn(),
+    getChildMemoryItems: vi.fn(),
+    getChildMemoryProposals: vi.fn(),
+    getChildRecommendations: vi.fn(),
+    getRecommendationDetail: vi.fn(),
+    generateChildRecommendations: vi.fn(),
+    getChildMemoryEvidence: vi.fn(),
+    createChildMemoryItem: vi.fn(),
+    approveChildMemoryProposal: vi.fn(),
+    rejectChildMemoryProposal: vi.fn(),
     getSession: vi.fn(),
     createAgent: vi.fn(),
     createAgentWithCustomScenario: vi.fn(),
@@ -395,6 +428,134 @@ const childPlansByChild: Record<string, Array<{ id: string; child_id: string; so
   ],
 }
 
+const childMemorySummaryByChild = {
+  'child-1': {
+    child_id: 'child-1',
+    summary: { targets: [{ statement: 'Keep /k/ active.' }] },
+    summary_text: 'Active targets: Keep /k/ active.',
+    source_item_count: 1,
+  },
+  'child-2': {
+    child_id: 'child-2',
+    summary: { targets: [{ statement: 'Keep /t/ active.' }] },
+    summary_text: 'Active targets: Keep /t/ active.',
+    source_item_count: 1,
+  },
+} as const
+
+const childMemoryProposalsByChild = {
+  'child-1': [],
+  'child-2': [
+    {
+      id: 'proposal-2',
+      child_id: 'child-2',
+      category: 'blockers',
+      memory_type: 'inference',
+      status: 'pending',
+      statement: 'Needs support for longer /t/ phrases.',
+      detail: {},
+      confidence: 0.7,
+      provenance: { session_ids: ['session-2'] },
+      author_type: 'system',
+      created_at: '2026-04-02T12:00:00.000Z',
+      updated_at: '2026-04-02T12:00:00.000Z',
+    },
+  ],
+} as const
+
+const recommendationHistoryByChild = {
+  'child-1': [
+    {
+      id: 'recommendation-1',
+      child_id: 'child-1',
+      source_session_id: 'session-1',
+      target_sound: 'k',
+      therapist_constraints: { note: '', parsed: {} },
+      ranking_context: { current_target_sound: 'k' },
+      rationale: 'Matched the active /k/ target.',
+      candidate_count: 1,
+      top_recommendation_score: 70,
+      created_at: '2026-04-01T12:30:00.000Z',
+      top_recommendation: {
+        rank: 1,
+        exercise_id: 'scenario-1',
+        exercise_name: 'Scenario 1',
+        score: 70,
+        rationale: 'Matched the active /k/ target.',
+      },
+    },
+  ],
+  'child-2': [
+    {
+      id: 'recommendation-2',
+      child_id: 'child-2',
+      source_session_id: 'session-2',
+      target_sound: 't',
+      therapist_constraints: { note: '', parsed: {} },
+      ranking_context: { current_target_sound: 't' },
+      rationale: 'Matched the active /t/ target.',
+      candidate_count: 1,
+      top_recommendation_score: 74,
+      created_at: '2026-04-02T12:30:00.000Z',
+      top_recommendation: {
+        rank: 1,
+        exercise_id: 'scenario-2',
+        exercise_name: 'Scenario 2',
+        score: 74,
+        rationale: 'Matched the active /t/ target.',
+      },
+    },
+  ],
+} as const
+
+const recommendationDetailsById = {
+  'recommendation-1': {
+    ...recommendationHistoryByChild['child-1'][0],
+    candidates: [],
+  },
+  'recommendation-2': {
+    ...recommendationHistoryByChild['child-2'][0],
+    candidates: [],
+  },
+} as const
+
+const childMemoryItemsByChild = {
+  'child-1': [
+    {
+      id: 'memory-1',
+      child_id: 'child-1',
+      category: 'targets',
+      memory_type: 'constraint',
+      status: 'approved',
+      statement: 'Keep /k/ active.',
+      detail: {},
+      confidence: 0.8,
+      provenance: { source: 'post_session_analysis' },
+      author_type: 'system',
+      created_at: '2026-04-01T12:00:00.000Z',
+      updated_at: '2026-04-01T12:00:00.000Z',
+      evidence_links: [],
+    },
+  ],
+  'child-2': [
+    {
+      id: 'memory-2',
+      child_id: 'child-2',
+      category: 'targets',
+      memory_type: 'constraint',
+      status: 'approved',
+      statement: 'Keep /t/ active.',
+      detail: {},
+      confidence: 0.82,
+      provenance: { source: 'post_session_analysis' },
+      author_type: 'system',
+      created_at: '2026-04-02T12:00:00.000Z',
+      updated_at: '2026-04-02T12:00:00.000Z',
+      evidence_links: [],
+    },
+  ],
+} as const
+
 describe('App routing integration', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -424,9 +585,19 @@ describe('App routing integration', () => {
     mockedApi.getChildren.mockResolvedValue([])
     mockedApi.getChildSessions.mockImplementation(async childId => sessionSummariesByChild[childId as keyof typeof sessionSummariesByChild] ?? [])
     mockedApi.getChildPlans.mockImplementation(async childId => childPlansByChild[childId as keyof typeof childPlansByChild] ?? [])
+    mockedApi.getChildMemorySummary.mockImplementation(async childId => childMemorySummaryByChild[childId as keyof typeof childMemorySummaryByChild] as never)
+    mockedApi.getChildMemoryItems.mockImplementation(async childId => childMemoryItemsByChild[childId as keyof typeof childMemoryItemsByChild] as never)
+    mockedApi.getChildMemoryProposals.mockImplementation(async childId => childMemoryProposalsByChild[childId as keyof typeof childMemoryProposalsByChild] as never)
+    mockedApi.getChildRecommendations.mockImplementation(async childId => recommendationHistoryByChild[childId as keyof typeof recommendationHistoryByChild] as never)
+    mockedApi.getRecommendationDetail.mockImplementation(async recommendationId => recommendationDetailsById[recommendationId as keyof typeof recommendationDetailsById] as never)
+    mockedApi.generateChildRecommendations.mockResolvedValue(recommendationDetailsById['recommendation-2'] as never)
     mockedApi.getSession.mockImplementation(async sessionId => sessionDetailsById[sessionId as keyof typeof sessionDetailsById] as never)
     mockedApi.createAgent.mockResolvedValue({ agent_id: 'agent-1' } as never)
     mockedApi.createAgentWithCustomScenario.mockResolvedValue({ agent_id: 'agent-1' } as never)
+    mockedApi.createChildMemoryItem.mockResolvedValue({
+      item: childMemoryItemsByChild['child-2'][0],
+      summary: childMemorySummaryByChild['child-2'],
+    } as never)
     mockedApi.deleteAgent.mockResolvedValue(undefined as never)
   })
 
@@ -477,6 +648,11 @@ describe('App routing integration', () => {
     })
 
     expect(mockedApi.getChildSessions).toHaveBeenCalledWith('child-2')
+    expect(mockedApi.getChildMemorySummary).toHaveBeenCalledWith('child-2')
+    expect(mockedApi.getChildMemoryItems).toHaveBeenCalledWith('child-2', { includeEvidence: true })
+    expect(mockedApi.getChildMemoryProposals).toHaveBeenCalledWith('child-2', { status: 'pending', includeEvidence: true })
+    expect(mockedApi.getChildRecommendations).toHaveBeenCalledWith('child-2')
+    expect(mockedApi.getRecommendationDetail).toHaveBeenCalledWith('recommendation-2')
   })
 
   it('syncs the selected scenario into the home route query params', async () => {
@@ -526,6 +702,53 @@ describe('App routing integration', () => {
     })
 
     expect(screen.getByText('child-home:scenario-2')).toBeTruthy()
+  })
+
+  it('keeps child selection in sync across dashboard, home, and settings surfaces', async () => {
+    window.localStorage.setItem('wulo.onboarding.complete', 'true')
+    window.localStorage.setItem('wulo.user.mode', 'therapist')
+    mockedApi.getAuthSession.mockResolvedValue(therapistUser)
+    mockedApi.getChildren.mockResolvedValue(childProfiles as never)
+
+    renderApp(`${APP_ROUTES.dashboard}?${APP_ROUTE_PARAMS.childId}=child-1`)
+
+    await waitFor(() => {
+      expect(screen.getByText('progress-dashboard:child-1:session-1:plan-1')).toBeTruthy()
+    })
+
+    expect(screen.getByText('sidebar-nav:child-1')).toBeTruthy()
+
+    fireEvent.click(screen.getByText('sidebar-select-child-2'))
+
+    await waitFor(() => {
+      expect(screen.getByText('progress-dashboard:child-2:session-2:plan-2')).toBeTruthy()
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location').textContent).toBe(
+        `${APP_ROUTES.dashboard}?${APP_ROUTE_PARAMS.childId}=child-2&${APP_ROUTE_PARAMS.sessionId}=session-2&${APP_ROUTE_PARAMS.planId}=plan-2`
+      )
+    })
+
+    expect(screen.getByText('sidebar-nav:child-2')).toBeTruthy()
+
+    fireEvent.click(screen.getByText('nav-home'))
+
+    await waitFor(() => {
+      expect(screen.getByText('dashboard-home:child-2')).toBeTruthy()
+    })
+
+    fireEvent.click(screen.getByText('nav-settings'))
+
+    await waitFor(() => {
+      expect(screen.getByText('settings-view:child-2')).toBeTruthy()
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location').textContent).toBe(
+        `${APP_ROUTES.settings}?${APP_ROUTE_PARAMS.childId}=child-2`
+      )
+    })
   })
 
   it('navigates to the session route when a child exercise is started directly', async () => {
@@ -578,7 +801,7 @@ describe('App routing integration', () => {
     renderApp(`${APP_ROUTES.home}?${APP_ROUTE_PARAMS.childId}=child-1&${APP_ROUTE_PARAMS.scenarioId}=scenario-1`)
 
     await waitFor(() => {
-      expect(screen.getByText('dashboard-home')).toBeTruthy()
+      expect(screen.getByText('dashboard-home:child-1')).toBeTruthy()
     })
 
     fireEvent.click(screen.getByText('start-dashboard-scenario-2'))
@@ -678,6 +901,6 @@ describe('App routing integration', () => {
       expect(screen.getByTestId('location').textContent).toBe(APP_ROUTES.settings)
     })
 
-    expect(screen.getByText('settings-view')).toBeTruthy()
+    expect(screen.getByText('settings-view:none')).toBeTruthy()
   })
 })

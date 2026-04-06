@@ -119,3 +119,138 @@ class TestStorageService:
         assert updated_session["therapist_feedback"]["rating"] == "up"
         assert updated_session["therapist_feedback"]["note"] == "Child stayed engaged with light prompting."
         assert session_history[0]["therapist_feedback"]["rating"] == "up"
+
+    def test_save_and_review_child_memory_proposal(self, tmp_path: Path):
+        """Test child memory proposals and approved memory items persist distinctly."""
+        service = StorageService(str(tmp_path / "wulo.db"))
+        service.get_or_create_user("therapist-1", "therapist@example.com", "Therapist", "aad")
+
+        proposal = service.save_child_memory_proposal(
+            {
+                "id": "proposal-1",
+                "child_id": "child-ayo",
+                "category": "effective_cues",
+                "memory_type": "inference",
+                "status": "pending",
+                "statement": "Responds better when the cue includes a spoken model first.",
+                "detail": {"cue": "spoken model"},
+                "confidence": 0.78,
+                "provenance": {"session_ids": ["session-1"]},
+                "author_type": "system",
+            }
+        )
+
+        approved_item = service.save_child_memory_item(
+            {
+                "id": "item-1",
+                "child_id": "child-ayo",
+                "category": "effective_cues",
+                "memory_type": "fact",
+                "status": "approved",
+                "statement": proposal["statement"],
+                "detail": proposal["detail"],
+                "confidence": proposal["confidence"],
+                "provenance": proposal["provenance"],
+                "author_type": "therapist",
+                "author_user_id": "therapist-1",
+                "source_proposal_id": proposal["id"],
+            }
+        )
+
+        reviewed_proposal = service.review_child_memory_proposal(
+            proposal["id"],
+            "approved",
+            reviewer_user_id="therapist-1",
+            review_note="Observed across two sessions.",
+            approved_item_id=approved_item["id"],
+        )
+
+        pending_proposals = service.list_child_memory_proposals("child-ayo", status="pending")
+        approved_proposals = service.list_child_memory_proposals("child-ayo", status="approved")
+        approved_items = service.list_child_memory_items("child-ayo", status="approved")
+
+        assert proposal["status"] == "pending"
+        assert reviewed_proposal is not None
+        assert reviewed_proposal["status"] == "approved"
+        assert reviewed_proposal["approved_item_id"] == approved_item["id"]
+        assert pending_proposals == []
+        assert approved_proposals[0]["id"] == proposal["id"]
+        assert approved_items[0]["source_proposal_id"] == proposal["id"]
+
+    def test_save_child_memory_evidence_summary_and_status_updates(self, tmp_path: Path):
+        """Test evidence links, summary upsert, and item status transitions round-trip."""
+        service = StorageService(str(tmp_path / "wulo.db"))
+        service.get_or_create_user("therapist-1", "therapist@example.com", "Therapist", "aad")
+
+        saved_session = service.save_session(
+            {
+                "id": "session-memory-1",
+                "child_id": "child-ayo",
+                "child_name": "Ayo",
+                "exercise": {
+                    "id": "exercise-r",
+                    "name": "R Warmup",
+                    "description": "Practice /r/ words",
+                    "exerciseMetadata": {"targetSound": "r"},
+                },
+                "exercise_metadata": {"targetSound": "r"},
+                "ai_assessment": {"overall_score": 75},
+                "pronunciation_assessment": {"accuracy_score": 71, "pronunciation_score": 72},
+            }
+        )
+
+        item = service.save_child_memory_item(
+            {
+                "id": "item-2",
+                "child_id": "child-ayo",
+                "category": "targets",
+                "memory_type": "constraint",
+                "status": "approved",
+                "statement": "Keep /r/ as the primary target for the next block.",
+                "detail": {"target_sound": "r"},
+                "confidence": 0.92,
+                "provenance": {"source": "therapist"},
+                "author_type": "therapist",
+                "author_user_id": "therapist-1",
+            }
+        )
+
+        evidence_link = service.save_child_memory_evidence_link(
+            {
+                "id": "evidence-1",
+                "child_id": "child-ayo",
+                "subject_type": "item",
+                "subject_id": item["id"],
+                "session_id": saved_session["id"],
+                "evidence_kind": "session",
+                "snippet": "Child maintained accuracy with direct modeling.",
+                "metadata": {"source_field": "assessment.ai_assessment"},
+            }
+        )
+
+        summary = service.upsert_child_memory_summary(
+            "child-ayo",
+            {
+                "targets": [item["statement"]],
+                "effective_cues": [],
+            },
+            summary_text="Primary target remains /r/ with strong response to direct modeling.",
+            source_item_count=1,
+        )
+        expired_item = service.update_child_memory_item_status(
+            item["id"],
+            "expired",
+            expires_at="2026-05-01T00:00:00+00:00",
+        )
+
+        saved_links = service.list_child_memory_evidence_links("item", item["id"])
+        reloaded_summary = service.get_child_memory_summary("child-ayo")
+
+        assert evidence_link["session_id"] == saved_session["id"]
+        assert saved_links[0]["id"] == evidence_link["id"]
+        assert summary["summary"]["targets"] == [item["statement"]]
+        assert reloaded_summary is not None
+        assert reloaded_summary["source_item_count"] == 1
+        assert expired_item is not None
+        assert expired_item["status"] == "expired"
+        assert expired_item["expires_at"] == "2026-05-01T00:00:00+00:00"

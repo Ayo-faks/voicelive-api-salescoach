@@ -273,7 +273,6 @@ export function ChildHome({
           onDeleteCustomScenario={() => undefined}
           launchInFlight={launchInFlight}
           title="Choose one practice"
-          helperText="Pick a step or sound, then tap any exercise to start right away."
           showFooter={false}
           showCustomExercises={false}
           compactChildMode

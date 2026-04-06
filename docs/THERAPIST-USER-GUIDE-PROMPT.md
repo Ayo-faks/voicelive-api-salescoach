@@ -1,5 +1,546 @@
 # Prompt: Generate Wulo Therapist User Documentation
 
+You are a technical writer creating a comprehensive, therapist-friendly user guide for Wulo, an AI-supported speech practice platform for children with special educational needs (SEN). The guide is for speech-language therapists and clinical educators, not technical readers. Use plain language, explain why each feature matters in practice, and make it clear throughout that Wulo supports therapist judgement rather than replacing it.
+
+The generated guide must match the current implemented product, especially the therapist dashboard, governed child memory workflow, recommendation review tools, and planning workflow.
+
+## Core Writing Instructions
+
+Produce a complete Markdown user guide that:
+
+- uses plain, non-technical language wherever possible
+- explains both what a feature does and how a therapist would use it in practice
+- includes numbered steps for any task-based workflow
+- includes short best-practice callouts where useful using these blockquotes:
+  - `> Tip:`
+  - `> Note:`
+- includes screenshot placeholders where a visual would help using this format:
+  - `![Description](screenshots/filename.png)`
+- uses British English spelling
+- avoids describing features that are not implemented
+- is detailed about dashboard behaviour, especially the difference between the therapist home surface and the deep review dashboard
+
+The tone should be warm, practical, and confidence-building. Therapists should come away understanding that Wulo is a supervised practice tool with explainable recommendations and reviewable evidence.
+
+## Output Requirements
+
+Generate a single Markdown document with:
+
+- a title page
+- a table of contents with anchor links
+- clear heading hierarchy using H1 to H4
+- tables where they improve clarity
+- a target length of roughly 4,000 to 6,000 words
+
+## Title Page
+
+Use this exact opening structure:
+
+```md
+# Wulo Therapist User Guide
+**Version:** 1.0
+**Last Updated:** [DATE]
+**Platform:** Web application (desktop and tablet supported)
+```
+
+## Required Structure
+
+### 1. Welcome to Wulo
+
+Explain:
+
+- what Wulo is: a therapist-supervised AI speech practice platform for structured articulation and phonological awareness work
+- who it is for: therapists supporting children in clinics, schools, or supervised home practice
+- the high-level workflow:
+  - choose the active child
+  - choose an exercise and avatar
+  - run a guided session
+  - review the saved session
+  - review child memory and recommendations
+  - generate or refine a next-session plan
+- the key principle that Wulo is a practice and review tool, not a diagnostic tool
+
+Include a short “What Wulo helps you do” list covering:
+
+- deliver structured practice with an AI buddy
+- review pronunciation and engagement results
+- preserve therapist-approved child memory over time
+- inspect recommendation evidence instead of treating AI suggestions as black box output
+- create therapist-guided next-session plans
+
+### 2. Getting Started
+
+#### 2.1 Signing in
+
+Document the current authentication flow:
+
+- therapists can sign in with Microsoft or Google
+- Wulo remembers the session until it expires
+- if the session expires, the user is returned to the login screen
+
+#### 2.2 Choosing a mode
+
+Explain the two workspace modes:
+
+| Mode | Intended user | What is visible |
+|------|---------------|-----------------|
+| Therapist mode | Therapist or supervisor | Therapist home, dashboard review workspace, planning, memory review, recommendations, workspace settings |
+| Child mode | Child during a session | Simplified practice home and live session surfaces |
+
+Explain when therapists typically switch between them.
+
+#### 2.3 Consent and safe use framing
+
+Make clear that:
+
+- the platform is intended for supervised practice
+- it does not replace therapist judgement
+- therapists remain responsible for interpreting results and deciding next steps
+
+Do not invent a therapist PIN workflow unless you can confirm it exists in the current implementation.
+
+### 3. Understanding the Therapist Workspace
+
+This section must clearly distinguish three therapist-facing surfaces:
+
+#### 3.1 Home
+
+Describe the therapist home screen as the launch and prep surface.
+
+It should explain:
+
+- the child selector
+- avatar selector
+- selected exercise context
+- the `Start session` action
+- the `Review progress` action
+- the exercise library below
+
+Then document the compact insight cards now shown on the home surface. Explain what each means and how therapists should use it:
+
+- `Active memory`
+- `Needs review`
+- `Last memory refresh`
+- `Top recommendation`
+- `Last recommendation run`
+- `Evidence status`
+
+Be explicit that these cards are compact signals only. Full review happens in the dashboard review workspace.
+
+#### 3.2 Dashboard
+
+Describe the dashboard as the deep review workspace for one active child. Explain that this is where therapists inspect saved sessions, child memory, recommendations, and plans in one place.
+
+#### 3.3 Workspace
+
+Describe the workspace/settings page as the place to:
+
+- change therapist versus child mode
+- confirm the active child
+- change the active practice buddy/avatar
+
+Explain that the active child should stay aligned across therapist home, dashboard, and workspace.
+
+### 4. Managing the Active Child
+
+Explain the active-child concept in detail.
+
+Include:
+
+- how to switch the active child from the sidebar or therapist surfaces
+- what changes when a different child is selected
+- that saved sessions, memory, recommendations, and plans all follow the active child context
+- that therapists should confirm the active child before launching a session or reviewing recommendations
+
+Include a short troubleshooting note for what to do if the wrong child context appears.
+
+### 5. Exercise Library and Session Preparation
+
+Describe the exercise library on the therapist home screen.
+
+Explain:
+
+- built-in exercises versus custom exercises
+- target sound badges and exercise type labels
+- selecting an exercise from the library
+- choosing the avatar
+- starting a session from the selected exercise or directly from an exercise card
+
+Include a clinically sensible explanation of the progression from receptive tasks toward expressive tasks if helpful, but do not overstate fixed sequencing as a product-enforced rule.
+
+### 6. Running a Practice Session
+
+Explain the session flow:
+
+- selecting the active child
+- selecting an exercise
+- starting the session
+- the live AI buddy interaction
+- transcript and live session behaviour
+- how sessions finish and save
+
+Explain that after the session is analysed, therapists can review the saved session and use it as evidence for memory, recommendation, and planning workflows.
+
+### 7. Reviewing a Saved Session
+
+Describe how the therapist opens saved session reviews from the dashboard.
+
+Document the `Session detail` tab in detail, including:
+
+- session history list
+- trend and summary strip at the top of the dashboard
+- session date, overall score, and transcript turns
+- session analysis views
+- pronunciation review
+- review summary with highlights and next steps
+- transcript access
+- therapist feedback markers such as helpful session or needs follow-up
+
+Explain what each area is useful for clinically.
+
+### 8. Child Memory: What It Is and How It Works
+
+This section must be thorough.
+
+Explain child memory as a governed therapist-facing knowledge layer built from reviewed session evidence. Make clear that it is separate from raw session history.
+
+Explain why this matters:
+
+- the system can preserve clinically useful facts over time
+- approved memory improves plan and recommendation quality
+- higher-risk inferences remain reviewable rather than silently becoming facts
+
+Define the two memory states clearly:
+
+- approved child memory
+- pending memory proposals
+
+Then document the `Memory` tab in the dashboard in detail.
+
+#### 8.1 Memory overview cards
+
+Explain:
+
+- `Approved memory`
+- `Pending review`
+- `Planner signal`
+
+#### 8.2 Approved memory sections
+
+Explain that approved memory is grouped into categories such as:
+
+- targets
+- effective cues
+- ineffective cues
+- preferences
+- constraints
+- blockers
+- general notes
+
+Explain how therapists should read these sections and how evidence links connect memory back to source sessions.
+
+#### 8.3 Therapist memory note
+
+Document the therapist-authored memory entry workflow:
+
+- choosing a category
+- writing a concise statement
+- saving it as approved memory
+
+Explain when therapists might use this, for example to preserve an important practical observation without waiting for another synthesis cycle.
+
+#### 8.4 Pending proposals
+
+Document the proposal review workflow in detail:
+
+- what proposals are
+- where the evidence links appear
+- what `Approve` does
+- what `Reject` does
+- why pending proposals are kept separate from approved memory
+
+Make clear that this is a governance and safety feature, not a flaw.
+
+#### 8.5 Memory refresh and evidence freshness
+
+Explain what `Last memory refresh` means on the home surface and why a therapist might review pending proposals before trusting a recommendation run.
+
+### 9. Recommendations: Inspectable Next-Exercise Suggestions
+
+This section must be detailed and practical.
+
+Explain that Wulo can generate therapist-facing exercise recommendations, but these are inspectable, evidence-linked suggestions rather than automatic decisions.
+
+Document the `Recommendations` tab in detail.
+
+#### 9.1 Recommendation overview cards
+
+Explain:
+
+- `Saved runs`
+- `Target sound`
+- `Ranked options`
+
+#### 9.2 Generating a recommendation run
+
+Document the workflow:
+
+1. open the recommendations tab
+2. optionally add a therapist note or constraint
+3. generate recommendations
+4. review the saved run
+
+Give examples of useful therapist notes, such as:
+
+- keep this playful
+- avoid moving above medium difficulty
+- favour short verbal models
+- stay with word-level work for now
+
+#### 9.3 Recommendation history
+
+Explain that recommendation runs are saved and reopenable. Therapists can compare runs over time rather than relying only on the latest output.
+
+#### 9.4 Inspecting the selected recommendation
+
+Describe the detail view carefully, including:
+
+- current target
+- top score
+- therapist note
+- top recommendation summary
+- ranked options list
+
+#### 9.5 Why the system recommended an exercise
+
+Explain that each ranked candidate includes:
+
+- why it was recommended
+- how it compares to approved memory
+- ranking factors
+- supporting approved memory items
+- supporting sessions
+- a section describing what evidence might change the recommendation
+
+This part of the guide should help a therapist understand that recommendation quality can be challenged, discussed, and revised.
+
+#### 9.6 Institutional memory
+
+Explain the clinic-level institutional memory section in careful plain language:
+
+- it contains de-identified patterns or strategy insights drawn from reviewed outcomes across the clinic
+- it may tune ranking logic
+- it does not automatically become child-specific approved memory
+
+Avoid overclaiming. Present it as a clinic-level support signal, not a diagnostic system.
+
+#### 9.7 Evidence status on the therapist home surface
+
+Explain how the compact `Evidence status` card works on the home surface:
+
+- `Current`
+- `Stale`
+- `Not run`
+
+Explain that a recommendation may become stale if:
+
+- pending memory proposals exist
+- approved memory changed after the recommendation was generated
+- a newer reviewed session exists than the saved recommendation run
+
+### 10. Planning the Next Session
+
+Document the `Plan` tab in detail.
+
+Explain that the plan workflow uses the selected saved session together with approved child memory and therapist input.
+
+#### 10.1 Plan overview cards
+
+Explain:
+
+- `Planner`
+- `Plan status`
+- `Memory inputs`
+
+#### 10.2 Generating a plan
+
+Document the workflow:
+
+- select a saved session
+- open the plan tab
+- add a planning note if needed
+- generate the plan
+
+Explain what a plan includes:
+
+- objective
+- focus sound
+- activities
+- therapist cues
+- success markers
+- carryover ideas
+- estimated duration
+
+#### 10.3 Refining a plan
+
+Explain how therapists can send a refinement instruction and regenerate a better-aligned draft.
+
+#### 10.4 Approving a plan
+
+Explain what approval means and how an approved plan differs from a draft.
+
+#### 10.5 Memory that informed this plan
+
+This subsection must be explicit. Describe the plan provenance section showing:
+
+- how many memory inputs were used
+- when the memory snapshot was compiled
+- which approved memory statements informed the draft
+- evidence links back to source sessions where available
+
+Emphasise that this improves transparency and supports therapist trust.
+
+### 11. Charts and Dashboard Interpretation
+
+Provide a dashboard interpretation section that explains the high-level charts and summary strip in clinician-friendly language.
+
+Cover:
+
+- selected child summary card
+- progress trendline
+- reviewed sessions summary
+- sound breakdown or focus-sound chart
+- session frequency heatmap
+- session history metrics
+
+For each chart or visual area:
+
+- explain what it shows
+- explain what it does not show
+- suggest at least one clinically sensible way to use it
+
+### 12. Session History and Review Workflow
+
+Explain a practical workflow for using the dashboard after a session:
+
+1. open the saved session
+2. check session detail
+3. review pending memory proposals
+4. approve or reject what should become durable memory
+5. generate or inspect recommendations
+6. create or refine a next-session plan
+
+This should read like a realistic therapist workflow, not just a feature inventory.
+
+### 13. Custom Exercises and Local Management
+
+If you describe custom exercises, keep the explanation implementation-aware and conservative.
+
+Cover:
+
+- creating a custom exercise
+- editing and deleting it
+- any local-storage caveats if applicable
+
+Do not invent cloud sync behaviour if it is not implemented.
+
+### 14. Workspace Settings and Everyday Checks
+
+Explain the workspace/settings page clearly.
+
+Include:
+
+- switching between therapist and child mode
+- confirming the active child
+- confirming the active buddy/avatar
+- why therapists should check these before practice
+
+### 15. Best-Practice Tips for Therapists
+
+Include practical advice such as:
+
+- confirm the active child before you launch or review anything
+- use child memory to preserve stable clinical observations over time
+- review pending proposals before trusting an older recommendation run
+- treat recommendation output as evidence-linked support, not an instruction to obey
+- use plan provenance when discussing why a session plan was chosen
+- flag sessions that need follow-up so later review is easier
+
+### 16. Glossary
+
+Update the glossary to include current product terms such as:
+
+- active child
+- approved child memory
+- pending proposal
+- evidence link
+- recommendation run
+- ranked candidate
+- institutional memory
+- memory snapshot
+- planner status
+- therapist note
+- source session
+
+Define each in plain language.
+
+### 17. Troubleshooting
+
+Include a troubleshooting table that reflects the implemented product.
+
+It should include at least:
+
+- session expired or login problems
+- planner unavailable
+- no saved sessions visible for the active child
+- no approved memory yet
+- recommendation history is empty
+- recommendation evidence looks stale
+- dashboard seems to show the wrong child
+- microphone or audio problems
+- avatar or session launch problems
+
+For the wrong-child issue, instruct the therapist to verify the active child in the therapist shell and re-open the dashboard for that child.
+
+## Explicit Accuracy Rules
+
+When generating the guide:
+
+- do not describe child memory as fully automatic or ungoverned
+- do not imply that runtime sessions write durable memory directly
+- do not describe recommendations as autonomous clinical decisions
+- do not claim institutional memory is child-specific fact storage
+- do not refer to unsupported admin or profile-editing features unless confirmed in the implementation
+- do not flatten therapist home and dashboard into one screen; explain that they serve different purposes
+
+## Context Files to Use for Accuracy
+
+Use the current implementation and documentation as the source of truth, especially:
+
+- `frontend/src/components/DashboardHome.tsx`
+- `frontend/src/components/ProgressDashboard.tsx`
+- `frontend/src/components/SettingsView.tsx`
+- `frontend/src/app/App.tsx`
+- `backend/src/services/child_memory_service.py`
+- `backend/src/services/recommendation_service.py`
+- `backend/src/services/planning_service.py`
+- `docs/child-memory-implementation-plan.md`
+- `docs/therapist-guide.md`
+- `docs/dashboard-charts-prompt.md`
+
+## Final Reminder
+
+The most important improvement over the older guide is accuracy about the therapist dashboard.
+
+Make the dashboard explanation concrete and detailed enough that a therapist understands:
+
+- what each tab is for
+- how child memory is reviewed and approved
+- how recommendation evidence can be inspected and challenged
+- how plan provenance works
+- how the compact home signals relate to the deeper dashboard review workspace
+# Prompt: Generate Wulo Therapist User Documentation
+
 You are a technical writer creating a comprehensive, therapist-friendly user guide for **Wulo** — an AI-powered speech therapy practice platform for children with special educational needs (SEN). The guide should be written for speech-language therapists (SLTs) who are not technical users. Use plain language, avoid jargon, and include step-by-step instructions with visual cues (icons, button labels) where applicable.
 
 ---

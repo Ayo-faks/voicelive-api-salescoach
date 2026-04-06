@@ -2,12 +2,13 @@
 
 import base64
 import json
-from unittest.mock import AsyncMock, patch
+import os
+from unittest.mock import ANY, AsyncMock, patch
 
 import pytest
 from flask.testing import FlaskClient
 
-from src.app import _get_authenticated_user_from_headers, _is_azure_hosted_environment, app
+from src.app import _get_authenticated_user_from_headers, _is_azure_hosted_environment, _resolve_local_dev_role, app
 
 
 class TestFlaskApp:
@@ -34,8 +35,13 @@ class TestFlaskApp:
 
     def setup_method(self):
         """Set up test fixtures."""
+        os.environ["LOCAL_DEV_AUTH"] = "false"
         app.config["TESTING"] = True
         self.client: FlaskClient = app.test_client()  # pylint: disable=attribute-defined-outside-init
+
+    def teardown_method(self):
+        """Reset env overrides applied by tests in this class."""
+        os.environ.pop("LOCAL_DEV_AUTH", None)
 
     def test_index_route(self):
         """Test the index route serves index.html."""
@@ -206,17 +212,22 @@ class TestFlaskApp:
         data = json.loads(response.data)
         assert data["error"] == "Scenario not found"
 
+    @patch("src.app.child_memory_service")
     @patch("src.app.agent_manager")
     @patch("src.app.scenario_manager")
-    def test_create_agent_success(self, mock_scenario_manager, mock_agent_manager):
+    def test_create_agent_success(self, mock_scenario_manager, mock_agent_manager, mock_child_memory_service):
         """Test successful agent creation."""
         mock_scenario = {"id": "test-scenario", "name": "Test Scenario"}
         mock_scenario_manager.get_scenario.return_value = mock_scenario
         mock_agent_manager.create_agent.return_value = "agent-123"
+        mock_child_memory_service.build_live_session_personalization.return_value = {
+            "child_id": "child-2",
+            "active_target_sound": "r",
+        }
 
         response = self.client.post(
             "/api/agents/create",
-            json={"scenario_id": "test-scenario"},
+            json={"scenario_id": "test-scenario", "child_id": "child-2"},
             headers=self._auth_headers(),
         )
 
@@ -224,7 +235,14 @@ class TestFlaskApp:
         data = json.loads(response.data)
         assert data["agent_id"] == "agent-123"
         assert data["scenario_id"] == "test-scenario"
-        mock_agent_manager.create_agent.assert_called_once_with("test-scenario", mock_scenario, None)
+        assert data["runtime_personalization"]["active_target_sound"] == "r"
+        mock_child_memory_service.build_live_session_personalization.assert_called_once_with("child-2")
+        mock_agent_manager.create_agent.assert_called_once_with(
+            "test-scenario",
+            mock_scenario,
+            None,
+            runtime_personalization={"child_id": "child-2", "active_target_sound": "r"},
+        )
 
     @patch("src.app.agent_manager")
     @patch("src.app.scenario_manager")
@@ -364,15 +382,28 @@ class TestFlaskApp:
         data = json.loads(response.data)
         assert data["error"] == "scenario_id and transcript are required"
 
+    @patch("src.app.telemetry_service")
     @patch("src.app._save_completed_session")
+    @patch("src.app.child_memory_service")
     @patch("src.app._perform_conversation_analysis")
-    def test_analyze_conversation_saves_session(self, mock_analysis, mock_save_session):
+    def test_analyze_conversation_saves_session(
+        self,
+        mock_analysis,
+        mock_child_memory_service,
+        mock_save_session,
+        mock_telemetry_service,
+    ):
         """Test completed sessions are persisted after analysis."""
         mock_analysis.return_value = {
             "ai_assessment": {"overall_score": 78, "therapist_notes": "Improved on retry."},
             "pronunciation_assessment": {"accuracy_score": 80, "pronunciation_score": 79},
         }
         mock_save_session.return_value = "session-123"
+        mock_child_memory_service.synthesize_session_memory.return_value = {
+            "child_id": "child-ayo",
+            "proposals": [{"id": "proposal-1"}],
+            "auto_applied_items": [{"id": "item-1"}],
+        }
 
         response = self.client.post(
             "/api/analyze",
@@ -395,6 +426,109 @@ class TestFlaskApp:
         data = json.loads(response.data)
         assert data["session_id"] == "session-123"
         mock_save_session.assert_called_once()
+        mock_child_memory_service.synthesize_session_memory.assert_called_once_with("session-123")
+        assert mock_telemetry_service.track_event.call_count >= 2
+        mock_telemetry_service.track_event.assert_any_call(
+            "child_memory_synthesized",
+            properties={"session_id": "session-123", "child_id": "child-ayo"},
+            measurements={
+                "duration_ms": ANY,
+                "pending_proposals": 1.0,
+                "auto_applied_items": 1.0,
+            },
+        )
+
+    @patch("src.app.storage_service")
+    def test_get_child_memory_summary_success(self, mock_storage_service):
+        """Test therapist child memory summary endpoint payload."""
+        from src.app import child_memory_service  # pylint: disable=C0415
+
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
+        with patch.object(
+            child_memory_service,
+            "get_child_memory_summary",
+            return_value={
+                "child_id": "child-ayo",
+                "summary": {"targets": [{"statement": "Keep /r/ as an active therapy target."}]},
+                "summary_text": "Active targets: Keep /r/ as an active therapy target.",
+                "source_item_count": 1,
+                "last_compiled_at": "2026-04-06T12:00:00+00:00",
+                "updated_at": "2026-04-06T12:00:00+00:00",
+            },
+        ) as mock_get_summary:
+            response = self.client.get(
+                "/api/children/child-ayo/memory/summary",
+                headers=self._auth_headers(),
+            )
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["source_item_count"] == 1
+        mock_get_summary.assert_called_once_with("child-ayo")
+
+    @patch("src.app.storage_service")
+    def test_get_institutional_memory_insights_success(self, mock_storage_service):
+        """Test therapist institutional memory snapshot endpoint payload."""
+        from src.app import institutional_memory_service  # pylint: disable=C0415
+
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
+        with patch.object(
+            institutional_memory_service,
+            "get_snapshot",
+            return_value={
+                "generated_at": "2026-04-06T12:00:00+00:00",
+                "summary_text": "1 active clinic-level insight derived from approved child memory and reviewed outcomes.",
+                "insights": [
+                    {
+                        "id": "institutional-pattern-r",
+                        "insight_type": "reviewed_pattern",
+                        "status": "active",
+                        "target_sound": "r",
+                        "title": "Reviewed pattern summary for /r/",
+                        "summary": "Across 2 reviewed sessions from 2 children, phrase work currently shows the strongest de-identified outcome pattern for /r/.",
+                    }
+                ],
+            },
+        ) as mock_get_snapshot:
+            response = self.client.get(
+                "/api/institutional-memory/insights?refresh=true",
+                headers=self._auth_headers(),
+            )
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["insights"][0]["target_sound"] == "r"
+        mock_get_snapshot.assert_called_once_with(refresh=True)
+
+    @patch("src.app.storage_service")
+    def test_approve_child_memory_proposal_success(self, mock_storage_service):
+        """Test therapists can approve a child memory proposal through the API."""
+        from src.app import child_memory_service  # pylint: disable=C0415
+
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
+        with patch.object(
+            child_memory_service,
+            "approve_proposal",
+            return_value={
+                "proposal": {"id": "proposal-1", "status": "approved"},
+                "approved_item": {"id": "item-1", "source_proposal_id": "proposal-1"},
+                "summary": {"source_item_count": 1},
+            },
+        ) as mock_approve:
+            response = self.client.post(
+                "/api/memory/proposals/proposal-1/approve",
+                headers=self._auth_headers(),
+                json={"note": "Confirmed by therapist."},
+            )
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["proposal"]["status"] == "approved"
+        mock_approve.assert_called_once_with(
+            "proposal-1",
+            reviewer_user_id="user-123",
+            review_note="Confirmed by therapist.",
+        )
 
     @patch("src.app.storage_service")
     def test_get_auth_session(self, mock_storage_service):
@@ -447,6 +581,41 @@ class TestFlaskApp:
         monkeypatch.setenv("CONTAINER_APP_NAME", "speakbright-api")
 
         assert _is_azure_hosted_environment() is True
+
+    @patch("src.app.storage_service")
+    def test_local_dev_auth_defaults_to_therapist_role(self, mock_storage_service, monkeypatch: pytest.MonkeyPatch):
+        """Test local dev auth promotes the local user to therapist by default."""
+        monkeypatch.setenv("LOCAL_DEV_AUTH", "true")
+        monkeypatch.setenv("LOCAL_DEV_USER_ID", "local-dev-user")
+        monkeypatch.setenv("LOCAL_DEV_USER_NAME", "Local Developer")
+        monkeypatch.setenv("LOCAL_DEV_USER_EMAIL", "dev@localhost")
+        monkeypatch.delenv("LOCAL_DEV_USER_ROLE", raising=False)
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("user")
+        mock_storage_service.update_user_role.return_value = self._user_payload("therapist")
+
+        user = _get_authenticated_user_from_headers({})
+
+        assert user is not None
+        assert user["role"] == "therapist"
+        mock_storage_service.get_or_create_user.assert_called_once_with(
+            "local-dev-user",
+            "dev@localhost",
+            "Local Developer",
+            "local-dev",
+        )
+        mock_storage_service.update_user_role.assert_called_once_with("local-dev-user", "therapist")
+
+    def test_resolve_local_dev_role_accepts_user_override(self, monkeypatch: pytest.MonkeyPatch):
+        """Test local dev auth role can be overridden explicitly."""
+        monkeypatch.setenv("LOCAL_DEV_USER_ROLE", "user")
+
+        assert _resolve_local_dev_role() == "user"
+
+    def test_resolve_local_dev_role_rejects_invalid_override(self, monkeypatch: pytest.MonkeyPatch):
+        """Test invalid local dev role overrides fail back to therapist."""
+        monkeypatch.setenv("LOCAL_DEV_USER_ROLE", "admin")
+
+        assert _resolve_local_dev_role() == "therapist"
 
     def test_get_child_sessions_requires_authentication(self):
         """Test therapist review endpoints require an authenticated session."""

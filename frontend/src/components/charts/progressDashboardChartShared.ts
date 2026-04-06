@@ -217,6 +217,8 @@ export function getCalendarCellColor(count: number) {
 export function getRadarChartData(selectedSession: SessionDetail | null) {
   const aiAssessment = selectedSession?.assessment.ai_assessment
   const pronunciationAssessment = selectedSession?.assessment.pronunciation_assessment
+  const articulationClarity = aiAssessment?.articulation_clarity
+  const engagementAndEffort = aiAssessment?.engagement_and_effort
 
   if (!aiAssessment && !pronunciationAssessment) return []
 
@@ -225,33 +227,33 @@ export function getRadarChartData(selectedSession: SessionDetail | null) {
       subject: 'Target Sound Accuracy',
       score:
         clampScore(pronunciationAssessment?.accuracy_score) ??
-        (aiAssessment?.articulation_clarity.target_sound_accuracy ?? 0) * 10,
+        (articulationClarity?.target_sound_accuracy ?? 0) * 10,
     },
     {
       subject: 'Overall Clarity',
       score:
-        (aiAssessment?.articulation_clarity.overall_clarity ?? null) != null
-          ? (aiAssessment?.articulation_clarity.overall_clarity ?? 0) * 10
+        (articulationClarity?.overall_clarity ?? null) != null
+          ? (articulationClarity?.overall_clarity ?? 0) * 10
           : clampScore(pronunciationAssessment?.pronunciation_score) ?? 0,
     },
     {
       subject: 'Consistency',
       score:
-        (aiAssessment?.articulation_clarity.consistency ?? null) != null
-          ? (aiAssessment?.articulation_clarity.consistency ?? 0) * 10
+        (articulationClarity?.consistency ?? null) != null
+          ? (articulationClarity?.consistency ?? 0) * 10
           : clampScore(pronunciationAssessment?.fluency_score) ?? 0,
     },
     {
       subject: 'Task Completion',
-      score: (aiAssessment?.engagement_and_effort.task_completion ?? 0) * 10,
+      score: (engagementAndEffort?.task_completion ?? 0) * 10,
     },
     {
       subject: 'Willingness to Retry',
-      score: (aiAssessment?.engagement_and_effort.willingness_to_retry ?? 0) * 10,
+      score: (engagementAndEffort?.willingness_to_retry ?? 0) * 10,
     },
     {
       subject: 'Self-Correction',
-      score: (aiAssessment?.engagement_and_effort.self_correction_attempts ?? 0) * 10,
+      score: (engagementAndEffort?.self_correction_attempts ?? 0) * 10,
     },
   ]
 }

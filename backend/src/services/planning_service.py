@@ -11,10 +11,11 @@ import subprocess
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Mapping, Optional
+from typing import Any, Dict, List, Mapping, Optional, cast
 from uuid import uuid4
 
 from src.config import config
+from src.services.child_memory_service import ChildMemoryService
 from src.services.plan_validation import normalize_plan_draft
 
 try:
@@ -455,9 +456,16 @@ class CopilotPlannerRuntime:
 class PracticePlanningService:
     """Generate and refine therapist-facing practice plans with the GitHub Copilot SDK."""
 
-    def __init__(self, storage_service: Any, scenario_manager: Any, planner_runtime: Optional[Any] = None):
+    def __init__(
+        self,
+        storage_service: Any,
+        scenario_manager: Any,
+        planner_runtime: Optional[Any] = None,
+        child_memory_service: Optional[ChildMemoryService] = None,
+    ):
         self.storage_service = storage_service
         self.scenario_manager = scenario_manager
+        self.child_memory_service = child_memory_service or ChildMemoryService(storage_service)
         self.planner_runtime = planner_runtime or CopilotPlannerRuntime(storage_service, scenario_manager, config.as_dict)
 
     def get_readiness(self, force_refresh: bool = False) -> Dict[str, Any]:
@@ -514,6 +522,7 @@ class PracticePlanningService:
                 "constraints": {
                     "therapist_message": therapist_note,
                     "source_session_timestamp": source_session.get("timestamp"),
+                    "child_memory_snapshot": self._build_memory_snapshot(planning_context),
                     "copilot_sdk": {
                         "session_id": turn_result.planner_session_id,
                         "model": getattr(self.planner_runtime, "model", "gpt-5"),
@@ -561,6 +570,7 @@ class PracticePlanningService:
         )
         updated_constraints = dict(plan.get("constraints") or {})
         updated_constraints["last_therapist_message"] = therapist_note
+        updated_constraints["child_memory_snapshot"] = self._build_memory_snapshot(planning_context)
         updated_constraints["copilot_sdk"] = {
             "session_id": turn_result.planner_session_id,
             "model": getattr(self.planner_runtime, "model", "gpt-5"),
@@ -594,6 +604,9 @@ class PracticePlanningService:
         exercise_metadata = source_session.get("exercise_metadata") or source_session.get("exerciseMetadata") or {}
         exercise = source_session.get("exercise") or {}
         transcript = str(source_session.get("transcript") or "").strip()
+        memory_inputs = self.child_memory_service.get_recommendation_provenance_inputs(child_id)
+        memory_summary = cast(Dict[str, Any], memory_inputs.get("summary") or {})
+        active_memory_items = cast(List[Dict[str, Any]], memory_inputs.get("active_items") or [])
 
         return {
             "child": {
@@ -601,6 +614,19 @@ class PracticePlanningService:
                 "name": self._get_child_name(source_session),
             },
             "therapist_request": therapist_message,
+            "approved_child_memory": {
+                "summary_text": memory_summary.get("summary_text"),
+                "summary": memory_summary.get("summary") or {},
+                "source_item_count": memory_summary.get("source_item_count", 0),
+                "last_compiled_at": memory_summary.get("last_compiled_at"),
+                "active_constraints": [
+                    self._summarize_memory_item(item)
+                    for item in active_memory_items
+                    if str(item.get("category") or "") == "constraints"
+                ],
+                "active_items": [self._summarize_memory_item(item) for item in active_memory_items],
+                "used_item_ids": [str(item.get("id")) for item in active_memory_items if item.get("id")],
+            },
             "source_session": {
                 "id": source_session.get("id"),
                 "timestamp": source_session.get("timestamp"),
@@ -646,6 +672,28 @@ class PracticePlanningService:
             "status": plan.get("status"),
             "draft": plan.get("draft") or {},
             "conversation": list(plan.get("conversation") or [])[-6:],
+        }
+
+    def _summarize_memory_item(self, item: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "id": item.get("id"),
+            "category": item.get("category"),
+            "memory_type": item.get("memory_type"),
+            "statement": item.get("statement"),
+            "confidence": item.get("confidence"),
+            "updated_at": item.get("updated_at"),
+            "detail": item.get("detail") or {},
+            "source_proposal_id": item.get("source_proposal_id"),
+        }
+
+    def _build_memory_snapshot(self, planning_context: Dict[str, Any]) -> Dict[str, Any]:
+        approved_child_memory = cast(Dict[str, Any], planning_context.get("approved_child_memory") or {})
+        return {
+            "used_item_ids": list(approved_child_memory.get("used_item_ids") or []),
+            "used_items": [dict(item) for item in cast(List[Dict[str, Any]], approved_child_memory.get("active_items") or [])],
+            "summary_text": approved_child_memory.get("summary_text"),
+            "summary_last_compiled_at": approved_child_memory.get("last_compiled_at"),
+            "source_item_count": approved_child_memory.get("source_item_count", 0),
         }
 
     def _get_child_name(self, source_session: Dict[str, Any]) -> str:

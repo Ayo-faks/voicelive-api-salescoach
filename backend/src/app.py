@@ -12,6 +12,7 @@ import json
 import logging
 import os
 from pathlib import Path
+import sys
 import time
 from typing import Any, Dict, List, Mapping, Optional, Tuple, cast
 
@@ -19,10 +20,16 @@ import simple_websocket.ws  # pyright: ignore[reportMissingTypeStubs]
 from flask import Flask, abort, jsonify, request, send_from_directory
 from flask_sock import Sock  # pyright: ignore[reportMissingTypeStubs]
 
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from src.config import config
 from src.services.analyzers import ConversationAnalyzer, PronunciationAssessor
+from src.services.child_memory_service import ChildMemoryService
+from src.services.institutional_memory_service import InstitutionalMemoryService
 from src.services.managers import AgentManager, ScenarioManager
 from src.services.planning_service import PracticePlanningService
+from src.services.recommendation_service import RecommendationService
 from src.services.storage_factory import create_storage_service
 from src.services.telemetry import PilotTelemetryService
 from src.services.websocket_handler import VoiceProxyHandler
@@ -67,12 +74,21 @@ API_TTS_ENDPOINT = "/api/tts"
 API_CHILDREN_ENDPOINT = "/api/children"
 API_CHILD_SESSIONS_ENDPOINT = "/api/children/<child_id>/sessions"
 API_CHILD_PLANS_ENDPOINT = "/api/children/<child_id>/plans"
+API_CHILD_MEMORY_SUMMARY_ENDPOINT = "/api/children/<child_id>/memory/summary"
+API_CHILD_MEMORY_ITEMS_ENDPOINT = "/api/children/<child_id>/memory/items"
+API_CHILD_MEMORY_PROPOSALS_ENDPOINT = "/api/children/<child_id>/memory/proposals"
+API_INSTITUTIONAL_MEMORY_INSIGHTS_ENDPOINT = "/api/institutional-memory/insights"
+API_CHILD_RECOMMENDATIONS_ENDPOINT = "/api/children/<child_id>/recommendations"
+API_MEMORY_EVIDENCE_ENDPOINT = "/api/memory/<subject_type>/<subject_id>/evidence"
+API_RECOMMENDATION_DETAIL_ENDPOINT = "/api/recommendations/<recommendation_id>"
 API_SESSION_DETAIL_ENDPOINT = "/api/sessions/<session_id>"
 API_SESSION_FEEDBACK_ENDPOINT = "/api/sessions/<session_id>/feedback"
 API_PLANS_ENDPOINT = "/api/plans"
 API_PLAN_DETAIL_ENDPOINT = "/api/plans/<plan_id>"
 API_PLAN_MESSAGES_ENDPOINT = "/api/plans/<plan_id>/messages"
 API_PLAN_APPROVE_ENDPOINT = "/api/plans/<plan_id>/approve"
+API_MEMORY_PROPOSAL_APPROVE_ENDPOINT = "/api/memory/proposals/<proposal_id>/approve"
+API_MEMORY_PROPOSAL_REJECT_ENDPOINT = "/api/memory/proposals/<proposal_id>/reject"
 API_USER_ROLE_ENDPOINT = "/api/users/<user_id>/role"
 API_IMAGES_ENDPOINT = "/api/images/<path:image_path>"
 
@@ -90,6 +106,7 @@ INVALID_FEEDBACK_RATING = "Feedback rating must be 'up' or 'down'"
 PLAN_NOT_FOUND = "Practice plan not found"
 PLAN_MESSAGE_REQUIRED = "message is required"
 PLANNER_SERVICE_UNAVAILABLE = "Planner service unavailable"
+MEMORY_PROPOSAL_NOT_FOUND = "Child memory proposal not found"
 
 # HTTP status codes
 HTTP_BAD_REQUEST = 400
@@ -100,7 +117,9 @@ HTTP_INTERNAL_SERVER_ERROR = 500
 
 ROLE_THERAPIST = "therapist"
 ROLE_USER = "user"
-LOCAL_DEV_AUTH = bool(config["local_dev_auth"])
+def _is_local_dev_auth_enabled() -> bool:
+    """Resolve LOCAL_DEV_AUTH dynamically so tests and shells cannot leak stale import-time state."""
+    return str(os.environ.get("LOCAL_DEV_AUTH", str(config["local_dev_auth"]))).strip().lower() == "true"
 
 
 def _is_azure_hosted_environment() -> bool:
@@ -116,7 +135,7 @@ def _is_azure_hosted_environment() -> bool:
     return any(str(os.environ.get(marker, "")).strip() for marker in azure_runtime_markers)
 
 
-if LOCAL_DEV_AUTH and _is_azure_hosted_environment():
+if _is_local_dev_auth_enabled() and _is_azure_hosted_environment():
     raise RuntimeError("FATAL: LOCAL_DEV_AUTH=true is forbidden in Azure-hosted environments.")
 
 # Configure logging
@@ -136,6 +155,9 @@ voice_proxy_handler = VoiceProxyHandler(agent_manager)
 telemetry_service = PilotTelemetryService(config["applicationinsights_connection_string"])
 storage_service = None
 planning_service = None
+child_memory_service = None
+institutional_memory_service = None
+recommendation_service = None
 planner_startup_readiness: Dict[str, Any] = {}
 
 
@@ -143,10 +165,21 @@ def initialize_runtime_services() -> None:
     """Initialize storage-backed services for the application runtime."""
     global storage_service
     global planning_service
+    global child_memory_service
+    global institutional_memory_service
+    global recommendation_service
     global planner_startup_readiness
 
     storage_service = create_storage_service(config.as_dict)
+    child_memory_service = ChildMemoryService(storage_service)
+    institutional_memory_service = InstitutionalMemoryService(storage_service)
     planning_service = PracticePlanningService(storage_service, scenario_manager)
+    recommendation_service = RecommendationService(
+        storage_service,
+        scenario_manager,
+        child_memory_service,
+        institutional_memory_service,
+    )
     planner_startup_readiness = planning_service.get_readiness(force_refresh=True)
     if not planner_startup_readiness.get("ready"):
         logger.warning("Planner readiness check failed at startup: %s", planner_startup_readiness)
@@ -377,6 +410,17 @@ def _normalize_identity_provider(provider: Any) -> str:
     return normalized
 
 
+def _resolve_local_dev_role() -> str:
+    role = _normalize_context_value(os.environ.get("LOCAL_DEV_USER_ROLE")).lower()
+    if role in {ROLE_THERAPIST, ROLE_USER}:
+        return role
+
+    if role:
+        logger.warning("Ignoring unsupported LOCAL_DEV_USER_ROLE=%s; defaulting to therapist", role)
+
+    return ROLE_THERAPIST
+
+
 def _get_authenticated_user_from_headers(headers: Mapping[str, Any]) -> Optional[Dict[str, Any]]:
     principal_header = _normalize_context_value(headers.get("X-MS-CLIENT-PRINCIPAL"))
     principal = _decode_client_principal(principal_header) if principal_header else {}
@@ -410,12 +454,21 @@ def _get_authenticated_user_from_headers(headers: Mapping[str, Any]) -> Optional
         )
         return storage_service.get_or_create_user(user_id, email, name, provider)
 
-    if LOCAL_DEV_AUTH:
+    if _is_local_dev_auth_enabled():
         user_id = os.environ.get("LOCAL_DEV_USER_ID", "local-dev-user")
         name = os.environ.get("LOCAL_DEV_USER_NAME", "Local Developer")
         email = os.environ.get("LOCAL_DEV_USER_EMAIL", "dev@localhost")
         provider = _normalize_identity_provider(os.environ.get("LOCAL_DEV_USER_PROVIDER", "local-dev"))
-        return storage_service.get_or_create_user(user_id, email, name, provider)
+        role = _resolve_local_dev_role()
+        user = storage_service.get_or_create_user(user_id, email, name, provider)
+        if user.get("role") != role:
+            updated_user = storage_service.update_user_role(user_id, role)
+            if updated_user is not None:
+                return updated_user
+
+            user = {**user, "role": role}
+
+        return user
 
     return None
 
@@ -621,6 +674,7 @@ def create_agent():
     scenario_id = data.get("scenario_id")
     custom_scenario = data.get("custom_scenario")
     avatar_config = data.get("avatar")
+    child_id = str(data.get("child_id") or "").strip() or None
 
     # Support custom scenarios passed directly from the client
     if custom_scenario:
@@ -642,7 +696,17 @@ def create_agent():
             return jsonify({"error": SCENARIO_NOT_FOUND}), HTTP_NOT_FOUND
 
     try:
-        agent_id = agent_manager.create_agent(scenario_id, scenario, avatar_config)
+        runtime_personalization = (
+            child_memory_service.build_live_session_personalization(child_id)
+            if child_id
+            else None
+        )
+        agent_id = agent_manager.create_agent(
+            scenario_id,
+            scenario,
+            avatar_config,
+            runtime_personalization=runtime_personalization,
+        )
 
         exercise_context = (
             {
@@ -663,7 +727,13 @@ def create_agent():
                 exercise_context,
             ),
         )
-        return jsonify({"agent_id": agent_id, "scenario_id": scenario_id})
+        return jsonify(
+            {
+                "agent_id": agent_id,
+                "scenario_id": scenario_id,
+                "runtime_personalization": runtime_personalization,
+            }
+        )
     except Exception as e:
         logger.error("Failed to create agent: %s", e)
         return jsonify({"error": str(e)}), HTTP_INTERNAL_SERVER_ERROR
@@ -727,6 +797,35 @@ def analyze_conversation():
     )
     if session_id:
         analysis_result["session_id"] = session_id
+        synthesis_started = time.perf_counter()
+        try:
+            memory_result = child_memory_service.synthesize_session_memory(session_id)
+            synthesis_duration_ms = round((time.perf_counter() - synthesis_started) * 1000, 2)
+            telemetry_service.track_event(
+                "child_memory_synthesized",
+                properties={
+                    "session_id": session_id,
+                    "child_id": memory_result.get("child_id"),
+                },
+                measurements={
+                    "duration_ms": synthesis_duration_ms,
+                    "pending_proposals": float(len(cast(List[Dict[str, Any]], memory_result.get("proposals") or []))),
+                    "auto_applied_items": float(len(cast(List[Dict[str, Any]], memory_result.get("auto_applied_items") or []))),
+                },
+            )
+            if synthesis_duration_ms > 750:
+                logger.warning(
+                    "Child memory synthesis for session %s took %.2fms",
+                    session_id,
+                    synthesis_duration_ms,
+                )
+        except Exception:
+            logger.exception("Child memory synthesis failed for session %s", session_id)
+            telemetry_service.track_event(
+                "child_memory_synthesis_failed",
+                properties={"session_id": session_id},
+                measurements={"duration_ms": round((time.perf_counter() - synthesis_started) * 1000, 2)},
+            )
 
     base_properties = _extract_exercise_telemetry_properties(
         scenario_id,
@@ -863,6 +962,171 @@ def get_child_plans(child_id: str):
     return jsonify(storage_service.list_practice_plans_for_child(child_id))
 
 
+@app.route(API_CHILD_MEMORY_SUMMARY_ENDPOINT)
+def get_child_memory_summary(child_id: str):
+    """Return the compiled child memory summary for therapist review."""
+    guard_response = _require_therapist()
+    if guard_response is not None:
+        return guard_response
+
+    return jsonify(child_memory_service.get_child_memory_summary(child_id))
+
+
+@app.route(API_CHILD_MEMORY_ITEMS_ENDPOINT, methods=["GET", "POST"])
+def child_memory_items(child_id: str):
+    """Return or create child memory items for therapist review workflows."""
+    guard_response = _require_therapist()
+    if guard_response is not None:
+        return guard_response
+
+    if request.method == "POST":
+        therapist_user, therapist_guard = _require_therapist_user()
+        if therapist_guard is not None:
+            return therapist_guard
+
+        data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+        statement = str(data.get("statement") or "").strip()
+        if not statement:
+            return jsonify({"error": "statement is required"}), HTTP_BAD_REQUEST
+
+        try:
+            result = child_memory_service.create_manual_item(
+                child_id=child_id,
+                category=str(data.get("category") or "general").strip() or "general",
+                statement=statement,
+                therapist_user_id=str(cast(Dict[str, Any], therapist_user).get("id")),
+                memory_type=str(data.get("memory_type") or "fact").strip() or "fact",
+                detail=cast(Optional[Dict[str, Any]], data.get("detail") or None),
+                confidence=cast(Optional[float], data.get("confidence")),
+            )
+        except ValueError as error:
+            return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
+
+        return jsonify(result), 201
+
+    status = str(request.args.get("status") or "").strip() or None
+    category = str(request.args.get("category") or "").strip() or None
+    include_evidence = str(request.args.get("include_evidence") or "").strip().lower() in {"1", "true", "yes"}
+    return jsonify(
+        child_memory_service.list_child_memory_items(
+            child_id,
+            status=status,
+            category=category,
+            include_evidence=include_evidence,
+        )
+    )
+
+
+@app.route(API_CHILD_MEMORY_PROPOSALS_ENDPOINT)
+def get_child_memory_proposals(child_id: str):
+    """Return child memory proposals, optionally filtered by status or category."""
+    guard_response = _require_therapist()
+    if guard_response is not None:
+        return guard_response
+
+    status = str(request.args.get("status") or "").strip() or None
+    category = str(request.args.get("category") or "").strip() or None
+    include_evidence = str(request.args.get("include_evidence") or "").strip().lower() in {"1", "true", "yes"}
+    return jsonify(
+        child_memory_service.list_child_memory_proposals(
+            child_id,
+            status=status,
+            category=category,
+            include_evidence=include_evidence,
+        )
+    )
+
+
+@app.route(API_INSTITUTIONAL_MEMORY_INSIGHTS_ENDPOINT)
+def get_institutional_memory_insights():
+    """Return the de-identified clinic-level institutional memory snapshot for therapists."""
+    guard_response = _require_therapist()
+    if guard_response is not None:
+        return guard_response
+
+    refresh = str(request.args.get("refresh") or "").strip().lower() in {"1", "true", "yes"}
+    return jsonify(institutional_memory_service.get_snapshot(refresh=refresh))
+
+
+@app.route(API_CHILD_RECOMMENDATIONS_ENDPOINT, methods=["GET", "POST"])
+def child_recommendations(child_id: str):
+    """List or generate therapist-facing next-exercise recommendations."""
+    if request.method == "POST":
+        user, guard_response = _require_therapist_user()
+        if guard_response is not None:
+            return guard_response
+
+        data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+        source_session_id = str(data.get("source_session_id") or "").strip() or None
+        target_sound = str(data.get("target_sound") or "").strip() or None
+        therapist_constraints = str(data.get("therapist_constraints") or data.get("message") or "").strip() or None
+        try:
+            limit = max(1, min(8, int(data.get("limit") or 5)))
+        except (TypeError, ValueError):
+            return jsonify({"error": "limit must be a number between 1 and 8"}), HTTP_BAD_REQUEST
+
+        try:
+            result = recommendation_service.generate_recommendations(
+                child_id=child_id,
+                source_session_id=source_session_id,
+                target_sound=target_sound,
+                therapist_constraints=therapist_constraints,
+                limit=limit,
+                created_by_user_id=str(cast(Dict[str, Any], user).get("id")),
+            )
+        except ValueError as error:
+            message = str(error)
+            status_code = HTTP_NOT_FOUND if "not found" in message.lower() else HTTP_BAD_REQUEST
+            return jsonify({"error": message}), status_code
+
+        telemetry_service.track_event(
+            "recommendation_log_created",
+            properties={
+                "child_id": child_id,
+                "source_session_id": source_session_id,
+                "recommendation_id": result["id"],
+            },
+        )
+        return jsonify(result), 201
+
+    guard_response = _require_therapist()
+    if guard_response is not None:
+        return guard_response
+
+    try:
+        limit = max(1, min(20, int(request.args.get("limit") or 10)))
+    except (TypeError, ValueError):
+        return jsonify({"error": "limit must be a number between 1 and 20"}), HTTP_BAD_REQUEST
+
+    return jsonify(recommendation_service.list_recommendation_history(child_id, limit=limit))
+
+
+@app.route(API_RECOMMENDATION_DETAIL_ENDPOINT)
+def get_recommendation_detail(recommendation_id: str):
+    """Return one durable recommendation run with explanation and provenance."""
+    guard_response = _require_therapist()
+    if guard_response is not None:
+        return guard_response
+
+    try:
+        return jsonify(recommendation_service.get_recommendation_detail(recommendation_id))
+    except ValueError as error:
+        return jsonify({"error": str(error)}), HTTP_NOT_FOUND
+
+
+@app.route(API_MEMORY_EVIDENCE_ENDPOINT)
+def get_child_memory_evidence(subject_type: str, subject_id: str):
+    """Return evidence links for a memory proposal or approved item."""
+    guard_response = _require_therapist()
+    if guard_response is not None:
+        return guard_response
+
+    if subject_type not in {"item", "proposal"}:
+        return jsonify({"error": "subject_type must be 'item' or 'proposal'"}), HTTP_BAD_REQUEST
+
+    return jsonify(child_memory_service.list_evidence_links(subject_type, subject_id))
+
+
 @app.route(API_PLANS_ENDPOINT, methods=["POST"])
 def create_practice_plan():
     """Create a therapist-facing practice plan from a saved session."""
@@ -960,6 +1224,52 @@ def approve_practice_plan(plan_id: str):
         properties={"plan_id": plan_id, "child_id": plan["child_id"]},
     )
     return jsonify(plan)
+
+
+@app.route(API_MEMORY_PROPOSAL_APPROVE_ENDPOINT, methods=["POST"])
+def approve_child_memory_proposal(proposal_id: str):
+    """Approve a pending child memory proposal and rebuild the child summary."""
+    user, guard_response = _require_therapist_user()
+    if guard_response is not None:
+        return guard_response
+
+    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+    review_note = str(data.get("note") or "").strip() or None
+
+    try:
+        result = child_memory_service.approve_proposal(
+            proposal_id,
+            reviewer_user_id=str(cast(Dict[str, Any], user).get("id")),
+            review_note=review_note,
+        )
+    except ValueError as error:
+        status_code = HTTP_NOT_FOUND if MEMORY_PROPOSAL_NOT_FOUND in str(error) else HTTP_BAD_REQUEST
+        return jsonify({"error": str(error)}), status_code
+
+    return jsonify(result)
+
+
+@app.route(API_MEMORY_PROPOSAL_REJECT_ENDPOINT, methods=["POST"])
+def reject_child_memory_proposal(proposal_id: str):
+    """Reject a pending child memory proposal and rebuild the child summary."""
+    user, guard_response = _require_therapist_user()
+    if guard_response is not None:
+        return guard_response
+
+    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+    review_note = str(data.get("note") or "").strip() or None
+
+    try:
+        result = child_memory_service.reject_proposal(
+            proposal_id,
+            reviewer_user_id=str(cast(Dict[str, Any], user).get("id")),
+            review_note=review_note,
+        )
+    except ValueError as error:
+        status_code = HTTP_NOT_FOUND if MEMORY_PROPOSAL_NOT_FOUND in str(error) else HTTP_BAD_REQUEST
+        return jsonify({"error": str(error)}), status_code
+
+    return jsonify(result)
 
 
 @app.route(API_SESSION_DETAIL_ENDPOINT)

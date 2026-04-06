@@ -8,7 +8,8 @@
 import asyncio
 import json
 import logging
-from typing import Any, Dict, Optional
+import os
+from typing import Any, Dict, List, Optional
 
 import simple_websocket.ws  # pyright: ignore[reportMissingTypeStubs]
 from azure.ai.voicelive.aio import (
@@ -38,7 +39,9 @@ logger = logging.getLogger(__name__)
 # WebSocket constants
 AZURE_VOICE_API_VERSION = "2025-05-01-preview"
 AZURE_COGNITIVE_SERVICES_DOMAIN = "cognitiveservices.azure.com"
-LOCAL_DEV_AUTH = bool(config["local_dev_auth"])
+def _is_local_dev_auth_enabled() -> bool:
+    """Resolve LOCAL_DEV_AUTH dynamically so test and shell env changes are honored."""
+    return str(os.environ.get("LOCAL_DEV_AUTH", str(config.get("local_dev_auth", False)))).strip().lower() == "true"
 
 # Session configuration defaults
 DEFAULT_TURN_DETECTION_TYPE = "azure_semantic_vad"
@@ -127,7 +130,7 @@ class VoiceProxyHandler:
 
     def _has_authenticated_principal(self, client_ws: simple_websocket.ws.Server) -> bool:
         """Validate that Easy Auth principal headers survived the WebSocket upgrade."""
-        if LOCAL_DEV_AUTH:
+        if _is_local_dev_auth_enabled():
             return True
 
         environ = getattr(client_ws, "environ", {}) or {}
@@ -255,12 +258,68 @@ class VoiceProxyHandler:
             tools=[FINISH_SESSION_TOOL],
         )
 
+        personalization_block = self._build_personalization_instruction_block(agent_config)
+
         if agent_config and not agent_config.get("is_azure_agent"):
-            session["instructions"] = agent_config.get("instructions")
+            session["instructions"] = self._combine_instructions(
+                agent_config.get("instructions"),
+                personalization_block,
+            )
             session["temperature"] = agent_config.get("temperature")
             session["max_response_output_tokens"] = agent_config.get("max_tokens")
+        elif personalization_block:
+            session["instructions"] = personalization_block
 
         return session
+
+    def _combine_instructions(self, base_instructions: Any, personalization_block: Optional[str]) -> Optional[str]:
+        base_text = str(base_instructions or "").strip()
+        personalization_text = str(personalization_block or "").strip()
+
+        if base_text and personalization_text:
+            return f"{base_text}\n\n{personalization_text}"
+        if base_text:
+            return base_text
+        if personalization_text:
+            return personalization_text
+        return None
+
+    def _build_personalization_instruction_block(self, agent_config: Optional[Dict[str, Any]]) -> Optional[str]:
+        personalization = (agent_config or {}).get("runtime_personalization") or {}
+        if not personalization:
+            return None
+
+        approved_targets = self._extract_statements(personalization.get("approved_targets"))
+        approved_constraints = self._extract_statements(personalization.get("approved_constraints"))
+        approved_effective_cues = self._extract_statements(personalization.get("approved_effective_cues"))
+        active_target_sound = str(personalization.get("active_target_sound") or "").strip()
+
+        lines: List[str] = [
+            "APPROVED CHILD MEMORY FOR THIS SESSION:",
+            "- Use only the therapist-approved items below as low-risk guidance.",
+            "- Do not invent new policies, labels, or durable memory from this live interaction.",
+        ]
+        if active_target_sound:
+            lines.append(f"- Active target sound: /{active_target_sound}/")
+        if approved_targets:
+            lines.append(f"- Approved current targets: {'; '.join(approved_targets)}")
+        if approved_constraints:
+            lines.append(f"- Approved constraints: {'; '.join(approved_constraints)}")
+        if approved_effective_cues:
+            lines.append(f"- Approved effective cues: {'; '.join(approved_effective_cues)}")
+
+        if len(lines) <= 3:
+            return None
+
+        return "\n".join(lines)
+
+    def _extract_statements(self, items: Any) -> List[str]:
+        statements: List[str] = []
+        for item in items or []:
+            statement = str((item or {}).get("statement") or "").strip()
+            if statement:
+                statements.append(statement)
+        return statements
 
     async def _handle_message_forwarding(
         self,

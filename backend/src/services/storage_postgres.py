@@ -19,6 +19,8 @@ DEFAULT_CHILDREN = (
     {"id": "child-noah", "name": "Noah"},
     {"id": "child-zuri", "name": "Zuri"},
 )
+MEMORY_DETAIL_FALLBACK: Dict[str, Any] = {}
+MEMORY_PROVENANCE_FALLBACK: Dict[str, Any] = {}
 WriteResult = TypeVar("WriteResult")
 
 
@@ -81,6 +83,123 @@ class PostgresStorageService:
             "created_at": row["created_at"],
             "updated_at": row["updated_at"],
             "approved_at": row["approved_at"],
+        }
+
+    def _build_child_memory_item_payload(self, row: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "id": row["id"],
+            "child_id": row["child_id"],
+            "category": row["category"],
+            "memory_type": row["memory_type"],
+            "status": row["status"],
+            "statement": row["statement"],
+            "detail": self._loads_json(row["detail_json"], MEMORY_DETAIL_FALLBACK),
+            "confidence": row["confidence"],
+            "provenance": self._loads_json(row["provenance_json"], MEMORY_PROVENANCE_FALLBACK),
+            "author_type": row["author_type"],
+            "author_user_id": row["author_user_id"],
+            "source_proposal_id": row["source_proposal_id"],
+            "superseded_by_item_id": row["superseded_by_item_id"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+            "reviewed_at": row["reviewed_at"],
+            "expires_at": row["expires_at"],
+        }
+
+    def _build_child_memory_proposal_payload(self, row: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "id": row["id"],
+            "child_id": row["child_id"],
+            "category": row["category"],
+            "memory_type": row["memory_type"],
+            "status": row["status"],
+            "statement": row["statement"],
+            "detail": self._loads_json(row["detail_json"], MEMORY_DETAIL_FALLBACK),
+            "confidence": row["confidence"],
+            "provenance": self._loads_json(row["provenance_json"], MEMORY_PROVENANCE_FALLBACK),
+            "author_type": row["author_type"],
+            "author_user_id": row["author_user_id"],
+            "reviewer_user_id": row["reviewer_user_id"],
+            "review_note": row["review_note"],
+            "approved_item_id": row["approved_item_id"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+            "reviewed_at": row["reviewed_at"],
+        }
+
+    def _build_child_memory_evidence_link_payload(self, row: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "id": row["id"],
+            "child_id": row["child_id"],
+            "subject_type": row["subject_type"],
+            "subject_id": row["subject_id"],
+            "session_id": row["session_id"],
+            "practice_plan_id": row["practice_plan_id"],
+            "evidence_kind": row["evidence_kind"],
+            "snippet": row["snippet"],
+            "metadata": self._loads_json(row["metadata_json"], MEMORY_DETAIL_FALLBACK),
+            "created_at": row["created_at"],
+        }
+
+    def _build_child_memory_summary_payload(self, row: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "child_id": row["child_id"],
+            "summary": self._loads_json(row["summary_json"], MEMORY_DETAIL_FALLBACK),
+            "summary_text": row["summary_text"],
+            "source_item_count": row["source_item_count"],
+            "last_compiled_at": row["last_compiled_at"],
+            "updated_at": row["updated_at"],
+        }
+
+    def _build_institutional_memory_insight_payload(self, row: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "id": row["id"],
+            "insight_type": row["insight_type"],
+            "status": row["status"],
+            "target_sound": row["target_sound"],
+            "title": row["title"],
+            "summary": row["summary"],
+            "detail": self._loads_json(row["detail_json"], MEMORY_DETAIL_FALLBACK),
+            "provenance": self._loads_json(row["provenance_json"], MEMORY_PROVENANCE_FALLBACK),
+            "source_child_count": row["source_child_count"],
+            "source_session_count": row["source_session_count"],
+            "source_memory_item_count": row["source_memory_item_count"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+        }
+
+    def _build_recommendation_log_payload(self, row: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "id": row["id"],
+            "child_id": row["child_id"],
+            "source_session_id": row["source_session_id"],
+            "target_sound": row["target_sound"],
+            "therapist_constraints": self._loads_json(row["therapist_constraints_json"], MEMORY_DETAIL_FALLBACK),
+            "ranking_context": self._loads_json(row["ranking_context_json"], MEMORY_DETAIL_FALLBACK),
+            "rationale": row["rationale_text"],
+            "created_by_user_id": row["created_by_user_id"],
+            "candidate_count": row["candidate_count"],
+            "top_recommendation_score": row["top_recommendation_score"],
+            "created_at": row["created_at"],
+        }
+
+    def _build_recommendation_candidate_payload(self, row: Dict[str, Any], *, child_id: Optional[str] = None) -> Dict[str, Any]:
+        return {
+            "id": row["id"],
+            "recommendation_log_id": row["recommendation_log_id"],
+            "child_id": child_id,
+            "rank": row["rank"],
+            "exercise_id": row["exercise_id"],
+            "exercise_name": row["exercise_name"],
+            "exercise_description": row["exercise_description"],
+            "exercise_metadata": self._loads_json(row["exercise_metadata_json"], MEMORY_DETAIL_FALLBACK),
+            "score": row["score"],
+            "ranking_factors": self._loads_json(row["ranking_factors_json"], MEMORY_DETAIL_FALLBACK),
+            "rationale": row["rationale_text"],
+            "explanation": self._loads_json(row["explanation_json"], MEMORY_DETAIL_FALLBACK),
+            "supporting_memory_item_ids": self._loads_json(row["supporting_memory_item_ids_json"], []),
+            "supporting_session_ids": self._loads_json(row["supporting_session_ids_json"], []),
+            "created_at": row["created_at"],
         }
 
     def _execute_write(self, operation: Callable[[psycopg.Connection[Any]], WriteResult]) -> WriteResult:
@@ -650,3 +769,818 @@ class PostgresStorageService:
             return None
 
         return self.get_practice_plan(plan_id)
+
+    def save_child_memory_item(self, item_payload: Dict[str, Any]) -> Dict[str, Any]:
+        item_id = str(item_payload.get("id") or f"memory-item-{uuid4().hex[:12]}")
+        child_id = str(item_payload.get("child_id") or "").strip()
+        if not child_id:
+            raise ValueError("child_id is required")
+
+        now = self._utc_now()
+        created_at = str(item_payload.get("created_at") or now)
+        updated_at = str(item_payload.get("updated_at") or now)
+
+        def persist_item(connection: psycopg.Connection[Any]) -> None:
+            connection.execute(
+                """
+                INSERT INTO child_memory_items (
+                    id,
+                    child_id,
+                    category,
+                    memory_type,
+                    status,
+                    statement,
+                    detail_json,
+                    confidence,
+                    provenance_json,
+                    author_type,
+                    author_user_id,
+                    source_proposal_id,
+                    superseded_by_item_id,
+                    created_at,
+                    updated_at,
+                    reviewed_at,
+                    expires_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT(id) DO UPDATE SET
+                    child_id = excluded.child_id,
+                    category = excluded.category,
+                    memory_type = excluded.memory_type,
+                    status = excluded.status,
+                    statement = excluded.statement,
+                    detail_json = excluded.detail_json,
+                    confidence = excluded.confidence,
+                    provenance_json = excluded.provenance_json,
+                    author_type = excluded.author_type,
+                    author_user_id = excluded.author_user_id,
+                    source_proposal_id = excluded.source_proposal_id,
+                    superseded_by_item_id = excluded.superseded_by_item_id,
+                    updated_at = excluded.updated_at,
+                    reviewed_at = excluded.reviewed_at,
+                    expires_at = excluded.expires_at
+                """,
+                (
+                    item_id,
+                    child_id,
+                    str(item_payload.get("category") or "general"),
+                    str(item_payload.get("memory_type") or "fact"),
+                    str(item_payload.get("status") or "approved"),
+                    str(item_payload.get("statement") or "").strip(),
+                    self._dumps_json(item_payload.get("detail") or {}),
+                    item_payload.get("confidence"),
+                    self._dumps_json(item_payload.get("provenance") or {}),
+                    str(item_payload.get("author_type") or "system"),
+                    item_payload.get("author_user_id"),
+                    item_payload.get("source_proposal_id"),
+                    item_payload.get("superseded_by_item_id"),
+                    created_at,
+                    updated_at,
+                    item_payload.get("reviewed_at"),
+                    item_payload.get("expires_at"),
+                ),
+            )
+
+        self._execute_write(persist_item)
+
+        item = self.get_child_memory_item(item_id)
+        if item is None:
+            raise RuntimeError("Child memory item could not be reloaded after save")
+        return item
+
+    def get_child_memory_item(self, item_id: str) -> Optional[Dict[str, Any]]:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    id,
+                    child_id,
+                    category,
+                    memory_type,
+                    status,
+                    statement,
+                    detail_json,
+                    confidence,
+                    provenance_json,
+                    author_type,
+                    author_user_id,
+                    source_proposal_id,
+                    superseded_by_item_id,
+                    created_at,
+                    updated_at,
+                    reviewed_at,
+                    expires_at
+                FROM child_memory_items
+                WHERE id = %s
+                """,
+                (item_id,),
+            ).fetchone()
+
+        if row is None:
+            return None
+
+        return self._build_child_memory_item_payload(row)
+
+    def list_child_memory_items(
+        self,
+        child_id: str,
+        status: Optional[str] = None,
+        category: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        query = [
+            """
+            SELECT
+                id,
+                child_id,
+                category,
+                memory_type,
+                status,
+                statement,
+                detail_json,
+                confidence,
+                provenance_json,
+                author_type,
+                author_user_id,
+                source_proposal_id,
+                superseded_by_item_id,
+                created_at,
+                updated_at,
+                reviewed_at,
+                expires_at
+            FROM child_memory_items
+            WHERE child_id = %s
+            """
+        ]
+        parameters: List[Any] = [child_id]
+        if status:
+            query.append("AND status = %s")
+            parameters.append(status)
+        if category:
+            query.append("AND category = %s")
+            parameters.append(category)
+        query.append("ORDER BY updated_at DESC, created_at DESC")
+
+        with self._connect() as connection:
+            rows = connection.execute("\n".join(query), parameters).fetchall()
+
+        return [self._build_child_memory_item_payload(row) for row in rows]
+
+    def update_child_memory_item_status(
+        self,
+        item_id: str,
+        status: str,
+        superseded_by_item_id: Optional[str] = None,
+        expires_at: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        updated_at = self._utc_now()
+
+        def persist_status(connection: psycopg.Connection[Any]) -> int:
+            cursor = connection.execute(
+                """
+                UPDATE child_memory_items
+                SET status = %s, superseded_by_item_id = %s, expires_at = %s, updated_at = %s, reviewed_at = %s
+                WHERE id = %s
+                """,
+                (status, superseded_by_item_id, expires_at, updated_at, updated_at, item_id),
+            )
+            return cursor.rowcount
+
+        rowcount = self._execute_write(persist_status)
+        if rowcount == 0:
+            return None
+
+        return self.get_child_memory_item(item_id)
+
+    def save_child_memory_proposal(self, proposal_payload: Dict[str, Any]) -> Dict[str, Any]:
+        proposal_id = str(proposal_payload.get("id") or f"memory-proposal-{uuid4().hex[:12]}")
+        child_id = str(proposal_payload.get("child_id") or "").strip()
+        if not child_id:
+            raise ValueError("child_id is required")
+
+        now = self._utc_now()
+        created_at = str(proposal_payload.get("created_at") or now)
+        updated_at = str(proposal_payload.get("updated_at") or now)
+
+        def persist_proposal(connection: psycopg.Connection[Any]) -> None:
+            connection.execute(
+                """
+                INSERT INTO child_memory_proposals (
+                    id,
+                    child_id,
+                    category,
+                    memory_type,
+                    status,
+                    statement,
+                    detail_json,
+                    confidence,
+                    provenance_json,
+                    author_type,
+                    author_user_id,
+                    reviewer_user_id,
+                    review_note,
+                    approved_item_id,
+                    created_at,
+                    updated_at,
+                    reviewed_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT(id) DO UPDATE SET
+                    child_id = excluded.child_id,
+                    category = excluded.category,
+                    memory_type = excluded.memory_type,
+                    status = excluded.status,
+                    statement = excluded.statement,
+                    detail_json = excluded.detail_json,
+                    confidence = excluded.confidence,
+                    provenance_json = excluded.provenance_json,
+                    author_type = excluded.author_type,
+                    author_user_id = excluded.author_user_id,
+                    reviewer_user_id = excluded.reviewer_user_id,
+                    review_note = excluded.review_note,
+                    approved_item_id = excluded.approved_item_id,
+                    updated_at = excluded.updated_at,
+                    reviewed_at = excluded.reviewed_at
+                """,
+                (
+                    proposal_id,
+                    child_id,
+                    str(proposal_payload.get("category") or "general"),
+                    str(proposal_payload.get("memory_type") or "fact"),
+                    str(proposal_payload.get("status") or "pending"),
+                    str(proposal_payload.get("statement") or "").strip(),
+                    self._dumps_json(proposal_payload.get("detail") or {}),
+                    proposal_payload.get("confidence"),
+                    self._dumps_json(proposal_payload.get("provenance") or {}),
+                    str(proposal_payload.get("author_type") or "system"),
+                    proposal_payload.get("author_user_id"),
+                    proposal_payload.get("reviewer_user_id"),
+                    proposal_payload.get("review_note"),
+                    proposal_payload.get("approved_item_id"),
+                    created_at,
+                    updated_at,
+                    proposal_payload.get("reviewed_at"),
+                ),
+            )
+
+        self._execute_write(persist_proposal)
+
+        proposal = self.get_child_memory_proposal(proposal_id)
+        if proposal is None:
+            raise RuntimeError("Child memory proposal could not be reloaded after save")
+        return proposal
+
+    def get_child_memory_proposal(self, proposal_id: str) -> Optional[Dict[str, Any]]:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    id,
+                    child_id,
+                    category,
+                    memory_type,
+                    status,
+                    statement,
+                    detail_json,
+                    confidence,
+                    provenance_json,
+                    author_type,
+                    author_user_id,
+                    reviewer_user_id,
+                    review_note,
+                    approved_item_id,
+                    created_at,
+                    updated_at,
+                    reviewed_at
+                FROM child_memory_proposals
+                WHERE id = %s
+                """,
+                (proposal_id,),
+            ).fetchone()
+
+        if row is None:
+            return None
+
+        return self._build_child_memory_proposal_payload(row)
+
+    def list_child_memory_proposals(
+        self,
+        child_id: str,
+        status: Optional[str] = None,
+        category: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        query = [
+            """
+            SELECT
+                id,
+                child_id,
+                category,
+                memory_type,
+                status,
+                statement,
+                detail_json,
+                confidence,
+                provenance_json,
+                author_type,
+                author_user_id,
+                reviewer_user_id,
+                review_note,
+                approved_item_id,
+                created_at,
+                updated_at,
+                reviewed_at
+            FROM child_memory_proposals
+            WHERE child_id = %s
+            """
+        ]
+        parameters: List[Any] = [child_id]
+        if status:
+            query.append("AND status = %s")
+            parameters.append(status)
+        if category:
+            query.append("AND category = %s")
+            parameters.append(category)
+        query.append("ORDER BY updated_at DESC, created_at DESC")
+
+        with self._connect() as connection:
+            rows = connection.execute("\n".join(query), parameters).fetchall()
+
+        return [self._build_child_memory_proposal_payload(row) for row in rows]
+
+    def review_child_memory_proposal(
+        self,
+        proposal_id: str,
+        status: str,
+        reviewer_user_id: Optional[str] = None,
+        review_note: Optional[str] = None,
+        approved_item_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        reviewed_at = self._utc_now()
+
+        def persist_review(connection: psycopg.Connection[Any]) -> int:
+            cursor = connection.execute(
+                """
+                UPDATE child_memory_proposals
+                SET status = %s, reviewer_user_id = %s, review_note = %s, approved_item_id = %s, updated_at = %s, reviewed_at = %s
+                WHERE id = %s
+                """,
+                (status, reviewer_user_id, review_note, approved_item_id, reviewed_at, reviewed_at, proposal_id),
+            )
+            return cursor.rowcount
+
+        rowcount = self._execute_write(persist_review)
+        if rowcount == 0:
+            return None
+
+        return self.get_child_memory_proposal(proposal_id)
+
+    def save_child_memory_evidence_link(self, link_payload: Dict[str, Any]) -> Dict[str, Any]:
+        link_id = str(link_payload.get("id") or f"memory-evidence-{uuid4().hex[:12]}")
+        child_id = str(link_payload.get("child_id") or "").strip()
+        if not child_id:
+            raise ValueError("child_id is required")
+
+        subject_type = str(link_payload.get("subject_type") or "proposal")
+        subject_id = str(link_payload.get("subject_id") or "").strip()
+
+        def persist_link(connection: psycopg.Connection[Any]) -> None:
+            connection.execute(
+                """
+                INSERT INTO child_memory_evidence_links (
+                    id,
+                    child_id,
+                    subject_type,
+                    subject_id,
+                    session_id,
+                    practice_plan_id,
+                    evidence_kind,
+                    snippet,
+                    metadata_json,
+                    created_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT(id) DO UPDATE SET
+                    child_id = excluded.child_id,
+                    subject_type = excluded.subject_type,
+                    subject_id = excluded.subject_id,
+                    session_id = excluded.session_id,
+                    practice_plan_id = excluded.practice_plan_id,
+                    evidence_kind = excluded.evidence_kind,
+                    snippet = excluded.snippet,
+                    metadata_json = excluded.metadata_json
+                """,
+                (
+                    link_id,
+                    child_id,
+                    subject_type,
+                    subject_id,
+                    link_payload.get("session_id"),
+                    link_payload.get("practice_plan_id"),
+                    str(link_payload.get("evidence_kind") or "session"),
+                    link_payload.get("snippet"),
+                    self._dumps_json(link_payload.get("metadata") or {}),
+                    str(link_payload.get("created_at") or self._utc_now()),
+                ),
+            )
+
+        self._execute_write(persist_link)
+
+        links = self.list_child_memory_evidence_links(subject_type, subject_id)
+        link = next((item for item in links if item["id"] == link_id), None)
+        if link is None:
+            raise RuntimeError("Child memory evidence link could not be reloaded after save")
+        return link
+
+    def list_child_memory_evidence_links(self, subject_type: str, subject_id: str) -> List[Dict[str, Any]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT
+                    id,
+                    child_id,
+                    subject_type,
+                    subject_id,
+                    session_id,
+                    practice_plan_id,
+                    evidence_kind,
+                    snippet,
+                    metadata_json,
+                    created_at
+                FROM child_memory_evidence_links
+                WHERE subject_type = %s AND subject_id = %s
+                ORDER BY created_at DESC
+                """,
+                (subject_type, subject_id),
+            ).fetchall()
+
+        return [self._build_child_memory_evidence_link_payload(row) for row in rows]
+
+    def upsert_child_memory_summary(
+        self,
+        child_id: str,
+        summary: Dict[str, Any],
+        summary_text: Optional[str] = None,
+        source_item_count: int = 0,
+        last_compiled_at: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        if not child_id:
+            raise ValueError("child_id is required")
+
+        updated_at = self._utc_now()
+        compiled_at = str(last_compiled_at or updated_at)
+
+        def persist_summary(connection: psycopg.Connection[Any]) -> None:
+            connection.execute(
+                """
+                INSERT INTO child_memory_summaries (
+                    child_id,
+                    summary_json,
+                    summary_text,
+                    source_item_count,
+                    last_compiled_at,
+                    updated_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s)
+                ON CONFLICT(child_id) DO UPDATE SET
+                    summary_json = excluded.summary_json,
+                    summary_text = excluded.summary_text,
+                    source_item_count = excluded.source_item_count,
+                    last_compiled_at = excluded.last_compiled_at,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    child_id,
+                    self._dumps_json(summary),
+                    summary_text,
+                    int(source_item_count),
+                    compiled_at,
+                    updated_at,
+                ),
+            )
+
+        self._execute_write(persist_summary)
+
+        saved_summary = self.get_child_memory_summary(child_id)
+        if saved_summary is None:
+            raise RuntimeError("Child memory summary could not be reloaded after save")
+        return saved_summary
+
+    def get_child_memory_summary(self, child_id: str) -> Optional[Dict[str, Any]]:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    child_id,
+                    summary_json,
+                    summary_text,
+                    source_item_count,
+                    last_compiled_at,
+                    updated_at
+                FROM child_memory_summaries
+                WHERE child_id = %s
+                """,
+                (child_id,),
+            ).fetchone()
+
+        if row is None:
+            return None
+
+        return self._build_child_memory_summary_payload(row)
+
+    def replace_institutional_memory_insights(
+        self,
+        insights: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        created_at = self._utc_now()
+
+        def persist_insights(connection: psycopg.Connection[Any]) -> None:
+            connection.execute("DELETE FROM institutional_memory_insights")
+            for insight in insights:
+                connection.execute(
+                    """
+                    INSERT INTO institutional_memory_insights (
+                        id,
+                        insight_type,
+                        status,
+                        target_sound,
+                        title,
+                        summary,
+                        detail_json,
+                        provenance_json,
+                        source_child_count,
+                        source_session_count,
+                        source_memory_item_count,
+                        created_at,
+                        updated_at
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (
+                        str(insight.get("id") or f"institutional-insight-{uuid4().hex[:12]}"),
+                        str(insight.get("insight_type") or "reviewed_pattern"),
+                        str(insight.get("status") or "active"),
+                        str(insight.get("target_sound") or "").strip() or None,
+                        str(insight.get("title") or "").strip(),
+                        str(insight.get("summary") or "").strip(),
+                        self._dumps_json(insight.get("detail") or {}),
+                        self._dumps_json(insight.get("provenance") or {}),
+                        int(insight.get("source_child_count") or 0),
+                        int(insight.get("source_session_count") or 0),
+                        int(insight.get("source_memory_item_count") or 0),
+                        str(insight.get("created_at") or created_at),
+                        str(insight.get("updated_at") or created_at),
+                    ),
+                )
+
+        self._execute_write(persist_insights)
+        return self.list_institutional_memory_insights()
+
+    def list_institutional_memory_insights(
+        self,
+        *,
+        status: Optional[str] = None,
+        insight_type: Optional[str] = None,
+        target_sound: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        query = [
+            """
+            SELECT
+                id,
+                insight_type,
+                status,
+                target_sound,
+                title,
+                summary,
+                detail_json,
+                provenance_json,
+                source_child_count,
+                source_session_count,
+                source_memory_item_count,
+                created_at,
+                updated_at
+            FROM institutional_memory_insights
+            WHERE 1 = 1
+            """
+        ]
+        parameters: List[Any] = []
+        if status:
+            query.append("AND status = %s")
+            parameters.append(status)
+        if insight_type:
+            query.append("AND insight_type = %s")
+            parameters.append(insight_type)
+        if target_sound:
+            query.append("AND target_sound = %s")
+            parameters.append(target_sound)
+        query.append("ORDER BY updated_at DESC, created_at DESC, title ASC")
+
+        with self._connect() as connection:
+            rows = connection.execute("\n".join(query), parameters).fetchall()
+
+        return [self._build_institutional_memory_insight_payload(row) for row in rows]
+
+    def save_recommendation_log(self, log_payload: Dict[str, Any]) -> Dict[str, Any]:
+        log_id = str(log_payload.get("id") or f"recommendation-log-{uuid4().hex[:12]}")
+        child_id = str(log_payload.get("child_id") or "").strip()
+        if not child_id:
+            raise ValueError("child_id is required")
+
+        created_at = str(log_payload.get("created_at") or self._utc_now())
+
+        def persist_log(connection: psycopg.Connection[Any]) -> None:
+            connection.execute(
+                """
+                INSERT INTO recommendation_logs (
+                    id,
+                    child_id,
+                    source_session_id,
+                    target_sound,
+                    therapist_constraints_json,
+                    ranking_context_json,
+                    rationale_text,
+                    created_by_user_id,
+                    candidate_count,
+                    top_recommendation_score,
+                    created_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT(id) DO UPDATE SET
+                    child_id = excluded.child_id,
+                    source_session_id = excluded.source_session_id,
+                    target_sound = excluded.target_sound,
+                    therapist_constraints_json = excluded.therapist_constraints_json,
+                    ranking_context_json = excluded.ranking_context_json,
+                    rationale_text = excluded.rationale_text,
+                    created_by_user_id = excluded.created_by_user_id,
+                    candidate_count = excluded.candidate_count,
+                    top_recommendation_score = excluded.top_recommendation_score
+                """,
+                (
+                    log_id,
+                    child_id,
+                    log_payload.get("source_session_id"),
+                    str(log_payload.get("target_sound") or "").strip(),
+                    self._dumps_json(log_payload.get("therapist_constraints") or {}),
+                    self._dumps_json(log_payload.get("ranking_context") or {}),
+                    str(log_payload.get("rationale") or "").strip(),
+                    log_payload.get("created_by_user_id"),
+                    int(log_payload.get("candidate_count") or 0),
+                    log_payload.get("top_recommendation_score"),
+                    created_at,
+                ),
+            )
+
+        self._execute_write(persist_log)
+        saved_log = self.get_recommendation_log(log_id)
+        if saved_log is None:
+            raise RuntimeError("Recommendation log could not be reloaded after save")
+        return saved_log
+
+    def get_recommendation_log(self, recommendation_id: str) -> Optional[Dict[str, Any]]:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    id,
+                    child_id,
+                    source_session_id,
+                    target_sound,
+                    therapist_constraints_json,
+                    ranking_context_json,
+                    rationale_text,
+                    created_by_user_id,
+                    candidate_count,
+                    top_recommendation_score,
+                    created_at
+                FROM recommendation_logs
+                WHERE id = %s
+                """,
+                (recommendation_id,),
+            ).fetchone()
+
+        if row is None:
+            return None
+        return self._build_recommendation_log_payload(row)
+
+    def list_recommendation_logs_for_child(self, child_id: str, limit: int = 10) -> List[Dict[str, Any]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT
+                    id,
+                    child_id,
+                    source_session_id,
+                    target_sound,
+                    therapist_constraints_json,
+                    ranking_context_json,
+                    rationale_text,
+                    created_by_user_id,
+                    candidate_count,
+                    top_recommendation_score,
+                    created_at
+                FROM recommendation_logs
+                WHERE child_id = %s
+                ORDER BY created_at DESC
+                LIMIT %s
+                """,
+                (child_id, max(1, int(limit))),
+            ).fetchall()
+
+        return [self._build_recommendation_log_payload(row) for row in rows]
+
+    def replace_recommendation_candidates(
+        self,
+        recommendation_log_id: str,
+        candidates: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        parent_log = self.get_recommendation_log(recommendation_log_id)
+        if parent_log is None:
+            raise ValueError("Recommendation log not found")
+
+        created_at = self._utc_now()
+
+        def persist_candidates(connection: psycopg.Connection[Any]) -> None:
+            connection.execute(
+                "DELETE FROM recommendation_candidates WHERE recommendation_log_id = %s",
+                (recommendation_log_id,),
+            )
+            for index, candidate in enumerate(candidates, start=1):
+                connection.execute(
+                    """
+                    INSERT INTO recommendation_candidates (
+                        id,
+                        recommendation_log_id,
+                        rank,
+                        exercise_id,
+                        exercise_name,
+                        exercise_description,
+                        exercise_metadata_json,
+                        score,
+                        ranking_factors_json,
+                        rationale_text,
+                        explanation_json,
+                        supporting_memory_item_ids_json,
+                        supporting_session_ids_json,
+                        created_at
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (
+                        str(candidate.get("id") or f"recommendation-candidate-{uuid4().hex[:12]}"),
+                        recommendation_log_id,
+                        int(candidate.get("rank") or index),
+                        str(candidate.get("exercise_id") or ""),
+                        str(candidate.get("exercise_name") or "Guided practice"),
+                        candidate.get("exercise_description"),
+                        self._dumps_json(candidate.get("exercise_metadata") or {}),
+                        float(candidate.get("score") or 0),
+                        self._dumps_json(candidate.get("ranking_factors") or {}),
+                        str(candidate.get("rationale") or "").strip(),
+                        self._dumps_json(candidate.get("explanation") or {}),
+                        self._dumps_json(candidate.get("supporting_memory_item_ids") or []),
+                        self._dumps_json(candidate.get("supporting_session_ids") or []),
+                        str(candidate.get("created_at") or created_at),
+                    ),
+                )
+
+        self._execute_write(persist_candidates)
+        return self.list_recommendation_candidates(recommendation_log_id, child_id=str(parent_log.get("child_id") or ""))
+
+    def list_recommendation_candidates(
+        self,
+        recommendation_log_id: str,
+        child_id: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        resolved_child_id = child_id
+        if resolved_child_id is None:
+            parent_log = self.get_recommendation_log(recommendation_log_id)
+            resolved_child_id = None if parent_log is None else str(parent_log.get("child_id") or "")
+
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT
+                    id,
+                    recommendation_log_id,
+                    rank,
+                    exercise_id,
+                    exercise_name,
+                    exercise_description,
+                    exercise_metadata_json,
+                    score,
+                    ranking_factors_json,
+                    rationale_text,
+                    explanation_json,
+                    supporting_memory_item_ids_json,
+                    supporting_session_ids_json,
+                    created_at
+                FROM recommendation_candidates
+                WHERE recommendation_log_id = %s
+                ORDER BY rank ASC, score DESC, exercise_name ASC
+                """,
+                (recommendation_log_id,),
+            ).fetchall()
+
+        return [
+            self._build_recommendation_candidate_payload(row, child_id=resolved_child_id)
+            for row in rows
+        ]

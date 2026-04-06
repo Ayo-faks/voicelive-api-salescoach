@@ -110,7 +110,9 @@ class TestAgentManager:
             "modelParameters": {"temperature": 0.8, "max_tokens": 1500},
         }
 
-        agent_id = manager.create_agent("test-scenario", scenario_data)
+        runtime_personalization = {"child_id": "child-ayo", "active_target_sound": "r"}
+
+        agent_id = manager.create_agent("test-scenario", scenario_data, runtime_personalization=runtime_personalization)
 
         assert agent_id.startswith("local-agent-test-scenario-")
         assert agent_id in manager.agents
@@ -118,6 +120,7 @@ class TestAgentManager:
         assert manager.agents[agent_id]["is_azure_agent"] is False
         assert "Test instructions" in manager.agents[agent_id]["instructions"]
         assert manager.BASE_INSTRUCTIONS in manager.agents[agent_id]["instructions"]
+        assert manager.agents[agent_id]["runtime_personalization"] == runtime_personalization
 
     @patch("src.services.managers.config")
     @patch("src.services.managers.AIProjectClient")

@@ -8,12 +8,18 @@ import {
   Button,
   Card,
   CardHeader,
+  Dropdown,
+  Field,
   mergeClasses,
-  ProgressBar,
+  Option,
   Spinner,
+  Tab,
+  TabList,
+  Textarea,
   Text,
   makeStyles,
 } from '@fluentui/react-components'
+import type { TabValue } from '@fluentui/react-components'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useState } from 'react'
@@ -32,7 +38,21 @@ import {
   getTrendChartData,
 } from './charts'
 import { progressDashboardChartStyleSlots } from './charts/progressDashboardChartStyles'
-import type { ChildProfile, PlannerReadiness, PracticePlan, SessionDetail, SessionSummary } from '../types'
+import type {
+  ChildMemoryCategory,
+  ChildMemoryEvidenceLink,
+  ChildMemoryItem,
+  ChildMemoryProposal,
+  ChildMemorySummary,
+  ChildProfile,
+  InstitutionalMemoryInsight,
+  PlannerReadiness,
+  PracticePlan,
+  RecommendationDetail,
+  RecommendationLog,
+  SessionDetail,
+  SessionSummary,
+} from '../types'
 
 const articulationMetrics = [
   { key: 'target_sound_accuracy', label: 'Target Sound Accuracy', max: 10 },
@@ -211,10 +231,11 @@ const useStyles = makeStyles({
   },
   grid: {
     display: 'grid',
-    gridTemplateColumns: '196px minmax(280px, 0.82fr) minmax(380px, 1.18fr)',
+    gridTemplateColumns: 'minmax(320px, 360px) minmax(0, 1fr)',
     gap: 'var(--space-md)',
     alignItems: 'start',
-    '@media (max-width: 1200px)': {
+    minWidth: 0,
+    '@media (max-width: 1080px)': {
       gridTemplateColumns: '1fr',
     },
   },
@@ -225,6 +246,90 @@ const useStyles = makeStyles({
     background:
       'radial-gradient(circle at top right, rgba(13, 138, 132, 0.08), transparent 38%), linear-gradient(135deg, rgba(244, 249, 249, 0.94), rgba(238, 245, 245, 0.9) 52%, rgba(252, 248, 240, 0.98))',
     boxShadow: 'var(--shadow-md)',
+    minWidth: 0,
+  },
+  sidebar: {
+    display: 'grid',
+    gap: 'var(--space-md)',
+    alignSelf: 'start',
+    minWidth: 0,
+    '@media (min-width: 1081px)': {
+      position: 'sticky',
+      top: 'var(--space-md)',
+      maxHeight: 'calc(100vh - var(--space-3xl))',
+      overflow: 'hidden',
+    },
+  },
+  sidebarCard: {
+    display: 'grid',
+    gap: '12px',
+    minWidth: 0,
+  },
+  sessionHistoryScroll: {
+    height: 'clamp(400px, 52vh, 620px)',
+    minHeight: '400px',
+    overflowY: 'auto',
+    overscrollBehavior: 'contain',
+    paddingRight: '2px',
+    '@media (max-width: 1080px)': {
+      height: 'auto',
+      maxHeight: 'none',
+      minHeight: 0,
+      overflowY: 'visible',
+      overscrollBehavior: 'auto',
+    },
+  },
+  mainColumn: {
+    display: 'grid',
+    gap: 'var(--space-md)',
+    minWidth: 0,
+  },
+  tabShell: {
+    display: 'grid',
+    gap: 'var(--space-md)',
+    minWidth: 0,
+  },
+  topTabs: {
+    borderBottom: '1px solid rgba(15, 42, 58, 0.12)',
+    paddingBottom: '8px',
+    minWidth: 0,
+    overflowX: 'auto',
+  },
+  topTab: {
+    fontWeight: '700',
+    color: 'var(--color-text-secondary)',
+  },
+  tabPanel: {
+    display: 'grid',
+    gap: 'var(--space-md)',
+    minWidth: 0,
+  },
+  tabPanelCard: {
+    display: 'grid',
+    gap: 'var(--space-md)',
+    minWidth: 0,
+  },
+  tabOverviewGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+    gap: '10px',
+    minWidth: 0,
+  },
+  overviewCard: {
+    display: 'grid',
+    gap: '8px',
+    padding: '12px 14px',
+    border: '1px solid rgba(15, 42, 58, 0.12)',
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    minWidth: 0,
+  },
+  overviewValue: {
+    color: 'var(--color-text-primary)',
+    fontFamily: 'var(--font-display)',
+    fontSize: '1.26rem',
+    fontWeight: '800',
+    lineHeight: 1,
+    letterSpacing: '-0.03em',
   },
   backButton: {
     minWidth: '148px',
@@ -273,7 +378,7 @@ const useStyles = makeStyles({
   childList: {
     display: 'grid',
     gap: '4px',
-    marginTop: '10px',
+    marginTop: '2px',
   },
   listButton: {
     justifyContent: 'flex-start',
@@ -364,18 +469,18 @@ const useStyles = makeStyles({
   },
   sessionHistoryList: {
     display: 'grid',
-    gap: '10px',
-    marginTop: 'var(--space-md)',
+    gap: '8px',
+    marginTop: '12px',
   },
   sessionHistoryButton: {
     justifyContent: 'flex-start',
-    minHeight: '92px',
-    padding: '16px',
+    minHeight: '68px',
+    padding: '12px',
     border: '1px solid rgba(15, 42, 58, 0.1)',
     backgroundColor: 'rgba(255, 252, 247, 0.74)',
     borderBottom: '1px solid rgba(15, 42, 58, 0.12)',
     '@media (max-width: 720px)': {
-      minHeight: '88px',
+      minHeight: '76px',
     },
   },
   sessionHistoryButtonSelected: {
@@ -384,38 +489,38 @@ const useStyles = makeStyles({
   },
   sessionHistoryContent: {
     display: 'grid',
-    gap: '10px',
+    gap: '6px',
     width: '100%',
   },
   sessionHistoryHeader: {
     display: 'grid',
     gridTemplateColumns: 'minmax(0, 1fr) auto',
-    gap: '12px',
+    gap: '8px',
     alignItems: 'start',
     width: '100%',
   },
   sessionHistoryTitleWrap: {
     display: 'grid',
-    gap: '6px',
+    gap: '4px',
     minWidth: 0,
   },
   sessionHistoryTitle: {
     color: 'var(--color-text-primary)',
-    fontSize: '0.88rem',
+    fontSize: '0.82rem',
     fontWeight: '700',
-    lineHeight: 1.35,
+    lineHeight: 1.25,
   },
   sessionHistoryMeta: {
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
+    gap: '6px',
     flexWrap: 'wrap',
     color: 'var(--color-text-tertiary)',
-    fontSize: '0.75rem',
+    fontSize: '0.7rem',
   },
   sessionHistoryScoreWrap: {
     display: 'grid',
-    gap: '2px',
+    gap: '1px',
     justifyItems: 'end',
     textAlign: 'right',
     flexShrink: 0,
@@ -423,14 +528,14 @@ const useStyles = makeStyles({
   sessionHistoryScore: {
     color: 'var(--color-text-primary)',
     fontFamily: 'var(--font-display)',
-    fontSize: '1.35rem',
+    fontSize: '1.08rem',
     fontWeight: '800',
     lineHeight: 1,
     letterSpacing: '-0.03em',
   },
   sessionHistoryScoreLabel: {
     color: 'var(--color-text-tertiary)',
-    fontSize: '0.68rem',
+    fontSize: '0.62rem',
     fontWeight: '700',
     letterSpacing: '0.08em',
     textTransform: 'uppercase' as const,
@@ -438,19 +543,20 @@ const useStyles = makeStyles({
   sessionHistoryMetrics: {
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
+    gap: '6px',
     flexWrap: 'wrap',
   },
   sessionHistoryMetric: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '6px',
-    padding: '4px 8px',
+    gap: '4px',
+    padding: '2px 6px',
     border: '1px solid rgba(15, 42, 58, 0.1)',
     backgroundColor: 'rgba(255, 255, 255, 0.92)',
     color: 'var(--color-text-secondary)',
-    fontSize: '0.74rem',
+    fontSize: '0.66rem',
     lineHeight: 1.35,
+    whiteSpace: 'nowrap',
   },
   sessionHistoryMetricLabel: {
     color: 'var(--color-text-tertiary)',
@@ -468,6 +574,7 @@ const useStyles = makeStyles({
   detailLayout: {
     display: 'grid',
     gap: 'var(--space-lg)',
+    minWidth: 0,
   },
   scoreHeader: {
     display: 'flex',
@@ -475,6 +582,7 @@ const useStyles = makeStyles({
     alignItems: 'start',
     gap: 'var(--space-md)',
     flexWrap: 'wrap',
+    minWidth: 0,
   },
   scoreValue: {
     fontFamily: 'var(--font-display)',
@@ -507,6 +615,7 @@ const useStyles = makeStyles({
     display: 'grid',
     gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
     gap: 'var(--space-lg)',
+    minWidth: 0,
     '@media (max-width: 960px)': {
       gridTemplateColumns: '1fr',
     },
@@ -551,6 +660,7 @@ const useStyles = makeStyles({
     gridTemplateColumns: 'minmax(260px, 0.9fr) minmax(0, 1.1fr)',
     gap: '16px',
     alignItems: 'start',
+    minWidth: 0,
     '@media (max-width: 960px)': {
       gridTemplateColumns: '1fr',
     },
@@ -567,6 +677,8 @@ const useStyles = makeStyles({
     padding: '16px',
     border: '1px solid rgba(15, 42, 58, 0.12)',
     backgroundColor: 'rgba(255, 252, 247, 0.94)',
+    minWidth: 0,
+    overflow: 'hidden',
   },
   combinedReviewGrid: {
     display: 'grid',
@@ -622,10 +734,14 @@ const useStyles = makeStyles({
     color: 'var(--color-text-primary)',
     fontSize: '0.84rem',
     lineHeight: 1.6,
+    minWidth: 0,
+    overflow: 'hidden',
+    overflowWrap: 'anywhere',
   },
   textStack: {
     display: 'grid',
     gap: '4px',
+    minWidth: 0,
   },
   markdownContent: {
     display: 'grid',
@@ -633,10 +749,13 @@ const useStyles = makeStyles({
     color: 'inherit',
     fontSize: 'inherit',
     lineHeight: 'inherit',
+    minWidth: 0,
+    overflowWrap: 'anywhere',
   },
   markdownParagraph: {
     margin: 0,
     whiteSpace: 'pre-wrap' as const,
+    overflowWrap: 'anywhere',
   },
   markdownList: {
     margin: 0,
@@ -656,6 +775,7 @@ const useStyles = makeStyles({
   transcriptList: {
     display: 'grid',
     gap: '10px',
+    minWidth: 0,
   },
   transcriptTurn: {
     display: 'grid',
@@ -663,6 +783,8 @@ const useStyles = makeStyles({
     padding: '12px 14px',
     border: '1px solid rgba(15, 42, 58, 0.12)',
     backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    minWidth: 0,
+    overflowWrap: 'anywhere',
   },
   transcriptTurnUser: {
     border: '1px solid rgba(13, 138, 132, 0.18)',
@@ -690,6 +812,9 @@ const useStyles = makeStyles({
     lineHeight: 1.6,
     fontFamily: 'var(--font-mono)',
     fontSize: '0.8125rem',
+    minWidth: 0,
+    overflow: 'hidden',
+    overflowWrap: 'anywhere',
   },
   emptyState: {
     padding: 'var(--space-lg)',
@@ -732,6 +857,7 @@ const useStyles = makeStyles({
   planList: {
     display: 'grid',
     gap: '6px',
+    minWidth: 0,
   },
   planItem: {
     padding: '10px 12px',
@@ -740,6 +866,7 @@ const useStyles = makeStyles({
     backgroundColor: 'rgba(255, 255, 255, 0.96)',
     display: 'grid',
     gap: '2px',
+    minWidth: 0,
   },
   conversationItem: {
     padding: '10px 12px',
@@ -748,6 +875,7 @@ const useStyles = makeStyles({
     border: '1px solid rgba(15, 42, 58, 0.1)',
     display: 'grid',
     gap: '2px',
+    minWidth: 0,
   },
   scoreBadge: {
     border: '1px solid var(--color-border-strong)',
@@ -772,7 +900,208 @@ const useStyles = makeStyles({
   errorText: {
     color: '#7a6131',
   },
+  memorySection: {
+    display: 'grid',
+    gap: '12px',
+    paddingTop: '12px',
+    borderTop: '1px solid var(--color-border)',
+  },
+  recommendationSection: {
+    display: 'grid',
+    gap: '12px',
+    paddingTop: '12px',
+    borderTop: '1px solid var(--color-border)',
+  },
+  recommendationComposer: {
+    display: 'grid',
+    gap: '12px',
+    padding: '12px 14px',
+    border: '1px solid rgba(15, 42, 58, 0.12)',
+    backgroundColor: 'rgba(244, 249, 249, 0.92)',
+  },
+  recommendationLayout: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(240px, 0.85fr) minmax(0, 1.15fr)',
+    gap: '12px',
+    minWidth: 0,
+    '@media (max-width: 960px)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+  recommendationHistoryList: {
+    display: 'grid',
+    gap: '8px',
+    minWidth: 0,
+  },
+  recommendationHistoryButton: {
+    justifyContent: 'flex-start',
+    minHeight: '84px',
+    padding: '14px',
+    border: '1px solid rgba(15, 42, 58, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+  },
+  recommendationHistoryButtonSelected: {
+    border: '1px solid rgba(13, 138, 132, 0.22)',
+    backgroundColor: 'rgba(13, 138, 132, 0.08)',
+  },
+  recommendationHistoryContent: {
+    display: 'grid',
+    gap: '8px',
+    width: '100%',
+    minWidth: 0,
+  },
+  recommendationDetail: {
+    display: 'grid',
+    gap: '12px',
+    minWidth: 0,
+  },
+  recommendationCandidate: {
+    display: 'grid',
+    gap: '10px',
+    padding: '12px 14px',
+    border: '1px solid rgba(15, 42, 58, 0.12)',
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    minWidth: 0,
+    overflow: 'hidden',
+  },
+  recommendationCandidateTop: {
+    border: '1px solid rgba(13, 138, 132, 0.24)',
+    backgroundColor: 'rgba(13, 138, 132, 0.08)',
+  },
+  recommendationFactorList: {
+    display: 'grid',
+    gap: '8px',
+    minWidth: 0,
+  },
+  recommendationFactorItem: {
+    display: 'grid',
+    gap: '4px',
+    padding: '10px 12px',
+    border: '1px solid rgba(15, 42, 58, 0.08)',
+    backgroundColor: 'rgba(250, 247, 240, 0.92)',
+    minWidth: 0,
+  },
+  recommendationSessionList: {
+    display: 'grid',
+    gap: '8px',
+    minWidth: 0,
+  },
+  recommendationSessionItem: {
+    display: 'grid',
+    gap: '6px',
+    padding: '10px 12px',
+    border: '1px solid rgba(15, 42, 58, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    minWidth: 0,
+  },
+  memorySummaryGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: '8px',
+    '@media (max-width: 960px)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+  memoryCard: {
+    display: 'grid',
+    gap: '10px',
+    padding: '12px 14px',
+    border: '1px solid rgba(15, 42, 58, 0.12)',
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    minWidth: 0,
+    overflow: 'hidden',
+  },
+  memoryList: {
+    display: 'grid',
+    gap: '8px',
+    minWidth: 0,
+  },
+  memoryProposalCard: {
+    display: 'grid',
+    gap: '10px',
+    padding: '12px 14px',
+    border: '1px solid rgba(15, 42, 58, 0.12)',
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    minWidth: 0,
+    overflow: 'hidden',
+  },
+  memoryActionRow: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap',
+  },
+  memoryComposer: {
+    display: 'grid',
+    gap: '12px',
+    padding: '12px 14px',
+    border: '1px solid rgba(15, 42, 58, 0.12)',
+    backgroundColor: 'rgba(250, 247, 240, 0.92)',
+    minWidth: 0,
+  },
+  memoryComposerGrid: {
+    display: 'grid',
+    gridTemplateColumns: '180px minmax(0, 1fr)',
+    gap: '12px',
+    alignItems: 'start',
+    '@media (max-width: 720px)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+  evidenceList: {
+    display: 'grid',
+    gap: '8px',
+    minWidth: 0,
+  },
+  evidenceItem: {
+    display: 'grid',
+    gap: '6px',
+    padding: '10px 12px',
+    border: '1px solid rgba(15, 42, 58, 0.08)',
+    backgroundColor: 'rgba(244, 249, 249, 0.96)',
+    minWidth: 0,
+    overflowWrap: 'anywhere',
+  },
+  evidenceMeta: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+  },
+  evidenceButton: {
+    justifyContent: 'flex-start',
+    paddingLeft: 0,
+    minHeight: 'auto',
+    border: 'none',
+    backgroundColor: 'transparent',
+    color: 'var(--color-primary-dark)',
+  },
+  provenanceSection: {
+    display: 'grid',
+    gap: '12px',
+    padding: '12px 0 4px',
+    borderTop: '1px solid rgba(15, 42, 58, 0.08)',
+  },
+  provenanceHeader: {
+    display: 'grid',
+    gap: '4px',
+  },
+  provenanceMeta: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+  },
 })
+
+const memoryCategoryLabels: Record<string, string> = {
+  targets: 'Targets',
+  effective_cues: 'Effective cues',
+  ineffective_cues: 'Ineffective cues',
+  preferences: 'Preferences',
+  constraints: 'Constraints',
+  blockers: 'Blockers',
+  general: 'Other notes',
+}
 
 function formatTimestamp(timestamp?: string | null) {
   if (!timestamp) return 'No sessions yet'
@@ -800,6 +1129,101 @@ function formatShortDate(timestamp?: string | null) {
     month: 'short',
     day: 'numeric',
   }).format(new Date(timestamp))
+}
+
+function buildChildMemoryItemMap(items: ChildMemoryItem[]) {
+  return new Map(items.map(item => [item.id, item]))
+}
+
+function renderEvidenceLinks(
+  links: ChildMemoryEvidenceLink[] | undefined,
+  styles: ReturnType<typeof useStyles>,
+  onOpenSession: (sessionId: string) => void
+) {
+  if (!links?.length) {
+    return (
+      <Text size={200}>
+        No linked source evidence yet.
+      </Text>
+    )
+  }
+
+  return (
+    <div className={styles.evidenceList}>
+      {links.map(link => (
+        <div className={styles.evidenceItem} key={link.id}>
+          <div className={styles.evidenceMeta}>
+            <Badge appearance="tint" className={styles.scoreBadge}>
+              {link.evidence_kind}
+            </Badge>
+            {link.session_id ? (
+              <Button
+                appearance="subtle"
+                className={styles.evidenceButton}
+                onClick={() => {
+                  onOpenSession(link.session_id as string)
+                }}
+              >
+                Open source session
+              </Button>
+            ) : null}
+          </div>
+          <Text size={200}>{link.snippet || 'Saved evidence link.'}</Text>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function formatInstitutionalInsightType(type: InstitutionalMemoryInsight['insight_type']) {
+  if (type === 'strategy_insight') return 'Clinic strategy'
+  if (type === 'reviewed_pattern') return 'Reviewed pattern'
+  return 'Recommendation tuning'
+}
+
+function renderInstitutionalInsights(
+  insights: InstitutionalMemoryInsight[],
+  styles: ReturnType<typeof useStyles>
+) {
+  return (
+    <div className={styles.memoryList}>
+      {insights.map(insight => {
+        const deidentifiedChildCount = insight.provenance?.deidentified_child_count ?? insight.source_child_count
+        const reviewedSessionCount = insight.provenance?.reviewed_session_count ?? insight.source_session_count
+        const approvedMemoryItemCount = insight.provenance?.approved_memory_item_count ?? insight.source_memory_item_count
+
+        return (
+          <div className={styles.memoryCard} key={insight.id}>
+            <div className={styles.summaryRow}>
+              <Badge appearance="filled" className={styles.scoreBadgeTeal}>
+                {formatInstitutionalInsightType(insight.insight_type)}
+              </Badge>
+              {insight.target_sound ? (
+                <Badge appearance="tint" className={styles.scoreBadge}>
+                  /{insight.target_sound}/
+                </Badge>
+              ) : null}
+              <Badge appearance="tint" className={styles.scoreBadge}>
+                {deidentifiedChildCount} children
+              </Badge>
+              <Badge appearance="tint" className={styles.scoreBadge}>
+                {reviewedSessionCount} reviewed sessions
+              </Badge>
+              <Badge appearance="tint" className={styles.scoreBadge}>
+                {approvedMemoryItemCount} approved memory items
+              </Badge>
+            </div>
+            <div className={styles.textStack}>
+              <Text size={300} weight="semibold">
+                {insight.title}
+              </Text>
+              <Text size={200}>{insight.summary}</Text>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
 function getAverageScore(sessions: SessionSummary[]) {
@@ -837,8 +1261,8 @@ function getSummaryStripMode(hasTrendVisualization: boolean, hasSoundVisualizati
 
 function getHeroSubtitle(isSparseDashboard: boolean) {
   return isSparseDashboard
-    ? 'Use saved reviews to build the dashboard for the active child.'
-    : 'Track session quality, scan score movement, and turn saved reviews into next-step action for the active child.'
+    ? ''
+    : ''
 }
 
 function SparseStateMarker({ className, dividerClassName }: { className: string; dividerClassName: string }) {
@@ -846,6 +1270,7 @@ function SparseStateMarker({ className, dividerClassName }: { className: string;
     <div className={className} aria-hidden="true">
       <span className={dividerClassName} />
       <svg viewBox="0 0 28 28" fill="none">
+        <title>Dashboard state marker</title>
         <rect x="4" y="17" width="4" height="7" fill="currentColor" opacity="0.55" />
         <rect x="12" y="11" width="4" height="13" fill="currentColor" opacity="0.75" />
         <rect x="20" y="7" width="4" height="17" fill="currentColor" />
@@ -920,21 +1345,40 @@ interface Props {
   sessions: SessionSummary[]
   selectedSession: SessionDetail | null
   selectedPlan: PracticePlan | null
+  childMemorySummary: ChildMemorySummary | null
+  childMemoryItems: ChildMemoryItem[]
+  childMemoryProposals: ChildMemoryProposal[]
+  recommendationHistory: RecommendationLog[]
+  selectedRecommendationDetail: RecommendationDetail | null
   plannerReadiness: PlannerReadiness | null
   loadingChildren: boolean
   loadingSessions: boolean
   loadingSessionDetail: boolean
   loadingPlans: boolean
+  loadingMemory: boolean
+  loadingRecommendations: boolean
   planSaving: boolean
+  recommendationSaving: boolean
   planError: string | null
+  memoryError: string | null
+  recommendationError: string | null
+  memoryReviewPendingId: string | null
+  manualMemorySaving: boolean
   onSelectChild: (childId: string) => void
   onOpenSession: (sessionId: string) => void
+  onOpenRecommendationDetail: (recommendationId: string) => void | Promise<void>
+  onGenerateRecommendations: (therapistConstraints: string) => void | Promise<void>
   onCreatePlan: (message: string) => void | Promise<void>
   onRefinePlan: (message: string) => void | Promise<void>
   onApprovePlan: () => void | Promise<void>
+  onApproveMemoryProposal: (proposalId: string) => void | Promise<void>
+  onRejectMemoryProposal: (proposalId: string) => void | Promise<void>
+  onCreateMemoryItem: (category: ChildMemoryCategory, statement: string) => void | Promise<void>
   onBackToPractice: () => void
   onExitToEntry: () => void
 }
+
+type DashboardTab = 'session-detail' | 'memory' | 'recommendations' | 'plan'
 
 export function ProgressDashboard({
   childProfiles,
@@ -942,24 +1386,45 @@ export function ProgressDashboard({
   sessions,
   selectedSession,
   selectedPlan,
+  childMemorySummary,
+  childMemoryItems,
+  childMemoryProposals,
+  recommendationHistory,
+  selectedRecommendationDetail,
   plannerReadiness,
   loadingChildren,
   loadingSessions,
   loadingSessionDetail,
   loadingPlans,
+  loadingMemory,
+  loadingRecommendations,
   planSaving,
+  recommendationSaving,
   planError,
+  memoryError,
+  recommendationError,
+  memoryReviewPendingId,
+  manualMemorySaving,
   onSelectChild,
   onOpenSession,
+  onOpenRecommendationDetail,
+  onGenerateRecommendations,
   onCreatePlan,
   onRefinePlan,
   onApprovePlan,
+  onApproveMemoryProposal,
+  onRejectMemoryProposal,
+  onCreateMemoryItem,
   onBackToPractice,
   onExitToEntry,
 }: Props) {
   const styles = useStyles()
   const [planPrompt, setPlanPrompt] = useState('')
+  const [recommendationPrompt, setRecommendationPrompt] = useState('')
+  const [manualMemoryCategory, setManualMemoryCategory] = useState<ChildMemoryCategory>('general')
+  const [manualMemoryStatement, setManualMemoryStatement] = useState('')
   const [breakdownViewBySession, setBreakdownViewBySession] = useState<Record<string, 'articulation' | 'engagement'>>({})
+  const [activeTab, setActiveTab] = useState<DashboardTab>('session-detail')
   const plannerReady = plannerReadiness?.ready ?? false
   const aiAssessment = selectedSession?.assessment.ai_assessment
   const pronunciationAssessment = selectedSession?.assessment.pronunciation_assessment
@@ -990,6 +1455,16 @@ export function ProgressDashboard({
     : hasArticulationBreakdown
       ? 'articulation'
       : 'engagement'
+  const summarySections = Object.entries(childMemorySummary?.summary ?? {}).filter(
+    ([, items]) => Array.isArray(items) && items.length > 0
+  )
+  const childMemoryItemMap = buildChildMemoryItemMap(childMemoryItems)
+  const planMemorySnapshot = selectedPlan?.constraints.child_memory_snapshot
+  const planMemoryItems = Array.isArray(planMemorySnapshot?.used_items) ? planMemorySnapshot.used_items : []
+  const institutionalMemorySnapshot = selectedRecommendationDetail?.ranking_context?.institutional_memory
+  const institutionalInsights = Array.isArray(institutionalMemorySnapshot?.insights)
+    ? institutionalMemorySnapshot.insights
+    : []
 
   function setSessionBreakdownView(view: 'articulation' | 'engagement') {
     if (!selectedSession?.id) return
@@ -1000,6 +1475,108 @@ export function ProgressDashboard({
     }))
   }
 
+  function handleCreateManualMemory() {
+    const normalizedStatement = manualMemoryStatement.trim()
+    if (!normalizedStatement) {
+      return
+    }
+
+    Promise.resolve(onCreateMemoryItem(manualMemoryCategory, normalizedStatement)).then(() => {
+      setManualMemoryStatement('')
+      setManualMemoryCategory('general')
+    })
+  }
+
+  function handleGenerateRecommendation() {
+    Promise.resolve(onGenerateRecommendations(recommendationPrompt.trim())).then(() => {
+      setRecommendationPrompt('')
+    })
+  }
+
+  function handleTabSelect(_: unknown, data: { value: TabValue }) {
+    if (typeof data.value === 'string') {
+      setActiveTab(data.value as DashboardTab)
+    }
+  }
+
+  const sessionOverviewCards = selectedSession ? [
+    {
+      label: 'Session date',
+      value: formatShortDate(selectedSession.timestamp),
+      copy: formatTimestamp(selectedSession.timestamp),
+    },
+    {
+      label: 'Overall score',
+      value: String(aiAssessment?.overall_score ?? '—'),
+      copy: selectedSession.exercise.name,
+    },
+    {
+      label: 'Transcript turns',
+      value: String(transcriptTurns.length || 0),
+      copy: transcriptTurns.length > 1 ? 'Parsed conversation turns.' : 'No structured turns detected.',
+    },
+  ] : []
+
+  const memoryOverviewCards = [
+    {
+      label: 'Approved memory',
+      value: String(childMemorySummary?.source_item_count ?? 0),
+      copy: childMemorySummary?.last_compiled_at
+        ? `Updated ${formatTimestamp(childMemorySummary.last_compiled_at)}`
+        : 'No compiled summary yet.',
+    },
+    {
+      label: 'Pending review',
+      value: String(childMemoryProposals.length),
+      copy: childMemoryProposals.length
+        ? 'Review the latest proposed memory updates.'
+        : 'No pending proposals right now.',
+    },
+    {
+      label: 'Planner signal',
+      value: childMemorySummary?.summary_text ? 'Ready' : 'Limited',
+      copy: childMemorySummary?.summary_text || 'Approved memory will appear here once it has been reviewed.',
+    },
+  ]
+
+  const recommendationOverviewCards = [
+    {
+      label: 'Saved runs',
+      value: String(recommendationHistory.length),
+      copy: recommendationHistory.length ? 'Most recent recommendation runs stay inspectable.' : 'No recommendation runs saved yet.',
+    },
+    {
+      label: 'Target sound',
+      value: selectedRecommendationDetail?.target_sound ? `/${selectedRecommendationDetail.target_sound}/` : '—',
+      copy: selectedRecommendationDetail ? formatTimestamp(selectedRecommendationDetail.created_at) : 'Open a saved run to inspect it.',
+    },
+    {
+      label: 'Ranked options',
+      value: String(selectedRecommendationDetail?.candidate_count ?? 0),
+      copy: selectedRecommendationDetail?.rationale || 'Each run preserves ranking rationale and evidence.',
+    },
+  ]
+
+  const planOverviewCards = [
+    {
+      label: 'Planner',
+      value: plannerReady ? 'Ready' : 'Limited',
+      copy: plannerReady ? 'Recommendation and plan generation are available.' : 'Planner context is not ready for this child yet.',
+    },
+    {
+      label: 'Plan status',
+      value: selectedPlan ? (selectedPlan.status === 'approved' ? 'Approved' : 'Draft') : 'None',
+      copy: selectedPlan ? `${selectedPlan.draft.estimated_duration_minutes} min next-session draft.` : 'No plan saved for this child yet.',
+    },
+    {
+      label: 'Memory inputs',
+      value: String(planMemoryItems.length || planMemorySnapshot?.used_item_ids.length || 0),
+      copy: planMemorySnapshot?.summary_last_compiled_at
+        ? `Snapshot ${formatTimestamp(planMemorySnapshot.summary_last_compiled_at)}`
+        : 'Memory snapshot appears when a plan has been generated.',
+    },
+  ]
+
   return (
     <div className={styles.shell}>
       <div className={styles.hero}>
@@ -1009,9 +1586,11 @@ export function ProgressDashboard({
             <Text className={styles.title} size={700} weight="semibold">
               Session intelligence dashboard
             </Text>
-            <Text className={styles.subtitle} size={300}>
-              {heroSubtitle}
-            </Text>
+            {heroSubtitle ? (
+              <Text className={styles.subtitle} size={300}>
+                {heroSubtitle}
+              </Text>
+            ) : null}
             {isSparseDashboard ? (
               <SparseStateMarker className={styles.sparseHeroMarker} dividerClassName={styles.sparseHeroDivider} />
             ) : null}
@@ -1069,171 +1648,190 @@ export function ProgressDashboard({
       </div>
 
       <div className={styles.grid}>
-        <Card className={styles.card}>
-          <CardHeader
-            header={
-              <Text className={styles.columnTitle} size={500} weight="semibold">
-                Children
-              </Text>
-            }
-          />
+        <div className={styles.sidebar}>
+          <Card className={mergeClasses(styles.card, styles.sidebarCard)}>
+            <CardHeader
+              header={
+                <Text className={styles.columnTitle} size={500} weight="semibold">
+                  Children
+                </Text>
+              }
+            />
 
-          {loadingChildren ? (
-            <div className={styles.loading}>
-              <Spinner size="medium" />
-            </div>
-          ) : (
-            <div className={styles.childList}>
-              {childProfiles.map(child => {
-                const isSelected = child.id === selectedChildId
-
-                return (
-                  <Button
-                    key={child.id}
-                    appearance="subtle"
-                    className={mergeClasses(
-                      styles.listButton,
-                      isSelected && styles.listButtonSelected
-                    )}
-                    onClick={() => onSelectChild(child.id)}
-                  >
-                    <div className={styles.listButtonContent}>
-                      <div className={styles.rowHeader}>
-                        <div className={styles.rowMain}>
-                          <Text className={styles.listTitle} weight="semibold">
-                            {child.name}
-                          </Text>
-                          <div className={styles.rowMeta}>
-                            <Text className={styles.listMeta} size={200}>
-                              {child.session_count ?? 0} saved sessions
-                            </Text>
-                            <span className={styles.metaDivider} />
-                            <Text className={styles.listMeta} size={200}>
-                              {formatShortDate(child.last_session_at)}
-                            </Text>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Button>
-                )
-              })}
-            </div>
-          )}
-        </Card>
-
-        <Card className={styles.card}>
-          <CardHeader
-            header={
-              <Text className={styles.columnTitle} size={500} weight="semibold">
-                Session history
-              </Text>
-            }
-          />
-
-          {loadingSessions ? (
-            <div className={styles.loading}>
-              <Spinner size="medium" />
-            </div>
-          ) : sessions.length === 0 ? (
-            <div className={styles.emptyState}>
-              <Text>No saved sessions for this child yet.</Text>
-            </div>
-          ) : (
-            <>
-              <SessionFrequencyHeatmap sessions={sessions} styles={styles} />
-              <div className={styles.sessionHistoryList}>
-                {sessions.map(session => {
-                  const isSelected = session.id === selectedSession?.id
-                  const targetSound = session.exercise_metadata?.targetSound || session.exercise.exerciseMetadata?.targetSound
-                  const feedbackLabel = session.therapist_feedback?.rating === 'up' ? 'Helpful' : 'Follow-up'
+            {loadingChildren ? (
+              <div className={styles.loading}>
+                <Spinner size="medium" />
+              </div>
+            ) : (
+              <div className={styles.childList}>
+                {childProfiles.map(child => {
+                  const isSelected = child.id === selectedChildId
 
                   return (
                     <Button
-                      key={session.id}
+                      key={child.id}
                       appearance="subtle"
                       className={mergeClasses(
-                        styles.sessionHistoryButton,
-                        isSelected && styles.sessionHistoryButtonSelected
+                        styles.listButton,
+                        isSelected && styles.listButtonSelected
                       )}
-                      onClick={() => onOpenSession(session.id)}
+                      onClick={() => onSelectChild(child.id)}
                     >
-                      <div className={styles.sessionHistoryContent}>
-                        <div className={styles.sessionHistoryHeader}>
-                          <div className={styles.sessionHistoryTitleWrap}>
-                            <Text className={styles.sessionHistoryTitle} weight="semibold">
-                              {session.exercise.name}
+                      <div className={styles.listButtonContent}>
+                        <div className={styles.rowHeader}>
+                          <div className={styles.rowMain}>
+                            <Text className={styles.listTitle} weight="semibold">
+                              {child.name}
                             </Text>
-                            <div className={styles.sessionHistoryMeta}>
-                              <Text size={200}>
-                                {formatShortDate(session.timestamp)}
+                            <div className={styles.rowMeta}>
+                              <Text className={styles.listMeta} size={200}>
+                                {child.session_count ?? 0} saved sessions
                               </Text>
-                              {targetSound ? (
-                                <>
-                                  <span className={styles.metaDivider} />
-                                  <Text size={200}>
-                                    Focus {targetSound}
-                                  </Text>
-                                </>
-                              ) : null}
+                              <span className={styles.metaDivider} />
+                              <Text className={styles.listMeta} size={200}>
+                                {formatShortDate(child.last_session_at)}
+                              </Text>
                             </div>
                           </div>
-                          <div className={styles.sessionHistoryScoreWrap}>
-                            <Text className={styles.sessionHistoryScore}>{session.overall_score ?? '—'}</Text>
-                            <Text className={styles.sessionHistoryScoreLabel}>Overall</Text>
-                          </div>
-                        </div>
-                        <div className={styles.sessionHistoryMetrics}>
-                          <div className={styles.sessionHistoryMetric}>
-                            <span className={styles.sessionHistoryMetricLabel}>Accuracy</span>
-                            <span className={styles.sessionHistoryMetricValue}>{session.accuracy_score ?? '—'}</span>
-                          </div>
-                          {session.pronunciation_score != null ? (
-                            <div className={styles.sessionHistoryMetric}>
-                              <span className={styles.sessionHistoryMetricLabel}>Pron</span>
-                              <span className={styles.sessionHistoryMetricValue}>{Math.round(session.pronunciation_score)}</span>
-                            </div>
-                          ) : null}
-                          {session.therapist_feedback?.rating ? (
-                            <div className={mergeClasses(styles.sessionHistoryMetric, styles.sessionHistoryFeedback)}>
-                              <span className={styles.sessionHistoryMetricLabel}>Feedback</span>
-                              <span className={styles.sessionHistoryMetricValue}>{feedbackLabel}</span>
-                            </div>
-                          ) : null}
                         </div>
                       </div>
                     </Button>
                   )
                 })}
               </div>
-            </>
-          )}
-        </Card>
+            )}
+          </Card>
 
-        <Card className={styles.card}>
-          <CardHeader
-            header={
-              <Text className={styles.columnTitle} size={500} weight="semibold">
-                Session detail
-              </Text>
-            }
-            description={
-              <Text className={styles.helperText} size={300}>
-                Practice feedback — not a clinical assessment.
-              </Text>
-            }
-          />
+          <Card className={mergeClasses(styles.card, styles.sidebarCard)}>
+            <CardHeader
+              header={
+                <Text className={styles.columnTitle} size={500} weight="semibold">
+                  Session history
+                </Text>
+              }
+            />
 
-          {loadingSessionDetail ? (
-            <div className={styles.loading}>
-              <Spinner size="medium" />
-            </div>
-          ) : !selectedSession ? (
-            <div className={styles.emptyState}>
-              <Text>Select a saved session to open the full review.</Text>
-            </div>
-          ) : (
-            <div className={styles.detailLayout}>
+            {loadingSessions ? (
+              <div className={styles.loading}>
+                <Spinner size="medium" />
+              </div>
+            ) : sessions.length === 0 ? (
+              <div className={styles.emptyState}>
+                <Text>No saved sessions for this child yet.</Text>
+              </div>
+            ) : (
+              <>
+                <SessionFrequencyHeatmap sessions={sessions} styles={styles} />
+                <div className={styles.sessionHistoryScroll}>
+                  <div className={styles.sessionHistoryList}>
+                    {sessions.map(session => {
+                      const isSelected = session.id === selectedSession?.id
+                      const targetSound = session.exercise_metadata?.targetSound || session.exercise.exerciseMetadata?.targetSound
+                      const feedbackLabel = session.therapist_feedback?.rating === 'up' ? 'Helpful' : 'Follow-up'
+
+                      return (
+                        <Button
+                          key={session.id}
+                          appearance="subtle"
+                          className={mergeClasses(
+                            styles.sessionHistoryButton,
+                            isSelected && styles.sessionHistoryButtonSelected
+                          )}
+                          onClick={() => onOpenSession(session.id)}
+                        >
+                          <div className={styles.sessionHistoryContent}>
+                            <div className={styles.sessionHistoryHeader}>
+                              <div className={styles.sessionHistoryTitleWrap}>
+                                <Text className={styles.sessionHistoryTitle} weight="semibold">
+                                  {session.exercise.name}
+                                </Text>
+                                <div className={styles.sessionHistoryMeta}>
+                                  <Text size={200}>
+                                    {formatShortDate(session.timestamp)}
+                                  </Text>
+                                  {targetSound ? (
+                                    <>
+                                      <span className={styles.metaDivider} />
+                                      <Text size={200}>
+                                        Focus {targetSound}
+                                      </Text>
+                                    </>
+                                  ) : null}
+                                </div>
+                              </div>
+                              <div className={styles.sessionHistoryScoreWrap}>
+                                <Text className={styles.sessionHistoryScore}>{session.overall_score ?? '—'}</Text>
+                                <Text className={styles.sessionHistoryScoreLabel}>Overall</Text>
+                              </div>
+                            </div>
+                            <div className={styles.sessionHistoryMetrics}>
+                              <div className={styles.sessionHistoryMetric}>
+                                <span className={styles.sessionHistoryMetricLabel}>Accuracy</span>
+                                <span className={styles.sessionHistoryMetricValue}>{session.accuracy_score ?? '—'}</span>
+                              </div>
+                              {session.pronunciation_score != null ? (
+                                <div className={styles.sessionHistoryMetric}>
+                                  <span className={styles.sessionHistoryMetricLabel}>Pron</span>
+                                  <span className={styles.sessionHistoryMetricValue}>{Math.round(session.pronunciation_score)}</span>
+                                </div>
+                              ) : null}
+                              {session.therapist_feedback?.rating ? (
+                                <div className={mergeClasses(styles.sessionHistoryMetric, styles.sessionHistoryFeedback)}>
+                                  <span className={styles.sessionHistoryMetricLabel}>Feedback</span>
+                                  <span className={styles.sessionHistoryMetricValue}>{feedbackLabel}</span>
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                        </Button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+          </Card>
+        </div>
+
+        <div className={styles.mainColumn}>
+          <Card className={mergeClasses(styles.card, styles.tabShell)}>
+            <CardHeader
+              header={
+                <Text className={styles.columnTitle} size={500} weight="semibold">
+                  Review workspace
+                </Text>
+              }
+            />
+
+            <TabList selectedValue={activeTab} onTabSelect={handleTabSelect} className={styles.topTabs}>
+              <Tab className={styles.topTab} value="session-detail">Session detail</Tab>
+              <Tab className={styles.topTab} value="memory">Memory</Tab>
+              <Tab className={styles.topTab} value="recommendations">Recommendations</Tab>
+              <Tab className={styles.topTab} value="plan">Plan</Tab>
+            </TabList>
+
+            {activeTab === 'session-detail' ? (
+              <div className={styles.tabPanel}>
+                <div className={styles.tabOverviewGrid}>
+                  {sessionOverviewCards.map(card => (
+                    <div className={styles.overviewCard} key={card.label}>
+                      <Text className={styles.combinedReviewLabel}>{card.label}</Text>
+                      <Text className={styles.overviewValue}>{card.value}</Text>
+                      <Text size={200}>{card.copy}</Text>
+                    </div>
+                  ))}
+                </div>
+
+                {loadingSessionDetail ? (
+                  <div className={styles.loading}>
+                    <Spinner size="medium" />
+                  </div>
+                ) : !selectedSession ? (
+                  <div className={styles.emptyState}>
+                    <Text>Select a saved session to open the full review.</Text>
+                  </div>
+                ) : (
+                  <div className={styles.detailLayout}>
               <div className={styles.scoreHeader}>
                 <div>
                   <Text className={styles.sectionTitle} size={600} weight="semibold">
@@ -1424,188 +2022,6 @@ export function ProgressDashboard({
                 </div>
               </div>
 
-              <div className={styles.planSection}>
-                <div>
-                  <Text className={styles.sectionTitle} size={400} weight="semibold">
-                    Next-session plan
-                  </Text>
-                  <Text className={styles.helperText} size={300}>
-                    Generate or refine the plan for the next visit.
-                  </Text>
-                </div>
-
-                {loadingPlans ? (
-                  <div className={styles.loading}>
-                    <Spinner size="medium" />
-                  </div>
-                ) : selectedPlan ? (
-                  <div className={styles.planList}>
-                    <div className={styles.planSummaryGrid}>
-                      <div className={styles.planList}>
-                        <div className={styles.summaryRow}>
-                          <Badge appearance="filled" className={mergeClasses(styles.scoreBadge, selectedPlan.status === 'approved' ? styles.scoreBadgeTeal : styles.scoreBadgeInk)}>
-                            {selectedPlan.status === 'approved' ? 'Approved plan' : 'Draft plan'}
-                          </Badge>
-                          <Badge appearance="tint" className={styles.scoreBadge}>
-                            {selectedPlan.draft.estimated_duration_minutes} min
-                          </Badge>
-                        </div>
-
-                        <div className={styles.textItem}>
-                          <div className={styles.textStack}>
-                            <Text size={300} weight="semibold">
-                              {selectedPlan.draft.objective.replace(/[*_#`]/g, '').trim()}
-                            </Text>
-                            {selectedPlan.draft.focus_sound ? <Text size={200}>Target sound: {selectedPlan.draft.focus_sound}</Text> : null}
-                          </div>
-                        </div>
-                      </div>
-
-                      {planConfidence ? <PlanConfidenceGauge confidence={planConfidence} styles={styles} /> : null}
-                    </div>
-
-                    <div>
-                      <Text className={styles.sectionTitle} size={300} weight="semibold">
-                        Activities
-                      </Text>
-                      <div className={styles.planList}>
-                        {selectedPlan.draft.activities.map(activity => (
-                          <div className={styles.planItem} key={`${activity.exercise_id}-${activity.title}`}>
-                            <Text size={300} weight="semibold">
-                              {activity.title}
-                            </Text>
-                            <Text size={200}>
-                              {activity.exercise_name} • {activity.target_duration_minutes} min
-                            </Text>
-                            {renderMarkdown(activity.reason, styles)}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className={styles.metricsGrid}>
-                      <div>
-                        <Text className={styles.sectionTitle} size={300} weight="semibold">
-                          Cues
-                        </Text>
-                        <div className={styles.textList}>
-                          {selectedPlan.draft.therapist_cues.map(cue => (
-                            <div className={styles.textItem} key={cue}>
-                              {renderMarkdown(cue, styles)}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <Text className={styles.sectionTitle} size={300} weight="semibold">
-                          Success markers
-                        </Text>
-                        <div className={styles.textList}>
-                          {selectedPlan.draft.success_criteria.map(criterion => (
-                            <div className={styles.textItem} key={criterion}>
-                              {renderMarkdown(criterion, styles)}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <Text className={styles.sectionTitle} size={300} weight="semibold">
-                        Carryover
-                      </Text>
-                      <div className={styles.textList}>
-                        {selectedPlan.draft.carryover.map(item => (
-                          <div className={styles.textItem} key={item}>
-                            {renderMarkdown(item, styles)}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {selectedPlan.conversation.length ? (
-                      <div>
-                        <Text className={styles.sectionTitle} size={300} weight="semibold">
-                          Recent conversation
-                        </Text>
-                        <div className={styles.planList}>
-                          {selectedPlan.conversation.slice(-2).map((message, index) => (
-                            <div className={styles.conversationItem} key={`${message.role}-${index}-${message.content}`}>
-                              <Text size={200} weight="semibold">
-                                {message.role === 'user' ? 'Therapist' : 'Planner'}
-                              </Text>
-                              {renderMarkdown(message.content, styles)}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
-                  </div>
-                ) : (
-                  <div className={styles.emptyState}>
-                    <Text>No practice plan has been generated for this saved session yet.</Text>
-                  </div>
-                )}
-
-                <label>
-                  <Text className={styles.sectionTitle} size={300} weight="semibold">
-                    {selectedPlan ? 'Refine plan' : 'Planning note'}
-                  </Text>
-                  <textarea
-                    className={styles.planComposer}
-                    value={planPrompt}
-                    onChange={event => setPlanPrompt(event.target.value)}
-                    placeholder={
-                      selectedPlan
-                        ? 'Example: Start with listening and shorten the sequence.'
-                        : 'Example: Keep it playful for home carryover.'
-                    }
-                  />
-                </label>
-
-                {planError ? (
-                  <Text className={styles.errorText} size={300}>
-                    {planError}
-                  </Text>
-                ) : null}
-
-                <div className={styles.planActions}>
-                  {!selectedPlan ? (
-                    <Button
-                      appearance="primary"
-                      onClick={() => {
-                        void onCreatePlan(planPrompt)
-                      }}
-                      disabled={planSaving || !selectedSession || !plannerReady}
-                    >
-                      {planSaving ? 'Generating…' : plannerReady ? 'Generate plan' : 'Planner unavailable'}
-                    </Button>
-                  ) : (
-                    <>
-                      <Button
-                        appearance="primary"
-                        onClick={() => {
-                          void onRefinePlan(planPrompt)
-                        }}
-                        disabled={planSaving || !planPrompt.trim() || !plannerReady}
-                      >
-                        {planSaving ? 'Updating…' : plannerReady ? 'Refine plan' : 'Planner unavailable'}
-                      </Button>
-                      <Button
-                        appearance="secondary"
-                        onClick={() => {
-                          void onApprovePlan()
-                        }}
-                        disabled={planSaving || selectedPlan.status === 'approved'}
-                      >
-                        {selectedPlan.status === 'approved' ? 'Approved' : 'Approve plan'}
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-
               {selectedSession.transcript ? (
                 <div>
                   <Text className={styles.sectionTitle} size={400} weight="semibold">
@@ -1636,9 +2052,793 @@ export function ProgressDashboard({
                   </div>
                 </div>
               ) : null}
-            </div>
-          )}
-        </Card>
+                  </div>
+                )}
+              </div>
+            ) : null}
+
+            {activeTab === 'memory' ? (
+              <div className={mergeClasses(styles.tabPanel, styles.tabPanelCard)}>
+                <div className={styles.tabOverviewGrid}>
+                  {memoryOverviewCards.map(card => (
+                    <div className={styles.overviewCard} key={card.label}>
+                      <Text className={styles.combinedReviewLabel}>{card.label}</Text>
+                      <Text className={styles.overviewValue}>{card.value}</Text>
+                      <Text size={200}>{card.copy}</Text>
+                    </div>
+                  ))}
+                </div>
+                <div className={styles.memorySection}>
+                  <div>
+                    <Text className={styles.sectionTitle} size={400} weight="semibold">
+                      Child memory review
+                    </Text>
+                    <Text className={styles.helperText} size={300}>
+                      Approved memory feeds planning context. Pending proposals stay separate until a therapist reviews them.
+                    </Text>
+                  </div>
+
+                  {loadingMemory ? (
+                    <div className={styles.loading}>
+                      <Spinner size="medium" />
+                    </div>
+                  ) : (
+                    <>
+                      {summarySections.length ? (
+                        <div className={styles.memoryList}>
+                          {summarySections.map(([category, items]) => (
+                            <div className={styles.memoryCard} key={category}>
+                              <div className={styles.summaryRow}>
+                                <Badge appearance="tint" className={styles.scoreBadge}>
+                                  {memoryCategoryLabels[category] || category}
+                                </Badge>
+                                <Text size={200}>{items.length} approved</Text>
+                              </div>
+                              <div className={styles.textList}>
+                                {items.map(item => (
+                                  <div className={styles.textItem} key={`${category}-${item.id ?? item.statement}`}>
+                                    <div className={styles.textStack}>
+                                      <Text size={300} weight="semibold">
+                                        {item.statement}
+                                      </Text>
+                                      {item.confidence != null ? (
+                                        <Text size={200}>Confidence {Math.round(item.confidence * 100)}%</Text>
+                                      ) : null}
+                                    </div>
+                                    {item.id ? renderEvidenceLinks(childMemoryItemMap.get(item.id)?.evidence_links, styles, onOpenSession) : null}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className={styles.emptyState}>
+                          <Text>No approved child memory has been compiled yet.</Text>
+                        </div>
+                      )}
+
+                      <div>
+                        <Text className={styles.sectionTitle} size={300} weight="semibold">
+                          Therapist memory note
+                        </Text>
+                        <div className={styles.memoryComposer}>
+                          <Text size={200}>
+                            Add a therapist-authored approved memory item when you need to preserve a clinically useful fact without waiting for synthesis.
+                          </Text>
+                          <div className={styles.memoryComposerGrid}>
+                            <Field label="Category">
+                              <Dropdown
+                                selectedOptions={[manualMemoryCategory]}
+                                value={memoryCategoryLabels[manualMemoryCategory] || manualMemoryCategory}
+                                onOptionSelect={(_, data) => {
+                                  if (data.optionValue) {
+                                    setManualMemoryCategory(data.optionValue as ChildMemoryCategory)
+                                  }
+                                }}
+                              >
+                                {Object.entries(memoryCategoryLabels).map(([value, label]) => (
+                                  <Option key={value} value={value} text={label}>
+                                    {label}
+                                  </Option>
+                                ))}
+                              </Dropdown>
+                            </Field>
+                            <Field label="Statement">
+                              <Textarea
+                                value={manualMemoryStatement}
+                                resize="vertical"
+                                placeholder="Example: Amina settles faster with short visual models."
+                                onChange={(_, data) => setManualMemoryStatement(data.value)}
+                              />
+                            </Field>
+                          </div>
+                          <div className={styles.memoryActionRow}>
+                            <Button
+                              appearance="primary"
+                              disabled={manualMemorySaving || !manualMemoryStatement.trim()}
+                              onClick={handleCreateManualMemory}
+                            >
+                              {manualMemorySaving ? 'Saving…' : 'Save approved memory'}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Text className={styles.sectionTitle} size={300} weight="semibold">
+                          Pending proposals
+                        </Text>
+                        {childMemoryProposals.length ? (
+                          <div className={styles.memoryList}>
+                            {childMemoryProposals.map(proposal => {
+                              const sessionIds = Array.isArray(proposal.provenance?.session_ids)
+                                ? proposal.provenance.session_ids.length
+                                : 0
+
+                              return (
+                                <div className={styles.memoryProposalCard} key={proposal.id}>
+                                  <div className={styles.summaryRow}>
+                                    <Badge appearance="filled" className={styles.scoreBadgeSand}>
+                                      {memoryCategoryLabels[proposal.category] || proposal.category}
+                                    </Badge>
+                                    <Badge appearance="tint" className={styles.scoreBadge}>
+                                      {proposal.memory_type}
+                                    </Badge>
+                                    {proposal.confidence != null ? (
+                                      <Badge appearance="tint" className={styles.scoreBadge}>
+                                        {Math.round(proposal.confidence * 100)}% confidence
+                                      </Badge>
+                                    ) : null}
+                                  </div>
+                                  <div className={styles.textItem}>
+                                    <div className={styles.textStack}>
+                                      <Text size={300} weight="semibold">
+                                        {proposal.statement}
+                                      </Text>
+                                      <Text size={200}>
+                                        {sessionIds
+                                          ? `Linked to ${sessionIds} session${sessionIds === 1 ? '' : 's'}.`
+                                          : 'Awaiting therapist review.'}
+                                      </Text>
+                                    </div>
+                                    {renderEvidenceLinks(proposal.evidence_links, styles, onOpenSession)}
+                                  </div>
+                                  <div className={styles.memoryActionRow}>
+                                    <Button
+                                      appearance="primary"
+                                      onClick={() => {
+                                        void onApproveMemoryProposal(proposal.id)
+                                      }}
+                                      disabled={memoryReviewPendingId === proposal.id}
+                                    >
+                                      {memoryReviewPendingId === proposal.id ? 'Saving…' : 'Approve'}
+                                    </Button>
+                                    <Button
+                                      appearance="secondary"
+                                      onClick={() => {
+                                        void onRejectMemoryProposal(proposal.id)
+                                      }}
+                                      disabled={memoryReviewPendingId === proposal.id}
+                                    >
+                                      Reject
+                                    </Button>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        ) : (
+                          <div className={styles.emptyState}>
+                            <Text>No pending child memory proposals for this child.</Text>
+                          </div>
+                        )}
+                      </div>
+
+                      {memoryError ? (
+                        <Text className={styles.errorText} size={300}>
+                          {memoryError}
+                        </Text>
+                      ) : null}
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : null}
+
+            {activeTab === 'recommendations' ? (
+              <div className={mergeClasses(styles.tabPanel, styles.tabPanelCard)}>
+                <div className={styles.tabOverviewGrid}>
+                  {recommendationOverviewCards.map(card => (
+                    <div className={styles.overviewCard} key={card.label}>
+                      <Text className={styles.combinedReviewLabel}>{card.label}</Text>
+                      <Text className={styles.overviewValue}>{card.value}</Text>
+                      <Text size={200}>{card.copy}</Text>
+                    </div>
+                  ))}
+                </div>
+                <div className={styles.recommendationSection}>
+                  <div>
+                    <Text className={styles.sectionTitle} size={400} weight="semibold">
+                      Next-exercise recommendations
+                    </Text>
+                    <Text className={styles.helperText} size={300}>
+                      Generate a therapist-facing ranking from approved memory, recent sessions, difficulty progression, and your note for this run. Each result stays inspectable through saved scoring reasons and source evidence.
+                    </Text>
+                  </div>
+
+                  <div className={styles.recommendationComposer}>
+                    <Text size={200}>
+                      Add an optional therapist note to steer this ranking run.
+                    </Text>
+                    <Field label="Therapist note for ranking">
+                      <Textarea
+                        value={recommendationPrompt}
+                        resize="vertical"
+                        placeholder="Example: Keep this playful, avoid moving above medium difficulty, and favour cues that use short verbal models."
+                        onChange={(_, data) => setRecommendationPrompt(data.value)}
+                      />
+                    </Field>
+                    <div className={styles.memoryActionRow}>
+                      <Button
+                        appearance="primary"
+                        disabled={recommendationSaving || !plannerReady || !selectedChildId}
+                        onClick={handleGenerateRecommendation}
+                      >
+                        {recommendationSaving ? 'Generating…' : plannerReady ? 'Generate recommendations' : 'Planner unavailable'}
+                      </Button>
+                      {selectedRecommendationDetail?.target_sound ? (
+                        <Badge appearance="tint" className={styles.scoreBadge}>
+                          Target /{selectedRecommendationDetail.target_sound}/
+                        </Badge>
+                      ) : null}
+                      {selectedRecommendationDetail?.candidate_count ? (
+                        <Badge appearance="tint" className={styles.scoreBadge}>
+                          {selectedRecommendationDetail.candidate_count} ranked candidates
+                        </Badge>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  {recommendationError ? (
+                    <Text className={styles.errorText} size={300}>
+                      {recommendationError}
+                    </Text>
+                  ) : null}
+
+                  {loadingRecommendations && !selectedRecommendationDetail && recommendationHistory.length === 0 ? (
+                    <div className={styles.loading}>
+                      <Spinner size="medium" />
+                    </div>
+                  ) : recommendationHistory.length === 0 && !selectedRecommendationDetail ? (
+                    <div className={styles.emptyState}>
+                      <Text>No recommendation runs have been saved for this child yet. Generate one to compare the ranked options and inspect the evidence behind them.</Text>
+                    </div>
+                  ) : (
+                    <div className={styles.recommendationLayout}>
+                      <div className={styles.recommendationHistoryList}>
+                        <Text className={styles.sectionTitle} size={300} weight="semibold">
+                          Recommendation history
+                        </Text>
+                        <Text className={styles.helperText} size={200}>
+                          Most recent first. Open any saved run to inspect how the ranking was produced.
+                        </Text>
+                        {recommendationHistory.map(recommendation => {
+                          const isSelected = recommendation.id === selectedRecommendationDetail?.id
+
+                          return (
+                            <Button
+                              appearance="subtle"
+                              className={mergeClasses(
+                                styles.recommendationHistoryButton,
+                                isSelected && styles.recommendationHistoryButtonSelected
+                              )}
+                              key={recommendation.id}
+                              onClick={() => {
+                                void onOpenRecommendationDetail(recommendation.id)
+                              }}
+                            >
+                              <div className={styles.recommendationHistoryContent}>
+                                <div className={styles.summaryRow}>
+                                  <Badge appearance="filled" className={styles.scoreBadgeTeal}>
+                                    /{recommendation.target_sound}/
+                                  </Badge>
+                                  {recommendation.top_recommendation ? (
+                                    <Badge appearance="tint" className={styles.scoreBadge}>
+                                      Score {recommendation.top_recommendation.score}
+                                    </Badge>
+                                  ) : null}
+                                </div>
+                                <Text size={300} weight="semibold">
+                                  {recommendation.top_recommendation?.exercise_name || 'Recommendation run'}
+                                </Text>
+                                <Text size={200}>{formatTimestamp(recommendation.created_at)}</Text>
+                                <Text size={200}>{recommendation.rationale}</Text>
+                              </div>
+                            </Button>
+                          )
+                        })}
+                      </div>
+
+                      <div className={styles.recommendationDetail}>
+                        {selectedRecommendationDetail ? (
+                          <>
+                            <div className={styles.memorySummaryGrid}>
+                              <div className={styles.memoryCard}>
+                                <Text className={styles.combinedReviewLabel}>Current target</Text>
+                                <Text size={500} weight="semibold">/{selectedRecommendationDetail.target_sound}/</Text>
+                                <Text size={200}>{formatTimestamp(selectedRecommendationDetail.created_at)}</Text>
+                              </div>
+
+                              <div className={styles.memoryCard}>
+                                <Text className={styles.combinedReviewLabel}>Top score</Text>
+                                <Text size={500} weight="semibold">{selectedRecommendationDetail.top_recommendation_score ?? '—'}</Text>
+                                <Text size={200}>{selectedRecommendationDetail.candidate_count} ranked options logged</Text>
+                              </div>
+
+                              <div className={styles.memoryCard}>
+                                <Text className={styles.combinedReviewLabel}>Therapist note</Text>
+                                <Text size={300}>
+                                  {selectedRecommendationDetail.therapist_constraints?.note || 'No extra therapist constraint note was applied.'}
+                                </Text>
+                              </div>
+                            </div>
+
+                            {selectedRecommendationDetail.top_recommendation ? (
+                              <div className={mergeClasses(styles.recommendationCandidate, styles.recommendationCandidateTop)}>
+                                <div className={styles.summaryRow}>
+                                  <Badge appearance="filled" className={styles.scoreBadgeTeal}>Top recommendation</Badge>
+                                  <Badge appearance="tint" className={styles.scoreBadge}>
+                                    Deterministic score {selectedRecommendationDetail.top_recommendation.score}
+                                  </Badge>
+                                </div>
+                                <Text size={500} weight="semibold">
+                                  {selectedRecommendationDetail.top_recommendation.exercise_name}
+                                </Text>
+                                <Text size={300}>{selectedRecommendationDetail.rationale}</Text>
+                                <Text className={styles.helperText} size={200}>
+                                  Best overall fit from the saved memory and recent-session evidence for this child.
+                                </Text>
+                              </div>
+                            ) : null}
+
+                            {institutionalInsights.length ? (
+                              <div className={styles.sectionBlock}>
+                                <Text className={styles.sectionTitle} size={300} weight="semibold">
+                                  Clinic-level institutional memory
+                                </Text>
+                                <Text className={styles.helperText} size={200}>
+                                  These de-identified clinic patterns come from approved child memory and reviewed therapist outcomes across the clinic. They tune recommendation ranking without becoming child-specific approved facts.
+                                </Text>
+                                {institutionalMemorySnapshot?.summary_text ? (
+                                  <div className={styles.textItem}>
+                                    <Text size={200}>{institutionalMemorySnapshot.summary_text}</Text>
+                                  </div>
+                                ) : null}
+                                {renderInstitutionalInsights(institutionalInsights, styles)}
+                              </div>
+                            ) : null}
+
+                            <div>
+                              <Text className={styles.sectionTitle} size={300} weight="semibold">
+                                Ranked options
+                              </Text>
+                              <Text className={styles.helperText} size={200}>
+                                Review the full ranking when you want to compare alternatives instead of only accepting the top pick.
+                              </Text>
+                            </div>
+
+                            {selectedRecommendationDetail.candidates.map(candidate => {
+                              const metadata = candidate.exercise_metadata || {}
+                              const difficulty = String(metadata.difficulty || metadata.difficulty_level || '').trim()
+                              const targetSound = String(metadata.targetSound || metadata.target_sound || '').trim()
+
+                              return (
+                                <div
+                                  className={mergeClasses(
+                                    styles.recommendationCandidate,
+                                    candidate.rank === 1 && styles.recommendationCandidateTop
+                                  )}
+                                  key={candidate.id}
+                                >
+                                  <div className={styles.sessionHistoryHeader}>
+                                    <div className={styles.sessionHistoryTitleWrap}>
+                                      <div className={styles.summaryRow}>
+                                        <Badge appearance="filled" className={candidate.rank === 1 ? styles.scoreBadgeTeal : styles.scoreBadge}>
+                                          Rank {candidate.rank}
+                                        </Badge>
+                                        <Badge appearance="tint" className={styles.scoreBadge}>Score {candidate.score}</Badge>
+                                        {difficulty ? <Badge appearance="tint" className={styles.scoreBadge}>{difficulty}</Badge> : null}
+                                        {targetSound ? <Badge appearance="tint" className={styles.scoreBadge}>/{targetSound}/</Badge> : null}
+                                      </div>
+                                      <Text className={styles.sessionHistoryTitle} weight="semibold">
+                                        {candidate.exercise_name}
+                                      </Text>
+                                      {candidate.exercise_description ? <Text size={200}>{candidate.exercise_description}</Text> : null}
+                                    </div>
+                                  </div>
+
+                                  <div className={styles.sectionBlock}>
+                                    <Text className={styles.sectionTitle} size={300} weight="semibold">
+                                      Why was this exercise recommended?
+                                    </Text>
+                                    <div className={styles.textItem}>
+                                      {renderMarkdown(candidate.explanation.why_recommended, styles)}
+                                    </div>
+                                    <div className={styles.textItem}>
+                                      {renderMarkdown(candidate.explanation.comparison_to_approved_memory, styles)}
+                                    </div>
+                                  </div>
+
+                                  <div className={styles.sectionBlock}>
+                                    <Text className={styles.sectionTitle} size={300} weight="semibold">
+                                      Ranking factors
+                                    </Text>
+                                    <div className={styles.recommendationFactorList}>
+                                      {Object.entries(candidate.ranking_factors || {}).map(([factorKey, factor]) => (
+                                        <div className={styles.recommendationFactorItem} key={factorKey}>
+                                          <div className={styles.summaryRow}>
+                                            <Badge appearance="tint" className={styles.scoreBadge}>
+                                              {factorKey.replace(/_/g, ' ')}
+                                            </Badge>
+                                            <Badge appearance="tint" className={styles.scoreBadge}>
+                                              {factor.score >= 0 ? '+' : ''}{factor.score}
+                                            </Badge>
+                                          </div>
+                                          <Text size={200}>{factor.reason}</Text>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                  <div className={styles.metricsGrid}>
+                                    <div className={styles.sectionBlock}>
+                                      <Text className={styles.sectionTitle} size={300} weight="semibold">
+                                        Which approved memory items support it?
+                                      </Text>
+                                      {candidate.explanation.supporting_memory_items.length ? (
+                                        <div className={styles.memoryList}>
+                                          {candidate.explanation.supporting_memory_items.map(item => {
+                                            const hydratedItem = childMemoryItemMap.get(item.id) || item
+
+                                            return (
+                                              <div className={styles.memoryCard} key={item.id}>
+                                                <div className={styles.summaryRow}>
+                                                  <Badge appearance="tint" className={styles.scoreBadge}>
+                                                    {memoryCategoryLabels[item.category] || item.category}
+                                                  </Badge>
+                                                  {item.confidence != null ? (
+                                                    <Badge appearance="tint" className={styles.scoreBadge}>
+                                                      {Math.round(item.confidence * 100)}% confidence
+                                                    </Badge>
+                                                  ) : null}
+                                                </div>
+                                                <Text size={300} weight="semibold">{item.statement}</Text>
+                                                {renderEvidenceLinks(hydratedItem.evidence_links, styles, onOpenSession)}
+                                              </div>
+                                            )
+                                          })}
+                                        </div>
+                                      ) : (
+                                        <div className={styles.emptyState}>
+                                          <Text>No approved memory items were attached to this candidate.</Text>
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    <div className={styles.sectionBlock}>
+                                      <Text className={styles.sectionTitle} size={300} weight="semibold">
+                                        Which sessions support it?
+                                      </Text>
+                                      {candidate.explanation.supporting_sessions.length ? (
+                                        <div className={styles.recommendationSessionList}>
+                                          {candidate.explanation.supporting_sessions.map(session => (
+                                            <div className={styles.recommendationSessionItem} key={session.id}>
+                                              <div className={styles.summaryRow}>
+                                                <Badge appearance="tint" className={styles.scoreBadge}>
+                                                  {session.exercise?.name || 'Saved session'}
+                                                </Badge>
+                                                {session.overall_score != null ? (
+                                                  <Badge appearance="tint" className={styles.scoreBadge}>
+                                                    Overall {session.overall_score}
+                                                  </Badge>
+                                                ) : null}
+                                              </div>
+                                              <Text size={200}>{formatTimestamp(session.timestamp)}</Text>
+                                              <Button
+                                                appearance="subtle"
+                                                className={styles.evidenceButton}
+                                                onClick={() => onOpenSession(session.id)}
+                                              >
+                                                Open source session
+                                              </Button>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <div className={styles.emptyState}>
+                                          <Text>No saved sessions were attached to this candidate.</Text>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <div className={styles.sectionBlock}>
+                                    <Text className={styles.sectionTitle} size={300} weight="semibold">
+                                      What evidence might change this recommendation?
+                                    </Text>
+                                    <div className={styles.textItem}>
+                                      {renderMarkdown(candidate.explanation.evidence_that_could_change_recommendation, styles)}
+                                    </div>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </>
+                        ) : (
+                          <div className={styles.emptyState}>
+                            <Text>Select a recommendation run to inspect its rationale and provenance.</Text>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : null}
+
+            {activeTab === 'plan' ? (
+              <div className={mergeClasses(styles.tabPanel, styles.tabPanelCard)}>
+                <div className={styles.tabOverviewGrid}>
+                  {planOverviewCards.map(card => (
+                    <div className={styles.overviewCard} key={card.label}>
+                      <Text className={styles.combinedReviewLabel}>{card.label}</Text>
+                      <Text className={styles.overviewValue}>{card.value}</Text>
+                      <Text size={200}>{card.copy}</Text>
+                    </div>
+                  ))}
+                </div>
+                <div className={styles.planSection}>
+                  <div>
+                    <Text className={styles.sectionTitle} size={400} weight="semibold">
+                      Next-session plan
+                    </Text>
+                  </div>
+
+                  {loadingPlans ? (
+                    <div className={styles.loading}>
+                      <Spinner size="medium" />
+                    </div>
+                  ) : selectedPlan ? (
+                    <div className={styles.planList}>
+                      <div className={styles.planSummaryGrid}>
+                        <div className={styles.planList}>
+                          <div className={styles.summaryRow}>
+                            <Badge appearance="filled" className={mergeClasses(styles.scoreBadge, selectedPlan.status === 'approved' ? styles.scoreBadgeTeal : styles.scoreBadgeInk)}>
+                              {selectedPlan.status === 'approved' ? 'Approved plan' : 'Draft plan'}
+                            </Badge>
+                            <Badge appearance="tint" className={styles.scoreBadge}>
+                              {selectedPlan.draft.estimated_duration_minutes} min
+                            </Badge>
+                          </div>
+
+                          <div className={styles.textItem}>
+                            <div className={styles.textStack}>
+                              <Text size={300} weight="semibold">
+                                {selectedPlan.draft.objective.replace(/[*_#`]/g, '').trim()}
+                              </Text>
+                              {selectedPlan.draft.focus_sound ? <Text size={200}>Target sound: {selectedPlan.draft.focus_sound}</Text> : null}
+                            </div>
+                          </div>
+                        </div>
+
+                        {planConfidence ? <PlanConfidenceGauge confidence={planConfidence} styles={styles} /> : null}
+                      </div>
+
+                      <div>
+                        <Text className={styles.sectionTitle} size={300} weight="semibold">
+                          Activities
+                        </Text>
+                        <div className={styles.planList}>
+                          {selectedPlan.draft.activities.map(activity => (
+                            <div className={styles.planItem} key={`${activity.exercise_id}-${activity.title}`}>
+                              <Text size={300} weight="semibold">
+                                {activity.title}
+                              </Text>
+                              <Text size={200}>
+                                {activity.exercise_name} • {activity.target_duration_minutes} min
+                              </Text>
+                              {renderMarkdown(activity.reason, styles)}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className={styles.metricsGrid}>
+                        <div>
+                          <Text className={styles.sectionTitle} size={300} weight="semibold">
+                            Cues
+                          </Text>
+                          <div className={styles.textList}>
+                            {selectedPlan.draft.therapist_cues.map(cue => (
+                              <div className={styles.textItem} key={cue}>
+                                {renderMarkdown(cue, styles)}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <Text className={styles.sectionTitle} size={300} weight="semibold">
+                            Success markers
+                          </Text>
+                          <div className={styles.textList}>
+                            {selectedPlan.draft.success_criteria.map(criterion => (
+                              <div className={styles.textItem} key={criterion}>
+                                {renderMarkdown(criterion, styles)}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Text className={styles.sectionTitle} size={300} weight="semibold">
+                          Carryover
+                        </Text>
+                        <div className={styles.textList}>
+                          {selectedPlan.draft.carryover.map(item => (
+                            <div className={styles.textItem} key={item}>
+                              {renderMarkdown(item, styles)}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {planMemorySnapshot ? (
+                        <div className={styles.provenanceSection}>
+                          <div className={styles.provenanceHeader}>
+                            <Text className={styles.sectionTitle} size={300} weight="semibold">
+                              Memory that informed this plan
+                            </Text>
+                            <Text className={styles.helperText} size={300}>
+                              This saved snapshot shows the approved child memory that was available when the planner produced this draft.
+                            </Text>
+                          </div>
+
+                          <div className={styles.provenanceMeta}>
+                            <Badge appearance="filled" className={styles.scoreBadgeTeal}>
+                              {planMemoryItems.length || planMemorySnapshot.used_item_ids.length} memory inputs
+                            </Badge>
+                            {planMemorySnapshot.summary_last_compiled_at ? (
+                              <Badge appearance="tint" className={styles.scoreBadge}>
+                                Snapshot {formatTimestamp(planMemorySnapshot.summary_last_compiled_at)}
+                              </Badge>
+                            ) : null}
+                          </div>
+
+                          {planMemoryItems.length ? (
+                            <div className={styles.textList}>
+                              {planMemoryItems.map(item => (
+                                <div className={styles.textItem} key={item.id}>
+                                  <div className={styles.summaryRow}>
+                                    <Badge appearance="tint" className={styles.scoreBadge}>
+                                      {memoryCategoryLabels[item.category] || item.category}
+                                    </Badge>
+                                    <Badge appearance="tint" className={styles.scoreBadge}>
+                                      {item.memory_type}
+                                    </Badge>
+                                    {item.confidence != null ? (
+                                      <Text size={200}>Confidence {Math.round(item.confidence * 100)}%</Text>
+                                    ) : null}
+                                  </div>
+                                  <div className={styles.textStack}>
+                                    <Text size={300} weight="semibold">
+                                      {item.statement}
+                                    </Text>
+                                    {item.updated_at ? <Text size={200}>Reviewed {formatTimestamp(item.updated_at)}</Text> : null}
+                                  </div>
+                                  {renderEvidenceLinks(childMemoryItemMap.get(item.id)?.evidence_links, styles, onOpenSession)}
+                                </div>
+                              ))}
+                            </div>
+                          ) : planMemorySnapshot.summary_text ? (
+                            <div className={styles.textItem}>
+                              {renderMarkdown(planMemorySnapshot.summary_text, styles)}
+                            </div>
+                          ) : (
+                            <div className={styles.emptyState}>
+                              <Text>This plan predates detailed memory snapshots.</Text>
+                            </div>
+                          )}
+                        </div>
+                      ) : null}
+
+                      {selectedPlan.conversation.length ? (
+                        <div>
+                          <Text className={styles.sectionTitle} size={300} weight="semibold">
+                            Recent conversation
+                          </Text>
+                          <div className={styles.planList}>
+                            {selectedPlan.conversation.slice(-2).map((message, index) => (
+                              <div className={styles.conversationItem} key={`${message.role}-${index}-${message.content}`}>
+                                <Text size={200} weight="semibold">
+                                  {message.role === 'user' ? 'Therapist' : 'Planner'}
+                                </Text>
+                                {renderMarkdown(message.content, styles)}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <div className={styles.emptyState}>
+                      <Text>No practice plan has been generated for this saved session yet.</Text>
+                    </div>
+                  )}
+
+                  <label>
+                    <Text className={styles.sectionTitle} size={300} weight="semibold">
+                      {selectedPlan ? 'Refine plan' : 'Planning note'}
+                    </Text>
+                    <textarea
+                      className={styles.planComposer}
+                      value={planPrompt}
+                      onChange={event => setPlanPrompt(event.target.value)}
+                      placeholder={
+                        selectedPlan
+                          ? 'Example: Start with listening and shorten the sequence.'
+                          : 'Example: Keep it playful for home carryover.'
+                      }
+                    />
+                  </label>
+
+                  {planError ? (
+                    <Text className={styles.errorText} size={300}>
+                      {planError}
+                    </Text>
+                  ) : null}
+
+                  <div className={styles.planActions}>
+                    {!selectedPlan ? (
+                      <Button
+                        appearance="primary"
+                        onClick={() => {
+                          void onCreatePlan(planPrompt)
+                        }}
+                        disabled={planSaving || !selectedSession || !plannerReady}
+                      >
+                        {planSaving ? 'Generating…' : plannerReady ? 'Generate plan' : 'Planner unavailable'}
+                      </Button>
+                    ) : (
+                      <>
+                        <Button
+                          appearance="primary"
+                          onClick={() => {
+                            void onRefinePlan(planPrompt)
+                          }}
+                          disabled={planSaving || !planPrompt.trim() || !plannerReady}
+                        >
+                          {planSaving ? 'Updating…' : plannerReady ? 'Refine plan' : 'Planner unavailable'}
+                        </Button>
+                        <Button
+                          appearance="secondary"
+                          onClick={() => {
+                            void onApprovePlan()
+                          }}
+                          disabled={planSaving || selectedPlan.status === 'approved'}
+                        >
+                          {selectedPlan.status === 'approved' ? 'Approved' : 'Approve plan'}
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </Card>
+        </div>
       </div>
     </div>
   )

@@ -15,8 +15,11 @@ import {
 import { ScenarioList } from './ScenarioList'
 import type {
   ChildProfile,
+  ChildMemoryProposal,
+  ChildMemorySummary,
   CustomScenario,
   CustomScenarioData,
+  RecommendationLog,
   Scenario,
 } from '../types'
 import { AVATAR_OPTIONS } from '../types'
@@ -185,6 +188,40 @@ const useStyles = makeStyles({
   library: {
     display: 'grid',
   },
+  memorySignalStrip: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: '12px',
+    '@media (max-width: 900px)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+  memorySignalCard: {
+    display: 'grid',
+    gap: '6px',
+    padding: '12px 14px',
+    border: '1px solid rgba(13, 138, 132, 0.12)',
+    backgroundColor: 'rgba(255, 255, 255, 0.82)',
+  },
+  memorySignalLabel: {
+    color: 'var(--color-text-tertiary)',
+    fontSize: '0.72rem',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.08em',
+    fontWeight: '700',
+  },
+  memorySignalValue: {
+    color: 'var(--color-text-primary)',
+    fontFamily: 'var(--font-display)',
+    fontSize: '1rem',
+    fontWeight: '800',
+    lineHeight: 1.1,
+  },
+  memorySignalCopy: {
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.8rem',
+    lineHeight: 1.45,
+  },
 })
 
 function formatExerciseType(value?: string) {
@@ -194,6 +231,51 @@ function formatExerciseType(value?: string) {
     .split('_')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
+}
+
+function formatSignalTimestamp(value?: string | null) {
+  if (!value) return 'Not run yet'
+
+  return new Date(value).toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
+
+function isRecommendationEvidenceStale({
+  recommendationCreatedAt,
+  memoryCompiledAt,
+  latestSessionAt,
+  pendingProposalCount,
+}: {
+  recommendationCreatedAt?: string | null
+  memoryCompiledAt?: string | null
+  latestSessionAt?: string | null
+  pendingProposalCount: number
+}) {
+  if (!recommendationCreatedAt) {
+    return false
+  }
+
+  const recommendationTimestamp = new Date(recommendationCreatedAt).getTime()
+
+  if (!Number.isFinite(recommendationTimestamp)) {
+    return false
+  }
+
+  if (pendingProposalCount > 0) {
+    return true
+  }
+
+  const memoryTimestamp = memoryCompiledAt ? new Date(memoryCompiledAt).getTime() : Number.NaN
+  if (Number.isFinite(memoryTimestamp) && memoryTimestamp > recommendationTimestamp) {
+    return true
+  }
+
+  const sessionTimestamp = latestSessionAt ? new Date(latestSessionAt).getTime() : Number.NaN
+  return Number.isFinite(sessionTimestamp) && sessionTimestamp > recommendationTimestamp
 }
 
 function isCustomScenario(
@@ -217,6 +299,9 @@ interface DashboardHomeProps {
   selectedChild: ChildProfile | null
   selectedAvatar: string
   selectedScenario: string | null
+  childMemorySummary: ChildMemorySummary | null
+  childMemoryProposals: ChildMemoryProposal[]
+  recommendationHistory: RecommendationLog[]
   launchInFlight: boolean
   scenarios: Scenario[]
   customScenarios: CustomScenario[]
@@ -247,6 +332,9 @@ export function DashboardHome({
   selectedChild,
   selectedAvatar,
   selectedScenario,
+  childMemorySummary,
+  childMemoryProposals,
+  recommendationHistory,
   launchInFlight,
   scenarios,
   customScenarios,
@@ -277,6 +365,17 @@ export function DashboardHome({
     ? selectedScenarioDetail.scenarioData.exerciseType
     : selectedScenarioDetail?.exerciseMetadata?.type
   const stepNumber = selectedScenarioDetail?.exerciseMetadata?.stepNumber
+  const activeTarget = childMemorySummary?.summary.targets?.[0]?.statement ?? null
+  const lastMemoryRefresh = childMemorySummary?.last_compiled_at ?? null
+  const pendingProposalCount = childMemoryProposals.length
+  const latestRecommendation = recommendationHistory[0] ?? null
+  const topRecommendation = latestRecommendation?.top_recommendation ?? null
+  const recommendationEvidenceStale = isRecommendationEvidenceStale({
+    recommendationCreatedAt: latestRecommendation?.created_at,
+    memoryCompiledAt: childMemorySummary?.last_compiled_at,
+    latestSessionAt: selectedChild?.last_session_at,
+    pendingProposalCount,
+  })
   const heroHint = selectedScenarioDetail
     ? 'Choose the next exercise, launch a guided session, or review saved progress for this child.'
     : 'Choose a child and exercise to launch a guided session, or open progress review to look back before you start.'
@@ -384,6 +483,86 @@ export function DashboardHome({
             </div>
           </div>
         </div>
+
+        {selectedChild ? (
+          <>
+            <div className={styles.memorySignalStrip}>
+              <div className={styles.memorySignalCard}>
+                <Text className={styles.memorySignalLabel}>Active memory</Text>
+                <Text className={styles.memorySignalValue}>
+                  {childMemorySummary?.source_item_count ?? 0}
+                </Text>
+                <Text className={styles.memorySignalCopy}>
+                  {activeTarget || 'No approved memory has been compiled for this child yet.'}
+                </Text>
+              </div>
+
+              <div className={styles.memorySignalCard}>
+                <Text className={styles.memorySignalLabel}>Needs review</Text>
+                <Text className={styles.memorySignalValue}>{pendingProposalCount}</Text>
+                <Text className={styles.memorySignalCopy}>
+                  {pendingProposalCount
+                    ? 'Therapist review is waiting in the progress dashboard.'
+                    : 'No pending memory proposals are waiting right now.'}
+                </Text>
+              </div>
+
+              <div className={styles.memorySignalCard}>
+                <Text className={styles.memorySignalLabel}>Last memory refresh</Text>
+                <Text className={styles.memorySignalValue}>
+                  {lastMemoryRefresh ? 'Current' : 'Not started'}
+                </Text>
+                <Text className={styles.memorySignalCopy}>
+                  {lastMemoryRefresh
+                    ? `Compiled ${formatSignalTimestamp(lastMemoryRefresh)}.`
+                    : 'Approved memory will appear here after the first review cycle.'}
+                </Text>
+              </div>
+            </div>
+
+            <div className={styles.memorySignalStrip}>
+              <div className={styles.memorySignalCard}>
+                <Text className={styles.memorySignalLabel}>Top recommendation</Text>
+                <Text className={styles.memorySignalValue}>
+                  {topRecommendation?.exercise_name || 'No saved run'}
+                </Text>
+                <Text className={styles.memorySignalCopy}>
+                  {topRecommendation?.rationale || 'Generate recommendations in the progress dashboard to surface the next suggested exercise here.'}
+                </Text>
+              </div>
+
+              <div className={styles.memorySignalCard}>
+                <Text className={styles.memorySignalLabel}>Last recommendation run</Text>
+                <Text className={styles.memorySignalValue}>
+                  {formatSignalTimestamp(latestRecommendation?.created_at)}
+                </Text>
+                <Text className={styles.memorySignalCopy}>
+                  {latestRecommendation
+                    ? `Target sound ${latestRecommendation.target_sound ? `/${latestRecommendation.target_sound}/` : 'not captured'} with ${latestRecommendation.candidate_count} ranked option${latestRecommendation.candidate_count === 1 ? '' : 's'}.`
+                    : 'No saved recommendation run exists for this child yet.'}
+                </Text>
+              </div>
+
+              <div className={styles.memorySignalCard}>
+                <Text className={styles.memorySignalLabel}>Evidence status</Text>
+                <Text className={styles.memorySignalValue}>
+                  {!latestRecommendation ? 'Not run' : recommendationEvidenceStale ? 'Stale' : 'Current'}
+                </Text>
+                <Text className={styles.memorySignalCopy}>
+                  {!latestRecommendation
+                    ? 'A saved recommendation run is required before evidence freshness can be evaluated.'
+                    : pendingProposalCount > 0
+                      ? 'Pending memory proposals mean the saved recommendation may be missing newly proposed evidence.'
+                      : childMemorySummary?.last_compiled_at && new Date(childMemorySummary.last_compiled_at).getTime() > new Date(latestRecommendation.created_at).getTime()
+                        ? 'Approved child memory changed after the saved recommendation run.'
+                        : selectedChild.last_session_at && new Date(selectedChild.last_session_at).getTime() > new Date(latestRecommendation.created_at).getTime()
+                          ? 'A newer reviewed session exists than the saved recommendation run.'
+                          : 'Supporting sessions and approved memory are aligned with the latest saved run.'}
+                </Text>
+              </div>
+            </div>
+          </>
+        ) : null}
       </Card>
 
       <Card className={styles.exerciseSection}>
@@ -398,7 +577,6 @@ export function DashboardHome({
           onDeleteCustomScenario={onDeleteCustomScenario}
           launchInFlight={launchInFlight}
           title="Exercise library"
-          helperText="Choose an exercise to launch next."
           showFooter={false}
           showCustomCreateTrigger={false}
           compactChildMode

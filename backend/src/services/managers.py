@@ -178,7 +178,11 @@ CRITICAL INTERACTION GUIDELINES:
             return None
 
     def create_agent(
-        self, scenario_id: str, scenario_data: Dict[str, Any], avatar_config: Optional[Dict[str, Any]] = None
+        self,
+        scenario_id: str,
+        scenario_data: Dict[str, Any],
+        avatar_config: Optional[Dict[str, Any]] = None,
+        runtime_personalization: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Create a new virtual agent for a scenario.
@@ -203,9 +207,23 @@ CRITICAL INTERACTION GUIDELINES:
         max_tokens = scenario_data.get("modelParameters", {}).get("max_tokens", 2000)
 
         if self.use_azure_ai_agents and self.project_client:
-            agent_id = self._create_azure_agent(scenario_id, combined_instructions, model_name, temperature, max_tokens)
+            agent_id = self._create_azure_agent(
+                scenario_id,
+                combined_instructions,
+                model_name,
+                temperature,
+                max_tokens,
+                runtime_personalization=runtime_personalization,
+            )
         else:
-            agent_id = self._create_local_agent(scenario_id, combined_instructions, model_name, temperature, max_tokens)
+            agent_id = self._create_local_agent(
+                scenario_id,
+                combined_instructions,
+                model_name,
+                temperature,
+                max_tokens,
+                runtime_personalization=runtime_personalization,
+            )
 
         if avatar_config and agent_id in self.agents:
             self.agents[agent_id]["avatar_config"] = avatar_config
@@ -219,6 +237,7 @@ CRITICAL INTERACTION GUIDELINES:
         model: str,
         temperature: float,
         max_tokens: int,
+        runtime_personalization: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Create an agent using Azure AI Agent Service."""
 
@@ -249,6 +268,7 @@ CRITICAL INTERACTION GUIDELINES:
                     model=model,
                     temperature=temperature,
                     max_tokens=max_tokens,
+                    runtime_personalization=runtime_personalization,
                 )
 
                 return agent_id
@@ -264,6 +284,7 @@ CRITICAL INTERACTION GUIDELINES:
         model: str,
         temperature: float,
         max_tokens: int,
+        runtime_personalization: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Create a local agent configuration without Azure AI Agent Service."""
         try:
@@ -277,6 +298,7 @@ CRITICAL INTERACTION GUIDELINES:
                 model=model,
                 temperature=temperature,
                 max_tokens=max_tokens,
+                runtime_personalization=runtime_personalization,
             )
 
             logger.info("Created local agent configuration: %s", agent_id)
@@ -305,6 +327,7 @@ CRITICAL INTERACTION GUIDELINES:
         model: str,
         temperature: float,
         max_tokens: int,
+        runtime_personalization: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Create standardized agent configuration."""
         result: Dict[str, Any] = {
@@ -315,6 +338,7 @@ CRITICAL INTERACTION GUIDELINES:
             "model": model,
             "temperature": temperature,
             "max_tokens": max_tokens,
+            "runtime_personalization": runtime_personalization or None,
         }
 
         if is_azure_agent:

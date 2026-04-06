@@ -1,658 +1,941 @@
 # Wulo Therapist User Guide
+**Version:** 1.0
+**Last Updated:** April 6, 2026
+**Platform:** Web application (desktop and tablet supported)
 
-**Version:** 1.0  
-**Last updated:** April 4, 2026  
-**Platform:** Web application for desktop and tablet
+![Wulo therapist workspace overview](screenshots/title-page-overview.png)
 
-## Table of contents
+## Table of Contents
 
-1. [Welcome to Wulo](#welcome-to-wulo)
-2. [Getting started](#getting-started)
-3. [Therapist dashboard](#therapist-dashboard)
-4. [Managing child profiles](#managing-child-profiles)
-5. [Built-in exercise library](#built-in-exercise-library)
-6. [Creating custom exercises](#creating-custom-exercises)
-7. [Running a practice session](#running-a-practice-session)
-8. [Understanding session results](#understanding-session-results)
-9. [Progress dashboard and analytics](#progress-dashboard-and-analytics)
-10. [AI practice planner](#ai-practice-planner)
-11. [Session review and history](#session-review-and-history)
-12. [Settings and configuration](#settings-and-configuration)
-13. [Best practices for therapists](#best-practices-for-therapists)
-14. [Glossary](#glossary)
-15. [Troubleshooting](#troubleshooting)
+1. [Welcome to Wulo](#1-welcome-to-wulo)
+2. [Getting Started](#2-getting-started)
+   1. [Signing in](#21-signing-in)
+   2. [Choosing a mode](#22-choosing-a-mode)
+   3. [Consent and safe use framing](#23-consent-and-safe-use-framing)
+3. [Understanding the Therapist Workspace](#3-understanding-the-therapist-workspace)
+   1. [Home](#31-home)
+   2. [Dashboard](#32-dashboard)
+   3. [Workspace](#33-workspace)
+4. [Managing the Active Child](#4-managing-the-active-child)
+5. [Exercise Library and Session Preparation](#5-exercise-library-and-session-preparation)
+6. [Running a Practice Session](#6-running-a-practice-session)
+7. [Reviewing a Saved Session](#7-reviewing-a-saved-session)
+8. [Child Memory: What It Is and How It Works](#8-child-memory-what-it-is-and-how-it-works)
+   1. [Memory overview cards](#81-memory-overview-cards)
+   2. [Approved memory sections](#82-approved-memory-sections)
+   3. [Therapist memory note](#83-therapist-memory-note)
+   4. [Pending proposals](#84-pending-proposals)
+   5. [Memory refresh and evidence freshness](#85-memory-refresh-and-evidence-freshness)
+9. [Recommendations: Inspectable Next-Exercise Suggestions](#9-recommendations-inspectable-next-exercise-suggestions)
+   1. [Recommendation overview cards](#91-recommendation-overview-cards)
+   2. [Generating a recommendation run](#92-generating-a-recommendation-run)
+   3. [Recommendation history](#93-recommendation-history)
+   4. [Inspecting the selected recommendation](#94-inspecting-the-selected-recommendation)
+   5. [Why the system recommended an exercise](#95-why-the-system-recommended-an-exercise)
+   6. [Institutional memory](#96-institutional-memory)
+   7. [Evidence status on the therapist home surface](#97-evidence-status-on-the-therapist-home-surface)
+10. [Planning the Next Session](#10-planning-the-next-session)
+    1. [Plan overview cards](#101-plan-overview-cards)
+    2. [Generating a plan](#102-generating-a-plan)
+    3. [Refining a plan](#103-refining-a-plan)
+    4. [Approving a plan](#104-approving-a-plan)
+    5. [Memory that informed this plan](#105-memory-that-informed-this-plan)
+11. [Charts and Dashboard Interpretation](#11-charts-and-dashboard-interpretation)
+12. [Session History and Review Workflow](#12-session-history-and-review-workflow)
+13. [Custom Exercises and Local Management](#13-custom-exercises-and-local-management)
+14. [Workspace Settings and Everyday Checks](#14-workspace-settings-and-everyday-checks)
+15. [Best-Practice Tips for Therapists](#15-best-practice-tips-for-therapists)
+16. [Glossary](#16-glossary)
+17. [Troubleshooting](#17-troubleshooting)
 
-## Welcome to Wulo
+## 1. Welcome to Wulo
 
-Wulo is a therapist-supervised speech practice platform designed to support short, structured sessions with children. It combines an exercise library, an AI voice buddy, real-time pronunciation feedback, and therapist-facing review tools so you can run practice sessions and then quickly decide what to do next.
+Wulo is a therapist-supervised AI speech practice platform for structured articulation and phonological awareness work. It helps children practise with a voice buddy while keeping the therapist in control of review, interpretation, and next-step planning.
 
-Wulo is intended for speech-language therapists and other supervised practitioners working on articulation, listening discrimination, and early sound practice. It is especially useful when you want practice to feel engaging for the child while still keeping the session organised and clinically purposeful.
+It is designed for therapists and clinical educators supporting children in clinics, schools, or supervised home practice.
 
-At a high level, the workflow is simple:
+At a high level, the workflow is:
 
-1. Select a child profile.
-2. Choose a built-in or custom exercise.
-3. Start the session and let the child interact with the AI buddy.
-4. Review pronunciation, engagement, and session-quality data.
-5. Record your own feedback and plan the next step.
+1. Choose the active child.
+2. Choose an exercise and avatar.
+3. Run a guided session.
+4. Review the saved session.
+5. Review child memory and recommendations.
+6. Generate or refine a next-session plan.
 
-Wulo supports practice. It does not replace clinical judgement, diagnosis, or therapist-led intervention planning.
+The key principle is simple: Wulo is a practice and review tool, not a diagnostic tool. It can surface patterns, suggestions, and evidence, but it does not replace therapist judgement.
 
-> Note: Wulo should be used in supervised settings. A therapist or responsible adult should remain nearby during child sessions.
+### What Wulo helps you do
 
-![Wulo therapist home screen placeholder](screenshots/therapist-home.png)
+- Deliver structured practice with an AI buddy.
+- Review pronunciation and engagement results.
+- Preserve therapist-approved child memory over time.
+- Inspect recommendation evidence instead of treating AI suggestions as black-box output.
+- Create therapist-guided next-session plans.
 
-## Getting started
+> Note:
+> Wulo supports supervised practice. It should be used alongside professional judgement, not instead of it.
 
-### Logging in
+![Therapist home and review workflow](screenshots/welcome-workflow.png)
 
-Wulo supports sign-in through Google and Microsoft. When you open the app in a browser, you are taken to the sign-in screen. Choose your provider and complete sign-in as you normally would.
+## 2. Getting Started
 
-After authentication, the platform keeps your session active so you do not need to sign in again each time you refresh during normal use. If the session expires, Wulo returns you to the sign-in screen.
+### 2.1 Signing in
 
-To log in:
+Therapists can sign in with Microsoft or Google. On the sign-in screen, choose the provider you normally use for work. After sign-in, Wulo keeps your session active until it expires, so you do not need to sign in again each time you return during normal use.
+
+If the session expires, Wulo returns you to the login screen and asks you to sign in again.
+
+To sign in:
 
 1. Open Wulo in your browser.
-2. Select either the Google or Microsoft sign-in option.
-3. Complete authentication.
-4. Wait for the app to open the mode selection screen.
+2. Select `Continue with Microsoft` or `Continue with Google`.
+3. Complete the sign-in process.
+4. Wait for Wulo to load your workspace.
 
-> Tip: Use the same sign-in provider consistently if your organisation uses more than one account type.
+> Tip:
+> If your organisation uses more than one account, try to use the same sign-in provider each time so your normal therapist workspace opens consistently.
 
-### Choosing therapist mode or child mode
+![Sign-in screen](screenshots/sign-in-screen.png)
 
-After sign-in, Wulo shows a mode selector. This helps keep therapist tools and child-facing tools separate.
+### 2.2 Choosing a mode
 
-| Mode | Best for | Main features |
+After sign-in, Wulo asks which workspace mode you want to use.
+
+| Mode | Intended user | What is visible |
 | --- | --- | --- |
-| Therapist mode | SLTs, supervisors, staff | Exercise selection, analytics, session review, AI planner, settings, custom exercise authoring |
-| Child mode | Child-facing use during practice | Simplified exercise selection, AI buddy interaction, immediate session feedback |
+| Therapist mode | Therapist or supervisor | Therapist home, dashboard review workspace, planning, memory review, recommendations, workspace settings |
+| Child mode | Child during a session | Simplified practice home and live session surfaces |
 
-Use therapist mode when preparing a session, reviewing results, adjusting settings, or creating exercises. Use child mode when the child is ready to work directly with the AI buddy.
+Therapists usually prepare the session in Therapist mode, then either switch to Child mode or hand the device over once the practice is ready to begin.
 
-### First-time onboarding
+A short onboarding screen appears before first use in that browser. It reminds the therapist to confirm adult access, choose the child and exercise, and stay nearby during practice.
 
-On first use, therapists may be asked to complete a short onboarding flow.
+To choose a mode:
 
-This typically includes:
+1. Sign in.
+2. Select `Therapist mode` when you want review and planning tools.
+3. Select `Child mode` when the child is ready to practise.
+4. Use the Workspace page later if you need to switch modes.
 
-1. Confirming a therapist PIN so therapist-only areas stay protected.
-2. Reading the supervised-practice consent.
-3. Acknowledging privacy and safe-use notes before beginning.
+### 2.3 Consent and safe use framing
 
-> Note: Consent acknowledgement is required before the first child session can start.
+Before the first child session, Wulo asks the therapist to acknowledge supervised-practice consent.
 
-![Onboarding flow placeholder](screenshots/onboarding-flow.png)
+This consent makes three things clear:
 
-## Therapist dashboard
+- Wulo is intended for supervised practice.
+- It does not replace therapist judgement or diagnosis.
+- Therapists remain responsible for interpreting results and deciding next steps.
 
-The therapist dashboard is the main control area. It is designed to let you move quickly between exercise setup, child selection, and progress review.
+To acknowledge consent:
 
-### Main areas of the dashboard
+1. Read the supervised-practice message.
+2. Tick the acknowledgement box.
+3. Select `Acknowledge and continue`.
 
-The dashboard typically includes:
+> Note:
+> Wulo does not currently use a therapist PIN flow. The implemented first-use steps are the onboarding screen plus supervised-practice consent acknowledgement.
 
-- A welcome or hero section with the Wulo mascot and quick-start cues.
-- A button to create a custom exercise.
-- A grid or canvas of built-in exercises.
-- A sidebar with navigation and child selection.
+## 3. Understanding the Therapist Workspace
 
-The sidebar gives you access to:
+The therapist-facing experience has three different surfaces. They work together, but each has a different job.
 
-- Home
-- Dashboard
-- Settings
-- Child profile selector
-- Logout
+### 3.1 Home
 
-### How to navigate
+The therapist home screen is the launch and preparation surface. It is where you choose who is practising, which buddy the child will see, which exercise is active, and whether you want to start practice or move into review.
 
-1. Open therapist mode.
-2. Use the sidebar to move between the home view, the analytics dashboard, and settings.
-3. Use the child selector near the top of the navigation area to choose whose data you are viewing.
-4. Return to Home whenever you want to select an exercise and begin a new session.
+On the home screen you can see:
 
-On smaller screens, the navigation may collapse so the main content has more space.
+- The child selector.
+- The avatar selector.
+- The selected exercise context.
+- The `Start session` action.
+- The `Review progress` action.
+- The exercise library below.
 
-> Tip: Before reviewing analytics, always check which child profile is active. Dashboard data follows the selected child.
+The compact insight cards on the home surface are quick signals only. Full review happens in the dashboard workspace.
 
-![Therapist dashboard placeholder](screenshots/dashboard-home.png)
+#### Compact insight cards on Home
 
-## Managing child profiles
+| Card | What it means | How to use it |
+| --- | --- | --- |
+| Active memory | How many approved child-memory items currently exist, with a short leading example | Use this as a quick reminder of the child’s current working picture, not as a full case summary |
+| Needs review | How many pending memory proposals are waiting for therapist review | If this number is above zero, consider checking the dashboard before relying on older recommendations |
+| Last memory refresh | Whether approved memory has been compiled recently | This tells you whether therapist-reviewed memory is current enough to support planning |
+| Top recommendation | The current top-ranked saved recommendation, if one exists | Use it as a prompt to review, not as an automatic instruction |
+| Last recommendation run | When recommendations were last generated and how many options were ranked | Helps you judge how recent the suggestion is |
+| Evidence status | Whether the saved recommendation evidence is current, stale, or not yet run | Review this before treating any recommendation as reliable for today’s session |
 
-Child profiles help Wulo keep practice sessions, scores, and therapist notes organised per child.
+> Tip:
+> Think of the home cards as traffic lights. They tell you where to look next, but they are not the full clinical review.
 
-### What a child profile is used for
+![Therapist home surface](screenshots/therapist-home-surface.png)
 
-Each child profile acts as the container for:
+### 3.2 Dashboard
 
-- Saved sessions
-- Session scores and metrics
-- Therapist notes
-- Practice plans
-- Progress over time
+The dashboard is the deep review workspace for one active child. This is where therapists inspect saved sessions, child memory, recommendations, and plans in one place.
 
-### Selecting a child
+The dashboard has four main tabs:
 
-To select a child:
+- `Session detail`
+- `Memory`
+- `Recommendations`
+- `Plan`
 
-1. Open therapist mode.
-2. Find the child selector in the sidebar or top control area.
-3. Choose the child's name.
-4. Confirm that the selected child remains visible before you start a session.
+It also includes a child list, session history, summary cards at the top, and review charts that help you understand the child’s recent work over time.
 
-Once a child is active, any new session, review, or plan is tied to that profile.
+Use the dashboard when you want to:
 
-### What therapists should check before starting
+1. Open a saved session.
+2. Review evidence in more detail.
+3. Approve or reject memory proposals.
+4. Inspect why an exercise was recommended.
+5. Generate, refine, or approve a next-session plan.
 
-Before each session, confirm:
+### 3.3 Workspace
 
-1. The correct child is selected.
-2. You are looking at the right sound target or current therapy goal.
-3. The previous session notes match the plan for today.
+The Workspace page is the settings surface for everyday session setup. It is where you:
 
-> Tip: Treat the active child indicator as part of your pre-session checklist. It prevents data being attached to the wrong profile.
+- Change therapist versus child mode.
+- Confirm the active child.
+- Change the active practice buddy or avatar.
 
-## Built-in exercise library
+It also shows a simple summary of the current role, current mode, current child, and current buddy so you can confirm that the environment is set correctly.
 
-Wulo includes a library of structured exercise types that support both receptive and expressive speech work. The library spans common sound targets such as /k/, /r/, /s/, /sh/, /th/, and contrastive listening activities.
+The active child should stay aligned across Therapist home, Dashboard, and Workspace. If you change it in one place, your review context should follow that child.
 
-### Exercise types available
+![Workspace settings page](screenshots/workspace-settings.png)
 
-| Exercise type | What it supports | What the child does | Speaking required |
-| --- | --- | --- | --- |
-| Listening minimal pairs | Auditory discrimination | Listens to contrasting words and chooses the correct picture or option | No |
-| Silent sorting | Sound categorisation | Sorts words or pictures into sound groups | No |
-| Sound isolation | Isolated production | Repeats the target sound on its own | Yes |
-| Vowel blending | Consonant-vowel blending | Repeats sound-vowel combinations such as consonant plus long or short vowel patterns | Yes |
-| Word repetition | Single-word production | Repeats target words after the AI buddy | Yes |
-| Minimal pairs | Contrastive production | Repeats paired words that differ by one sound | Yes |
-| Sentence repetition | Connected speech practice | Repeats short target-rich sentences | Yes |
-| Guided prompt | Carryover and conversational practice | Responds to guided questions or story prompts using target sounds | Yes |
+## 4. Managing the Active Child
 
-### Clinical progression
+Wulo uses an active-child model. This means the app is always working in the context of one selected child at a time.
 
-The library supports a useful progression from easier receptive tasks into harder expressive tasks.
+When you change the active child, all of the following change with it:
 
-One practical order is:
+- Saved sessions.
+- Review charts.
+- Child memory.
+- Recommendation history.
+- Planning context.
 
-1. Listening minimal pairs
-2. Silent sorting
-3. Sound isolation
-4. Vowel blending
-5. Word repetition
-6. Minimal pairs
-7. Sentence repetition
-8. Guided prompt or story-based carryover
+You can switch the active child from therapist-facing surfaces such as the sidebar child list, the child dropdown, or the home screen child selector.
 
-This makes it easier to match an exercise to the child's current level rather than jumping straight into harder speaking tasks.
+To change the active child safely:
 
-### Selecting a built-in exercise
+1. Check the current child name before starting or reviewing anything.
+2. Open the child selector or child list.
+3. Select the correct child.
+4. Wait for the dashboard or home surface to refresh.
+5. Re-check the child name before continuing.
 
-1. Open the therapist dashboard or child home area.
-2. Browse the exercise cards.
-3. Look for the exercise name, target sound, and difficulty label.
-4. Select the card you want.
-5. Continue to session launch.
+This matters because Wulo does not treat sessions, memory, recommendations, and plans as separate floating items. They all follow the active child context.
 
-> Tip: If a child is struggling in expressive tasks, step back to a receptive task rather than repeating the same difficult activity.
+> Tip:
+> Confirm the active child before launching a session, reviewing recommendations, or approving memory. This is one of the most important everyday checks in Wulo.
 
-![Exercise library placeholder](screenshots/exercise-library.png)
+### If the wrong child context appears
 
-## Creating custom exercises
+1. Open the therapist shell and verify the active child name.
+2. Re-select the correct child from the child list or selector.
+3. Re-open the dashboard for that child.
+4. Check that the session history and summary cards now match the correct case.
 
-Custom exercises let you adapt Wulo to a child's specific goals, vocabulary, or therapy sequence.
+## 5. Exercise Library and Session Preparation
 
-### When to create a custom exercise
+The exercise library sits on the therapist home screen below the main launch area. It is the main place to choose what the child will practise next.
 
-Create one when:
+Wulo includes both built-in exercises and custom exercises.
 
-- The built-in library does not match the child's current target.
-- You want to use a personalised word list.
-- You want to simplify or increase difficulty.
-- You want a more specific therapist prompt.
+- Built-in exercises give you a structured library organised by step, activity type, and target sound.
+- Custom exercises let you add your own therapist-authored practice items for a particular child or target.
 
-### Fields in the custom exercise editor
+Exercise cards and filters help you see useful context quickly, including:
 
-The custom exercise editor includes fields such as:
+- Target sound badges.
+- Exercise type labels.
+- Difficulty labels where available.
+- Step-based browsing for progression.
 
-| Field | What to enter |
-| --- | --- |
-| Name | Short label for the exercise |
-| Description | Clinical purpose or context |
-| Exercise type | One of the supported exercise structures |
-| Target sound | The sound or sound pattern being practised |
-| Target words | Comma-separated words or targets |
-| Difficulty | Easy, medium, or hard |
-| Child-facing prompt | The instruction the child hears or sees |
-| System prompt | Optional guidance that shapes the AI buddy behaviour |
+To prepare a session:
 
-### Creating a new custom exercise
+1. Choose the active child.
+2. Choose the avatar or practice buddy.
+3. Browse or filter the exercise library.
+4. Select the exercise you want.
+5. Start the session.
 
-1. Open therapist mode.
-2. Select Create Exercise.
-3. Enter the exercise name and description.
-4. Choose the exercise type.
-5. Add the target sound and target words.
-6. Choose the difficulty level.
-7. Add a clear child-facing prompt.
-8. Save the exercise.
+On the therapist home surface, you can start in two ways:
 
-After saving, the exercise becomes available in your exercise list.
+1. Select an exercise and use the main `Start session` button.
+2. Select an exercise card directly from the library to move straight into session launch.
 
-### Editing, deleting, exporting, and importing
+This makes it easy to use the home page either as a slower preparation space or a quick-start surface.
 
-Wulo supports management actions for custom exercises so you can reuse and share them.
+### A practical progression through exercise types
 
-You can usually:
+Wulo supports a sensible progression from easier listening work towards more expressive speech work, but it does not force a single clinical sequence.
 
-1. Open an existing custom exercise to edit it.
-2. Delete it if it is no longer needed.
-3. Export it as JSON for backup or sharing.
-4. Import a JSON file to restore or reuse an exercise on another device.
+A common pattern is:
 
-> Note: Custom exercises are stored in browser storage. If browser data is cleared, locally saved custom exercises may be lost unless you have exported them.
+1. Listening minimal pairs.
+2. Silent sorting.
+3. Sound isolation.
+4. Vowel blending.
+5. Word repetition.
+6. Minimal pairs or sentence work.
+7. Guided prompt or carryover conversation.
 
-![Custom exercise editor placeholder](screenshots/custom-exercise-editor.png)
+> Note:
+> Use progression as a clinical guide, not a rigid rule. A child may need to move back to an easier listening or cueing task before moving forward again.
 
-## Running a practice session
+![Exercise library and filters](screenshots/exercise-library.png)
 
-Wulo's session flow is designed to be quick. The therapist sets up the session, the AI buddy takes the child through the exercise, and the platform returns results at the end.
+## 6. Running a Practice Session
 
-### Before the child begins
+A Wulo session begins once the child, exercise, and buddy are selected.
 
-Complete this short setup:
+### What the live session includes
 
-1. Select the correct child profile.
+During a session, Wulo can show:
+
+- The buddy video or avatar panel.
+- The microphone control for speaking activities.
+- A live conversation panel.
+- Exercise-specific activity panels for tasks such as listening minimal pairs, silent sorting, sound isolation, or vowel blending.
+- Live speaking feedback for relevant activities.
+
+The exact layout depends on the activity type. Receptive exercises show more task panels, while speaking tasks rely more on voice interaction and live feedback.
+
+### How to run a session
+
+1. Confirm the active child.
 2. Choose the exercise.
-3. Select an avatar if prompted.
-4. Confirm audio readiness.
-5. Hand the device to the child only after the session is ready.
+3. Choose the avatar.
+4. Start the session.
+5. Let the AI buddy guide the child through the practice.
+6. Support the child as needed while staying nearby.
+7. End the session and review the saved results.
 
-### Session launch overlay
+### Live interaction and transcript behaviour
 
-After exercise selection, Wulo shows a launch overlay while the session agent is prepared. This helps ensure the avatar, voice pipeline, and exercise context are ready before the child begins.
+The AI buddy speaks first to open the session. For child sessions, the screen stays simple and the conversation appears in the transcript panel as it unfolds.
 
-During this step:
+For speaking activities, the microphone stays available once the session is ready. For listening or sorting tasks, the interactive task panel may be more central than the microphone.
 
-- The AI buddy is prepared for the selected scenario.
-- The interface waits for the voice session to be ready.
-- The child should not start speaking until the active session screen appears.
+### How sessions finish and save
 
-> Note: Avoid refreshing during the launch overlay. Refreshing may interrupt setup and require the session to start again.
+Once the live interaction finishes, Wulo saves the session so it can feed review, memory, recommendations, and planning.
 
-### Session screen layout
+> Tip:
+> A live session is only the first step. The real clinical value comes from reviewing the saved evidence afterwards.
 
-The active session screen has two main areas.
+![Live practice session](screenshots/live-session-screen.png)
 
-**Left side**
+## 7. Reviewing a Saved Session
 
-- Large avatar or video area
-- Microphone control
-- Inline pronunciation feedback after attempts
+Saved sessions are reviewed from the dashboard. Open the active child, then choose a session from the history list. The `Session detail` tab is the place for full review.
 
-**Right side**
+### How to open a saved session
 
-- Live transcript of the interaction
-- Buddy and child messages
-- Therapist controls or notes area, depending on context
+1. Open the dashboard.
+2. Confirm the active child.
+3. Use the session history list on the left.
+4. Select the session you want to inspect.
+5. Stay on `Session detail` for the full review.
 
-For some exercise types, additional activity panels appear, such as picture choices, sorting targets, or sound cues.
+### What you see in Session detail
 
-### During the session
+The Session detail tab includes several layers of review.
 
-The AI buddy leads the exercise. Depending on the exercise type, the child may listen, choose, sort, or speak.
+#### Summary strip at the top of the dashboard
 
-For speaking tasks, the typical flow is:
+At the top of the dashboard you will usually see a selected-child summary and, when enough data exists, trend or sound summaries. This gives context before you open an individual session.
 
-1. The buddy models or prompts the target.
-2. The child uses the microphone.
-3. Wulo processes the attempt.
-4. Inline word-level feedback appears.
-5. The buddy responds and moves to the next prompt.
+#### Session overview cards
 
-The therapist can stay nearby, encourage the child, and step in if attention or regulation becomes a concern.
+When a session is selected, the top cards in `Session detail` show:
 
-### Ending the session
+- Session date.
+- Overall score.
+- Transcript turns.
 
-Sessions end when the planned interaction completes or when the session is intentionally stopped. Once the session closes, Wulo opens the assessment view automatically.
+This is a quick orientation layer before you read deeper.
 
-> Tip: Let the child complete the turn structure where possible. Consistent turn-taking produces cleaner review data and a more reliable comparison across sessions.
+#### Session analysis
 
-![Session screen placeholder](screenshots/session-screen.png)
+The session analysis area brings together the overall profile of the session. It uses a radar-style view and score bars for articulation and engagement areas such as target sound accuracy, clarity, consistency, task completion, willingness to retry, and self-correction attempts.
 
-## Understanding session results
+Clinically, this can help you tell the difference between:
 
-At the end of a session, Wulo displays the assessment panel. This is the main post-session review area for the therapist.
+- A child who was engaged but not yet accurate.
+- A child who was accurate in parts but inconsistent.
+- A child who may have needed more support, more time, or a lower task load.
 
-### Overall score
+#### Pronunciation review
 
-The overall score is a summary signal that combines different aspects of the session. It is helpful for quick scanning, but it should not be treated as the only interpretation of the child's performance.
+The pronunciation review area shows saved speech scores and, when available, a word-level heatmap so you can see which words or attempts were easier or harder.
 
-Use it as a pointer, then review the detail beneath it.
+#### Review summary
 
-### Articulation metrics
+The review summary combines several therapist-friendly elements:
 
-The articulation area usually includes measures such as:
+- Celebration.
+- Highlights.
+- Next steps.
+- Therapist note.
 
-- Target sound accuracy
-- Overall clarity
-- Consistency
+This area is useful for preparing your clinical summary or next-session focus.
 
-These help you decide whether the child was able to produce the intended target and whether performance stayed stable across attempts.
+#### Transcript access
 
-### Engagement metrics
+The transcript area shows the saved conversation. This can help when you want to check how the child responded, what the buddy asked, or whether a moment in the session should be interpreted with more caution.
 
-The engagement area gives a useful view of how the child participated, not just how they sounded.
+#### Therapist feedback markers
 
-Common indicators include:
+If feedback has been saved, the session can be marked as:
 
-- Task completion
-- Willingness to retry
-- Self-correction attempts
+- `Helpful session`
+- `Needs follow-up`
 
-These are especially useful when a low speech score may actually reflect fatigue, distraction, or frustration rather than a purely phonetic issue.
+This is useful when you want to flag sessions that should shape planning or closer review later.
 
-### Pronunciation review
+> Tip:
+> Use the full Session detail view when you need to explain why a session felt successful or why it needs follow-up. It gives you more than a headline score.
 
-The pronunciation review breaks performance down at word level. Words are typically colour-coded to show how accurate the production was.
+![Saved session review](screenshots/session-detail-tab.png)
 
-Use this area to answer questions like:
+## 8. Child Memory: What It Is and How It Works
 
-- Which words were strongest?
-- Which words remained difficult?
-- Was the child more accurate at the beginning or end of the task?
+Child memory is a governed, therapist-facing knowledge layer built from reviewed session evidence. It is separate from raw session history.
 
-### AI summary and therapist notes
+Raw session history shows what happened. Child memory preserves what has been reviewed and judged useful enough to carry forward.
 
-Wulo can generate a narrative summary of strengths and areas for improvement. This is useful as a starting point, but your own note should remain the definitive clinical record.
+This matters because:
 
-To add therapist notes:
+- Clinically useful facts can be preserved over time.
+- Approved memory improves planning and recommendation quality.
+- Higher-risk inferences stay reviewable rather than silently turning into durable facts.
 
-1. Open the notes area in the assessment panel.
-2. Record brief observations.
-3. Save the session feedback.
+Wulo separates child memory into two states:
 
-### Helpful session or needs follow-up
+| Memory state | Meaning |
+| --- | --- |
+| Approved child memory | Reviewed information that a therapist has accepted as part of the child’s working picture |
+| Pending memory proposals | Proposed updates that are still waiting for therapist review |
 
-After review, mark the session as either:
+### 8.1 Memory overview cards
 
-- Helpful session
-- Needs follow-up
+At the top of the `Memory` tab, Wulo shows three overview cards.
 
-This gives you a quick categorisation system when reviewing several sessions later.
+| Card | Meaning | Why it matters |
+| --- | --- | --- |
+| Approved memory | Number of approved memory items, with last update time | Shows how much reviewed context exists for this child |
+| Pending review | Number of proposals awaiting decision | Signals whether therapist review is needed before relying on older summaries |
+| Planner signal | Whether memory is ready enough to support planning | A quick indicator of whether planning has meaningful approved context behind it |
 
-> Tip: Use Needs follow-up when the data is unclear, the child was dysregulated, or the chosen task was a poor fit. That makes future review faster.
+### 8.2 Approved memory sections
 
-![Assessment panel placeholder](screenshots/assessment-panel.png)
+Approved memory is grouped into categories such as:
 
-## Progress dashboard and analytics
+- Targets.
+- Effective cues.
+- Ineffective cues.
+- Preferences.
+- Constraints.
+- Blockers.
+- General notes.
 
-The progress dashboard is the therapist's longer-term view. It helps you see patterns across sessions rather than judging a child from a single practice attempt.
+Each memory item is shown as a short statement. Where evidence links are available, you can open the source session directly from the memory item.
 
-### Summary metrics
+In practice:
 
-At the top of the dashboard, Wulo surfaces headline measures such as:
+- `Targets` helps you see what is currently being worked on.
+- `Effective cues` helps you reuse approaches that have already helped.
+- `Ineffective cues` helps you avoid repeating strategies that have not worked well.
+- `Preferences` and `constraints` help with practical session design.
+- `Blockers` can highlight barriers such as fatigue, pace, or frustration.
+- `General notes` can hold broader therapist-approved observations.
 
-- Total sessions
-- Average score
-- Recent trend
+### 8.3 Therapist memory note
 
-These are useful for a quick overview before you examine the charts.
+Wulo also lets therapists write a memory item directly when they want to preserve an important practical observation without waiting for another synthesis cycle.
 
-### Key charts and what they mean
+To add a therapist memory note:
 
-#### Progress trendline
+1. Open the `Memory` tab.
+2. Go to `Therapist memory note`.
+3. Choose a category.
+4. Write a concise statement.
+5. Select `Save approved memory`.
 
-This chart tracks score movement over time, usually across overall score, accuracy score, and pronunciation score.
+Common uses include:
 
-Use it to look for:
+- Preserving a cueing strategy that worked especially well.
+- Recording a clear preference that affects cooperation.
+- Saving a practical constraint that should shape future sessions.
 
-- Improvement over several sessions
-- Plateaus that suggest the need for a new strategy
-- Sudden dips that may reflect off-days, poor audio conditions, or increased task difficulty
+> Tip:
+> Keep therapist-authored memory notes short and concrete. Wulo works best when memory statements describe observable patterns rather than broad conclusions.
 
-#### Session quality radar
+### 8.4 Pending proposals
 
-The radar chart gives a balanced view across areas such as target accuracy, clarity, consistency, task completion, retry behaviour, and self-correction.
+Pending proposals are possible memory updates that still need therapist review.
 
-Use it when you want a quick visual profile of whether the main issue is production, engagement, or both.
+Each proposal shows:
 
-#### Word-level heatmap
+- The proposed statement.
+- Its category.
+- Its type.
+- Confidence, where available.
+- Evidence links back to source sessions.
 
-The heatmap highlights which words are consistently easy or difficult.
+To review a proposal:
+
+1. Open the `Memory` tab.
+2. Go to `Pending proposals`.
+3. Read the statement.
+4. Open the evidence links if needed.
+5. Select `Approve` or `Reject`.
+
+The actions mean:
+
+- `Approve` moves the proposal into approved memory so it can support planning and recommendations.
+- `Reject` keeps it out of approved memory.
+
+Pending proposals are kept separate from approved memory on purpose. This is a governance and safety feature. It lets the system surface useful ideas without silently converting them into durable clinical facts.
+
+### 8.5 Memory refresh and evidence freshness
+
+On the home surface, `Last memory refresh` tells you whether approved memory has been compiled recently enough to act as a current summary.
+
+If memory has not been refreshed, or if there are pending proposals waiting, review the Memory tab before trusting an older recommendation run.
+
+That is especially important when:
+
+- A new session has been reviewed.
+- Pending proposals are waiting.
+- Approved memory may have changed since the last recommendation run.
+
+![Child memory review tab](screenshots/memory-tab.png)
+
+## 9. Recommendations: Inspectable Next-Exercise Suggestions
+
+Wulo can generate therapist-facing exercise recommendations, but these are inspectable, evidence-linked suggestions rather than automatic decisions.
+
+The Recommendations tab is built to answer three questions: `What does Wulo suggest next?`, `Why?`, and `What would change that answer?`
+
+### 9.1 Recommendation overview cards
+
+At the top of the Recommendations tab, Wulo shows:
+
+| Card | Meaning |
+| --- | --- |
+| Saved runs | How many recommendation runs have been logged for this child |
+| Target sound | The target sound for the currently opened run |
+| Ranked options | How many options were ranked in the selected run |
+
+### 9.2 Generating a recommendation run
+
+A recommendation run is created for the active child and saved so it can be reopened later.
+
+To generate recommendations:
+
+1. Open the `Recommendations` tab.
+2. Optionally add a therapist note or constraint.
+3. Select `Generate recommendations`.
+4. Open the saved run that appears.
+
+Useful therapist notes include:
+
+- `Keep this playful.`
+- `Avoid moving above medium difficulty.`
+- `Favour short verbal models.`
+- `Stay with word-level work for now.`
+
+These notes do not remove therapist judgement. They help the ranking reflect your practical intent for that moment.
+
+### 9.3 Recommendation history
+
+Recommendation runs are saved and reopenable, so therapists can compare runs over time instead of relying only on the latest output.
+
+This is useful when:
+
+- The child’s approved memory has changed.
+- A newer session has been reviewed.
+- You want to compare how different therapist notes affected the ranking.
+
+### 9.4 Inspecting the selected recommendation
+
+When you open a saved run, the detail view shows:
+
+- Current target.
+- Top score.
+- Therapist note.
+- Top recommendation summary.
+- Ranked options list.
+
+The top recommendation is clearly marked, but the full ranked list stays visible so you can compare alternatives.
+
+### 9.5 Why the system recommended an exercise
+
+Each ranked candidate includes a detailed explanation layer.
+
+For each candidate, Wulo can show:
+
+- Why it was recommended.
+- How it compares to approved memory.
+- Ranking factors.
+- Supporting approved memory items.
+- Supporting sessions.
+- What evidence might change the recommendation.
+
+This matters clinically because it makes the recommendation discussable and challengeable.
+
+A therapist can ask questions such as:
+
+- Is this recommendation leaning too heavily on old evidence?
+- Does the supporting memory still reflect the child accurately?
+- Are the linked sessions still the ones I would prioritise?
+- Would a different note or a newer review change the ranking?
+
+That is the point of this design. Recommendation quality is meant to be inspected, not blindly obeyed.
+
+### 9.6 Institutional memory
+
+The Recommendations tab may also show a clinic-level institutional memory section.
+
+In plain language, this is a set of de-identified patterns or strategy insights drawn from reviewed outcomes across the clinic. It may help tune recommendation ranking, but it does not become child-specific approved memory.
+
+Treat it as a clinic-level support signal, not a diagnostic system and not a substitute for case-specific reasoning.
+
+### 9.7 Evidence status on the therapist home surface
+
+On the home surface, the `Evidence status` card can show:
+
+| Status | Meaning |
+| --- | --- |
+| Current | The saved recommendation run still matches the latest approved memory and reviewed session picture |
+| Stale | Something important has changed since the recommendation was generated |
+| Not run | No recommendation run exists yet |
+
+A recommendation may become stale if:
+
+- Pending memory proposals exist.
+- Approved memory changed after the recommendation was generated.
+- A newer reviewed session exists than the saved recommendation run.
+
+> Note:
+> `Stale` does not mean the recommendation is wrong. It means the therapist should review it again before treating it as current.
+
+![Recommendations tab](screenshots/recommendations-tab.png)
+
+## 10. Planning the Next Session
+
+The Plan tab supports next-session planning using the selected saved session, approved child memory, and therapist input.
+
+### 10.1 Plan overview cards
+
+At the top of the `Plan` tab, Wulo shows:
+
+| Card | Meaning |
+| --- | --- |
+| Planner | Whether planning context is ready for this child |
+| Plan status | Whether the current plan is a draft, approved, or absent |
+| Memory inputs | How many memory items were used in the saved memory snapshot |
+
+### 10.2 Generating a plan
+
+To generate a plan:
+
+1. Select a saved session from the dashboard.
+2. Open the `Plan` tab.
+3. Add a planning note if needed.
+4. Select `Generate plan`.
+
+A generated plan can include:
+
+- Objective.
+- Focus sound.
+- Activities.
+- Therapist cues.
+- Success markers.
+- Carryover ideas.
+- Estimated duration.
+
+This keeps the plan practical rather than just descriptive.
+
+### 10.3 Refining a plan
+
+If the first draft does not fit your judgement, you can refine it.
+
+To refine a plan:
+
+1. Open the current draft.
+2. Enter a refinement instruction.
+3. Select `Refine plan`.
+4. Review the updated version.
+
+Examples of useful refinement notes:
+
+- `Start with listening and shorten the sequence.`
+- `Keep this playful for home carryover.`
+- `Reduce verbal load and use shorter modelling.`
+
+### 10.4 Approving a plan
+
+Approving a plan marks it as the therapist-accepted version for that child and saved session context. A draft is still a working suggestion; an approved plan is the version you have accepted for use.
+
+To approve a plan:
+
+1. Review the full draft.
+2. Check the activities, cues, and success markers.
+3. Confirm the plan fits the child’s current needs.
+4. Select `Approve plan`.
+
+### 10.5 Memory that informed this plan
+
+One of the most important parts of the Plan tab is the provenance section: `Memory that informed this plan`.
+
+This section shows:
+
+- How many memory inputs were used.
+- When the memory snapshot was compiled.
+- Which approved memory statements informed the draft.
+- Evidence links back to source sessions where available.
+
+This improves transparency. Therapists can see not only what the plan says, but what reviewed memory the planner relied on when building it.
+
+> Tip:
+> Use the provenance section when you want to explain why a plan was chosen, especially during supervision, team handover, or parent discussion.
+
+![Plan tab and provenance](screenshots/plan-tab.png)
+
+## 11. Charts and Dashboard Interpretation
+
+The dashboard includes visual summaries to help you understand recent work for the selected child. These are designed to support review, not replace detailed interpretation.
+
+### Selected child summary card
+
+What it shows:
+
+- The currently selected child.
+- How many saved or reviewed sessions are available.
+
+What it does not show:
+
+- It is not a full case summary.
+
+Useful use:
+
+- Use it as a quick confirmation that you are looking at the right child before reviewing anything else.
+
+### Progress trendline
+
+What it shows:
+
+- A score trend over recent reviewed sessions when enough data exists.
+
+What it does not show:
+
+- It does not explain why a change happened.
+
+Useful use:
+
+- Use it to spot whether performance looks broadly stable, improving, or variable across recent sessions.
+
+### Reviewed sessions summary
+
+What it shows:
+
+- How many saved sessions are currently available.
+
+What it does not show:
+
+- It does not tell you whether those sessions were clinically equivalent or equally useful.
+
+Useful use:
+
+- Use it to judge whether you have enough recent evidence to trust trend patterns.
+
+### Sound breakdown or focus-sound chart
+
+What it shows:
+
+- A summary of sound-related performance across saved sessions when enough data exists.
+
+What it does not show:
+
+- It is not a complete phonological profile.
+
+Useful use:
+
+- Use it to see which focus sounds may need more attention or a different task type.
+
+### Session frequency heatmap
+
+What it shows:
+
+- When sessions were saved across recent weeks.
+
+What it does not show:
+
+- It does not tell you whether practice quality was high.
+
+Useful use:
+
+- Use it to spot gaps in practice frequency or compare consistency across periods.
+
+### Session history metrics
+
+What it shows:
+
+- Exercise name.
+- Date.
+- Overall score.
+- Accuracy score.
+- Pronunciation score where available.
+- Therapist feedback markers where saved.
+
+What it does not show:
+
+- It is not a replacement for the full session review.
+
+Useful use:
+
+- Use the history list to identify which sessions should be opened first, especially flagged sessions or those with unusual changes.
+
+> Note:
+> Charts summarise patterns. They do not explain cause on their own. Always return to the saved session, memory evidence, and your own observations before making decisions.
+
+## 12. Session History and Review Workflow
+
+A practical dashboard workflow after a session often looks like this:
+
+1. Open the saved session from the dashboard.
+2. Check the Session detail review.
+3. Review pending memory proposals.
+4. Approve or reject what should become durable memory.
+5. Generate or inspect recommendations.
+6. Create or refine a next-session plan.
+
+In day-to-day work, this often becomes a repeatable pattern:
+
+- First, use the saved session to understand what happened.
+- Next, decide what should become durable child memory.
+- Then inspect whether the recommendation logic still fits the updated evidence.
+- Finally, turn that review into a therapist-guided next-session plan.
+
+This workflow links session evidence, reviewed memory, recommendations, and planning in one place.
+
+## 13. Custom Exercises and Local Management
+
+Custom exercises are available for therapist-authored practice tasks.
+
+They are useful when you want to:
+
+- Tailor the task to a specific child.
+- Use your own word list.
+- Adjust the prompt or tone.
+- Work on a target not covered exactly the way you want in the built-in library.
+
+To create a custom exercise:
+
+1. Open the custom exercise editor.
+2. Add a name.
+3. Add a short therapist description.
+4. Choose an exercise type.
+5. Add the target sound.
+6. Add target words.
+7. Set the difficulty.
+8. Add the child-facing prompt.
+9. Add the coach instructions.
+10. Save the exercise.
+
+To edit or delete a custom exercise:
+
+1. Open the exercise from the custom-exercise area.
+2. Change the fields you want.
+3. Save the update, or use delete if the exercise is no longer needed.
+
+To export or import a custom exercise:
+
+1. Open the custom exercise.
+2. Use export to save it as a JSON file.
+3. Use import to load a previously saved JSON file.
+
+> Note:
+> Custom exercises are stored in local browser storage. They do not automatically sync across devices. If browser data is cleared, local custom exercises can be lost unless they have been exported.
+
+![Custom exercise editor](screenshots/custom-exercise-editor.png)
+
+## 14. Workspace Settings and Everyday Checks
+
+The Workspace page is intentionally simple. It is for quick environment checks rather than deep configuration.
 
 Use it to:
 
-1. Identify repeated error words.
-2. Choose starting words for the next session.
-3. Check whether difficulty clusters around certain phonetic contexts.
+- Switch between therapist and child mode.
+- Confirm the active child.
+- Confirm the active buddy or avatar.
 
-#### Sound-level accuracy breakdown
+A sensible everyday check before practice is:
 
-This chart aggregates performance by target sound.
+1. Open Workspace.
+2. Confirm the mode.
+3. Confirm the active child.
+4. Confirm the active buddy.
+5. Return to Home and start the session.
 
-It is useful when a child is working across more than one target and you need to decide which sound should receive the next block of focused practice.
+This is especially useful when:
 
-#### Celebration or mastery view
+- More than one child is being seen in a row.
+- A different therapist has just used the device.
+- You are moving from review back into practice.
 
-This area highlights progress milestones and can help support motivation.
+## 15. Best-Practice Tips for Therapists
 
-It is often the best visual to share when showing the child or parent that progress is happening, even if it is gradual.
+- Confirm the active child before you launch or review anything.
+- Use child memory to preserve stable clinical observations over time.
+- Review pending proposals before trusting an older recommendation run.
+- Treat recommendation output as evidence-linked support, not an instruction to obey.
+- Use plan provenance when discussing why a session plan was chosen.
+- Flag sessions that need follow-up so later review is easier.
+- Use the home cards for quick orientation, then move into the dashboard for detailed review.
+- Write therapist memory notes when a short practical observation should shape the next few sessions.
 
-#### Session frequency heatmap
+> Tip:
+> Wulo works best when the therapist uses it as a cycle: practise, review, govern memory, inspect recommendations, then plan.
 
-This view shows how regularly practice has occurred over time.
+## 16. Glossary
 
-It is helpful when you suspect that consistency, rather than task quality, is affecting progress.
-
-### How to use the dashboard in practice
-
-1. Open Dashboard from the sidebar.
-2. Confirm the correct child is selected.
-3. Scan the summary metrics first.
-4. Review the trendline and radar chart together.
-5. Use word-level and sound-level charts to decide the next target.
-6. Open specific sessions when you need more detail.
-
-> Tip: Do not over-interpret a single low session. Look for patterns over at least several sessions before changing the wider plan.
-
-![Progress dashboard placeholder](screenshots/progress-dashboard.png)
-
-## AI practice planner
-
-The AI practice planner helps turn previous session information into a proposed next-session plan. It is designed to support therapist decision-making, not replace it.
-
-### What the planner does
-
-The planner can generate recommendations such as:
-
-- Which exercises to use next
-- How many sets or repetitions to try
-- Whether to simplify or increase difficulty
-- A rationale based on previous performance
-
-### Creating a plan
-
-1. Open a saved session or the dashboard for the selected child.
-2. Choose the option to create a practice plan.
-3. Add an optional therapist instruction.
-4. Generate the plan.
-5. Review the proposed exercises and rationale.
-
-Examples of useful therapist instructions include:
-
-- Focus on final /r/ only.
-- Keep the session under 15 minutes.
-- Use easier tasks before returning to sentence work.
-- Prioritise confidence and successful repetitions.
-
-### Refining a plan
-
-If the first draft is not right, you can refine it.
-
-1. Enter a follow-up instruction.
-2. Ask for a shorter plan, a different exercise type, or a new emphasis.
-3. Review the updated recommendation.
-
-### Approving a plan
-
-When the plan matches your clinical intention:
-
-1. Approve the plan.
-2. Keep it with the child's profile.
-3. Use it to guide the next visit or classroom practice block.
-
-> Note: Planner availability depends on the AI planning service being ready. If planner controls are unavailable, the rest of the therapist workflow should still function.
-
-![Practice planner placeholder](screenshots/practice-planner.png)
-
-## Session review and history
-
-Wulo stores completed sessions so you can return to them later.
-
-### Viewing saved sessions
-
-To review history:
-
-1. Open the dashboard.
-2. Choose the active child.
-3. Open the session list.
-4. Select a session for full detail.
-
-Session entries typically include:
-
-- Date and time
-- Exercise used
-- Score summary
-- Any saved therapist feedback
-
-### Reviewing one session in depth
-
-When you open a saved session, look at:
-
-1. The overall score.
-2. Articulation and engagement measures.
-3. Word-level pronunciation detail.
-4. Your previous note, if present.
-5. Whether the session was marked helpful or needing follow-up.
-
-This is also the right place to decide whether the session should feed into the next practice plan.
-
-## Settings and configuration
-
-The settings area supports session readiness and accessibility.
-
-### Audio settings
-
-Before a session, especially on a new device, confirm:
-
-- Correct microphone
-- Correct speaker output
-- Browser permission for microphone use
-
-### Accessibility and interface options
-
-Depending on the environment, you may have access to settings such as:
-
-- Reduced motion
-- Keyboard-friendly navigation
-- Device-specific adjustments
-
-### Account and environment checks
-
-Settings may also show configuration or readiness information for connected features. This can help identify whether a missing planner feature or device issue is environmental rather than session-specific.
-
-> Tip: If speech scoring seems poor across several children in one room, check the microphone and ambient noise before changing your therapy plan.
-
-## Best practices for therapists
-
-These habits usually make Wulo sessions more useful.
-
-### 1. Match the exercise to the child's current level
-
-Start with the easiest task that still produces meaningful information. If a child is not ready to produce a sound reliably, receptive discrimination tasks may tell you more than repeated failed productions.
-
-### 2. Keep sessions focused
-
-Use a clear goal for each session. For example, focus on one sound in one position rather than trying to cover several targets at once.
-
-### 3. Use Wulo data as support, not verdict
-
-Platform scores are helpful guides. Final interpretation should always include your own observations about fatigue, motivation, attention, and context.
-
-### 4. Save short notes consistently
-
-Even a one-line note such as "more accurate after modelling" or "attention dropped after 8 minutes" adds valuable context later.
-
-### 5. Use the planner as a collaborator
-
-The AI practice planner is strongest when you give it specific instructions. Ask for concrete changes rather than general ones.
-
-### 6. Review trends, not just single sessions
-
-Progress in speech practice is rarely perfectly linear. Look for repeated patterns before changing a therapy approach.
-
-## Glossary
-
-| Term | Meaning |
+| Term | Plain-language definition |
 | --- | --- |
-| Target sound | The speech sound being practised, such as /k/ or /r/ |
-| Articulation clarity | A measure of how clearly speech is produced during the session |
-| Consistency | How stable the child's productions are across repeated attempts |
-| Engagement | How well the child participates in the task |
-| Accuracy score | A score representing how closely the production matched the target |
-| Pronunciation score | A broader pronunciation quality score provided by speech analysis |
-| Minimal pairs | Two words that differ by one sound, used for contrast practice |
-| Sound isolation | Producing a sound by itself rather than inside a word |
-| Vowel blending | Combining a target sound with vowel sounds to practise transitions |
-| AI buddy | The animated voice guide the child interacts with during sessions |
-| Assessment panel | The post-session results view |
-| Practice plan | A suggested next-session structure generated from session data and therapist instructions |
+| Active child | The child currently selected in Wulo. Sessions, memory, recommendations, and plans all follow this context. |
+| Approved child memory | Therapist-reviewed memory items that have been accepted as part of the child’s durable working picture. |
+| Pending proposal | A proposed memory update that still needs therapist approval or rejection. |
+| Evidence link | A link back to the saved session evidence that supports a memory item or recommendation. |
+| Recommendation run | One saved set of next-exercise rankings generated for the active child. |
+| Ranked candidate | One exercise option inside a recommendation run, shown with score and explanation. |
+| Institutional memory | De-identified clinic-level pattern information that may help tune recommendations without becoming child-specific fact storage. |
+| Memory snapshot | The saved set of approved memory inputs that were available when a plan was generated. |
+| Planner status | A quick indicator showing whether enough context is available for planning. |
+| Therapist note | A therapist-entered note used to guide a recommendation run, shape a plan, or save an approved memory item. |
+| Source session | A saved session that provides evidence for memory, recommendation explanations, or plan provenance. |
 
-## Troubleshooting
+## 17. Troubleshooting
 
-### Session expired
+| Issue | What to check |
+| --- | --- |
+| Session expired or login problems | Return to the login screen and sign in again with Microsoft or Google. If the session cannot be loaded, retry the session check or sign in again. |
+| Planner unavailable | Check whether the planner is showing `Limited`. If so, review whether the child has enough approved memory and saved-session context for planning. |
+| No saved sessions visible for the active child | Confirm that the correct child is selected. The session history list only shows sessions for the active child. |
+| No approved memory yet | Open the Memory tab. If nothing has been approved yet, review pending proposals or add a therapist memory note if clinically appropriate. |
+| Recommendation history is empty | Open the Recommendations tab and generate a recommendation run for the active child. |
+| Recommendation evidence looks stale | Check whether pending proposals exist, approved memory changed after the last run, or a newer reviewed session exists. Generate a fresh run if needed. |
+| Dashboard seems to show the wrong child | Verify the active child in the therapist shell, re-select the correct child, then re-open the dashboard for that child. |
+| Microphone or audio problems | Check browser microphone permissions, device input selection, and whether the current exercise expects speech input. |
+| Avatar or session launch problems | Return to Home, confirm the child, avatar, and exercise, then launch again. If the problem continues, refresh the workspace after checking your sign-in state. |
 
-If you are returned to sign-in unexpectedly:
-
-1. Sign in again.
-2. Confirm the correct mode and child.
-3. Reopen the session or dashboard.
-
-### No microphone input or weak recognition
-
-If the child is speaking but Wulo is not recognising input well:
-
-1. Check browser microphone permissions.
-2. Confirm the correct microphone is selected.
-3. Reduce background noise.
-4. Move the device closer to the child.
-
-### Avatar or session does not load
-
-If the launch overlay does not progress:
-
-1. Check network stability.
-2. Retry the session launch.
-3. Avoid multiple rapid restarts.
-
-### Planner is unavailable
-
-If planning controls are missing or disabled, it usually means planner readiness is unavailable in the current environment. Core session and review features should still work.
-
-### Dashboard appears empty
-
-If you expect data but see none:
-
-1. Confirm the selected child.
-2. Check whether sessions were saved under a different child profile.
-3. Open session history directly to confirm stored records exist.
-
-### Custom exercises are missing
-
-If custom exercises disappear, browser storage may have been cleared. Restore them from an exported JSON backup if available.
-
-## Final note
-
-Wulo works best when used as part of a therapist-led routine: choose a focused target, supervise the session, review the data in context, and keep your own notes alongside the platform's feedback. Used that way, it can reduce setup friction and make practice sessions easier to compare over time.
+> Note:
+> When in doubt, first verify three things: signed-in session, active child, and current mode. Most everyday workspace confusion comes from one of these three settings being out of date.

@@ -309,9 +309,6 @@ export function SettingsView({
             <Text className={styles.label}>Workspace status</Text>
             <Text className={styles.metricValue}>{toolAccessLabel}</Text>
           </div>
-          <Text className={styles.supportCopy}>
-            These controls apply immediately to the active workspace, so you can adjust context here without bouncing back through onboarding or home.
-          </Text>
         </Card>
       </div>
     </div>

@@ -136,6 +136,34 @@ export interface PracticePlanDraft {
   carryover: string[]
 }
 
+export interface PracticePlanMemorySnapshotItem {
+  id: string
+  category: ChildMemoryCategory
+  memory_type: string
+  statement: string
+  confidence?: number | null
+  updated_at?: string | null
+  detail: Record<string, unknown>
+  source_proposal_id?: string | null
+}
+
+export interface PracticePlanChildMemorySnapshot {
+  used_item_ids: string[]
+  used_items?: PracticePlanMemorySnapshotItem[]
+  summary_text?: string | null
+  summary_last_compiled_at?: string | null
+  source_item_count?: number
+}
+
+export interface PracticePlanConstraints {
+  therapist_message?: string
+  last_therapist_message?: string
+  source_session_timestamp?: string | null
+  child_memory_snapshot?: PracticePlanChildMemorySnapshot
+  copilot_sdk?: Record<string, unknown>
+  [key: string]: unknown
+}
+
 export interface PracticePlan {
   id: string
   child_id: string
@@ -143,7 +171,7 @@ export interface PracticePlan {
   status: 'draft' | 'approved'
   title: string
   plan_type: string
-  constraints: Record<string, unknown>
+  constraints: PracticePlanConstraints
   draft: PracticePlanDraft
   conversation: PlannerMessage[]
   planner_session_id?: string | null
@@ -151,6 +179,236 @@ export interface PracticePlan {
   created_at: string
   updated_at: string
   approved_at?: string | null
+}
+
+export type ChildMemoryCategory =
+  | 'targets'
+  | 'effective_cues'
+  | 'ineffective_cues'
+  | 'preferences'
+  | 'constraints'
+  | 'blockers'
+  | 'general'
+
+export type ChildMemoryStatus =
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'active'
+  | 'expired'
+  | 'superseded'
+  | 'disputed'
+
+export interface ChildMemorySummaryEntry {
+  id?: string | null
+  statement: string
+  memory_type?: string | null
+  confidence?: number | null
+  updated_at?: string | null
+  detail?: Record<string, unknown>
+  source_proposal_id?: string | null
+}
+
+export type ChildMemorySummarySections = Partial<Record<ChildMemoryCategory, ChildMemorySummaryEntry[]>>
+
+export interface ChildMemorySummary {
+  child_id: string
+  summary: ChildMemorySummarySections
+  summary_text?: string | null
+  source_item_count: number
+  last_compiled_at?: string | null
+  updated_at?: string | null
+}
+
+export interface ChildMemoryEvidenceLink {
+  id: string
+  child_id: string
+  subject_type: 'item' | 'proposal'
+  subject_id: string
+  session_id?: string | null
+  practice_plan_id?: string | null
+  evidence_kind: string
+  snippet?: string | null
+  metadata: Record<string, unknown>
+  created_at: string
+}
+
+export interface ChildMemoryItem {
+  id: string
+  child_id: string
+  category: ChildMemoryCategory
+  memory_type: string
+  status: ChildMemoryStatus
+  statement: string
+  detail: Record<string, unknown>
+  confidence?: number | null
+  provenance: Record<string, unknown>
+  author_type: string
+  author_user_id?: string | null
+  source_proposal_id?: string | null
+  superseded_by_item_id?: string | null
+  created_at: string
+  updated_at: string
+  reviewed_at?: string | null
+  expires_at?: string | null
+  evidence_links?: ChildMemoryEvidenceLink[]
+}
+
+export interface ChildMemoryProposal {
+  id: string
+  child_id: string
+  category: ChildMemoryCategory
+  memory_type: string
+  status: ChildMemoryStatus
+  statement: string
+  detail: Record<string, unknown>
+  confidence?: number | null
+  provenance: Record<string, unknown>
+  author_type: string
+  author_user_id?: string | null
+  reviewer_user_id?: string | null
+  review_note?: string | null
+  approved_item_id?: string | null
+  created_at: string
+  updated_at: string
+  reviewed_at?: string | null
+  evidence_links?: ChildMemoryEvidenceLink[]
+}
+
+export interface ChildMemoryReviewResult {
+  proposal: ChildMemoryProposal
+  approved_item?: ChildMemoryItem
+  summary: ChildMemorySummary
+}
+
+export interface ChildMemoryCreateResult {
+  item: ChildMemoryItem
+  summary: ChildMemorySummary
+}
+
+export interface InstitutionalMemoryInsight {
+  id: string
+  insight_type: 'strategy_insight' | 'reviewed_pattern' | 'recommendation_tuning'
+  status: string
+  target_sound?: string | null
+  title: string
+  summary: string
+  detail: Record<string, unknown>
+  provenance: {
+    evidence_basis?: string
+    deidentified_child_count?: number
+    reviewed_session_count?: number
+    approved_memory_item_count?: number
+    [key: string]: unknown
+  }
+  source_child_count: number
+  source_session_count: number
+  source_memory_item_count: number
+  created_at: string
+  updated_at: string
+}
+
+export interface InstitutionalMemorySnapshot {
+  generated_at?: string | null
+  summary_text?: string | null
+  insights: InstitutionalMemoryInsight[]
+  reviewed_child_count?: number
+}
+
+export interface RecommendationFactor {
+  score: number
+  reason: string
+  supporting_memory_item_ids?: string[]
+  supporting_session_ids?: string[]
+}
+
+export interface RecommendationExplanation {
+  why_recommended: string
+  comparison_to_approved_memory: string
+  evidence_that_could_change_recommendation: string
+  supporting_memory_items: ChildMemoryItem[]
+  supporting_sessions: SessionSummary[]
+  institutional_insights?: InstitutionalMemoryInsight[]
+  score_summary: string
+}
+
+export interface RecommendationCandidate {
+  id: string
+  recommendation_log_id?: string
+  child_id?: string | null
+  rank: number
+  exercise_id: string
+  exercise_name: string
+  exercise_description?: string | null
+  exercise_metadata: Record<string, unknown>
+  score: number
+  ranking_factors: Record<string, RecommendationFactor>
+  rationale: string
+  explanation: RecommendationExplanation
+  supporting_memory_item_ids: string[]
+  supporting_session_ids: string[]
+  created_at?: string
+}
+
+export interface RecommendationSummary {
+  rank: number
+  exercise_id: string
+  exercise_name: string
+  score: number
+  rationale: string
+  supporting_memory_item_ids: string[]
+  supporting_session_ids: string[]
+}
+
+export interface RecommendationLog {
+  id: string
+  child_id: string
+  source_session_id?: string | null
+  target_sound: string
+  therapist_constraints: {
+    note?: string
+    parsed?: Record<string, unknown>
+  }
+  ranking_context: {
+    current_target_sound?: string
+    approved_effective_cues?: ChildMemorySummaryEntry[]
+    recent_engagement_trends?: {
+      average_willingness_to_retry?: number | null
+      trend?: string | null
+      supporting_session_ids?: string[]
+    }
+    recent_exercise_outcomes?: Array<Record<string, unknown>>
+    difficulty_progression?: {
+      current_difficulty?: string | null
+      desired_difficulty?: string | null
+      reason?: string | null
+      supporting_session_ids?: string[]
+    }
+    therapist_constraints?: {
+      note?: string
+      parsed?: Record<string, unknown>
+    }
+    institutional_memory?: InstitutionalMemorySnapshot
+    approved_memory_item_ids?: string[]
+    [key: string]: unknown
+  }
+  rationale: string
+  created_by_user_id?: string | null
+  candidate_count: number
+  top_recommendation_score?: number | null
+  created_at: string
+  top_recommendation?: RecommendationSummary | null
+}
+
+export interface RecommendationDetail extends RecommendationLog {
+  candidates: RecommendationCandidate[]
+}
+
+export interface RecommendationRequest {
+  source_session_id?: string
+  target_sound?: string
+  therapist_constraints?: string
+  limit?: number
 }
 
 export interface PlannerReadinessCliStatus {

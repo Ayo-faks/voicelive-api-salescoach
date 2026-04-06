@@ -569,11 +569,6 @@ export function AssessmentPanel({
                     Therapist feedback
                   </Text>
                 }
-                description={
-                  <Text size={300}>
-                    Leave a quick pilot note for this session after reviewing the results.
-                  </Text>
-                }
               />
 
               <div className={styles.feedbackButtons}>

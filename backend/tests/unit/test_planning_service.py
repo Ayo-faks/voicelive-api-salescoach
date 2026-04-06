@@ -40,6 +40,52 @@ class _FakeStorage:
 	def get_practice_plan(self, plan_id: str):
 		return self.saved_plan
 
+	def get_child_memory_summary(self, child_id: str):
+		return {
+			"child_id": child_id,
+			"summary": {
+				"targets": [{"statement": "Keep /r/ as an active therapy target."}],
+				"constraints": [{"statement": "Keep cues short and specific."}],
+			},
+			"summary_text": "Active targets: Keep /r/ as an active therapy target. Constraints: Keep cues short and specific.",
+			"source_item_count": 2,
+			"last_compiled_at": "2026-04-03T12:04:00+00:00",
+		}
+
+	def list_child_memory_items(self, child_id: str, status: str | None = None, category: str | None = None):
+		items = [
+			{
+				"id": "memory-1",
+				"child_id": child_id,
+				"category": "targets",
+				"memory_type": "constraint",
+				"status": "approved",
+				"statement": "Keep /r/ as an active therapy target.",
+				"confidence": 0.8,
+				"updated_at": "2026-04-03T12:04:00+00:00",
+				"detail": {"target_sound": "r"},
+				"source_proposal_id": "proposal-1",
+			},
+			{
+				"id": "memory-2",
+				"child_id": child_id,
+				"category": "constraints",
+				"memory_type": "constraint",
+				"status": "approved",
+				"statement": "Keep cues short and specific.",
+				"confidence": 0.72,
+				"updated_at": "2026-04-03T12:04:00+00:00",
+				"detail": {"cue_style": "short"},
+				"source_proposal_id": "proposal-2",
+			},
+		]
+		filtered = items
+		if status is not None:
+			filtered = [item for item in filtered if item["status"] == status]
+		if category is not None:
+			filtered = [item for item in filtered if item["category"] == category]
+		return filtered
+
 
 class _FakeScenarioManager:
 	def list_scenarios(self):
@@ -133,6 +179,10 @@ def test_create_plan_builds_structured_draft():
 	assert plan["conversation"][0]["role"] == "user"
 	assert plan["planner_session_id"].startswith("practice-planner-plan-")
 	assert runtime.calls[0]["planning_context"]["source_session"]["assessment"]["accuracy_score"] == 68
+	assert runtime.calls[0]["planning_context"]["approved_child_memory"]["summary_text"]
+	assert runtime.calls[0]["planning_context"]["approved_child_memory"]["active_constraints"][0]["statement"] == "Keep cues short and specific."
+	assert plan["constraints"]["child_memory_snapshot"]["used_item_ids"] == ["memory-1", "memory-2"]
+	assert plan["constraints"]["child_memory_snapshot"]["used_items"][0]["statement"] == "Keep /r/ as an active therapy target."
 
 
 def test_refine_plan_applies_shorter_and_listening_rules():

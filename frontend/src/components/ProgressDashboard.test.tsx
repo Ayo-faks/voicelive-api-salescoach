@@ -1,8 +1,18 @@
 import type { ReactNode } from 'react'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { ProgressDashboard } from './ProgressDashboard'
-import type { PlannerReadiness, PracticePlan, SessionDetail, SessionSummary } from '../types'
+import type {
+  ChildMemoryItem,
+  ChildMemoryProposal,
+  ChildMemorySummary,
+  PlannerReadiness,
+  PracticePlan,
+  RecommendationDetail,
+  RecommendationLog,
+  SessionDetail,
+  SessionSummary,
+} from '../types'
 
 vi.mock('recharts', async importOriginal => {
   const actual = await importOriginal<typeof import('recharts')>()
@@ -112,7 +122,37 @@ const selectedPlan: PracticePlan = {
   status: 'draft',
   title: 'Next session',
   plan_type: 'follow-up',
-  constraints: {},
+  constraints: {
+    child_memory_snapshot: {
+      used_item_ids: ['memory-1', 'memory-2'],
+      used_items: [
+        {
+          id: 'memory-1',
+          category: 'targets',
+          memory_type: 'constraint',
+          statement: 'Keep /t/ as the active therapy target.',
+          confidence: 0.84,
+          updated_at: '2026-03-15T12:00:00.000Z',
+          detail: { target_sound: 't' },
+          source_proposal_id: 'proposal-a',
+        },
+        {
+          id: 'memory-2',
+          category: 'effective_cues',
+          memory_type: 'inference',
+          statement: 'Short verbal models help Amina reset quickly.',
+          confidence: 0.76,
+          updated_at: '2026-03-15T12:00:00.000Z',
+          detail: { cue: 'short verbal model' },
+          source_proposal_id: 'proposal-b',
+        },
+      ],
+      summary_text:
+        'Active targets: Keep /t/ as the active therapy target. Effective cues: Short verbal models help Amina reset quickly.',
+      summary_last_compiled_at: '2026-03-15T12:00:00.000Z',
+      source_item_count: 2,
+    },
+  },
   draft: {
     objective: 'Stabilise /t/ in short phrases and early conversation turns.',
     focus_sound: 't',
@@ -134,6 +174,185 @@ const selectedPlan: PracticePlan = {
   conversation: [],
   created_at: '2026-03-15T11:00:00.000Z',
   updated_at: '2026-03-15T11:00:00.000Z',
+}
+
+const childMemorySummary: ChildMemorySummary = {
+  child_id: 'child-1',
+  summary: {
+    targets: [
+      {
+        id: 'memory-1',
+        statement: 'Keep /t/ as the active therapy target.',
+        confidence: 0.84,
+      },
+    ],
+    effective_cues: [
+      {
+        id: 'memory-2',
+        statement: 'Short verbal models help Amina reset quickly.',
+        confidence: 0.76,
+      },
+    ],
+  },
+  summary_text: 'Active targets: Keep /t/ as the active therapy target. Effective cues: Short verbal models help Amina reset quickly.',
+  source_item_count: 2,
+  last_compiled_at: '2026-03-15T12:00:00.000Z',
+  updated_at: '2026-03-15T12:00:00.000Z',
+}
+
+const childMemoryProposals: ChildMemoryProposal[] = [
+  {
+    id: 'proposal-1',
+    child_id: 'child-1',
+    category: 'blockers',
+    memory_type: 'inference',
+    status: 'pending',
+    statement: 'Amina still needs high-support practice when /t/ moves into longer phrases.',
+    detail: {},
+    confidence: 0.69,
+    provenance: { session_ids: ['session-3'] },
+    author_type: 'system',
+    created_at: '2026-03-15T12:00:00.000Z',
+    updated_at: '2026-03-15T12:00:00.000Z',
+    evidence_links: [
+      {
+        id: 'evidence-proposal-1',
+        child_id: 'child-1',
+        subject_type: 'proposal',
+        subject_id: 'proposal-1',
+        session_id: 'session-3',
+        evidence_kind: 'session',
+        snippet: 'Amina produced stronger /t/ targets in phrases than in isolation.',
+        metadata: {},
+        created_at: '2026-03-15T12:00:00.000Z',
+      },
+    ],
+  },
+]
+
+const childMemoryItems: ChildMemoryItem[] = [
+  {
+    id: 'memory-1',
+    child_id: 'child-1',
+    category: 'targets',
+    memory_type: 'constraint',
+    status: 'approved',
+    statement: 'Keep /t/ as the active therapy target.',
+    detail: { target_sound: 't' },
+    confidence: 0.84,
+    provenance: { source: 'post_session_analysis' },
+    author_type: 'system',
+    created_at: '2026-03-15T12:00:00.000Z',
+    updated_at: '2026-03-15T12:00:00.000Z',
+    evidence_links: [
+      {
+        id: 'evidence-item-1',
+        child_id: 'child-1',
+        subject_type: 'item',
+        subject_id: 'memory-1',
+        session_id: 'session-3',
+        evidence_kind: 'session',
+        snippet: 'Amina produced stronger /t/ targets in phrases than in isolation.',
+        metadata: {},
+        created_at: '2026-03-15T12:00:00.000Z',
+      },
+    ],
+  },
+]
+
+const recommendationHistory: RecommendationLog[] = [
+  {
+    id: 'recommendation-1',
+    child_id: 'child-1',
+    source_session_id: 'session-3',
+    target_sound: 't',
+    therapist_constraints: {
+      note: 'Keep it playful and move into phrase work.',
+      parsed: { playful: true, preferred_types: ['two_word_phrase'] },
+    },
+    ranking_context: {
+      current_target_sound: 't',
+      institutional_memory: {
+        generated_at: '2026-03-15T12:25:00.000Z',
+        summary_text: 'De-identified clinic-level patterns for /t/ are available from 2 children and 3 reviewed sessions. These tune ranking only after child-specific approved memory.',
+        insights: [
+          {
+            id: 'institutional-pattern-t',
+            insight_type: 'reviewed_pattern',
+            status: 'active',
+            target_sound: 't',
+            title: 'Reviewed pattern summary for /t/',
+            summary: 'Across 3 reviewed sessions from 2 children, two word phrase currently shows the strongest de-identified outcome pattern for /t/.',
+            detail: {
+              top_exercise_type: 'two_word_phrase',
+              ranked_exercise_types: ['two_word_phrase'],
+            },
+            provenance: {
+              evidence_basis: 'reviewed_sessions',
+              deidentified_child_count: 2,
+              reviewed_session_count: 3,
+              approved_memory_item_count: 2,
+            },
+            source_child_count: 2,
+            source_session_count: 3,
+            source_memory_item_count: 2,
+            created_at: '2026-03-15T12:25:00.000Z',
+            updated_at: '2026-03-15T12:25:00.000Z',
+          },
+        ],
+      },
+      approved_memory_item_ids: ['memory-1'],
+    },
+    rationale: 'Matched the active /t/ target, approved cue memory, and phrase-level progression.',
+    created_by_user_id: 'therapist-1',
+    candidate_count: 2,
+    top_recommendation_score: 79,
+    created_at: '2026-03-15T12:30:00.000Z',
+    top_recommendation: {
+      rank: 1,
+      exercise_id: 'exercise-phrase',
+      exercise_name: 'T phrase ladder',
+      score: 79,
+      rationale: 'Aligned with approved memory and phrase practice.',
+      supporting_memory_item_ids: ['memory-1'],
+      supporting_session_ids: ['session-3'],
+    },
+  },
+]
+
+const recommendationDetail: RecommendationDetail = {
+  ...recommendationHistory[0],
+  candidates: [
+    {
+      id: 'recommendation-candidate-1',
+      recommendation_log_id: 'recommendation-1',
+      child_id: 'child-1',
+      rank: 1,
+      exercise_id: 'exercise-phrase',
+      exercise_name: 'T phrase ladder',
+      exercise_description: 'Move /t/ into short phrases.',
+      exercise_metadata: { targetSound: 't', difficulty: 'medium', type: 'two_word_phrase' },
+      score: 79,
+      ranking_factors: {
+        target_sound_match: { score: 40, reason: 'matches the active /t/ target' },
+        cue_compatibility: { score: 8, reason: 'aligned with phrase-level cue history' },
+        therapist_constraints: { score: 6, reason: 'matches the therapist\'s requested exercise format' },
+      },
+      rationale: 'Matched the active /t/ target, approved cue memory, and phrase-level progression.',
+      explanation: {
+        why_recommended: 'It best fit the active /t/ target and the child\'s phrase-level cue history.',
+        comparison_to_approved_memory: 'This recommendation stays aligned with approved memory and phrase-level work.',
+        evidence_that_could_change_recommendation: 'If phrase accuracy drops, step back to a simpler exercise.',
+        supporting_memory_items: childMemoryItems,
+        supporting_sessions: sessions,
+        institutional_insights: recommendationHistory[0].ranking_context.institutional_memory?.insights,
+        score_summary: 'Deterministic score 79',
+      },
+      supporting_memory_item_ids: ['memory-1'],
+      supporting_session_ids: ['session-3'],
+      created_at: '2026-03-15T12:30:00.000Z',
+    },
+  ],
 }
 
 const plannerReadiness: PlannerReadiness = {
@@ -167,18 +386,35 @@ describe('ProgressDashboard visual smoke test', () => {
         sessions={sessions}
         selectedSession={selectedSession}
         selectedPlan={selectedPlan}
+        childMemorySummary={childMemorySummary}
+        childMemoryItems={childMemoryItems}
+        childMemoryProposals={childMemoryProposals}
+        recommendationHistory={recommendationHistory}
+        selectedRecommendationDetail={recommendationDetail}
         plannerReadiness={plannerReadiness}
         loadingChildren={false}
         loadingSessions={false}
         loadingSessionDetail={false}
         loadingPlans={false}
+        loadingMemory={false}
+        loadingRecommendations={false}
         planSaving={false}
+        recommendationSaving={false}
         planError={null}
+        memoryError={null}
+        recommendationError={null}
+        memoryReviewPendingId={null}
+        manualMemorySaving={false}
         onSelectChild={() => {}}
         onOpenSession={() => {}}
+        onOpenRecommendationDetail={() => {}}
+        onGenerateRecommendations={() => {}}
         onCreatePlan={() => {}}
         onRefinePlan={() => {}}
         onApprovePlan={() => {}}
+        onApproveMemoryProposal={() => {}}
+        onRejectMemoryProposal={() => {}}
+        onCreateMemoryItem={() => {}}
         onBackToPractice={() => {}}
         onExitToEntry={() => {}}
       />
@@ -188,10 +424,37 @@ describe('ProgressDashboard visual smoke test', () => {
     expect(screen.getByText('Focus sounds')).toBeTruthy()
     expect(screen.getByText('Session analysis')).toBeTruthy()
     expect(screen.getByText('Review summary')).toBeTruthy()
-    expect(screen.getByText('Next-session plan')).toBeTruthy()
     expect(screen.getByLabelText('Session frequency calendar heatmap')).toBeTruthy()
     expect(screen.getByLabelText('Celebration points donut chart')).toBeTruthy()
-    expect(screen.getByLabelText('Plan confidence gauge')).toBeTruthy()
     expect(screen.getByText('cat')).toBeTruthy()
+
+    expect(screen.queryByText('Child memory review')).toBeNull()
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Memory' }))
+
+    expect(screen.getByText('Child memory review')).toBeTruthy()
+    expect(screen.getByText('Pending proposals')).toBeTruthy()
+    expect(screen.getByText('Therapist memory note')).toBeTruthy()
+    expect(screen.getAllByText('Keep /t/ as the active therapy target.').length).toBeGreaterThan(0)
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Recommendations' }))
+
+    expect(screen.getByText('Next-exercise recommendations')).toBeTruthy()
+    expect(screen.getByText('Recommendation history')).toBeTruthy()
+    expect(screen.getByText('Top recommendation')).toBeTruthy()
+    expect(screen.getByText('Ranking factors')).toBeTruthy()
+    expect(screen.getByText('Which approved memory items support it?')).toBeTruthy()
+    expect(screen.getByText('What evidence might change this recommendation?')).toBeTruthy()
+    expect(screen.getByText('Clinic-level institutional memory')).toBeTruthy()
+    expect(screen.getByText('Reviewed pattern summary for /t/')).toBeTruthy()
+    expect(screen.getAllByText('Open source session').length).toBeGreaterThan(0)
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Plan' }))
+
+    expect(screen.getByText('Next-session plan')).toBeTruthy()
+    expect(screen.getByText('Memory that informed this plan')).toBeTruthy()
+    expect(screen.getByText('Warm-up phrases')).toBeTruthy()
+    expect(screen.getByText('T phrases • 8 min')).toBeTruthy()
+    expect(screen.getByLabelText('Plan confidence gauge')).toBeTruthy()
   })
 })

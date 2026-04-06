@@ -55,12 +55,17 @@ import type {
   AppConfig,
   AvatarOption,
   ChildProfile,
+  ChildMemoryItem,
+  ChildMemoryProposal,
+  ChildMemorySummary,
   CustomScenario,
   ExerciseMetadata,
   PilotState,
   PlannerReadiness,
   PronunciationAssessment,
   PracticePlan,
+  RecommendationDetail,
+  RecommendationLog,
   Scenario,
   SessionDetail,
   SessionSummary,
@@ -475,7 +480,7 @@ const useStyles = makeStyles({
     textTransform: 'uppercase',
   },
   contentEyebrowDashboard: {
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: 'var(--color-text-tertiary)',
   },
   contentTitle: {
     fontFamily: 'var(--font-display)',
@@ -485,7 +490,7 @@ const useStyles = makeStyles({
     letterSpacing: '-0.03em',
   },
   contentTitleDashboard: {
-    color: 'var(--color-text-inverse)',
+    color: 'var(--color-text-primary)',
   },
   contentSubtitle: {
     color: 'var(--color-text-secondary)',
@@ -494,7 +499,7 @@ const useStyles = makeStyles({
     maxWidth: '48ch',
   },
   contentSubtitleDashboard: {
-    color: 'rgba(255, 255, 255, 0.82)',
+    color: 'var(--color-text-secondary)',
   },
   contentBody: {
     width: '100%',
@@ -788,13 +793,25 @@ export default function App() {
   const [sessionSummaries, setSessionSummaries] = useState<SessionSummary[]>([])
   const [selectedSession, setSelectedSession] = useState<SessionDetail | null>(null)
   const [childPlans, setChildPlans] = useState<PracticePlan[]>([])
+  const [childMemorySummary, setChildMemorySummary] = useState<ChildMemorySummary | null>(null)
+  const [childMemoryItems, setChildMemoryItems] = useState<ChildMemoryItem[]>([])
+  const [childMemoryProposals, setChildMemoryProposals] = useState<ChildMemoryProposal[]>([])
+  const [recommendationHistory, setRecommendationHistory] = useState<RecommendationLog[]>([])
+  const [selectedRecommendationDetail, setSelectedRecommendationDetail] = useState<RecommendationDetail | null>(null)
   const [selectedPlan, setSelectedPlan] = useState<PracticePlan | null>(null)
   const [appConfig, setAppConfig] = useState<AppConfig | null>(null)
   const [loadingSessions, setLoadingSessions] = useState(false)
   const [loadingSessionDetail, setLoadingSessionDetail] = useState(false)
   const [loadingPlans, setLoadingPlans] = useState(false)
+  const [loadingMemory, setLoadingMemory] = useState(false)
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false)
   const [planSaving, setPlanSaving] = useState(false)
+  const [recommendationSaving, setRecommendationSaving] = useState(false)
   const [planError, setPlanError] = useState<string | null>(null)
+  const [memoryError, setMemoryError] = useState<string | null>(null)
+  const [recommendationError, setRecommendationError] = useState<string | null>(null)
+  const [memoryReviewPendingId, setMemoryReviewPendingId] = useState<string | null>(null)
+  const [manualMemorySaving, setManualMemorySaving] = useState(false)
   const [currentAgent, setCurrentAgent] = useState<string | null>(null)
   const [sessionStartedAt, setSessionStartedAt] = useState<string | null>(null)
   const [assessment, setAssessment] = useState<Assessment | null>(null)
@@ -834,6 +851,10 @@ export default function App() {
   const navigationBypassRef = useRef(false)
   const lastQueryChildIdRef = useRef<string | null>(null)
   const lastQueryScenarioIdRef = useRef<string | null>(null)
+  const childHistoryRequestSequenceRef = useRef(0)
+  const latestRequestedChildIdRef = useRef<string | null>(null)
+  const sessionRequestSequenceRef = useRef(0)
+  const latestRequestedSessionIdRef = useRef<string | null>(null)
 
   const {
     scenarios,
@@ -858,7 +879,7 @@ export default function App() {
   const isSettingsRoute = currentRoute === APP_ROUTES.settings
   const isSessionRoute = currentRoute === APP_ROUTES.session
   const isHomeRoute = currentRoute === APP_ROUTES.home
-  const isSetupRoute = currentRoute === APP_ROUTES.home || currentRoute === APP_ROUTES.dashboard
+  const isChildContextRoute = isHomeRoute || isDashboardRoute || isSettingsRoute
   const isTherapist = authUser?.role === 'therapist'
   const isChildMode = userMode === 'child' && !isDashboardRoute
   const queryChildId = searchParams.get(APP_ROUTE_PARAMS.childId)
@@ -884,7 +905,7 @@ export default function App() {
     onboardingComplete &&
     (Boolean(userMode) || isDashboardRoute || isSessionRoute || isSettingsRoute)
   const contentEyebrow = isDashboardRoute
-    ? 'Dashboard'
+    ? ''
     : isSettingsRoute
       ? 'Workspace'
       : isSessionRoute
@@ -901,15 +922,7 @@ export default function App() {
         : userMode === 'therapist'
           ? 'Prepare the next visit'
           : 'Ready to practise'
-  const contentSubtitle = isDashboardRoute
-    ? 'Performance review, session history, and planning in one workspace.'
-    : isSettingsRoute
-      ? 'Change the active mode, child, and practice buddy for this workspace.'
-      : isSessionRoute
-        ? 'The session stays live while navigation remains inside the same app state machine.'
-        : userMode === 'therapist'
-          ? 'Choose a child, pick an exercise, and move into guided practice.'
-          : 'Launch the next exercise and keep the practice flow simple for the child.'
+  const contentSubtitle = ''
   const isHomeShellRoute = !isDashboardRoute && !isSettingsRoute && !isSessionRoute
   const showProfileHeader = showSidebarShell && isHomeShellRoute
   const showHeaderCreateAction = showProfileHeader && userMode === 'therapist'
@@ -926,10 +939,14 @@ export default function App() {
   )
   const dashboardSessionIds = new Set(sessionSummaries.map(session => session.id))
   const dashboardPlanIds = new Set(childPlans.map(plan => plan.id))
+  const pendingDashboardSessionId =
+    loadingSessionDetail && latestRequestedSessionIdRef.current && dashboardSessionIds.has(latestRequestedSessionIdRef.current)
+      ? latestRequestedSessionIdRef.current
+      : null
   const queryPlan = queryPlanId
     ? childPlans.find(plan => plan.id === queryPlanId) || null
     : null
-  const effectiveDashboardSessionId = queryPlan?.source_session_id || querySessionId
+  const effectiveDashboardSessionId = querySessionId || queryPlan?.source_session_id
 
   const refreshAuthSession = useCallback(async () => {
     try {
@@ -1007,6 +1024,11 @@ export default function App() {
           setPilotStateLoading(false)
           setChildren([])
           setChildrenLoading(false)
+          setChildMemorySummary(null)
+          setChildMemoryItems([])
+          setChildMemoryProposals([])
+          setRecommendationHistory([])
+          setSelectedRecommendationDetail(null)
           setSelectedChildId(null)
           return
         }
@@ -1074,58 +1096,258 @@ export default function App() {
     async (sessionId: string) => {
       if (!isTherapist) return
 
+      const requestSequence = sessionRequestSequenceRef.current + 1
+      sessionRequestSequenceRef.current = requestSequence
+      latestRequestedSessionIdRef.current = sessionId
+
       setLoadingSessionDetail(true)
 
       try {
         const detail = await api.getSession(sessionId)
+
+        if (
+          sessionRequestSequenceRef.current !== requestSequence ||
+          latestRequestedSessionIdRef.current !== sessionId
+        ) {
+          return
+        }
+
         setSelectedSession(detail)
       } catch (error) {
+        if (
+          sessionRequestSequenceRef.current !== requestSequence ||
+          latestRequestedSessionIdRef.current !== sessionId
+        ) {
+          return
+        }
+
         console.error('Failed to load session detail:', error)
         setSelectedSession(null)
       } finally {
-        setLoadingSessionDetail(false)
+        if (sessionRequestSequenceRef.current === requestSequence) {
+          setLoadingSessionDetail(false)
+        }
       }
     },
     [isTherapist]
   )
 
-  const loadSessionHistory = useCallback(
-    async (childId: string) => {
-      setLoadingSessions(true)
-      setLoadingPlans(true)
-      setPlanError(null)
+  const handleSelectReviewedSession = useCallback(
+    async (sessionId: string) => {
+      if (isDashboardRoute) {
+        const nextParams = new URLSearchParams(currentSearch)
+
+        if (selectedChildId) {
+          nextParams.set(APP_ROUTE_PARAMS.childId, selectedChildId)
+        }
+
+        nextParams.set(APP_ROUTE_PARAMS.sessionId, sessionId)
+        nextParams.delete(APP_ROUTE_PARAMS.planId)
+        setSearchParams(nextParams, { replace: true })
+      }
+
+      if (selectedPlan?.source_session_id && selectedPlan.source_session_id !== sessionId) {
+        setSelectedPlan(null)
+      }
+
+      await handleOpenSession(sessionId)
+    },
+    [currentSearch, handleOpenSession, isDashboardRoute, selectedChildId, selectedPlan?.source_session_id, setSearchParams]
+  )
+
+  const handleOpenRecommendationDetail = useCallback(
+    async (recommendationId: string) => {
+      if (!isTherapist) return
+
+      setLoadingRecommendations(true)
+      setRecommendationError(null)
 
       try {
-        const [summaries, plans] = await Promise.all([
+        const detail = await api.getRecommendationDetail(recommendationId)
+        setSelectedRecommendationDetail(detail)
+      } catch (error) {
+        console.error('Failed to load recommendation detail:', error)
+        setSelectedRecommendationDetail(null)
+        setRecommendationError('Recommendation detail could not be loaded right now.')
+      } finally {
+        setLoadingRecommendations(false)
+      }
+    },
+    [isTherapist]
+  )
+
+  const handleSelectChild = useCallback(
+    (childId: string) => {
+      if (!validChildIds.has(childId) || childId === selectedChildId) {
+        return
+      }
+
+      setSelectedChildId(childId)
+      latestRequestedSessionIdRef.current = null
+      setSelectedSession(null)
+      setSelectedPlan(null)
+      setSelectedRecommendationDetail(null)
+      setSessionSummaries([])
+      setChildPlans([])
+      setChildMemorySummary(null)
+      setChildMemoryItems([])
+      setChildMemoryProposals([])
+      setRecommendationHistory([])
+      setPlanError(null)
+      setMemoryError(null)
+      setRecommendationError(null)
+    },
+    [selectedChildId, validChildIds]
+  )
+
+  const loadSessionHistory = useCallback(
+    async (childId: string) => {
+      const requestSequence = childHistoryRequestSequenceRef.current + 1
+      childHistoryRequestSequenceRef.current = requestSequence
+      latestRequestedChildIdRef.current = childId
+
+      setLoadingSessions(true)
+      setLoadingPlans(true)
+      setLoadingMemory(true)
+      setLoadingRecommendations(true)
+      setPlanError(null)
+      setMemoryError(null)
+      setRecommendationError(null)
+
+      try {
+        const [summaries, plans, memorySummary, memoryItems, memoryProposals, recommendations] = await Promise.all([
           api.getChildSessions(childId),
           api.getChildPlans(childId),
+          api.getChildMemorySummary(childId),
+          api.getChildMemoryItems(childId, { includeEvidence: true }),
+          api.getChildMemoryProposals(childId, { status: 'pending', includeEvidence: true }),
+          api.getChildRecommendations(childId),
         ])
+
+        if (
+          childHistoryRequestSequenceRef.current !== requestSequence ||
+          latestRequestedChildIdRef.current !== childId
+        ) {
+          return
+        }
+
         setSessionSummaries(summaries)
         setChildPlans(plans)
+        setChildMemorySummary(memorySummary)
+        setChildMemoryItems(memoryItems.filter(item => item.status === 'approved' || item.status === 'active'))
+        setChildMemoryProposals(memoryProposals)
+        setRecommendationHistory(recommendations)
 
-        if (summaries.length > 0) {
-          await handleOpenSession(summaries[0].id)
+        const preferredSessionId =
+          (isDashboardRoute && effectiveDashboardSessionId && summaries.some(session => session.id === effectiveDashboardSessionId)
+            ? effectiveDashboardSessionId
+            : selectedSession?.id && summaries.some(session => session.id === selectedSession.id)
+              ? selectedSession.id
+              : summaries[0]?.id) || null
+
+        if (preferredSessionId) {
+          await handleOpenSession(preferredSessionId)
+
+          if (
+            childHistoryRequestSequenceRef.current !== requestSequence ||
+            latestRequestedChildIdRef.current !== childId
+          ) {
+            return
+          }
         } else {
           setSelectedSession(null)
           setSelectedPlan(null)
         }
+
+        if (recommendations.length > 0) {
+          try {
+            const detail = await api.getRecommendationDetail(recommendations[0].id)
+
+            if (
+              childHistoryRequestSequenceRef.current !== requestSequence ||
+              latestRequestedChildIdRef.current !== childId
+            ) {
+              return
+            }
+
+            setSelectedRecommendationDetail(detail)
+          } catch (error) {
+            if (
+              childHistoryRequestSequenceRef.current !== requestSequence ||
+              latestRequestedChildIdRef.current !== childId
+            ) {
+              return
+            }
+
+            console.error('Failed to load initial recommendation detail:', error)
+            setSelectedRecommendationDetail(null)
+            setRecommendationError('Recommendation detail could not be loaded right now.')
+          }
+        } else {
+          setSelectedRecommendationDetail(null)
+        }
       } catch (error) {
+        if (
+          childHistoryRequestSequenceRef.current !== requestSequence ||
+          latestRequestedChildIdRef.current !== childId
+        ) {
+          return
+        }
+
         console.error('Failed to load session history:', error)
         setSessionSummaries([])
         setSelectedSession(null)
         setChildPlans([])
+        setChildMemorySummary(null)
+        setChildMemoryItems([])
+        setChildMemoryProposals([])
+        setRecommendationHistory([])
+        setSelectedRecommendationDetail(null)
         setSelectedPlan(null)
         setPlanError('Practice plans could not be loaded right now.')
+        setMemoryError('Child memory could not be loaded right now.')
+        setRecommendationError('Recommendations could not be loaded right now.')
       } finally {
-        setLoadingSessions(false)
-        setLoadingPlans(false)
+        if (
+          childHistoryRequestSequenceRef.current === requestSequence &&
+          latestRequestedChildIdRef.current === childId
+        ) {
+          setLoadingSessions(false)
+          setLoadingPlans(false)
+          setLoadingMemory(false)
+          setLoadingRecommendations(false)
+        }
       }
     },
-    [handleOpenSession]
+    [effectiveDashboardSessionId, handleOpenSession, isDashboardRoute, selectedSession?.id]
   )
 
   useEffect(() => {
-    if (queryPlan) {
+    if (!isTherapist) {
+      return
+    }
+
+    if (children.length === 0) {
+      if (selectedChildId !== null) {
+        setSelectedChildId(null)
+      }
+      return
+    }
+
+    if (selectedChildId && validChildIds.has(selectedChildId)) {
+      return
+    }
+
+    if (queryChildId && validChildIds.has(queryChildId)) {
+      setSelectedChildId(queryChildId)
+      return
+    }
+
+    setSelectedChildId(children[0].id)
+  }, [children, isTherapist, queryChildId, selectedChildId, validChildIds])
+
+  useEffect(() => {
+    if (queryPlan && (!selectedSession || queryPlan.source_session_id === selectedSession.id)) {
       setSelectedPlan(queryPlan)
       return
     }
@@ -1223,6 +1445,117 @@ export default function App() {
       setPlanSaving(false)
     }
   }, [selectedPlan, upsertPlan])
+
+  const handleApproveMemoryProposal = useCallback(
+    async (proposalId: string) => {
+      setMemoryReviewPendingId(proposalId)
+      setMemoryError(null)
+
+      try {
+        const result = await api.approveChildMemoryProposal(proposalId)
+        setChildMemorySummary(result.summary)
+        if (result.approved_item) {
+          setChildMemoryItems(current => [result.approved_item as ChildMemoryItem, ...current.filter(item => item.id !== result.approved_item?.id)])
+        }
+        setChildMemoryProposals(current => current.filter(proposal => proposal.id !== proposalId))
+      } catch (error) {
+        console.error('Failed to approve child memory proposal:', error)
+        setMemoryError('Child memory approval failed. Try again in a moment.')
+      } finally {
+        setMemoryReviewPendingId(null)
+      }
+    },
+    []
+  )
+
+  const handleRejectMemoryProposal = useCallback(
+    async (proposalId: string) => {
+      setMemoryReviewPendingId(proposalId)
+      setMemoryError(null)
+
+      try {
+        const result = await api.rejectChildMemoryProposal(proposalId)
+        setChildMemorySummary(result.summary)
+        setChildMemoryProposals(current => current.filter(proposal => proposal.id !== proposalId))
+      } catch (error) {
+        console.error('Failed to reject child memory proposal:', error)
+        setMemoryError('Child memory rejection failed. Try again in a moment.')
+      } finally {
+        setMemoryReviewPendingId(null)
+      }
+    },
+    []
+  )
+
+  const handleCreateManualMemoryItem = useCallback(
+    async (category: string, statement: string) => {
+      if (!selectedChildId) {
+        setMemoryError('Choose a child before adding therapist memory.')
+        return
+      }
+
+      setManualMemorySaving(true)
+      setMemoryError(null)
+
+      try {
+        const result = await api.createChildMemoryItem(selectedChildId, {
+          category,
+          statement,
+          memory_type: 'fact',
+        })
+        setChildMemorySummary(result.summary)
+        setChildMemoryItems(current => [result.item, ...current.filter(item => item.id !== result.item.id)])
+      } catch (error) {
+        console.error('Failed to create child memory item:', error)
+        setMemoryError('Child memory note could not be saved right now.')
+      } finally {
+        setManualMemorySaving(false)
+      }
+    },
+    [selectedChildId]
+  )
+
+  const handleGenerateRecommendations = useCallback(
+    async (therapistConstraints: string) => {
+      if (!selectedChildId) {
+        setRecommendationError('Choose a child before generating recommendations.')
+        return
+      }
+
+      if (plannerReadiness && !plannerReadiness.ready) {
+        setRecommendationError(plannerReadiness.reasons[0] || 'Planner runtime is not ready yet.')
+        return
+      }
+
+      setRecommendationSaving(true)
+      setRecommendationError(null)
+
+      try {
+        const detail = await api.generateChildRecommendations(selectedChildId, {
+          source_session_id: selectedSession?.id,
+          target_sound: selectedSession?.exercise_metadata?.targetSound,
+          therapist_constraints: therapistConstraints,
+          limit: 5,
+        })
+
+        setSelectedRecommendationDetail(detail)
+        setRecommendationHistory(current => [
+          detail,
+          ...current.filter(recommendation => recommendation.id !== detail.id),
+        ])
+      } catch (error) {
+        console.error('Failed to generate recommendations:', error)
+        setRecommendationError(
+          error instanceof Error
+            ? error.message
+            : 'Recommendation generation failed. Try again in a moment.'
+        )
+      } finally {
+        setRecommendationSaving(false)
+      }
+    },
+    [plannerReadiness, selectedChildId, selectedSession?.exercise_metadata?.targetSound, selectedSession?.id]
+  )
 
   useEffect(() => {
     if (!isTherapist || !selectedChildId) return
@@ -1458,7 +1791,7 @@ export default function App() {
   }, [currentRoute, isSessionActive, location.pathname, navigate])
 
   useEffect(() => {
-    if (authStatus !== 'authenticated' || !isSetupRoute) {
+    if (authStatus !== 'authenticated' || !isChildContextRoute) {
       return
     }
 
@@ -1490,8 +1823,8 @@ export default function App() {
   }, [
     authStatus,
     homeScenarioIds,
+    isChildContextRoute,
     isHomeRoute,
-    isSetupRoute,
     isTherapist,
     queryChildId,
     queryScenarioId,
@@ -1502,7 +1835,7 @@ export default function App() {
   ])
 
   useEffect(() => {
-    if (authStatus !== 'authenticated' || !isSetupRoute) {
+    if (authStatus !== 'authenticated' || !isChildContextRoute) {
       return
     }
 
@@ -1514,8 +1847,14 @@ export default function App() {
       nextParams.delete(APP_ROUTE_PARAMS.childId)
     }
 
-    if (isDashboardRoute && selectedSession?.id && dashboardSessionIds.has(selectedSession.id)) {
-      nextParams.set(APP_ROUTE_PARAMS.sessionId, selectedSession.id)
+    const sessionIdForUrl =
+      pendingDashboardSessionId ||
+      (querySessionId && dashboardSessionIds.has(querySessionId) ? querySessionId : null) ||
+      selectedSession?.id ||
+      null
+
+    if (isDashboardRoute && sessionIdForUrl && dashboardSessionIds.has(sessionIdForUrl)) {
+      nextParams.set(APP_ROUTE_PARAMS.sessionId, sessionIdForUrl)
     } else {
       nextParams.delete(APP_ROUTE_PARAMS.sessionId)
     }
@@ -1540,11 +1879,13 @@ export default function App() {
     dashboardPlanIds,
     currentSearch,
     dashboardSessionIds,
+    pendingDashboardSessionId,
+    isChildContextRoute,
     isDashboardRoute,
     homeScenarioIds,
     isHomeRoute,
-    isSetupRoute,
     isTherapist,
+    querySessionId,
     selectedChildId,
     selectedPlan?.id,
     selectedSession?.id,
@@ -1903,13 +2244,14 @@ export default function App() {
             customScenario.name,
             customScenario.description,
             customScenario.scenarioData,
-            avatarConfig
+            avatarConfig,
+            selectedChildId || undefined
           )
-        : await api.createAgent(scenarioId, avatarConfig)
+        : await api.createAgent(scenarioId, avatarConfig, selectedChildId || undefined)
 
       return response.agent_id as string
     },
-    [getCustomScenario]
+    [getCustomScenario, selectedChildId]
   )
 
   useEffect(() => {
@@ -2409,19 +2751,48 @@ export default function App() {
       sessions={sessionSummaries}
       selectedSession={selectedSession}
       selectedPlan={selectedPlan}
+      childMemorySummary={childMemorySummary}
+      childMemoryItems={childMemoryItems}
+      childMemoryProposals={childMemoryProposals}
+      recommendationHistory={recommendationHistory}
+      selectedRecommendationDetail={selectedRecommendationDetail}
       plannerReadiness={plannerReadiness}
       loadingChildren={childrenLoading}
       loadingSessions={loadingSessions}
       loadingSessionDetail={loadingSessionDetail}
       loadingPlans={loadingPlans}
+      loadingMemory={loadingMemory}
+      loadingRecommendations={loadingRecommendations}
       planSaving={planSaving}
+      recommendationSaving={recommendationSaving}
       planError={planError}
-      onSelectChild={setSelectedChildId}
-      onOpenSession={handleOpenSession}
+      memoryError={memoryError}
+      recommendationError={recommendationError}
+      memoryReviewPendingId={memoryReviewPendingId}
+      manualMemorySaving={manualMemorySaving}
+      onSelectChild={handleSelectChild}
+      onOpenSession={sessionId => {
+        void handleSelectReviewedSession(sessionId)
+      }}
+      onOpenRecommendationDetail={recommendationId => {
+        void handleOpenRecommendationDetail(recommendationId)
+      }}
       onCreatePlan={handleCreatePlan}
+      onGenerateRecommendations={constraints => {
+        void handleGenerateRecommendations(constraints)
+      }}
       onRefinePlan={handleRefinePlan}
       onApprovePlan={() => {
         void handleApprovePlan()
+      }}
+      onApproveMemoryProposal={proposalId => {
+        void handleApproveMemoryProposal(proposalId)
+      }}
+      onRejectMemoryProposal={proposalId => {
+        void handleRejectMemoryProposal(proposalId)
+      }}
+      onCreateMemoryItem={(category, statement) => {
+        void handleCreateManualMemoryItem(category, statement)
       }}
       onBackToPractice={handleExitTherapistView}
       onExitToEntry={handleReturnToEntry}
@@ -2446,7 +2817,7 @@ export default function App() {
       childProfiles={children}
       selectedAvatar={selectedAvatar}
       onChooseMode={handleChooseMode}
-      onSelectChild={setSelectedChildId}
+      onSelectChild={handleSelectChild}
       onSelectAvatar={setSelectedAvatar}
     />
   ) : currentRoute === APP_ROUTES.home ? (
@@ -2484,10 +2855,13 @@ export default function App() {
           selectedChild={selectedChild}
           selectedAvatar={selectedAvatar}
           selectedScenario={selectedScenario}
+          childMemorySummary={childMemorySummary}
+          childMemoryProposals={childMemoryProposals}
+          recommendationHistory={recommendationHistory}
           launchInFlight={launchInFlight}
           scenarios={serverScenarios}
           customScenarios={customScenarios}
-          onSelectChild={childId => setSelectedChildId(childId)}
+          onSelectChild={handleSelectChild}
           onSelectAvatar={setSelectedAvatar}
           onSelectScenario={(scenarioId: string) => {
             setSelectedScenario(scenarioId)
@@ -2556,7 +2930,7 @@ export default function App() {
             onNavigateHome={() => requestSection('home')}
             onNavigateDashboard={() => requestSection('dashboard')}
             onNavigateSettings={() => requestSection('settings')}
-            onSelectChild={setSelectedChildId}
+            onSelectChild={handleSelectChild}
             onToggleCollapse={() => setSidebarCollapsed(current => !current)}
             onCloseMobile={() => setMobileSidebarOpen(false)}
             onOpenTherapistAccess={() => {
@@ -2579,7 +2953,9 @@ export default function App() {
 
                   {showProfileHeader ? null : (
                     <div className={styles.contentHeading}>
-                      <Text className={mergeClasses(styles.contentEyebrow, isDashboardRoute && styles.contentEyebrowDashboard)}>{contentEyebrow}</Text>
+                      {contentEyebrow ? (
+                        <Text className={mergeClasses(styles.contentEyebrow, isDashboardRoute && styles.contentEyebrowDashboard)}>{contentEyebrow}</Text>
+                      ) : null}
                       <Text className={mergeClasses(styles.contentTitle, isDashboardRoute && styles.contentTitleDashboard)}>{contentTitle}</Text>
                     </div>
                   )}
@@ -2613,7 +2989,9 @@ export default function App() {
                     </Button>
                   </div>
                 ) : (
-                  <Text className={mergeClasses(styles.contentSubtitle, isDashboardRoute && styles.contentSubtitleDashboard)}>{contentSubtitle}</Text>
+                  contentSubtitle ? (
+                    <Text className={mergeClasses(styles.contentSubtitle, isDashboardRoute && styles.contentSubtitleDashboard)}>{contentSubtitle}</Text>
+                  ) : null
                 )}
               </div>
             </div>
