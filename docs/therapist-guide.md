@@ -3,7 +3,7 @@
 **Last Updated:** April 6, 2026
 **Platform:** Web application (desktop and tablet supported)
 
-![Wulo therapist workspace overview](screenshots/title-page-overview.png)
+_Image removed: Wulo therapist workspace overview._
 
 ## Table of Contents
 
@@ -76,7 +76,7 @@ The key principle is simple: Wulo is a practice and review tool, not a diagnosti
 > Note:
 > Wulo supports supervised practice. It should be used alongside professional judgement, not instead of it.
 
-![Therapist home and review workflow](screenshots/welcome-workflow.png)
+_Image removed: Therapist home and review workflow._
 
 ## 2. Getting Started
 
@@ -96,7 +96,7 @@ To sign in:
 > Tip:
 > If your organisation uses more than one account, try to use the same sign-in provider each time so your normal therapist workspace opens consistently.
 
-![Sign-in screen](screenshots/sign-in-screen.png)
+_Image removed: Sign-in screen._
 
 ### 2.2 Choosing a mode
 
@@ -170,7 +170,7 @@ The compact insight cards on the home surface are quick signals only. Full revie
 > Tip:
 > Think of the home cards as traffic lights. They tell you where to look next, but they are not the full clinical review.
 
-![Therapist home surface](screenshots/therapist-home-surface.png)
+_Image removed: Therapist home surface._
 
 ### 3.2 Dashboard
 
@@ -205,7 +205,7 @@ It also shows a simple summary of the current role, current mode, current child,
 
 The active child should stay aligned across Therapist home, Dashboard, and Workspace. If you change it in one place, your review context should follow that child.
 
-![Workspace settings page](screenshots/workspace-settings.png)
+_Image removed: Workspace settings page._
 
 ## 4. Managing the Active Child
 
@@ -289,7 +289,7 @@ A common pattern is:
 > Note:
 > Use progression as a clinical guide, not a rigid rule. A child may need to move back to an easier listening or cueing task before moving forward again.
 
-![Exercise library and filters](screenshots/exercise-library.png)
+_Image removed: Exercise library and filters._
 
 ## 6. Running a Practice Session
 
@@ -330,7 +330,7 @@ Once the live interaction finishes, Wulo saves the session so it can feed review
 > Tip:
 > A live session is only the first step. The real clinical value comes from reviewing the saved evidence afterwards.
 
-![Live practice session](screenshots/live-session-screen.png)
+_Image removed: Live practice session._
 
 ## 7. Reviewing a Saved Session
 
@@ -403,7 +403,7 @@ This is useful when you want to flag sessions that should shape planning or clos
 > Tip:
 > Use the full Session detail view when you need to explain why a session felt successful or why it needs follow-up. It gives you more than a headline score.
 
-![Saved session review](screenshots/session-detail-tab.png)
+_Image removed: Saved session review._
 
 ## 8. Child Memory: What It Is and How It Works
 
@@ -517,7 +517,7 @@ That is especially important when:
 - Pending proposals are waiting.
 - Approved memory may have changed since the last recommendation run.
 
-![Child memory review tab](screenshots/memory-tab.png)
+_Image removed: Child memory review tab._
 
 ## 9. Recommendations: Inspectable Next-Exercise Suggestions
 
@@ -628,7 +628,7 @@ A recommendation may become stale if:
 > Note:
 > `Stale` does not mean the recommendation is wrong. It means the therapist should review it again before treating it as current.
 
-![Recommendations tab](screenshots/recommendations-tab.png)
+_Image removed: Recommendations tab._
 
 ## 10. Planning the Next Session
 
@@ -709,7 +709,7 @@ This improves transparency. Therapists can see not only what the plan says, but 
 > Tip:
 > Use the provenance section when you want to explain why a plan was chosen, especially during supervision, team handover, or parent discussion.
 
-![Plan tab and provenance](screenshots/plan-tab.png)
+_Image removed: Plan tab and provenance._
 
 ## 11. Charts and Dashboard Interpretation
 
@@ -867,7 +867,7 @@ To export or import a custom exercise:
 > Note:
 > Custom exercises are stored in local browser storage. They do not automatically sync across devices. If browser data is cleared, local custom exercises can be lost unless they have been exported.
 
-![Custom exercise editor](screenshots/custom-exercise-editor.png)
+_Image removed: Custom exercise editor._
 
 ## 14. Workspace Settings and Everyday Checks
 

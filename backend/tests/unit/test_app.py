@@ -24,7 +24,7 @@ class TestFlaskApp:
         }
 
     @staticmethod
-    def _user_payload(role: str = "user") -> dict[str, str]:
+    def _user_payload(role: str = "parent") -> dict[str, str]:
         return {
             "id": "user-123",
             "name": "Test User",
@@ -212,10 +212,17 @@ class TestFlaskApp:
         data = json.loads(response.data)
         assert data["error"] == "Scenario not found"
 
+    @patch("src.app.storage_service")
     @patch("src.app.child_memory_service")
     @patch("src.app.agent_manager")
     @patch("src.app.scenario_manager")
-    def test_create_agent_success(self, mock_scenario_manager, mock_agent_manager, mock_child_memory_service):
+    def test_create_agent_success(
+        self,
+        mock_scenario_manager,
+        mock_agent_manager,
+        mock_child_memory_service,
+        mock_storage_service,
+    ):
         """Test successful agent creation."""
         mock_scenario = {"id": "test-scenario", "name": "Test Scenario"}
         mock_scenario_manager.get_scenario.return_value = mock_scenario
@@ -224,6 +231,8 @@ class TestFlaskApp:
             "child_id": "child-2",
             "active_target_sound": "r",
         }
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
+        mock_storage_service.user_has_child_access.return_value = True
 
         response = self.client.post(
             "/api/agents/create",
@@ -351,8 +360,15 @@ class TestFlaskApp:
         data = json.loads(response.data)
         assert data["error"] == "Deletion failed"
 
-    def test_analyze_conversation_success(self):
+    @patch("src.app._save_completed_session")
+    @patch("src.app._perform_conversation_analysis")
+    @patch("src.app.storage_service")
+    def test_analyze_conversation_success(self, mock_storage_service, mock_analysis, mock_save_completed_session):
         """Test successful conversation analysis."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
+        mock_storage_service.user_has_child_access.return_value = True
+        mock_analysis.return_value = {"ai_assessment": {"overall_score": 80}}
+        mock_save_completed_session.return_value = None
         # Just test that the endpoint exists and validates input correctly
         # The actual analysis function is complex due to async behavior
         response = self.client.post(
@@ -361,6 +377,7 @@ class TestFlaskApp:
                 "scenario_id": "test-scenario",
                 "transcript": "Hello, how are you?",
                 "reference_text": "Hello, how are you?",
+                "child_id": "child-ayo",
             },
             headers=self._auth_headers(),
         )
@@ -382,6 +399,7 @@ class TestFlaskApp:
         data = json.loads(response.data)
         assert data["error"] == "scenario_id and transcript are required"
 
+    @patch("src.app.storage_service")
     @patch("src.app.telemetry_service")
     @patch("src.app._save_completed_session")
     @patch("src.app.child_memory_service")
@@ -392,8 +410,11 @@ class TestFlaskApp:
         mock_child_memory_service,
         mock_save_session,
         mock_telemetry_service,
+        mock_storage_service,
     ):
         """Test completed sessions are persisted after analysis."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
+        mock_storage_service.user_has_child_access.return_value = True
         mock_analysis.return_value = {
             "ai_assessment": {"overall_score": 78, "therapist_notes": "Improved on retry."},
             "pronunciation_assessment": {"accuracy_score": 80, "pronunciation_score": 79},
@@ -444,6 +465,7 @@ class TestFlaskApp:
         from src.app import child_memory_service  # pylint: disable=C0415
 
         mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
+        mock_storage_service.user_has_child_access.return_value = True
         with patch.object(
             child_memory_service,
             "get_child_memory_summary",
@@ -498,7 +520,7 @@ class TestFlaskApp:
         assert response.status_code == 200
         data = json.loads(response.data)
         assert data["insights"][0]["target_sound"] == "r"
-        mock_get_snapshot.assert_called_once_with(refresh=True)
+        mock_get_snapshot.assert_called_once_with("user-123", refresh=True)
 
     @patch("src.app.storage_service")
     def test_approve_child_memory_proposal_success(self, mock_storage_service):
@@ -506,6 +528,8 @@ class TestFlaskApp:
         from src.app import child_memory_service  # pylint: disable=C0415
 
         mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
+        mock_storage_service.get_child_memory_proposal.return_value = {"id": "proposal-1", "child_id": "child-ayo"}
+        mock_storage_service.user_has_child_access.return_value = True
         with patch.object(
             child_memory_service,
             "approve_proposal",
@@ -590,7 +614,7 @@ class TestFlaskApp:
         monkeypatch.setenv("LOCAL_DEV_USER_NAME", "Local Developer")
         monkeypatch.setenv("LOCAL_DEV_USER_EMAIL", "dev@localhost")
         monkeypatch.delenv("LOCAL_DEV_USER_ROLE", raising=False)
-        mock_storage_service.get_or_create_user.return_value = self._user_payload("user")
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("parent")
         mock_storage_service.update_user_role.return_value = self._user_payload("therapist")
 
         user = _get_authenticated_user_from_headers({})
@@ -605,17 +629,17 @@ class TestFlaskApp:
         )
         mock_storage_service.update_user_role.assert_called_once_with("local-dev-user", "therapist")
 
-    def test_resolve_local_dev_role_accepts_user_override(self, monkeypatch: pytest.MonkeyPatch):
+    def test_resolve_local_dev_role_accepts_parent_override(self, monkeypatch: pytest.MonkeyPatch):
         """Test local dev auth role can be overridden explicitly."""
-        monkeypatch.setenv("LOCAL_DEV_USER_ROLE", "user")
+        monkeypatch.setenv("LOCAL_DEV_USER_ROLE", "parent")
 
-        assert _resolve_local_dev_role() == "user"
+        assert _resolve_local_dev_role() == "parent"
 
-    def test_resolve_local_dev_role_rejects_invalid_override(self, monkeypatch: pytest.MonkeyPatch):
-        """Test invalid local dev role overrides fail back to therapist."""
+    def test_resolve_local_dev_role_accepts_admin_override(self, monkeypatch: pytest.MonkeyPatch):
+        """Test supported local dev role overrides are preserved."""
         monkeypatch.setenv("LOCAL_DEV_USER_ROLE", "admin")
 
-        assert _resolve_local_dev_role() == "therapist"
+        assert _resolve_local_dev_role() == "admin"
 
     def test_get_child_sessions_requires_authentication(self):
         """Test therapist review endpoints require an authenticated session."""
@@ -626,20 +650,22 @@ class TestFlaskApp:
         assert data["error"] == "Authentication required"
 
     @patch("src.app.storage_service")
-    def test_get_child_sessions_requires_therapist_role(self, mock_storage_service):
-        """Test therapist review endpoints reject authenticated non-therapist users."""
-        mock_storage_service.get_or_create_user.return_value = self._user_payload("user")
+    def test_get_child_sessions_requires_child_access(self, mock_storage_service):
+        """Test child review endpoints reject users without a link to the child."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("parent")
+        mock_storage_service.user_has_child_access.return_value = False
 
         response = self.client.get("/api/children/child-ayo/sessions", headers=self._auth_headers())
 
         assert response.status_code == 403
         data = json.loads(response.data)
-        assert data["error"] == "Therapist role required"
+        assert data["error"] == "Child access required"
 
     @patch("src.app.storage_service")
     def test_get_child_sessions_success(self, mock_storage_service):
         """Test therapist session history endpoint payload."""
         mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
+        mock_storage_service.user_has_child_access.return_value = True
         mock_storage_service.list_sessions_for_child.return_value = [
             {
                 "id": "session-1",
@@ -663,6 +689,7 @@ class TestFlaskApp:
     def test_get_session_detail_success(self, mock_storage_service):
         """Test therapist session detail endpoint payload."""
         mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
+        mock_storage_service.user_has_child_access.return_value = True
         mock_storage_service.get_session.return_value = {
             "id": "session-1",
             "timestamp": "2026-03-26T12:00:00+00:00",
@@ -699,7 +726,7 @@ class TestFlaskApp:
     @patch("src.app.storage_service")
     def test_acknowledge_consent_requires_therapist_role(self, mock_storage_service):
         """Test consent acknowledgement is therapist-only."""
-        mock_storage_service.get_or_create_user.return_value = self._user_payload("user")
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("parent")
 
         response = self.client.post(
             "/api/pilot/consent",
@@ -711,21 +738,22 @@ class TestFlaskApp:
         assert data["error"] == "Therapist role required"
 
     @patch("src.app.storage_service")
-    def test_get_children_requires_therapist_role(self, mock_storage_service):
-        """Test child profile listing is therapist-only."""
-        mock_storage_service.get_or_create_user.return_value = self._user_payload("user")
+    def test_get_children_returns_scoped_parent_children(self, mock_storage_service):
+        """Test child profile listing is authenticated and scoped to the caller."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("parent")
+        mock_storage_service.list_children_for_user.return_value = [{"id": "child-parent", "name": "Mila"}]
 
         response = self.client.get("/api/children", headers=self._auth_headers())
 
-        assert response.status_code == 403
+        assert response.status_code == 200
         data = json.loads(response.data)
-        assert data["error"] == "Therapist role required"
+        assert data == [{"id": "child-parent", "name": "Mila"}]
 
     @patch("src.app.storage_service")
     def test_get_children_success(self, mock_storage_service):
         """Test therapist child profile listing."""
         mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
-        mock_storage_service.list_children.return_value = [{"id": "child-ayo", "name": "Ayo"}]
+        mock_storage_service.list_children_for_user.return_value = [{"id": "child-ayo", "name": "Ayo"}]
 
         response = self.client.get("/api/children", headers=self._auth_headers())
 
@@ -753,7 +781,7 @@ class TestFlaskApp:
     @patch("src.app.storage_service")
     def test_update_user_role_requires_therapist_role(self, mock_storage_service):
         """Test only therapists can update another user's role."""
-        mock_storage_service.get_or_create_user.return_value = self._user_payload("user")
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("parent")
 
         response = self.client.post(
             "/api/users/user-123/role",
@@ -769,6 +797,11 @@ class TestFlaskApp:
     def test_save_session_feedback_success(self, mock_storage_service):
         """Test therapist post-session feedback can be saved."""
         mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
+        mock_storage_service.user_has_child_access.return_value = True
+        mock_storage_service.get_session.return_value = {
+            "id": "session-1",
+            "child": {"id": "child-ayo", "name": "Ayo"},
+        }
         mock_storage_service.save_session_feedback.return_value = {
             "id": "session-1",
             "therapist_feedback": {

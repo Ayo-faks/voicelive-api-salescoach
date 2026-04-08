@@ -73,6 +73,33 @@
       },
       "voicelabCustomDomains": {
         "value": "${VOICELAB_CUSTOM_DOMAINS=[]}"
+      },
+      "enableAzureCommunicationServicesEmail": {
+        "value": "${ENABLE_AZURE_COMMUNICATION_SERVICES_EMAIL=false}"
+      },
+      "azureCommunicationServicesDataLocation": {
+        "value": "${AZURE_COMMUNICATION_SERVICES_DATA_LOCATION=Europe}"
+      },
+      "azureCommunicationServicesDomainName": {
+        "value": "${AZURE_COMMUNICATION_SERVICES_DOMAIN_NAME=AzureManagedDomain}"
+      },
+      "azureCommunicationServicesDomainManagement": {
+        "value": "${AZURE_COMMUNICATION_SERVICES_DOMAIN_MANAGEMENT=AzureManaged}"
+      },
+      "azureCommunicationServicesLinkVerifiedDomain": {
+        "value": "${AZURE_COMMUNICATION_SERVICES_LINK_VERIFIED_DOMAIN=false}"
+      },
+      "azureCommunicationServicesConnectionString": {
+        "value": "${AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING=}"
+      },
+      "azureCommunicationServicesSenderAddress": {
+        "value": "${AZURE_COMMUNICATION_SERVICES_SENDER_ADDRESS=}"
+      },
+      "azureCommunicationServicesSenderDisplayName": {
+        "value": "${AZURE_COMMUNICATION_SERVICES_SENDER_DISPLAY_NAME=Wulo}"
+      },
+      "publicAppUrl": {
+        "value": "${PUBLIC_APP_URL=}"
       }
     }
 }

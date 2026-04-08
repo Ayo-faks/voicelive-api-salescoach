@@ -15,13 +15,14 @@ export const APP_ROUTE_PARAMS = {
   scenarioId: 'scenarioId',
   sessionId: 'sessionId',
   planId: 'planId',
+  invitationId: 'invitationId',
 } as const
 
 export type AppRoute = (typeof APP_ROUTES)[keyof typeof APP_ROUTES]
 
 type DefaultRouteArgs = {
   onboardingComplete: boolean
-  userMode: 'therapist' | 'child' | null
+  role: 'therapist' | 'parent' | 'admin' | null
 }
 
 const KNOWN_ROUTES = new Set<AppRoute>(Object.values(APP_ROUTES))
@@ -32,14 +33,12 @@ export function resolveAppRoute(pathname: string): AppRoute | null {
 
 export function getDefaultAuthenticatedRoute({
   onboardingComplete,
-  userMode,
+  role,
 }: DefaultRouteArgs): AppRoute {
-  if (!onboardingComplete) {
-    return APP_ROUTES.onboarding
-  }
+  const requiresOnboarding = role === 'therapist' || role === 'admin'
 
-  if (!userMode) {
-    return APP_ROUTES.mode
+  if (requiresOnboarding && !onboardingComplete) {
+    return APP_ROUTES.onboarding
   }
 
   return APP_ROUTES.home

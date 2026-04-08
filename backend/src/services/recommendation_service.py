@@ -105,6 +105,7 @@ class RecommendationService:
 
         ranking_inputs = self._build_ranking_inputs(
             child_id=child_id,
+            created_by_user_id=created_by_user_id,
             current_target_sound=current_target_sound,
             source_session=source_session,
             recent_sessions=recent_sessions,
@@ -221,6 +222,7 @@ class RecommendationService:
         self,
         *,
         child_id: str,
+        created_by_user_id: str,
         current_target_sound: str,
         source_session: Optional[Dict[str, Any]],
         recent_sessions: Sequence[Dict[str, Any]],
@@ -250,7 +252,10 @@ class RecommendationService:
             parsed_constraints=parsed_constraints,
         )
         effective_cues = [self._summarize_memory_item(item) for item in grouped_memory["effective_cues"]]
-        institutional_memory = self.institutional_memory_service.get_recommendation_snapshot(current_target_sound)
+        institutional_memory = self.institutional_memory_service.get_recommendation_snapshot(
+            created_by_user_id,
+            current_target_sound,
+        )
 
         return {
             "child_id": child_id,

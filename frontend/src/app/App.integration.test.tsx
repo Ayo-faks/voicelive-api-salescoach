@@ -118,12 +118,6 @@ vi.mock('../components/DashboardHome', () => ({
   ),
 }))
 
-vi.mock('../components/ModeSelector', () => ({
-  ModeSelector: ({ onChooseMode }: { onChooseMode: (mode: 'child' | 'therapist') => void }) => (
-    <button type="button" onClick={() => onChooseMode('child')}>choose-child</button>
-  ),
-}))
-
 vi.mock('../components/OnboardingFlow', () => ({
   OnboardingFlow: ({ onContinue }: { onContinue: () => void }) => (
     <button type="button" onClick={onContinue}>complete-onboarding</button>
@@ -236,6 +230,7 @@ vi.mock('../services/api', () => ({
     getScenarios: vi.fn(),
     getPilotState: vi.fn(),
     getChildren: vi.fn(),
+    getChildInvitations: vi.fn(),
     getChildSessions: vi.fn(),
     getChildPlans: vi.fn(),
     getChildMemorySummary: vi.fn(),
@@ -293,7 +288,7 @@ const authenticatedUser = {
   name: 'Test User',
   email: 'user@example.com',
   provider: 'aad',
-  role: 'user' as const,
+  role: 'parent' as const,
 }
 
 const therapistUser = {
@@ -583,6 +578,7 @@ describe('App routing integration', () => {
     mockedApi.getScenarios.mockResolvedValue(scenarioFixtures.serverScenarios as never)
     mockedApi.getPilotState.mockResolvedValue({ consent_timestamp: null, therapist_pin_configured: false } as never)
     mockedApi.getChildren.mockResolvedValue([])
+    mockedApi.getChildInvitations.mockResolvedValue([] as never)
     mockedApi.getChildSessions.mockImplementation(async childId => sessionSummariesByChild[childId as keyof typeof sessionSummariesByChild] ?? [])
     mockedApi.getChildPlans.mockImplementation(async childId => childPlansByChild[childId as keyof typeof childPlansByChild] ?? [])
     mockedApi.getChildMemorySummary.mockImplementation(async childId => childMemorySummaryByChild[childId as keyof typeof childMemorySummaryByChild] as never)
@@ -635,9 +631,39 @@ describe('App routing integration', () => {
     })
   })
 
+  it('routes therapist users through onboarding before landing on home', async () => {
+    mockedApi.getAuthSession.mockResolvedValue(therapistUser)
+
+    renderApp(APP_ROUTES.root)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location').textContent).toBe(APP_ROUTES.onboarding)
+    })
+
+    fireEvent.click(screen.getByText('complete-onboarding'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location').textContent).toBe(
+        `${APP_ROUTES.home}?${APP_ROUTE_PARAMS.scenarioId}=scenario-1`
+      )
+    })
+
+    expect(screen.getByText('dashboard-home:none')).toBeTruthy()
+  })
+
+  it('routes parent users directly to home without the legacy mode stop', async () => {
+    renderApp(APP_ROUTES.root)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location').textContent).toBe(APP_ROUTES.home)
+    })
+
+    expect(screen.getByText('dashboard-home:none')).toBeTruthy()
+  })
+
   it('hydrates therapist child selection from the dashboard childId query param', async () => {
     window.localStorage.setItem('wulo.onboarding.complete', 'true')
-    window.localStorage.setItem('wulo.user.mode', 'therapist')
+    window.localStorage.setItem('wulo.user.mode', 'workspace')
     mockedApi.getAuthSession.mockResolvedValue(therapistUser)
     mockedApi.getChildren.mockResolvedValue(childProfiles as never)
 
@@ -706,7 +732,7 @@ describe('App routing integration', () => {
 
   it('keeps child selection in sync across dashboard, home, and settings surfaces', async () => {
     window.localStorage.setItem('wulo.onboarding.complete', 'true')
-    window.localStorage.setItem('wulo.user.mode', 'therapist')
+    window.localStorage.setItem('wulo.user.mode', 'workspace')
     mockedApi.getAuthSession.mockResolvedValue(therapistUser)
     mockedApi.getChildren.mockResolvedValue(childProfiles as never)
 
@@ -770,7 +796,7 @@ describe('App routing integration', () => {
 
   it('updates the childId query param after dashboard child selection changes', async () => {
     window.localStorage.setItem('wulo.onboarding.complete', 'true')
-    window.localStorage.setItem('wulo.user.mode', 'therapist')
+    window.localStorage.setItem('wulo.user.mode', 'workspace')
     mockedApi.getAuthSession.mockResolvedValue(therapistUser)
     mockedApi.getChildren.mockResolvedValue(childProfiles as never)
 
@@ -793,7 +819,7 @@ describe('App routing integration', () => {
 
   it('navigates to the session route when a therapist starts an exercise directly from home', async () => {
     window.localStorage.setItem('wulo.onboarding.complete', 'true')
-    window.localStorage.setItem('wulo.user.mode', 'therapist')
+    window.localStorage.setItem('wulo.user.mode', 'workspace')
     mockedApi.getAuthSession.mockResolvedValue(therapistUser)
     mockedApi.getChildren.mockResolvedValue(childProfiles as never)
     mockedApi.getPilotState.mockResolvedValue({ consent_timestamp: '2026-04-01T10:00:00.000Z', therapist_pin_configured: false } as never)
@@ -813,7 +839,7 @@ describe('App routing integration', () => {
 
   it('opens a reviewed session from dashboard query params without starting a live session', async () => {
     window.localStorage.setItem('wulo.onboarding.complete', 'true')
-    window.localStorage.setItem('wulo.user.mode', 'therapist')
+    window.localStorage.setItem('wulo.user.mode', 'workspace')
     mockedApi.getAuthSession.mockResolvedValue(therapistUser)
     mockedApi.getChildren.mockResolvedValue(childProfiles as never)
 
@@ -830,7 +856,7 @@ describe('App routing integration', () => {
 
   it('opens a reviewed plan from dashboard query params and aligns the linked session', async () => {
     window.localStorage.setItem('wulo.onboarding.complete', 'true')
-    window.localStorage.setItem('wulo.user.mode', 'therapist')
+    window.localStorage.setItem('wulo.user.mode', 'workspace')
     mockedApi.getAuthSession.mockResolvedValue(therapistUser)
     mockedApi.getChildren.mockResolvedValue(childProfiles as never)
 
@@ -858,7 +884,7 @@ describe('App routing integration', () => {
 
   it('updates the sessionId query param after opening a reviewed session from dashboard', async () => {
     window.localStorage.setItem('wulo.onboarding.complete', 'true')
-    window.localStorage.setItem('wulo.user.mode', 'therapist')
+    window.localStorage.setItem('wulo.user.mode', 'workspace')
     mockedApi.getAuthSession.mockResolvedValue(therapistUser)
     mockedApi.getChildren.mockResolvedValue(childProfiles as never)
 

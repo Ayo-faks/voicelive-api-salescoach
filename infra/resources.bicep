@@ -69,6 +69,39 @@ param databaseMigrationAllowedEnvironments string = ''
 @description('Optional custom domain bindings for the voicelab Container App ingress.')
 param voicelabCustomDomains array = []
 
+@description('Enable Azure Communication Services Email resources and backend wiring.')
+param enableAzureCommunicationServicesEmail bool = false
+
+@description('Data location for Azure Communication Services Email resources.')
+param azureCommunicationServicesDataLocation string = 'Europe'
+
+@description('Email domain resource name. Use AzureManagedDomain for Azure-managed domains, or your verified domain name for customer-managed domains.')
+param azureCommunicationServicesDomainName string = 'AzureManagedDomain'
+
+@description('Domain management mode for the Azure Communication Services Email domain.')
+@allowed([
+  'AzureManaged'
+  'CustomerManaged'
+  'CustomerManagedInExchangeOnline'
+])
+param azureCommunicationServicesDomainManagement string = 'AzureManaged'
+
+@description('Link the email domain to the Communication Service. Leave disabled until a customer-managed domain has been verified in DNS.')
+param azureCommunicationServicesLinkVerifiedDomain bool = false
+
+@secure()
+@description('Optional Azure Communication Services Email connection string for invitation delivery.')
+param azureCommunicationServicesConnectionString string = ''
+
+@description('Optional sender address for Azure Communication Services Email invitation delivery.')
+param azureCommunicationServicesSenderAddress string = ''
+
+@description('Optional sender display name for Azure Communication Services Email invitation delivery.')
+param azureCommunicationServicesSenderDisplayName string = 'Wulo'
+
+@description('Public application URL used in invitation emails. Defaults to the active custom domain or Container App host.')
+param publicAppUrl string = ''
+
 @description('Id of the user or app to assign application roles')
 param principalId string
 
@@ -79,11 +112,24 @@ var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = uniqueString(subscription().id, resourceGroup().id, location)
 var defaultVoicelabHost = 'https://voicelab.${containerAppsEnvironment.outputs.defaultDomain}'
 var postgresServerName = 'psql-voicelab-${take(resourceToken, 18)}'
+var communicationServiceName = 'acs-voicelab-${take(resourceToken, 18)}'
+var emailServiceName = 'acsemail-voicelab-${take(resourceToken, 18)}'
+var resolvedAcsSenderUsername = !empty(azureCommunicationServicesSenderAddress) && contains(azureCommunicationServicesSenderAddress, '@')
+  ? split(azureCommunicationServicesSenderAddress, '@')[0]
+  : ''
 var customRedirectHost = environmentName == 'salescoach-swe'
   ? 'https://staging-sen.wulo.ai'
   : environmentName == 'salescoach-prod'
     ? 'https://sen.wulo.ai'
     : ''
+var resolvedPublicAppUrl = !empty(publicAppUrl)
+  ? publicAppUrl
+  : !empty(customRedirectHost)
+    ? customRedirectHost
+    : defaultVoicelabHost
+var resolvedAcsConnectionString = enableAzureCommunicationServicesEmail
+  ? communicationService!.listKeys().primaryConnectionString
+  : azureCommunicationServicesConnectionString
 var easyAuthEnabled = !empty(microsoftProviderClientId) || !empty(googleProviderClientId)
 
 param gptModelName string = 'gpt-4o'
@@ -158,6 +204,48 @@ resource speechService 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
   properties: {
     customSubDomainName: 'speech-voicelab-${resourceToken}'
     publicNetworkAccess: 'Enabled'
+  }
+}
+
+resource emailService 'Microsoft.Communication/emailServices@2026-03-18' = if (enableAzureCommunicationServicesEmail) {
+  name: emailServiceName
+  location: 'global'
+  tags: tags
+  properties: {
+    dataLocation: azureCommunicationServicesDataLocation
+  }
+}
+
+resource emailDomain 'Microsoft.Communication/emailServices/domains@2026-03-18' = if (enableAzureCommunicationServicesEmail) {
+  parent: emailService
+  name: azureCommunicationServicesDomainName
+  location: 'global'
+  tags: tags
+  properties: {
+    domainManagement: azureCommunicationServicesDomainManagement
+    userEngagementTracking: 'Disabled'
+  }
+}
+
+resource emailSenderUsername 'Microsoft.Communication/emailServices/domains/senderUsernames@2026-03-18' = if (enableAzureCommunicationServicesEmail && azureCommunicationServicesDomainManagement == 'CustomerManaged' && !empty(resolvedAcsSenderUsername) && toLower(resolvedAcsSenderUsername) != 'donotreply') {
+  parent: emailDomain
+  name: resolvedAcsSenderUsername
+  properties: {
+    username: resolvedAcsSenderUsername
+    displayName: azureCommunicationServicesSenderDisplayName
+  }
+}
+
+resource communicationService 'Microsoft.Communication/communicationServices@2026-03-18' = if (enableAzureCommunicationServicesEmail) {
+  name: communicationServiceName
+  location: 'global'
+  tags: tags
+  properties: {
+    dataLocation: azureCommunicationServicesDataLocation
+    publicNetworkAccess: 'Enabled'
+    linkedDomains: azureCommunicationServicesLinkVerifiedDomain ? [
+      emailDomain.id
+    ] : []
   }
 }
 
@@ -401,6 +489,14 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
                 value: googleProviderClientSecret
               }
             ]
+          : [],
+        !empty(azureCommunicationServicesConnectionString) || enableAzureCommunicationServicesEmail
+          ? [
+              {
+                name: 'azure-communication-services-connection-string'
+                value: resolvedAcsConnectionString
+              }
+            ]
           : []
       )
     }
@@ -481,6 +577,10 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
               value: environmentName
             }
             {
+              name: 'PUBLIC_APP_URL'
+              value: resolvedPublicAppUrl
+            }
+            {
               name: 'DATABASE_BACKEND'
               value: databaseBackend
             }
@@ -520,6 +620,14 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
               name: 'COPILOT_AZURE_API_VERSION'
               value: empty(copilotAzureApiVersion) ? '2024-10-21' : copilotAzureApiVersion
             }
+            {
+              name: 'AZURE_COMMUNICATION_SERVICES_SENDER_ADDRESS'
+              value: azureCommunicationServicesSenderAddress
+            }
+            {
+              name: 'AZURE_COMMUNICATION_SERVICES_SENDER_DISPLAY_NAME'
+              value: azureCommunicationServicesSenderDisplayName
+            }
           ],
           enablePostgresPersistence
             ? [
@@ -550,6 +658,14 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
                 {
                   name: 'GOOGLE_PROVIDER_AUTHENTICATION_SECRET'
                   secretRef: 'google-provider-auth-secret'
+                }
+              ]
+            : [],
+          !empty(azureCommunicationServicesConnectionString) || enableAzureCommunicationServicesEmail
+            ? [
+                {
+                  name: 'AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING'
+                  secretRef: 'azure-communication-services-connection-string'
                 }
               ]
             : []
@@ -706,3 +822,5 @@ output AZURE_SPEECH_REGION string =  location
 output AI_FOUNDRY_RESOURCE_NAME string = aiFoundryResource.name
 output POSTGRES_SERVER_FQDN string = enablePostgresPersistence ? postgresServer!.properties.fullyQualifiedDomainName : ''
 output POSTGRES_DATABASE_NAME string = enablePostgresPersistence ? postgresDatabaseName : ''
+output AZURE_COMMUNICATION_SERVICE_NAME string = enableAzureCommunicationServicesEmail ? communicationService.name : ''
+output AZURE_EMAIL_COMMUNICATION_SERVICE_NAME string = enableAzureCommunicationServicesEmail ? emailService.name : ''

@@ -8,34 +8,34 @@ describe('route helpers', () => {
     expect(resolveAppRoute('/not-a-route')).toBeNull()
   })
 
-  it('prioritizes onboarding and mode before workspace routes', () => {
+  it('prioritizes therapist onboarding before workspace routes', () => {
     expect(
       getDefaultAuthenticatedRoute({
         onboardingComplete: false,
-        userMode: null,
+        role: 'therapist',
       })
     ).toBe(APP_ROUTES.onboarding)
 
     expect(
       getDefaultAuthenticatedRoute({
         onboardingComplete: true,
-        userMode: null,
+        role: 'therapist',
       })
-    ).toBe(APP_ROUTES.mode)
+    ).toBe(APP_ROUTES.home)
   })
 
   it('defaults authenticated users into the home route', () => {
     expect(
       getDefaultAuthenticatedRoute({
         onboardingComplete: true,
-        userMode: 'therapist',
+        role: 'parent',
       })
     ).toBe(APP_ROUTES.home)
 
     expect(
       getDefaultAuthenticatedRoute({
-        onboardingComplete: true,
-        userMode: 'child',
+        onboardingComplete: false,
+        role: 'parent',
       })
     ).toBe(APP_ROUTES.home)
   })

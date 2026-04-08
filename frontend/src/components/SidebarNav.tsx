@@ -15,6 +15,7 @@ import {
   ChevronDoubleLeftIcon,
   ChevronDoubleRightIcon,
   HomeIcon,
+  BookOpenIcon,
   RectangleGroupIcon,
   Cog6ToothIcon,
   XMarkIcon,
@@ -205,11 +206,11 @@ interface SidebarNavProps {
   mobileOpen: boolean
   isTherapist: boolean
   showDashboardNav: boolean
+  settingsLabel: string
   childProfiles: ChildProfile[]
   childrenLoading: boolean
   selectedChildId: string | null
   selectedChild: ChildProfile | null
-  showTherapistAccess: boolean
   onBrandClick: () => void
   onNavigateHome: () => void
   onNavigateDashboard: () => void
@@ -217,7 +218,6 @@ interface SidebarNavProps {
   onSelectChild: (childId: string) => void
   onToggleCollapse: () => void
   onCloseMobile: () => void
-  onOpenTherapistAccess: () => void
 }
 
 export function SidebarNav({
@@ -227,11 +227,11 @@ export function SidebarNav({
   mobileOpen,
   isTherapist,
   showDashboardNav,
+  settingsLabel,
   childProfiles,
   childrenLoading,
   selectedChildId,
   selectedChild,
-  showTherapistAccess,
   onBrandClick,
   onNavigateHome,
   onNavigateDashboard,
@@ -239,7 +239,6 @@ export function SidebarNav({
   onSelectChild,
   onToggleCollapse,
   onCloseMobile,
-  onOpenTherapistAccess,
 }: SidebarNavProps) {
   const styles = useStyles()
   const isExpanded = mobileOpen || !collapsed
@@ -314,7 +313,7 @@ export function SidebarNav({
               )}
               onClick={onNavigateSettings}
             >
-              {isExpanded ? 'Workspace' : ''}
+              {isExpanded ? settingsLabel : ''}
             </Button>
           </nav>
 
@@ -344,9 +343,17 @@ export function SidebarNav({
         </div>
 
         <div className={styles.footer}>
-          {showTherapistAccess && isExpanded ? (
-            <Button appearance="subtle" className={styles.footerButton} onClick={onOpenTherapistAccess}>
-              Therapist access
+          {isTherapist && isExpanded ? (
+            <Button
+              appearance="subtle"
+              className={styles.footerButton}
+              icon={<BookOpenIcon className="w-5 h-5" />}
+              as="a"
+              href="https://www.wulo.ai/documentation#1-welcome-to-wulo"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Therapist docs
             </Button>
           ) : null}
 

@@ -1,4 +1,5 @@
 azure-ai-projects==1.0.0
+azure-communication-email>=1.0.0
 azure-ai-voicelive[aiohttp]>=1.0.0
 azure-storage-blob>=12.20.0
 azure-cognitiveservices-speech==1.47.0

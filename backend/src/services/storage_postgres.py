@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from contextvars import ContextVar
+from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Optional, TypeVar
 from uuid import uuid4
 
@@ -19,9 +20,19 @@ DEFAULT_CHILDREN = (
     {"id": "child-noah", "name": "Noah"},
     {"id": "child-zuri", "name": "Zuri"},
 )
+ROLE_THERAPIST = "therapist"
+ROLE_PARENT = "parent"
+ROLE_ADMIN = "admin"
+LEGACY_ROLE_USER = "user"
+CHILD_RELATIONSHIP_THERAPIST = "therapist"
+CHILD_RELATIONSHIP_PARENT = "parent"
 MEMORY_DETAIL_FALLBACK: Dict[str, Any] = {}
 MEMORY_PROVENANCE_FALLBACK: Dict[str, Any] = {}
 WriteResult = TypeVar("WriteResult")
+REQUEST_USER_ID: ContextVar[Optional[str]] = ContextVar("postgres_request_user_id", default=None)
+REQUEST_USER_ROLE: ContextVar[Optional[str]] = ContextVar("postgres_request_user_role", default=None)
+REQUEST_USER_EMAIL: ContextVar[Optional[str]] = ContextVar("postgres_request_user_email", default=None)
+INVITATION_EXPIRATION_DAYS = 7
 
 
 class PostgresStorageService:
@@ -34,7 +45,27 @@ class PostgresStorageService:
         logger.info("PostgresStorageService init complete")
 
     def _connect(self) -> psycopg.Connection[Any]:
-        return psycopg.connect(self.database_url, row_factory=dict_row)
+        connection = psycopg.connect(self.database_url, row_factory=dict_row)
+        current_user_id = REQUEST_USER_ID.get()
+        current_user_role = REQUEST_USER_ROLE.get()
+        current_user_email = REQUEST_USER_EMAIL.get()
+        system_bypass = "on" if current_user_id is None else "off"
+        connection.execute(
+            """
+            SELECT
+                set_config('app.current_user_id', %s, false),
+                set_config('app.current_user_role', %s, false),
+                set_config('app.current_user_email', %s, false),
+                set_config('app.system_bypass_rls', %s, false)
+            """,
+            (
+                current_user_id or "",
+                current_user_role or "",
+                current_user_email or "",
+                system_bypass,
+            ),
+        )
+        return connection
 
     def _utc_now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
@@ -52,6 +83,16 @@ class PostgresStorageService:
     def _dumps_json(self, value: Any) -> Jsonb:
         return Jsonb(value if value is not None else {})
 
+    def set_request_actor(self, user_id: Optional[str], role: Optional[str], email: Optional[str]) -> None:
+        REQUEST_USER_ID.set(str(user_id).strip() or None if user_id is not None else None)
+        REQUEST_USER_ROLE.set(str(role).strip().lower() or None if role is not None else None)
+        REQUEST_USER_EMAIL.set(str(email).strip().lower() or None if email is not None else None)
+
+    def clear_request_actor(self) -> None:
+        REQUEST_USER_ID.set(None)
+        REQUEST_USER_ROLE.set(None)
+        REQUEST_USER_EMAIL.set(None)
+
     def _build_feedback_payload(
         self,
         rating: Optional[str],
@@ -65,6 +106,18 @@ class PostgresStorageService:
             "rating": rating,
             "note": note,
             "submitted_at": submitted_at,
+        }
+
+    def _build_invitation_email_delivery_payload(self, row: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        if row.get("email_delivery_status") is None:
+          return None
+
+        return {
+            "status": row["email_delivery_status"],
+            "attempted": bool(row.get("email_delivery_attempted")),
+            "delivered": bool(row.get("email_delivery_delivered")),
+            "provider_message_id": row.get("email_delivery_provider_message_id"),
+            "error": row.get("email_delivery_error"),
         }
 
     def _build_practice_plan_payload(self, row: Dict[str, Any]) -> Dict[str, Any]:
@@ -202,6 +255,60 @@ class PostgresStorageService:
             "created_at": row["created_at"],
         }
 
+    def _build_child_invitation_payload(self, row: Dict[str, Any], *, current_email: Optional[str] = None) -> Dict[str, Any]:
+        invited_email = str(row["invited_email"] or "")
+        normalized_current_email = str(current_email or "").strip().lower()
+        direction = "sent"
+        if normalized_current_email and invited_email.lower() == normalized_current_email:
+            direction = "incoming"
+
+        payload = {
+            "id": row["id"],
+            "child_id": row["child_id"],
+            "child_name": row["child_name"],
+            "invited_email": invited_email,
+            "relationship": row["relationship"],
+            "status": row["status"],
+            "invited_by_user_id": row["invited_by_user_id"],
+            "invited_by_name": row["invited_by_name"],
+            "accepted_by_user_id": row["accepted_by_user_id"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+            "responded_at": row["responded_at"],
+            "expires_at": row["expires_at"],
+            "direction": direction,
+        }
+
+        email_delivery = self._build_invitation_email_delivery_payload(row)
+        if email_delivery is not None:
+            payload["email_delivery"] = email_delivery
+
+        return payload
+
+    def _invitation_expiry_timestamp(self, source_timestamp: Optional[str] = None) -> str:
+        if source_timestamp:
+            try:
+                normalized = source_timestamp[:-1] + "+00:00" if source_timestamp.endswith("Z") else source_timestamp
+                return (datetime.fromisoformat(normalized) + timedelta(days=INVITATION_EXPIRATION_DAYS)).isoformat()
+            except ValueError:
+                pass
+        return (datetime.now(timezone.utc) + timedelta(days=INVITATION_EXPIRATION_DAYS)).isoformat()
+
+    def _expire_stale_child_invitations(self) -> None:
+        now = self._utc_now()
+
+        def persist_expiry(connection: psycopg.Connection[Any]) -> None:
+            connection.execute(
+                """
+                UPDATE child_invitations
+                SET status = 'expired', updated_at = %s, responded_at = COALESCE(responded_at, %s)
+                WHERE status = 'pending' AND expires_at IS NOT NULL AND expires_at < %s
+                """,
+                (now, now, now),
+            )
+
+        self._execute_write(persist_expiry)
+
     def _execute_write(self, operation: Callable[[psycopg.Connection[Any]], WriteResult]) -> WriteResult:
         with self._connect() as connection:
             return operation(connection)
@@ -234,6 +341,34 @@ class PostgresStorageService:
 
         self._execute_write(persist_setting)
 
+    def _normalize_user_role(self, role: Any) -> str:
+        normalized = str(role or "").strip().lower()
+        if normalized == LEGACY_ROLE_USER:
+            return ROLE_PARENT
+        if normalized in {ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN}:
+            return normalized
+        return ROLE_PARENT
+
+    def _bootstrap_existing_children_for_user(
+        self,
+        connection: psycopg.Connection[Any],
+        user_id: str,
+        relationship: str,
+    ) -> None:
+        existing_child_ids = connection.execute(
+            "SELECT id FROM children WHERE deleted_at IS NULL ORDER BY created_at ASC"
+        ).fetchall()
+        now = self._utc_now()
+        for row in existing_child_ids:
+            connection.execute(
+                """
+                INSERT INTO user_children (user_id, child_id, relationship, created_at)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT(user_id, child_id) DO UPDATE SET relationship = excluded.relationship
+                """,
+                (user_id, row["id"], relationship, now),
+            )
+
     def _get_setting(self, key: str) -> Optional[str]:
         with self._connect() as connection:
             row = connection.execute(
@@ -265,7 +400,7 @@ class PostgresStorageService:
             "email": row["email"],
             "name": row["name"],
             "provider": row["provider"],
-            "role": row["role"],
+            "role": self._normalize_user_role(row["role"]),
             "created_at": row["created_at"],
         }
 
@@ -297,7 +432,7 @@ class PostgresStorageService:
                 }
 
             user_count = connection.execute("SELECT COUNT(*) AS count FROM users").fetchone()["count"]
-            role = "therapist" if user_count == 0 else "user"
+            role = ROLE_THERAPIST if user_count == 0 else ROLE_PARENT
             connection.execute(
                 """
                 INSERT INTO users (id, email, name, provider, role, created_at)
@@ -305,6 +440,8 @@ class PostgresStorageService:
                 """,
                 (user_id, email, name, provider, role, now),
             )
+            if role == ROLE_THERAPIST:
+                self._bootstrap_existing_children_for_user(connection, user_id, CHILD_RELATIONSHIP_THERAPIST)
             return {
                 "id": user_id,
                 "email": email,
@@ -317,14 +454,17 @@ class PostgresStorageService:
         return self._execute_write(persist_user)
 
     def update_user_role(self, user_id: str, role: str) -> Optional[Dict[str, Any]]:
-        if role not in {"therapist", "user"}:
+        normalized_role = self._normalize_user_role(role)
+        if normalized_role not in {ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN}:
             raise ValueError("Unsupported role")
 
         def persist_role(connection: psycopg.Connection[Any]) -> int:
             cursor = connection.execute(
                 "UPDATE users SET role = %s WHERE id = %s",
-                (role, user_id),
+                (normalized_role, user_id),
             )
+            if cursor.rowcount > 0 and normalized_role == ROLE_THERAPIST:
+                self._bootstrap_existing_children_for_user(connection, user_id, CHILD_RELATIONSHIP_THERAPIST)
             return cursor.rowcount
 
         rowcount = self._execute_write(persist_role)
@@ -350,6 +490,623 @@ class PostgresStorageService:
             )
 
         self._execute_write(persist_child)
+
+    def assign_child_to_user(self, user_id: str, child_id: str, relationship: str) -> None:
+        normalized_relationship = str(relationship or "").strip().lower()
+        if normalized_relationship not in {CHILD_RELATIONSHIP_PARENT, CHILD_RELATIONSHIP_THERAPIST}:
+            raise ValueError("Unsupported child relationship")
+
+        def persist_assignment(connection: psycopg.Connection[Any]) -> None:
+            connection.execute(
+                """
+                INSERT INTO user_children (user_id, child_id, relationship, created_at)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT(user_id, child_id) DO UPDATE SET relationship = excluded.relationship
+                """,
+                (user_id, child_id, normalized_relationship, self._utc_now()),
+            )
+
+        self._execute_write(persist_assignment)
+
+    def create_child(
+        self,
+        *,
+        name: str,
+        created_by_user_id: str,
+        relationship: str,
+        date_of_birth: Optional[str] = None,
+        notes: Optional[str] = None,
+        child_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        normalized_name = str(name or "").strip()
+        if not normalized_name:
+            raise ValueError("name is required")
+
+        created_child_id = str(child_id or f"child-{uuid4().hex[:12]}")
+        created_at = self._utc_now()
+
+        def persist_child(connection: psycopg.Connection[Any]) -> None:
+            connection.execute(
+                """
+                INSERT INTO children (id, name, date_of_birth, notes, deleted_at, created_at)
+                VALUES (%s, %s, %s, %s, NULL, %s)
+                """,
+                (created_child_id, normalized_name, date_of_birth, notes, created_at),
+            )
+            connection.execute(
+                """
+                INSERT INTO user_children (user_id, child_id, relationship, created_at)
+                VALUES (%s, %s, %s, %s)
+                """,
+                (created_by_user_id, created_child_id, relationship, created_at),
+            )
+
+        self._execute_write(persist_child)
+        child = self.get_child(created_child_id)
+        if child is None:
+            raise RuntimeError("Child could not be reloaded after creation")
+        return child
+
+    def get_child(self, child_id: str, include_deleted: bool = False) -> Optional[Dict[str, Any]]:
+        query = [
+            """
+            SELECT
+                children.id,
+                children.name,
+                children.date_of_birth,
+                children.notes,
+                children.deleted_at,
+                children.created_at,
+                COUNT(sessions.id) AS session_count,
+                MAX(sessions.timestamp) AS last_session_at
+            FROM children
+            LEFT JOIN sessions ON sessions.child_id = children.id
+            WHERE children.id = %s
+            """
+        ]
+        parameters: List[Any] = [child_id]
+        if not include_deleted:
+            query.append("AND children.deleted_at IS NULL")
+        query.append(
+            "GROUP BY children.id, children.name, children.date_of_birth, children.notes, children.deleted_at, children.created_at"
+        )
+
+        with self._connect() as connection:
+            row = connection.execute("\n".join(query), parameters).fetchone()
+
+        if row is None:
+            return None
+
+        return {
+            "id": row["id"],
+            "name": row["name"],
+            "date_of_birth": row["date_of_birth"],
+            "notes": row["notes"],
+            "deleted_at": row["deleted_at"],
+            "created_at": row["created_at"],
+            "session_count": row["session_count"],
+            "last_session_at": row["last_session_at"],
+        }
+
+    def list_children_for_user(self, user_id: str, include_deleted: bool = False) -> List[Dict[str, Any]]:
+        user = self.get_user(user_id)
+        if user is not None and user.get("role") == ROLE_ADMIN:
+            return self.list_children(include_deleted=include_deleted)
+
+        query = [
+            """
+            SELECT
+                children.id,
+                children.name,
+                children.date_of_birth,
+                children.notes,
+                children.deleted_at,
+                children.created_at,
+                COUNT(sessions.id) AS session_count,
+                MAX(sessions.timestamp) AS last_session_at
+            FROM children
+            INNER JOIN user_children ON user_children.child_id = children.id
+            LEFT JOIN sessions ON sessions.child_id = children.id
+            WHERE user_children.user_id = %s
+            """
+        ]
+        parameters: List[Any] = [user_id]
+        if not include_deleted:
+            query.append("AND children.deleted_at IS NULL")
+        query.append(
+            "GROUP BY children.id, children.name, children.date_of_birth, children.notes, children.deleted_at, children.created_at"
+        )
+        query.append("ORDER BY LOWER(children.name) ASC")
+
+        with self._connect() as connection:
+            rows = connection.execute("\n".join(query), parameters).fetchall()
+
+        return [
+            {
+                "id": row["id"],
+                "name": row["name"],
+                "date_of_birth": row["date_of_birth"],
+                "notes": row["notes"],
+                "deleted_at": row["deleted_at"],
+                "created_at": row["created_at"],
+                "session_count": row["session_count"],
+                "last_session_at": row["last_session_at"],
+            }
+            for row in rows
+        ]
+
+    def user_has_child_access(
+        self,
+        user_id: str,
+        child_id: str,
+        *,
+        allowed_relationships: Optional[List[str]] = None,
+        include_deleted: bool = False,
+    ) -> bool:
+        user = self.get_user(user_id)
+        if user is not None and user.get("role") == ROLE_ADMIN:
+            return self.get_child(child_id, include_deleted=include_deleted) is not None
+
+        query = [
+            """
+            SELECT 1
+            FROM user_children
+            INNER JOIN children ON children.id = user_children.child_id
+            WHERE user_children.user_id = %s AND user_children.child_id = %s
+            """
+        ]
+        parameters: List[Any] = [user_id, child_id]
+        if not include_deleted:
+            query.append("AND children.deleted_at IS NULL")
+        if allowed_relationships:
+            placeholders = ", ".join(["%s"] * len(allowed_relationships))
+            query.append(f"AND user_children.relationship IN ({placeholders})")
+            parameters.extend(allowed_relationships)
+
+        with self._connect() as connection:
+            row = connection.execute("\n".join(query), parameters).fetchone()
+        return row is not None
+
+    def get_child_relationship(self, user_id: str, child_id: str) -> Optional[str]:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT relationship FROM user_children WHERE user_id = %s AND child_id = %s",
+                (user_id, child_id),
+            ).fetchone()
+        return None if row is None else str(row["relationship"])
+
+    def soft_delete_child(self, child_id: str) -> Optional[Dict[str, Any]]:
+        deleted_at = self._utc_now()
+
+        def persist_delete(connection: psycopg.Connection[Any]) -> int:
+            cursor = connection.execute(
+                "UPDATE children SET deleted_at = %s WHERE id = %s AND deleted_at IS NULL",
+                (deleted_at, child_id),
+            )
+            return cursor.rowcount
+
+        rowcount = self._execute_write(persist_delete)
+        if rowcount == 0:
+            return None
+        return self.get_child(child_id, include_deleted=True)
+
+    def log_audit_event(
+        self,
+        *,
+        user_id: Optional[str],
+        action: str,
+        resource_type: str,
+        resource_id: str,
+        child_id: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        event_id = f"audit-{uuid4().hex[:12]}"
+        created_at = self._utc_now()
+
+        def persist_event(connection: psycopg.Connection[Any]) -> None:
+            connection.execute(
+                """
+                INSERT INTO audit_log (
+                    id,
+                    user_id,
+                    action,
+                    resource_type,
+                    resource_id,
+                    child_id,
+                    metadata_json,
+                    created_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    event_id,
+                    user_id,
+                    action,
+                    resource_type,
+                    resource_id,
+                    child_id,
+                    self._dumps_json(metadata or {}),
+                    created_at,
+                ),
+            )
+
+        self._execute_write(persist_event)
+        return {
+            "id": event_id,
+            "user_id": user_id,
+            "action": action,
+            "resource_type": resource_type,
+            "resource_id": resource_id,
+            "child_id": child_id,
+            "metadata": metadata or {},
+            "created_at": created_at,
+        }
+
+    def create_child_invitation(
+        self,
+        *,
+        child_id: str,
+        invited_email: str,
+        relationship: str,
+        invited_by_user_id: str,
+    ) -> Dict[str, Any]:
+        normalized_email = str(invited_email or "").strip().lower()
+        normalized_relationship = str(relationship or "").strip().lower()
+        if not normalized_email:
+            raise ValueError("invited_email is required")
+        if normalized_relationship not in {CHILD_RELATIONSHIP_PARENT, CHILD_RELATIONSHIP_THERAPIST}:
+            raise ValueError("Unsupported child relationship")
+
+        invitation_id = f"invite-{uuid4().hex[:12]}"
+        created_at = self._utc_now()
+        expires_at = self._invitation_expiry_timestamp(created_at)
+
+        reused_invitation_id: Optional[str] = None
+
+        def persist_invitation(connection: psycopg.Connection[Any]) -> None:
+            nonlocal reused_invitation_id
+            connection.execute(
+                """
+                UPDATE child_invitations
+                SET status = 'expired', updated_at = %s, responded_at = COALESCE(responded_at, %s)
+                WHERE status = 'pending' AND expires_at IS NOT NULL AND expires_at < %s
+                """,
+                (created_at, created_at, created_at),
+            )
+            existing = connection.execute(
+                """
+                SELECT id
+                FROM child_invitations
+                WHERE child_id = %s AND LOWER(invited_email) = %s AND relationship = %s AND status = 'pending'
+                ORDER BY created_at DESC
+                LIMIT 1
+                """,
+                (child_id, normalized_email, normalized_relationship),
+            ).fetchone()
+            if existing is not None:
+                reused_invitation_id = str(existing["id"])
+                connection.execute(
+                    """
+                    UPDATE child_invitations
+                    SET updated_at = %s, responded_at = NULL, expires_at = %s
+                    WHERE id = %s
+                    """,
+                    (created_at, expires_at, reused_invitation_id),
+                )
+                return
+
+            connection.execute(
+                """
+                INSERT INTO child_invitations (
+                    id,
+                    child_id,
+                    invited_email,
+                    relationship,
+                    status,
+                    invited_by_user_id,
+                    accepted_by_user_id,
+                    created_at,
+                    updated_at,
+                    responded_at,
+                    expires_at
+                )
+                VALUES (%s, %s, %s, %s, 'pending', %s, NULL, %s, %s, NULL, %s)
+                """,
+                (
+                    invitation_id,
+                    child_id,
+                    normalized_email,
+                    normalized_relationship,
+                    invited_by_user_id,
+                    created_at,
+                    created_at,
+                    expires_at,
+                ),
+            )
+
+        self._execute_write(persist_invitation)
+        invitation = self.get_child_invitation(reused_invitation_id or invitation_id)
+        if invitation is None:
+            raise RuntimeError("Invitation could not be reloaded after creation")
+        return invitation
+
+    def get_child_invitation(self, invitation_id: str, *, current_email: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        self._expire_stale_child_invitations()
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    child_invitations.id,
+                    child_invitations.child_id,
+                    children.name AS child_name,
+                    child_invitations.invited_email,
+                    child_invitations.relationship,
+                    child_invitations.status,
+                    child_invitations.invited_by_user_id,
+                    inviter.name AS invited_by_name,
+                    child_invitations.accepted_by_user_id,
+                    child_invitations.created_at,
+                    child_invitations.updated_at,
+                    child_invitations.responded_at,
+                    child_invitations.expires_at,
+                    (
+                        SELECT status
+                        FROM child_invitation_email_deliveries
+                        WHERE invitation_id = child_invitations.id
+                        ORDER BY created_at DESC
+                        LIMIT 1
+                    ) AS email_delivery_status,
+                    (
+                        SELECT attempted
+                        FROM child_invitation_email_deliveries
+                        WHERE invitation_id = child_invitations.id
+                        ORDER BY created_at DESC
+                        LIMIT 1
+                    ) AS email_delivery_attempted,
+                    (
+                        SELECT delivered
+                        FROM child_invitation_email_deliveries
+                        WHERE invitation_id = child_invitations.id
+                        ORDER BY created_at DESC
+                        LIMIT 1
+                    ) AS email_delivery_delivered,
+                    (
+                        SELECT provider_message_id
+                        FROM child_invitation_email_deliveries
+                        WHERE invitation_id = child_invitations.id
+                        ORDER BY created_at DESC
+                        LIMIT 1
+                    ) AS email_delivery_provider_message_id,
+                    (
+                        SELECT error
+                        FROM child_invitation_email_deliveries
+                        WHERE invitation_id = child_invitations.id
+                        ORDER BY created_at DESC
+                        LIMIT 1
+                    ) AS email_delivery_error
+                FROM child_invitations
+                INNER JOIN children ON children.id = child_invitations.child_id
+                INNER JOIN users AS inviter ON inviter.id = child_invitations.invited_by_user_id
+                WHERE child_invitations.id = %s
+                """,
+                (invitation_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        return self._build_child_invitation_payload(row, current_email=current_email)
+
+    def list_child_invitations_for_user(self, user_id: str, email: str) -> List[Dict[str, Any]]:
+        normalized_email = str(email or "").strip().lower()
+        self._expire_stale_child_invitations()
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT
+                    child_invitations.id,
+                    child_invitations.child_id,
+                    children.name AS child_name,
+                    child_invitations.invited_email,
+                    child_invitations.relationship,
+                    child_invitations.status,
+                    child_invitations.invited_by_user_id,
+                    inviter.name AS invited_by_name,
+                    child_invitations.accepted_by_user_id,
+                    child_invitations.created_at,
+                    child_invitations.updated_at,
+                    child_invitations.responded_at,
+                    child_invitations.expires_at,
+                    (
+                        SELECT status
+                        FROM child_invitation_email_deliveries
+                        WHERE invitation_id = child_invitations.id
+                        ORDER BY created_at DESC
+                        LIMIT 1
+                    ) AS email_delivery_status,
+                    (
+                        SELECT attempted
+                        FROM child_invitation_email_deliveries
+                        WHERE invitation_id = child_invitations.id
+                        ORDER BY created_at DESC
+                        LIMIT 1
+                    ) AS email_delivery_attempted,
+                    (
+                        SELECT delivered
+                        FROM child_invitation_email_deliveries
+                        WHERE invitation_id = child_invitations.id
+                        ORDER BY created_at DESC
+                        LIMIT 1
+                    ) AS email_delivery_delivered,
+                    (
+                        SELECT provider_message_id
+                        FROM child_invitation_email_deliveries
+                        WHERE invitation_id = child_invitations.id
+                        ORDER BY created_at DESC
+                        LIMIT 1
+                    ) AS email_delivery_provider_message_id,
+                    (
+                        SELECT error
+                        FROM child_invitation_email_deliveries
+                        WHERE invitation_id = child_invitations.id
+                        ORDER BY created_at DESC
+                        LIMIT 1
+                    ) AS email_delivery_error
+                FROM child_invitations
+                INNER JOIN children ON children.id = child_invitations.child_id
+                INNER JOIN users AS inviter ON inviter.id = child_invitations.invited_by_user_id
+                WHERE child_invitations.invited_by_user_id = %s OR LOWER(child_invitations.invited_email) = %s
+                ORDER BY child_invitations.updated_at DESC, child_invitations.created_at DESC
+                """,
+                (user_id, normalized_email),
+            ).fetchall()
+        return [
+            self._build_child_invitation_payload(row, current_email=normalized_email)
+            for row in rows
+        ]
+
+    def respond_to_child_invitation(
+        self,
+        invitation_id: str,
+        *,
+        user_id: str,
+        user_email: str,
+        accept: bool,
+    ) -> Optional[Dict[str, Any]]:
+        normalized_email = str(user_email or "").strip().lower()
+        response_status = "accepted" if accept else "declined"
+        responded_at = self._utc_now()
+
+        def persist_response(connection: psycopg.Connection[Any]) -> Optional[str]:
+            row = connection.execute(
+                """
+                SELECT id, child_id, invited_email, relationship, status, expires_at
+                FROM child_invitations
+                WHERE id = %s
+                """,
+                (invitation_id,),
+            ).fetchone()
+            if row is None:
+                return None
+            if str(row["status"] or "") == "pending" and row["expires_at"] and str(row["expires_at"]) < responded_at:
+                connection.execute(
+                    "UPDATE child_invitations SET status = 'expired', updated_at = %s, responded_at = COALESCE(responded_at, %s) WHERE id = %s",
+                    (responded_at, responded_at, invitation_id),
+                )
+                raise ValueError("Invitation has expired")
+            if str(row["status"] or "") != "pending":
+                raise ValueError("Invitation is no longer pending")
+            if str(row["invited_email"] or "").strip().lower() != normalized_email:
+                raise ValueError("Invitation email does not match the authenticated user")
+
+            connection.execute(
+                """
+                UPDATE child_invitations
+                SET status = %s, accepted_by_user_id = %s, updated_at = %s, responded_at = %s
+                WHERE id = %s AND status = 'pending'
+                """,
+                (
+                    response_status,
+                    user_id if accept else None,
+                    responded_at,
+                    responded_at,
+                    invitation_id,
+                ),
+            )
+            if accept:
+                connection.execute(
+                    """
+                    INSERT INTO user_children (user_id, child_id, relationship, created_at)
+                    VALUES (%s, %s, %s, %s)
+                    ON CONFLICT(user_id, child_id) DO UPDATE SET relationship = excluded.relationship
+                    """,
+                    (user_id, row["child_id"], row["relationship"], responded_at),
+                )
+
+            return str(row["child_id"])
+
+        child_id = self._execute_write(persist_response)
+        if child_id is None:
+            return None
+        return self.get_child_invitation(invitation_id, current_email=normalized_email)
+
+    def revoke_child_invitation(self, invitation_id: str) -> Optional[Dict[str, Any]]:
+        revoked_at = self._utc_now()
+
+        def persist_revoke(connection: psycopg.Connection[Any]) -> int:
+            cursor = connection.execute(
+                """
+                UPDATE child_invitations
+                SET status = 'revoked', updated_at = %s, responded_at = %s
+                WHERE id = %s AND status = 'pending'
+                """,
+                (revoked_at, revoked_at, invitation_id),
+            )
+            return cursor.rowcount
+
+        rowcount = self._execute_write(persist_revoke)
+        if rowcount == 0:
+            return None
+        return self.get_child_invitation(invitation_id)
+
+    def resend_child_invitation(self, invitation_id: str) -> Optional[Dict[str, Any]]:
+        resent_at = self._utc_now()
+        expires_at = self._invitation_expiry_timestamp(resent_at)
+
+        def persist_resend(connection: psycopg.Connection[Any]) -> int:
+            cursor = connection.execute(
+                """
+                UPDATE child_invitations
+                SET status = 'pending',
+                    accepted_by_user_id = NULL,
+                    updated_at = %s,
+                    responded_at = NULL,
+                    expires_at = %s
+                WHERE id = %s AND status IN ('pending', 'declined', 'revoked', 'expired')
+                """,
+                (resent_at, expires_at, invitation_id),
+            )
+            return cursor.rowcount
+
+        rowcount = self._execute_write(persist_resend)
+        if rowcount == 0:
+            return None
+        return self.get_child_invitation(invitation_id)
+
+    def record_child_invitation_email_delivery(
+        self,
+        invitation_id: str,
+        delivery: Dict[str, Any],
+    ) -> None:
+        delivery_id = f"invite-email-{uuid4().hex[:12]}"
+        created_at = self._utc_now()
+
+        def persist_delivery(connection: psycopg.Connection[Any]) -> None:
+            connection.execute(
+                """
+                INSERT INTO child_invitation_email_deliveries (
+                    id,
+                    invitation_id,
+                    status,
+                    attempted,
+                    delivered,
+                    provider_message_id,
+                    error,
+                    created_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    delivery_id,
+                    invitation_id,
+                    str(delivery.get("status") or "unknown"),
+                    bool(delivery.get("attempted")),
+                    bool(delivery.get("delivered")),
+                    str(delivery.get("provider_message_id") or "") or None,
+                    str(delivery.get("error") or "") or None,
+                    created_at,
+                ),
+            )
+
+        self._execute_write(persist_delivery)
 
     def upsert_exercise(
         self,
@@ -383,27 +1140,40 @@ class PostgresStorageService:
 
         self._execute_write(persist_exercise)
 
-    def list_children(self) -> List[Dict[str, Any]]:
+    def list_children(self, include_deleted: bool = False) -> List[Dict[str, Any]]:
         with self._connect() as connection:
-            rows = connection.execute(
+            query = [
                 """
                 SELECT
                     children.id,
                     children.name,
+                    children.date_of_birth,
+                    children.notes,
+                    children.deleted_at,
                     children.created_at,
                     COUNT(sessions.id) AS session_count,
                     MAX(sessions.timestamp) AS last_session_at
                 FROM children
                 LEFT JOIN sessions ON sessions.child_id = children.id
-                GROUP BY children.id, children.name, children.created_at
-                ORDER BY LOWER(children.name) ASC
+                WHERE 1 = 1
                 """
-            ).fetchall()
+            ]
+            parameters: List[Any] = []
+            if not include_deleted:
+                query.append("AND children.deleted_at IS NULL")
+            query.append(
+                "GROUP BY children.id, children.name, children.date_of_birth, children.notes, children.deleted_at, children.created_at"
+            )
+            query.append("ORDER BY LOWER(children.name) ASC")
+            rows = connection.execute("\n".join(query), parameters).fetchall()
 
         return [
             {
                 "id": row["id"],
                 "name": row["name"],
+                "date_of_birth": row["date_of_birth"],
+                "notes": row["notes"],
+                "deleted_at": row["deleted_at"],
                 "created_at": row["created_at"],
                 "session_count": row["session_count"],
                 "last_session_at": row["last_session_at"],
@@ -412,8 +1182,15 @@ class PostgresStorageService:
         ]
 
     def save_session(self, session_payload: Dict[str, Any]) -> Dict[str, Any]:
-        child_id = str(session_payload.get("child_id") or DEFAULT_CHILDREN[0]["id"])
-        child_name = str(session_payload.get("child_name") or child_id.replace("-", " ").title())
+        child_id = str(session_payload.get("child_id") or "").strip()
+        if not child_id:
+            raise ValueError("child_id is required")
+
+        child = self.get_child(child_id)
+        if child is None:
+            raise ValueError("Child not found")
+
+        child_name = str(session_payload.get("child_name") or child.get("name") or child_id.replace("-", " ").title())
         exercise = dict(session_payload.get("exercise") or {})
         exercise_id = str(session_payload.get("exercise_id") or exercise.get("id") or "unknown-exercise")
         exercise_name = str(exercise.get("name") or "Speech exercise")
@@ -422,7 +1199,6 @@ class PostgresStorageService:
         session_id = str(session_payload.get("id") or f"session-{uuid4().hex[:12]}")
         timestamp = str(session_payload.get("timestamp") or self._utc_now())
 
-        self.upsert_child(child_id, child_name)
         self.upsert_exercise(
             exercise_id,
             exercise_name,
@@ -1288,17 +2064,22 @@ class PostgresStorageService:
 
     def replace_institutional_memory_insights(
         self,
+        owner_user_id: str,
         insights: List[Dict[str, Any]],
     ) -> List[Dict[str, Any]]:
         created_at = self._utc_now()
 
         def persist_insights(connection: psycopg.Connection[Any]) -> None:
-            connection.execute("DELETE FROM institutional_memory_insights")
+            connection.execute(
+                "DELETE FROM institutional_memory_insights WHERE owner_user_id = %s",
+                (owner_user_id,),
+            )
             for insight in insights:
                 connection.execute(
                     """
                     INSERT INTO institutional_memory_insights (
                         id,
+                        owner_user_id,
                         insight_type,
                         status,
                         target_sound,
@@ -1312,10 +2093,11 @@ class PostgresStorageService:
                         created_at,
                         updated_at
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
                         str(insight.get("id") or f"institutional-insight-{uuid4().hex[:12]}"),
+                        owner_user_id,
                         str(insight.get("insight_type") or "reviewed_pattern"),
                         str(insight.get("status") or "active"),
                         str(insight.get("target_sound") or "").strip() or None,
@@ -1332,11 +2114,12 @@ class PostgresStorageService:
                 )
 
         self._execute_write(persist_insights)
-        return self.list_institutional_memory_insights()
+        return self.list_institutional_memory_insights(owner_user_id=owner_user_id)
 
     def list_institutional_memory_insights(
         self,
         *,
+        owner_user_id: str,
         status: Optional[str] = None,
         insight_type: Optional[str] = None,
         target_sound: Optional[str] = None,
@@ -1358,10 +2141,10 @@ class PostgresStorageService:
                 created_at,
                 updated_at
             FROM institutional_memory_insights
-            WHERE 1 = 1
+            WHERE owner_user_id = %s
             """
         ]
-        parameters: List[Any] = []
+        parameters: List[Any] = [owner_user_id]
         if status:
             query.append("AND status = %s")
             parameters.append(status)

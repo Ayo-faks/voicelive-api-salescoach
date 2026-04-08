@@ -39,6 +39,8 @@ DEFAULT_BLOB_BACKUP_CONTAINER = "wulo-backup"
 DEFAULT_BLOB_BACKUP_NAME = "wulo.db"
 DEFAULT_COPILOT_PLANNER_MODEL = "gpt-5"
 DEFAULT_COPILOT_AZURE_API_VERSION = "2024-10-21"
+DEFAULT_PUBLIC_APP_URL = "http://localhost:4173"
+DEFAULT_ACS_EMAIL_SENDER_DISPLAY_NAME = "Wulo"
 
 
 class Config:
@@ -101,6 +103,19 @@ class Config:
             "applicationinsights_connection_string": os.getenv(
                 "APPLICATIONINSIGHTS_CONNECTION_STRING",
                 os.getenv("APPINSIGHTS_CONNECTIONSTRING", DEFAULT_APP_INSIGHTS_CONNECTION_STRING),
+            ),
+            "public_app_url": os.getenv("PUBLIC_APP_URL", DEFAULT_PUBLIC_APP_URL),
+            "azure_communication_services_connection_string": os.getenv(
+                "AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING",
+                "",
+            ),
+            "azure_communication_services_sender_address": os.getenv(
+                "AZURE_COMMUNICATION_SERVICES_SENDER_ADDRESS",
+                "",
+            ),
+            "azure_communication_services_sender_display_name": os.getenv(
+                "AZURE_COMMUNICATION_SERVICES_SENDER_DISPLAY_NAME",
+                DEFAULT_ACS_EMAIL_SENDER_DISPLAY_NAME,
             ),
             "copilot_cli_path": os.getenv("COPILOT_CLI_PATH", ""),
             "copilot_github_token": os.getenv(

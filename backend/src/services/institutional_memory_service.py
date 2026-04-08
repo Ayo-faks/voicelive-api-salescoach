@@ -26,24 +26,28 @@ class InstitutionalMemoryService:
     def __init__(self, storage_service: Any):
         self.storage_service = storage_service
 
-    def get_snapshot(self, *, refresh: bool = False) -> Dict[str, Any]:
+    def get_snapshot(self, owner_user_id: str, *, refresh: bool = False) -> Dict[str, Any]:
         if refresh:
-            return self.rebuild_insights()
+            return self.rebuild_insights(owner_user_id)
 
-        insights = self.storage_service.list_institutional_memory_insights(status=INSIGHT_STATUS_ACTIVE)
+        insights = self.storage_service.list_institutional_memory_insights(
+            owner_user_id=owner_user_id,
+            status=INSIGHT_STATUS_ACTIVE,
+        )
         if not insights:
-            return self.rebuild_insights()
+            return self.rebuild_insights(owner_user_id)
 
         return self._build_snapshot(insights)
 
     def list_insights(
         self,
+        owner_user_id: str,
         *,
         refresh: bool = False,
         insight_type: Optional[str] = None,
         target_sound: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
-        snapshot = self.get_snapshot(refresh=refresh)
+        snapshot = self.get_snapshot(owner_user_id, refresh=refresh)
         insights = list(snapshot.get("insights") or [])
         if insight_type:
             insights = [insight for insight in insights if str(insight.get("insight_type") or "") == insight_type]
@@ -55,9 +59,9 @@ class InstitutionalMemoryService:
             ]
         return insights
 
-    def get_recommendation_snapshot(self, target_sound: Optional[str]) -> Dict[str, Any]:
+    def get_recommendation_snapshot(self, owner_user_id: str, target_sound: Optional[str]) -> Dict[str, Any]:
         normalized_target = str(target_sound or "").strip().lower()
-        snapshot = self.get_snapshot(refresh=True)
+        snapshot = self.get_snapshot(owner_user_id, refresh=True)
         all_insights = list(snapshot.get("insights") or [])
         relevant = [
             insight
@@ -80,13 +84,13 @@ class InstitutionalMemoryService:
             "insights": relevant,
         }
 
-    def rebuild_insights(self) -> Dict[str, Any]:
+    def rebuild_insights(self, owner_user_id: str) -> Dict[str, Any]:
         cue_aggregates: Dict[str, Dict[str, Any]] = {}
         target_memory_counts: Dict[str, Dict[str, Any]] = {}
         target_session_aggregates: Dict[Tuple[str, str], Dict[str, Any]] = {}
         reviewed_child_ids: set[str] = set()
 
-        for child in self.storage_service.list_children():
+        for child in self.storage_service.list_children_for_user(owner_user_id):
             child_id = str(child.get("id") or "").strip()
             if not child_id:
                 continue
@@ -172,7 +176,7 @@ class InstitutionalMemoryService:
             *self._build_strategy_insights(cue_aggregates.values()),
             *self._build_target_insights(target_session_aggregates.values(), target_memory_counts),
         ]
-        saved_insights = self.storage_service.replace_institutional_memory_insights(insights)
+        saved_insights = self.storage_service.replace_institutional_memory_insights(owner_user_id, insights)
         snapshot = self._build_snapshot(saved_insights)
         snapshot["reviewed_child_count"] = len(reviewed_child_ids)
         return snapshot

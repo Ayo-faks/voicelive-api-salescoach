@@ -1,5 +1,23 @@
 # Deployment Guide For Coding Agents
 
+## Repository Snapshot
+
+This repository currently contains three major layers:
+
+1. `frontend/`: React 19 + Vite + TypeScript therapist and child-facing UI.
+2. `backend/`: Flask + Flask-Sock runtime, storage, AI orchestration, planner, recommendation, and memory services.
+3. `infra/`: `azd` + Bicep deployment to Azure Container Apps, AI Services, Speech, Storage, and optional PostgreSQL.
+
+Product capabilities now include authenticated therapist flows, child-session persistence, governed child memory, inspectable recommendations, and Copilot-backed next-session planning.
+
+When changing repo-facing behavior, review at least:
+
+- `backend/src/app.py`
+- `backend/src/services/`
+- `frontend/src/app/App.tsx`
+- `frontend/src/components/ProgressDashboard.tsx`
+- `infra/resources.bicep`
+
 This repository deploys with Azure Developer CLI and has two important environment states:
 
 1. `salescoach-swe`: the currently provisioned working environment.

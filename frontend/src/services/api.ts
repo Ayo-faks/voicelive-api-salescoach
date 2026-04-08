@@ -9,6 +9,7 @@ import type {
   ChildProfile,
   ChildMemoryItem,
   ChildMemoryProposal,
+  ChildInvitation,
   RecommendationDetail,
   RecommendationLog,
   RecommendationRequest,
@@ -43,7 +44,7 @@ export interface AuthSession {
   name: string
   email: string
   provider: string
-  role: 'therapist' | 'user'
+  role: 'therapist' | 'parent' | 'admin'
 }
 
 export function getImageAssetUrl(imagePath: string): string {
@@ -171,6 +172,105 @@ export const api = {
   async getChildren(): Promise<ChildProfile[]> {
     const res = await fetchWithAuth('/api/children')
     if (!res.ok) throw new Error('Failed to load child profiles')
+    return res.json()
+  },
+
+  async createChild(payload: {
+    name: string
+    date_of_birth?: string
+    notes?: string
+  }): Promise<ChildProfile> {
+    const res = await fetchWithAuth('/api/children', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to create child profile')
+    }
+    return res.json()
+  },
+
+  async deleteChild(childId: string): Promise<ChildProfile> {
+    const res = await fetchWithAuth(`/api/children/${childId}`, {
+      method: 'DELETE',
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to remove child profile')
+    }
+    return res.json()
+  },
+
+  async getChildInvitations(): Promise<ChildInvitation[]> {
+    const res = await fetchWithAuth('/api/invitations')
+    if (!res.ok) throw new Error('Failed to load invitations')
+    return res.json()
+  },
+
+  async createChildInvitation(payload: {
+    child_id: string
+    invited_email: string
+    relationship?: 'parent' | 'therapist'
+  }): Promise<ChildInvitation> {
+    const res = await fetchWithAuth('/api/invitations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to create invitation')
+    }
+    return res.json()
+  },
+
+  async acceptChildInvitation(invitationId: string): Promise<ChildInvitation> {
+    const res = await fetchWithAuth(`/api/invitations/${invitationId}/accept`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to accept invitation')
+    }
+    return res.json()
+  },
+
+  async declineChildInvitation(invitationId: string): Promise<ChildInvitation> {
+    const res = await fetchWithAuth(`/api/invitations/${invitationId}/decline`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to decline invitation')
+    }
+    return res.json()
+  },
+
+  async revokeChildInvitation(invitationId: string): Promise<ChildInvitation> {
+    const res = await fetchWithAuth(`/api/invitations/${invitationId}/revoke`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to revoke invitation')
+    }
+    return res.json()
+  },
+
+  async resendChildInvitation(invitationId: string): Promise<ChildInvitation> {
+    const res = await fetchWithAuth(`/api/invitations/${invitationId}/resend`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to resend invitation')
+    }
     return res.json()
   },
 

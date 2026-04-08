@@ -62,9 +62,42 @@ export interface Exercise extends Scenario {
 export interface ChildProfile {
   id: string
   name: string
+  date_of_birth?: string | null
+  notes?: string | null
+  deleted_at?: string | null
   created_at?: string
   session_count?: number
   last_session_at?: string | null
+}
+
+export type ChildInvitationRelationship = 'parent' | 'therapist'
+
+export type ChildInvitationStatus = 'pending' | 'accepted' | 'declined' | 'revoked' | 'expired'
+
+export interface InvitationEmailDelivery {
+  status: string
+  attempted: boolean
+  delivered: boolean
+  provider_message_id?: string | null
+  error?: string | null
+}
+
+export interface ChildInvitation {
+  id: string
+  child_id: string
+  child_name: string
+  invited_email: string
+  relationship: ChildInvitationRelationship
+  status: ChildInvitationStatus
+  invited_by_user_id: string
+  invited_by_name?: string | null
+  accepted_by_user_id?: string | null
+  created_at: string
+  updated_at: string
+  responded_at?: string | null
+  expires_at?: string | null
+  direction: 'incoming' | 'sent'
+  email_delivery?: InvitationEmailDelivery | null
 }
 
 export interface SessionExercise {

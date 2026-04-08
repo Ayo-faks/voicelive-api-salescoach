@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.37.4.10188",
-      "templateHash": "11394258280599508595"
+      "version": "0.42.1.51946",
+      "templateHash": "15797762210994771748"
     }
   },
   "parameters": {
@@ -168,6 +168,69 @@
       "metadata": {
         "description": "Optional custom domain bindings for the voicelab Container App ingress."
       }
+    },
+    "enableAzureCommunicationServicesEmail": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Enable Azure Communication Services Email resources and backend wiring."
+      }
+    },
+    "azureCommunicationServicesDataLocation": {
+      "type": "string",
+      "defaultValue": "Europe",
+      "metadata": {
+        "description": "Data location for Azure Communication Services Email resources."
+      }
+    },
+    "azureCommunicationServicesDomainName": {
+      "type": "string",
+      "defaultValue": "AzureManagedDomain",
+      "metadata": {
+        "description": "Email domain resource name. Use AzureManagedDomain for Azure-managed domains, or your verified domain name for customer-managed domains."
+      }
+    },
+    "azureCommunicationServicesDomainManagement": {
+      "type": "string",
+      "defaultValue": "AzureManaged",
+      "metadata": {
+        "description": "Domain management mode for the Azure Communication Services Email domain."
+      }
+    },
+    "azureCommunicationServicesLinkVerifiedDomain": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Link the email domain to the Communication Service. Leave disabled until a customer-managed domain has been verified in DNS."
+      }
+    },
+    "azureCommunicationServicesConnectionString": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional Azure Communication Services Email connection string for invitation delivery."
+      }
+    },
+    "azureCommunicationServicesSenderAddress": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional sender address for Azure Communication Services Email invitation delivery."
+      }
+    },
+    "azureCommunicationServicesSenderDisplayName": {
+      "type": "string",
+      "defaultValue": "Wulo",
+      "metadata": {
+        "description": "Optional sender display name for Azure Communication Services Email invitation delivery."
+      }
+    },
+    "publicAppUrl": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional public app URL used in invitation emails."
+      }
     }
   },
   "variables": {
@@ -185,7 +248,7 @@
     },
     {
       "type": "Microsoft.Resources/deployments",
-      "apiVersion": "2022-09-01",
+      "apiVersion": "2025-04-01",
       "name": "resources",
       "resourceGroup": "[format('rg-{0}', parameters('environmentName'))]",
       "properties": {
@@ -268,6 +331,33 @@
           },
           "voicelabCustomDomains": {
             "value": "[parameters('voicelabCustomDomains')]"
+          },
+          "enableAzureCommunicationServicesEmail": {
+            "value": "[parameters('enableAzureCommunicationServicesEmail')]"
+          },
+          "azureCommunicationServicesDataLocation": {
+            "value": "[parameters('azureCommunicationServicesDataLocation')]"
+          },
+          "azureCommunicationServicesDomainName": {
+            "value": "[parameters('azureCommunicationServicesDomainName')]"
+          },
+          "azureCommunicationServicesDomainManagement": {
+            "value": "[parameters('azureCommunicationServicesDomainManagement')]"
+          },
+          "azureCommunicationServicesLinkVerifiedDomain": {
+            "value": "[parameters('azureCommunicationServicesLinkVerifiedDomain')]"
+          },
+          "azureCommunicationServicesConnectionString": {
+            "value": "[parameters('azureCommunicationServicesConnectionString')]"
+          },
+          "azureCommunicationServicesSenderAddress": {
+            "value": "[parameters('azureCommunicationServicesSenderAddress')]"
+          },
+          "azureCommunicationServicesSenderDisplayName": {
+            "value": "[parameters('azureCommunicationServicesSenderDisplayName')]"
+          },
+          "publicAppUrl": {
+            "value": "[parameters('publicAppUrl')]"
           }
         },
         "template": {
@@ -276,8 +366,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.37.4.10188",
-              "templateHash": "7159454229768533086"
+              "version": "0.42.1.51946",
+              "templateHash": "6075621705570894503"
             }
           },
           "parameters": {
@@ -431,6 +521,74 @@
               "defaultValue": [],
               "metadata": {
                 "description": "Optional custom domain bindings for the voicelab Container App ingress."
+              }
+            },
+            "enableAzureCommunicationServicesEmail": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Enable Azure Communication Services Email resources and backend wiring."
+              }
+            },
+            "azureCommunicationServicesDataLocation": {
+              "type": "string",
+              "defaultValue": "Europe",
+              "metadata": {
+                "description": "Data location for Azure Communication Services Email resources."
+              }
+            },
+            "azureCommunicationServicesDomainName": {
+              "type": "string",
+              "defaultValue": "AzureManagedDomain",
+              "metadata": {
+                "description": "Email domain resource name. Use AzureManagedDomain for Azure-managed domains, or your verified domain name for customer-managed domains."
+              }
+            },
+            "azureCommunicationServicesDomainManagement": {
+              "type": "string",
+              "defaultValue": "AzureManaged",
+              "allowedValues": [
+                "AzureManaged",
+                "CustomerManaged",
+                "CustomerManagedInExchangeOnline"
+              ],
+              "metadata": {
+                "description": "Domain management mode for the Azure Communication Services Email domain."
+              }
+            },
+            "azureCommunicationServicesLinkVerifiedDomain": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Link the email domain to the Communication Service. Leave disabled until a customer-managed domain has been verified in DNS."
+              }
+            },
+            "azureCommunicationServicesConnectionString": {
+              "type": "securestring",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Optional Azure Communication Services Email connection string for invitation delivery."
+              }
+            },
+            "azureCommunicationServicesSenderAddress": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Optional sender address for Azure Communication Services Email invitation delivery."
+              }
+            },
+            "azureCommunicationServicesSenderDisplayName": {
+              "type": "string",
+              "defaultValue": "Wulo",
+              "metadata": {
+                "description": "Optional sender display name for Azure Communication Services Email invitation delivery."
+              }
+            },
+            "publicAppUrl": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Public application URL used in invitation emails. Defaults to the active custom domain or Container App host."
               }
             },
             "principalId": {
@@ -620,6 +778,9 @@
             "abbrs": "[variables('$fxv#0')]",
             "resourceToken": "[uniqueString(subscription().id, resourceGroup().id, parameters('location'))]",
             "postgresServerName": "[format('psql-voicelab-{0}', take(variables('resourceToken'), 18))]",
+            "communicationServiceName": "[format('acs-voicelab-{0}', take(variables('resourceToken'), 18))]",
+            "emailServiceName": "[format('acsemail-voicelab-{0}', take(variables('resourceToken'), 18))]",
+            "resolvedAcsSenderUsername": "[if(and(not(empty(parameters('azureCommunicationServicesSenderAddress'))), contains(parameters('azureCommunicationServicesSenderAddress'), '@')), split(parameters('azureCommunicationServicesSenderAddress'), '@')[0], '')]",
             "customRedirectHost": "[if(equals(parameters('environmentName'), 'salescoach-swe'), 'https://staging-sen.wulo.ai', if(equals(parameters('environmentName'), 'salescoach-prod'), 'https://sen.wulo.ai', ''))]",
             "easyAuthEnabled": "[or(not(empty(parameters('microsoftProviderClientId'))), not(empty(parameters('googleProviderClientId'))))]"
           },
@@ -680,6 +841,61 @@
                 "customSubDomainName": "[format('speech-voicelab-{0}', variables('resourceToken'))]",
                 "publicNetworkAccess": "Enabled"
               }
+            },
+            {
+              "condition": "[parameters('enableAzureCommunicationServicesEmail')]",
+              "type": "Microsoft.Communication/emailServices",
+              "apiVersion": "2026-03-18",
+              "name": "[variables('emailServiceName')]",
+              "location": "global",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "dataLocation": "[parameters('azureCommunicationServicesDataLocation')]"
+              }
+            },
+            {
+              "condition": "[parameters('enableAzureCommunicationServicesEmail')]",
+              "type": "Microsoft.Communication/emailServices/domains",
+              "apiVersion": "2026-03-18",
+              "name": "[format('{0}/{1}', variables('emailServiceName'), parameters('azureCommunicationServicesDomainName'))]",
+              "location": "global",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "domainManagement": "[parameters('azureCommunicationServicesDomainManagement')]",
+                "userEngagementTracking": "Disabled"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Communication/emailServices', variables('emailServiceName'))]"
+              ]
+            },
+            {
+              "condition": "[and(and(and(parameters('enableAzureCommunicationServicesEmail'), equals(parameters('azureCommunicationServicesDomainManagement'), 'CustomerManaged')), not(empty(variables('resolvedAcsSenderUsername')))), not(equals(toLower(variables('resolvedAcsSenderUsername')), 'donotreply')))]",
+              "type": "Microsoft.Communication/emailServices/domains/senderUsernames",
+              "apiVersion": "2026-03-18",
+              "name": "[format('{0}/{1}/{2}', variables('emailServiceName'), parameters('azureCommunicationServicesDomainName'), variables('resolvedAcsSenderUsername'))]",
+              "properties": {
+                "username": "[variables('resolvedAcsSenderUsername')]",
+                "displayName": "[parameters('azureCommunicationServicesSenderDisplayName')]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Communication/emailServices/domains', variables('emailServiceName'), parameters('azureCommunicationServicesDomainName'))]"
+              ]
+            },
+            {
+              "condition": "[parameters('enableAzureCommunicationServicesEmail')]",
+              "type": "Microsoft.Communication/communicationServices",
+              "apiVersion": "2026-03-18",
+              "name": "[variables('communicationServiceName')]",
+              "location": "global",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "dataLocation": "[parameters('azureCommunicationServicesDataLocation')]",
+                "publicNetworkAccess": "Enabled",
+                "linkedDomains": "[if(parameters('azureCommunicationServicesLinkVerifiedDomain'), createArray(resourceId('Microsoft.Communication/emailServices/domains', variables('emailServiceName'), parameters('azureCommunicationServicesDomainName'))), createArray())]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Communication/emailServices/domains', variables('emailServiceName'), parameters('azureCommunicationServicesDomainName'))]"
+              ]
             },
             {
               "type": "Microsoft.Storage/storageAccounts",
@@ -856,7 +1072,7 @@
                   "tokenStore": {
                     "enabled": false
                   },
-                  "allowedExternalRedirectUrls": "[if(empty(variables('customRedirectHost')), createArray(format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.defaultDomain.value)), createArray(variables('customRedirectHost'), format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.defaultDomain.value)))]"
+                  "allowedExternalRedirectUrls": "[if(empty(variables('customRedirectHost')), createArray(format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2025-04-01').outputs.defaultDomain.value)), createArray(variables('customRedirectHost'), format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2025-04-01').outputs.defaultDomain.value)))]"
                 },
                 "httpSettings": {
                   "requireHttps": true
@@ -872,7 +1088,7 @@
               "apiVersion": "2022-04-01",
               "name": "[guid(resourceGroup().id, 'voicelab', '64702f94-c441-49e6-a78b-ef80e0188fee')]",
               "properties": {
-                "principalId": "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.principalId.value]",
+                "principalId": "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2025-04-01').outputs.principalId.value]",
                 "principalType": "ServicePrincipal",
                 "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', '64702f94-c441-49e6-a78b-ef80e0188fee')]"
               },
@@ -886,7 +1102,7 @@
               "apiVersion": "2022-04-01",
               "name": "[guid(resourceGroup().id, 'voicelab', 'a97b65f3-24c7-4388-baec-2e87135dc908')]",
               "properties": {
-                "principalId": "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.principalId.value]",
+                "principalId": "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2025-04-01').outputs.principalId.value]",
                 "principalType": "ServicePrincipal",
                 "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'a97b65f3-24c7-4388-baec-2e87135dc908')]"
               },
@@ -900,7 +1116,7 @@
               "apiVersion": "2022-04-01",
               "name": "[guid(resourceGroup().id, 'voicelab', '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd')]",
               "properties": {
-                "principalId": "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.principalId.value]",
+                "principalId": "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2025-04-01').outputs.principalId.value]",
                 "principalType": "ServicePrincipal",
                 "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd')]"
               },
@@ -933,7 +1149,7 @@
             },
             {
               "type": "Microsoft.Resources/deployments",
-              "apiVersion": "2022-09-01",
+              "apiVersion": "2025-04-01",
               "name": "monitoring",
               "properties": {
                 "expressionEvaluationOptions": {
@@ -5565,7 +5781,7 @@
             },
             {
               "type": "Microsoft.Resources/deployments",
-              "apiVersion": "2022-09-01",
+              "apiVersion": "2025-04-01",
               "name": "registry",
               "properties": {
                 "expressionEvaluationOptions": {
@@ -5588,7 +5804,7 @@
                   "roleAssignments": {
                     "value": [
                       {
-                        "principalId": "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.principalId.value]",
+                        "principalId": "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2025-04-01').outputs.principalId.value]",
                         "principalType": "ServicePrincipal",
                         "roleDefinitionIdOrName": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')]"
                       }
@@ -7706,7 +7922,7 @@
             },
             {
               "type": "Microsoft.Resources/deployments",
-              "apiVersion": "2022-09-01",
+              "apiVersion": "2025-04-01",
               "name": "container-apps-environment",
               "properties": {
                 "expressionEvaluationOptions": {
@@ -7715,7 +7931,7 @@
                 "mode": "Incremental",
                 "parameters": {
                   "logAnalyticsWorkspaceResourceId": {
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2022-09-01').outputs.logAnalyticsWorkspaceResourceId.value]"
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.logAnalyticsWorkspaceResourceId.value]"
                   },
                   "name": {
                     "value": "[format('{0}{1}', variables('abbrs').appManagedEnvironments, variables('resourceToken'))]"
@@ -8136,7 +8352,7 @@
             },
             {
               "type": "Microsoft.Resources/deployments",
-              "apiVersion": "2022-09-01",
+              "apiVersion": "2025-04-01",
               "name": "voicelabidentity",
               "properties": {
                 "expressionEvaluationOptions": {
@@ -8584,7 +8800,7 @@
             },
             {
               "type": "Microsoft.Resources/deployments",
-              "apiVersion": "2022-09-01",
+              "apiVersion": "2025-04-01",
               "name": "voicelab-fetch-image",
               "properties": {
                 "expressionEvaluationOptions": {
@@ -8605,8 +8821,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.37.4.10188",
-                      "templateHash": "14936945129719163265"
+                      "version": "0.42.1.51946",
+                      "templateHash": "9563174970375415888"
                     }
                   },
                   "parameters": {
@@ -8629,7 +8845,7 @@
             },
             {
               "type": "Microsoft.Resources/deployments",
-              "apiVersion": "2022-09-01",
+              "apiVersion": "2025-04-01",
               "name": "voicelab",
               "properties": {
                 "expressionEvaluationOptions": {
@@ -8670,7 +8886,7 @@
                       "allowedOrigins": [
                         "https://sen.wulo.ai",
                         "https://staging-sen.wulo.ai",
-                        "[format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.defaultDomain.value)]"
+                        "[format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2025-04-01').outputs.defaultDomain.value)]"
                       ]
                     }
                   },
@@ -8682,7 +8898,7 @@
                   },
                   "secrets": {
                     "value": {
-                      "secureList": "[concat(createArray(createObject('name', 'ai-foundry-api-key', 'value', listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').key1), createObject('name', 'speech-api-key', 'value', listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('speech-voicelab-{0}', variables('resourceToken'))), '2024-10-01').key1), createObject('name', 'blob-backup-account-key', 'value', listKeys(resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}data', variables('abbrs').storageStorageAccounts, variables('resourceToken'))), '2023-01-01').keys[0].value)), if(parameters('enablePostgresPersistence'), createArray(createObject('name', 'postgres-database-url', 'value', format('postgresql://{0}:{1}@{2}:5432/{3}?sslmode=require', parameters('postgresAdminUsername'), parameters('postgresAdminPassword'), reference(resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName')), '2023-12-01-preview').fullyQualifiedDomainName, parameters('postgresDatabaseName')))), createArray()), if(not(empty(parameters('copilotGithubToken'))), createArray(createObject('name', 'copilot-github-token', 'value', parameters('copilotGithubToken'))), createArray()), if(not(empty(parameters('microsoftProviderClientSecret'))), createArray(createObject('name', 'microsoft-provider-auth-secret', 'value', parameters('microsoftProviderClientSecret'))), createArray()), if(not(empty(parameters('googleProviderClientSecret'))), createArray(createObject('name', 'google-provider-auth-secret', 'value', parameters('googleProviderClientSecret'))), createArray()))]"
+                      "secureList": "[concat(createArray(createObject('name', 'ai-foundry-api-key', 'value', listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').key1), createObject('name', 'speech-api-key', 'value', listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('speech-voicelab-{0}', variables('resourceToken'))), '2024-10-01').key1), createObject('name', 'blob-backup-account-key', 'value', listKeys(resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}data', variables('abbrs').storageStorageAccounts, variables('resourceToken'))), '2023-01-01').keys[0].value)), if(parameters('enablePostgresPersistence'), createArray(createObject('name', 'postgres-database-url', 'value', format('postgresql://{0}:{1}@{2}:5432/{3}?sslmode=require', parameters('postgresAdminUsername'), parameters('postgresAdminPassword'), reference(resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName')), '2023-12-01-preview').fullyQualifiedDomainName, parameters('postgresDatabaseName')))), createArray()), if(not(empty(parameters('copilotGithubToken'))), createArray(createObject('name', 'copilot-github-token', 'value', parameters('copilotGithubToken'))), createArray()), if(not(empty(parameters('microsoftProviderClientSecret'))), createArray(createObject('name', 'microsoft-provider-auth-secret', 'value', parameters('microsoftProviderClientSecret'))), createArray()), if(not(empty(parameters('googleProviderClientSecret'))), createArray(createObject('name', 'google-provider-auth-secret', 'value', parameters('googleProviderClientSecret'))), createArray()), if(or(not(empty(parameters('azureCommunicationServicesConnectionString'))), parameters('enableAzureCommunicationServicesEmail')), createArray(createObject('name', 'azure-communication-services-connection-string', 'value', if(parameters('enableAzureCommunicationServicesEmail'), listKeys(resourceId('Microsoft.Communication/communicationServices', variables('communicationServiceName')), '2026-03-18').primaryConnectionString, parameters('azureCommunicationServicesConnectionString')))), createArray()))]"
                     }
                   },
                   "volumes": {
@@ -8691,14 +8907,14 @@
                   "containers": {
                     "value": [
                       {
-                        "image": "[coalesce(tryGet(tryGet(tryGet(tryGet(reference(resourceId('Microsoft.Resources/deployments', 'voicelab-fetch-image'), '2022-09-01').outputs, 'containers'), 'value'), 0), 'image'), 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest')]",
+                        "image": "[coalesce(tryGet(tryGet(tryGet(tryGet(reference(resourceId('Microsoft.Resources/deployments', 'voicelab-fetch-image'), '2025-04-01').outputs, 'containers'), 'value'), 0), 'image'), 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest')]",
                         "name": "main",
                         "resources": {
                           "cpu": "[json('1.0')]",
                           "memory": "2.0Gi"
                         },
                         "volumeMounts": [],
-                        "env": "[concat(createArray(createObject('name', 'APPLICATIONINSIGHTS_CONNECTION_STRING', 'value', reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2022-09-01').outputs.applicationInsightsConnectionString.value), createObject('name', 'AZURE_CLIENT_ID', 'value', reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.clientId.value), createObject('name', 'AZURE_OPENAI_ENDPOINT', 'value', reference(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint), createObject('name', 'AZURE_OPENAI_API_KEY', 'secretRef', 'ai-foundry-api-key'), createObject('name', 'PROJECT_ENDPOINT', 'value', format('{0}api/projects/default-project', reference(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint)), createObject('name', 'MODEL_DEPLOYMENT_NAME', 'value', parameters('gptDeploymentName')), createObject('name', 'AZURE_SPEECH_KEY', 'secretRef', 'speech-api-key'), createObject('name', 'AZURE_SPEECH_REGION', 'value', 'swedencentral'), createObject('name', 'AZURE_AI_RESOURCE_NAME', 'value', format('aifoundry-voicelab-{0}', variables('resourceToken'))), createObject('name', 'AZURE_AI_REGION', 'value', 'swedencentral'), createObject('name', 'SUBSCRIPTION_ID', 'value', subscription().subscriptionId), createObject('name', 'RESOURCE_GROUP_NAME', 'value', resourceGroup().name), createObject('name', 'USE_AZURE_AI_AGENTS', 'value', if(parameters('useFoundryAgents'), 'true', 'false')), createObject('name', 'PORT', 'value', '8000'), createObject('name', 'HOST', 'value', '0.0.0.0'), createObject('name', 'AZD_ENV_NAME', 'value', parameters('environmentName')), createObject('name', 'DATABASE_BACKEND', 'value', parameters('databaseBackend')), createObject('name', 'DATABASE_RUN_MIGRATIONS_ON_STARTUP', 'value', if(parameters('databaseRunMigrationsOnStartup'), 'true', 'false')), createObject('name', 'DATABASE_MIGRATION_ALLOWED_ENVIRONMENTS', 'value', parameters('databaseMigrationAllowedEnvironments')), createObject('name', 'STORAGE_PATH', 'value', '/tmp/wulo.db'), createObject('name', 'BLOB_BACKUP_ACCOUNT_NAME', 'value', format('{0}{1}data', variables('abbrs').storageStorageAccounts, variables('resourceToken'))), createObject('name', 'BLOB_BACKUP_ACCOUNT_KEY', 'secretRef', 'blob-backup-account-key'), createObject('name', 'COPILOT_CLI_PATH', 'value', if(empty(parameters('copilotCliPath')), '/usr/local/bin/copilot', parameters('copilotCliPath'))), createObject('name', 'COPILOT_PLANNER_MODEL', 'value', if(empty(parameters('copilotPlannerModel')), parameters('gptDeploymentName'), parameters('copilotPlannerModel'))), createObject('name', 'COPILOT_PLANNER_REASONING_EFFORT', 'value', parameters('copilotPlannerReasoningEffort')), createObject('name', 'COPILOT_AZURE_API_VERSION', 'value', if(empty(parameters('copilotAzureApiVersion')), '2024-10-21', parameters('copilotAzureApiVersion')))), if(parameters('enablePostgresPersistence'), createArray(createObject('name', 'DATABASE_URL', 'secretRef', 'postgres-database-url')), createArray()), if(not(empty(parameters('copilotGithubToken'))), createArray(createObject('name', 'COPILOT_GITHUB_TOKEN', 'secretRef', 'copilot-github-token')), createArray()), if(not(empty(parameters('microsoftProviderClientSecret'))), createArray(createObject('name', 'MICROSOFT_PROVIDER_AUTHENTICATION_SECRET', 'secretRef', 'microsoft-provider-auth-secret')), createArray()), if(not(empty(parameters('googleProviderClientSecret'))), createArray(createObject('name', 'GOOGLE_PROVIDER_AUTHENTICATION_SECRET', 'secretRef', 'google-provider-auth-secret')), createArray()))]"
+                        "env": "[concat(createArray(createObject('name', 'APPLICATIONINSIGHTS_CONNECTION_STRING', 'value', reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.applicationInsightsConnectionString.value), createObject('name', 'AZURE_CLIENT_ID', 'value', reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2025-04-01').outputs.clientId.value), createObject('name', 'AZURE_OPENAI_ENDPOINT', 'value', reference(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint), createObject('name', 'AZURE_OPENAI_API_KEY', 'secretRef', 'ai-foundry-api-key'), createObject('name', 'PROJECT_ENDPOINT', 'value', format('{0}api/projects/default-project', reference(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint)), createObject('name', 'MODEL_DEPLOYMENT_NAME', 'value', parameters('gptDeploymentName')), createObject('name', 'AZURE_SPEECH_KEY', 'secretRef', 'speech-api-key'), createObject('name', 'AZURE_SPEECH_REGION', 'value', 'swedencentral'), createObject('name', 'AZURE_AI_RESOURCE_NAME', 'value', format('aifoundry-voicelab-{0}', variables('resourceToken'))), createObject('name', 'AZURE_AI_REGION', 'value', 'swedencentral'), createObject('name', 'SUBSCRIPTION_ID', 'value', subscription().subscriptionId), createObject('name', 'RESOURCE_GROUP_NAME', 'value', resourceGroup().name), createObject('name', 'USE_AZURE_AI_AGENTS', 'value', if(parameters('useFoundryAgents'), 'true', 'false')), createObject('name', 'PORT', 'value', '8000'), createObject('name', 'HOST', 'value', '0.0.0.0'), createObject('name', 'AZD_ENV_NAME', 'value', parameters('environmentName')), createObject('name', 'PUBLIC_APP_URL', 'value', if(not(empty(parameters('publicAppUrl'))), parameters('publicAppUrl'), if(not(empty(variables('customRedirectHost'))), variables('customRedirectHost'), format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2025-04-01').outputs.defaultDomain.value)))), createObject('name', 'DATABASE_BACKEND', 'value', parameters('databaseBackend')), createObject('name', 'DATABASE_RUN_MIGRATIONS_ON_STARTUP', 'value', if(parameters('databaseRunMigrationsOnStartup'), 'true', 'false')), createObject('name', 'DATABASE_MIGRATION_ALLOWED_ENVIRONMENTS', 'value', parameters('databaseMigrationAllowedEnvironments')), createObject('name', 'STORAGE_PATH', 'value', '/tmp/wulo.db'), createObject('name', 'BLOB_BACKUP_ACCOUNT_NAME', 'value', format('{0}{1}data', variables('abbrs').storageStorageAccounts, variables('resourceToken'))), createObject('name', 'BLOB_BACKUP_ACCOUNT_KEY', 'secretRef', 'blob-backup-account-key'), createObject('name', 'COPILOT_CLI_PATH', 'value', if(empty(parameters('copilotCliPath')), '/usr/local/bin/copilot', parameters('copilotCliPath'))), createObject('name', 'COPILOT_PLANNER_MODEL', 'value', if(empty(parameters('copilotPlannerModel')), parameters('gptDeploymentName'), parameters('copilotPlannerModel'))), createObject('name', 'COPILOT_PLANNER_REASONING_EFFORT', 'value', parameters('copilotPlannerReasoningEffort')), createObject('name', 'COPILOT_AZURE_API_VERSION', 'value', if(empty(parameters('copilotAzureApiVersion')), '2024-10-21', parameters('copilotAzureApiVersion'))), createObject('name', 'AZURE_COMMUNICATION_SERVICES_SENDER_ADDRESS', 'value', parameters('azureCommunicationServicesSenderAddress')), createObject('name', 'AZURE_COMMUNICATION_SERVICES_SENDER_DISPLAY_NAME', 'value', parameters('azureCommunicationServicesSenderDisplayName'))), if(parameters('enablePostgresPersistence'), createArray(createObject('name', 'DATABASE_URL', 'secretRef', 'postgres-database-url')), createArray()), if(not(empty(parameters('copilotGithubToken'))), createArray(createObject('name', 'COPILOT_GITHUB_TOKEN', 'secretRef', 'copilot-github-token')), createArray()), if(not(empty(parameters('microsoftProviderClientSecret'))), createArray(createObject('name', 'MICROSOFT_PROVIDER_AUTHENTICATION_SECRET', 'secretRef', 'microsoft-provider-auth-secret')), createArray()), if(not(empty(parameters('googleProviderClientSecret'))), createArray(createObject('name', 'GOOGLE_PROVIDER_AUTHENTICATION_SECRET', 'secretRef', 'google-provider-auth-secret')), createArray()), if(or(not(empty(parameters('azureCommunicationServicesConnectionString'))), parameters('enableAzureCommunicationServicesEmail')), createArray(createObject('name', 'AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING', 'secretRef', 'azure-communication-services-connection-string')), createArray()))]"
                       }
                     ]
                   },
@@ -8706,20 +8922,20 @@
                     "value": {
                       "systemAssigned": false,
                       "userAssignedResourceIds": [
-                        "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.resourceId.value]"
+                        "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2025-04-01').outputs.resourceId.value]"
                       ]
                     }
                   },
                   "registries": {
                     "value": [
                       {
-                        "server": "[reference(resourceId('Microsoft.Resources/deployments', 'registry'), '2022-09-01').outputs.loginServer.value]",
-                        "identity": "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.resourceId.value]"
+                        "server": "[reference(resourceId('Microsoft.Resources/deployments', 'registry'), '2025-04-01').outputs.loginServer.value]",
+                        "identity": "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2025-04-01').outputs.resourceId.value]"
                       }
                     ]
                   },
                   "environmentResourceId": {
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.resourceId.value]"
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2025-04-01').outputs.resourceId.value]"
                   },
                   "location": {
                     "value": "[parameters('location')]"
@@ -9639,6 +9855,7 @@
               },
               "dependsOn": [
                 "[resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken')))]",
+                "[resourceId('Microsoft.Communication/communicationServices', variables('communicationServiceName'))]",
                 "[resourceId('Microsoft.Resources/deployments', 'container-apps-environment')]",
                 "[resourceId('Microsoft.App/managedEnvironments/storages', format('{0}{1}', variables('abbrs').appManagedEnvironments, variables('resourceToken')), 'wulo-data')]",
                 "[resourceId('Microsoft.Resources/deployments', 'registry')]",
@@ -9654,11 +9871,11 @@
           "outputs": {
             "AZURE_CONTAINER_REGISTRY_ENDPOINT": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'registry'), '2022-09-01').outputs.loginServer.value]"
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'registry'), '2025-04-01').outputs.loginServer.value]"
             },
             "AZURE_RESOURCE_VOICELAB_ID": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'voicelab'), '2022-09-01').outputs.resourceId.value]"
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'voicelab'), '2025-04-01').outputs.resourceId.value]"
             },
             "AZURE_CONTAINER_APP_ENVIRONMENT_NAME": {
               "type": "string",
@@ -9670,7 +9887,7 @@
             },
             "SERVICE_VOICELAB_URI": {
               "type": "string",
-              "value": "[format('https://{0}', reference(resourceId('Microsoft.Resources/deployments', 'voicelab'), '2022-09-01').outputs.fqdn.value)]"
+              "value": "[format('https://{0}', reference(resourceId('Microsoft.Resources/deployments', 'voicelab'), '2025-04-01').outputs.fqdn.value)]"
             },
             "AZURE_TENANT_ID": {
               "type": "string",
@@ -9682,7 +9899,7 @@
             },
             "VOICELAB_IDENTITY_PRINCIPAL_ID": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.principalId.value]"
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2025-04-01').outputs.principalId.value]"
             },
             "PROJECT_ENDPOINT": {
               "type": "string",
@@ -9707,6 +9924,14 @@
             "POSTGRES_DATABASE_NAME": {
               "type": "string",
               "value": "[if(parameters('enablePostgresPersistence'), parameters('postgresDatabaseName'), '')]"
+            },
+            "AZURE_COMMUNICATION_SERVICE_NAME": {
+              "type": "string",
+              "value": "[if(parameters('enableAzureCommunicationServicesEmail'), variables('communicationServiceName'), '')]"
+            },
+            "AZURE_EMAIL_COMMUNICATION_SERVICE_NAME": {
+              "type": "string",
+              "value": "[if(parameters('enableAzureCommunicationServicesEmail'), variables('emailServiceName'), '')]"
             }
           }
         }
@@ -9719,47 +9944,55 @@
   "outputs": {
     "AZURE_CONTAINER_REGISTRY_ENDPOINT": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2025-04-01').outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT.value]"
     },
     "AZURE_RESOURCE_VOICELAB_ID": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_RESOURCE_VOICELAB_ID.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2025-04-01').outputs.AZURE_RESOURCE_VOICELAB_ID.value]"
     },
     "AZURE_CONTAINER_APP_ENVIRONMENT_NAME": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_CONTAINER_APP_ENVIRONMENT_NAME.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2025-04-01').outputs.AZURE_CONTAINER_APP_ENVIRONMENT_NAME.value]"
     },
     "AZURE_CONTAINER_APP_NAME": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_CONTAINER_APP_NAME.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2025-04-01').outputs.AZURE_CONTAINER_APP_NAME.value]"
     },
     "SERVICE_VOICELAB_URI": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.SERVICE_VOICELAB_URI.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2025-04-01').outputs.SERVICE_VOICELAB_URI.value]"
     },
     "PROJECT_ENDPOINT": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.PROJECT_ENDPOINT.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2025-04-01').outputs.PROJECT_ENDPOINT.value]"
     },
     "AZURE_OPENAI_ENDPOINT": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_OPENAI_ENDPOINT.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2025-04-01').outputs.AZURE_OPENAI_ENDPOINT.value]"
     },
     "AZURE_SPEECH_REGION": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_SPEECH_REGION.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2025-04-01').outputs.AZURE_SPEECH_REGION.value]"
     },
     "AI_FOUNDRY_RESOURCE_NAME": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AI_FOUNDRY_RESOURCE_NAME.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2025-04-01').outputs.AI_FOUNDRY_RESOURCE_NAME.value]"
     },
     "POSTGRES_SERVER_FQDN": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.POSTGRES_SERVER_FQDN.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2025-04-01').outputs.POSTGRES_SERVER_FQDN.value]"
     },
     "POSTGRES_DATABASE_NAME": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.POSTGRES_DATABASE_NAME.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2025-04-01').outputs.POSTGRES_DATABASE_NAME.value]"
+    },
+    "AZURE_COMMUNICATION_SERVICE_NAME": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2025-04-01').outputs.AZURE_COMMUNICATION_SERVICE_NAME.value]"
+    },
+    "AZURE_EMAIL_COMMUNICATION_SERVICE_NAME": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2025-04-01').outputs.AZURE_EMAIL_COMMUNICATION_SERVICE_NAME.value]"
     }
   }
 }

@@ -17,7 +17,7 @@ import time
 from typing import Any, Dict, List, Mapping, Optional, Tuple, cast
 
 import simple_websocket.ws  # pyright: ignore[reportMissingTypeStubs]
-from flask import Flask, abort, jsonify, request, send_from_directory
+from flask import Flask, abort, g, jsonify, request, send_from_directory
 from flask_sock import Sock  # pyright: ignore[reportMissingTypeStubs]
 
 if __package__ in {None, ""}:
@@ -26,6 +26,7 @@ if __package__ in {None, ""}:
 from src.config import config
 from src.services.analyzers import ConversationAnalyzer, PronunciationAssessor
 from src.services.child_memory_service import ChildMemoryService
+from src.services.email_service import AzureCommunicationEmailService, InvitationEmailDeliveryResult
 from src.services.institutional_memory_service import InstitutionalMemoryService
 from src.services.managers import AgentManager, ScenarioManager
 from src.services.planning_service import PracticePlanningService
@@ -72,6 +73,12 @@ API_ANALYZE_ENDPOINT = "/api/analyze"
 API_ASSESS_UTTERANCE_ENDPOINT = "/api/assess-utterance"
 API_TTS_ENDPOINT = "/api/tts"
 API_CHILDREN_ENDPOINT = "/api/children"
+API_CHILD_DETAIL_ENDPOINT = "/api/children/<child_id>"
+API_INVITATIONS_ENDPOINT = "/api/invitations"
+API_INVITATION_ACCEPT_ENDPOINT = "/api/invitations/<invitation_id>/accept"
+API_INVITATION_DECLINE_ENDPOINT = "/api/invitations/<invitation_id>/decline"
+API_INVITATION_REVOKE_ENDPOINT = "/api/invitations/<invitation_id>/revoke"
+API_INVITATION_RESEND_ENDPOINT = "/api/invitations/<invitation_id>/resend"
 API_CHILD_SESSIONS_ENDPOINT = "/api/children/<child_id>/sessions"
 API_CHILD_PLANS_ENDPOINT = "/api/children/<child_id>/plans"
 API_CHILD_MEMORY_SUMMARY_ENDPOINT = "/api/children/<child_id>/memory/summary"
@@ -101,12 +108,14 @@ AUTH_REQUIRED = "Authentication required"
 THERAPIST_ROLE_REQUIRED = "Therapist role required"
 SESSION_NOT_FOUND = "Session not found"
 USER_NOT_FOUND = "User not found"
-INVALID_ROLE = "Role must be 'therapist' or 'user'"
+INVALID_ROLE = "Role must be 'therapist', 'parent', or 'admin'"
 INVALID_FEEDBACK_RATING = "Feedback rating must be 'up' or 'down'"
 PLAN_NOT_FOUND = "Practice plan not found"
 PLAN_MESSAGE_REQUIRED = "message is required"
 PLANNER_SERVICE_UNAVAILABLE = "Planner service unavailable"
 MEMORY_PROPOSAL_NOT_FOUND = "Child memory proposal not found"
+CHILD_ACCESS_REQUIRED = "Child access required"
+INVITATION_NOT_FOUND = "Invitation not found"
 
 # HTTP status codes
 HTTP_BAD_REQUEST = 400
@@ -116,7 +125,8 @@ HTTP_UNAUTHORIZED = 401
 HTTP_INTERNAL_SERVER_ERROR = 500
 
 ROLE_THERAPIST = "therapist"
-ROLE_USER = "user"
+ROLE_PARENT = "parent"
+ROLE_ADMIN = "admin"
 def _is_local_dev_auth_enabled() -> bool:
     """Resolve LOCAL_DEV_AUTH dynamically so tests and shells cannot leak stale import-time state."""
     return str(os.environ.get("LOCAL_DEV_AUTH", str(config["local_dev_auth"]))).strip().lower() == "true"
@@ -158,6 +168,7 @@ planning_service = None
 child_memory_service = None
 institutional_memory_service = None
 recommendation_service = None
+email_service = None
 planner_startup_readiness: Dict[str, Any] = {}
 
 
@@ -168,6 +179,7 @@ def initialize_runtime_services() -> None:
     global child_memory_service
     global institutional_memory_service
     global recommendation_service
+    global email_service
     global planner_startup_readiness
 
     storage_service = create_storage_service(config.as_dict)
@@ -180,6 +192,7 @@ def initialize_runtime_services() -> None:
         child_memory_service,
         institutional_memory_service,
     )
+    email_service = AzureCommunicationEmailService.from_config(config.as_dict)
     planner_startup_readiness = planning_service.get_readiness(force_refresh=True)
     if not planner_startup_readiness.get("ready"):
         logger.warning("Planner readiness check failed at startup: %s", planner_startup_readiness)
@@ -353,11 +366,13 @@ def _save_completed_session(
     if not analysis_result.get("ai_assessment") and not analysis_result.get("pronunciation_assessment"):
         return None
 
-    default_child_id, default_child_name = _get_default_child()
+    if not child_id:
+        raise ValueError("child_id is required")
+
     session = storage_service.save_session(
         {
-            "child_id": child_id or default_child_id,
-            "child_name": child_name or default_child_name,
+            "child_id": child_id,
+            "child_name": child_name,
             "exercise": _normalize_exercise_context(scenario_id, exercise_context, exercise_metadata),
             "exercise_metadata": exercise_metadata or {},
             "ai_assessment": analysis_result.get("ai_assessment"),
@@ -412,7 +427,7 @@ def _normalize_identity_provider(provider: Any) -> str:
 
 def _resolve_local_dev_role() -> str:
     role = _normalize_context_value(os.environ.get("LOCAL_DEV_USER_ROLE")).lower()
-    if role in {ROLE_THERAPIST, ROLE_USER}:
+    if role in {ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN}:
         return role
 
     if role:
@@ -474,7 +489,32 @@ def _get_authenticated_user_from_headers(headers: Mapping[str, Any]) -> Optional
 
 
 def _get_authenticated_user() -> Optional[Dict[str, Any]]:
-    return _get_authenticated_user_from_headers(request.headers)
+    if getattr(g, "authenticated_user_checked", False):
+        return cast(Optional[Dict[str, Any]], getattr(g, "authenticated_user", None))
+
+    user = _get_authenticated_user_from_headers(request.headers)
+    g.authenticated_user_checked = True
+    g.authenticated_user = user
+    return user
+
+
+@app.before_request
+def _bind_storage_request_actor() -> None:
+    user = _get_authenticated_user()
+    if user is None:
+        storage_service.clear_request_actor()
+        return
+
+    storage_service.set_request_actor(
+        str(user.get("id") or "") or None,
+        str(user.get("role") or "") or None,
+        str(user.get("email") or "") or None,
+    )
+
+
+@app.teardown_request
+def _clear_storage_request_actor(_error: Optional[BaseException]) -> None:
+    storage_service.clear_request_actor()
 
 
 def _require_authenticated() -> Tuple[Optional[Dict[str, Any]], Optional[Tuple[Any, int]]]:
@@ -491,14 +531,126 @@ def _require_therapist() -> Optional[Tuple[Any, int]]:
 
 
 def _require_therapist_user() -> Tuple[Optional[Dict[str, Any]], Optional[Tuple[Any, int]]]:
+    return _require_role(ROLE_THERAPIST, ROLE_ADMIN)
+
+
+def _require_role(*roles: str) -> Tuple[Optional[Dict[str, Any]], Optional[Tuple[Any, int]]]:
     user, guard_response = _require_authenticated()
     if guard_response is not None:
         return None, guard_response
 
-    if user is None or user.get("role") != ROLE_THERAPIST:
+    if user is None or str(user.get("role") or "") not in set(roles):
         return None, (jsonify({"error": THERAPIST_ROLE_REQUIRED}), HTTP_FORBIDDEN)
 
     return user, None
+
+
+def _require_child_access(
+    child_id: str,
+    *,
+    allowed_roles: Optional[set[str]] = None,
+    allowed_relationships: Optional[List[str]] = None,
+    include_deleted: bool = False,
+) -> Tuple[Optional[Dict[str, Any]], Optional[Tuple[Any, int]]]:
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return None, guard_response
+
+    if user is None:
+        return None, (jsonify({"error": AUTH_REQUIRED}), HTTP_UNAUTHORIZED)
+
+    role = str(user.get("role") or "")
+    if allowed_roles is not None and role not in allowed_roles:
+        return None, (jsonify({"error": THERAPIST_ROLE_REQUIRED}), HTTP_FORBIDDEN)
+
+    if not storage_service.user_has_child_access(
+        str(user.get("id")),
+        child_id,
+        allowed_relationships=allowed_relationships,
+        include_deleted=include_deleted,
+    ):
+        return None, (jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN)
+
+    return user, None
+
+
+def _log_audit_event(
+    *,
+    user_id: Optional[str],
+    action: str,
+    resource_type: str,
+    resource_id: str,
+    child_id: Optional[str] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+) -> None:
+    try:
+        storage_service.log_audit_event(
+            user_id=user_id,
+            action=action,
+            resource_type=resource_type,
+            resource_id=resource_id,
+            child_id=child_id,
+            metadata=metadata,
+        )
+    except Exception:
+        logger.exception("Audit logging failed for %s %s", resource_type, resource_id)
+
+
+def _serialize_invitation_email_delivery(
+    result: InvitationEmailDeliveryResult,
+) -> Dict[str, Any]:
+    payload: Dict[str, Any] = {
+        "status": result.status,
+        "attempted": result.attempted,
+        "delivered": result.delivered,
+    }
+    if result.provider_message_id:
+        payload["provider_message_id"] = result.provider_message_id
+    if result.error:
+        payload["error"] = result.error
+    return payload
+
+
+def _send_invitation_email(
+    invitation: Dict[str, Any],
+    *,
+    inviter_name: str,
+) -> Dict[str, Any]:
+    if email_service is None:
+        result = InvitationEmailDeliveryResult(
+            status="not_configured",
+            attempted=False,
+            delivered=False,
+            error="Email service is not configured",
+        )
+        return _serialize_invitation_email_delivery(result)
+
+    delivery_result = email_service.send_invitation_email(
+        recipient_email=str(invitation.get("invited_email") or ""),
+        invitation_id=str(invitation.get("id") or ""),
+        child_name=str(invitation.get("child_name") or "your child profile"),
+        inviter_name=inviter_name,
+        relationship=str(invitation.get("relationship") or ROLE_PARENT),
+        expires_at=str(invitation.get("expires_at") or "") or None,
+    )
+    delivery_payload = _serialize_invitation_email_delivery(delivery_result)
+
+    if delivery_result.status == "failed":
+        logger.warning(
+            "Invitation email delivery failed for %s to %s: %s",
+            invitation.get("id"),
+            invitation.get("invited_email"),
+            delivery_result.error,
+        )
+
+    return delivery_payload
+
+
+def _persist_invitation_email_delivery(invitation_id: str, delivery_payload: Dict[str, Any]) -> None:
+    try:
+        storage_service.record_child_invitation_email_delivery(invitation_id, delivery_payload)
+    except Exception:
+        logger.exception("Invitation email delivery persistence failed for %s", invitation_id)
 
 
 def _prepare_custom_scenario(custom_scenario: Dict[str, Any]) -> Dict[str, Any]:
@@ -562,7 +714,7 @@ def spa_fallback(error: Any):
 @app.route(API_CONFIG_ENDPOINT)
 def get_config():
     """Get client configuration."""
-    _, guard_response = _require_authenticated()
+    user, guard_response = _require_authenticated()
     if guard_response is not None:
         return guard_response
 
@@ -628,7 +780,7 @@ def acknowledge_consent():
 @app.route(API_SCENARIOS_ENDPOINT)
 def get_scenarios():
     """Get list of available scenarios."""
-    _, guard_response = _require_authenticated()
+    user, guard_response = _require_authenticated()
     if guard_response is not None:
         return guard_response
 
@@ -638,7 +790,7 @@ def get_scenarios():
 @app.route(f"{API_SCENARIOS_ENDPOINT}/<scenario_id>")
 def get_scenario(scenario_id: str):
     """Get a specific scenario by ID."""
-    _, guard_response = _require_authenticated()
+    user, guard_response = _require_authenticated()
     if guard_response is not None:
         return guard_response
 
@@ -648,14 +800,260 @@ def get_scenario(scenario_id: str):
     return jsonify({"error": SCENARIO_NOT_FOUND}), HTTP_NOT_FOUND
 
 
-@app.route(API_CHILDREN_ENDPOINT)
+@app.route(API_CHILDREN_ENDPOINT, methods=["GET", "POST"])
 def get_children():
     """Return the available child profiles for therapist-guided sessions."""
-    guard_response = _require_therapist()
+    user, guard_response = _require_authenticated()
     if guard_response is not None:
         return guard_response
 
-    return jsonify(storage_service.list_children())
+    if request.method == "POST":
+        data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+        name = str(data.get("name") or "").strip()
+        if not name:
+            return jsonify({"error": "name is required"}), HTTP_BAD_REQUEST
+
+        relationship = "parent"
+        if str(cast(Dict[str, Any], user).get("role") or "") in {ROLE_THERAPIST, ROLE_ADMIN}:
+            relationship = "therapist"
+
+        child = storage_service.create_child(
+            name=name,
+            created_by_user_id=str(cast(Dict[str, Any], user).get("id")),
+            relationship=relationship,
+            date_of_birth=str(data.get("date_of_birth") or "").strip() or None,
+            notes=str(data.get("notes") or "").strip() or None,
+        )
+        _log_audit_event(
+            user_id=str(cast(Dict[str, Any], user).get("id")),
+            action="child.create",
+            resource_type="child",
+            resource_id=str(child.get("id")),
+            child_id=str(child.get("id")),
+        )
+        return jsonify(child), 201
+
+    user_id = str(cast(Dict[str, Any], user).get("id"))
+    children = storage_service.list_children_for_user(user_id)
+    _log_audit_event(
+        user_id=user_id,
+        action="child.list",
+        resource_type="child_collection",
+        resource_id=user_id,
+        metadata={"count": len(children)},
+    )
+    return jsonify(children)
+
+
+@app.route(API_CHILD_DETAIL_ENDPOINT, methods=["DELETE"])
+def delete_child(child_id: str):
+    """Soft-delete a child profile when the caller is an owning parent or admin."""
+    user, guard_response = _require_child_access(
+        child_id,
+        allowed_roles={ROLE_PARENT, ROLE_ADMIN},
+        allowed_relationships=["parent"],
+    )
+    if guard_response is not None:
+        return guard_response
+
+    child = storage_service.soft_delete_child(child_id)
+    if child is None:
+        return jsonify({"error": "Child not found"}), HTTP_NOT_FOUND
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="child.soft_delete",
+        resource_type="child",
+        resource_id=child_id,
+        child_id=child_id,
+    )
+    return jsonify(child)
+
+
+@app.route(API_INVITATIONS_ENDPOINT, methods=["GET", "POST"])
+def child_invitations():
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
+    if request.method == "POST":
+        therapist_user, therapist_guard = _require_role(ROLE_THERAPIST, ROLE_ADMIN)
+        if therapist_guard is not None:
+            return therapist_guard
+
+        data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+        child_id = str(data.get("child_id") or "").strip()
+        invited_email = str(data.get("invited_email") or "").strip().lower()
+        relationship = str(data.get("relationship") or ROLE_PARENT).strip().lower()
+        if not child_id:
+            return jsonify({"error": "child_id is required"}), HTTP_BAD_REQUEST
+        if not invited_email:
+            return jsonify({"error": "invited_email is required"}), HTTP_BAD_REQUEST
+
+        child_user, child_guard = _require_child_access(
+            child_id,
+            allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+            allowed_relationships=["therapist"],
+        )
+        if child_guard is not None:
+            return child_guard
+
+        try:
+            invitation = storage_service.create_child_invitation(
+                child_id=child_id,
+                invited_email=invited_email,
+                relationship=relationship,
+                invited_by_user_id=str(cast(Dict[str, Any], child_user).get("id")),
+            )
+        except ValueError as error:
+            return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
+
+        email_delivery = _send_invitation_email(
+            invitation,
+            inviter_name=str(cast(Dict[str, Any], child_user).get("name") or "Your therapist"),
+        )
+        _persist_invitation_email_delivery(str(invitation.get("id") or ""), email_delivery)
+
+        _log_audit_event(
+            user_id=str(cast(Dict[str, Any], child_user).get("id")),
+            action="child.invitation.create",
+            resource_type="child_invitation",
+            resource_id=str(invitation.get("id")),
+            child_id=child_id,
+            metadata={
+                "invited_email": invited_email,
+                "relationship": relationship,
+                "email_delivery": email_delivery,
+            },
+        )
+        return jsonify({**invitation, "email_delivery": email_delivery}), 201
+
+    invitations = storage_service.list_child_invitations_for_user(
+        str(cast(Dict[str, Any], user).get("id")),
+        str(cast(Dict[str, Any], user).get("email") or ""),
+    )
+    return jsonify(invitations)
+
+
+@app.route(API_INVITATION_ACCEPT_ENDPOINT, methods=["POST"])
+def accept_child_invitation(invitation_id: str):
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
+    try:
+        invitation = storage_service.respond_to_child_invitation(
+            invitation_id,
+            user_id=str(cast(Dict[str, Any], user).get("id")),
+            user_email=str(cast(Dict[str, Any], user).get("email") or ""),
+            accept=True,
+        )
+    except ValueError as error:
+        return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
+
+    if invitation is None:
+        return jsonify({"error": INVITATION_NOT_FOUND}), HTTP_NOT_FOUND
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="child.invitation.accept",
+        resource_type="child_invitation",
+        resource_id=invitation_id,
+        child_id=str(invitation.get("child_id") or "") or None,
+    )
+    return jsonify(invitation)
+
+
+@app.route(API_INVITATION_DECLINE_ENDPOINT, methods=["POST"])
+def decline_child_invitation(invitation_id: str):
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
+    try:
+        invitation = storage_service.respond_to_child_invitation(
+            invitation_id,
+            user_id=str(cast(Dict[str, Any], user).get("id")),
+            user_email=str(cast(Dict[str, Any], user).get("email") or ""),
+            accept=False,
+        )
+    except ValueError as error:
+        return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
+
+    if invitation is None:
+        return jsonify({"error": INVITATION_NOT_FOUND}), HTTP_NOT_FOUND
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="child.invitation.decline",
+        resource_type="child_invitation",
+        resource_id=invitation_id,
+        child_id=str(invitation.get("child_id") or "") or None,
+    )
+    return jsonify(invitation)
+
+
+@app.route(API_INVITATION_REVOKE_ENDPOINT, methods=["POST"])
+def revoke_child_invitation(invitation_id: str):
+    user, guard_response = _require_role(ROLE_THERAPIST, ROLE_ADMIN)
+    if guard_response is not None:
+        return guard_response
+
+    existing_invitation = storage_service.get_child_invitation(invitation_id)
+    if existing_invitation is None:
+        return jsonify({"error": INVITATION_NOT_FOUND}), HTTP_NOT_FOUND
+
+    is_admin = str(cast(Dict[str, Any], user).get("role") or "") == ROLE_ADMIN
+    if not is_admin and str(existing_invitation.get("invited_by_user_id") or "") != str(cast(Dict[str, Any], user).get("id") or ""):
+        return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
+
+    invitation = storage_service.revoke_child_invitation(invitation_id)
+    if invitation is None:
+        return jsonify({"error": "Invitation is no longer pending"}), HTTP_BAD_REQUEST
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="child.invitation.revoke",
+        resource_type="child_invitation",
+        resource_id=invitation_id,
+        child_id=str(invitation.get("child_id") or "") or None,
+    )
+    return jsonify(invitation)
+
+
+@app.route(API_INVITATION_RESEND_ENDPOINT, methods=["POST"])
+def resend_child_invitation(invitation_id: str):
+    user, guard_response = _require_role(ROLE_THERAPIST, ROLE_ADMIN)
+    if guard_response is not None:
+        return guard_response
+
+    existing_invitation = storage_service.get_child_invitation(invitation_id)
+    if existing_invitation is None:
+        return jsonify({"error": INVITATION_NOT_FOUND}), HTTP_NOT_FOUND
+
+    is_admin = str(cast(Dict[str, Any], user).get("role") or "") == ROLE_ADMIN
+    if not is_admin and str(existing_invitation.get("invited_by_user_id") or "") != str(cast(Dict[str, Any], user).get("id") or ""):
+        return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
+
+    invitation = storage_service.resend_child_invitation(invitation_id)
+    if invitation is None:
+        return jsonify({"error": "Invitation cannot be resent"}), HTTP_BAD_REQUEST
+
+    email_delivery = _send_invitation_email(
+        invitation,
+        inviter_name=str(existing_invitation.get("invited_by_name") or cast(Dict[str, Any], user).get("name") or "Your therapist"),
+    )
+    _persist_invitation_email_delivery(str(invitation.get("id") or ""), email_delivery)
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="child.invitation.resend",
+        resource_type="child_invitation",
+        resource_id=invitation_id,
+        child_id=str(invitation.get("child_id") or "") or None,
+        metadata={"email_delivery": email_delivery},
+    )
+    return jsonify({**invitation, "email_delivery": email_delivery})
 
 
 @app.route(API_AGENTS_CREATE_ENDPOINT, methods=["POST"])
@@ -666,7 +1064,7 @@ def create_agent():
     1. Server-side scenario: Pass scenario_id to use a pre-defined scenario
     2. Custom scenario: Pass custom_scenario with full scenario data (for client-side scenarios)
     """
-    _, guard_response = _require_authenticated()
+    user, guard_response = _require_authenticated()
     if guard_response is not None:
         return guard_response
 
@@ -675,6 +1073,11 @@ def create_agent():
     custom_scenario = data.get("custom_scenario")
     avatar_config = data.get("avatar")
     child_id = str(data.get("child_id") or "").strip() or None
+
+    if child_id:
+        _, child_guard = _require_child_access(child_id)
+        if child_guard is not None:
+            return child_guard
 
     # Support custom scenarios passed directly from the client
     if custom_scenario:
@@ -727,6 +1130,14 @@ def create_agent():
                 exercise_context,
             ),
         )
+        _log_audit_event(
+            user_id=str(cast(Dict[str, Any], user).get("id")),
+            action="session.start",
+            resource_type="child_session",
+            resource_id=agent_id,
+            child_id=child_id,
+            metadata={"scenario_id": str(scenario_id)},
+        )
         return jsonify(
             {
                 "agent_id": agent_id,
@@ -742,7 +1153,7 @@ def create_agent():
 @app.route("/api/agents/<agent_id>", methods=["DELETE"])
 def delete_agent(agent_id: str):
     """Delete an agent."""
-    _, guard_response = _require_authenticated()
+    user, guard_response = _require_authenticated()
     if guard_response is not None:
         return guard_response
 
@@ -757,7 +1168,7 @@ def delete_agent(agent_id: str):
 @app.route(API_ANALYZE_ENDPOINT, methods=["POST"])
 def analyze_conversation():
     """Analyze a conversation for performance assessment."""
-    _, guard_response = _require_authenticated()
+    user, guard_response = _require_authenticated()
     if guard_response is not None:
         return guard_response
 
@@ -776,6 +1187,13 @@ def analyze_conversation():
 
     if not scenario_id or not transcript:
         return jsonify({"error": TRANSCRIPT_REQUIRED}), HTTP_BAD_REQUEST
+
+    if not child_id:
+        return jsonify({"error": "child_id is required"}), HTTP_BAD_REQUEST
+
+    _, child_guard = _require_child_access(child_id)
+    if child_guard is not None:
+        return child_guard
 
     analysis_result = _perform_conversation_analysis(
         scenario_id,
@@ -797,6 +1215,14 @@ def analyze_conversation():
     )
     if session_id:
         analysis_result["session_id"] = session_id
+        _log_audit_event(
+            user_id=str(cast(Dict[str, Any], user).get("id")),
+            action="session.create",
+            resource_type="session",
+            resource_id=session_id,
+            child_id=child_id,
+            metadata={"scenario_id": scenario_id},
+        )
         synthesis_started = time.perf_counter()
         try:
             memory_result = child_memory_service.synthesize_session_memory(session_id)
@@ -945,42 +1371,68 @@ def synthesize_speech():
 @app.route(API_CHILD_SESSIONS_ENDPOINT)
 def get_child_sessions(child_id: str):
     """Return a therapist-friendly session history for one child."""
-    guard_response = _require_therapist()
+    user, guard_response = _require_child_access(child_id)
     if guard_response is not None:
         return guard_response
 
-    return jsonify(storage_service.list_sessions_for_child(child_id))
+    sessions = storage_service.list_sessions_for_child(child_id)
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="session.list",
+        resource_type="session_collection",
+        resource_id=child_id,
+        child_id=child_id,
+        metadata={"count": len(sessions)},
+    )
+    return jsonify(sessions)
 
 
 @app.route(API_CHILD_PLANS_ENDPOINT)
 def get_child_plans(child_id: str):
     """Return saved practice plans for one child."""
-    guard_response = _require_therapist()
+    user, guard_response = _require_child_access(child_id)
     if guard_response is not None:
         return guard_response
 
-    return jsonify(storage_service.list_practice_plans_for_child(child_id))
+    plans = storage_service.list_practice_plans_for_child(child_id)
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="plan.list",
+        resource_type="plan_collection",
+        resource_id=child_id,
+        child_id=child_id,
+        metadata={"count": len(plans)},
+    )
+    return jsonify(plans)
 
 
 @app.route(API_CHILD_MEMORY_SUMMARY_ENDPOINT)
 def get_child_memory_summary(child_id: str):
     """Return the compiled child memory summary for therapist review."""
-    guard_response = _require_therapist()
+    user, guard_response = _require_child_access(child_id)
     if guard_response is not None:
         return guard_response
 
-    return jsonify(child_memory_service.get_child_memory_summary(child_id))
+    summary = child_memory_service.get_child_memory_summary(child_id)
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="memory.summary.read",
+        resource_type="child_memory_summary",
+        resource_id=child_id,
+        child_id=child_id,
+    )
+    return jsonify(summary)
 
 
 @app.route(API_CHILD_MEMORY_ITEMS_ENDPOINT, methods=["GET", "POST"])
 def child_memory_items(child_id: str):
     """Return or create child memory items for therapist review workflows."""
-    guard_response = _require_therapist()
-    if guard_response is not None:
-        return guard_response
-
     if request.method == "POST":
-        therapist_user, therapist_guard = _require_therapist_user()
+        therapist_user, therapist_guard = _require_child_access(
+            child_id,
+            allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+            allowed_relationships=["therapist"],
+        )
         if therapist_guard is not None:
             return therapist_guard
 
@@ -1002,57 +1454,93 @@ def child_memory_items(child_id: str):
         except ValueError as error:
             return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
 
+        _log_audit_event(
+            user_id=str(cast(Dict[str, Any], therapist_user).get("id")),
+            action="memory.item.create",
+            resource_type="child_memory_item",
+            resource_id=str(cast(Dict[str, Any], cast(Dict[str, Any], result).get("item") or {}).get("id") or child_id),
+            child_id=child_id,
+        )
         return jsonify(result), 201
+
+    user, guard_response = _require_child_access(child_id)
+    if guard_response is not None:
+        return guard_response
 
     status = str(request.args.get("status") or "").strip() or None
     category = str(request.args.get("category") or "").strip() or None
     include_evidence = str(request.args.get("include_evidence") or "").strip().lower() in {"1", "true", "yes"}
-    return jsonify(
-        child_memory_service.list_child_memory_items(
-            child_id,
-            status=status,
-            category=category,
-            include_evidence=include_evidence,
-        )
+    items = child_memory_service.list_child_memory_items(
+        child_id,
+        status=status,
+        category=category,
+        include_evidence=include_evidence,
     )
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="memory.item.list",
+        resource_type="child_memory_item_collection",
+        resource_id=child_id,
+        child_id=child_id,
+        metadata={"count": len(items)},
+    )
+    return jsonify(items)
 
 
 @app.route(API_CHILD_MEMORY_PROPOSALS_ENDPOINT)
 def get_child_memory_proposals(child_id: str):
     """Return child memory proposals, optionally filtered by status or category."""
-    guard_response = _require_therapist()
+    user, guard_response = _require_child_access(child_id)
     if guard_response is not None:
         return guard_response
 
     status = str(request.args.get("status") or "").strip() or None
     category = str(request.args.get("category") or "").strip() or None
     include_evidence = str(request.args.get("include_evidence") or "").strip().lower() in {"1", "true", "yes"}
-    return jsonify(
-        child_memory_service.list_child_memory_proposals(
-            child_id,
-            status=status,
-            category=category,
-            include_evidence=include_evidence,
-        )
+    proposals = child_memory_service.list_child_memory_proposals(
+        child_id,
+        status=status,
+        category=category,
+        include_evidence=include_evidence,
     )
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="memory.proposal.list",
+        resource_type="child_memory_proposal_collection",
+        resource_id=child_id,
+        child_id=child_id,
+        metadata={"count": len(proposals)},
+    )
+    return jsonify(proposals)
 
 
 @app.route(API_INSTITUTIONAL_MEMORY_INSIGHTS_ENDPOINT)
 def get_institutional_memory_insights():
     """Return the de-identified clinic-level institutional memory snapshot for therapists."""
-    guard_response = _require_therapist()
+    user, guard_response = _require_therapist_user()
     if guard_response is not None:
         return guard_response
 
     refresh = str(request.args.get("refresh") or "").strip().lower() in {"1", "true", "yes"}
-    return jsonify(institutional_memory_service.get_snapshot(refresh=refresh))
+    snapshot = institutional_memory_service.get_snapshot(str(cast(Dict[str, Any], user).get("id")), refresh=refresh)
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="institutional_memory.read",
+        resource_type="institutional_memory_snapshot",
+        resource_id=str(cast(Dict[str, Any], user).get("id")),
+    )
+    return jsonify(snapshot)
 
 
 @app.route(API_CHILD_RECOMMENDATIONS_ENDPOINT, methods=["GET", "POST"])
 def child_recommendations(child_id: str):
     """List or generate therapist-facing next-exercise recommendations."""
     if request.method == "POST":
-        user, guard_response = _require_therapist_user()
+        user, guard_response = _require_child_access(
+            child_id,
+            allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+            allowed_relationships=["therapist"],
+        )
         if guard_response is not None:
             return guard_response
 
@@ -1089,7 +1577,7 @@ def child_recommendations(child_id: str):
         )
         return jsonify(result), 201
 
-    guard_response = _require_therapist()
+    user, guard_response = _require_child_access(child_id)
     if guard_response is not None:
         return guard_response
 
@@ -1098,42 +1586,81 @@ def child_recommendations(child_id: str):
     except (TypeError, ValueError):
         return jsonify({"error": "limit must be a number between 1 and 20"}), HTTP_BAD_REQUEST
 
-    return jsonify(recommendation_service.list_recommendation_history(child_id, limit=limit))
+    history = recommendation_service.list_recommendation_history(child_id, limit=limit)
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="recommendation.list",
+        resource_type="recommendation_collection",
+        resource_id=child_id,
+        child_id=child_id,
+        metadata={"count": len(history)},
+    )
+    return jsonify(history)
 
 
 @app.route(API_RECOMMENDATION_DETAIL_ENDPOINT)
 def get_recommendation_detail(recommendation_id: str):
     """Return one durable recommendation run with explanation and provenance."""
-    guard_response = _require_therapist()
+    user, guard_response = _require_authenticated()
     if guard_response is not None:
         return guard_response
 
     try:
-        return jsonify(recommendation_service.get_recommendation_detail(recommendation_id))
+        detail = recommendation_service.get_recommendation_detail(recommendation_id)
     except ValueError as error:
         return jsonify({"error": str(error)}), HTTP_NOT_FOUND
+
+    _, child_guard = _require_child_access(str(detail.get("child_id") or ""))
+    if child_guard is not None:
+        return child_guard
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="recommendation.read",
+        resource_type="recommendation",
+        resource_id=recommendation_id,
+        child_id=str(detail.get("child_id") or ""),
+    )
+    return jsonify(detail)
 
 
 @app.route(API_MEMORY_EVIDENCE_ENDPOINT)
 def get_child_memory_evidence(subject_type: str, subject_id: str):
     """Return evidence links for a memory proposal or approved item."""
-    guard_response = _require_therapist()
+    user, guard_response = _require_authenticated()
     if guard_response is not None:
         return guard_response
 
     if subject_type not in {"item", "proposal"}:
         return jsonify({"error": "subject_type must be 'item' or 'proposal'"}), HTTP_BAD_REQUEST
 
-    return jsonify(child_memory_service.list_evidence_links(subject_type, subject_id))
+    subject = (
+        storage_service.get_child_memory_item(subject_id)
+        if subject_type == "item"
+        else storage_service.get_child_memory_proposal(subject_id)
+    )
+    if subject is None:
+        return jsonify({"error": "Memory subject not found"}), HTTP_NOT_FOUND
+
+    _, child_guard = _require_child_access(str(subject.get("child_id") or ""))
+    if child_guard is not None:
+        return child_guard
+
+    links = child_memory_service.list_evidence_links(subject_type, subject_id)
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="memory.evidence.list",
+        resource_type=f"{subject_type}_evidence",
+        resource_id=subject_id,
+        child_id=str(subject.get("child_id") or ""),
+        metadata={"count": len(links)},
+    )
+    return jsonify(links)
 
 
 @app.route(API_PLANS_ENDPOINT, methods=["POST"])
 def create_practice_plan():
     """Create a therapist-facing practice plan from a saved session."""
-    user, guard_response = _require_therapist_user()
-    if guard_response is not None:
-        return guard_response
-
     data = cast(Dict[str, Any], request.get_json(silent=True) or {})
     child_id = str(data.get("child_id") or "").strip()
     source_session_id = str(data.get("source_session_id") or "").strip()
@@ -1141,6 +1668,14 @@ def create_practice_plan():
 
     if not child_id or not source_session_id:
         return jsonify({"error": "child_id and source_session_id are required"}), HTTP_BAD_REQUEST
+
+    user, guard_response = _require_child_access(
+        child_id,
+        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+        allowed_relationships=["therapist"],
+    )
+    if guard_response is not None:
+        return guard_response
 
     try:
         plan = planning_service.create_plan(
@@ -1169,7 +1704,7 @@ def create_practice_plan():
 @app.route(API_PLAN_DETAIL_ENDPOINT)
 def get_practice_plan(plan_id: str):
     """Return a single practice plan."""
-    guard_response = _require_therapist()
+    user, guard_response = _require_authenticated()
     if guard_response is not None:
         return guard_response
 
@@ -1177,13 +1712,33 @@ def get_practice_plan(plan_id: str):
     if plan is None:
         return jsonify({"error": PLAN_NOT_FOUND}), HTTP_NOT_FOUND
 
+    _, child_guard = _require_child_access(str(plan.get("child_id") or ""))
+    if child_guard is not None:
+        return child_guard
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="plan.read",
+        resource_type="practice_plan",
+        resource_id=plan_id,
+        child_id=str(plan.get("child_id") or ""),
+    )
+
     return jsonify(plan)
 
 
 @app.route(API_PLAN_MESSAGES_ENDPOINT, methods=["POST"])
 def refine_practice_plan(plan_id: str):
     """Refine an existing practice plan using a therapist instruction."""
-    guard_response = _require_therapist()
+    plan = storage_service.get_practice_plan(plan_id)
+    if plan is None:
+        return jsonify({"error": PLAN_NOT_FOUND}), HTTP_NOT_FOUND
+
+    _, guard_response = _require_child_access(
+        str(plan.get("child_id") or ""),
+        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+        allowed_relationships=["therapist"],
+    )
     if guard_response is not None:
         return guard_response
 
@@ -1211,7 +1766,15 @@ def refine_practice_plan(plan_id: str):
 @app.route(API_PLAN_APPROVE_ENDPOINT, methods=["POST"])
 def approve_practice_plan(plan_id: str):
     """Approve a practice plan for therapist use."""
-    guard_response = _require_therapist()
+    existing_plan = storage_service.get_practice_plan(plan_id)
+    if existing_plan is None:
+        return jsonify({"error": PLAN_NOT_FOUND}), HTTP_NOT_FOUND
+
+    _, guard_response = _require_child_access(
+        str(existing_plan.get("child_id") or ""),
+        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+        allowed_relationships=["therapist"],
+    )
     if guard_response is not None:
         return guard_response
 
@@ -1229,7 +1792,15 @@ def approve_practice_plan(plan_id: str):
 @app.route(API_MEMORY_PROPOSAL_APPROVE_ENDPOINT, methods=["POST"])
 def approve_child_memory_proposal(proposal_id: str):
     """Approve a pending child memory proposal and rebuild the child summary."""
-    user, guard_response = _require_therapist_user()
+    proposal = storage_service.get_child_memory_proposal(proposal_id)
+    if proposal is None:
+        return jsonify({"error": MEMORY_PROPOSAL_NOT_FOUND}), HTTP_NOT_FOUND
+
+    user, guard_response = _require_child_access(
+        str(proposal.get("child_id") or ""),
+        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+        allowed_relationships=["therapist"],
+    )
     if guard_response is not None:
         return guard_response
 
@@ -1252,7 +1823,15 @@ def approve_child_memory_proposal(proposal_id: str):
 @app.route(API_MEMORY_PROPOSAL_REJECT_ENDPOINT, methods=["POST"])
 def reject_child_memory_proposal(proposal_id: str):
     """Reject a pending child memory proposal and rebuild the child summary."""
-    user, guard_response = _require_therapist_user()
+    proposal = storage_service.get_child_memory_proposal(proposal_id)
+    if proposal is None:
+        return jsonify({"error": MEMORY_PROPOSAL_NOT_FOUND}), HTTP_NOT_FOUND
+
+    user, guard_response = _require_child_access(
+        str(proposal.get("child_id") or ""),
+        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+        allowed_relationships=["therapist"],
+    )
     if guard_response is not None:
         return guard_response
 
@@ -1275,13 +1854,17 @@ def reject_child_memory_proposal(proposal_id: str):
 @app.route(API_SESSION_DETAIL_ENDPOINT)
 def get_session_detail(session_id: str):
     """Return the full saved session detail for therapist review."""
-    guard_response = _require_therapist()
+    user, guard_response = _require_authenticated()
     if guard_response is not None:
         return guard_response
 
     session = storage_service.get_session(session_id)
     if session is None:
         return jsonify({"error": SESSION_NOT_FOUND}), HTTP_NOT_FOUND
+
+    _, child_guard = _require_child_access(str(cast(Dict[str, Any], session.get("child") or {}).get("id") or ""))
+    if child_guard is not None:
+        return child_guard
 
     telemetry_service.track_event(
         "therapist_review_opened",
@@ -1291,13 +1874,29 @@ def get_session_detail(session_id: str):
         },
     )
 
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="session.read",
+        resource_type="session",
+        resource_id=session_id,
+        child_id=str(cast(Dict[str, Any], session.get("child") or {}).get("id") or ""),
+    )
+
     return jsonify(session)
 
 
 @app.route(API_SESSION_FEEDBACK_ENDPOINT, methods=["POST"])
 def save_session_feedback(session_id: str):
     """Store lightweight therapist feedback for a completed session."""
-    guard_response = _require_therapist()
+    existing_session = storage_service.get_session(session_id)
+    if existing_session is None:
+        return jsonify({"error": SESSION_NOT_FOUND}), HTTP_NOT_FOUND
+
+    _, guard_response = _require_child_access(
+        str(cast(Dict[str, Any], existing_session.get("child") or {}).get("id") or ""),
+        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+        allowed_relationships=["therapist"],
+    )
     if guard_response is not None:
         return guard_response
 
@@ -1318,13 +1917,13 @@ def save_session_feedback(session_id: str):
 @app.route(API_USER_ROLE_ENDPOINT, methods=["POST"])
 def update_user_role(user_id: str):
     """Promote or demote a user role. Therapist access only."""
-    guard_response = _require_therapist()
+    acting_user, guard_response = _require_therapist_user()
     if guard_response is not None:
         return guard_response
 
     data = cast(Dict[str, Any], request.get_json(silent=True) or {})
     role = str(data.get("role") or "").strip().lower()
-    if role not in {ROLE_THERAPIST, ROLE_USER}:
+    if role not in {ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN}:
         return jsonify({"error": INVALID_ROLE}), HTTP_BAD_REQUEST
 
     try:
@@ -1334,6 +1933,14 @@ def update_user_role(user_id: str):
 
     if user is None:
         return jsonify({"error": USER_NOT_FOUND}), HTTP_NOT_FOUND
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], acting_user).get("id")),
+        action="user.role.update",
+        resource_type="user",
+        resource_id=user_id,
+        metadata={"role": role},
+    )
 
     return jsonify(user)
 

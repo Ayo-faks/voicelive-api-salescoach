@@ -7,11 +7,22 @@ import {
   Badge,
   Button,
   Card,
+  Dialog,
+  DialogActions,
+  DialogBody,
+  DialogContent,
+  DialogSurface,
+  DialogTitle,
+  DialogTrigger,
   Dropdown,
+  Field,
+  Input,
   Option,
+  Textarea,
   Text,
   makeStyles,
 } from '@fluentui/react-components'
+import { useState } from 'react'
 import { ScenarioList } from './ScenarioList'
 import type {
   ChildProfile,
@@ -293,10 +304,15 @@ function getTargetSoundSummary(selectedScenario: Scenario | CustomScenario | nul
 }
 
 interface DashboardHomeProps {
+  isTherapistWorkspace: boolean
+  secondaryActionLabel: string
+  secondaryActionDisabled?: boolean
+  incomingInvitationCount: number
   childProfiles: ChildProfile[]
   childrenLoading: boolean
   selectedChildId: string | null
   selectedChild: ChildProfile | null
+  childProfileSaving: boolean
   selectedAvatar: string
   selectedScenario: string | null
   childMemorySummary: ChildMemorySummary | null
@@ -305,12 +321,13 @@ interface DashboardHomeProps {
   launchInFlight: boolean
   scenarios: Scenario[]
   customScenarios: CustomScenario[]
+  onCreateChild: (payload: { name: string; date_of_birth?: string; notes?: string }) => Promise<unknown>
   onSelectChild: (childId: string) => void
   onSelectAvatar: (avatarValue: string) => void
   onSelectScenario: (scenarioId: string) => void
   onStartScenario: (scenarioId: string) => void
   onStartSession: () => void
-  onOpenTherapistReview: () => void
+  onSecondaryAction: () => void
   onAddCustomScenario: (
     name: string,
     description: string,
@@ -326,10 +343,15 @@ interface DashboardHomeProps {
 }
 
 export function DashboardHome({
+  isTherapistWorkspace,
+  secondaryActionLabel,
+  secondaryActionDisabled = false,
+  incomingInvitationCount,
   childProfiles,
   childrenLoading,
   selectedChildId,
   selectedChild,
+  childProfileSaving,
   selectedAvatar,
   selectedScenario,
   childMemorySummary,
@@ -338,17 +360,23 @@ export function DashboardHome({
   launchInFlight,
   scenarios,
   customScenarios,
+  onCreateChild,
   onSelectChild,
   onSelectAvatar,
   onSelectScenario,
   onStartScenario,
   onStartSession,
-  onOpenTherapistReview,
+  onSecondaryAction,
   onAddCustomScenario,
   onUpdateCustomScenario,
   onDeleteCustomScenario,
 }: DashboardHomeProps) {
   const styles = useStyles()
+  const [addChildOpen, setAddChildOpen] = useState(false)
+  const [newChildName, setNewChildName] = useState('')
+  const [newChildDob, setNewChildDob] = useState('')
+  const [newChildNotes, setNewChildNotes] = useState('')
+  const [childFormError, setChildFormError] = useState<string | null>(null)
 
   const selectedAvatarOption =
     AVATAR_OPTIONS.find(option => option.value === selectedAvatar) ||
@@ -376,10 +404,50 @@ export function DashboardHome({
     latestSessionAt: selectedChild?.last_session_at,
     pendingProposalCount,
   })
-  const heroHint = selectedScenarioDetail
-    ? 'Choose the next exercise, launch a guided session, or review saved progress for this child.'
-    : 'Choose a child and exercise to launch a guided session, or open progress review to look back before you start.'
-  const heroBody = selectedScenarioDetail?.description || 'Pick an exercise from the library below to prepare the next guided session.'
+  const hasLinkedChildren = childProfiles.length > 0
+  const showParentPendingInvitations = !isTherapistWorkspace && !hasLinkedChildren && incomingInvitationCount > 0
+  const showParentNoLinkedChildren = !isTherapistWorkspace && !hasLinkedChildren && incomingInvitationCount === 0
+  const showParentNeedsChildSelection = !isTherapistWorkspace && hasLinkedChildren && !selectedChild
+  const heroHint = isTherapistWorkspace
+    ? selectedScenarioDetail
+      ? 'Choose the next exercise, launch a guided session, or review saved progress for this child.'
+      : 'Choose a child and exercise to launch a guided session, or open progress review to look back before you start.'
+    : hasLinkedChildren
+      ? 'Choose a linked child and exercise, then hand over the device when you are ready to start practice.'
+      : incomingInvitationCount > 0
+        ? 'Open the workspace to accept the linked-child invitation before you start practice here.'
+        : 'Add a child profile or wait for a therapist invitation, then start supervised practice here.'
+  const heroBody = selectedScenarioDetail?.description || (isTherapistWorkspace
+    ? 'Pick an exercise from the library below to prepare the next guided session.'
+    : hasLinkedChildren
+      ? 'Use this space to launch a short supervised practice for the active child.'
+      : incomingInvitationCount > 0
+        ? 'Your linked child invitation is waiting in the workspace area.'
+        : 'No child is linked yet, so practice cannot start until a child profile is available.')
+  const startButtonLabel = isTherapistWorkspace ? 'Start session' : 'Start practice'
+
+  const handleCreateChild = async () => {
+    const normalizedName = newChildName.trim()
+    if (!normalizedName) {
+      setChildFormError('Child name is required.')
+      return
+    }
+
+    setChildFormError(null)
+    try {
+      await onCreateChild({
+        name: normalizedName,
+        date_of_birth: newChildDob || undefined,
+        notes: newChildNotes.trim() || undefined,
+      })
+      setNewChildName('')
+      setNewChildDob('')
+      setNewChildNotes('')
+      setAddChildOpen(false)
+    } catch (error) {
+      setChildFormError(error instanceof Error ? error.message : 'Child profile could not be created right now.')
+    }
+  }
 
   return (
     <div className={styles.layout}>
@@ -437,7 +505,13 @@ export function DashboardHome({
 
           <div className={styles.heroCopy}>
             <Text className={styles.title}>
-              {selectedChild ? `Prepare ${selectedChild.name}'s next practice.` : 'Prepare the next practice.'}
+              {selectedChild
+                ? isTherapistWorkspace
+                  ? `Prepare ${selectedChild.name}'s next practice.`
+                  : `Start ${selectedChild.name}'s supervised practice.`
+                : isTherapistWorkspace
+                  ? 'Prepare the next practice.'
+                  : 'Start supervised practice.'}
             </Text>
             <Text className={styles.heroHint}>{heroHint}</Text>
             <div className={styles.chipRow}>
@@ -471,15 +545,47 @@ export function DashboardHome({
                 disabled={!canStartSession}
                 onClick={onStartSession}
               >
-                {launchInFlight ? 'Starting session...' : 'Start session'}
+                {launchInFlight ? `${startButtonLabel}...` : startButtonLabel}
               </Button>
               <Button
                 appearance="secondary"
                 className={styles.secondaryAction}
-                onClick={onOpenTherapistReview}
+                disabled={secondaryActionDisabled}
+                onClick={onSecondaryAction}
               >
-                Review progress
+                {secondaryActionLabel}
               </Button>
+              <Dialog open={addChildOpen} onOpenChange={(_, data) => setAddChildOpen(data.open)}>
+                <DialogTrigger disableButtonEnhancement>
+                  <Button appearance="secondary" className={styles.secondaryAction}>
+                    Add child
+                  </Button>
+                </DialogTrigger>
+                <DialogSurface>
+                  <DialogBody>
+                    <DialogTitle>Add child profile</DialogTitle>
+                    <DialogContent>
+                      <Field label="Child name" validationMessage={childFormError || undefined}>
+                        <Input value={newChildName} onChange={(_, data) => setNewChildName(data.value)} />
+                      </Field>
+                      <Field label="Date of birth">
+                        <Input type="date" value={newChildDob} onChange={(_, data) => setNewChildDob(data.value)} />
+                      </Field>
+                      <Field label="Notes">
+                        <Textarea value={newChildNotes} onChange={(_, data) => setNewChildNotes(data.value)} resize="vertical" />
+                      </Field>
+                    </DialogContent>
+                    <DialogActions>
+                      <Button appearance="secondary" onClick={() => setAddChildOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button appearance="primary" onClick={() => void handleCreateChild()} disabled={childProfileSaving}>
+                        {childProfileSaving ? 'Saving child...' : 'Save child'}
+                      </Button>
+                    </DialogActions>
+                  </DialogBody>
+                </DialogSurface>
+              </Dialog>
             </div>
           </div>
         </div>
@@ -502,7 +608,9 @@ export function DashboardHome({
                 <Text className={styles.memorySignalValue}>{pendingProposalCount}</Text>
                 <Text className={styles.memorySignalCopy}>
                   {pendingProposalCount
-                    ? 'Therapist review is waiting in the progress dashboard.'
+                    ? isTherapistWorkspace
+                      ? 'Therapist review is waiting in the progress dashboard.'
+                      : 'Open the workspace to review the latest linked-child updates.'
                     : 'No pending memory proposals are waiting right now.'}
                 </Text>
               </div>
@@ -562,6 +670,58 @@ export function DashboardHome({
               </div>
             </div>
           </>
+        ) : showParentPendingInvitations || showParentNoLinkedChildren || showParentNeedsChildSelection ? (
+          <div className={styles.memorySignalStrip}>
+            {showParentPendingInvitations ? (
+              <div className={styles.memorySignalCard}>
+                <Text className={styles.memorySignalLabel}>Pending invitations</Text>
+                <Text className={styles.memorySignalValue}>{incomingInvitationCount}</Text>
+                <Text className={styles.memorySignalCopy}>
+                  Open the workspace to accept the invitation and link the child before starting practice.
+                </Text>
+              </div>
+            ) : null}
+
+            {showParentNoLinkedChildren ? (
+              <>
+                <div className={styles.memorySignalCard}>
+                  <Text className={styles.memorySignalLabel}>No linked child yet</Text>
+                  <Text className={styles.memorySignalValue}>Action needed</Text>
+                  <Text className={styles.memorySignalCopy}>
+                    Add a child profile here or wait for a therapist invitation to unlock supervised practice.
+                  </Text>
+                </div>
+
+                <div className={styles.memorySignalCard}>
+                  <Text className={styles.memorySignalLabel}>Next step</Text>
+                  <Text className={styles.memorySignalValue}>Open family setup</Text>
+                  <Text className={styles.memorySignalCopy}>
+                    Family setup is where you manage linked children, invitations, and practice access.
+                  </Text>
+                </div>
+              </>
+            ) : null}
+
+            {showParentNeedsChildSelection ? (
+              <>
+                <div className={styles.memorySignalCard}>
+                  <Text className={styles.memorySignalLabel}>Child selection</Text>
+                  <Text className={styles.memorySignalValue}>Choose one child</Text>
+                  <Text className={styles.memorySignalCopy}>
+                    Pick the child you are practising with to load the right exercises and memory context.
+                  </Text>
+                </div>
+
+                <div className={styles.memorySignalCard}>
+                  <Text className={styles.memorySignalLabel}>Workspace</Text>
+                  <Text className={styles.memorySignalValue}>Family overview</Text>
+                  <Text className={styles.memorySignalCopy}>
+                    Open the workspace to review linked children, invitations, and the current practice setup.
+                  </Text>
+                </div>
+              </>
+            ) : null}
+          </div>
         ) : null}
       </Card>
 
@@ -576,7 +736,7 @@ export function DashboardHome({
           onUpdateCustomScenario={onUpdateCustomScenario}
           onDeleteCustomScenario={onDeleteCustomScenario}
           launchInFlight={launchInFlight}
-          title="Exercise library"
+          title={isTherapistWorkspace ? 'Exercise library' : 'Practice library'}
           showFooter={false}
           showCustomCreateTrigger={false}
           compactChildMode

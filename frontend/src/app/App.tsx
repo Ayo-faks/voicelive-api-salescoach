@@ -34,7 +34,6 @@ import { LogoutScreen } from '../components/LogoutScreen'
 import { ChildHome } from '../components/ChildHome'
 import { ConsentScreen } from '../components/ConsentScreen'
 import { DashboardHome } from '../components/DashboardHome'
-import { ModeSelector } from '../components/ModeSelector'
 import { OnboardingFlow } from '../components/OnboardingFlow'
 import { ProgressDashboard } from '../components/ProgressDashboard'
 import { SessionScreen } from '../components/SessionScreen'
@@ -56,10 +55,12 @@ import type {
   AvatarOption,
   ChildProfile,
   ChildMemoryItem,
+  ChildInvitation,
   ChildMemoryProposal,
   ChildMemorySummary,
   CustomScenario,
   ExerciseMetadata,
+  InvitationEmailDelivery,
   PilotState,
   PlannerReadiness,
   PronunciationAssessment,
@@ -105,8 +106,8 @@ type RealtimeMessage = {
   answer?: unknown
 }
 
-type UserMode = 'therapist' | 'child'
-type TherapistGateIntent = 'review' | 'start-session' | 'mode-switch'
+type UserMode = 'workspace' | 'child'
+type TherapistGateIntent = 'review'
 type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated' | 'error'
 type SidebarSection = 'home' | 'dashboard' | 'settings'
 
@@ -120,6 +121,18 @@ const CHILD_MAX_TURNS = 8
 const THERAPIST_AUTO_SUMMARY_TURN_LIMIT = 4
 const AFFIRMATIVE_FINISH_PATTERN = /\b(yes|yeah|yep|ok|okay|sure|done|finished)\b/i
 const LAUNCH_HANDOFF_DELAY_MS = 240
+
+function normalizeStoredUserMode(value: string | null): UserMode | null {
+  if (value === 'child') {
+    return 'child'
+  }
+
+  if (value === 'workspace' || value === 'therapist') {
+    return 'workspace'
+  }
+
+  return null
+}
 
 function isCustomScenario(
   scenario: Scenario | CustomScenario | null | undefined
@@ -758,6 +771,7 @@ export default function App() {
   const [pilotStateLoading, setPilotStateLoading] = useState(true)
   const [children, setChildren] = useState<ChildProfile[]>([])
   const [childrenLoading, setChildrenLoading] = useState(true)
+  const [childProfileSaving, setChildProfileSaving] = useState(false)
   const [authStatus, setAuthStatus] = useState<AuthStatus>('loading')
   const [authError, setAuthError] = useState<string | null>(null)
   const [authUser, setAuthUser] = useState<AuthSession | null>(null)
@@ -785,10 +799,7 @@ export default function App() {
   const [userMode, setUserMode] = useState<UserMode | null>(() => {
     if (typeof window === 'undefined') return null
 
-    const storedMode = window.localStorage.getItem('wulo.user.mode')
-    return storedMode === 'therapist' || storedMode === 'child'
-      ? storedMode
-      : null
+    return normalizeStoredUserMode(window.localStorage.getItem('wulo.user.mode'))
   })
   const [sessionSummaries, setSessionSummaries] = useState<SessionSummary[]>([])
   const [selectedSession, setSelectedSession] = useState<SessionDetail | null>(null)
@@ -796,6 +807,11 @@ export default function App() {
   const [childMemorySummary, setChildMemorySummary] = useState<ChildMemorySummary | null>(null)
   const [childMemoryItems, setChildMemoryItems] = useState<ChildMemoryItem[]>([])
   const [childMemoryProposals, setChildMemoryProposals] = useState<ChildMemoryProposal[]>([])
+  const [childInvitations, setChildInvitations] = useState<ChildInvitation[]>([])
+  const [invitationDeliveryById, setInvitationDeliveryById] = useState<Record<string, InvitationEmailDelivery | null | undefined>>({})
+  const [invitationsLoading, setInvitationsLoading] = useState(true)
+  const [invitationError, setInvitationError] = useState<string | null>(null)
+  const [invitationActionPendingId, setInvitationActionPendingId] = useState<string | null>(null)
   const [recommendationHistory, setRecommendationHistory] = useState<RecommendationLog[]>([])
   const [selectedRecommendationDetail, setSelectedRecommendationDetail] = useState<RecommendationDetail | null>(null)
   const [selectedPlan, setSelectedPlan] = useState<PracticePlan | null>(null)
@@ -880,12 +896,17 @@ export default function App() {
   const isSessionRoute = currentRoute === APP_ROUTES.session
   const isHomeRoute = currentRoute === APP_ROUTES.home
   const isChildContextRoute = isHomeRoute || isDashboardRoute || isSettingsRoute
-  const isTherapist = authUser?.role === 'therapist'
+  const isTherapist = authUser?.role === 'therapist' || authUser?.role === 'admin'
+  const requiresOnboarding = isTherapist
   const isChildMode = userMode === 'child' && !isDashboardRoute
+  const currentWorkspaceMode: UserMode = isChildMode ? 'child' : 'workspace'
+  const incomingInvitations = childInvitations.filter(invitation => invitation.direction === 'incoming')
+  const sentInvitations = childInvitations.filter(invitation => invitation.direction === 'sent')
   const queryChildId = searchParams.get(APP_ROUTE_PARAMS.childId)
   const queryScenarioId = searchParams.get(APP_ROUTE_PARAMS.scenarioId)
   const querySessionId = searchParams.get(APP_ROUTE_PARAMS.sessionId)
   const queryPlanId = searchParams.get(APP_ROUTE_PARAMS.planId)
+  const queryInvitationId = searchParams.get(APP_ROUTE_PARAMS.invitationId)
   const currentSearch = location.search.startsWith('?') ? location.search.slice(1) : location.search
   const activeAvatarName = getAvatarName(selectedAvatar)
   const activeAvatarPersona = getAvatarPersona(selectedAvatar)
@@ -902,38 +923,47 @@ export default function App() {
       : 'home'
   const showSidebarShell =
     authStatus === 'authenticated' &&
-    onboardingComplete &&
-    (Boolean(userMode) || isDashboardRoute || isSessionRoute || isSettingsRoute)
+    (!requiresOnboarding || onboardingComplete) &&
+    (isHomeRoute || isDashboardRoute || isSessionRoute || isSettingsRoute)
   const contentEyebrow = isDashboardRoute
     ? ''
     : isSettingsRoute
-      ? 'Workspace'
+      ? isTherapist
+        ? 'Workspace'
+        : 'Family'
       : isSessionRoute
         ? 'Live session'
-        : userMode === 'therapist'
+        : !isChildMode && isTherapist
           ? 'Therapist workspace'
-          : 'Practice home'
+          : !isChildMode
+            ? 'Parent home'
+            : 'Practice home'
   const contentTitle = isDashboardRoute
     ? 'Progress and planning'
     : isSettingsRoute
-      ? 'Workspace'
+      ? isTherapist
+        ? 'Workspace'
+        : 'Family setup'
       : isSessionRoute
         ? activeScenario?.name || 'Session in progress'
-        : userMode === 'therapist'
+        : !isChildMode && isTherapist
           ? 'Prepare the next visit'
-          : 'Ready to practise'
+          : !isChildMode
+            ? 'Start supervised practice'
+            : 'Ready to practise'
+  const settingsLabel = isTherapist ? 'Workspace' : 'Family'
   const contentSubtitle = ''
   const isHomeShellRoute = !isDashboardRoute && !isSettingsRoute && !isSessionRoute
   const showProfileHeader = showSidebarShell && isHomeShellRoute
-  const showHeaderCreateAction = showProfileHeader && userMode === 'therapist'
-  const showDashboardNav = userMode !== 'child'
+  const showHeaderCreateAction = showProfileHeader && isTherapist && !isChildMode
+  const showDashboardNav = isTherapist && !isChildMode
   const profileHeaderName = userMode === 'child'
     ? selectedChild?.name || authUser?.name || 'Child profile'
-    : authUser?.name || 'Therapist profile'
+    : authUser?.name || 'Workspace profile'
   const profileHeaderInitials = getProfileInitials(profileHeaderName)
   const validChildIds = new Set(children.map(child => child.id))
   const homeScenarioIds = new Set(
-    (userMode === 'therapist'
+    (!isChildMode && isTherapist
       ? [...serverScenarios, ...customScenarios]
       : serverScenarios).map(scenario => scenario.id)
   )
@@ -947,6 +977,34 @@ export default function App() {
     ? childPlans.find(plan => plan.id === queryPlanId) || null
     : null
   const effectiveDashboardSessionId = querySessionId || queryPlan?.source_session_id
+
+  const refreshChildren = useCallback(async () => {
+    const childProfiles = await api.getChildren()
+    setChildren(childProfiles)
+    setSelectedChildId(current => {
+      if (current && childProfiles.some(child => child.id === current)) {
+        return current
+      }
+      return childProfiles[0]?.id || null
+    })
+    return childProfiles
+  }, [])
+
+  const refreshInvitations = useCallback(async () => {
+    try {
+      const invitations = await api.getChildInvitations()
+      setChildInvitations(invitations)
+      setInvitationError(null)
+      return invitations
+    } catch (error) {
+      console.error('Failed to load invitations:', error)
+      setChildInvitations([])
+      setInvitationError(
+        error instanceof Error ? error.message : 'Invitations could not be loaded right now.'
+      )
+      throw error
+    }
+  }, [])
 
   const refreshAuthSession = useCallback(async () => {
     try {
@@ -1010,51 +1068,41 @@ export default function App() {
             }
           })
 
-        // Role guard: clear persisted therapist mode if user isn't a therapist
-        if (session.role !== 'therapist') {
-          const storedMode = window.localStorage.getItem('wulo.user.mode')
-          if (storedMode === 'therapist') {
-            window.localStorage.removeItem('wulo.user.mode')
-            setUserMode(null)
-          }
+        const storedMode = normalizeStoredUserMode(window.localStorage.getItem('wulo.user.mode'))
+        if (storedMode !== userMode) {
+          setUserMode(storedMode)
         }
 
-        if (session.role !== 'therapist') {
+        if (window.localStorage.getItem('wulo.user.mode') === 'therapist') {
+          window.localStorage.setItem('wulo.user.mode', 'workspace')
+        }
+
+        if (session.role !== 'therapist' && session.role !== 'admin') {
           setPilotState(null)
           setPilotStateLoading(false)
-          setChildren([])
-          setChildrenLoading(false)
-          setChildMemorySummary(null)
-          setChildMemoryItems([])
-          setChildMemoryProposals([])
-          setRecommendationHistory([])
-          setSelectedRecommendationDetail(null)
-          setSelectedChildId(null)
-          return
         }
 
-        api
-          .getPilotState()
-          .then(state => {
-            if (cancelled) return
-            setPilotState(state)
-          })
-          .catch(error => {
-            console.error('Failed to load pilot state:', error)
-          })
-          .finally(() => {
-            if (!cancelled) {
-              setPilotStateLoading(false)
-            }
-          })
+        if (session.role === 'therapist' || session.role === 'admin') {
+          api
+            .getPilotState()
+            .then(state => {
+              if (cancelled) return
+              setPilotState(state)
+            })
+            .catch(error => {
+              console.error('Failed to load pilot state:', error)
+            })
+            .finally(() => {
+              if (!cancelled) {
+                setPilotStateLoading(false)
+              }
+            })
+        } else {
+          setPilotState(null)
+          setPilotStateLoading(false)
+        }
 
-        api
-          .getChildren()
-          .then(childProfiles => {
-            if (cancelled) return
-            setChildren(childProfiles)
-            setSelectedChildId(current => current || childProfiles[0]?.id || null)
-          })
+        refreshChildren()
           .catch(error => {
             console.error('Failed to load child profiles:', error)
           })
@@ -1063,11 +1111,20 @@ export default function App() {
               setChildrenLoading(false)
             }
           })
+
+        refreshInvitations()
+          .catch(() => undefined)
+          .finally(() => {
+            if (!cancelled) {
+              setInvitationsLoading(false)
+            }
+          })
       })
       .catch(() => {
         if (!cancelled) {
           setPilotStateLoading(false)
           setChildrenLoading(false)
+          setInvitationsLoading(false)
         }
       })
 
@@ -1090,7 +1147,7 @@ export default function App() {
       cancelled = true
       window.removeEventListener('auth:expired', handleAuthExpired)
     }
-  }, [navigate, refreshAuthSession])
+  }, [navigate, refreshAuthSession, refreshChildren, refreshInvitations, userMode])
 
   const handleOpenSession = useCallback(
     async (sessionId: string) => {
@@ -1323,7 +1380,7 @@ export default function App() {
   )
 
   useEffect(() => {
-    if (!isTherapist) {
+    if (authStatus !== 'authenticated') {
       return
     }
 
@@ -1344,7 +1401,132 @@ export default function App() {
     }
 
     setSelectedChildId(children[0].id)
-  }, [children, isTherapist, queryChildId, selectedChildId, validChildIds])
+  }, [authStatus, children, queryChildId, selectedChildId, validChildIds])
+
+  const handleCreateChildProfile = useCallback(
+    async (payload: { name: string; date_of_birth?: string; notes?: string }) => {
+      setChildProfileSaving(true)
+
+      try {
+        const child = await api.createChild(payload)
+        await refreshChildren()
+        setSelectedChildId(child.id)
+        return child
+      } finally {
+        setChildProfileSaving(false)
+      }
+    },
+    [refreshChildren]
+  )
+
+  const handleInviteToChild = useCallback(
+    async (payload: { child_id: string; invited_email: string }) => {
+      setInvitationActionPendingId(`create:${payload.child_id}`)
+      setInvitationError(null)
+
+      try {
+        const invitation = await api.createChildInvitation(payload)
+        if (invitation.email_delivery) {
+          setInvitationDeliveryById(current => ({
+            ...current,
+            [invitation.id]: invitation.email_delivery,
+          }))
+        }
+        await refreshInvitations()
+        return invitation
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Invitation could not be created right now.'
+        setInvitationError(message)
+        throw error
+      } finally {
+        setInvitationActionPendingId(null)
+      }
+    },
+    [refreshInvitations]
+  )
+
+  const handleAcceptInvitation = useCallback(
+    async (invitationId: string) => {
+      setInvitationActionPendingId(invitationId)
+      setInvitationError(null)
+
+      try {
+        await api.acceptChildInvitation(invitationId)
+        await Promise.all([refreshChildren(), refreshInvitations()])
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Invitation could not be accepted right now.'
+        setInvitationError(message)
+        throw error
+      } finally {
+        setInvitationActionPendingId(null)
+      }
+    },
+    [refreshChildren, refreshInvitations]
+  )
+
+  const handleDeclineInvitation = useCallback(
+    async (invitationId: string) => {
+      setInvitationActionPendingId(invitationId)
+      setInvitationError(null)
+
+      try {
+        await api.declineChildInvitation(invitationId)
+        await refreshInvitations()
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Invitation could not be declined right now.'
+        setInvitationError(message)
+        throw error
+      } finally {
+        setInvitationActionPendingId(null)
+      }
+    },
+    [refreshInvitations]
+  )
+
+  const handleRevokeInvitation = useCallback(
+    async (invitationId: string) => {
+      setInvitationActionPendingId(invitationId)
+      setInvitationError(null)
+
+      try {
+        await api.revokeChildInvitation(invitationId)
+        await refreshInvitations()
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Invitation could not be revoked right now.'
+        setInvitationError(message)
+        throw error
+      } finally {
+        setInvitationActionPendingId(null)
+      }
+    },
+    [refreshInvitations]
+  )
+
+  const handleResendInvitation = useCallback(
+    async (invitationId: string) => {
+      setInvitationActionPendingId(invitationId)
+      setInvitationError(null)
+
+      try {
+        const invitation = await api.resendChildInvitation(invitationId)
+        if (invitation.email_delivery) {
+          setInvitationDeliveryById(current => ({
+            ...current,
+            [invitation.id]: invitation.email_delivery,
+          }))
+        }
+        await refreshInvitations()
+        return invitation
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Invitation could not be resent right now.'
+        setInvitationError(message)
+        throw error
+      } finally {
+        setInvitationActionPendingId(null)
+      }
+    },
+    [refreshInvitations]
+  )
 
   useEffect(() => {
     if (queryPlan && (!selectedSession || queryPlan.source_session_id === selectedSession.id)) {
@@ -1918,20 +2100,25 @@ export default function App() {
       navigate(
         getDefaultAuthenticatedRoute({
           onboardingComplete,
-          userMode,
+          role: authUser?.role ?? null,
         }),
         { replace: true }
       )
       return
     }
 
-    if (!onboardingComplete && currentRoute !== APP_ROUTES.onboarding) {
+    if (requiresOnboarding && !onboardingComplete && currentRoute !== APP_ROUTES.onboarding) {
       navigate(APP_ROUTES.onboarding, { replace: true })
       return
     }
 
-    if (onboardingComplete && !userMode && currentRoute !== APP_ROUTES.mode) {
-      navigate(APP_ROUTES.mode, { replace: true })
+    if (!requiresOnboarding && currentRoute === APP_ROUTES.onboarding) {
+      navigate(APP_ROUTES.home, { replace: true })
+      return
+    }
+
+    if (currentRoute === APP_ROUTES.mode) {
+      navigate(APP_ROUTES.home, { replace: true })
       return
     }
 
@@ -1954,6 +2141,7 @@ export default function App() {
       navigate(APP_ROUTES.home, { replace: true })
     }
   }, [
+    authUser?.role,
     authStatus,
     connected,
     currentAgent,
@@ -1962,6 +2150,7 @@ export default function App() {
     messages.length,
     navigate,
     onboardingComplete,
+    requiresOnboarding,
     showLaunchTransition,
     userMode,
   ])
@@ -2256,10 +2445,10 @@ export default function App() {
 
   useEffect(() => {
     const shouldPrewarm =
-      ((userMode === 'therapist' && !isDashboardRoute && Boolean(selectedChildId)) ||
+      (((!isChildMode && !isDashboardRoute && Boolean(selectedChildId)) ||
         userMode === 'child') &&
       Boolean(selectedScenario) &&
-      !currentAgent
+      !currentAgent)
 
     if (!shouldPrewarm || !selectedScenario) {
       const staleAgent = prewarmedAgentRef.current
@@ -2329,6 +2518,7 @@ export default function App() {
   }, [
     createAgentForSelection,
     currentAgent,
+    isChildMode,
     isDashboardRoute,
     releaseAgent,
     selectedAvatar,
@@ -2483,12 +2673,12 @@ export default function App() {
 
   const handleCompleteOnboarding = useCallback(() => {
     setOnboardingComplete(true)
-    setUserMode(null)
+    setUserMode('workspace')
     if (typeof window !== 'undefined') {
       window.localStorage.setItem('wulo.onboarding.complete', 'true')
-      window.localStorage.removeItem('wulo.user.mode')
+      window.localStorage.setItem('wulo.user.mode', 'workspace')
     }
-    navigate(APP_ROUTES.mode)
+    navigate(APP_ROUTES.home)
   }, [navigate])
 
   const handleExitTherapistView = useCallback(() => {
@@ -2504,12 +2694,12 @@ export default function App() {
     setFinishRequested(false)
     setLaunchHandoffReady(false)
     setLaunchInFlight(false)
-    setUserMode(null)
+    setUserMode('workspace')
     setMobileSidebarOpen(false)
     if (typeof window !== 'undefined') {
-      window.localStorage.removeItem('wulo.user.mode')
+      window.localStorage.setItem('wulo.user.mode', 'workspace')
     }
-    navigate(APP_ROUTES.mode)
+    navigate(APP_ROUTES.home)
   }, [navigate])
 
   const handleGoHome = useCallback(() => {
@@ -2543,12 +2733,6 @@ export default function App() {
   }, [clearConversationAudioRecording, clearMessages, disconnect])
 
   const handleChooseMode = useCallback((mode: UserMode) => {
-    if (mode === 'therapist' && !isTherapist) {
-      setRoleNoticeIntent('review')
-      setShowRoleNotice(true)
-      return
-    }
-
     if (mode === 'child' && isTherapist && !pilotState?.consent_timestamp) {
       setPendingModeSelection('child')
       setConsentError(null)
@@ -2803,22 +2987,32 @@ export default function App() {
       isTherapist={isTherapist}
       onContinue={handleCompleteOnboarding}
     />
-  ) : currentRoute === APP_ROUTES.mode ? (
-    <ModeSelector
-      isTherapist={isTherapist}
-      onChooseMode={handleChooseMode}
-    />
   ) : currentRoute === APP_ROUTES.settings ? (
     <SettingsView
       isTherapist={isTherapist}
-      currentMode={userMode}
+      canManageChildren
+      currentMode={currentWorkspaceMode}
       authRole={authUser?.role}
       selectedChild={selectedChild}
       childProfiles={children}
+      childProfileSaving={childProfileSaving}
+      incomingInvitations={incomingInvitations}
+      sentInvitations={sentInvitations}
+      highlightedInvitationId={queryInvitationId}
+      invitationDeliveryById={invitationDeliveryById}
+      invitationsLoading={invitationsLoading}
+      invitationError={invitationError}
+      invitationActionPendingId={invitationActionPendingId}
       selectedAvatar={selectedAvatar}
       onChooseMode={handleChooseMode}
       onSelectChild={handleSelectChild}
       onSelectAvatar={setSelectedAvatar}
+      onCreateChild={handleCreateChildProfile}
+      onInviteParent={handleInviteToChild}
+      onAcceptInvitation={handleAcceptInvitation}
+      onDeclineInvitation={handleDeclineInvitation}
+      onRevokeInvitation={handleRevokeInvitation}
+      onResendInvitation={handleResendInvitation}
     />
   ) : currentRoute === APP_ROUTES.home ? (
     loading ? (
@@ -2849,10 +3043,14 @@ export default function App() {
         />
       ) : (
         <DashboardHome
+          isTherapistWorkspace={isTherapist}
+          secondaryActionLabel={isTherapist ? 'Review progress' : 'Open family setup'}
+          incomingInvitationCount={incomingInvitations.length}
           childProfiles={children}
           childrenLoading={childrenLoading}
           selectedChildId={selectedChildId}
           selectedChild={selectedChild}
+          childProfileSaving={childProfileSaving}
           selectedAvatar={selectedAvatar}
           selectedScenario={selectedScenario}
           childMemorySummary={childMemorySummary}
@@ -2860,7 +3058,7 @@ export default function App() {
           recommendationHistory={recommendationHistory}
           launchInFlight={launchInFlight}
           scenarios={serverScenarios}
-          customScenarios={customScenarios}
+          onCreateChild={handleCreateChildProfile}
           onSelectChild={handleSelectChild}
           onSelectAvatar={setSelectedAvatar}
           onSelectScenario={(scenarioId: string) => {
@@ -2872,10 +3070,18 @@ export default function App() {
           onStartSession={() => {
             void handleStart(selectedAvatar)
           }}
-          onOpenTherapistReview={() => openSection('dashboard')}
+          onSecondaryAction={() => {
+            if (isTherapist) {
+              openSection('dashboard')
+              return
+            }
+
+            openSection('settings')
+          }}
           onAddCustomScenario={addCustomScenario}
           onUpdateCustomScenario={updateCustomScenario}
           onDeleteCustomScenario={deleteCustomScenario}
+          customScenarios={isTherapist ? customScenarios : []}
         />
       )
     )
@@ -2921,11 +3127,11 @@ export default function App() {
             mobileOpen={mobileSidebarOpen}
             isTherapist={isTherapist}
             showDashboardNav={showDashboardNav}
+            settingsLabel={settingsLabel}
             childProfiles={children}
             childrenLoading={childrenLoading}
             selectedChildId={selectedChildId}
             selectedChild={selectedChild}
-            showTherapistAccess={!isTherapist && userMode !== 'child'}
             onBrandClick={() => requestSection('home')}
             onNavigateHome={() => requestSection('home')}
             onNavigateDashboard={() => requestSection('dashboard')}
@@ -2933,10 +3139,6 @@ export default function App() {
             onSelectChild={handleSelectChild}
             onToggleCollapse={() => setSidebarCollapsed(current => !current)}
             onCloseMobile={() => setMobileSidebarOpen(false)}
-            onOpenTherapistAccess={() => {
-              setRoleNoticeIntent('review')
-              setShowRoleNotice(true)
-            }}
           />
 
           <div className={mergeClasses(styles.contentArea, isDashboardRoute && styles.contentAreaDashboard)}>
@@ -2982,8 +3184,8 @@ export default function App() {
                       className={styles.profileSwitchButton}
                       icon={<span className={styles.profileAvatar}>{profileHeaderInitials}</span>}
                       onClick={handleReturnToEntry}
-                      aria-label={`Switch profile: ${profileHeaderName}`}
-                      title={`Switch profile: ${profileHeaderName}`}
+                      aria-label={`Open profile menu for ${profileHeaderName}`}
+                      title={`Open profile menu for ${profileHeaderName}`}
                     >
                       <ChevronDownIcon className={styles.profileSwitchChevron} />
                     </Button>
@@ -3035,9 +3237,7 @@ export default function App() {
           <DialogTitle>Role required</DialogTitle>
           <DialogBody>
             <Text>
-              {roleNoticeIntent === 'mode-switch'
-                ? 'Therapist-only tools require a therapist role on your account.'
-                : 'This part of Wulo is available only to therapist accounts.'}
+              This part of Wulo is available only to therapist accounts.
             </Text>
           </DialogBody>
           <DialogActions>

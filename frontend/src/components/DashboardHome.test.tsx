@@ -6,10 +6,14 @@ describe('DashboardHome', () => {
   it('renders compact child-memory signals for the selected child', () => {
     render(
       <DashboardHome
+        isTherapistWorkspace
+        secondaryActionLabel="Review progress"
+        incomingInvitationCount={0}
         childProfiles={[{ id: 'child-1', name: 'Amina' }]}
         childrenLoading={false}
         selectedChildId="child-1"
         selectedChild={{ id: 'child-1', name: 'Amina' }}
+        childProfileSaving={false}
         selectedAvatar="meg-casual"
         selectedScenario={null}
         childMemorySummary={{
@@ -62,12 +66,13 @@ describe('DashboardHome', () => {
         launchInFlight={false}
         scenarios={[]}
         customScenarios={[]}
+        onCreateChild={async () => ({})}
         onSelectChild={() => {}}
         onSelectAvatar={() => {}}
         onSelectScenario={() => {}}
         onStartScenario={() => {}}
         onStartSession={() => {}}
-        onOpenTherapistReview={() => {}}
+        onSecondaryAction={() => {}}
         onAddCustomScenario={() => {}}
         onUpdateCustomScenario={() => {}}
         onDeleteCustomScenario={() => {}}

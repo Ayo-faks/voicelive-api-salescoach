@@ -78,6 +78,34 @@ param databaseMigrationAllowedEnvironments string = ''
 @description('Optional custom domain bindings for the voicelab Container App ingress.')
 param voicelabCustomDomains array = []
 
+@description('Enable Azure Communication Services Email resources and backend wiring.')
+param enableAzureCommunicationServicesEmail bool = false
+
+@description('Data location for Azure Communication Services Email resources.')
+param azureCommunicationServicesDataLocation string = 'Europe'
+
+@description('Email domain resource name. Use AzureManagedDomain for Azure-managed domains, or your verified domain name for customer-managed domains.')
+param azureCommunicationServicesDomainName string = 'AzureManagedDomain'
+
+@description('Domain management mode for the Azure Communication Services Email domain.')
+param azureCommunicationServicesDomainManagement string = 'AzureManaged'
+
+@description('Link the email domain to the Communication Service. Leave disabled until a customer-managed domain has been verified in DNS.')
+param azureCommunicationServicesLinkVerifiedDomain bool = false
+
+@secure()
+@description('Optional Azure Communication Services Email connection string for invitation delivery.')
+param azureCommunicationServicesConnectionString string = ''
+
+@description('Optional sender address for Azure Communication Services Email invitation delivery.')
+param azureCommunicationServicesSenderAddress string = ''
+
+@description('Optional sender display name for Azure Communication Services Email invitation delivery.')
+param azureCommunicationServicesSenderDisplayName string = 'Wulo'
+
+@description('Optional public app URL used in invitation emails.')
+param publicAppUrl string = ''
+
 // Tags that should be applied to all resources.
 //
 // Note that 'azd-service-name' tags should be applied separately to service host resources.
@@ -123,6 +151,15 @@ module resources 'resources.bicep' = {
     databaseRunMigrationsOnStartup: databaseRunMigrationsOnStartup
     databaseMigrationAllowedEnvironments: databaseMigrationAllowedEnvironments
     voicelabCustomDomains: voicelabCustomDomains
+    enableAzureCommunicationServicesEmail: enableAzureCommunicationServicesEmail
+    azureCommunicationServicesDataLocation: azureCommunicationServicesDataLocation
+    azureCommunicationServicesDomainName: azureCommunicationServicesDomainName
+    azureCommunicationServicesDomainManagement: azureCommunicationServicesDomainManagement
+    azureCommunicationServicesLinkVerifiedDomain: azureCommunicationServicesLinkVerifiedDomain
+    azureCommunicationServicesConnectionString: azureCommunicationServicesConnectionString
+    azureCommunicationServicesSenderAddress: azureCommunicationServicesSenderAddress
+    azureCommunicationServicesSenderDisplayName: azureCommunicationServicesSenderDisplayName
+    publicAppUrl: publicAppUrl
   }
 }
 
@@ -137,3 +174,5 @@ output AZURE_SPEECH_REGION string = resources.outputs.AZURE_SPEECH_REGION
 output AI_FOUNDRY_RESOURCE_NAME string = resources.outputs.AI_FOUNDRY_RESOURCE_NAME
 output POSTGRES_SERVER_FQDN string = resources.outputs.POSTGRES_SERVER_FQDN
 output POSTGRES_DATABASE_NAME string = resources.outputs.POSTGRES_DATABASE_NAME
+output AZURE_COMMUNICATION_SERVICE_NAME string = resources.outputs.AZURE_COMMUNICATION_SERVICE_NAME
+output AZURE_EMAIL_COMMUNICATION_SERVICE_NAME string = resources.outputs.AZURE_EMAIL_COMMUNICATION_SERVICE_NAME
