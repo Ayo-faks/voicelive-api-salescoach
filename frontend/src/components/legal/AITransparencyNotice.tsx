@@ -95,7 +95,7 @@ export function AITransparencyNotice() {
         appearance="subtle"
         icon={<ArrowLeftIcon className="w-4 h-4" />}
         className={styles.backButton}
-        onClick={() => navigate(-1)}
+        onClick={() => navigate('/')}
       >
         Back
       </Button>
