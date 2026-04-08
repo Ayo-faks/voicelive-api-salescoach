@@ -8,28 +8,47 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { useNavigate } from 'react-router-dom'
 
 const useStyles = makeStyles({
+  wrapper: {
+    minHeight: '100vh',
+    background: 'linear-gradient(135deg, rgba(233, 245, 246, 0.98), rgba(224, 239, 241, 0.98))',
+    padding: 'var(--space-xl) var(--space-md)',
+  },
   page: {
-    maxWidth: '780px',
+    maxWidth: '720px',
     margin: '0 auto',
-    padding: 'var(--space-xl)',
+    padding: 'clamp(1.5rem, 4vw, 2.5rem) clamp(1.5rem, 4vw, 2.5rem)',
     display: 'grid',
     gap: 'var(--space-lg)',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    border: '1px solid rgba(13, 138, 132, 0.10)',
+    borderRadius: '12px',
   },
   backButton: {
     justifySelf: 'start',
     fontFamily: 'var(--font-display)',
     fontWeight: '600',
+    color: 'var(--color-primary, #0d8a84)',
+  },
+  header: {
+    display: 'grid',
+    gap: '8px',
+    paddingBottom: 'var(--space-md, 16px)',
+    borderBottom: '1px solid rgba(13, 138, 132, 0.12)',
   },
   title: {
     fontFamily: 'var(--font-display)',
     fontSize: 'clamp(1.6rem, 3.5vw, 2.2rem)',
     fontWeight: '800',
     letterSpacing: '-0.04em',
+    lineHeight: 1.2,
     color: 'var(--color-text-primary)',
+    marginBottom: '0',
   },
   updated: {
     color: 'var(--color-text-tertiary)',
-    fontSize: '0.8rem',
+    fontSize: '0.78rem',
+    lineHeight: 1.4,
+    letterSpacing: '0.01em',
   },
   section: {
     display: 'grid',
@@ -37,28 +56,29 @@ const useStyles = makeStyles({
   },
   heading: {
     fontFamily: 'var(--font-display)',
-    fontSize: '1.15rem',
+    fontSize: '1.1rem',
     fontWeight: '700',
     color: 'var(--color-text-primary)',
+    marginTop: 'var(--space-xs, 4px)',
   },
   body: {
     color: 'var(--color-text-secondary)',
-    fontSize: '0.9rem',
-    lineHeight: 1.7,
+    fontSize: '0.88rem',
+    lineHeight: 1.8,
   },
   list: {
     color: 'var(--color-text-secondary)',
-    fontSize: '0.9rem',
-    lineHeight: 1.7,
-    paddingLeft: '1.5rem',
+    fontSize: '0.88rem',
+    lineHeight: 1.8,
+    paddingLeft: '1.4rem',
     margin: 0,
     display: 'grid',
-    gap: '4px',
+    gap: '6px',
   },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
-    fontSize: '0.85rem',
+    fontSize: '0.82rem',
     color: 'var(--color-text-secondary)',
     lineHeight: 1.6,
   },
@@ -69,6 +89,7 @@ export function AITransparencyNotice() {
   const navigate = useNavigate()
 
   return (
+    <div className={styles.wrapper}>
     <div className={styles.page}>
       <Button
         appearance="subtle"
@@ -79,9 +100,9 @@ export function AITransparencyNotice() {
         Back
       </Button>
 
-      <div>
+      <div className={styles.header}>
         <Text as="h1" className={styles.title} block>AI Transparency Notice</Text>
-        <Text className={styles.updated}>Last updated: 8 April 2026 — Draft for solicitor review</Text>
+        <Text className={styles.updated} block>Last updated: 8 April 2026 — Draft for solicitor review</Text>
       </div>
 
       <div className={styles.section}>
@@ -208,6 +229,7 @@ export function AITransparencyNotice() {
           Questions about AI in Wulo? Contact: <strong>privacy@wulo.ai</strong>.
         </Text>
       </div>
+    </div>
     </div>
   )
 }
