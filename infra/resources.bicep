@@ -710,6 +710,9 @@ resource voicelabAuth 'Microsoft.App/containerApps/authConfigs@2024-03-01' = if 
         '/logout'
         '/wulo-logo.png'
         '/favicon.ico'
+        '/privacy'
+        '/terms'
+        '/ai-transparency'
       ]
     }
     identityProviders: {

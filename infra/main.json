@@ -1036,7 +1036,10 @@
                     "/api/health",
                     "/logout",
                     "/wulo-logo.png",
-                    "/favicon.ico"
+                    "/favicon.ico",
+                    "/privacy",
+                    "/terms",
+                    "/ai-transparency"
                   ]
                 },
                 "identityProviders": {
