@@ -357,6 +357,20 @@ export function SidebarNav({
             </Button>
           ) : null}
 
+          {isExpanded ? (
+            <>
+              <Button appearance="subtle" className={styles.footerButton} as="a" href="/privacy">
+                Privacy
+              </Button>
+              <Button appearance="subtle" className={styles.footerButton} as="a" href="/terms">
+                Terms
+              </Button>
+              <Button appearance="subtle" className={styles.footerButton} as="a" href="/ai-transparency">
+                AI notice
+              </Button>
+            </>
+          ) : null}
+
           <Button
             appearance="subtle"
             icon={

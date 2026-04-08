@@ -93,6 +93,12 @@ export function ConsentScreen({ open, saving, error, onAccept, onCancel }: Props
               <Text className={styles.helperText} size={300}>
                 This tool supports supervised practice only and should not be used for diagnosis or unsupervised decision-making.
               </Text>
+              <Text className={styles.helperText} size={300}>
+                By continuing, you confirm you have read our{' '}
+                <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>,{' '}
+                <a href="/terms" target="_blank" rel="noreferrer">Terms of Service</a>, and{' '}
+                <a href="/ai-transparency" target="_blank" rel="noreferrer">AI Transparency Notice</a>.
+              </Text>
             </div>
             <Checkbox
               checked={acknowledged}

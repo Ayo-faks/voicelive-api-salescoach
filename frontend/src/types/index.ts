@@ -70,6 +70,19 @@ export interface ChildProfile {
   last_session_at?: string | null
 }
 
+export interface ParentalConsent {
+  id: string
+  child_id: string
+  guardian_name: string
+  guardian_email: string
+  consent_type: string
+  privacy_accepted: boolean
+  terms_accepted: boolean
+  ai_notice_accepted: boolean
+  consented_at: string
+  withdrawn_at: string | null
+}
+
 export type ChildInvitationRelationship = 'parent' | 'therapist'
 
 export type ChildInvitationStatus = 'pending' | 'accepted' | 'declined' | 'revoked' | 'expired'

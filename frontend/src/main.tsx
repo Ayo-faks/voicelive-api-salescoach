@@ -9,6 +9,7 @@ import { FluentProvider, webLightTheme } from '@fluentui/react-components'
 import { BrowserRouter } from 'react-router-dom'
 import App from './app/App'
 import './styles/global.css'
+import { initCookieConsent } from './cookieconsent-config'
 
 const wuloTheme = {
   ...webLightTheme,
@@ -55,3 +56,5 @@ ReactDOM.createRoot(rootElement).render(
     </BrowserRouter>
   </React.StrictMode>
 )
+
+initCookieConsent()

@@ -98,6 +98,9 @@ API_MEMORY_PROPOSAL_APPROVE_ENDPOINT = "/api/memory/proposals/<proposal_id>/appr
 API_MEMORY_PROPOSAL_REJECT_ENDPOINT = "/api/memory/proposals/<proposal_id>/reject"
 API_USER_ROLE_ENDPOINT = "/api/users/<user_id>/role"
 API_IMAGES_ENDPOINT = "/api/images/<path:image_path>"
+API_CHILD_CONSENT_ENDPOINT = "/api/children/<child_id>/consent"
+API_CHILD_DATA_EXPORT_ENDPOINT = "/api/children/<child_id>/data-export"
+API_CHILD_DATA_DELETE_ENDPOINT = "/api/children/<child_id>/data"
 
 # Error messages
 SCENARIO_ID_REQUIRED = "scenario_id is required"
@@ -777,6 +780,114 @@ def acknowledge_consent():
     return jsonify({"consent_timestamp": consent_timestamp})
 
 
+@app.route(API_CHILD_CONSENT_ENDPOINT, methods=["GET", "POST", "DELETE"])
+def child_parental_consent(child_id: str):
+    """Manage parental/guardian consent for a child profile."""
+    user, guard_response = _require_child_access(
+        child_id,
+        allowed_roles={ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN},
+    )
+    if guard_response is not None:
+        return guard_response
+
+    user_id = str(cast(Dict[str, Any], user).get("id"))
+
+    if request.method == "GET":
+        consent = storage_service.get_parental_consent(child_id)
+        return jsonify({"consent": consent})
+
+    if request.method == "DELETE":
+        withdrawn = storage_service.withdraw_parental_consent(child_id)
+        _log_audit_event(
+            user_id=user_id,
+            action="parental_consent.withdraw",
+            resource_type="parental_consent",
+            resource_id=child_id,
+            child_id=child_id,
+        )
+        return jsonify({"withdrawn": withdrawn})
+
+    # POST
+    body = request.get_json(silent=True) or {}
+    guardian_name = str(body.get("guardian_name") or "").strip()
+    guardian_email = str(body.get("guardian_email") or "").strip()
+    if not guardian_name or not guardian_email:
+        return jsonify({"error": "guardian_name and guardian_email are required"}), 400
+
+    consent = storage_service.save_parental_consent(
+        child_id=child_id,
+        guardian_name=guardian_name,
+        guardian_email=guardian_email,
+        privacy_accepted=bool(body.get("privacy_accepted", True)),
+        terms_accepted=bool(body.get("terms_accepted", True)),
+        ai_notice_accepted=bool(body.get("ai_notice_accepted", True)),
+        recorded_by_user_id=user_id,
+    )
+    _log_audit_event(
+        user_id=user_id,
+        action="parental_consent.record",
+        resource_type="parental_consent",
+        resource_id=consent["id"],
+        child_id=child_id,
+        metadata={"guardian_email": guardian_email},
+    )
+    return jsonify(consent), 201
+
+
+@app.route(API_CHILD_DATA_EXPORT_ENDPOINT)
+def export_child_data(child_id: str):
+    """Export all data for a child as JSON (SAR / data portability)."""
+    user, guard_response = _require_child_access(
+        child_id,
+        allowed_roles={ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN},
+    )
+    if guard_response is not None:
+        return guard_response
+
+    data = storage_service.export_child_data(child_id)
+    if not data:
+        return jsonify({"error": "Child not found"}), HTTP_NOT_FOUND
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="child.data_export",
+        resource_type="child",
+        resource_id=child_id,
+        child_id=child_id,
+    )
+    return jsonify(data)
+
+
+@app.route(API_CHILD_DATA_DELETE_ENDPOINT, methods=["DELETE"])
+def delete_child_data(child_id: str):
+    """Permanently delete all data for a child (right to erasure)."""
+    user, guard_response = _require_child_access(
+        child_id,
+        allowed_roles={ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN},
+    )
+    if guard_response is not None:
+        return guard_response
+
+    body = request.get_json(silent=True) or {}
+    if not body.get("confirm"):
+        return jsonify({"error": "Set confirm=true to permanently delete all child data"}), 400
+
+    user_id = str(cast(Dict[str, Any], user).get("id"))
+    _log_audit_event(
+        user_id=user_id,
+        action="child.data_delete",
+        resource_type="child",
+        resource_id=child_id,
+        child_id=child_id,
+    )
+
+    deleted = storage_service.delete_child_data(child_id)
+    if not deleted:
+        return jsonify({"error": "Child not found"}), HTTP_NOT_FOUND
+
+    return jsonify({"deleted": True, "child_id": child_id})
+
+
 @app.route(API_SCENARIOS_ENDPOINT)
 def get_scenarios():
     """Get list of available scenarios."""
@@ -1409,7 +1520,11 @@ def get_child_plans(child_id: str):
 @app.route(API_CHILD_MEMORY_SUMMARY_ENDPOINT)
 def get_child_memory_summary(child_id: str):
     """Return the compiled child memory summary for therapist review."""
-    user, guard_response = _require_child_access(child_id)
+    user, guard_response = _require_child_access(
+        child_id,
+        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+        allowed_relationships=["therapist"],
+    )
     if guard_response is not None:
         return guard_response
 
@@ -1463,7 +1578,11 @@ def child_memory_items(child_id: str):
         )
         return jsonify(result), 201
 
-    user, guard_response = _require_child_access(child_id)
+    user, guard_response = _require_child_access(
+        child_id,
+        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+        allowed_relationships=["therapist"],
+    )
     if guard_response is not None:
         return guard_response
 
@@ -1490,7 +1609,11 @@ def child_memory_items(child_id: str):
 @app.route(API_CHILD_MEMORY_PROPOSALS_ENDPOINT)
 def get_child_memory_proposals(child_id: str):
     """Return child memory proposals, optionally filtered by status or category."""
-    user, guard_response = _require_child_access(child_id)
+    user, guard_response = _require_child_access(
+        child_id,
+        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+        allowed_relationships=["therapist"],
+    )
     if guard_response is not None:
         return guard_response
 
@@ -1577,7 +1700,11 @@ def child_recommendations(child_id: str):
         )
         return jsonify(result), 201
 
-    user, guard_response = _require_child_access(child_id)
+    user, guard_response = _require_child_access(
+        child_id,
+        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+        allowed_relationships=["therapist"],
+    )
     if guard_response is not None:
         return guard_response
 

@@ -8,6 +8,9 @@ export const APP_ROUTES = {
   dashboard: '/dashboard',
   settings: '/settings',
   session: '/session',
+  privacy: '/privacy',
+  terms: '/terms',
+  aiTransparency: '/ai-transparency',
 } as const
 
 export const APP_ROUTE_PARAMS = {

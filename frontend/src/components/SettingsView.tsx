@@ -6,6 +6,11 @@
 import {
   Button,
   Card,
+  Dialog,
+  DialogActions,
+  DialogBody,
+  DialogSurface,
+  DialogTitle,
   Dropdown,
   Field,
   Input,
@@ -17,6 +22,7 @@ import {
 } from '@fluentui/react-components'
 import { useRef, useState } from 'react'
 import { AVATAR_OPTIONS, type ChildInvitation, type ChildProfile, type InvitationEmailDelivery } from '../types'
+import { api } from '../services/api'
 
 const useStyles = makeStyles({
   layout: {
@@ -355,6 +361,10 @@ export function SettingsView({
   const [newChildNotes, setNewChildNotes] = useState('')
   const [inviteEmail, setInviteEmail] = useState('')
   const [childFormError, setChildFormError] = useState<string | null>(null)
+  const [dataExporting, setDataExporting] = useState(false)
+  const [dataDeleting, setDataDeleting] = useState(false)
+  const [dataDeleteError, setDataDeleteError] = useState<string | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const invitationRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const roleLabel = authRole || 'Unknown role'
   const modeLabel = currentMode === 'child' ? 'Child practice view' : 'Workspace view'
@@ -729,6 +739,100 @@ export function SettingsView({
             ) : null}
           </Card>
         </div>
+
+        <div className={styles.sectionGrid}>
+          <Card className={styles.card}>
+            <Text className={styles.cardTitle}>Data and privacy</Text>
+            {selectedChild ? (
+              <div style={{ display: 'grid', gap: 'var(--space-sm)' }}>
+                <Text className={styles.copy}>
+                  Manage data for <strong>{selectedChild.name}</strong>. Export returns a JSON file with all session, assessment, and profile data.
+                </Text>
+                <div className={styles.buttonRow}>
+                  <Button
+                    appearance="secondary"
+                    disabled={dataExporting}
+                    onClick={() => {
+                      setDataExporting(true)
+                      api.exportChildData(selectedChild.id)
+                        .then(data => {
+                          const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+                          const url = URL.createObjectURL(blob)
+                          const a = document.createElement('a')
+                          a.href = url
+                          a.download = `wulo-data-${selectedChild.name.replace(/\s+/g, '-').toLowerCase()}.json`
+                          a.click()
+                          URL.revokeObjectURL(url)
+                        })
+                        .catch(() => setDataDeleteError('Export failed. Please try again.'))
+                        .finally(() => setDataExporting(false))
+                    }}
+                  >
+                    {dataExporting ? 'Exporting…' : 'Download data'}
+                  </Button>
+                  <Button
+                    appearance="secondary"
+                    disabled={dataDeleting}
+                    onClick={() => setShowDeleteConfirm(true)}
+                    style={{ color: 'var(--color-error)' }}
+                  >
+                    Delete all data
+                  </Button>
+                </div>
+                {dataDeleteError ? <Text style={{ color: 'var(--color-error)', fontSize: '0.8125rem' }}>{dataDeleteError}</Text> : null}
+              </div>
+            ) : (
+              <Text className={styles.copy}>Select a child profile to manage their data.</Text>
+            )}
+          </Card>
+        </div>
+
+        <div className={styles.sectionGrid}>
+          <Card className={styles.card}>
+            <Text className={styles.cardTitle}>Legal</Text>
+            <div style={{ display: 'grid', gap: 'var(--space-sm)' }}>
+              <a href="/privacy" style={{ color: 'var(--color-primary)', fontSize: '0.88rem' }}>Privacy Policy</a>
+              <a href="/terms" style={{ color: 'var(--color-primary)', fontSize: '0.88rem' }}>Terms of Service</a>
+              <a href="/ai-transparency" style={{ color: 'var(--color-primary)', fontSize: '0.88rem' }}>AI Transparency Notice</a>
+            </div>
+          </Card>
+        </div>
+
+        <Dialog open={showDeleteConfirm} onOpenChange={(_, data) => !data.open && setShowDeleteConfirm(false)}>
+          <DialogSurface>
+            <DialogTitle>Permanently delete all data?</DialogTitle>
+            <DialogBody>
+              <Text>
+                This will permanently delete all session recordings, assessments, memory items, practice plans,
+                and profile data for <strong>{selectedChild?.name}</strong>. This action cannot be undone.
+              </Text>
+            </DialogBody>
+            <DialogActions>
+              <Button appearance="secondary" onClick={() => setShowDeleteConfirm(false)}>
+                Cancel
+              </Button>
+              <Button
+                appearance="primary"
+                disabled={dataDeleting}
+                onClick={() => {
+                  if (!selectedChild) return
+                  setDataDeleting(true)
+                  setDataDeleteError(null)
+                  api.deleteChildData(selectedChild.id)
+                    .then(() => {
+                      setShowDeleteConfirm(false)
+                      window.location.reload()
+                    })
+                    .catch(() => setDataDeleteError('Deletion failed. Please try again.'))
+                    .finally(() => setDataDeleting(false))
+                }}
+                style={{ backgroundColor: 'var(--color-error)' }}
+              >
+                {dataDeleting ? 'Deleting…' : 'Delete permanently'}
+              </Button>
+            </DialogActions>
+          </DialogSurface>
+        </Dialog>
       </div>
     </div>
   )

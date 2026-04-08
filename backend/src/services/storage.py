@@ -2749,3 +2749,181 @@ class StorageService:
             self._build_recommendation_candidate_payload(row, child_id=resolved_child_id)
             for row in rows
         ]
+
+    # ------------------------------------------------------------------
+    # Parental consent
+    # ------------------------------------------------------------------
+
+    def save_parental_consent(
+        self,
+        *,
+        child_id: str,
+        guardian_name: str,
+        guardian_email: str,
+        consent_type: str = "full",
+        privacy_accepted: bool = True,
+        terms_accepted: bool = True,
+        ai_notice_accepted: bool = True,
+        recorded_by_user_id: str,
+    ) -> Dict[str, Any]:
+        consent_id = str(uuid4())
+        now = self._utc_now()
+        with self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO parental_consents
+                    (id, child_id, guardian_name, guardian_email, consent_type,
+                     privacy_accepted, terms_accepted, ai_notice_accepted,
+                     recorded_by_user_id, consented_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    consent_id, child_id, guardian_name, guardian_email, consent_type,
+                    privacy_accepted, terms_accepted, ai_notice_accepted,
+                    recorded_by_user_id, now,
+                ),
+            )
+        return {
+            "id": consent_id,
+            "child_id": child_id,
+            "guardian_name": guardian_name,
+            "guardian_email": guardian_email,
+            "consent_type": consent_type,
+            "privacy_accepted": privacy_accepted,
+            "terms_accepted": terms_accepted,
+            "ai_notice_accepted": ai_notice_accepted,
+            "consented_at": now,
+            "withdrawn_at": None,
+        }
+
+    def get_parental_consent(self, child_id: str) -> Optional[Dict[str, Any]]:
+        with self._connect() as conn:
+            row = conn.execute(
+                """
+                SELECT id, child_id, guardian_name, guardian_email, consent_type,
+                       privacy_accepted, terms_accepted, ai_notice_accepted,
+                       recorded_by_user_id, consented_at, withdrawn_at
+                FROM parental_consents
+                WHERE child_id = ? AND withdrawn_at IS NULL
+                ORDER BY consented_at DESC LIMIT 1
+                """,
+                (child_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        return {
+            "id": row[0],
+            "child_id": row[1],
+            "guardian_name": row[2],
+            "guardian_email": row[3],
+            "consent_type": row[4],
+            "privacy_accepted": bool(row[5]),
+            "terms_accepted": bool(row[6]),
+            "ai_notice_accepted": bool(row[7]),
+            "recorded_by_user_id": row[8],
+            "consented_at": row[9],
+            "withdrawn_at": row[10],
+        }
+
+    def withdraw_parental_consent(self, child_id: str) -> bool:
+        now = self._utc_now()
+        with self._connect() as conn:
+            cursor = conn.execute(
+                """
+                UPDATE parental_consents SET withdrawn_at = ?
+                WHERE child_id = ? AND withdrawn_at IS NULL
+                """,
+                (now, child_id),
+            )
+        return cursor.rowcount > 0
+
+    # ------------------------------------------------------------------
+    # Data export
+    # ------------------------------------------------------------------
+
+    def export_child_data(self, child_id: str) -> Dict[str, Any]:
+        with self._connect() as conn:
+            child_row = conn.execute(
+                "SELECT id, name, created_at FROM children WHERE id = ?",
+                (child_id,),
+            ).fetchone()
+            if child_row is None:
+                return {}
+
+            sessions = [
+                {
+                    "id": r[0], "scenario_id": r[1], "started_at": r[2],
+                    "finished_at": r[3], "transcript": r[4],
+                    "summary_json": json.loads(r[5]) if r[5] else None,
+                    "created_at": r[6],
+                }
+                for r in conn.execute(
+                    "SELECT id, scenario_id, started_at, finished_at, transcript, summary_json, created_at FROM sessions WHERE child_id = ? ORDER BY created_at",
+                    (child_id,),
+                ).fetchall()
+            ]
+
+            memory_items = [
+                {
+                    "id": r[0], "category": r[1],
+                    "content": json.loads(r[2]) if r[2] else None,
+                    "created_at": r[3],
+                }
+                for r in conn.execute(
+                    "SELECT id, category, content_json, created_at FROM child_memory_items WHERE child_id = ? ORDER BY created_at",
+                    (child_id,),
+                ).fetchall()
+            ]
+
+            plans = [
+                {
+                    "id": r[0], "plan_data": json.loads(r[1]) if r[1] else None,
+                    "status": r[2], "created_at": r[3],
+                }
+                for r in conn.execute(
+                    "SELECT id, plan_data_json, status, created_at FROM practice_plans WHERE child_id = ? ORDER BY created_at",
+                    (child_id,),
+                ).fetchall()
+            ]
+
+            consent_row = conn.execute(
+                "SELECT guardian_name, guardian_email, consented_at, withdrawn_at FROM parental_consents WHERE child_id = ? ORDER BY consented_at DESC LIMIT 1",
+                (child_id,),
+            ).fetchone()
+
+        return {
+            "child": {"id": child_row[0], "name": child_row[1], "created_at": child_row[2]},
+            "sessions": sessions,
+            "memory_items": memory_items,
+            "practice_plans": plans,
+            "parental_consent": {
+                "guardian_name": consent_row[0],
+                "guardian_email": consent_row[1],
+                "consented_at": consent_row[2],
+                "withdrawn_at": consent_row[3],
+            } if consent_row else None,
+            "exported_at": self._utc_now(),
+        }
+
+    # ------------------------------------------------------------------
+    # Data deletion
+    # ------------------------------------------------------------------
+
+    def delete_child_data(self, child_id: str) -> bool:
+        with self._connect() as conn:
+            child = conn.execute(
+                "SELECT id FROM children WHERE id = ?", (child_id,)
+            ).fetchone()
+            if child is None:
+                return False
+            conn.execute("DELETE FROM parental_consents WHERE child_id = ?", (child_id,))
+            conn.execute("DELETE FROM child_memory_items WHERE child_id = ?", (child_id,))
+            conn.execute("DELETE FROM child_memory_proposals WHERE child_id = ?", (child_id,))
+            conn.execute("DELETE FROM recommendation_candidates WHERE recommendation_log_id IN (SELECT id FROM recommendation_logs WHERE child_id = ?)", (child_id,))
+            conn.execute("DELETE FROM recommendation_logs WHERE child_id = ?", (child_id,))
+            conn.execute("DELETE FROM practice_plans WHERE child_id = ?", (child_id,))
+            conn.execute("DELETE FROM sessions WHERE child_id = ?", (child_id,))
+            conn.execute("DELETE FROM child_memory_summaries WHERE child_id = ?", (child_id,))
+            conn.execute("DELETE FROM user_children WHERE child_id = ?", (child_id,))
+            conn.execute("DELETE FROM children WHERE id = ?", (child_id,))
+        return True

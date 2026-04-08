@@ -143,8 +143,13 @@ def test_non_therapist_cannot_access_child_memory_endpoints(client: FlaskClient)
     user_headers = _auth_headers("user-2", "user@example.com", name="Second User")
     client.get("/api/auth/session", headers=user_headers)
 
-    response = client.get("/api/children/child-ayo/memory/summary", headers=user_headers)
+    responses = [
+        client.get("/api/children/child-ayo/memory/summary", headers=user_headers),
+        client.get("/api/children/child-ayo/memory/items", headers=user_headers),
+        client.get("/api/children/child-ayo/memory/proposals", headers=user_headers),
+    ]
 
     assert therapist_headers["X-MS-CLIENT-PRINCIPAL-ID"] == "therapist-1"
-    assert response.status_code == 403
-    assert response.get_json() == {"error": "Therapist role required"}
+    for response in responses:
+        assert response.status_code == 403
+        assert response.get_json() == {"error": "Therapist role required"}

@@ -10,6 +10,7 @@ import type {
   ChildMemoryItem,
   ChildMemoryProposal,
   ChildInvitation,
+  ParentalConsent,
   RecommendationDetail,
   RecommendationLog,
   RecommendationRequest,
@@ -583,5 +584,57 @@ export const api = {
     if (!res.ok) throw new Error('TTS request failed')
     const data = await res.json()
     return data.audio as string
+  },
+
+  async getParentalConsent(childId: string): Promise<{ consent: ParentalConsent | null }> {
+    const res = await fetchWithAuth(`/api/children/${childId}/consent`)
+    if (!res.ok) throw new Error('Failed to load parental consent')
+    return res.json()
+  },
+
+  async saveParentalConsent(childId: string, payload: {
+    guardian_name: string
+    guardian_email: string
+    privacy_accepted: boolean
+    terms_accepted: boolean
+    ai_notice_accepted: boolean
+  }): Promise<ParentalConsent> {
+    const res = await fetchWithAuth(`/api/children/${childId}/consent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to save parental consent')
+    }
+    return res.json()
+  },
+
+  async withdrawParentalConsent(childId: string): Promise<{ withdrawn: boolean }> {
+    const res = await fetchWithAuth(`/api/children/${childId}/consent`, {
+      method: 'DELETE',
+    })
+    if (!res.ok) throw new Error('Failed to withdraw consent')
+    return res.json()
+  },
+
+  async exportChildData(childId: string): Promise<Record<string, unknown>> {
+    const res = await fetchWithAuth(`/api/children/${childId}/data-export`)
+    if (!res.ok) throw new Error('Failed to export child data')
+    return res.json()
+  },
+
+  async deleteChildData(childId: string): Promise<{ deleted: boolean }> {
+    const res = await fetchWithAuth(`/api/children/${childId}/data`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ confirm: true }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to delete child data')
+    }
+    return res.json()
   },
 }

@@ -122,6 +122,7 @@ class Config:
                 "COPILOT_GITHUB_TOKEN",
                 os.getenv("GITHUB_TOKEN", os.getenv("GH_TOKEN", "")),
             ),
+            "data_retention_months": int(os.getenv("DATA_RETENTION_MONTHS", "6")),
             "copilot_planner_model": os.getenv("COPILOT_PLANNER_MODEL", DEFAULT_COPILOT_PLANNER_MODEL),
             "copilot_planner_reasoning_effort": os.getenv("COPILOT_PLANNER_REASONING_EFFORT", ""),
             "copilot_azure_api_version": os.getenv(

@@ -41,6 +41,10 @@ import { SessionLaunchOverlay } from '../components/SessionLaunchOverlay'
 import { SettingsView } from '../components/SettingsView'
 import { SidebarNav } from '../components/SidebarNav'
 import { CustomScenarioEditor } from '../components/CustomScenarioEditor'
+import { PrivacyPolicy } from '../components/legal/PrivacyPolicy'
+import { TermsOfService } from '../components/legal/TermsOfService'
+import { AITransparencyNotice } from '../components/legal/AITransparencyNotice'
+import { ParentalConsentDialog } from '../components/legal/ParentalConsentDialog'
 import { useAudioPlayer } from '../hooks/useAudioPlayer'
 import { useRealtime } from '../hooks/useRealtime'
 import type { RecorderAudioChunk } from '../hooks/useRecorder'
@@ -784,6 +788,10 @@ export default function App() {
   const [showAssessment, setShowAssessment] = useState(false)
   const [showRoleNotice, setShowRoleNotice] = useState(false)
   const [showConsentScreen, setShowConsentScreen] = useState(false)
+  const [showParentalConsentDialog, setShowParentalConsentDialog] = useState(false)
+  const [parentalConsentSaving, setParentalConsentSaving] = useState(false)
+  const [parentalConsentError, setParentalConsentError] = useState<string | null>(null)
+  const [parentalConsentByChild, setParentalConsentByChild] = useState<Record<string, boolean>>({})
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [pendingSection, setPendingSection] = useState<SidebarSection | null>(null)
@@ -2080,6 +2088,10 @@ export default function App() {
       return
     }
 
+    if (currentRoute === APP_ROUTES.privacy || currentRoute === APP_ROUTES.terms || currentRoute === APP_ROUTES.aiTransparency) {
+      return
+    }
+
     if (currentRoute === null) {
       navigate(APP_ROUTES.root, { replace: true })
       return
@@ -2652,8 +2664,32 @@ export default function App() {
       return
     }
 
+    // Check parental consent for the selected child
+    if (selectedChildId && !parentalConsentByChild[selectedChildId]) {
+      try {
+        const { consent } = await api.getParentalConsent(selectedChildId)
+        if (consent) {
+          setParentalConsentByChild(prev => ({ ...prev, [selectedChildId]: true }))
+        } else {
+          setPendingAvatarValue(avatarValue)
+          setPendingScenarioId(activeScenarioId)
+          setParentalConsentError(null)
+          setShowParentalConsentDialog(true)
+          setLaunchInFlight(false)
+          return
+        }
+      } catch {
+        setPendingAvatarValue(avatarValue)
+        setPendingScenarioId(activeScenarioId)
+        setParentalConsentError(null)
+        setShowParentalConsentDialog(true)
+        setLaunchInFlight(false)
+        return
+      }
+    }
+
     await startPracticeSession(avatarValue, activeScenarioId)
-  }, [isTherapist, launchInFlight, pilotState, selectedScenario, setSelectedScenario, startPracticeSession])
+  }, [isTherapist, launchInFlight, parentalConsentByChild, pilotState, selectedChildId, selectedScenario, setSelectedScenario, startPracticeSession])
 
   const handleAnalyze = async () => {
     setShowLoading(true)
@@ -2866,6 +2902,33 @@ export default function App() {
     startPracticeSession,
   ])
 
+  const handleParentalConsentSubmit = useCallback(async (data: {
+    guardian_name: string
+    guardian_email: string
+    privacy_accepted: boolean
+    terms_accepted: boolean
+    ai_notice_accepted: boolean
+  }) => {
+    if (!selectedChildId) return
+    setParentalConsentSaving(true)
+    setParentalConsentError(null)
+
+    try {
+      await api.saveParentalConsent(selectedChildId, data)
+      setParentalConsentByChild(prev => ({ ...prev, [selectedChildId]: true }))
+      setShowParentalConsentDialog(false)
+
+      await startPracticeSession(pendingAvatarValue, pendingScenarioId ?? undefined)
+      setPendingScenarioId(null)
+    } catch (error) {
+      console.error('Failed to save parental consent:', error)
+      setParentalConsentError('Consent could not be saved right now.')
+      setLaunchInFlight(false)
+    } finally {
+      setParentalConsentSaving(false)
+    }
+  }, [selectedChildId, pendingAvatarValue, pendingScenarioId, startPracticeSession])
+
   const handleSubmitFeedback = useCallback(async () => {
     if (!assessment?.session_id || !isTherapist || !feedbackRating) {
       setFeedbackError('Choose a quick rating before saving therapist feedback.')
@@ -2911,6 +2974,18 @@ export default function App() {
 
   if (currentRoute === APP_ROUTES.logout) {
     return <LogoutScreen />
+  }
+
+  if (currentRoute === APP_ROUTES.privacy) {
+    return <PrivacyPolicy />
+  }
+
+  if (currentRoute === APP_ROUTES.terms) {
+    return <TermsOfService />
+  }
+
+  if (currentRoute === APP_ROUTES.aiTransparency) {
+    return <AITransparencyNotice />
   }
 
   if (currentRoute === APP_ROUTES.login || authStatus !== 'authenticated') {
@@ -3311,6 +3386,20 @@ export default function App() {
           void handleConsentAccept()
         }}
         onCancel={() => setShowConsentScreen(false)}
+      />
+
+      <ParentalConsentDialog
+        open={showParentalConsentDialog}
+        saving={parentalConsentSaving}
+        error={parentalConsentError}
+        childName={selectedChild?.name || 'this child'}
+        onSubmit={(data) => {
+          void handleParentalConsentSubmit(data)
+        }}
+        onCancel={() => {
+          setShowParentalConsentDialog(false)
+          setLaunchInFlight(false)
+        }}
       />
     </div>
   )
