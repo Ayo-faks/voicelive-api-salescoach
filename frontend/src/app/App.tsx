@@ -77,6 +77,7 @@ import type {
   TherapistFeedbackRating,
 } from '../types'
 import { AVATAR_OPTIONS, DEFAULT_AVATAR } from '../types'
+import { APP_TITLE } from './branding'
 import { APP_ROUTE_PARAMS, APP_ROUTES, getDefaultAuthenticatedRoute, resolveAppRoute, type AppRoute } from './routes'
 
 type ConversationTurn = {
@@ -918,7 +919,7 @@ export default function App() {
   const currentSearch = location.search.startsWith('?') ? location.search.slice(1) : location.search
   const activeAvatarName = getAvatarName(selectedAvatar)
   const activeAvatarPersona = getAvatarPersona(selectedAvatar)
-  const appTitle = 'Wulo'
+  const appTitle = APP_TITLE
   const launchOverlayVisible =
     isSessionRoute &&
     showLaunchTransition &&

@@ -1,5 +1,6 @@
 import { Button, Spinner, Text, makeStyles } from '@fluentui/react-components'
 import { useEffect, useState } from 'react'
+import { APP_RELEASE_LABEL, APP_TITLE } from '../app/branding'
 
 const useStyles = makeStyles({
   shell: {
@@ -29,6 +30,11 @@ const useStyles = makeStyles({
     justifyItems: 'center',
     gap: '8px',
   },
+  brandLockup: {
+    display: 'flex',
+    alignItems: 'baseline',
+    gap: '6px',
+  },
   brandMark: {
     width: '30px',
     height: '30px',
@@ -40,6 +46,14 @@ const useStyles = makeStyles({
     fontWeight: '800',
     color: 'var(--color-text-primary)',
     letterSpacing: '-0.03em',
+  },
+  brandMeta: {
+    color: 'var(--color-text-tertiary)',
+    fontSize: '0.64rem',
+    fontWeight: '700',
+    letterSpacing: '0.12em',
+    textTransform: 'uppercase',
+    whiteSpace: 'nowrap',
   },
   eyebrow: {
     color: 'var(--color-primary-dark)',
@@ -110,7 +124,10 @@ export function LogoutScreen() {
       <section className={styles.card}>
         <div className={styles.brandRow}>
           <img src="/wulo-logo.png" alt="Wulo logo" className={styles.brandMark} />
-          <Text className={styles.brandName}>Wulo</Text>
+          <div className={styles.brandLockup}>
+            <Text className={styles.brandName}>{APP_TITLE}</Text>
+            <Text className={styles.brandMeta}>{APP_RELEASE_LABEL}</Text>
+          </div>
         </div>
 
         {phase === 'signing-out' ? (

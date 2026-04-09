@@ -20,6 +20,7 @@ import {
   Cog6ToothIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
+import { APP_RELEASE_LABEL } from '../app/branding'
 import type { ChildProfile } from '../types'
 
 const useStyles = makeStyles({
@@ -114,8 +115,10 @@ const useStyles = makeStyles({
     flexShrink: 0,
   },
   brandText: {
-    display: 'grid',
-    gap: '2px',
+    display: 'flex',
+    alignItems: 'baseline',
+    gap: '6px',
+    flexWrap: 'wrap',
     minWidth: 0,
   },
   brandTitle: {
@@ -123,6 +126,14 @@ const useStyles = makeStyles({
     color: 'var(--color-text-primary)',
     fontWeight: '800',
     letterSpacing: '-0.03em',
+  },
+  brandMeta: {
+    color: 'var(--color-text-tertiary)',
+    fontSize: '0.64rem',
+    fontWeight: '700',
+    letterSpacing: '0.12em',
+    textTransform: 'uppercase',
+    whiteSpace: 'nowrap',
   },
   collapsedHidden: {
     '@media (min-width: 721px)': {
@@ -265,6 +276,7 @@ export function SidebarNav({
               <img src="/wulo-logo.png" alt="Wulo logo" className={styles.brandLogo} />
               <div className={mergeClasses(styles.brandText, !isExpanded && styles.collapsedHidden)}>
                 <Text className={styles.brandTitle}>{appTitle}</Text>
+                <Text className={styles.brandMeta}>{APP_RELEASE_LABEL}</Text>
               </div>
             </button>
 
