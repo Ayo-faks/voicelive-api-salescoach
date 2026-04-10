@@ -727,6 +727,66 @@ const useStyles = makeStyles({
     padding: 'var(--space-xl)',
     width: '100%',
   },
+  wrapUpOverlay: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 9999,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 'var(--space-lg)',
+    background: 'linear-gradient(135deg, var(--colorNeutralBackground1) 0%, var(--colorBrandBackground2) 100%)',
+    animationName: {
+      from: { opacity: 0 },
+      to: { opacity: 1 },
+    },
+    animationDuration: '0.6s',
+    animationTimingFunction: 'ease-out',
+    animationFillMode: 'forwards',
+  },
+  wrapUpIcon: {
+    fontSize: '64px',
+    animationName: {
+      '0%': { transform: 'scale(0.5)', opacity: 0 },
+      '60%': { transform: 'scale(1.15)' },
+      '100%': { transform: 'scale(1)', opacity: 1 },
+    },
+    animationDuration: '0.7s',
+    animationDelay: '0.2s',
+    animationTimingFunction: 'ease-out',
+    animationFillMode: 'both',
+  },
+  wrapUpTitle: {
+    animationName: {
+      from: { opacity: 0, transform: 'translateY(12px)' },
+      to: { opacity: 1, transform: 'translateY(0)' },
+    },
+    animationDuration: '0.5s',
+    animationDelay: '0.5s',
+    animationTimingFunction: 'ease-out',
+    animationFillMode: 'both',
+  },
+  wrapUpSubtitle: {
+    animationName: {
+      from: { opacity: 0, transform: 'translateY(8px)' },
+      to: { opacity: 1, transform: 'translateY(0)' },
+    },
+    animationDuration: '0.5s',
+    animationDelay: '0.8s',
+    animationTimingFunction: 'ease-out',
+    animationFillMode: 'both',
+  },
+  wrapUpSpinner: {
+    animationName: {
+      from: { opacity: 0 },
+      to: { opacity: 1 },
+    },
+    animationDuration: '0.4s',
+    animationDelay: '1.1s',
+    animationTimingFunction: 'ease-out',
+    animationFillMode: 'both',
+  },
   sessionLayout: {
     display: 'grid',
     gridTemplateColumns: 'minmax(0, 1.2fr) minmax(300px, 0.8fr)',
@@ -3484,19 +3544,36 @@ export default function App() {
         onCancel={handleClearSession}
       />
 
-      <Dialog open={showLoading}>
-        <DialogSurface>
-          <DialogBody>
-            <div className={styles.loadingContent}>
-              <Spinner size="large" />
-              <Text size={400} weight="semibold">
-                Preparing session summary...
-              </Text>
-              <Text size={300}>This may take up to 30 seconds.</Text>
-            </div>
-          </DialogBody>
-        </DialogSurface>
-      </Dialog>
+      {(wrapUpInProgress || showLoading) && isChildMode ? (
+        <div className={styles.wrapUpOverlay}>
+          <div className={styles.wrapUpIcon}>🌟</div>
+          <Text className={styles.wrapUpTitle} size={700} weight="bold">
+            {showLoading ? 'Preparing your summary...' : 'Great job today!'}
+          </Text>
+          <Text className={styles.wrapUpSubtitle} size={400}>
+            {showLoading
+              ? 'Hang tight — this takes a few seconds.'
+              : 'Wrapping up your practice session...'}
+          </Text>
+          <div className={styles.wrapUpSpinner}>
+            <Spinner size="large" />
+          </div>
+        </div>
+      ) : showLoading ? (
+        <Dialog open>
+          <DialogSurface>
+            <DialogBody>
+              <div className={styles.loadingContent}>
+                <Spinner size="large" />
+                <Text size={400} weight="semibold">
+                  Preparing session summary...
+                </Text>
+                <Text size={300}>This may take up to 30 seconds.</Text>
+              </div>
+            </DialogBody>
+          </DialogSurface>
+        </Dialog>
+      ) : null}
 
       <Dialog
         open={showRoleNotice}
