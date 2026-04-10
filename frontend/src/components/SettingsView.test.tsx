@@ -46,6 +46,8 @@ describe('SettingsView', () => {
     )
 
     expect(screen.getByText('Linked from your invitation email.')).toBeTruthy()
+    expect(screen.getByText('Child profiles are created by the therapist. Your linked-child invitations and access updates appear in this workspace after sign-in.')).toBeTruthy()
+    expect(screen.queryByText('Add child profile')).toBeNull()
   })
 
   it('shows therapist delivery status for sent invites', () => {

@@ -12,6 +12,7 @@ import {
   mergeClasses,
 } from '@fluentui/react-components'
 import {
+  ArrowRightStartOnRectangleIcon,
   ChevronDoubleLeftIcon,
   ChevronDoubleRightIcon,
   HomeIcon,
@@ -21,7 +22,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { APP_RELEASE_LABEL } from '../app/branding'
-import type { ChildProfile } from '../types'
+import type { ChildProfile, WorkspaceSummary } from '../types'
 
 const useStyles = makeStyles({
   root: {
@@ -206,6 +207,53 @@ const useStyles = makeStyles({
     fontFamily: 'var(--font-display)',
     fontWeight: '600',
   },
+  userCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-sm)',
+    padding: '10px 12px',
+    borderTop: '1px solid var(--color-border)',
+  },
+  userCardCollapsed: {
+    justifyContent: 'center',
+    padding: '10px',
+  },
+  userAvatar: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '32px',
+    height: '32px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, rgba(13, 138, 132, 0.9), rgba(73, 177, 171, 0.9))',
+    color: '#fff',
+    fontSize: '13px',
+    fontWeight: '700',
+    fontFamily: 'var(--font-display)',
+    flexShrink: 0,
+  },
+  userInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    flex: 1,
+    minWidth: 0,
+  },
+  userName: {
+    fontSize: '13px',
+    fontWeight: '600',
+    fontFamily: 'var(--font-display)',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  userEmail: {
+    fontSize: '11px',
+    color: 'var(--color-text-secondary)',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
 })
 
 type SidebarSection = 'home' | 'dashboard' | 'settings'
@@ -222,11 +270,17 @@ interface SidebarNavProps {
   childrenLoading: boolean
   selectedChildId: string | null
   selectedChild: ChildProfile | null
+  userWorkspaces: WorkspaceSummary[]
+  activeWorkspaceId: string | null
+  userName: string | null
+  userEmail: string | null
+  onSignOut: () => void
   onBrandClick: () => void
   onNavigateHome: () => void
   onNavigateDashboard: () => void
   onNavigateSettings: () => void
   onSelectChild: (childId: string) => void
+  onSwitchWorkspace: (workspaceId: string) => void
   onToggleCollapse: () => void
   onCloseMobile: () => void
 }
@@ -243,11 +297,17 @@ export function SidebarNav({
   childrenLoading,
   selectedChildId,
   selectedChild,
+  userWorkspaces,
+  activeWorkspaceId,
+  userName,
+  userEmail,
+  onSignOut,
   onBrandClick,
   onNavigateHome,
   onNavigateDashboard,
   onNavigateSettings,
   onSelectChild,
+  onSwitchWorkspace,
   onToggleCollapse,
   onCloseMobile,
 }: SidebarNavProps) {
@@ -329,6 +389,28 @@ export function SidebarNav({
             </Button>
           </nav>
 
+          {isExpanded && userWorkspaces.length > 1 ? (
+            <div className={styles.selectorCard}>
+              <Text className={styles.selectorLabel}>Workspace</Text>
+              <Dropdown
+                className={styles.dropdown}
+                selectedOptions={activeWorkspaceId ? [activeWorkspaceId] : []}
+                value={userWorkspaces.find(w => w.id === activeWorkspaceId)?.name || ''}
+                onOptionSelect={(_, data) => {
+                  if (data.optionValue) {
+                    onSwitchWorkspace(data.optionValue)
+                  }
+                }}
+              >
+                {userWorkspaces.map(workspace => (
+                  <Option key={workspace.id} value={workspace.id} text={workspace.name}>
+                    {workspace.name}
+                  </Option>
+                ))}
+              </Dropdown>
+            </div>
+          ) : null}
+
           {isTherapist && isExpanded && activeSection === 'dashboard' ? (
             <div className={styles.selectorCard}>
               <Text className={styles.selectorLabel}>Active child</Text>
@@ -353,6 +435,35 @@ export function SidebarNav({
             </div>
           ) : null}
         </div>
+
+        {isExpanded ? (
+          <div className={styles.userCard}>
+            <span className={styles.userAvatar}>
+              {(userName || '?').charAt(0).toUpperCase()}
+            </span>
+            <div className={styles.userInfo}>
+              <Text className={styles.userName}>{userName || 'User'}</Text>
+              {userEmail ? <Text className={styles.userEmail}>{userEmail}</Text> : null}
+            </div>
+            <Button
+              appearance="subtle"
+              icon={<ArrowRightStartOnRectangleIcon className="w-5 h-5" />}
+              onClick={onSignOut}
+              aria-label="Sign out"
+              title="Sign out"
+            />
+          </div>
+        ) : (
+          <div className={mergeClasses(styles.userCard, styles.userCardCollapsed)}>
+            <Button
+              appearance="subtle"
+              icon={<ArrowRightStartOnRectangleIcon className="w-5 h-5" />}
+              onClick={onSignOut}
+              aria-label="Sign out"
+              title="Sign out"
+            />
+          </div>
+        )}
 
         <div className={styles.footer}>
           {isTherapist && isExpanded ? (

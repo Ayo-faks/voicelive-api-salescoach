@@ -30,6 +30,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { AssessmentPanel } from '../components/AssessmentPanel'
 import { AuthGateScreen } from '../components/AuthGateScreen'
+import { InviteCodeScreen } from '../components/InviteCodeScreen'
 import { LogoutScreen } from '../components/LogoutScreen'
 import { ChildHome } from '../components/ChildHome'
 import { ConsentScreen } from '../components/ConsentScreen'
@@ -121,11 +122,13 @@ type PrewarmedAgent = {
   agentId: string
 }
 
-const CHILD_TURN_LIMIT = 4
-const CHILD_MAX_TURNS = 8
+const CHILD_TURN_LIMIT = 10
+const CHILD_MAX_TURNS = 16
 const THERAPIST_AUTO_SUMMARY_TURN_LIMIT = 4
 const AFFIRMATIVE_FINISH_PATTERN = /\b(yes|yeah|yep|ok|okay|sure|done|finished)\b/i
 const LAUNCH_HANDOFF_DELAY_MS = 240
+const SUMMARY_HANDOFF_DELAY_MS = 1100
+const SESSION_WRAP_UP_DELAY_MS = 3200
 
 function normalizeStoredUserMode(value: string | null): UserMode | null {
   if (value === 'child') {
@@ -780,6 +783,10 @@ export default function App() {
   const [authStatus, setAuthStatus] = useState<AuthStatus>('loading')
   const [authError, setAuthError] = useState<string | null>(null)
   const [authUser, setAuthUser] = useState<AuthSession | null>(null)
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null
+    return window.localStorage.getItem('wulo.activeWorkspaceId') || null
+  })
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null)
   const [onboardingComplete, setOnboardingComplete] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false
@@ -853,6 +860,7 @@ export default function App() {
   const [finishConfirmationPending, setFinishConfirmationPending] = useState(false)
   const [finishPromptQueued, setFinishPromptQueued] = useState(false)
   const [finishRequested, setFinishRequested] = useState(false)
+  const [wrapUpInProgress, setWrapUpInProgress] = useState(false)
   const [utteranceFeedback, setUtteranceFeedback] =
     useState<PronunciationAssessment | null>(null)
   const [scoringUtterance, setScoringUtterance] = useState(false)
@@ -871,6 +879,9 @@ export default function App() {
   const pendingIntroRef = useRef<string | null>(null)
   const idleNudgePendingRef = useRef(false)
   const skipNextWordFeedbackRef = useRef(false)
+  const stopSessionRecordingRef = useRef<() => void>(() => {})
+  const summaryHandoffTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null)
+  const wrapUpFinishTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null)
   const sendRef = useRef<(msg: unknown) => void>(() => {})
   const previousPathRef = useRef(location.pathname)
   const navigationBypassRef = useRef(false)
@@ -987,8 +998,15 @@ export default function App() {
     : null
   const effectiveDashboardSessionId = querySessionId || queryPlan?.source_session_id
 
+  // Auto-select the first scenario when scenarios load and none is selected
+  useEffect(() => {
+    if (!selectedScenario && serverScenarios.length > 0) {
+      setSelectedScenario(serverScenarios[0].id)
+    }
+  }, [selectedScenario, serverScenarios, setSelectedScenario])
+
   const refreshChildren = useCallback(async () => {
-    const childProfiles = await api.getChildren()
+    const childProfiles = await api.getChildren(activeWorkspaceId)
     setChildren(childProfiles)
     setSelectedChildId(current => {
       if (current && childProfiles.some(child => child.id === current)) {
@@ -997,7 +1015,16 @@ export default function App() {
       return childProfiles[0]?.id || null
     })
     return childProfiles
-  }, [])
+  }, [activeWorkspaceId])
+
+  // Re-fetch children when the active workspace changes
+  useEffect(() => {
+    if (authStatus === 'authenticated' && activeWorkspaceId) {
+      refreshChildren().catch(error => {
+        console.error('Failed to refresh children after workspace switch:', error)
+      })
+    }
+  }, [activeWorkspaceId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const refreshInvitations = useCallback(async () => {
     try {
@@ -1019,6 +1046,24 @@ export default function App() {
     try {
       const session = await api.getAuthSession()
       setAuthUser(session)
+
+      // Reconcile activeWorkspaceId against server-known workspaces
+      const workspaces = session.user_workspaces || []
+      const currentActive = activeWorkspaceId || window.localStorage.getItem('wulo.activeWorkspaceId')
+      if (currentActive && workspaces.length > 0 && !workspaces.some(w => w.id === currentActive)) {
+        // Stale or revoked — reset to server default
+        const fallback = session.current_workspace_id || workspaces[0]?.id || null
+        setActiveWorkspaceId(fallback)
+        if (fallback) {
+          window.localStorage.setItem('wulo.activeWorkspaceId', fallback)
+        } else {
+          window.localStorage.removeItem('wulo.activeWorkspaceId')
+        }
+      } else if (session.current_workspace_id && !currentActive) {
+        setActiveWorkspaceId(session.current_workspace_id)
+        window.localStorage.setItem('wulo.activeWorkspaceId', session.current_workspace_id)
+      }
+
       setAuthStatus('authenticated')
       setAuthError(null)
       return session
@@ -1033,7 +1078,7 @@ export default function App() {
       }
       throw error
     }
-  }, [])
+  }, [activeWorkspaceId])
 
   // Pre-compose intro instructions so they're ready the instant the session is ready
   useEffect(() => {
@@ -1417,7 +1462,10 @@ export default function App() {
       setChildProfileSaving(true)
 
       try {
-        const child = await api.createChild(payload)
+        const child = await api.createChild({
+          ...payload,
+          ...(activeWorkspaceId ? { workspace_id: activeWorkspaceId } : {}),
+        })
         await refreshChildren()
         setSelectedChildId(child.id)
         return child
@@ -1425,7 +1473,16 @@ export default function App() {
         setChildProfileSaving(false)
       }
     },
-    [refreshChildren]
+    [refreshChildren, activeWorkspaceId]
+  )
+
+  const handleSwitchWorkspace = useCallback(
+    (workspaceId: string) => {
+      setActiveWorkspaceId(workspaceId)
+      window.localStorage.setItem('wulo.activeWorkspaceId', workspaceId)
+      setSelectedChildId(null)
+    },
+    []
   )
 
   const handleInviteToChild = useCallback(
@@ -1461,7 +1518,7 @@ export default function App() {
 
       try {
         await api.acceptChildInvitation(invitationId)
-        await Promise.all([refreshChildren(), refreshInvitations()])
+        await Promise.all([refreshChildren(), refreshInvitations(), refreshAuthSession()])
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Invitation could not be accepted right now.'
         setInvitationError(message)
@@ -1470,7 +1527,7 @@ export default function App() {
         setInvitationActionPendingId(null)
       }
     },
-    [refreshChildren, refreshInvitations]
+    [refreshChildren, refreshInvitations, refreshAuthSession]
   )
 
   const handleDeclineInvitation = useCallback(
@@ -1768,6 +1825,52 @@ export default function App() {
     void handleOpenSession(effectiveDashboardSessionId)
   }, [dashboardSessionIds, effectiveDashboardSessionId, handleOpenSession, isDashboardRoute, loadingSessionDetail, selectedSession?.id])
 
+  const clearWrapUpTimers = useCallback(() => {
+    if (summaryHandoffTimerRef.current) {
+      window.clearTimeout(summaryHandoffTimerRef.current)
+      summaryHandoffTimerRef.current = null
+    }
+
+    if (wrapUpFinishTimerRef.current) {
+      window.clearTimeout(wrapUpFinishTimerRef.current)
+      wrapUpFinishTimerRef.current = null
+    }
+  }, [])
+
+  const beginSessionWrapUp = useCallback((instructions?: string) => {
+    if (wrapUpInProgress) {
+      return
+    }
+
+    clearWrapUpTimers()
+    setFinishConfirmationPending(false)
+    setFinishPromptQueued(false)
+    setFinishRequested(false)
+    setSessionFinished(true)
+    setWrapUpInProgress(true)
+
+    stopSessionRecordingRef.current()
+    stopAudio()
+    sendRef.current({ type: 'response.cancel' })
+    sendRef.current({
+      type: 'response.create',
+      response: {
+        modalities: ['audio', 'text'],
+        instructions:
+          instructions ||
+          'In one short, warm sentence, praise the child, say today\'s practice is finished, and tell them their session summary is coming up next.',
+      },
+    })
+
+    summaryHandoffTimerRef.current = window.setTimeout(() => {
+      setShowLoading(true)
+    }, SUMMARY_HANDOFF_DELAY_MS)
+
+    wrapUpFinishTimerRef.current = window.setTimeout(() => {
+      setFinishRequested(true)
+    }, SESSION_WRAP_UP_DELAY_MS)
+  }, [clearWrapUpTimers, stopAudio, wrapUpInProgress])
+
   const handleWebRTCMessage = useCallback((msg: RealtimeMessage) => {
     if (msg.type === 'proxy.connected' || msg.type === 'session.updated') {
       setSessionReady(true)
@@ -1783,16 +1886,8 @@ export default function App() {
             output: '{"status": "closing"}',
           },
         })
-        sendRef.current({
-          type: 'response.create',
-          response: {
-            modalities: ['audio', 'text'],
-            instructions:
-              'Say a very short, warm goodbye to the child. One sentence only, like "Great job today, bye bye!"',
-          },
-        })
       }
-      setFinishRequested(true)
+      beginSessionWrapUp()
       return
     }
 
@@ -1822,7 +1917,7 @@ export default function App() {
     ) {
       handleAnswer(msg)
     }
-  }, [])
+  }, [beginSessionWrapUp])
 
   const handleRealtimeTranscript = useCallback(
     (role: 'user' | 'assistant', text: string) => {
@@ -1872,14 +1967,14 @@ export default function App() {
       if (finishConfirmationPending) {
         if (AFFIRMATIVE_FINISH_PATTERN.test(text)) {
           setFinishConfirmationPending(false)
-          setFinishRequested(true)
+          beginSessionWrapUp()
           return
         }
 
         setFinishConfirmationPending(false)
 
         if (finishPromptTurnLimit >= CHILD_MAX_TURNS) {
-          setFinishRequested(true)
+          beginSessionWrapUp()
           return
         }
 
@@ -1894,6 +1989,7 @@ export default function App() {
     },
     [
       activeReferenceText,
+      beginSessionWrapUp,
       childTurnCount,
       finishConfirmationPending,
       finishPromptTurnLimit,
@@ -1955,6 +2051,39 @@ export default function App() {
   useEffect(() => {
     sendRef.current = send
   }, [send])
+
+  useEffect(() => {
+    return () => {
+      clearWrapUpTimers()
+    }
+  }, [clearWrapUpTimers])
+
+  const sendExerciseMessage = useCallback((text: string) => {
+    const trimmedText = text.trim()
+    if (!connected || !trimmedText) {
+      return
+    }
+
+    sendRef.current({
+      type: 'conversation.item.create',
+      item: {
+        type: 'message',
+        role: 'user',
+        content: [
+          {
+            type: 'input_text',
+            text: trimmedText,
+          },
+        ],
+      },
+    })
+    sendRef.current({
+      type: 'response.create',
+      response: {
+        modalities: ['audio', 'text'],
+      },
+    })
+  }, [connected])
 
   useEffect(() => {
     const previousRoute = resolveAppRoute(previousPathRef.current)
@@ -2104,12 +2233,29 @@ export default function App() {
 
     if (authStatus !== 'authenticated') {
       if (currentRoute !== APP_ROUTES.login) {
-        navigate(APP_ROUTES.login, { replace: true })
+        navigate(
+          {
+            pathname: APP_ROUTES.login,
+            search: location.search,
+          },
+          { replace: true }
+        )
       }
       return
     }
 
     if (currentRoute === APP_ROUTES.root || currentRoute === APP_ROUTES.login) {
+      if (queryInvitationId) {
+        navigate(
+          {
+            pathname: APP_ROUTES.settings,
+            search: `?${APP_ROUTE_PARAMS.invitationId}=${encodeURIComponent(queryInvitationId)}`,
+          },
+          { replace: true }
+        )
+        return
+      }
+
       navigate(
         getDefaultAuthenticatedRoute({
           onboardingComplete,
@@ -2160,9 +2306,11 @@ export default function App() {
     currentAgent,
     currentRoute,
     isTherapist,
+    location.search,
     messages.length,
     navigate,
     onboardingComplete,
+    queryInvitationId,
     requiresOnboarding,
     showLaunchTransition,
     userMode,
@@ -2278,6 +2426,14 @@ export default function App() {
     }
   }, [activeReferenceText, recording, send, toggleRecording])
 
+  useEffect(() => {
+    stopSessionRecordingRef.current = () => {
+      if (recording) {
+        void handleToggleRecording()
+      }
+    }
+  }, [handleToggleRecording, recording])
+
   const analyzeCurrentSession = useCallback(async () => {
     if (!selectedScenario) return null
 
@@ -2354,9 +2510,8 @@ export default function App() {
   }, [currentAgent, disconnect, handleToggleRecording, recording, releaseAgent])
 
   const handleConfirmedFinish = useCallback(async () => {
+    clearWrapUpTimers()
     await handleFinishPractice()
-
-    setShowLoading(true)
 
     try {
       const result = await analyzeCurrentSession()
@@ -2367,10 +2522,11 @@ export default function App() {
     } catch (error) {
       console.error('Analysis failed:', error)
     } finally {
+      setWrapUpInProgress(false)
       setShowLoading(false)
       setFinishRequested(false)
     }
-  }, [analyzeCurrentSession, applyAssessmentResult, handleFinishPractice])
+  }, [analyzeCurrentSession, applyAssessmentResult, clearWrapUpTimers, handleFinishPractice])
 
   useEffect(() => {
     if (!finishPromptQueued || !isChildMode || sessionFinished || !connected) {
@@ -2378,16 +2534,18 @@ export default function App() {
     }
 
     skipNextWordFeedbackRef.current = true
+    stopAudio()
+    send({ type: 'response.cancel' })
     send({
       type: 'response.create',
       response: {
         modalities: ['audio', 'text'],
         instructions:
-          'In one short sentence, ask if the child wants to finish practice and see their session summary now, or keep going for a few more tries. Ask for a yes or no answer.',
+          'In one short sentence, ask if the child wants to finish for today and see their session summary now, or keep going for a few more tries. Ask for a yes or no answer and wait for them to reply.',
       },
     })
     setFinishPromptQueued(false)
-  }, [connected, finishPromptQueued, isChildMode, send, sessionFinished])
+  }, [connected, finishPromptQueued, isChildMode, send, sessionFinished, stopAudio])
 
   useEffect(() => {
     if (!finishRequested) {
@@ -2431,7 +2589,7 @@ export default function App() {
     recording,
     onNudge: sendIdleNudge,
     onAutoEnd: () => {
-      setFinishRequested(true)
+      beginSessionWrapUp()
     },
   })
 
@@ -2554,6 +2712,7 @@ export default function App() {
   }, [releaseAgent])
 
   const handleClearSession = useCallback(() => {
+    clearWrapUpTimers()
     clearMessages()
     clearConversationAudioRecording()
     setScoringUtterance(false)
@@ -2567,12 +2726,14 @@ export default function App() {
     setFinishConfirmationPending(false)
     setFinishPromptQueued(false)
     setFinishRequested(false)
+    setWrapUpInProgress(false)
+    setShowLoading(false)
     setAvatarVideoReady(false)
     setAssistantSpeechStarted(false)
     setShowLaunchTransition(false)
     setLaunchHandoffReady(false)
     setLaunchInFlight(false)
-  }, [clearConversationAudioRecording, clearMessages])
+  }, [clearConversationAudioRecording, clearMessages, clearWrapUpTimers])
 
   const startPracticeSession = useCallback(async (avatarValue: string, scenarioOverride?: string) => {
     const activeScenarioId = scenarioOverride ?? selectedScenario
@@ -2611,6 +2772,7 @@ export default function App() {
     setFinishConfirmationPending(false)
     setFinishPromptQueued(false)
     setFinishRequested(false)
+    setWrapUpInProgress(false)
     setAvatarVideoReady(false)
     setAssistantSpeechStarted(false)
     setShowLaunchTransition(true)
@@ -2723,12 +2885,15 @@ export default function App() {
   }, [navigate])
 
   const handleReturnToEntry = useCallback(() => {
+    clearWrapUpTimers()
     setSessionFinished(false)
     setChildTurnCount(0)
     setFinishPromptTurnLimit(CHILD_TURN_LIMIT)
     setFinishConfirmationPending(false)
     setFinishPromptQueued(false)
     setFinishRequested(false)
+    setWrapUpInProgress(false)
+    setShowLoading(false)
     setLaunchHandoffReady(false)
     setLaunchInFlight(false)
     setUserMode('workspace')
@@ -2737,9 +2902,10 @@ export default function App() {
       window.localStorage.setItem('wulo.user.mode', 'workspace')
     }
     navigate(APP_ROUTES.home)
-  }, [navigate])
+  }, [clearWrapUpTimers, navigate])
 
   const handleGoHome = useCallback(() => {
+    clearWrapUpTimers()
     disconnect()
     clearMessages()
     clearConversationAudioRecording()
@@ -2756,6 +2922,7 @@ export default function App() {
     setFinishConfirmationPending(false)
     setFinishPromptQueued(false)
     setFinishRequested(false)
+    setWrapUpInProgress(false)
     setAssessment(null)
     setShowAssessment(false)
     setShowLoading(false)
@@ -2767,7 +2934,7 @@ export default function App() {
     setLaunchInFlight(false)
     setShowRoleNotice(false)
     setMobileSidebarOpen(false)
-  }, [clearConversationAudioRecording, clearMessages, disconnect])
+  }, [clearConversationAudioRecording, clearMessages, clearWrapUpTimers, disconnect])
 
   const handleChooseMode = useCallback((mode: UserMode) => {
     if (mode === 'child' && isTherapist && !pilotState?.consent_timestamp) {
@@ -2966,11 +3133,11 @@ export default function App() {
   ])
 
   const handleMicrosoftSignIn = useCallback(() => {
-    window.location.href = `/.auth/login/aad?post_login_redirect_uri=${encodeURIComponent(`${window.location.origin}/`)}`
+    window.location.href = `/.auth/login/aad?post_login_redirect_uri=${encodeURIComponent(window.location.href)}`
   }, [])
 
   const handleGoogleSignIn = useCallback(() => {
-    window.location.href = `/.auth/login/google?post_login_redirect_uri=${encodeURIComponent(`${window.location.origin}/`)}`
+    window.location.href = `/.auth/login/google?post_login_redirect_uri=${encodeURIComponent(window.location.href)}`
   }, [])
 
   if (currentRoute === APP_ROUTES.logout) {
@@ -3000,6 +3167,19 @@ export default function App() {
         }}
         onMicrosoftSignIn={handleMicrosoftSignIn}
         onGoogleSignIn={handleGoogleSignIn}
+      />
+    )
+  }
+
+  if (authUser?.role === 'pending_therapist') {
+    return (
+      <InviteCodeScreen
+        onSuccess={session => {
+          setAuthUser(session)
+        }}
+        onSignOut={() => {
+          navigate(APP_ROUTES.logout)
+        }}
       />
     )
   }
@@ -3089,6 +3269,7 @@ export default function App() {
       onDeclineInvitation={handleDeclineInvitation}
       onRevokeInvitation={handleRevokeInvitation}
       onResendInvitation={handleResendInvitation}
+      userWorkspaces={authUser?.user_workspaces || []}
     />
   ) : currentRoute === APP_ROUTES.home ? (
     loading ? (
@@ -3126,7 +3307,6 @@ export default function App() {
           childrenLoading={childrenLoading}
           selectedChildId={selectedChildId}
           selectedChild={selectedChild}
-          childProfileSaving={childProfileSaving}
           selectedAvatar={selectedAvatar}
           selectedScenario={selectedScenario}
           childMemorySummary={childMemorySummary}
@@ -3134,7 +3314,6 @@ export default function App() {
           recommendationHistory={recommendationHistory}
           launchInFlight={launchInFlight}
           scenarios={serverScenarios}
-          onCreateChild={handleCreateChildProfile}
           onSelectChild={handleSelectChild}
           onSelectAvatar={setSelectedAvatar}
           onSelectScenario={(scenarioId: string) => {
@@ -3174,7 +3353,7 @@ export default function App() {
       sessionFinished={sessionFinished}
       canAnalyze={messages.length > 0}
       onToggleRecording={handleToggleRecording}
-      onClear={isChildMode ? () => { void handleConfirmedFinish() } : handleClearSession}
+      onClear={isChildMode ? () => { beginSessionWrapUp() } : handleClearSession}
       onAnalyze={handleAnalyze}
       scenario={activeScenario}
       isChildMode={isChildMode}
@@ -3185,6 +3364,7 @@ export default function App() {
       utteranceFeedback={utteranceFeedback}
       scoringUtterance={scoringUtterance}
       activeReferenceText={activeReferenceText}
+      onSendExerciseMessage={sendExerciseMessage}
       onInterruptAvatar={() => {
         send({ type: 'response.cancel' })
         stopAudio()
@@ -3208,11 +3388,17 @@ export default function App() {
             childrenLoading={childrenLoading}
             selectedChildId={selectedChildId}
             selectedChild={selectedChild}
+            userWorkspaces={authUser?.user_workspaces || []}
+            activeWorkspaceId={activeWorkspaceId}
+            userName={authUser?.name || null}
+            userEmail={authUser?.email || null}
+            onSignOut={() => navigate(APP_ROUTES.logout)}
             onBrandClick={() => requestSection('home')}
             onNavigateHome={() => requestSection('home')}
             onNavigateDashboard={() => requestSection('dashboard')}
             onNavigateSettings={() => requestSection('settings')}
             onSelectChild={handleSelectChild}
+            onSwitchWorkspace={handleSwitchWorkspace}
             onToggleCollapse={() => setSidebarCollapsed(current => !current)}
             onCloseMobile={() => setMobileSidebarOpen(false)}
           />
@@ -3255,16 +3441,6 @@ export default function App() {
                         }
                       />
                     ) : null}
-                    <Button
-                      appearance="subtle"
-                      className={styles.profileSwitchButton}
-                      icon={<span className={styles.profileAvatar}>{profileHeaderInitials}</span>}
-                      onClick={handleReturnToEntry}
-                      aria-label={`Open profile menu for ${profileHeaderName}`}
-                      title={`Open profile menu for ${profileHeaderName}`}
-                    >
-                      <ChevronDownIcon className={styles.profileSwitchChevron} />
-                    </Button>
                   </div>
                 ) : (
                   contentSubtitle ? (

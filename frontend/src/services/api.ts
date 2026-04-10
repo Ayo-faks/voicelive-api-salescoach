@@ -29,6 +29,7 @@ import type {
   SessionSummary,
   Scenario,
   TherapistFeedbackRating,
+  WorkspaceSummary,
 } from '../types'
 import { AVATAR_OPTIONS } from '../types'
 
@@ -45,7 +46,9 @@ export interface AuthSession {
   name: string
   email: string
   provider: string
-  role: 'therapist' | 'parent' | 'admin'
+  role: 'therapist' | 'parent' | 'admin' | 'pending_therapist'
+  current_workspace_id?: string | null
+  user_workspaces?: WorkspaceSummary[]
 }
 
 export function getImageAssetUrl(imagePath: string): string {
@@ -150,6 +153,19 @@ export const api = {
     return res.json()
   },
 
+  async claimInviteCode(code: string): Promise<AuthSession> {
+    const res = await fetchWithAuth('/api/auth/claim-invite-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.error || 'Invalid invite code')
+    }
+    return res.json()
+  },
+
   async getConfig(): Promise<AppConfig> {
     if (cachedConfig) return cachedConfig
     if (configPromise) return configPromise
@@ -170,9 +186,29 @@ export const api = {
     return res.json()
   },
 
-  async getChildren(): Promise<ChildProfile[]> {
-    const res = await fetchWithAuth('/api/children')
+  async getChildren(workspaceId?: string | null): Promise<ChildProfile[]> {
+    const params = workspaceId ? `?workspace_id=${encodeURIComponent(workspaceId)}` : ''
+    const res = await fetchWithAuth(`/api/children${params}`)
     if (!res.ok) throw new Error('Failed to load child profiles')
+    return res.json()
+  },
+
+  async getWorkspaces(): Promise<WorkspaceSummary[]> {
+    const res = await fetchWithAuth('/api/workspaces')
+    if (!res.ok) throw new Error('Failed to load workspaces')
+    return res.json()
+  },
+
+  async createWorkspace(payload: { name?: string }): Promise<WorkspaceSummary> {
+    const res = await fetchWithAuth('/api/workspaces', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to create workspace')
+    }
     return res.json()
   },
 
@@ -180,6 +216,7 @@ export const api = {
     name: string
     date_of_birth?: string
     notes?: string
+    workspace_id?: string
   }): Promise<ChildProfile> {
     const res = await fetchWithAuth('/api/children', {
       method: 'POST',

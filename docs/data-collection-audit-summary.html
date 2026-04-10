@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Wulo — Data Collection Summary for Legal Review</title>
+  <style>
+    :root { --teal: #0d8a84; --teal-light: #e9f5f6; --text: #1a2a2a; --muted: #5a6a6a; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      max-width: 820px; margin: 0 auto; padding: 40px 24px 60px;
+      color: var(--text); line-height: 1.7; font-size: 15px;
+      background: linear-gradient(135deg, rgba(233,245,246,0.6), rgba(224,239,241,0.6));
+      min-height: 100vh;
+    }
+    h1.title {
+      color: var(--teal); font-size: 1.6em; margin: 0 0 4px;
+      border-bottom: 2px solid var(--teal); padding-bottom: 12px;
+    }
+    h1:not(.title) { display: none; }
+    h2 { color: var(--teal); font-size: 1.2em; margin: 2em 0 0.6em; border-bottom: 1px solid #d0e0e0; padding-bottom: 6px; }
+    h3 { color: var(--text); font-size: 1em; margin: 1.4em 0 0.4em; }
+    p { margin: 0.6em 0; }
+    hr { border: none; border-top: 1px solid #d0e0e0; margin: 1.5em 0; }
+    table { border-collapse: collapse; width: 100%; margin: 0.8em 0 1.2em; font-size: 0.92em; }
+    th { background: var(--teal-light); color: var(--teal); font-weight: 600; text-align: left; padding: 8px 12px; border: 1px solid #c8dede; }
+    td { padding: 7px 12px; border: 1px solid #dde8e8; }
+    tr:nth-child(even) td { background: #f7fbfb; }
+    code { background: var(--teal-light); padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+    pre { background: #f4f8f8; border: 1px solid #d0e0e0; border-radius: 6px; padding: 16px; overflow-x: auto; font-size: 0.88em; line-height: 1.5; }
+    pre code { background: none; padding: 0; }
+    a { color: var(--teal); }
+    strong { color: var(--text); }
+    ol { padding-left: 1.4em; }
+    ol li { margin: 0.4em 0; }
+    ul.task-list { list-style: none; padding-left: 0; }
+    ul.task-list li { margin: 0.4em 0; }
+    ul.task-list li input[type="checkbox"] { margin-right: 0.5em; }
+    @media print {
+      body { background: white; font-size: 12pt; padding: 0; }
+      h2 { page-break-after: avoid; }
+      table { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Wulo — Data Collection Summary for Legal Review</h1>
+</header>
+<h1 id="wulo-data-collection-summary-for-legal-review">Wulo — Data
+Collection Summary for Legal Review</h1>
+<p><strong>Date:</strong> 8 April 2026<br/>
+<strong>Prepared for:</strong> Legal counsel / Privacy officer<br/>
+<strong>Full technical audit:</strong>
+See <code>data-collection-audit.md</code> for database-level detail</p>
+<hr />
+<h2 id="what-is-wulo">What is Wulo?</h2>
+<p>Wulo is a web-based speech therapy practice tool for children with
+speech and language difficulties. A therapist (or parent) selects
+exercises, the child speaks into the microphone, and AI provides
+pronunciation feedback. The app also generates personalised practice
+plans and tracks progress over time.</p>
+<hr />
+<h2 id="what-personal-data-do-we-collect">What personal data do we
+collect?</h2>
+<h3 id="about-therapists-parents-the-adult-users">About therapists /
+parents (the adult users)</h3>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 57%" />
+<col style="width: 19%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Data</th>
+<th>How collected</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Name, email</td>
+<td>Automatically from Microsoft or Google sign-in</td>
+<td>Account creation, contact</td>
+</tr>
+<tr class="even">
+<td>Identity provider (e.g. Google, Microsoft)</td>
+<td>Automatically from sign-in</td>
+<td>Know which login method they used</td>
+</tr>
+</tbody>
+</table>
+<p>We do <strong>not</strong> collect or store passwords. Authentication
+is handled entirely by Microsoft Entra ID.</p>
+<h3 id="about-children">About children</h3>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 57%" />
+<col style="width: 19%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Data</th>
+<th>How collected</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>First name</td>
+<td>Entered by therapist/parent</td>
+<td>Identify the child in the app</td>
+</tr>
+<tr class="even">
+<td>Date of birth</td>
+<td>Entered by therapist/parent</td>
+<td>Select age-appropriate exercises</td>
+</tr>
+<tr class="odd">
+<td>Clinical notes</td>
+<td>Typed by therapist</td>
+<td>Record observations about the child’s needs</td>
+</tr>
+<tr class="even">
+<td>Speech recordings (transcripts)</td>
+<td>Child speaks into microphone during exercises</td>
+<td>Assess pronunciation</td>
+</tr>
+<tr class="odd">
+<td>Pronunciation scores</td>
+<td>Generated automatically by AI</td>
+<td>Give feedback on speech</td>
+</tr>
+<tr class="even">
+<td>AI assessments</td>
+<td>Generated automatically by AI</td>
+<td>Evaluate progress, suggest exercises</td>
+</tr>
+<tr class="odd">
+<td>Practice plans</td>
+<td>Generated by AI with therapist input</td>
+<td>Structure therapy sessions</td>
+</tr>
+<tr class="even">
+<td>Progress observations</td>
+<td>Generated by AI, reviewed by therapist</td>
+<td>Track development over time</td>
+</tr>
+</tbody>
+</table>
+<h3 id="about-parentsguardians-via-consent-flow">About parents/guardians
+(via consent flow)</h3>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 57%" />
+<col style="width: 19%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Data</th>
+<th>How collected</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Guardian name</td>
+<td>Entered by therapist</td>
+<td>Record who gave consent</td>
+</tr>
+<tr class="even">
+<td>Guardian email</td>
+<td>Entered by therapist</td>
+<td>Send invitation emails, contact</td>
+</tr>
+<tr class="odd">
+<td>Consent decisions</td>
+<td>Recorded in-app</td>
+<td>Prove lawful basis for processing</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="is-any-of-this-sensitive-data">Is any of this sensitive
+data?</h2>
+<p><strong>Yes.</strong> Speech transcripts, pronunciation assessments,
+clinical notes, and AI observations about a child’s speech development
+likely constitute <strong>health data</strong> under UK GDPR Article 9.
+This is because the children are using the app specifically because they
+have speech/language difficulties.</p>
+<p><strong>Lawful basis:</strong> Explicit parental consent, recorded in
+the app before any child data is processed.</p>
+<hr />
+<h2 id="where-does-the-data-go">Where does the data go?</h2>
+<p>All data is processed and stored within <strong>Microsoft
+Azure</strong>, located in <strong>Sweden Central</strong> (EU). We do
+not use Google, Anthropic, or any non-Microsoft AI service.</p>
+<h3 id="data-flow-for-a-typical-session">Data flow for a typical
+session</h3>
+<pre><code>Child speaks → Browser captures audio
+    → Azure Speech Service (Sweden Central)
+        Converts speech to text, scores pronunciation
+    → Azure OpenAI (Sweden Central)
+        Evaluates the child&#39;s speech against the exercise target
+        Generates feedback and progress observations
+    → Azure PostgreSQL (Sweden Central)
+        Stores transcript, scores, and AI assessment</code></pre>
+<h3 id="all-third-party-processors">All third-party processors</h3>
+<table>
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 20%" />
+<col style="width: 38%" />
+<col style="width: 10%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Service</th>
+<th>Provider</th>
+<th>What data it sees</th>
+<th>Why</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Azure OpenAI</strong></td>
+<td>Microsoft</td>
+<td>Child’s speech transcripts, clinical notes, memory summaries</td>
+<td>AI assessment, practice plan generation, progress tracking</td>
+<td>Sweden Central</td>
+</tr>
+<tr class="even">
+<td><strong>Azure Speech Services</strong></td>
+<td>Microsoft</td>
+<td>Audio from microphone (not stored)</td>
+<td>Convert speech to text, pronunciation scoring</td>
+<td>Sweden Central</td>
+</tr>
+<tr class="odd">
+<td><strong>Azure PostgreSQL</strong></td>
+<td>Microsoft</td>
+<td>Everything listed above</td>
+<td>Primary database</td>
+<td>Sweden Central</td>
+</tr>
+<tr class="even">
+<td><strong>Azure Entra ID</strong></td>
+<td>Microsoft</td>
+<td>Adult user’s name, email</td>
+<td>Authentication</td>
+<td>Global (Microsoft identity platform)</td>
+</tr>
+<tr class="odd">
+<td><strong>Azure Communication Services</strong></td>
+<td>Microsoft</td>
+<td>Parent/guardian email addresses</td>
+<td>Sending invitation emails</td>
+<td>Sweden Central</td>
+</tr>
+<tr class="even">
+<td><strong>Microsoft Clarity</strong></td>
+<td>Microsoft</td>
+<td>Anonymised click/scroll behaviour (no personal data)</td>
+<td>Usage analytics — <strong>only with user opt-in</strong></td>
+<td>EU</td>
+</tr>
+</tbody>
+</table>
+<h3 id="what-we-do-not-use">What we do NOT use</h3>
+<ul>
+<li><strong>Google Cloud / Vertex AI</strong> — not used</li>
+<li><strong>Anthropic / Claude</strong> — not used</li>
+<li><strong>OpenAI (direct)</strong> — not used; we use Azure OpenAI,
+which is hosted and governed by Microsoft under their Azure data
+processing terms</li>
+<li><strong>AWS</strong> — not used</li>
+</ul>
+<hr />
+<h2 id="how-long-do-we-keep-data">How long do we keep data?</h2>
+<table>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 37%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>What</th>
+<th>How long</th>
+<th>Then what</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Active child profiles</td>
+<td>As long as the child is using the app</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>Inactive children (no session for 6 months)</td>
+<td>Automatically flagged for deletion</td>
+<td>Soft-deleted, then hard-deleted after 1 month grace period</td>
+</tr>
+<tr class="odd">
+<td>Consent records</td>
+<td>Kept even after withdrawal</td>
+<td>Required to prove consent was obtained</td>
+</tr>
+<tr class="even">
+<td>Audit log</td>
+<td>Kept indefinitely</td>
+<td>Required for GDPR accountability</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="what-rights-do-users-have">What rights do users have?</h2>
+<table>
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 65%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Right</th>
+<th>How it works</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Access</strong> (Art. 15)</td>
+<td>Therapist can export all data for a child as a JSON file</td>
+</tr>
+<tr class="even">
+<td><strong>Erasure</strong> (Art. 17)</td>
+<td>Therapist can permanently delete a child and all associated
+data</td>
+</tr>
+<tr class="odd">
+<td><strong>Withdraw consent</strong></td>
+<td>Parent/guardian can withdraw consent; processing stops</td>
+</tr>
+<tr class="even">
+<td><strong>Contact</strong></td>
+<td>privacy@wulo.ai</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="cookies">Cookies</h2>
+<p>Only <strong>one</strong> cookie is set by default: the consent
+preference cookie (strictly necessary).</p>
+<p>Analytics cookies (Microsoft Clarity) are <strong>only set after the
+user explicitly opts in</strong> via a cookie banner. They can be
+revoked at any time.</p>
+<p>No advertising or tracking cookies are used.</p>
+<hr />
+<h2 id="action-items-for-legal-review">Action items for legal
+review</h2>
+<ol type="1">
+<li>Review the three legal pages (accessible without login):
+<ul>
+<li><a href="https://staging-sen.wulo.ai/privacy">Privacy
+Policy</a></li>
+<li><a href="https://staging-sen.wulo.ai/terms">Terms of
+Service</a></li>
+<li><a href="https://staging-sen.wulo.ai/ai-transparency">AI
+Transparency Notice</a></li>
+</ul></li>
+<li>Confirm explicit parental consent is the right lawful basis for
+health data</li>
+<li>Confirm 6-month retention period is appropriate</li>
+<li>Advise whether a DPIA is needed before production launch</li>
+<li>Advise on DPA requirements for NHS/LA customers</li>
+<li>Confirm cookie consent meets UK PECR requirements</li>
+</ol>
+</body>
+</html>

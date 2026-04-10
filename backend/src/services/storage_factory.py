@@ -56,9 +56,16 @@ def create_storage_service(app_config: Mapping[str, Any]) -> Any:
     """Create the configured storage service.
 
     SQLite remains the default backend during the migration window.
+    Production (Azure-hosted) environments must use PostgreSQL.
     """
 
     backend = str(app_config.get("database_backend") or "sqlite").strip().lower()
+
+    if backend == "sqlite" and _is_azure_hosted_environment():
+        raise RuntimeError(
+            "SQLite is not supported in production environments. "
+            "Set DATABASE_BACKEND=postgres and provide DATABASE_URL."
+        )
 
     if backend == "sqlite":
         bootstrap_storage(
@@ -69,10 +76,11 @@ def create_storage_service(app_config: Mapping[str, Any]) -> Any:
 
     if backend == "postgres":
         database_url = str(app_config.get("database_url") or "").strip()
+        database_admin_url = str(app_config.get("database_admin_url") or database_url).strip()
         if not database_url:
             raise RuntimeError("DATABASE_URL is required when DATABASE_BACKEND=postgres")
         if should_run_postgres_startup_migrations(app_config):
-            run_postgres_migrations(database_url)
-        return PostgresStorageService(database_url)
+            run_postgres_migrations(database_admin_url, database_url)
+        return PostgresStorageService(database_url, allow_system_bypass=(database_url == database_admin_url))
 
     raise RuntimeError(f"Unsupported DATABASE_BACKEND: {backend}")

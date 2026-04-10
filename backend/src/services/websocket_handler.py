@@ -29,9 +29,9 @@ from azure.ai.voicelive.models import (
     RequestSession,
     ServerEventType,
 )
-from azure.core.credentials import AzureKeyCredential
 
 from src.config import config
+from src.services.azure_openai_auth import build_voicelive_credential
 from src.services.managers import AgentManager, FINISH_SESSION_TOOL
 
 logger = logging.getLogger(__name__)
@@ -157,13 +157,9 @@ class VoiceProxyHandler:
         resource_name = config["azure_ai_resource_name"]
         return f"https://{resource_name}.{AZURE_COGNITIVE_SERVICES_DOMAIN}"
 
-    def _get_credential(self) -> Optional[AzureKeyCredential]:
+    def _get_credential(self) -> Optional[Any]:
         """Get the Azure credential."""
-        api_key = config.get("azure_openai_api_key")
-        if not api_key:
-            logger.error("No API key found in configuration (azure_openai_api_key)")
-            return None
-        return AzureKeyCredential(api_key)
+        return build_voicelive_credential(config)
 
     def _get_model(self, agent_config: Optional[Dict[str, Any]]) -> Optional[str]:
         """Get the model name for the connection."""

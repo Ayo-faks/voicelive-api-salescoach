@@ -7,25 +7,28 @@ import os
 import threading
 from pathlib import Path
 
+from azure.identity import DefaultAzureCredential
+
 logger = logging.getLogger(__name__)
 
 _upload_lock = threading.Lock()
 
 
 def _is_configured(account_name: str, account_key: str) -> bool:
-    return bool(account_name) and bool(account_key)
+    return bool(account_name) and (bool(account_key) or bool(os.environ.get("AZURE_CLIENT_ID")))
 
 
 def _blob_client(account_name: str, account_key: str, container: str, blob_name: str):
-    """Create a BlobClient using account key auth."""
+    """Create a BlobClient using account key auth or managed identity."""
     from azure.storage.blob import BlobClient
 
     account_url = f"https://{account_name}.blob.core.windows.net"
+    credential = account_key or DefaultAzureCredential()
     return BlobClient(
         account_url=account_url,
         container_name=container,
         blob_name=blob_name,
-        credential=account_key,
+        credential=credential,
     )
 
 

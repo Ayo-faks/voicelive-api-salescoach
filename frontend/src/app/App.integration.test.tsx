@@ -249,6 +249,8 @@ vi.mock('../services/api', () => ({
     deleteAgent: vi.fn(),
     analyzeConversation: vi.fn(),
     assessUtterance: vi.fn(),
+    getParentalConsent: vi.fn(),
+    saveParentalConsent: vi.fn(),
     acknowledgeConsent: vi.fn(),
     submitSessionFeedback: vi.fn(),
     createPracticePlan: vi.fn(),
@@ -577,6 +579,8 @@ describe('App routing integration', () => {
     mockedApi.getConfig.mockResolvedValue(configResponse as never)
     mockedApi.getScenarios.mockResolvedValue(scenarioFixtures.serverScenarios as never)
     mockedApi.getPilotState.mockResolvedValue({ consent_timestamp: null, therapist_pin_configured: false } as never)
+    mockedApi.getParentalConsent.mockResolvedValue({ consent: { id: 'consent-1' } } as never)
+    mockedApi.saveParentalConsent.mockResolvedValue({ id: 'consent-1' } as never)
     mockedApi.getChildren.mockResolvedValue([])
     mockedApi.getChildInvitations.mockResolvedValue([] as never)
     mockedApi.getChildSessions.mockImplementation(async childId => sessionSummariesByChild[childId as keyof typeof sessionSummariesByChild] ?? [])
@@ -608,6 +612,28 @@ describe('App routing integration', () => {
 
     await waitFor(() => {
       expect(screen.getByText('auth:unauthenticated')).toBeTruthy()
+    })
+  })
+
+  it('preserves invitation query params when redirecting unauthenticated users to login', async () => {
+    mockedApi.getAuthSession.mockRejectedValue(new Error('UNAUTHORIZED'))
+
+    renderApp(`${APP_ROUTES.root}?${APP_ROUTE_PARAMS.invitationId}=invite-123`)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location').textContent).toBe(
+        `${APP_ROUTES.login}?${APP_ROUTE_PARAMS.invitationId}=invite-123`
+      )
+    })
+  })
+
+  it('routes authenticated users with an invitation query to settings', async () => {
+    renderApp(`${APP_ROUTES.root}?${APP_ROUTE_PARAMS.invitationId}=invite-123`)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location').textContent).toBe(
+        `${APP_ROUTES.settings}?${APP_ROUTE_PARAMS.invitationId}=invite-123`
+      )
     })
   })
 

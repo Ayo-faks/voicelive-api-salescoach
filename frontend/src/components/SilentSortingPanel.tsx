@@ -81,9 +81,10 @@ interface Props {
   scenarioName?: string | null
   metadata?: Partial<ExerciseMetadata>
   audience?: 'therapist' | 'child'
+  onSendMessage?: (text: string) => void
 }
 
-export function SilentSortingPanel({ scenarioName, metadata, audience = 'child' }: Props) {
+export function SilentSortingPanel({ scenarioName, metadata, audience = 'child', onSendMessage }: Props) {
   const styles = useStyles()
   const targetSound = metadata?.targetSound || 'target'
   const errorSound = metadata?.errorSound || 'other'
@@ -110,6 +111,12 @@ export function SilentSortingPanel({ scenarioName, metadata, audience = 'child' 
 
   const moveWord = (word: string, nextBucket: Bucket) => {
     setAssignments(current => ({ ...current, [word]: nextBucket }))
+    const bucketLabel = nextBucket === 'target'
+      ? `${targetSound.toUpperCase()} home`
+      : nextBucket === 'error'
+        ? `${errorSound.toUpperCase()} home`
+        : 'cards to sort'
+    onSendMessage?.(`I sorted ${word} into the ${bucketLabel}.`)
   }
 
   const poolWords = words.filter(word => assignments[word] === 'pool')

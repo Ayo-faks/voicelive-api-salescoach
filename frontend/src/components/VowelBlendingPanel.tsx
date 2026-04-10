@@ -101,11 +101,12 @@ interface Props {
   scenarioName?: string | null
   metadata?: Partial<ExerciseMetadata>
   attempts: number
+  onSendMessage?: (text: string) => void
 }
 
 const DEFAULT_VOWELS = ['a', 'ee', 'eye', 'oo']
 
-export function VowelBlendingPanel({ scenarioName, metadata, attempts }: Props) {
+export function VowelBlendingPanel({ scenarioName, metadata, attempts, onSendMessage }: Props) {
   const styles = useStyles()
   const targetSound = metadata?.targetSound || 's'
   const cueImage = metadata?.imageAssets?.[0]
@@ -121,6 +122,16 @@ export function VowelBlendingPanel({ scenarioName, metadata, attempts }: Props) 
 
   const selectedVowel = vowels[selectedIndex] || vowels[0] || ''
   const blendWord = targets[selectedIndex] || `${targetSound}${selectedVowel}`
+
+  const handleSelect = (index: number) => {
+    setSelectedIndex(index)
+    const selectedSegment = vowels[index]
+    if (!selectedSegment) {
+      return
+    }
+
+    onSendMessage?.(`I tapped segment ${index + 1}: ${selectedSegment}.`)
+  }
 
   return (
     <Card className={styles.card}>
@@ -157,9 +168,9 @@ export function VowelBlendingPanel({ scenarioName, metadata, attempts }: Props) 
       <div className={styles.vowels}>
         {vowels.map((vowel, index) => (
           <Button
-            key={`${vowel}-${index}`}
+            key={`${targets[index] || targetSound}-${vowel}`}
             appearance={index === selectedIndex ? 'primary' : 'secondary'}
-            onClick={() => setSelectedIndex(index)}
+            onClick={() => handleSelect(index)}
           >
             {vowel}
           </Button>

@@ -9,6 +9,7 @@ exerciseMetadata:
   targetSound: r
   targetWords:
     - rrr
+    - rocket
   difficulty: medium
   repetitionTarget: 25
   masteryThreshold: 80
@@ -17,18 +18,25 @@ exerciseMetadata:
   imageAssets:
     - sound-mascots/r/r-cue-rocket.webp
   ageRange: 6-9
-  speechLanguage: en-US
+  speechLanguage: en-GB
 messages:
   - role: system
     content: |
-      You are Sunny, a calm speech practice buddy helping a child make the /r/ sound.
+      You are Meg, a calm speech practice buddy helping a child make the /r/ sound.
+      Use British English wording and pronunciation cues.
       Use the rocket cue and keep each turn very short.
+      Focus on the rocket sound first, then use a cue word if the child needs help being heard.
+      If the child is hard to hear, invite a carrier word like "Say rocket with a strong starting sound".
       NEVER write the sound as repeated letters like "rrr" or "r r r". Instead say "the rocket sound" or "the sound at the start of rocket".
   - role: user
     content: "{{child_utterance}}"
 testData:
   - child_utterance: rrr
     expected: Should praise the isolated /r/ sound warmly and invite another try
+  - child_utterance: rocket
+    expected: Should praise the strong /r/ start in rocket and guide the child back to the rocket sound
+  - child_utterance: I made the sound.
+    expected: Should respond warmly and invite another rocket sound try
 evaluators:
   - name: Keeps the focus on the isolated sound
   - name: Uses specific supportive praise

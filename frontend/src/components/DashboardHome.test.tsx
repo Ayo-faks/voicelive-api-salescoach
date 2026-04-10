@@ -13,7 +13,6 @@ describe('DashboardHome', () => {
         childrenLoading={false}
         selectedChildId="child-1"
         selectedChild={{ id: 'child-1', name: 'Amina' }}
-        childProfileSaving={false}
         selectedAvatar="meg-casual"
         selectedScenario={null}
         childMemorySummary={{
@@ -66,7 +65,6 @@ describe('DashboardHome', () => {
         launchInFlight={false}
         scenarios={[]}
         customScenarios={[]}
-        onCreateChild={async () => ({})}
         onSelectChild={() => {}}
         onSelectAvatar={() => {}}
         onSelectScenario={() => {}}
@@ -87,5 +85,39 @@ describe('DashboardHome', () => {
     expect(screen.getByText('Short /t/ phrases')).toBeTruthy()
     expect(screen.getByText('Evidence status')).toBeTruthy()
     expect(screen.getByText('Stale')).toBeTruthy()
+  })
+
+  it('does not show the add child action in parent workspace mode', () => {
+    render(
+      <DashboardHome
+        isTherapistWorkspace={false}
+        secondaryActionLabel="Open family setup"
+        incomingInvitationCount={0}
+        childProfiles={[]}
+        childrenLoading={false}
+        selectedChildId={null}
+        selectedChild={null}
+        selectedAvatar="meg-casual"
+        selectedScenario={null}
+        childMemorySummary={null}
+        childMemoryProposals={[]}
+        recommendationHistory={[]}
+        launchInFlight={false}
+        scenarios={[]}
+        customScenarios={[]}
+        onSelectChild={() => {}}
+        onSelectAvatar={() => {}}
+        onSelectScenario={() => {}}
+        onStartScenario={() => {}}
+        onStartSession={() => {}}
+        onSecondaryAction={() => {}}
+        onAddCustomScenario={() => {}}
+        onUpdateCustomScenario={() => {}}
+        onDeleteCustomScenario={() => {}}
+      />,
+    )
+
+    expect(screen.queryByText('Add child')).toBeNull()
+    expect(screen.getByText('Wait for a therapist invitation to link a child profile before you start supervised practice here.')).toBeTruthy()
   })
 })

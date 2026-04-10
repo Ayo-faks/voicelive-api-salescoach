@@ -56,6 +56,8 @@ COPY backend/requirements.txt ./
 RUN pip install --no-cache-dir --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org -r requirements.txt
 
 COPY --chown=app:app backend/src/ ./src/
+COPY --chown=app:app backend/alembic.ini ./alembic.ini
+COPY --chown=app:app backend/alembic/ ./alembic/
 COPY --chown=app:app data/exercises/ ./data/exercises/
 COPY --chown=app:app data/images/ ./data/images/
 

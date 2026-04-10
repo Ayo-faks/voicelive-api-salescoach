@@ -8,6 +8,7 @@ from unittest.mock import ANY, AsyncMock, patch
 import pytest
 from flask.testing import FlaskClient
 
+import src.app as app_module
 from src.app import _get_authenticated_user_from_headers, _is_azure_hosted_environment, _resolve_local_dev_role, app
 
 
@@ -42,6 +43,7 @@ class TestFlaskApp:
     def teardown_method(self):
         """Reset env overrides applied by tests in this class."""
         os.environ.pop("LOCAL_DEV_AUTH", None)
+        app_module._RATE_LIMIT_STATE.clear()
 
     def test_index_route(self):
         """Test the index route serves index.html."""
@@ -131,6 +133,61 @@ class TestFlaskApp:
         assert response.status_code == 401
         data = json.loads(response.data)
         assert data["error"] == "Authentication required"
+
+    @patch("src.app.storage_service")
+    def test_mutating_request_rejects_untrusted_origin(self, mock_storage_service):
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("admin")
+
+        response = self.client.post(
+            "/api/users/user-999/role",
+            headers={**self._auth_headers(), "Origin": "https://evil.example"},
+            json={"role": "parent"},
+        )
+
+        assert response.status_code == 403
+        assert json.loads(response.data)["error"] == "Origin not allowed"
+
+    @patch("src.app.storage_service")
+    def test_mutating_request_rejects_non_json_body(self, mock_storage_service):
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("admin")
+
+        response = self.client.post(
+            "/api/users/user-999/role",
+            headers={**self._auth_headers(), "Origin": "http://localhost"},
+            data="role=parent",
+            content_type="application/x-www-form-urlencoded",
+        )
+
+        assert response.status_code == 400
+        assert json.loads(response.data)["error"] == "State-changing requests must use application/json"
+
+    @patch("src.app.storage_service")
+    def test_role_update_is_rate_limited(self, mock_storage_service):
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("admin")
+        mock_storage_service.get_user.return_value = self._user_payload("parent")
+        mock_storage_service.update_user_role.return_value = self._user_payload("parent")
+
+        with patch.object(app_module, "_rate_limit_for_request", return_value=(2, 60)):
+            first = self.client.post(
+                "/api/users/user-999/role",
+                headers={**self._auth_headers(), "Origin": "http://localhost"},
+                json={"role": "parent"},
+            )
+            second = self.client.post(
+                "/api/users/user-999/role",
+                headers={**self._auth_headers(), "Origin": "http://localhost"},
+                json={"role": "parent"},
+            )
+            third = self.client.post(
+                "/api/users/user-999/role",
+                headers={**self._auth_headers(), "Origin": "http://localhost"},
+                json={"role": "parent"},
+            )
+
+        assert first.status_code == 200
+        assert second.status_code == 200
+        assert third.status_code == 429
+        assert json.loads(third.data)["error"] == "Rate limit exceeded"
 
     @patch("src.app.storage_service")
     def test_get_pilot_state_route(self, mock_storage_service):
@@ -558,6 +615,26 @@ class TestFlaskApp:
     def test_get_auth_session(self, mock_storage_service):
         """Test auth session payload is returned for authenticated users."""
         mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
+        mock_storage_service.list_workspaces_for_user.return_value = [
+            {
+                "id": "workspace-1",
+                "name": "Test User Workspace",
+                "owner_user_id": "user-123",
+                "role": "owner",
+                "is_personal": True,
+                "created_at": "2026-04-09T00:00:00+00:00",
+                "updated_at": "2026-04-09T00:00:00+00:00",
+            }
+        ]
+        mock_storage_service.get_default_workspace_for_user.return_value = {
+            "id": "workspace-1",
+            "name": "Test User Workspace",
+            "owner_user_id": "user-123",
+            "role": "owner",
+            "is_personal": True,
+            "created_at": "2026-04-09T00:00:00+00:00",
+            "updated_at": "2026-04-09T00:00:00+00:00",
+        }
 
         response = self.client.get("/api/auth/session", headers=self._auth_headers())
 
@@ -565,6 +642,33 @@ class TestFlaskApp:
         data = json.loads(response.data)
         assert data["authenticated"] is True
         assert data["role"] == "therapist"
+        assert data["current_workspace_id"] == "workspace-1"
+        assert len(data["user_workspaces"]) == 1
+
+    @patch("src.app.storage_service")
+    def test_create_workspace(self, mock_storage_service):
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
+        mock_storage_service.create_workspace.return_value = {
+            "id": "workspace-2",
+            "name": "Clinic Workspace",
+            "owner_user_id": "user-123",
+            "role": "owner",
+            "is_personal": False,
+            "created_at": "2026-04-09T00:00:00+00:00",
+            "updated_at": "2026-04-09T00:00:00+00:00",
+        }
+
+        response = self.client.post(
+            "/api/workspaces",
+            headers={**self._auth_headers(), "Origin": "http://localhost"},
+            json={"name": "Clinic Workspace"},
+        )
+
+        assert response.status_code == 201
+        data = json.loads(response.data)
+        assert data["id"] == "workspace-2"
+        assert data["name"] == "Clinic Workspace"
+        mock_storage_service.create_workspace.assert_called_once_with("user-123", "Clinic Workspace")
 
     @patch("src.app.storage_service")
     def test_authenticated_user_uses_encoded_principal_payload(self, mock_storage_service):

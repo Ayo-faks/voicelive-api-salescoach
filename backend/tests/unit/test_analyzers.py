@@ -44,26 +44,60 @@ class TestConversationAnalyzer:
     @patch("src.services.analyzers.config")
     def test_initialize_openai_client_missing_config(self, mock_config):
         """Test OpenAI client initialization with missing config."""
-        mock_config.__getitem__.side_effect = lambda key: {
+        values = {
             "azure_openai_endpoint": "",
             "azure_openai_api_key": "",
-        }.get(key, "")
+        }
+        mock_config.__getitem__.side_effect = lambda key: values.get(key, "")
+        mock_config.get.side_effect = lambda key, default=None: values.get(key, default)
 
         analyzer = ConversationAnalyzer()
         assert analyzer.openai_client is None
 
-    @patch("src.services.analyzers.AzureOpenAI")
+    @patch("src.services.azure_openai_auth.AzureOpenAI")
     @patch("src.services.analyzers.config")
     def test_initialize_openai_client_success(self, mock_config, mock_azure_openai):
         """Test successful OpenAI client initialization."""
-        mock_config.__getitem__.side_effect = lambda key: {
+        values = {
             "azure_openai_endpoint": "https://test.openai.azure.com",
             "azure_openai_api_key": "test-key",
-        }.get(key, "")
+        }
+        mock_config.__getitem__.side_effect = lambda key: values.get(key, "")
+        mock_config.get.side_effect = lambda key, default=None: values.get(key, default)
 
         analyzer = ConversationAnalyzer()
         assert analyzer.openai_client is not None
         mock_azure_openai.assert_called_once()
+
+    @patch("src.services.azure_openai_auth.DefaultAzureCredential")
+    @patch("src.services.azure_openai_auth.AzureOpenAI")
+    @patch("src.services.analyzers.config")
+    def test_initialize_openai_client_prefers_token_auth_in_managed_identity_env(
+        self,
+        mock_config,
+        mock_azure_openai,
+        mock_credential,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test Azure OpenAI client initialization uses token auth in Azure-hosted environments."""
+        monkeypatch.setenv("AZURE_CLIENT_ID", "managed-identity-client-id")
+        values = {
+            "azure_openai_endpoint": "https://test.openai.azure.com",
+            "azure_openai_api_key": "test-key",
+            "api_version": "2024-02-01",
+        }
+        mock_config.__getitem__.side_effect = lambda key: values.get(key, "")
+        mock_config.get.side_effect = lambda key, default=None: values.get(key, default)
+        mock_credential.return_value = Mock()
+
+        analyzer = ConversationAnalyzer()
+
+        assert analyzer.openai_client is not None
+        _, kwargs = mock_azure_openai.call_args
+        assert kwargs["azure_endpoint"] == "https://test.openai.azure.com"
+        assert kwargs["api_version"] == "2024-02-01"
+        assert "azure_ad_token_provider" in kwargs
+        assert "api_key" not in kwargs
 
     @pytest.mark.asyncio
     async def test_analyze_conversation_uses_fallback_for_unknown_scenario(self):

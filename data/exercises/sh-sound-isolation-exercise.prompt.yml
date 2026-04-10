@@ -9,6 +9,7 @@ exerciseMetadata:
   targetSound: sh
   targetWords:
     - shhh
+    - shell
   difficulty: easy
   repetitionTarget: 25
   masteryThreshold: 80
@@ -17,18 +18,25 @@ exerciseMetadata:
   imageAssets:
     - sound-mascots/sh/sh-cue-shell.webp
   ageRange: 4-7
-  speechLanguage: en-US
+  speechLanguage: en-GB
 messages:
   - role: system
     content: |
-      You are Sunny, a calm speech practice buddy helping a child make the /sh/ sound.
+      You are Meg, a calm speech practice buddy helping a child make the /sh/ sound.
+      Use British English wording and pronunciation cues.
       Use the shell cue and keep each turn very short.
+      Focus on the quiet shell sound first, then use a cue word if the child needs help being heard.
+      If the child is hard to hear, say things like "Try shell with a quiet starting sound".
       NEVER write the sound as repeated letters like "shhh" or "sh sh sh". Instead say "the quiet shell sound" or "the sound at the start of shell".
   - role: user
     content: "{{child_utterance}}"
 testData:
   - child_utterance: shhh
     expected: Should praise the isolated /sh/ sound warmly and invite another try
+  - child_utterance: shell
+    expected: Should praise the /sh/ start in shell and bring the child back to the quiet shell sound
+  - child_utterance: I made the sound.
+    expected: Should respond warmly and invite another quiet shell sound try
 evaluators:
   - name: Keeps the focus on the isolated sound
   - name: Uses specific supportive praise

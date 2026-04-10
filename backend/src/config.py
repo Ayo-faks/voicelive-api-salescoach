@@ -31,6 +31,13 @@ DEFAULT_DATABASE_BACKEND = "sqlite"
 DEFAULT_DATABASE_POOL_MIN = 1
 DEFAULT_DATABASE_POOL_MAX = 5
 DEFAULT_DATABASE_MIGRATION_ALLOWED_ENVIRONMENTS = ""
+DEFAULT_RATE_LIMIT_DEFAULT_WINDOW_SECONDS = 60
+DEFAULT_RATE_LIMIT_MUTATION_LIMIT = 120
+DEFAULT_RATE_LIMIT_ANALYZE_LIMIT = 30
+DEFAULT_RATE_LIMIT_PLANS_LIMIT = 20
+DEFAULT_RATE_LIMIT_INVITATIONS_LIMIT = 20
+DEFAULT_RATE_LIMIT_EXPORT_LIMIT = 5
+DEFAULT_RATE_LIMIT_DELETE_LIMIT = 3
 
 DEFAULT_STORAGE_PATH = str(Path(__file__).resolve().parents[2] / "data" / "wulo.db")
 DEFAULT_BOOTSTRAP_STORAGE_SEED_PATH = str(Path(__file__).resolve().parents[1] / "bootstrap" / "wulo.db")
@@ -86,6 +93,7 @@ class Config:
             "azure_avatar_style": os.getenv("AZURE_AVATAR_STYLE", DEFAULT_AVATAR_STYLE),
             "database_backend": os.getenv("DATABASE_BACKEND", DEFAULT_DATABASE_BACKEND),
             "database_url": os.getenv("DATABASE_URL", ""),
+            "database_admin_url": os.getenv("DATABASE_ADMIN_URL", os.getenv("DATABASE_URL", "")),
             "database_pool_min": int(os.getenv("DATABASE_POOL_MIN", str(DEFAULT_DATABASE_POOL_MIN))),
             "database_pool_max": int(os.getenv("DATABASE_POOL_MAX", str(DEFAULT_DATABASE_POOL_MAX))),
             "database_run_migrations_on_startup": self._parse_bool_env("DATABASE_RUN_MIGRATIONS_ON_STARTUP", True),
@@ -133,6 +141,27 @@ class Config:
             "blob_backup_account_key": os.getenv("BLOB_BACKUP_ACCOUNT_KEY", ""),
             "blob_backup_container": os.getenv("BLOB_BACKUP_CONTAINER", DEFAULT_BLOB_BACKUP_CONTAINER),
             "blob_backup_name": os.getenv("BLOB_BACKUP_NAME", DEFAULT_BLOB_BACKUP_NAME),
+            "rate_limit_default_window_seconds": int(
+                os.getenv("RATE_LIMIT_DEFAULT_WINDOW_SECONDS", str(DEFAULT_RATE_LIMIT_DEFAULT_WINDOW_SECONDS))
+            ),
+            "rate_limit_mutation_limit": int(
+                os.getenv("RATE_LIMIT_MUTATION_LIMIT", str(DEFAULT_RATE_LIMIT_MUTATION_LIMIT))
+            ),
+            "rate_limit_analyze_limit": int(
+                os.getenv("RATE_LIMIT_ANALYZE_LIMIT", str(DEFAULT_RATE_LIMIT_ANALYZE_LIMIT))
+            ),
+            "rate_limit_plans_limit": int(
+                os.getenv("RATE_LIMIT_PLANS_LIMIT", str(DEFAULT_RATE_LIMIT_PLANS_LIMIT))
+            ),
+            "rate_limit_invitations_limit": int(
+                os.getenv("RATE_LIMIT_INVITATIONS_LIMIT", str(DEFAULT_RATE_LIMIT_INVITATIONS_LIMIT))
+            ),
+            "rate_limit_export_limit": int(
+                os.getenv("RATE_LIMIT_EXPORT_LIMIT", str(DEFAULT_RATE_LIMIT_EXPORT_LIMIT))
+            ),
+            "rate_limit_delete_limit": int(
+                os.getenv("RATE_LIMIT_DELETE_LIMIT", str(DEFAULT_RATE_LIMIT_DELETE_LIMIT))
+            ),
         }
         return result
 

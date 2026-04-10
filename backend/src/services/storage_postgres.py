@@ -23,6 +23,7 @@ DEFAULT_CHILDREN = (
 ROLE_THERAPIST = "therapist"
 ROLE_PARENT = "parent"
 ROLE_ADMIN = "admin"
+ROLE_PENDING_THERAPIST = "pending_therapist"
 LEGACY_ROLE_USER = "user"
 CHILD_RELATIONSHIP_THERAPIST = "therapist"
 CHILD_RELATIONSHIP_PARENT = "parent"
@@ -33,15 +34,19 @@ REQUEST_USER_ID: ContextVar[Optional[str]] = ContextVar("postgres_request_user_i
 REQUEST_USER_ROLE: ContextVar[Optional[str]] = ContextVar("postgres_request_user_role", default=None)
 REQUEST_USER_EMAIL: ContextVar[Optional[str]] = ContextVar("postgres_request_user_email", default=None)
 INVITATION_EXPIRATION_DAYS = 7
+WORKSPACE_ROLE_OWNER = "owner"
+WORKSPACE_ROLE_ADMIN = "admin"
+WORKSPACE_ROLE_THERAPIST = "therapist"
+WORKSPACE_ROLE_PARENT = "parent"
 
 
 class PostgresStorageService:
     """Persist child, exercise, and session records in PostgreSQL."""
 
-    def __init__(self, database_url: str):
+    def __init__(self, database_url: str, allow_system_bypass: bool = True):
         self.database_url = database_url
+        self.allow_system_bypass = allow_system_bypass
         logger.info("PostgresStorageService init")
-        self._seed_children()
         logger.info("PostgresStorageService init complete")
 
     def _connect(self) -> psycopg.Connection[Any]:
@@ -49,7 +54,7 @@ class PostgresStorageService:
         current_user_id = REQUEST_USER_ID.get()
         current_user_role = REQUEST_USER_ROLE.get()
         current_user_email = REQUEST_USER_EMAIL.get()
-        system_bypass = "on" if current_user_id is None else "off"
+        system_bypass = "on" if current_user_id is None and self.allow_system_bypass else "off"
         connection.execute(
             """
             SELECT
@@ -92,6 +97,86 @@ class PostgresStorageService:
         REQUEST_USER_ID.set(None)
         REQUEST_USER_ROLE.set(None)
         REQUEST_USER_EMAIL.set(None)
+
+    def _normalize_workspace_member_role(self, role: Any) -> str:
+        normalized = str(role or "").strip().lower()
+        if normalized in {
+            WORKSPACE_ROLE_OWNER,
+            WORKSPACE_ROLE_ADMIN,
+            WORKSPACE_ROLE_THERAPIST,
+            WORKSPACE_ROLE_PARENT,
+        }:
+            return normalized
+        return WORKSPACE_ROLE_PARENT
+
+    def _default_workspace_name(self, display_name: str, email: str) -> str:
+        candidate = str(display_name or "").strip() or str(email or "").split("@")[0].strip()
+        if not candidate:
+            candidate = "Therapist"
+        return f"{candidate} Workspace"
+
+    def _build_workspace_payload(self, row: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "id": row["id"],
+            "name": row["name"],
+            "owner_user_id": row["owner_user_id"],
+            "role": self._normalize_workspace_member_role(row["member_role"]),
+            "is_personal": bool(row["is_personal"]),
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+        }
+
+    def _ensure_personal_workspace_for_user(
+        self,
+        connection: psycopg.Connection[Any],
+        user_id: str,
+        display_name: str,
+        email: str,
+    ) -> None:
+        existing = connection.execute(
+            """
+            SELECT therapist_workspaces.id
+            FROM therapist_workspaces
+            INNER JOIN workspace_members ON workspace_members.workspace_id = therapist_workspaces.id
+            WHERE therapist_workspaces.owner_user_id = %s
+              AND therapist_workspaces.is_personal = true
+              AND workspace_members.user_id = %s
+            LIMIT 1
+            """,
+            (user_id, user_id),
+        ).fetchone()
+        if existing is not None:
+            # Backfill any children that still have no workspace assigned
+            connection.execute(
+                """
+                UPDATE children SET workspace_id = %s
+                WHERE id IN (SELECT child_id FROM user_children WHERE user_id = %s)
+                  AND workspace_id IS NULL
+                """,
+                (existing["id"], user_id),
+            )
+            return
+
+        now = self._utc_now()
+        workspace_id = f"workspace-{uuid4().hex[:12]}"
+        workspace_name = self._default_workspace_name(display_name, email)
+        connection.execute(
+            """
+            INSERT INTO therapist_workspaces (id, name, owner_user_id, is_personal, created_at, updated_at)
+            VALUES (%s, %s, %s, true, %s, %s)
+            """,
+            (workspace_id, workspace_name, user_id, now, now),
+        )
+        connection.execute(
+            """
+            INSERT INTO workspace_members (workspace_id, user_id, role, created_at, updated_at)
+            VALUES (%s, %s, %s, %s, %s)
+            ON CONFLICT(workspace_id, user_id) DO UPDATE SET
+                role = EXCLUDED.role,
+                updated_at = EXCLUDED.updated_at
+            """,
+            (workspace_id, user_id, WORKSPACE_ROLE_OWNER, now, now),
+        )
 
     def _build_feedback_payload(
         self,
@@ -276,6 +361,7 @@ class PostgresStorageService:
             "updated_at": row["updated_at"],
             "responded_at": row["responded_at"],
             "expires_at": row["expires_at"],
+            "workspace_id": row.get("workspace_id"),
             "direction": direction,
         }
 
@@ -313,19 +399,6 @@ class PostgresStorageService:
         with self._connect() as connection:
             return operation(connection)
 
-    def _seed_children(self) -> None:
-        with self._connect() as connection:
-            existing_count = connection.execute("SELECT COUNT(*) AS count FROM children").fetchone()["count"]
-            if existing_count:
-                return
-
-            now = self._utc_now()
-            with connection.cursor() as cursor:
-                cursor.executemany(
-                    "INSERT INTO children (id, name, created_at) VALUES (%s, %s, %s)",
-                    [(child["id"], child["name"], now) for child in DEFAULT_CHILDREN],
-                )
-
     def _set_setting(self, key: str, value: Optional[str]) -> None:
         def persist_setting(connection: psycopg.Connection[Any]) -> None:
             connection.execute(
@@ -345,7 +418,7 @@ class PostgresStorageService:
         normalized = str(role or "").strip().lower()
         if normalized == LEGACY_ROLE_USER:
             return ROLE_PARENT
-        if normalized in {ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN}:
+        if normalized in {ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN, ROLE_PENDING_THERAPIST}:
             return normalized
         return ROLE_PARENT
 
@@ -422,6 +495,9 @@ class PostgresStorageService:
                     """,
                     (email, name, provider, user_id),
                 )
+                normalized_role = self._normalize_user_role(existing["role"])
+                if normalized_role in {ROLE_THERAPIST, ROLE_ADMIN}:
+                    self._ensure_personal_workspace_for_user(connection, user_id, name, email)
                 return {
                     "id": existing["id"],
                     "email": email,
@@ -431,8 +507,13 @@ class PostgresStorageService:
                     "created_at": existing["created_at"],
                 }
 
-            user_count = connection.execute("SELECT COUNT(*) AS count FROM users").fetchone()["count"]
-            role = ROLE_THERAPIST if user_count == 0 else ROLE_PARENT
+            # If there is a pending invitation for this email, assign parent role.
+            # Otherwise, assign pending_therapist until they redeem an invite code.
+            has_pending_invitation = connection.execute(
+                "SELECT 1 FROM child_invitations WHERE LOWER(invited_email) = LOWER(%s) AND status = 'pending' LIMIT 1",
+                (email,),
+            ).fetchone() is not None
+            role = ROLE_PARENT if has_pending_invitation else ROLE_PENDING_THERAPIST
             connection.execute(
                 """
                 INSERT INTO users (id, email, name, provider, role, created_at)
@@ -441,6 +522,7 @@ class PostgresStorageService:
                 (user_id, email, name, provider, role, now),
             )
             if role == ROLE_THERAPIST:
+                self._ensure_personal_workspace_for_user(connection, user_id, name, email)
                 self._bootstrap_existing_children_for_user(connection, user_id, CHILD_RELATIONSHIP_THERAPIST)
             return {
                 "id": user_id,
@@ -459,10 +541,24 @@ class PostgresStorageService:
             raise ValueError("Unsupported role")
 
         def persist_role(connection: psycopg.Connection[Any]) -> int:
+            existing = connection.execute(
+                "SELECT id, email, name FROM users WHERE id = %s",
+                (user_id,),
+            ).fetchone()
+            if existing is None:
+                return 0
+
             cursor = connection.execute(
                 "UPDATE users SET role = %s WHERE id = %s",
                 (normalized_role, user_id),
             )
+            if cursor.rowcount > 0 and normalized_role in {ROLE_THERAPIST, ROLE_ADMIN}:
+                self._ensure_personal_workspace_for_user(
+                    connection,
+                    user_id,
+                    str(existing["name"] or ""),
+                    str(existing["email"] or ""),
+                )
             if cursor.rowcount > 0 and normalized_role == ROLE_THERAPIST:
                 self._bootstrap_existing_children_for_user(connection, user_id, CHILD_RELATIONSHIP_THERAPIST)
             return cursor.rowcount
@@ -472,6 +568,53 @@ class PostgresStorageService:
             return None
 
         return self.get_user(user_id)
+
+    def create_invite_code(self, code: str, created_by: str) -> Dict[str, Any]:
+        now = self._utc_now()
+        invite_id = str(uuid4())
+
+        def persist(connection: psycopg.Connection[Any]) -> Dict[str, Any]:
+            connection.execute(
+                "INSERT INTO therapist_invite_codes (id, code, created_by, created_at) VALUES (%s, %s, %s, %s)",
+                (invite_id, code.upper().strip(), created_by, now),
+            )
+            return {"id": invite_id, "code": code.upper().strip(), "created_by": created_by, "created_at": now}
+
+        return self._execute_write(persist)
+
+    def claim_invite_code(self, code: str, user_id: str) -> bool:
+        """Claim an invite code and upgrade user to therapist. Returns True on success."""
+        now = self._utc_now()
+
+        def persist(connection: psycopg.Connection[Any]) -> bool:
+            row = connection.execute(
+                "SELECT id FROM therapist_invite_codes WHERE UPPER(code) = UPPER(%s) AND used_by IS NULL",
+                (code.strip(),),
+            ).fetchone()
+            if row is None:
+                return False
+            connection.execute(
+                "UPDATE therapist_invite_codes SET used_by = %s, used_at = %s WHERE id = %s",
+                (user_id, now, row["id"]),
+            )
+            user = connection.execute("SELECT name, email FROM users WHERE id = %s", (user_id,)).fetchone()
+            connection.execute("UPDATE users SET role = %s WHERE id = %s", (ROLE_THERAPIST, user_id))
+            if user is not None:
+                self._ensure_personal_workspace_for_user(connection, user_id, str(user["name"] or ""), str(user["email"] or ""))
+                self._bootstrap_existing_children_for_user(connection, user_id, CHILD_RELATIONSHIP_THERAPIST)
+            return True
+
+        return self._execute_write(persist)
+
+    def list_invite_codes(self, created_by: str) -> List[Dict[str, Any]]:
+        def query(connection: psycopg.Connection[Any]) -> List[Dict[str, Any]]:
+            rows = connection.execute(
+                "SELECT id, code, created_by, used_by, used_at, created_at FROM therapist_invite_codes WHERE created_by = %s ORDER BY created_at DESC",
+                (created_by,),
+            ).fetchall()
+            return [dict(r) for r in rows]
+
+        return self._execute_read(query)
 
     def save_consent_acknowledgement(self, timestamp: Optional[str] = None) -> str:
         consent_timestamp = timestamp or self._utc_now()
@@ -517,6 +660,7 @@ class PostgresStorageService:
         date_of_birth: Optional[str] = None,
         notes: Optional[str] = None,
         child_id: Optional[str] = None,
+        workspace_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         normalized_name = str(name or "").strip()
         if not normalized_name:
@@ -526,12 +670,40 @@ class PostgresStorageService:
         created_at = self._utc_now()
 
         def persist_child(connection: psycopg.Connection[Any]) -> None:
+            resolved_workspace_id = workspace_id
+            if resolved_workspace_id is None:
+                ws_row = connection.execute(
+                    """
+                    SELECT therapist_workspaces.id
+                    FROM workspace_members
+                    INNER JOIN therapist_workspaces ON therapist_workspaces.id = workspace_members.workspace_id
+                    WHERE workspace_members.user_id = %s
+                    ORDER BY
+                        CASE workspace_members.role
+                            WHEN 'owner' THEN 0 WHEN 'admin' THEN 1 WHEN 'therapist' THEN 2 ELSE 3
+                        END,
+                        therapist_workspaces.created_at ASC
+                    LIMIT 1
+                    """,
+                    (created_by_user_id,),
+                ).fetchone()
+                if ws_row is not None:
+                    resolved_workspace_id = str(ws_row["id"])
+
+            if resolved_workspace_id is not None:
+                membership = connection.execute(
+                    "SELECT 1 FROM workspace_members WHERE workspace_id = %s AND user_id = %s",
+                    (resolved_workspace_id, created_by_user_id),
+                ).fetchone()
+                if membership is None:
+                    raise ValueError("User is not a member of the specified workspace")
+
             connection.execute(
                 """
-                INSERT INTO children (id, name, date_of_birth, notes, deleted_at, created_at)
-                VALUES (%s, %s, %s, %s, NULL, %s)
+                INSERT INTO children (id, name, date_of_birth, notes, deleted_at, created_at, workspace_id)
+                VALUES (%s, %s, %s, %s, NULL, %s, %s)
                 """,
-                (created_child_id, normalized_name, date_of_birth, notes, created_at),
+                (created_child_id, normalized_name, date_of_birth, notes, created_at, resolved_workspace_id),
             )
             connection.execute(
                 """
@@ -557,6 +729,7 @@ class PostgresStorageService:
                 children.notes,
                 children.deleted_at,
                 children.created_at,
+                children.workspace_id,
                 COUNT(sessions.id) AS session_count,
                 MAX(sessions.timestamp) AS last_session_at
             FROM children
@@ -568,7 +741,7 @@ class PostgresStorageService:
         if not include_deleted:
             query.append("AND children.deleted_at IS NULL")
         query.append(
-            "GROUP BY children.id, children.name, children.date_of_birth, children.notes, children.deleted_at, children.created_at"
+            "GROUP BY children.id, children.name, children.date_of_birth, children.notes, children.deleted_at, children.created_at, children.workspace_id"
         )
 
         with self._connect() as connection:
@@ -584,13 +757,16 @@ class PostgresStorageService:
             "notes": row["notes"],
             "deleted_at": row["deleted_at"],
             "created_at": row["created_at"],
+            "workspace_id": row["workspace_id"],
             "session_count": row["session_count"],
             "last_session_at": row["last_session_at"],
         }
 
-    def list_children_for_user(self, user_id: str, include_deleted: bool = False) -> List[Dict[str, Any]]:
+    def list_children_for_user(
+        self, user_id: str, include_deleted: bool = False, workspace_id: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
         user = self.get_user(user_id)
-        if user is not None and user.get("role") == ROLE_ADMIN:
+        if user is not None and user.get("role") == ROLE_ADMIN and workspace_id is None:
             return self.list_children(include_deleted=include_deleted)
 
         query = [
@@ -602,6 +778,7 @@ class PostgresStorageService:
                 children.notes,
                 children.deleted_at,
                 children.created_at,
+                children.workspace_id,
                 COUNT(sessions.id) AS session_count,
                 MAX(sessions.timestamp) AS last_session_at
             FROM children
@@ -611,10 +788,13 @@ class PostgresStorageService:
             """
         ]
         parameters: List[Any] = [user_id]
+        if workspace_id is not None:
+            query.append("AND children.workspace_id = %s")
+            parameters.append(workspace_id)
         if not include_deleted:
             query.append("AND children.deleted_at IS NULL")
         query.append(
-            "GROUP BY children.id, children.name, children.date_of_birth, children.notes, children.deleted_at, children.created_at"
+            "GROUP BY children.id, children.name, children.date_of_birth, children.notes, children.deleted_at, children.created_at, children.workspace_id"
         )
         query.append("ORDER BY LOWER(children.name) ASC")
 
@@ -629,6 +809,7 @@ class PostgresStorageService:
                 "notes": row["notes"],
                 "deleted_at": row["deleted_at"],
                 "created_at": row["created_at"],
+                "workspace_id": row["workspace_id"],
                 "session_count": row["session_count"],
                 "last_session_at": row["last_session_at"],
             }
@@ -647,23 +828,40 @@ class PostgresStorageService:
         if user is not None and user.get("role") == ROLE_ADMIN:
             return self.get_child(child_id, include_deleted=include_deleted) is not None
 
-        query = [
-            """
-            SELECT 1
-            FROM user_children
-            INNER JOIN children ON children.id = user_children.child_id
-            WHERE user_children.user_id = %s AND user_children.child_id = %s
-            """
-        ]
-        parameters: List[Any] = [user_id, child_id]
-        if not include_deleted:
-            query.append("AND children.deleted_at IS NULL")
-        if allowed_relationships:
-            placeholders = ", ".join(["%s"] * len(allowed_relationships))
-            query.append(f"AND user_children.relationship IN ({placeholders})")
-            parameters.extend(allowed_relationships)
-
         with self._connect() as connection:
+            child_row = connection.execute(
+                "SELECT workspace_id FROM children WHERE id = %s",
+                (child_id,),
+            ).fetchone()
+            if child_row is None:
+                return False
+
+            child_workspace_id = child_row["workspace_id"]
+
+            if child_workspace_id is not None:
+                ws_member = connection.execute(
+                    "SELECT 1 FROM workspace_members WHERE workspace_id = %s AND user_id = %s",
+                    (child_workspace_id, user_id),
+                ).fetchone()
+                if ws_member is None:
+                    return False
+
+            query = [
+                """
+                SELECT 1
+                FROM user_children
+                INNER JOIN children ON children.id = user_children.child_id
+                WHERE user_children.user_id = %s AND user_children.child_id = %s
+                """
+            ]
+            parameters: List[Any] = [user_id, child_id]
+            if not include_deleted:
+                query.append("AND children.deleted_at IS NULL")
+            if allowed_relationships:
+                placeholders = ", ".join(["%s"] * len(allowed_relationships))
+                query.append(f"AND user_children.relationship IN ({placeholders})")
+                parameters.extend(allowed_relationships)
+
             row = connection.execute("\n".join(query), parameters).fetchone()
         return row is not None
 
@@ -674,6 +872,90 @@ class PostgresStorageService:
                 (user_id, child_id),
             ).fetchone()
         return None if row is None else str(row["relationship"])
+
+    def list_workspaces_for_user(self, user_id: str) -> List[Dict[str, Any]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT
+                    therapist_workspaces.id,
+                    therapist_workspaces.name,
+                    therapist_workspaces.owner_user_id,
+                    therapist_workspaces.is_personal,
+                    therapist_workspaces.created_at,
+                    therapist_workspaces.updated_at,
+                    workspace_members.role AS member_role
+                FROM workspace_members
+                INNER JOIN therapist_workspaces ON therapist_workspaces.id = workspace_members.workspace_id
+                WHERE workspace_members.user_id = %s
+                ORDER BY therapist_workspaces.is_personal DESC, LOWER(therapist_workspaces.name) ASC
+                """,
+                (user_id,),
+            ).fetchall()
+        return [self._build_workspace_payload(row) for row in rows]
+
+    def get_default_workspace_for_user(self, user_id: str) -> Optional[Dict[str, Any]]:
+        workspaces = self.list_workspaces_for_user(user_id)
+        if not workspaces:
+            return None
+        personal_workspace = next((workspace for workspace in workspaces if workspace.get("is_personal")), None)
+        return personal_workspace or workspaces[0]
+
+    def create_workspace(self, user_id: str, name: Optional[str] = None) -> Dict[str, Any]:
+        def persist_workspace(connection: psycopg.Connection[Any]) -> Dict[str, Any]:
+            user = connection.execute(
+                "SELECT id, email, name, role FROM users WHERE id = %s",
+                (user_id,),
+            ).fetchone()
+            if user is None:
+                raise ValueError("User not found")
+
+            normalized_name = str(name or "").strip() or self._default_workspace_name(
+                str(user["name"] or ""),
+                str(user["email"] or ""),
+            )
+            now = self._utc_now()
+
+            if self._normalize_user_role(user["role"]) not in {ROLE_THERAPIST, ROLE_ADMIN}:
+                raise ValueError("Therapist role required to create a workspace")
+
+            workspace_id = f"workspace-{uuid4().hex[:12]}"
+            connection.execute(
+                """
+                INSERT INTO therapist_workspaces (id, name, owner_user_id, is_personal, created_at, updated_at)
+                VALUES (%s, %s, %s, false, %s, %s)
+                """,
+                (workspace_id, normalized_name, user_id, now, now),
+            )
+            connection.execute(
+                """
+                INSERT INTO workspace_members (workspace_id, user_id, role, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s)
+                """,
+                (workspace_id, user_id, WORKSPACE_ROLE_OWNER, now, now),
+            )
+
+            row = connection.execute(
+                """
+                SELECT
+                    therapist_workspaces.id,
+                    therapist_workspaces.name,
+                    therapist_workspaces.owner_user_id,
+                    therapist_workspaces.is_personal,
+                    therapist_workspaces.created_at,
+                    therapist_workspaces.updated_at,
+                    workspace_members.role AS member_role
+                FROM therapist_workspaces
+                INNER JOIN workspace_members ON workspace_members.workspace_id = therapist_workspaces.id
+                WHERE therapist_workspaces.id = %s AND workspace_members.user_id = %s
+                """,
+                (workspace_id, user_id),
+            ).fetchone()
+            if row is None:
+                raise RuntimeError("Workspace could not be reloaded after creation")
+            return self._build_workspace_payload(row)
+
+        return self._execute_write(persist_workspace)
 
     def soft_delete_child(self, child_id: str) -> Optional[Dict[str, Any]]:
         deleted_at = self._utc_now()
@@ -765,6 +1047,13 @@ class PostgresStorageService:
 
         def persist_invitation(connection: psycopg.Connection[Any]) -> None:
             nonlocal reused_invitation_id
+
+            # Resolve workspace_id from the child
+            child_row = connection.execute(
+                "SELECT workspace_id FROM children WHERE id = %s", (child_id,),
+            ).fetchone()
+            resolved_workspace_id = child_row["workspace_id"] if child_row is not None else None
+
             connection.execute(
                 """
                 UPDATE child_invitations
@@ -788,10 +1077,10 @@ class PostgresStorageService:
                 connection.execute(
                     """
                     UPDATE child_invitations
-                    SET updated_at = %s, responded_at = NULL, expires_at = %s
+                    SET updated_at = %s, responded_at = NULL, expires_at = %s, workspace_id = %s
                     WHERE id = %s
                     """,
-                    (created_at, expires_at, reused_invitation_id),
+                    (created_at, expires_at, resolved_workspace_id, reused_invitation_id),
                 )
                 return
 
@@ -808,9 +1097,10 @@ class PostgresStorageService:
                     created_at,
                     updated_at,
                     responded_at,
-                    expires_at
+                    expires_at,
+                    workspace_id
                 )
-                VALUES (%s, %s, %s, %s, 'pending', %s, NULL, %s, %s, NULL, %s)
+                VALUES (%s, %s, %s, %s, 'pending', %s, NULL, %s, %s, NULL, %s, %s)
                 """,
                 (
                     invitation_id,
@@ -821,6 +1111,7 @@ class PostgresStorageService:
                     created_at,
                     created_at,
                     expires_at,
+                    resolved_workspace_id,
                 ),
             )
 
@@ -849,6 +1140,7 @@ class PostgresStorageService:
                     child_invitations.updated_at,
                     child_invitations.responded_at,
                     child_invitations.expires_at,
+                    child_invitations.workspace_id,
                     (
                         SELECT status
                         FROM child_invitation_email_deliveries
@@ -915,6 +1207,7 @@ class PostgresStorageService:
                     child_invitations.updated_at,
                     child_invitations.responded_at,
                     child_invitations.expires_at,
+                    child_invitations.workspace_id,
                     (
                         SELECT status
                         FROM child_invitation_email_deliveries
@@ -1020,6 +1313,27 @@ class PostgresStorageService:
                     """,
                     (user_id, row["child_id"], row["relationship"], responded_at),
                 )
+
+                # Grant workspace membership if the child belongs to a workspace
+                child_ws = connection.execute(
+                    "SELECT workspace_id FROM children WHERE id = %s",
+                    (row["child_id"],),
+                ).fetchone()
+                if child_ws is not None and child_ws["workspace_id"] is not None:
+                    ws_role = WORKSPACE_ROLE_PARENT if row["relationship"] == CHILD_RELATIONSHIP_PARENT else WORKSPACE_ROLE_THERAPIST
+                    connection.execute(
+                        """
+                        INSERT INTO workspace_members (workspace_id, user_id, role, created_at, updated_at)
+                        VALUES (%s, %s, %s, %s, %s)
+                        ON CONFLICT(workspace_id, user_id) DO NOTHING
+                        """,
+                        (child_ws["workspace_id"], user_id, ws_role, responded_at, responded_at),
+                    )
+
+                # If user is pending_therapist, downgrade to parent on invitation acceptance
+                user_row = connection.execute("SELECT role FROM users WHERE id = %s", (user_id,)).fetchone()
+                if user_row is not None and user_row["role"] == ROLE_PENDING_THERAPIST:
+                    connection.execute("UPDATE users SET role = %s WHERE id = %s", (ROLE_PARENT, user_id))
 
             return str(row["child_id"])
 
@@ -1151,6 +1465,7 @@ class PostgresStorageService:
                     children.notes,
                     children.deleted_at,
                     children.created_at,
+                    children.workspace_id,
                     COUNT(sessions.id) AS session_count,
                     MAX(sessions.timestamp) AS last_session_at
                 FROM children
@@ -1162,7 +1477,7 @@ class PostgresStorageService:
             if not include_deleted:
                 query.append("AND children.deleted_at IS NULL")
             query.append(
-                "GROUP BY children.id, children.name, children.date_of_birth, children.notes, children.deleted_at, children.created_at"
+                "GROUP BY children.id, children.name, children.date_of_birth, children.notes, children.deleted_at, children.created_at, children.workspace_id"
             )
             query.append("ORDER BY LOWER(children.name) ASC")
             rows = connection.execute("\n".join(query), parameters).fetchall()
@@ -1175,6 +1490,7 @@ class PostgresStorageService:
                 "notes": row["notes"],
                 "deleted_at": row["deleted_at"],
                 "created_at": row["created_at"],
+                "workspace_id": row["workspace_id"],
                 "session_count": row["session_count"],
                 "last_session_at": row["last_session_at"],
             }

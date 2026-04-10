@@ -68,6 +68,17 @@ export interface ChildProfile {
   created_at?: string
   session_count?: number
   last_session_at?: string | null
+  workspace_id?: string | null
+}
+
+export interface WorkspaceSummary {
+  id: string
+  name: string
+  owner_user_id: string
+  role: 'owner' | 'admin' | 'therapist' | 'parent'
+  is_personal: boolean
+  created_at: string
+  updated_at: string
 }
 
 export interface ParentalConsent {
@@ -111,6 +122,7 @@ export interface ChildInvitation {
   expires_at?: string | null
   direction: 'incoming' | 'sent'
   email_delivery?: InvitationEmailDelivery | null
+  workspace_id?: string | null
 }
 
 export interface SessionExercise {

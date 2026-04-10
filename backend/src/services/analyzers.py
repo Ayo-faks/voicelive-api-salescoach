@@ -20,6 +20,7 @@ import yaml
 from openai import AzureOpenAI
 
 from src.config import config
+from src.services.azure_openai_auth import build_openai_client
 from src.services.scenario_utils import determine_scenario_directory
 
 logger = logging.getLogger(__name__)
@@ -124,17 +125,9 @@ class ConversationAnalyzer:
         """
         try:
             endpoint = config["azure_openai_endpoint"]
-            api_key = config["azure_openai_api_key"]
-
-            if not endpoint or not api_key:
-                logger.error("Azure OpenAI endpoint or API key not configured")
+            client = build_openai_client(config)
+            if client is None:
                 return None
-
-            client = AzureOpenAI(
-                api_version=config["api_version"],
-                azure_endpoint=endpoint,
-                api_key=api_key,
-            )
 
             logger.info("ConversationAnalyzer initialized with endpoint: %s", endpoint)
             return client

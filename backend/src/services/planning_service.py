@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Mapping, Optional, cast
 from uuid import uuid4
 
 from src.config import config
+from src.services.azure_openai_auth import build_copilot_azure_provider_config
 from src.services.child_memory_service import ChildMemoryService
 from src.services.plan_validation import normalize_plan_draft
 
@@ -74,7 +75,6 @@ class CopilotPlannerRuntime:
         self.reasoning_effort = str(settings.get("copilot_planner_reasoning_effort") or "").strip()
         self.cli_path = str(settings.get("copilot_cli_path") or "").strip()
         self.github_token = str(settings.get("copilot_github_token") or "").strip()
-        self.azure_provider = self._build_provider_config(settings)
         self._cached_readiness: Optional[Dict[str, Any]] = None
         self._cached_readiness_at: float = 0.0
 
@@ -138,8 +138,9 @@ class CopilotPlannerRuntime:
         }
         if self.reasoning_effort:
             session_kwargs["reasoning_effort"] = self.reasoning_effort
-        if self.azure_provider is not None:
-            session_kwargs["provider"] = self.azure_provider
+        azure_provider = self._build_provider_config(self.settings)
+        if azure_provider is not None:
+            session_kwargs["provider"] = azure_provider
 
         session = None
         try:
@@ -173,25 +174,14 @@ class CopilotPlannerRuntime:
         return CopilotClient()
 
     def _build_provider_config(self, settings: Mapping[str, Any]) -> Optional[Dict[str, Any]]:
-        endpoint = str(settings.get("azure_openai_endpoint") or "").strip()
-        api_key = str(settings.get("azure_openai_api_key") or "").strip()
-        if not endpoint or not api_key:
-            return None
-
-        return {
-            "type": "azure",
-            "base_url": endpoint,
-            "api_key": api_key,
-            "azure": {
-                "api_version": str(settings.get("copilot_azure_api_version") or "2024-10-21"),
-            },
-        }
+        provider = build_copilot_azure_provider_config(settings)
+        return cast(Optional[Dict[str, Any]], provider)
 
     def _build_readiness(self) -> Dict[str, Any]:
         sdk_available = CopilotClient is not None and PermissionRequestResult is not None and Tool is not None
         cli_resolution = self._resolve_cli_path()
         cli_available = bool(cli_resolution.get("available"))
-        using_byok_provider = self.azure_provider is not None
+        using_byok_provider = self._build_provider_config(self.settings) is not None
         using_github_token = bool(self.github_token)
         auth_status = self._check_cli_auth_status(cli_resolution)
         planner_ready = bool(sdk_available and cli_available and (using_byok_provider or using_github_token or auth_status["authenticated"]))

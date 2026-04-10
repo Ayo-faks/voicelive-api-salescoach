@@ -1,494 +1,520 @@
 # Security Threat Model
 
+Last rescanned: 2026-04-08
+
 ## Scope
 
-This document describes the current security posture of the VoiceLive Sales Coach platform as implemented in this repository and deployed through Azure Developer CLI to Azure Container Apps.
+This document describes the current threat model for the VoiceLive Sales Coach platform as it exists in this repository today.
 
 It covers:
 
-- Current architecture and data flows
-- Trust boundaries and assets
-- Attacker classes, goals, capabilities, and incentives
-- STRIDE threat analysis for the current design
-- A security control checklist mapped to the repo and Azure resources
-- An end-to-end walk-through from therapist login to voice session to transcript storage
+- The current backend, frontend, storage, and Azure deployment shape
+- New features added since the earlier review, including child access control, invitations, parental consent, data export and deletion, governed child memory, institutional memory, recommendations, and Copilot planner-backed practice planning
+- Threats across both the SQLite path and the PostgreSQL path
+- A control checklist mapped to the repo and Azure resources
+- Updated priorities based on the current attack surface
 
-This is a current-state threat model, not an ideal-state design. Where the implementation differs from the intended architecture, this document calls that out explicitly.
+This is a current-state model. Where code, docs, and infrastructure disagree, that inconsistency is treated as a security and operations risk rather than ignored.
+
+## What Changed Since The Previous Review
+
+The previous threat model assumed a relatively simple design: Easy Auth, Flask APIs, WebSocket voice proxy, SQLite session storage, and blob backup.
+
+That model is now incomplete. The platform has materially expanded:
+
+- Child access is no longer just a therapist-only UI concern. There is now a user-to-child relationship model through `user_children`.
+- Therapists can create invitations for parent access, and authenticated invitees can accept or decline them.
+- The app now supports parental consent capture, child data export, and child data deletion workflows.
+- The data model now includes child memory items, child memory proposals, memory evidence links, compiled summaries, institutional memory insights, recommendation logs, and practice plans.
+- A PostgreSQL backend exists alongside SQLite, with Alembic migrations and row-level security policies.
+- The runtime includes invitation email delivery through Azure Communication Services.
+- The runtime includes Copilot planner support with either GitHub token auth or Azure BYOK provider settings.
+
+These changes improve some risks, especially around child-level authorization and auditability, but they also create new attack paths and new trust boundaries.
 
 ## Current Architecture
 
-### Runtime and infrastructure
+### Runtime surfaces
 
-- Frontend and backend are served by a single Flask application from the `backend` service.
-- The app is deployed to Azure Container Apps through `azd` using [azure.yaml](../azure.yaml).
-- Azure Container Apps Easy Auth is configured in [infra/resources.bicep](../infra/resources.bicep) with Microsoft Entra ID and optional Google login.
-- The app uses Azure AI Services / Azure OpenAI, Azure Speech, Application Insights, Azure Blob Storage, Azure Container Registry, and a user-assigned managed identity.
-- A Storage Account and Azure Files share are provisioned in [infra/resources.bicep](../infra/resources.bicep), but the current Container App definition does not mount that share into the running container.
-- The current runtime storage path is `STORAGE_PATH=/tmp/wulo.db` in [infra/resources.bicep](../infra/resources.bicep), which means the live SQLite database is written to the container filesystem and then backed up best-effort to Azure Blob Storage.
+The application now exposes these main runtime surfaces:
 
-### Key repo components
+- Browser SPA and same-origin authenticated REST APIs in [backend/src/app.py](../backend/src/app.py)
+- Realtime voice WebSocket proxy at `/ws/voice`
+- Therapist-facing child, session, plan, recommendation, and memory APIs
+- Parent-facing invitation acceptance, consent, and child data access flows
+- Optional invitation email delivery through Azure Communication Services
+- Optional Copilot planner runtime in-process in the backend
 
-| Area | Repo location | Role |
-|---|---|---|
-| Auth extraction and API routes | `backend/src/app.py` | Reads Easy Auth headers, enforces route guards, exposes API and WebSocket endpoints |
-| Config and secret loading | `backend/src/config.py` | Loads environment variables and service credentials |
-| Voice WebSocket proxy | `backend/src/services/websocket_handler.py` | Proxies browser voice traffic to Azure VoiceLive |
-| Persistence | `backend/src/services/storage.py` | Stores users, children, sessions, transcripts, feedback in SQLite |
-| Blob backup | `backend/src/services/blob_backup.py` | Uploads and restores the SQLite file from Azure Blob Storage |
-| Frontend auth and API calls | `frontend/src/services/api.ts` | Calls authenticated endpoints with cookies |
-| Frontend voice connection | `frontend/src/hooks/useRealtime.ts` | Opens `/ws/voice` and forwards session state |
-| Infrastructure | `infra/resources.bicep` | Provisions Container App, auth, AI, speech, storage, monitoring, registry, identity |
+### Storage modes
 
-## Assets and Data Classification
+The application supports two persistence modes:
 
-| Asset | Examples | Sensitivity | Why it matters |
+#### SQLite mode
+
+- Implemented by [backend/src/services/storage.py](../backend/src/services/storage.py)
+- Still the default config value in [backend/src/config.py](../backend/src/config.py)
+- Stores users, children, sessions, user-child relationships, invitations, audit events, plans, memory, recommendations, and consent in a local SQLite file
+- Uses blob backup for the database file
+
+#### PostgreSQL mode
+
+- Implemented by [backend/src/services/storage_postgres.py](../backend/src/services/storage_postgres.py)
+- Selected through [backend/src/services/storage_factory.py](../backend/src/services/storage_factory.py)
+- Uses Alembic migrations in [backend/alembic/versions](../backend/alembic/versions)
+- Introduces row-level security through [backend/alembic/versions/20260408_000006_invitation_rls.py](../backend/alembic/versions/20260408_000006_invitation_rls.py)
+- Uses request-scoped identity settings `app.current_user_id`, `app.current_user_role`, and `app.current_user_email` to support database-side access control
+
+### Azure deployment shape
+
+The current infrastructure in [infra/resources.bicep](../infra/resources.bicep) provisions:
+
+- Azure Container Apps with Easy Auth
+- Azure AI Services / Azure OpenAI
+- Azure Speech
+- Azure Storage account, file share, and blob backup container
+- Optional Azure Database for PostgreSQL Flexible Server
+- Optional Azure Communication Services Email wiring
+- Application Insights and Log Analytics
+- Container Registry and a user-assigned managed identity
+
+Important current details:
+
+- The Container App now uses managed-identity-capable auth for Azure OpenAI and no longer injects `AZURE_OPENAI_API_KEY`, but it still injects long-lived secrets for Azure Speech, the PostgreSQL admin connection string used for migrations, optional Copilot GitHub token, auth provider secrets, and ACS connection strings.
+- PostgreSQL is provisioned with public network access enabled and an `AllowAzureServices` firewall rule.
+- The Container App still sets `STORAGE_PATH=/tmp/wulo.db` and leaves `volumes` and `volumeMounts` empty in the Bicep shown here.
+- Some newer repo documentation describes Azure Files as mounted persistence, but the current Bicep still shows the runtime path as `/tmp/wulo.db` with blob backup.
+- Easy Auth excludes these paths from authentication: `/`, `/index.html`, `/assets/*`, `/js/*`, `/manifest.json`, `/api/health`, `/logout`, `/wulo-logo.png`, `/favicon.ico`, `/privacy`, `/terms`, `/ai-transparency`.
+- No CSRF protection is present in the application layer.
+
+That means the storage architecture must be treated as:
+
+- SQLite path: local container filesystem plus blob backup
+- PostgreSQL path: external managed database over public network access with password auth
+
+## Assets
+
+| Asset | Examples | Sensitivity | Notes |
 |---|---|---|---|
-| Child data | child IDs, names, exercises, transcripts, pronunciation scores, therapist notes | High | This is the primary regulated and reputation-sensitive data set |
-| Therapist identity | user ID, email, role, provider | High | Used to authorize review and child access |
-| Voice session data | live audio stream, transcript deltas, assistant responses | High | Can reveal speech patterns, child information, and session content |
-| AI outputs | assessments, notes, pronunciation analysis | High | May contain sensitive derived data and clinician-facing observations |
-| Auth context | Easy Auth headers, browser cookies | High | Allows user impersonation if trusted incorrectly |
-| Service credentials | AI key, Speech key, blob storage account key | Critical | Enables direct access to cloud services outside the app |
-| Deployment credentials | Azure principal, portal and CI/CD access | Critical | Can alter runtime, auth, secrets, or logging |
-| Telemetry and logs | request logs, event telemetry, exception traces | Medium to High | Often leaks sensitive operational and user data indirectly |
+| Child profile data | child name, DOB, notes, relationship links | High | Directly identifying and regulated |
+| Session data | transcripts, reference text, pronunciation, AI assessment, therapist feedback | High | Core sensitive therapy data |
+| Child memory | approved items, proposals, evidence links, summaries | High | Durable derived knowledge about a child |
+| Institutional memory | de-identified clinic-level patterns | Medium to High | Intended to be de-identified, but still needs re-identification controls |
+| Practice plans | plan drafts, therapist messages, planner session IDs | High | Contains clinical context and future session design |
+| Invitations and consent | invited email, guardian name, guardian email, consent flags | High | Sensitive relationship and compliance data |
+| Audit events | who accessed which child, when, and why | High | Sensitive but also necessary for security and compliance |
+| Auth context | Easy Auth headers, browser session cookies | High | Identity anchor for both REST and WebSocket paths |
+| Cloud credentials | Speech key, Postgres admin password, Copilot GitHub token, ACS connection string | Critical | Direct cloud abuse if leaked |
+| Control-plane access | Azure principals, deploy credentials, portal access | Critical | Can change auth, secrets, networking, and data handling |
 
 ## Trust Boundaries
 
-| Boundary | From | To | Main assumption |
+| Boundary | From | To | Main risk |
 |---|---|---|---|
-| B1 | Browser | Public Container App ingress | TLS protects transport and Easy Auth is enforced at the edge |
-| B2 | Easy Auth edge | Flask app | Identity headers are only present when issued by trusted platform auth |
-| B3 | Flask app | Azure VoiceLive / Azure OpenAI / Azure Speech | Outbound calls use trusted credentials and only intended data is sent |
-| B4 | Flask app | SQLite database file | The app is the only writer and can protect confidentiality and integrity |
-| B5 | Flask app | Azure Blob Storage backup | Backup destination is restricted and not broadly readable |
-| B6 | CI/CD and operators | Azure control plane and runtime config | Deployment identities and operators are least-privileged and auditable |
+| B1 | Browser | Public Container App ingress | Session theft, abuse, malformed requests, replay |
+| B2 | Easy Auth edge | Flask app | Header trust, role bootstrap, auth bypass invariants |
+| B3 | Flask authz layer | Child-scoped app operations | Broken access control across therapist, parent, and admin roles |
+| B4 | Flask app | VoiceLive / Azure AI / Speech | Data over-sharing, quota abuse, key theft |
+| B5 | Flask app | SQLite or PostgreSQL | Confidentiality, integrity, isolation, and deletion correctness |
+| B6 | Flask app | Invitation email and external messaging | Email disclosure, invitation misuse, identity binding |
+| B7 | Flask app | Copilot planner runtime | Prompt/data leakage, token misuse, planner drift |
+| B8 | App / operators | Azure control plane | Secret exposure, network overexposure, weak RBAC, unsafe deploys |
 
-## Data Flow Overview
+## Key Data Flows
 
-### High-level flow
+### 1. Therapist session and child access
 
-1. Therapist opens the app and is redirected to Azure Easy Auth for login.
-2. Easy Auth returns the therapist to the app and injects identity headers on authenticated requests.
-3. Frontend calls `/api/auth/session` to get the user record and role.
-4. Frontend creates an agent through `/api/agents/create`.
-5. Frontend opens `wss://.../ws/voice` and sends a `session.update` containing the agent ID.
-6. Backend validates that Easy Auth principal headers survived the WebSocket upgrade.
-7. Backend connects to Azure VoiceLive using the configured Azure AI endpoint and API key.
-8. Voice session traffic flows bidirectionally between browser and Azure VoiceLive through the backend proxy.
-9. When the session ends, frontend sends transcript, audio chunks, and context to `/api/analyze`.
-10. Backend calls analysis services, saves a session record to SQLite, and triggers a blob backup.
-11. Therapist later reviews sessions through therapist-only endpoints.
+1. User signs in through Easy Auth.
+2. Backend creates or updates the local user record from Easy Auth headers.
+3. Frontend calls `/api/auth/session`.
+4. Child access is resolved through `user_children` relationships.
 
-### Sensitive data in motion
+### 2. Invitation and parent onboarding
 
-| Flow | Data | Notes |
-|---|---|---|
-| Browser to `/api/auth/session` | auth cookie, Easy Auth context | Session discovery |
-| Browser to `/ws/voice` | live audio, partial transcripts, agent selection | High-volume, high-value real-time channel |
-| Backend to Azure VoiceLive | audio, config, tools, instructions | Includes session instructions and voice config |
-| Browser to `/api/analyze` | transcript, audio chunks, child ID, exercise metadata | This becomes persistent session data |
-| Backend to SQLite | transcripts, assessments, reference text, feedback | Stored locally in `wulo.db` |
-| Backend to Blob Storage | whole SQLite file | Expands blast radius if leaked |
-| Backend to Application Insights | telemetry events and errors | Must not contain raw regulated payloads |
+1. Therapist creates a child invitation through `/api/invitations`.
+2. Invitation is stored with invited email and relationship.
+3. Optional email is sent through Azure Communication Services.
+4. Invitee signs in and accepts or declines using authenticated endpoints.
+
+### 3. Live session and post-session persistence
+
+1. Client opens `/ws/voice`.
+2. Backend validates principal headers and proxies traffic to Azure VoiceLive.
+3. Client later submits transcript and session context to `/api/analyze`.
+4. Backend saves session data and may synthesize child memory proposals.
+
+### 4. Therapist review and planning
+
+1. Therapist fetches child sessions, memory summary, proposals, recommendations, and plans.
+2. Therapist can create manual memory, approve or reject proposals, generate recommendations, and create or refine plans.
+3. Planner may call Copilot SDK and Azure OpenAI or GitHub-backed auth depending on configuration.
+
+### 5. Compliance and privacy operations
+
+1. Therapist or parent with child access can manage parental consent.
+2. Therapist, parent, or admin with child access can export child data. Export is a simple GET with no confirmation step.
+3. Therapist, parent, or admin with child access can delete child data. Delete requires `{"confirm": true}` in the request body.
 
 ## Attacker Model
 
 ### Attacker classes
 
-| Attacker | Capability | Likely goal | Incentive |
-|---|---|---|---|
-| Unauthenticated internet attacker | Public network access only | Abuse service, cause outage, exploit auth mistakes | Free compute, disruption, extortion |
-| Authenticated low-privilege user | Valid login, browser tools, endpoint enumeration | Read other users' or children's records | Curiosity, privacy abuse, competitive misuse |
-| Compromised therapist account | Legitimate session and therapist access | Bulk data extraction, silent misuse | Sensitive data theft, fraud |
-| Malicious insider or operator | Portal access or runtime secret visibility | Access data, secrets, or logs; change policy | Data theft, sabotage |
-| Supply-chain attacker | Dependency or CI/CD compromise | Inject code or steal deployment secrets | Persistence, cloud abuse |
+| Attacker | Capability | Likely goal |
+|---|---|---|
+| Unauthenticated attacker | Public HTTP and WebSocket access | Cost burn, outage, auth discovery, exploit misconfiguration |
+| Authenticated parent user | Valid account tied to one or more children | Horizontal access to other children, session or invitation misuse |
+| Authenticated therapist user | Valid account with therapist privileges | Excessive data access, abusive exports, role misuse |
+| Admin or operator | Portal or deploy access | Secret access, data exfiltration, policy weakening |
+| Supply-chain attacker | Dependency, CLI token, or build pipeline compromise | Runtime secret theft, malicious deploy, persistence |
 
-### Goals, capabilities, incentive framing
+### Incentives
 
-This platform should assume attackers want one or more of the following:
+Realistic motivations now include:
 
-- Read child transcripts, assessments, or therapist notes
-- Start expensive voice and AI sessions to burn quota and cost
-- Steal API keys or storage keys to use services directly
-- Modify prompts, scenarios, or session data to influence output
-- Use a real user account as cover for data exfiltration
-- Use deployment or portal access to persist changes without immediate detection
+- Extracting therapy data, consent data, or child identifiers
+- Using expensive AI and voice services at the platform's cost
+- Misusing invitation flows to widen access to child records
+- Pulling durable memory and plans that reveal sensitive child patterns
+- Exfiltrating data through export endpoints or institutional memory summaries
+- Harvesting secrets from runtime config, logs, or deployment surfaces
 
 ## STRIDE Analysis
 
-### B1: Browser to public ingress
+### B1. Browser to public ingress
 
-| STRIDE | Threat | Current state | Impact | Primary defenses |
-|---|---|---|---|---|
-| Spoofing | Session hijack or replay through stolen browser auth | Easy Auth handles login, but browser session remains a primary trust anchor | Account takeover | Strong identity provider policy, session lifetime, conditional access |
-| Tampering | Malicious client sends arbitrary JSON to APIs and WebSocket | App accepts user-controlled request bodies and voice session messages | Prompt abuse, malformed inputs, noisy logs | Server-side validation and schema enforcement |
-| Repudiation | User denies action without strong audit trail | Limited route-level audit trail in app code | Weak forensics | Structured audit logs with immutable user ID |
-| Information disclosure | Response bodies or config reveal internals | `/api/config` exposes app flags and `ws_endpoint` only; low sensitivity | Low | Keep config payload minimal |
-| Denial of service | Connection flood or repeated expensive requests | No visible application-layer rate limiting in repo | High cost and availability risk | Rate limits, quotas, WAF, concurrency controls |
-| Elevation of privilege | Client-side therapist UI toggle mistaken for server auth | Server-side therapist guard exists for therapist-only routes | Medium if future routes rely on UI only | Keep authorization on server only |
+| STRIDE | Threat | Current state | Risk |
+|---|---|---|---|
+| Spoofing | Stolen browser session or replay | Easy Auth is the main session boundary | High |
+| Tampering | Arbitrary JSON payloads to analyze, invite, plan, consent, and delete flows | App validates required fields but not full schemas or broad payload bounds | High |
+| Repudiation | User disputes actions | Audit logging now exists, which is better than before | Medium |
+| Information disclosure | Browser responses reveal internal details | `/api/config` remains low sensitivity | Low |
+| Denial of service | Flood `/ws/voice`, `/api/analyze`, `/api/plans`, `/api/recommendations` | No visible application-layer rate limiting | High |
+| Elevation of privilege | Relying on UI mode instead of server access control | Server-side child access checks now exist | Lower than before, still needs discipline |
 
-### B2: Easy Auth edge to Flask app
+### B2. Easy Auth edge to Flask app
 
-| STRIDE | Threat | Current state | Impact | Primary defenses |
-|---|---|---|---|---|
-| Spoofing | App trusts `X-MS-CLIENT-PRINCIPAL-*` headers if platform auth is bypassed or misconfigured | App directly reads these headers in [backend/src/app.py](../backend/src/app.py) | Catastrophic if ingress trust fails | Restrict ingress paths, verify platform auth invariants, avoid alternate bypass paths |
-| Tampering | Malformed principal header causes inconsistent identity parsing | Base64 payload is decoded best-effort and falls back gracefully | Medium | Fail closed on malformed auth where appropriate |
-| Repudiation | User creation and role changes are not strongly audited | `get_or_create_user` and role changes update SQLite without immutable audit record | Medium | Audit user provisioning and role changes |
-| Information disclosure | Auth-derived identity stored locally in user table | Stored in SQLite and backup blob | Medium | Protect DB and backup path |
-| Denial of service | Repeated auth-session bootstrap creates local user rows or load | Limited impact | Low | Standard throttling |
-| Elevation of privilege | Therapist role escalation through `/api/users/<user_id>/role` by any therapist | Therapist-only, but no second-person approval or audit trail | High insider risk | Limit role admin, audit, approval workflow |
+| STRIDE | Threat | Current state | Risk |
+|---|---|---|---|
+| Spoofing | Forged `X-MS-CLIENT-PRINCIPAL-*` headers if platform auth is bypassed | App still trusts platform headers directly | Critical if ingress trust breaks |
+| Tampering | Malformed principal payload or missing claims | App decodes best-effort and falls back | Medium |
+| Repudiation | Silent role or user bootstrap changes | User records are created or updated from auth headers | Medium |
+| Information disclosure | Email and identity stored locally | Present in both storage modes | Medium |
+| Denial of service | Repeated auth-driven user bootstrap or auth churn | Limited direct impact | Low |
+| Elevation of privilege | First-user or therapist-driven role changes | `/api/users/<user_id>/role` can set therapist, parent, or admin | High |
 
-### B3: App to Azure AI and Speech services
+### B3. Child-scoped authorization model
 
-| STRIDE | Threat | Current state | Impact | Primary defenses |
-|---|---|---|---|---|
-| Spoofing | Attacker uses stolen service key outside app | Keys are injected as secrets and read from env vars | Direct cloud abuse | Prefer managed identity where possible, rotate keys |
-| Tampering | Prompt injection or scenario manipulation through custom scenario content | Custom scenarios are accepted from authenticated clients | Output manipulation, unsafe responses | Validate allowed scenario fields, role restrictions, content policy |
-| Repudiation | No robust mapping from cloud usage to end-user action | Telemetry exists but not full cost-to-user traceability | Medium | Correlate user/session IDs to outbound usage |
-| Information disclosure | More data than necessary sent to external AI services | Transcript, audio, and exercise metadata can be sent | High | Data minimization and explicit data-sharing policy |
-| Denial of service | Repeated analyze, TTS, and WebSocket voice sessions consume quota | No visible per-user quotas | High | Per-user and per-tenant rate limits |
-| Elevation of privilege | Agent or tool misuse changes session capability | Voice session includes tool configuration and optional Azure agent mode | Medium | Restrict tool surface and validate agent creation |
+| STRIDE | Threat | Current state | Risk |
+|---|---|---|---|
+| Spoofing | User claims access to child through crafted IDs | App checks `user_has_child_access` before sensitive child operations | Lower than before |
+| Tampering | Unauthorized changes to child data, consent, or plans | Child access checks now exist, but permissions are broad once access is granted | Medium to High |
+| Repudiation | Actor denies exporting or deleting child data | Audit log exists for key flows | Medium |
+| Information disclosure | Parent or therapist accesses data outside intended relationship | Access model depends on correct `user_children` mapping | High if mappings are wrong |
+| Denial of service | Invite spam, repeated export/delete attempts | No visible rate limits or abuse throttles | Medium |
+| Elevation of privilege | Therapist can invite parent, parent can gain child access, admin can see all | Intentional model, but invitation and role governance are sensitive | High |
 
-### B4: App to SQLite session store
+Important update:
 
-| STRIDE | Threat | Current state | Impact | Primary defenses |
-|---|---|---|---|---|
-| Spoofing | Session data saved under attacker-controlled child identifiers | Client can submit `child_id` and `child_name` to `/api/analyze` | Data integrity issue | Server-side ownership checks and canonical child lookup |
-| Tampering | Session, feedback, or role data modified by authorized but abusive user | Therapist-only protects some routes; DB is app-writable | High | Fine-grained authorization and immutable audit trail |
-| Repudiation | No append-only audit log for session edits and feedback | Feedback updates overwrite current values | Medium | Separate audit log for review actions |
-| Information disclosure | Plaintext transcripts and assessments in SQLite | Data stored in `sessions.transcript` and JSON columns | Critical | Encrypt at rest, minimize storage, define retention |
-| Denial of service | SQLite lock contention or storage churn | Global lock reduces concurrency but limits scale | Medium | Move to managed database for production scale |
-| Elevation of privilege | Horizontal access if lookup endpoints are not scoped correctly | Session detail and child session routes are therapist-only, but no tenant partitioning exists | High in multi-tenant future | Tenant-aware schema and row ownership checks |
+- The PostgreSQL path now has row-level security policies in [backend/alembic/versions/20260408_000006_invitation_rls.py](../backend/alembic/versions/20260408_000006_invitation_rls.py).
+- That materially reduces risk for the Postgres backend because database-side enforcement exists for children, sessions, plans, memory, recommendations, audit logs, and invitations.
+- The SQLite path still relies entirely on application code for isolation.
 
-### B5: App to Blob backup
+### B4. Voice and AI boundary
 
-| STRIDE | Threat | Current state | Impact | Primary defenses |
-|---|---|---|---|---|
-| Spoofing | Attacker with key writes a forged backup | Account key auth is used in [backend/src/services/blob_backup.py](../backend/src/services/blob_backup.py) | Restore poisoning | Managed identity and restricted write scope |
-| Tampering | Backup blob replaced or deleted | Full DB backup is a single object name | High | Versioning, immutability, scoped roles |
-| Repudiation | Limited audit from app layer for backup operations | App logs success/failure only | Medium | Storage audit logs and operation tracing |
-| Information disclosure | Whole database exposed if blob or key leaks | Backup includes all session and user records | Critical | Eliminate account keys, private access, encryption, lifecycle policy |
-| Denial of service | Backup path failures slow or disrupt writes indirectly | Backup is best-effort after writes | Low to Medium | Async queue or scheduled backup strategy |
-| Elevation of privilege | Key reuse grants broad storage access | Account key is broad and long-lived | High | Replace with managed identity + narrow RBAC |
+| STRIDE | Threat | Current state | Risk |
+|---|---|---|---|
+| Spoofing | Service use outside app via leaked credentials | Azure OpenAI now uses managed identity-capable auth, but Speech keys and other runtime secrets remain | High |
+| Tampering | Prompt or plan manipulation via custom scenarios or therapist messages | Therapist-authored scenario and planner inputs are accepted | Medium |
+| Repudiation | Weak mapping from AI usage to user action | Some telemetry exists, but cloud-cost accountability is still partial | Medium |
+| Information disclosure | Child transcripts, memory context, or plan context sent to external AI | Present in voice, analysis, and planner workflows | High |
+| Denial of service | AI cost exhaustion through repeated requests | No visible quotas on voice, analysis, or planning | High |
+| Elevation of privilege | Tooling or planner surfaces grant unintended capability | Voice tools and planner context now widen the consequence of prompt abuse | Medium |
 
-### B6: CI/CD and Azure control plane
+### B5. Persistence and data lifecycle
 
-| STRIDE | Threat | Current state | Impact | Primary defenses |
-|---|---|---|---|---|
-| Spoofing | Unauthorized deploy identity acts as trusted operator | `azd` and Azure principal access govern deploys | Catastrophic | Protected environments and least privilege |
-| Tampering | Bicep or env values changed to weaken auth or leak secrets | Infra defines auth, secrets, and redirect hosts | High | Change review, branch protection, deployment approvals |
-| Repudiation | Weak traceability for infra and secret changes | Depends on Azure activity logs and repo controls | High | Enforced audit retention and review |
-| Information disclosure | Secrets leak via env files, deployment logs, portal visibility | Service keys and provider secrets exist in deployment path | High | Secret scanning, Key Vault, reduced portal exposure |
-| Denial of service | Bad deploy breaks auth, storage, or AI connectivity | Single-replica app increases blast radius | High | Preview validation, staged rollout, rollback plan |
-| Elevation of privilege | Over-broad RBAC on identity or operators | Managed identity has multiple Cognitive roles; storage uses account key | High | Role review and scoping |
+| STRIDE | Threat | Current state | Risk |
+|---|---|---|---|
+| Spoofing | Records written against wrong child | `_save_completed_session` now requires `child_id`, which is better than the earlier fallback model | Medium |
+| Tampering | Sessions, plans, memory, and consent modified by authorized but abusive users | More durable entities mean more high-value write paths | High |
+| Repudiation | Export, delete, approve, reject, and plan changes disputed later | Audit log helps, but needs retention and review policy | Medium |
+| Information disclosure | Sensitive data stored durably in sessions, plans, memory, consent, invitations, audit logs | Plaintext application-level content still exists in both storage modes | Critical |
+| Denial of service | Large or repeated writes, delete operations, export operations | Moderate | Medium |
+| Elevation of privilege | Bypass through storage backend differences | Postgres path benefits from RLS; SQLite path does not | High residual risk in SQLite |
 
-## Current Top Risks
+### B6. Invitations and email delivery
 
-### 1. Sensitive session data is stored in plaintext
+| STRIDE | Threat | Current state | Risk |
+|---|---|---|---|
+| Spoofing | Accept invitation by matching invited email under a compromised account | Invitation visibility and updates depend on authenticated email equality or inviter/admin role | Medium |
+| Tampering | Invitation reuse, resend, revoke, or status manipulation | Invitation lifecycle is explicit and audited | Medium |
+| Repudiation | Invitee denies receipt or response | Email delivery records exist in storage | Lower than before |
+| Information disclosure | Invitation emails leak child name, therapist identity, or relationship context | Email is an external disclosure channel by design | High |
+| Denial of service | Invitation spam or resend abuse | No visible throttling | Medium |
+| Elevation of privilege | Invitation grants child access to a new actor | This is an intended privilege expansion and must be tightly governed | High |
 
-Evidence:
+### B7. Copilot planner runtime
 
-- [backend/src/services/storage.py](../backend/src/services/storage.py) stores transcript, reference text, AI assessment JSON, and pronunciation JSON directly in SQLite.
-- [backend/src/services/blob_backup.py](../backend/src/services/blob_backup.py) uploads the same database file to blob storage.
+| STRIDE | Threat | Current state | Risk |
+|---|---|---|---|
+| Spoofing | Misuse of GitHub token or Azure BYOK provider | Optional Copilot token and Azure provider settings are present | High |
+| Tampering | Therapist messages steer plans unsafely | Expected behavior, but needs validation and clinician review | Medium |
+| Repudiation | Plan generation source unclear | Plans include planner session and conversation state, but not a full immutable reasoning record | Medium |
+| Information disclosure | Sensitive child/session context sent into planner runtime | High-value context crosses another outbound trust boundary | High |
+| Denial of service | Planner endpoint used heavily or blocks runtime | Planner readiness exists, but no visible rate controls | Medium to High |
+| Elevation of privilege | Planner output trusted too much in downstream decisions | Human approval exists for plan approval, which is a useful control | Medium |
 
-Why it matters:
+### B8. Azure control plane and infrastructure
 
-- A single database leak exposes the full history of user, child, and assessment data.
+| STRIDE | Threat | Current state | Risk |
+|---|---|---|---|
+| Spoofing | Unauthorized operator or deploy identity | Standard Azure risk; not directly mitigated in repo | High |
+| Tampering | Bicep or env changes weaken auth, networking, or secrets | Infra now controls more sensitive resources, including Postgres and ACS | High |
+| Repudiation | Secret and RBAC changes are not reviewed | Depends on Azure activity logs and repo discipline | High |
+| Information disclosure | Secrets include Speech key, Postgres admin URL, Copilot token, provider secrets, and ACS connection string | Broad secret surface in Container App remains | Critical |
+| Denial of service | Postgres public exposure, bad deploys, or single-replica outages | Still single replica; Postgres public network access is enabled | High |
+| Elevation of privilege | Over-broad RBAC or admin DB credentials in app | Postgres admin connection string in runtime is a notable escalation risk | Critical |
 
-### 2. Long-lived service keys remain in the runtime path
+## Current Strengths
 
-Evidence:
+The platform is stronger than the previous review in several important ways:
 
-- [backend/src/config.py](../backend/src/config.py) loads `AZURE_OPENAI_API_KEY`, `AZURE_SPEECH_KEY`, and blob storage account key.
-- [infra/resources.bicep](../infra/resources.bicep) injects these as Container App secrets.
+- Child access control now exists at the application layer. All child-scoped endpoints consistently call `_require_child_access()` before accessing data.
+- PostgreSQL has real row-level security policies. The `system_bypass_rls` flag is properly controlled — it is only activated when no authenticated user is present (i.e., during system-level operations like migrations), and cannot be set by application code during normal request handling.
+- WebSocket connections at `/ws/voice` properly validate Easy Auth headers and close immediately if the user is unauthenticated.
+- Sensitive child operations such as export, delete, consent, invitation, and review are explicit flows rather than ad hoc behavior.
+- Audit logging exists for many sensitive operations including export, delete, consent changes, and invitation lifecycle.
+- Local dev auth still fails closed in Azure-hosted environments.
+- The delete endpoint requires explicit confirmation (`{"confirm": true}`), which is a useful friction control.
 
-Why it matters:
+These are real improvements and materially reduce the likelihood of the simplest horizontal-access failures, especially in PostgreSQL mode.
 
-- If runtime secrets leak through diagnostics, portal access, or memory disclosure, services can be called directly outside app controls.
+## Current Highest-Risk Findings
 
-### 3. No visible rate limiting on expensive operations
-
-Evidence:
-
-- Authenticated users can call `/api/analyze`, `/api/assess-utterance`, `/api/tts`, and `/ws/voice` repeatedly.
-- No rate limiting or quota middleware is visible in the repo.
-
-Why it matters:
-
-- This is a direct availability and cost-exhaustion risk.
-
-### 4. Identity trust depends heavily on correct Easy Auth deployment invariants
-
-Evidence:
-
-- [backend/src/app.py](../backend/src/app.py) trusts `X-MS-CLIENT-PRINCIPAL-*` headers and creates users from them.
-- [backend/src/services/websocket_handler.py](../backend/src/services/websocket_handler.py) accepts WebSocket auth based on `HTTP_X_MS_CLIENT_PRINCIPAL_ID`.
-
-Why it matters:
-
-- If ingress auth is bypassed or misconfigured, identity spoofing becomes catastrophic.
-
-### 5. Storage implementation differs from intended persistent-file-share design
+### 1. Secrets are still too broad and too powerful in runtime
 
 Evidence:
 
-- [infra/resources.bicep](../infra/resources.bicep) provisions Azure Files and environment storage.
-- The same file sets `volumes: []`, `volumeMounts: []`, and `STORAGE_PATH=/tmp/wulo.db`.
+- [infra/resources.bicep](../infra/resources.bicep) no longer injects an Azure OpenAI key, but it still injects the Speech key, optional Postgres admin URL, optional Copilot GitHub token, provider secrets, and ACS connection string into the container.
 
 Why it matters:
 
-- Runtime durability and confidentiality assumptions are different from a mounted persistent store. The current design relies on blob backup rather than a mounted share.
+- A runtime compromise can still expose invitation delivery, database administration, Speech usage, and provider credentials.
 
-## Recommended Priority Plan
+### 2. PostgreSQL uses public network access plus privileged migration access in runtime
 
-| Priority | Action | Outcome |
-|---|---|---|
-| P0 | Define the authorization model: therapist, child, org, owner relationships | Prevent horizontal and vertical access mistakes before growth |
-| P0 | Add rate limiting and abuse quotas for AI and voice endpoints | Reduce direct cost and availability attacks |
-| P0 | Replace broad storage and AI keys with managed identity where supported | Shrink secret blast radius |
-| P1 | Decide durable storage architecture and retention rules | Remove ambiguity around `/tmp` DB, backup behavior, and restore model |
-| P1 | Add structured audit logging for role changes, consent, session review, and high-cost calls | Improve detection and forensics |
-| P1 | Review custom-scenario and agent creation permissions | Reduce prompt and instruction abuse |
-| P2 | Encrypt or tokenize especially sensitive persisted content | Reduce breach impact |
-| P2 | Add environment and deployment protections for auth config and secrets | Reduce control-plane compromise risk |
+Evidence:
+
+- [infra/resources.bicep](../infra/resources.bicep) provisions PostgreSQL Flexible Server with `publicNetworkAccess: 'Enabled'` and `AllowAzureServices` firewall rule.
+- The app still receives `DATABASE_ADMIN_URL` as a secret for migrations, even though the staged runtime connection now uses a separate `wuloapp` role.
+
+Why it matters:
+
+- Even though staging now proves the live application can run as `wuloapp`, the network surface is still broad and the runtime still carries a privileged admin URL.
+
+### 3. SQLite remains a weaker security mode than PostgreSQL
+
+Evidence:
+
+- [backend/src/config.py](../backend/src/config.py) still defaults `DATABASE_BACKEND` to `sqlite`.
+- SQLite has no database-enforced tenant isolation.
+
+Why it matters:
+
+- If some environments still run SQLite, access control depends entirely on the Flask layer.
+
+### 4. The attack surface now includes export, delete, invitation, consent, memory, recommendations, and plans
+
+Evidence:
+
+- New endpoints in [backend/src/app.py](../backend/src/app.py) expose more privileged workflows.
+
+Why it matters:
+
+- There are more irreversible or compliance-sensitive actions now, and more places where authorization or abuse controls must be correct.
+
+### 5. Export endpoint lacks confirmation safeguard
+
+Evidence:
+
+- The `/api/children/<child_id>/data-export` endpoint is a simple GET that returns all child data immediately. Unlike the delete endpoint, it does not require a `confirm` flag or any secondary confirmation.
+- Any user with child access can trigger a full data export with a single unauthenticated-looking request (auth is handled at the Easy Auth edge).
+
+Why it matters:
+
+- Data export is a high-value exfiltration vector. The delete endpoint already requires `{"confirm": true}`, but export does not. This asymmetry is a gap.
+
+### 6. No CSRF protection on state-changing endpoints
+
+Evidence:
+
+- No CSRF tokens, middleware, or libraries are present in `requirements.txt` or `app.py`.
+- The application is a same-origin SPA, which provides some natural protection, but state-changing POST/PUT/DELETE endpoints accept JSON without origin or referer validation.
+
+Why it matters:
+
+- A malicious page could potentially trigger state-changing actions (invitation creation, consent updates, child deletion) if a user's browser has an active Easy Auth session. The risk is moderate because JSON content-type requests are harder to forge cross-origin, but it is not zero.
+
+### 7. No visible abuse throttling for expensive or high-risk actions
+
+Evidence:
+
+- No app-level rate limiting is visible for `/ws/voice`, `/api/analyze`, `/api/plans`, `/api/invitations`, `/api/children/<id>/data-export`, or `/api/children/<id>/data`.
+
+Why it matters:
+
+- Cost exhaustion and operational abuse remain straightforward.
+
+### 8. Institutional memory and de-identified insight add re-identification risk
+
+Evidence:
+
+- [backend/src/services/institutional_memory_service.py](../backend/src/services/institutional_memory_service.py) intentionally derives clinic-level insights from approved child memory and reviewed sessions.
+
+Why it matters:
+
+- In small clinics or low-volume target sounds, de-identification may be weaker than intended.
+
+### 9. Planner integration adds a new outbound sensitive-data boundary
+
+Evidence:
+
+- [backend/src/services/planning_service.py](../backend/src/services/planning_service.py) sends planning context to the Copilot SDK runtime and can use GitHub token auth or Azure BYOK.
+
+Why it matters:
+
+- Child/session context can leave the core app boundary in a new way, and token misuse risk increases.
 
 ## Security Control Checklist
 
 Status values:
 
-- Present: visible in current repo or Bicep
-- Partial: some support exists but material gaps remain
-- Missing: not visible in current repo or infra definition
+- Present: visible and implemented
+- Partial: implemented with important gaps
+- Missing: not visible in current repo or infra
 
-| Control | Status | Repo / resource mapping | Notes |
+| Control | Status | Mapping | Notes |
 |---|---|---|---|
-| Edge authentication with Microsoft Entra / Google | Present | `infra/resources.bicep` authConfigs | Easy Auth returns 401 for protected paths |
-| HTTPS required at app ingress | Present | `infra/resources.bicep` authConfigs.httpSettings.requireHttps | Good baseline |
-| Server-side route authorization | Partial | `backend/src/app.py` | Therapist guards exist on review and admin-like routes, but broader ownership model is not defined |
-| WebSocket authentication guard | Partial | `backend/src/services/websocket_handler.py` | Checks principal ID header only |
-| Dev auth bypass protected in Azure-hosted runtime | Present | `backend/src/app.py` | `LOCAL_DEV_AUTH` is blocked in Azure-hosted environments |
-| Per-user or per-route rate limiting | Missing | App layer | Needed for `/ws/voice`, `/api/analyze`, `/api/assess-utterance`, `/api/tts` |
-| Input validation on JSON request bodies | Partial | `backend/src/app.py` | Required fields are checked, but schema and size controls are limited |
-| Authorization model for child/session ownership | Partial | `backend/src/app.py`, `backend/src/services/storage.py` | Therapist-only review exists, but no tenant-aware ownership structure |
-| Secure storage for child/session data | Partial | `backend/src/services/storage.py` | Stored locally in SQLite; no field-level protection visible |
-| Durable storage architecture aligned to infra intent | Partial | `infra/resources.bicep`, `backend/src/config.py` | Azure Files is provisioned but not mounted; current live DB path is `/tmp/wulo.db` |
-| Backup confidentiality and integrity protection | Partial | `backend/src/services/blob_backup.py`, Storage Account | Blob backup exists, but uses account key auth and no visible immutability/versioning controls |
-| Managed identity for outbound service access | Partial | `infra/resources.bicep` | Identity exists and roles are assigned, but app still uses service keys for AI and storage |
-| Secrets not exposed in source | Present | Repo | Secrets are read from env / Container App secrets, not hardcoded |
-| Secrets minimized and rotated | Partial | `backend/src/config.py`, `infra/resources.bicep` | Several long-lived keys remain in runtime config |
-| Audit logging for security-relevant actions | Partial | `backend/src/services/telemetry.py`, `backend/src/app.py` | Business events logged, but no full security audit trail |
-| Azure Monitor / App Insights enabled | Present | `infra/resources.bicep` monitoring module | Must ensure telemetry does not leak regulated content |
-| Role change governance | Partial | `/api/users/<user_id>/role` in `backend/src/app.py` | Therapist can change user role; stronger approval and logging recommended |
-| Consent capture for therapist-led use | Present | `/api/pilot/state`, `/api/pilot/consent` | Stored in app settings table |
-| CORS policy configured | Present | `infra/resources.bicep` | Limited origins set, but review needed for staging and custom hosts |
-| Single-replica blast-radius awareness | Partial | `infra/resources.bicep` | `scaleMaxReplicas: 1` simplifies state but raises availability risk |
-| Supply-chain controls for deploy path | Missing in repo evidence | Repo and Azure DevOps / GitHub controls | Needs explicit branch protection, secret scanning, env approval, and artifact trust controls |
-| Activity-log review for Azure RBAC and config changes | Missing in repo evidence | Azure subscription / resource group | Operational control, not app code |
+| Easy Auth at ingress | Present | [infra/resources.bicep](../infra/resources.bicep) | Core auth boundary remains in place |
+| HTTPS required | Present | [infra/resources.bicep](../infra/resources.bicep) | Good baseline |
+| Child-scoped authorization in app | Present | [backend/src/app.py](../backend/src/app.py) | Major improvement over earlier model |
+| Database-enforced tenant isolation | Partial | [backend/alembic/versions/20260408_000006_invitation_rls.py](../backend/alembic/versions/20260408_000006_invitation_rls.py) | Present for Postgres only, absent for SQLite |
+| Audit logging for sensitive child operations | Present | [backend/src/app.py](../backend/src/app.py), [backend/src/services/storage.py](../backend/src/services/storage.py), [backend/src/services/storage_postgres.py](../backend/src/services/storage_postgres.py) | Good progress |
+| Explicit invitation lifecycle | Present | [backend/src/app.py](../backend/src/app.py) | Includes resend, revoke, accept, decline |
+| Email delivery tracking | Present | storage invitation delivery tables | Useful forensic control |
+| Parental consent capture | Present | [backend/src/app.py](../backend/src/app.py) | Good compliance step |
+| Child data export and deletion | Present | [backend/src/app.py](../backend/src/app.py) | Delete requires confirmation; export does not |
+| Role governance | Partial | `/api/users/<user_id>/role` | Still sensitive; needs stronger admin controls |
+| Rate limiting and abuse quotas | Missing | app layer and edge | Still a major gap |
+| Secret minimization | Partial | [infra/resources.bicep](../infra/resources.bicep) | Azure OpenAI key is gone, but Speech, ACS, and migration/admin secrets remain |
+| Managed identity for storage/database | Partial | infra + runtime | Blob and Postgres still rely on secrets/passwords |
+| Planner approval gate | Present | plan approval endpoint | Human approval is required before final plan use |
+| Data minimization to AI/planner/email | Partial | app services | Needs clearer policy and enforcement |
+| Postgres network hardening | Partial | [infra/resources.bicep](../infra/resources.bicep) | RLS is strong, but public access remains enabled |
+| Invitation abuse controls | Missing | app layer | No visible throttling or risk scoring |
+| CSRF protection | Missing | app layer | No tokens, origin checks, or middleware |
+| Export/delete safeguard controls | Partial | confirm flag, authz, audit | Delete has confirm flag; export has none |
+| Institutional memory re-identification controls | Partial | service logic | De-identification intent exists, but small-population risk remains |
 
-## Control Checklist by Azure Resource
+## Azure Resource Checklist
 
-| Azure resource | Current use | Main risks | Controls to verify |
+| Resource | Current role | Main security concern |
+|---|---|---|
+| Container App `voicelab` | Runs API, SPA, planner, and proxy | Large secret surface and single runtime blast radius |
+| PostgreSQL Flexible Server | Optional primary persistent store | Public network access and admin-password connection string |
+| Storage account | Blob backup and file share | Account-key auth remains broad |
+| Azure AI / OpenAI | Voice and analysis | Managed-identity-capable auth is in place, but data-sharing scope still needs review |
+| Speech Services | TTS and assessment | Key-based abuse and cost burn |
+| ACS Email | Invitation delivery | Sensitive outbound identity and invitation data |
+| Application Insights / Log Analytics | Telemetry and diagnostics | Sensitive event and exception leakage |
+| User-assigned managed identity | Runtime identity | Underused relative to remaining secrets |
+
+## Updated Priority Plan
+
+### P0
+
+1. Make PostgreSQL with RLS the only production persistence mode.
+2. Reduce runtime secret blast radius further: keep Azure OpenAI on managed identity, remove Speech key injection when the SDK path is lower risk, and narrow the remaining admin-level Postgres secret exposure.
+3. Add rate limiting and quota controls for `/ws/voice`, `/api/analyze`, `/api/plans`, `/api/invitations`, data export, and data deletion.
+4. Tighten role governance so therapist users cannot casually escalate to admin-like capabilities without stronger controls.
+
+### P1
+
+1. Harden PostgreSQL networking: private access or narrower firewall strategy instead of broad public access plus `AllowAzureServices`.
+2. Add confirmation safeguard to the export endpoint to match the delete endpoint.
+3. Add CSRF mitigation: at minimum, validate `Content-Type: application/json` on state-changing endpoints and consider origin header checks.
+4. Review invitation email content and retention to ensure minimum necessary disclosure.
+5. Add explicit privacy review for planner data and institutional memory re-identification risk.
+
+### P2
+
+1. Reconcile repo docs and Bicep around SQLite and Azure Files persistence so operators and engineers have one true model.
+2. Add structured security alerting on exports, deletes, role changes, invitation spikes, and recommendation/plan generation anomalies.
+3. Review whether all audit log metadata is necessary and ensure it does not become a secondary data leak.
+4. Add input validation library (e.g., marshmallow or pydantic) for structured schema enforcement on all API endpoints, replacing manual `.get()` and `.strip()` checks.
+
+## Explicit Security Requirements
+
+The highest-risk findings above should be treated as explicit engineering requirements rather than advisory guidance.
+
+Owner labels in this section mean the primary implementation owner:
+
+- Backend: Flask app, authz, request validation, audit events, API behavior
+- Platform: Azure infrastructure, runtime identity, secret delivery, network topology, deployment controls
+- Data: persistence model, database roles, RLS, export and delete semantics
+- Security/Compliance: control design review, evidence review, privacy and regulatory sign-off
+
+| ID | Requirement | Primary owner | Acceptance criteria |
 |---|---|---|---|
-| Container App `voicelab` | Hosts frontend and backend | Auth misconfig, secret exposure, DoS, bad deploy | Easy Auth policy, ingress restrictions, secret access review, scaling policy |
-| Managed environment | Hosts Container App | Log exposure, storage attachment drift | Diagnostic settings, environment storage usage, network posture |
-| AI Services / Azure OpenAI account | Voice and analysis | Key theft, quota abuse, data sharing | Role assignments, key rotation, data-sharing policy, quotas |
-| Speech Services account | TTS and pronunciation | Key theft, abuse, cost burn | Key minimization, monitor usage, private endpoint decision |
-| Storage account | Blob backup and prepared file share | DB disclosure, forged backup, over-broad access | Private access, blob versioning, key elimination, role scoping |
-| Application Insights / Log Analytics | Telemetry and diagnostics | Sensitive data in traces, insider visibility | Sampling, redaction, retention, RBAC review |
-| Container Registry | Image source | Malicious image or pull misuse | Least privilege pull role, image signing/scanning |
-| User-assigned managed identity | Runtime identity | Over-broad RBAC | Role inventory and justification |
-
-## End-to-End Flow Walk-Through
-
-### Flow: therapist login to voice session to transcript storage
-
-#### Step 1: Therapist arrives at the app
-
-- Browser requests `/`.
-- Public assets and `/api/health` are excluded from auth in `authConfigs`.
-- Frontend uses Easy Auth login URLs such as `/.auth/login/aad` and `/.auth/login/google` from [frontend/src/app/App.tsx](../frontend/src/app/App.tsx).
-
-Threats:
-
-- Session theft in browser
-- Weak identity-provider policy
-- Misconfigured redirect hosts
-
-Defenses:
-
-- Easy Auth
-- HTTPS required
-- Restricted redirect URLs in `infra/resources.bicep`
-
-Gaps:
-
-- No repo-visible session anomaly detection or strong auth policy configuration beyond platform defaults
-
-#### Step 2: Frontend discovers user identity and role
-
-- Frontend calls `/api/auth/session` via [frontend/src/services/api.ts](../frontend/src/services/api.ts).
-- Backend reads `X-MS-CLIENT-PRINCIPAL-*` headers in [backend/src/app.py](../backend/src/app.py).
-- If a user record does not exist, backend creates one in SQLite and gives the first user the `therapist` role.
-
-Threats:
-
-- Auth header trust failure
-- Accidental or malicious first-user bootstrap becoming therapist
-- Poor auditability of role creation
-
-Defenses:
-
-- Easy Auth gate
-- Local dev auth blocked in Azure-hosted environments
-
-Gaps:
-
-- No explicit invite or approval flow for initial therapist assignment
-- No immutable audit trail for user provisioning and role changes
-
-#### Step 3: Therapist starts a session and creates an agent
-
-- Frontend calls `/api/agents/create`.
-- Backend allows any authenticated user to create an agent.
-- For custom scenarios, backend accepts therapist-authored prompt content and merges extra instructions.
-
-Threats:
-
-- Prompt tampering
-- Excessive AI usage by low-privilege users
-- Instruction abuse through custom scenarios
-
-Defenses:
-
-- Authentication required
-
-Gaps:
-
-- No rate limits
-- No role-based restriction for custom or costly agent creation
-
-#### Step 4: Browser opens the voice WebSocket
-
-- Frontend resolves the WebSocket URL in [frontend/src/hooks/useRealtime.ts](../frontend/src/hooks/useRealtime.ts).
-- Browser connects to `/ws/voice` and sends `session.update` with the selected `agent_id`.
-- Backend checks for `HTTP_X_MS_CLIENT_PRINCIPAL_ID` in [backend/src/services/websocket_handler.py](../backend/src/services/websocket_handler.py).
-- Backend opens an outbound VoiceLive session using the Azure AI endpoint and API key.
-
-Threats:
-
-- WebSocket flood
-- Reuse of authenticated browser context to open many sessions
-- Service-key theft enabling direct external cloud calls
-
-Defenses:
-
-- WebSocket principal header check
-- Authenticated session requirement at ingress
-
-Gaps:
-
-- No per-user concurrency cap
-- No quota or abuse controls
-- API key still in runtime path
-
-#### Step 5: Live session traffic flows
-
-- User audio and transcript deltas flow from browser to backend and onward to Azure VoiceLive.
-- Assistant audio and transcript events flow back through the backend to the browser.
-- The backend can attach tools and scenario instructions to the VoiceLive session.
-
-Threats:
-
-- Sensitive speech content leaves the app boundary
-- Prompt and tool misuse
-- Verbose logs capturing sensitive session fragments
-
-Defenses:
-
-- TLS in transit
-- Minimal server logic in forwarding path
-
-Gaps:
-
-- No explicit data minimization policy before sending to external AI services
-- Need review of logging policy for real-time flows
-
-#### Step 6: Session completion triggers transcript analysis
-
-- Frontend sends `/api/analyze` with transcript, audio chunks, reference text, child metadata, and exercise context.
-- Backend calls conversation analysis and pronunciation assessment.
-- Backend saves the result through `StorageService.save_session()`.
-
-Threats:
-
-- User submits another child's identifiers
-- Very large payloads cause cost or performance stress
-- Sensitive data now becomes durable data
-
-Defenses:
-
-- Authentication required
-- Some required-field validation
-
-Gaps:
-
-- No explicit payload size limits visible in code
-- No ownership validation on submitted child identifiers
-
-#### Step 7: Session data is written locally and backed up
-
-- SQLite record includes transcript, reference text, AI assessment, pronunciation assessment, and therapist feedback fields.
-- After writes, the app attempts a blob backup of the database file.
-
-Threats:
-
-- Plaintext data disclosure
-- Backup poisoning or theft
-- Durability confusion because live DB is on `/tmp`
-
-Defenses:
-
-- Blob container has `publicAccess: None`
-- Storage account requires HTTPS and TLS 1.2+
-
-Gaps:
-
-- Account key auth is still used
-- No visible blob immutability or versioning
-- No clear retention and deletion policy
-
-#### Step 8: Therapist reviews the saved session
-
-- Therapist-only routes `/api/children`, `/api/children/<child_id>/sessions`, `/api/sessions/<session_id>`, and `/api/sessions/<session_id>/feedback` expose session history and notes.
-
-Threats:
-
-- Insider misuse by a therapist account
-- Weak forensics on who viewed what
-
-Defenses:
-
-- Therapist role checks on review routes
-
-Gaps:
-
-- No detailed access audit trail
-- No tenant partitioning if the app grows beyond a single small pilot model
-
-## Questions to Resolve in the Next Threat-Model Review
-
-1. Is this intended to remain a single-organization pilot or become multi-tenant?
-2. What is the authoritative relationship between therapist, child, and session ownership?
-3. Should raw audio ever be stored, or only transiently processed?
-4. What are the retention and deletion requirements for child transcripts and assessments?
-5. Which Azure services can move from key-based auth to managed identity now?
-6. Is Azure Files meant to be the durable store, or is blob-backed local SQLite the intended production design?
-7. What security events must alert an operator within minutes rather than be reviewed later?
-
-## Immediate Next Steps
-
-1. Decide and document the production data-store design.
-2. Define the authorization model for therapist, child, and session ownership.
-3. Add rate limiting and quota controls for voice and AI endpoints.
-4. Replace broad storage and AI keys with managed identity where supported.
-5. Add security audit logging for role changes, consent, session review, and high-cost calls.
+| SR-01 | Production environments must use PostgreSQL with RLS as the only supported persistence mode. SQLite may remain for local development or isolated non-production use only. | Platform + Data | Production config rejects `DATABASE_BACKEND=sqlite`; deployment docs and environment templates set Postgres by default; startup or deploy validation fails if production points at SQLite; at least one automated test verifies Postgres request actor context and RLS-backed access to child-scoped records. |
+| SR-02 | The application runtime must not use an admin-grade PostgreSQL connection string. It must connect with a least-privilege application role that cannot bypass RLS or perform unmanaged schema changes. | Platform + Data | Runtime secret no longer contains admin credentials; a dedicated application database role exists with only required table and sequence permissions; application queries succeed under that role; migration tasks run under a separate privileged identity; a documented check confirms the runtime role cannot set `app.system_bypass_rls` to an unsafe value or disable RLS. |
+| SR-03 | Runtime secret blast radius must be reduced by replacing broad shared secrets with managed identity or scoped credentials wherever the platform supports it. | Platform | Container App no longer receives unused or over-broad secrets; blob access uses managed identity or a narrowly scoped alternative instead of an account key; planner, AI, and email integrations each use the minimum credential scope available; secret inventory in infra is documented and each secret has a justification. |
+| SR-04 | PostgreSQL network exposure must be narrowed so the database is not broadly reachable over public network access in steady state. | Platform | `publicNetworkAccess` is disabled or replaced with a narrowly controlled private access pattern; the `AllowAzureServices` firewall rule is removed from steady-state production; deployment documentation explains emergency access procedure; connectivity checks confirm the app still works through the intended path. |
+| SR-05 | High-cost and high-risk endpoints must enforce abuse controls at the edge or application layer. | Backend + Platform | `/ws/voice`, `/api/analyze`, `/api/plans`, `/api/invitations`, export, and delete flows have request throttles or quotas; limits are differentiated by actor or endpoint sensitivity where appropriate; over-limit responses are observable in telemetry; automated tests cover at least one throttled REST path. |
+| SR-06 | State-changing endpoints must implement CSRF mitigation suitable for the Easy Auth session model. | Backend + Security/Compliance | POST, PUT, PATCH, and DELETE routes reject requests that fail the chosen CSRF policy; the policy is documented; at minimum, the app enforces JSON-only state-changing requests and validates trusted origin or equivalent signal; regression tests prove cross-site style requests without the required signal are rejected. |
+| SR-07 | Child data export must require explicit privileged-action confirmation and produce an auditable reason trail comparable to child deletion. | Backend + Data | Export is no longer a one-step GET returning full data; export requires an explicit confirmation step or signed action token; the request records actor, child, timestamp, and reason in audit storage; automated tests verify export without confirmation is rejected and export with confirmation succeeds. |
+| SR-08 | Role management must be restricted so therapist users cannot grant admin-equivalent access without stronger governance. | Backend + Security/Compliance | `/api/users/<user_id>/role` no longer allows ordinary therapist users to assign `admin`; role elevation rules are documented; privileged role changes are audited with actor and target; automated tests verify unauthorized role escalation attempts fail. |
+| SR-09 | Planner, invitation email, and institutional-memory flows must enforce minimum necessary disclosure. | Backend + Security/Compliance | Planner requests exclude unnecessary child/session fields; invitation emails disclose only the minimum needed to complete onboarding; institutional-memory generation documents its de-identification rules and rejects outputs below minimum aggregation thresholds; at least one review artifact exists for planner/privacy decisions. |
+| SR-10 | API request bodies for sensitive workflows must be schema-validated rather than relying on ad hoc field checks. | Backend | Sensitive endpoints such as invitations, consent updates, plan generation, recommendation generation, export, and delete use a shared validation layer; malformed payloads fail consistently with bounded error responses; tests cover missing required fields, wrong types, and oversized values for at least one endpoint in each sensitive workflow family. |
+| SR-11 | Security-significant actions must emit reviewable telemetry and alerts. | Platform + Security/Compliance | Exports, deletes, role changes, invitation spikes, and unusual plan or recommendation generation volumes are queryable in telemetry; at least one alerting rule exists for anomalous privileged activity; the runbook identifies who reviews those alerts and how often. |
+
+## Suggested Ownership Mapping
+
+If the project needs concrete accountable functions rather than generic owner labels, use this mapping:
+
+- Backend owner: the engineer changing [backend/src/app.py](../backend/src/app.py) and related services
+- Platform owner: the engineer changing [infra/resources.bicep](../infra/resources.bicep), `azure.yaml`, and deployment environment settings
+- Data owner: the engineer responsible for [backend/src/services/storage_postgres.py](../backend/src/services/storage_postgres.py) and Alembic migrations in [backend/alembic/versions](../backend/alembic/versions)
+- Security/Compliance owner: the reviewer responsible for threat model updates, privacy review, and release gating for privileged data flows
+
+## Production Release Checklist
+
+**Rule: No production rollout is permitted while any SR-01 through SR-08 requirement has status "Not met."**
+
+Each row must show evidence (test name, config proof, or review artifact) before status changes to "Met."
+
+| Requirement | Status | Evidence |
+|---|---|---|
+| SR-01 Postgres-only production | Met | `test_create_storage_service_rejects_sqlite_in_azure` in `test_storage_factory.py`; `_is_azure_hosted_environment()` guard in `storage_factory.py` |
+| SR-02 Least-privilege DB role | Partially met | Runtime/admin DB URLs are split; migrations now run from `DATABASE_ADMIN_URL`; runtime role provisioning is supported in [backend/src/services/postgres_migrations.py](../backend/src/services/postgres_migrations.py); staging now validates `wuloapp` as the live runtime role |
+| SR-03 Secret blast radius reduction | Partially met | Blob backup key injection removed; separate runtime/admin DB secrets added in [infra/resources.bicep](../infra/resources.bicep); Azure OpenAI runtime auth now uses managed identity-capable auth without `AZURE_OPENAI_API_KEY` |
+| SR-04 Postgres network hardening | Not met | — |
+| SR-05 Rate limiting | Met | Rate limiting added in [backend/src/app.py](../backend/src/app.py); verified by [backend/tests/unit/test_app.py](../backend/tests/unit/test_app.py) |
+| SR-06 CSRF mitigation | Met | Origin/referer and JSON-body checks added in [backend/src/app.py](../backend/src/app.py); verified by [backend/tests/unit/test_app.py](../backend/tests/unit/test_app.py) |
+| SR-07 Export confirmation | Met | `test_export_rejects_get_request`, `test_export_rejects_without_confirm`, `test_export_rejects_without_reason`, `test_export_succeeds_with_confirm_and_reason` in `test_auth_roles.py` |
+| SR-08 Role governance | Met | `test_therapist_cannot_assign_admin_role`, `test_admin_can_assign_admin_role`, `test_therapist_can_still_assign_therapist_and_parent` in `test_auth_roles.py` |
+
+## Bottom Line
+
+The platform is materially more mature than the last review suggested.
+
+The biggest positive change is the shift from broad therapist-only access toward a child-scoped authorization model, plus PostgreSQL row-level security.
+
+The biggest remaining risks are not simple missing auth checks anymore. They are:
+
+- Broad runtime secrets
+- Publicly reachable PostgreSQL with password auth
+- Expanded privileged workflows without abuse throttling
+- New sensitive outbound channels through email and planner integrations
+- Uneven security posture between SQLite mode and PostgreSQL mode
+- No CSRF protection and no structured input validation
+
+The right next move is not another generic STRIDE pass. It is to harden the production mode around Postgres + RLS, reduce secret scope, add abuse controls to the new privileged endpoints, and close the CSRF and export-confirmation gaps.

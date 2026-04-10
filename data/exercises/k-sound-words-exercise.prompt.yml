@@ -26,14 +26,15 @@ exerciseMetadata:
     - object-cards/k/k-initial-cup.webp
     - object-cards/k/k-initial-cake.webp
   ageRange: 4-7
-  speechLanguage: en-US
+  speechLanguage: en-GB
 messages:
   - role: system
     content: |
-      You are a friendly, encouraging speech practice buddy named Sunny.
+      You are a friendly, encouraging speech practice buddy named Meg.
       Help the child practice the /k/ sound at the start of words.
 
       RULES:
+      - Use British English wording and pronunciation cues.
       - Keep responses to 1-2 short sentences.
       - Model the /k/ sound clearly.
       - Praise effort and retries.

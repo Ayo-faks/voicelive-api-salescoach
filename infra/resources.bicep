@@ -51,6 +51,13 @@ param postgresAdminUsername string = 'wuloadmin'
 @description('Admin password for Azure Database for PostgreSQL Flexible Server.')
 param postgresAdminPassword string = ''
 
+@description('Least-privilege runtime username for the application PostgreSQL connection.')
+param postgresAppUsername string = 'wuloapp'
+
+@secure()
+@description('Least-privilege runtime password for the application PostgreSQL connection. If empty, runtime falls back to the admin connection string.')
+param postgresAppPassword string = ''
+
 @description('Database name for Azure Database for PostgreSQL Flexible Server.')
 param postgresDatabaseName string = 'wulo'
 
@@ -131,6 +138,9 @@ var resolvedAcsConnectionString = enableAzureCommunicationServicesEmail
   ? communicationService!.listKeys().primaryConnectionString
   : azureCommunicationServicesConnectionString
 var easyAuthEnabled = !empty(microsoftProviderClientId) || !empty(googleProviderClientId)
+var usePostgresRuntimeCredential = !empty(postgresAppUsername) && !empty(postgresAppPassword)
+var postgresRuntimeUsername = usePostgresRuntimeCredential ? postgresAppUsername : postgresAdminUsername
+var postgresRuntimePassword = usePostgresRuntimeCredential ? postgresAppPassword : postgresAdminPassword
 
 param gptModelName string = 'gpt-4o'
 param gptModelVersion string = '2024-11-20'
@@ -445,23 +455,19 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
     secrets: {
       secureList: concat(
         [
-          {
-            name: 'ai-foundry-api-key'
-            value: aiFoundryResource.listKeys().key1
-          }
-          {
-            name: 'speech-api-key'
-            value: speechService.listKeys().key1
-          }
-          {
-            name: 'blob-backup-account-key'
-            value: persistenceStorage.listKeys().keys[0].value
-          }
+              {
+                name: 'speech-api-key'
+                value: speechService.listKeys().key1
+              }
         ],
         enablePostgresPersistence
           ? [
               {
                 name: 'postgres-database-url'
+                value: 'postgresql://${postgresRuntimeUsername}:${postgresRuntimePassword}@${postgresServer!.properties.fullyQualifiedDomainName}:5432/${postgresDatabaseName}?sslmode=require'
+              }
+              {
+                name: 'postgres-admin-database-url'
                 value: 'postgresql://${postgresAdminUsername}:${postgresAdminPassword}@${postgresServer!.properties.fullyQualifiedDomainName}:5432/${postgresDatabaseName}?sslmode=require'
               }
             ]
@@ -523,10 +529,6 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
             {
               name: 'AZURE_OPENAI_ENDPOINT'
               value: aiFoundryResource.properties.endpoint
-            }
-            {
-              name: 'AZURE_OPENAI_API_KEY'
-              secretRef: 'ai-foundry-api-key'
             }
             {
               name: 'PROJECT_ENDPOINT'
@@ -601,10 +603,6 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
               value: persistenceStorage.name
             }
             {
-              name: 'BLOB_BACKUP_ACCOUNT_KEY'
-              secretRef: 'blob-backup-account-key'
-            }
-            {
               name: 'COPILOT_CLI_PATH'
               value: empty(copilotCliPath) ? '/usr/local/bin/copilot' : copilotCliPath
             }
@@ -634,6 +632,10 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
                 {
                   name: 'DATABASE_URL'
                   secretRef: 'postgres-database-url'
+                }
+                {
+                  name: 'DATABASE_ADMIN_URL'
+                  secretRef: 'postgres-admin-database-url'
                 }
               ]
             : [],

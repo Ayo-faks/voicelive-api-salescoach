@@ -62,10 +62,17 @@ interface Props {
   scenarioName?: string | null
   metadata?: Partial<ExerciseMetadata>
   audience?: 'therapist' | 'child'
+  onSendMessage?: (text: string) => void
   onInterruptAvatar?: () => void
 }
 
-export function ListeningMinimalPairsPanel({ scenarioName, metadata, audience = 'child', onInterruptAvatar }: Props) {
+export function ListeningMinimalPairsPanel({
+  scenarioName,
+  metadata,
+  audience = 'child',
+  onSendMessage,
+  onInterruptAvatar,
+}: Props) {
   const styles = useStyles()
   const pairs = metadata?.pairs || []
   const [pairIndex, setPairIndex] = useState(0)
@@ -145,9 +152,20 @@ export function ListeningMinimalPairsPanel({ scenarioName, metadata, audience = 
   }, [speakWord])
 
   const handleSelect = (word: string) => {
+    const isCorrectSelection = promptWord ? word === promptWord : null
     onInterruptAvatar?.()
     setSelectedWord(word)
-    playWord(word)
+    void playWord(word)
+    if (isCorrectSelection === null) {
+      onSendMessage?.(`I picked ${word}.`)
+      return
+    }
+
+    onSendMessage?.(
+      isCorrectSelection
+        ? `I picked ${word}. That's the right answer!`
+        : `I picked ${word}. The correct answer was ${promptWord}.`
+    )
   }
   const isCorrect = selectedWord && promptWord ? selectedWord === promptWord : null
 

@@ -26,11 +26,12 @@ exerciseMetadata:
     - object-cards/sh/sh-initial-shoe.webp
     - object-cards/sh/sh-initial-sheep.webp
   ageRange: 4-7
-  speechLanguage: en-US
+  speechLanguage: en-GB
 messages:
   - role: system
     content: |
-      You are a friendly, encouraging speech practice buddy named Sunny.
+      You are a friendly, encouraging speech practice buddy named Meg.
+      Use British English wording and pronunciation cues.
       Help the child practice the /sh/ sound at the start of words.
   - role: user
     content: "{{child_utterance}}"

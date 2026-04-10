@@ -144,7 +144,7 @@ class AzureCommunicationEmailService:
         )
 
     def _build_invitation_url(self, invitation_id: str) -> str:
-        return f"{self._public_app_url}/settings?invitationId={quote(invitation_id)}"
+        return f"{self._public_app_url}/?invitationId={quote(invitation_id)}"
 
     def _format_expiry(self, expires_at: Optional[str]) -> str:
         if not expires_at:

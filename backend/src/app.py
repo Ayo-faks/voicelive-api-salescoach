@@ -7,14 +7,17 @@
 
 import asyncio
 import base64
+from collections import defaultdict
 from datetime import datetime, timezone
 import json
 import logging
 import os
 from pathlib import Path
 import sys
+import threading
 import time
 from typing import Any, Dict, List, Mapping, Optional, Tuple, cast
+from urllib.parse import urlsplit
 
 import simple_websocket.ws  # pyright: ignore[reportMissingTypeStubs]
 from flask import Flask, abort, g, jsonify, request, send_from_directory
@@ -66,6 +69,9 @@ API_CONFIG_ENDPOINT = "/api/config"
 API_HEALTH_ENDPOINT = "/api/health"
 API_SCENARIOS_ENDPOINT = "/api/scenarios"
 API_AUTH_SESSION_ENDPOINT = "/api/auth/session"
+API_AUTH_CLAIM_INVITE_CODE_ENDPOINT = "/api/auth/claim-invite-code"
+API_ADMIN_INVITE_CODES_ENDPOINT = "/api/admin/invite-codes"
+API_WORKSPACES_ENDPOINT = "/api/workspaces"
 API_PILOT_STATE_ENDPOINT = "/api/pilot/state"
 API_CONSENT_ENDPOINT = "/api/pilot/consent"
 API_AGENTS_CREATE_ENDPOINT = "/api/agents/create"
@@ -121,15 +127,40 @@ CHILD_ACCESS_REQUIRED = "Child access required"
 INVITATION_NOT_FOUND = "Invitation not found"
 
 # HTTP status codes
+HTTP_CREATED = 201
 HTTP_BAD_REQUEST = 400
 HTTP_FORBIDDEN = 403
 HTTP_NOT_FOUND = 404
 HTTP_UNAUTHORIZED = 401
 HTTP_INTERNAL_SERVER_ERROR = 500
+HTTP_TOO_MANY_REQUESTS = 429
 
 ROLE_THERAPIST = "therapist"
 ROLE_PARENT = "parent"
 ROLE_ADMIN = "admin"
+ROLE_PENDING_THERAPIST = "pending_therapist"
+UNSAFE_HTTP_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+_RATE_LIMIT_STATE: dict[tuple[str, str], list[float]] = defaultdict(list)
+_RATE_LIMIT_LOCK = threading.Lock()
+
+
+def _normalize_origin(value: str) -> str:
+    parsed = urlsplit(value)
+    if not parsed.scheme or not parsed.netloc:
+        return ""
+    return f"{parsed.scheme}://{parsed.netloc}".lower().rstrip("/")
+
+
+def _trusted_origins() -> set[str]:
+    origins = {
+        _normalize_origin(str(request.host_url or "")),
+        _normalize_origin(str(config.get("public_app_url") or "")),
+    }
+    return {origin for origin in origins if origin}
+
+
+def _is_state_changing_request() -> bool:
+    return request.method.upper() in UNSAFE_HTTP_METHODS
 def _is_local_dev_auth_enabled() -> bool:
     """Resolve LOCAL_DEV_AUTH dynamically so tests and shells cannot leak stale import-time state."""
     return str(os.environ.get("LOCAL_DEV_AUTH", str(config["local_dev_auth"]))).strip().lower() == "true"
@@ -501,6 +532,88 @@ def _get_authenticated_user() -> Optional[Dict[str, Any]]:
     return user
 
 
+def _rate_limit_for_request() -> Optional[tuple[int, int]]:
+    if request.url_rule is None:
+        return None
+
+    rule = request.url_rule.rule
+    window = int(config.get("rate_limit_default_window_seconds", 60))
+    if rule == API_ANALYZE_ENDPOINT:
+        return int(config.get("rate_limit_analyze_limit", 30)), window
+    if rule in {API_CHILD_PLANS_ENDPOINT, API_PLANS_ENDPOINT, API_PLAN_MESSAGES_ENDPOINT, API_PLAN_APPROVE_ENDPOINT}:
+        return int(config.get("rate_limit_plans_limit", 20)), window
+    if rule in {
+        API_INVITATIONS_ENDPOINT,
+        API_INVITATION_ACCEPT_ENDPOINT,
+        API_INVITATION_DECLINE_ENDPOINT,
+        API_INVITATION_REVOKE_ENDPOINT,
+        API_INVITATION_RESEND_ENDPOINT,
+    }:
+        return int(config.get("rate_limit_invitations_limit", 20)), window
+    if rule == API_CHILD_DATA_EXPORT_ENDPOINT:
+        return int(config.get("rate_limit_export_limit", 5)), 3600
+    if rule == API_CHILD_DATA_DELETE_ENDPOINT:
+        return int(config.get("rate_limit_delete_limit", 3)), 3600
+    if _is_state_changing_request() and str(request.path or "").startswith("/api/"):
+        return int(config.get("rate_limit_mutation_limit", 120)), window
+    return None
+
+
+def _rate_limit_actor_key() -> str:
+    user = _get_authenticated_user()
+    if user is not None:
+        user_id = str(user.get("id") or "").strip()
+        if user_id:
+            return f"user:{user_id}"
+    forwarded_for = str(request.headers.get("X-Forwarded-For") or "").split(",")[0].strip()
+    remote_addr = forwarded_for or str(request.remote_addr or "unknown")
+    return f"ip:{remote_addr}"
+
+
+def _check_rate_limit() -> Optional[Tuple[Any, int]]:
+    policy = _rate_limit_for_request()
+    if policy is None:
+        return None
+
+    limit, window_seconds = policy
+    actor_key = _rate_limit_actor_key()
+    route_key = request.url_rule.rule if request.url_rule is not None else request.path
+    state_key = (actor_key, route_key)
+    now = time.time()
+
+    with _RATE_LIMIT_LOCK:
+        bucket = [timestamp for timestamp in _RATE_LIMIT_STATE[state_key] if now - timestamp < window_seconds]
+        if len(bucket) >= limit:
+            retry_after = max(1, int(window_seconds - (now - bucket[0])))
+            response = jsonify({"error": "Rate limit exceeded", "retry_after_seconds": retry_after})
+            response.headers["Retry-After"] = str(retry_after)
+            return response, HTTP_TOO_MANY_REQUESTS
+
+        bucket.append(now)
+        _RATE_LIMIT_STATE[state_key] = bucket
+
+    return None
+
+
+def _check_csrf_policy() -> Optional[Tuple[Any, int]]:
+    if not _is_state_changing_request() or not str(request.path or "").startswith("/api/"):
+        return None
+
+    origin = _normalize_origin(str(request.headers.get("Origin") or ""))
+    referer = _normalize_origin(str(request.headers.get("Referer") or ""))
+    trusted_origins = _trusted_origins()
+    if origin and origin not in trusted_origins:
+        return jsonify({"error": "Origin not allowed"}), HTTP_FORBIDDEN
+    if not origin and referer and referer not in trusted_origins:
+        return jsonify({"error": "Referer not allowed"}), HTTP_FORBIDDEN
+
+    content_length = request.content_length or 0
+    if content_length > 0 and request.mimetype != "application/json":
+        return jsonify({"error": "State-changing requests must use application/json"}), HTTP_BAD_REQUEST
+
+    return None
+
+
 @app.before_request
 def _bind_storage_request_actor() -> None:
     user = _get_authenticated_user()
@@ -513,6 +626,19 @@ def _bind_storage_request_actor() -> None:
         str(user.get("role") or "") or None,
         str(user.get("email") or "") or None,
     )
+
+
+@app.before_request
+def _enforce_request_security_controls() -> Optional[Tuple[Any, int]]:
+    csrf_result = _check_csrf_policy()
+    if csrf_result is not None:
+        return csrf_result
+
+    rate_limit_result = _check_rate_limit()
+    if rate_limit_result is not None:
+        return rate_limit_result
+
+    return None
 
 
 @app.teardown_request
@@ -747,6 +873,9 @@ def get_auth_session():
     if user is None:
         return jsonify({"authenticated": False}), HTTP_UNAUTHORIZED
 
+    user_workspaces = storage_service.list_workspaces_for_user(str(user["id"]))
+    default_workspace = storage_service.get_default_workspace_for_user(str(user["id"]))
+
     return jsonify(
         {
             "authenticated": True,
@@ -755,8 +884,121 @@ def get_auth_session():
             "email": user["email"],
             "provider": user["provider"],
             "role": user["role"],
+            "current_workspace_id": None if default_workspace is None else default_workspace["id"],
+            "user_workspaces": user_workspaces,
         }
     )
+
+
+@app.route(API_AUTH_CLAIM_INVITE_CODE_ENDPOINT, methods=["POST"])
+def claim_invite_code():
+    """Allow a pending_therapist user to redeem an invite code and become a therapist."""
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
+    user_id = str(cast(Dict[str, Any], user).get("id") or "")
+    role = str(cast(Dict[str, Any], user).get("role") or "")
+    if role != ROLE_PENDING_THERAPIST:
+        return jsonify({"error": "Only pending therapists can claim invite codes"}), HTTP_BAD_REQUEST
+
+    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+    code = str(data.get("code") or "").strip()
+    if not code:
+        return jsonify({"error": "Invite code is required"}), HTTP_BAD_REQUEST
+
+    success = storage_service.claim_invite_code(code, user_id)
+    if not success:
+        return jsonify({"error": "Invalid or already used invite code"}), HTTP_BAD_REQUEST
+
+    _log_audit_event(
+        user_id=user_id,
+        action="invite_code.claim",
+        resource_type="invite_code",
+        resource_id=code,
+    )
+
+    # Return fresh session data
+    updated_user = storage_service.get_user(user_id)
+    user_workspaces = storage_service.list_workspaces_for_user(user_id)
+    default_workspace = storage_service.get_default_workspace_for_user(user_id)
+
+    return jsonify(
+        {
+            "authenticated": True,
+            "user_id": user_id,
+            "name": updated_user["name"] if updated_user else "",
+            "email": updated_user["email"] if updated_user else "",
+            "provider": updated_user["provider"] if updated_user else "",
+            "role": updated_user["role"] if updated_user else "",
+            "current_workspace_id": None if default_workspace is None else default_workspace["id"],
+            "user_workspaces": user_workspaces,
+        }
+    )
+
+
+@app.route(API_ADMIN_INVITE_CODES_ENDPOINT, methods=["GET", "POST"])
+def admin_invite_codes():
+    """Admin endpoint to create and list therapist invite codes."""
+    user, guard_response = _require_role(ROLE_ADMIN)
+    if guard_response is not None:
+        return guard_response
+
+    user_id = str(cast(Dict[str, Any], user).get("id") or "")
+
+    if request.method == "GET":
+        return jsonify(storage_service.list_invite_codes(user_id))
+
+    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+    code = str(data.get("code") or "").strip().upper()
+    if not code or len(code) < 4:
+        return jsonify({"error": "Code must be at least 4 characters"}), HTTP_BAD_REQUEST
+
+    try:
+        invite = storage_service.create_invite_code(code, user_id)
+    except Exception:
+        return jsonify({"error": "Code already exists"}), HTTP_BAD_REQUEST
+
+    _log_audit_event(
+        user_id=user_id,
+        action="invite_code.create",
+        resource_type="invite_code",
+        resource_id=str(invite.get("id") or ""),
+        metadata={"code": code},
+    )
+
+    return jsonify(invite), HTTP_CREATED
+
+
+@app.route(API_WORKSPACES_ENDPOINT, methods=["GET", "POST"])
+def workspaces():
+    """List or create therapist workspaces for the authenticated user."""
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
+    user_id = str(cast(Dict[str, Any], user).get("id") or "")
+    if request.method == "GET":
+        return jsonify(storage_service.list_workspaces_for_user(user_id))
+
+    if str(cast(Dict[str, Any], user).get("role") or "") not in {ROLE_THERAPIST, ROLE_ADMIN}:
+        return jsonify({"error": "Therapist role required"}), HTTP_FORBIDDEN
+
+    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+
+    try:
+        workspace = storage_service.create_workspace(user_id, data.get("name"))
+    except ValueError:
+        return jsonify({"error": USER_NOT_FOUND}), HTTP_NOT_FOUND
+
+    _log_audit_event(
+        user_id=user_id,
+        action="workspace.create",
+        resource_type="workspace",
+        resource_id=str(workspace.get("id") or ""),
+        metadata={"name": workspace.get("name"), "is_personal": workspace.get("is_personal")},
+    )
+    return jsonify(workspace), 201
 
 
 @app.route(API_PILOT_STATE_ENDPOINT)
@@ -834,7 +1076,7 @@ def child_parental_consent(child_id: str):
     return jsonify(consent), 201
 
 
-@app.route(API_CHILD_DATA_EXPORT_ENDPOINT)
+@app.route(API_CHILD_DATA_EXPORT_ENDPOINT, methods=["POST"])
 def export_child_data(child_id: str):
     """Export all data for a child as JSON (SAR / data portability)."""
     user, guard_response = _require_child_access(
@@ -843,6 +1085,13 @@ def export_child_data(child_id: str):
     )
     if guard_response is not None:
         return guard_response
+
+    body = request.get_json(silent=True) or {}
+    if not body.get("confirm"):
+        return jsonify({"error": "Set confirm=true to export child data"}), 400
+    reason = str(body.get("reason") or "").strip()
+    if not reason:
+        return jsonify({"error": "A reason is required for data export"}), 400
 
     data = storage_service.export_child_data(child_id)
     if not data:
@@ -854,6 +1103,7 @@ def export_child_data(child_id: str):
         resource_type="child",
         resource_id=child_id,
         child_id=child_id,
+        metadata={"reason": reason},
     )
     return jsonify(data)
 
@@ -919,33 +1169,40 @@ def get_children():
         return guard_response
 
     if request.method == "POST":
+        if str(cast(Dict[str, Any], user).get("role") or "") not in {ROLE_THERAPIST, ROLE_ADMIN}:
+            return jsonify({"error": "Therapist role required"}), HTTP_FORBIDDEN
+
         data = cast(Dict[str, Any], request.get_json(silent=True) or {})
         name = str(data.get("name") or "").strip()
         if not name:
             return jsonify({"error": "name is required"}), HTTP_BAD_REQUEST
 
-        relationship = "parent"
-        if str(cast(Dict[str, Any], user).get("role") or "") in {ROLE_THERAPIST, ROLE_ADMIN}:
-            relationship = "therapist"
+        workspace_id = str(data.get("workspace_id") or "").strip() or None
 
-        child = storage_service.create_child(
-            name=name,
-            created_by_user_id=str(cast(Dict[str, Any], user).get("id")),
-            relationship=relationship,
-            date_of_birth=str(data.get("date_of_birth") or "").strip() or None,
-            notes=str(data.get("notes") or "").strip() or None,
-        )
+        try:
+            child = storage_service.create_child(
+                name=name,
+                created_by_user_id=str(cast(Dict[str, Any], user).get("id")),
+                relationship="therapist",
+                date_of_birth=str(data.get("date_of_birth") or "").strip() or None,
+                notes=str(data.get("notes") or "").strip() or None,
+                workspace_id=workspace_id,
+            )
+        except ValueError as error:
+            return jsonify({"error": str(error)}), HTTP_FORBIDDEN
         _log_audit_event(
             user_id=str(cast(Dict[str, Any], user).get("id")),
             action="child.create",
             resource_type="child",
             resource_id=str(child.get("id")),
             child_id=str(child.get("id")),
+            metadata={"workspace_id": child.get("workspace_id")},
         )
         return jsonify(child), 201
 
     user_id = str(cast(Dict[str, Any], user).get("id"))
-    children = storage_service.list_children_for_user(user_id)
+    workspace_id_filter = request.args.get("workspace_id") or None
+    children = storage_service.list_children_for_user(user_id, workspace_id=workspace_id_filter)
     _log_audit_event(
         user_id=user_id,
         action="child.list",
@@ -2053,6 +2310,13 @@ def update_user_role(user_id: str):
     if role not in {ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN}:
         return jsonify({"error": INVALID_ROLE}), HTTP_BAD_REQUEST
 
+    acting_role = str(cast(Dict[str, Any], acting_user).get("role") or "")
+    if role == ROLE_ADMIN and acting_role != ROLE_ADMIN:
+        return jsonify({"error": "Only admins can assign the admin role"}), HTTP_FORBIDDEN
+
+    target_user = storage_service.get_user(user_id)
+    previous_role = str(target_user.get("role") or "") if target_user else ""
+
     try:
         user = storage_service.update_user_role(user_id, role)
     except ValueError:
@@ -2066,7 +2330,7 @@ def update_user_role(user_id: str):
         action="user.role.update",
         resource_type="user",
         resource_id=user_id,
-        metadata={"role": role},
+        metadata={"role": role, "previous_role": previous_role, "acting_role": acting_role},
     )
 
     return jsonify(user)

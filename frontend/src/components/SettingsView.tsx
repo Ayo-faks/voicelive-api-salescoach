@@ -21,7 +21,7 @@ import {
   mergeClasses,
 } from '@fluentui/react-components'
 import { useRef, useState } from 'react'
-import { AVATAR_OPTIONS, type ChildInvitation, type ChildProfile, type InvitationEmailDelivery } from '../types'
+import { AVATAR_OPTIONS, type ChildInvitation, type ChildProfile, type InvitationEmailDelivery, type WorkspaceSummary } from '../types'
 import { api } from '../services/api'
 
 const useStyles = makeStyles({
@@ -327,6 +327,7 @@ interface SettingsViewProps {
   onDeclineInvitation: (invitationId: string) => Promise<unknown>
   onRevokeInvitation: (invitationId: string) => Promise<unknown>
   onResendInvitation: (invitationId: string) => Promise<unknown>
+  userWorkspaces?: WorkspaceSummary[]
 }
 
 export function SettingsView({
@@ -354,6 +355,7 @@ export function SettingsView({
   onDeclineInvitation,
   onRevokeInvitation,
   onResendInvitation,
+  userWorkspaces = [],
 }: SettingsViewProps) {
   const styles = useStyles()
   const [newChildName, setNewChildName] = useState('')
@@ -529,29 +531,35 @@ export function SettingsView({
         <div className={styles.sectionGrid}>
           <Card className={styles.card}>
             <Text className={styles.cardTitle}>Child profiles</Text>
-            <div className={styles.form}>
-              <Field label="Child name" validationMessage={childFormError || undefined}>
-                <Input value={newChildName} onChange={(_, data) => setNewChildName(data.value)} />
-              </Field>
-              <Field label="Date of birth">
-                <Input type="date" value={newChildDob} onChange={(_, data) => setNewChildDob(data.value)} />
-              </Field>
-              <Field label="Notes">
-                <Textarea
-                  value={newChildNotes}
-                  onChange={(_, data) => setNewChildNotes(data.value)}
-                  resize="vertical"
-                />
-              </Field>
-              <div className={styles.buttonRow}>
-                <Button appearance="primary" onClick={() => void handleCreateChild()} disabled={childProfileSaving}>
-                  {childProfileSaving ? 'Saving child...' : 'Add child profile'}
-                </Button>
+            {isTherapist ? (
+              <div className={styles.form}>
+                <Field label="Child name" validationMessage={childFormError || undefined}>
+                  <Input value={newChildName} onChange={(_, data) => setNewChildName(data.value)} />
+                </Field>
+                <Field label="Date of birth">
+                  <Input type="date" value={newChildDob} onChange={(_, data) => setNewChildDob(data.value)} />
+                </Field>
+                <Field label="Notes">
+                  <Textarea
+                    value={newChildNotes}
+                    onChange={(_, data) => setNewChildNotes(data.value)}
+                    resize="vertical"
+                  />
+                </Field>
+                <div className={styles.buttonRow}>
+                  <Button appearance="primary" onClick={() => void handleCreateChild()} disabled={childProfileSaving}>
+                    {childProfileSaving ? 'Saving child...' : 'Add child profile'}
+                  </Button>
+                </div>
+                <Text className={styles.helperText}>
+                  Therapists create child profiles first, then invite parents into the linked child workspace.
+                </Text>
               </div>
+            ) : (
               <Text className={styles.helperText}>
-                Child creation is now explicit. New profiles appear only for the family or therapist relationship that owns them.
+                Child profiles are created by the therapist. Your linked-child invitations and access updates appear in this workspace after sign-in.
               </Text>
-            </div>
+            )}
           </Card>
 
           <Card className={styles.card}>
@@ -611,7 +619,7 @@ export function SettingsView({
                     {highlightedInvitationId === invitation.id ? (
                       <Text className={styles.listMeta}>Linked from your invitation email.</Text>
                     ) : null}
-                    <Text className={styles.listMeta}>From {invitation.invited_by_name || 'Therapist'} for {invitation.relationship} access.</Text>
+                    <Text className={styles.listMeta}>From {invitation.invited_by_name || 'Therapist'} for {invitation.relationship} access{invitation.workspace_id && userWorkspaces.length > 0 ? ` in ${userWorkspaces.find(w => w.id === invitation.workspace_id)?.name || 'workspace'}` : ''}.</Text>
                     <Text className={styles.listMeta}>
                       {invitation.expires_at ? `Expires ${new Date(invitation.expires_at).toLocaleString()}` : 'No expiration set'}
                     </Text>

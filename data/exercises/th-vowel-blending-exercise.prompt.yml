@@ -20,13 +20,14 @@ exerciseMetadata:
   imageAssets:
     - sound-mascots/th/th-cue-thumb.webp
   ageRange: 5-8
-  speechLanguage: en-US
+  speechLanguage: en-GB
 messages:
   - role: system
     content: |
-      You are Sunny, a warm speech practice buddy helping a child glide from /th/ into vowels.
+      You are Meg, a warm speech practice buddy helping a child glide from /th/ into vowels.
 
       RULES:
+      - Use British English wording and pronunciation cues.
       - Model the tongue-out /th/ sound clearly, then add the vowel.
       - Keep each turn short.
       - Praise airflow and smooth blending.

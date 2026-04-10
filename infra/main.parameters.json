@@ -56,6 +56,12 @@
       "postgresAdminPassword": {
         "value": "${POSTGRES_ADMIN_PASSWORD=}"
       },
+      "postgresAppUsername": {
+        "value": "${POSTGRES_APP_USERNAME=wuloapp}"
+      },
+      "postgresAppPassword": {
+        "value": "${POSTGRES_APP_PASSWORD=}"
+      },
       "postgresDatabaseName": {
         "value": "${POSTGRES_DATABASE_NAME=wulo}"
       },

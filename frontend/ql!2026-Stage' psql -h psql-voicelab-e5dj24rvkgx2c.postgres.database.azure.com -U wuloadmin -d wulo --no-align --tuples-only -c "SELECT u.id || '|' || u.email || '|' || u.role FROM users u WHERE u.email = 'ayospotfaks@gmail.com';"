@@ -1,0 +1,8 @@
+          id           |         email         |   role    |      child_id      | child_name 
+-----------------------+-----------------------+-----------+--------------------+------------
+ 103149209980369188668 | ayospotfaks@gmail.com | therapist | child-ayo          | Ayo
+ 103149209980369188668 | ayospotfaks@gmail.com | therapist | child-noah         | Noah
+ 103149209980369188668 | ayospotfaks@gmail.com | therapist | child-zuri         | Zuri
+ 103149209980369188668 | ayospotfaks@gmail.com | therapist | child-35b8e8e82b52 | john doe
+(4 rows)
+

@@ -35,11 +35,11 @@ exerciseMetadata:
     - word_a: cot
       word_b: tot
   ageRange: 4-7
-  speechLanguage: en-US
+  speechLanguage: en-GB
 messages:
   - role: system
     content: |
-      You are Sunny, a listening buddy helping a child hear the difference between /k/ and /t/.
+      You are Meg, a listening buddy helping a child hear the difference between /k/ and /t/.
       This is a listening-first activity. Ask the child to tap the picture they hear.
   - role: user
     content: "{{child_utterance}}"

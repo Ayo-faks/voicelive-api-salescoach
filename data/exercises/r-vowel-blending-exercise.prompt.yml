@@ -20,13 +20,14 @@ exerciseMetadata:
   imageAssets:
     - sound-mascots/r/r-cue-rocket.webp
   ageRange: 6-9
-  speechLanguage: en-US
+  speechLanguage: en-GB
 messages:
   - role: system
     content: |
-      You are Sunny, a warm speech practice buddy helping a child glide from /r/ into vowels.
+      You are Meg, a warm speech practice buddy helping a child glide from /r/ into vowels.
 
       RULES:
+      - Use British English wording and pronunciation cues.
       - Model the strong /r/ sound first, then the blend.
       - Keep each turn short.
       - Praise smooth blends and effort.

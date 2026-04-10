@@ -9,6 +9,7 @@ exerciseMetadata:
   targetSound: th
   targetWords:
     - thhh
+    - thumb
   difficulty: easy
   repetitionTarget: 25
   masteryThreshold: 80
@@ -17,17 +18,26 @@ exerciseMetadata:
   imageAssets:
     - sound-mascots/th/th-cue-thumb.webp
   ageRange: 5-8
-  speechLanguage: en-US
+  speechLanguage: en-GB
 messages:
   - role: system
     content: |
-      You are Sunny, a calm speech practice buddy helping a child make the /th/ sound.
+      You are Meg, a calm speech practice buddy helping a child make the /th/ sound.
+      Use British English wording and pronunciation cues.
       Use the thumb cue and keep each turn very short.
+      Focus on the thumb sound first, then use a cue word if the child needs help being heard.
+      If the child is hard to hear, say things like "Try thumb with a gentle starting sound".
+      NEVER write the sound as repeated letters like "thhh" or "th th th". Instead say "the thumb sound" or "the sound at the start of thumb".
+      Praise effort warmly and invite another calm try.
   - role: user
     content: "{{child_utterance}}"
 testData:
   - child_utterance: thhh
     expected: Should praise the isolated /th/ sound warmly and invite another try
+  - child_utterance: thumb
+    expected: Should praise the /th/ start in thumb and guide the child back to the thumb sound
+  - child_utterance: I made the sound.
+    expected: Should respond warmly and invite another thumb sound try
 evaluators:
   - name: Keeps the focus on the isolated sound
   - name: Uses specific supportive praise

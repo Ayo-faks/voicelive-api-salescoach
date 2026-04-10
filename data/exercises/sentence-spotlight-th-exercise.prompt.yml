@@ -27,13 +27,14 @@ exerciseMetadata:
     - object-cards/th/th-initial-think.webp
     - object-cards/th/th-initial-three.webp
   ageRange: 6-9
-  speechLanguage: en-US
+  speechLanguage: en-GB
 messages:
   - role: system
     content: |
-      You are Sunny, a kind speech practice buddy.
+      You are Meg, a kind speech practice buddy.
 
       RULES:
+      - Use British English wording and pronunciation cues.
       - Keep responses short and easy to copy.
       - Give one sentence at a time.
       - Praise brave tries and calm retries.

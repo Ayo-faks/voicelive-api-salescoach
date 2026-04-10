@@ -7,22 +7,11 @@ import {
   Badge,
   Button,
   Card,
-  Dialog,
-  DialogActions,
-  DialogBody,
-  DialogContent,
-  DialogSurface,
-  DialogTitle,
-  DialogTrigger,
   Dropdown,
-  Field,
-  Input,
   Option,
-  Textarea,
   Text,
   makeStyles,
 } from '@fluentui/react-components'
-import { useState } from 'react'
 import { ScenarioList } from './ScenarioList'
 import type {
   ChildProfile,
@@ -312,7 +301,6 @@ interface DashboardHomeProps {
   childrenLoading: boolean
   selectedChildId: string | null
   selectedChild: ChildProfile | null
-  childProfileSaving: boolean
   selectedAvatar: string
   selectedScenario: string | null
   childMemorySummary: ChildMemorySummary | null
@@ -321,7 +309,6 @@ interface DashboardHomeProps {
   launchInFlight: boolean
   scenarios: Scenario[]
   customScenarios: CustomScenario[]
-  onCreateChild: (payload: { name: string; date_of_birth?: string; notes?: string }) => Promise<unknown>
   onSelectChild: (childId: string) => void
   onSelectAvatar: (avatarValue: string) => void
   onSelectScenario: (scenarioId: string) => void
@@ -351,7 +338,6 @@ export function DashboardHome({
   childrenLoading,
   selectedChildId,
   selectedChild,
-  childProfileSaving,
   selectedAvatar,
   selectedScenario,
   childMemorySummary,
@@ -360,7 +346,6 @@ export function DashboardHome({
   launchInFlight,
   scenarios,
   customScenarios,
-  onCreateChild,
   onSelectChild,
   onSelectAvatar,
   onSelectScenario,
@@ -372,11 +357,6 @@ export function DashboardHome({
   onDeleteCustomScenario,
 }: DashboardHomeProps) {
   const styles = useStyles()
-  const [addChildOpen, setAddChildOpen] = useState(false)
-  const [newChildName, setNewChildName] = useState('')
-  const [newChildDob, setNewChildDob] = useState('')
-  const [newChildNotes, setNewChildNotes] = useState('')
-  const [childFormError, setChildFormError] = useState<string | null>(null)
 
   const selectedAvatarOption =
     AVATAR_OPTIONS.find(option => option.value === selectedAvatar) ||
@@ -416,7 +396,7 @@ export function DashboardHome({
       ? 'Choose a linked child and exercise, then hand over the device when you are ready to start practice.'
       : incomingInvitationCount > 0
         ? 'Open the workspace to accept the linked-child invitation before you start practice here.'
-        : 'Add a child profile or wait for a therapist invitation, then start supervised practice here.'
+        : 'Wait for a therapist invitation to link a child profile before you start supervised practice here.'
   const heroBody = selectedScenarioDetail?.description || (isTherapistWorkspace
     ? 'Pick an exercise from the library below to prepare the next guided session.'
     : hasLinkedChildren
@@ -425,29 +405,6 @@ export function DashboardHome({
         ? 'Your linked child invitation is waiting in the workspace area.'
         : 'No child is linked yet, so practice cannot start until a child profile is available.')
   const startButtonLabel = isTherapistWorkspace ? 'Start session' : 'Start practice'
-
-  const handleCreateChild = async () => {
-    const normalizedName = newChildName.trim()
-    if (!normalizedName) {
-      setChildFormError('Child name is required.')
-      return
-    }
-
-    setChildFormError(null)
-    try {
-      await onCreateChild({
-        name: normalizedName,
-        date_of_birth: newChildDob || undefined,
-        notes: newChildNotes.trim() || undefined,
-      })
-      setNewChildName('')
-      setNewChildDob('')
-      setNewChildNotes('')
-      setAddChildOpen(false)
-    } catch (error) {
-      setChildFormError(error instanceof Error ? error.message : 'Child profile could not be created right now.')
-    }
-  }
 
   return (
     <div className={styles.layout}>
@@ -555,37 +512,6 @@ export function DashboardHome({
               >
                 {secondaryActionLabel}
               </Button>
-              <Dialog open={addChildOpen} onOpenChange={(_, data) => setAddChildOpen(data.open)}>
-                <DialogTrigger disableButtonEnhancement>
-                  <Button appearance="secondary" className={styles.secondaryAction}>
-                    Add child
-                  </Button>
-                </DialogTrigger>
-                <DialogSurface>
-                  <DialogBody>
-                    <DialogTitle>Add child profile</DialogTitle>
-                    <DialogContent>
-                      <Field label="Child name" validationMessage={childFormError || undefined}>
-                        <Input value={newChildName} onChange={(_, data) => setNewChildName(data.value)} />
-                      </Field>
-                      <Field label="Date of birth">
-                        <Input type="date" value={newChildDob} onChange={(_, data) => setNewChildDob(data.value)} />
-                      </Field>
-                      <Field label="Notes">
-                        <Textarea value={newChildNotes} onChange={(_, data) => setNewChildNotes(data.value)} resize="vertical" />
-                      </Field>
-                    </DialogContent>
-                    <DialogActions>
-                      <Button appearance="secondary" onClick={() => setAddChildOpen(false)}>
-                        Cancel
-                      </Button>
-                      <Button appearance="primary" onClick={() => void handleCreateChild()} disabled={childProfileSaving}>
-                        {childProfileSaving ? 'Saving child...' : 'Save child'}
-                      </Button>
-                    </DialogActions>
-                  </DialogBody>
-                </DialogSurface>
-              </Dialog>
             </div>
           </div>
         </div>

@@ -28,13 +28,14 @@ exerciseMetadata:
     - minimal-pairs/k-t/t-initial-tar.webp
     - minimal-pairs/k-t/t-initial-tot.webp
   ageRange: 4-7
-  speechLanguage: en-US
+  speechLanguage: en-GB
 messages:
   - role: system
     content: |
-      You are Sunny, a speech practice buddy helping a child hear the difference between /k/ and /t/.
+      You are Meg, a speech practice buddy helping a child hear the difference between /k/ and /t/.
 
       RULES:
+      - Use British English wording and pronunciation cues.
       - Keep the task focused on first-sound sorting.
       - Use short directions only.
       - Encourage the child to listen and think before speaking.

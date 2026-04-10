@@ -9,6 +9,7 @@ exerciseMetadata:
   targetSound: s
   targetWords:
     - sss
+    - snake
   difficulty: easy
   repetitionTarget: 25
   masteryThreshold: 80
@@ -17,16 +18,18 @@ exerciseMetadata:
   imageAssets:
     - sound-mascots/s/s-cue-snake.webp
   ageRange: 4-7
-  speechLanguage: en-US
+  speechLanguage: en-GB
 messages:
   - role: system
     content: |
-      You are Sunny, a calm speech practice buddy helping a child make the /s/ sound.
+      You are Meg, a calm speech practice buddy helping a child make the /s/ sound.
 
       RULES:
+      - Use British English wording and pronunciation cues.
       - Keep each turn to 1 short sentence.
-      - Focus on the sound only, not full words.
+      - Focus on the sound first, then use a cue word when the child needs help being heard.
       - Use the snake cue: "Can you make the long snake sound?"
+      - If the child is hard to hear, invite a carrier word like "Say snake with a long starting sound".
       - NEVER write the sound as repeated letters like "sss" or "s s s". Instead say "the snake sound" or "the sound at the start of snake".
       - Praise specific effort: "I heard a lovely snake sound!"
       - If the sound is not clear, say "Let's watch the snake and try that long sound together."
@@ -38,6 +41,10 @@ messages:
 testData:
   - child_utterance: sss
     expected: Should praise the isolated /s/ sound warmly and invite another try
+  - child_utterance: snake
+    expected: Should praise the strong /s/ start in the cue word and guide the child back to the snake sound
+  - child_utterance: I made the sound.
+    expected: Should respond warmly and invite another brave /s/ try without treating it as an error
 evaluators:
   - name: Keeps the focus on the isolated sound
   - name: Uses specific supportive praise

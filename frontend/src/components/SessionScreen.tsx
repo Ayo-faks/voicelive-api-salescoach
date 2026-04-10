@@ -144,6 +144,7 @@ interface SessionScreenProps {
   utteranceFeedback: PronunciationAssessment | null
   scoringUtterance: boolean
   activeReferenceText: string
+  onSendExerciseMessage?: (text: string) => void
   onInterruptAvatar?: () => void
 }
 
@@ -202,6 +203,7 @@ export function SessionScreen({
   utteranceFeedback,
   scoringUtterance,
   activeReferenceText,
+  onSendExerciseMessage,
   onInterruptAvatar,
 }: SessionScreenProps) {
   const styles = useStyles()
@@ -222,6 +224,7 @@ export function SessionScreen({
       scenarioName={scenario?.name}
       metadata={exerciseMetadata}
       audience={isChildMode ? 'child' : 'therapist'}
+      onSendMessage={onSendExerciseMessage}
       onInterruptAvatar={onInterruptAvatar}
     />
   ) : isSilentSorting ? (
@@ -229,18 +232,23 @@ export function SessionScreen({
       scenarioName={scenario?.name}
       metadata={exerciseMetadata}
       audience={isChildMode ? 'child' : 'therapist'}
+      onSendMessage={onSendExerciseMessage}
     />
   ) : isSoundIsolation ? (
     <SoundIsolationPanel
+      key={`${scenario?.name || 'sound-isolation'}-${exerciseMetadata?.targetSound || 'sound'}`}
       scenarioName={scenario?.name}
       metadata={exerciseMetadata}
       attempts={messages.filter(message => message.role === 'user').length}
+      audience={isChildMode ? 'child' : 'therapist'}
+      onSendMessage={onSendExerciseMessage}
     />
   ) : isVowelBlending ? (
     <VowelBlendingPanel
       scenarioName={scenario?.name}
       metadata={exerciseMetadata}
       attempts={messages.filter(message => message.role === 'user').length}
+      onSendMessage={onSendExerciseMessage}
     />
   ) : null
 
