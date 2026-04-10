@@ -2749,17 +2749,17 @@ class PostgresStorageService:
         if row is None:
             return None
         return {
-            "id": row[0],
-            "child_id": row[1],
-            "guardian_name": row[2],
-            "guardian_email": row[3],
-            "consent_type": row[4],
-            "privacy_accepted": bool(row[5]),
-            "terms_accepted": bool(row[6]),
-            "ai_notice_accepted": bool(row[7]),
-            "recorded_by_user_id": row[8],
-            "consented_at": row[9],
-            "withdrawn_at": row[10],
+            "id": row["id"],
+            "child_id": row["child_id"],
+            "guardian_name": row["guardian_name"],
+            "guardian_email": row["guardian_email"],
+            "consent_type": row["consent_type"],
+            "privacy_accepted": bool(row["privacy_accepted"]),
+            "terms_accepted": bool(row["terms_accepted"]),
+            "ai_notice_accepted": bool(row["ai_notice_accepted"]),
+            "recorded_by_user_id": row["recorded_by_user_id"],
+            "consented_at": row["consented_at"],
+            "withdrawn_at": row["withdrawn_at"],
         }
 
     def withdraw_parental_consent(self, child_id: str) -> bool:
@@ -2796,10 +2796,10 @@ class PostgresStorageService:
                 )
                 sessions = [
                     {
-                        "id": r[0], "scenario_id": r[1], "started_at": r[2],
-                        "finished_at": r[3], "transcript": r[4],
-                        "summary_json": r[5],
-                        "created_at": r[6],
+                        "id": r["id"], "scenario_id": r["scenario_id"], "started_at": r["started_at"],
+                        "finished_at": r["finished_at"], "transcript": r["transcript"],
+                        "summary_json": r["summary_json"],
+                        "created_at": r["created_at"],
                     }
                     for r in cur.fetchall()
                 ]
@@ -2810,9 +2810,9 @@ class PostgresStorageService:
                 )
                 memory_items = [
                     {
-                        "id": r[0], "category": r[1],
-                        "content": r[2],
-                        "created_at": r[3],
+                        "id": r["id"], "category": r["category"],
+                        "content": r["content_json"],
+                        "created_at": r["created_at"],
                     }
                     for r in cur.fetchall()
                 ]
@@ -2823,8 +2823,8 @@ class PostgresStorageService:
                 )
                 plans = [
                     {
-                        "id": r[0], "plan_data": r[1],
-                        "status": r[2], "created_at": r[3],
+                        "id": r["id"], "plan_data": r["plan_data_json"],
+                        "status": r["status"], "created_at": r["created_at"],
                     }
                     for r in cur.fetchall()
                 ]
@@ -2836,15 +2836,15 @@ class PostgresStorageService:
                 consent_row = cur.fetchone()
 
         return {
-            "child": {"id": child_row[0], "name": child_row[1], "created_at": child_row[2]},
+            "child": {"id": child_row["id"], "name": child_row["name"], "created_at": child_row["created_at"]},
             "sessions": sessions,
             "memory_items": memory_items,
             "practice_plans": plans,
             "parental_consent": {
-                "guardian_name": consent_row[0],
-                "guardian_email": consent_row[1],
-                "consented_at": consent_row[2],
-                "withdrawn_at": consent_row[3],
+                "guardian_name": consent_row["guardian_name"],
+                "guardian_email": consent_row["guardian_email"],
+                "consented_at": consent_row["consented_at"],
+                "withdrawn_at": consent_row["withdrawn_at"],
             } if consent_row else None,
             "exported_at": self._utc_now(),
         }

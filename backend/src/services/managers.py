@@ -32,7 +32,7 @@ DOCKER_APP_PATH = "/app"
 # Tool definition for session finish (used by both Azure AI Agents and Realtime session)
 FINISH_SESSION_TOOL = FunctionTool(
     name="finish_session",
-    description="End the practice session. Call this when the child says they are done, want to stop, or want to finish practising.",
+    description="End the practice session. ONLY call this when the child EXPLICITLY says they want to stop, are done, or want to finish. NEVER call this on your own initiative — not after completing a word list, not after a set number of turns, and not because the child is struggling. Wait for the child to clearly ask to stop.",
     parameters={"type": "object", "properties": {}, "required": []},
 )
 
@@ -142,9 +142,11 @@ CRITICAL INTERACTION GUIDELINES:
 - Gently model target sounds and invite the child to try again
 - Keep the interaction calm, encouraging, and easy to follow
 - If the child says they are done, want to stop, want to finish, or no longer want to practise, call the finish_session tool immediately
-- NEVER call finish_session on your own initiative — only call it when the child explicitly asks to stop
+- NEVER call finish_session on your own initiative — only call it when the child EXPLICITLY asks to stop, says "I'm done", "I want to stop", or similar
+- Do NOT call finish_session because the child is struggling, because a word list is complete, or because you think enough practice has happened
 - After completing a word list, cycle back through the words again for extra practice — do NOT end the session
-- Keep practising until the child says they want to stop
+- Keep practising indefinitely until the child says they want to stop — sessions can last many turns and that is normal
+- A typical session lasts 15-25 turns — ending before 10 turns is almost certainly wrong
     """
 
     def __init__(self):
@@ -203,7 +205,7 @@ CRITICAL INTERACTION GUIDELINES:
         """
 
         scenario_instructions = scenario_data.get("messages", [{}])[0].get("content", "")
-        combined_instructions = scenario_instructions + "\n" + self.BASE_INSTRUCTIONS
+        combined_instructions = self.BASE_INSTRUCTIONS + "\n" + scenario_instructions
 
         model_name = scenario_data.get("model", config["model_deployment_name"])
         temperature = scenario_data.get("modelParameters", {}).get("temperature", 0.7)
