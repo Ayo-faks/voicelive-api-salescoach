@@ -920,7 +920,7 @@ export default function App() {
   const requiresOnboarding = isTherapist
   const isChildMode = userMode === 'child' && !isDashboardRoute
   const currentWorkspaceMode: UserMode = isChildMode ? 'child' : 'workspace'
-  const incomingInvitations = childInvitations.filter(invitation => invitation.direction === 'incoming')
+  const incomingInvitations = childInvitations.filter(invitation => invitation.direction === 'incoming' && invitation.status === 'pending')
   const sentInvitations = childInvitations.filter(invitation => invitation.direction === 'sent')
   const queryChildId = searchParams.get(APP_ROUTE_PARAMS.childId)
   const queryScenarioId = searchParams.get(APP_ROUTE_PARAMS.scenarioId)
@@ -1019,7 +1019,7 @@ export default function App() {
 
   // Re-fetch children when the active workspace changes
   useEffect(() => {
-    if (authStatus === 'authenticated' && activeWorkspaceId) {
+    if (authStatus === 'authenticated') {
       refreshChildren().catch(error => {
         console.error('Failed to refresh children after workspace switch:', error)
       })
