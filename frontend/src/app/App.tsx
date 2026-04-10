@@ -124,7 +124,7 @@ type PrewarmedAgent = {
 
 const CHILD_TURN_LIMIT = 10
 const CHILD_MAX_TURNS = 16
-const THERAPIST_AUTO_SUMMARY_TURN_LIMIT = 4
+const THERAPIST_AUTO_SUMMARY_TURN_LIMIT = 10
 const AFFIRMATIVE_FINISH_PATTERN = /\b(yes|yeah|yep|ok|okay|sure|done|finished)\b/i
 const LAUNCH_HANDOFF_DELAY_MS = 240
 const SUMMARY_HANDOFF_DELAY_MS = 1100
