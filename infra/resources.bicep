@@ -723,7 +723,7 @@ resource voicelabAuth 'Microsoft.App/containerApps/authConfigs@2024-03-01' = if 
         registration: {
           clientId: microsoftProviderClientId
           clientSecretSettingName: 'microsoft-provider-auth-secret'
-          openIdIssuer: '${environment().authentication.loginEndpoint}organizations/v2.0'
+          openIdIssuer: '${environment().authentication.loginEndpoint}common/v2.0'
         }
         login: {
           loginParameters: [

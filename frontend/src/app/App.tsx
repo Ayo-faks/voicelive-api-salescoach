@@ -3133,12 +3133,26 @@ export default function App() {
   ])
 
   const handleMicrosoftSignIn = useCallback(() => {
-    window.location.href = `/.auth/login/aad?post_login_redirect_uri=${encodeURIComponent(window.location.href)}`
-  }, [])
+    const postLoginParams = new URLSearchParams()
+
+    if (queryInvitationId) {
+      postLoginParams.set(APP_ROUTE_PARAMS.invitationId, queryInvitationId)
+    }
+
+    const postLoginUrl = `${window.location.origin}${APP_ROUTES.root}${postLoginParams.toString() ? `?${postLoginParams.toString()}` : ''}`
+    window.location.href = `/.auth/login/aad?post_login_redirect_uri=${encodeURIComponent(postLoginUrl)}`
+  }, [queryInvitationId])
 
   const handleGoogleSignIn = useCallback(() => {
-    window.location.href = `/.auth/login/google?post_login_redirect_uri=${encodeURIComponent(window.location.href)}`
-  }, [])
+    const postLoginParams = new URLSearchParams()
+
+    if (queryInvitationId) {
+      postLoginParams.set(APP_ROUTE_PARAMS.invitationId, queryInvitationId)
+    }
+
+    const postLoginUrl = `${window.location.origin}${APP_ROUTES.root}${postLoginParams.toString() ? `?${postLoginParams.toString()}` : ''}`
+    window.location.href = `/.auth/login/google?post_login_redirect_uri=${encodeURIComponent(postLoginUrl)}`
+  }, [queryInvitationId])
 
   if (currentRoute === APP_ROUTES.logout) {
     return <LogoutScreen />
