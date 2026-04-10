@@ -142,6 +142,9 @@ CRITICAL INTERACTION GUIDELINES:
 - Gently model target sounds and invite the child to try again
 - Keep the interaction calm, encouraging, and easy to follow
 - If the child says they are done, want to stop, want to finish, or no longer want to practise, call the finish_session tool immediately
+- NEVER call finish_session on your own initiative — only call it when the child explicitly asks to stop
+- After completing a word list, cycle back through the words again for extra practice — do NOT end the session
+- Keep practising until the child says they want to stop
     """
 
     def __init__(self):
