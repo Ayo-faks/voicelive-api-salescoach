@@ -8,7 +8,10 @@ describe('DashboardHome', () => {
       <DashboardHome
         isTherapistWorkspace
         secondaryActionLabel="Review progress"
-        incomingInvitationCount={0}
+        incomingInvitations={[]}
+        invitationActionPendingId={null}
+        onAcceptInvitation={async () => {}}
+        onDeclineInvitation={async () => {}}
         childProfiles={[{ id: 'child-1', name: 'Amina' }]}
         childrenLoading={false}
         selectedChildId="child-1"
@@ -92,7 +95,10 @@ describe('DashboardHome', () => {
       <DashboardHome
         isTherapistWorkspace={false}
         secondaryActionLabel="Open family setup"
-        incomingInvitationCount={0}
+        incomingInvitations={[]}
+        invitationActionPendingId={null}
+        onAcceptInvitation={async () => {}}
+        onDeclineInvitation={async () => {}}
         childProfiles={[]}
         childrenLoading={false}
         selectedChildId={null}

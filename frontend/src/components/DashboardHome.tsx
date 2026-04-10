@@ -14,6 +14,7 @@ import {
 } from '@fluentui/react-components'
 import { ScenarioList } from './ScenarioList'
 import type {
+  ChildInvitation,
   ChildProfile,
   ChildMemoryProposal,
   ChildMemorySummary,
@@ -296,7 +297,10 @@ interface DashboardHomeProps {
   isTherapistWorkspace: boolean
   secondaryActionLabel: string
   secondaryActionDisabled?: boolean
-  incomingInvitationCount: number
+  incomingInvitations: ChildInvitation[]
+  invitationActionPendingId: string | null
+  onAcceptInvitation: (invitationId: string) => Promise<unknown>
+  onDeclineInvitation: (invitationId: string) => Promise<unknown>
   childProfiles: ChildProfile[]
   childrenLoading: boolean
   selectedChildId: string | null
@@ -333,7 +337,10 @@ export function DashboardHome({
   isTherapistWorkspace,
   secondaryActionLabel,
   secondaryActionDisabled = false,
-  incomingInvitationCount,
+  incomingInvitations,
+  invitationActionPendingId,
+  onAcceptInvitation,
+  onDeclineInvitation,
   childProfiles,
   childrenLoading,
   selectedChildId,
@@ -384,6 +391,7 @@ export function DashboardHome({
     latestSessionAt: selectedChild?.last_session_at,
     pendingProposalCount,
   })
+  const incomingInvitationCount = incomingInvitations.length
   const hasLinkedChildren = childProfiles.length > 0
   const showParentPendingInvitations = !isTherapistWorkspace && !hasLinkedChildren && incomingInvitationCount > 0
   const showParentNoLinkedChildren = !isTherapistWorkspace && !hasLinkedChildren && incomingInvitationCount === 0
@@ -599,13 +607,33 @@ export function DashboardHome({
         ) : showParentPendingInvitations || showParentNoLinkedChildren || showParentNeedsChildSelection ? (
           <div className={styles.memorySignalStrip}>
             {showParentPendingInvitations ? (
-              <div className={styles.memorySignalCard}>
-                <Text className={styles.memorySignalLabel}>Pending invitations</Text>
-                <Text className={styles.memorySignalValue}>{incomingInvitationCount}</Text>
-                <Text className={styles.memorySignalCopy}>
-                  Open the workspace to accept the invitation and link the child before starting practice.
-                </Text>
-              </div>
+              incomingInvitations.map(invitation => (
+                <div key={invitation.id} className={styles.memorySignalCard}>
+                  <Text className={styles.memorySignalLabel}>Invitation from {invitation.invited_by_name || 'Therapist'}</Text>
+                  <Text className={styles.memorySignalValue}>{invitation.child_name}</Text>
+                  <Text className={styles.memorySignalCopy}>
+                    Accept to link this child and start supervised practice.
+                  </Text>
+                  <div style={{ display: 'flex', gap: 'var(--space-sm)', marginTop: 'var(--space-sm)' }}>
+                    <Button
+                      appearance="primary"
+                      size="small"
+                      disabled={invitationActionPendingId === invitation.id}
+                      onClick={() => { void onAcceptInvitation(invitation.id).catch(() => undefined) }}
+                    >
+                      Accept
+                    </Button>
+                    <Button
+                      appearance="secondary"
+                      size="small"
+                      disabled={invitationActionPendingId === invitation.id}
+                      onClick={() => { void onDeclineInvitation(invitation.id).catch(() => undefined) }}
+                    >
+                      Decline
+                    </Button>
+                  </div>
+                </div>
+              ))
             ) : null}
 
             {showParentNoLinkedChildren ? (

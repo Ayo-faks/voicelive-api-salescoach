@@ -3316,7 +3316,10 @@ export default function App() {
         <DashboardHome
           isTherapistWorkspace={isTherapist}
           secondaryActionLabel={isTherapist ? 'Review progress' : 'Open family setup'}
-          incomingInvitationCount={incomingInvitations.length}
+          incomingInvitations={incomingInvitations}
+          invitationActionPendingId={invitationActionPendingId}
+          onAcceptInvitation={handleAcceptInvitation}
+          onDeclineInvitation={handleDeclineInvitation}
           childProfiles={children}
           childrenLoading={childrenLoading}
           selectedChildId={selectedChildId}
