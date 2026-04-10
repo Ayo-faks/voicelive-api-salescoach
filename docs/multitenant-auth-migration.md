@@ -64,6 +64,33 @@ az rest --method GET \
   -o json > /tmp/auth-config-backup.json
 ```
 
+### 5. Issuer Reverted by `azd provision`
+
+**Symptom:** HTTP 400 on `/.auth/login/aad/callback` after a deployment.  
+**Cause:** The compiled ARM JSON templates (`infra/main.json`, `infra/resources.json`) still contained `organizations/v2.0` even though `infra/resources.bicep` had been updated to `common/v2.0`. Running `azd provision` deployed the stale JSON, overwriting the live auth config.  
+**Fix (immediate):** Update the live config via REST API:
+```bash
+SUB_ID=$(az account show --query id -o tsv)
+az rest --method GET \
+  --uri "/subscriptions/$SUB_ID/resourceGroups/rg-salescoach-swe/providers/Microsoft.App/containerApps/voicelab/authConfigs/current?api-version=2024-03-01" \
+  -o json > /tmp/auth-config.json
+
+# Edit /tmp/auth-config.json: change organizations/v2.0 → common/v2.0
+
+az rest --method PUT \
+  --uri "/subscriptions/$SUB_ID/resourceGroups/rg-salescoach-swe/providers/Microsoft.App/containerApps/voicelab/authConfigs/current?api-version=2024-03-01" \
+  --body @/tmp/auth-config.json
+```
+
+**Fix (permanent):** Rebuild the ARM JSON from Bicep so future provisions use the correct value:
+```bash
+cd infra
+az bicep build --file resources.bicep --outfile resources.json
+az bicep build --file main.bicep --outfile main.json
+```
+
+**Lesson:** After editing `.bicep` files, always rebuild the compiled `.json` templates. Otherwise `azd provision` deploys the stale JSON and reverts your changes.
+
 ---
 
 ## Diagnostic Tools
