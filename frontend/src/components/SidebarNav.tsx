@@ -211,23 +211,25 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     gap: 'var(--space-sm)',
-    padding: '10px 12px',
-    borderTop: '1px solid var(--color-border)',
+    padding: '8px 10px',
+    border: '1px solid var(--color-border)',
+    borderRadius: '14px',
+    backgroundColor: 'rgba(255,255,255,0.72)',
   },
   userCardCollapsed: {
     justifyContent: 'center',
-    padding: '10px',
+    padding: '8px',
   },
   userAvatar: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '32px',
-    height: '32px',
+    width: '28px',
+    height: '28px',
     borderRadius: '50%',
     background: 'linear-gradient(135deg, rgba(13, 138, 132, 0.9), rgba(73, 177, 171, 0.9))',
     color: '#fff',
-    fontSize: '13px',
+    fontSize: '12px',
     fontWeight: '700',
     fontFamily: 'var(--font-display)',
     flexShrink: 0,
@@ -240,7 +242,7 @@ const useStyles = makeStyles({
     minWidth: 0,
   },
   userName: {
-    fontSize: '13px',
+    fontSize: '12px',
     fontWeight: '600',
     fontFamily: 'var(--font-display)',
     whiteSpace: 'nowrap',
@@ -248,7 +250,7 @@ const useStyles = makeStyles({
     textOverflow: 'ellipsis',
   },
   userEmail: {
-    fontSize: '11px',
+    fontSize: '10px',
     color: 'var(--color-text-secondary)',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
@@ -436,35 +438,6 @@ export function SidebarNav({
           ) : null}
         </div>
 
-        {isExpanded ? (
-          <div className={styles.userCard}>
-            <span className={styles.userAvatar}>
-              {(userName || '?').charAt(0).toUpperCase()}
-            </span>
-            <div className={styles.userInfo}>
-              <Text className={styles.userName}>{userName || 'User'}</Text>
-              {userEmail ? <Text className={styles.userEmail}>{userEmail}</Text> : null}
-            </div>
-            <Button
-              appearance="subtle"
-              icon={<ArrowRightStartOnRectangleIcon className="w-5 h-5" />}
-              onClick={onSignOut}
-              aria-label="Sign out"
-              title="Sign out"
-            />
-          </div>
-        ) : (
-          <div className={mergeClasses(styles.userCard, styles.userCardCollapsed)}>
-            <Button
-              appearance="subtle"
-              icon={<ArrowRightStartOnRectangleIcon className="w-5 h-5" />}
-              onClick={onSignOut}
-              aria-label="Sign out"
-              title="Sign out"
-            />
-          </div>
-        )}
-
         <div className={styles.footer}>
           {isTherapist && isExpanded ? (
             <Button
@@ -491,8 +464,35 @@ export function SidebarNav({
               <Button appearance="subtle" className={styles.footerButton} as="a" href="/ai-transparency">
                 AI notice
               </Button>
+
+              <div className={styles.userCard}>
+                <span className={styles.userAvatar}>
+                  {(userName || '?').charAt(0).toUpperCase()}
+                </span>
+                <div className={styles.userInfo}>
+                  <Text className={styles.userName}>{userName || 'User'}</Text>
+                  {userEmail ? <Text className={styles.userEmail}>{userEmail}</Text> : null}
+                </div>
+                <Button
+                  appearance="subtle"
+                  icon={<ArrowRightStartOnRectangleIcon className="w-5 h-5" />}
+                  onClick={onSignOut}
+                  aria-label="Sign out"
+                  title="Sign out"
+                />
+              </div>
             </>
-          ) : null}
+          ) : (
+            <div className={mergeClasses(styles.userCard, styles.userCardCollapsed)}>
+              <Button
+                appearance="subtle"
+                icon={<ArrowRightStartOnRectangleIcon className="w-5 h-5" />}
+                onClick={onSignOut}
+                aria-label="Sign out"
+                title="Sign out"
+              />
+            </div>
+          )}
 
           <Button
             appearance="subtle"
