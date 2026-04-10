@@ -395,6 +395,30 @@ export function useRealtime(options: RealtimeOptions) {
     streamingAssistantMessageRef.current = null
   }, [])
 
+  const addLocalMessage = useCallback((role: 'user' | 'assistant', content: string) => {
+    const trimmedContent = content.trim()
+
+    if (!trimmedContent) {
+      return
+    }
+
+    const id = createClientMessageId()
+    setMessages(prev => [
+      ...prev,
+      {
+        id,
+        role,
+        content: trimmedContent,
+        timestamp: new Date(),
+        streaming: false,
+      },
+    ])
+    conversationRecording.current.push({
+      role,
+      content: trimmedContent,
+    })
+  }, [])
+
   const getRecordings = useCallback(
     () => ({
       conversation: conversationRecording.current,
@@ -449,6 +473,7 @@ export function useRealtime(options: RealtimeOptions) {
     connectionState,
     connectionMessage,
     messages,
+    addLocalMessage,
     send,
     disconnect,
     clearMessages,

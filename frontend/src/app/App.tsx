@@ -126,9 +126,17 @@ const CHILD_TURN_LIMIT = 10
 const CHILD_MAX_TURNS = 16
 const THERAPIST_AUTO_SUMMARY_TURN_LIMIT = 10
 const AFFIRMATIVE_FINISH_PATTERN = /\b(yes|yeah|yep|ok|okay|sure|done|finished)\b/i
+const EXPLICIT_STOP_INTENT_PATTERN = /\b(all done|done for today|done now|i am done|i'm done|i want to stop|want to stop|can we stop|stop now|stop please|i want to finish|want to finish|finish now|finish please|no more|take a break|break please)\b/i
 const LAUNCH_HANDOFF_DELAY_MS = 240
-const SUMMARY_HANDOFF_DELAY_MS = 1100
-const SESSION_WRAP_UP_DELAY_MS = 3200
+const SESSION_END_NOTICE_DELAY_MS = 150
+const SESSION_WRAP_UP_DELAY_MS = 700
+const SESSION_END_NOTICE_FALLBACK_MS = 3600
+const CANCEL_TO_CREATE_DELAY_MS = 120
+const DEFAULT_SESSION_END_NOTICE =
+  'We\'re ending today\'s practice now. Your session summary is coming up next.'
+const CONFIRMED_SESSION_END_NOTICE =
+  'Okay, we\'re ending today\'s practice now. Your session summary is coming up next.'
+const SESSION_END_NOTICE_TRANSCRIPT_PATTERN = /ending today'?s practice now|session summary is coming up next/i
 
 function normalizeStoredUserMode(value: string | null): UserMode | null {
   if (value === 'child') {
@@ -942,6 +950,8 @@ export default function App() {
   const stopSessionRecordingRef = useRef<() => void>(() => {})
   const summaryHandoffTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null)
   const wrapUpFinishTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null)
+  const lastUserTranscriptRef = useRef('')
+  const wrapUpAnnouncementPendingRef = useRef(false)
   const sendRef = useRef<(msg: unknown) => void>(() => {})
   const previousPathRef = useRef(location.pathname)
   const navigationBypassRef = useRef(false)
@@ -1903,6 +1913,7 @@ export default function App() {
     }
 
     clearWrapUpTimers()
+    lastUserTranscriptRef.current = ''
     setFinishConfirmationPending(false)
     setFinishPromptQueued(false)
     setFinishRequested(false)
@@ -1912,24 +1923,40 @@ export default function App() {
     stopSessionRecordingRef.current()
     stopAudio()
     sendRef.current({ type: 'response.cancel' })
-    sendRef.current({
-      type: 'response.create',
-      response: {
-        modalities: ['audio', 'text'],
-        instructions:
-          instructions ||
-          'In one short, warm sentence, praise the child, say today\'s practice is finished, and tell them their session summary is coming up next.',
-      },
-    })
+    window.setTimeout(() => {
+      wrapUpAnnouncementPendingRef.current = true
+      sendRef.current({
+        type: 'response.create',
+        response: {
+          modalities: ['audio', 'text'],
+          instructions: `Say exactly: "${instructions || DEFAULT_SESSION_END_NOTICE}"`,
+        },
+      })
+    }, CANCEL_TO_CREATE_DELAY_MS)
 
     summaryHandoffTimerRef.current = window.setTimeout(() => {
       setShowLoading(true)
-    }, SUMMARY_HANDOFF_DELAY_MS)
+    }, SESSION_END_NOTICE_FALLBACK_MS)
 
     wrapUpFinishTimerRef.current = window.setTimeout(() => {
+      wrapUpAnnouncementPendingRef.current = false
       setFinishRequested(true)
-    }, SESSION_WRAP_UP_DELAY_MS)
+    }, SESSION_END_NOTICE_FALLBACK_MS + SESSION_WRAP_UP_DELAY_MS)
   }, [clearWrapUpTimers, stopAudio, wrapUpInProgress])
+
+  const shouldHonorFinishSessionToolCall = useCallback(() => {
+    const lastUserTranscript = lastUserTranscriptRef.current.trim()
+
+    if (!lastUserTranscript) {
+      return false
+    }
+
+    if (finishConfirmationPending && AFFIRMATIVE_FINISH_PATTERN.test(lastUserTranscript)) {
+      return true
+    }
+
+    return EXPLICIT_STOP_INTENT_PATTERN.test(lastUserTranscript)
+  }, [finishConfirmationPending])
 
   const handleWebRTCMessage = useCallback((msg: RealtimeMessage) => {
     if (msg.type === 'proxy.connected' || msg.type === 'session.updated') {
@@ -1937,17 +1964,37 @@ export default function App() {
     }
 
     if (msg.type === 'response.function_call_arguments.done' && msg.name === 'finish_session') {
+      const shouldFinishSession = shouldHonorFinishSessionToolCall()
+
       if (msg.call_id) {
         sendRef.current({
           type: 'conversation.item.create',
           item: {
             type: 'function_call_output',
             call_id: msg.call_id,
-            output: '{"status": "closing"}',
+            output: shouldFinishSession
+              ? '{"status": "closing"}'
+              : '{"status": "ignored", "reason": "child_did_not_explicitly_request_stop"}',
           },
         })
       }
-      beginSessionWrapUp()
+
+      if (!shouldFinishSession) {
+        sendRef.current({ type: 'response.cancel' })
+        window.setTimeout(() => {
+          sendRef.current({
+            type: 'response.create',
+            response: {
+              modalities: ['audio', 'text'],
+              instructions:
+                'The child did not ask to stop. Continue the exercise warmly, keep practising the target sound, and do not mention ending the session.',
+            },
+          })
+        }, CANCEL_TO_CREATE_DELAY_MS)
+        return
+      }
+
+      beginSessionWrapUp(CONFIRMED_SESSION_END_NOTICE)
       return
     }
 
@@ -1977,12 +2024,29 @@ export default function App() {
     ) {
       handleAnswer(msg)
     }
-  }, [beginSessionWrapUp])
+  }, [beginSessionWrapUp, shouldHonorFinishSessionToolCall])
 
   const handleRealtimeTranscript = useCallback(
     (role: 'user' | 'assistant', text: string) => {
       if (role === 'assistant' && text.trim()) {
         setAssistantSpeechStarted(true)
+      }
+
+      if (
+        role === 'assistant' &&
+        wrapUpAnnouncementPendingRef.current &&
+        SESSION_END_NOTICE_TRANSCRIPT_PATTERN.test(text)
+      ) {
+        wrapUpAnnouncementPendingRef.current = false
+        clearWrapUpTimers()
+
+        summaryHandoffTimerRef.current = window.setTimeout(() => {
+          setShowLoading(true)
+        }, SESSION_END_NOTICE_DELAY_MS)
+
+        wrapUpFinishTimerRef.current = window.setTimeout(() => {
+          setFinishRequested(true)
+        }, SESSION_WRAP_UP_DELAY_MS)
       }
 
       if (
@@ -1996,6 +2060,10 @@ export default function App() {
 
       if (!text.trim()) {
         return
+      }
+
+      if (role === 'user') {
+        lastUserTranscriptRef.current = text.trim()
       }
 
       if (role === 'assistant' && idleNudgePendingRef.current) {
@@ -2049,6 +2117,7 @@ export default function App() {
     },
     [
       activeReferenceText,
+      clearWrapUpTimers,
       beginSessionWrapUp,
       childTurnCount,
       finishConfirmationPending,
@@ -2773,6 +2842,8 @@ export default function App() {
 
   const handleClearSession = useCallback(() => {
     clearWrapUpTimers()
+    wrapUpAnnouncementPendingRef.current = false
+    lastUserTranscriptRef.current = ''
     clearMessages()
     clearConversationAudioRecording()
     setScoringUtterance(false)
@@ -2823,6 +2894,7 @@ export default function App() {
 
     // Show session UI immediately so the child sees their buddy while the
     // API call resolves — eliminates the blank/delayed feeling.
+    lastUserTranscriptRef.current = ''
     setSessionReady(false)
     setSessionIntroRequested(false)
     setSessionIntroComplete(false)
