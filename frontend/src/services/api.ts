@@ -635,6 +635,9 @@ export const api = {
     privacy_accepted: boolean
     terms_accepted: boolean
     ai_notice_accepted: boolean
+    personal_data_consent_accepted: boolean
+    special_category_consent_accepted: boolean
+    parental_responsibility_confirmed: boolean
   }): Promise<ParentalConsent> {
     const res = await fetchWithAuth(`/api/children/${childId}/consent`, {
       method: 'POST',

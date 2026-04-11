@@ -79,6 +79,9 @@ interface Props {
     privacy_accepted: boolean
     terms_accepted: boolean
     ai_notice_accepted: boolean
+    personal_data_consent_accepted: boolean
+    special_category_consent_accepted: boolean
+    parental_responsibility_confirmed: boolean
   }) => void
   onCancel: () => void
 }
@@ -90,6 +93,9 @@ export function ParentalConsentDialog({ open, saving, error, childName, onSubmit
   const [privacyAccepted, setPrivacyAccepted] = useState(false)
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [aiNoticeAccepted, setAiNoticeAccepted] = useState(false)
+  const [personalDataConsentAccepted, setPersonalDataConsentAccepted] = useState(false)
+  const [specialCategoryConsentAccepted, setSpecialCategoryConsentAccepted] = useState(false)
+  const [parentalResponsibilityConfirmed, setParentalResponsibilityConfirmed] = useState(false)
 
   useEffect(() => {
     if (open) {
@@ -98,11 +104,20 @@ export function ParentalConsentDialog({ open, saving, error, childName, onSubmit
       setPrivacyAccepted(false)
       setTermsAccepted(false)
       setAiNoticeAccepted(false)
+      setPersonalDataConsentAccepted(false)
+      setSpecialCategoryConsentAccepted(false)
+      setParentalResponsibilityConfirmed(false)
     }
   }, [open])
 
-  const allAccepted = privacyAccepted && termsAccepted && aiNoticeAccepted
-  const formValid = guardianName.trim() !== '' && guardianEmail.trim() !== '' && allAccepted
+  const documentsAccepted = privacyAccepted && termsAccepted && aiNoticeAccepted
+  const gdprConsentsAccepted = personalDataConsentAccepted
+    && specialCategoryConsentAccepted
+    && parentalResponsibilityConfirmed
+  const formValid = guardianName.trim() !== ''
+    && guardianEmail.trim() !== ''
+    && documentsAccepted
+    && gdprConsentsAccepted
 
   return (
     <Dialog open={open} onOpenChange={(_, data) => !data.open && onCancel()}>
@@ -112,7 +127,8 @@ export function ParentalConsentDialog({ open, saving, error, childName, onSubmit
           <div className={styles.body}>
             <Text className={styles.helperText} size={300}>
               Before starting practice sessions, parental or guardian consent must be recorded.
-              Please enter the guardian's details and confirm they have reviewed the legal documents below.
+              Please enter the guardian's details, confirm review of the legal documents below,
+              and record explicit GDPR consent for the child's data processing.
             </Text>
 
             <div className={styles.fieldGroup}>
@@ -166,6 +182,38 @@ export function ParentalConsentDialog({ open, saving, error, childName, onSubmit
               />
             </div>
 
+            <div className={styles.checkboxGroup}>
+              <Text className={styles.helperText} size={300}>
+                Personal data processing includes guardian contact details, the child's profile details,
+                session records, transcripts, pronunciation assessments, therapist notes, consent records,
+                and other information needed to provide and manage therapist-supervised speech practice.
+              </Text>
+              <Checkbox
+                checked={personalDataConsentAccepted}
+                label="I consent to Wulo processing my and my child's personal data to provide, manage, safeguard, and support therapist-supervised speech practice as described in the Privacy Policy."
+                onChange={(_, data) => setPersonalDataConsentAccepted(Boolean(data.checked))}
+              />
+              <Text className={styles.helperText} size={300}>
+                Special category data processing includes my child's speech audio, pronunciation assessments,
+                AI-generated observations about speech and development, therapist notes about SEN needs,
+                and related information revealing health or developmental characteristics.
+              </Text>
+              <Checkbox
+                checked={specialCategoryConsentAccepted}
+                label="I explicitly consent to Wulo processing my child's special category personal data for therapist-supervised speech practice, assessment, progress tracking, and care planning as described in the Privacy Policy."
+                onChange={(_, data) => setSpecialCategoryConsentAccepted(Boolean(data.checked))}
+              />
+              <Checkbox
+                checked={parentalResponsibilityConfirmed}
+                label={`I confirm that I am the parent or legal guardian authorised to provide consent for ${childName}.`}
+                onChange={(_, data) => setParentalResponsibilityConfirmed(Boolean(data.checked))}
+              />
+              <Text className={styles.helperText} size={300}>
+                Consent can be withdrawn at any time. If consent is withdrawn, Wulo will stop the relevant
+                processing and access to speech practice features may be affected.
+              </Text>
+            </div>
+
             {error ? <Text className={styles.errorText}>{error}</Text> : null}
           </div>
         </DialogBody>
@@ -183,6 +231,9 @@ export function ParentalConsentDialog({ open, saving, error, childName, onSubmit
               privacy_accepted: privacyAccepted,
               terms_accepted: termsAccepted,
               ai_notice_accepted: aiNoticeAccepted,
+              personal_data_consent_accepted: personalDataConsentAccepted,
+              special_category_consent_accepted: specialCategoryConsentAccepted,
+              parental_responsibility_confirmed: parentalResponsibilityConfirmed,
             })}
           >
             {saving ? 'Saving…' : 'Record consent'}

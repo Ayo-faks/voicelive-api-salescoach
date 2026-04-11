@@ -30,7 +30,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { AssessmentPanel } from '../components/AssessmentPanel'
 import { AuthGateScreen } from '../components/AuthGateScreen'
-import { InviteCodeScreen } from '../components/InviteCodeScreen'
 import { LogoutScreen } from '../components/LogoutScreen'
 import { ChildHome } from '../components/ChildHome'
 import { ConsentScreen } from '../components/ConsentScreen'
@@ -124,19 +123,11 @@ type PrewarmedAgent = {
 
 const CHILD_TURN_LIMIT = 10
 const CHILD_MAX_TURNS = 16
-const THERAPIST_AUTO_SUMMARY_TURN_LIMIT = 10
+const THERAPIST_AUTO_SUMMARY_TURN_LIMIT = 4
 const AFFIRMATIVE_FINISH_PATTERN = /\b(yes|yeah|yep|ok|okay|sure|done|finished)\b/i
-const EXPLICIT_STOP_INTENT_PATTERN = /\b(all done|done for today|done now|i am done|i'm done|i want to stop|want to stop|can we stop|stop now|stop please|i want to finish|want to finish|finish now|finish please|no more|take a break|break please)\b/i
 const LAUNCH_HANDOFF_DELAY_MS = 240
-const SESSION_END_NOTICE_DELAY_MS = 150
-const SESSION_WRAP_UP_DELAY_MS = 700
-const SESSION_END_NOTICE_FALLBACK_MS = 3600
-const CANCEL_TO_CREATE_DELAY_MS = 120
-const DEFAULT_SESSION_END_NOTICE =
-  'We\'re ending today\'s practice now. Your session summary is coming up next.'
-const CONFIRMED_SESSION_END_NOTICE =
-  'Okay, we\'re ending today\'s practice now. Your session summary is coming up next.'
-const SESSION_END_NOTICE_TRANSCRIPT_PATTERN = /ending today'?s practice now|session summary is coming up next/i
+const SUMMARY_HANDOFF_DELAY_MS = 1100
+const SESSION_WRAP_UP_DELAY_MS = 3200
 
 function normalizeStoredUserMode(value: string | null): UserMode | null {
   if (value === 'child') {
@@ -735,66 +726,6 @@ const useStyles = makeStyles({
     padding: 'var(--space-xl)',
     width: '100%',
   },
-  wrapUpOverlay: {
-    position: 'fixed',
-    inset: 0,
-    zIndex: 9999,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 'var(--space-lg)',
-    background: 'linear-gradient(135deg, var(--colorNeutralBackground1) 0%, var(--colorBrandBackground2) 100%)',
-    animationName: {
-      from: { opacity: 0 },
-      to: { opacity: 1 },
-    },
-    animationDuration: '0.6s',
-    animationTimingFunction: 'ease-out',
-    animationFillMode: 'forwards',
-  },
-  wrapUpIcon: {
-    fontSize: '64px',
-    animationName: {
-      '0%': { transform: 'scale(0.5)', opacity: 0 },
-      '60%': { transform: 'scale(1.15)' },
-      '100%': { transform: 'scale(1)', opacity: 1 },
-    },
-    animationDuration: '0.7s',
-    animationDelay: '0.2s',
-    animationTimingFunction: 'ease-out',
-    animationFillMode: 'both',
-  },
-  wrapUpTitle: {
-    animationName: {
-      from: { opacity: 0, transform: 'translateY(12px)' },
-      to: { opacity: 1, transform: 'translateY(0)' },
-    },
-    animationDuration: '0.5s',
-    animationDelay: '0.5s',
-    animationTimingFunction: 'ease-out',
-    animationFillMode: 'both',
-  },
-  wrapUpSubtitle: {
-    animationName: {
-      from: { opacity: 0, transform: 'translateY(8px)' },
-      to: { opacity: 1, transform: 'translateY(0)' },
-    },
-    animationDuration: '0.5s',
-    animationDelay: '0.8s',
-    animationTimingFunction: 'ease-out',
-    animationFillMode: 'both',
-  },
-  wrapUpSpinner: {
-    animationName: {
-      from: { opacity: 0 },
-      to: { opacity: 1 },
-    },
-    animationDuration: '0.4s',
-    animationDelay: '1.1s',
-    animationTimingFunction: 'ease-out',
-    animationFillMode: 'both',
-  },
   sessionLayout: {
     display: 'grid',
     gridTemplateColumns: 'minmax(0, 1.2fr) minmax(300px, 0.8fr)',
@@ -950,8 +881,6 @@ export default function App() {
   const stopSessionRecordingRef = useRef<() => void>(() => {})
   const summaryHandoffTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null)
   const wrapUpFinishTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null)
-  const lastUserTranscriptRef = useRef('')
-  const wrapUpAnnouncementPendingRef = useRef(false)
   const sendRef = useRef<(msg: unknown) => void>(() => {})
   const previousPathRef = useRef(location.pathname)
   const navigationBypassRef = useRef(false)
@@ -1094,7 +1023,7 @@ export default function App() {
         console.error('Failed to refresh children after workspace switch:', error)
       })
     }
-  }, [activeWorkspaceId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [authStatus, refreshChildren])
 
   const refreshInvitations = useCallback(async () => {
     try {
@@ -1913,7 +1842,6 @@ export default function App() {
     }
 
     clearWrapUpTimers()
-    lastUserTranscriptRef.current = ''
     setFinishConfirmationPending(false)
     setFinishPromptQueued(false)
     setFinishRequested(false)
@@ -1923,40 +1851,24 @@ export default function App() {
     stopSessionRecordingRef.current()
     stopAudio()
     sendRef.current({ type: 'response.cancel' })
-    window.setTimeout(() => {
-      wrapUpAnnouncementPendingRef.current = true
-      sendRef.current({
-        type: 'response.create',
-        response: {
-          modalities: ['audio', 'text'],
-          instructions: `Say exactly: "${instructions || DEFAULT_SESSION_END_NOTICE}"`,
-        },
-      })
-    }, CANCEL_TO_CREATE_DELAY_MS)
+    sendRef.current({
+      type: 'response.create',
+      response: {
+        modalities: ['audio', 'text'],
+        instructions:
+          instructions ||
+          'In one short, warm sentence, praise the child, say today\'s practice is finished, and tell them their session summary is coming up next.',
+      },
+    })
 
     summaryHandoffTimerRef.current = window.setTimeout(() => {
       setShowLoading(true)
-    }, SESSION_END_NOTICE_FALLBACK_MS)
+    }, SUMMARY_HANDOFF_DELAY_MS)
 
     wrapUpFinishTimerRef.current = window.setTimeout(() => {
-      wrapUpAnnouncementPendingRef.current = false
       setFinishRequested(true)
-    }, SESSION_END_NOTICE_FALLBACK_MS + SESSION_WRAP_UP_DELAY_MS)
+    }, SESSION_WRAP_UP_DELAY_MS)
   }, [clearWrapUpTimers, stopAudio, wrapUpInProgress])
-
-  const shouldHonorFinishSessionToolCall = useCallback(() => {
-    const lastUserTranscript = lastUserTranscriptRef.current.trim()
-
-    if (!lastUserTranscript) {
-      return false
-    }
-
-    if (finishConfirmationPending && AFFIRMATIVE_FINISH_PATTERN.test(lastUserTranscript)) {
-      return true
-    }
-
-    return EXPLICIT_STOP_INTENT_PATTERN.test(lastUserTranscript)
-  }, [finishConfirmationPending])
 
   const handleWebRTCMessage = useCallback((msg: RealtimeMessage) => {
     if (msg.type === 'proxy.connected' || msg.type === 'session.updated') {
@@ -1964,37 +1876,17 @@ export default function App() {
     }
 
     if (msg.type === 'response.function_call_arguments.done' && msg.name === 'finish_session') {
-      const shouldFinishSession = shouldHonorFinishSessionToolCall()
-
       if (msg.call_id) {
         sendRef.current({
           type: 'conversation.item.create',
           item: {
             type: 'function_call_output',
             call_id: msg.call_id,
-            output: shouldFinishSession
-              ? '{"status": "closing"}'
-              : '{"status": "ignored", "reason": "child_did_not_explicitly_request_stop"}',
+            output: '{"status": "closing"}',
           },
         })
       }
-
-      if (!shouldFinishSession) {
-        sendRef.current({ type: 'response.cancel' })
-        window.setTimeout(() => {
-          sendRef.current({
-            type: 'response.create',
-            response: {
-              modalities: ['audio', 'text'],
-              instructions:
-                'The child did not ask to stop. Continue the exercise warmly, keep practising the target sound, and do not mention ending the session.',
-            },
-          })
-        }, CANCEL_TO_CREATE_DELAY_MS)
-        return
-      }
-
-      beginSessionWrapUp(CONFIRMED_SESSION_END_NOTICE)
+      beginSessionWrapUp()
       return
     }
 
@@ -2024,29 +1916,12 @@ export default function App() {
     ) {
       handleAnswer(msg)
     }
-  }, [beginSessionWrapUp, shouldHonorFinishSessionToolCall])
+  }, [beginSessionWrapUp])
 
   const handleRealtimeTranscript = useCallback(
     (role: 'user' | 'assistant', text: string) => {
       if (role === 'assistant' && text.trim()) {
         setAssistantSpeechStarted(true)
-      }
-
-      if (
-        role === 'assistant' &&
-        wrapUpAnnouncementPendingRef.current &&
-        SESSION_END_NOTICE_TRANSCRIPT_PATTERN.test(text)
-      ) {
-        wrapUpAnnouncementPendingRef.current = false
-        clearWrapUpTimers()
-
-        summaryHandoffTimerRef.current = window.setTimeout(() => {
-          setShowLoading(true)
-        }, SESSION_END_NOTICE_DELAY_MS)
-
-        wrapUpFinishTimerRef.current = window.setTimeout(() => {
-          setFinishRequested(true)
-        }, SESSION_WRAP_UP_DELAY_MS)
       }
 
       if (
@@ -2060,10 +1935,6 @@ export default function App() {
 
       if (!text.trim()) {
         return
-      }
-
-      if (role === 'user') {
-        lastUserTranscriptRef.current = text.trim()
       }
 
       if (role === 'assistant' && idleNudgePendingRef.current) {
@@ -2117,7 +1988,6 @@ export default function App() {
     },
     [
       activeReferenceText,
-      clearWrapUpTimers,
       beginSessionWrapUp,
       childTurnCount,
       finishConfirmationPending,
@@ -2842,8 +2712,6 @@ export default function App() {
 
   const handleClearSession = useCallback(() => {
     clearWrapUpTimers()
-    wrapUpAnnouncementPendingRef.current = false
-    lastUserTranscriptRef.current = ''
     clearMessages()
     clearConversationAudioRecording()
     setScoringUtterance(false)
@@ -2894,7 +2762,6 @@ export default function App() {
 
     // Show session UI immediately so the child sees their buddy while the
     // API call resolves — eliminates the blank/delayed feeling.
-    lastUserTranscriptRef.current = ''
     setSessionReady(false)
     setSessionIntroRequested(false)
     setSessionIntroComplete(false)
@@ -3208,6 +3075,9 @@ export default function App() {
     privacy_accepted: boolean
     terms_accepted: boolean
     ai_notice_accepted: boolean
+    personal_data_consent_accepted: boolean
+    special_category_consent_accepted: boolean
+    parental_responsibility_confirmed: boolean
   }) => {
     if (!selectedChildId) return
     setParentalConsentSaving(true)
@@ -3313,19 +3183,6 @@ export default function App() {
         }}
         onMicrosoftSignIn={handleMicrosoftSignIn}
         onGoogleSignIn={handleGoogleSignIn}
-      />
-    )
-  }
-
-  if (authUser?.role === 'pending_therapist') {
-    return (
-      <InviteCodeScreen
-        onSuccess={session => {
-          setAuthUser(session)
-        }}
-        onSignOut={() => {
-          navigate(APP_ROUTES.logout)
-        }}
       />
     )
   }
@@ -3616,36 +3473,19 @@ export default function App() {
         onCancel={handleClearSession}
       />
 
-      {(wrapUpInProgress || showLoading) && isChildMode ? (
-        <div className={styles.wrapUpOverlay}>
-          <div className={styles.wrapUpIcon}>🌟</div>
-          <Text className={styles.wrapUpTitle} size={700} weight="bold">
-            {showLoading ? 'Preparing your summary...' : 'Great job today!'}
-          </Text>
-          <Text className={styles.wrapUpSubtitle} size={400}>
-            {showLoading
-              ? 'Hang tight — this takes a few seconds.'
-              : 'Wrapping up your practice session...'}
-          </Text>
-          <div className={styles.wrapUpSpinner}>
-            <Spinner size="large" />
-          </div>
-        </div>
-      ) : showLoading ? (
-        <Dialog open>
-          <DialogSurface>
-            <DialogBody>
-              <div className={styles.loadingContent}>
-                <Spinner size="large" />
-                <Text size={400} weight="semibold">
-                  Preparing session summary...
-                </Text>
-                <Text size={300}>This may take up to 30 seconds.</Text>
-              </div>
-            </DialogBody>
-          </DialogSurface>
-        </Dialog>
-      ) : null}
+      <Dialog open={showLoading}>
+        <DialogSurface>
+          <DialogBody>
+            <div className={styles.loadingContent}>
+              <Spinner size="large" />
+              <Text size={400} weight="semibold">
+                Preparing session summary...
+              </Text>
+              <Text size={300}>This may take up to 30 seconds.</Text>
+            </div>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
 
       <Dialog
         open={showRoleNotice}

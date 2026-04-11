@@ -487,33 +487,36 @@ class PostgresStorageService:
             ).fetchone()
 
             if existing is not None:
+                existing_role = self._normalize_user_role(existing["role"])
+                resolved_role = ROLE_THERAPIST if existing_role == ROLE_PENDING_THERAPIST else existing_role
                 connection.execute(
                     """
                     UPDATE users
-                    SET email = %s, name = %s, provider = %s
+                    SET email = %s, name = %s, provider = %s, role = %s
                     WHERE id = %s
                     """,
-                    (email, name, provider, user_id),
+                    (email, name, provider, resolved_role, user_id),
                 )
-                normalized_role = self._normalize_user_role(existing["role"])
-                if normalized_role in {ROLE_THERAPIST, ROLE_ADMIN}:
+                if resolved_role in {ROLE_THERAPIST, ROLE_ADMIN}:
                     self._ensure_personal_workspace_for_user(connection, user_id, name, email)
+                if resolved_role == ROLE_THERAPIST and existing_role == ROLE_PENDING_THERAPIST:
+                    self._bootstrap_existing_children_for_user(connection, user_id, CHILD_RELATIONSHIP_THERAPIST)
                 return {
                     "id": existing["id"],
                     "email": email,
                     "name": name,
                     "provider": provider,
-                    "role": existing["role"],
+                    "role": resolved_role,
                     "created_at": existing["created_at"],
                 }
 
             # If there is a pending invitation for this email, assign parent role.
-            # Otherwise, assign pending_therapist until they redeem an invite code.
+            # Otherwise, assign therapist immediately.
             has_pending_invitation = connection.execute(
                 "SELECT 1 FROM child_invitations WHERE LOWER(invited_email) = LOWER(%s) AND status = 'pending' LIMIT 1",
                 (email,),
             ).fetchone() is not None
-            role = ROLE_PARENT if has_pending_invitation else ROLE_PENDING_THERAPIST
+            role = ROLE_PARENT if has_pending_invitation else ROLE_THERAPIST
             connection.execute(
                 """
                 INSERT INTO users (id, email, name, provider, role, created_at)
@@ -2695,9 +2698,12 @@ class PostgresStorageService:
         guardian_name: str,
         guardian_email: str,
         consent_type: str = "full",
-        privacy_accepted: bool = True,
-        terms_accepted: bool = True,
-        ai_notice_accepted: bool = True,
+        privacy_accepted: bool = False,
+        terms_accepted: bool = False,
+        ai_notice_accepted: bool = False,
+        personal_data_consent_accepted: bool = False,
+        special_category_consent_accepted: bool = False,
+        parental_responsibility_confirmed: bool = False,
         recorded_by_user_id: str,
     ) -> Dict[str, Any]:
         consent_id = str(uuid4())
@@ -2709,12 +2715,15 @@ class PostgresStorageService:
                     INSERT INTO parental_consents
                         (id, child_id, guardian_name, guardian_email, consent_type,
                          privacy_accepted, terms_accepted, ai_notice_accepted,
-                         recorded_by_user_id, consented_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                         personal_data_consent_accepted, special_category_consent_accepted,
+                         parental_responsibility_confirmed, recorded_by_user_id, consented_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
                         consent_id, child_id, guardian_name, guardian_email, consent_type,
                         privacy_accepted, terms_accepted, ai_notice_accepted,
+                        personal_data_consent_accepted, special_category_consent_accepted,
+                        parental_responsibility_confirmed,
                         recorded_by_user_id, now,
                     ),
                 )
@@ -2727,6 +2736,9 @@ class PostgresStorageService:
             "privacy_accepted": privacy_accepted,
             "terms_accepted": terms_accepted,
             "ai_notice_accepted": ai_notice_accepted,
+            "personal_data_consent_accepted": personal_data_consent_accepted,
+            "special_category_consent_accepted": special_category_consent_accepted,
+            "parental_responsibility_confirmed": parental_responsibility_confirmed,
             "consented_at": now,
             "withdrawn_at": None,
         }
@@ -2737,8 +2749,9 @@ class PostgresStorageService:
                 cur.execute(
                     """
                     SELECT id, child_id, guardian_name, guardian_email, consent_type,
-                           privacy_accepted, terms_accepted, ai_notice_accepted,
-                           recorded_by_user_id, consented_at, withdrawn_at
+                          privacy_accepted, terms_accepted, ai_notice_accepted,
+                          personal_data_consent_accepted, special_category_consent_accepted,
+                          parental_responsibility_confirmed, recorded_by_user_id, consented_at, withdrawn_at
                     FROM parental_consents
                     WHERE child_id = %s AND withdrawn_at IS NULL
                     ORDER BY consented_at DESC LIMIT 1
@@ -2749,17 +2762,20 @@ class PostgresStorageService:
         if row is None:
             return None
         return {
-            "id": row["id"],
-            "child_id": row["child_id"],
-            "guardian_name": row["guardian_name"],
-            "guardian_email": row["guardian_email"],
-            "consent_type": row["consent_type"],
-            "privacy_accepted": bool(row["privacy_accepted"]),
-            "terms_accepted": bool(row["terms_accepted"]),
-            "ai_notice_accepted": bool(row["ai_notice_accepted"]),
-            "recorded_by_user_id": row["recorded_by_user_id"],
-            "consented_at": row["consented_at"],
-            "withdrawn_at": row["withdrawn_at"],
+            "id": row[0],
+            "child_id": row[1],
+            "guardian_name": row[2],
+            "guardian_email": row[3],
+            "consent_type": row[4],
+            "privacy_accepted": bool(row[5]),
+            "terms_accepted": bool(row[6]),
+            "ai_notice_accepted": bool(row[7]),
+            "personal_data_consent_accepted": bool(row[8]),
+            "special_category_consent_accepted": bool(row[9]),
+            "parental_responsibility_confirmed": bool(row[10]),
+            "recorded_by_user_id": row[11],
+            "consented_at": row[12],
+            "withdrawn_at": row[13],
         }
 
     def withdraw_parental_consent(self, child_id: str) -> bool:
@@ -2796,10 +2812,10 @@ class PostgresStorageService:
                 )
                 sessions = [
                     {
-                        "id": r["id"], "scenario_id": r["scenario_id"], "started_at": r["started_at"],
-                        "finished_at": r["finished_at"], "transcript": r["transcript"],
-                        "summary_json": r["summary_json"],
-                        "created_at": r["created_at"],
+                        "id": r[0], "scenario_id": r[1], "started_at": r[2],
+                        "finished_at": r[3], "transcript": r[4],
+                        "summary_json": r[5],
+                        "created_at": r[6],
                     }
                     for r in cur.fetchall()
                 ]
@@ -2810,9 +2826,9 @@ class PostgresStorageService:
                 )
                 memory_items = [
                     {
-                        "id": r["id"], "category": r["category"],
-                        "content": r["content_json"],
-                        "created_at": r["created_at"],
+                        "id": r[0], "category": r[1],
+                        "content": r[2],
+                        "created_at": r[3],
                     }
                     for r in cur.fetchall()
                 ]
@@ -2823,8 +2839,8 @@ class PostgresStorageService:
                 )
                 plans = [
                     {
-                        "id": r["id"], "plan_data": r["plan_data_json"],
-                        "status": r["status"], "created_at": r["created_at"],
+                        "id": r[0], "plan_data": r[1],
+                        "status": r[2], "created_at": r[3],
                     }
                     for r in cur.fetchall()
                 ]
@@ -2836,15 +2852,15 @@ class PostgresStorageService:
                 consent_row = cur.fetchone()
 
         return {
-            "child": {"id": child_row["id"], "name": child_row["name"], "created_at": child_row["created_at"]},
+            "child": {"id": child_row[0], "name": child_row[1], "created_at": child_row[2]},
             "sessions": sessions,
             "memory_items": memory_items,
             "practice_plans": plans,
             "parental_consent": {
-                "guardian_name": consent_row["guardian_name"],
-                "guardian_email": consent_row["guardian_email"],
-                "consented_at": consent_row["consented_at"],
-                "withdrawn_at": consent_row["withdrawn_at"],
+                "guardian_name": consent_row[0],
+                "guardian_email": consent_row[1],
+                "consented_at": consent_row[2],
+                "withdrawn_at": consent_row[3],
             } if consent_row else None,
             "exported_at": self._utc_now(),
         }
