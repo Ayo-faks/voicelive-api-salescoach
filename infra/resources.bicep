@@ -705,6 +705,13 @@ resource voicelabAuth 'Microsoft.App/containerApps/authConfigs@2024-03-01' = if 
       excludedPaths: [
         '/'
         '/index.html'
+        '/login'
+        '/onboarding'
+        '/mode'
+        '/home'
+        '/dashboard'
+        '/settings'
+        '/session'
         '/assets/*'
         '/js/*'
         '/manifest.json'

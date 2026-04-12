@@ -56,18 +56,13 @@ def create_storage_service(app_config: Mapping[str, Any]) -> Any:
     """Create the configured storage service.
 
     SQLite remains the default backend during the migration window.
-    Production (Azure-hosted) environments must use PostgreSQL.
     """
 
     backend = str(app_config.get("database_backend") or "sqlite").strip().lower()
 
-    if backend == "sqlite" and _is_azure_hosted_environment():
-        raise RuntimeError(
-            "SQLite is not supported in production environments. "
-            "Set DATABASE_BACKEND=postgres and provide DATABASE_URL."
-        )
-
     if backend == "sqlite":
+        if _is_azure_hosted_environment():
+            logger.warning("Using SQLite storage in Azure-hosted environment during migration window.")
         bootstrap_storage(
             str(app_config["storage_path"]),
             str(app_config["bootstrap_storage_seed_path"]),

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.37.4.10188",
-      "templateHash": "17315304931948077190"
+      "templateHash": "6412029805322100975"
     }
   },
   "parameters": {
@@ -685,6 +685,13 @@
           "excludedPaths": [
             "/",
             "/index.html",
+            "/login",
+            "/onboarding",
+            "/mode",
+            "/home",
+            "/dashboard",
+            "/settings",
+            "/session",
             "/assets/*",
             "/js/*",
             "/manifest.json",

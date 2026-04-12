@@ -183,18 +183,22 @@ def test_create_storage_service_rejects_unknown_backend():
         )
 
 
-def test_create_storage_service_rejects_sqlite_in_azure(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
-    """SR-01: SQLite must be rejected when Azure runtime markers are present."""
+def test_create_storage_service_allows_sqlite_in_azure_during_migration_window(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+):
+    """SQLite should remain available in Azure until the PostgreSQL cutover completes."""
     monkeypatch.setenv("CONTAINER_APP_NAME", "voicelab")
 
-    with pytest.raises(RuntimeError, match="SQLite is not supported in production"):
-        create_storage_service(
-            {
-                "database_backend": "sqlite",
-                "storage_path": str(tmp_path / "factory.db"),
-                "bootstrap_storage_seed_path": str(tmp_path / "missing-seed.db"),
-            }
-        )
+    service = create_storage_service(
+        {
+            "database_backend": "sqlite",
+            "storage_path": str(tmp_path / "factory.db"),
+            "bootstrap_storage_seed_path": str(tmp_path / "missing-seed.db"),
+        }
+    )
+
+    assert isinstance(service, StorageService)
 
 
 def test_create_storage_service_allows_sqlite_locally(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
