@@ -158,12 +158,15 @@ vi.mock('../components/SettingsView', () => ({
   SettingsView: ({
     selectedChild,
     onSelectChild,
+    highlightedFamilyInvitationId,
   }: {
     selectedChild: { id: string } | null
     onSelectChild: (childId: string) => void
+    highlightedFamilyInvitationId?: string | null
   }) => (
     <div>
       <div>settings-view:{selectedChild?.id ?? 'none'}</div>
+      <div>settings-family-highlight:{highlightedFamilyInvitationId ?? 'none'}</div>
       <button type="button" onClick={() => onSelectChild('child-1')}>settings-select-child-1</button>
       <button type="button" onClick={() => onSelectChild('child-2')}>settings-select-child-2</button>
     </div>
@@ -231,6 +234,9 @@ vi.mock('../services/api', () => ({
     getPilotState: vi.fn(),
     getChildren: vi.fn(),
     getChildInvitations: vi.fn(),
+    getFamilyIntakeInvitations: vi.fn(),
+    getChildIntakeProposals: vi.fn(),
+    getPendingChildIntakeProposals: vi.fn(),
     getChildSessions: vi.fn(),
     getChildPlans: vi.fn(),
     getChildMemorySummary: vi.fn(),
@@ -583,6 +589,9 @@ describe('App routing integration', () => {
     mockedApi.saveParentalConsent.mockResolvedValue({ id: 'consent-1' } as never)
     mockedApi.getChildren.mockResolvedValue([])
     mockedApi.getChildInvitations.mockResolvedValue([] as never)
+    mockedApi.getFamilyIntakeInvitations.mockResolvedValue([] as never)
+    mockedApi.getChildIntakeProposals.mockResolvedValue([] as never)
+    mockedApi.getPendingChildIntakeProposals.mockResolvedValue([] as never)
     mockedApi.getChildSessions.mockImplementation(async childId => sessionSummariesByChild[childId as keyof typeof sessionSummariesByChild] ?? [])
     mockedApi.getChildPlans.mockImplementation(async childId => childPlansByChild[childId as keyof typeof childPlansByChild] ?? [])
     mockedApi.getChildMemorySummary.mockImplementation(async childId => childMemorySummaryByChild[childId as keyof typeof childMemorySummaryByChild] as never)
@@ -633,6 +642,60 @@ describe('App routing integration', () => {
     await waitFor(() => {
       expect(screen.getByTestId('location').textContent).toBe(
         `${APP_ROUTES.settings}?${APP_ROUTE_PARAMS.invitationId}=invite-123`
+      )
+    })
+  })
+
+  it('preserves family invitation query params when redirecting unauthenticated users to login', async () => {
+    mockedApi.getAuthSession.mockRejectedValue(new Error('UNAUTHORIZED'))
+
+    renderApp(`${APP_ROUTES.root}?${APP_ROUTE_PARAMS.familyInvitationId}=family-invite-123`)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location').textContent).toBe(
+        `${APP_ROUTES.login}?${APP_ROUTE_PARAMS.familyInvitationId}=family-invite-123`
+      )
+    })
+  })
+
+  it('routes authenticated users with a family invitation query to settings', async () => {
+    renderApp(`${APP_ROUTES.root}?${APP_ROUTE_PARAMS.familyInvitationId}=family-invite-123`)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location').textContent).toBe(
+        `${APP_ROUTES.settings}?${APP_ROUTE_PARAMS.familyInvitationId}=family-invite-123`
+      )
+    })
+
+    expect(screen.getByText('settings-family-highlight:family-invite-123')).toBeTruthy()
+  })
+
+  it('preserves family invitation query params when redirecting unauthenticated settings deep links to login', async () => {
+    mockedApi.getAuthSession.mockRejectedValue(new Error('UNAUTHORIZED'))
+
+    renderApp(`${APP_ROUTES.settings}?${APP_ROUTE_PARAMS.familyInvitationId}=family-invite-123`)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location').textContent).toBe(
+        `${APP_ROUTES.login}?${APP_ROUTE_PARAMS.familyInvitationId}=family-invite-123`
+      )
+    })
+  })
+
+  it('preserves family invitation query params on auth-expired redirects', async () => {
+    renderApp(`${APP_ROUTES.settings}?${APP_ROUTE_PARAMS.familyInvitationId}=family-invite-123`)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location').textContent).toBe(
+        `${APP_ROUTES.settings}?${APP_ROUTE_PARAMS.familyInvitationId}=family-invite-123`
+      )
+    })
+
+    window.dispatchEvent(new CustomEvent('auth:expired'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location').textContent).toBe(
+        `${APP_ROUTES.login}?${APP_ROUTE_PARAMS.familyInvitationId}=family-invite-123`
       )
     })
   })

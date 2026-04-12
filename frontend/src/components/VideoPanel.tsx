@@ -33,6 +33,9 @@ const useStyles = makeStyles({
       maxWidth: '100%',
     },
   },
+  photoCard: {
+    justifyItems: 'center',
+  },
   videoContainer: {
     width: '100%',
     aspectRatio: '16 / 9',
@@ -43,10 +46,34 @@ const useStyles = makeStyles({
     position: 'relative',
     display: 'grid',
   },
+  photoVideoContainer: {
+    width: 'min(100%, 560px)',
+    maxWidth: '560px',
+    background:
+      'radial-gradient(circle at top, rgba(13, 138, 132, 0.12), transparent 30%), linear-gradient(180deg, rgba(246, 249, 250, 0.98), rgba(231, 238, 240, 0.96))',
+    placeItems: 'center',
+    justifySelf: 'center',
+    marginInline: 'auto',
+    '@media (max-width: 640px)': {
+      width: '100%',
+      maxWidth: '100%',
+    },
+  },
   video: {
     width: '100%',
     height: '100%',
     objectFit: 'cover',
+  },
+  photoVideo: {
+    width: 'auto',
+    maxWidth: '100%',
+    height: '100%',
+    maxHeight: '100%',
+    justifySelf: 'center',
+    alignSelf: 'center',
+    objectFit: 'contain',
+    objectPosition: 'center center',
+    backgroundColor: 'rgba(244, 247, 248, 0.96)',
   },
   introOverlay: {
     position: 'absolute',
@@ -292,6 +319,7 @@ export function VideoPanel({
   const styles = useStyles()
   const videoKey = `${avatarValue || 'avatar'}-${childName || 'child'}-${scenarioName || 'scenario'}`
   const [loadedVideoKey, setLoadedVideoKey] = useState<string | null>(null)
+  const [videoAspectRatio, setVideoAspectRatio] = useState<number | null>(null)
   const hasVideo = loadedVideoKey === videoKey
 
   const avatarLabel = useMemo(() => {
@@ -299,6 +327,10 @@ export function VideoPanel({
       AVATAR_OPTIONS.find(option => option.value === avatarValue)?.label ||
       'Practice buddy'
     )
+  }, [avatarValue])
+
+  const isPhotoAvatar = useMemo(() => {
+    return AVATAR_OPTIONS.find(option => option.value === avatarValue)?.isPhotoAvatar ?? false
   }, [avatarValue])
 
   const avatarName = avatarLabel.split(' (')[0]
@@ -341,19 +373,39 @@ export function VideoPanel({
         : 'Welcoming...'
       : connectionMessage || 'Connecting...'
 
+  const photoContainerStyle = isPhotoAvatar
+    ? {
+        aspectRatio: videoAspectRatio && Number.isFinite(videoAspectRatio)
+          ? `${videoAspectRatio}`
+          : '16 / 9',
+      }
+    : undefined
+
   return (
-    <Card className={styles.card}>
-      <div className={styles.videoContainer}>
+    <Card className={mergeClasses(styles.card, isPhotoAvatar && styles.photoCard)}>
+      <div
+        className={mergeClasses(
+          styles.videoContainer,
+          isPhotoAvatar && styles.photoVideoContainer
+        )}
+        style={photoContainerStyle}
+      >
         <Badge appearance="filled" className={styles.connectionBadge}>
           {statusText}
         </Badge>
         <video
           key={videoKey}
           ref={videoRef}
-          className={styles.video}
+          className={mergeClasses(styles.video, isPhotoAvatar && styles.photoVideo)}
           autoPlay
           playsInline
-          onLoadedMetadata={() => markVideoReady(videoKey, setLoadedVideoKey, onVideoLoaded)}
+          onLoadedMetadata={event => {
+            const { videoWidth, videoHeight } = event.currentTarget
+            if (videoWidth > 0 && videoHeight > 0) {
+              setVideoAspectRatio(videoWidth / videoHeight)
+            }
+            markVideoReady(videoKey, setLoadedVideoKey, onVideoLoaded)
+          }}
           onCanPlay={() => markVideoReady(videoKey, setLoadedVideoKey, onVideoLoaded)}
           onLoadedData={() => {
             markVideoReady(videoKey, setLoadedVideoKey, onVideoLoaded)

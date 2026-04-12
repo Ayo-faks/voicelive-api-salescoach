@@ -128,6 +128,48 @@ export interface ChildInvitation {
   workspace_id?: string | null
 }
 
+export type FamilyIntakeInvitationStatus = 'pending' | 'accepted' | 'declined' | 'revoked' | 'expired'
+
+export interface FamilyIntakeInvitation {
+  id: string
+  workspace_id: string
+  workspace_name?: string | null
+  invited_email: string
+  invited_by_user_id: string
+  invited_by_name?: string | null
+  accepted_by_user_id?: string | null
+  status: FamilyIntakeInvitationStatus
+  created_at: string
+  updated_at: string
+  responded_at?: string | null
+  expires_at?: string | null
+  direction: 'incoming' | 'sent'
+  email_delivery?: InvitationEmailDelivery | null
+}
+
+export type ChildIntakeProposalStatus = 'submitted' | 'approved' | 'rejected'
+
+export interface ChildIntakeProposal {
+  id: string
+  family_intake_invitation_id: string
+  workspace_id: string
+  workspace_name?: string | null
+  created_by_user_id: string
+  created_by_name?: string | null
+  reviewed_by_user_id?: string | null
+  reviewed_by_name?: string | null
+  final_child_id?: string | null
+  child_name: string
+  date_of_birth?: string | null
+  notes?: string | null
+  status: ChildIntakeProposalStatus
+  submitted_at?: string | null
+  reviewed_at?: string | null
+  review_note?: string | null
+  created_at: string
+  updated_at: string
+}
+
 export interface SessionExercise {
   id: string
   name: string

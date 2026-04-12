@@ -1056,33 +1056,13 @@ def child_parental_consent(child_id: str):
     if not guardian_name or not guardian_email:
         return jsonify({"error": "guardian_name and guardian_email are required"}), 400
 
-    privacy_accepted = bool(body.get("privacy_accepted", False))
-    terms_accepted = bool(body.get("terms_accepted", False))
-    ai_notice_accepted = bool(body.get("ai_notice_accepted", False))
-    personal_data_consent_accepted = bool(body.get("personal_data_consent_accepted", False))
-    special_category_consent_accepted = bool(body.get("special_category_consent_accepted", False))
-    parental_responsibility_confirmed = bool(body.get("parental_responsibility_confirmed", False))
-
-    if not all([
-        privacy_accepted,
-        terms_accepted,
-        ai_notice_accepted,
-        personal_data_consent_accepted,
-        special_category_consent_accepted,
-        parental_responsibility_confirmed,
-    ]):
-        return jsonify({"error": "All required consent confirmations must be accepted"}), 400
-
     consent = storage_service.save_parental_consent(
         child_id=child_id,
         guardian_name=guardian_name,
         guardian_email=guardian_email,
-        privacy_accepted=privacy_accepted,
-        terms_accepted=terms_accepted,
-        ai_notice_accepted=ai_notice_accepted,
-        personal_data_consent_accepted=personal_data_consent_accepted,
-        special_category_consent_accepted=special_category_consent_accepted,
-        parental_responsibility_confirmed=parental_responsibility_confirmed,
+        privacy_accepted=bool(body.get("privacy_accepted", True)),
+        terms_accepted=bool(body.get("terms_accepted", True)),
+        ai_notice_accepted=bool(body.get("ai_notice_accepted", True)),
         recorded_by_user_id=user_id,
     )
     _log_audit_event(

@@ -18,6 +18,7 @@ It currently ships a therapist-supervised speech practice platform with:
 - therapist-authored and built-in exercise flows
 - pronunciation assessment and post-session AI analysis
 - authenticated therapist workspace flows
+- workspace-aware access control, therapist invite-code claiming, and parent invitation workflows
 - persisted children, sessions, plans, and therapist feedback
 - governed child memory with proposal review
 - recommendation ranking with inspectable evidence
@@ -75,6 +76,7 @@ Primary runtime responsibilities:
 
 - authenticate the therapist session through same-origin API calls
 - load app configuration and child/session state
+- reconcile active workspace state and workspace-scoped child access
 - orchestrate child-mode and therapist-mode navigation
 - establish the realtime WebSocket connection to the backend proxy
 - bootstrap WebRTC video playback for avatar sessions
@@ -103,6 +105,7 @@ Primary runtime responsibilities:
 
 - serve the built frontend and JSON APIs
 - enforce therapist-role checks and Easy Auth-backed session access
+- provide workspace, invitation, parental-consent, and child data portability endpoints
 - proxy the realtime voice session to Azure Voice Live
 - analyze completed sessions and persist results
 - provide therapist review APIs for sessions, plans, memory, and recommendations
@@ -152,6 +155,14 @@ Key backend files:
 4. Recommendation flows rank candidate exercises with visible evidence.
 5. Planning flows use saved context and approved memory to generate or refine the next-session draft.
 
+### 4. Access, workspaces, and privacy
+
+1. Authenticated users receive role and workspace context from `/api/auth/session`.
+2. Pending therapists can redeem an invite code before entering full therapist workflows.
+3. Therapists can create child profiles and invite parents into a linked child workspace.
+4. Parents can accept or decline invitations from the same authenticated product shell.
+5. Therapists and authorized parents can export or delete child data through the protected privacy endpoints.
+
 ## Persistence Model
 
 ### SQLite path
@@ -187,6 +198,8 @@ Important runtime rules:
 - local auth is forbidden when Azure-hosted runtime markers are present
 - REST APIs use authenticated session checks and therapist-role checks where required
 - the WebSocket upgrade path also validates the principal header unless local auth is explicitly enabled
+- authenticated session payloads also include workspace membership and current workspace context
+- pending therapists can be upgraded through invite-code redemption instead of being granted therapist access immediately
 
 ## Infrastructure Model
 
@@ -217,6 +230,17 @@ The repository now has three distinct evidence layers:
   De-identified cross-child insight derived from reviewed evidence.
 
 This separation matters because the app intentionally avoids letting live child-facing runtime agents write durable memory directly.
+
+## Access And Privacy Controls
+
+The current repository also includes operational controls around child access and privacy:
+
+- therapist workspaces and membership roles
+- parent invitation creation, acceptance, decline, revoke, and resend flows
+- parental-consent records per child
+- child data export for portability and subject-access workflows
+- child data deletion for erasure workflows
+- audit logging around access, invitation, and export/delete operations
 
 ## Development Notes
 

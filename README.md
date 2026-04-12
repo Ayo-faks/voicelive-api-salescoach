@@ -40,10 +40,12 @@ Wulo is a therapist-supervised speech practice platform for structured articulat
 - **Therapist Exercise Authoring** - Create and tailor exercises around target sounds and words
 - **Pronunciation Feedback** - Review word-level clarity and pronunciation support with Azure Speech
 - **Therapist Review** - Save sessions, add therapist feedback, and inspect structured dashboards
+- **Workspace And Access Control** - Support therapist workspaces, invite-code therapist onboarding, and child-linked parent invitations
 - **Governed Child Memory** - Approve or reject proposed durable child-memory items before they influence planning
 - **Inspectable Recommendations** - Rank next-exercise suggestions with visible supporting evidence
 - **Copilot-Backed Planning** - Generate, refine, and approve next-session plans from saved session context
 - **Dual Persistence Paths** - Run on seeded SQLite today while supporting PostgreSQL rollout behind configuration
+- **Data Portability Controls** - Export or erase a child's stored data from the workspace controls
 
 ![Performance Analysis Dashboard](docs/assets/analysis.png)
 
@@ -66,7 +68,7 @@ https://github.com/user-attachments/assets/904f1555-6981-4780-ae64-c5757337bcad
 The current app has two main operating surfaces:
 
 - **Child practice flow** - A simplified exercise picker, avatar-led live session, instant utterance scoring for supported exercise types, and a session completion flow.
-- **Therapist workspace** - Authenticated home, dashboard, memory review, recommendation inspection, session history, charts, and planner flows.
+- **Therapist workspace** - Authenticated home, dashboard, memory review, recommendation inspection, session history, charts, planner flows, workspace switching, invitations, and privacy controls.
 
 The app is designed for therapist-supervised use. Results and generated plans are support tools for clinical workflow, not diagnostic output.
 

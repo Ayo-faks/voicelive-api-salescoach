@@ -49,6 +49,15 @@ DEFAULT_NOISE_REDUCTION_TYPE = "azure_deep_noise_suppression"
 DEFAULT_ECHO_CANCELLATION_TYPE = "server_echo_cancellation"
 DEFAULT_AVATAR_CHARACTER = "meg"
 DEFAULT_AVATAR_STYLE = "casual"
+PHOTO_AVATAR_DEFAULT_SCENE = {
+    "zoom": 0.82,
+    "positionX": 0.0,
+    "positionY": 0.0,
+    "rotationX": 0.0,
+    "rotationY": 0.0,
+    "rotationZ": 0.0,
+    "amplitude": 0.6,
+}
 
 # Message types
 SESSION_UPDATE_TYPE = "session.update"
@@ -225,6 +234,7 @@ class VoiceProxyHandler:
                 "model": "vasa-1",
                 "character": character,
                 "customized": False,
+                "scene": PHOTO_AVATAR_DEFAULT_SCENE,
             }
         return AvatarConfig(
             character=character,

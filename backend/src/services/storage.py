@@ -107,6 +107,8 @@ class StorageService:
                         self._ensure_audit_log_table(connection)
                         self._ensure_child_invitations_table(connection)
                         self._ensure_child_invitation_email_deliveries_table(connection)
+                        self._ensure_family_intake_invitations_table(connection)
+                        self._ensure_child_intake_proposals_table(connection)
                         self._ensure_therapist_invite_codes_table(connection)
                         connection.execute(
                             """CREATE TABLE IF NOT EXISTS exercises (
@@ -450,6 +452,66 @@ class StorageService:
             "CREATE INDEX IF NOT EXISTS idx_child_invitation_email_deliveries_invitation_created ON child_invitation_email_deliveries (invitation_id, created_at DESC)"
         )
 
+    def _ensure_family_intake_invitations_table(self, connection: sqlite3.Connection) -> None:
+        connection.execute(
+            """CREATE TABLE IF NOT EXISTS family_intake_invitations (
+                id TEXT PRIMARY KEY,
+                workspace_id TEXT NOT NULL,
+                invited_email TEXT NOT NULL,
+                invited_by_user_id TEXT NOT NULL,
+                status TEXT NOT NULL,
+                accepted_by_user_id TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                responded_at TEXT,
+                expires_at TEXT,
+                FOREIGN KEY (workspace_id) REFERENCES therapist_workspaces(id),
+                FOREIGN KEY (invited_by_user_id) REFERENCES users(id),
+                FOREIGN KEY (accepted_by_user_id) REFERENCES users(id)
+            )"""
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_family_intake_invites_email_status ON family_intake_invitations (invited_email, status, updated_at DESC)"
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_family_intake_invites_workspace_status ON family_intake_invitations (workspace_id, status, updated_at DESC)"
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_family_intake_invites_inviter_status ON family_intake_invitations (invited_by_user_id, status, updated_at DESC)"
+        )
+
+    def _ensure_child_intake_proposals_table(self, connection: sqlite3.Connection) -> None:
+        connection.execute(
+            """CREATE TABLE IF NOT EXISTS child_intake_proposals (
+                id TEXT PRIMARY KEY,
+                family_intake_invitation_id TEXT NOT NULL,
+                workspace_id TEXT NOT NULL,
+                created_by_user_id TEXT NOT NULL,
+                reviewed_by_user_id TEXT,
+                final_child_id TEXT,
+                child_name TEXT NOT NULL,
+                date_of_birth TEXT,
+                notes TEXT,
+                status TEXT NOT NULL,
+                submitted_at TEXT,
+                reviewed_at TEXT,
+                review_note TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY (family_intake_invitation_id) REFERENCES family_intake_invitations(id),
+                FOREIGN KEY (workspace_id) REFERENCES therapist_workspaces(id),
+                FOREIGN KEY (created_by_user_id) REFERENCES users(id),
+                FOREIGN KEY (reviewed_by_user_id) REFERENCES users(id),
+                FOREIGN KEY (final_child_id) REFERENCES children(id)
+            )"""
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_child_intake_proposals_creator_status ON child_intake_proposals (created_by_user_id, status, updated_at DESC)"
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_child_intake_proposals_workspace_status ON child_intake_proposals (workspace_id, status, submitted_at DESC)"
+        )
+
     def _ensure_therapist_invite_codes_table(self, connection: sqlite3.Connection) -> None:
         connection.execute(
             """CREATE TABLE IF NOT EXISTS therapist_invite_codes (
@@ -585,6 +647,51 @@ class StorageService:
             }
 
         return payload
+
+    def _build_family_intake_invitation_payload(self, row: sqlite3.Row, *, current_email: Optional[str] = None) -> Dict[str, Any]:
+        invited_email = str(row["invited_email"] or "")
+        normalized_current_email = str(current_email or "").strip().lower()
+        direction = "sent"
+        if normalized_current_email and invited_email.lower() == normalized_current_email:
+            direction = "incoming"
+
+        return {
+            "id": row["id"],
+            "workspace_id": row["workspace_id"],
+            "workspace_name": row["workspace_name"],
+            "invited_email": invited_email,
+            "invited_by_user_id": row["invited_by_user_id"],
+            "invited_by_name": row["invited_by_name"],
+            "accepted_by_user_id": row["accepted_by_user_id"],
+            "status": row["status"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+            "responded_at": row["responded_at"],
+            "expires_at": row["expires_at"],
+            "direction": direction,
+        }
+
+    def _build_child_intake_proposal_payload(self, row: sqlite3.Row) -> Dict[str, Any]:
+        return {
+            "id": row["id"],
+            "family_intake_invitation_id": row["family_intake_invitation_id"],
+            "workspace_id": row["workspace_id"],
+            "workspace_name": row["workspace_name"],
+            "created_by_user_id": row["created_by_user_id"],
+            "created_by_name": row["created_by_name"],
+            "reviewed_by_user_id": row["reviewed_by_user_id"],
+            "reviewed_by_name": row["reviewed_by_name"],
+            "final_child_id": row["final_child_id"],
+            "child_name": row["child_name"],
+            "date_of_birth": row["date_of_birth"],
+            "notes": row["notes"],
+            "status": row["status"],
+            "submitted_at": row["submitted_at"],
+            "reviewed_at": row["reviewed_at"],
+            "review_note": row["review_note"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+        }
 
     def _invitation_expiry_timestamp(self, source_timestamp: Optional[str] = None) -> str:
         if source_timestamp:
@@ -973,10 +1080,13 @@ class StorageService:
                     "created_at": existing["created_at"],
                 }
 
-            # If there is a pending invitation for this email, assign parent role.
+            # If there is a pending family or child invitation for this email, assign parent role.
             # Otherwise, assign therapist immediately.
             has_pending_invitation = connection.execute(
                 "SELECT 1 FROM child_invitations WHERE LOWER(invited_email) = LOWER(?) AND status = 'pending' LIMIT 1",
+                (email,),
+            ).fetchone() is not None or connection.execute(
+                "SELECT 1 FROM family_intake_invitations WHERE LOWER(invited_email) = LOWER(?) AND status = 'pending' LIMIT 1",
                 (email,),
             ).fetchone() is not None
             role = ROLE_PARENT if has_pending_invitation else ROLE_THERAPIST
@@ -1858,6 +1968,589 @@ class StorageService:
         if rowcount == 0:
             return None
         return self.get_child_invitation(invitation_id)
+
+    def create_family_intake_invitation(
+        self,
+        *,
+        invited_email: str,
+        invited_by_user_id: str,
+        workspace_id: str,
+    ) -> Dict[str, Any]:
+        normalized_email = str(invited_email or "").strip().lower()
+        normalized_workspace_id = str(workspace_id or "").strip()
+        if not normalized_email:
+            raise ValueError("invited_email is required")
+        if not normalized_workspace_id:
+            raise ValueError("workspace_id is required")
+
+        invitation_id = f"family-invite-{uuid4().hex[:12]}"
+        created_at = self._utc_now()
+        expires_at = self._invitation_expiry_timestamp(created_at)
+        reused_invitation_id: Optional[str] = None
+
+        def persist_invitation(connection: sqlite3.Connection) -> None:
+            nonlocal reused_invitation_id
+            workspace_member = connection.execute(
+                "SELECT 1 FROM workspace_members WHERE workspace_id = ? AND user_id = ?",
+                (normalized_workspace_id, invited_by_user_id),
+            ).fetchone()
+            if workspace_member is None:
+                raise ValueError("User is not a member of the specified workspace")
+
+            connection.execute(
+                """
+                UPDATE family_intake_invitations
+                SET status = 'expired', updated_at = ?, responded_at = COALESCE(responded_at, ?)
+                WHERE status = 'pending' AND expires_at IS NOT NULL AND expires_at < ?
+                """,
+                (created_at, created_at, created_at),
+            )
+            existing = connection.execute(
+                """
+                SELECT id
+                FROM family_intake_invitations
+                WHERE workspace_id = ? AND LOWER(invited_email) = ? AND status = 'pending'
+                ORDER BY created_at DESC
+                LIMIT 1
+                """,
+                (normalized_workspace_id, normalized_email),
+            ).fetchone()
+            if existing is not None:
+                reused_invitation_id = str(existing["id"])
+                connection.execute(
+                    """
+                    UPDATE family_intake_invitations
+                    SET updated_at = ?, responded_at = NULL, expires_at = ?
+                    WHERE id = ?
+                    """,
+                    (created_at, expires_at, reused_invitation_id),
+                )
+                return
+
+            connection.execute(
+                """
+                INSERT INTO family_intake_invitations (
+                    id, workspace_id, invited_email, invited_by_user_id, status,
+                    accepted_by_user_id, created_at, updated_at, responded_at, expires_at
+                )
+                VALUES (?, ?, ?, ?, 'pending', NULL, ?, ?, NULL, ?)
+                """,
+                (
+                    invitation_id,
+                    normalized_workspace_id,
+                    normalized_email,
+                    invited_by_user_id,
+                    created_at,
+                    created_at,
+                    expires_at,
+                ),
+            )
+
+        self._execute_write(persist_invitation)
+        invitation = self.get_family_intake_invitation(reused_invitation_id or invitation_id)
+        if invitation is None:
+            raise RuntimeError("Family intake invitation could not be reloaded after creation")
+        return invitation
+
+    def get_family_intake_invitation(self, invitation_id: str, *, current_email: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        self._expire_stale_family_intake_invitations()
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    family_intake_invitations.id,
+                    family_intake_invitations.workspace_id,
+                    therapist_workspaces.name AS workspace_name,
+                    family_intake_invitations.invited_email,
+                    family_intake_invitations.invited_by_user_id,
+                    inviter.name AS invited_by_name,
+                    family_intake_invitations.accepted_by_user_id,
+                    family_intake_invitations.status,
+                    family_intake_invitations.created_at,
+                    family_intake_invitations.updated_at,
+                    family_intake_invitations.responded_at,
+                    family_intake_invitations.expires_at
+                FROM family_intake_invitations
+                INNER JOIN therapist_workspaces ON therapist_workspaces.id = family_intake_invitations.workspace_id
+                INNER JOIN users AS inviter ON inviter.id = family_intake_invitations.invited_by_user_id
+                WHERE family_intake_invitations.id = ?
+                """,
+                (invitation_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        return self._build_family_intake_invitation_payload(row, current_email=current_email)
+
+    def list_family_intake_invitations_for_user(self, user_id: str, email: str) -> List[Dict[str, Any]]:
+        normalized_email = str(email or "").strip().lower()
+        self._expire_stale_family_intake_invitations()
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT
+                    family_intake_invitations.id,
+                    family_intake_invitations.workspace_id,
+                    therapist_workspaces.name AS workspace_name,
+                    family_intake_invitations.invited_email,
+                    family_intake_invitations.invited_by_user_id,
+                    inviter.name AS invited_by_name,
+                    family_intake_invitations.accepted_by_user_id,
+                    family_intake_invitations.status,
+                    family_intake_invitations.created_at,
+                    family_intake_invitations.updated_at,
+                    family_intake_invitations.responded_at,
+                    family_intake_invitations.expires_at
+                FROM family_intake_invitations
+                INNER JOIN therapist_workspaces ON therapist_workspaces.id = family_intake_invitations.workspace_id
+                INNER JOIN users AS inviter ON inviter.id = family_intake_invitations.invited_by_user_id
+                WHERE family_intake_invitations.invited_by_user_id = ? OR LOWER(family_intake_invitations.invited_email) = ?
+                ORDER BY family_intake_invitations.updated_at DESC, family_intake_invitations.created_at DESC
+                """,
+                (user_id, normalized_email),
+            ).fetchall()
+        return [
+            self._build_family_intake_invitation_payload(row, current_email=normalized_email)
+            for row in rows
+        ]
+
+    def respond_to_family_intake_invitation(
+        self,
+        invitation_id: str,
+        *,
+        user_id: str,
+        user_email: str,
+        accept: bool,
+    ) -> Optional[Dict[str, Any]]:
+        normalized_email = str(user_email or "").strip().lower()
+        response_status = "accepted" if accept else "declined"
+        responded_at = self._utc_now()
+
+        def persist_response(connection: sqlite3.Connection) -> Optional[str]:
+            row = connection.execute(
+                """
+                SELECT id, workspace_id, invited_email, status, expires_at
+                FROM family_intake_invitations
+                WHERE id = ?
+                """,
+                (invitation_id,),
+            ).fetchone()
+            if row is None:
+                return None
+            if str(row["status"] or "") == "pending" and row["expires_at"] and str(row["expires_at"]) < responded_at:
+                connection.execute(
+                    "UPDATE family_intake_invitations SET status = 'expired', updated_at = ?, responded_at = COALESCE(responded_at, ?) WHERE id = ?",
+                    (responded_at, responded_at, invitation_id),
+                )
+                raise ValueError("Invitation has expired")
+            if str(row["status"] or "") != "pending":
+                raise ValueError("Invitation is no longer pending")
+            if str(row["invited_email"] or "").strip().lower() != normalized_email:
+                raise ValueError("Invitation email does not match the authenticated user")
+
+            connection.execute(
+                """
+                UPDATE family_intake_invitations
+                SET status = ?, accepted_by_user_id = ?, updated_at = ?, responded_at = ?
+                WHERE id = ? AND status = 'pending'
+                """,
+                (
+                    response_status,
+                    user_id if accept else None,
+                    responded_at,
+                    responded_at,
+                    invitation_id,
+                ),
+            )
+
+            if accept:
+                user_row = connection.execute("SELECT role FROM users WHERE id = ?", (user_id,)).fetchone()
+                if user_row is not None and user_row["role"] == ROLE_PENDING_THERAPIST:
+                    connection.execute("UPDATE users SET role = ? WHERE id = ?", (ROLE_PARENT, user_id))
+
+            return str(row["workspace_id"])
+
+        workspace_id = self._execute_write(persist_response)
+        if workspace_id is None:
+            return None
+        return self.get_family_intake_invitation(invitation_id, current_email=normalized_email)
+
+    def _expire_stale_family_intake_invitations(self) -> None:
+        now = self._utc_now()
+
+        def persist_expiry(connection: sqlite3.Connection) -> None:
+            connection.execute(
+                """
+                UPDATE family_intake_invitations
+                SET status = 'expired', updated_at = ?, responded_at = COALESCE(responded_at, ?)
+                WHERE status = 'pending' AND expires_at IS NOT NULL AND expires_at < ?
+                """,
+                (now, now, now),
+            )
+
+        self._execute_write(persist_expiry)
+
+    def create_child_intake_proposals(
+        self,
+        *,
+        family_intake_invitation_id: str,
+        created_by_user_id: str,
+        proposals: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        if not proposals:
+            raise ValueError("At least one child proposal is required")
+
+        proposal_ids: List[str] = []
+        created_at = self._utc_now()
+
+        def persist_proposals(connection: sqlite3.Connection) -> None:
+            invitation = connection.execute(
+                """
+                SELECT workspace_id, accepted_by_user_id, status
+                FROM family_intake_invitations
+                WHERE id = ?
+                """,
+                (family_intake_invitation_id,),
+            ).fetchone()
+            if invitation is None:
+                raise ValueError("Family intake invitation not found")
+            if str(invitation["status"] or "") != "accepted":
+                raise ValueError("Family intake invitation must be accepted before submitting children")
+            if str(invitation["accepted_by_user_id"] or "") != created_by_user_id:
+                raise ValueError("Only the invited parent or guardian can submit child proposals")
+
+            for proposal in proposals:
+                child_name = str(proposal.get("child_name") or proposal.get("name") or "").strip()
+                if not child_name:
+                    raise ValueError("child_name is required for each child proposal")
+                proposal_id = f"intake-proposal-{uuid4().hex[:12]}"
+                proposal_ids.append(proposal_id)
+                connection.execute(
+                    """
+                    INSERT INTO child_intake_proposals (
+                        id, family_intake_invitation_id, workspace_id, created_by_user_id,
+                        reviewed_by_user_id, final_child_id, child_name, date_of_birth, notes,
+                        status, submitted_at, reviewed_at, review_note, created_at, updated_at
+                    )
+                    VALUES (?, ?, ?, ?, NULL, NULL, ?, ?, ?, 'submitted', ?, NULL, NULL, ?, ?)
+                    """,
+                    (
+                        proposal_id,
+                        family_intake_invitation_id,
+                        invitation["workspace_id"],
+                        created_by_user_id,
+                        child_name,
+                        str(proposal.get("date_of_birth") or "").strip() or None,
+                        str(proposal.get("notes") or "").strip() or None,
+                        created_at,
+                        created_at,
+                        created_at,
+                    ),
+                )
+
+        self._execute_write(persist_proposals)
+        return [
+            proposal
+            for proposal_id in proposal_ids
+            for proposal in [self.get_child_intake_proposal(proposal_id)]
+            if proposal is not None
+        ]
+
+    def get_child_intake_proposal(self, proposal_id: str) -> Optional[Dict[str, Any]]:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    child_intake_proposals.id,
+                    child_intake_proposals.family_intake_invitation_id,
+                    child_intake_proposals.workspace_id,
+                    therapist_workspaces.name AS workspace_name,
+                    child_intake_proposals.created_by_user_id,
+                    creator.name AS created_by_name,
+                    child_intake_proposals.reviewed_by_user_id,
+                    reviewer.name AS reviewed_by_name,
+                    child_intake_proposals.final_child_id,
+                    child_intake_proposals.child_name,
+                    child_intake_proposals.date_of_birth,
+                    child_intake_proposals.notes,
+                    child_intake_proposals.status,
+                    child_intake_proposals.submitted_at,
+                    child_intake_proposals.reviewed_at,
+                    child_intake_proposals.review_note,
+                    child_intake_proposals.created_at,
+                    child_intake_proposals.updated_at
+                FROM child_intake_proposals
+                INNER JOIN therapist_workspaces ON therapist_workspaces.id = child_intake_proposals.workspace_id
+                INNER JOIN users AS creator ON creator.id = child_intake_proposals.created_by_user_id
+                LEFT JOIN users AS reviewer ON reviewer.id = child_intake_proposals.reviewed_by_user_id
+                WHERE child_intake_proposals.id = ?
+                """,
+                (proposal_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        return self._build_child_intake_proposal_payload(row)
+
+    def list_child_intake_proposals_for_user(self, user_id: str) -> List[Dict[str, Any]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT
+                    child_intake_proposals.id,
+                    child_intake_proposals.family_intake_invitation_id,
+                    child_intake_proposals.workspace_id,
+                    therapist_workspaces.name AS workspace_name,
+                    child_intake_proposals.created_by_user_id,
+                    creator.name AS created_by_name,
+                    child_intake_proposals.reviewed_by_user_id,
+                    reviewer.name AS reviewed_by_name,
+                    child_intake_proposals.final_child_id,
+                    child_intake_proposals.child_name,
+                    child_intake_proposals.date_of_birth,
+                    child_intake_proposals.notes,
+                    child_intake_proposals.status,
+                    child_intake_proposals.submitted_at,
+                    child_intake_proposals.reviewed_at,
+                    child_intake_proposals.review_note,
+                    child_intake_proposals.created_at,
+                    child_intake_proposals.updated_at
+                FROM child_intake_proposals
+                INNER JOIN therapist_workspaces ON therapist_workspaces.id = child_intake_proposals.workspace_id
+                INNER JOIN users AS creator ON creator.id = child_intake_proposals.created_by_user_id
+                LEFT JOIN users AS reviewer ON reviewer.id = child_intake_proposals.reviewed_by_user_id
+                WHERE child_intake_proposals.created_by_user_id = ?
+                ORDER BY child_intake_proposals.updated_at DESC, child_intake_proposals.created_at DESC
+                """,
+                (user_id,),
+            ).fetchall()
+        return [self._build_child_intake_proposal_payload(row) for row in rows]
+
+    def list_pending_child_intake_proposals(self, *, workspace_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        query = [
+            """
+            SELECT
+                child_intake_proposals.id,
+                child_intake_proposals.family_intake_invitation_id,
+                child_intake_proposals.workspace_id,
+                therapist_workspaces.name AS workspace_name,
+                child_intake_proposals.created_by_user_id,
+                creator.name AS created_by_name,
+                child_intake_proposals.reviewed_by_user_id,
+                reviewer.name AS reviewed_by_name,
+                child_intake_proposals.final_child_id,
+                child_intake_proposals.child_name,
+                child_intake_proposals.date_of_birth,
+                child_intake_proposals.notes,
+                child_intake_proposals.status,
+                child_intake_proposals.submitted_at,
+                child_intake_proposals.reviewed_at,
+                child_intake_proposals.review_note,
+                child_intake_proposals.created_at,
+                child_intake_proposals.updated_at
+            FROM child_intake_proposals
+            INNER JOIN therapist_workspaces ON therapist_workspaces.id = child_intake_proposals.workspace_id
+            INNER JOIN users AS creator ON creator.id = child_intake_proposals.created_by_user_id
+            LEFT JOIN users AS reviewer ON reviewer.id = child_intake_proposals.reviewed_by_user_id
+            WHERE child_intake_proposals.status = 'submitted'
+            """
+        ]
+        parameters: List[Any] = []
+        if workspace_id is not None:
+            query.append("AND child_intake_proposals.workspace_id = ?")
+            parameters.append(workspace_id)
+        query.append("ORDER BY child_intake_proposals.submitted_at DESC, child_intake_proposals.created_at DESC")
+
+        with self._connect() as connection:
+            rows = connection.execute("\n".join(query), parameters).fetchall()
+        return [self._build_child_intake_proposal_payload(row) for row in rows]
+
+    def approve_child_intake_proposal(
+        self,
+        proposal_id: str,
+        *,
+        reviewed_by_user_id: str,
+        review_note: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        reviewed_at = self._utc_now()
+
+        def persist_approval(connection: sqlite3.Connection) -> Optional[str]:
+            proposal = connection.execute(
+                """
+                SELECT id, workspace_id, created_by_user_id, child_name, date_of_birth, notes, status
+                FROM child_intake_proposals
+                WHERE id = ?
+                """,
+                (proposal_id,),
+            ).fetchone()
+            if proposal is None:
+                return None
+            if str(proposal["status"] or "") != "submitted":
+                raise ValueError("Proposal is not pending review")
+
+            reviewer_membership = connection.execute(
+                "SELECT role FROM workspace_members WHERE workspace_id = ? AND user_id = ?",
+                (proposal["workspace_id"], reviewed_by_user_id),
+            ).fetchone()
+            if reviewer_membership is None or str(reviewer_membership["role"] or "") not in {
+                WORKSPACE_ROLE_OWNER,
+                WORKSPACE_ROLE_ADMIN,
+                WORKSPACE_ROLE_THERAPIST,
+            }:
+                raise ValueError("Therapist workspace access required")
+
+            child_id = f"child-{uuid4().hex[:12]}"
+            connection.execute(
+                """
+                INSERT INTO children (id, name, date_of_birth, notes, deleted_at, created_at, workspace_id)
+                VALUES (?, ?, ?, ?, NULL, ?, ?)
+                """,
+                (
+                    child_id,
+                    proposal["child_name"],
+                    proposal["date_of_birth"],
+                    proposal["notes"],
+                    reviewed_at,
+                    proposal["workspace_id"],
+                ),
+            )
+            connection.execute(
+                """
+                INSERT INTO user_children (user_id, child_id, relationship, created_at)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(user_id, child_id) DO UPDATE SET relationship = excluded.relationship
+                """,
+                (reviewed_by_user_id, child_id, CHILD_RELATIONSHIP_THERAPIST, reviewed_at),
+            )
+            connection.execute(
+                """
+                INSERT INTO user_children (user_id, child_id, relationship, created_at)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(user_id, child_id) DO UPDATE SET relationship = excluded.relationship
+                """,
+                (proposal["created_by_user_id"], child_id, CHILD_RELATIONSHIP_PARENT, reviewed_at),
+            )
+            connection.execute(
+                """
+                INSERT INTO workspace_members (workspace_id, user_id, role, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(workspace_id, user_id) DO NOTHING
+                """,
+                (proposal["workspace_id"], proposal["created_by_user_id"], WORKSPACE_ROLE_PARENT, reviewed_at, reviewed_at),
+            )
+            connection.execute(
+                """
+                UPDATE child_intake_proposals
+                SET status = 'approved', reviewed_by_user_id = ?, final_child_id = ?, reviewed_at = ?,
+                    review_note = ?, updated_at = ?
+                WHERE id = ?
+                """,
+                (reviewed_by_user_id, child_id, reviewed_at, review_note, reviewed_at, proposal_id),
+            )
+            return child_id
+
+        child_id = self._execute_write(persist_approval)
+        if child_id is None:
+            return None
+        return self.get_child_intake_proposal(proposal_id)
+
+    def reject_child_intake_proposal(
+        self,
+        proposal_id: str,
+        *,
+        reviewed_by_user_id: str,
+        review_note: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        reviewed_at = self._utc_now()
+
+        def persist_rejection(connection: sqlite3.Connection) -> int:
+            proposal = connection.execute(
+                "SELECT workspace_id, status FROM child_intake_proposals WHERE id = ?",
+                (proposal_id,),
+            ).fetchone()
+            if proposal is None:
+                return 0
+            if str(proposal["status"] or "") != "submitted":
+                raise ValueError("Proposal is not pending review")
+            reviewer_membership = connection.execute(
+                "SELECT role FROM workspace_members WHERE workspace_id = ? AND user_id = ?",
+                (proposal["workspace_id"], reviewed_by_user_id),
+            ).fetchone()
+            if reviewer_membership is None or str(reviewer_membership["role"] or "") not in {
+                WORKSPACE_ROLE_OWNER,
+                WORKSPACE_ROLE_ADMIN,
+                WORKSPACE_ROLE_THERAPIST,
+            }:
+                raise ValueError("Therapist workspace access required")
+            cursor = connection.execute(
+                """
+                UPDATE child_intake_proposals
+                SET status = 'rejected', reviewed_by_user_id = ?, reviewed_at = ?, review_note = ?, updated_at = ?
+                WHERE id = ?
+                """,
+                (reviewed_by_user_id, reviewed_at, review_note, reviewed_at, proposal_id),
+            )
+            return cursor.rowcount
+
+        rowcount = self._execute_write(persist_rejection)
+        if rowcount == 0:
+            return None
+        return self.get_child_intake_proposal(proposal_id)
+
+    def resubmit_child_intake_proposal(
+        self,
+        proposal_id: str,
+        *,
+        created_by_user_id: str,
+        child_name: str,
+        date_of_birth: Optional[str] = None,
+        notes: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        normalized_child_name = str(child_name or "").strip()
+        if not normalized_child_name:
+            raise ValueError("child_name is required")
+
+        resubmitted_at = self._utc_now()
+
+        def persist_resubmission(connection: sqlite3.Connection) -> int:
+            proposal = connection.execute(
+                "SELECT created_by_user_id, status FROM child_intake_proposals WHERE id = ?",
+                (proposal_id,),
+            ).fetchone()
+            if proposal is None:
+                return 0
+            if str(proposal["created_by_user_id"] or "") != created_by_user_id:
+                raise ValueError("Only the submitting parent or guardian can edit this proposal")
+            if str(proposal["status"] or "") != "rejected":
+                raise ValueError("Only rejected proposals can be edited and resubmitted")
+
+            cursor = connection.execute(
+                """
+                UPDATE child_intake_proposals
+                SET child_name = ?,
+                    date_of_birth = ?,
+                    notes = ?,
+                    status = 'submitted',
+                    submitted_at = ?,
+                    reviewed_by_user_id = NULL,
+                    reviewed_at = NULL,
+                    review_note = NULL,
+                    updated_at = ?
+                WHERE id = ?
+                """,
+                (
+                    normalized_child_name,
+                    date_of_birth,
+                    notes,
+                    resubmitted_at,
+                    resubmitted_at,
+                    proposal_id,
+                ),
+            )
+            return cursor.rowcount
+
+        rowcount = self._execute_write(persist_resubmission)
+        if rowcount == 0:
+            return None
+        return self.get_child_intake_proposal(proposal_id)
 
     def record_child_invitation_email_delivery(
         self,

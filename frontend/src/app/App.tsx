@@ -59,11 +59,13 @@ import type {
   AvatarOption,
   ChildProfile,
   ChildMemoryItem,
+  ChildIntakeProposal,
   ChildInvitation,
   ChildMemoryProposal,
   ChildMemorySummary,
   CustomScenario,
   ExerciseMetadata,
+  FamilyIntakeInvitation,
   InvitationEmailDelivery,
   PilotState,
   PlannerReadiness,
@@ -823,10 +825,16 @@ export default function App() {
   const [childMemoryItems, setChildMemoryItems] = useState<ChildMemoryItem[]>([])
   const [childMemoryProposals, setChildMemoryProposals] = useState<ChildMemoryProposal[]>([])
   const [childInvitations, setChildInvitations] = useState<ChildInvitation[]>([])
+  const [familyIntakeInvitations, setFamilyIntakeInvitations] = useState<FamilyIntakeInvitation[]>([])
+  const [childIntakeProposals, setChildIntakeProposals] = useState<ChildIntakeProposal[]>([])
+  const [pendingChildIntakeProposals, setPendingChildIntakeProposals] = useState<ChildIntakeProposal[]>([])
   const [invitationDeliveryById, setInvitationDeliveryById] = useState<Record<string, InvitationEmailDelivery | null | undefined>>({})
   const [invitationsLoading, setInvitationsLoading] = useState(true)
   const [invitationError, setInvitationError] = useState<string | null>(null)
   const [invitationActionPendingId, setInvitationActionPendingId] = useState<string | null>(null)
+  const [familyIntakeLoading, setFamilyIntakeLoading] = useState(true)
+  const [familyIntakeError, setFamilyIntakeError] = useState<string | null>(null)
+  const [familyIntakeActionPendingId, setFamilyIntakeActionPendingId] = useState<string | null>(null)
   const [recommendationHistory, setRecommendationHistory] = useState<RecommendationLog[]>([])
   const [selectedRecommendationDetail, setSelectedRecommendationDetail] = useState<RecommendationDetail | null>(null)
   const [selectedPlan, setSelectedPlan] = useState<PracticePlan | null>(null)
@@ -921,11 +929,15 @@ export default function App() {
   const currentWorkspaceMode: UserMode = isChildMode ? 'child' : 'workspace'
   const incomingInvitations = childInvitations.filter(invitation => invitation.direction === 'incoming' && invitation.status === 'pending')
   const sentInvitations = childInvitations.filter(invitation => invitation.direction === 'sent')
+  const incomingFamilyIntakeInvitations = familyIntakeInvitations.filter(invitation => invitation.direction === 'incoming')
+  const pendingIncomingFamilyIntakeInvitations = incomingFamilyIntakeInvitations.filter(invitation => invitation.status === 'pending')
+  const sentFamilyIntakeInvitations = familyIntakeInvitations.filter(invitation => invitation.direction === 'sent')
   const queryChildId = searchParams.get(APP_ROUTE_PARAMS.childId)
   const queryScenarioId = searchParams.get(APP_ROUTE_PARAMS.scenarioId)
   const querySessionId = searchParams.get(APP_ROUTE_PARAMS.sessionId)
   const queryPlanId = searchParams.get(APP_ROUTE_PARAMS.planId)
   const queryInvitationId = searchParams.get(APP_ROUTE_PARAMS.invitationId)
+  const queryFamilyInvitationId = searchParams.get(APP_ROUTE_PARAMS.familyInvitationId)
   const currentSearch = location.search.startsWith('?') ? location.search.slice(1) : location.search
   const activeAvatarName = getAvatarName(selectedAvatar)
   const activeAvatarPersona = getAvatarPersona(selectedAvatar)
@@ -1040,6 +1052,42 @@ export default function App() {
       throw error
     }
   }, [])
+
+  const refreshFamilyIntake = useCallback(async () => {
+    setFamilyIntakeLoading(true)
+
+    try {
+      const [invitations, proposals, pendingProposals] = await Promise.all([
+        api.getFamilyIntakeInvitations(),
+        api.getChildIntakeProposals(),
+        isTherapist ? api.getPendingChildIntakeProposals(activeWorkspaceId || undefined) : Promise.resolve([]),
+      ])
+      setFamilyIntakeInvitations(invitations)
+      setChildIntakeProposals(proposals)
+      setPendingChildIntakeProposals(pendingProposals)
+      setFamilyIntakeError(null)
+      return { invitations, proposals, pendingProposals }
+    } catch (error) {
+      console.error('Failed to load family intake state:', error)
+      setFamilyIntakeInvitations([])
+      setChildIntakeProposals([])
+      setPendingChildIntakeProposals([])
+      setFamilyIntakeError(
+        error instanceof Error ? error.message : 'Family intake data could not be loaded right now.'
+      )
+      throw error
+    } finally {
+      setFamilyIntakeLoading(false)
+    }
+  }, [activeWorkspaceId, isTherapist])
+
+  useEffect(() => {
+    if (authStatus === 'authenticated') {
+      refreshFamilyIntake().catch(error => {
+        console.error('Failed to refresh family intake state:', error)
+      })
+    }
+  }, [authStatus, refreshFamilyIntake])
 
   const refreshAuthSession = useCallback(async () => {
     try {
@@ -1191,7 +1239,13 @@ export default function App() {
         window.localStorage.removeItem('wulo.user.mode')
       }
       setShowRoleNotice(false)
-      navigate(APP_ROUTES.login, { replace: true })
+      navigate(
+        {
+          pathname: APP_ROUTES.login,
+          search: location.search,
+        },
+        { replace: true }
+      )
     }
 
     window.addEventListener('auth:expired', handleAuthExpired)
@@ -1200,7 +1254,7 @@ export default function App() {
       cancelled = true
       window.removeEventListener('auth:expired', handleAuthExpired)
     }
-  }, [navigate, refreshAuthSession, refreshChildren, refreshInvitations, userMode])
+  }, [location.search, navigate, refreshAuthSession, refreshChildren, refreshInvitations, userMode])
 
   const handleOpenSession = useCallback(
     async (sessionId: string) => {
@@ -1591,6 +1645,147 @@ export default function App() {
       }
     },
     [refreshInvitations]
+  )
+
+  const handleCreateFamilyIntakeInvitation = useCallback(
+    async (payload: { invited_email: string; workspace_id?: string }) => {
+      setFamilyIntakeActionPendingId(`family-create:${payload.invited_email}`)
+      setFamilyIntakeError(null)
+
+      try {
+        const invitation = await api.createFamilyIntakeInvitation(payload)
+        await refreshFamilyIntake()
+        return invitation
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Family intake invitation could not be created right now.'
+        setFamilyIntakeError(message)
+        throw error
+      } finally {
+        setFamilyIntakeActionPendingId(null)
+      }
+    },
+    [refreshFamilyIntake]
+  )
+
+  const handleAcceptFamilyIntakeInvitation = useCallback(
+    async (invitationId: string) => {
+      setFamilyIntakeActionPendingId(invitationId)
+      setFamilyIntakeError(null)
+
+      try {
+        await api.acceptFamilyIntakeInvitation(invitationId)
+        await Promise.all([refreshFamilyIntake(), refreshAuthSession()])
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Family intake invitation could not be accepted right now.'
+        setFamilyIntakeError(message)
+        throw error
+      } finally {
+        setFamilyIntakeActionPendingId(null)
+      }
+    },
+    [refreshAuthSession, refreshFamilyIntake]
+  )
+
+  const handleDeclineFamilyIntakeInvitation = useCallback(
+    async (invitationId: string) => {
+      setFamilyIntakeActionPendingId(invitationId)
+      setFamilyIntakeError(null)
+
+      try {
+        await api.declineFamilyIntakeInvitation(invitationId)
+        await refreshFamilyIntake()
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Family intake invitation could not be declined right now.'
+        setFamilyIntakeError(message)
+        throw error
+      } finally {
+        setFamilyIntakeActionPendingId(null)
+      }
+    },
+    [refreshFamilyIntake]
+  )
+
+  const handleSubmitChildIntakeProposals = useCallback(
+    async (payload: {
+      family_intake_invitation_id: string
+      children: Array<{ child_name: string; date_of_birth?: string; notes?: string }>
+    }) => {
+      setFamilyIntakeActionPendingId(`family-submit:${payload.family_intake_invitation_id}`)
+      setFamilyIntakeError(null)
+
+      try {
+        const proposals = await api.createChildIntakeProposals(payload)
+        await refreshFamilyIntake()
+        return proposals
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Child intake proposals could not be submitted right now.'
+        setFamilyIntakeError(message)
+        throw error
+      } finally {
+        setFamilyIntakeActionPendingId(null)
+      }
+    },
+    [refreshFamilyIntake]
+  )
+
+  const handleApproveChildIntakeProposal = useCallback(
+    async (proposalId: string, reviewNote?: string) => {
+      setFamilyIntakeActionPendingId(proposalId)
+      setFamilyIntakeError(null)
+
+      try {
+        const proposal = await api.approveChildIntakeProposal(proposalId, reviewNote)
+        await Promise.all([refreshChildren(), refreshFamilyIntake(), refreshAuthSession()])
+        return proposal
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Child intake proposal could not be approved right now.'
+        setFamilyIntakeError(message)
+        throw error
+      } finally {
+        setFamilyIntakeActionPendingId(null)
+      }
+    },
+    [refreshAuthSession, refreshChildren, refreshFamilyIntake]
+  )
+
+  const handleRejectChildIntakeProposal = useCallback(
+    async (proposalId: string, reviewNote?: string) => {
+      setFamilyIntakeActionPendingId(proposalId)
+      setFamilyIntakeError(null)
+
+      try {
+        const proposal = await api.rejectChildIntakeProposal(proposalId, reviewNote)
+        await refreshFamilyIntake()
+        return proposal
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Child intake proposal could not be rejected right now.'
+        setFamilyIntakeError(message)
+        throw error
+      } finally {
+        setFamilyIntakeActionPendingId(null)
+      }
+    },
+    [refreshFamilyIntake]
+  )
+
+  const handleResubmitChildIntakeProposal = useCallback(
+    async (payload: { proposalId: string; child_name: string; date_of_birth?: string; notes?: string }) => {
+      setFamilyIntakeActionPendingId(payload.proposalId)
+      setFamilyIntakeError(null)
+
+      try {
+        const proposal = await api.resubmitChildIntakeProposal(payload)
+        await refreshFamilyIntake()
+        return proposal
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Child intake proposal could not be resubmitted right now.'
+        setFamilyIntakeError(message)
+        throw error
+      } finally {
+        setFamilyIntakeActionPendingId(null)
+      }
+    },
+    [refreshFamilyIntake]
   )
 
   useEffect(() => {
@@ -2255,6 +2450,17 @@ export default function App() {
         return
       }
 
+      if (queryFamilyInvitationId) {
+        navigate(
+          {
+            pathname: APP_ROUTES.settings,
+            search: `?${APP_ROUTE_PARAMS.familyInvitationId}=${encodeURIComponent(queryFamilyInvitationId)}`,
+          },
+          { replace: true }
+        )
+        return
+      }
+
       navigate(
         getDefaultAuthenticatedRoute({
           onboardingComplete,
@@ -2309,6 +2515,7 @@ export default function App() {
     messages.length,
     navigate,
     onboardingComplete,
+    queryFamilyInvitationId,
     queryInvitationId,
     requiresOnboarding,
     showLaunchTransition,
@@ -2615,10 +2822,11 @@ export default function App() {
 
   useEffect(() => {
     const shouldPrewarm =
-      (((!isChildMode && !isDashboardRoute && Boolean(selectedChildId)) ||
-        userMode === 'child') &&
+      (authStatus === 'authenticated' &&
+      (((isHomeRoute && !isChildMode && Boolean(selectedChildId)) ||
+        (userMode === 'child' && isHomeRoute)) &&
       Boolean(selectedScenario) &&
-      !currentAgent)
+      !currentAgent))
 
     if (!shouldPrewarm || !selectedScenario) {
       const staleAgent = prewarmedAgentRef.current
@@ -2686,10 +2894,11 @@ export default function App() {
       active = false
     }
   }, [
+    authStatus,
     createAgentForSelection,
     currentAgent,
     isChildMode,
-    isDashboardRoute,
+    isHomeRoute,
     releaseAgent,
     selectedAvatar,
     selectedChildId,
@@ -3141,9 +3350,13 @@ export default function App() {
       postLoginParams.set(APP_ROUTE_PARAMS.invitationId, queryInvitationId)
     }
 
+    if (queryFamilyInvitationId) {
+      postLoginParams.set(APP_ROUTE_PARAMS.familyInvitationId, queryFamilyInvitationId)
+    }
+
     const postLoginUrl = `${window.location.origin}${APP_ROUTES.root}${postLoginParams.toString() ? `?${postLoginParams.toString()}` : ''}`
     window.location.href = `/.auth/login/aad?post_login_redirect_uri=${encodeURIComponent(postLoginUrl)}`
-  }, [queryInvitationId])
+  }, [queryFamilyInvitationId, queryInvitationId])
 
   const handleGoogleSignIn = useCallback(() => {
     const postLoginParams = new URLSearchParams()
@@ -3152,9 +3365,13 @@ export default function App() {
       postLoginParams.set(APP_ROUTE_PARAMS.invitationId, queryInvitationId)
     }
 
+    if (queryFamilyInvitationId) {
+      postLoginParams.set(APP_ROUTE_PARAMS.familyInvitationId, queryFamilyInvitationId)
+    }
+
     const postLoginUrl = `${window.location.origin}${APP_ROUTES.root}${postLoginParams.toString() ? `?${postLoginParams.toString()}` : ''}`
     window.location.href = `/.auth/login/google?post_login_redirect_uri=${encodeURIComponent(postLoginUrl)}`
-  }, [queryInvitationId])
+  }, [queryFamilyInvitationId, queryInvitationId])
 
   if (currentRoute === APP_ROUTES.logout) {
     return <LogoutScreen />
@@ -3258,6 +3475,7 @@ export default function App() {
       incomingInvitations={incomingInvitations}
       sentInvitations={sentInvitations}
       highlightedInvitationId={queryInvitationId}
+      highlightedFamilyInvitationId={queryFamilyInvitationId}
       invitationDeliveryById={invitationDeliveryById}
       invitationsLoading={invitationsLoading}
       invitationError={invitationError}
@@ -3272,6 +3490,23 @@ export default function App() {
       onDeclineInvitation={handleDeclineInvitation}
       onRevokeInvitation={handleRevokeInvitation}
       onResendInvitation={handleResendInvitation}
+      familyIntakeInvitations={familyIntakeInvitations}
+      incomingFamilyIntakeInvitations={incomingFamilyIntakeInvitations}
+      pendingIncomingFamilyIntakeInvitations={pendingIncomingFamilyIntakeInvitations}
+      sentFamilyIntakeInvitations={sentFamilyIntakeInvitations}
+      childIntakeProposals={childIntakeProposals}
+      pendingChildIntakeProposals={pendingChildIntakeProposals}
+      familyIntakeLoading={familyIntakeLoading}
+      familyIntakeError={familyIntakeError}
+      familyIntakeActionPendingId={familyIntakeActionPendingId}
+      activeWorkspaceId={activeWorkspaceId}
+      onCreateFamilyIntakeInvitation={handleCreateFamilyIntakeInvitation}
+      onAcceptFamilyIntakeInvitation={handleAcceptFamilyIntakeInvitation}
+      onDeclineFamilyIntakeInvitation={handleDeclineFamilyIntakeInvitation}
+      onSubmitChildIntakeProposals={handleSubmitChildIntakeProposals}
+      onApproveChildIntakeProposal={handleApproveChildIntakeProposal}
+      onRejectChildIntakeProposal={handleRejectChildIntakeProposal}
+      onResubmitChildIntakeProposal={handleResubmitChildIntakeProposal}
       userWorkspaces={authUser?.user_workspaces || []}
     />
   ) : currentRoute === APP_ROUTES.home ? (
@@ -3306,9 +3541,13 @@ export default function App() {
           isTherapistWorkspace={isTherapist}
           secondaryActionLabel={isTherapist ? 'Review progress' : 'Open family setup'}
           incomingInvitations={incomingInvitations}
+          pendingIncomingFamilyIntakeInvitations={pendingIncomingFamilyIntakeInvitations}
           invitationActionPendingId={invitationActionPendingId}
+          familyIntakeActionPendingId={familyIntakeActionPendingId}
           onAcceptInvitation={handleAcceptInvitation}
           onDeclineInvitation={handleDeclineInvitation}
+          onAcceptFamilyIntakeInvitation={handleAcceptFamilyIntakeInvitation}
+          onDeclineFamilyIntakeInvitation={handleDeclineFamilyIntakeInvitation}
           childProfiles={children}
           childrenLoading={childrenLoading}
           selectedChildId={selectedChildId}

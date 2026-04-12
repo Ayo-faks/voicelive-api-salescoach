@@ -9,9 +9,13 @@ describe('DashboardHome', () => {
         isTherapistWorkspace
         secondaryActionLabel="Review progress"
         incomingInvitations={[]}
+        pendingIncomingFamilyIntakeInvitations={[]}
         invitationActionPendingId={null}
+        familyIntakeActionPendingId={null}
         onAcceptInvitation={async () => {}}
         onDeclineInvitation={async () => {}}
+        onAcceptFamilyIntakeInvitation={async () => {}}
+        onDeclineFamilyIntakeInvitation={async () => {}}
         childProfiles={[{ id: 'child-1', name: 'Amina' }]}
         childrenLoading={false}
         selectedChildId="child-1"
@@ -96,9 +100,13 @@ describe('DashboardHome', () => {
         isTherapistWorkspace={false}
         secondaryActionLabel="Open family setup"
         incomingInvitations={[]}
+        pendingIncomingFamilyIntakeInvitations={[]}
         invitationActionPendingId={null}
+        familyIntakeActionPendingId={null}
         onAcceptInvitation={async () => {}}
         onDeclineInvitation={async () => {}}
+        onAcceptFamilyIntakeInvitation={async () => {}}
+        onDeclineFamilyIntakeInvitation={async () => {}}
         childProfiles={[]}
         childrenLoading={false}
         selectedChildId={null}

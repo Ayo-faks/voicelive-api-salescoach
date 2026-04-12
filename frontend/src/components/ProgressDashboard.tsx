@@ -322,6 +322,7 @@ const useStyles = makeStyles({
     border: '1px solid rgba(15, 42, 58, 0.12)',
     backgroundColor: 'rgba(255, 255, 255, 0.96)',
     minWidth: 0,
+    overflowWrap: 'anywhere',
   },
   overviewValue: {
     color: 'var(--color-text-primary)',
@@ -466,6 +467,8 @@ const useStyles = makeStyles({
     gap: '8px',
     flexWrap: 'wrap',
     marginTop: '8px',
+    minWidth: 0,
+    width: '100%',
   },
   sessionHistoryList: {
     display: 'grid',
@@ -613,12 +616,11 @@ const useStyles = makeStyles({
   },
   metricsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))',
     gap: 'var(--space-lg)',
     minWidth: 0,
-    '@media (max-width: 960px)': {
-      gridTemplateColumns: '1fr',
-    },
+    alignItems: 'start',
+    width: '100%',
   },
   sectionTitle: {
     display: 'block',
@@ -678,7 +680,7 @@ const useStyles = makeStyles({
     border: '1px solid rgba(15, 42, 58, 0.12)',
     backgroundColor: 'rgba(255, 252, 247, 0.94)',
     minWidth: 0,
-    overflow: 'hidden',
+    alignContent: 'start',
   },
   combinedReviewGrid: {
     display: 'grid',
@@ -735,7 +737,6 @@ const useStyles = makeStyles({
     fontSize: '0.84rem',
     lineHeight: 1.6,
     minWidth: 0,
-    overflow: 'hidden',
     overflowWrap: 'anywhere',
   },
   textStack: {
@@ -813,7 +814,6 @@ const useStyles = makeStyles({
     fontFamily: 'var(--font-mono)',
     fontSize: '0.8125rem',
     minWidth: 0,
-    overflow: 'hidden',
     overflowWrap: 'anywhere',
   },
   emptyState: {
@@ -878,9 +878,16 @@ const useStyles = makeStyles({
     minWidth: 0,
   },
   scoreBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    maxWidth: '100%',
     border: '1px solid var(--color-border-strong)',
     backgroundColor: 'rgba(255,255,255,0.92)',
     color: 'var(--color-text-primary)',
+    whiteSpace: 'normal' as const,
+    overflowWrap: 'anywhere',
+    textAlign: 'center',
   },
   scoreBadgeTeal: {
     border: '1px solid rgba(13, 138, 132, 0.26)',
@@ -911,6 +918,7 @@ const useStyles = makeStyles({
     gap: '12px',
     paddingTop: '12px',
     borderTop: '1px solid var(--color-border)',
+    minWidth: 0,
   },
   recommendationComposer: {
     display: 'grid',
@@ -918,13 +926,15 @@ const useStyles = makeStyles({
     padding: '12px 14px',
     border: '1px solid rgba(15, 42, 58, 0.12)',
     backgroundColor: 'rgba(244, 249, 249, 0.92)',
+    minWidth: 0,
   },
   recommendationLayout: {
     display: 'grid',
-    gridTemplateColumns: 'minmax(240px, 0.85fr) minmax(0, 1.15fr)',
+    gridTemplateColumns: 'minmax(220px, 300px) minmax(0, 1fr)',
     gap: '12px',
     minWidth: 0,
-    '@media (max-width: 960px)': {
+    alignItems: 'start',
+    '@media (max-width: 1600px)': {
       gridTemplateColumns: '1fr',
     },
   },
@@ -932,6 +942,7 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: '8px',
     minWidth: 0,
+    alignContent: 'start',
   },
   recommendationHistoryButton: {
     justifyContent: 'flex-start',
@@ -939,6 +950,8 @@ const useStyles = makeStyles({
     padding: '14px',
     border: '1px solid rgba(15, 42, 58, 0.1)',
     backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    width: '100%',
+    minWidth: 0,
   },
   recommendationHistoryButtonSelected: {
     border: '1px solid rgba(13, 138, 132, 0.22)',
@@ -954,6 +967,8 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: '12px',
     minWidth: 0,
+    width: '100%',
+    alignContent: 'start',
   },
   recommendationCandidate: {
     display: 'grid',
@@ -962,7 +977,8 @@ const useStyles = makeStyles({
     border: '1px solid rgba(15, 42, 58, 0.12)',
     backgroundColor: 'rgba(255, 255, 255, 0.98)',
     minWidth: 0,
-    overflow: 'hidden',
+    width: '100%',
+    alignContent: 'start',
   },
   recommendationCandidateTop: {
     border: '1px solid rgba(13, 138, 132, 0.24)',
@@ -980,6 +996,7 @@ const useStyles = makeStyles({
     border: '1px solid rgba(15, 42, 58, 0.08)',
     backgroundColor: 'rgba(250, 247, 240, 0.92)',
     minWidth: 0,
+    overflowWrap: 'anywhere',
   },
   recommendationSessionList: {
     display: 'grid',
@@ -993,14 +1010,13 @@ const useStyles = makeStyles({
     border: '1px solid rgba(15, 42, 58, 0.08)',
     backgroundColor: 'rgba(255, 255, 255, 0.96)',
     minWidth: 0,
+    overflowWrap: 'anywhere',
   },
   memorySummaryGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))',
     gap: '8px',
-    '@media (max-width: 960px)': {
-      gridTemplateColumns: '1fr',
-    },
+    minWidth: 0,
   },
   memoryCard: {
     display: 'grid',
@@ -1009,7 +1025,7 @@ const useStyles = makeStyles({
     border: '1px solid rgba(15, 42, 58, 0.12)',
     backgroundColor: 'rgba(255, 255, 255, 0.96)',
     minWidth: 0,
-    overflow: 'hidden',
+    overflowWrap: 'anywhere',
   },
   memoryList: {
     display: 'grid',
@@ -1029,6 +1045,8 @@ const useStyles = makeStyles({
     display: 'flex',
     gap: '8px',
     flexWrap: 'wrap',
+    alignItems: 'center',
+    width: '100%',
   },
   memoryComposer: {
     display: 'grid',
@@ -1066,6 +1084,7 @@ const useStyles = makeStyles({
     gap: '8px',
     flexWrap: 'wrap',
     alignItems: 'center',
+    minWidth: 0,
   },
   evidenceButton: {
     justifyContent: 'flex-start',

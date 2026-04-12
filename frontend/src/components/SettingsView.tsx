@@ -20,8 +20,16 @@ import {
   makeStyles,
   mergeClasses,
 } from '@fluentui/react-components'
-import { useRef, useState } from 'react'
-import { AVATAR_OPTIONS, type ChildInvitation, type ChildProfile, type InvitationEmailDelivery, type WorkspaceSummary } from '../types'
+import { useEffect, useRef, useState } from 'react'
+import {
+  AVATAR_OPTIONS,
+  type ChildIntakeProposal,
+  type ChildInvitation,
+  type ChildProfile,
+  type FamilyIntakeInvitation,
+  type InvitationEmailDelivery,
+  type WorkspaceSummary,
+} from '../types'
 import { api } from '../services/api'
 
 const useStyles = makeStyles({
@@ -313,6 +321,7 @@ interface SettingsViewProps {
   incomingInvitations: ChildInvitation[]
   sentInvitations: ChildInvitation[]
   highlightedInvitationId?: string | null
+  highlightedFamilyInvitationId?: string | null
   invitationDeliveryById?: Record<string, InvitationEmailDelivery | null | undefined>
   invitationsLoading: boolean
   invitationError?: string | null
@@ -327,6 +336,31 @@ interface SettingsViewProps {
   onDeclineInvitation: (invitationId: string) => Promise<unknown>
   onRevokeInvitation: (invitationId: string) => Promise<unknown>
   onResendInvitation: (invitationId: string) => Promise<unknown>
+  familyIntakeInvitations: FamilyIntakeInvitation[]
+  incomingFamilyIntakeInvitations: FamilyIntakeInvitation[]
+  pendingIncomingFamilyIntakeInvitations: FamilyIntakeInvitation[]
+  sentFamilyIntakeInvitations: FamilyIntakeInvitation[]
+  childIntakeProposals: ChildIntakeProposal[]
+  pendingChildIntakeProposals: ChildIntakeProposal[]
+  familyIntakeLoading: boolean
+  familyIntakeError?: string | null
+  familyIntakeActionPendingId?: string | null
+  activeWorkspaceId?: string | null
+  onCreateFamilyIntakeInvitation: (payload: { invited_email: string; workspace_id?: string }) => Promise<unknown>
+  onAcceptFamilyIntakeInvitation: (invitationId: string) => Promise<unknown>
+  onDeclineFamilyIntakeInvitation: (invitationId: string) => Promise<unknown>
+  onSubmitChildIntakeProposals: (payload: {
+    family_intake_invitation_id: string
+    children: Array<{ child_name: string; date_of_birth?: string; notes?: string }>
+  }) => Promise<unknown>
+  onApproveChildIntakeProposal: (proposalId: string, reviewNote?: string) => Promise<unknown>
+  onRejectChildIntakeProposal: (proposalId: string, reviewNote?: string) => Promise<unknown>
+  onResubmitChildIntakeProposal: (payload: {
+    proposalId: string
+    child_name: string
+    date_of_birth?: string
+    notes?: string
+  }) => Promise<unknown>
   userWorkspaces?: WorkspaceSummary[]
 }
 
@@ -341,6 +375,7 @@ export function SettingsView({
   incomingInvitations,
   sentInvitations,
   highlightedInvitationId,
+  highlightedFamilyInvitationId,
   invitationDeliveryById = {},
   invitationsLoading,
   invitationError,
@@ -355,6 +390,23 @@ export function SettingsView({
   onDeclineInvitation,
   onRevokeInvitation,
   onResendInvitation,
+  familyIntakeInvitations,
+  incomingFamilyIntakeInvitations,
+  pendingIncomingFamilyIntakeInvitations,
+  sentFamilyIntakeInvitations,
+  childIntakeProposals,
+  pendingChildIntakeProposals,
+  familyIntakeLoading,
+  familyIntakeError,
+  familyIntakeActionPendingId,
+  activeWorkspaceId,
+  onCreateFamilyIntakeInvitation,
+  onAcceptFamilyIntakeInvitation,
+  onDeclineFamilyIntakeInvitation,
+  onSubmitChildIntakeProposals,
+  onApproveChildIntakeProposal,
+  onRejectChildIntakeProposal,
+  onResubmitChildIntakeProposal,
   userWorkspaces = [],
 }: SettingsViewProps) {
   const styles = useStyles()
@@ -362,12 +414,23 @@ export function SettingsView({
   const [newChildDob, setNewChildDob] = useState('')
   const [newChildNotes, setNewChildNotes] = useState('')
   const [inviteEmail, setInviteEmail] = useState('')
+  const [familyInviteEmail, setFamilyInviteEmail] = useState('')
   const [childFormError, setChildFormError] = useState<string | null>(null)
+  const [familyFormError, setFamilyFormError] = useState<string | null>(null)
+  const [selectedFamilyInvitationId, setSelectedFamilyInvitationId] = useState<string | null>(null)
+  const [familyChildrenDraft, setFamilyChildrenDraft] = useState<Array<{ key: string; child_name: string; date_of_birth: string; notes: string }>>([
+    { key: 'draft-1', child_name: '', date_of_birth: '', notes: '' },
+  ])
+  const [editingRejectedProposalId, setEditingRejectedProposalId] = useState<string | null>(null)
+  const [rejectedProposalName, setRejectedProposalName] = useState('')
+  const [rejectedProposalDob, setRejectedProposalDob] = useState('')
+  const [rejectedProposalNotes, setRejectedProposalNotes] = useState('')
   const [dataExporting, setDataExporting] = useState(false)
   const [dataDeleting, setDataDeleting] = useState(false)
   const [dataDeleteError, setDataDeleteError] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const invitationRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const familyInvitationRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const roleLabel = authRole || 'Unknown role'
   const modeLabel = currentMode === 'child' ? 'Child practice view' : 'Workspace view'
   const childLabel = selectedChild?.name || 'No child selected'
@@ -377,6 +440,37 @@ export function SettingsView({
     : isTherapist
       ? 'Therapist review and planning tools available'
       : 'Practice workspace ready'
+  const acceptedIncomingFamilyIntakeInvitations = incomingFamilyIntakeInvitations.filter(invitation => invitation.status === 'accepted')
+  const selectedFamilyInvitation = acceptedIncomingFamilyIntakeInvitations.find(invitation => invitation.id === selectedFamilyInvitationId)
+    || (highlightedFamilyInvitationId
+      ? acceptedIncomingFamilyIntakeInvitations.find(invitation => invitation.id === highlightedFamilyInvitationId)
+      : null)
+    || acceptedIncomingFamilyIntakeInvitations[0]
+    || null
+  const proposalsForSelectedFamilyInvitation = selectedFamilyInvitation
+    ? childIntakeProposals.filter(proposal => proposal.family_intake_invitation_id === selectedFamilyInvitation.id)
+    : []
+  const rejectedChildIntakeProposals = childIntakeProposals.filter(proposal => proposal.status === 'rejected')
+
+  useEffect(() => {
+    if (acceptedIncomingFamilyIntakeInvitations.length === 0) {
+      setSelectedFamilyInvitationId(null)
+      return
+    }
+
+    if (
+      highlightedFamilyInvitationId &&
+      acceptedIncomingFamilyIntakeInvitations.some(invitation => invitation.id === highlightedFamilyInvitationId) &&
+      selectedFamilyInvitationId !== highlightedFamilyInvitationId
+    ) {
+      setSelectedFamilyInvitationId(highlightedFamilyInvitationId)
+      return
+    }
+
+    if (!selectedFamilyInvitationId || !acceptedIncomingFamilyIntakeInvitations.some(invitation => invitation.id === selectedFamilyInvitationId)) {
+      setSelectedFamilyInvitationId(acceptedIncomingFamilyIntakeInvitations[0].id)
+    }
+  }, [acceptedIncomingFamilyIntakeInvitations, highlightedFamilyInvitationId, selectedFamilyInvitationId])
 
   const handleCreateChild = async () => {
     const normalizedName = newChildName.trim()
@@ -418,6 +512,106 @@ export function SettingsView({
       setInviteEmail('')
     } catch {
       return
+    }
+  }
+
+  const handleCreateFamilyInvite = async () => {
+    const normalizedEmail = familyInviteEmail.trim().toLowerCase()
+    if (!normalizedEmail) {
+      setFamilyFormError('Parent or guardian email is required.')
+      return
+    }
+
+    setFamilyFormError(null)
+    try {
+      await onCreateFamilyIntakeInvitation({
+        invited_email: normalizedEmail,
+        workspace_id: activeWorkspaceId || undefined,
+      })
+      setFamilyInviteEmail('')
+    } catch (error) {
+      setFamilyFormError(error instanceof Error ? error.message : 'Family intake invite could not be created right now.')
+    }
+  }
+
+  const addFamilyChildDraft = () => {
+    setFamilyChildrenDraft(current => [
+      ...current,
+      { key: `draft-${Date.now()}-${current.length}`, child_name: '', date_of_birth: '', notes: '' },
+    ])
+  }
+
+  const updateFamilyChildDraft = (key: string, field: 'child_name' | 'date_of_birth' | 'notes', value: string) => {
+    setFamilyChildrenDraft(current => current.map(item => (item.key === key ? { ...item, [field]: value } : item)))
+  }
+
+  const removeFamilyChildDraft = (key: string) => {
+    setFamilyChildrenDraft(current => (current.length === 1 ? current : current.filter(item => item.key !== key)))
+  }
+
+  const handleSubmitFamilyChildren = async () => {
+    if (!selectedFamilyInvitation) {
+      setFamilyFormError('Accept a family invite before submitting children.')
+      return
+    }
+
+    const normalizedChildren = familyChildrenDraft
+      .map(item => ({
+        child_name: item.child_name.trim(),
+        date_of_birth: item.date_of_birth || undefined,
+        notes: item.notes.trim() || undefined,
+      }))
+      .filter(item => item.child_name)
+
+    if (normalizedChildren.length === 0) {
+      setFamilyFormError('Add at least one child before submitting.')
+      return
+    }
+
+    setFamilyFormError(null)
+    try {
+      await onSubmitChildIntakeProposals({
+        family_intake_invitation_id: selectedFamilyInvitation.id,
+        children: normalizedChildren,
+      })
+      setFamilyChildrenDraft([{ key: 'draft-1', child_name: '', date_of_birth: '', notes: '' }])
+    } catch (error) {
+      setFamilyFormError(error instanceof Error ? error.message : 'Children could not be submitted right now.')
+    }
+  }
+
+  const beginRejectedProposalEdit = (proposal: ChildIntakeProposal) => {
+    setEditingRejectedProposalId(proposal.id)
+    setRejectedProposalName(proposal.child_name)
+    setRejectedProposalDob(proposal.date_of_birth || '')
+    setRejectedProposalNotes(proposal.notes || '')
+    setFamilyFormError(null)
+  }
+
+  const handleResubmitRejectedProposal = async () => {
+    if (!editingRejectedProposalId) {
+      return
+    }
+
+    if (!rejectedProposalName.trim()) {
+      setFamilyFormError('Child name is required before resubmitting.')
+      return
+    }
+
+    setFamilyFormError(null)
+    try {
+      await onResubmitChildIntakeProposal({
+        proposalId: editingRejectedProposalId,
+        child_name: rejectedProposalName.trim(),
+        date_of_birth: rejectedProposalDob || undefined,
+        notes: rejectedProposalNotes.trim() || undefined,
+      })
+      setEditingRejectedProposalId(null)
+      setRejectedProposalName('')
+      setRejectedProposalDob('')
+      setRejectedProposalNotes('')
+    } catch (error) {
+      setFamilyFormError(error instanceof Error ? error.message : 'Proposal could not be resubmitted right now.')
     }
   }
 
@@ -481,7 +675,7 @@ export function SettingsView({
                 disabled={!canManageChildren || childProfiles.length === 0}
                 placeholder={childProfiles.length > 0 ? 'Select child' : 'No child profiles'}
                 selectedOptions={selectedChild ? [selectedChild.id] : []}
-                value={selectedChild?.name}
+                value={selectedChild?.name || ''}
                 onOptionSelect={(_, data) => {
                   if (data.optionValue) {
                     onSelectChild(data.optionValue)
@@ -563,28 +757,14 @@ export function SettingsView({
           </Card>
 
           <Card className={styles.card}>
-            <Text className={styles.cardTitle}>Parent invitations</Text>
-            {isTherapist ? (
-              <div className={styles.form}>
-                <Field label="Invite parent by email">
-                  <Input value={inviteEmail} onChange={(_, data) => setInviteEmail(data.value)} />
-                </Field>
-                <div className={styles.buttonRow}>
-                  <Button
-                    appearance="primary"
-                    onClick={() => void handleInviteParent()}
-                    disabled={!selectedChild || !inviteEmail.trim() || invitationActionPendingId === `create:${selectedChild?.id}`}
-                  >
-                    {invitationActionPendingId === `create:${selectedChild?.id}` ? 'Sending invite...' : 'Send parent invite'}
-                  </Button>
-                </div>
-                <Text className={styles.helperText}>
-                  Invitations are scoped to the active child. The invited parent can accept from the same workspace after sign-in.
-                </Text>
-              </div>
-            ) : (
+            <Text className={styles.cardTitle}>{isTherapist ? 'Linked child access' : 'Linked child access'}</Text>
+            {!isTherapist ? (
               <Text className={styles.helperText}>
                 Incoming parent invites appear here when a therapist links you to a child profile.
+              </Text>
+            ) : (
+              <Text className={styles.helperText}>
+                Family and guardian invites now live in the family intake section below. This legacy child-scoped flow remains only for existing linked-child access.
               </Text>
             )}
 
@@ -650,7 +830,7 @@ export function SettingsView({
               )}
             </div>
 
-            {isTherapist ? (
+            {isTherapist ? null : (
               <div className={styles.list}>
                 <div className={styles.statusRow}>
                   <Text className={styles.statusText}>Sent invites</Text>
@@ -744,7 +924,296 @@ export function SettingsView({
                   ))
                 )}
               </div>
-            ) : null}
+            )}
+          </Card>
+        </div>
+
+        <div className={styles.sectionGrid}>
+          <Card className={styles.card}>
+            <Text className={styles.cardTitle}>{isTherapist ? 'Family intake invites' : 'Family intake'}</Text>
+            {isTherapist ? (
+              <div className={styles.form}>
+                <Field label="Invite parent or guardian by email" validationMessage={familyFormError || undefined}>
+                  <Input value={familyInviteEmail} onChange={(_, data) => setFamilyInviteEmail(data.value)} />
+                </Field>
+                <div className={styles.buttonRow}>
+                  <Button
+                    appearance="primary"
+                    onClick={() => void handleCreateFamilyInvite()}
+                    disabled={!familyInviteEmail.trim() || familyIntakeActionPendingId === `family-create:${familyInviteEmail.trim().toLowerCase()}`}
+                  >
+                    {familyIntakeActionPendingId === `family-create:${familyInviteEmail.trim().toLowerCase()}`
+                      ? 'Sending family invite...'
+                      : 'Send family intake invite'}
+                  </Button>
+                </div>
+                <Text className={styles.helperText}>
+                  Use this as the primary new-family flow. The parent or guardian accepts once, submits all children together, and you review each child after submission.
+                </Text>
+                {familyIntakeError ? <Text className={styles.helperText}>{familyIntakeError}</Text> : null}
+
+                <div className={styles.list}>
+                  <div className={styles.statusRow}>
+                    <Text className={styles.statusText}>Sent family invites</Text>
+                    <Text className={styles.listMeta}>{familyIntakeLoading ? 'Loading...' : `${sentFamilyIntakeInvitations.length}`}</Text>
+                  </div>
+                  {sentFamilyIntakeInvitations.length === 0 ? (
+                    <Text className={styles.emptyState}>No family intake invites sent yet.</Text>
+                  ) : (
+                    sentFamilyIntakeInvitations.map(invitation => (
+                      <div key={invitation.id} className={styles.listItem}>
+                        <div className={styles.listHeader}>
+                          <Text className={styles.listTitle}>{invitation.workspace_name || 'Workspace invite'}</Text>
+                          <Text className={styles.listMeta}>{invitation.status}</Text>
+                        </div>
+                        <Text className={styles.listMeta}>{invitation.invited_email}</Text>
+                        {(() => {
+                          const deliveryCopy = getInvitationDeliveryCopy(invitation.email_delivery ?? null)
+                          if (!deliveryCopy) {
+                            return null
+                          }
+
+                          return (
+                            <>
+                              <Text
+                                className={mergeClasses(
+                                  styles.statusPill,
+                                  deliveryCopy.tone === 'success' && styles.statusPillSuccess,
+                                  deliveryCopy.tone === 'warning' && styles.statusPillWarning,
+                                  deliveryCopy.tone === 'error' && styles.statusPillError,
+                                )}
+                              >
+                                {deliveryCopy.label}
+                              </Text>
+                              <Text className={styles.listMeta}>{deliveryCopy.detail}</Text>
+                            </>
+                          )
+                        })()}
+                        <Text className={styles.listMeta}>
+                          {invitation.expires_at ? `Expires ${new Date(invitation.expires_at).toLocaleString()}` : 'No expiration set'}
+                        </Text>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className={styles.list}>
+                <div className={styles.statusRow}>
+                  <Text className={styles.statusText}>Incoming family invites</Text>
+                  <Text className={styles.listMeta}>{familyIntakeLoading ? 'Loading...' : `${pendingIncomingFamilyIntakeInvitations.length}`}</Text>
+                </div>
+                {pendingIncomingFamilyIntakeInvitations.length === 0 ? (
+                  <Text className={styles.emptyState}>No family intake invites are waiting right now.</Text>
+                ) : (
+                  pendingIncomingFamilyIntakeInvitations.map(invitation => (
+                    <div
+                      key={invitation.id}
+                      ref={element => {
+                        familyInvitationRefs.current[invitation.id] = element
+                        if (element && typeof element.scrollIntoView === 'function' && highlightedFamilyInvitationId === invitation.id) {
+                          element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                        }
+                      }}
+                      className={mergeClasses(
+                        styles.listItem,
+                        highlightedFamilyInvitationId === invitation.id && styles.listItemHighlighted,
+                      )}
+                    >
+                      <div className={styles.listHeader}>
+                        <Text className={styles.listTitle}>{invitation.workspace_name || 'Therapist workspace'}</Text>
+                        <Text className={styles.listMeta}>{invitation.status}</Text>
+                      </div>
+                      {highlightedFamilyInvitationId === invitation.id ? (
+                        <Text className={styles.listMeta}>Linked from your family invitation email.</Text>
+                      ) : null}
+                      <Text className={styles.listMeta}>From {invitation.invited_by_name || 'Therapist'}.</Text>
+                      <div className={styles.buttonRow}>
+                        <Button
+                          appearance="primary"
+                          onClick={() => {
+                            void onAcceptFamilyIntakeInvitation(invitation.id).catch(() => undefined)
+                          }}
+                          disabled={familyIntakeActionPendingId === invitation.id}
+                        >
+                          Accept
+                        </Button>
+                        <Button
+                          appearance="secondary"
+                          onClick={() => {
+                            void onDeclineFamilyIntakeInvitation(invitation.id).catch(() => undefined)
+                          }}
+                          disabled={familyIntakeActionPendingId === invitation.id}
+                        >
+                          Decline
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+
+                {acceptedIncomingFamilyIntakeInvitations.length > 0 ? (
+                  <>
+                    <Field label="Accepted family invite">
+                      <Dropdown
+                        className={styles.dropdown}
+                        selectedOptions={selectedFamilyInvitation ? [selectedFamilyInvitation.id] : []}
+                        value={selectedFamilyInvitation?.workspace_name || 'Select accepted invite'}
+                        onOptionSelect={(_, data) => {
+                          if (data.optionValue) {
+                            setSelectedFamilyInvitationId(data.optionValue)
+                          }
+                        }}
+                      >
+                        {acceptedIncomingFamilyIntakeInvitations.map(invitation => (
+                          <Option key={invitation.id} value={invitation.id} text={invitation.workspace_name || invitation.id}>
+                            {invitation.workspace_name || invitation.id}
+                          </Option>
+                        ))}
+                      </Dropdown>
+                    </Field>
+                    <Text className={styles.helperText}>
+                      Submit all children once for the selected family invite. Approved children will appear in your child list after therapist review.
+                    </Text>
+                    {selectedFamilyInvitation?.id === highlightedFamilyInvitationId ? (
+                      <Text className={styles.helperText}>Linked from your family invitation email.</Text>
+                    ) : null}
+                  </>
+                ) : null}
+                {familyIntakeError ? <Text className={styles.helperText}>{familyIntakeError}</Text> : null}
+              </div>
+            )}
+          </Card>
+
+          <Card className={styles.card}>
+            <Text className={styles.cardTitle}>{isTherapist ? 'Child intake review' : 'Child intake submissions'}</Text>
+            {isTherapist ? (
+              <div className={styles.list}>
+                <div className={styles.statusRow}>
+                  <Text className={styles.statusText}>Pending review</Text>
+                  <Text className={styles.listMeta}>{familyIntakeLoading ? 'Loading...' : `${pendingChildIntakeProposals.length}`}</Text>
+                </div>
+                {pendingChildIntakeProposals.length === 0 ? (
+                  <Text className={styles.emptyState}>No submitted child proposals are waiting for review.</Text>
+                ) : (
+                  pendingChildIntakeProposals.map(proposal => (
+                    <div key={proposal.id} className={styles.listItem}>
+                      <div className={styles.listHeader}>
+                        <Text className={styles.listTitle}>{proposal.child_name}</Text>
+                        <Text className={styles.listMeta}>{proposal.status}</Text>
+                      </div>
+                      <Text className={styles.listMeta}>Submitted by {proposal.created_by_name || 'Parent or guardian'} in {proposal.workspace_name || 'workspace'}.</Text>
+                      {proposal.date_of_birth ? <Text className={styles.listMeta}>DOB {proposal.date_of_birth}</Text> : null}
+                      {proposal.notes ? <Text className={styles.listMeta}>{proposal.notes}</Text> : null}
+                      <div className={styles.buttonRow}>
+                        <Button
+                          appearance="primary"
+                          onClick={() => {
+                            void onApproveChildIntakeProposal(proposal.id).catch(() => undefined)
+                          }}
+                          disabled={familyIntakeActionPendingId === proposal.id}
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          appearance="secondary"
+                          onClick={() => {
+                            void onRejectChildIntakeProposal(proposal.id).catch(() => undefined)
+                          }}
+                          disabled={familyIntakeActionPendingId === proposal.id}
+                        >
+                          Reject
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : proposalsForSelectedFamilyInvitation.length === 0 ? (
+              <div className={styles.form}>
+                {familyChildrenDraft.map((draft, index) => (
+                  <div key={draft.key} className={styles.listItem}>
+                    <Text className={styles.listTitle}>Child {index + 1}</Text>
+                    <Field label="Child name">
+                      <Input value={draft.child_name} onChange={(_, data) => updateFamilyChildDraft(draft.key, 'child_name', data.value)} />
+                    </Field>
+                    <Field label="Date of birth">
+                      <Input type="date" value={draft.date_of_birth} onChange={(_, data) => updateFamilyChildDraft(draft.key, 'date_of_birth', data.value)} />
+                    </Field>
+                    <Field label="Notes">
+                      <Textarea value={draft.notes} onChange={(_, data) => updateFamilyChildDraft(draft.key, 'notes', data.value)} resize="vertical" />
+                    </Field>
+                    <div className={styles.buttonRow}>
+                      <Button appearance="secondary" onClick={() => removeFamilyChildDraft(draft.key)} disabled={familyChildrenDraft.length === 1}>
+                        Remove child
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                <div className={styles.buttonRow}>
+                  <Button appearance="secondary" onClick={addFamilyChildDraft}>Add another child</Button>
+                  <Button
+                    appearance="primary"
+                    onClick={() => void handleSubmitFamilyChildren()}
+                    disabled={!selectedFamilyInvitation || familyIntakeActionPendingId === `family-submit:${selectedFamilyInvitation?.id}`}
+                  >
+                    {familyIntakeActionPendingId === `family-submit:${selectedFamilyInvitation?.id}` ? 'Submitting children...' : 'Submit children once'}
+                  </Button>
+                </div>
+                {familyFormError ? <Text className={styles.helperText}>{familyFormError}</Text> : null}
+              </div>
+            ) : (
+              <div className={styles.list}>
+                <div className={styles.statusRow}>
+                  <Text className={styles.statusText}>Submitted children</Text>
+                  <Text className={styles.listMeta}>{`${proposalsForSelectedFamilyInvitation.length}`}</Text>
+                </div>
+                {proposalsForSelectedFamilyInvitation.map(proposal => (
+                  <div key={proposal.id} className={styles.listItem}>
+                    <div className={styles.listHeader}>
+                      <Text className={styles.listTitle}>{proposal.child_name}</Text>
+                      <Text className={styles.listMeta}>{proposal.status}</Text>
+                    </div>
+                    {proposal.notes ? <Text className={styles.listMeta}>{proposal.notes}</Text> : null}
+                    {proposal.review_note ? <Text className={styles.listMeta}>Therapist note: {proposal.review_note}</Text> : null}
+                    {proposal.status === 'rejected' ? (
+                      editingRejectedProposalId === proposal.id ? (
+                        <div className={styles.form}>
+                          <Field label="Child name">
+                            <Input value={rejectedProposalName} onChange={(_, data) => setRejectedProposalName(data.value)} />
+                          </Field>
+                          <Field label="Date of birth">
+                            <Input type="date" value={rejectedProposalDob} onChange={(_, data) => setRejectedProposalDob(data.value)} />
+                          </Field>
+                          <Field label="Notes">
+                            <Textarea value={rejectedProposalNotes} onChange={(_, data) => setRejectedProposalNotes(data.value)} resize="vertical" />
+                          </Field>
+                          <div className={styles.buttonRow}>
+                            <Button
+                              appearance="primary"
+                              onClick={() => void handleResubmitRejectedProposal()}
+                              disabled={familyIntakeActionPendingId === proposal.id}
+                            >
+                              {familyIntakeActionPendingId === proposal.id ? 'Resubmitting...' : 'Resubmit'}
+                            </Button>
+                            <Button appearance="secondary" onClick={() => setEditingRejectedProposalId(null)}>
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className={styles.buttonRow}>
+                          <Button appearance="secondary" onClick={() => beginRejectedProposalEdit(proposal)}>
+                            Edit and resubmit
+                          </Button>
+                        </div>
+                      )
+                    ) : null}
+                  </div>
+                ))}
+                {familyFormError ? <Text className={styles.helperText}>{familyFormError}</Text> : null}
+              </div>
+            )}
           </Card>
         </div>
 

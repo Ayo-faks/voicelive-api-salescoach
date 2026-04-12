@@ -54,5 +54,16 @@ export function useAudioPlayer() {
     }
   }, [])
 
-  return { playAudio, stopAudio }
+  const getPendingAudioMs = useCallback(() => {
+    const audioCtx = audioCtxRef.current
+
+    if (!audioCtx) {
+      return 0
+    }
+
+    const pendingSeconds = Math.max(0, nextPlayTimeRef.current - audioCtx.currentTime)
+    return Math.ceil(pendingSeconds * 1000)
+  }, [])
+
+  return { playAudio, stopAudio, getPendingAudioMs }
 }

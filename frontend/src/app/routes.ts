@@ -19,6 +19,7 @@ export const APP_ROUTE_PARAMS = {
   sessionId: 'sessionId',
   planId: 'planId',
   invitationId: 'invitationId',
+  familyInvitationId: 'familyInvitationId',
 } as const
 
 export type AppRoute = (typeof APP_ROUTES)[keyof typeof APP_ROUTES]

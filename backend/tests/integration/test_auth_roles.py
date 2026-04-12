@@ -38,11 +38,13 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[FlaskCli
 
 
 def _signup_as_therapist(client: FlaskClient, user_id: str, email: str, name: str = "Test User") -> dict:
-    """Sign up a user who should receive therapist access immediately."""
+    """Sign up a user through the direct therapist bootstrap flow."""
     headers = _auth_headers(user_id, email, name=name)
-    resp = client.get("/api/auth/session", headers=headers)
-    assert resp.status_code == 200, f"Failed to create therapist session: {resp.get_json()}"
-    return resp.get_json()
+    response = client.get("/api/auth/session", headers=headers)
+    assert response.status_code == 200, f"Failed to bootstrap therapist session: {response.get_json()}"
+    payload = response.get_json()
+    assert payload["role"] == "therapist"
+    return payload
 
 
 def test_protected_routes_require_authentication(client: FlaskClient):
@@ -55,7 +57,7 @@ def test_protected_routes_require_authentication(client: FlaskClient):
 
 
 def test_first_user_bootstraps_as_therapist(client: FlaskClient):
-    """The first authenticated principal should get therapist role."""
+    """The first authenticated principal should bootstrap as a therapist."""
     response = client.get(
         "/api/auth/session",
         headers=_auth_headers("user-1", "first@example.com", name="First User"),
@@ -69,38 +71,14 @@ def test_first_user_bootstraps_as_therapist(client: FlaskClient):
     assert payload["email"] == "first@example.com"
     assert payload["provider"] == "aad"
     assert payload["role"] == "therapist"
+    assert payload["current_workspace_id"] is not None
     assert len(payload["user_workspaces"]) == 1
     assert payload["user_workspaces"][0]["role"] == "owner"
     assert payload["user_workspaces"][0]["is_personal"] is True
 
 
-def test_existing_pending_therapist_is_upgraded_on_login(client: FlaskClient):
-    """Existing pending_therapist accounts should be upgraded automatically on login."""
-    storage = app_module.storage_service
-    pending_user = storage.get_or_create_user("user-1", "first@example.com", "First User", "aad")
-    assert pending_user["role"] == "therapist"
-
-    storage.update_user_role("user-1", "parent")
-    storage.update_user_role("user-1", "therapist")
-
-    if isinstance(storage, StorageService):
-        with storage._connect() as connection:  # pyright: ignore[reportPrivateUsage]
-            connection.execute(
-                "UPDATE users SET role = ? WHERE id = ?",
-                ("pending_therapist", "user-1"),
-            )
-
-    session = client.get(
-        "/api/auth/session",
-        headers=_auth_headers("user-1", "first@example.com", name="First User"),
-    ).get_json()
-
-    assert session["role"] == "therapist"
-    assert session["current_workspace_id"] is not None
-
-
-def test_new_signup_gets_therapist_access_without_invite_code(client: FlaskClient):
-    """A direct therapist signup should no longer require an invite code."""
+def test_direct_signup_provisions_personal_workspace(client: FlaskClient):
+    """Direct therapist signup should provision a personal workspace."""
     session = _signup_as_therapist(client, "user-1", "first@example.com", name="First User")
 
     assert session["role"] == "therapist"
@@ -111,7 +89,7 @@ def test_new_signup_gets_therapist_access_without_invite_code(client: FlaskClien
 
 
 def test_all_new_signups_are_therapists(client: FlaskClient):
-    """Every new direct signup without a parent invitation gets therapist access."""
+    """Every new direct signup should bootstrap as a therapist."""
     first_headers = _auth_headers("user-1", "first@example.com", name="First User")
     second_headers = _auth_headers("user-2", "second@example.com", name="Second User")
 

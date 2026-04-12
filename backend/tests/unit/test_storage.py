@@ -9,6 +9,68 @@ from src.services.storage import StorageService
 class TestStorageService:
     """Test cases for persistence and therapist review records."""
 
+    def test_legacy_children_table_is_migrated_with_workspace_id(self, tmp_path: Path):
+        """Test older SQLite databases missing children.workspace_id still load child lists."""
+        db_path = tmp_path / "legacy-children.db"
+
+        with sqlite3.connect(db_path) as connection:
+            connection.execute(
+                """CREATE TABLE children (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    date_of_birth TEXT,
+                    notes TEXT,
+                    deleted_at TEXT,
+                    created_at TEXT NOT NULL
+                )"""
+            )
+            connection.execute(
+                """CREATE TABLE users (
+                    id TEXT PRIMARY KEY,
+                    email TEXT,
+                    name TEXT,
+                    provider TEXT,
+                    role TEXT NOT NULL DEFAULT 'parent',
+                    created_at TEXT NOT NULL
+                )"""
+            )
+            connection.execute(
+                """CREATE TABLE user_children (
+                    user_id TEXT NOT NULL,
+                    child_id TEXT NOT NULL,
+                    relationship TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    PRIMARY KEY (user_id, child_id)
+                )"""
+            )
+            connection.execute(
+                "INSERT INTO users (id, email, name, provider, role, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                ("therapist-1", "therapist@example.com", "Therapist", "aad", "therapist", "2026-04-11T00:00:00+00:00"),
+            )
+            connection.execute(
+                "INSERT INTO children (id, name, created_at) VALUES (?, ?, ?)",
+                ("child-legacy", "Legacy Child", "2026-04-11T00:00:00+00:00"),
+            )
+            connection.execute(
+                "INSERT INTO user_children (user_id, child_id, relationship, created_at) VALUES (?, ?, ?, ?)",
+                ("therapist-1", "child-legacy", "therapist", "2026-04-11T00:00:00+00:00"),
+            )
+            connection.commit()
+
+        service = StorageService(str(db_path))
+
+        children = service.list_children_for_user("therapist-1")
+
+        with sqlite3.connect(db_path) as connection:
+            columns = {
+                row[1]
+                for row in connection.execute("PRAGMA table_info(children)").fetchall()
+            }
+
+        assert "workspace_id" in columns
+        assert [child["id"] for child in children] == ["child-legacy"]
+        assert children[0]["workspace_id"] is not None
+
     def test_first_user_is_bootstrapped_as_therapist(self, tmp_path: Path):
         """Test the first authenticated user is promoted to therapist automatically."""
         service = StorageService(str(tmp_path / "wulo.db"))

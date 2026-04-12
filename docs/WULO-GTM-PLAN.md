@@ -26,10 +26,22 @@
 ## 2. Positioning
 
 ### One-liner
-> Wulo helps speech therapists extend care beyond the session — giving children guided, AI-powered practice, parents something concrete to do at home, and therapists structured review without adding hours.
+> Wulo helps speech and language therapists extend therapy between sessions with therapist-controlled AI practice, simple review dashboards, and clearer next-step planning.
 
 ### Positioning statement
-For speech and language therapists, schools, and families waiting for or receiving SALT services, Wulo is a therapist-supervised practice platform that delivers guided, child-friendly voice exercises with real-time pronunciation feedback and structured session review. Unlike consumer speech apps (Speech Blubs, articulation drill apps) or virtual therapy marketplaces (Mable, BetterSpeech), Wulo sits inside the therapist's workflow — not alongside it — so practice is clinically directed, progress is measurable, and the therapist stays in control.
+For independent speech and language therapists and small clinics, Wulo is a therapist-supervised speech practice platform that gives children guided voice exercises with a calm AI buddy and gives therapists structured review of what happened in practice. The product is strongest when positioned as a between-session workflow tool: the therapist sets the targets, the child practises in a guided format, and the therapist gets simple evidence to review without listening back to every recording. Unlike consumer speech apps or teletherapy marketplaces, Wulo is built to fit inside therapist workflow, not replace it.
+
+### Current GTM reality
+- The product is live with authentication, persistence, therapist exercise authoring, saved session review, charts, recommendations, and next-session planning.
+- The product is not yet at broad market scale. The immediate goal is design-partner validation, not mass top-of-funnel lead generation.
+- The most credible beachhead remains independent paediatric SLTs and small clinics because they can decide quickly, give direct workflow feedback, and convert without procurement.
+- Webinar activity should support trust and education, not act as the only acquisition engine.
+
+### How to explain AI and analytics simply
+- **AI in Wulo** means guided practice support, not automated clinical judgement.
+- **Analytics in Wulo** means a simple session summary: what the child attempted, how often they retried, where pronunciation looked stronger or weaker, and what may need therapist review.
+- **Real-time analytics** means the therapist gets useful signals during or right after practice, without having to listen back to long recordings.
+- Wulo should always be described as a practice and review tool, not a diagnostic system.
 
 ### What Wulo is NOT
 - Not a diagnostic or assessment tool
@@ -73,13 +85,18 @@ For speech and language therapists, schools, and families waiting for or receivi
 ## 4. Messaging by Audience
 
 ### For Therapists
-**Headline:** "Your practice buddy between sessions."
-**Body:** Wulo gives your clients guided, child-friendly speech exercises that follow your targets. You set the sounds, words, and difficulty. The child practises with a calm AI buddy. You get structured review — articulation, engagement, pronunciation — without listening to 30-minute recordings.
-**CTA:** "Start a free pilot with 5 children."
+**Headline:** "Extend practice between sessions without adding more review admin."
+**Body:** Wulo helps you run therapist-directed speech practice between sessions. You set the targets, the child practises with a calm AI buddy, and you get a simple review view showing pronunciation, engagement, retries, and suggested next steps. The system supports your judgement; it does not replace it.
+**CTA:** "Book a therapist workflow demo."
+
+### For Therapist Education / Webinar Promotion
+**Headline:** "AI for therapists, explained in plain English."
+**Body:** Wulo can be introduced through education, not hype. Focus the message on practical questions therapists already have: What does AI actually do in a session? What do these analytics mean? How can real-time review help me without creating more work? Keep the language concrete and clinically grounded.
+**CTA:** "Register for the therapist webinar."
 
 ### For Schools / SENCOs
 **Headline:** "Structured speech practice while children wait for therapy."
-**Body:** 65,000+ children are waiting for SALT. Wulo gives your pupils supervised practice they can do in school or at home, aligned to their targets, with progress reports for you and the therapist. No additional SLT hours required.
+**Body:** 65,000+ children are waiting for SALT. Wulo gives pupils structured, therapist-supervised speech practice they can do in school or at home, with progress information that is easier for therapists and school staff to review together. This is a second-phase message after therapist validation.
 **CTA:** "Book a 20-minute SENCO demo."
 
 ### For Parents
@@ -98,16 +115,40 @@ For speech and language therapists, schools, and families waiting for or receivi
 
 | Channel | ICP | Action | Cost |
 |---------|-----|--------|------|
-| LinkedIn (organic + targeted) | SLTs, SENCOs | Weekly posts, DMs to SLTs, therapist stories | Low |
-| ASLTIP directory & forums | Independent SLTs | Profile listing, forum posts, direct outreach | Free–low |
-| RCSLT CPD events & webinars | SLTs, NHS leads | Present or sponsor a CPD session | £500–2,000 |
-| NASENCo & SEND conferences | SENCOs, schools | Stand or workshop | £1,000–3,000 |
-| Therapist WhatsApp/Facebook groups | SLTs | Share case studies, offer free pilots | Free |
-| Cold email (schools) | SENCOs | Targeted outreach to SEND schools in high-wait areas | Low |
-| NHS Elect / RCSLT transformation forums | NHS/LA | Attend, present pilot data | Free |
-| Referral programme | SLTs → SLTs | "Invite a colleague, both get a free month" | Low |
-| Content marketing (blog, PDF guides) | All | "What to do while waiting for SALT", "Home practice guide" | Low |
-| Partnership with SLT training providers | SLTs | Embed Wulo in CPD or student training | Medium |
+| Founder-led direct outreach | Independent SLTs, small clinics | 1:1 messages, warm intros, live demos, design-partner asks | Low |
+| LinkedIn (organic + targeted) | SLTs, clinic owners | Founder posts, therapist workflow clips, short educational posts on AI and analytics | Low |
+| ASLTIP directory & forums | Independent SLTs | Profile listing, targeted outreach, design-partner recruitment | Free–low |
+| Therapist webinar / CPD-style session | SLTs, clinic owners | Educational webinar on AI for therapists and simple session analytics | Low–medium |
+| Therapist WhatsApp/Facebook groups | SLTs | Share useful education and invite therapists to demo or webinar | Free |
+| Content marketing (blog, PDF guides) | SLTs, parents, schools | "AI for therapists in plain English", "How to review home practice faster", "What to do while waiting for SALT" | Low |
+| Referral programme | SLTs → SLTs | Introduce a peer after successful early usage | Low |
+| Cold email (schools) | SENCOs | Start only after therapist validation and one case study | Low |
+| NASENCo & SEND conferences | SENCOs, schools | Attend after school messaging and school demo flow are ready | £1,000–3,000 |
+| NHS Elect / RCSLT transformation forums | NHS/LA | Use later with pilot evidence and governance pack | Free |
+| Partnership with SLT training providers | SLTs | Explore as a credibility and education channel after early proof | Medium |
+
+### Channel priority from current state
+1. **Primary:** founder-led direct outreach to independent SLTs and small clinics
+2. **Secondary:** education-led webinar supported by LinkedIn, therapist groups, and targeted follow-up
+3. **Support channels:** short-form educational content on AI, therapist dashboards, and real-time review in plain language
+
+### What success looks like in the next 30 days
+- 15–20 therapist discovery conversations
+- 6–8 live demos
+- 3–5 design-partner therapists onboarded
+- 1 therapist webinar scheduled and promoted
+- 20–30 relevant webinar signups
+- 5 qualified follow-up conversations
+- 2 active pilot discussions
+
+### Webinar strategy
+- **Goal:** educate therapists, build trust, and convert the right attendees into demos or design-partner conversations
+- **Audience:** independent paediatric SLTs and small clinic owners
+- **Recommended title:** "How AI Can Support Speech Practice Between Sessions Without Replacing Therapist Judgement"
+- **Alternate title:** "Simple Analytics for SLTs: Reviewing Home Practice Without More Admin"
+- **Call to action:** book a therapist workflow demo or apply for a design-partner pilot
+- **Content angle:** explain AI and analytics in everyday language, then show how Wulo fits therapist workflow
+- **Roles:** clinical cofounder leads therapist education and clinical framing; product/technical founder leads demo, signup flow, and follow-up funnel
 
 ---
 
@@ -136,56 +177,53 @@ For speech and language therapists, schools, and families waiting for or receivi
 
 ---
 
-## 7. Six-Month Execution Calendar
+## 7. Six-Month Execution Calendar From Current State
 
-### Month 1 — Foundation
-- [ ] Finalise ICP 1 (independent SLTs) as sole beachhead
-- [ ] Launch `sen.wulo.ai` with auth, persistence, and 10+ built-in exercises
-- [ ] Create therapist onboarding flow (< 5 min to first exercise)
-- [ ] Build landing page with therapist-first messaging
-- [ ] Set up LinkedIn presence (company page + founder profile)
-- [ ] Draft 3 outreach templates for SLT direct messages
-- [ ] Prepare GDPR and safeguarding one-pager
-- [ ] Apply for SEIS Advance Assurance from HMRC
+### Month 1 — Validate the therapist wedge
+- [ ] Finalise ICP 1 (independent SLTs and small clinics) as the only active beachhead
+- [ ] Tighten landing page messaging around therapist workflow, not broad institutional messaging
+- [ ] Finalise a clear therapist demo flow that shows setup, practice, review, charts, and next-session planning
+- [ ] Set up or refresh LinkedIn company and founder profiles with therapist-first positioning
+- [ ] Draft 3 outreach templates for therapist discovery calls and design-partner asks
+- [ ] Prepare a short GDPR, safeguarding, and "what Wulo is / is not" explainer
+- [ ] Create one simple explainer on "AI and analytics for therapists" in everyday language
 
-### Month 2 — Design Partners
-- [ ] Recruit 10 design-partner therapists (free access, weekly feedback)
-- [ ] Run 5 direct outreach campaigns to independent SLTs via ASLTIP and LinkedIn
-- [ ] Publish first blog post: "What families can do while waiting for SALT"
-- [ ] Collect first usage data: sessions/child/week, exercise completion, therapist review time
-- [ ] Begin building school demo flow
-- [ ] Join 3 therapist Facebook/WhatsApp groups and contribute (not sell)
+### Month 2 — Design partners and therapist education
+- [ ] Recruit 3–5 active design-partner therapists first; stretch goal 8
+- [ ] Run consistent direct outreach through LinkedIn, ASLTIP, and warm referrals
+- [ ] Join and contribute to therapist groups with useful education, not sales-heavy messaging
+- [ ] Schedule the first therapist webinar focused on AI, home practice, and simple review workflows
+- [ ] Publish one educational post or downloadable guide for therapists
+- [ ] Collect baseline usage data: sessions per child, exercise completion, therapist review behaviour, qualitative feedback
 
-### Month 3 — First Revenue
-- [ ] Convert 3+ design partners to paid Pro subscriptions
-- [ ] Launch Starter (free) tier publicly
-- [ ] Run first therapist webinar: "Improving home practice adherence with guided AI exercises"
-- [ ] Create one-page case study from design partner data
-- [ ] Begin SENCO outreach to 20 SEND schools in high-wait areas
-- [ ] Submit to RCSLT events calendar for a CPD slot
+### Month 3 — Convert early proof into repeatable messaging
+- [ ] Convert 2–3 design partners into paid or committed pilot users
+- [ ] Run the first therapist webinar and follow up with attendees within 48 hours
+- [ ] Create one therapist case study or workflow summary from early usage
+- [ ] Refine messaging based on objections, questions, and demo drop-off points
+- [ ] Launch a lightweight referral ask for therapists who are already engaged
+- [ ] Decide whether the Starter/free tier helps activation or creates support burden
 
-### Month 4 — School Pilots
-- [ ] Sign 2–3 school term pilots (£1,500/term)
-- [ ] Build SENCO dashboard (cohort view, progress summary, exportable report)
-- [ ] Publish second case study (school-focused)
-- [ ] Present at one SENCO or SEND event
-- [ ] Launch referral programme for therapists
-- [ ] Begin building LA/NHS governance pack (IG, DPIA, safeguarding, data retention)
+### Month 4 — Begin school-facing proof carefully
+- [ ] Start targeted SENCO outreach only after therapist messaging and one proof asset exist
+- [ ] Run 10–20 targeted school conversations focused on waiting-list support and supervised practice
+- [ ] Tighten the school demo around simple reporting and therapist/school collaboration
+- [ ] Publish a school-facing case study or one-page summary if evidence is sufficient
+- [ ] Continue therapist acquisition while testing school messaging in parallel
 
-### Month 5 — Scale Signal
-- [ ] Target: 20+ paying therapists, 2–3 active school pilots, 100+ active children
-- [ ] Track and publish key metrics: adherence rate, therapist review time saved, child engagement
-- [ ] Open first LA/NHS conversation (warm intro via RCSLT or NHS Elect network)
-- [ ] Hire or contract a part-time clinical advisor (HCPC SLT) for credibility and governance
-- [ ] Draft LA pilot proposal template
+### Month 5 — Build evidence and governance credibility
+- [ ] Target: 10+ active therapists, early paid usage, and a small but credible active-child base
+- [ ] Track key metrics: adherence, review time saved, child engagement, and therapist satisfaction
+- [ ] Package outcomes into a simple evidence deck for schools and future NHS/LA conversations
+- [ ] Strengthen governance materials: safeguarding, IG, DPIA, data retention, clinical framing
+- [ ] Evaluate whether to add a part-time clinical advisor or formal advisory support
 
-### Month 6 — Prove & Raise
-- [ ] Compile 6-month outcome data pack
-- [ ] Publish therapist and school testimonials
-- [ ] Present at RCSLT or NHS Elect transformation forum
-- [ ] Open Tranche 2 raise (see investor narrative) with school + therapist proof
-- [ ] Begin LA pilot negotiation with 1–2 local authorities
-- [ ] Evaluate product roadmap based on therapist and school feedback
+### Month 6 — Decide the next growth motion
+- [ ] Decide whether the next growth step is deeper therapist penetration, school pilots, or fundraising support
+- [ ] Publish testimonials and proof points only where evidence is strong enough to be credible
+- [ ] Present or apply for one relevant therapist or SEND-facing event
+- [ ] Review pricing, activation, and retention before scaling paid acquisition or institutional outreach
+- [ ] Update the product roadmap based on therapist usage and buying objections
 
 ---
 
@@ -197,6 +235,9 @@ For speech and language therapists, schools, and families waiting for or receivi
 | Sessions completed per child per week | Proves child engagement and parent adherence |
 | Exercise completion rate | Proves exercises are well-designed and child-friendly |
 | Therapist review time per child | Proves efficiency gain |
+| Therapist demo-to-design-partner conversion | Proves that messaging and product value are clear |
+| Webinar signup-to-follow-up rate | Proves webinar relevance and audience quality |
+| Webinar follow-up-to-demo rate | Proves that educational content leads to serious pipeline |
 | Parent login rate | Proves parent engagement loop |
 | Retention at 4 and 8 weeks | Proves stickiness |
 | School renewal rate | Proves institutional value |

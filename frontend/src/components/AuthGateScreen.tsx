@@ -1,4 +1,4 @@
-import { Button, Spinner, Text, makeStyles } from '@fluentui/react-components'
+import { Button, Spinner, Text, makeStyles, mergeClasses } from '@fluentui/react-components'
 import { APP_RELEASE_LABEL, APP_TITLE } from '../app/branding'
 
 type AuthGateStatus = 'loading' | 'unauthenticated' | 'error'
@@ -192,7 +192,7 @@ export function AuthGateScreen({
         {status === 'loading' ? (
           <>
             <Text className={styles.eyebrow}>Welcome back</Text>
-            <Text className={`${styles.title} ${styles.loadingTitle}`}>Checking your secure session</Text>
+            <Text className={mergeClasses(styles.title, styles.loadingTitle)}>Checking your secure session</Text>
             <Text className={styles.body}>
               Loading your practice workspace and verifying your sign-in state.
             </Text>
@@ -205,7 +205,7 @@ export function AuthGateScreen({
             <Text className={styles.body}>Retry the session check or sign in again.</Text>
             {error ? <Text className={styles.errorText}>{error}</Text> : null}
             <div className={styles.actionStack}>
-              <Button className={`${styles.buttonBase} ${styles.primaryButton}`} onClick={onRetry}>
+              <Button className={mergeClasses(styles.buttonBase, styles.primaryButton)} onClick={onRetry}>
                 Retry session
               </Button>
             </div>
@@ -213,26 +213,26 @@ export function AuthGateScreen({
         ) : (
           <>
             <Text className={styles.eyebrow}>Welcome back</Text>
-            <Text className={styles.title}>Speech practice for every child</Text>
+            <Text className={styles.title}>Speech practice for everyone</Text>
 
             {isLocalAuthOrigin() ? (
               <div className={styles.actionStack}>
                 <Text className={styles.body}>
                   Local development is running without Azure Easy Auth. Restart the backend with local auth enabled, then recheck the session.
                 </Text>
-                <Button className={`${styles.buttonBase} ${styles.primaryButton}`} onClick={onRetry}>
+                <Button className={mergeClasses(styles.buttonBase, styles.primaryButton)} onClick={onRetry}>
                   Recheck session
                 </Button>
               </div>
             ) : (
               <div className={styles.actionStack}>
-                <Button className={`${styles.buttonBase} ${styles.secondaryButton}`} onClick={onGoogleSignIn}>
+                <Button className={mergeClasses(styles.buttonBase, styles.secondaryButton)} onClick={onGoogleSignIn}>
                   <span className={styles.buttonContent}>
                     <GoogleIcon />
                     <span>Continue with Google</span>
                   </span>
                 </Button>
-                <Button className={`${styles.buttonBase} ${styles.primaryButton}`} onClick={onMicrosoftSignIn}>
+                <Button className={mergeClasses(styles.buttonBase, styles.primaryButton)} onClick={onMicrosoftSignIn}>
                   <span className={styles.buttonContent}>
                     <MicrosoftIcon />
                     <span>Continue with Microsoft</span>
