@@ -100,6 +100,7 @@ export function ListeningMinimalPairsPanel({
   const turnSequenceRef = useRef(0)
 
   const currentPair = pairs[pairIndex] || null
+  const canSkipPair = audience === 'therapist' && Boolean(currentPair) && phase === 'awaiting'
   const pairSignature = useMemo(
     () => pairs.map(pair => `${pair.word_a}:${pair.word_b}`).join('|'),
     [pairs]
@@ -309,7 +310,7 @@ export function ListeningMinimalPairsPanel({
   }, [beginInstructionTurn, completedTurns, currentPair, getSoundLabel, pairs.length, phase, playWord, promptWord, repetitionTarget, speakExerciseText, onRecordExerciseSelection])
 
   const handleSkipPair = useCallback(() => {
-    if (!pairs.length || phase === 'completed') {
+    if (!pairs.length || phase !== 'awaiting') {
       return
     }
 
@@ -358,7 +359,7 @@ export function ListeningMinimalPairsPanel({
         </div>
       ) : null}
       <Text className={styles.feedback}>{statusText}</Text>
-      {audience === 'therapist' && currentPair && phase !== 'completed' ? (
+      {canSkipPair ? (
         <div className={styles.actionRow}>
           <Button
             appearance="secondary"

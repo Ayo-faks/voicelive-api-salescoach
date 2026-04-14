@@ -208,12 +208,10 @@ describe('Exercise panels', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Skip pair' })).toBeTruthy()
-    })
-
-    await waitFor(() => {
       expect(screen.getByText('Tap the picture that matches the sound.')).toBeTruthy()
     })
+
+    expect(screen.getByRole('button', { name: 'Skip pair' })).toBeTruthy()
 
     therapistView.unmount()
 
@@ -234,6 +232,74 @@ describe('Exercise panels', () => {
     await waitFor(() => {
       expect(screen.queryByRole('button', { name: 'Skip pair' })).toBeNull()
     })
+  })
+
+  it('hides skip while the next pair clue is starting to keep the turn aligned', async () => {
+    const firstInstruction = createDeferred()
+    const secondInstruction = createDeferred()
+    const handleSpeakExerciseText = vi
+      .fn<() => Promise<void>>()
+      .mockImplementationOnce(() => firstInstruction.promise)
+      .mockImplementationOnce(() => secondInstruction.promise)
+    const handleInterruptAvatar = vi.fn()
+
+    vi.spyOn(Math, 'random').mockReturnValue(0.9)
+
+    render(
+      <ListeningMinimalPairsPanel
+        audience="therapist"
+        readyToStart
+        metadata={{
+          targetSound: 'th',
+          errorSound: 'f',
+          pairs: [
+            { word_a: 'thin', word_b: 'fin' },
+            { word_a: 'thorn', word_b: 'fawn' },
+          ],
+          speechLanguage: 'en-US',
+        }}
+        onSpeakExerciseText={handleSpeakExerciseText}
+        onInterruptAvatar={handleInterruptAvatar}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(
+        1,
+        'Listen for the TH sound. The word is thin. Tap the picture that matches the TH sound.'
+      )
+    })
+
+    expect(screen.queryByRole('button', { name: 'Skip pair' })).toBeNull()
+
+    firstInstruction.resolve()
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Skip pair' })).toBeTruthy()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Skip pair' }))
+
+    expect(handleInterruptAvatar).toHaveBeenCalledTimes(1)
+
+    await waitFor(() => {
+      expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(
+        2,
+        'Listen for the TH sound. The word is thorn. Tap the picture that matches the TH sound.'
+      )
+    })
+
+    expect(screen.getByText('thorn')).toBeTruthy()
+    expect(screen.getByText('fawn')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Skip pair' })).toBeNull()
+
+    secondInstruction.resolve()
+
+    await waitFor(() => {
+      expect(screen.getByText('Tap the picture that matches the sound.')).toBeTruthy()
+    })
+
+    expect(screen.getByRole('button', { name: 'Skip pair' })).toBeTruthy()
   })
 
   it('sends a sorting message when a card moves into a sound home', () => {
