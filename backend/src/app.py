@@ -1103,6 +1103,9 @@ def child_parental_consent(child_id: str):
         privacy_accepted=bool(body.get("privacy_accepted", True)),
         terms_accepted=bool(body.get("terms_accepted", True)),
         ai_notice_accepted=bool(body.get("ai_notice_accepted", True)),
+        personal_data_consent_accepted=bool(body.get("personal_data_consent_accepted", False)),
+        special_category_consent_accepted=bool(body.get("special_category_consent_accepted", False)),
+        parental_responsibility_confirmed=bool(body.get("parental_responsibility_confirmed", False)),
         recorded_by_user_id=user_id,
     )
     _log_audit_event(

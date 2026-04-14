@@ -4,6 +4,7 @@ from pathlib import Path
 import sqlite3
 
 from src.services.storage import StorageService
+from src.services.storage_postgres import PostgresStorageService
 
 
 class TestStorageService:
@@ -169,6 +170,82 @@ class TestStorageService:
         assert stored_consent is not None
         assert stored_consent["guardian_email"] == "guardian@example.com"
         assert stored_consent["special_category_consent_accepted"] is True
+
+    def test_postgres_parental_consent_uses_mapping_rows_and_gdpr_fields(self, monkeypatch):
+        """Test the Postgres consent path reads dict rows and keeps the GDPR consent fields."""
+
+        class _FakeCursor:
+            def __init__(self):
+                self.fetchone_result = {
+                    "id": "consent-1",
+                    "child_id": "child-ayo",
+                    "guardian_name": "Parent Example",
+                    "guardian_email": "parent@example.com",
+                    "consent_type": "full",
+                    "privacy_accepted": True,
+                    "terms_accepted": True,
+                    "ai_notice_accepted": True,
+                    "personal_data_consent_accepted": True,
+                    "special_category_consent_accepted": True,
+                    "parental_responsibility_confirmed": True,
+                    "recorded_by_user_id": "therapist-1",
+                    "consented_at": "2026-04-14T00:00:00+00:00",
+                    "withdrawn_at": None,
+                }
+                self.executed: list[tuple[str, tuple[object, ...]]] = []
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def execute(self, query: str, params: tuple[object, ...]):
+                self.executed.append((query, params))
+
+            def fetchone(self):
+                return self.fetchone_result
+
+        class _FakeConnection:
+            def __init__(self):
+                self.cursor_instance = _FakeCursor()
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def cursor(self):
+                return self.cursor_instance
+
+        fake_connection = _FakeConnection()
+        service = PostgresStorageService("postgresql://example")
+        monkeypatch.setattr(service, "_connect", lambda: fake_connection)
+
+        saved_consent = service.save_parental_consent(
+            child_id="child-ayo",
+            guardian_name="Parent Example",
+            guardian_email="parent@example.com",
+            privacy_accepted=True,
+            terms_accepted=True,
+            ai_notice_accepted=True,
+            personal_data_consent_accepted=True,
+            special_category_consent_accepted=True,
+            parental_responsibility_confirmed=True,
+            recorded_by_user_id="therapist-1",
+        )
+        loaded_consent = service.get_parental_consent("child-ayo")
+
+        insert_query, insert_params = fake_connection.cursor_instance.executed[0]
+
+        assert "personal_data_consent_accepted" in insert_query
+        assert insert_params[8:11] == (True, True, True)
+        assert saved_consent["personal_data_consent_accepted"] is True
+        assert loaded_consent is not None
+        assert loaded_consent["guardian_email"] == "parent@example.com"
+        assert loaded_consent["special_category_consent_accepted"] is True
+        assert loaded_consent["parental_responsibility_confirmed"] is True
 
     def test_update_user_role(self, tmp_path: Path):
         """Test user roles can be promoted and demoted."""

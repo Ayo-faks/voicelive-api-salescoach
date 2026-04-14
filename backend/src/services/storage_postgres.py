@@ -2695,9 +2695,12 @@ class PostgresStorageService:
         guardian_name: str,
         guardian_email: str,
         consent_type: str = "full",
-        privacy_accepted: bool = True,
-        terms_accepted: bool = True,
-        ai_notice_accepted: bool = True,
+        privacy_accepted: bool = False,
+        terms_accepted: bool = False,
+        ai_notice_accepted: bool = False,
+        personal_data_consent_accepted: bool = False,
+        special_category_consent_accepted: bool = False,
+        parental_responsibility_confirmed: bool = False,
         recorded_by_user_id: str,
     ) -> Dict[str, Any]:
         consent_id = str(uuid4())
@@ -2709,12 +2712,15 @@ class PostgresStorageService:
                     INSERT INTO parental_consents
                         (id, child_id, guardian_name, guardian_email, consent_type,
                          privacy_accepted, terms_accepted, ai_notice_accepted,
-                         recorded_by_user_id, consented_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                         personal_data_consent_accepted, special_category_consent_accepted,
+                         parental_responsibility_confirmed, recorded_by_user_id, consented_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
                         consent_id, child_id, guardian_name, guardian_email, consent_type,
                         privacy_accepted, terms_accepted, ai_notice_accepted,
+                        personal_data_consent_accepted, special_category_consent_accepted,
+                        parental_responsibility_confirmed,
                         recorded_by_user_id, now,
                     ),
                 )
@@ -2727,6 +2733,9 @@ class PostgresStorageService:
             "privacy_accepted": privacy_accepted,
             "terms_accepted": terms_accepted,
             "ai_notice_accepted": ai_notice_accepted,
+            "personal_data_consent_accepted": personal_data_consent_accepted,
+            "special_category_consent_accepted": special_category_consent_accepted,
+            "parental_responsibility_confirmed": parental_responsibility_confirmed,
             "consented_at": now,
             "withdrawn_at": None,
         }
@@ -2738,7 +2747,8 @@ class PostgresStorageService:
                     """
                     SELECT id, child_id, guardian_name, guardian_email, consent_type,
                            privacy_accepted, terms_accepted, ai_notice_accepted,
-                           recorded_by_user_id, consented_at, withdrawn_at
+                           personal_data_consent_accepted, special_category_consent_accepted,
+                           parental_responsibility_confirmed, recorded_by_user_id, consented_at, withdrawn_at
                     FROM parental_consents
                     WHERE child_id = %s AND withdrawn_at IS NULL
                     ORDER BY consented_at DESC LIMIT 1
@@ -2749,17 +2759,20 @@ class PostgresStorageService:
         if row is None:
             return None
         return {
-            "id": row[0],
-            "child_id": row[1],
-            "guardian_name": row[2],
-            "guardian_email": row[3],
-            "consent_type": row[4],
-            "privacy_accepted": bool(row[5]),
-            "terms_accepted": bool(row[6]),
-            "ai_notice_accepted": bool(row[7]),
-            "recorded_by_user_id": row[8],
-            "consented_at": row[9],
-            "withdrawn_at": row[10],
+            "id": row["id"],
+            "child_id": row["child_id"],
+            "guardian_name": row["guardian_name"],
+            "guardian_email": row["guardian_email"],
+            "consent_type": row["consent_type"],
+            "privacy_accepted": bool(row["privacy_accepted"]),
+            "terms_accepted": bool(row["terms_accepted"]),
+            "ai_notice_accepted": bool(row["ai_notice_accepted"]),
+            "personal_data_consent_accepted": bool(row["personal_data_consent_accepted"]),
+            "special_category_consent_accepted": bool(row["special_category_consent_accepted"]),
+            "parental_responsibility_confirmed": bool(row["parental_responsibility_confirmed"]),
+            "recorded_by_user_id": row["recorded_by_user_id"],
+            "consented_at": row["consented_at"],
+            "withdrawn_at": row["withdrawn_at"],
         }
 
     def withdraw_parental_consent(self, child_id: str) -> bool:

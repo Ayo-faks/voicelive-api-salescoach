@@ -119,6 +119,18 @@ def _exercise_storage_backend(service: Any) -> dict[str, Any]:
     service.get_or_create_user("user-1", "first@example.com", "First User", "aad")
     service.get_or_create_user("user-2", "second@example.com", "Second User", "google")
     service.save_consent_acknowledgement("2026-04-05T10:00:00+00:00")
+    saved_parental_consent = service.save_parental_consent(
+        child_id="child-ayo",
+        guardian_name="Parent Example",
+        guardian_email="parent@example.com",
+        privacy_accepted=True,
+        terms_accepted=True,
+        ai_notice_accepted=True,
+        personal_data_consent_accepted=True,
+        special_category_consent_accepted=True,
+        parental_responsibility_confirmed=True,
+        recorded_by_user_id="user-1",
+    )
 
     saved_session = service.save_session(
         {
@@ -325,6 +337,8 @@ def _exercise_storage_backend(service: Any) -> dict[str, Any]:
         "first_user": service.get_user("user-1"),
         "second_user": service.get_user("user-2"),
         "children": service.list_children(),
+        "saved_parental_consent": saved_parental_consent,
+        "parental_consent": service.get_parental_consent("child-ayo"),
         "session": service.get_session(saved_session["id"]),
         "feedback_session": feedback_session,
         "session_history": service.list_sessions_for_child("child-ayo"),

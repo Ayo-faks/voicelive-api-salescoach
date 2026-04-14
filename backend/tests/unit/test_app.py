@@ -867,6 +867,60 @@ class TestFlaskApp:
         assert data["error"] == "Therapist role required"
 
     @patch("src.app.storage_service")
+    def test_save_child_parental_consent_forwards_explicit_gdpr_fields(self, mock_storage_service):
+        """Test the child consent endpoint forwards the explicit GDPR fields to storage."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
+        mock_storage_service.user_has_child_access.return_value = True
+        mock_storage_service.save_parental_consent.return_value = {
+            "id": "consent-1",
+            "child_id": "child-ayo",
+            "guardian_name": "Parent Example",
+            "guardian_email": "parent@example.com",
+            "consent_type": "full",
+            "privacy_accepted": True,
+            "terms_accepted": True,
+            "ai_notice_accepted": True,
+            "personal_data_consent_accepted": True,
+            "special_category_consent_accepted": True,
+            "parental_responsibility_confirmed": True,
+            "consented_at": "2026-04-14T00:00:00+00:00",
+            "withdrawn_at": None,
+        }
+
+        response = self.client.post(
+            "/api/children/child-ayo/consent",
+            headers={**self._auth_headers(), "Origin": "http://localhost"},
+            json={
+                "guardian_name": "Parent Example",
+                "guardian_email": "parent@example.com",
+                "privacy_accepted": True,
+                "terms_accepted": True,
+                "ai_notice_accepted": True,
+                "personal_data_consent_accepted": True,
+                "special_category_consent_accepted": True,
+                "parental_responsibility_confirmed": True,
+            },
+        )
+
+        assert response.status_code == 201
+        data = json.loads(response.data)
+        assert data["personal_data_consent_accepted"] is True
+        assert data["special_category_consent_accepted"] is True
+        assert data["parental_responsibility_confirmed"] is True
+        mock_storage_service.save_parental_consent.assert_called_once_with(
+            child_id="child-ayo",
+            guardian_name="Parent Example",
+            guardian_email="parent@example.com",
+            privacy_accepted=True,
+            terms_accepted=True,
+            ai_notice_accepted=True,
+            personal_data_consent_accepted=True,
+            special_category_consent_accepted=True,
+            parental_responsibility_confirmed=True,
+            recorded_by_user_id="user-123",
+        )
+
+    @patch("src.app.storage_service")
     def test_get_children_returns_scoped_parent_children(self, mock_storage_service):
         """Test child profile listing is authenticated and scoped to the caller."""
         mock_storage_service.get_or_create_user.return_value = self._user_payload("parent")
