@@ -148,6 +148,7 @@ interface SessionScreenProps {
   onSpeakExerciseText?: (text: string) => Promise<void>
   onRecordExerciseSelection?: (text: string) => void
   onInterruptAvatar?: () => void
+  onListeningPracticeComplete?: () => void
 }
 
 function formatExerciseType(value?: string) {
@@ -209,6 +210,7 @@ export function SessionScreen({
   onSpeakExerciseText,
   onRecordExerciseSelection,
   onInterruptAvatar,
+  onListeningPracticeComplete,
 }: SessionScreenProps) {
   const styles = useStyles()
   const customScenario = isCustomScenario(scenario) ? scenario : null
@@ -233,6 +235,7 @@ export function SessionScreen({
       onSpeakExerciseText={onSpeakExerciseText}
       onRecordExerciseSelection={onRecordExerciseSelection}
       onInterruptAvatar={onInterruptAvatar}
+      onCompleteSession={onListeningPracticeComplete}
     />
   ) : isSilentSorting ? (
     <SilentSortingPanel

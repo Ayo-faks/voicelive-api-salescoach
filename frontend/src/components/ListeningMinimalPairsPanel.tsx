@@ -74,6 +74,7 @@ interface Props {
   onSpeakExerciseText?: (text: string) => Promise<void>
   onRecordExerciseSelection?: (text: string) => void
   onInterruptAvatar?: () => void
+  onCompleteSession?: () => void
 }
 
 export function ListeningMinimalPairsPanel({
@@ -85,6 +86,7 @@ export function ListeningMinimalPairsPanel({
   onSpeakExerciseText,
   onRecordExerciseSelection,
   onInterruptAvatar,
+  onCompleteSession,
 }: Props) {
   const styles = useStyles()
   const pairs = metadata?.pairs || []
@@ -98,6 +100,7 @@ export function ListeningMinimalPairsPanel({
   const [phase, setPhase] = useState<TurnPhase>(pairs.length > 0 ? 'waiting' : 'completed')
   const [statusText, setStatusText] = useState('Your buddy will give the clue first.')
   const turnSequenceRef = useRef(0)
+  const completionNotifiedRef = useRef(false)
 
   const currentPair = pairs[pairIndex] || null
   const canSkipPair = audience === 'therapist' && Boolean(currentPair) && phase === 'awaiting'
@@ -126,6 +129,7 @@ export function ListeningMinimalPairsPanel({
   useEffect(() => {
     void resetKey
     turnSequenceRef.current += 1
+    completionNotifiedRef.current = false
     setPairIndex(0)
     setCompletedTurns(0)
     setPromptWord(null)
@@ -133,6 +137,15 @@ export function ListeningMinimalPairsPanel({
     setPhase(pairs.length > 0 ? 'waiting' : 'completed')
     setStatusText(pairs.length > 0 ? 'Your buddy will give the clue first.' : 'No listening pairs are available yet.')
   }, [pairs.length, resetKey])
+
+  const notifySessionCompletion = useCallback(() => {
+    if (completionNotifiedRef.current) {
+      return
+    }
+
+    completionNotifiedRef.current = true
+    onCompleteSession?.()
+  }, [onCompleteSession])
 
   const speakWord = useCallback(async (word: string) => {
     try {
@@ -243,13 +256,14 @@ export function ListeningMinimalPairsPanel({
     if (repetitionTarget > 0 && completedTurns >= repetitionTarget) {
       setPhase('completed')
       setStatusText('Practice set complete.')
+      notifySessionCompletion()
       return
     }
 
     if (phase === 'waiting') {
       void beginInstructionTurn(promptWord ?? undefined)
     }
-  }, [beginInstructionTurn, completedTurns, currentPair, phase, promptWord, readyToStart, repetitionTarget])
+  }, [beginInstructionTurn, completedTurns, currentPair, notifySessionCompletion, phase, promptWord, readyToStart, repetitionTarget])
 
   const handleSelect = useCallback((word: string) => {
     if (!currentPair || !promptWord || phase !== 'awaiting') {
@@ -286,6 +300,7 @@ export function ListeningMinimalPairsPanel({
         if (repetitionTarget > 0 && nextCompletedTurns >= repetitionTarget) {
           setPhase('completed')
           setStatusText('Practice set complete.')
+          notifySessionCompletion()
           return
         }
 
@@ -307,7 +322,7 @@ export function ListeningMinimalPairsPanel({
 
       await beginInstructionTurn(promptWord)
     })()
-  }, [beginInstructionTurn, completedTurns, currentPair, getSoundLabel, pairs.length, phase, playWord, promptWord, repetitionTarget, speakExerciseText, onRecordExerciseSelection])
+  }, [beginInstructionTurn, completedTurns, currentPair, getSoundLabel, notifySessionCompletion, pairs.length, phase, playWord, promptWord, repetitionTarget, speakExerciseText, onRecordExerciseSelection])
 
   const handleSkipPair = useCallback(() => {
     if (!pairs.length || phase !== 'awaiting') {

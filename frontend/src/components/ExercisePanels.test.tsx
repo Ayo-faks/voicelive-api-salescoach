@@ -302,6 +302,44 @@ describe('Exercise panels', () => {
     expect(screen.getByRole('button', { name: 'Skip pair' })).toBeTruthy()
   })
 
+  it('hands off session completion once when listening practice reaches the target', async () => {
+    const handleSpeakExerciseText = vi.fn().mockResolvedValue(undefined)
+    const handleCompleteSession = vi.fn()
+
+    vi.spyOn(Math, 'random').mockReturnValue(0.9)
+
+    render(
+      <ListeningMinimalPairsPanel
+        audience="child"
+        readyToStart
+        metadata={{
+          targetSound: 'th',
+          errorSound: 'f',
+          repetitionTarget: 1,
+          pairs: [{ word_a: 'thin', word_b: 'fin' }],
+          speechLanguage: 'en-US',
+        }}
+        onSpeakExerciseText={handleSpeakExerciseText}
+        onCompleteSession={handleCompleteSession}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(handleSpeakExerciseText).toHaveBeenCalledWith(
+        'Listen for the TH sound. The word is thin. Tap the picture that matches the TH sound.'
+      )
+    })
+
+    fireEvent.click(screen.getByText('thin'))
+
+    await waitFor(() => {
+      expect(handleCompleteSession).toHaveBeenCalledTimes(1)
+    })
+
+    expect(screen.getByText('Practice set complete.')).toBeTruthy()
+    expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(2, "Great listening! That's the TH sound.")
+  })
+
   it('sends a sorting message when a card moves into a sound home', () => {
     const handleSendMessage = vi.fn()
 

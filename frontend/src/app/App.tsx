@@ -130,6 +130,15 @@ const AFFIRMATIVE_FINISH_PATTERN = /\b(yes|yeah|yep|ok|okay|sure|done|finished)\
 const LAUNCH_HANDOFF_DELAY_MS = 240
 const SUMMARY_HANDOFF_DELAY_MS = 1100
 const SESSION_WRAP_UP_DELAY_MS = 3200
+const LISTENING_SESSION_WRAP_UP_DELAY_MS = 5200
+
+function getListeningWrapUpInstructions(isChildMode: boolean): string {
+  if (isChildMode) {
+    return 'Say exactly the following text verbatim in two short, warm sentences with no extra words: Thanks for practicing with me today. I\'m getting your session summary ready now, and I\'ll see you next time.'
+  }
+
+  return 'Say exactly the following text verbatim in two short, warm sentences with no extra words: Thanks for joining today\'s practice. I\'m preparing the session summary now, and I\'ll see you next time.'
+}
 
 function normalizeStoredUserMode(value: string | null): UserMode | null {
   if (value === 'child') {
@@ -2036,7 +2045,7 @@ export default function App() {
     }
   }, [])
 
-  const beginSessionWrapUp = useCallback((instructions?: string) => {
+  const beginSessionWrapUp = useCallback((instructions?: string, finishDelayMs = SESSION_WRAP_UP_DELAY_MS) => {
     if (wrapUpInProgress) {
       return
     }
@@ -2067,8 +2076,19 @@ export default function App() {
 
     wrapUpFinishTimerRef.current = window.setTimeout(() => {
       setFinishRequested(true)
-    }, SESSION_WRAP_UP_DELAY_MS)
+    }, finishDelayMs)
   }, [clearWrapUpTimers, stopAudio, wrapUpInProgress])
+
+  const handleListeningPracticeComplete = useCallback(() => {
+    if (sessionFinished || wrapUpInProgress) {
+      return
+    }
+
+    beginSessionWrapUp(
+      getListeningWrapUpInstructions(isChildMode),
+      LISTENING_SESSION_WRAP_UP_DELAY_MS,
+    )
+  }, [beginSessionWrapUp, isChildMode, sessionFinished, wrapUpInProgress])
 
   const handleWebRTCMessage = useCallback((msg: RealtimeMessage) => {
     if (msg.type === 'proxy.connected' || msg.type === 'session.updated') {
@@ -3722,6 +3742,7 @@ export default function App() {
       onSendExerciseMessage={sendExerciseMessage}
       onSpeakExerciseText={speakExerciseText}
       onRecordExerciseSelection={recordExerciseSelection}
+      onListeningPracticeComplete={handleListeningPracticeComplete}
       onInterruptAvatar={() => {
         resetExerciseSpeechTracking()
         send({ type: 'response.cancel' })
