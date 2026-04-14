@@ -71,6 +71,16 @@ class TestFlaskApp:
 
         assert response.status_code == 404
 
+    def test_audio_processor_route_uses_static_folder(self):
+        """Test audio processor requests are served from the resolved static bundle."""
+        with patch("src.app.send_from_directory") as mock_send:
+            mock_send.return_value = "audio processor"
+
+            response = self.client.get("/audio-processor.js")
+
+            assert response.status_code == 200
+            mock_send.assert_called_once_with(app.static_folder, "audio-processor.js")
+
     def test_index_route_no_static_folder(self):
         """Test index route behavior when static folder is None."""
         original_static_folder = app.static_folder
@@ -146,6 +156,21 @@ class TestFlaskApp:
 
         assert response.status_code == 403
         assert json.loads(response.data)["error"] == "Origin not allowed"
+
+    @patch("src.app.storage_service")
+    def test_mutating_request_allows_local_vite_origin(self, mock_storage_service):
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("admin")
+        mock_storage_service.get_user.return_value = self._user_payload("parent")
+        mock_storage_service.update_user_role.return_value = self._user_payload("therapist")
+
+        response = self.client.post(
+            "/api/users/user-999/role",
+            headers={**self._auth_headers(), "Origin": "http://127.0.0.1:5173"},
+            json={"role": "therapist"},
+        )
+
+        assert response.status_code == 200
+        assert json.loads(response.data)["role"] == "therapist"
 
     @patch("src.app.storage_service")
     def test_mutating_request_rejects_non_json_body(self, mock_storage_service):
@@ -964,7 +989,7 @@ class TestFlaskApp:
             response = self.client.get("/audio-processor.js")
 
             assert response.status_code == 200
-            mock_send.assert_called_once_with("static", "audio-processor.js")
+            mock_send.assert_called_once_with(app.static_folder, "audio-processor.js")
 
     @patch("src.app.pronunciation_assessor")
     def test_assess_utterance_success(self, mock_pronunciation_assessor):

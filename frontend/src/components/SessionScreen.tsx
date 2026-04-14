@@ -145,6 +145,8 @@ interface SessionScreenProps {
   scoringUtterance: boolean
   activeReferenceText: string
   onSendExerciseMessage?: (text: string) => void
+  onSpeakExerciseText?: (text: string) => Promise<void>
+  onRecordExerciseSelection?: (text: string) => void
   onInterruptAvatar?: () => void
 }
 
@@ -204,6 +206,8 @@ export function SessionScreen({
   scoringUtterance,
   activeReferenceText,
   onSendExerciseMessage,
+  onSpeakExerciseText,
+  onRecordExerciseSelection,
   onInterruptAvatar,
 }: SessionScreenProps) {
   const styles = useStyles()
@@ -224,7 +228,10 @@ export function SessionScreen({
       scenarioName={scenario?.name}
       metadata={exerciseMetadata}
       audience={isChildMode ? 'child' : 'therapist'}
+      readyToStart={connected && introComplete && !sessionFinished}
       onSendMessage={onSendExerciseMessage}
+      onSpeakExerciseText={onSpeakExerciseText}
+      onRecordExerciseSelection={onRecordExerciseSelection}
       onInterruptAvatar={onInterruptAvatar}
     />
   ) : isSilentSorting ? (

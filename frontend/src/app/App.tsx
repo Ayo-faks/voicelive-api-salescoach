@@ -879,6 +879,7 @@ export default function App() {
   const [consentSaving, setConsentSaving] = useState(false)
   const [consentError, setConsentError] = useState<string | null>(null)
   const [sessionActivityKey, setSessionActivityKey] = useState(0)
+  const [exerciseSpeechActive, setExerciseSpeechActive] = useState(false)
   const [launchInFlight, setLaunchInFlight] = useState(false)
   const prewarmedAgentRef = useRef<PrewarmedAgent | null>(null)
   const prewarmingKeyRef = useRef<string | null>(null)
@@ -890,6 +891,10 @@ export default function App() {
   const summaryHandoffTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null)
   const wrapUpFinishTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null)
   const sendRef = useRef<(msg: unknown) => void>(() => {})
+  const connectedRef = useRef(false)
+  const exerciseSpeechQueueRef = useRef<Promise<void>>(Promise.resolve())
+  const exerciseSpeechResolveRef = useRef<(() => void) | null>(null)
+  const exerciseSpeechTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null)
   const previousPathRef = useRef(location.pathname)
   const navigationBypassRef = useRef(false)
   const lastQueryChildIdRef = useRef<string | null>(null)
@@ -911,7 +916,7 @@ export default function App() {
     updateCustomScenario,
     deleteCustomScenario,
   } = useScenarios()
-  const { playAudio, stopAudio } = useAudioPlayer()
+  const { playAudio, stopAudio, getPendingAudioMs } = useAudioPlayer()
   const activeScenario = scenarios.find(scenario => scenario.id === selectedScenario) || null
   const selectedChild =
     children.find(child => child.id === selectedChildId) || null
@@ -2113,6 +2118,83 @@ export default function App() {
     }
   }, [beginSessionWrapUp])
 
+  const clearExerciseSpeechTimer = useCallback(() => {
+    if (exerciseSpeechTimerRef.current) {
+      window.clearTimeout(exerciseSpeechTimerRef.current)
+      exerciseSpeechTimerRef.current = null
+    }
+  }, [])
+
+  const finishExerciseSpeech = useCallback(() => {
+    clearExerciseSpeechTimer()
+    const resolve = exerciseSpeechResolveRef.current
+    exerciseSpeechResolveRef.current = null
+    setExerciseSpeechActive(false)
+    resolve?.()
+  }, [clearExerciseSpeechTimer])
+
+  const resetExerciseSpeechTracking = useCallback(() => {
+    clearExerciseSpeechTimer()
+    const resolve = exerciseSpeechResolveRef.current
+    exerciseSpeechResolveRef.current = null
+    exerciseSpeechQueueRef.current = Promise.resolve()
+    setExerciseSpeechActive(false)
+    resolve?.()
+  }, [clearExerciseSpeechTimer])
+
+  const waitForAssistantAudioDrain = useCallback(() => new Promise<void>(resolve => {
+    const checkAudioDrain = () => {
+      const pendingAudioMs = getPendingAudioMs()
+
+      if (pendingAudioMs <= 0) {
+        resolve()
+        return
+      }
+
+      window.setTimeout(checkAudioDrain, Math.min(250, pendingAudioMs + 40))
+    }
+
+    checkAudioDrain()
+  }), [getPendingAudioMs])
+
+  const speakExerciseText = useCallback((text: string) => {
+    const trimmedText = text.trim()
+
+    if (!trimmedText || !connectedRef.current) {
+      return Promise.resolve()
+    }
+
+    setExerciseSpeechActive(true)
+
+    const queuedRun = exerciseSpeechQueueRef.current.then(async () => {
+      await waitForAssistantAudioDrain()
+
+      if (!connectedRef.current) {
+        setExerciseSpeechActive(false)
+        return
+      }
+
+      return new Promise<void>(resolve => {
+        exerciseSpeechResolveRef.current = resolve
+        clearExerciseSpeechTimer()
+        exerciseSpeechTimerRef.current = window.setTimeout(() => {
+          finishExerciseSpeech()
+        }, 15000)
+
+        sendRef.current({
+          type: 'response.create',
+          response: {
+            modalities: ['audio', 'text'],
+            instructions: `Say exactly the following text verbatim in one turn, with no extra words: ${trimmedText}`,
+          },
+        })
+      })
+    })
+
+    exerciseSpeechQueueRef.current = queuedRun.catch(() => {})
+    return queuedRun
+  }, [clearExerciseSpeechTimer, finishExerciseSpeech, waitForAssistantAudioDrain])
+
   const handleRealtimeTranscript = useCallback(
     (role: 'user' | 'assistant', text: string) => {
       if (role === 'assistant' && text.trim()) {
@@ -2135,6 +2217,13 @@ export default function App() {
       if (role === 'assistant' && idleNudgePendingRef.current) {
         idleNudgePendingRef.current = false
         return
+      }
+
+      if (role === 'assistant' && exerciseSpeechResolveRef.current) {
+        clearExerciseSpeechTimer()
+        exerciseSpeechTimerRef.current = window.setTimeout(() => {
+          finishExerciseSpeech()
+        }, Math.max(120, getPendingAudioMs() + 40))
       }
 
       setSessionActivityKey(current => current + 1)
@@ -2185,8 +2274,11 @@ export default function App() {
       activeReferenceText,
       beginSessionWrapUp,
       childTurnCount,
+      clearExerciseSpeechTimer,
+      finishExerciseSpeech,
       finishConfirmationPending,
       finishPromptTurnLimit,
+      getPendingAudioMs,
       isChildMode,
       sessionFinished,
       sessionIntroComplete,
@@ -2229,6 +2321,7 @@ export default function App() {
     connectionState,
     connectionMessage,
     messages,
+    addLocalMessage,
     send,
     disconnect,
     clearMessages,
@@ -2245,6 +2338,10 @@ export default function App() {
   useEffect(() => {
     sendRef.current = send
   }, [send])
+
+  useEffect(() => {
+    connectedRef.current = connected
+  }, [connected])
 
   useEffect(() => {
     return () => {
@@ -2278,6 +2375,17 @@ export default function App() {
       },
     })
   }, [connected])
+
+  const recordExerciseSelection = useCallback((text: string) => {
+    const trimmedText = text.trim()
+
+    if (!trimmedText) {
+      return
+    }
+
+    addLocalMessage('user', trimmedText)
+    setSessionActivityKey(current => current + 1)
+  }, [addLocalMessage])
 
   useEffect(() => {
     const previousRoute = resolveAppRoute(previousPathRef.current)
@@ -2697,6 +2805,7 @@ export default function App() {
       await handleToggleRecording()
     }
 
+    resetExerciseSpeechTracking()
     disconnect()
 
     if (currentAgent) {
@@ -2713,7 +2822,7 @@ export default function App() {
     setLaunchHandoffReady(false)
     setScoringUtterance(false)
     setSessionFinished(true)
-  }, [currentAgent, disconnect, handleToggleRecording, recording, releaseAgent])
+  }, [currentAgent, disconnect, handleToggleRecording, recording, releaseAgent, resetExerciseSpeechTracking])
 
   const handleConfirmedFinish = useCallback(async () => {
     clearWrapUpTimers()
@@ -2735,7 +2844,7 @@ export default function App() {
   }, [analyzeCurrentSession, applyAssessmentResult, clearWrapUpTimers, handleFinishPractice])
 
   useEffect(() => {
-    if (!finishPromptQueued || !isChildMode || sessionFinished || !connected) {
+    if (!finishPromptQueued || !isChildMode || sessionFinished || !connected || exerciseSpeechActive) {
       return
     }
 
@@ -2751,7 +2860,7 @@ export default function App() {
       },
     })
     setFinishPromptQueued(false)
-  }, [connected, finishPromptQueued, isChildMode, send, sessionFinished, stopAudio])
+  }, [connected, exerciseSpeechActive, finishPromptQueued, isChildMode, send, sessionFinished, stopAudio])
 
   useEffect(() => {
     if (!finishRequested) {
@@ -2763,6 +2872,7 @@ export default function App() {
 
   const sendIdleNudge = useCallback(() => {
     if (
+      exerciseSpeechActive ||
       !isChildMode ||
       !connected ||
       !isSessionRoute ||
@@ -2783,7 +2893,7 @@ export default function App() {
           'In one short sentence, gently check whether the child wants to keep practising. Tell them to tap the microphone if they want another turn.',
       },
     })
-  }, [connected, isChildMode, isSessionRoute, recording, scoringUtterance, send, sessionFinished])
+  }, [connected, exerciseSpeechActive, isChildMode, isSessionRoute, recording, scoringUtterance, send, sessionFinished])
 
   useSessionTimer({
     active:
@@ -3610,7 +3720,10 @@ export default function App() {
       scoringUtterance={scoringUtterance}
       activeReferenceText={activeReferenceText}
       onSendExerciseMessage={sendExerciseMessage}
+      onSpeakExerciseText={speakExerciseText}
+      onRecordExerciseSelection={recordExerciseSelection}
       onInterruptAvatar={() => {
+        resetExerciseSpeechTracking()
         send({ type: 'response.cancel' })
         stopAudio()
       }}

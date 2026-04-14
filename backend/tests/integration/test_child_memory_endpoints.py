@@ -142,6 +142,7 @@ def test_non_therapist_cannot_access_child_memory_endpoints(client: FlaskClient)
     therapist_headers = _bootstrap_therapist(client)
     user_headers = _auth_headers("user-2", "user@example.com", name="Second User")
     client.get("/api/auth/session", headers=user_headers)
+    app_module.storage_service.update_user_role("user-2", "parent")
 
     responses = [
         client.get("/api/children/child-ayo/memory/summary", headers=user_headers),

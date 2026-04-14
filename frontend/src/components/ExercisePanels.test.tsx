@@ -5,6 +5,16 @@ import { ListeningMinimalPairsPanel } from './ListeningMinimalPairsPanel'
 import { SilentSortingPanel } from './SilentSortingPanel'
 import { VowelBlendingPanel } from './VowelBlendingPanel'
 
+function createDeferred() {
+  let resolve: () => void = () => {}
+
+  const promise = new Promise<void>(res => {
+    resolve = res
+  })
+
+  return { promise, resolve }
+}
+
 vi.mock('../services/api', async importOriginal => {
   const actual = await importOriginal<typeof import('../services/api')>()
 
@@ -43,57 +53,187 @@ describe('Exercise panels', () => {
     })
   })
 
-  it('sends a correct-pick message from the listening minimal pairs panel', async () => {
-    const handleSendMessage = vi.fn()
-    const handleInterruptAvatar = vi.fn()
+  it('locks taps until the avatar finishes the instruction', async () => {
+    const handleRecordSelection = vi.fn()
+    const deferredSpeech = createDeferred()
+    const handleSpeakExerciseText = vi.fn(() => deferredSpeech.promise)
+
+    vi.spyOn(Math, 'random').mockReturnValue(0.9)
+
+    render(
+      <ListeningMinimalPairsPanel
+        audience="child"
+        readyToStart
+        metadata={{
+          targetSound: 'th',
+          errorSound: 'f',
+          pairs: [{ word_a: 'thin', word_b: 'fin' }],
+          speechLanguage: 'en-US',
+        }}
+        onSpeakExerciseText={handleSpeakExerciseText}
+        onRecordExerciseSelection={handleRecordSelection}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(handleSpeakExerciseText).toHaveBeenCalledWith(
+        'Listen for the TH sound. The word is thin. Tap the picture that matches the TH sound.'
+      )
+    })
+
+    fireEvent.click(screen.getByText('thin'))
+    expect(handleRecordSelection).not.toHaveBeenCalled()
+
+    deferredSpeech.resolve()
+
+    await waitFor(() => {
+      expect(screen.getByText('Tap the picture that matches the sound.')).toBeTruthy()
+    })
+
+    fireEvent.click(screen.getByText('thin'))
+
+    await waitFor(() => {
+      expect(handleRecordSelection).toHaveBeenCalledWith('I picked thin.')
+    })
+  })
+
+  it('retries the same pair after a wrong answer', async () => {
+    const handleSpeakExerciseText = vi.fn().mockResolvedValue(undefined)
+    const handleRecordSelection = vi.fn()
+
+    vi.spyOn(Math, 'random').mockReturnValue(0.9)
+
+    render(
+      <ListeningMinimalPairsPanel
+        audience="child"
+        readyToStart
+        metadata={{
+          targetSound: 'th',
+          errorSound: 'f',
+          pairs: [{ word_a: 'thin', word_b: 'fin' }],
+          speechLanguage: 'en-US',
+        }}
+        onSpeakExerciseText={handleSpeakExerciseText}
+        onRecordExerciseSelection={handleRecordSelection}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(handleSpeakExerciseText).toHaveBeenCalledTimes(1)
+    })
+
+    fireEvent.click(screen.getByText('fin'))
+
+    await waitFor(() => {
+      expect(handleSpeakExerciseText).toHaveBeenCalledTimes(3)
+    })
+
+    expect(handleRecordSelection).toHaveBeenCalledWith('I picked fin.')
+    expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(
+      1,
+      'Listen for the TH sound. The word is thin. Tap the picture that matches the TH sound.'
+    )
+    expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(2, 'Try again. Listen carefully.')
+    expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(
+      3,
+      'Listen for the TH sound. The word is thin. Tap the picture that matches the TH sound.'
+    )
+  })
+
+  it('praises a correct answer and auto-advances to the next pair', async () => {
+    const handleSpeakExerciseText = vi.fn().mockResolvedValue(undefined)
+    const handleRecordSelection = vi.fn()
 
     vi.spyOn(Math, 'random').mockReturnValue(0.9)
 
     render(
       <ListeningMinimalPairsPanel
         audience="therapist"
+        readyToStart
         metadata={{
-          pairs: [{ word_a: 'thin', word_b: 'fin' }],
+          targetSound: 'th',
+          errorSound: 'f',
+          repetitionTarget: 2,
+          pairs: [
+            { word_a: 'thin', word_b: 'fin' },
+            { word_a: 'thorn', word_b: 'fawn' },
+          ],
           speechLanguage: 'en-US',
         }}
-        onSendMessage={handleSendMessage}
-        onInterruptAvatar={handleInterruptAvatar}
+        onSpeakExerciseText={handleSpeakExerciseText}
+        onRecordExerciseSelection={handleRecordSelection}
       />,
     )
 
     await waitFor(() => {
-      expect(screen.getByText('Prompt word: thin')).toBeTruthy()
+      expect(handleSpeakExerciseText).toHaveBeenCalledTimes(1)
     })
 
     fireEvent.click(screen.getByText('thin'))
 
-    expect(handleInterruptAvatar).toHaveBeenCalledTimes(1)
-    expect(handleSendMessage).toHaveBeenCalledWith("I picked thin. That's the right answer!")
+    await waitFor(() => {
+      expect(handleSpeakExerciseText).toHaveBeenCalledTimes(3)
+    })
+
+    expect(handleRecordSelection).toHaveBeenCalledWith('I picked thin.')
+    expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(
+      1,
+      'Listen for the TH sound. The word is thin. Tap the picture that matches the TH sound.'
+    )
+    expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(2, "Great listening! That's the TH sound.")
+    expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(
+      3,
+      'Listen for the TH sound. The word is thorn. Tap the picture that matches the TH sound.'
+    )
+    expect(screen.queryByRole('button', { name: 'Next pair' })).toBeNull()
   })
 
-  it('sends an incorrect-pick message from the listening minimal pairs panel', async () => {
-    const handleSendMessage = vi.fn()
+  it('shows skip pair only for therapists', async () => {
+    const handleSpeakExerciseText = vi.fn().mockResolvedValue(undefined)
 
-    vi.spyOn(Math, 'random').mockReturnValue(0.1)
+    vi.spyOn(Math, 'random').mockReturnValue(0.9)
+
+    const therapistView = render(
+      <ListeningMinimalPairsPanel
+        audience="therapist"
+        readyToStart
+        metadata={{
+          targetSound: 'th',
+          errorSound: 'f',
+          pairs: [{ word_a: 'thin', word_b: 'fin' }],
+          speechLanguage: 'en-US',
+        }}
+        onSpeakExerciseText={handleSpeakExerciseText}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Skip pair' })).toBeTruthy()
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('Tap the picture that matches the sound.')).toBeTruthy()
+    })
+
+    therapistView.unmount()
 
     render(
       <ListeningMinimalPairsPanel
-        audience="therapist"
+        audience="child"
+        readyToStart
         metadata={{
+          targetSound: 'th',
+          errorSound: 'f',
           pairs: [{ word_a: 'thin', word_b: 'fin' }],
           speechLanguage: 'en-US',
         }}
-        onSendMessage={handleSendMessage}
+        onSpeakExerciseText={handleSpeakExerciseText}
       />,
     )
 
     await waitFor(() => {
-      expect(screen.getByText('Prompt word: fin')).toBeTruthy()
+      expect(screen.queryByRole('button', { name: 'Skip pair' })).toBeNull()
     })
-
-    fireEvent.click(screen.getByText('thin'))
-
-    expect(handleSendMessage).toHaveBeenCalledWith('I picked thin. The correct answer was fin.')
   })
 
   it('sends a sorting message when a card moves into a sound home', () => {

@@ -10,6 +10,8 @@ import { api } from '../services/api'
 import { ImageCard } from './ImageCard'
 import { RepetitionCounter } from './RepetitionCounter'
 
+type TurnPhase = 'waiting' | 'instructing' | 'awaiting' | 'evaluating' | 'completed'
+
 const useStyles = makeStyles({
   card: {
     padding: 'var(--space-lg)',
@@ -50,6 +52,11 @@ const useStyles = makeStyles({
     fontSize: '0.82rem',
     color: 'var(--color-text-secondary)',
   },
+  actionRow: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: 'var(--space-sm)',
+  },
   speakButton: {
     minHeight: '40px',
     borderRadius: 'var(--radius-md)',
@@ -62,7 +69,10 @@ interface Props {
   scenarioName?: string | null
   metadata?: Partial<ExerciseMetadata>
   audience?: 'therapist' | 'child'
+  readyToStart?: boolean
   onSendMessage?: (text: string) => void
+  onSpeakExerciseText?: (text: string) => Promise<void>
+  onRecordExerciseSelection?: (text: string) => void
   onInterruptAvatar?: () => void
 }
 
@@ -70,16 +80,34 @@ export function ListeningMinimalPairsPanel({
   scenarioName,
   metadata,
   audience = 'child',
+  readyToStart = false,
   onSendMessage,
+  onSpeakExerciseText,
+  onRecordExerciseSelection,
   onInterruptAvatar,
 }: Props) {
   const styles = useStyles()
   const pairs = metadata?.pairs || []
+  const repetitionTarget = metadata?.repetitionTarget ?? pairs.length
+  const targetSound = metadata?.targetSound || 'target'
+  const errorSound = metadata?.errorSound || 'other'
   const [pairIndex, setPairIndex] = useState(0)
+  const [completedTurns, setCompletedTurns] = useState(0)
   const [promptWord, setPromptWord] = useState<string | null>(null)
   const [selectedWord, setSelectedWord] = useState<string | null>(null)
+  const [phase, setPhase] = useState<TurnPhase>(pairs.length > 0 ? 'waiting' : 'completed')
+  const [statusText, setStatusText] = useState('Your buddy will give the clue first.')
+  const turnSequenceRef = useRef(0)
 
   const currentPair = pairs[pairIndex] || null
+  const pairSignature = useMemo(
+    () => pairs.map(pair => `${pair.word_a}:${pair.word_b}`).join('|'),
+    [pairs]
+  )
+  const resetKey = useMemo(
+    () => `${pairSignature}|${repetitionTarget}|${targetSound}|${errorSound}`,
+    [errorSound, pairSignature, repetitionTarget, targetSound]
+  )
   const imageMap = useMemo(() => {
     const paths = metadata?.imageAssets || []
     const nextMap = new Map<string, string>()
@@ -95,14 +123,15 @@ export function ListeningMinimalPairsPanel({
   }, [metadata?.imageAssets])
 
   useEffect(() => {
+    void resetKey
+    turnSequenceRef.current += 1
+    setPairIndex(0)
+    setCompletedTurns(0)
+    setPromptWord(null)
     setSelectedWord(null)
-    if (!currentPair) {
-      setPromptWord(null)
-      return
-    }
-
-    setPromptWord(Math.random() > 0.5 ? currentPair.word_a : currentPair.word_b)
-  }, [currentPair])
+    setPhase(pairs.length > 0 ? 'waiting' : 'completed')
+    setStatusText(pairs.length > 0 ? 'Your buddy will give the clue first.' : 'No listening pairs are available yet.')
+  }, [pairs.length, resetKey])
 
   const speakWord = useCallback(async (word: string) => {
     try {
@@ -151,36 +180,162 @@ export function ListeningMinimalPairsPanel({
     }
   }, [speakWord])
 
-  const handleSelect = (word: string) => {
-    const isCorrectSelection = promptWord ? word === promptWord : null
-    onInterruptAvatar?.()
-    setSelectedWord(word)
-    void playWord(word)
-    if (isCorrectSelection === null) {
-      onSendMessage?.(`I picked ${word}.`)
+  const speakExerciseText = useCallback(async (text: string) => {
+    if (onSpeakExerciseText) {
+      await onSpeakExerciseText(text)
+    }
+  }, [onSpeakExerciseText])
+
+  const getSoundLabel = useCallback((word: string, pair = currentPair) => {
+    if (!pair) {
+      return targetSound.toUpperCase()
+    }
+
+    return (word === pair.word_a ? targetSound : errorSound).toUpperCase()
+  }, [currentPair, errorSound, targetSound])
+
+  const buildInstruction = useCallback((word: string, pair = currentPair) => {
+    const soundLabel = getSoundLabel(word, pair)
+    return `Listen for the ${soundLabel} sound. The word is ${word}. Tap the picture that matches the ${soundLabel} sound.`
+  }, [currentPair, getSoundLabel])
+
+  const beginInstructionTurn = useCallback(async (nextPromptWord?: string) => {
+    if (!currentPair || !readyToStart) {
       return
     }
 
-    onSendMessage?.(
-      isCorrectSelection
-        ? `I picked ${word}. That's the right answer!`
-        : `I picked ${word}. The correct answer was ${promptWord}.`
-    )
-  }
-  const isCorrect = selectedWord && promptWord ? selectedWord === promptWord : null
+    const turnSequence = ++turnSequenceRef.current
+    const resolvedPromptWord = nextPromptWord ?? (Math.random() > 0.5 ? currentPair.word_a : currentPair.word_b)
+    const soundLabel = getSoundLabel(resolvedPromptWord, currentPair)
+
+    setPromptWord(resolvedPromptWord)
+    setSelectedWord(null)
+    setPhase('instructing')
+    setStatusText(`Listen for the ${soundLabel} sound.`)
+
+    await speakExerciseText(buildInstruction(resolvedPromptWord, currentPair))
+
+    if (turnSequenceRef.current !== turnSequence) {
+      return
+    }
+
+    setPhase('awaiting')
+    setStatusText('Tap the picture that matches the sound.')
+  }, [buildInstruction, currentPair, getSoundLabel, readyToStart, speakExerciseText])
+
+  useEffect(() => {
+    if (!readyToStart) {
+      turnSequenceRef.current += 1
+      if (phase !== 'completed') {
+        setPhase('waiting')
+        setStatusText('Your buddy will give the clue first.')
+      }
+      return
+    }
+
+    if (!currentPair) {
+      setPhase('completed')
+      setStatusText('No listening pairs are available yet.')
+      return
+    }
+
+    if (repetitionTarget > 0 && completedTurns >= repetitionTarget) {
+      setPhase('completed')
+      setStatusText('Practice set complete.')
+      return
+    }
+
+    if (phase === 'waiting') {
+      void beginInstructionTurn(promptWord ?? undefined)
+    }
+  }, [beginInstructionTurn, completedTurns, currentPair, phase, promptWord, readyToStart, repetitionTarget])
+
+  const handleSelect = useCallback((word: string) => {
+    if (!currentPair || !promptWord || phase !== 'awaiting') {
+      return
+    }
+
+    const turnSequence = ++turnSequenceRef.current
+    const isCorrectSelection = word === promptWord
+    const soundLabel = getSoundLabel(promptWord, currentPair)
+
+    setSelectedWord(word)
+    setPhase('evaluating')
+
+    void (async () => {
+      await playWord(word)
+      onRecordExerciseSelection?.(`I picked ${word}.`)
+
+      if (turnSequenceRef.current !== turnSequence) {
+        return
+      }
+
+      if (isCorrectSelection) {
+        const praiseText = `Great listening! That's the ${soundLabel} sound.`
+        setStatusText(praiseText)
+        await speakExerciseText(praiseText)
+
+        if (turnSequenceRef.current !== turnSequence) {
+          return
+        }
+
+        const nextCompletedTurns = completedTurns + 1
+        setCompletedTurns(nextCompletedTurns)
+
+        if (repetitionTarget > 0 && nextCompletedTurns >= repetitionTarget) {
+          setPhase('completed')
+          setStatusText('Practice set complete.')
+          return
+        }
+
+        setPromptWord(null)
+        setSelectedWord(null)
+        setPhase('waiting')
+        setStatusText('Your buddy will give the clue first.')
+        setPairIndex(index => (index + 1) % pairs.length)
+        return
+      }
+
+      const retryText = 'Try again. Listen carefully.'
+      setStatusText(retryText)
+      await speakExerciseText(retryText)
+
+      if (turnSequenceRef.current !== turnSequence) {
+        return
+      }
+
+      await beginInstructionTurn(promptWord)
+    })()
+  }, [beginInstructionTurn, completedTurns, currentPair, getSoundLabel, pairs.length, phase, playWord, promptWord, repetitionTarget, speakExerciseText, onRecordExerciseSelection])
+
+  const handleSkipPair = useCallback(() => {
+    if (!pairs.length || phase === 'completed') {
+      return
+    }
+
+    turnSequenceRef.current += 1
+    onInterruptAvatar?.()
+    setPromptWord(null)
+    setSelectedWord(null)
+    setPhase('waiting')
+    setStatusText('Your buddy will give the clue first.')
+    setPairIndex(index => (index + 1) % pairs.length)
+  }, [onInterruptAvatar, pairs.length, phase])
+
+  const tapsDisabled = !readyToStart || phase !== 'awaiting'
 
   return (
     <Card className={styles.card}>
       <Text className={styles.title}>{scenarioName || 'Listening practice'}</Text>
       <Text className={styles.body}>
         {audience === 'therapist'
-          ? 'Have the child tap a picture to hear the word, then tap the one that matches the target sound.'
-          : 'Tap a picture to hear the word.'}
+          ? 'The buddy gives the full clue first. The child answers with one tap and retries on wrong answers.'
+          : 'Listen to your buddy, then tap one picture.'}
       </Text>
       <div className={styles.controls}>
         <RepetitionCounter
-          current={pairIndex + (selectedWord ? 1 : 0)}
-          target={metadata?.repetitionTarget}
+          current={completedTurns}
+          target={repetitionTarget}
           label="Listening turns"
         />
       </div>
@@ -190,32 +345,29 @@ export function ListeningMinimalPairsPanel({
             word={currentPair.word_a}
             imagePath={imageMap.get(currentPair.word_a)}
             selected={selectedWord === currentPair.word_a}
+            disabled={tapsDisabled}
             onClick={() => handleSelect(currentPair.word_a)}
           />
           <ImageCard
             word={currentPair.word_b}
             imagePath={imageMap.get(currentPair.word_b)}
             selected={selectedWord === currentPair.word_b}
+            disabled={tapsDisabled}
             onClick={() => handleSelect(currentPair.word_b)}
           />
         </div>
       ) : null}
-      <Text className={styles.feedback}>
-        {isCorrect === null
-          ? audience === 'therapist' && promptWord
-            ? `Prompt word: ${promptWord}`
-            : 'Listen carefully, then tap one picture.'
-          : isCorrect
-            ? 'Nice listening. Move to the next pair when ready.'
-            : `Try again and listen for ${audience === 'therapist' && promptWord ? promptWord : 'the target word'}.`}
-      </Text>
-      {currentPair && selectedWord ? (
-        <Button
-          appearance="secondary"
-          onClick={() => setPairIndex(index => (index + 1) % pairs.length)}
-        >
-          Next pair
-        </Button>
+      <Text className={styles.feedback}>{statusText}</Text>
+      {audience === 'therapist' && currentPair && phase !== 'completed' ? (
+        <div className={styles.actionRow}>
+          <Button
+            appearance="secondary"
+            className={styles.speakButton}
+            onClick={handleSkipPair}
+          >
+            Skip pair
+          </Button>
+        </div>
       ) : null}
     </Card>
   )

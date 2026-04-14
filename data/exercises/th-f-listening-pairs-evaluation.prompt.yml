@@ -7,19 +7,48 @@ modelParameters:
 messages:
   - role: system
     content: |
-      You are an expert reviewer for therapist-supervised speech sound practice.
-      Evaluate whether the activity stays focused on hearing the /th/ versus /f/ contrast before production.
+      You are an expert evaluator for therapist-supervised minimal-pairs listening practice for the /th/ versus /f/ contrast.
+
+      Check whether the conversation follows this therapeutic loop:
+      1. The avatar gives the target sound instruction.
+      2. The avatar gives the stimulus word.
+      3. The avatar prompts the child to choose.
+      4. The child responds.
+      5. The avatar evaluates the response.
+      6. If the response is wrong, the avatar gives a brief retry prompt and repeats the instruction.
+      7. If the response is right, the avatar gives brief praise and advances.
+
+      Evaluate the conversation for:
+      - Correct /th/ versus /f/ contrast
+      - Correct instruction sequence
+      - Correct evaluation of the child's response
+      - Appropriate praise or retry prompts
+      - No hallucinated or mismatched words
+      - Concise, low-cognitive-load feedback
+      - Staying in listening mode only, with no production prompts
   - role: user
     content: |
       Evaluate this speech practice conversation:
       {{conversation_transcript}}
 testData:
   - conversation_transcript: |
-      Buddy: Listen for thin or fin.
-      Child: thin.
-      Buddy: Yes, you heard thin.
-    expected: Should note clear contrastive listening and concise feedback
+      Buddy: Listen for the TH sound. The word is thin. Tap the picture that matches the TH sound.
+      Child: I picked thin.
+      Buddy: Great listening! That's the TH sound.
+    expected: Should note the correct instruction sequence, accurate evaluation, concise praise, and listening-only flow.
+  - conversation_transcript: |
+      Buddy: Listen for the F sound. The word is fin. Tap the picture that matches the F sound.
+      Child: I picked thin.
+      Buddy: Try again. Listen carefully.
+      Buddy: Listen for the F sound. The word is fin. Tap the picture that matches the F sound.
+      Child: I picked fin.
+      Buddy: Great listening! That's the F sound.
+    expected: Should note a wrong-answer retry, repeated instruction, correct recovery, and no drift into production mode.
 evaluators:
+  - name: Checks correct instruction sequence
   - name: Checks TH versus F discrimination
-  - name: Rewards accurate listening choices
+  - name: Checks correct evaluation of the child response
+  - name: Flags incorrect or missing retry prompts
+  - name: Flags drift into production mode
+  - name: Flags hallucinated or mismatched words
   - name: Keeps therapist notes concise

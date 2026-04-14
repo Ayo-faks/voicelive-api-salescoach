@@ -15,4 +15,4 @@ cd ..
 mkdir -p backend/static
 cp -r frontend/static/* backend/static/
 
-echo "✅ Build complete! Run 'cd backend && python src/app.py' to start the server."
+echo "✅ Build complete! Run './scripts/start-local.sh' to start the server with local browser-test defaults."

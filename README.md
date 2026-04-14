@@ -99,15 +99,18 @@ This project includes a dev container for easy setup and a build script for  dev
    - Copy `.env.template` to `.env`
    - Fill in your Azure AI Foundry and Speech service keys and endpoints (you can run `azd provision` to create these resources if you haven't already)
    - For local auth testing, set `LOCAL_DEV_AUTH=true` and keep `LOCAL_DEV_USER_ROLE=therapist`
+   - Let the app load `.env` itself; you do not need to `source` it in the shell for normal local runs
 
 3. **Build and run**
    ```bash
    # Build the application
    ./scripts/build.sh
 
-   # Start the server
-   cd backend && python -m src.app
+   # Start the backend with local browser-test defaults
+   ./scripts/start-local.sh
    ```
+
+   `./scripts/start-local.sh` defaults `PUBLIC_APP_URL` to `http://127.0.0.1:5173` for Vite/browser tests, syncs any existing `frontend/static` build into `backend/static`, and starts the Flask app.
 
 Visit `http://localhost:8000` to start practising.
 

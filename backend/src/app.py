@@ -41,7 +41,33 @@ from src.services.websocket_handler import VoiceProxyHandler
 # Constants
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 REPO_DIR = Path(__file__).resolve().parents[2]
-STATIC_FOLDER = str(BACKEND_DIR / "static")
+INDEX_FILE = "index.html"
+AUDIO_PROCESSOR_FILE = "audio-processor.js"
+
+
+def resolve_static_folder() -> str:
+    """Resolve the frontend bundle location for local source checkouts and containers."""
+    candidate_paths = [
+        BACKEND_DIR / "static",
+        REPO_DIR / "frontend" / "static",
+    ]
+
+    for candidate in candidate_paths:
+        if (candidate / INDEX_FILE).exists():
+            return str(candidate)
+
+    return str(candidate_paths[0])
+
+
+STATIC_FOLDER = resolve_static_folder()
+LOCAL_DEV_TRUSTED_ORIGINS = {
+    "http://127.0.0.1:4173",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:8000",
+    "http://localhost:4173",
+    "http://localhost:5173",
+    "http://localhost:8000",
+}
 
 
 def resolve_image_data_folder() -> str:
@@ -60,8 +86,6 @@ def resolve_image_data_folder() -> str:
 
 IMAGE_DATA_FOLDER = resolve_image_data_folder()
 STATIC_URL_PATH = ""
-INDEX_FILE = "index.html"
-AUDIO_PROCESSOR_FILE = "audio-processor.js"
 WEBSOCKET_ENDPOINT = "/ws/voice"
 
 # API endpoints
@@ -156,6 +180,8 @@ def _trusted_origins() -> set[str]:
         _normalize_origin(str(request.host_url or "")),
         _normalize_origin(str(config.get("public_app_url") or "")),
     }
+    if not _is_azure_hosted_environment():
+        origins.update(LOCAL_DEV_TRUSTED_ORIGINS)
     return {origin for origin in origins if origin}
 
 
@@ -233,6 +259,17 @@ def initialize_runtime_services() -> None:
 
 
 initialize_runtime_services()
+
+
+def _refresh_static_folder() -> str:
+    """Refresh the active static folder so local builds can be picked up without code changes."""
+    if app.static_folder is None:
+        return ""
+
+    static_folder = resolve_static_folder()
+    if app.static_folder != static_folder:
+        app.static_folder = static_folder
+    return static_folder
 
 
 def _normalize_utterance_audio(utterance_payload: Any) -> List[Dict[str, Any]]:
@@ -616,6 +653,8 @@ def _check_csrf_policy() -> Optional[Tuple[Any, int]]:
 
 @app.before_request
 def _bind_storage_request_actor() -> None:
+    _refresh_static_folder()
+
     user = _get_authenticated_user()
     if user is None:
         storage_service.clear_request_actor()
@@ -802,13 +841,14 @@ def _prepare_custom_scenario(custom_scenario: Dict[str, Any]) -> Dict[str, Any]:
 
 def _serve_index() -> Any:
     """Serve the SPA entry point for browser routes."""
-    if app.static_folder is None:
-        logger.error("STATIC_FOLDER is not set. Cannot serve index.html.")
+    static_folder = _refresh_static_folder()
+    if not static_folder or not (Path(static_folder) / INDEX_FILE).exists():
+        logger.error("Static bundle is missing. Cannot serve index.html from %s.", static_folder)
         import sys  # pylint: disable=C0415
 
         sys.exit(1)
 
-    return send_from_directory(app.static_folder, INDEX_FILE)
+    return send_from_directory(static_folder, INDEX_FILE)
 
 
 def _should_serve_spa_route(path: str) -> bool:
@@ -2384,7 +2424,7 @@ def _perform_conversation_analysis(
 @app.route(f"/{AUDIO_PROCESSOR_FILE}")
 def audio_processor():
     """Serve the audio processor JavaScript file."""
-    return send_from_directory("static", AUDIO_PROCESSOR_FILE)
+    return send_from_directory(_refresh_static_folder(), AUDIO_PROCESSOR_FILE)
 
 
 @app.route(API_IMAGES_ENDPOINT)

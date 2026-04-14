@@ -1,16 +1,21 @@
 #!/bin/bash
 
-echo "🧹 Cleaning previous build..."
-rm -rf frontend/static backend/static
+set -euo pipefail
 
-cd frontend
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+echo "🧹 Cleaning previous build..."
+rm -rf "$REPO_DIR/frontend/static" "$REPO_DIR/backend/static"
+
+cd "$REPO_DIR/frontend"
 
 echo "🔨 Building React app..."
 npm run build
 
 echo "📋 Copying build to backend static folder..."
-cd ..
+cd "$REPO_DIR"
 mkdir -p backend/static
 cp -r frontend/static/* backend/static/
 
-python backend/src/app.py
+exec "$SCRIPT_DIR/start-local.sh"

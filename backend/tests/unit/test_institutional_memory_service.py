@@ -117,7 +117,7 @@ def test_rebuild_insights_compiles_deidentified_cross_child_patterns(tmp_path: P
 
     service = InstitutionalMemoryService(storage)
 
-    snapshot = service.rebuild_insights()
+    snapshot = service.rebuild_insights("therapist-1")
 
     assert snapshot["insights"]
     tuning_insight = next(insight for insight in snapshot["insights"] if insight["insight_type"] == "recommendation_tuning")
@@ -129,4 +129,4 @@ def test_rebuild_insights_compiles_deidentified_cross_child_patterns(tmp_path: P
     assert strategy_insight["detail"]["cue"] == "short verbal model"
     assert "Ayo" not in strategy_insight["summary"]
     assert "Noah" not in strategy_insight["summary"]
-    assert storage.list_institutional_memory_insights(status="active")
+    assert storage.list_institutional_memory_insights(owner_user_id="therapist-1", status="active")

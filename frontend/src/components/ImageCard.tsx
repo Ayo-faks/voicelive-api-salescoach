@@ -24,6 +24,10 @@ const useStyles = makeStyles({
   interactive: {
     cursor: 'pointer',
   },
+  disabled: {
+    opacity: 0.56,
+    cursor: 'not-allowed',
+  },
   imageWrap: {
     width: '100%',
     aspectRatio: '1 / 1',
@@ -58,10 +62,11 @@ interface Props {
   word: string
   imagePath?: string
   selected?: boolean
+  disabled?: boolean
   onClick?: () => void
 }
 
-export function ImageCard({ word, imagePath, selected = false, onClick }: Props) {
+export function ImageCard({ word, imagePath, selected = false, disabled = false, onClick }: Props) {
   const styles = useStyles()
 
   return (
@@ -69,9 +74,10 @@ export function ImageCard({ word, imagePath, selected = false, onClick }: Props)
       className={mergeClasses(
         styles.card,
         selected && styles.selected,
-        onClick && styles.interactive
+        onClick && !disabled && styles.interactive,
+        disabled && styles.disabled,
       )}
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
     >
       <div className={styles.imageWrap}>
         {imagePath ? (

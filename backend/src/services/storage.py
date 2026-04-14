@@ -282,9 +282,52 @@ class StorageService:
             (ROLE_PARENT, LEGACY_ROLE_USER),
         )
         self._ensure_user_children_table(connection)
+        self._ensure_parental_consents_table(connection)
         self._ensure_audit_log_table(connection)
         self._ensure_institutional_memory_tables(connection)
         self._ensure_recommendation_tables(connection)
+
+    def _ensure_parental_consents_table(self, connection: sqlite3.Connection) -> None:
+        connection.execute(
+            """CREATE TABLE IF NOT EXISTS parental_consents (
+                id TEXT PRIMARY KEY,
+                child_id TEXT NOT NULL REFERENCES children(id),
+                guardian_name TEXT NOT NULL,
+                guardian_email TEXT NOT NULL,
+                consent_type TEXT NOT NULL DEFAULT 'full',
+                privacy_accepted BOOLEAN NOT NULL DEFAULT FALSE,
+                terms_accepted BOOLEAN NOT NULL DEFAULT FALSE,
+                ai_notice_accepted BOOLEAN NOT NULL DEFAULT FALSE,
+                personal_data_consent_accepted BOOLEAN NOT NULL DEFAULT FALSE,
+                special_category_consent_accepted BOOLEAN NOT NULL DEFAULT FALSE,
+                parental_responsibility_confirmed BOOLEAN NOT NULL DEFAULT FALSE,
+                recorded_by_user_id TEXT NOT NULL REFERENCES users(id),
+                consented_at TEXT NOT NULL,
+                withdrawn_at TEXT
+            )"""
+        )
+        self._ensure_column(connection, "parental_consents", "consent_type", "TEXT NOT NULL DEFAULT 'full'")
+        self._ensure_column(
+            connection,
+            "parental_consents",
+            "personal_data_consent_accepted",
+            "BOOLEAN NOT NULL DEFAULT FALSE",
+        )
+        self._ensure_column(
+            connection,
+            "parental_consents",
+            "special_category_consent_accepted",
+            "BOOLEAN NOT NULL DEFAULT FALSE",
+        )
+        self._ensure_column(
+            connection,
+            "parental_consents",
+            "parental_responsibility_confirmed",
+            "BOOLEAN NOT NULL DEFAULT FALSE",
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_parental_consents_child ON parental_consents (child_id)"
+        )
 
     def _ensure_institutional_memory_tables(self, connection: sqlite3.Connection):
         connection.execute(

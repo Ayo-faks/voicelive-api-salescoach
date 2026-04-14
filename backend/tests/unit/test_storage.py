@@ -72,14 +72,103 @@ class TestStorageService:
         assert children[0]["workspace_id"] is not None
 
     def test_first_user_is_bootstrapped_as_therapist(self, tmp_path: Path):
-        """Test the first authenticated user is promoted to therapist automatically."""
+        """Test locally authenticated users default to therapist when no invite constrains their role."""
         service = StorageService(str(tmp_path / "wulo.db"))
 
         first_user = service.get_or_create_user("user-1", "first@example.com", "First User", "google")
         second_user = service.get_or_create_user("user-2", "second@example.com", "Second User", "aad")
 
         assert first_user["role"] == "therapist"
-        assert second_user["role"] == "user"
+        assert second_user["role"] == "therapist"
+
+    def test_legacy_parental_consents_table_is_migrated_with_gdpr_columns(self, tmp_path: Path):
+        """Test older SQLite files gain the newer parental consent columns automatically."""
+        db_path = tmp_path / "legacy-parental-consents.db"
+
+        with sqlite3.connect(db_path) as connection:
+            connection.execute(
+                """CREATE TABLE children (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    date_of_birth TEXT,
+                    notes TEXT,
+                    deleted_at TEXT,
+                    created_at TEXT NOT NULL
+                )"""
+            )
+            connection.execute(
+                """CREATE TABLE users (
+                    id TEXT PRIMARY KEY,
+                    email TEXT,
+                    name TEXT,
+                    provider TEXT,
+                    role TEXT NOT NULL DEFAULT 'parent',
+                    created_at TEXT NOT NULL
+                )"""
+            )
+            connection.execute(
+                """CREATE TABLE parental_consents (
+                    id TEXT PRIMARY KEY,
+                    child_id TEXT NOT NULL REFERENCES children(id),
+                    guardian_name TEXT NOT NULL,
+                    guardian_email TEXT NOT NULL,
+                    consent_type TEXT NOT NULL DEFAULT 'full',
+                    privacy_accepted BOOLEAN NOT NULL DEFAULT FALSE,
+                    terms_accepted BOOLEAN NOT NULL DEFAULT FALSE,
+                    ai_notice_accepted BOOLEAN NOT NULL DEFAULT FALSE,
+                    recorded_by_user_id TEXT NOT NULL REFERENCES users(id),
+                    consented_at TEXT NOT NULL,
+                    withdrawn_at TEXT
+                )"""
+            )
+            connection.execute(
+                "INSERT INTO children (id, name, created_at) VALUES (?, ?, ?)",
+                ("child-legacy", "Legacy Child", "2026-04-14T00:00:00+00:00"),
+            )
+            connection.execute(
+                "INSERT INTO users (id, email, name, provider, role, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    "therapist-legacy",
+                    "therapist@example.com",
+                    "Therapist",
+                    "aad",
+                    "therapist",
+                    "2026-04-14T00:00:00+00:00",
+                ),
+            )
+            connection.commit()
+
+        service = StorageService(str(db_path))
+        saved_consent = service.save_parental_consent(
+            child_id="child-legacy",
+            guardian_name="Legacy Guardian",
+            guardian_email="guardian@example.com",
+            privacy_accepted=True,
+            terms_accepted=True,
+            ai_notice_accepted=True,
+            personal_data_consent_accepted=True,
+            special_category_consent_accepted=True,
+            parental_responsibility_confirmed=True,
+            recorded_by_user_id="therapist-legacy",
+        )
+
+        with sqlite3.connect(db_path) as connection:
+            columns = {
+                row[1]
+                for row in connection.execute("PRAGMA table_info(parental_consents)").fetchall()
+            }
+
+        stored_consent = service.get_parental_consent("child-legacy")
+
+        assert {
+            "personal_data_consent_accepted",
+            "special_category_consent_accepted",
+            "parental_responsibility_confirmed",
+        }.issubset(columns)
+        assert saved_consent["personal_data_consent_accepted"] is True
+        assert stored_consent is not None
+        assert stored_consent["guardian_email"] == "guardian@example.com"
+        assert stored_consent["special_category_consent_accepted"] is True
 
     def test_update_user_role(self, tmp_path: Path):
         """Test user roles can be promoted and demoted."""
