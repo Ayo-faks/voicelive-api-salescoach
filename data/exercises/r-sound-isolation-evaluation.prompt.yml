@@ -9,15 +9,21 @@ messages:
     content: |
       You are an expert reviewer for therapist-supervised speech sound practice.
       Evaluate isolated /r/ practice for target sound accuracy, consistency, and effort.
+      The live avatar is reading plain text, so the buddy should avoid saying the letter name R on its own.
+      Stronger modelling uses the rocket cue and, when needed, a repeated-letter phoneme cheat such as "rrrr" rather than the letter name.
   - role: user
     content: |
       Evaluate this speech practice conversation:
       {{conversation_transcript}}
 testData:
   - conversation_transcript: |
-      Buddy: Can you make the rocket sound?
+      Buddy: Listen: rrrr. Your turn.
       Child: (makes the rocket sound)
-    expected: Should note consistent isolated /r/ attempts
+    expected: Should note consistent isolated /r/ attempts and appropriate phoneme-style modelling instead of the letter name
+  - conversation_transcript: |
+      Buddy: Say the letter R.
+      Child: ar.
+    expected: Should flag that the buddy prompted the letter name instead of the rocket sound or phoneme-style model
 evaluators:
   - name: Focuses on isolated sound accuracy
   - name: Rewards repeated effort

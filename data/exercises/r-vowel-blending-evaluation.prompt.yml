@@ -23,11 +23,13 @@ messages:
          - No full words, no extra consonants, no semantic drift.
         - If no blend is selected, the default progression should begin at rah and move toward ree last.
       3. /W/ SUBSTITUTION HANDLING
-        - If the child uses /w/ instead of /r/, the buddy must acknowledge effort, use the cue sentence "Start with your strong R.", re-model /r/, re-model the correct blend, and invite retry.
+        - If the child uses /w/ instead of /r/, the buddy must acknowledge effort, use the cue sentence "Start with your rocket sound.", re-model the sound with an "rrr" spelling such as "rrr-ah", re-model the correct blend, and invite retry.
         - Purely generic praise such as "Good trying" is too weak on its own for this correction.
          - Unclear or unrelated utterances must not be mislabelled as /w/ substitutions.
       4. MODELLING QUALITY
-         - The buddy must model /r/ alone before the blend.
+        - The buddy must avoid saying the letter name R on its own.
+        - The buddy must model /r/ before the blend using an "rrr" spelling cheat or a rocket-sound cue that is likely to sound like the phoneme rather than the letter name.
+        - Spoken output that uses "r..." instead of the exact "rrr-ah / rrr-oo / rrr-oh / rrr-ee" style should be flagged as a modelling miss.
          - British English cues only.
       5. TONE AND LENGTH
          - Warm, encouraging, low-pressure.
@@ -45,26 +47,30 @@ messages:
 testData:
   - conversation_transcript: |
       Child: I chose the blend rah.
-      Buddy: Listen first. r... then r...ah becomes rah. Your turn — try rah.
+      Buddy: Listen first. rrr-ah, rah. Your turn — try rah.
       Child: rah.
-      Buddy: Nice strong R start. r... then r...ah becomes rah. Try rah again.
+      Buddy: Nice strong rocket sound. rrr-ah, rah. Try rah again.
     expected: Should note correct opening turn, correct retry turn, clear R modelling, and supportive tone
   - conversation_transcript: |
       Child: I chose the blend rah.
-      Buddy: Listen first. r... then r...ah becomes rah. Your turn — try rah.
+      Buddy: Listen first. rrr-ah, rah. Your turn — try rah.
       Child: wah.
-      Buddy: Nice try. Start with your strong R. r... then r...ah becomes rah. Try rah again.
-    expected: Should note correct /w/ substitution handling with the exact strong-R cue
+      Buddy: Nice try. Start with your rocket sound. rrr-ah, rah. Try rah again.
+    expected: Should note correct /w/ substitution handling with the exact rocket-sound cue
   - conversation_transcript: |
       Child: I chose the blend ree.
       Buddy: Today we are doing ree because it is part of real words and it can sound like other things too. Let me explain how the sound works in speech. r...ee becomes ree.
-    expected: Should flag over-talking, explanation drift, and missing concise turn shape
+    expected: Should flag over-talking, explanation drift, and the incorrect r... modelling form
   - conversation_transcript: |
       Child: I chose the blend roo.
-      Buddy: Listen first. r... then r...oo becomes roo. Your turn — try roo.
+      Buddy: Listen first. rrr-oo, roo. Your turn — try roo.
       Child: woo.
-      Buddy: Good trying. r... then r...oo becomes roo. Try roo again.
-    expected: Should flag that the correction is too generic because it does not cue the R start clearly enough
+      Buddy: Good trying. rrr-oo, roo. Try roo again.
+    expected: Should flag that the correction is too generic because it skips the rocket-sound cue
+  - conversation_transcript: |
+      Child: I chose the blend row.
+      Buddy: Listen first. r... then r...ow becomes row. Your turn — try row.
+    expected: Should flag standalone r... modelling and ask for the exact rrr-oh, row form
 evaluators:
   - name: Checks opening versus retry turn shape
   - name: Checks R blend accuracy and modelling order
