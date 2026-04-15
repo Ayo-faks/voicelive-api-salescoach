@@ -258,6 +258,116 @@ class TestFlaskApp:
         assert data == mock_scenarios
         mock_scenario_manager.list_scenarios.assert_called_once()
 
+    @patch("src.app.storage_service")
+    def test_get_family_intake_invitations_route(self, mock_storage_service):
+        mock_storage_service.get_or_create_user.return_value = self._user_payload()
+        mock_storage_service.list_family_intake_invitations_for_user.return_value = [
+            {
+                "id": "family-invite-1",
+                "workspace_id": "workspace-1",
+                "workspace_name": "Test Workspace",
+                "invited_email": "parent@example.com",
+                "invited_by_user_id": "user-123",
+                "invited_by_name": "Test User",
+                "accepted_by_user_id": None,
+                "status": "pending",
+                "created_at": "2026-04-15T00:00:00+00:00",
+                "updated_at": "2026-04-15T00:00:00+00:00",
+                "responded_at": None,
+                "expires_at": None,
+                "direction": "sent",
+            }
+        ]
+
+        response = self.client.get("/api/family-intake/invitations", headers=self._auth_headers())
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data[0]["id"] == "family-invite-1"
+        mock_storage_service.list_family_intake_invitations_for_user.assert_called_once_with(
+            "user-123",
+            "user@example.com",
+        )
+
+    @patch("src.app._send_family_intake_invitation_email")
+    @patch("src.app.storage_service")
+    def test_create_family_intake_invitation_defaults_to_default_workspace(
+        self,
+        mock_storage_service,
+        mock_send_family_intake_invitation_email,
+    ):
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
+        mock_storage_service.get_default_workspace_for_user.return_value = {"id": "workspace-1"}
+        mock_storage_service.create_family_intake_invitation.return_value = {
+            "id": "family-invite-1",
+            "workspace_id": "workspace-1",
+            "workspace_name": "Test Workspace",
+            "invited_email": "parent@example.com",
+            "invited_by_user_id": "user-123",
+            "invited_by_name": "Test User",
+            "accepted_by_user_id": None,
+            "status": "pending",
+            "created_at": "2026-04-15T00:00:00+00:00",
+            "updated_at": "2026-04-15T00:00:00+00:00",
+            "responded_at": None,
+            "expires_at": None,
+            "direction": "sent",
+        }
+        mock_send_family_intake_invitation_email.return_value = {
+            "status": "not_configured",
+            "attempted": False,
+            "delivered": False,
+            "error": "Email service is not configured",
+        }
+
+        response = self.client.post(
+            "/api/family-intake/invitations",
+            headers={**self._auth_headers(), "Origin": "http://localhost:5173"},
+            json={"invited_email": "parent@example.com"},
+        )
+
+        assert response.status_code == 201
+        data = json.loads(response.data)
+        assert data["workspace_id"] == "workspace-1"
+        mock_storage_service.create_family_intake_invitation.assert_called_once_with(
+            invited_email="parent@example.com",
+            invited_by_user_id="user-123",
+            workspace_id="workspace-1",
+        )
+
+    @patch("src.app.storage_service")
+    def test_get_child_intake_proposals_route(self, mock_storage_service):
+        mock_storage_service.get_or_create_user.return_value = self._user_payload()
+        mock_storage_service.list_child_intake_proposals_for_user.return_value = [
+            {
+                "id": "intake-proposal-1",
+                "family_intake_invitation_id": "family-invite-1",
+                "workspace_id": "workspace-1",
+                "workspace_name": "Test Workspace",
+                "created_by_user_id": "user-123",
+                "created_by_name": "Test User",
+                "reviewed_by_user_id": None,
+                "reviewed_by_name": None,
+                "final_child_id": None,
+                "child_name": "Ayo",
+                "date_of_birth": None,
+                "notes": None,
+                "status": "submitted",
+                "submitted_at": "2026-04-15T00:00:00+00:00",
+                "reviewed_at": None,
+                "review_note": None,
+                "created_at": "2026-04-15T00:00:00+00:00",
+                "updated_at": "2026-04-15T00:00:00+00:00",
+            }
+        ]
+
+        response = self.client.get("/api/family-intake/proposals", headers=self._auth_headers())
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data[0]["id"] == "intake-proposal-1"
+        mock_storage_service.list_child_intake_proposals_for_user.assert_called_once_with("user-123")
+
     def test_get_scenarios_route_requires_authentication(self):
         """Test the /api/scenarios endpoint requires auth."""
         response = self.client.get("/api/scenarios")

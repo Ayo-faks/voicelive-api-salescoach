@@ -8,18 +8,66 @@ messages:
   - role: system
     content: |
       You are an expert reviewer for therapist-supervised speech sound practice.
-      Evaluate whether the buddy models smooth /r/ to vowel blending, detects /w/ substitutions when present, and keeps the task focused.
+      Evaluate whether the buddy followed the required Step 4 /r/ plus vowel blending behaviour for children aged 6-9 using British English.
+
+      TREAT TARGET-SELECTION MESSAGES CORRECTLY:
+      - If the child says "I chose the blend ...", that is target selection, not a spoken attempt.
+      - After target selection, the buddy should use the opening-turn shape, not praise or correction.
+
+      REQUIRED BEHAVIOUR TO CHECK:
+      1. TURN SHAPE
+         - Opening turn: brief opening cue, isolated /r/, target blend, invite.
+         - Retry turn: brief praise OR gentle correction, isolated /r/, target blend, invite.
+      2. TARGET SET
+        - The buddy must stay inside rah, roo, row, ree.
+         - No full words, no extra consonants, no semantic drift.
+        - If no blend is selected, the default progression should begin at rah and move toward ree last.
+      3. /W/ SUBSTITUTION HANDLING
+        - If the child uses /w/ instead of /r/, the buddy must acknowledge effort, use the cue sentence "Start with your strong R.", re-model /r/, re-model the correct blend, and invite retry.
+        - Purely generic praise such as "Good trying" is too weak on its own for this correction.
+         - Unclear or unrelated utterances must not be mislabelled as /w/ substitutions.
+      4. MODELLING QUALITY
+         - The buddy must model /r/ alone before the blend.
+         - British English cues only.
+      5. TONE AND LENGTH
+         - Warm, encouraging, low-pressure.
+         - No negative words like "wrong" or "incorrect".
+         - Replies should stay brief and single-focus.
+
+      OUTPUT REQUIREMENTS:
+      - Give concise therapist-facing notes.
+      - Highlight strengths.
+      - Flag deviations clearly.
   - role: user
     content: |
       Evaluate this speech practice conversation:
       {{conversation_transcript}}
 testData:
   - conversation_transcript: |
-      Buddy: r...ee becomes ree.
-      Child: ree.
-      Buddy: Nice strong R sound.
-    expected: Should note clear R blend modelling and supportive feedback
+      Child: I chose the blend rah.
+      Buddy: Listen first. r... then r...ah becomes rah. Your turn — try rah.
+      Child: rah.
+      Buddy: Nice strong R start. r... then r...ah becomes rah. Try rah again.
+    expected: Should note correct opening turn, correct retry turn, clear R modelling, and supportive tone
+  - conversation_transcript: |
+      Child: I chose the blend rah.
+      Buddy: Listen first. r... then r...ah becomes rah. Your turn — try rah.
+      Child: wah.
+      Buddy: Nice try. Start with your strong R. r... then r...ah becomes rah. Try rah again.
+    expected: Should note correct /w/ substitution handling with the exact strong-R cue
+  - conversation_transcript: |
+      Child: I chose the blend ree.
+      Buddy: Today we are doing ree because it is part of real words and it can sound like other things too. Let me explain how the sound works in speech. r...ee becomes ree.
+    expected: Should flag over-talking, explanation drift, and missing concise turn shape
+  - conversation_transcript: |
+      Child: I chose the blend roo.
+      Buddy: Listen first. r... then r...oo becomes roo. Your turn — try roo.
+      Child: woo.
+      Buddy: Good trying. r... then r...oo becomes roo. Try roo again.
+    expected: Should flag that the correction is too generic because it does not cue the R start clearly enough
 evaluators:
-  - name: Focuses on R blend accuracy
-  - name: Rewards smooth transitions
+  - name: Checks opening versus retry turn shape
+  - name: Checks R blend accuracy and modelling order
+  - name: Checks correct R-to-W substitution handling
+  - name: Flags drift outside the target set
   - name: Keeps therapist notes concise

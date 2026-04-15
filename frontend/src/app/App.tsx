@@ -81,6 +81,7 @@ import type {
 import { AVATAR_OPTIONS, DEFAULT_AVATAR } from '../types'
 import { APP_TITLE } from './branding'
 import { APP_ROUTE_PARAMS, APP_ROUTES, getDefaultAuthenticatedRoute, resolveAppRoute, type AppRoute } from './routes'
+import { exerciseRequiresMic } from '../utils/exerciseMode'
 
 type ConversationTurn = {
   role: string
@@ -158,7 +159,10 @@ function isCustomScenario(
   return Boolean(scenario && 'scenarioData' in scenario)
 }
 
-function getReferenceText(scenario: Scenario | CustomScenario | null): string {
+function getReferenceText(
+  scenario: Scenario | CustomScenario | null,
+  activeVowelBlendTarget?: string | null
+): string {
   if (!scenario) return ''
 
   if (isCustomScenario(scenario)) {
@@ -175,7 +179,7 @@ function getReferenceText(scenario: Scenario | CustomScenario | null): string {
     }
 
     if (scenario.scenarioData.exerciseType === 'vowel_blending') {
-      return scenario.scenarioData.targetWords[0] || scenario.scenarioData.targetSound
+      return activeVowelBlendTarget || scenario.scenarioData.targetWords[0] || scenario.scenarioData.targetSound
     }
 
     if (
@@ -204,7 +208,7 @@ function getReferenceText(scenario: Scenario | CustomScenario | null): string {
   }
 
   if (scenario.exerciseMetadata?.type === 'vowel_blending') {
-    return scenario.exerciseMetadata.targetWords?.[0] || scenario.exerciseMetadata.targetSound || ''
+    return activeVowelBlendTarget || scenario.exerciseMetadata.targetWords?.[0] || scenario.exerciseMetadata.targetSound || ''
   }
 
   return scenario.exerciseMetadata?.targetWords?.join(' ') || ''
@@ -222,6 +226,7 @@ function getExerciseMetadata(
       targetWords: scenario.scenarioData.targetWords,
       difficulty: scenario.scenarioData.difficulty,
       childAge: scenario.scenarioData.childAge,
+      requiresMic: exerciseRequiresMic(undefined, scenario.scenarioData.exerciseType),
     }
   }
 
@@ -288,18 +293,20 @@ function getSectionForRoute(route: AppRoute | null): SidebarSection | null {
   return null
 }
 
-function buildChildIntroInstructions({
+export function buildChildIntroInstructions({
   childName,
   avatarName,
   avatarPersona,
   scenarioName,
   scenarioDescription,
+  requiresMic,
 }: {
   childName?: string | null
   avatarName: string
   avatarPersona: string
   scenarioName?: string | null
   scenarioDescription?: string | null
+  requiresMic: boolean
 }): string {
   const childLabel = childName || 'my friend'
   const exerciseLabel = scenarioName || "today's practice"
@@ -310,25 +317,30 @@ function buildChildIntroInstructions({
   return [
     `You are ${avatarName}, ${avatarPersona}, and a warm speech-practice buddy for a child named ${childLabel}.`,
     'Speak first to begin the session.',
-    `In two short, friendly sentences, greet ${childLabel}, say you are starting ${exerciseLabel}, and tell them to tap the microphone when they are ready to talk.`,
+    requiresMic
+      ? `In two short, friendly sentences, greet ${childLabel}, say you are starting ${exerciseLabel}, and tell them to tap the microphone when they are ready to talk.`
+      : `In two short, friendly sentences, greet ${childLabel}, say you are starting ${exerciseLabel}, and tell them to listen for the clue and tap the matching picture.`,
     exerciseContext,
+    requiresMic ? 'Invite talking only when the child taps the microphone.' : 'Do not mention recording or spoken responses.',
     'Never use the word "test". Always say "practice" or "exercise".',
     'Keep the tone calm, encouraging, and child-friendly. Keep it under 35 words.',
   ].join(' ')
 }
 
-function buildTherapistIntroInstructions({
+export function buildTherapistIntroInstructions({
   childName,
   avatarName,
   avatarPersona,
   scenarioName,
   scenarioDescription,
+  requiresMic,
 }: {
   childName?: string | null
   avatarName: string
   avatarPersona: string
   scenarioName?: string | null
   scenarioDescription?: string | null
+  requiresMic: boolean
 }): string {
   const childLabel = childName || 'the child'
   const exerciseLabel = scenarioName || "today's practice"
@@ -339,8 +351,11 @@ function buildTherapistIntroInstructions({
   return [
     `You are ${avatarName}, ${avatarPersona}, and a warm speech-practice buddy supporting a therapist and ${childLabel}.`,
     'Speak first to begin the session.',
-    `In two short sentences, welcome the therapist, say you are starting ${exerciseLabel} with ${childLabel}, and ask them to tap the microphone when they are ready to begin.`,
+    requiresMic
+      ? `In two short sentences, welcome the therapist, say you are starting ${exerciseLabel} with ${childLabel}, and ask them to tap the microphone when they are ready to begin.`
+      : `In two short sentences, welcome the therapist, say you are starting ${exerciseLabel} with ${childLabel}, and explain that this is a tap-only listening turn that begins with your clue.`,
     exerciseContext,
+    requiresMic ? 'Mention the microphone only as the way to begin talking.' : 'Do not mention recording or spoken responses.',
     'Keep the tone calm, observational, and supportive. Keep it under 35 words.',
   ].join(' ')
 }
@@ -880,6 +895,10 @@ export default function App() {
   const [utteranceFeedback, setUtteranceFeedback] =
     useState<PronunciationAssessment | null>(null)
   const [scoringUtterance, setScoringUtterance] = useState(false)
+  const [activeVowelBlendTarget, setActiveVowelBlendTarget] = useState<{
+    scenarioId: string | null
+    target: string
+  } | null>(null)
   const [feedbackRating, setFeedbackRating] = useState<TherapistFeedbackRating | null>(null)
   const [feedbackNote, setFeedbackNote] = useState('')
   const [feedbackSubmittedAt, setFeedbackSubmittedAt] = useState<string | null>(null)
@@ -901,6 +920,7 @@ export default function App() {
   const wrapUpFinishTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null)
   const sendRef = useRef<(msg: unknown) => void>(() => {})
   const connectedRef = useRef(false)
+  const exerciseSpeechGenerationRef = useRef(0)
   const exerciseSpeechQueueRef = useRef<Promise<void>>(Promise.resolve())
   const exerciseSpeechResolveRef = useRef<(() => void) | null>(null)
   const exerciseSpeechTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null)
@@ -929,7 +949,11 @@ export default function App() {
   const activeScenario = scenarios.find(scenario => scenario.id === selectedScenario) || null
   const selectedChild =
     children.find(child => child.id === selectedChildId) || null
-  const activeReferenceText = getReferenceText(activeScenario)
+  const activeVowelBlendReference =
+    activeVowelBlendTarget?.scenarioId === activeScenario?.id
+      ? activeVowelBlendTarget?.target ?? null
+      : null
+  const activeReferenceText = getReferenceText(activeScenario, activeVowelBlendReference)
   const activeExerciseMetadata = getExerciseMetadata(activeScenario)
   const currentRoute = resolveAppRoute(location.pathname)
   const isDashboardRoute = currentRoute === APP_ROUTES.dashboard
@@ -961,6 +985,15 @@ export default function App() {
     showLaunchTransition &&
     !launchHandoffReady
   const plannerReadiness: PlannerReadiness | null = appConfig?.planner ?? null
+  const handleActiveBlendChange = useCallback(
+    (blend: string) => {
+      setActiveVowelBlendTarget({
+        scenarioId: selectedScenario || null,
+        target: blend,
+      })
+    },
+    [selectedScenario]
+  )
   const activeSection: SidebarSection = isDashboardRoute
     ? 'dashboard'
     : isSettingsRoute
@@ -1144,6 +1177,8 @@ export default function App() {
   // Pre-compose intro instructions so they're ready the instant the session is ready
   useEffect(() => {
     if (selectedScenario) {
+      const requiresMic = exerciseRequiresMic(activeExerciseMetadata)
+
       pendingIntroRef.current = isChildMode
         ? buildChildIntroInstructions({
             childName: selectedChild?.name,
@@ -1151,6 +1186,7 @@ export default function App() {
             avatarPersona: activeAvatarPersona,
             scenarioName: activeScenario?.name,
             scenarioDescription: activeScenario?.description,
+            requiresMic,
           })
         : buildTherapistIntroInstructions({
             childName: selectedChild?.name,
@@ -1158,11 +1194,12 @@ export default function App() {
             avatarPersona: activeAvatarPersona,
             scenarioName: activeScenario?.name,
             scenarioDescription: activeScenario?.description,
+            requiresMic,
           })
     } else {
       pendingIntroRef.current = null
     }
-  }, [activeAvatarName, activeAvatarPersona, activeScenario?.description, activeScenario?.name, isChildMode, selectedChild?.name, selectedScenario])
+  }, [activeAvatarName, activeAvatarPersona, activeExerciseMetadata, activeScenario?.description, activeScenario?.name, isChildMode, selectedChild?.name, selectedScenario])
 
   useEffect(() => {
     let cancelled = false
@@ -2033,6 +2070,22 @@ export default function App() {
     void handleOpenSession(effectiveDashboardSessionId)
   }, [dashboardSessionIds, effectiveDashboardSessionId, handleOpenSession, isDashboardRoute, loadingSessionDetail, selectedSession?.id])
 
+  const cancelExerciseSpeechQueue = useCallback(() => {
+    if (exerciseSpeechTimerRef.current) {
+      window.clearTimeout(exerciseSpeechTimerRef.current)
+      exerciseSpeechTimerRef.current = null
+    }
+
+    exerciseSpeechGenerationRef.current += 1
+    exerciseSpeechQueueRef.current = Promise.resolve()
+
+    const resolve = exerciseSpeechResolveRef.current
+    exerciseSpeechResolveRef.current = null
+
+    setExerciseSpeechActive(false)
+    resolve?.()
+  }, [])
+
   const clearWrapUpTimers = useCallback(() => {
     if (summaryHandoffTimerRef.current) {
       window.clearTimeout(summaryHandoffTimerRef.current)
@@ -2058,6 +2111,7 @@ export default function App() {
     setWrapUpInProgress(true)
 
     stopSessionRecordingRef.current()
+    cancelExerciseSpeechQueue()
     stopAudio()
     sendRef.current({ type: 'response.cancel' })
     sendRef.current({
@@ -2077,7 +2131,7 @@ export default function App() {
     wrapUpFinishTimerRef.current = window.setTimeout(() => {
       setFinishRequested(true)
     }, finishDelayMs)
-  }, [clearWrapUpTimers, stopAudio, wrapUpInProgress])
+  }, [cancelExerciseSpeechQueue, clearWrapUpTimers, stopAudio, wrapUpInProgress])
 
   const handleListeningPracticeComplete = useCallback(() => {
     if (sessionFinished || wrapUpInProgress) {
@@ -2154,13 +2208,8 @@ export default function App() {
   }, [clearExerciseSpeechTimer])
 
   const resetExerciseSpeechTracking = useCallback(() => {
-    clearExerciseSpeechTimer()
-    const resolve = exerciseSpeechResolveRef.current
-    exerciseSpeechResolveRef.current = null
-    exerciseSpeechQueueRef.current = Promise.resolve()
-    setExerciseSpeechActive(false)
-    resolve?.()
-  }, [clearExerciseSpeechTimer])
+    cancelExerciseSpeechQueue()
+  }, [cancelExerciseSpeechQueue])
 
   const waitForAssistantAudioDrain = useCallback(() => new Promise<void>(resolve => {
     const checkAudioDrain = () => {
@@ -2184,17 +2233,24 @@ export default function App() {
       return Promise.resolve()
     }
 
+    const speechGeneration = exerciseSpeechGenerationRef.current
+
     setExerciseSpeechActive(true)
 
     const queuedRun = exerciseSpeechQueueRef.current.then(async () => {
       await waitForAssistantAudioDrain()
 
-      if (!connectedRef.current) {
+      if (!connectedRef.current || exerciseSpeechGenerationRef.current !== speechGeneration) {
         setExerciseSpeechActive(false)
         return
       }
 
       return new Promise<void>(resolve => {
+        if (exerciseSpeechGenerationRef.current !== speechGeneration) {
+          resolve()
+          return
+        }
+
         exerciseSpeechResolveRef.current = resolve
         clearExerciseSpeechTimer()
         exerciseSpeechTimerRef.current = window.setTimeout(() => {
@@ -3739,6 +3795,7 @@ export default function App() {
       utteranceFeedback={utteranceFeedback}
       scoringUtterance={scoringUtterance}
       activeReferenceText={activeReferenceText}
+      onActiveBlendChange={handleActiveBlendChange}
       onSendExerciseMessage={sendExerciseMessage}
       onSpeakExerciseText={speakExerciseText}
       onRecordExerciseSelection={recordExerciseSelection}

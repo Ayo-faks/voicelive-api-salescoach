@@ -101,16 +101,21 @@ interface Props {
   scenarioName?: string | null
   metadata?: Partial<ExerciseMetadata>
   attempts: number
+  onActiveBlendChange?: (blend: string) => void
   onSendMessage?: (text: string) => void
 }
 
 const DEFAULT_VOWELS = ['a', 'ee', 'eye', 'oo']
 
-export function VowelBlendingPanel({ scenarioName, metadata, attempts, onSendMessage }: Props) {
+export function VowelBlendingPanel({ scenarioName, metadata, attempts, onActiveBlendChange, onSendMessage }: Props) {
   const styles = useStyles()
   const targetSound = metadata?.targetSound || 's'
   const cueImage = metadata?.imageAssets?.[0]
-  const targets = metadata?.targetWords?.length ? metadata.targetWords : DEFAULT_VOWELS.map(vowel => `${targetSound}${vowel}`)
+  const targets = useMemo(() => {
+    return metadata?.targetWords?.length
+      ? metadata.targetWords
+      : DEFAULT_VOWELS.map(vowel => `${targetSound}${vowel}`)
+  }, [metadata?.targetWords, targetSound])
   const vowels = useMemo(() => {
     return targets.map(word => word.replace(new RegExp(`^${targetSound}`, 'i'), '') || word)
   }, [targetSound, targets])
@@ -118,19 +123,23 @@ export function VowelBlendingPanel({ scenarioName, metadata, attempts, onSendMes
 
   useEffect(() => {
     setSelectedIndex(0)
-  }, [targetSound, targets])
+    if (targets[0]) {
+      onActiveBlendChange?.(targets[0])
+    }
+  }, [onActiveBlendChange, targets])
 
   const selectedVowel = vowels[selectedIndex] || vowels[0] || ''
   const blendWord = targets[selectedIndex] || `${targetSound}${selectedVowel}`
 
   const handleSelect = (index: number) => {
     setSelectedIndex(index)
-    const selectedSegment = vowels[index]
-    if (!selectedSegment) {
+    const selectedBlend = targets[index]
+    if (!selectedBlend) {
       return
     }
 
-    onSendMessage?.(`I tapped segment ${index + 1}: ${selectedSegment}.`)
+    onActiveBlendChange?.(selectedBlend)
+    onSendMessage?.(`I chose the blend ${selectedBlend}.`)
   }
 
   return (

@@ -38,7 +38,20 @@ elif [[ ! -f "$BACKEND_STATIC_DIR/index.html" ]]; then
 fi
 
 export PUBLIC_APP_URL="${PUBLIC_APP_URL:-http://127.0.0.1:5173}"
+export LOCAL_DEV_AUTH="${LOCAL_DEV_AUTH:-true}"
+export LOCAL_DEV_USER_ROLE="${LOCAL_DEV_USER_ROLE:-therapist}"
+export LOCAL_DEV_USER_ID="${LOCAL_DEV_USER_ID:-dev-therapist-001}"
+export LOCAL_DEV_USER_NAME="${LOCAL_DEV_USER_NAME:-Dev Therapist}"
+export LOCAL_DEV_USER_EMAIL="${LOCAL_DEV_USER_EMAIL:-dev@localhost}"
+export LOCAL_DEV_USER_PROVIDER="${LOCAL_DEV_USER_PROVIDER:-local-dev}"
 
-echo "🚀 Starting backend with PUBLIC_APP_URL=$PUBLIC_APP_URL"
+echo "🚀 Starting backend with PUBLIC_APP_URL=$PUBLIC_APP_URL and LOCAL_DEV_AUTH=$LOCAL_DEV_AUTH"
 cd "$REPO_DIR/backend"
-exec "$PYTHON_BIN" -m src.app
+exec env \
+  -u IDENTITY_ENDPOINT \
+  -u WEBSITE_HOSTNAME \
+  -u WEBSITE_SITE_NAME \
+  -u CONTAINER_APP_NAME \
+  -u CONTAINER_APP_REVISION \
+  -u CONTAINER_APP_ENV_DNS_SUFFIX \
+  "$PYTHON_BIN" -m src.app

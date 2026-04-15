@@ -8,18 +8,58 @@ messages:
   - role: system
     content: |
       You are an expert reviewer for therapist-supervised speech sound practice.
-      Evaluate whether the buddy supports smooth /k/ to vowel blending, detects fronting when present, and keeps the task focused.
+      Evaluate whether the buddy followed the required Step 4 /k/ plus vowel blending behaviour for children aged 4-7 using British English.
+
+      TREAT TARGET-SELECTION MESSAGES CORRECTLY:
+      - If the child says "I chose the blend ...", that is target selection, not a spoken attempt.
+      - After target selection, the buddy should use the opening-turn shape, not praise or correction.
+
+      REQUIRED BEHAVIOUR TO CHECK:
+      1. TURN SHAPE
+         - Opening turn: brief opening cue, isolated /k/, target blend, invite.
+         - Retry turn: brief praise OR gentle correction, isolated /k/, target blend, invite.
+      2. TARGET SET
+         - The buddy must stay inside key, cow, coo, kay.
+         - No full words, no extra consonants, no semantic drift.
+      3. /T/ FRONTING HANDLING
+         - If the child fronts /k/ to /t/, the buddy must acknowledge effort, re-model /k/, re-model the correct blend, and invite retry.
+         - Unclear or unrelated utterances must not be mislabelled as fronting.
+      4. MODELLING QUALITY
+         - The buddy must model /k/ alone before the blend.
+         - British English cues only.
+      5. TONE AND LENGTH
+         - Warm, encouraging, low-pressure.
+         - No negative words like "wrong" or "incorrect".
+         - Replies should stay brief and single-focus.
+
+      OUTPUT REQUIREMENTS:
+      - Give concise therapist-facing notes.
+      - Highlight strengths.
+      - Flag deviations clearly.
   - role: user
     content: |
       Evaluate this speech practice conversation:
       {{conversation_transcript}}
 testData:
   - conversation_transcript: |
-      Buddy: k...ee becomes key.
-      Child: key.
-      Buddy: Nice back sound and smooth blend.
-    expected: Should note clear /k/ blend modelling and accurate reinforcement
+      Child: I chose the blend coo.
+      Buddy: Listen first. k... then k...oo becomes coo. Your turn — try coo.
+      Child: coo.
+      Buddy: Nice strong K blend. k... then k...oo becomes coo. Try coo again.
+    expected: Should note correct opening turn, correct retry turn, clear K modelling, and supportive tone
+  - conversation_transcript: |
+      Child: I chose the blend key.
+      Buddy: Today we are practising key because it helps with lots of words and it is a very important speech sound. Let me tell you why. k...ee becomes key.
+    expected: Should flag over-talking, explanation drift, and missing concise turn shape
+  - conversation_transcript: |
+      Child: I chose the blend coo.
+      Buddy: Listen first. k... then k...oo becomes coo. Your turn — try coo.
+      Child: too.
+      Buddy: Good trying. k... then k...oo becomes coo. Try coo again.
+    expected: Should note correct fronting correction and target-set adherence
 evaluators:
-  - name: Focuses on /k/ blend accuracy
-  - name: Rewards smooth transitions
+  - name: Checks opening versus retry turn shape
+  - name: Checks K blend accuracy and modelling order
+  - name: Checks correct K-to-T fronting handling
+  - name: Flags drift outside the target set
   - name: Keeps therapist notes concise

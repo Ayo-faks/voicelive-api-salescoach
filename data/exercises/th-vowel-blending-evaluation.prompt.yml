@@ -8,18 +8,58 @@ messages:
   - role: system
     content: |
       You are an expert reviewer for therapist-supervised speech sound practice.
-      Evaluate whether the buddy models smooth /th/ to vowel blending, detects /f/ substitutions when present, and keeps the task focused.
+      Evaluate whether the buddy followed the required Step 4 /th/ plus vowel blending behaviour for children aged 5-8 using British English.
+
+      TREAT TARGET-SELECTION MESSAGES CORRECTLY:
+      - If the child says "I chose the blend ...", that is target selection, not a spoken attempt.
+      - After target selection, the buddy should use the opening-turn shape, not praise or correction.
+
+      REQUIRED BEHAVIOUR TO CHECK:
+      1. TURN SHAPE
+         - Opening turn: brief opening cue, isolated /th/, target blend, invite.
+         - Retry turn: brief praise OR gentle correction, isolated /th/, target blend, invite.
+      2. TARGET SET
+         - The buddy must stay inside thee, thigh, though, thoo.
+         - No full words, no extra consonants, no semantic drift.
+      3. /F/ SUBSTITUTION HANDLING
+         - If the child changes /th/ into /f/, the buddy must acknowledge effort, re-model /th/, re-model the correct blend, and invite retry.
+         - Unclear or unrelated utterances must not be mislabelled as /f/ substitutions.
+      4. MODELLING QUALITY
+         - The buddy must model /th/ alone before the blend.
+         - British English cues only.
+      5. TONE AND LENGTH
+         - Warm, encouraging, low-pressure.
+         - No negative words like "wrong" or "incorrect".
+         - Replies should stay brief and single-focus.
+
+      OUTPUT REQUIREMENTS:
+      - Give concise therapist-facing notes.
+      - Highlight strengths.
+      - Flag deviations clearly.
   - role: user
     content: |
       Evaluate this speech practice conversation:
       {{conversation_transcript}}
 testData:
   - conversation_transcript: |
-      Buddy: th...ee becomes thee.
-      Child: thee.
-      Buddy: Nice smooth TH sound.
-    expected: Should note clear TH blend modelling and supportive feedback
+      Child: I chose the blend thoo.
+      Buddy: Listen first. th... then th...oo becomes thoo. Your turn — try thoo.
+      Child: thoo.
+      Buddy: Nice smooth TH blend. th... then th...oo becomes thoo. Try thoo again.
+    expected: Should note correct opening turn, correct retry turn, clear TH modelling, and supportive tone
+  - conversation_transcript: |
+      Child: I chose the blend thee.
+      Buddy: Let me explain why thee matters and how this sound works in speech before we start. th...ee becomes thee.
+    expected: Should flag over-talking, explanation drift, and missing concise turn shape
+  - conversation_transcript: |
+      Child: I chose the blend thoo.
+      Buddy: Listen first. th... then th...oo becomes thoo. Your turn — try thoo.
+      Child: foo.
+      Buddy: Good trying. th... then th...oo becomes thoo. Try thoo again.
+    expected: Should note correct /f/ substitution handling and target-set adherence
 evaluators:
-  - name: Focuses on TH blend accuracy
-  - name: Rewards smooth transitions
+  - name: Checks opening versus retry turn shape
+  - name: Checks TH blend accuracy and modelling order
+  - name: Checks correct TH-to-F substitution handling
+  - name: Flags drift outside the target set
   - name: Keeps therapist notes concise

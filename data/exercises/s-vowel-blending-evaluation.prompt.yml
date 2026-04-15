@@ -8,18 +8,58 @@ messages:
   - role: system
     content: |
       You are an expert reviewer for therapist-supervised speech sound practice.
-      Evaluate whether the buddy models smooth /s/ to vowel blending, reinforces retries, and keeps the task narrow.
+      Evaluate whether the buddy followed the required Step 4 /s/ plus vowel blending behaviour for children aged 4-7 using British English.
+
+      TREAT TARGET-SELECTION MESSAGES CORRECTLY:
+      - If the child says "I chose the blend ...", that is target selection, not a spoken attempt.
+      - After target selection, the buddy should use the opening-turn shape, not praise or correction.
+
+      REQUIRED BEHAVIOUR TO CHECK:
+      1. TURN SHAPE
+         - Opening turn: brief opening cue, isolated /s/, target blend, invite.
+         - Retry turn: brief praise OR gentle correction, isolated /s/, target blend, invite.
+      2. TARGET SET
+         - The buddy must stay inside see, sigh, sew, sue.
+         - No full words, no extra consonants, no semantic drift.
+      3. UNCLEAR ATTEMPT HANDLING
+         - If the attempt is unclear or off-target, the buddy should gently re-model /s/ and the current blend.
+         - The buddy should not invent a substitution pattern if none is clear.
+      4. MODELLING QUALITY
+         - The buddy must model /s/ alone before the blend.
+         - British English cues only.
+      5. TONE AND LENGTH
+         - Warm, encouraging, low-pressure.
+         - No negative words like "wrong" or "incorrect".
+         - Replies should stay brief and single-focus.
+
+      OUTPUT REQUIREMENTS:
+      - Give concise therapist-facing notes.
+      - Highlight strengths.
+      - Flag deviations clearly.
   - role: user
     content: |
       Evaluate this speech practice conversation:
       {{conversation_transcript}}
 testData:
   - conversation_transcript: |
-      Buddy: Start with the snake sound, then add ee — see!
-      Child: see.
-      Buddy: Nice smooth blend.
-    expected: Should note clear blend modelling and supportive feedback
+      Child: I chose the blend sue.
+      Buddy: Listen first. s... then s...ue becomes sue. Your turn — try sue.
+      Child: sue.
+      Buddy: Nice smooth S blend. s... then s...ue becomes sue. Try sue again.
+    expected: Should note correct opening turn, correct retry turn, clear S modelling, and supportive tone
+  - conversation_transcript: |
+      Child: I chose the blend see.
+      Buddy: Today we are practising see because the snake sound can show up in many words and situations and I want to tell you about all of them. s...ee becomes see.
+    expected: Should flag over-talking, explanation drift, and missing concise turn shape
+  - conversation_transcript: |
+      Child: I chose the blend sew.
+      Buddy: Listen first. s... then s...ew becomes sew. Your turn — try sew.
+      Child: uh.
+      Buddy: Good trying. s... then s...ew becomes sew. Try sew again.
+    expected: Should note correct unclear-attempt handling and target-set adherence
 evaluators:
-  - name: Focuses on sound-to-vowel blending
-  - name: Rewards smooth transitions
+  - name: Checks opening versus retry turn shape
+  - name: Checks S blend accuracy and modelling order
+  - name: Checks gentle retry handling for unclear attempts
+  - name: Flags drift outside the target set
   - name: Keeps therapist notes concise

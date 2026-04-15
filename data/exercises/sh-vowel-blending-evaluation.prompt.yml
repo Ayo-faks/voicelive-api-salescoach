@@ -8,18 +8,58 @@ messages:
   - role: system
     content: |
       You are an expert reviewer for therapist-supervised speech sound practice.
-      Evaluate whether the buddy models smooth /sh/ to vowel blending, detects /s/ substitutions when present, and keeps the task focused.
+      Evaluate whether the buddy followed the required Step 4 /sh/ plus vowel blending behaviour for children aged 4-7 using British English.
+
+      TREAT TARGET-SELECTION MESSAGES CORRECTLY:
+      - If the child says "I chose the blend ...", that is target selection, not a spoken attempt.
+      - After target selection, the buddy should use the opening-turn shape, not praise or correction.
+
+      REQUIRED BEHAVIOUR TO CHECK:
+      1. TURN SHAPE
+         - Opening turn: brief opening cue, isolated /sh/, target blend, invite.
+         - Retry turn: brief praise OR gentle correction, isolated /sh/, target blend, invite.
+      2. TARGET SET
+         - The buddy must stay inside she, shy, show, shoe.
+         - No full words, no extra consonants, no semantic drift.
+      3. /S/ SUBSTITUTION HANDLING
+         - If the child changes /sh/ into /s/, the buddy must acknowledge effort, re-model /sh/, re-model the correct blend, and invite retry.
+         - Unclear or unrelated utterances must not be mislabelled as /s/ substitutions.
+      4. MODELLING QUALITY
+         - The buddy must model /sh/ alone before the blend.
+         - British English cues only.
+      5. TONE AND LENGTH
+         - Warm, encouraging, low-pressure.
+         - No negative words like "wrong" or "incorrect".
+         - Replies should stay brief and single-focus.
+
+      OUTPUT REQUIREMENTS:
+      - Give concise therapist-facing notes.
+      - Highlight strengths.
+      - Flag deviations clearly.
   - role: user
     content: |
       Evaluate this speech practice conversation:
       {{conversation_transcript}}
 testData:
   - conversation_transcript: |
-      Buddy: sh...ee becomes she.
-      Child: she.
-      Buddy: Nice smooth SH sound.
-    expected: Should note clear SH blend modelling and supportive feedback
+      Child: I chose the blend shoe.
+      Buddy: Listen first. sh... then sh...oo becomes shoe. Your turn — try shoe.
+      Child: shoe.
+      Buddy: Nice smooth SH blend. sh... then sh...oo becomes shoe. Try shoe again.
+    expected: Should note correct opening turn, correct retry turn, clear SH modelling, and supportive tone
+  - conversation_transcript: |
+      Child: I chose the blend she.
+      Buddy: Let me explain why she matters in lots of words and how the sound system works before we begin. sh...ee becomes she.
+    expected: Should flag over-talking, explanation drift, and missing concise turn shape
+  - conversation_transcript: |
+      Child: I chose the blend shoe.
+      Buddy: Listen first. sh... then sh...oo becomes shoe. Your turn — try shoe.
+      Child: sue.
+      Buddy: Good trying. sh... then sh...oo becomes shoe. Try shoe again.
+    expected: Should note correct /s/ substitution handling and target-set adherence
 evaluators:
-  - name: Focuses on SH blend accuracy
-  - name: Rewards smooth transitions
+  - name: Checks opening versus retry turn shape
+  - name: Checks SH blend accuracy and modelling order
+  - name: Checks correct SH-to-S substitution handling
+  - name: Flags drift outside the target set
   - name: Keeps therapist notes concise

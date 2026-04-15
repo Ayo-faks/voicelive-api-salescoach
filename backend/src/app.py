@@ -109,6 +109,14 @@ API_INVITATION_ACCEPT_ENDPOINT = "/api/invitations/<invitation_id>/accept"
 API_INVITATION_DECLINE_ENDPOINT = "/api/invitations/<invitation_id>/decline"
 API_INVITATION_REVOKE_ENDPOINT = "/api/invitations/<invitation_id>/revoke"
 API_INVITATION_RESEND_ENDPOINT = "/api/invitations/<invitation_id>/resend"
+API_FAMILY_INTAKE_INVITATIONS_ENDPOINT = "/api/family-intake/invitations"
+API_FAMILY_INTAKE_INVITATION_ACCEPT_ENDPOINT = "/api/family-intake/invitations/<invitation_id>/accept"
+API_FAMILY_INTAKE_INVITATION_DECLINE_ENDPOINT = "/api/family-intake/invitations/<invitation_id>/decline"
+API_FAMILY_INTAKE_PROPOSALS_ENDPOINT = "/api/family-intake/proposals"
+API_FAMILY_INTAKE_PENDING_PROPOSALS_ENDPOINT = "/api/family-intake/proposals/pending"
+API_FAMILY_INTAKE_PROPOSAL_APPROVE_ENDPOINT = "/api/family-intake/proposals/<proposal_id>/approve"
+API_FAMILY_INTAKE_PROPOSAL_REJECT_ENDPOINT = "/api/family-intake/proposals/<proposal_id>/reject"
+API_FAMILY_INTAKE_PROPOSAL_RESUBMIT_ENDPOINT = "/api/family-intake/proposals/<proposal_id>/resubmit"
 API_CHILD_SESSIONS_ENDPOINT = "/api/children/<child_id>/sessions"
 API_CHILD_PLANS_ENDPOINT = "/api/children/<child_id>/plans"
 API_CHILD_MEMORY_SUMMARY_ENDPOINT = "/api/children/<child_id>/memory/summary"
@@ -814,6 +822,40 @@ def _send_invitation_email(
     return delivery_payload
 
 
+def _send_family_intake_invitation_email(
+    invitation: Dict[str, Any],
+    *,
+    inviter_name: str,
+) -> Dict[str, Any]:
+    if email_service is None:
+        result = InvitationEmailDeliveryResult(
+            status="not_configured",
+            attempted=False,
+            delivered=False,
+            error="Email service is not configured",
+        )
+        return _serialize_invitation_email_delivery(result)
+
+    delivery_result = email_service.send_family_intake_invitation_email(
+        recipient_email=str(invitation.get("invited_email") or ""),
+        invitation_id=str(invitation.get("id") or ""),
+        workspace_name=str(invitation.get("workspace_name") or "your workspace"),
+        inviter_name=inviter_name,
+        expires_at=str(invitation.get("expires_at") or "") or None,
+    )
+    delivery_payload = _serialize_invitation_email_delivery(delivery_result)
+
+    if delivery_result.status == "failed":
+        logger.warning(
+            "Family intake invitation email delivery failed for %s to %s: %s",
+            invitation.get("id"),
+            invitation.get("invited_email"),
+            delivery_result.error,
+        )
+
+    return delivery_payload
+
+
 def _persist_invitation_email_delivery(invitation_id: str, delivery_payload: Dict[str, Any]) -> None:
     try:
         storage_service.record_child_invitation_email_delivery(invitation_id, delivery_payload)
@@ -1465,6 +1507,272 @@ def resend_child_invitation(invitation_id: str):
         metadata={"email_delivery": email_delivery},
     )
     return jsonify({**invitation, "email_delivery": email_delivery})
+
+
+@app.route(API_FAMILY_INTAKE_INVITATIONS_ENDPOINT, methods=["GET", "POST"])
+def family_intake_invitations():
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
+    user_id = str(cast(Dict[str, Any], user).get("id") or "")
+    user_email = str(cast(Dict[str, Any], user).get("email") or "")
+
+    if request.method == "POST":
+        therapist_user, therapist_guard = _require_role(ROLE_THERAPIST, ROLE_ADMIN)
+        if therapist_guard is not None:
+            return therapist_guard
+
+        data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+        invited_email = str(data.get("invited_email") or "").strip().lower()
+        workspace_id = str(data.get("workspace_id") or "").strip()
+        if not invited_email:
+            return jsonify({"error": "invited_email is required"}), HTTP_BAD_REQUEST
+
+        if not workspace_id:
+            default_workspace = storage_service.get_default_workspace_for_user(user_id)
+            workspace_id = str(default_workspace.get("id") or "") if default_workspace else ""
+
+        if not workspace_id:
+            return jsonify({"error": "workspace_id is required"}), HTTP_BAD_REQUEST
+
+        try:
+            invitation = storage_service.create_family_intake_invitation(
+                invited_email=invited_email,
+                invited_by_user_id=user_id,
+                workspace_id=workspace_id,
+            )
+        except ValueError as error:
+            return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
+
+        email_delivery = _send_family_intake_invitation_email(
+            invitation,
+            inviter_name=str(cast(Dict[str, Any], therapist_user).get("name") or "Your therapist"),
+        )
+
+        _log_audit_event(
+            user_id=user_id,
+            action="family_intake.invitation.create",
+            resource_type="family_intake_invitation",
+            resource_id=str(invitation.get("id") or ""),
+            metadata={
+                "workspace_id": workspace_id,
+                "invited_email": invited_email,
+                "email_delivery": email_delivery,
+            },
+        )
+        return jsonify({**invitation, "email_delivery": email_delivery}), HTTP_CREATED
+
+    invitations = storage_service.list_family_intake_invitations_for_user(user_id, user_email)
+    return jsonify(invitations)
+
+
+@app.route(API_FAMILY_INTAKE_INVITATION_ACCEPT_ENDPOINT, methods=["POST"])
+def accept_family_intake_invitation(invitation_id: str):
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
+    try:
+        invitation = storage_service.respond_to_family_intake_invitation(
+            invitation_id,
+            user_id=str(cast(Dict[str, Any], user).get("id") or ""),
+            user_email=str(cast(Dict[str, Any], user).get("email") or ""),
+            accept=True,
+        )
+    except ValueError as error:
+        return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
+
+    if invitation is None:
+        return jsonify({"error": INVITATION_NOT_FOUND}), HTTP_NOT_FOUND
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id") or ""),
+        action="family_intake.invitation.accept",
+        resource_type="family_intake_invitation",
+        resource_id=invitation_id,
+        metadata={"workspace_id": invitation.get("workspace_id")},
+    )
+    return jsonify(invitation)
+
+
+@app.route(API_FAMILY_INTAKE_INVITATION_DECLINE_ENDPOINT, methods=["POST"])
+def decline_family_intake_invitation(invitation_id: str):
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
+    try:
+        invitation = storage_service.respond_to_family_intake_invitation(
+            invitation_id,
+            user_id=str(cast(Dict[str, Any], user).get("id") or ""),
+            user_email=str(cast(Dict[str, Any], user).get("email") or ""),
+            accept=False,
+        )
+    except ValueError as error:
+        return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
+
+    if invitation is None:
+        return jsonify({"error": INVITATION_NOT_FOUND}), HTTP_NOT_FOUND
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id") or ""),
+        action="family_intake.invitation.decline",
+        resource_type="family_intake_invitation",
+        resource_id=invitation_id,
+        metadata={"workspace_id": invitation.get("workspace_id")},
+    )
+    return jsonify(invitation)
+
+
+@app.route(API_FAMILY_INTAKE_PROPOSALS_ENDPOINT, methods=["GET", "POST"])
+def family_intake_proposals():
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
+    user_id = str(cast(Dict[str, Any], user).get("id") or "")
+
+    if request.method == "POST":
+        data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+        invitation_id = str(data.get("family_intake_invitation_id") or "").strip()
+        proposals = data.get("children")
+        if not invitation_id:
+            return jsonify({"error": "family_intake_invitation_id is required"}), HTTP_BAD_REQUEST
+        if not isinstance(proposals, list) or not proposals:
+            return jsonify({"error": "At least one child proposal is required"}), HTTP_BAD_REQUEST
+
+        try:
+            created = storage_service.create_child_intake_proposals(
+                family_intake_invitation_id=invitation_id,
+                created_by_user_id=user_id,
+                proposals=cast(List[Dict[str, Any]], proposals),
+            )
+        except ValueError as error:
+            return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
+
+        _log_audit_event(
+            user_id=user_id,
+            action="family_intake.proposals.create",
+            resource_type="child_intake_proposal_batch",
+            resource_id=invitation_id,
+            metadata={"proposal_count": len(created)},
+        )
+        return jsonify(created), HTTP_CREATED
+
+    proposals = storage_service.list_child_intake_proposals_for_user(user_id)
+    return jsonify(proposals)
+
+
+@app.route(API_FAMILY_INTAKE_PENDING_PROPOSALS_ENDPOINT)
+def pending_family_intake_proposals():
+    user, guard_response = _require_role(ROLE_THERAPIST, ROLE_ADMIN)
+    if guard_response is not None:
+        return guard_response
+
+    workspace_id = str(request.args.get("workspace_id") or "").strip() or None
+    proposals = storage_service.list_pending_child_intake_proposals(workspace_id=workspace_id)
+    return jsonify(proposals)
+
+
+@app.route(API_FAMILY_INTAKE_PROPOSAL_APPROVE_ENDPOINT, methods=["POST"])
+def approve_family_intake_proposal(proposal_id: str):
+    user, guard_response = _require_role(ROLE_THERAPIST, ROLE_ADMIN)
+    if guard_response is not None:
+        return guard_response
+
+    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+    review_note = str(data.get("review_note") or "").strip() or None
+
+    try:
+        proposal = storage_service.approve_child_intake_proposal(
+            proposal_id,
+            reviewed_by_user_id=str(cast(Dict[str, Any], user).get("id") or ""),
+            review_note=review_note,
+        )
+    except ValueError as error:
+        return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
+
+    if proposal is None:
+        return jsonify({"error": "Child intake proposal not found"}), HTTP_NOT_FOUND
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id") or ""),
+        action="family_intake.proposal.approve",
+        resource_type="child_intake_proposal",
+        resource_id=proposal_id,
+        child_id=str(proposal.get("final_child_id") or "") or None,
+        metadata={"workspace_id": proposal.get("workspace_id")},
+    )
+    return jsonify(proposal)
+
+
+@app.route(API_FAMILY_INTAKE_PROPOSAL_REJECT_ENDPOINT, methods=["POST"])
+def reject_family_intake_proposal(proposal_id: str):
+    user, guard_response = _require_role(ROLE_THERAPIST, ROLE_ADMIN)
+    if guard_response is not None:
+        return guard_response
+
+    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+    review_note = str(data.get("review_note") or "").strip() or None
+
+    try:
+        proposal = storage_service.reject_child_intake_proposal(
+            proposal_id,
+            reviewed_by_user_id=str(cast(Dict[str, Any], user).get("id") or ""),
+            review_note=review_note,
+        )
+    except ValueError as error:
+        return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
+
+    if proposal is None:
+        return jsonify({"error": "Child intake proposal not found"}), HTTP_NOT_FOUND
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id") or ""),
+        action="family_intake.proposal.reject",
+        resource_type="child_intake_proposal",
+        resource_id=proposal_id,
+        metadata={"workspace_id": proposal.get("workspace_id")},
+    )
+    return jsonify(proposal)
+
+
+@app.route(API_FAMILY_INTAKE_PROPOSAL_RESUBMIT_ENDPOINT, methods=["POST"])
+def resubmit_family_intake_proposal(proposal_id: str):
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
+    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+    child_name = str(data.get("child_name") or "").strip()
+    date_of_birth = str(data.get("date_of_birth") or "").strip() or None
+    notes = str(data.get("notes") or "").strip() or None
+    if not child_name:
+        return jsonify({"error": "child_name is required"}), HTTP_BAD_REQUEST
+
+    try:
+        proposal = storage_service.resubmit_child_intake_proposal(
+            proposal_id,
+            created_by_user_id=str(cast(Dict[str, Any], user).get("id") or ""),
+            child_name=child_name,
+            date_of_birth=date_of_birth,
+            notes=notes,
+        )
+    except ValueError as error:
+        return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
+
+    if proposal is None:
+        return jsonify({"error": "Child intake proposal not found"}), HTTP_NOT_FOUND
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id") or ""),
+        action="family_intake.proposal.resubmit",
+        resource_type="child_intake_proposal",
+        resource_id=proposal_id,
+        metadata={"workspace_id": proposal.get("workspace_id")},
+    )
+    return jsonify(proposal)
 
 
 @app.route(API_AGENTS_CREATE_ENDPOINT, methods=["POST"])

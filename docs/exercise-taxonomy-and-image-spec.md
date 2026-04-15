@@ -226,7 +226,7 @@ All Core Object Card rules, plus:
 | **Step 1** | `listening_minimal_pairs` | **MISSING** | **P0** | Current `minimal_pairs` asks child to speak. Step 1 is listen-only (tap the picture). This is clinically foundational — many children start here. Needs a new interaction mode: buddy speaks, child taps, no mic. |
 | **Step 2** | `silent_sorting` | **MISSING** | **P1** | Drag-to-sort interaction with no speech. Entirely new UI mechanic. |
 | **Step 3** | `sound_isolation` | **MISSING** | **P0** | Producing a sound alone (/s/, /k/) before using it in words. Current model jumps straight to words. Needs: repetition counter, sound-only detection, no word-level pronunciation scoring. |
-| **Step 4** | `vowel_blending` | **MISSING** | **P1** | CV/VC blending with a visual slide. New UI component + new scoring (blend detection, not whole-word pronunciation). |
+| **Step 4** | `vowel_blending` | **EXISTS** | **P1** | CV vowel blending now ships with a visual slide, built-in prompts/evals, and selected-blend scoring. VC expansion is still future work. |
 | **Step 5** | `word_repetition` | **EXISTS** | Enhance | Add `wordPosition` field (initial/medial/final). Current exercises are all initial-position. Add explicit repetition target (×5 per word). Add mastery tracking. |
 | **Step 6** | `two_word_phrase` | **MISSING** | **P1** | Bridge between words and sentences. Modifier chips + object cards. New prompt template + phrase-level scoring. |
 | **Step 7** | `sentence_repetition` | **EXISTS** | Enhance | Add sentence starter cards, silly sentence builder mode. Current version is adequate but could be richer. |
@@ -239,9 +239,9 @@ All Core Object Card rules, plus:
 
 | Category | Count |
 |---|---|
-| Exercise types that exist and partially cover a step | 2 (`word_repetition`, `sentence_repetition`) |
+| Exercise types that exist and partially cover a step | 3 (`word_repetition`, `sentence_repetition`, `vowel_blending`) |
 | Exercise types that exist but mismatch the step's intent | 2 (`minimal_pairs` conflates listening+production; `guided_prompt` is creative not clinical) |
-| Exercise types completely missing | 7 (`listening_minimal_pairs`, `silent_sorting`, `sound_isolation`, `vowel_blending`, `two_word_phrase`, `generalisation`, `cluster_blending`, `syllable_practice`) |
+| Exercise types completely missing | 7 (`listening_minimal_pairs`, `silent_sorting`, `sound_isolation`, `two_word_phrase`, `generalisation`, `cluster_blending`, `syllable_practice`) |
 
 ### Missing Data Model Fields
 
@@ -265,7 +265,7 @@ The current `ExerciseMetadata` interface needs these additions to support the fu
 1. **P0 — Sound Isolation** (`sound_isolation`): Unlocks the clinical starting point for many children. Relatively simple UI (sound cue + repeat button + counter).
 2. **P0 — Listening Minimal Pairs** (`listening_minimal_pairs`): Distinguish from current `minimal_pairs`. Listen-only mode with tap interaction.
 3. **P1 — Enhance `word_repetition`**: Add `wordPosition`, repetition counter, mastery tracking.
-4. **P1 — Vowel Blending** (`vowel_blending`): New slide component.
+4. **P1 — Vowel Blending** (`vowel_blending`): Now implemented for CV practice; current refinement work is prompt hardening, evaluator coverage, and selected-blend scoring.
 5. **P1 — Two-Word Phrases** (`two_word_phrase`): Modifier chips.
 6. **P1 — Silent Sorting** (`silent_sorting`): Drag interaction.
 7. **P2 — Generalisation** (`generalisation`): Conversation mode with target-sound monitoring.

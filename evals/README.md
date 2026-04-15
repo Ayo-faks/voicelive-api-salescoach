@@ -587,7 +587,7 @@ See F8-F11 in System Evaluation above.
 | `sound_words` | ✅ (k,r,s,sh,th) | G3, G5 | SE2 | requiresMic = true |
 | `listening_pairs` | ✅ (k-t,r-w,s-sh,th-f) | G2 | E6 | Discrimination only |
 | `silent_sorting` | ✅ (k,r,s,sh,th) | G6 | E14 | requiresMic = false |
-| `vowel_blending` | ✅ (k,r,s,sh,th) | G7 | — | Blend target + vowels |
+| `vowel_blending` | ✅ (k,r,s,sh,th) | G7 | — | Blend target + vowels; evaluators now check opening/retry turn shape, target-set drift, and sound-specific correction |
 | `guided_story` | ✅ (r) | G4 | E5 | Connected speech |
 | `sentence_spotlight` | ✅ (th) | G8 | — | Target in sentences |
 | `minimal_pairs` | ✅ (s-sh) | G2 | — | Production contrast |
