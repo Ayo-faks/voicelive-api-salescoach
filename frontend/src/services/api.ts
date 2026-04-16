@@ -13,6 +13,10 @@ import type {
   ChildIntakeProposal,
   FamilyIntakeInvitation,
   ParentalConsent,
+  ProgressReport,
+  ProgressReportCreateRequest,
+  ReportExportFormat,
+  ProgressReportUpdateRequest,
   RecommendationDetail,
   RecommendationLog,
   RecommendationRequest,
@@ -585,6 +589,94 @@ export const api = {
     const res = await fetchWithAuth(`/api/children/${childId}/plans`)
     if (!res.ok) throw new Error('Failed to load practice plans')
     return res.json()
+  },
+
+  async getChildReports(childId: string, options?: { status?: string; audience?: string; limit?: number }): Promise<ProgressReport[]> {
+    const params = new URLSearchParams()
+    if (options?.status) params.set('status', options.status)
+    if (options?.audience) params.set('audience', options.audience)
+    if (options?.limit != null) params.set('limit', String(options.limit))
+    const query = params.toString()
+    const res = await fetchWithAuth(`/api/children/${childId}/reports${query ? `?${query}` : ''}`)
+    if (!res.ok) throw new Error('Failed to load progress reports')
+    return res.json()
+  },
+
+  async createChildReport(childId: string, payload: ProgressReportCreateRequest): Promise<ProgressReport> {
+    const res = await fetchWithAuth(`/api/children/${childId}/reports`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to create progress report')
+    }
+    return res.json()
+  },
+
+  async getReport(reportId: string): Promise<ProgressReport> {
+    const res = await fetchWithAuth(`/api/reports/${reportId}`)
+    if (!res.ok) throw new Error('Failed to load progress report')
+    return res.json()
+  },
+
+  async updateReport(reportId: string, payload: ProgressReportUpdateRequest): Promise<ProgressReport> {
+    const res = await fetchWithAuth(`/api/reports/${reportId}/update`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to update progress report')
+    }
+    return res.json()
+  },
+
+  async approveReport(reportId: string): Promise<ProgressReport> {
+    const res = await fetchWithAuth(`/api/reports/${reportId}/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to approve progress report')
+    }
+    return res.json()
+  },
+
+  async signReport(reportId: string): Promise<ProgressReport> {
+    const res = await fetchWithAuth(`/api/reports/${reportId}/sign`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to sign progress report')
+    }
+    return res.json()
+  },
+
+  async archiveReport(reportId: string): Promise<ProgressReport> {
+    const res = await fetchWithAuth(`/api/reports/${reportId}/archive`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to archive progress report')
+    }
+    return res.json()
+  },
+
+  getReportExportUrl(reportId: string, options?: { download?: boolean; format?: ReportExportFormat }) {
+    const params = new URLSearchParams()
+    params.set('format', options?.format || 'html')
+    if (options?.download) {
+      params.set('download', '1')
+    }
+    return `/api/reports/${reportId}/export?${params.toString()}`
   },
 
   async getChildMemorySummary(childId: string): Promise<ChildMemorySummary> {

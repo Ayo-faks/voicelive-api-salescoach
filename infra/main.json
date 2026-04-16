@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.37.4.10188",
-      "templateHash": "14457294854110337589"
+      "templateHash": "12491659071528749526"
     }
   },
   "parameters": {
@@ -231,6 +231,13 @@
       "metadata": {
         "description": "Optional public app URL used in invitation emails."
       }
+    },
+    "customLexiconUrl": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional SAS-backed custom lexicon URL for Azure Speech and Voice Live pronunciation control."
+      }
     }
   },
   "variables": {
@@ -358,6 +365,9 @@
           },
           "publicAppUrl": {
             "value": "[parameters('publicAppUrl')]"
+          },
+          "customLexiconUrl": {
+            "value": "[parameters('customLexiconUrl')]"
           }
         },
         "template": {
@@ -367,7 +377,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.37.4.10188",
-              "templateHash": "17315304931948077190"
+              "templateHash": "2684754791035168078"
             }
           },
           "parameters": {
@@ -605,6 +615,13 @@
                 "description": "Public application URL used in invitation emails. Defaults to the active custom domain or Container App host."
               }
             },
+            "customLexiconUrl": {
+              "type": "securestring",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Optional SAS-backed custom lexicon URL for Azure Speech and Voice Live pronunciation control."
+              }
+            },
             "principalId": {
               "type": "string",
               "metadata": {
@@ -636,6 +653,7 @@
                   "name": "[parameters('gptDeploymentName')]",
                   "model": "[parameters('gptModelName')]",
                   "version": "[parameters('gptModelVersion')]",
+                  "raiPolicyName": "Microsoft.DefaultV2",
                   "sku": {
                     "name": "Standard",
                     "capacity": 10
@@ -644,6 +662,8 @@
                 {
                   "name": "text-embedding-ada-002",
                   "model": "text-embedding-ada-002",
+                  "version": "2",
+                  "raiPolicyName": "Microsoft.DefaultV2",
                   "sku": {
                     "name": "Standard",
                     "capacity": 10
@@ -973,10 +993,19 @@
               "properties": {
                 "administratorLogin": "[parameters('postgresAdminUsername')]",
                 "administratorLoginPassword": "[parameters('postgresAdminPassword')]",
+                "authConfig": {
+                  "activeDirectoryAuth": "Disabled",
+                  "passwordAuth": "Enabled"
+                },
                 "version": "16",
                 "storage": {
                   "storageSizeGB": 32,
-                  "autoGrow": "Enabled"
+                  "autoGrow": "Enabled",
+                  "iops": 120,
+                  "tier": "P4"
+                },
+                "dataEncryption": {
+                  "type": "SystemManaged"
                 },
                 "backup": {
                   "backupRetentionDays": 7,
@@ -1047,6 +1076,13 @@
                   "excludedPaths": [
                     "/",
                     "/index.html",
+                    "/login",
+                    "/onboarding",
+                    "/mode",
+                    "/home",
+                    "/dashboard",
+                    "/settings",
+                    "/session",
                     "/assets/*",
                     "/js/*",
                     "/manifest.json",
@@ -8918,7 +8954,7 @@
                   },
                   "secrets": {
                     "value": {
-                      "secureList": "[concat(createArray(createObject('name', 'speech-api-key', 'value', listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('speech-voicelab-{0}', variables('resourceToken'))), '2024-10-01').key1)), if(parameters('enablePostgresPersistence'), createArray(createObject('name', 'postgres-database-url', 'value', format('postgresql://{0}:{1}@{2}:5432/{3}?sslmode=require', variables('postgresRuntimeUsername'), variables('postgresRuntimePassword'), reference(resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName')), '2023-12-01-preview').fullyQualifiedDomainName, parameters('postgresDatabaseName'))), createObject('name', 'postgres-admin-database-url', 'value', format('postgresql://{0}:{1}@{2}:5432/{3}?sslmode=require', parameters('postgresAdminUsername'), parameters('postgresAdminPassword'), reference(resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName')), '2023-12-01-preview').fullyQualifiedDomainName, parameters('postgresDatabaseName')))), createArray()), if(not(empty(parameters('copilotGithubToken'))), createArray(createObject('name', 'copilot-github-token', 'value', parameters('copilotGithubToken'))), createArray()), if(not(empty(parameters('microsoftProviderClientSecret'))), createArray(createObject('name', 'microsoft-provider-auth-secret', 'value', parameters('microsoftProviderClientSecret'))), createArray()), if(not(empty(parameters('googleProviderClientSecret'))), createArray(createObject('name', 'google-provider-auth-secret', 'value', parameters('googleProviderClientSecret'))), createArray()), if(or(not(empty(parameters('azureCommunicationServicesConnectionString'))), parameters('enableAzureCommunicationServicesEmail')), createArray(createObject('name', 'azure-communication-services-connection-string', 'value', if(parameters('enableAzureCommunicationServicesEmail'), listKeys(resourceId('Microsoft.Communication/communicationServices', variables('communicationServiceName')), '2026-03-18').primaryConnectionString, parameters('azureCommunicationServicesConnectionString')))), createArray()))]"
+                      "secureList": "[concat(createArray(createObject('name', 'speech-api-key', 'value', listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('speech-voicelab-{0}', variables('resourceToken'))), '2024-10-01').key1)), if(parameters('enablePostgresPersistence'), createArray(createObject('name', 'postgres-database-url', 'value', format('postgresql://{0}:{1}@{2}:5432/{3}?sslmode=require', variables('postgresRuntimeUsername'), variables('postgresRuntimePassword'), reference(resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName')), '2023-12-01-preview').fullyQualifiedDomainName, parameters('postgresDatabaseName'))), createObject('name', 'postgres-admin-database-url', 'value', format('postgresql://{0}:{1}@{2}:5432/{3}?sslmode=require', parameters('postgresAdminUsername'), parameters('postgresAdminPassword'), reference(resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName')), '2023-12-01-preview').fullyQualifiedDomainName, parameters('postgresDatabaseName')))), createArray()), if(not(empty(parameters('copilotGithubToken'))), createArray(createObject('name', 'copilot-github-token', 'value', parameters('copilotGithubToken'))), createArray()), if(not(empty(parameters('microsoftProviderClientSecret'))), createArray(createObject('name', 'microsoft-provider-auth-secret', 'value', parameters('microsoftProviderClientSecret'))), createArray()), if(not(empty(parameters('googleProviderClientSecret'))), createArray(createObject('name', 'google-provider-auth-secret', 'value', parameters('googleProviderClientSecret'))), createArray()), if(or(not(empty(parameters('azureCommunicationServicesConnectionString'))), parameters('enableAzureCommunicationServicesEmail')), createArray(createObject('name', 'azure-communication-services-connection-string', 'value', if(parameters('enableAzureCommunicationServicesEmail'), listKeys(resourceId('Microsoft.Communication/communicationServices', variables('communicationServiceName')), '2026-03-18').primaryConnectionString, parameters('azureCommunicationServicesConnectionString')))), createArray()), if(not(empty(parameters('customLexiconUrl'))), createArray(createObject('name', 'azure-custom-lexicon-url', 'value', parameters('customLexiconUrl'))), createArray()))]"
                     }
                   },
                   "volumes": {
@@ -8934,7 +8970,7 @@
                           "memory": "2.0Gi"
                         },
                         "volumeMounts": [],
-                        "env": "[concat(createArray(createObject('name', 'APPLICATIONINSIGHTS_CONNECTION_STRING', 'value', reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2022-09-01').outputs.applicationInsightsConnectionString.value), createObject('name', 'AZURE_CLIENT_ID', 'value', reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.clientId.value), createObject('name', 'AZURE_OPENAI_ENDPOINT', 'value', reference(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint), createObject('name', 'PROJECT_ENDPOINT', 'value', format('{0}api/projects/default-project', reference(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint)), createObject('name', 'MODEL_DEPLOYMENT_NAME', 'value', parameters('gptDeploymentName')), createObject('name', 'AZURE_SPEECH_KEY', 'secretRef', 'speech-api-key'), createObject('name', 'AZURE_SPEECH_REGION', 'value', 'swedencentral'), createObject('name', 'AZURE_AI_RESOURCE_NAME', 'value', format('aifoundry-voicelab-{0}', variables('resourceToken'))), createObject('name', 'AZURE_AI_REGION', 'value', 'swedencentral'), createObject('name', 'SUBSCRIPTION_ID', 'value', subscription().subscriptionId), createObject('name', 'RESOURCE_GROUP_NAME', 'value', resourceGroup().name), createObject('name', 'USE_AZURE_AI_AGENTS', 'value', if(parameters('useFoundryAgents'), 'true', 'false')), createObject('name', 'PORT', 'value', '8000'), createObject('name', 'HOST', 'value', '0.0.0.0'), createObject('name', 'AZD_ENV_NAME', 'value', parameters('environmentName')), createObject('name', 'PUBLIC_APP_URL', 'value', if(not(empty(parameters('publicAppUrl'))), parameters('publicAppUrl'), if(not(empty(variables('customRedirectHost'))), variables('customRedirectHost'), format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.defaultDomain.value)))), createObject('name', 'DATABASE_BACKEND', 'value', parameters('databaseBackend')), createObject('name', 'DATABASE_RUN_MIGRATIONS_ON_STARTUP', 'value', if(parameters('databaseRunMigrationsOnStartup'), 'true', 'false')), createObject('name', 'DATABASE_MIGRATION_ALLOWED_ENVIRONMENTS', 'value', parameters('databaseMigrationAllowedEnvironments')), createObject('name', 'STORAGE_PATH', 'value', '/tmp/wulo.db'), createObject('name', 'BLOB_BACKUP_ACCOUNT_NAME', 'value', format('{0}{1}data', variables('abbrs').storageStorageAccounts, variables('resourceToken'))), createObject('name', 'COPILOT_CLI_PATH', 'value', if(empty(parameters('copilotCliPath')), '/usr/local/bin/copilot', parameters('copilotCliPath'))), createObject('name', 'COPILOT_PLANNER_MODEL', 'value', if(empty(parameters('copilotPlannerModel')), parameters('gptDeploymentName'), parameters('copilotPlannerModel'))), createObject('name', 'COPILOT_PLANNER_REASONING_EFFORT', 'value', parameters('copilotPlannerReasoningEffort')), createObject('name', 'COPILOT_AZURE_API_VERSION', 'value', if(empty(parameters('copilotAzureApiVersion')), '2024-10-21', parameters('copilotAzureApiVersion'))), createObject('name', 'AZURE_COMMUNICATION_SERVICES_SENDER_ADDRESS', 'value', parameters('azureCommunicationServicesSenderAddress')), createObject('name', 'AZURE_COMMUNICATION_SERVICES_SENDER_DISPLAY_NAME', 'value', parameters('azureCommunicationServicesSenderDisplayName'))), if(parameters('enablePostgresPersistence'), createArray(createObject('name', 'DATABASE_URL', 'secretRef', 'postgres-database-url'), createObject('name', 'DATABASE_ADMIN_URL', 'secretRef', 'postgres-admin-database-url')), createArray()), if(not(empty(parameters('copilotGithubToken'))), createArray(createObject('name', 'COPILOT_GITHUB_TOKEN', 'secretRef', 'copilot-github-token')), createArray()), if(not(empty(parameters('microsoftProviderClientSecret'))), createArray(createObject('name', 'MICROSOFT_PROVIDER_AUTHENTICATION_SECRET', 'secretRef', 'microsoft-provider-auth-secret')), createArray()), if(not(empty(parameters('googleProviderClientSecret'))), createArray(createObject('name', 'GOOGLE_PROVIDER_AUTHENTICATION_SECRET', 'secretRef', 'google-provider-auth-secret')), createArray()), if(or(not(empty(parameters('azureCommunicationServicesConnectionString'))), parameters('enableAzureCommunicationServicesEmail')), createArray(createObject('name', 'AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING', 'secretRef', 'azure-communication-services-connection-string')), createArray()))]"
+                        "env": "[concat(createArray(createObject('name', 'APPLICATIONINSIGHTS_CONNECTION_STRING', 'value', reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2022-09-01').outputs.applicationInsightsConnectionString.value), createObject('name', 'AZURE_CLIENT_ID', 'value', reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.clientId.value), createObject('name', 'AZURE_OPENAI_ENDPOINT', 'value', reference(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint), createObject('name', 'PROJECT_ENDPOINT', 'value', format('{0}api/projects/default-project', reference(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint)), createObject('name', 'MODEL_DEPLOYMENT_NAME', 'value', parameters('gptDeploymentName')), createObject('name', 'AZURE_SPEECH_KEY', 'secretRef', 'speech-api-key'), createObject('name', 'AZURE_SPEECH_REGION', 'value', 'swedencentral'), createObject('name', 'AZURE_AI_RESOURCE_NAME', 'value', format('aifoundry-voicelab-{0}', variables('resourceToken'))), createObject('name', 'AZURE_AI_REGION', 'value', 'swedencentral'), createObject('name', 'SUBSCRIPTION_ID', 'value', subscription().subscriptionId), createObject('name', 'RESOURCE_GROUP_NAME', 'value', resourceGroup().name), createObject('name', 'USE_AZURE_AI_AGENTS', 'value', if(parameters('useFoundryAgents'), 'true', 'false')), createObject('name', 'PORT', 'value', '8000'), createObject('name', 'HOST', 'value', '0.0.0.0'), createObject('name', 'AZD_ENV_NAME', 'value', parameters('environmentName')), createObject('name', 'PUBLIC_APP_URL', 'value', if(not(empty(parameters('publicAppUrl'))), parameters('publicAppUrl'), if(not(empty(variables('customRedirectHost'))), variables('customRedirectHost'), format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.defaultDomain.value)))), createObject('name', 'DATABASE_BACKEND', 'value', parameters('databaseBackend')), createObject('name', 'DATABASE_RUN_MIGRATIONS_ON_STARTUP', 'value', if(parameters('databaseRunMigrationsOnStartup'), 'true', 'false')), createObject('name', 'DATABASE_MIGRATION_ALLOWED_ENVIRONMENTS', 'value', parameters('databaseMigrationAllowedEnvironments')), createObject('name', 'STORAGE_PATH', 'value', '/tmp/wulo.db'), createObject('name', 'BLOB_BACKUP_ACCOUNT_NAME', 'value', format('{0}{1}data', variables('abbrs').storageStorageAccounts, variables('resourceToken'))), createObject('name', 'COPILOT_CLI_PATH', 'value', if(empty(parameters('copilotCliPath')), '/usr/local/bin/copilot', parameters('copilotCliPath'))), createObject('name', 'COPILOT_PLANNER_MODEL', 'value', if(empty(parameters('copilotPlannerModel')), parameters('gptDeploymentName'), parameters('copilotPlannerModel'))), createObject('name', 'COPILOT_PLANNER_REASONING_EFFORT', 'value', parameters('copilotPlannerReasoningEffort')), createObject('name', 'COPILOT_AZURE_API_VERSION', 'value', if(empty(parameters('copilotAzureApiVersion')), '2024-10-21', parameters('copilotAzureApiVersion'))), createObject('name', 'AZURE_COMMUNICATION_SERVICES_SENDER_ADDRESS', 'value', parameters('azureCommunicationServicesSenderAddress')), createObject('name', 'AZURE_COMMUNICATION_SERVICES_SENDER_DISPLAY_NAME', 'value', parameters('azureCommunicationServicesSenderDisplayName'))), if(not(empty(parameters('customLexiconUrl'))), createArray(createObject('name', 'AZURE_CUSTOM_LEXICON_URL', 'secretRef', 'azure-custom-lexicon-url')), createArray()), if(parameters('enablePostgresPersistence'), createArray(createObject('name', 'DATABASE_URL', 'secretRef', 'postgres-database-url'), createObject('name', 'DATABASE_ADMIN_URL', 'secretRef', 'postgres-admin-database-url')), createArray()), if(not(empty(parameters('copilotGithubToken'))), createArray(createObject('name', 'COPILOT_GITHUB_TOKEN', 'secretRef', 'copilot-github-token')), createArray()), if(not(empty(parameters('microsoftProviderClientSecret'))), createArray(createObject('name', 'MICROSOFT_PROVIDER_AUTHENTICATION_SECRET', 'secretRef', 'microsoft-provider-auth-secret')), createArray()), if(not(empty(parameters('googleProviderClientSecret'))), createArray(createObject('name', 'GOOGLE_PROVIDER_AUTHENTICATION_SECRET', 'secretRef', 'google-provider-auth-secret')), createArray()), if(or(not(empty(parameters('azureCommunicationServicesConnectionString'))), parameters('enableAzureCommunicationServicesEmail')), createArray(createObject('name', 'AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING', 'secretRef', 'azure-communication-services-connection-string')), createArray()))]"
                       }
                     ]
                   },

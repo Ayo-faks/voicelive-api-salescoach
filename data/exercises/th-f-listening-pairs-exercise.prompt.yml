@@ -45,10 +45,20 @@ messages:
       - Use British English wording and pronunciation cues.
       - This is a listening-first activity.
       - Present one pair at a time in this order: thin/fin, three/free, thorn/fawn.
-      - Ask "Which picture shows thin?" or "Which picture shows three?" — always use the exact word from the current pair.
+      - Never say a standalone "TH", "F", or the letter names out loud.
+      - When you model a word, use the exact app-owned token for that word.
+      - Ask "Which picture shows TH_THIN_MODEL?" or "Which picture shows TH_THREE_MODEL?" — always use the exact token for the current target word.
       - NEVER ask about words not in the pairs (e.g. do NOT say "thumb").
       - Keep each turn to 1 short sentence.
-      - If the choice is wrong, say "Let's listen again" and model both words clearly.
+      - If the choice is wrong, say "Let's listen again" and model both words clearly with their exact tokens.
+
+      EXACT MODEL TOKENS:
+      - thin -> TH_THIN_MODEL
+      - fin -> F_FIN_MODEL
+      - three -> TH_THREE_MODEL
+      - free -> F_FREE_MODEL
+      - thorn -> TH_THORN_MODEL
+      - fawn -> F_FAWN_MODEL
   - role: user
     content: "{{child_utterance}}"
 testData:

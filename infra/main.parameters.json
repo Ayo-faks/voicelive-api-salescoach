@@ -106,6 +106,9 @@
       },
       "publicAppUrl": {
         "value": "${PUBLIC_APP_URL=}"
+      },
+      "customLexiconUrl": {
+        "value": "${AZURE_CUSTOM_LEXICON_URL=}"
       }
     }
 }

@@ -7,11 +7,12 @@ import os
 from typing import Any, Mapping
 
 from src.bootstrap_storage import bootstrap_storage
-from src.services.postgres_migrations import run_postgres_migrations
 from src.services.storage import StorageService
-from src.services.storage_postgres import PostgresStorageService
 
 logger = logging.getLogger(__name__)
+
+run_postgres_migrations = None
+PostgresStorageService = None
 
 AZURE_RUNTIME_MARKERS = (
     "CONTAINER_APP_NAME",
@@ -75,7 +76,19 @@ def create_storage_service(app_config: Mapping[str, Any]) -> Any:
         if not database_url:
             raise RuntimeError("DATABASE_URL is required when DATABASE_BACKEND=postgres")
         if should_run_postgres_startup_migrations(app_config):
-            run_postgres_migrations(database_admin_url, database_url)
-        return PostgresStorageService(database_url, allow_system_bypass=(database_url == database_admin_url))
+            migration_runner = run_postgres_migrations
+            if migration_runner is None:
+                from src.services.postgres_migrations import run_postgres_migrations as postgres_migration_runner
+
+                migration_runner = postgres_migration_runner
+            migration_runner(database_admin_url, database_url)
+
+        postgres_storage_service_class = PostgresStorageService
+        if postgres_storage_service_class is None:
+            from src.services.storage_postgres import PostgresStorageService as postgres_storage_service
+
+            postgres_storage_service_class = postgres_storage_service
+
+        return postgres_storage_service_class(database_url, allow_system_bypass=(database_url == database_admin_url))
 
     raise RuntimeError(f"Unsupported DATABASE_BACKEND: {backend}")

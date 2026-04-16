@@ -15,6 +15,7 @@ import {
   TrashIcon,
 } from '@heroicons/react/24/outline'
 import type { CustomScenario, Message, Scenario } from '../types'
+import { exerciseRequiresMic } from '../utils/exerciseMode'
 
 const useStyles = makeStyles({
   card: {
@@ -276,9 +277,11 @@ export function ChatPanel({
 }: Props) {
   const styles = useStyles()
   const customScenario = isCustomScenario(scenario) ? scenario : null
+  const exerciseTypeValue = customScenario?.scenarioData.exerciseType || scenario?.exerciseMetadata?.type
   const exerciseType = formatExerciseType(
-    customScenario?.scenarioData.exerciseType || scenario?.exerciseMetadata?.type
+    exerciseTypeValue
   )
+  const micRequired = exerciseRequiresMic(scenario?.exerciseMetadata, exerciseTypeValue)
   const statusText =
     sessionFinished && audience === 'child'
       ? 'Practice finished. Go home when you are ready.'
@@ -312,9 +315,15 @@ export function ChatPanel({
                 ? 'Your last word feedback stays visible until you leave this screen.'
                 : !introComplete
                 ? audience === 'therapist'
-                  ? 'The avatar is greeting the session now. The dock microphone will unlock right after the welcome.'
-                  : 'Listen for the welcome, then the microphone will unlock.'
-                : 'Tap the microphone to begin the exercise.'}
+                    ? micRequired
+                      ? 'The avatar is greeting the session now. The dock microphone will unlock right after the welcome.'
+                      : 'The avatar is greeting the session now. The first listening clue will start right after the welcome.'
+                    : micRequired
+                      ? 'Listen for the welcome, then the microphone will unlock.'
+                      : 'Listen for the welcome, then the first clue will start.'
+                  : micRequired
+                    ? 'Tap the microphone to begin the exercise.'
+                    : 'Listen for the clue, then tap the matching picture.'}
             </Text>
           </div>
         ) : (

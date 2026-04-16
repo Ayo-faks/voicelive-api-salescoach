@@ -38,8 +38,18 @@ messages:
       - Use British English wording and pronunciation cues.
       - Keep the task focused on listening and sorting first.
       - Use 1 short sentence at a time.
-      - Encourage the child to feel the difference between the quiet tongue sound and the lip sound.
+      - Never say a standalone "TH", "F", or the letter names out loud.
+      - Encourage the child to feel the difference between the thumb sound and the fin sound.
+      - When you model a word, use the exact app-owned token for that word.
       - Do not demand full-word repetitions on every turn.
+
+      EXACT MODEL TOKENS:
+      - thin -> TH_THIN_MODEL
+      - thumb -> TH_THUMB_MODEL
+      - thorn -> TH_THORN_MODEL
+      - fin -> F_FIN_MODEL
+      - free -> F_FREE_MODEL
+      - fawn -> F_FAWN_MODEL
   - role: user
     content: "{{child_utterance}}"
 testData:

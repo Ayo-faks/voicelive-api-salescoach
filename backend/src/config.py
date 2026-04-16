@@ -89,6 +89,7 @@ class Config:
             ),
             "azure_voice_name": os.getenv("AZURE_VOICE_NAME", DEFAULT_VOICE_NAME),
             "azure_voice_type": os.getenv("AZURE_VOICE_TYPE", DEFAULT_VOICE_TYPE),
+            "azure_custom_lexicon_url": os.getenv("AZURE_CUSTOM_LEXICON_URL", ""),
             "azure_avatar_character": os.getenv("AZURE_AVATAR_CHARACTER", DEFAULT_AVATAR_CHARACTER),
             "azure_avatar_style": os.getenv("AZURE_AVATAR_STYLE", DEFAULT_AVATAR_STYLE),
             "database_backend": os.getenv("DATABASE_BACKEND", DEFAULT_DATABASE_BACKEND),

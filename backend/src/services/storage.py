@@ -248,6 +248,7 @@ class StorageService:
                         )
                         self._ensure_institutional_memory_tables(connection)
                         self._ensure_recommendation_tables(connection)
+                        self._ensure_progress_report_table(connection)
                         self._ensure_migrations(connection)
                         self._seed_children(connection)
                         logger.info("SQLite committing...")
@@ -286,6 +287,7 @@ class StorageService:
         self._ensure_audit_log_table(connection)
         self._ensure_institutional_memory_tables(connection)
         self._ensure_recommendation_tables(connection)
+        self._ensure_progress_report_table(connection)
 
     def _ensure_parental_consents_table(self, connection: sqlite3.Connection) -> None:
         connection.execute(
@@ -805,6 +807,43 @@ class StorageService:
             "CREATE INDEX IF NOT EXISTS idx_recommendation_candidates_log_rank ON recommendation_candidates (recommendation_log_id, rank ASC)"
         )
 
+    def _ensure_progress_report_table(self, connection: sqlite3.Connection) -> None:
+        connection.execute(
+            """CREATE TABLE IF NOT EXISTS progress_reports (
+                id TEXT PRIMARY KEY,
+                child_id TEXT NOT NULL,
+                workspace_id TEXT,
+                created_by_user_id TEXT NOT NULL,
+                audience TEXT NOT NULL,
+                report_type TEXT NOT NULL,
+                title TEXT NOT NULL,
+                status TEXT NOT NULL,
+                period_start TEXT NOT NULL,
+                period_end TEXT NOT NULL,
+                included_session_ids_json TEXT NOT NULL,
+                snapshot_json TEXT NOT NULL,
+                sections_json TEXT NOT NULL,
+                redaction_overrides_json TEXT,
+                summary_text TEXT,
+                signed_by_user_id TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                approved_at TEXT,
+                signed_at TEXT,
+                archived_at TEXT,
+                FOREIGN KEY (child_id) REFERENCES children(id),
+                FOREIGN KEY (workspace_id) REFERENCES therapist_workspaces(id),
+                FOREIGN KEY (created_by_user_id) REFERENCES users(id),
+                FOREIGN KEY (signed_by_user_id) REFERENCES users(id)
+            )"""
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_progress_reports_child_status_created ON progress_reports (child_id, status, created_at DESC)"
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_progress_reports_workspace_created ON progress_reports (workspace_id, created_at DESC)"
+        )
+
     def _ensure_column(self, connection: sqlite3.Connection, table_name: str, column_name: str, definition: str):
         columns = {
             row["name"]
@@ -989,6 +1028,31 @@ class StorageService:
             "supporting_memory_item_ids": self._loads_json(row["supporting_memory_item_ids_json"], []),
             "supporting_session_ids": self._loads_json(row["supporting_session_ids_json"], []),
             "created_at": row["created_at"],
+        }
+
+    def _build_progress_report_payload(self, row: sqlite3.Row) -> Dict[str, Any]:
+        return {
+            "id": row["id"],
+            "child_id": row["child_id"],
+            "workspace_id": row["workspace_id"],
+            "created_by_user_id": row["created_by_user_id"],
+            "audience": row["audience"],
+            "report_type": row["report_type"],
+            "title": row["title"],
+            "status": row["status"],
+            "period_start": row["period_start"],
+            "period_end": row["period_end"],
+            "included_session_ids": self._loads_json(row["included_session_ids_json"], []),
+            "snapshot": self._loads_json(row["snapshot_json"], {}),
+            "sections": self._loads_json(row["sections_json"], {}),
+            "redaction_overrides": self._loads_json(row["redaction_overrides_json"], {}),
+            "summary_text": row["summary_text"],
+            "signed_by_user_id": row["signed_by_user_id"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+            "approved_at": row["approved_at"],
+            "signed_at": row["signed_at"],
+            "archived_at": row["archived_at"],
         }
 
     def _execute_write(self, operation: Callable[[sqlite3.Connection], WriteResult]) -> WriteResult:
@@ -3072,6 +3136,290 @@ class StorageService:
 
         return self.get_practice_plan(plan_id)
 
+    def save_progress_report(self, report_payload: Dict[str, Any]) -> Dict[str, Any]:
+        report_id = str(report_payload.get("id") or f"report-{uuid4().hex[:12]}")
+        child_id = str(report_payload.get("child_id") or "").strip()
+        workspace_id = str(report_payload.get("workspace_id") or "").strip() or None
+        created_by_user_id = str(report_payload.get("created_by_user_id") or "").strip()
+        if not child_id:
+            raise ValueError("child_id is required")
+        if not created_by_user_id:
+            raise ValueError("created_by_user_id is required")
+
+        now = self._utc_now()
+        created_at = str(report_payload.get("created_at") or now)
+        updated_at = str(report_payload.get("updated_at") or now)
+
+        def persist_report(connection: sqlite3.Connection) -> None:
+            connection.execute(
+                """
+                INSERT INTO progress_reports (
+                    id,
+                    child_id,
+                    workspace_id,
+                    created_by_user_id,
+                    signed_by_user_id,
+                    audience,
+                    report_type,
+                    title,
+                    status,
+                    period_start,
+                    period_end,
+                    included_session_ids_json,
+                    snapshot_json,
+                    sections_json,
+                    redaction_overrides_json,
+                    summary_text,
+                    created_at,
+                    updated_at,
+                    approved_at,
+                    signed_at,
+                    archived_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    child_id = excluded.child_id,
+                    workspace_id = excluded.workspace_id,
+                    created_by_user_id = excluded.created_by_user_id,
+                    signed_by_user_id = excluded.signed_by_user_id,
+                    audience = excluded.audience,
+                    report_type = excluded.report_type,
+                    title = excluded.title,
+                    status = excluded.status,
+                    period_start = excluded.period_start,
+                    period_end = excluded.period_end,
+                    included_session_ids_json = excluded.included_session_ids_json,
+                    snapshot_json = excluded.snapshot_json,
+                    sections_json = excluded.sections_json,
+                    redaction_overrides_json = excluded.redaction_overrides_json,
+                    summary_text = excluded.summary_text,
+                    updated_at = excluded.updated_at,
+                    approved_at = excluded.approved_at,
+                    signed_at = excluded.signed_at,
+                    archived_at = excluded.archived_at
+                """,
+                (
+                    report_id,
+                    child_id,
+                    workspace_id,
+                    created_by_user_id,
+                    report_payload.get("signed_by_user_id"),
+                    str(report_payload.get("audience") or "therapist"),
+                    str(report_payload.get("report_type") or "progress_summary"),
+                    str(report_payload.get("title") or "Child progress report"),
+                    str(report_payload.get("status") or "draft"),
+                    str(report_payload.get("period_start") or ""),
+                    str(report_payload.get("period_end") or ""),
+                    self._dumps_json(report_payload.get("included_session_ids") or []),
+                    self._dumps_json(report_payload.get("snapshot") or {}),
+                    self._dumps_json(report_payload.get("sections") or {}),
+                    self._dumps_json(report_payload.get("redaction_overrides") or {}),
+                    report_payload.get("summary_text"),
+                    created_at,
+                    updated_at,
+                    report_payload.get("approved_at"),
+                    report_payload.get("signed_at"),
+                    report_payload.get("archived_at"),
+                ),
+            )
+
+        self._execute_write(persist_report)
+
+        report = self.get_progress_report(report_id)
+        if report is None:
+            raise RuntimeError("Progress report could not be reloaded after save")
+        return report
+
+    def list_progress_reports_for_child(
+        self,
+        child_id: str,
+        status: Optional[str] = None,
+        audience: Optional[str] = None,
+        limit: int = 20,
+    ) -> List[Dict[str, Any]]:
+        query = [
+            """
+            SELECT
+                id,
+                child_id,
+                workspace_id,
+                created_by_user_id,
+                signed_by_user_id,
+                audience,
+                report_type,
+                title,
+                status,
+                period_start,
+                period_end,
+                included_session_ids_json,
+                snapshot_json,
+                sections_json,
+                redaction_overrides_json,
+                summary_text,
+                created_at,
+                updated_at,
+                approved_at,
+                signed_at,
+                archived_at
+            FROM progress_reports
+            WHERE child_id = ?
+            """
+        ]
+        parameters: List[Any] = [child_id]
+        if status:
+            query.append("AND status = ?")
+            parameters.append(status)
+        if audience:
+            query.append("AND audience = ?")
+            parameters.append(audience)
+        query.append("ORDER BY created_at DESC")
+        query.append("LIMIT ?")
+        parameters.append(max(1, int(limit)))
+
+        with self._connect() as connection:
+            rows = connection.execute("\n".join(query), parameters).fetchall()
+
+        return [self._build_progress_report_payload(row) for row in rows]
+
+    def get_progress_report(self, report_id: str) -> Optional[Dict[str, Any]]:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    id,
+                    child_id,
+                    workspace_id,
+                    created_by_user_id,
+                    signed_by_user_id,
+                    audience,
+                    report_type,
+                    title,
+                    status,
+                    period_start,
+                    period_end,
+                    included_session_ids_json,
+                    snapshot_json,
+                    sections_json,
+                    redaction_overrides_json,
+                    summary_text,
+                    created_at,
+                    updated_at,
+                    approved_at,
+                    signed_at,
+                    archived_at
+                FROM progress_reports
+                WHERE id = ?
+                """,
+                (report_id,),
+            ).fetchone()
+
+        if row is None:
+            return None
+
+        return self._build_progress_report_payload(row)
+
+    def update_progress_report(self, report_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        updated_at = self._utc_now()
+
+        def persist_update(connection: sqlite3.Connection) -> int:
+            cursor = connection.execute(
+                """
+                UPDATE progress_reports
+                SET
+                    audience = ?,
+                    title = ?,
+                    period_start = ?,
+                    period_end = ?,
+                    included_session_ids_json = ?,
+                    snapshot_json = ?,
+                    sections_json = ?,
+                    redaction_overrides_json = ?,
+                    summary_text = ?,
+                    updated_at = ?
+                WHERE id = ?
+                """,
+                (
+                    str(updates.get("audience") or "therapist"),
+                    str(updates.get("title") or "Child progress report"),
+                    str(updates.get("period_start") or ""),
+                    str(updates.get("period_end") or ""),
+                    self._dumps_json(updates.get("included_session_ids") or []),
+                    self._dumps_json(updates.get("snapshot") or {}),
+                    self._dumps_json(updates.get("sections") or {}),
+                    self._dumps_json(updates.get("redaction_overrides") or {}),
+                    updates.get("summary_text"),
+                    updated_at,
+                    report_id,
+                ),
+            )
+            return cursor.rowcount
+
+        rowcount = self._execute_write(persist_update)
+        if rowcount == 0:
+            return None
+
+        return self.get_progress_report(report_id)
+
+    def approve_progress_report(self, report_id: str) -> Optional[Dict[str, Any]]:
+        approved_at = self._utc_now()
+
+        def persist_approval(connection: sqlite3.Connection) -> int:
+            cursor = connection.execute(
+                """
+                UPDATE progress_reports
+                SET status = ?, approved_at = ?, updated_at = ?
+                WHERE id = ?
+                """,
+                ("approved", approved_at, approved_at, report_id),
+            )
+            return cursor.rowcount
+
+        rowcount = self._execute_write(persist_approval)
+        if rowcount == 0:
+            return None
+
+        return self.get_progress_report(report_id)
+
+    def sign_progress_report(self, report_id: str, signed_by_user_id: str) -> Optional[Dict[str, Any]]:
+        signed_at = self._utc_now()
+
+        def persist_signature(connection: sqlite3.Connection) -> int:
+            cursor = connection.execute(
+                """
+                UPDATE progress_reports
+                SET status = ?, signed_by_user_id = ?, signed_at = ?, updated_at = ?
+                WHERE id = ?
+                """,
+                ("signed", signed_by_user_id, signed_at, signed_at, report_id),
+            )
+            return cursor.rowcount
+
+        rowcount = self._execute_write(persist_signature)
+        if rowcount == 0:
+            return None
+
+        return self.get_progress_report(report_id)
+
+    def archive_progress_report(self, report_id: str) -> Optional[Dict[str, Any]]:
+        archived_at = self._utc_now()
+
+        def persist_archive(connection: sqlite3.Connection) -> int:
+            cursor = connection.execute(
+                """
+                UPDATE progress_reports
+                SET status = ?, archived_at = ?, updated_at = ?
+                WHERE id = ?
+                """,
+                ("archived", archived_at, archived_at, report_id),
+            )
+            return cursor.rowcount
+
+        rowcount = self._execute_write(persist_archive)
+        if rowcount == 0:
+            return None
+
+        return self.get_progress_report(report_id)
+
     def save_child_memory_item(self, item_payload: Dict[str, Any]) -> Dict[str, Any]:
         item_id = str(item_payload.get("id") or f"memory-item-{uuid4().hex[:12]}")
         child_id = str(item_payload.get("child_id") or "").strip()
@@ -4079,6 +4427,7 @@ class StorageService:
             conn.execute("DELETE FROM child_memory_proposals WHERE child_id = ?", (child_id,))
             conn.execute("DELETE FROM recommendation_candidates WHERE recommendation_log_id IN (SELECT id FROM recommendation_logs WHERE child_id = ?)", (child_id,))
             conn.execute("DELETE FROM recommendation_logs WHERE child_id = ?", (child_id,))
+            conn.execute("DELETE FROM progress_reports WHERE child_id = ?", (child_id,))
             conn.execute("DELETE FROM practice_plans WHERE child_id = ?", (child_id,))
             conn.execute("DELETE FROM sessions WHERE child_id = ?", (child_id,))
             conn.execute("DELETE FROM child_memory_summaries WHERE child_id = ?", (child_id,))

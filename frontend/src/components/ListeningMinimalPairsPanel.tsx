@@ -7,6 +7,7 @@ import { Button, Card, Text, makeStyles } from '@fluentui/react-components'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ExerciseMetadata } from '../types'
 import { api } from '../services/api'
+import { getDrillModelToken } from '../utils/drillTokens'
 import { ImageCard } from './ImageCard'
 import { RepetitionCounter } from './RepetitionCounter'
 
@@ -200,18 +201,23 @@ export function ListeningMinimalPairsPanel({
     }
   }, [onSpeakExerciseText])
 
-  const getSoundLabel = useCallback((word: string, pair = currentPair) => {
+  const buildInstruction = useCallback((word: string, pair = currentPair) => {
+    void pair
+    return `Listen carefully. ${getDrillModelToken(word)}. Tap the matching picture.`
+  }, [currentPair])
+
+  const buildPraiseText = useCallback((word: string) => {
+    return `Great listening. You picked ${getDrillModelToken(word)}.`
+  }, [])
+
+  const buildRetryText = useCallback((word: string, pair = currentPair) => {
     if (!pair) {
-      return targetSound.toUpperCase()
+      return `Let's listen again. ${getDrillModelToken(word)}.`
     }
 
-    return (word === pair.word_a ? targetSound : errorSound).toUpperCase()
-  }, [currentPair, errorSound, targetSound])
-
-  const buildInstruction = useCallback((word: string, pair = currentPair) => {
-    const soundLabel = getSoundLabel(word, pair)
-    return `Listen for the ${soundLabel} sound. The word is ${word}. Tap the picture that matches the ${soundLabel} sound.`
-  }, [currentPair, getSoundLabel])
+    const comparisonWord = word === pair.word_a ? pair.word_b : pair.word_a
+    return `Let's listen again. ${getDrillModelToken(word)}. ${getDrillModelToken(comparisonWord)}.`
+  }, [currentPair])
 
   const beginInstructionTurn = useCallback(async (nextPromptWord?: string) => {
     if (!currentPair || !readyToStart) {
@@ -220,12 +226,11 @@ export function ListeningMinimalPairsPanel({
 
     const turnSequence = ++turnSequenceRef.current
     const resolvedPromptWord = nextPromptWord ?? (Math.random() > 0.5 ? currentPair.word_a : currentPair.word_b)
-    const soundLabel = getSoundLabel(resolvedPromptWord, currentPair)
 
     setPromptWord(resolvedPromptWord)
     setSelectedWord(null)
     setPhase('instructing')
-    setStatusText(`Listen for the ${soundLabel} sound.`)
+    setStatusText(`Listen for ${resolvedPromptWord}.`)
 
     await speakExerciseText(buildInstruction(resolvedPromptWord, currentPair))
 
@@ -234,8 +239,8 @@ export function ListeningMinimalPairsPanel({
     }
 
     setPhase('awaiting')
-    setStatusText('Tap the picture that matches the sound.')
-  }, [buildInstruction, currentPair, getSoundLabel, readyToStart, speakExerciseText])
+    setStatusText('Tap the picture that matches the word.')
+  }, [buildInstruction, currentPair, readyToStart, speakExerciseText])
 
   useEffect(() => {
     if (!readyToStart) {
@@ -272,7 +277,6 @@ export function ListeningMinimalPairsPanel({
 
     const turnSequence = ++turnSequenceRef.current
     const isCorrectSelection = word === promptWord
-    const soundLabel = getSoundLabel(promptWord, currentPair)
 
     setSelectedWord(word)
     setPhase('evaluating')
@@ -286,7 +290,7 @@ export function ListeningMinimalPairsPanel({
       }
 
       if (isCorrectSelection) {
-        const praiseText = `Great listening! That's the ${soundLabel} sound.`
+        const praiseText = buildPraiseText(promptWord)
         setStatusText(praiseText)
         await speakExerciseText(praiseText)
 
@@ -312,7 +316,7 @@ export function ListeningMinimalPairsPanel({
         return
       }
 
-      const retryText = 'Try again. Listen carefully.'
+      const retryText = buildRetryText(promptWord, currentPair)
       setStatusText(retryText)
       await speakExerciseText(retryText)
 
@@ -322,7 +326,7 @@ export function ListeningMinimalPairsPanel({
 
       await beginInstructionTurn(promptWord)
     })()
-  }, [beginInstructionTurn, completedTurns, currentPair, getSoundLabel, notifySessionCompletion, pairs.length, phase, playWord, promptWord, repetitionTarget, speakExerciseText, onRecordExerciseSelection])
+  }, [beginInstructionTurn, buildPraiseText, buildRetryText, completedTurns, currentPair, notifySessionCompletion, pairs.length, phase, playWord, promptWord, repetitionTarget, speakExerciseText, onRecordExerciseSelection])
 
   const handleSkipPair = useCallback(() => {
     if (!pairs.length || phase !== 'awaiting') {

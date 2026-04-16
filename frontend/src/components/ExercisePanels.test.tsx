@@ -36,14 +36,37 @@ class AudioMock {
 }
 
 const listeningInstruction =
-  'Listen for the TH sound. The word is thin. Tap the picture that matches the TH sound.'
+  'Listen carefully. TH_THIN_MODEL. Tap the matching picture.'
 
-const listeningPraise = "Great listening! That's the TH sound."
+const listeningPraise = 'Great listening. You picked TH_THIN_MODEL.'
+const listeningRetry = "Let's listen again. TH_THIN_MODEL. F_FIN_MODEL."
+const secondListeningInstruction = 'Listen carefully. TH_THORN_MODEL. Tap the matching picture.'
+
+const defaultMatchMedia = window.matchMedia
+
+function setMatchMediaForSorting(isMobileFallback: boolean) {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: (query: string) => ({
+      matches: isMobileFallback
+        ? query === '(pointer: coarse)' || query === '(max-width: 640px)'
+        : false,
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }),
+  })
+}
 
 describe('Exercise panels', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
     vi.mocked(api.synthesizeSpeech).mockResolvedValue('dGVzdA==')
+    setMatchMediaForSorting(false)
 
     Object.defineProperty(globalThis, 'Audio', {
       writable: true,
@@ -95,7 +118,7 @@ describe('Exercise panels', () => {
     deferredSpeech.resolve()
 
     await waitFor(() => {
-      expect(screen.getByText('Tap the picture that matches the sound.')).toBeTruthy()
+      expect(screen.getByText('Tap the picture that matches the word.')).toBeTruthy()
     })
 
     fireEvent.click(screen.getByText('thin'))
@@ -141,7 +164,7 @@ describe('Exercise panels', () => {
       1,
       listeningInstruction
     )
-    expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(2, 'Try again. Listen carefully.')
+    expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(2, listeningRetry)
     expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(
       3,
       listeningInstruction
@@ -191,7 +214,7 @@ describe('Exercise panels', () => {
     expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(2, listeningPraise)
     expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(
       3,
-      'Listen for the TH sound. The word is thorn. Tap the picture that matches the TH sound.'
+      secondListeningInstruction
     )
     expect(screen.queryByRole('button', { name: 'Next pair' })).toBeNull()
   })
@@ -216,7 +239,7 @@ describe('Exercise panels', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('Tap the picture that matches the sound.')).toBeTruthy()
+      expect(screen.getByText('Tap the picture that matches the word.')).toBeTruthy()
     })
 
     expect(screen.getByRole('button', { name: 'Skip pair' })).toBeTruthy()
@@ -293,7 +316,7 @@ describe('Exercise panels', () => {
     await waitFor(() => {
       expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(
         2,
-        'Listen for the TH sound. The word is thorn. Tap the picture that matches the TH sound.'
+        secondListeningInstruction
       )
     })
 
@@ -304,7 +327,7 @@ describe('Exercise panels', () => {
     secondInstruction.resolve()
 
     await waitFor(() => {
-      expect(screen.getByText('Tap the picture that matches the sound.')).toBeTruthy()
+      expect(screen.getByText('Tap the picture that matches the word.')).toBeTruthy()
     })
 
     expect(screen.getByRole('button', { name: 'Skip pair' })).toBeTruthy()
@@ -375,7 +398,7 @@ describe('Exercise panels', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText('Tap the picture that matches the sound.')).toBeTruthy()
+      expect(screen.getByText('Tap the picture that matches the word.')).toBeTruthy()
     })
 
     for (let turn = 1; turn <= 12; turn += 1) {
@@ -389,7 +412,7 @@ describe('Exercise panels', () => {
         expect(handleSpeakExerciseText).toHaveBeenLastCalledWith(listeningInstruction)
 
         await waitFor(() => {
-          expect(screen.getByText('Tap the picture that matches the sound.')).toBeTruthy()
+          expect(screen.getByText('Tap the picture that matches the word.')).toBeTruthy()
         })
 
         continue
@@ -481,7 +504,7 @@ describe('Exercise panels', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('Tap the picture that matches the sound.')).toBeTruthy()
+      expect(screen.getByText('Tap the picture that matches the word.')).toBeTruthy()
     })
 
     expect(screen.queryByRole('button', { name: /start recording/i })).toBeNull()
@@ -490,23 +513,73 @@ describe('Exercise panels', () => {
     expect(screen.getByText('Listen for the clue, then tap the matching picture.')).toBeTruthy()
   })
 
-  it('sends a sorting message when a card moves into a sound home', () => {
+  it('uses the mobile tap-bin fallback without defaulting cards into TH', async () => {
     const handleSendMessage = vi.fn()
+    const handleSpeakExerciseText = vi.fn().mockResolvedValue(undefined)
+
+    setMatchMediaForSorting(true)
 
     render(
       <SilentSortingPanel
+        readyToStart
         metadata={{
           targetSound: 'th',
           errorSound: 'f',
-          targetWords: ['thin'],
+          targetWords: ['thin', 'fin'],
+          imageAssets: [
+            'object-cards/th/th-initial-thin.webp',
+            'object-cards/f/f-initial-fin.webp',
+          ],
         }}
         onSendMessage={handleSendMessage}
+        onSpeakExerciseText={handleSpeakExerciseText}
       />,
     )
 
     fireEvent.click(screen.getByText('thin'))
 
-    expect(handleSendMessage).toHaveBeenCalledWith('I sorted thin into the TH home.')
+    expect(handleSendMessage).not.toHaveBeenCalled()
+    expect(screen.getByText('Choose a sound home first, then tap the card.')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'TH home' }))
+    fireEvent.click(screen.getByText('thin'))
+
+    expect(handleSendMessage).toHaveBeenCalledWith('I sorted thin into the thin sound home.')
+    expect(screen.getByText('thin goes in the TH home.')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hear TH' }))
+
+    await waitFor(() => {
+      expect(handleSpeakExerciseText).toHaveBeenCalledWith('TH_THIN_MODEL.')
+    })
+  })
+
+  it('keeps an incorrect silent-sorting move in retry state instead of defaulting into TH', () => {
+    const handleSendMessage = vi.fn()
+
+    setMatchMediaForSorting(true)
+
+    render(
+      <SilentSortingPanel
+        readyToStart
+        metadata={{
+          targetSound: 'th',
+          errorSound: 'f',
+          targetWords: ['thin', 'fin'],
+          imageAssets: [
+            'object-cards/th/th-initial-thin.webp',
+            'object-cards/f/f-initial-fin.webp',
+          ],
+        }}
+        onSendMessage={handleSendMessage}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'F home' }))
+    fireEvent.click(screen.getByText('thin'))
+
+    expect(handleSendMessage).toHaveBeenCalledWith('I tried to sort thin into the fin sound home.')
+    expect(screen.getByText('Try again. thin does not go in the F home.')).toBeTruthy()
   })
 
   it('reports the active blend and sends a blend selection message from the vowel blending panel', () => {

@@ -247,7 +247,9 @@ export function SessionScreen({
       scenarioName={scenario?.name}
       metadata={exerciseMetadata}
       audience={isChildMode ? 'child' : 'therapist'}
+      readyToStart={connected && introComplete && !sessionFinished}
       onSendMessage={onSendExerciseMessage}
+      onSpeakExerciseText={onSpeakExerciseText}
     />
   ) : isSoundIsolation ? (
     <SoundIsolationPanel

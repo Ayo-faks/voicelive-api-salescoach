@@ -109,6 +109,10 @@ param azureCommunicationServicesSenderDisplayName string = 'Wulo'
 @description('Public application URL used in invitation emails. Defaults to the active custom domain or Container App host.')
 param publicAppUrl string = ''
 
+@secure()
+@description('Optional SAS-backed custom lexicon URL for Azure Speech and Voice Live pronunciation control.')
+param customLexiconUrl string = ''
+
 @description('Id of the user or app to assign application roles')
 param principalId string
 
@@ -151,6 +155,7 @@ param openAiModelDeployments array = [
     name: gptDeploymentName
     model: gptModelName
     version: gptModelVersion
+    raiPolicyName: 'Microsoft.DefaultV2'
     sku: {
       name: 'Standard'
       capacity: 10
@@ -159,6 +164,8 @@ param openAiModelDeployments array = [
   {
     name: 'text-embedding-ada-002'
     model: 'text-embedding-ada-002'
+    version: '2'
+    raiPolicyName: 'Microsoft.DefaultV2'
     sku: {
       name: 'Standard'
       capacity: 10
@@ -304,10 +311,19 @@ resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2023-12-01-pr
   properties: {
     administratorLogin: postgresAdminUsername
     administratorLoginPassword: postgresAdminPassword
+    authConfig: {
+      activeDirectoryAuth: 'Disabled'
+      passwordAuth: 'Enabled'
+    }
     version: '16'
     storage: {
       storageSizeGB: 32
       autoGrow: 'Enabled'
+      iops: 120
+      tier: 'P4'
+    }
+    dataEncryption: {
+      type: 'SystemManaged'
     }
     backup: {
       backupRetentionDays: 7
@@ -503,6 +519,14 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
                 value: resolvedAcsConnectionString
               }
             ]
+          : [],
+        !empty(customLexiconUrl)
+          ? [
+              {
+                name: 'azure-custom-lexicon-url'
+                value: customLexiconUrl
+              }
+            ]
           : []
       )
     }
@@ -627,6 +651,14 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
               value: azureCommunicationServicesSenderDisplayName
             }
           ],
+          !empty(customLexiconUrl)
+            ? [
+                {
+                  name: 'AZURE_CUSTOM_LEXICON_URL'
+                  secretRef: 'azure-custom-lexicon-url'
+                }
+              ]
+            : [],
           enablePostgresPersistence
             ? [
                 {

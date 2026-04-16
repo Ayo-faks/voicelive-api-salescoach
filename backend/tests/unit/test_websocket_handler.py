@@ -162,6 +162,7 @@ class TestVoiceProxyHandler:
         mock_config.get.side_effect = lambda key, default=None: {
             "azure_voice_name": "en-US-TestVoice",
             "azure_voice_type": "azure-standard",
+            "azure_custom_lexicon_url": "",
             "azure_avatar_character": "meg",
             "azure_avatar_style": "casual",
         }.get(key, default)
@@ -174,11 +175,28 @@ class TestVoiceProxyHandler:
         assert "voice" in session
 
     @patch("src.services.websocket_handler.config")
+    def test_build_session_config_includes_custom_lexicon_url_when_configured(self, mock_config):
+        """Test session voice config carries the custom lexicon URL when enabled."""
+        mock_config.get.side_effect = lambda key, default=None: {
+            "azure_voice_name": "en-US-TestVoice",
+            "azure_voice_type": "azure-standard",
+            "azure_custom_lexicon_url": "https://example.com/r-drill-lexicon.xml",
+            "azure_avatar_character": "meg",
+            "azure_avatar_style": "casual",
+        }.get(key, default)
+
+        handler = VoiceProxyHandler(Mock())
+        session = handler._build_session_config(None)
+
+        assert session["voice"]["custom_lexicon_url"] == "https://example.com/r-drill-lexicon.xml"
+
+    @patch("src.services.websocket_handler.config")
     def test_build_session_config_with_local_agent(self, mock_config):
         """Test building session config with local agent configuration."""
         mock_config.get.side_effect = lambda key, default=None: {
             "azure_voice_name": "en-US-TestVoice",
             "azure_voice_type": "azure-standard",
+            "azure_custom_lexicon_url": "",
             "azure_avatar_character": "meg",
             "azure_avatar_style": "casual",
         }.get(key, default)
@@ -203,6 +221,7 @@ class TestVoiceProxyHandler:
         mock_config.get.side_effect = lambda key, default=None: {
             "azure_voice_name": "en-US-TestVoice",
             "azure_voice_type": "azure-standard",
+            "azure_custom_lexicon_url": "",
             "azure_avatar_character": "meg",
             "azure_avatar_style": "casual",
         }.get(key, default)
@@ -234,6 +253,7 @@ class TestVoiceProxyHandler:
         mock_config.get.side_effect = lambda key, default=None: {
             "azure_voice_name": "en-US-TestVoice",
             "azure_voice_type": "azure-standard",
+            "azure_custom_lexicon_url": "",
             "azure_avatar_character": "meg",
             "azure_avatar_style": "casual",
         }.get(key, default)

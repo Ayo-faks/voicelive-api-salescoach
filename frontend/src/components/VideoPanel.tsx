@@ -285,6 +285,7 @@ interface Props {
   onToggleRecording?: () => void | Promise<void>
   canTalk?: boolean
   audience?: 'therapist' | 'child'
+  micRequired?: boolean
   showMicDock?: boolean
 }
 
@@ -314,6 +315,7 @@ export function VideoPanel({
   onToggleRecording,
   canTalk = false,
   audience = 'child',
+  micRequired = true,
   showMicDock = true,
 }: Props) {
   const styles = useStyles()
@@ -339,8 +341,12 @@ export function VideoPanel({
   const promptText =
     scenarioDescription ||
     (audience === 'therapist'
-      ? `Review ${exerciseLabel} and use the dock microphone when ${childLabel} is ready.`
-      : `We are going to practise ${exerciseLabel} together. Tap to talk when you are ready.`)
+      ? micRequired
+        ? `Review ${exerciseLabel} and use the dock microphone when ${childLabel} is ready.`
+        : `Review ${exerciseLabel} and listen for the buddy's clue. This turn is tap-only.`
+      : micRequired
+        ? `We are going to practise ${exerciseLabel} together. Tap to talk when you are ready.`
+        : `We are going to practise ${exerciseLabel} together. Listen first, then tap the matching picture.`)
   const statusLabel =
     sessionFinished && audience === 'child'
       ? `${avatarName} has wrapped up ${childLabel}'s practice.`
@@ -357,6 +363,8 @@ export function VideoPanel({
       ? 'Practice finished'
     : processing && audience === 'child'
       ? 'Checking your try...'
+    : !micRequired
+      ? 'Tap-only listening'
     : !introComplete
       ? audience === 'therapist'
         ? 'Welcome in progress'
@@ -444,12 +452,20 @@ export function VideoPanel({
               <Text className={styles.introText}>
                 {introPending
                   ? audience === 'therapist'
-                    ? 'Listen for the opening welcome. The microphone will unlock as soon as it finishes.'
-                    : 'Listen for the welcome and watch for the microphone to unlock.'
+                    ? micRequired
+                      ? 'Listen for the opening welcome. The microphone will unlock as soon as it finishes.'
+                      : 'Listen for the opening welcome. The listening clue will start right after it.'
+                    : micRequired
+                      ? 'Listen for the welcome and watch for the microphone to unlock.'
+                      : 'Listen for the welcome. The first clue starts right after it.'
                   : audience === 'therapist'
-                    ? 'Keep the session moving and open the dock microphone when the child is ready.'
+                    ? micRequired
+                      ? 'Keep the session moving and open the dock microphone when the child is ready.'
+                      : 'The listening turn is ready. The child can tap a picture as soon as the clue plays.'
                     : introComplete
-                    ? 'The session is ready. Tap the microphone when you want to talk.'
+                    ? micRequired
+                      ? 'The session is ready. Tap the microphone when you want to talk.'
+                      : 'The listening turn is ready. Listen for the clue, then tap a picture.'
                     : 'Your buddy is getting set up for a calm, friendly practice turn.'}
               </Text>
             </div>
@@ -461,25 +477,27 @@ export function VideoPanel({
           </div>
         ) : null}
 
-        <div className={styles.micDock}>
-          <button
-            type="button"
-            aria-label={recording ? 'Stop recording' : 'Start recording'}
-            className={mergeClasses(
-              styles.micButton,
-              recording && styles.micButtonActive
-            )}
-            onClick={onToggleRecording}
-            disabled={!canTalk || !onToggleRecording}
-          >
-            {recording ? (
-              <XMarkIcon className={styles.micIcon} />
-            ) : (
-              <MicrophoneIcon className={styles.micIcon} />
-            )}
-          </button>
-          <Text className={styles.micLabel}>{micLabel}</Text>
-        </div>
+        {showMicDock ? (
+          <div className={styles.micDock}>
+            <button
+              type="button"
+              aria-label={recording ? 'Stop recording' : 'Start recording'}
+              className={mergeClasses(
+                styles.micButton,
+                recording && styles.micButtonActive
+              )}
+              onClick={onToggleRecording}
+              disabled={!canTalk || !onToggleRecording}
+            >
+              {recording ? (
+                <XMarkIcon className={styles.micIcon} />
+              ) : (
+                <MicrophoneIcon className={styles.micIcon} />
+              )}
+            </button>
+            <Text className={styles.micLabel}>{micLabel}</Text>
+          </div>
+        ) : null}
       </div>
     </Card>
   )

@@ -33,6 +33,7 @@ from src.services.email_service import AzureCommunicationEmailService, Invitatio
 from src.services.institutional_memory_service import InstitutionalMemoryService
 from src.services.managers import AgentManager, ScenarioManager
 from src.services.planning_service import PracticePlanningService
+from src.services.report_service import ProgressReportService
 from src.services.recommendation_service import RecommendationService
 from src.services.storage_factory import create_storage_service
 from src.services.telemetry import PilotTelemetryService
@@ -124,8 +125,15 @@ API_CHILD_MEMORY_ITEMS_ENDPOINT = "/api/children/<child_id>/memory/items"
 API_CHILD_MEMORY_PROPOSALS_ENDPOINT = "/api/children/<child_id>/memory/proposals"
 API_INSTITUTIONAL_MEMORY_INSIGHTS_ENDPOINT = "/api/institutional-memory/insights"
 API_CHILD_RECOMMENDATIONS_ENDPOINT = "/api/children/<child_id>/recommendations"
+API_CHILD_REPORTS_ENDPOINT = "/api/children/<child_id>/reports"
 API_MEMORY_EVIDENCE_ENDPOINT = "/api/memory/<subject_type>/<subject_id>/evidence"
 API_RECOMMENDATION_DETAIL_ENDPOINT = "/api/recommendations/<recommendation_id>"
+API_REPORT_DETAIL_ENDPOINT = "/api/reports/<report_id>"
+API_REPORT_EXPORT_ENDPOINT = "/api/reports/<report_id>/export"
+API_REPORT_UPDATE_ENDPOINT = "/api/reports/<report_id>/update"
+API_REPORT_APPROVE_ENDPOINT = "/api/reports/<report_id>/approve"
+API_REPORT_SIGN_ENDPOINT = "/api/reports/<report_id>/sign"
+API_REPORT_ARCHIVE_ENDPOINT = "/api/reports/<report_id>/archive"
 API_SESSION_DETAIL_ENDPOINT = "/api/sessions/<session_id>"
 API_SESSION_FEEDBACK_ENDPOINT = "/api/sessions/<session_id>/feedback"
 API_PLANS_ENDPOINT = "/api/plans"
@@ -152,6 +160,7 @@ USER_NOT_FOUND = "User not found"
 INVALID_ROLE = "Role must be 'therapist', 'parent', or 'admin'"
 INVALID_FEEDBACK_RATING = "Feedback rating must be 'up' or 'down'"
 PLAN_NOT_FOUND = "Practice plan not found"
+REPORT_NOT_FOUND = "Progress report not found"
 PLAN_MESSAGE_REQUIRED = "message is required"
 PLANNER_SERVICE_UNAVAILABLE = "Planner service unavailable"
 MEMORY_PROPOSAL_NOT_FOUND = "Child memory proposal not found"
@@ -236,6 +245,7 @@ planning_service = None
 child_memory_service = None
 institutional_memory_service = None
 recommendation_service = None
+report_service = None
 email_service = None
 planner_startup_readiness: Dict[str, Any] = {}
 
@@ -247,6 +257,7 @@ def initialize_runtime_services() -> None:
     global child_memory_service
     global institutional_memory_service
     global recommendation_service
+    global report_service
     global email_service
     global planner_startup_readiness
 
@@ -260,6 +271,7 @@ def initialize_runtime_services() -> None:
         child_memory_service,
         institutional_memory_service,
     )
+    report_service = ProgressReportService(storage_service)
     email_service = AzureCommunicationEmailService.from_config(config.as_dict)
     planner_startup_readiness = planning_service.get_readiness(force_refresh=True)
     if not planner_startup_readiness.get("ready"):
@@ -585,7 +597,17 @@ def _rate_limit_for_request() -> Optional[tuple[int, int]]:
     window = int(config.get("rate_limit_default_window_seconds", 60))
     if rule == API_ANALYZE_ENDPOINT:
         return int(config.get("rate_limit_analyze_limit", 30)), window
-    if rule in {API_CHILD_PLANS_ENDPOINT, API_PLANS_ENDPOINT, API_PLAN_MESSAGES_ENDPOINT, API_PLAN_APPROVE_ENDPOINT}:
+    if rule in {
+        API_CHILD_PLANS_ENDPOINT,
+        API_CHILD_REPORTS_ENDPOINT,
+        API_PLANS_ENDPOINT,
+        API_PLAN_MESSAGES_ENDPOINT,
+        API_PLAN_APPROVE_ENDPOINT,
+        API_REPORT_UPDATE_ENDPOINT,
+        API_REPORT_APPROVE_ENDPOINT,
+        API_REPORT_SIGN_ENDPOINT,
+        API_REPORT_ARCHIVE_ENDPOINT,
+    }:
         return int(config.get("rate_limit_plans_limit", 20)), window
     if rule in {
         API_INVITATIONS_ENDPOINT,
@@ -2357,6 +2379,340 @@ def get_recommendation_detail(recommendation_id: str):
         child_id=str(detail.get("child_id") or ""),
     )
     return jsonify(detail)
+
+
+@app.route(API_CHILD_REPORTS_ENDPOINT, methods=["GET", "POST"])
+def child_progress_reports(child_id: str):
+    """List or create therapist-facing progress reports for a child."""
+    allowed_roles = {ROLE_THERAPIST, ROLE_ADMIN}
+    allowed_relationships = ["therapist"]
+
+    if request.method == "POST":
+        user, guard_response = _require_child_access(
+            child_id,
+            allowed_roles=allowed_roles,
+            allowed_relationships=allowed_relationships,
+        )
+        if guard_response is not None:
+            return guard_response
+
+        data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+        included_session_ids = data.get("included_session_ids")
+        if included_session_ids is not None and not isinstance(included_session_ids, list):
+            return jsonify({"error": "included_session_ids must be a list"}), HTTP_BAD_REQUEST
+        redaction_overrides = data.get("redaction_overrides")
+        if redaction_overrides is not None and not isinstance(redaction_overrides, dict):
+            return jsonify({"error": "redaction_overrides must be an object"}), HTTP_BAD_REQUEST
+
+        try:
+            report = report_service.create_report(
+                child_id=child_id,
+                created_by_user_id=str(cast(Dict[str, Any], user).get("id")),
+                audience=str(data.get("audience") or "therapist"),
+                title=str(data.get("title") or "").strip() or None,
+                report_type=str(data.get("report_type") or "progress_summary").strip() or "progress_summary",
+                period_start=str(data.get("period_start") or "").strip() or None,
+                period_end=str(data.get("period_end") or "").strip() or None,
+                included_session_ids=cast(Optional[List[str]], included_session_ids),
+                summary_text=str(data.get("summary_text") or "").strip() or None,
+                redaction_overrides=cast(Optional[Dict[str, Any]], redaction_overrides),
+            )
+        except ValueError as error:
+            message = str(error)
+            status_code = HTTP_NOT_FOUND if "not found" in message.lower() else HTTP_BAD_REQUEST
+            return jsonify({"error": message}), status_code
+
+        telemetry_service.track_event(
+            "progress_report_created",
+            properties={
+                "child_id": child_id,
+                "report_id": report["id"],
+                "audience": report["audience"],
+            },
+        )
+        _log_audit_event(
+            user_id=str(cast(Dict[str, Any], user).get("id")),
+            action="report.create",
+            resource_type="progress_report",
+            resource_id=str(report.get("id") or ""),
+            child_id=child_id,
+        )
+        return jsonify(report), HTTP_CREATED
+
+    user, guard_response = _require_child_access(
+        child_id,
+        allowed_roles=allowed_roles,
+        allowed_relationships=allowed_relationships,
+    )
+    if guard_response is not None:
+        return guard_response
+
+    try:
+        limit = max(1, min(50, int(request.args.get("limit") or 20)))
+    except (TypeError, ValueError):
+        return jsonify({"error": "limit must be a number between 1 and 50"}), HTTP_BAD_REQUEST
+
+    try:
+        reports = report_service.list_reports(
+            child_id,
+            status=str(request.args.get("status") or "").strip() or None,
+            audience=str(request.args.get("audience") or "").strip() or None,
+            limit=limit,
+        )
+    except ValueError as error:
+        return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="report.list",
+        resource_type="progress_report_collection",
+        resource_id=child_id,
+        child_id=child_id,
+        metadata={"count": len(reports)},
+    )
+    return jsonify(reports)
+
+
+@app.route(API_REPORT_DETAIL_ENDPOINT)
+def get_progress_report(report_id: str):
+    """Return one saved progress report."""
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
+    try:
+        report = report_service.get_report(report_id)
+    except ValueError:
+        return jsonify({"error": REPORT_NOT_FOUND}), HTTP_NOT_FOUND
+
+    _, child_guard = _require_child_access(
+        str(report.get("child_id") or ""),
+        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+        allowed_relationships=["therapist"],
+    )
+    if child_guard is not None:
+        return child_guard
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="report.read",
+        resource_type="progress_report",
+        resource_id=report_id,
+        child_id=str(report.get("child_id") or ""),
+    )
+    return jsonify(report)
+
+
+@app.route(API_REPORT_EXPORT_ENDPOINT)
+def export_progress_report(report_id: str):
+    """Render one saved progress report as HTML or PDF."""
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
+    try:
+        report = report_service.get_report(report_id)
+    except ValueError:
+        return jsonify({"error": REPORT_NOT_FOUND}), HTTP_NOT_FOUND
+
+    _, child_guard = _require_child_access(
+        str(report.get("child_id") or ""),
+        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+        allowed_relationships=["therapist"],
+    )
+    if child_guard is not None:
+        return child_guard
+
+    export_format = str(request.args.get("format") or "html").strip().lower()
+    if export_format not in {"html", "pdf"}:
+        return jsonify({"error": "format must be html or pdf"}), HTTP_BAD_REQUEST
+
+    download_requested = str(request.args.get("download") or "").strip().lower() in {"1", "true", "yes"}
+    disposition = "attachment" if download_requested else "inline"
+
+    try:
+        if export_format == "pdf":
+            document = report_service.render_report_pdf(report_id)
+            response = app.response_class(document, mimetype="application/pdf")
+        else:
+            document = report_service.render_report_html(report_id)
+            response = app.response_class(document, mimetype="text/html")
+    except RuntimeError as error:
+        return jsonify({"error": str(error)}), 503
+
+    response.headers["Content-Disposition"] = f'{disposition}; filename="progress-report.{export_format}"'
+    response.headers["Cache-Control"] = "no-store"
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="report.export",
+        resource_type="progress_report",
+        resource_id=report_id,
+        child_id=str(report.get("child_id") or ""),
+        metadata={"format": export_format, "download": download_requested},
+    )
+    return response
+
+
+@app.route(API_REPORT_UPDATE_ENDPOINT, methods=["POST"])
+def update_progress_report(report_id: str):
+    """Update editable draft report fields."""
+    existing_report = storage_service.get_progress_report(report_id)
+    if existing_report is None:
+        return jsonify({"error": REPORT_NOT_FOUND}), HTTP_NOT_FOUND
+
+    user, guard_response = _require_child_access(
+        str(existing_report.get("child_id") or ""),
+        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+        allowed_relationships=["therapist"],
+    )
+    if guard_response is not None:
+        return guard_response
+
+    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+    sections = data.get("sections")
+    if sections is not None and not isinstance(sections, list):
+        return jsonify({"error": "sections must be a list"}), HTTP_BAD_REQUEST
+    included_session_ids = data.get("included_session_ids")
+    if included_session_ids is not None and not isinstance(included_session_ids, list):
+        return jsonify({"error": "included_session_ids must be a list"}), HTTP_BAD_REQUEST
+    redaction_overrides = data.get("redaction_overrides")
+    if redaction_overrides is not None and not isinstance(redaction_overrides, dict):
+        return jsonify({"error": "redaction_overrides must be an object"}), HTTP_BAD_REQUEST
+
+    try:
+        report = report_service.update_report(
+            report_id,
+            audience=str(data.get("audience") or "").strip() or None,
+            title=str(data.get("title") or "").strip() or None,
+            period_start=str(data.get("period_start") or "").strip() or None,
+            period_end=str(data.get("period_end") or "").strip() or None,
+            included_session_ids=cast(Optional[List[str]], included_session_ids),
+            summary_text=str(data.get("summary_text") or "").strip() or None,
+            sections=cast(Optional[List[Dict[str, Any]]], sections),
+            redaction_overrides=cast(Optional[Dict[str, Any]], redaction_overrides),
+        )
+    except ValueError as error:
+        message = str(error)
+        status_code = HTTP_NOT_FOUND if "not found" in message.lower() else HTTP_BAD_REQUEST
+        return jsonify({"error": message}), status_code
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="report.update",
+        resource_type="progress_report",
+        resource_id=report_id,
+        child_id=str(report.get("child_id") or ""),
+    )
+    return jsonify(report)
+
+
+@app.route(API_REPORT_APPROVE_ENDPOINT, methods=["POST"])
+def approve_progress_report(report_id: str):
+    """Approve a draft report for release."""
+    existing_report = storage_service.get_progress_report(report_id)
+    if existing_report is None:
+        return jsonify({"error": REPORT_NOT_FOUND}), HTTP_NOT_FOUND
+
+    user, guard_response = _require_child_access(
+        str(existing_report.get("child_id") or ""),
+        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+        allowed_relationships=["therapist"],
+    )
+    if guard_response is not None:
+        return guard_response
+
+    try:
+        report = report_service.approve_report(report_id)
+    except ValueError as error:
+        message = str(error)
+        status_code = HTTP_NOT_FOUND if "not found" in message.lower() else HTTP_BAD_REQUEST
+        return jsonify({"error": message}), status_code
+
+    telemetry_service.track_event(
+        "progress_report_approved",
+        properties={"report_id": report_id, "child_id": report["child_id"]},
+    )
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="report.approve",
+        resource_type="progress_report",
+        resource_id=report_id,
+        child_id=str(report.get("child_id") or ""),
+    )
+    return jsonify(report)
+
+
+@app.route(API_REPORT_SIGN_ENDPOINT, methods=["POST"])
+def sign_progress_report(report_id: str):
+    """Apply therapist signature metadata to an approved report."""
+    existing_report = storage_service.get_progress_report(report_id)
+    if existing_report is None:
+        return jsonify({"error": REPORT_NOT_FOUND}), HTTP_NOT_FOUND
+
+    user, guard_response = _require_child_access(
+        str(existing_report.get("child_id") or ""),
+        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+        allowed_relationships=["therapist"],
+    )
+    if guard_response is not None:
+        return guard_response
+
+    try:
+        report = report_service.sign_report(report_id, str(cast(Dict[str, Any], user).get("id")))
+    except ValueError as error:
+        message = str(error)
+        status_code = HTTP_NOT_FOUND if "not found" in message.lower() else HTTP_BAD_REQUEST
+        return jsonify({"error": message}), status_code
+
+    telemetry_service.track_event(
+        "progress_report_signed",
+        properties={"report_id": report_id, "child_id": report["child_id"]},
+    )
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="report.sign",
+        resource_type="progress_report",
+        resource_id=report_id,
+        child_id=str(report.get("child_id") or ""),
+    )
+    return jsonify(report)
+
+
+@app.route(API_REPORT_ARCHIVE_ENDPOINT, methods=["POST"])
+def archive_progress_report(report_id: str):
+    """Archive a completed report."""
+    existing_report = storage_service.get_progress_report(report_id)
+    if existing_report is None:
+        return jsonify({"error": REPORT_NOT_FOUND}), HTTP_NOT_FOUND
+
+    user, guard_response = _require_child_access(
+        str(existing_report.get("child_id") or ""),
+        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+        allowed_relationships=["therapist"],
+    )
+    if guard_response is not None:
+        return guard_response
+
+    try:
+        report = report_service.archive_report(report_id)
+    except ValueError as error:
+        message = str(error)
+        status_code = HTTP_NOT_FOUND if "not found" in message.lower() else HTTP_BAD_REQUEST
+        return jsonify({"error": message}), status_code
+
+    telemetry_service.track_event(
+        "progress_report_archived",
+        properties={"report_id": report_id, "child_id": report["child_id"]},
+    )
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="report.archive",
+        resource_type="progress_report",
+        resource_id=report_id,
+        child_id=str(report.get("child_id") or ""),
+    )
+    return jsonify(report)
 
 
 @app.route(API_MEMORY_EVIDENCE_ENDPOINT)

@@ -1,6 +1,6 @@
 # Wulo Therapist User Guide
-**Version:** 1.0
-**Last Updated:** April 6, 2026
+**Version:** 0.7.0
+**Last Updated:** April 16, 2026
 **Platform:** Web application (desktop and tablet supported)
 
 _Image removed: Wulo therapist workspace overview._
@@ -42,6 +42,7 @@ _Image removed: Wulo therapist workspace overview._
     5. [Memory that informed this plan](#105-memory-that-informed-this-plan)
 11. [Charts and Dashboard Interpretation](#11-charts-and-dashboard-interpretation)
 12. [Session History and Review Workflow](#12-session-history-and-review-workflow)
+   1. [Progress reports and export sharing](#121-progress-reports-and-export-sharing)
 13. [Custom Exercises and Local Management](#13-custom-exercises-and-local-management)
 14. [Workspace Settings and Everyday Checks](#14-workspace-settings-and-everyday-checks)
 15. [Best-Practice Tips for Therapists](#15-best-practice-tips-for-therapists)
@@ -174,14 +175,15 @@ _Image removed: Therapist home surface._
 
 ### 3.2 Dashboard
 
-The dashboard is the deep review workspace for one active child. This is where therapists inspect saved sessions, child memory, recommendations, and plans in one place.
+The dashboard is the deep review workspace for one active child. This is where therapists inspect saved sessions, child memory, recommendations, plans, and shareable reports in one place.
 
-The dashboard has four main tabs:
+The dashboard has five main tabs:
 
-- `Session detail`
-- `Memory`
-- `Recommendations`
-- `Plan`
+- `Session detail`: per-session scores, articulation and engagement analysis, pronunciation review, highlights, next steps, therapist notes, and transcript turns or excerpts when they are available.
+- `Memory`: approved durable memory and pending proposals, including blockers, effective cues, preferences, and other evidence-backed observations that should carry across sessions.
+- `Recommendations`: saved recommendation runs with explainable rationale, ranked options, supporting memory and sessions, and evidence that could change the ranking.
+- `Reports`: audience-specific progress report drafts, explicit session-window controls, shared-export redaction settings, and HTML or PDF export actions.
+- `Plan`: next-session structure with activities, timing, therapist cues, success markers, carryover work, memory provenance, and the latest planner exchange.
 
 It also includes a child list, session history, summary cards at the top, and review charts that help you understand the child’s recent work over time.
 
@@ -191,7 +193,8 @@ Use the dashboard when you want to:
 2. Review evidence in more detail.
 3. Approve or reject memory proposals.
 4. Inspect why an exercise was recommended.
-5. Generate, refine, or approve a next-session plan.
+5. Generate, review, and share a progress report for parent or school communication.
+6. Generate, refine, or approve a next-session plan.
 
 ### 3.3 Workspace
 
@@ -348,6 +351,8 @@ Saved sessions are reviewed from the dashboard. Open the active child, then choo
 
 The Session detail tab includes several layers of review.
 
+In practical terms, this is the per-session review surface. It gives you a scored readout of one saved session: overall result, articulation and engagement detail, pronunciation review, highlights, next steps, therapist notes, and the saved transcript when Wulo has one.
+
 #### Summary strip at the top of the dashboard
 
 At the top of the dashboard you will usually see a selected-child summary and, when enough data exists, trend or sound summaries. This gives context before you open an individual session.
@@ -389,7 +394,7 @@ This area is useful for preparing your clinical summary or next-session focus.
 
 #### Transcript access
 
-The transcript area shows the saved conversation. This can help when you want to check how the child responded, what the buddy asked, or whether a moment in the session should be interpreted with more caution.
+The transcript area shows the saved conversation. When Wulo can split the transcript into turns, it labels user and assistant turns; otherwise it shows the saved transcript as one block. This can help when you want to check how the child responded, what the buddy asked, or whether a moment in the session should be interpreted with more caution.
 
 #### Therapist feedback markers
 
@@ -424,6 +429,8 @@ Wulo separates child memory into two states:
 | Approved child memory | Reviewed information that a therapist has accepted as part of the child’s working picture |
 | Pending memory proposals | Proposed updates that are still waiting for therapist review |
 
+In everyday therapist terms, the Memory tab is where durable strengths, blockers, effective cues, preferences, and other evidence-backed observations live once they have been reviewed and accepted.
+
 ### 8.1 Memory overview cards
 
 At the top of the `Memory` tab, Wulo shows three overview cards.
@@ -446,7 +453,9 @@ Approved memory is grouped into categories such as:
 - Blockers.
 - General notes.
 
-Each memory item is shown as a short statement. Where evidence links are available, you can open the source session directly from the memory item.
+Each memory item is shown as a short statement. Where available, Wulo also shows confidence and evidence links so you can open the source session directly from the memory item.
+
+This means the Memory tab is not only a list of problems. It is also where the app preserves what is working well enough to repeat, what tends to block progress, and what practical preferences should shape the next session.
 
 In practice:
 
@@ -488,6 +497,7 @@ Each proposal shows:
 - Its category.
 - Its type.
 - Confidence, where available.
+- Whether it is linked to one or more source sessions.
 - Evidence links back to source sessions.
 
 To review a proposal:
@@ -523,6 +533,8 @@ _Image removed: Child memory review tab._
 
 Wulo can generate therapist-facing exercise recommendations, but these are inspectable, evidence-linked suggestions rather than automatic decisions.
 
+In plain language, this is the place to inspect what the system thinks should come next and why.
+
 The Recommendations tab is built to answer three questions: `What does Wulo suggest next?`, `Why?`, and `What would change that answer?`
 
 ### 9.1 Recommendation overview cards
@@ -538,6 +550,8 @@ At the top of the Recommendations tab, Wulo shows:
 ### 9.2 Generating a recommendation run
 
 A recommendation run is created for the active child and saved so it can be reopened later.
+
+Recommendation generation depends on reviewed context. In the current app, Wulo needs at least one saved session and some approved child memory before it can produce a durable recommendation run.
 
 To generate recommendations:
 
@@ -585,12 +599,14 @@ For each candidate, Wulo can show:
 
 - Why it was recommended.
 - How it compares to approved memory.
-- Ranking factors.
+- Ranking factors with score contributions and reasons.
 - Supporting approved memory items.
 - Supporting sessions.
 - What evidence might change the recommendation.
 
 This matters clinically because it makes the recommendation discussable and challengeable.
+
+That explanation layer is the point: Recommendations is not only a ranking output. It is an explainable rationale for what the system currently thinks should come next for this child.
 
 A therapist can ask questions such as:
 
@@ -634,6 +650,8 @@ _Image removed: Recommendations tab._
 
 The Plan tab supports next-session planning using the selected saved session, approved child memory, and therapist input.
 
+In practical terms, the Plan tab turns review into next-session structure: a draft objective, ordered activities, estimated timing, therapist cues, success markers, carryover work, and a visible memory snapshot.
+
 ### 10.1 Plan overview cards
 
 At the top of the `Plan` tab, Wulo shows:
@@ -643,6 +661,8 @@ At the top of the `Plan` tab, Wulo shows:
 | Planner | Whether planning context is ready for this child |
 | Plan status | Whether the current plan is a draft, approved, or absent |
 | Memory inputs | How many memory items were used in the saved memory snapshot |
+
+If the `Planner` card shows `Limited`, plan generation and refinement stay unavailable until planner context is ready.
 
 ### 10.2 Generating a plan
 
@@ -655,15 +675,16 @@ To generate a plan:
 
 A generated plan can include:
 
-- Objective.
-- Focus sound.
-- Activities.
+- Objective and focus sound.
+- Ordered activities with exercise names and estimated minutes.
 - Therapist cues.
 - Success markers.
 - Carryover ideas.
 - Estimated duration.
 
 This keeps the plan practical rather than just descriptive.
+
+When a plan exists, the tab can also retain the most recent therapist-planner exchange so you can see what changed after a refinement note.
 
 ### 10.3 Refining a plan
 
@@ -703,6 +724,8 @@ This section shows:
 - When the memory snapshot was compiled.
 - Which approved memory statements informed the draft.
 - Evidence links back to source sessions where available.
+
+The snapshot is important because it preserves the approved memory that was available when the draft was created, instead of silently rewriting an older plan after memory changes later.
 
 This improves transparency. Therapists can see not only what the plan says, but what reviewed memory the planner relied on when building it.
 
@@ -816,17 +839,72 @@ A practical dashboard workflow after a session often looks like this:
 2. Check the Session detail review.
 3. Review pending memory proposals.
 4. Approve or reject what should become durable memory.
-5. Generate or inspect recommendations.
-6. Create or refine a next-session plan.
+5. Generate or inspect a progress report when you need to share an update.
+6. Generate or inspect recommendations.
+7. Create or refine a next-session plan.
 
 In day-to-day work, this often becomes a repeatable pattern:
 
 - First, use the saved session to understand what happened.
 - Next, decide what should become durable child memory.
+- Then, create or update a report draft if you need a parent or school handoff.
 - Then inspect whether the recommendation logic still fits the updated evidence.
 - Finally, turn that review into a therapist-guided next-session plan.
 
-This workflow links session evidence, reviewed memory, recommendations, and planning in one place.
+This workflow links session evidence, reviewed memory, reports, recommendations, and planning in one place.
+
+### 12.1 Progress Reports and Export Sharing
+
+The `Reports` tab is the place to turn reviewed dashboard evidence into a reusable progress-report draft for a therapist, parent, or school audience.
+
+In practical terms, the reporting flow is:
+
+1. Open the `Reports` tab.
+2. Choose the audience.
+3. Set the review-window start and end dates.
+4. Confirm exactly which saved sessions should be included.
+5. Add or revise the report title and executive summary note.
+6. Generate a new draft or save changes to the current draft.
+
+When you open an existing draft, Wulo restores the saved audience, date range, session selection, generated sections, and workflow state for that report.
+
+#### Shared-export redaction controls
+
+Parent and school drafts include a `Shared export controls` area.
+
+These controls let you hide selected parts of the shared version before previewing or downloading it:
+
+- Executive summary.
+- Overview metrics.
+- Included-session list.
+- Internal workflow metadata such as audience/status markers that are useful inside Wulo but not always needed in the shared copy.
+- Individual generated sections, such as `School participation impact` or `How to support at home`.
+
+This means you can keep a fuller working draft inside Wulo while preparing a more focused parent or school export.
+
+> Tip:
+> Use the redaction controls to remove fields that are not useful for the recipient, rather than rewriting the whole draft each time.
+
+#### Export options
+
+When a report is selected, Wulo provides four export actions:
+
+- `Open print view`: opens the current HTML export in a browser-friendly layout.
+- `Download HTML`: downloads the same HTML version.
+- `Preview PDF`: opens a server-generated PDF version.
+- `Download PDF`: downloads the server-generated PDF file directly.
+
+The HTML and PDF exports both use the current saved report settings, including the selected audience, session window, and any shared-export redactions.
+
+#### When to use therapist, parent, and school audiences
+
+Use the audience setting to shape the generated language before you start fine-tuning the shared copy:
+
+- `Therapist` keeps more clinical phrasing for internal review.
+- `Parent` focuses on strengths, current goals, and simple home support.
+- `School` focuses on school participation impact and classroom support suggestions.
+
+The audience setting changes the default generated sections, while the redaction controls let you further refine what appears in the shared export.
 
 ## 13. Custom Exercises and Local Management
 
@@ -899,6 +977,7 @@ This is especially useful when:
 - Use child memory to preserve stable clinical observations over time.
 - Review pending proposals before trusting an older recommendation run.
 - Treat recommendation output as evidence-linked support, not an instruction to obey.
+- Use parent and school report redactions to tailor shared exports without losing the fuller draft inside Wulo.
 - Use plan provenance when discussing why a session plan was chosen.
 - Flag sessions that need follow-up so later review is easier.
 - Use the home cards for quick orientation, then move into the dashboard for detailed review.

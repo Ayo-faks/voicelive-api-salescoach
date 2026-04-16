@@ -20,7 +20,18 @@ from src.services.storage import StorageService
 from src.services.storage_postgres import PostgresStorageService
 
 
-TIMESTAMP_KEYS = {"created_at", "updated_at", "approved_at", "submitted_at", "reviewed_at", "last_compiled_at"}
+TIMESTAMP_KEYS = {
+    "created_at",
+    "updated_at",
+    "approved_at",
+    "submitted_at",
+    "reviewed_at",
+    "last_compiled_at",
+    "signed_at",
+    "archived_at",
+    "consented_at",
+    "withdrawn_at",
+}
 
 
 def _find_free_port() -> int:
@@ -107,7 +118,10 @@ def postgres_service(postgres_database_url: str) -> PostgresStorageService:
 
 def _normalize_payload(value: Any, key: str | None = None) -> Any:
     if isinstance(value, dict):
-        return {child_key: _normalize_payload(child_value, child_key) for child_key, child_value in value.items()}
+        normalized = {child_key: _normalize_payload(child_value, child_key) for child_key, child_value in value.items()}
+        if {"guardian_email", "guardian_name", "consent_type"}.issubset(normalized):
+            normalized["id"] = "<generated-id>"
+        return normalized
     if isinstance(value, list):
         return [_normalize_payload(item, key) for item in value]
     if key in TIMESTAMP_KEYS and isinstance(value, str):
@@ -250,6 +264,7 @@ def _exercise_storage_backend(service: Any) -> dict[str, Any]:
         source_item_count=1,
     )
     institutional_insights = service.replace_institutional_memory_insights(
+        "user-1",
         [
             {
                 "id": "institutional-insight-parity-1",
@@ -331,6 +346,63 @@ def _exercise_storage_backend(service: Any) -> dict[str, Any]:
             }
         ],
     )
+    saved_report = service.save_progress_report(
+        {
+            "id": "report-parity-1",
+            "child_id": "child-ayo",
+            "workspace_id": None,
+            "created_by_user_id": "user-1",
+            "audience": "therapist",
+            "report_type": "progress_summary",
+            "title": "Ayo therapist report",
+            "status": "draft",
+            "period_start": "2026-04-05T00:00:00+00:00",
+            "period_end": "2026-04-05T23:59:59+00:00",
+            "included_session_ids": [saved_session["id"]],
+            "snapshot": {
+                "child_name": "Ayo",
+                "session_count": 1,
+                "focus_targets": ["r"],
+            },
+            "sections": [
+                {
+                    "key": "overview",
+                    "title": "Overview",
+                    "narrative": "Ayo continues to build /r/ confidence in structured practice.",
+                }
+            ],
+            "redaction_overrides": {},
+            "summary_text": "Ayo continues to build /r/ confidence in structured practice.",
+        }
+    )
+    updated_report = service.update_progress_report(
+        saved_report["id"],
+        {
+            "audience": "parent",
+            "title": "Ayo family update",
+            "period_start": "2026-04-05T00:00:00+00:00",
+            "period_end": "2026-04-05T23:59:59+00:00",
+            "included_session_ids": [saved_session["id"]],
+            "snapshot": {
+                "child_name": "Ayo",
+                "session_count": 1,
+                "focus_targets": ["r"],
+            },
+            "sections": [
+                {
+                    "key": "family-wins",
+                    "title": "What is going well",
+                    "bullets": ["Ayo is sustaining /r/ attempts with support."],
+                }
+            ],
+            "redaction_overrides": {},
+            "summary_text": "Ayo is sustaining /r/ attempts with support.",
+        },
+    )
+    approved_report = service.approve_progress_report(saved_report["id"])
+    signed_report = service.sign_progress_report(saved_report["id"], "user-1")
+    archived_report = service.archive_progress_report(saved_report["id"])
+    report_history = service.list_progress_reports_for_child("child-ayo")
 
     return {
         "pilot_state": service.get_pilot_state(),
@@ -358,10 +430,16 @@ def _exercise_storage_backend(service: Any) -> dict[str, Any]:
         "summary": summary,
         "summary_reload": service.get_child_memory_summary("child-ayo"),
         "institutional_insights": institutional_insights,
-        "institutional_insights_reload": service.list_institutional_memory_insights(status="active"),
+        "institutional_insights_reload": service.list_institutional_memory_insights(owner_user_id="user-1", status="active"),
         "recommendation_log": service.get_recommendation_log(recommendation_log["id"]),
         "recommendation_history": service.list_recommendation_logs_for_child("child-ayo"),
         "recommendation_candidates": recommendation_candidates,
+        "saved_report": saved_report,
+        "updated_report": updated_report,
+        "approved_report": approved_report,
+        "signed_report": signed_report,
+        "archived_report": archived_report,
+        "report_history": report_history,
     }
 
 
@@ -373,3 +451,40 @@ def test_sqlite_and_postgres_storage_match_api_visible_behavior(
     postgres_result = _normalize_payload(_exercise_storage_backend(postgres_service))
 
     assert postgres_result == sqlite_result
+
+
+def test_progress_reports_migration_creates_table_and_child_access_policy(postgres_database_url: str):
+    with psycopg.connect(postgres_database_url, autocommit=True) as connection:
+        connection.execute("DROP SCHEMA IF EXISTS public CASCADE")
+        connection.execute("CREATE SCHEMA public")
+
+    run_postgres_migrations(postgres_database_url)
+
+    with psycopg.connect(postgres_database_url) as connection:
+        table_row = connection.execute(
+            "SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE relname = 'progress_reports'"
+        ).fetchone()
+        column_rows = connection.execute(
+            "SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'progress_reports'"
+        ).fetchall()
+        policy_rows = connection.execute(
+            "SELECT policyname, cmd FROM pg_policies WHERE schemaname = 'public' AND tablename = 'progress_reports'"
+        ).fetchall()
+
+    assert table_row is not None
+    assert table_row[0] is True
+    assert table_row[1] is True
+    assert {
+        "child_id",
+        "workspace_id",
+        "created_by_user_id",
+        "audience",
+        "status",
+        "included_session_ids_json",
+        "snapshot_json",
+        "sections_json",
+        "summary_text",
+        "signed_at",
+        "archived_at",
+    }.issubset({row[0] for row in column_rows})
+    assert ("progress_reports_child_access_policy", "ALL") in policy_rows

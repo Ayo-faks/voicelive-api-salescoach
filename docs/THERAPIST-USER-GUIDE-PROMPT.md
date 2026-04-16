@@ -38,7 +38,7 @@ Use this exact opening structure:
 
 ```md
 # Wulo Therapist User Guide
-**Version:** 1.0
+**Version:** [MATCH frontend/package.json version]
 **Last Updated:** [DATE]
 **Platform:** Web application (desktop and tablet supported)
 ```
@@ -75,17 +75,16 @@ Include a short “What Wulo helps you do” list covering:
 Document the current authentication flow:
 
 - therapists can sign in with Microsoft or Google
-- newly signed-in therapists may be asked for an invite code before the therapist workspace unlocks
 - Wulo remembers the session until it expires
 - if the session expires, the user is returned to the login screen
 
 #### 2.2 Choosing a mode
 
-Explain the two available surfaces:
+Explain the two workspace modes:
 
-| Surface | Intended user | What is visible |
+| Mode | Intended user | What is visible |
 |------|---------------|-----------------|
-| Workspace view | Therapist or supervisor | Therapist home, dashboard review workspace, planning, memory review, recommendations, child and invitation management, workspace settings |
+| Therapist mode | Therapist or supervisor | Therapist home, dashboard review workspace, planning, memory review, recommendations, workspace settings |
 | Child mode | Child during a session | Simplified practice home and live session surfaces |
 
 Explain when therapists typically switch between them.
@@ -97,9 +96,6 @@ Make clear that:
 - the platform is intended for supervised practice
 - it does not replace therapist judgement
 - therapists remain responsible for interpreting results and deciding next steps
-- the therapist must acknowledge supervised-practice consent before the first child session
-- child-level parental or guardian consent is recorded before practice begins for a selected child
-- the consent flow links to the Privacy Policy, Terms of Service, and AI Transparency Notice
 
 Do not invent a therapist PIN workflow unless you can confirm it exists in the current implementation.
 
@@ -139,16 +135,11 @@ Describe the dashboard as the deep review workspace for one active child. Explai
 
 Describe the workspace/settings page as the place to:
 
-- change Workspace view versus Child mode
+- change therapist versus child mode
 - confirm the active child
 - change the active practice buddy/avatar
-- create child profiles
-- manage incoming and sent parent invitations
-- export or delete a child's stored data
-- open legal pages
 
 Explain that the active child should stay aligned across therapist home, dashboard, and workspace.
-Also mention that the sidebar footer includes a `Therapist docs` link and legal links.
 
 ### 4. Managing the Active Child
 
@@ -184,7 +175,6 @@ Explain the session flow:
 - selecting the active child
 - selecting an exercise
 - starting the session
-- completing supervised-practice acknowledgement or parental consent if prompted
 - the live AI buddy interaction
 - transcript and live session behaviour
 - how sessions finish and save
@@ -460,14 +450,9 @@ Explain the workspace/settings page clearly.
 
 Include:
 
-- switching between Workspace view and Child mode
+- switching between therapist and child mode
 - confirming the active child
 - confirming the active buddy/avatar
-- child-profile management
-- invitation management
-- data export and deletion controls
-- legal links
-- the presence of the sidebar `Therapist docs` link for quick documentation access
 - why therapists should check these before practice
 
 ### 15. Best-Practice Tips for Therapists
@@ -506,17 +491,12 @@ Include a troubleshooting table that reflects the implemented product.
 It should include at least:
 
 - session expired or login problems
-- invite code prompt after sign-in
-- session launch blocked by supervised-practice consent
-- session launch blocked by parental consent
 - planner unavailable
 - no saved sessions visible for the active child
 - no approved memory yet
 - recommendation history is empty
 - recommendation evidence looks stale
 - dashboard seems to show the wrong child
-- invitation problems
-- export or delete control failures
 - microphone or audio problems
 - avatar or session launch problems
 
@@ -584,7 +564,7 @@ The tone should be warm, professional, and encouraging — therapists are adopti
 
 ```
 # Wulo Therapist User Guide
-**Version:** 1.0  
+**Version:** [MATCH frontend/package.json version]  
 **Last Updated:** [DATE]  
 **Platform:** Web application (desktop & tablet supported)
 ```
@@ -621,34 +601,33 @@ Cover the authentication flow:
 
 #### 2.2 Choosing Your Mode
 
-After login, the mode selector appears with two options:
+After login, the **Mode Selector** screen appears with two options:
 
-| Surface | Who it's for | What you can do |
+| Mode | Who it's for | What you can do |
 |------|-------------|-----------------|
-| **Workspace view** | SLTs, clinical supervisors | Full access: exercise selection, session review, analytics dashboard, AI practice planner, child profile management, invitation management, and workspace controls |
-| **Child Mode** | Children during practice | Simplified view: exercise cards, voice interaction with the AI buddy, and session results. No therapist-management features. |
+| **Therapist Mode** | SLTs, clinical supervisors | Full access: exercise selection, session review, analytics dashboard, AI practice planner, child profile management, custom exercise authoring |
+| **Child Mode** | Children during practice | Simplified view: exercise cards, voice interaction with AI buddy, session results. No admin features. |
 
-- Explain when to use each surface: the therapist prepares the session in Workspace view, then switches to Child Mode or hands the device to the child.
+- Explain when to use each mode (therapist prepares the session in Therapist Mode, then switches to Child Mode or hands the device to the child)
 
 #### 2.3 First-Time Onboarding
 
 On first login as a therapist:
 
-1. **Invite-code access, if required** — Some new therapist accounts first land on an invite-code screen. Document this when relevant.
-2. **Onboarding checklist** — Explain the short onboarding reminder to confirm adult access, choose the child and exercise, and stay nearby.
-3. **Supervised-practice consent** — Read and acknowledge the supervised-practice consent notice:
-  - Wulo is a **practice tool**, not a diagnostic or therapeutic replacement
-  - Sessions should be supervised by a qualified therapist
-  - Legal links to privacy, terms, and AI transparency are shown during consent
-4. **Parental or guardian consent** — Explain that practice for a selected child is blocked until parental or guardian consent is recorded for that child.
+1. **Therapist PIN Setup** — Set a 4-digit PIN to secure therapist-only features. This prevents children from accidentally accessing analytics or settings.
+2. **Supervised-Practice Consent** — Read and acknowledge the supervised-practice consent notice:
+   - Wulo is a **practice tool**, not a diagnostic or therapeutic replacement
+   - Sessions should be supervised by a qualified therapist
+   - Data privacy notice regarding session recordings and analytics
+   - Check the acknowledgement box and tap "Continue"
 
-> ⚠️ Note: Do not mention a therapist PIN unless you can confirm it exists in the current implementation.
+> ⚠️ Note: Sessions cannot begin until consent is acknowledged. This is a one-time step.
 
 ---
 
 ### 3. The Therapist Dashboard
 
-Describe the main therapist workspace and home shell after selecting Workspace view:
+Describe the main Therapist Dashboard (home screen after selecting Therapist Mode):
 
 #### 3.1 Dashboard Layout
 
@@ -658,10 +637,9 @@ Describe the main therapist workspace and home shell after selecting Workspace v
 - **Sidebar Navigation** (left rail):
   - **Home** — Returns to this dashboard
   - **Dashboard** — Opens the Progress Dashboard with analytics charts
-  - **Workspace** — Opens the setup and management surface
-  - **Child Profile Selector** — Dropdown at top to switch between children when relevant
-  - **Therapist docs / Privacy / Terms / AI notice** — Footer links for help and legal references
-  - **Sign out** — Ends the session
+  - **Settings** — Audio, accessibility, and profile configuration
+  - **Child Profile Selector** — Dropdown at top to switch between children
+  - **Logout** — Ends the session
 
 #### 3.2 Navigation Tips
 

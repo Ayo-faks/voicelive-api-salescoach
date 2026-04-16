@@ -7,6 +7,7 @@ import type {
   ChildMemoryProposal,
   ChildMemorySummary,
   PlannerReadiness,
+  ProgressReport,
   PracticePlan,
   RecommendationDetail,
   RecommendationLog,
@@ -370,6 +371,59 @@ const plannerReadiness: PlannerReadiness = {
   reasons: [],
 }
 
+const progressReports: ProgressReport[] = [
+  {
+    id: 'report-1',
+    child_id: 'child-1',
+    workspace_id: 'workspace-1',
+    created_by_user_id: 'therapist-1',
+    signed_by_user_id: null,
+    audience: 'therapist',
+    report_type: 'progress_summary',
+    title: 'Amina therapist report',
+    status: 'draft',
+    period_start: '2026-03-01T10:00:00.000Z',
+    period_end: '2026-03-15T10:00:00.000Z',
+    included_session_ids: ['session-1', 'session-2', 'session-3'],
+    snapshot: {
+      child_name: 'Amina',
+      session_count: 3,
+      latest_session_at: '2026-03-15T10:00:00.000Z',
+      average_overall_score: 73,
+      average_accuracy_score: 70,
+      average_pronunciation_score: 67,
+      focus_targets: ['k', 't'],
+      memory_summary_text: 'Amina responds well to short, modeled phrases.',
+      plan_title: 'Phrase carryover plan',
+      top_recommendation_name: 'T phrase ladder',
+      top_recommendation_rationale: 'Phrase work fits the latest session.',
+    },
+    sections: [
+      {
+        key: 'overview',
+        title: 'Overview',
+        narrative: 'Amina completed three reviewed sessions this cycle.',
+        metrics: [
+          { label: 'Reviewed sessions', value: '3' },
+          { label: 'Average overall', value: '73' },
+        ],
+      },
+      {
+        key: 'clinical-focus',
+        title: 'Clinical focus',
+        bullets: ['Current focus: /k/ to /t/ carryover.', 'Phrase-level practice remains appropriate.'],
+      },
+    ],
+    redaction_overrides: {},
+    summary_text: 'Therapist draft summary.',
+    created_at: '2026-03-15T12:30:00.000Z',
+    updated_at: '2026-03-15T12:30:00.000Z',
+    approved_at: null,
+    signed_at: null,
+    archived_at: null,
+  },
+]
+
 describe('ProgressDashboard visual smoke test', () => {
   it('renders the chart-heavy therapist dashboard state', () => {
     render(
@@ -386,6 +440,8 @@ describe('ProgressDashboard visual smoke test', () => {
         sessions={sessions}
         selectedSession={selectedSession}
         selectedPlan={selectedPlan}
+        progressReports={progressReports}
+        selectedReport={progressReports[0]}
         childMemorySummary={childMemorySummary}
         childMemoryItems={childMemoryItems}
         childMemoryProposals={childMemoryProposals}
@@ -396,11 +452,14 @@ describe('ProgressDashboard visual smoke test', () => {
         loadingSessions={false}
         loadingSessionDetail={false}
         loadingPlans={false}
+        loadingReports={false}
         loadingMemory={false}
         loadingRecommendations={false}
         planSaving={false}
+        reportSaving={false}
         recommendationSaving={false}
         planError={null}
+        reportError={null}
         memoryError={null}
         recommendationError={null}
         memoryReviewPendingId={null}
@@ -408,6 +467,13 @@ describe('ProgressDashboard visual smoke test', () => {
         onSelectChild={() => {}}
         onOpenSession={() => {}}
         onOpenRecommendationDetail={() => {}}
+        onOpenReportDetail={() => {}}
+        onCreateReport={async _payload => undefined}
+        onUpdateReport={async _payload => undefined}
+        onOpenReportExport={() => {}}
+        onApproveReport={() => {}}
+        onSignReport={() => {}}
+        onArchiveReport={() => {}}
         onGenerateRecommendations={() => {}}
         onCreatePlan={() => {}}
         onRefinePlan={() => {}}
@@ -448,6 +514,13 @@ describe('ProgressDashboard visual smoke test', () => {
     expect(screen.getByText('Clinic-level institutional memory')).toBeTruthy()
     expect(screen.getByText('Reviewed pattern summary for /t/')).toBeTruthy()
     expect(screen.getAllByText('Open source session').length).toBeGreaterThan(0)
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Reports' }))
+
+    expect(screen.getByText('Audience-specific progress reports')).toBeTruthy()
+    expect(screen.getByText('Report history')).toBeTruthy()
+    expect(screen.getAllByText('Overview').length).toBeGreaterThan(0)
+    expect(screen.getByText('Clinical focus')).toBeTruthy()
 
     fireEvent.click(screen.getByRole('tab', { name: 'Plan' }))
 

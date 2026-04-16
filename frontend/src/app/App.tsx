@@ -70,7 +70,11 @@ import type {
   PilotState,
   PlannerReadiness,
   PronunciationAssessment,
+  ProgressReport,
+  ProgressReportCreateRequest,
+  ProgressReportUpdateRequest,
   PracticePlan,
+  ReportExportFormat,
   RecommendationDetail,
   RecommendationLog,
   Scenario,
@@ -126,12 +130,29 @@ type PrewarmedAgent = {
 
 const CHILD_TURN_LIMIT = 10
 const CHILD_MAX_TURNS = 16
-const THERAPIST_AUTO_SUMMARY_TURN_LIMIT = 4
+const THERAPIST_TURN_LIMIT = 12
+const THERAPIST_MAX_TURNS = 16
 const AFFIRMATIVE_FINISH_PATTERN = /\b(yes|yeah|yep|ok|okay|sure|done|finished)\b/i
 const LAUNCH_HANDOFF_DELAY_MS = 240
 const SUMMARY_HANDOFF_DELAY_MS = 1100
 const SESSION_WRAP_UP_DELAY_MS = 3200
 const LISTENING_SESSION_WRAP_UP_DELAY_MS = 5200
+
+function getInitialFinishPromptTurnLimit(isChildMode: boolean): number {
+  return isChildMode ? CHILD_TURN_LIMIT : THERAPIST_TURN_LIMIT
+}
+
+function getMaximumFinishPromptTurnLimit(isChildMode: boolean): number {
+  return isChildMode ? CHILD_MAX_TURNS : THERAPIST_MAX_TURNS
+}
+
+function getFinishPromptInstructions(isChildMode: boolean): string {
+  if (isChildMode) {
+    return 'In one short sentence, ask if the child wants to finish for today and see their session summary now, or keep going for a few more tries. Ask for a yes or no answer and wait for them to reply.'
+  }
+
+  return 'In one short sentence, ask if they want to finish this practice now and open the session summary, or keep going for a few more turns. Ask for a yes or no answer and wait for them to reply.'
+}
 
 function getListeningWrapUpInstructions(isChildMode: boolean): string {
   if (isChildMode) {
@@ -862,15 +883,20 @@ export default function App() {
   const [recommendationHistory, setRecommendationHistory] = useState<RecommendationLog[]>([])
   const [selectedRecommendationDetail, setSelectedRecommendationDetail] = useState<RecommendationDetail | null>(null)
   const [selectedPlan, setSelectedPlan] = useState<PracticePlan | null>(null)
+  const [progressReports, setProgressReports] = useState<ProgressReport[]>([])
+  const [selectedReport, setSelectedReport] = useState<ProgressReport | null>(null)
   const [appConfig, setAppConfig] = useState<AppConfig | null>(null)
   const [loadingSessions, setLoadingSessions] = useState(false)
   const [loadingSessionDetail, setLoadingSessionDetail] = useState(false)
   const [loadingPlans, setLoadingPlans] = useState(false)
+  const [loadingReports, setLoadingReports] = useState(false)
   const [loadingMemory, setLoadingMemory] = useState(false)
   const [loadingRecommendations, setLoadingRecommendations] = useState(false)
   const [planSaving, setPlanSaving] = useState(false)
+  const [reportSaving, setReportSaving] = useState(false)
   const [recommendationSaving, setRecommendationSaving] = useState(false)
   const [planError, setPlanError] = useState<string | null>(null)
+  const [reportError, setReportError] = useState<string | null>(null)
   const [memoryError, setMemoryError] = useState<string | null>(null)
   const [recommendationError, setRecommendationError] = useState<string | null>(null)
   const [memoryReviewPendingId, setMemoryReviewPendingId] = useState<string | null>(null)
@@ -1391,6 +1417,27 @@ export default function App() {
     [isTherapist]
   )
 
+  const handleOpenReportDetail = useCallback(
+    async (reportId: string) => {
+      if (!isTherapist) return
+
+      setLoadingReports(true)
+      setReportError(null)
+
+      try {
+        const report = await api.getReport(reportId)
+        setSelectedReport(report)
+        setProgressReports(current => [report, ...current.filter(item => item.id !== report.id)])
+      } catch (error) {
+        console.error('Failed to load progress report detail:', error)
+        setReportError('Progress report detail could not be loaded right now.')
+      } finally {
+        setLoadingReports(false)
+      }
+    },
+    [isTherapist]
+  )
+
   const handleSelectChild = useCallback(
     (childId: string) => {
       if (!validChildIds.has(childId) || childId === selectedChildId) {
@@ -1402,13 +1449,16 @@ export default function App() {
       setSelectedSession(null)
       setSelectedPlan(null)
       setSelectedRecommendationDetail(null)
+      setSelectedReport(null)
       setSessionSummaries([])
       setChildPlans([])
       setChildMemorySummary(null)
       setChildMemoryItems([])
       setChildMemoryProposals([])
       setRecommendationHistory([])
+      setProgressReports([])
       setPlanError(null)
+      setReportError(null)
       setMemoryError(null)
       setRecommendationError(null)
     },
@@ -1423,16 +1473,19 @@ export default function App() {
 
       setLoadingSessions(true)
       setLoadingPlans(true)
+      setLoadingReports(true)
       setLoadingMemory(true)
       setLoadingRecommendations(true)
       setPlanError(null)
+      setReportError(null)
       setMemoryError(null)
       setRecommendationError(null)
 
       try {
-        const [summaries, plans, memorySummary, memoryItems, memoryProposals, recommendations] = await Promise.all([
+        const [summaries, plans, reports, memorySummary, memoryItems, memoryProposals, recommendations] = await Promise.all([
           api.getChildSessions(childId),
           api.getChildPlans(childId),
+          api.getChildReports(childId, { limit: 20 }),
           api.getChildMemorySummary(childId),
           api.getChildMemoryItems(childId, { includeEvidence: true }),
           api.getChildMemoryProposals(childId, { status: 'pending', includeEvidence: true }),
@@ -1448,10 +1501,17 @@ export default function App() {
 
         setSessionSummaries(summaries)
         setChildPlans(plans)
+        setProgressReports(reports)
         setChildMemorySummary(memorySummary)
         setChildMemoryItems(memoryItems.filter(item => item.status === 'approved' || item.status === 'active'))
         setChildMemoryProposals(memoryProposals)
         setRecommendationHistory(recommendations)
+        setSelectedReport(current => {
+          if (current && reports.some(report => report.id === current.id)) {
+            return reports.find(report => report.id === current.id) || current
+          }
+          return reports[0] || null
+        })
 
         const preferredSessionId =
           (isDashboardRoute && effectiveDashboardSessionId && summaries.some(session => session.id === effectiveDashboardSessionId)
@@ -1517,9 +1577,12 @@ export default function App() {
         setChildMemoryItems([])
         setChildMemoryProposals([])
         setRecommendationHistory([])
+        setProgressReports([])
         setSelectedRecommendationDetail(null)
         setSelectedPlan(null)
+        setSelectedReport(null)
         setPlanError('Practice plans could not be loaded right now.')
+        setReportError('Progress reports could not be loaded right now.')
         setMemoryError('Child memory could not be loaded right now.')
         setRecommendationError('Recommendations could not be loaded right now.')
       } finally {
@@ -1529,6 +1592,7 @@ export default function App() {
         ) {
           setLoadingSessions(false)
           setLoadingPlans(false)
+          setLoadingReports(false)
           setLoadingMemory(false)
           setLoadingRecommendations(false)
         }
@@ -1859,6 +1923,11 @@ export default function App() {
     setSelectedPlan(updatedPlan)
   }, [])
 
+  const upsertReport = useCallback((updatedReport: ProgressReport) => {
+    setSelectedReport(updatedReport)
+    setProgressReports(current => [updatedReport, ...current.filter(report => report.id !== updatedReport.id)])
+  }, [])
+
   const handleCreatePlan = useCallback(
     async (message: string) => {
       if (!selectedChildId || !selectedSession) {
@@ -2049,6 +2118,142 @@ export default function App() {
     },
     [plannerReadiness, selectedChildId, selectedSession?.exercise_metadata?.targetSound, selectedSession?.id]
   )
+
+  const handleCreateReport = useCallback(
+    async (payload: ProgressReportCreateRequest) => {
+      if (!selectedChildId) {
+        setReportError('Choose a child before creating a progress report.')
+        return null
+      }
+
+      setReportSaving(true)
+      setReportError(null)
+
+      try {
+        const report = await api.createChildReport(selectedChildId, payload)
+        upsertReport(report)
+        return report
+      } catch (error) {
+        console.error('Failed to create progress report:', error)
+        setReportError(
+          error instanceof Error ? error.message : 'Progress report creation failed. Try again in a moment.'
+        )
+        return null
+      } finally {
+        setReportSaving(false)
+      }
+    },
+    [selectedChildId, upsertReport]
+  )
+
+  const handleUpdateReport = useCallback(
+    async (payload: ProgressReportUpdateRequest) => {
+      if (!selectedReport) {
+        setReportError('Select a draft report before saving changes.')
+        return null
+      }
+
+      setReportSaving(true)
+      setReportError(null)
+
+      try {
+        const updated = await api.updateReport(selectedReport.id, payload)
+        upsertReport(updated)
+        return updated
+      } catch (error) {
+        console.error('Failed to update progress report:', error)
+        setReportError(
+          error instanceof Error ? error.message : 'Progress report update failed. Try again in a moment.'
+        )
+        return null
+      } finally {
+        setReportSaving(false)
+      }
+    },
+    [selectedReport, upsertReport]
+  )
+
+  const handleOpenReportExport = useCallback(
+    (
+      reportId: string,
+      options?: { mode?: 'preview' | 'download'; format?: ReportExportFormat }
+    ) => {
+      if (typeof window === 'undefined') {
+        return
+      }
+
+      const mode = options?.mode ?? 'preview'
+      const format = options?.format ?? 'html'
+      const url = api.getReportExportUrl(reportId, { download: mode === 'download', format })
+      if (mode === 'download') {
+        window.location.assign(url)
+        return
+      }
+
+      window.open(url, '_blank', 'noopener,noreferrer')
+    },
+    []
+  )
+
+  const handleApproveReport = useCallback(async () => {
+    if (!selectedReport) {
+      setReportError('Choose or create a progress report before approving it.')
+      return
+    }
+
+    setReportSaving(true)
+    setReportError(null)
+
+    try {
+      const approved = await api.approveReport(selectedReport.id)
+      upsertReport(approved)
+    } catch (error) {
+      console.error('Failed to approve progress report:', error)
+      setReportError(error instanceof Error ? error.message : 'Progress report approval failed.')
+    } finally {
+      setReportSaving(false)
+    }
+  }, [selectedReport, upsertReport])
+
+  const handleSignReport = useCallback(async () => {
+    if (!selectedReport) {
+      setReportError('Choose an approved report before signing it.')
+      return
+    }
+
+    setReportSaving(true)
+    setReportError(null)
+
+    try {
+      const signed = await api.signReport(selectedReport.id)
+      upsertReport(signed)
+    } catch (error) {
+      console.error('Failed to sign progress report:', error)
+      setReportError(error instanceof Error ? error.message : 'Progress report signing failed.')
+    } finally {
+      setReportSaving(false)
+    }
+  }, [selectedReport, upsertReport])
+
+  const handleArchiveReport = useCallback(async () => {
+    if (!selectedReport) {
+      setReportError('Choose an approved or signed report before archiving it.')
+      return
+    }
+
+    setReportSaving(true)
+    setReportError(null)
+
+    try {
+      const archived = await api.archiveReport(selectedReport.id)
+      upsertReport(archived)
+    } catch (error) {
+      console.error('Failed to archive progress report:', error)
+      setReportError(error instanceof Error ? error.message : 'Progress report archiving failed.')
+    } finally {
+      setReportSaving(false)
+    }
+  }, [selectedReport, upsertReport])
 
   useEffect(() => {
     if (!isTherapist || !selectedChildId) return
@@ -2315,13 +2520,7 @@ export default function App() {
       const nextTurnCount = childTurnCount + 1
       setChildTurnCount(nextTurnCount)
 
-      if (!isChildMode) {
-        if (nextTurnCount >= THERAPIST_AUTO_SUMMARY_TURN_LIMIT) {
-          setFinishRequested(true)
-        }
-
-        return
-      }
+      const maximumFinishPromptTurnLimit = getMaximumFinishPromptTurnLimit(isChildMode)
 
       if (finishConfirmationPending) {
         if (AFFIRMATIVE_FINISH_PATTERN.test(text)) {
@@ -2332,12 +2531,12 @@ export default function App() {
 
         setFinishConfirmationPending(false)
 
-        if (finishPromptTurnLimit >= CHILD_MAX_TURNS) {
+        if (finishPromptTurnLimit >= maximumFinishPromptTurnLimit) {
           beginSessionWrapUp()
           return
         }
 
-        setFinishPromptTurnLimit(current => Math.min(current + 2, CHILD_MAX_TURNS))
+        setFinishPromptTurnLimit(current => Math.min(current + 2, maximumFinishPromptTurnLimit))
         return
       }
 
@@ -2920,7 +3119,7 @@ export default function App() {
   }, [analyzeCurrentSession, applyAssessmentResult, clearWrapUpTimers, handleFinishPractice])
 
   useEffect(() => {
-    if (!finishPromptQueued || !isChildMode || sessionFinished || !connected || exerciseSpeechActive) {
+    if (!finishPromptQueued || sessionFinished || !connected || exerciseSpeechActive) {
       return
     }
 
@@ -2931,8 +3130,7 @@ export default function App() {
       type: 'response.create',
       response: {
         modalities: ['audio', 'text'],
-        instructions:
-          'In one short sentence, ask if the child wants to finish for today and see their session summary now, or keep going for a few more tries. Ask for a yes or no answer and wait for them to reply.',
+        instructions: getFinishPromptInstructions(isChildMode),
       },
     })
     setFinishPromptQueued(false)
@@ -3116,7 +3314,7 @@ export default function App() {
     setSessionIntroComplete(false)
     setSessionFinished(false)
     setChildTurnCount(0)
-    setFinishPromptTurnLimit(CHILD_TURN_LIMIT)
+    setFinishPromptTurnLimit(getInitialFinishPromptTurnLimit(isChildMode))
     setFinishConfirmationPending(false)
     setFinishPromptQueued(false)
     setFinishRequested(false)
@@ -3127,7 +3325,7 @@ export default function App() {
     setShowLaunchTransition(false)
     setLaunchHandoffReady(false)
     setLaunchInFlight(false)
-  }, [clearConversationAudioRecording, clearMessages, clearWrapUpTimers])
+  }, [clearConversationAudioRecording, clearMessages, clearWrapUpTimers, isChildMode])
 
   const startPracticeSession = useCallback(async (avatarValue: string, scenarioOverride?: string) => {
     const activeScenarioId = scenarioOverride ?? selectedScenario
@@ -3162,7 +3360,7 @@ export default function App() {
     setSessionIntroComplete(false)
     setSessionFinished(false)
     setChildTurnCount(0)
-    setFinishPromptTurnLimit(CHILD_TURN_LIMIT)
+    setFinishPromptTurnLimit(getInitialFinishPromptTurnLimit(isChildMode))
     setFinishConfirmationPending(false)
     setFinishPromptQueued(false)
     setFinishRequested(false)
@@ -3196,7 +3394,7 @@ export default function App() {
       setLaunchInFlight(false)
       navigate(APP_ROUTES.home)
     }
-  }, [createAgentForSelection, navigate, selectedScenario])
+  }, [createAgentForSelection, isChildMode, navigate, selectedScenario])
 
   const handleStart = useCallback(async (avatarValue: string, scenarioOverride?: string) => {
     const activeScenarioId = scenarioOverride ?? selectedScenario
@@ -3282,7 +3480,7 @@ export default function App() {
     clearWrapUpTimers()
     setSessionFinished(false)
     setChildTurnCount(0)
-    setFinishPromptTurnLimit(CHILD_TURN_LIMIT)
+    setFinishPromptTurnLimit(getInitialFinishPromptTurnLimit(isChildMode))
     setFinishConfirmationPending(false)
     setFinishPromptQueued(false)
     setFinishRequested(false)
@@ -3296,7 +3494,7 @@ export default function App() {
       window.localStorage.setItem('wulo.user.mode', 'workspace')
     }
     navigate(APP_ROUTES.home)
-  }, [clearWrapUpTimers, navigate])
+  }, [clearWrapUpTimers, isChildMode, navigate])
 
   const handleGoHome = useCallback(() => {
     clearWrapUpTimers()
@@ -3312,7 +3510,7 @@ export default function App() {
     setSessionIntroComplete(false)
     setSessionFinished(false)
     setChildTurnCount(0)
-    setFinishPromptTurnLimit(CHILD_TURN_LIMIT)
+    setFinishPromptTurnLimit(getInitialFinishPromptTurnLimit(isChildMode))
     setFinishConfirmationPending(false)
     setFinishPromptQueued(false)
     setFinishRequested(false)
@@ -3328,7 +3526,7 @@ export default function App() {
     setLaunchInFlight(false)
     setShowRoleNotice(false)
     setMobileSidebarOpen(false)
-  }, [clearConversationAudioRecording, clearMessages, clearWrapUpTimers, disconnect])
+  }, [clearConversationAudioRecording, clearMessages, clearWrapUpTimers, disconnect, isChildMode])
 
   const handleChooseMode = useCallback((mode: UserMode) => {
     if (mode === 'child' && isTherapist && !pilotState?.consent_timestamp) {
@@ -3597,6 +3795,8 @@ export default function App() {
       sessions={sessionSummaries}
       selectedSession={selectedSession}
       selectedPlan={selectedPlan}
+      progressReports={progressReports}
+      selectedReport={selectedReport}
       childMemorySummary={childMemorySummary}
       childMemoryItems={childMemoryItems}
       childMemoryProposals={childMemoryProposals}
@@ -3607,11 +3807,14 @@ export default function App() {
       loadingSessions={loadingSessions}
       loadingSessionDetail={loadingSessionDetail}
       loadingPlans={loadingPlans}
+      loadingReports={loadingReports}
       loadingMemory={loadingMemory}
       loadingRecommendations={loadingRecommendations}
       planSaving={planSaving}
+      reportSaving={reportSaving}
       recommendationSaving={recommendationSaving}
       planError={planError}
+      reportError={reportError}
       memoryError={memoryError}
       recommendationError={recommendationError}
       memoryReviewPendingId={memoryReviewPendingId}
@@ -3622,6 +3825,21 @@ export default function App() {
       }}
       onOpenRecommendationDetail={recommendationId => {
         void handleOpenRecommendationDetail(recommendationId)
+      }}
+      onOpenReportDetail={reportId => {
+        void handleOpenReportDetail(reportId)
+      }}
+      onCreateReport={handleCreateReport}
+      onUpdateReport={handleUpdateReport}
+      onOpenReportExport={handleOpenReportExport}
+      onApproveReport={() => {
+        void handleApproveReport()
+      }}
+      onSignReport={() => {
+        void handleSignReport()
+      }}
+      onArchiveReport={() => {
+        void handleArchiveReport()
       }}
       onCreatePlan={handleCreatePlan}
       onGenerateRecommendations={constraints => {

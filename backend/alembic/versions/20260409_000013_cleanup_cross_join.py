@@ -18,19 +18,16 @@ def upgrade() -> None:
     # of the child's workspace.  Only touches children that have workspace_id set.
     op.execute(
         """
-        DELETE FROM user_children
-        WHERE id IN (
-            SELECT uc.id
-            FROM user_children uc
-            INNER JOIN children c ON c.id = uc.child_id
-            WHERE c.workspace_id IS NOT NULL
-              AND NOT EXISTS (
-                  SELECT 1
-                  FROM workspace_members wm
-                  WHERE wm.workspace_id = c.workspace_id
-                    AND wm.user_id = uc.user_id
-              )
-        )
+                DELETE FROM user_children AS uc
+                USING children AS c
+                WHERE c.id = uc.child_id
+                    AND c.workspace_id IS NOT NULL
+                    AND NOT EXISTS (
+                            SELECT 1
+                            FROM workspace_members wm
+                            WHERE wm.workspace_id = c.workspace_id
+                                AND wm.user_id = uc.user_id
+                    )
         """
     )
 

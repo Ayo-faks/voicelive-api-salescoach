@@ -284,6 +284,97 @@ export interface PracticePlan {
   approved_at?: string | null
 }
 
+export type ProgressReportAudience = 'therapist' | 'parent' | 'school'
+
+export type ProgressReportStatus = 'draft' | 'approved' | 'signed' | 'archived'
+
+export interface ProgressReportMetric {
+  label: string
+  value: string
+}
+
+export interface ProgressReportSection {
+  key: string
+  title: string
+  narrative?: string | null
+  bullets?: string[]
+  metrics?: ProgressReportMetric[]
+}
+
+export type ReportExportFormat = 'html' | 'pdf'
+
+export interface ProgressReportRedactionOverrides {
+  hide_summary_text?: boolean
+  hide_overview_metrics?: boolean
+  hide_session_list?: boolean
+  hide_internal_metadata?: boolean
+  hidden_section_keys?: string[]
+}
+
+export interface ProgressReportSnapshot {
+  child_name?: string | null
+  generated_at?: string | null
+  session_count?: number
+  latest_session_at?: string | null
+  average_overall_score?: number | null
+  average_accuracy_score?: number | null
+  average_pronunciation_score?: number | null
+  focus_targets?: string[]
+  memory_summary_text?: string | null
+  memory_source_item_count?: number | null
+  plan_title?: string | null
+  plan_status?: string | null
+  plan_objective?: string | null
+  top_recommendation_name?: string | null
+  top_recommendation_rationale?: string | null
+}
+
+export interface ProgressReport {
+  id: string
+  child_id: string
+  workspace_id?: string | null
+  created_by_user_id: string
+  signed_by_user_id?: string | null
+  audience: ProgressReportAudience
+  report_type: string
+  title: string
+  status: ProgressReportStatus
+  period_start: string
+  period_end: string
+  included_session_ids: string[]
+  snapshot: ProgressReportSnapshot
+  sections: ProgressReportSection[]
+  redaction_overrides: ProgressReportRedactionOverrides
+  summary_text?: string | null
+  created_at: string
+  updated_at: string
+  approved_at?: string | null
+  signed_at?: string | null
+  archived_at?: string | null
+}
+
+export interface ProgressReportCreateRequest {
+  audience: ProgressReportAudience
+  title?: string
+  report_type?: string
+  period_start?: string
+  period_end?: string
+  included_session_ids?: string[]
+  summary_text?: string
+  redaction_overrides?: ProgressReportRedactionOverrides
+}
+
+export interface ProgressReportUpdateRequest {
+  audience?: ProgressReportAudience
+  title?: string
+  period_start?: string
+  period_end?: string
+  included_session_ids?: string[]
+  summary_text?: string
+  sections?: ProgressReportSection[]
+  redaction_overrides?: ProgressReportRedactionOverrides
+}
+
 export type ChildMemoryCategory =
   | 'targets'
   | 'effective_cues'
