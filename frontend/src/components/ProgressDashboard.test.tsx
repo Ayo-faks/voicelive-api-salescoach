@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { ProgressDashboard } from './ProgressDashboard'
 import type {
@@ -8,6 +8,7 @@ import type {
   ChildMemorySummary,
   PlannerReadiness,
   ProgressReport,
+  ProgressReportSummaryRewriteSuggestion,
   PracticePlan,
   RecommendationDetail,
   RecommendationLog,
@@ -424,6 +425,14 @@ const progressReports: ProgressReport[] = [
   },
 ]
 
+const rewriteSuggestion: ProgressReportSummaryRewriteSuggestion = {
+  report_id: 'report-1',
+  source_summary_text: 'Therapist draft summary.',
+  suggested_summary_text: 'Amina showed stronger /t/ accuracy in short phrases during this review window.',
+  review_required: true,
+  draft_only: true,
+}
+
 describe('ProgressDashboard visual smoke test', () => {
   it('renders the chart-heavy therapist dashboard state', () => {
     render(
@@ -470,6 +479,7 @@ describe('ProgressDashboard visual smoke test', () => {
         onOpenReportDetail={() => {}}
         onCreateReport={async _payload => undefined}
         onUpdateReport={async _payload => undefined}
+        onSuggestReportSummaryRewrite={async () => null}
         onOpenReportExport={() => {}}
         onApproveReport={() => {}}
         onSignReport={() => {}}
@@ -529,5 +539,86 @@ describe('ProgressDashboard visual smoke test', () => {
     expect(screen.getByText('Warm-up phrases')).toBeTruthy()
     expect(screen.getByText('T phrases • 8 min')).toBeTruthy()
     expect(screen.getByLabelText('Plan confidence gauge')).toBeTruthy()
+  })
+
+  it('lets the therapist review and apply a summary rewrite suggestion before saving', async () => {
+    const onUpdateReport = vi.fn(async _payload => progressReports[0])
+    const onSuggestReportSummaryRewrite = vi.fn(async () => rewriteSuggestion)
+
+    render(
+      <ProgressDashboard
+        childProfiles={[
+          {
+            id: 'child-1',
+            name: 'Amina',
+            session_count: sessions.length,
+            last_session_at: '2026-03-15T10:00:00.000Z',
+          },
+        ]}
+        selectedChildId="child-1"
+        sessions={sessions}
+        selectedSession={selectedSession}
+        selectedPlan={selectedPlan}
+        progressReports={progressReports}
+        selectedReport={progressReports[0]}
+        childMemorySummary={childMemorySummary}
+        childMemoryItems={childMemoryItems}
+        childMemoryProposals={childMemoryProposals}
+        recommendationHistory={recommendationHistory}
+        selectedRecommendationDetail={recommendationDetail}
+        plannerReadiness={plannerReadiness}
+        loadingChildren={false}
+        loadingSessions={false}
+        loadingSessionDetail={false}
+        loadingPlans={false}
+        loadingReports={false}
+        loadingMemory={false}
+        loadingRecommendations={false}
+        planSaving={false}
+        reportSaving={false}
+        recommendationSaving={false}
+        planError={null}
+        reportError={null}
+        memoryError={null}
+        recommendationError={null}
+        memoryReviewPendingId={null}
+        manualMemorySaving={false}
+        onSelectChild={() => {}}
+        onOpenSession={() => {}}
+        onOpenRecommendationDetail={() => {}}
+        onOpenReportDetail={() => {}}
+        onCreateReport={async _payload => undefined}
+        onUpdateReport={onUpdateReport}
+        onSuggestReportSummaryRewrite={onSuggestReportSummaryRewrite}
+        onOpenReportExport={() => {}}
+        onApproveReport={() => {}}
+        onSignReport={() => {}}
+        onArchiveReport={() => {}}
+        onGenerateRecommendations={() => {}}
+        onCreatePlan={() => {}}
+        onRefinePlan={() => {}}
+        onApprovePlan={() => {}}
+        onApproveMemoryProposal={() => {}}
+        onRejectMemoryProposal={() => {}}
+        onCreateMemoryItem={() => {}}
+        onBackToPractice={() => {}}
+        onExitToEntry={() => {}}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Reports' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Suggest rewrite' }))
+
+    await waitFor(() => expect(onUpdateReport).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(onSuggestReportSummaryRewrite).toHaveBeenCalledWith('report-1'))
+
+    expect(await screen.findByText('Current saved summary')).toBeTruthy()
+    expect(screen.getByText(rewriteSuggestion.suggested_summary_text)).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Apply suggestion to editor' }))
+
+    expect((screen.getByRole('textbox', { name: 'Executive summary note' }) as HTMLTextAreaElement).value).toBe(
+      rewriteSuggestion.suggested_summary_text
+    )
   })
 })

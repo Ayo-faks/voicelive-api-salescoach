@@ -51,6 +51,7 @@ import type {
   ProgressReportAudience,
   ProgressReportCreateRequest,
   ProgressReportRedactionOverrides,
+  ProgressReportSummaryRewriteSuggestion,
   ProgressReportUpdateRequest,
   PracticePlan,
   ReportExportFormat,
@@ -1613,6 +1614,7 @@ interface Props {
   onOpenReportDetail: (reportId: string) => void | Promise<void>
   onCreateReport: (payload: ProgressReportCreateRequest) => ReportSaveResult | Promise<ReportSaveResult>
   onUpdateReport: (payload: ProgressReportUpdateRequest) => ReportSaveResult | Promise<ReportSaveResult>
+  onSuggestReportSummaryRewrite: (reportId: string) => Promise<ProgressReportSummaryRewriteSuggestion | null>
   onOpenReportExport: (reportId: string, options?: { mode?: ReportExportMode; format?: ReportExportFormat }) => void
   onApproveReport: () => void | Promise<void>
   onSignReport: () => void | Promise<void>
@@ -1666,6 +1668,7 @@ export function ProgressDashboard({
   onOpenReportDetail,
   onCreateReport,
   onUpdateReport,
+  onSuggestReportSummaryRewrite,
   onOpenReportExport,
   onApproveReport,
   onSignReport,
@@ -1686,6 +1689,7 @@ export function ProgressDashboard({
   const [reportAudience, setReportAudience] = useState<ProgressReportAudience>('therapist')
   const [reportTitle, setReportTitle] = useState('')
   const [reportSummary, setReportSummary] = useState('')
+  const [reportSummarySuggestion, setReportSummarySuggestion] = useState<ProgressReportSummaryRewriteSuggestion | null>(null)
   const [reportPeriodStartDate, setReportPeriodStartDate] = useState('')
   const [reportPeriodEndDate, setReportPeriodEndDate] = useState('')
   const [reportSelectedSessionIds, setReportSelectedSessionIds] = useState<string[]>([])
@@ -1755,6 +1759,7 @@ export function ProgressDashboard({
       setReportAudience(selectedReport.audience)
       setReportTitle(selectedReport.title)
       setReportSummary(selectedReport.summary_text || '')
+      setReportSummarySuggestion(null)
       setReportPeriodStartDate(formatDateInputValue(selectedReport.period_start))
       setReportPeriodEndDate(formatDateInputValue(selectedReport.period_end))
       setReportSelectedSessionIds(selectedIds)
@@ -1766,6 +1771,7 @@ export function ProgressDashboard({
       setReportAudience('therapist')
       setReportTitle('')
       setReportSummary('')
+      setReportSummarySuggestion(null)
       setReportPeriodStartDate('')
       setReportPeriodEndDate('')
       setReportSelectedSessionIds([])
@@ -1836,6 +1842,11 @@ export function ProgressDashboard({
     setReportRedactionOverrides(current => normalizeReportRedactionOverrides(current, nextAudience))
   }
 
+  function handleReportSummaryChange(nextSummary: string) {
+    setReportSummary(nextSummary)
+    setReportSummarySuggestion(null)
+  }
+
   function toggleReportRedactionOverride(key: SharedReportRedactionToggle) {
     setReportRedactionOverrides(current => normalizeReportRedactionOverrides({
       ...current,
@@ -1889,8 +1900,38 @@ export function ProgressDashboard({
       if (result === null) {
         return
       }
+      setReportSummarySuggestion(null)
       setActiveTab('reports')
     })
+  }
+
+  function handleSuggestReportSummaryRewrite() {
+    if (!selectedReport || selectedReport.status !== 'draft') {
+      return
+    }
+
+    void (async () => {
+      const result = await onUpdateReport(buildReportComposerPayload())
+      if (!result) {
+        return
+      }
+
+      const suggestion = await onSuggestReportSummaryRewrite(result.id)
+      if (!suggestion) {
+        return
+      }
+
+      setReportSummarySuggestion(suggestion)
+    })()
+  }
+
+  function handleApplySuggestedReportSummary() {
+    if (!reportSummarySuggestion) {
+      return
+    }
+
+    setReportSummary(reportSummarySuggestion.suggested_summary_text)
+    setReportSummarySuggestion(null)
   }
 
   function handleOpenSelectedReportExport(format: ReportExportFormat, mode: ReportExportMode = 'preview') {
@@ -3094,9 +3135,51 @@ export function ProgressDashboard({
                         value={reportSummary}
                         resize="vertical"
                         placeholder="Optional note to keep at the top of the draft."
-                        onChange={(_, data) => setReportSummary(data.value)}
+                        onChange={(_, data) => handleReportSummaryChange(data.value)}
                       />
                     </Field>
+                    {selectedReport?.status === 'draft' ? (
+                      <div className={styles.sectionBlock}>
+                        <div className={styles.summaryRow}>
+                          <Text className={styles.sectionTitle} size={300} weight="semibold">
+                            Draft-only summary rewrite
+                          </Text>
+                          <Badge appearance="tint" className={styles.scoreBadge}>
+                            Human review required
+                          </Badge>
+                        </div>
+                        <Text className={styles.helperText} size={200}>
+                          Generate a rewrite suggestion from the current saved draft, review it, then choose whether to apply it to the editor. Nothing is saved automatically.
+                        </Text>
+                        <div className={styles.memoryActionRow}>
+                          <Button appearance="secondary" disabled={reportSaving || !reportComposerCanSubmit} onClick={handleSuggestReportSummaryRewrite}>
+                            Suggest rewrite
+                          </Button>
+                          {reportSummarySuggestion ? (
+                            <>
+                              <Badge appearance="filled" className={styles.scoreBadgeTeal}>
+                                Draft only
+                              </Badge>
+                              <Button appearance="secondary" disabled={reportSaving} onClick={handleApplySuggestedReportSummary}>
+                                Apply suggestion to editor
+                              </Button>
+                            </>
+                          ) : null}
+                        </div>
+                        {reportSummarySuggestion ? (
+                          <div className={styles.memorySummaryGrid}>
+                            <div className={styles.memoryCard}>
+                              <Text className={styles.combinedReviewLabel}>Current saved summary</Text>
+                              <Text size={200}>{reportSummarySuggestion.source_summary_text || 'No saved summary note yet.'}</Text>
+                            </div>
+                            <div className={styles.memoryCard}>
+                              <Text className={styles.combinedReviewLabel}>Suggested rewrite</Text>
+                              <Text size={200}>{reportSummarySuggestion.suggested_summary_text}</Text>
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
                     {isSharedReportAudience(reportAudience) ? (
                       <div className={styles.reportSessionSelection}>
                         <div>

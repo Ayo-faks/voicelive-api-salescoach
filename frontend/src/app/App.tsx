@@ -2173,6 +2173,26 @@ export default function App() {
     [selectedReport, upsertReport]
   )
 
+  const handleSuggestReportSummaryRewrite = useCallback(
+    async (reportId: string) => {
+      setReportSaving(true)
+      setReportError(null)
+
+      try {
+        return await api.suggestReportSummaryRewrite(reportId)
+      } catch (error) {
+        console.error('Failed to generate report summary suggestion:', error)
+        setReportError(
+          error instanceof Error ? error.message : 'Report summary suggestion failed. Try again in a moment.'
+        )
+        return null
+      } finally {
+        setReportSaving(false)
+      }
+    },
+    []
+  )
+
   const handleOpenReportExport = useCallback(
     (
       reportId: string,
@@ -3831,6 +3851,7 @@ export default function App() {
       }}
       onCreateReport={handleCreateReport}
       onUpdateReport={handleUpdateReport}
+      onSuggestReportSummaryRewrite={handleSuggestReportSummaryRewrite}
       onOpenReportExport={handleOpenReportExport}
       onApproveReport={() => {
         void handleApproveReport()

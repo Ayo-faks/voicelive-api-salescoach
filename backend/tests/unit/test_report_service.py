@@ -2,8 +2,16 @@
 
 from pathlib import Path
 
+import pytest
+
+from src.services.report_exporters import REPORTLAB_AVAILABLE
 from src.services.report_service import ProgressReportService
 from src.services.storage import StorageService
+
+
+class _SummaryPrefixAssistant:
+    def rewrite_summary(self, *, summary_text: str, **_: object) -> str:
+        return f"AI draft: {summary_text}"
 
 
 def _seed_report_context(service: StorageService) -> None:
@@ -181,8 +189,12 @@ def test_create_update_and_advance_progress_report(tmp_path: Path):
     assert "School participation impact" not in html_document
     assert "Suggested classroom supports" in html_document
 
-    pdf_document = service.render_report_pdf(report["id"])
-    assert pdf_document.startswith(b"%PDF")
+    if REPORTLAB_AVAILABLE:
+        pdf_document = service.render_report_pdf(report["id"])
+        assert pdf_document.startswith(b"%PDF")
+    else:
+        with pytest.raises(RuntimeError, match="PDF export is unavailable"):
+            service.render_report_pdf(report["id"])
 
     approved = service.approve_report(report["id"])
     assert approved["status"] == "approved"
@@ -193,3 +205,34 @@ def test_create_update_and_advance_progress_report(tmp_path: Path):
 
     archived = service.archive_report(report["id"])
     assert archived["status"] == "archived"
+
+
+def test_optional_summary_assistant_only_rewrites_saved_summary(tmp_path: Path):
+    storage = StorageService(str(tmp_path / "reports-ai.db"))
+    _seed_report_context(storage)
+    service = ProgressReportService(storage, summary_assistant=_SummaryPrefixAssistant())
+
+    report = service.create_report(
+        child_id="child-ayo",
+        created_by_user_id="therapist-1",
+        audience="parent",
+        period_start="2026-04-01T00:00:00+00:00",
+        period_end="2026-04-07T23:59:59+00:00",
+        included_session_ids=["session-report-1"],
+    )
+
+    overview_section = next(section for section in report["sections"] if section["key"] == "overview")
+
+    assert not str(report["summary_text"]).startswith("AI draft: ")
+    assert not str(overview_section["narrative"]).startswith("AI draft: ")
+
+    suggestion = service.suggest_summary_rewrite(report["id"])
+
+    assert suggestion["report_id"] == report["id"]
+    assert suggestion["review_required"] is True
+    assert suggestion["draft_only"] is True
+    assert suggestion["source_summary_text"] == report["summary_text"]
+    assert suggestion["suggested_summary_text"].startswith("AI draft: ")
+
+    unchanged = service.get_report(report["id"])
+    assert unchanged["summary_text"] == report["summary_text"]

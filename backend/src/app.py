@@ -33,6 +33,7 @@ from src.services.email_service import AzureCommunicationEmailService, Invitatio
 from src.services.institutional_memory_service import InstitutionalMemoryService
 from src.services.managers import AgentManager, ScenarioManager
 from src.services.planning_service import PracticePlanningService
+from src.services.report_pipeline import AzureOpenAIReportSummaryAssistant
 from src.services.report_service import ProgressReportService
 from src.services.recommendation_service import RecommendationService
 from src.services.storage_factory import create_storage_service
@@ -131,6 +132,7 @@ API_RECOMMENDATION_DETAIL_ENDPOINT = "/api/recommendations/<recommendation_id>"
 API_REPORT_DETAIL_ENDPOINT = "/api/reports/<report_id>"
 API_REPORT_EXPORT_ENDPOINT = "/api/reports/<report_id>/export"
 API_REPORT_UPDATE_ENDPOINT = "/api/reports/<report_id>/update"
+API_REPORT_SUMMARY_REWRITE_ENDPOINT = "/api/reports/<report_id>/summary-rewrite"
 API_REPORT_APPROVE_ENDPOINT = "/api/reports/<report_id>/approve"
 API_REPORT_SIGN_ENDPOINT = "/api/reports/<report_id>/sign"
 API_REPORT_ARCHIVE_ENDPOINT = "/api/reports/<report_id>/archive"
@@ -271,7 +273,10 @@ def initialize_runtime_services() -> None:
         child_memory_service,
         institutional_memory_service,
     )
-    report_service = ProgressReportService(storage_service)
+    report_service = ProgressReportService(
+        storage_service,
+        summary_assistant=AzureOpenAIReportSummaryAssistant.from_settings(config.as_dict),
+    )
     email_service = AzureCommunicationEmailService.from_config(config.as_dict)
     planner_startup_readiness = planning_service.get_readiness(force_refresh=True)
     if not planner_startup_readiness.get("ready"):
@@ -2605,6 +2610,44 @@ def update_progress_report(report_id: str):
         child_id=str(report.get("child_id") or ""),
     )
     return jsonify(report)
+
+
+@app.route(API_REPORT_SUMMARY_REWRITE_ENDPOINT, methods=["POST"])
+def suggest_progress_report_summary_rewrite(report_id: str):
+    """Generate a human-reviewed AI summary suggestion for a draft report."""
+    existing_report = storage_service.get_progress_report(report_id)
+    if existing_report is None:
+        return jsonify({"error": REPORT_NOT_FOUND}), HTTP_NOT_FOUND
+
+    user, guard_response = _require_child_access(
+        str(existing_report.get("child_id") or ""),
+        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+        allowed_relationships=["therapist"],
+    )
+    if guard_response is not None:
+        return guard_response
+
+    try:
+        suggestion = report_service.suggest_summary_rewrite(report_id)
+    except ValueError as error:
+        message = str(error)
+        status_code = HTTP_NOT_FOUND if "not found" in message.lower() else HTTP_BAD_REQUEST
+        return jsonify({"error": message}), status_code
+    except RuntimeError as error:
+        return jsonify({"error": str(error)}), 503
+
+    telemetry_service.track_event(
+        "progress_report_summary_rewrite_suggested",
+        properties={"report_id": report_id, "child_id": existing_report["child_id"]},
+    )
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="report.summary_rewrite.suggest",
+        resource_type="progress_report",
+        resource_id=report_id,
+        child_id=str(existing_report.get("child_id") or ""),
+    )
+    return jsonify(suggestion)
 
 
 @app.route(API_REPORT_APPROVE_ENDPOINT, methods=["POST"])

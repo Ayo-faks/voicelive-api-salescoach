@@ -15,6 +15,7 @@ import type {
   ParentalConsent,
   ProgressReport,
   ProgressReportCreateRequest,
+  ProgressReportSummaryRewriteSuggestion,
   ReportExportFormat,
   ProgressReportUpdateRequest,
   RecommendationDetail,
@@ -630,6 +631,18 @@ export const api = {
     if (!res.ok) {
       const data = await res.json().catch(() => null)
       throw new Error(data?.error || 'Failed to update progress report')
+    }
+    return res.json()
+  },
+
+  async suggestReportSummaryRewrite(reportId: string): Promise<ProgressReportSummaryRewriteSuggestion> {
+    const res = await fetchWithAuth(`/api/reports/${reportId}/summary-rewrite`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to generate report summary suggestion')
     }
     return res.json()
   },

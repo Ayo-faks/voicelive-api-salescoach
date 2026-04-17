@@ -375,6 +375,14 @@ export interface ProgressReportUpdateRequest {
   redaction_overrides?: ProgressReportRedactionOverrides
 }
 
+export interface ProgressReportSummaryRewriteSuggestion {
+  report_id: string
+  source_summary_text: string
+  suggested_summary_text: string
+  review_required: boolean
+  draft_only: boolean
+}
+
 export type ChildMemoryCategory =
   | 'targets'
   | 'effective_cues'

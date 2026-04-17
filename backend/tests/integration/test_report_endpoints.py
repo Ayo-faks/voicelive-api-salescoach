@@ -9,8 +9,14 @@ import pytest
 from flask.testing import FlaskClient
 
 import src.app as app_module
+from src.services.report_exporters import REPORTLAB_AVAILABLE
 from src.services.report_service import ProgressReportService
 from src.services.storage import StorageService
+
+
+class _SummaryPrefixAssistant:
+    def rewrite_summary(self, *, summary_text: str, **_: object) -> str:
+        return f"AI draft: {summary_text}"
 
 
 def _auth_headers(user_id: str, email: str, name: str = "Test User", provider: str = "aad") -> dict[str, str]:
@@ -25,7 +31,7 @@ def _auth_headers(user_id: str, email: str, name: str = "Test User", provider: s
 @pytest.fixture
 def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[FlaskClient]:
     storage_service = StorageService(str(tmp_path / "report-api.db"))
-    report_service = ProgressReportService(storage_service)
+    report_service = ProgressReportService(storage_service, summary_assistant=_SummaryPrefixAssistant())
 
     monkeypatch.setattr(app_module, "storage_service", storage_service)
     monkeypatch.setattr(app_module, "report_service", report_service)
@@ -158,9 +164,15 @@ def test_therapist_can_create_update_and_advance_reports(client: FlaskClient):
     assert "Suggested classroom supports" in export_html
 
     pdf_export_response = client.get(f"/api/reports/{created['id']}/export?format=pdf", headers=headers)
-    assert pdf_export_response.status_code == 200
-    assert pdf_export_response.mimetype == "application/pdf"
-    assert pdf_export_response.get_data().startswith(b"%PDF")
+    if REPORTLAB_AVAILABLE:
+        assert pdf_export_response.status_code == 200
+        assert pdf_export_response.mimetype == "application/pdf"
+        assert pdf_export_response.get_data().startswith(b"%PDF")
+    else:
+        assert pdf_export_response.status_code == 503
+        assert pdf_export_response.get_json() == {
+            "error": "PDF export is unavailable until the reportlab dependency is installed"
+        }
 
     invalid_export_response = client.get(f"/api/reports/{created['id']}/export?format=docx", headers=headers)
     assert invalid_export_response.status_code == 400
@@ -180,6 +192,39 @@ def test_therapist_can_create_update_and_advance_reports(client: FlaskClient):
     assert detail_response.status_code == 200
     detail = detail_response.get_json()
     assert detail["signed_by_user_id"] == "therapist-1"
+
+
+def test_therapist_can_request_draft_summary_rewrite_suggestion(client: FlaskClient):
+    headers = _bootstrap_therapist(client)
+    child_id = "child-report-rewrite"
+    _create_scoped_child(child_id, "Ayo Rewrite")
+    _seed_report_context(child_id)
+
+    create_response = client.post(
+        f"/api/children/{child_id}/reports",
+        headers=headers,
+        json={
+            "audience": "parent",
+            "period_start": "2026-04-01T00:00:00+00:00",
+            "period_end": "2026-04-07T23:59:59+00:00",
+            "included_session_ids": ["session-api-report-1"],
+        },
+    )
+    assert create_response.status_code == 201
+    created = create_response.get_json()
+
+    rewrite_response = client.post(f"/api/reports/{created['id']}/summary-rewrite", headers=headers)
+    assert rewrite_response.status_code == 200
+    suggestion = rewrite_response.get_json()
+    assert suggestion["report_id"] == created["id"]
+    assert suggestion["review_required"] is True
+    assert suggestion["draft_only"] is True
+    assert suggestion["source_summary_text"] == created["summary_text"]
+    assert suggestion["suggested_summary_text"].startswith("AI draft: ")
+
+    detail_response = client.get(f"/api/reports/{created['id']}", headers=headers)
+    assert detail_response.status_code == 200
+    assert detail_response.get_json()["summary_text"] == created["summary_text"]
 
 
 def test_parent_and_unscoped_therapist_cannot_access_report_endpoints(client: FlaskClient):

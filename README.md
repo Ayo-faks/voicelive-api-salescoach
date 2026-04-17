@@ -227,6 +227,7 @@ static/         Legacy/static web assets used outside the built frontend bundle
 ## Repo Docs
 
 - [docs/repo-architecture.md](docs/repo-architecture.md) for the engineering-oriented architecture walkthrough
+- [docs/progress-report-development.md](docs/progress-report-development.md) for the detailed developer guide to report creation, workflow state, exports, and extension points
 - [docs/therapist-guide.md](docs/therapist-guide.md) for the product workflow from a therapist perspective
 - [AGENTS.md](AGENTS.md) for repo-specific validation and Azure deployment guidance used by coding agents
 
