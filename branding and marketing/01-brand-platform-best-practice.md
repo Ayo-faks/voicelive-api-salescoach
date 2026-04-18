@@ -36,6 +36,68 @@ Affordable therapy sounds like category disruption against therapists.
 
 Affordable continuity sounds like leverage for therapists.
 
+## What Wulo Actually Offers Therapists — The Value Ladder
+
+Therapists will not respond to a single-lever pitch (speed, ease, money). The real answer is **leverage**, and everything else is proof. This ladder is the campaign's emotional and strategic spine. Rank matters — higher rungs lead, lower rungs support.
+
+### Rung 1 — Professional leverage (lead message)
+
+`Your care reaches further than your calendar.`
+
+Therapists are capped by time, not skill. Wulo extends the same clinician across more children, more days, more homes — without cloning them or diluting their practice. Speaks to identity, not workflow. This is the anchor.
+
+### Rung 2 — Continuity of care (clinical resonance)
+
+`The plan you set actually gets practised.`
+
+Every therapist knows the 20-minute-a-day home practice gap is where progress dies. Wulo closes it. This is a problem therapists already name — we are not inventing it.
+
+### Rung 3 — Visibility and evidence (rational proof)
+
+`You see what happened between sessions.`
+
+Structured practice data, parent follow-through, phoneme-level progress. Sharpens review, strengthens parent conversations, makes outcomes reportable. Strongest for clinics serving schools and NHS-adjacent buyers, and for private therapists defending fees.
+
+### Rung 4 — Reach into underserved families (mission layer)
+
+`Help the children who would otherwise never see you.`
+
+The "Progress Shouldn't Depend on Privilege" territory, reframed as the therapist's act, not ours. Safe to lead with on mission content because the therapist remains the one extending care.
+
+### Rung 5 — Time and admin relief (functional proof, never the headline)
+
+Less chasing parents, fewer "did you practise?" conversations, auto-generated session prep. Useful supporting proof. Never the hook — too transactional, too close to productivity-tool framing.
+
+### Rung 6 — Practice growth and income (quiet subtext only)
+
+More children served per week equals more revenue for private practice. Real, but never lead with it. Therapists are a values-led profession; money-first messaging reads as crass and misreads the room. Let it live in case studies and pricing pages, not hooks.
+
+### Language the ladder rules out
+
+- `Save time` — reduces the therapist to a cost centre
+- `Scale your practice` — SaaS register, wrong profession
+- `Make more money` — violates clinical identity
+- `Do more with less` — sounds like austerity
+- `AI-powered therapy` — triggers replacement fear
+- `Affordable speech therapy` — positions against the therapist
+
+### The one-line spine
+
+`Therapists change lives in 30 minutes a week. Wulo makes the other 167 hours count — under your plan, with your voice, on your terms.`
+
+Every campaign asset should thread back to this line.
+
+### Ladder-to-tagline map
+
+| Rung | Maps to tagline layer |
+| --- | --- |
+| Rung 1 — Leverage | Conversion layer — `Extend care beyond the session` |
+| Rung 2 — Continuity | Conversion layer — `Keep care working between sessions` |
+| Rung 3 — Visibility | Proof layer — `More children. Same clinical control.` |
+| Rung 4 — Reach | Master layer — `Progress Shouldn't Depend on Privilege` |
+| Rung 5 — Time | Functional subtext in demos and walkthroughs |
+| Rung 6 — Income | Quiet subtext in pricing and case studies only |
+
 ## The Best Territory
 
 ## Master Platform

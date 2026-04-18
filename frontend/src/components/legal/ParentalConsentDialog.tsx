@@ -26,10 +26,25 @@ const useStyles = makeStyles({
     border: '1px solid var(--color-border)',
     borderRadius: 'var(--radius-lg)',
     maxWidth: '520px',
+    maxHeight: '90vh',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+  },
+  dialogBody: {
+    display: 'flex',
+    flexDirection: 'column',
+    flex: 1,
+    minHeight: 0,
+    overflow: 'hidden',
   },
   body: {
     display: 'grid',
     gap: 'var(--space-md)',
+    overflowY: 'auto',
+    flex: 1,
+    minHeight: 0,
+    paddingRight: 'var(--space-xs)',
   },
   helperText: {
     color: 'var(--color-text-secondary)',
@@ -123,7 +138,7 @@ export function ParentalConsentDialog({ open, saving, error, childName, onSubmit
     <Dialog open={open} onOpenChange={(_, data) => !data.open && onCancel()}>
       <DialogSurface className={styles.surface}>
         <DialogTitle>Parental consent for {childName}</DialogTitle>
-        <DialogBody>
+        <DialogBody className={styles.dialogBody}>
           <div className={styles.body}>
             <Text className={styles.helperText} size={300}>
               Before starting practice sessions, parental or guardian consent must be recorded.

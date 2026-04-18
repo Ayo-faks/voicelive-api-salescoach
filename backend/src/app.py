@@ -201,6 +201,11 @@ def _trusted_origins() -> set[str]:
     }
     if not _is_azure_hosted_environment():
         origins.update(LOCAL_DEV_TRUSTED_ORIGINS)
+        extra = str(os.environ.get("DEV_EXTRA_TRUSTED_ORIGINS") or "")
+        for entry in extra.split(","):
+            normalized = _normalize_origin(entry.strip())
+            if normalized:
+                origins.add(normalized)
     return {origin for origin in origins if origin}
 
 
@@ -674,9 +679,33 @@ def _check_csrf_policy() -> Optional[Tuple[Any, int]]:
     origin = _normalize_origin(str(request.headers.get("Origin") or ""))
     referer = _normalize_origin(str(request.headers.get("Referer") or ""))
     trusted_origins = _trusted_origins()
-    if origin and origin not in trusted_origins:
+    # In local dev (non-Azure), allow any private/loopback origin on the common
+    # dev ports so developers can use LAN IPs to test from phones/other devices.
+    allow_private_dev = not _is_azure_hosted_environment()
+
+    def _is_private_dev_origin(value: str) -> bool:
+        if not allow_private_dev or not value:
+            return False
+        parsed = urlsplit(value)
+        host = (parsed.hostname or "").lower()
+        if not host:
+            return False
+        if host in {"localhost", "127.0.0.1", "::1"}:
+            return True
+        if host.startswith("10.") or host.startswith("192.168."):
+            return True
+        if host.startswith("172."):
+            try:
+                second = int(host.split(".")[1])
+                if 16 <= second <= 31:
+                    return True
+            except (ValueError, IndexError):
+                return False
+        return False
+
+    if origin and origin not in trusted_origins and not _is_private_dev_origin(origin):
         return jsonify({"error": "Origin not allowed"}), HTTP_FORBIDDEN
-    if not origin and referer and referer not in trusted_origins:
+    if not origin and referer and referer not in trusted_origins and not _is_private_dev_origin(referer):
         return jsonify({"error": "Referer not allowed"}), HTTP_FORBIDDEN
 
     content_length = request.content_length or 0

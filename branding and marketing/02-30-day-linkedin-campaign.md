@@ -31,6 +31,37 @@ Every post should ladder back to a practical therapist-first version of that ide
 4. Use access and affordability as continuity and reach, not "cheap therapy."
 5. Reuse the same strategic spine across different creative angles.
 
+## Campaign Ladder Mapping
+
+Each week of the campaign is anchored to one rung of the therapist value ladder defined in `01-brand-platform-best-practice.md`. This keeps the narrative ascending rather than scattered.
+
+| Week | Days | Ladder rung | Weekly theme | Emotional job |
+| --- | --- | --- | --- | --- |
+| Week 1 | 1-7 | Rung 2 — Continuity of care | `The plan you set actually gets practised.` | Name the pain therapists already live with |
+| Week 2 | 8-14 | Rung 1 — Professional leverage | `Your care reaches further than your calendar.` | Reframe Wulo as leverage, not replacement |
+| Week 3 | 15-21 | Rung 3 — Visibility and evidence | `You see what happened between sessions.` | Provide rational proof and workflow credibility |
+| Week 4 | 22-30 | Rung 4 — Reach and mission | `Help the children who would otherwise never see you.` | Close on mission, invite pilot commitment |
+
+Rungs 5 (time) and 6 (income) are never lead messages. They appear only as supporting proof inside demo walkthroughs, case studies, and pricing conversations.
+
+## Weekly Narrative Arc
+
+### Week 1 — Continuity (days 1-7)
+
+Open by naming the week-between gap. This is the shared clinical frustration. Do not pitch. Diagnose. Establish Wulo as a serious observer of the real problem before anyone sees the product.
+
+### Week 2 — Leverage (days 8-14)
+
+Shift from problem to promise. Introduce the idea that the therapist's care can travel further without diluting their standards. This is the emotional pivot from "Wulo sees the problem" to "Wulo extends the therapist."
+
+### Week 3 — Visibility (days 15-21)
+
+Bring the workflow on stage. Show structured review, evidence, follow-through. This is where skeptical therapists and clinic owners get the proof they need to consider a pilot.
+
+### Week 4 — Reach and mission (days 22-30)
+
+Close on the moral frame: `Progress shouldn't depend on privilege.` Tie the therapist's work to the children who would otherwise not be reached. End with a clear pilot invitation.
+
 ## Creative System
 
 Use five recurring creative types:
