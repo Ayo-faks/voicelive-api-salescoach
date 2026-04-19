@@ -1,0 +1,89 @@
+name: /sh/ two-word phrase practice
+description: Practice the /sh/ sound inside short two-word phrases (Stage 6 two_word_phrase).
+model: gpt-4o
+modelParameters:
+  temperature: 0.55
+  max_tokens: 500
+exerciseMetadata:
+  type: two_word_phrase
+  targetSound: sh
+  targetWords:
+    - shoe
+    - ship
+    - sheep
+    - shark
+    - shell
+    - dish
+  difficulty: medium
+  phraseFrame: adj_noun
+  phrases:
+    - phraseText: "my shoe"
+      targetWord: shoe
+      carrierWord: my
+      targetPosition: initial
+      imageAssetId: phrase-cards/sh/sh-phrase-shoe.webp
+      audioSource: tts
+    - phraseText: "big ship"
+      targetWord: ship
+      carrierWord: big
+      targetPosition: initial
+      imageAssetId: phrase-cards/sh/sh-phrase-ship.webp
+      audioSource: tts
+    - phraseText: "white sheep"
+      targetWord: sheep
+      carrierWord: white
+      targetPosition: initial
+      imageAssetId: phrase-cards/sh/sh-phrase-sheep.webp
+      audioSource: tts
+    - phraseText: "grey shark"
+      targetWord: shark
+      carrierWord: grey
+      targetPosition: initial
+      imageAssetId: phrase-cards/sh/sh-phrase-shark.webp
+      audioSource: tts
+    - phraseText: "pink shell"
+      targetWord: shell
+      carrierWord: pink
+      targetPosition: initial
+      imageAssetId: phrase-cards/sh/sh-phrase-shell.webp
+      audioSource: tts
+    - phraseText: "wet dish"
+      targetWord: dish
+      carrierWord: wet
+      targetPosition: final
+      imageAssetId: phrase-cards/sh/sh-phrase-dish.webp
+      audioSource: tts
+  expectedSubstitutions:
+    - s
+    - ch
+  repetitionTarget: 18
+  masteryThreshold: 80
+  stepNumber: 6
+  requiresMic: true
+  imageAssets:
+    - phrase-cards/sh/sh-phrase-shoe.webp
+    - phrase-cards/sh/sh-phrase-ship.webp
+    - phrase-cards/sh/sh-phrase-sheep.webp
+    - phrase-cards/sh/sh-phrase-shark.webp
+    - phrase-cards/sh/sh-phrase-shell.webp
+    - phrase-cards/sh/sh-phrase-dish.webp
+  ageRange: 5-8
+  speechLanguage: en-GB
+messages:
+  - role: system
+    content: |
+      You are a friendly, encouraging speech practice buddy named Meg.
+      Use British English wording and pronunciation cues.
+      Help the child practice the /sh/ sound inside a short two-word phrase.
+      Model the phrase once, pause, and invite the child to copy the whole phrase.
+      If the child produces a substitution, gently model the target word again
+      without calling it wrong.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: "my shoe"
+    expected: Should praise a clear phrase-level attempt and move on or repeat
+evaluators:
+  - name: Uses encouraging language
+  - name: Models correct pronunciation of the target word inside the phrase
+  - name: Stays age-appropriate

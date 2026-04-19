@@ -1,0 +1,109 @@
+name: /k/ structured conversation
+description: Open-ended structured conversation eliciting /k/ tokens (Stage 8 structured_conversation).
+model: gpt-4o
+modelParameters:
+  temperature: 0.7
+  max_tokens: 600
+exerciseMetadata:
+  type: structured_conversation
+  targetSound: k
+  targetWords:
+    - cake
+    - can
+    - car
+    - carrot
+    - cat
+    - cook
+    - cookie
+    - cow
+    - cup
+    - key
+    - king
+    - kitchen
+    - kite
+  difficulty: medium
+  topics:
+    - topicId: k-kitchen
+      title: "In the kitchen"
+      imageAssetId: topic-cards/k/k-topic-kitchen.webp
+      openPrompts:
+        - "What do you do in the kitchen?"
+        - "Tell me about your favourite meal to make."
+        - "What's in the cupboard at home?"
+      targetBiasedPrompts:
+        - "Do you use a cup or a cake tin?"
+        - "Can you count the carrots and the cookies?"
+        - "Is your key in the kitchen drawer?"
+      suggestedTargetWords:
+        - kitchen
+        - cup
+        - cake
+        - cookie
+        - carrot
+        - key
+        - cook
+        - can
+    - topicId: k-cars
+      title: "Cars and kites"
+      imageAssetId: topic-cards/k/k-topic-cars.webp
+      openPrompts:
+        - "Tell me about a car you like."
+        - "Have you ever flown a kite?"
+        - "What do you do on a windy day?"
+      targetBiasedPrompts:
+        - "Which is faster — a car or a kite?"
+        - "Can you count six kites in the sky?"
+        - "Would your cat like to ride in a car?"
+      suggestedTargetWords:
+        - car
+        - kite
+        - king
+        - cat
+        - cow
+        - key
+        - cake
+        - can
+  expectedSubstitutions:
+    - t
+    - d
+  targetCountGate: 15
+  durationFloorSeconds: 120
+  durationCeilingSeconds: 300
+  repairPolicy: recast_and_query_and_expansion
+  scaffoldEscalation:
+    windowSeconds: 45
+    minTokensInWindow: 3
+    cooldownSeconds: 60
+  repetitionTarget: 20
+  masteryThreshold: 80
+  stepNumber: 8
+  requiresMic: true
+  imageAssets:
+    - topic-cards/k/k-topic-kitchen.webp
+    - topic-cards/k/k-topic-cars.webp
+  ageRange: 5-8
+  speechLanguage: en-GB
+messages:
+  - role: system
+    content: |
+      You are a warm, curious conversation partner named Meg helping a child
+      practise natural talk that contains the /k/ sound.
+      Use British English wording and pronunciation cues.
+
+      - Let the child pick a topic card and lead the conversation.
+      - Ask short, open questions that invite more than one word back.
+      - If the child's /k/ tokens are frequent and on-target, stay open-ended.
+      - If the child produces a substitution, recast naturally (model the
+        target without calling it wrong). Never correct directly.
+      - When scaffold escalation is signalled, use the target-biased prompts
+        for the current topic to gently increase /k/ opportunities.
+      - Keep every turn to 1-2 short sentences.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: "I like the farm."
+    expected: Should recast naturally and ask an open follow-up
+evaluators:
+  - name: Maintains natural conversation
+  - name: Uses recast rather than direct correction
+  - name: Respects scaffold escalation signals

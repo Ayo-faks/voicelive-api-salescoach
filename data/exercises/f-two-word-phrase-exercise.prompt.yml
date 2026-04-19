@@ -1,0 +1,89 @@
+name: /f/ two-word phrase practice
+description: Practice the /f/ sound inside short two-word phrases (Stage 6 two_word_phrase).
+model: gpt-4o
+modelParameters:
+  temperature: 0.55
+  max_tokens: 500
+exerciseMetadata:
+  type: two_word_phrase
+  targetSound: f
+  targetWords:
+    - fish
+    - foot
+    - fork
+    - fan
+    - leaf
+    - roof
+  difficulty: medium
+  phraseFrame: adj_noun
+  phrases:
+    - phraseText: "my fish"
+      targetWord: fish
+      carrierWord: my
+      targetPosition: initial
+      imageAssetId: phrase-cards/f/f-phrase-fish.webp
+      audioSource: tts
+    - phraseText: "big foot"
+      targetWord: foot
+      carrierWord: big
+      targetPosition: initial
+      imageAssetId: phrase-cards/f/f-phrase-foot.webp
+      audioSource: tts
+    - phraseText: "small fork"
+      targetWord: fork
+      carrierWord: small
+      targetPosition: initial
+      imageAssetId: phrase-cards/f/f-phrase-fork.webp
+      audioSource: tts
+    - phraseText: "pink fan"
+      targetWord: fan
+      carrierWord: pink
+      targetPosition: initial
+      imageAssetId: phrase-cards/f/f-phrase-fan.webp
+      audioSource: tts
+    - phraseText: "green leaf"
+      targetWord: leaf
+      carrierWord: green
+      targetPosition: final
+      imageAssetId: phrase-cards/f/f-phrase-leaf.webp
+      audioSource: tts
+    - phraseText: "red roof"
+      targetWord: roof
+      carrierWord: red
+      targetPosition: final
+      imageAssetId: phrase-cards/f/f-phrase-roof.webp
+      audioSource: tts
+  expectedSubstitutions:
+    - p
+    - b
+  repetitionTarget: 18
+  masteryThreshold: 80
+  stepNumber: 6
+  requiresMic: true
+  imageAssets:
+    - phrase-cards/f/f-phrase-fish.webp
+    - phrase-cards/f/f-phrase-foot.webp
+    - phrase-cards/f/f-phrase-fork.webp
+    - phrase-cards/f/f-phrase-fan.webp
+    - phrase-cards/f/f-phrase-leaf.webp
+    - phrase-cards/f/f-phrase-roof.webp
+  ageRange: 5-8
+  speechLanguage: en-GB
+messages:
+  - role: system
+    content: |
+      You are a friendly, encouraging speech practice buddy named Meg.
+      Use British English wording and pronunciation cues.
+      Help the child practice the /f/ sound inside a short two-word phrase.
+      Model the phrase once, pause, and invite the child to copy the whole phrase.
+      If the child produces a substitution, gently model the target word again
+      without calling it wrong.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: "my fish"
+    expected: Should praise a clear phrase-level attempt and move on or repeat
+evaluators:
+  - name: Uses encouraging language
+  - name: Models correct pronunciation of the target word inside the phrase
+  - name: Stays age-appropriate

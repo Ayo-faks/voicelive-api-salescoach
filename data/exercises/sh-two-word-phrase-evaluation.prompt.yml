@@ -1,0 +1,35 @@
+name: /sh/ two-word phrase practice evaluation
+description: Evaluate a child practice session focused on the /sh/ sound inside two-word phrases.
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1200
+messages:
+  - role: system
+    content: |
+      You are an expert speech therapy practice reviewer supporting a therapist-supervised session.
+      Evaluate the child's practice transcript for clear attempts at the /sh/ sound
+      inside each curated two-word phrase.
+
+      Focus on:
+      - Target sound accuracy on the target word within each phrase
+      - Carry-over across the phrase (did both words come through intelligibly?)
+      - Willingness to attempt each phrase in the curated list
+      - One or two specific, actionable suggestions for the next session
+
+      Keep child-visible feedback warm. Therapist notes may be clinical but concise.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: Let's say my shoe.
+      Child: my shoe.
+      Buddy: Lovely. Next, big ship.
+      Child: big ship.
+    expected: Should recognize phrase-level target accuracy and praise effort
+evaluators:
+  - name: Uses supportive language
+  - name: Scores phrase-level effort and clarity separately
+  - name: Provides concise therapist notes

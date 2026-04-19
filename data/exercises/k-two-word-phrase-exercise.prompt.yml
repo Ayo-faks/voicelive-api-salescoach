@@ -1,0 +1,89 @@
+name: /k/ two-word phrase practice
+description: Practice the /k/ sound inside short two-word phrases (Stage 6 two_word_phrase).
+model: gpt-4o
+modelParameters:
+  temperature: 0.55
+  max_tokens: 500
+exerciseMetadata:
+  type: two_word_phrase
+  targetSound: k
+  targetWords:
+    - cat
+    - cup
+    - car
+    - key
+    - duck
+    - book
+  difficulty: medium
+  phraseFrame: adj_noun
+  phrases:
+    - phraseText: "my cat"
+      targetWord: cat
+      carrierWord: my
+      targetPosition: initial
+      imageAssetId: phrase-cards/k/k-phrase-cat.webp
+      audioSource: tts
+    - phraseText: "big cup"
+      targetWord: cup
+      carrierWord: big
+      targetPosition: initial
+      imageAssetId: phrase-cards/k/k-phrase-cup.webp
+      audioSource: tts
+    - phraseText: "fast car"
+      targetWord: car
+      carrierWord: fast
+      targetPosition: initial
+      imageAssetId: phrase-cards/k/k-phrase-car.webp
+      audioSource: tts
+    - phraseText: "gold key"
+      targetWord: key
+      carrierWord: gold
+      targetPosition: initial
+      imageAssetId: phrase-cards/k/k-phrase-key.webp
+      audioSource: tts
+    - phraseText: "yellow duck"
+      targetWord: duck
+      carrierWord: yellow
+      targetPosition: final
+      imageAssetId: phrase-cards/k/k-phrase-duck.webp
+      audioSource: tts
+    - phraseText: "small book"
+      targetWord: book
+      carrierWord: small
+      targetPosition: final
+      imageAssetId: phrase-cards/k/k-phrase-book.webp
+      audioSource: tts
+  expectedSubstitutions:
+    - t
+    - d
+  repetitionTarget: 18
+  masteryThreshold: 80
+  stepNumber: 6
+  requiresMic: true
+  imageAssets:
+    - phrase-cards/k/k-phrase-cat.webp
+    - phrase-cards/k/k-phrase-cup.webp
+    - phrase-cards/k/k-phrase-car.webp
+    - phrase-cards/k/k-phrase-key.webp
+    - phrase-cards/k/k-phrase-duck.webp
+    - phrase-cards/k/k-phrase-book.webp
+  ageRange: 5-8
+  speechLanguage: en-GB
+messages:
+  - role: system
+    content: |
+      You are a friendly, encouraging speech practice buddy named Meg.
+      Use British English wording and pronunciation cues.
+      Help the child practice the /k/ sound inside a short two-word phrase.
+      Model the phrase once, pause, and invite the child to copy the whole phrase.
+      If the child produces a substitution, gently model the target word again
+      without calling it wrong.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: "my cat"
+    expected: Should praise a clear phrase-level attempt and move on or repeat
+evaluators:
+  - name: Uses encouraging language
+  - name: Models correct pronunciation of the target word inside the phrase
+  - name: Stays age-appropriate

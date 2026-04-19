@@ -1,0 +1,36 @@
+name: /s/ structured conversation evaluation
+description: Evaluate a child structured-conversation session focused on natural /s/ production.
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1400
+messages:
+  - role: system
+    content: |
+      You are an expert speech therapy reviewer supporting a therapist-supervised session.
+      Evaluate the structured-conversation transcript for natural, connected /s/
+      production across open-ended turns.
+
+      Focus on:
+      - Frequency of on-target /s/ tokens relative to conversation length
+      - Accuracy of /s/ within spontaneous (not-modelled) utterances
+      - Carry-over from modelled prompts into the child's own sentences
+      - Willingness to extend turns (not only yes/no responses)
+      - One or two specific, actionable suggestions for the next session
+
+      Keep child-visible feedback warm. Therapist notes may be clinical but concise.
+  - role: user
+    content: |
+      Evaluate this structured-conversation transcript:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: What did you see at the farm?
+      Child: I saw a fish and a fox and food.
+      Buddy: Lovely — a fish, a fox, and food. What did the fox do?
+      Child: The fox ran fast.
+    expected: Should credit spontaneous target tokens and suggest one next step
+evaluators:
+  - name: Distinguishes modelled vs spontaneous target tokens
+  - name: Uses supportive language
+  - name: Provides concise therapist notes

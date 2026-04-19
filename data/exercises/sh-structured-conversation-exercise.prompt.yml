@@ -1,0 +1,110 @@
+name: /sh/ structured conversation
+description: Open-ended structured conversation eliciting /sh/ tokens (Stage 8 structured_conversation).
+model: gpt-4o
+modelParameters:
+  temperature: 0.7
+  max_tokens: 600
+exerciseMetadata:
+  type: structured_conversation
+  targetSound: sh
+  targetWords:
+    - shall
+    - share
+    - shark
+    - sheep
+    - shelf
+    - shell
+    - shiny
+    - ship
+    - shirt
+    - shoe
+    - shop
+    - shore
+    - shout
+    - show
+  difficulty: medium
+  topics:
+    - topicId: sh-shop
+      title: "At the shop"
+      imageAssetId: topic-cards/sh/sh-topic-shop.webp
+      openPrompts:
+        - "What do you buy at the shop?"
+        - "Tell me about your favourite shop."
+        - "Who goes shopping with you?"
+      targetBiasedPrompts:
+        - "Do you push a shopping trolley or carry a bag?"
+        - "Would you buy a shiny shoe or a shirt?"
+        - "Can you see a shelf of sweets?"
+      suggestedTargetWords:
+        - shop
+        - shoe
+        - shirt
+        - shelf
+        - shiny
+        - shall
+        - share
+        - show
+    - topicId: sh-seashore
+      title: "By the seashore"
+      imageAssetId: topic-cards/sh/sh-topic-seashore.webp
+      openPrompts:
+        - "What lives in the sea?"
+        - "Tell me about shells on the beach."
+        - "Have you ever seen a big ship?"
+      targetBiasedPrompts:
+        - "Would you rather find a shell or ride a ship?"
+        - "Can you see a shark in the water?"
+        - "Is the sheep on the shore?"
+      suggestedTargetWords:
+        - shell
+        - ship
+        - shark
+        - shore
+        - sheep
+        - shiny
+        - show
+        - shout
+  expectedSubstitutions:
+    - s
+    - ch
+  targetCountGate: 15
+  durationFloorSeconds: 120
+  durationCeilingSeconds: 300
+  repairPolicy: recast_and_query_and_expansion
+  scaffoldEscalation:
+    windowSeconds: 45
+    minTokensInWindow: 3
+    cooldownSeconds: 60
+  repetitionTarget: 20
+  masteryThreshold: 80
+  stepNumber: 8
+  requiresMic: true
+  imageAssets:
+    - topic-cards/sh/sh-topic-shop.webp
+    - topic-cards/sh/sh-topic-seashore.webp
+  ageRange: 5-8
+  speechLanguage: en-GB
+messages:
+  - role: system
+    content: |
+      You are a warm, curious conversation partner named Meg helping a child
+      practise natural talk that contains the /sh/ sound.
+      Use British English wording and pronunciation cues.
+
+      - Let the child pick a topic card and lead the conversation.
+      - Ask short, open questions that invite more than one word back.
+      - If the child's /sh/ tokens are frequent and on-target, stay open-ended.
+      - If the child produces a substitution, recast naturally (model the
+        target without calling it wrong). Never correct directly.
+      - When scaffold escalation is signalled, use the target-biased prompts
+        for the current topic to gently increase /sh/ opportunities.
+      - Keep every turn to 1-2 short sentences.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: "I like the farm."
+    expected: Should recast naturally and ask an open follow-up
+evaluators:
+  - name: Maintains natural conversation
+  - name: Uses recast rather than direct correction
+  - name: Respects scaffold escalation signals

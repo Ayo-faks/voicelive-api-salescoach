@@ -1,0 +1,90 @@
+name: /th/ two-word phrase practice
+description: Practice the /th/ sound inside short two-word phrases (Stage 6 two_word_phrase).
+model: gpt-4o
+modelParameters:
+  temperature: 0.55
+  max_tokens: 500
+exerciseMetadata:
+  type: two_word_phrase
+  targetSound: th
+  targetWords:
+    - thumb
+    - book
+    - line
+    - bears
+    - bath
+    - tooth
+  difficulty: medium
+  phraseFrame: adj_noun
+  phrases:
+    - phraseText: "my thumb"
+      targetWord: thumb
+      carrierWord: my
+      targetPosition: initial
+      imageAssetId: phrase-cards/th/th-phrase-thumb.webp
+      audioSource: tts
+    - phraseText: "thick book"
+      targetWord: book
+      carrierWord: thick
+      targetPosition: initial
+      imageAssetId: phrase-cards/th/th-phrase-book.webp
+      audioSource: tts
+    - phraseText: "thin line"
+      targetWord: line
+      carrierWord: thin
+      targetPosition: initial
+      imageAssetId: phrase-cards/th/th-phrase-line.webp
+      audioSource: tts
+    - phraseText: "three bears"
+      targetWord: bears
+      carrierWord: three
+      targetPosition: initial
+      imageAssetId: phrase-cards/th/th-phrase-bears.webp
+      audioSource: tts
+    - phraseText: "warm bath"
+      targetWord: bath
+      carrierWord: warm
+      targetPosition: final
+      imageAssetId: phrase-cards/th/th-phrase-bath.webp
+      audioSource: tts
+    - phraseText: "one tooth"
+      targetWord: tooth
+      carrierWord: one
+      targetPosition: final
+      imageAssetId: phrase-cards/th/th-phrase-tooth.webp
+      audioSource: tts
+  expectedSubstitutions:
+    - f
+    - d
+    - t
+  repetitionTarget: 18
+  masteryThreshold: 80
+  stepNumber: 6
+  requiresMic: true
+  imageAssets:
+    - phrase-cards/th/th-phrase-thumb.webp
+    - phrase-cards/th/th-phrase-book.webp
+    - phrase-cards/th/th-phrase-line.webp
+    - phrase-cards/th/th-phrase-bears.webp
+    - phrase-cards/th/th-phrase-bath.webp
+    - phrase-cards/th/th-phrase-tooth.webp
+  ageRange: 5-8
+  speechLanguage: en-GB
+messages:
+  - role: system
+    content: |
+      You are a friendly, encouraging speech practice buddy named Meg.
+      Use British English wording and pronunciation cues.
+      Help the child practice the /th/ sound inside a short two-word phrase.
+      Model the phrase once, pause, and invite the child to copy the whole phrase.
+      If the child produces a substitution, gently model the target word again
+      without calling it wrong.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: "my thumb"
+    expected: Should praise a clear phrase-level attempt and move on or repeat
+evaluators:
+  - name: Uses encouraging language
+  - name: Models correct pronunciation of the target word inside the phrase
+  - name: Stays age-appropriate

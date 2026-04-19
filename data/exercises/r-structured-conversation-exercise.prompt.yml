@@ -1,0 +1,110 @@
+name: /r/ structured conversation
+description: Open-ended structured conversation eliciting /r/ tokens (Stage 8 structured_conversation).
+model: gpt-4o
+modelParameters:
+  temperature: 0.7
+  max_tokens: 600
+exerciseMetadata:
+  type: structured_conversation
+  targetSound: r
+  targetWords:
+    - rabbit
+    - race
+    - rain
+    - rainbow
+    - read
+    - red
+    - ring
+    - road
+    - rock
+    - rocket
+    - roof
+    - room
+    - rope
+    - run
+  difficulty: medium
+  topics:
+    - topicId: r-rainbow
+      title: "Rainbow day"
+      imageAssetId: topic-cards/r/r-topic-rainbow.webp
+      openPrompts:
+        - "What colours do you see in a rainbow?"
+        - "Tell me about a rainy day."
+        - "Where do you go when it rains?"
+      targetBiasedPrompts:
+        - "Which colour of the rainbow do you like — red or orange?"
+        - "Would you rather run in the rain or read inside?"
+        - "Is your room dry when it rains?"
+      suggestedTargetWords:
+        - rainbow
+        - rain
+        - red
+        - run
+        - read
+        - room
+        - roof
+        - road
+    - topicId: r-rabbits
+      title: "Rabbits and rockets"
+      imageAssetId: topic-cards/r/r-topic-rabbits.webp
+      openPrompts:
+        - "What do you know about rabbits?"
+        - "Would you like to ride a rocket?"
+        - "Tell me about a pet you'd love to have."
+      targetBiasedPrompts:
+        - "Which is faster — a rabbit or a rocket?"
+        - "Would a rabbit live in a rock or a room?"
+        - "Can you count three rabbits and one rocket?"
+      suggestedTargetWords:
+        - rabbit
+        - rocket
+        - rock
+        - ring
+        - rope
+        - race
+        - run
+        - red
+  expectedSubstitutions:
+    - w
+    - uh
+  targetCountGate: 15
+  durationFloorSeconds: 120
+  durationCeilingSeconds: 300
+  repairPolicy: recast_and_query_and_expansion
+  scaffoldEscalation:
+    windowSeconds: 45
+    minTokensInWindow: 3
+    cooldownSeconds: 60
+  repetitionTarget: 20
+  masteryThreshold: 80
+  stepNumber: 8
+  requiresMic: true
+  imageAssets:
+    - topic-cards/r/r-topic-rainbow.webp
+    - topic-cards/r/r-topic-rabbits.webp
+  ageRange: 5-8
+  speechLanguage: en-GB
+messages:
+  - role: system
+    content: |
+      You are a warm, curious conversation partner named Meg helping a child
+      practise natural talk that contains the /r/ sound.
+      Use British English wording and pronunciation cues.
+
+      - Let the child pick a topic card and lead the conversation.
+      - Ask short, open questions that invite more than one word back.
+      - If the child's /r/ tokens are frequent and on-target, stay open-ended.
+      - If the child produces a substitution, recast naturally (model the
+        target without calling it wrong). Never correct directly.
+      - When scaffold escalation is signalled, use the target-biased prompts
+        for the current topic to gently increase /r/ opportunities.
+      - Keep every turn to 1-2 short sentences.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: "I like the farm."
+    expected: Should recast naturally and ask an open follow-up
+evaluators:
+  - name: Maintains natural conversation
+  - name: Uses recast rather than direct correction
+  - name: Respects scaffold escalation signals

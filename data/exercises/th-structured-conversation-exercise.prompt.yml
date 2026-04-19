@@ -1,0 +1,107 @@
+name: /th/ structured conversation
+description: Open-ended structured conversation eliciting /th/ tokens (Stage 8 structured_conversation).
+model: gpt-4o
+modelParameters:
+  temperature: 0.7
+  max_tokens: 600
+exerciseMetadata:
+  type: structured_conversation
+  targetSound: th
+  targetWords:
+    - thank
+    - thick
+    - thin
+    - think
+    - thirty
+    - thought
+    - three
+    - through
+    - thumb
+    - thunder
+  difficulty: medium
+  topics:
+    - topicId: th-thinking
+      title: "Things I'm thinking about"
+      imageAssetId: topic-cards/th/th-topic-thinking.webp
+      openPrompts:
+        - "What have you been thinking about today?"
+        - "Tell me three things that make you happy."
+        - "What would you do on a perfect Thursday?"
+      targetBiasedPrompts:
+        - "Would you rather have three biscuits or thirty?"
+        - "Can you think of a thin and a thick thing?"
+        - "Is your best thought something quiet or loud?"
+      suggestedTargetWords:
+        - think
+        - three
+        - thin
+        - thick
+        - thumb
+        - thirty
+        - thank
+        - thought
+    - topicId: th-thunder
+      title: "Thunder and storms"
+      imageAssetId: topic-cards/th/th-topic-thunder.webp
+      openPrompts:
+        - "What happens in a thunderstorm?"
+        - "Tell me about a time it rained very hard."
+        - "Where do you go when there's a storm?"
+      targetBiasedPrompts:
+        - "Is thunder loud or quiet in your house?"
+        - "Can you count to three between lightning and thunder?"
+        - "Would you rather hear thunder or see a thick cloud?"
+      suggestedTargetWords:
+        - thunder
+        - three
+        - thick
+        - thin
+        - think
+        - thought
+        - thank
+        - through
+  expectedSubstitutions:
+    - f
+    - d
+    - t
+  targetCountGate: 15
+  durationFloorSeconds: 120
+  durationCeilingSeconds: 300
+  repairPolicy: recast_and_query_and_expansion
+  scaffoldEscalation:
+    windowSeconds: 45
+    minTokensInWindow: 3
+    cooldownSeconds: 60
+  repetitionTarget: 20
+  masteryThreshold: 80
+  stepNumber: 8
+  requiresMic: true
+  imageAssets:
+    - topic-cards/th/th-topic-thinking.webp
+    - topic-cards/th/th-topic-thunder.webp
+  ageRange: 5-8
+  speechLanguage: en-GB
+messages:
+  - role: system
+    content: |
+      You are a warm, curious conversation partner named Meg helping a child
+      practise natural talk that contains the /th/ sound.
+      Use British English wording and pronunciation cues.
+
+      - Let the child pick a topic card and lead the conversation.
+      - Ask short, open questions that invite more than one word back.
+      - If the child's /th/ tokens are frequent and on-target, stay open-ended.
+      - If the child produces a substitution, recast naturally (model the
+        target without calling it wrong). Never correct directly.
+      - When scaffold escalation is signalled, use the target-biased prompts
+        for the current topic to gently increase /th/ opportunities.
+      - Keep every turn to 1-2 short sentences.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: "I like the farm."
+    expected: Should recast naturally and ask an open follow-up
+evaluators:
+  - name: Maintains natural conversation
+  - name: Uses recast rather than direct correction
+  - name: Respects scaffold escalation signals

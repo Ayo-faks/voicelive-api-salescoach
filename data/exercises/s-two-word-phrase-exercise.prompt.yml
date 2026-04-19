@@ -1,0 +1,89 @@
+name: /s/ two-word phrase practice
+description: Practice the /s/ sound inside short two-word phrases (Stage 6 two_word_phrase).
+model: gpt-4o
+modelParameters:
+  temperature: 0.55
+  max_tokens: 500
+exerciseMetadata:
+  type: two_word_phrase
+  targetSound: s
+  targetWords:
+    - sun
+    - sock
+    - soap
+    - sand
+    - bus
+    - mouse
+  difficulty: medium
+  phraseFrame: adj_noun
+  phrases:
+    - phraseText: "hot sun"
+      targetWord: sun
+      carrierWord: hot
+      targetPosition: initial
+      imageAssetId: phrase-cards/s/s-phrase-sun.webp
+      audioSource: tts
+    - phraseText: "red sock"
+      targetWord: sock
+      carrierWord: red
+      targetPosition: initial
+      imageAssetId: phrase-cards/s/s-phrase-sock.webp
+      audioSource: tts
+    - phraseText: "white soap"
+      targetWord: soap
+      carrierWord: white
+      targetPosition: initial
+      imageAssetId: phrase-cards/s/s-phrase-soap.webp
+      audioSource: tts
+    - phraseText: "wet sand"
+      targetWord: sand
+      carrierWord: wet
+      targetPosition: initial
+      imageAssetId: phrase-cards/s/s-phrase-sand.webp
+      audioSource: tts
+    - phraseText: "big bus"
+      targetWord: bus
+      carrierWord: big
+      targetPosition: final
+      imageAssetId: phrase-cards/s/s-phrase-bus.webp
+      audioSource: tts
+    - phraseText: "tiny mouse"
+      targetWord: mouse
+      carrierWord: tiny
+      targetPosition: final
+      imageAssetId: phrase-cards/s/s-phrase-mouse.webp
+      audioSource: tts
+  expectedSubstitutions:
+    - th
+    - t
+  repetitionTarget: 18
+  masteryThreshold: 80
+  stepNumber: 6
+  requiresMic: true
+  imageAssets:
+    - phrase-cards/s/s-phrase-sun.webp
+    - phrase-cards/s/s-phrase-sock.webp
+    - phrase-cards/s/s-phrase-soap.webp
+    - phrase-cards/s/s-phrase-sand.webp
+    - phrase-cards/s/s-phrase-bus.webp
+    - phrase-cards/s/s-phrase-mouse.webp
+  ageRange: 5-8
+  speechLanguage: en-GB
+messages:
+  - role: system
+    content: |
+      You are a friendly, encouraging speech practice buddy named Meg.
+      Use British English wording and pronunciation cues.
+      Help the child practice the /s/ sound inside a short two-word phrase.
+      Model the phrase once, pause, and invite the child to copy the whole phrase.
+      If the child produces a substitution, gently model the target word again
+      without calling it wrong.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: "hot sun"
+    expected: Should praise a clear phrase-level attempt and move on or repeat
+evaluators:
+  - name: Uses encouraging language
+  - name: Models correct pronunciation of the target word inside the phrase
+  - name: Stays age-appropriate
