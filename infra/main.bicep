@@ -106,10 +106,6 @@ param azureCommunicationServicesSenderDisplayName string = 'Wulo'
 @description('Optional public app URL used in invitation emails.')
 param publicAppUrl string = ''
 
-@secure()
-@description('Optional SAS-backed custom lexicon URL for Azure Speech and Voice Live pronunciation control.')
-param customLexiconUrl string = ''
-
 // Tags that should be applied to all resources.
 //
 // Note that 'azd-service-name' tags should be applied separately to service host resources.
@@ -164,7 +160,6 @@ module resources 'resources.bicep' = {
     azureCommunicationServicesSenderAddress: azureCommunicationServicesSenderAddress
     azureCommunicationServicesSenderDisplayName: azureCommunicationServicesSenderDisplayName
     publicAppUrl: publicAppUrl
-    customLexiconUrl: customLexiconUrl
   }
 }
 

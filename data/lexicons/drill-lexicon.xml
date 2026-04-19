@@ -174,4 +174,82 @@
     <grapheme>TH_THOO_ALIAS</grapheme>
     <phoneme>θuː</phoneme>
   </lexeme>
+
+  <!-- Isolated /th/ and /f/ sound labels used for TH Sound Sorting cues -->
+  <lexeme>
+    <grapheme>TH_SOUND_MODEL</grapheme>
+    <alias>TH_SOUND_ALIAS</alias>
+  </lexeme>
+  <lexeme>
+    <grapheme>TH_SOUND_ALIAS</grapheme>
+    <phoneme>θː</phoneme>
+  </lexeme>
+  <lexeme>
+    <grapheme>F_SOUND_MODEL</grapheme>
+    <alias>F_SOUND_ALIAS</alias>
+  </lexeme>
+  <lexeme>
+    <grapheme>F_SOUND_ALIAS</grapheme>
+    <phoneme>fː</phoneme>
+  </lexeme>
+
+  <!-- TH Sound Sorting whole-word tokens (voiceless θ onset) -->
+  <lexeme>
+    <grapheme>TH_THIN_MODEL</grapheme>
+    <alias>TH_THIN_ALIAS</alias>
+  </lexeme>
+  <lexeme>
+    <grapheme>TH_THIN_ALIAS</grapheme>
+    <phoneme>θɪn</phoneme>
+  </lexeme>
+  <lexeme>
+    <grapheme>TH_THUMB_MODEL</grapheme>
+    <alias>TH_THUMB_ALIAS</alias>
+  </lexeme>
+  <lexeme>
+    <grapheme>TH_THUMB_ALIAS</grapheme>
+    <phoneme>θʌm</phoneme>
+  </lexeme>
+  <lexeme>
+    <grapheme>TH_THORN_MODEL</grapheme>
+    <alias>TH_THORN_ALIAS</alias>
+  </lexeme>
+  <lexeme>
+    <grapheme>TH_THORN_ALIAS</grapheme>
+    <phoneme>θɔːn</phoneme>
+  </lexeme>
+  <lexeme>
+    <grapheme>TH_THREE_MODEL</grapheme>
+    <alias>TH_THREE_ALIAS</alias>
+  </lexeme>
+  <lexeme>
+    <grapheme>TH_THREE_ALIAS</grapheme>
+    <phoneme>θɹiː</phoneme>
+  </lexeme>
+
+  <!-- /f/ minimal-pair tokens for TH Sound Sorting -->
+  <lexeme>
+    <grapheme>F_FIN_MODEL</grapheme>
+    <alias>F_FIN_ALIAS</alias>
+  </lexeme>
+  <lexeme>
+    <grapheme>F_FIN_ALIAS</grapheme>
+    <phoneme>fɪn</phoneme>
+  </lexeme>
+  <lexeme>
+    <grapheme>F_FREE_MODEL</grapheme>
+    <alias>F_FREE_ALIAS</alias>
+  </lexeme>
+  <lexeme>
+    <grapheme>F_FREE_ALIAS</grapheme>
+    <phoneme>fɹiː</phoneme>
+  </lexeme>
+  <lexeme>
+    <grapheme>F_FAWN_MODEL</grapheme>
+    <alias>F_FAWN_ALIAS</alias>
+  </lexeme>
+  <lexeme>
+    <grapheme>F_FAWN_ALIAS</grapheme>
+    <phoneme>fɔːn</phoneme>
+  </lexeme>
 </lexicon>
