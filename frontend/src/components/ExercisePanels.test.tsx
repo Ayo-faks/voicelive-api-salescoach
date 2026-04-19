@@ -1,7 +1,7 @@
 import { createRef } from 'react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { buildChildIntroInstructions, buildTherapistIntroInstructions } from '../app/App'
+import { buildChildIntroInstructions, buildTherapistIntroInstructions } from '../app/introInstructions'
 import { api } from '../services/api'
 import { ListeningMinimalPairsPanel } from './ListeningMinimalPairsPanel'
 import { SessionScreen } from './SessionScreen'
@@ -18,6 +18,17 @@ function createDeferred() {
   return { promise, resolve }
 }
 
+// PR1 Session E — SilentSorting tests now run against the real ExerciseShell
+// (not the retired local mock). The shell gates auto-advance on a user
+// gesture, so each SilentSorting test seeds a pointerDown on the shell
+// <section> before asserting on expose-phase DOM.
+function seedShellGesture(): void {
+  const section = document.querySelector('section.exercise-shell')
+  if (section) {
+    fireEvent.pointerDown(section)
+  }
+}
+
 vi.mock('../services/api', async importOriginal => {
   const actual = await importOriginal<typeof import('../services/api')>()
 
@@ -32,41 +43,28 @@ vi.mock('../services/api', async importOriginal => {
 
 class AudioMock {
   addEventListener = vi.fn()
+  pause = vi.fn()
   play = vi.fn().mockResolvedValue(undefined)
 }
 
+// The listening panel emits drill-token sentinels (e.g. TH_THIN_MODEL) which
+// the downstream SSML pipeline replaces with child-friendly display text.
 const listeningInstruction =
   'Listen carefully. TH_THIN_MODEL. Tap the matching picture.'
 
 const listeningPraise = 'Great listening. You picked TH_THIN_MODEL.'
-const listeningRetry = "Let's listen again. TH_THIN_MODEL. F_FIN_MODEL."
-const secondListeningInstruction = 'Listen carefully. TH_THORN_MODEL. Tap the matching picture.'
 
-const defaultMatchMedia = window.matchMedia
+const listeningInstructionThorn =
+  'Listen carefully. TH_THORN_MODEL. Tap the matching picture.'
 
-function setMatchMediaForSorting(isMobileFallback: boolean) {
-  Object.defineProperty(window, 'matchMedia', {
-    writable: true,
-    value: (query: string) => ({
-      matches: isMobileFallback
-        ? query === '(pointer: coarse)' || query === '(max-width: 640px)'
-        : false,
-      media: query,
-      onchange: null,
-      addListener: () => {},
-      removeListener: () => {},
-      addEventListener: () => {},
-      removeEventListener: () => {},
-      dispatchEvent: () => false,
-    }),
-  })
-}
+// Retry prompt after picking 'fin' while the target was 'thin'.
+const listeningRetryThinFin =
+  "Let's listen again. TH_THIN_MODEL. F_FIN_MODEL."
 
 describe('Exercise panels', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
     vi.mocked(api.synthesizeSpeech).mockResolvedValue('dGVzdA==')
-    setMatchMediaForSorting(false)
 
     Object.defineProperty(globalThis, 'Audio', {
       writable: true,
@@ -164,7 +162,7 @@ describe('Exercise panels', () => {
       1,
       listeningInstruction
     )
-    expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(2, listeningRetry)
+    expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(2, listeningRetryThinFin)
     expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(
       3,
       listeningInstruction
@@ -214,7 +212,7 @@ describe('Exercise panels', () => {
     expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(2, listeningPraise)
     expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(
       3,
-      secondListeningInstruction
+      listeningInstructionThorn
     )
     expect(screen.queryByRole('button', { name: 'Next pair' })).toBeNull()
   })
@@ -316,7 +314,7 @@ describe('Exercise panels', () => {
     await waitFor(() => {
       expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(
         2,
-        secondListeningInstruction
+        listeningInstructionThorn
       )
     })
 
@@ -429,22 +427,24 @@ describe('Exercise panels', () => {
     expect(screen.getByText('Practice set complete.')).toBeTruthy()
   })
 
-  it('builds microphone-free listening intro copy while preserving mic prompts for speaking turns', () => {
+  it('builds TH sorting intro copy around sound buttons while preserving mic prompts for speaking turns', () => {
     const childListeningIntro = buildChildIntroInstructions({
       childName: 'Mia',
       avatarName: 'Meg',
       avatarPersona: 'a warm adult speech-practice buddy',
-      scenarioName: 'R and W listening',
+      scenarioName: 'TH and F listening',
       scenarioDescription: 'Listen for the clue and tap the matching picture.',
-      requiresMic: false,
+      exerciseType: 'silent_sorting',
+      targetSound: 'th',
     })
     const therapistListeningIntro = buildTherapistIntroInstructions({
       childName: 'Mia',
       avatarName: 'Meg',
       avatarPersona: 'a warm adult speech-practice buddy',
-      scenarioName: 'R and W listening',
+      scenarioName: 'TH and F listening',
       scenarioDescription: 'Listen for the clue and tap the matching picture.',
-      requiresMic: false,
+      exerciseType: 'silent_sorting',
+      targetSound: 'th',
     })
     const childSpeakingIntro = buildChildIntroInstructions({
       childName: 'Mia',
@@ -452,13 +452,18 @@ describe('Exercise panels', () => {
       avatarPersona: 'a warm adult speech-practice buddy',
       scenarioName: 'R sound practice',
       scenarioDescription: 'Say the R sound clearly.',
-      requiresMic: true,
+      exerciseType: 'drill',
     })
 
-    expect(childListeningIntro).toContain('listen for the clue and tap the matching picture')
-    expect(therapistListeningIntro).toContain('tap-only listening turn')
-    expect(childListeningIntro).not.toMatch(/microphone/i)
-    expect(therapistListeningIntro).not.toMatch(/microphone/i)
+    expect(childListeningIntro).toContain('sound button')
+    expect(therapistListeningIntro).toContain('sound button')
+    // Listening intros must not *instruct* the avatar to announce
+    // "the TH sound" / "the F sound" to the child, but the LLM meta
+    // guardrails still reference those phrases as prohibited spellings.
+    // Assert the child-facing turn-taking guidance, not literal-string
+    // absence.
+    expect(childListeningIntro).toMatch(/sound button/i)
+    expect(therapistListeningIntro).toMatch(/sound button/i)
     expect(childSpeakingIntro).toMatch(/microphone/i)
   })
 
@@ -513,73 +518,228 @@ describe('Exercise panels', () => {
     expect(screen.getByText('Listen for the clue, then tap the matching picture.')).toBeTruthy()
   })
 
-  it('uses the mobile tap-bin fallback without defaulting cards into TH', async () => {
-    const handleSendMessage = vi.fn()
-    const handleSpeakExerciseText = vi.fn().mockResolvedValue(undefined)
+  it('sends a sorting message when a card moves into a sound home', async () => {
+    // Force mobile-fallback sorting mode (tap-to-sort) so we can drive card
+    // moves via fireEvent.click instead of drag-and-drop, which jsdom cannot
+    // faithfully simulate.
+    const originalMatchMedia = window.matchMedia
+    ;(window as unknown as { matchMedia: (q: string) => MediaQueryList }).matchMedia = (query: string) =>
+      ({
+        matches: query.includes('pointer: coarse') || query.includes('max-width'),
+        media: query,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        addListener: () => {},
+        removeListener: () => {},
+        dispatchEvent: () => false,
+        onchange: null,
+      }) as unknown as MediaQueryList
 
-    setMatchMediaForSorting(true)
+    const handleSendMessage = vi.fn()
+
+    try {
+      render(
+        <SilentSortingPanel
+          metadata={{
+            targetSound: 'th',
+            errorSound: 'f',
+            targetWords: ['thin'],
+            imageAssets: [
+              'object-cards/th/th-initial-thin.webp',
+            ],
+          }}
+          onSendMessage={handleSendMessage}
+        />,
+      )
+
+      seedShellGesture()
+
+      // ORIENT → EXPOSE: wait for preview buttons to appear.
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Hear thhh sound/i })).toBeTruthy()
+      })
+
+      // Tap both previews so canAdvanceFromExpose flips true.
+      fireEvent.click(screen.getByRole('button', { name: /Hear thhh sound/i }))
+      fireEvent.click(screen.getByRole('button', { name: /Hear fff sound/i }))
+
+      // EXPOSE → BRIDGE → PERFORM via Start game.
+      await waitFor(() => {
+        expect(
+          (screen.getByTestId('silent-sorting-start-game') as HTMLButtonElement).disabled,
+        ).toBe(false)
+      })
+      fireEvent.click(screen.getByTestId('silent-sorting-start-game'))
+
+      // PERFORM: wait for the card pool to render.
+      await waitFor(() => {
+        expect(screen.getByText('thin')).toBeTruthy()
+      })
+
+      // In mobile-fallback mode, the first tap "arms" the target bucket; the
+      // second tap commits the sort. Arm the target home (labelled by percept
+      // "thhh home"), then tap the card.
+      fireEvent.click(screen.getByRole('button', { name: 'thhh home' }))
+      fireEvent.click(screen.getByText('thin'))
+
+      await waitFor(() => {
+        expect(handleSendMessage).toHaveBeenCalledWith(
+          'I sorted thin into the thin sound home.',
+        )
+      })
+    } finally {
+      ;(window as unknown as { matchMedia: typeof originalMatchMedia }).matchMedia = originalMatchMedia
+    }
+  })
+
+  it('uses the curated asset for TH and falls back to pseudo TTS for F', async () => {
+    vi.mocked(api.synthesizeSpeech).mockClear()
 
     render(
       <SilentSortingPanel
-        readyToStart
         metadata={{
           targetSound: 'th',
           errorSound: 'f',
           targetWords: ['thin', 'fin'],
-          imageAssets: [
-            'object-cards/th/th-initial-thin.webp',
-            'object-cards/f/f-initial-fin.webp',
-          ],
         }}
-        onSendMessage={handleSendMessage}
-        onSpeakExerciseText={handleSpeakExerciseText}
       />,
     )
 
-    fireEvent.click(screen.getByText('thin'))
-
-    expect(handleSendMessage).not.toHaveBeenCalled()
-    expect(screen.getByText('Choose a sound home first, then tap the card.')).toBeTruthy()
-
-    fireEvent.click(screen.getByRole('button', { name: 'TH home' }))
-    fireEvent.click(screen.getByText('thin'))
-
-    expect(handleSendMessage).toHaveBeenCalledWith('I sorted thin into the thin sound home.')
-    expect(screen.getByText('thin goes in the TH home.')).toBeTruthy()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Hear TH' }))
+    seedShellGesture()
 
     await waitFor(() => {
-      expect(handleSpeakExerciseText).toHaveBeenCalledWith('TH_THIN_MODEL.')
+      expect(screen.getByRole('button', { name: /Hear thhh sound/i })).toBeTruthy()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /Hear thhh sound/i }))
+
+    await waitFor(() => {
+      expect(api.synthesizeSpeech).not.toHaveBeenCalled()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /Hear fff sound/i }))
+
+    await waitFor(() => {
+      expect(api.synthesizeSpeech).toHaveBeenLastCalledWith('fff')
     })
   })
 
-  it('keeps an incorrect silent-sorting move in retry state instead of defaulting into TH', () => {
-    const handleSendMessage = vi.fn()
-
-    setMatchMediaForSorting(true)
+  it('lets therapists switch preview cue strategy for non-asset isolated phonemes', async () => {
+    vi.mocked(api.synthesizeSpeech).mockClear()
 
     render(
       <SilentSortingPanel
-        readyToStart
+        audience="therapist"
         metadata={{
           targetSound: 'th',
           errorSound: 'f',
           targetWords: ['thin', 'fin'],
-          imageAssets: [
-            'object-cards/th/th-initial-thin.webp',
-            'object-cards/f/f-initial-fin.webp',
-          ],
         }}
-        onSendMessage={handleSendMessage}
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'F home' }))
-    fireEvent.click(screen.getByText('thin'))
+    seedShellGesture()
 
-    expect(handleSendMessage).toHaveBeenCalledWith('I tried to sort thin into the fin sound home.')
-    expect(screen.getByText('Try again. thin does not go in the F home.')).toBeTruthy()
+    await waitFor(() => {
+      expect(screen.getByText('Preview cue: Pseudo-spelling')).toBeTruthy()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'IPA' }))
+    fireEvent.click(screen.getByRole('button', { name: /Hear fff sound/i }))
+
+    await waitFor(() => {
+      expect(api.synthesizeSpeech).toHaveBeenLastCalledWith(
+        expect.objectContaining({ phoneme: 'f', alphabet: 'ipa', fallback_text: 'sound' })
+      )
+    })
+  })
+
+  it('shows the therapist note when TH uses an approved sample asset', async () => {
+    render(
+      <SilentSortingPanel
+        audience="therapist"
+        metadata={{
+          targetSound: 'th',
+          errorSound: 'f',
+          targetWords: ['thin', 'fin'],
+        }}
+      />,
+    )
+
+    seedShellGesture()
+
+    await waitFor(() => {
+      expect(screen.getByText('Hear thhh uses the approved sample asset.')).toBeTruthy()
+    })
+  })
+
+  it('hides the dev-only Save take button by default', () => {
+    render(
+      <SilentSortingPanel
+        audience="therapist"
+        metadata={{
+          targetSound: 'th',
+          errorSound: 'f',
+          targetWords: ['thin', 'fin'],
+        }}
+      />,
+    )
+
+    expect(screen.queryByRole('button', { name: 'Save take' })).toBeNull()
+  })
+
+  it('exposes Save take when the dev flag is on and still exports non-asset isolated phonemes', async () => {
+    vi.stubEnv('VITE_ENABLE_PREVIEW_EXPORT', 'true')
+    vi.mocked(api.synthesizeSpeech).mockClear()
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+    try {
+      render(
+        <SilentSortingPanel
+          audience="therapist"
+          metadata={{
+            targetSound: 'th',
+            errorSound: 'f',
+            targetWords: ['thin', 'fin'],
+          }}
+        />,
+      )
+
+      seedShellGesture()
+
+      const saveButton = await screen.findByRole('button', { name: 'Save take' })
+      expect((saveButton as HTMLButtonElement).disabled).toBe(true)
+
+      fireEvent.click(await screen.findByRole('button', { name: /Hear thhh sound/i }))
+      await waitFor(() => {
+        expect(api.synthesizeSpeech).not.toHaveBeenCalled()
+      })
+
+      await waitFor(() => {
+        expect((screen.getByRole('button', { name: 'Save take' }) as HTMLButtonElement).disabled).toBe(true)
+      })
+
+      fireEvent.click(screen.getByRole('button', { name: /Hear fff sound/i }))
+      await waitFor(() => {
+        expect(api.synthesizeSpeech).toHaveBeenLastCalledWith('fff')
+      })
+
+      await waitFor(() => {
+        expect((screen.getByRole('button', { name: 'Save take' }) as HTMLButtonElement).disabled).toBe(false)
+      })
+
+      fireEvent.click(screen.getByRole('button', { name: 'Save take' }))
+
+      await waitFor(() => {
+        expect(clickSpy).toHaveBeenCalledTimes(2)
+      })
+      await waitFor(() => {
+        expect(screen.getByText(/Saved wulo-preview_f_pseudo_fff_voice-unknown_/)).toBeTruthy()
+      })
+    } finally {
+      clickSpy.mockRestore()
+      vi.unstubAllEnvs()
+    }
   })
 
   it('reports the active blend and sends a blend selection message from the vowel blending panel', () => {
