@@ -848,11 +848,45 @@ export const api = {
     return res.json()
   },
 
-  async synthesizeSpeech(text: string): Promise<string> {
+  async synthesizeSpeech(
+    input:
+      | string
+      | {
+          text?: string
+          ssml?: string
+          phoneme?: string
+          alphabet?: string
+          fallback_text?: string
+          voiceName?: string
+        },
+    options?: { signal?: AbortSignal }
+  ): Promise<string> {
+    let body: Record<string, unknown>
+    if (typeof input === 'string') {
+      body = { text: input }
+    } else {
+      const payload: Record<string, unknown> = {}
+      if (typeof input.text === 'string' && input.text.length > 0) {
+        payload.text = input.text
+      }
+      if (typeof input.ssml === 'string' && input.ssml.length > 0) {
+        payload.ssml = input.ssml
+      }
+      if (typeof input.phoneme === 'string' && input.phoneme.length > 0) {
+        payload.phoneme = input.phoneme
+        payload.alphabet = input.alphabet ?? 'ipa'
+        payload.fallback_text = input.fallback_text ?? 'sound'
+      }
+      if (typeof input.voiceName === 'string' && input.voiceName.length > 0) {
+        payload.voice_name = input.voiceName
+      }
+      body = payload
+    }
     const res = await fetchWithAuth('/api/tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify(body),
+      signal: options?.signal,
     })
     if (!res.ok) throw new Error('TTS request failed')
     const data = await res.json()

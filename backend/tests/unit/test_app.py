@@ -1225,3 +1225,59 @@ class TestFlaskApp:
         from src.app import _perform_conversation_analysis  # pylint: disable=C0415
 
         assert callable(_perform_conversation_analysis)
+
+    # ------------------------------------------------------------------
+    # /api/tts — validation branches (PR2 commit 8)
+    # ------------------------------------------------------------------
+    def test_tts_missing_input_returns_400(self):
+        """Test /api/tts rejects a body with none of text/ssml/phoneme."""
+        response = self.client.post(
+            "/api/tts",
+            json={},
+            headers=self._auth_headers(),
+        )
+        assert response.status_code == 400
+        assert json.loads(response.data)["error"] == "text, ssml, or phoneme is required"
+
+    def test_tts_multiple_inputs_returns_400(self):
+        """Test /api/tts rejects bodies with more than one input mode set."""
+        response = self.client.post(
+            "/api/tts",
+            json={"text": "hello", "phoneme": "θ"},
+            headers=self._auth_headers(),
+        )
+        assert response.status_code == 400
+        assert (
+            json.loads(response.data)["error"]
+            == "provide exactly one of text, ssml, or phoneme"
+        )
+
+    def test_tts_text_too_long_returns_400(self):
+        """Test /api/tts rejects text payloads longer than 200 chars."""
+        response = self.client.post(
+            "/api/tts",
+            json={"text": "a" * 201},
+            headers=self._auth_headers(),
+        )
+        assert response.status_code == 400
+        assert "max 200" in json.loads(response.data)["error"]
+
+    def test_tts_ssml_too_long_returns_400(self):
+        """Test /api/tts rejects ssml payloads longer than 2000 chars."""
+        response = self.client.post(
+            "/api/tts",
+            json={"ssml": "<speak>" + "a" * 2001 + "</speak>"},
+            headers=self._auth_headers(),
+        )
+        assert response.status_code == 400
+        assert "ssml too long" in json.loads(response.data)["error"]
+
+    def test_tts_phoneme_too_long_returns_400(self):
+        """Test /api/tts rejects phoneme payloads longer than 32 chars."""
+        response = self.client.post(
+            "/api/tts",
+            json={"phoneme": "θ" * 33},
+            headers=self._auth_headers(),
+        )
+        assert response.status_code == 400
+        assert "phoneme too long" in json.loads(response.data)["error"]

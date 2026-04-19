@@ -2104,22 +2104,81 @@ def assess_utterance():
 
 @app.route(API_TTS_ENDPOINT, methods=["POST"])
 def synthesize_speech():
-    """Synthesize a short text string using Azure AI Speech and return WAV audio."""
+    """Synthesize a short text / phoneme / SSML payload using Azure AI Speech.
+
+    Accepted JSON bodies (mutually exclusive on input mode):
+
+    - ``{"text": "..."}`` — plain text, <= 200 chars
+    - ``{"ssml": "<speak>...</speak>"}`` — caller-built SSML document, <= 2000 chars
+    - ``{"phoneme": "θ", "alphabet": "ipa", "fallback_text": "sound"}`` —
+      server builds an SSML document wrapping ``<phoneme alphabet="ipa" ph="...">``
+
+    Optional ``voice_name`` override is honoured when the value is a
+    non-empty string; otherwise the configured default voice is used.
+    """
     _, guard_response = _require_authenticated()
     if guard_response is not None:
         return guard_response
 
     data = cast(Dict[str, Any], request.get_json(silent=True) or {})
-    text = cast(str, data.get("text") or "").strip()
-    if not text or len(text) > 200:
-        return jsonify({"error": "text is required (max 200 chars)"}), HTTP_BAD_REQUEST
 
-    voice_name = config["azure_voice_name"]
+    text = cast(str, data.get("text") or "").strip()
+    ssml = cast(str, data.get("ssml") or "").strip()
+    phoneme = cast(str, data.get("phoneme") or "").strip()
+    alphabet = cast(str, data.get("alphabet") or "ipa").strip() or "ipa"
+    fallback_text = cast(str, data.get("fallback_text") or "sound").strip() or "sound"
+
+    mode_count = sum(1 for value in (text, ssml, phoneme) if value)
+    if mode_count == 0:
+        return jsonify({"error": "text, ssml, or phoneme is required"}), HTTP_BAD_REQUEST
+    if mode_count > 1:
+        return (
+            jsonify({"error": "provide exactly one of text, ssml, or phoneme"}),
+            HTTP_BAD_REQUEST,
+        )
+
+    if text and len(text) > 200:
+        return jsonify({"error": "text is required (max 200 chars)"}), HTTP_BAD_REQUEST
+    if ssml and len(ssml) > 2000:
+        return jsonify({"error": "ssml too long (max 2000 chars)"}), HTTP_BAD_REQUEST
+    if phoneme and len(phoneme) > 32:
+        return jsonify({"error": "phoneme too long (max 32 chars)"}), HTTP_BAD_REQUEST
+
+    default_voice = cast(str, config["azure_voice_name"])
+    requested_voice = cast(str, data.get("voice_name") or "").strip()
+    voice_name = requested_voice or default_voice
+
     speech_key = config["azure_speech_key"]
     speech_region = config["azure_speech_region"]
 
     if not speech_key:
         return jsonify({"error": "Speech service not configured"}), HTTP_INTERNAL_SERVER_ERROR
+
+    def _escape_xml(value: str) -> str:
+        return (
+            value.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace('"', "&quot;")
+            .replace("'", "&apos;")
+        )
+
+    synthesis_ssml: Optional[str] = None
+    synthesis_text: Optional[str] = None
+    if ssml:
+        synthesis_ssml = ssml
+    elif phoneme:
+        synthesis_ssml = (
+            "<speak version=\"1.0\" xmlns=\"http://www.w3.org/2001/10/synthesis\" xml:lang=\"en-GB\">"
+            f"<voice name=\"{_escape_xml(voice_name)}\">"
+            f"<phoneme alphabet=\"{_escape_xml(alphabet)}\" ph=\"{_escape_xml(phoneme)}\">"
+            f"{_escape_xml(fallback_text)}"
+            "</phoneme>"
+            "</voice>"
+            "</speak>"
+        )
+    else:
+        synthesis_text = text
 
     try:
         import azure.cognitiveservices.speech as speechsdk  # pyright: ignore[reportMissingTypeStubs]
@@ -2130,7 +2189,11 @@ def synthesize_speech():
             speechsdk.SpeechSynthesisOutputFormat.Audio48Khz192KBitRateMonoMp3
         )
         synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=None)
-        result = synthesizer.speak_text_async(text).get()
+        if synthesis_ssml is not None:
+            result = synthesizer.speak_ssml_async(synthesis_ssml).get()
+        else:
+            assert synthesis_text is not None
+            result = synthesizer.speak_text_async(synthesis_text).get()
 
         if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
             audio_b64 = base64.b64encode(result.audio_data).decode("ascii")
