@@ -1,0 +1,107 @@
+name: Snake Sound Listen
+description: Listen to twelve snake-sound pictures and watch them light up
+model: gpt-4o
+modelParameters:
+  temperature: 0.2
+  max_tokens: 120
+exerciseMetadata:
+  type: auditory_bombardment
+  targetSound: s
+  targetWords:
+    - sun
+    - soap
+    - seal
+    - sand
+    - soup
+    - sock
+    - seat
+    - bus
+    - mouse
+    - house
+    - ice
+    - juice
+  difficulty: easy
+  repetitionTarget: 20
+  masteryThreshold: null
+  stepNumber: 0
+  requiresMic: false
+  durationSeconds: 90
+  imageAssets:
+    - object-cards/s/s-initial-sun.webp
+    - object-cards/s/s-initial-soap.webp
+    - object-cards/s/s-initial-seal.webp
+    - object-cards/s/s-initial-sand.webp
+    - object-cards/s/s-initial-soup.webp
+    - object-cards/s/s-initial-sock-card.webp
+    - object-cards/s/s-initial-seat.webp
+    - object-cards/s/s-final-bus.webp
+    - object-cards/s/s-final-mouse.webp
+    - object-cards/s/s-final-house.webp
+    - object-cards/s/s-final-ice.webp
+    - object-cards/s/s-final-juice.webp
+  ageRange: 5-8
+  speechLanguage: en-GB
+  exemplars:
+    - word: sun
+      imageAssetId: s-initial-sun
+      audioSource: tts
+      position: initial
+    - word: soap
+      imageAssetId: s-initial-soap
+      audioSource: tts
+      position: initial
+    - word: seal
+      imageAssetId: s-initial-seal
+      audioSource: tts
+      position: initial
+    - word: sand
+      imageAssetId: s-initial-sand
+      audioSource: tts
+      position: initial
+    - word: soup
+      imageAssetId: s-initial-soup
+      audioSource: tts
+      position: initial
+    - word: sock
+      imageAssetId: s-initial-sock-card
+      audioSource: tts
+      position: initial
+    - word: seat
+      imageAssetId: s-initial-seat
+      audioSource: tts
+      position: initial
+    - word: bus
+      imageAssetId: s-final-bus
+      audioSource: tts
+      position: final
+    - word: mouse
+      imageAssetId: s-final-mouse
+      audioSource: tts
+      position: final
+    - word: house
+      imageAssetId: s-final-house
+      audioSource: tts
+      position: final
+    - word: ice
+      imageAssetId: s-final-ice
+      audioSource: tts
+      position: final
+    - word: juice
+      imageAssetId: s-final-juice
+      audioSource: tts
+      position: final
+messages:
+  - role: system
+    content: |
+      You are Meg, a calm speech practice buddy. This is a listening-only Stage 0 activity: the app plays twelve snake-sound picture words automatically.
+      Stay silent during the run. If the child speaks, reply with one short warm sentence and let the pictures keep going.
+      Never say the letter names. If you must name the sound, use the percept label "sss".
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: I can hear the pictures
+    expected: Warm one-sentence acknowledgement, no instruction to repeat
+evaluators:
+  - name: Stays quiet and warm during listening
+  - name: Never spells out letter names
+  - name: Uses the sss percept label when naming the sound

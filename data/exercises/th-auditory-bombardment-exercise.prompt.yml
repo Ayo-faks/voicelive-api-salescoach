@@ -1,0 +1,107 @@
+name: Thumb Sound Listen
+description: Listen to twelve thumb-sound pictures and watch them light up
+model: gpt-4o
+modelParameters:
+  temperature: 0.2
+  max_tokens: 120
+exerciseMetadata:
+  type: auditory_bombardment
+  targetSound: th
+  targetWords:
+    - thumb
+    - three
+    - think
+    - thorn
+    - thread
+    - thin
+    - thick
+    - thirty
+    - bath
+    - path
+    - moth
+    - tooth
+  difficulty: easy
+  repetitionTarget: 20
+  masteryThreshold: null
+  stepNumber: 0
+  requiresMic: false
+  durationSeconds: 90
+  imageAssets:
+    - object-cards/th/th-initial-thumb.webp
+    - object-cards/th/th-initial-three.webp
+    - object-cards/th/th-initial-think.webp
+    - object-cards/th/th-initial-thorn.webp
+    - object-cards/th/th-initial-thread.webp
+    - object-cards/th/th-initial-thin.webp
+    - object-cards/th/th-initial-thick.webp
+    - object-cards/th/th-initial-thirty.webp
+    - object-cards/th/th-final-bath.webp
+    - object-cards/th/th-final-path.webp
+    - object-cards/th/th-final-moth.webp
+    - object-cards/th/th-final-tooth.webp
+  ageRange: 5-8
+  speechLanguage: en-GB
+  exemplars:
+    - word: thumb
+      imageAssetId: th-initial-thumb
+      audioSource: tts
+      position: initial
+    - word: three
+      imageAssetId: th-initial-three
+      audioSource: tts
+      position: initial
+    - word: think
+      imageAssetId: th-initial-think
+      audioSource: tts
+      position: initial
+    - word: thorn
+      imageAssetId: th-initial-thorn
+      audioSource: tts
+      position: initial
+    - word: thread
+      imageAssetId: th-initial-thread
+      audioSource: tts
+      position: initial
+    - word: thin
+      imageAssetId: th-initial-thin
+      audioSource: tts
+      position: initial
+    - word: thick
+      imageAssetId: th-initial-thick
+      audioSource: tts
+      position: initial
+    - word: thirty
+      imageAssetId: th-initial-thirty
+      audioSource: tts
+      position: initial
+    - word: bath
+      imageAssetId: th-final-bath
+      audioSource: tts
+      position: final
+    - word: path
+      imageAssetId: th-final-path
+      audioSource: tts
+      position: final
+    - word: moth
+      imageAssetId: th-final-moth
+      audioSource: tts
+      position: final
+    - word: tooth
+      imageAssetId: th-final-tooth
+      audioSource: tts
+      position: final
+messages:
+  - role: system
+    content: |
+      You are Meg, a calm speech practice buddy. This is a listening-only Stage 0 activity: the app plays twelve thumb-sound picture words automatically.
+      Stay silent during the run. If the child speaks, reply with one short warm sentence and let the pictures keep going.
+      Never say the letter names. If you must name the sound, use the percept label "thhh".
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: I can hear the pictures
+    expected: Warm one-sentence acknowledgement, no instruction to repeat
+evaluators:
+  - name: Stays quiet and warm during listening
+  - name: Never spells out letter names
+  - name: Uses the thhh percept label when naming the sound

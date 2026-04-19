@@ -1,0 +1,107 @@
+name: Rocket Sound Listen
+description: Listen to twelve rocket-sound pictures and watch them light up
+model: gpt-4o
+modelParameters:
+  temperature: 0.2
+  max_tokens: 120
+exerciseMetadata:
+  type: auditory_bombardment
+  targetSound: r
+  targetWords:
+    - red
+    - rake
+    - rabbit
+    - rocket
+    - rainbow
+    - ring
+    - road
+    - rain
+    - rope
+    - rose
+    - robot
+    - ruler
+  difficulty: easy
+  repetitionTarget: 20
+  masteryThreshold: null
+  stepNumber: 0
+  requiresMic: false
+  durationSeconds: 90
+  imageAssets:
+    - object-cards/r/r-initial-red.webp
+    - object-cards/r/r-initial-rake.webp
+    - object-cards/r/r-initial-rabbit.webp
+    - object-cards/r/r-initial-rocket.webp
+    - object-cards/r/r-initial-rainbow.webp
+    - object-cards/r/r-initial-ring.webp
+    - object-cards/r/r-initial-road.webp
+    - object-cards/r/r-initial-rain.webp
+    - object-cards/r/r-initial-rope.webp
+    - object-cards/r/r-initial-rose.webp
+    - object-cards/r/r-initial-robot.webp
+    - object-cards/r/r-initial-ruler.webp
+  ageRange: 5-8
+  speechLanguage: en-GB
+  exemplars:
+    - word: red
+      imageAssetId: r-initial-red
+      audioSource: tts
+      position: initial
+    - word: rake
+      imageAssetId: r-initial-rake
+      audioSource: tts
+      position: initial
+    - word: rabbit
+      imageAssetId: r-initial-rabbit
+      audioSource: tts
+      position: initial
+    - word: rocket
+      imageAssetId: r-initial-rocket
+      audioSource: tts
+      position: initial
+    - word: rainbow
+      imageAssetId: r-initial-rainbow
+      audioSource: tts
+      position: initial
+    - word: ring
+      imageAssetId: r-initial-ring
+      audioSource: tts
+      position: initial
+    - word: road
+      imageAssetId: r-initial-road
+      audioSource: tts
+      position: initial
+    - word: rain
+      imageAssetId: r-initial-rain
+      audioSource: tts
+      position: initial
+    - word: rope
+      imageAssetId: r-initial-rope
+      audioSource: tts
+      position: initial
+    - word: rose
+      imageAssetId: r-initial-rose
+      audioSource: tts
+      position: initial
+    - word: robot
+      imageAssetId: r-initial-robot
+      audioSource: tts
+      position: initial
+    - word: ruler
+      imageAssetId: r-initial-ruler
+      audioSource: tts
+      position: initial
+messages:
+  - role: system
+    content: |
+      You are Meg, a calm speech practice buddy. This is a listening-only Stage 0 activity: the app plays twelve rocket-sound picture words automatically.
+      Stay silent during the run. If the child speaks, reply with one short warm sentence and let the pictures keep going.
+      Never say the letter names. If you must name the sound, use the percept label "rrr".
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: I can hear the pictures
+    expected: Warm one-sentence acknowledgement, no instruction to repeat
+evaluators:
+  - name: Stays quiet and warm during listening
+  - name: Never spells out letter names
+  - name: Uses the rrr percept label when naming the sound

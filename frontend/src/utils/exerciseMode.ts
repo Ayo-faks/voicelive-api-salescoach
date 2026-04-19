@@ -3,7 +3,11 @@ import type { CustomScenario, ExerciseMetadata, ExerciseType, Scenario } from '.
 type ExerciseTypeLike = ExerciseType | string | null | undefined
 
 export function isTapOnlyExerciseType(type: ExerciseTypeLike): boolean {
-  return type === 'listening_minimal_pairs' || type === 'silent_sorting'
+  return (
+    type === 'listening_minimal_pairs' ||
+    type === 'silent_sorting' ||
+    type === 'auditory_bombardment'
+  )
 }
 
 export function exerciseRequiresMic(
