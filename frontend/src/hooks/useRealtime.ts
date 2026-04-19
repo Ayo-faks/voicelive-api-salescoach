@@ -5,7 +5,6 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../services/api'
-import { normalizeStreamingDrillText, replaceDrillTokens } from '../utils/drillTokens'
 import type { AppConfig, Message } from '../types'
 
 type RealtimeEvent = Record<string, unknown> & {
@@ -109,17 +108,6 @@ export function useRealtime(options: RealtimeOptions) {
     content: string
   } | null>(null)
 
-  const formatRealtimeText = useCallback(
-    (role: 'user' | 'assistant', text: string, streaming = false) => {
-      if (role !== 'assistant') {
-        return text
-      }
-
-      return streaming ? normalizeStreamingDrillText(text) : replaceDrillTokens(text)
-    },
-    []
-  )
-
   const appendStreamingMessage = useCallback(
     (role: 'user' | 'assistant', deltaText: string) => {
       if (!deltaText) {
@@ -132,17 +120,16 @@ export function useRealtime(options: RealtimeOptions) {
 
       if (!activeStreamingMessage) {
         const id = createClientMessageId()
-        const nextContent = deltaText
         targetRef.current = {
           id,
-          content: nextContent,
+          content: deltaText,
         }
         setMessages(prev => [
           ...prev,
           {
             id,
             role,
-            content: formatRealtimeText(role, nextContent, true),
+            content: deltaText,
             timestamp: new Date(),
             streaming: true,
           },
@@ -155,16 +142,15 @@ export function useRealtime(options: RealtimeOptions) {
         ...activeStreamingMessage,
         content: nextContent,
       }
-      const nextVisibleContent = formatRealtimeText(role, nextContent, true)
       setMessages(prev =>
         prev.map(message =>
           message.id === activeStreamingMessage.id
-            ? { ...message, content: nextVisibleContent, streaming: true }
+            ? { ...message, content: nextContent, streaming: true }
             : message
         )
       )
     },
-    [formatRealtimeText]
+    []
   )
 
   const finalizeStreamingMessage = useCallback(
@@ -172,7 +158,6 @@ export function useRealtime(options: RealtimeOptions) {
       const targetRef =
         role === 'user' ? streamingUserMessageRef : streamingAssistantMessageRef
       const activeStreamingMessage = targetRef.current
-      const nextVisibleTranscript = formatRealtimeText(role, finalTranscript)
 
       if (activeStreamingMessage) {
         setMessages(prev =>
@@ -180,7 +165,7 @@ export function useRealtime(options: RealtimeOptions) {
             message.id === activeStreamingMessage.id
               ? {
                 ...message,
-                content: nextVisibleTranscript,
+                content: finalTranscript,
                 streaming: false,
               }
               : message
@@ -193,13 +178,13 @@ export function useRealtime(options: RealtimeOptions) {
       const message: Message = {
         id: createClientMessageId(),
         role,
-        content: nextVisibleTranscript,
+        content: finalTranscript,
         timestamp: new Date(),
         streaming: false,
       }
       setMessages(prev => [...prev, message])
     },
-    [formatRealtimeText]
+    []
   )
 
   useEffect(() => {
@@ -323,7 +308,7 @@ export function useRealtime(options: RealtimeOptions) {
         }
         case 'response.audio_transcript.done':
           if (msg.transcript) {
-            const finalTranscript = replaceDrillTokens(msg.transcript)
+            const finalTranscript = msg.transcript
             finalizeStreamingMessage('assistant', finalTranscript)
             conversationRecording.current.push({
               role: 'assistant',

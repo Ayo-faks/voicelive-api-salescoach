@@ -19,6 +19,8 @@ const DRILL_TOKEN_DISPLAY_MAP = {
   TH_THIGH_MODEL: 'th-eye, thigh',
   TH_THOUGH_MODEL: 'th-oh, though',
   TH_THOO_MODEL: 'th-oo, thoo',
+  TH_SOUND_MODEL: 'th sound',
+  F_SOUND_MODEL: 'f sound',
   TH_THIN_MODEL: 'thin',
   TH_THREE_MODEL: 'three',
   TH_THORN_MODEL: 'thorn',

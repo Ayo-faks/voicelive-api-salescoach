@@ -25,7 +25,6 @@ import { SilentSortingPanel } from './SilentSortingPanel'
 import { SoundIsolationPanel } from './SoundIsolationPanel'
 import { VowelBlendingPanel } from './VowelBlendingPanel'
 import { VideoPanel } from './VideoPanel'
-import { exerciseRequiresMic } from '../utils/exerciseMode'
 
 const useStyles = makeStyles({
   stage: {
@@ -145,12 +144,8 @@ interface SessionScreenProps {
   utteranceFeedback: PronunciationAssessment | null
   scoringUtterance: boolean
   activeReferenceText: string
-  onActiveBlendChange?: (blend: string) => void
   onSendExerciseMessage?: (text: string) => void
-  onSpeakExerciseText?: (text: string) => Promise<void>
-  onRecordExerciseSelection?: (text: string) => void
   onInterruptAvatar?: () => void
-  onListeningPracticeComplete?: () => void
 }
 
 function formatExerciseType(value?: string) {
@@ -179,7 +174,6 @@ function getScenarioExerciseMetadata(
       targetSound: scenario.scenarioData.targetSound,
       targetWords: scenario.scenarioData.targetWords,
       difficulty: scenario.scenarioData.difficulty,
-      requiresMic: exerciseRequiresMic(undefined, scenario.scenarioData.exerciseType),
     }
   }
 
@@ -209,22 +203,17 @@ export function SessionScreen({
   utteranceFeedback,
   scoringUtterance,
   activeReferenceText,
-  onActiveBlendChange,
   onSendExerciseMessage,
-  onSpeakExerciseText,
-  onRecordExerciseSelection,
   onInterruptAvatar,
-  onListeningPracticeComplete,
 }: SessionScreenProps) {
   const styles = useStyles()
   const customScenario = isCustomScenario(scenario) ? scenario : null
   const exerciseMetadata = getScenarioExerciseMetadata(scenario)
-  const micRequired = exerciseRequiresMic(exerciseMetadata)
-  const canTalk = micRequired && connected && introComplete && !sessionFinished
+  const canTalk = connected && introComplete && !sessionFinished
   const exerciseType = formatExerciseType(
     customScenario?.scenarioData.exerciseType || scenario?.exerciseMetadata?.type
   )
-  const showMicDock = micRequired
+  const showMicDock = exerciseMetadata?.requiresMic !== false
   const isListeningMinimalPairs = exerciseMetadata?.type === 'listening_minimal_pairs'
   const isSilentSorting = exerciseMetadata?.type === 'silent_sorting'
   const isSoundIsolation = exerciseMetadata?.type === 'sound_isolation'
@@ -235,21 +224,15 @@ export function SessionScreen({
       scenarioName={scenario?.name}
       metadata={exerciseMetadata}
       audience={isChildMode ? 'child' : 'therapist'}
-      readyToStart={connected && introComplete && !sessionFinished}
       onSendMessage={onSendExerciseMessage}
-      onSpeakExerciseText={onSpeakExerciseText}
-      onRecordExerciseSelection={onRecordExerciseSelection}
       onInterruptAvatar={onInterruptAvatar}
-      onCompleteSession={onListeningPracticeComplete}
     />
   ) : isSilentSorting ? (
     <SilentSortingPanel
       scenarioName={scenario?.name}
       metadata={exerciseMetadata}
       audience={isChildMode ? 'child' : 'therapist'}
-      readyToStart={connected && introComplete && !sessionFinished}
       onSendMessage={onSendExerciseMessage}
-      onSpeakExerciseText={onSpeakExerciseText}
     />
   ) : isSoundIsolation ? (
     <SoundIsolationPanel
@@ -265,7 +248,6 @@ export function SessionScreen({
       scenarioName={scenario?.name}
       metadata={exerciseMetadata}
       attempts={messages.filter(message => message.role === 'user').length}
-      onActiveBlendChange={onActiveBlendChange}
       onSendMessage={onSendExerciseMessage}
     />
   ) : null
@@ -332,7 +314,6 @@ export function SessionScreen({
             onToggleRecording={onToggleRecording}
             canTalk={canTalk && !scoringUtterance}
             audience={isChildMode ? 'child' : 'therapist'}
-            micRequired={micRequired}
             showMicDock={showMicDock}
           />
 

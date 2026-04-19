@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "wulo-preview-take",
+  "saved_at_utc": "2026-04-19T08:13:24Z",
+  "sound": "th",
+  "bucket": "target",
+  "strategy": "pseudo",
+  "candidate_label": "Pseudo-spelling",
+  "input": {
+    "mode": "text",
+    "text": "thh",
+    "phoneme": null,
+    "alphabet": null,
+    "fallback_text": null
+  },
+  "audio": {
+    "format": "mp3",
+    "source": "POST /api/tts",
+    "bytes": 22464
+  },
+  "voice": {
+    "source": "backend-default",
+    "note": "not returned by /api/tts"
+  },
+  "app": {
+    "path": "/session",
+    "panel": "SilentSortingPanel",
+    "build": "dev"
+  }
+}
