@@ -238,6 +238,7 @@ vi.mock('../services/api', () => ({
     getChildIntakeProposals: vi.fn(),
     getPendingChildIntakeProposals: vi.fn(),
     getChildSessions: vi.fn(),
+    getChildReports: vi.fn(),
     getChildPlans: vi.fn(),
     getChildMemorySummary: vi.fn(),
     getChildMemoryItems: vi.fn(),
@@ -593,6 +594,7 @@ describe('App routing integration', () => {
     mockedApi.getChildIntakeProposals.mockResolvedValue([] as never)
     mockedApi.getPendingChildIntakeProposals.mockResolvedValue([] as never)
     mockedApi.getChildSessions.mockImplementation(async childId => sessionSummariesByChild[childId as keyof typeof sessionSummariesByChild] ?? [])
+    mockedApi.getChildReports.mockResolvedValue([] as never)
     mockedApi.getChildPlans.mockImplementation(async childId => childPlansByChild[childId as keyof typeof childPlansByChild] ?? [])
     mockedApi.getChildMemorySummary.mockImplementation(async childId => childMemorySummaryByChild[childId as keyof typeof childMemorySummaryByChild] as never)
     mockedApi.getChildMemoryItems.mockImplementation(async childId => childMemoryItemsByChild[childId as keyof typeof childMemoryItemsByChild] as never)
