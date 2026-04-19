@@ -340,31 +340,6 @@ class PostgresStorageService:
             "created_at": row["created_at"],
         }
 
-    def _build_progress_report_payload(self, row: Dict[str, Any]) -> Dict[str, Any]:
-        return {
-            "id": row["id"],
-            "child_id": row["child_id"],
-            "workspace_id": row["workspace_id"],
-            "created_by_user_id": row["created_by_user_id"],
-            "audience": row["audience"],
-            "report_type": row["report_type"],
-            "title": row["title"],
-            "status": row["status"],
-            "period_start": row["period_start"],
-            "period_end": row["period_end"],
-            "included_session_ids": self._loads_json(row["included_session_ids_json"], []),
-            "snapshot": self._loads_json(row["snapshot_json"], {}),
-            "sections": self._loads_json(row["sections_json"], {}),
-            "redaction_overrides": self._loads_json(row["redaction_overrides_json"], {}),
-            "summary_text": row["summary_text"],
-            "signed_by_user_id": row["signed_by_user_id"],
-            "created_at": row["created_at"],
-            "updated_at": row["updated_at"],
-            "approved_at": row["approved_at"],
-            "signed_at": row["signed_at"],
-            "archived_at": row["archived_at"],
-        }
-
     def _build_child_invitation_payload(self, row: Dict[str, Any], *, current_email: Optional[str] = None) -> Dict[str, Any]:
         invited_email = str(row["invited_email"] or "")
         normalized_current_email = str(current_email or "").strip().lower()
@@ -512,39 +487,33 @@ class PostgresStorageService:
             ).fetchone()
 
             if existing is not None:
-                existing_role = self._normalize_user_role(existing["role"])
-                resolved_role = ROLE_THERAPIST if existing_role == ROLE_PENDING_THERAPIST else existing_role
                 connection.execute(
                     """
                     UPDATE users
-                    SET email = %s, name = %s, provider = %s, role = %s
+                    SET email = %s, name = %s, provider = %s
                     WHERE id = %s
                     """,
-                    (email, name, provider, resolved_role, user_id),
+                    (email, name, provider, user_id),
                 )
-                if resolved_role in {ROLE_THERAPIST, ROLE_ADMIN}:
-                    if resolved_role == ROLE_THERAPIST and existing_role == ROLE_PENDING_THERAPIST:
-                        self._bootstrap_existing_children_for_user(connection, user_id, CHILD_RELATIONSHIP_THERAPIST)
+                normalized_role = self._normalize_user_role(existing["role"])
+                if normalized_role in {ROLE_THERAPIST, ROLE_ADMIN}:
                     self._ensure_personal_workspace_for_user(connection, user_id, name, email)
                 return {
                     "id": existing["id"],
                     "email": email,
                     "name": name,
                     "provider": provider,
-                    "role": resolved_role,
+                    "role": existing["role"],
                     "created_at": existing["created_at"],
                 }
 
-            # If there is a pending family or child invitation for this email, assign parent role.
-            # Otherwise, assign therapist immediately.
+            # If there is a pending invitation for this email, assign parent role.
+            # Otherwise, assign pending_therapist until they redeem an invite code.
             has_pending_invitation = connection.execute(
                 "SELECT 1 FROM child_invitations WHERE LOWER(invited_email) = LOWER(%s) AND status = 'pending' LIMIT 1",
                 (email,),
-            ).fetchone() is not None or connection.execute(
-                "SELECT 1 FROM family_intake_invitations WHERE LOWER(invited_email) = LOWER(%s) AND status = 'pending' LIMIT 1",
-                (email,),
             ).fetchone() is not None
-            role = ROLE_PARENT if has_pending_invitation else ROLE_THERAPIST
+            role = ROLE_PARENT if has_pending_invitation else ROLE_PENDING_THERAPIST
             connection.execute(
                 """
                 INSERT INTO users (id, email, name, provider, role, created_at)
@@ -553,8 +522,8 @@ class PostgresStorageService:
                 (user_id, email, name, provider, role, now),
             )
             if role == ROLE_THERAPIST:
-                self._bootstrap_existing_children_for_user(connection, user_id, CHILD_RELATIONSHIP_THERAPIST)
                 self._ensure_personal_workspace_for_user(connection, user_id, name, email)
+                self._bootstrap_existing_children_for_user(connection, user_id, CHILD_RELATIONSHIP_THERAPIST)
             return {
                 "id": user_id,
                 "email": email,
@@ -1893,288 +1862,6 @@ class PostgresStorageService:
 
         return self.get_practice_plan(plan_id)
 
-    def save_progress_report(self, report_payload: Dict[str, Any]) -> Dict[str, Any]:
-        report_id = str(report_payload.get("id") or f"report-{uuid4().hex[:12]}")
-        child_id = str(report_payload.get("child_id") or "").strip()
-        created_by_user_id = str(report_payload.get("created_by_user_id") or "").strip()
-        if not child_id:
-            raise ValueError("child_id is required")
-        if not created_by_user_id:
-            raise ValueError("created_by_user_id is required")
-
-        now = self._utc_now()
-        created_at = str(report_payload.get("created_at") or now)
-        updated_at = str(report_payload.get("updated_at") or now)
-
-        def persist_report(connection: psycopg.Connection[Any]) -> None:
-            connection.execute(
-                """
-                INSERT INTO progress_reports (
-                    id,
-                    child_id,
-                    workspace_id,
-                    created_by_user_id,
-                    audience,
-                    report_type,
-                    title,
-                    status,
-                    period_start,
-                    period_end,
-                    included_session_ids_json,
-                    snapshot_json,
-                    sections_json,
-                    redaction_overrides_json,
-                    summary_text,
-                    signed_by_user_id,
-                    created_at,
-                    updated_at,
-                    approved_at,
-                    signed_at,
-                    archived_at
-                )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT(id) DO UPDATE SET
-                    child_id = excluded.child_id,
-                    workspace_id = excluded.workspace_id,
-                    created_by_user_id = excluded.created_by_user_id,
-                    audience = excluded.audience,
-                    report_type = excluded.report_type,
-                    title = excluded.title,
-                    status = excluded.status,
-                    period_start = excluded.period_start,
-                    period_end = excluded.period_end,
-                    included_session_ids_json = excluded.included_session_ids_json,
-                    snapshot_json = excluded.snapshot_json,
-                    sections_json = excluded.sections_json,
-                    redaction_overrides_json = excluded.redaction_overrides_json,
-                    summary_text = excluded.summary_text,
-                    signed_by_user_id = excluded.signed_by_user_id,
-                    updated_at = excluded.updated_at,
-                    approved_at = excluded.approved_at,
-                    signed_at = excluded.signed_at,
-                    archived_at = excluded.archived_at
-                """,
-                (
-                    report_id,
-                    child_id,
-                    report_payload.get("workspace_id"),
-                    created_by_user_id,
-                    str(report_payload.get("audience") or "therapist"),
-                    str(report_payload.get("report_type") or "progress_summary"),
-                    str(report_payload.get("title") or "Progress report"),
-                    str(report_payload.get("status") or "draft"),
-                    str(report_payload.get("period_start") or ""),
-                    str(report_payload.get("period_end") or ""),
-                    self._dumps_json(report_payload.get("included_session_ids") or []),
-                    self._dumps_json(report_payload.get("snapshot") or {}),
-                    self._dumps_json(report_payload.get("sections") or {}),
-                    self._dumps_json(report_payload.get("redaction_overrides") or {}),
-                    report_payload.get("summary_text"),
-                    report_payload.get("signed_by_user_id"),
-                    created_at,
-                    updated_at,
-                    report_payload.get("approved_at"),
-                    report_payload.get("signed_at"),
-                    report_payload.get("archived_at"),
-                ),
-            )
-
-        self._execute_write(persist_report)
-
-        report = self.get_progress_report(report_id)
-        if report is None:
-            raise RuntimeError("Progress report could not be reloaded after save")
-        return report
-
-    def list_progress_reports_for_child(
-        self,
-        child_id: str,
-        status: Optional[str] = None,
-        audience: Optional[str] = None,
-        limit: int = 20,
-    ) -> List[Dict[str, Any]]:
-        query = [
-            """
-            SELECT
-                id,
-                child_id,
-                workspace_id,
-                created_by_user_id,
-                audience,
-                report_type,
-                title,
-                status,
-                period_start,
-                period_end,
-                included_session_ids_json,
-                snapshot_json,
-                sections_json,
-                redaction_overrides_json,
-                summary_text,
-                signed_by_user_id,
-                created_at,
-                updated_at,
-                approved_at,
-                signed_at,
-                archived_at
-            FROM progress_reports
-            WHERE child_id = %s
-            """
-        ]
-        parameters: List[Any] = [child_id]
-        if status:
-            query.append("AND status = %s")
-            parameters.append(status)
-        if audience:
-            query.append("AND audience = %s")
-            parameters.append(audience)
-        query.append("ORDER BY updated_at DESC, created_at DESC LIMIT %s")
-        parameters.append(max(1, int(limit)))
-
-        with self._connect() as connection:
-            rows = connection.execute("\n".join(query), tuple(parameters)).fetchall()
-
-        return [self._build_progress_report_payload(row) for row in rows]
-
-    def get_progress_report(self, report_id: str) -> Optional[Dict[str, Any]]:
-        with self._connect() as connection:
-            row = connection.execute(
-                """
-                SELECT
-                    id,
-                    child_id,
-                    workspace_id,
-                    created_by_user_id,
-                    audience,
-                    report_type,
-                    title,
-                    status,
-                    period_start,
-                    period_end,
-                    included_session_ids_json,
-                    snapshot_json,
-                    sections_json,
-                    redaction_overrides_json,
-                    summary_text,
-                    signed_by_user_id,
-                    created_at,
-                    updated_at,
-                    approved_at,
-                    signed_at,
-                    archived_at
-                FROM progress_reports
-                WHERE id = %s
-                """,
-                (report_id,),
-            ).fetchone()
-
-        if row is None:
-            return None
-
-        return self._build_progress_report_payload(row)
-
-    def update_progress_report(self, report_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        updated_at = self._utc_now()
-
-        def persist_update(connection: psycopg.Connection[Any]) -> int:
-            cursor = connection.execute(
-                """
-                UPDATE progress_reports
-                SET
-                    audience = %s,
-                    title = %s,
-                    period_start = %s,
-                    period_end = %s,
-                    included_session_ids_json = %s,
-                    snapshot_json = %s,
-                    sections_json = %s,
-                    redaction_overrides_json = %s,
-                    summary_text = %s,
-                    updated_at = %s
-                WHERE id = %s
-                """,
-                (
-                    str(updates.get("audience") or "therapist"),
-                    str(updates.get("title") or "Child progress report"),
-                    str(updates.get("period_start") or ""),
-                    str(updates.get("period_end") or ""),
-                    self._dumps_json(updates.get("included_session_ids") or []),
-                    self._dumps_json(updates.get("snapshot") or {}),
-                    self._dumps_json(updates.get("sections") or {}),
-                    self._dumps_json(updates.get("redaction_overrides") or {}),
-                    updates.get("summary_text"),
-                    updated_at,
-                    report_id,
-                ),
-            )
-            return cursor.rowcount
-
-        rowcount = self._execute_write(persist_update)
-        if rowcount == 0:
-            return None
-
-        return self.get_progress_report(report_id)
-
-    def approve_progress_report(self, report_id: str) -> Optional[Dict[str, Any]]:
-        approved_at = self._utc_now()
-
-        def persist_approval(connection: psycopg.Connection[Any]) -> int:
-            cursor = connection.execute(
-                """
-                UPDATE progress_reports
-                SET status = %s, approved_at = %s, updated_at = %s
-                WHERE id = %s
-                """,
-                ("approved", approved_at, approved_at, report_id),
-            )
-            return cursor.rowcount
-
-        rowcount = self._execute_write(persist_approval)
-        if rowcount == 0:
-            return None
-
-        return self.get_progress_report(report_id)
-
-    def sign_progress_report(self, report_id: str, signed_by_user_id: str) -> Optional[Dict[str, Any]]:
-        signed_at = self._utc_now()
-
-        def persist_signature(connection: psycopg.Connection[Any]) -> int:
-            cursor = connection.execute(
-                """
-                UPDATE progress_reports
-                SET status = %s, signed_by_user_id = %s, signed_at = %s, updated_at = %s
-                WHERE id = %s
-                """,
-                ("signed", signed_by_user_id, signed_at, signed_at, report_id),
-            )
-            return cursor.rowcount
-
-        rowcount = self._execute_write(persist_signature)
-        if rowcount == 0:
-            return None
-
-        return self.get_progress_report(report_id)
-
-    def archive_progress_report(self, report_id: str) -> Optional[Dict[str, Any]]:
-        archived_at = self._utc_now()
-
-        def persist_archive(connection: psycopg.Connection[Any]) -> int:
-            cursor = connection.execute(
-                """
-                UPDATE progress_reports
-                SET status = %s, archived_at = %s, updated_at = %s
-                WHERE id = %s
-                """,
-                ("archived", archived_at, archived_at, report_id),
-            )
-            return cursor.rowcount
-
-        rowcount = self._execute_write(persist_archive)
-        if rowcount == 0:
-            return None
-
-        return self.get_progress_report(report_id)
-
     def save_child_memory_item(self, item_payload: Dict[str, Any]) -> Dict[str, Any]:
         item_id = str(item_payload.get("id") or f"memory-item-{uuid4().hex[:12]}")
         child_id = str(item_payload.get("child_id") or "").strip()
@@ -3008,12 +2695,9 @@ class PostgresStorageService:
         guardian_name: str,
         guardian_email: str,
         consent_type: str = "full",
-        privacy_accepted: bool = False,
-        terms_accepted: bool = False,
-        ai_notice_accepted: bool = False,
-        personal_data_consent_accepted: bool = False,
-        special_category_consent_accepted: bool = False,
-        parental_responsibility_confirmed: bool = False,
+        privacy_accepted: bool = True,
+        terms_accepted: bool = True,
+        ai_notice_accepted: bool = True,
         recorded_by_user_id: str,
     ) -> Dict[str, Any]:
         consent_id = str(uuid4())
@@ -3025,15 +2709,12 @@ class PostgresStorageService:
                     INSERT INTO parental_consents
                         (id, child_id, guardian_name, guardian_email, consent_type,
                          privacy_accepted, terms_accepted, ai_notice_accepted,
-                         personal_data_consent_accepted, special_category_consent_accepted,
-                         parental_responsibility_confirmed, recorded_by_user_id, consented_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                         recorded_by_user_id, consented_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
                         consent_id, child_id, guardian_name, guardian_email, consent_type,
                         privacy_accepted, terms_accepted, ai_notice_accepted,
-                        personal_data_consent_accepted, special_category_consent_accepted,
-                        parental_responsibility_confirmed,
                         recorded_by_user_id, now,
                     ),
                 )
@@ -3046,9 +2727,6 @@ class PostgresStorageService:
             "privacy_accepted": privacy_accepted,
             "terms_accepted": terms_accepted,
             "ai_notice_accepted": ai_notice_accepted,
-            "personal_data_consent_accepted": personal_data_consent_accepted,
-            "special_category_consent_accepted": special_category_consent_accepted,
-            "parental_responsibility_confirmed": parental_responsibility_confirmed,
             "consented_at": now,
             "withdrawn_at": None,
         }
@@ -3060,8 +2738,7 @@ class PostgresStorageService:
                     """
                     SELECT id, child_id, guardian_name, guardian_email, consent_type,
                            privacy_accepted, terms_accepted, ai_notice_accepted,
-                           personal_data_consent_accepted, special_category_consent_accepted,
-                           parental_responsibility_confirmed, recorded_by_user_id, consented_at, withdrawn_at
+                           recorded_by_user_id, consented_at, withdrawn_at
                     FROM parental_consents
                     WHERE child_id = %s AND withdrawn_at IS NULL
                     ORDER BY consented_at DESC LIMIT 1
@@ -3072,20 +2749,17 @@ class PostgresStorageService:
         if row is None:
             return None
         return {
-            "id": row["id"],
-            "child_id": row["child_id"],
-            "guardian_name": row["guardian_name"],
-            "guardian_email": row["guardian_email"],
-            "consent_type": row["consent_type"],
-            "privacy_accepted": bool(row["privacy_accepted"]),
-            "terms_accepted": bool(row["terms_accepted"]),
-            "ai_notice_accepted": bool(row["ai_notice_accepted"]),
-            "personal_data_consent_accepted": bool(row["personal_data_consent_accepted"]),
-            "special_category_consent_accepted": bool(row["special_category_consent_accepted"]),
-            "parental_responsibility_confirmed": bool(row["parental_responsibility_confirmed"]),
-            "recorded_by_user_id": row["recorded_by_user_id"],
-            "consented_at": row["consented_at"],
-            "withdrawn_at": row["withdrawn_at"],
+            "id": row[0],
+            "child_id": row[1],
+            "guardian_name": row[2],
+            "guardian_email": row[3],
+            "consent_type": row[4],
+            "privacy_accepted": bool(row[5]),
+            "terms_accepted": bool(row[6]),
+            "ai_notice_accepted": bool(row[7]),
+            "recorded_by_user_id": row[8],
+            "consented_at": row[9],
+            "withdrawn_at": row[10],
         }
 
     def withdraw_parental_consent(self, child_id: str) -> bool:
@@ -3190,7 +2864,6 @@ class PostgresStorageService:
                 cur.execute("DELETE FROM child_memory_proposals WHERE child_id = %s", (child_id,))
                 cur.execute("DELETE FROM recommendation_candidates WHERE recommendation_log_id IN (SELECT id FROM recommendation_logs WHERE child_id = %s)", (child_id,))
                 cur.execute("DELETE FROM recommendation_logs WHERE child_id = %s", (child_id,))
-                cur.execute("DELETE FROM progress_reports WHERE child_id = %s", (child_id,))
                 cur.execute("DELETE FROM practice_plans WHERE child_id = %s", (child_id,))
                 cur.execute("DELETE FROM sessions WHERE child_id = %s", (child_id,))
                 cur.execute("DELETE FROM child_memory_summaries WHERE child_id = %s", (child_id,))

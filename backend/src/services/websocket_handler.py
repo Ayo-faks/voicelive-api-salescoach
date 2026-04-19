@@ -250,7 +250,10 @@ class VoiceProxyHandler:
         agent_config: Optional[Dict[str, Any]],
     ) -> RequestSession:
         """Create the RequestSession with all configuration."""
-        custom_lexicon_url = str(config.get("azure_custom_lexicon_url") or "").strip() or None
+        custom_lexicon_url = (config.get("azure_custom_lexicon_url", "") or "").strip()
+        voice_kwargs: Dict[str, Any] = {"name": voice_name, "type": voice_type}
+        if custom_lexicon_url:
+            voice_kwargs["custom_lexicon_url"] = custom_lexicon_url
 
         session = RequestSession(
             modalities=[Modality.TEXT, Modality.AUDIO, Modality.AVATAR],
@@ -261,11 +264,7 @@ class VoiceProxyHandler:
             ),
             input_audio_noise_reduction=AudioNoiseReduction(type=DEFAULT_NOISE_REDUCTION_TYPE),
             input_audio_echo_cancellation=AudioEchoCancellation(type=DEFAULT_ECHO_CANCELLATION_TYPE),
-            voice=AzureStandardVoice(
-                name=voice_name,
-                type=voice_type,
-                custom_lexicon_url=custom_lexicon_url,
-            ),
+            voice=AzureStandardVoice(**voice_kwargs),
             avatar=avatar_config_value,
             tools=[FINISH_SESSION_TOOL],
         )

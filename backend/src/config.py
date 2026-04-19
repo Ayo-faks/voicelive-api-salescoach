@@ -46,7 +46,6 @@ DEFAULT_BLOB_BACKUP_CONTAINER = "wulo-backup"
 DEFAULT_BLOB_BACKUP_NAME = "wulo.db"
 DEFAULT_COPILOT_PLANNER_MODEL = "gpt-5"
 DEFAULT_COPILOT_AZURE_API_VERSION = "2024-10-21"
-DEFAULT_REPORT_SUMMARY_REWRITE_MODEL = DEFAULT_MODEL
 DEFAULT_PUBLIC_APP_URL = "http://localhost:4173"
 DEFAULT_ACS_EMAIL_SENDER_DISPLAY_NAME = "Wulo"
 
@@ -138,11 +137,6 @@ class Config:
             "copilot_azure_api_version": os.getenv(
                 "COPILOT_AZURE_API_VERSION",
                 DEFAULT_COPILOT_AZURE_API_VERSION,
-            ),
-            "report_summary_rewrite_enabled": self._parse_bool_env("REPORT_SUMMARY_REWRITE_ENABLED"),
-            "report_summary_rewrite_model": os.getenv(
-                "REPORT_SUMMARY_REWRITE_MODEL",
-                os.getenv("MODEL_DEPLOYMENT_NAME", DEFAULT_REPORT_SUMMARY_REWRITE_MODEL),
             ),
             "blob_backup_account_name": os.getenv("BLOB_BACKUP_ACCOUNT_NAME", ""),
             "blob_backup_account_key": os.getenv("BLOB_BACKUP_ACCOUNT_KEY", ""),
