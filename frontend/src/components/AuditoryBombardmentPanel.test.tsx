@@ -123,7 +123,7 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
   })
 
   it('aborts in-flight playback when unmounted mid-exemplar', async () => {
-    let resolveFirstSynth: ((value: string) => void) | null = null
+    let resolveFirstSynth: (value: string) => void = () => {}
     vi.mocked(api.synthesizeSpeech).mockImplementationOnce(
       () =>
         new Promise<string>((resolve) => {
@@ -152,7 +152,7 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
     unmount()
     expect(inFlightSignal?.aborted).toBe(true)
 
-    resolveFirstSynth?.('dGVzdA==')
+    resolveFirstSynth('dGVzdA==')
   })
 
   it('does not require the microphone (Stage 0 listening-only)', () => {

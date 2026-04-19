@@ -543,7 +543,7 @@ describe('Exercise panels', () => {
           metadata={{
             targetSound: 'th',
             errorSound: 'f',
-            targetWords: ['thin'],
+            targetWords: ['thin', 'thumb'],
             imageAssets: [
               'object-cards/th/th-initial-thin.webp',
             ],
