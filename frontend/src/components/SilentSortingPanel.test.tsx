@@ -4,14 +4,24 @@ import { api } from '../services/api'
 import { SilentSortingPanel } from './SilentSortingPanel'
 
 /*---------------------------------------------------------------------------------------------
- *  Session C, §D.2 items 18–23.
- *  These tests drive the new `SilentSortingPanel` through its `ExerciseShell` contract mock
- *  (frontend/src/components/__mocks__/ExerciseShellContract.tsx). Phase transitions are:
- *    orient → expose (auto, after onBeatEnter resolves)
+ *  Session C, §D.2 items 18–23 (updated in Session E to run against the real
+ *  `ExerciseShell` from `./ExerciseShell`, not the retired local mock).
+ *  Phase transitions are:
+ *    orient → expose (auto, after user gesture on the shell + onBeatEnter resolves)
  *    expose → bridge (only via `advance({force:true})` from the "Start game" button,
  *                     or when `canAdvanceFromExpose` returns true AND advance() is called)
  *    bridge → perform (auto, after onBeatEnter resolves)
+ *  The real shell gates audio + auto-advance on a user gesture (a11y/autoplay), so
+ *  each test seeds a `pointerDown` on the shell `<section>` before asserting on
+ *  expose-phase DOM via the `seedShellGesture()` helper below.
  *--------------------------------------------------------------------------------------------*/
+
+function seedShellGesture(): void {
+  const section = document.querySelector('section.exercise-shell')
+  if (section) {
+    fireEvent.pointerDown(section)
+  }
+}
 
 vi.mock('../services/api', async importOriginal => {
   const actual = await importOriginal<typeof import('../services/api')>()
@@ -59,6 +69,7 @@ describe('SilentSortingPanel (ExerciseShell adapter)', () => {
 
   it('requires both phoneme buttons tapped before bridge', async () => {
     render(<SilentSortingPanel metadata={baseMetadata} />)
+    seedShellGesture()
 
     // Wait for ORIENT→EXPOSE auto-advance.
     await waitFor(() => {
@@ -98,6 +109,7 @@ describe('SilentSortingPanel (ExerciseShell adapter)', () => {
 
   it('renders percept labels, not letter names, in expose', async () => {
     const { container } = render(<SilentSortingPanel metadata={baseMetadata} />)
+    seedShellGesture()
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /Hear thhh sound/i })).toBeTruthy()
@@ -118,9 +130,18 @@ describe('SilentSortingPanel (ExerciseShell adapter)', () => {
 
   it('keeps phoneme preview accordion reachable in perform', async () => {
     render(<SilentSortingPanel metadata={baseMetadata} />)
+    seedShellGesture()
 
+    // Tap both previews so canAdvanceFromExpose flips true and Start enables.
     await waitFor(() => {
-      expect(screen.getByTestId('silent-sorting-start-game')).toBeTruthy()
+      expect(screen.getByRole('button', { name: /Hear thhh sound/i })).toBeTruthy()
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Hear thhh sound/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Hear fff sound/i }))
+    await waitFor(() => {
+      expect(
+        (screen.getByTestId('silent-sorting-start-game') as HTMLButtonElement).disabled,
+      ).toBe(false)
     })
     fireEvent.click(screen.getByTestId('silent-sorting-start-game'))
 
@@ -143,6 +164,7 @@ describe('SilentSortingPanel (ExerciseShell adapter)', () => {
     vi.mocked(api.synthesizeSpeech).mockClear()
 
     render(<SilentSortingPanel metadata={baseMetadata} />)
+    seedShellGesture()
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /Hear fff sound/i })).toBeTruthy()
@@ -160,6 +182,7 @@ describe('SilentSortingPanel (ExerciseShell adapter)', () => {
     vi.mocked(api.synthesizeSpeech).mockClear()
 
     render(<SilentSortingPanel metadata={baseMetadata} />)
+    seedShellGesture()
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /Hear thhh sound/i })).toBeTruthy()
@@ -178,6 +201,7 @@ describe('SilentSortingPanel (ExerciseShell adapter)', () => {
     const { unmount } = render(
       <SilentSortingPanel audience="therapist" metadata={baseMetadata} />,
     )
+    seedShellGesture()
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /Hear thhh sound/i })).toBeTruthy()
@@ -192,6 +216,7 @@ describe('SilentSortingPanel (ExerciseShell adapter)', () => {
     vi.stubEnv('VITE_ENABLE_PREVIEW_EXPORT', 'true')
     try {
       render(<SilentSortingPanel audience="therapist" metadata={baseMetadata} />)
+      seedShellGesture()
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: 'Save take' })).toBeTruthy()
