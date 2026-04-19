@@ -335,3 +335,87 @@ class TestVoiceProxyHandler:
         credential = handler._get_credential()
 
         assert credential is mock_async_credential.return_value
+
+
+class TestStructuredConversationEvents:
+    """Tests for Stage 8 ``wulo.*`` custom event plumbing."""
+
+    @pytest.mark.asyncio
+    async def test_tally_configure_event_is_consumed(self):
+        from src.services.scoring import TargetTokenTally
+
+        handler = VoiceProxyHandler(Mock())
+        handler._send_message = AsyncMock()
+        tally = TargetTokenTally()
+
+        consumed = await handler._maybe_handle_wulo_client_event(
+            {
+                "type": "wulo.tally_configure",
+                "payload": {
+                    "suggestedTargetWords": ["think", "thumb"],
+                    "expectedSubstitutions": ["f→th"],
+                    "windowSeconds": 30,
+                    "minTokensInWindow": 2,
+                    "cooldownSeconds": 10,
+                },
+            },
+            tally,
+            Mock(),
+        )
+
+        assert consumed is True
+        # Snapshot emitted to client on configure.
+        assert handler._send_message.await_count == 1
+
+    @pytest.mark.asyncio
+    async def test_therapist_override_mutates_tally(self):
+        from src.services.scoring import TargetTokenTally
+
+        handler = VoiceProxyHandler(Mock())
+        handler._send_message = AsyncMock()
+        tally = TargetTokenTally()
+
+        consumed = await handler._maybe_handle_wulo_client_event(
+            {
+                "type": "wulo.therapist_override",
+                "payload": {"correctDelta": 2, "incorrectDelta": 1},
+            },
+            tally,
+            Mock(),
+        )
+
+        assert consumed is True
+        snap = tally.snapshot()
+        assert snap.correct_count == 2
+        assert snap.incorrect_count == 1
+
+    @pytest.mark.asyncio
+    async def test_non_wulo_event_is_not_consumed(self):
+        from src.services.scoring import TargetTokenTally
+
+        handler = VoiceProxyHandler(Mock())
+        handler._send_message = AsyncMock()
+
+        consumed = await handler._maybe_handle_wulo_client_event(
+            {"type": "input_audio_buffer.append", "audio": "..."},
+            TargetTokenTally(),
+            Mock(),
+        )
+
+        assert consumed is False
+        handler._send_message.assert_not_awaited()
+
+    def test_structured_conversation_flag_defaults_off(self, monkeypatch: pytest.MonkeyPatch):
+        from src.services.websocket_handler import _is_structured_conversation_enabled
+
+        monkeypatch.delenv("WULO_STRUCTURED_CONVERSATION", raising=False)
+        assert _is_structured_conversation_enabled() is False
+
+        monkeypatch.setenv("WULO_STRUCTURED_CONVERSATION", "1")
+        assert _is_structured_conversation_enabled() is True
+
+        monkeypatch.setenv("WULO_STRUCTURED_CONVERSATION", "true")
+        assert _is_structured_conversation_enabled() is True
+
+        monkeypatch.setenv("WULO_STRUCTURED_CONVERSATION", "0")
+        assert _is_structured_conversation_enabled() is False

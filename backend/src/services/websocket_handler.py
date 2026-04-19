@@ -33,6 +33,7 @@ from azure.ai.voicelive.models import (
 from src.config import config
 from src.services.azure_openai_auth import build_voicelive_credential
 from src.services.managers import AgentManager, FINISH_SESSION_TOOL
+from src.services.scoring import TargetTokenTally
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +64,31 @@ PHOTO_AVATAR_DEFAULT_SCENE = {
 SESSION_UPDATE_TYPE = "session.update"
 PROXY_CONNECTED_TYPE = "proxy.connected"
 ERROR_TYPE = "error"
+
+# Stage 8 structured_conversation custom event types (Wulo-namespaced so they
+# never collide with Azure Realtime event types).
+WULO_TALLY_CONFIGURE_TYPE = "wulo.tally_configure"
+WULO_REQUEST_PAUSE_TYPE = "wulo.request_pause"
+WULO_REQUEST_RESUME_TYPE = "wulo.request_resume"
+WULO_THERAPIST_OVERRIDE_TYPE = "wulo.therapist_override"
+WULO_TARGET_TALLY_TYPE = "wulo.target_tally"
+WULO_SCAFFOLD_ESCALATE_TYPE = "wulo.scaffold_escalate"
+
+# String match used to identify input transcription completion events from the
+# Azure Realtime API (the SDK exposes this as an enum, but matching by string
+# avoids a hard dependency on a specific SDK version).
+INPUT_AUDIO_TRANSCRIPTION_COMPLETED_TYPE = (
+    "conversation.item.input_audio_transcription.completed"
+)
+
+
+def _is_structured_conversation_enabled() -> bool:
+    """Feature flag for Stage 8 backend tally layer.
+
+    Default off. Set WULO_STRUCTURED_CONVERSATION=1 (or true) to enable.
+    """
+    raw = os.environ.get("WULO_STRUCTURED_CONVERSATION", "")
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
 
 # Log message truncation length
 LOG_MESSAGE_MAX_LENGTH = 100
@@ -305,6 +331,17 @@ class VoiceProxyHandler:
         approved_constraints = self._extract_statements(personalization.get("approved_constraints"))
         approved_effective_cues = self._extract_statements(personalization.get("approved_effective_cues"))
         active_target_sound = str(personalization.get("active_target_sound") or "").strip()
+        active_target_word = str(personalization.get("active_target_word") or "").strip()
+        # Stage 5b word_position_practice: surface expected substitutions so the
+        # model gently models the target without flagging the child as wrong.
+        expected_subs_raw = personalization.get("expected_substitutions") or []
+        expected_substitutions: List[str] = []
+        if isinstance(expected_subs_raw, list):
+            for item in expected_subs_raw:
+                s = str(item or "").strip()
+                if s:
+                    expected_substitutions.append(s)
+        word_position = str(personalization.get("word_position") or "").strip()
 
         lines: List[str] = [
             "APPROVED CHILD MEMORY FOR THIS SESSION:",
@@ -313,12 +350,25 @@ class VoiceProxyHandler:
         ]
         if active_target_sound:
             lines.append(f"- Active target sound: /{active_target_sound}/")
+        if active_target_word:
+            lines.append(
+                f"- Active target word in the current phrase: \"{active_target_word}\" "
+                "(coach this word; the other carrier word is neutral)"
+            )
+        if word_position in {"initial", "medial", "final"}:
+            pos_word = {"initial": "start", "medial": "middle", "final": "end"}[word_position]
+            lines.append(f"- Target position in the word: {pos_word}")
         if approved_targets:
             lines.append(f"- Approved current targets: {'; '.join(approved_targets)}")
         if approved_constraints:
             lines.append(f"- Approved constraints: {'; '.join(approved_constraints)}")
         if approved_effective_cues:
             lines.append(f"- Approved effective cues: {'; '.join(approved_effective_cues)}")
+        if expected_substitutions:
+            subs_fmt = ", ".join(f"/{s}/" for s in expected_substitutions)
+            lines.append(
+                f"- Expected substitutions to gently remodel (never call wrong): {subs_fmt}"
+            )
 
         if len(lines) <= 3:
             return None
@@ -339,9 +389,12 @@ class VoiceProxyHandler:
         azure_conn: VoiceLiveConnection,
     ) -> None:
         """Handle bidirectional message forwarding."""
+        tally: Optional[TargetTokenTally] = (
+            TargetTokenTally() if _is_structured_conversation_enabled() else None
+        )
         tasks = [
-            asyncio.create_task(self._forward_client_to_azure(client_ws, azure_conn)),
-            asyncio.create_task(self._forward_azure_to_client(azure_conn, client_ws)),
+            asyncio.create_task(self._forward_client_to_azure(client_ws, azure_conn, tally)),
+            asyncio.create_task(self._forward_azure_to_client(azure_conn, client_ws, tally)),
         ]
 
         _, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
@@ -353,8 +406,13 @@ class VoiceProxyHandler:
         self,
         client_ws: simple_websocket.ws.Server,
         azure_conn: VoiceLiveConnection,
+        tally: Optional[TargetTokenTally] = None,
     ) -> None:
-        """Forward messages from client to Azure using SDK."""
+        """Forward messages from client to Azure using SDK.
+
+        When Stage 8 is enabled, intercept ``wulo.*`` events so they never
+        reach Azure; they only mutate the per-connection tally state.
+        """
         try:
             while True:
                 message: Optional[Any] = await asyncio.get_event_loop().run_in_executor(
@@ -368,6 +426,10 @@ class VoiceProxyHandler:
 
                 if isinstance(message, str):
                     parsed = json.loads(message)
+                    if tally is not None and await self._maybe_handle_wulo_client_event(
+                        parsed, tally, client_ws
+                    ):
+                        continue
                     await azure_conn.send(parsed)
                 else:
                     await azure_conn.send(message)
@@ -377,12 +439,74 @@ class VoiceProxyHandler:
         except Exception as e:
             logger.debug("Client connection closed during forwarding: %s", e)
 
+    async def _maybe_handle_wulo_client_event(
+        self,
+        parsed: Dict[str, Any],
+        tally: TargetTokenTally,
+        client_ws: simple_websocket.ws.Server,
+    ) -> bool:
+        """Handle client-side Stage 8 custom events. Returns True if consumed."""
+        event_type = str(parsed.get("type") or "")
+        if event_type == WULO_TALLY_CONFIGURE_TYPE:
+            payload = parsed.get("payload") or {}
+            tally.configure(
+                suggested_target_words=payload.get("suggestedTargetWords"),
+                expected_substitutions=payload.get("expectedSubstitutions"),
+                window_seconds=payload.get("windowSeconds"),
+                min_tokens_in_window=payload.get("minTokensInWindow"),
+                cooldown_seconds=payload.get("cooldownSeconds"),
+            )
+            await self._emit_tally_snapshot(client_ws, tally)
+            return True
+        if event_type == WULO_REQUEST_PAUSE_TYPE:
+            tally.mark_paused()
+            return True
+        if event_type == WULO_REQUEST_RESUME_TYPE:
+            # Resume is a frontend state; backend just acknowledges via a
+            # fresh snapshot.
+            await self._emit_tally_snapshot(client_ws, tally)
+            return True
+        if event_type == WULO_THERAPIST_OVERRIDE_TYPE:
+            payload = parsed.get("payload") or {}
+            try:
+                correct = int(payload.get("correctDelta", 0) or 0)
+                incorrect = int(payload.get("incorrectDelta", 0) or 0)
+            except (TypeError, ValueError):
+                correct, incorrect = 0, 0
+            tally.apply_override(correct=correct, incorrect=incorrect)
+            await self._emit_tally_snapshot(client_ws, tally)
+            return True
+        return False
+
+    async def _emit_tally_snapshot(
+        self,
+        client_ws: simple_websocket.ws.Server,
+        tally: TargetTokenTally,
+    ) -> None:
+        """Emit a wulo.target_tally event and possibly wulo.scaffold_escalate."""
+        snapshot = tally.snapshot().to_dict()
+        await self._send_message(
+            client_ws,
+            {"type": WULO_TARGET_TALLY_TYPE, "payload": snapshot},
+        )
+        escalation = tally.check_escalation()
+        if escalation is not None:
+            await self._send_message(
+                client_ws,
+                {"type": WULO_SCAFFOLD_ESCALATE_TYPE, "payload": escalation},
+            )
+
     async def _forward_azure_to_client(
         self,
         azure_conn: VoiceLiveConnection,
         client_ws: simple_websocket.ws.Server,
+        tally: Optional[TargetTokenTally] = None,
     ) -> None:
-        """Forward messages from Azure to client using SDK typed events."""
+        """Forward messages from Azure to client using SDK typed events.
+
+        When Stage 8 is enabled, inspect completed input transcription events
+        to feed the tally and emit wulo.target_tally / wulo.scaffold_escalate.
+        """
         try:
             async for event in azure_conn:
                 event_dict = event.as_dict() if hasattr(event, "as_dict") else dict(event)
@@ -401,6 +525,14 @@ class VoiceProxyHandler:
                     logger.info("Session created: %s", event_dict.get("session", {}).get("id"))
                 elif event.type == ServerEventType.SESSION_UPDATED:
                     logger.info("Session updated")
+
+                if tally is not None:
+                    event_type_str = str(event_dict.get("type") or "")
+                    if event_type_str == INPUT_AUDIO_TRANSCRIPTION_COMPLETED_TYPE:
+                        transcript = str(event_dict.get("transcript") or "").strip()
+                        if transcript:
+                            tally.ingest_transcript(transcript)
+                        await self._emit_tally_snapshot(client_ws, tally)
 
         except ConnectionClosed as e:
             logger.debug("Azure connection closed: code=%s, reason=%s", e.code, e.reason)
