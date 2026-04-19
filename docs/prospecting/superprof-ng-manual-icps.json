@@ -1,0 +1,78 @@
+{
+  "generatedAt": "2026-04-18T00:00:00Z",
+  "note": "Curated manual additions for high-fit Nigerian speech therapy ICPs that were not surfaced cleanly in the public Superprof crawl.",
+  "prospects": [
+    {
+      "name": "Funke Omonkhegbe",
+      "alternateNames": [
+        "Funke Omonx",
+        "Funke Omonkehegbe"
+      ],
+      "profileUrl": "https://ng.linkedin.com/in/funke-omonkhegbe-07a2a61b",
+      "website": "",
+      "email": "",
+      "emailSource": "",
+      "location": "Lagos",
+      "title": "Founder and Lead Speech and Language Therapist at Omonx Speech Therapy",
+      "bio": "Funke Omonkhegbe is the founder of Omonx Speech Therapy and a certified speech and language therapist with experience across educational and clinical settings in both the UK and Nigeria. Her work includes supporting children with autism, speech delays, and broader communication and developmental needs, alongside parent guidance, teacher training, and school consultancy.",
+      "lessonApproach": "Evidence-based speech and language therapy with direct intervention, strong home-school partnerships, parent and teacher training, and consultancy support for schools and organisations. Positioning is explicitly child-focused and inclusion-led.",
+      "lessonLocation": "Lagos, Nigeria",
+      "rating": null,
+      "reviewCount": 0,
+      "pricePerHourNgn": null,
+      "responseTimeHours": null,
+      "studentsHelped": null,
+      "superprofBadge": "",
+      "firstLessonFree": false,
+      "modalities": {
+        "webcam": false,
+        "inPerson": true
+      },
+      "matchedSegments": [
+        "Child speech and language specialists",
+        "Autism and SEN communication specialists",
+        "School and home follow-through tutors"
+      ],
+      "primarySegment": "Child speech and language specialists",
+      "traits": {
+        "childFocus": true,
+        "adultOnly": false,
+        "schoolFacing": true,
+        "parentFacing": true,
+        "trainingConsultancy": true,
+        "telehealthSignal": false,
+        "broadChildCaseload": true,
+        "speechPracticeAligned": true,
+        "medicallyComplex": false,
+        "explicitSpeechCredential": true,
+        "behaviorOnly": false,
+        "educatorOnly": false,
+        "nonSpeechAdjacency": false,
+        "founderOperator": true
+      },
+      "buyerProblems": [
+        "I need engaging home practice",
+        "I need to personalize exercises quickly",
+        "I need visible progress for parents",
+        "I need continuity between weekly sessions",
+        "I need to review sessions without doing everything manually"
+      ],
+      "icpScore": 100,
+      "sourceType": "manual_external_addition",
+      "sourceEvidence": [
+        {
+          "label": "Her Network feature",
+          "url": "https://www.hernetwork.co/funke-omonkhegbe-inside-the-mind-of-a-change-maker/"
+        },
+        {
+          "label": "LinkedIn profile",
+          "url": "https://ng.linkedin.com/in/funke-omonkhegbe-07a2a61b"
+        },
+        {
+          "label": "Instagram business profile",
+          "url": "https://www.instagram.com/omonxspeech_therapy/"
+        }
+      ]
+    }
+  ]
+}

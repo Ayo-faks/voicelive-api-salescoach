@@ -30,6 +30,11 @@ function displayLocation(profile) {
 }
 
 const MANUAL_NOTES = {
+  'Funke Omonkhegbe': {
+    whyNow: 'Founder-led pediatric speech practice with UK and Nigeria experience, direct intervention, parent and teacher training, and a clear inclusion-driven clinic story outside the marketplace layer.',
+    caution: 'This is a curated external addition rather than a Superprof-native profile, so validate current intake capacity and preferred contact route before deeper founder time.',
+    angle: 'Lead with home-school carryover, therapist visibility between sessions, and structured support for parents and educators.',
+  },
   Peter: {
     whyNow: 'Best blend of explicit speech-language positioning, high review count, and strong child-facing carryover language in the current Nigerian list.',
     caution: 'Behavior and educational therapy language is still present, so keep the outreach centered on speech carryover rather than a generic SEN tool.',
@@ -83,6 +88,7 @@ const MANUAL_NOTES = {
 };
 
 const FOUNDER_ORDER = [
+  'Funke Omonkhegbe',
   'Peter',
   'Miracle',
   'Kemily',
@@ -92,7 +98,6 @@ const FOUNDER_ORDER = [
   'Akinbobloa',
   'Prince',
   'Kehinde',
-  'Funmilola Christiana',
 ];
 
 function main() {
@@ -183,7 +188,7 @@ function main() {
     .join('\n');
   fs.writeFileSync(
     path.join(PROSPECTING_DIR, 'superprof-ng-founder-priority-top-10.md'),
-    `# Superprof Nigeria Founder-Priority Top 10\n\nGenerated: ${new Date().toISOString()}\n\nThis is a manual founder cut built from the clean shortlist, with stronger preference for explicit speech-language profiles and a controlled willingness to include one adjacent carryover-heavy profile for learning.\n\n${mdRows}`,
+    `# Superprof Nigeria Founder-Priority Top 10\n\nGenerated: ${new Date().toISOString()}\n\nThis is a manual founder cut built from the clean shortlist, with stronger preference for explicit speech-language profiles and room for curated external Nigerian speech-practice operators when the marketplace crawl misses known high-fit clinics.\n\n${mdRows}`,
   );
 }
 

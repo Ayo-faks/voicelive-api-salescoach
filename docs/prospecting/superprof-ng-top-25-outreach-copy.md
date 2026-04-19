@@ -1,6 +1,6 @@
 # Superprof Nigeria First-Contact Outreach
 
-Generated: 2026-04-11T09:58:19.808Z
+Generated: 2026-04-18T06:47:43.603Z
 
 Use the founder outreach sheet together with these segment messages.
 
