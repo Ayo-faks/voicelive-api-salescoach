@@ -123,3 +123,34 @@ export function useExercisePhaseContext(): ExercisePhaseContextValue {
   }
   return ctx
 }
+
+// ---------------------------------------------------------------------------
+// Convenience hook for adapters that want a compact imperative API instead of
+// dispatching PhaseEvent values directly. Mirrors the shape previously
+// exported by the Session C local shell mock so panels can migrate with only
+// an import-path change.
+// ---------------------------------------------------------------------------
+
+export interface UseShellAdvanceApi {
+  phase: ExercisePhase
+  advance: (opts?: { force?: boolean }) => void
+  notifyExposeInteract: () => void
+}
+
+export function useShellAdvance(): UseShellAdvanceApi {
+  const ctx = useExercisePhaseContext()
+  return {
+    phase: ctx.phase,
+    advance: (opts?: { force?: boolean }) => {
+      // `force: true` bypasses the expose-gate (exposeTouched / canAdvanceFromExpose).
+      // Without force, the shell's effectiveDispatch fills canAdvance from
+      // canAdvanceFromExpose (prop) or the reducer's exposeTouched state.
+      if (opts?.force) {
+        ctx.dispatch({ type: 'ADVANCE', canAdvance: true })
+      } else {
+        ctx.dispatch({ type: 'ADVANCE' })
+      }
+    },
+    notifyExposeInteract: () => ctx.dispatch({ type: 'EXPOSE_INTERACT' }),
+  }
+}

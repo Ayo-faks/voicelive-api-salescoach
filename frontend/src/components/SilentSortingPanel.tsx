@@ -38,7 +38,7 @@ import {
   ExerciseShell,
   useShellAdvance,
   type ExerciseBeatCopy,
-} from './__mocks__/ExerciseShellContract'
+} from './ExerciseShell'
 import { PhonemeIcon, getPerceptLabel } from './PhonemeIcon'
 import { SilentSortingDevTools } from './SilentSortingDevTools'
 

@@ -4,6 +4,7 @@ export {
   exercisePhaseReducer,
   useExercisePhase,
   useExercisePhaseContext,
+  useShellAdvance,
   ExercisePhaseContext,
   INITIAL_PHASE_STATE,
 } from './useExercisePhase'
