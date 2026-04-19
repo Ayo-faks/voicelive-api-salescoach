@@ -117,11 +117,15 @@ def build_prompt(asset: Dict[str, Any]) -> str:
     else:
         subject_clause = f"a single {normalized_subject}"
 
+    # For Stage 6 phrase cards the recognisable label is the whole phrase
+    # (e.g. "hot sun"), not just the target word.
+    recognisable_label = asset.get("phraseText") or asset.get("word")
+
     parts = [
         f"Illustration of {subject_clause}, centered on a solid soft teal background ({background}).",
         f"{style.capitalize()} for {audience}.",
         "No text, no extra objects, no shadows, no borders.",
-        f"Simple, friendly, immediately recognisable as '{asset['word']}'.",
+        f"Simple, friendly, immediately recognisable as '{recognisable_label}'.",
         "Square composition.",
     ]
     if notes:

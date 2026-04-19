@@ -386,6 +386,18 @@ class PronunciationAssessor:
         exercise_metadata: Optional[Dict[str, Any]] = None,
     ) -> List[str]:
         """Extract the ordered reference words used to interpret word-level feedback."""
+        # When the caller asks for target-only scoring (Stage 5b / Stage 6),
+        # honour the reference_text verbatim rather than the wider
+        # targetWords list so the assessor scopes to the active word.
+        score_scope = self._get_exercise_metadata_value(
+            exercise_metadata, "scoreScope", "score_scope"
+        )
+        if isinstance(score_scope, str) and score_scope == "target_only":
+            return [
+                match.group(0)
+                for match in REFERENCE_WORD_PATTERN.finditer(reference_text or "")
+            ]
+
         target_words = self._get_exercise_metadata_value(exercise_metadata, "targetWords", "target_words")
         if isinstance(target_words, list):
             return [str(word).strip() for word in target_words if str(word).strip()]

@@ -40,12 +40,13 @@ def main() -> int:
         cards = []
         for asset in sorted(assets, key=lambda item: item["id"]):
             status = "approved" if asset.get("approved") else asset.get("status", "pending")
+            label = asset.get("phraseText") or asset.get("word", "")
             cards.append(
                 f"""
                 <article class=\"card\">
-                  <img src=\"./{escape(asset['imagePath'])}\" alt=\"{escape(asset['word'])}\" loading=\"lazy\" />
+                  <img src=\"./{escape(asset['imagePath'])}\" alt=\"{escape(label)}\" loading=\"lazy\" />
                   <div class=\"meta\">
-                    <strong>{escape(asset['word'])}</strong>
+                    <strong>{escape(label)}</strong>
                     <span>{escape(asset['id'])}</span>
                     <span>{escape(status)}</span>
                   </div>
