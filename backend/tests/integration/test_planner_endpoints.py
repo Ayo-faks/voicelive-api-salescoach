@@ -170,6 +170,9 @@ def test_non_therapist_cannot_access_planner_endpoints(client: FlaskClient):
     therapist_headers = _bootstrap_therapist(client)
     user_headers = _auth_headers("user-2", "user@example.com", name="Second User")
     client.get("/api/auth/session", headers=user_headers)
+    # New signups bootstrap as therapist by policy (see test_auth_roles.py).
+    # Demote user-2 to parent so the role guard on /api/plans can be exercised.
+    app_module.storage_service.update_user_role("user-2", "parent")
     session_id = _create_session(client)
 
     response = client.post(
