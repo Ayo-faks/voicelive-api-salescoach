@@ -88,15 +88,6 @@ import { APP_ROUTE_PARAMS, APP_ROUTES, getDefaultAuthenticatedRoute, resolveAppR
 import { exerciseRequiresMic } from '../utils/exerciseMode'
 import { createBeatDispatcher, type BeatDispatcher } from './beatInstructions'
 
-// PR1 Session B — feature flag for beat orchestration. Read once at module
-// load; flipping this requires a rebuild, which matches Vite env semantics.
-// Default OFF so the legacy intro path is unchanged.
-const BEAT_ORCHESTRATION_ENABLED = (() => {
-  const raw = (import.meta as unknown as { env?: { VITE_ENABLE_BEAT_ORCHESTRATION?: string | boolean } })
-    .env?.VITE_ENABLE_BEAT_ORCHESTRATION
-  return raw === true || raw === 'true'
-})()
-
 type ConversationTurn = {
   role: string
   content: string
@@ -1237,36 +1228,34 @@ export default function App() {
     }
   }, [activeAvatarName, activeAvatarPersona, activeExerciseMetadata, activeScenario?.description, activeScenario?.name, isChildMode, selectedChild?.name, selectedScenario])
 
-  // PR1 Session B — beat orchestration seam.
-  // Gated behind VITE_ENABLE_BEAT_ORCHESTRATION; OFF by default so the legacy
-  // intro path (pendingIntroRef + response.create in the session-ready effect)
-  // continues to drive avatar speech. When enabled, sendBeat queues beat
-  // instructions until the realtime session is ready, then drains FIFO with
-  // response.cancel + response.create preemption per plan §E.
+  // PR1 Session E — beat orchestration seam.
+  // The feature flag (VITE_ENABLE_BEAT_ORCHESTRATION) was removed when the
+  // shell integration landed; `sendBeat` is always available now. It queues
+  // beat instructions until the realtime session is ready, then drains FIFO
+  // with response.cancel + response.create preemption per plan §E.
   // See docs/exercise-shell-pr1-plan.md §E.1–§E.3.
   const sessionReadyRef = useRef(false)
   useEffect(() => {
     sessionReadyRef.current = sessionReady
   }, [sessionReady])
   const beatDispatcherRef = useRef<BeatDispatcher | null>(null)
-  if (BEAT_ORCHESTRATION_ENABLED && beatDispatcherRef.current === null) {
+  if (beatDispatcherRef.current === null) {
     beatDispatcherRef.current = createBeatDispatcher({
       send: envelope => sendRef.current(envelope),
       isReady: () => sessionReadyRef.current,
     })
   }
   useEffect(() => {
-    if (BEAT_ORCHESTRATION_ENABLED && sessionReady) {
+    if (sessionReady) {
       beatDispatcherRef.current?.flushIfReady()
     }
   }, [sessionReady])
   const sendBeat = useCallback((instructions: string) => {
-    if (!BEAT_ORCHESTRATION_ENABLED) return
     beatDispatcherRef.current?.send(instructions)
   }, [])
-  // Intentionally not wired to any call-site in Session B — wiring lands in a
-  // follow-up PR once the shell's onBeatEnter emits beat events. Reference here
-  // keeps the linter from stripping the helper and documents the contract.
+  // Intentionally not wired to any call-site yet — wiring lands in a follow-up
+  // PR once the shell's onBeatEnter emits beat events. Reference here keeps
+  // the linter from stripping the helper and documents the contract.
   void sendBeat
 
   useEffect(() => {
