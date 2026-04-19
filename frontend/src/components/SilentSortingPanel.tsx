@@ -21,11 +21,26 @@ import {
   useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ExerciseMetadata } from '../types'
 import { getDrillModelToken } from '../utils/drillTokens'
+import {
+  buildPreviewCandidate,
+  getAvailablePreviewStrategies,
+  getDefaultPreviewStrategy,
+  type PreviewStrategyFamily,
+} from '../utils/phonemeSsml'
+import { getCuratedIsolatedPreviewAsset } from '../utils/isolatedPhonemeAssets'
+import { api } from '../services/api'
 import { ImageCard } from './ImageCard'
 import { RepetitionCounter } from './RepetitionCounter'
+import {
+  ExerciseShell,
+  useShellAdvance,
+  type ExerciseBeatCopy,
+} from './__mocks__/ExerciseShellContract'
+import { PhonemeIcon, getPerceptLabel } from './PhonemeIcon'
+import { SilentSortingDevTools } from './SilentSortingDevTools'
 
 const useStyles = makeStyles({
   card: {
@@ -52,6 +67,23 @@ const useStyles = makeStyles({
     display: 'flex',
     flexWrap: 'wrap',
     gap: 'var(--space-sm)',
+  },
+  previewStrategyPanel: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 'var(--space-xs)',
+    alignItems: 'center',
+  },
+  previewStrategyLabel: {
+    fontSize: '0.78rem',
+    color: 'var(--color-text-secondary)',
+    fontWeight: '600',
+  },
+  previewStrategyButton: {
+    minHeight: '30px',
+    borderRadius: '0px',
+    fontFamily: 'var(--font-display)',
+    fontWeight: '700',
   },
   previewButton: {
     minHeight: '38px',
@@ -297,13 +329,46 @@ export function SilentSortingPanel({
   const targetPreviewWord = getPreviewWordForBucket('target')
   const errorPreviewWord = getPreviewWordForBucket('error')
 
+  const previewStrategies = useMemo(() => {
+    return Array.from(new Set([
+      ...getAvailablePreviewStrategies(targetSound),
+      ...getAvailablePreviewStrategies(errorSound),
+    ]))
+  }, [errorSound, targetSound])
+
+  const [previewStrategy, setPreviewStrategy] = useState<PreviewStrategyFamily>(() => getDefaultPreviewStrategy(targetSound))
+  const targetCuratedPreviewAsset = useMemo(() => getCuratedIsolatedPreviewAsset(targetSound), [targetSound])
+  const errorCuratedPreviewAsset = useMemo(() => getCuratedIsolatedPreviewAsset(errorSound), [errorSound])
+
+  useEffect(() => {
+    const nextDefault = getDefaultPreviewStrategy(targetSound)
+    setPreviewStrategy(current => (previewStrategies.includes(current) ? current : nextDefault))
+  }, [previewStrategies, targetSound])
+
+  const activePreviewLabel = useMemo(() => {
+    return buildPreviewCandidate(targetSound, previewStrategy)?.label
+      ?? buildPreviewCandidate(errorSound, previewStrategy)?.label
+      ?? 'Direct phoneme'
+  }, [errorSound, previewStrategy, targetSound])
+
+  const curatedPreviewNote = useMemo(() => {
+    const notes: string[] = []
+    if (targetCuratedPreviewAsset) {
+      notes.push(`Hear ${getPerceptLabel(targetSound)} uses the approved sample asset.`)
+    }
+    if (errorCuratedPreviewAsset) {
+      notes.push(`Hear ${getPerceptLabel(errorSound)} uses the approved sample asset.`)
+    }
+    return notes.join(' ')
+  }, [errorCuratedPreviewAsset, errorSound, targetCuratedPreviewAsset, targetSound])
+
   const getBucketLabel = useCallback((bucket: Bucket): string => {
     if (bucket === 'target') {
-      return `${targetSound.toUpperCase()} home`
+      return `${getPerceptLabel(targetSound)} home`
     }
 
     if (bucket === 'error') {
-      return `${errorSound.toUpperCase()} home`
+      return `${getPerceptLabel(errorSound)} home`
     }
 
     return 'Cards to sort'
@@ -389,18 +454,83 @@ export function SilentSortingPanel({
     attemptMoveWord(word, nextBucket)
   }, [attemptMoveWord])
 
+  const [previewPending, setPreviewPending] = useState(false)
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null)
+  const [lastPreviewed, setLastPreviewed] = useState<{
+    sound: string
+    bucket: 'target' | 'error'
+    source: 'asset' | 'tts'
+  } | null>(null)
+  const [exportStatus, setExportStatus] = useState<string | null>(null)
+  const [exposedSounds, setExposedSounds] = useState<Set<string>>(() => new Set())
+
+  const playAudioFromUrl = useCallback(async (url: string, revokeOnEnd = false): Promise<void> => {
+    previewAudioRef.current?.pause()
+    const audio = new Audio(url)
+    previewAudioRef.current = audio
+    if (revokeOnEnd) {
+      audio.addEventListener('ended', () => URL.revokeObjectURL(url))
+    }
+    await audio.play()
+  }, [])
+
+  const playPreviewCue = useCallback(async (sound: string): Promise<'asset' | 'tts' | null> => {
+    const curatedAsset = getCuratedIsolatedPreviewAsset(sound)
+    if (curatedAsset) {
+      try {
+        await playAudioFromUrl(curatedAsset.audioUrl)
+        return 'asset'
+      } catch {
+        return null
+      }
+    }
+
+    const candidate = buildPreviewCandidate(sound, previewStrategy)
+    if (!candidate) {
+      return null
+    }
+    try {
+      const audioB64 = await api.synthesizeSpeech(candidate.input)
+      const bytes = Uint8Array.from(atob(audioB64), c => c.charCodeAt(0))
+      const blob = new Blob([bytes], { type: 'audio/mpeg' })
+      const url = URL.createObjectURL(blob)
+      await playAudioFromUrl(url, true)
+      return 'tts'
+    } catch {
+      return null
+    }
+  }, [playAudioFromUrl, previewStrategy])
+
   const handlePreviewSound = useCallback(async (bucket: 'target' | 'error') => {
-    if (!readyToStart || !onSpeakExerciseText) {
+    if (!readyToStart || previewPending) {
       return
     }
 
+    const sound = bucket === 'target' ? targetSound : errorSound
     const previewWord = bucket === 'target' ? targetPreviewWord : errorPreviewWord
-    if (!previewWord) {
-      return
-    }
 
-    await onSpeakExerciseText(`${getDrillModelToken(previewWord)}.`)
-  }, [errorPreviewWord, onSpeakExerciseText, readyToStart, targetPreviewWord])
+    setPreviewPending(true)
+    setExportStatus(null)
+    setExposedSounds(current => {
+      if (current.has(bucket)) return current
+      const next = new Set(current)
+      next.add(bucket)
+      return next
+    })
+    try {
+      const source = await playPreviewCue(sound)
+      if (source) {
+        setLastPreviewed({ sound, bucket, source })
+        return
+      }
+      // Fallback: avatar-routed exemplar word (original behaviour) when sound is unmapped.
+      if (onSpeakExerciseText && previewWord) {
+        await onSpeakExerciseText(`${getDrillModelToken(previewWord)}.`)
+      }
+    } finally {
+      setPreviewPending(false)
+    }
+  }, [errorPreviewWord, errorSound, onSpeakExerciseText, playPreviewCue, previewPending, readyToStart, targetPreviewWord, targetSound])
 
   const handleCardTap = useCallback((word: string) => {
     if (!readyToStart) {
@@ -466,32 +596,48 @@ export function SilentSortingPanel({
     />
   )
 
-  return (
-    <Card className={styles.card}>
-      <Text className={styles.title}>{scenarioName || 'Silent sorting'}</Text>
-      <Text className={styles.body}>
-        {audience === 'therapist'
-          ? 'Guide the child to place each picture into the TH or F home without saying the word first.'
-          : 'Listen first, then sort each picture into the right sound home.'}
-      </Text>
-      <div className={styles.previewRow}>
-        <Button
-          appearance="secondary"
-          className={styles.previewButton}
-          disabled={!readyToStart || !onSpeakExerciseText || !targetPreviewWord}
-          onClick={() => void handlePreviewSound('target')}
-        >
-          Hear {targetSound.toUpperCase()}
-        </Button>
-        <Button
-          appearance="secondary"
-          className={styles.previewButton}
-          disabled={!readyToStart || !onSpeakExerciseText || !errorPreviewWord}
-          onClick={() => void handlePreviewSound('error')}
-        >
-          Hear {errorSound.toUpperCase()}
-        </Button>
-      </div>
+  const performComplete = words.length > 0 && poolWords.length === 0
+
+  const canAdvanceFromExpose = useCallback(
+    () => exposedSounds.size >= 2,
+    [exposedSounds],
+  )
+
+  const shellMetadata: ExerciseMetadata = {
+    type: (metadata?.type as ExerciseMetadata['type']) ?? 'silent_sorting',
+    targetSound,
+    targetWords: words,
+    difficulty: metadata?.difficulty ?? 'easy',
+    ...metadata,
+  }
+
+  const beats: ExerciseBeatCopy = {
+    orient:
+      audience === 'therapist'
+        ? 'Starting silent sorting. Preview each sound, then sort.'
+        : "Hi, let's listen to two sounds and sort some pictures. Tap each sound to hear it.",
+    bridge: 'Now sort the pictures.',
+    reinforce: 'Great sorting! Want another go?',
+  }
+
+  const exposeSlot = (
+    <ExposeSlotBody
+      audience={audience}
+      targetSound={targetSound}
+      errorSound={errorSound}
+      previewStrategies={previewStrategies}
+      previewStrategy={previewStrategy}
+      setPreviewStrategy={setPreviewStrategy}
+      activePreviewLabel={activePreviewLabel}
+      curatedPreviewNote={curatedPreviewNote}
+      previewPending={previewPending}
+      readyToStart={readyToStart}
+      onPreview={handlePreviewSound}
+    />
+  )
+
+  const performSlot = (
+    <>
       <div className={styles.statePanel}>
         <Text className={styles.stateLabel}>Sorting mode</Text>
         <Text className={styles.stateValue}>{sortingModeText}</Text>
@@ -507,7 +653,7 @@ export function SilentSortingPanel({
         <div className={styles.homes}>
           <SortingDropZone
             bucket="target"
-            title={`${targetSound.toUpperCase()} home`}
+            title={`${getPerceptLabel(targetSound)} home`}
             hint={targetPreviewWord ? `Try cards like ${targetPreviewWord}.` : 'Target sound'}
             badgeLabel="Target sound"
             active={armedBucket === 'target'}
@@ -519,7 +665,7 @@ export function SilentSortingPanel({
           </SortingDropZone>
           <SortingDropZone
             bucket="error"
-            title={`${errorSound.toUpperCase()} home`}
+            title={`${getPerceptLabel(errorSound)} home`}
             hint={errorPreviewWord ? `Try cards like ${errorPreviewWord}.` : 'Comparison sound'}
             badgeLabel="Comparison sound"
             active={armedBucket === 'error'}
@@ -563,7 +709,128 @@ export function SilentSortingPanel({
           Reset sorting
         </Button>
       </div>
+    </>
+  )
+
+  const devSlot =
+    audience === 'therapist' ? (
+      <SilentSortingDevTools
+        lastPreviewed={lastPreviewed}
+        previewStrategy={previewStrategy}
+        previewPending={previewPending}
+        exportStatus={exportStatus}
+        onStatusChange={setExportStatus}
+        onPendingChange={setPreviewPending}
+      />
+    ) : null
+
+  return (
+    <Card className={styles.card}>
+      <Text className={styles.title}>{scenarioName || 'Silent sorting'}</Text>
+      <Text className={styles.body}>
+        {audience === 'therapist'
+          ? `Guide the child to place each picture into the ${getPerceptLabel(targetSound)} or ${getPerceptLabel(errorSound)} home without saying the word first.`
+          : 'Listen first, then sort each picture into the right sound home.'}
+      </Text>
+      <ExerciseShell
+        metadata={shellMetadata}
+        audience={audience}
+        beats={beats}
+        slots={{ expose: exposeSlot, perform: performSlot }}
+        canAdvanceFromExpose={canAdvanceFromExpose}
+        performComplete={performComplete}
+        therapistCanSkipIntro={audience === 'therapist'}
+        devSlot={devSlot}
+      />
     </Card>
+  )
+}
+
+interface ExposeSlotBodyProps {
+  audience: 'therapist' | 'child'
+  targetSound: string
+  errorSound: string
+  previewStrategies: PreviewStrategyFamily[]
+  previewStrategy: PreviewStrategyFamily
+  setPreviewStrategy: (strategy: PreviewStrategyFamily) => void
+  activePreviewLabel: string
+  curatedPreviewNote: string
+  previewPending: boolean
+  readyToStart: boolean
+  onPreview: (bucket: 'target' | 'error') => Promise<void>
+}
+
+function ExposeSlotBody({
+  audience,
+  targetSound,
+  errorSound,
+  previewStrategies,
+  previewStrategy,
+  setPreviewStrategy,
+  activePreviewLabel,
+  curatedPreviewNote,
+  previewPending,
+  readyToStart,
+  onPreview,
+}: ExposeSlotBodyProps) {
+  const styles = useStyles()
+  const { advance } = useShellAdvance()
+  const targetLabel = getPerceptLabel(targetSound)
+  const errorLabel = getPerceptLabel(errorSound)
+
+  return (
+    <>
+      {audience === 'therapist' && previewStrategies.length > 1 ? (
+        <div className={styles.previewStrategyPanel}>
+          <Text className={styles.previewStrategyLabel}>Preview cue: {activePreviewLabel}</Text>
+          {curatedPreviewNote ? (
+            <Text className={styles.previewStrategyLabel}>{curatedPreviewNote}</Text>
+          ) : null}
+          {previewStrategies.map(strategy => (
+            <Button
+              key={strategy}
+              appearance={previewStrategy === strategy ? 'primary' : 'secondary'}
+              className={styles.previewStrategyButton}
+              disabled={previewPending}
+              onClick={() => setPreviewStrategy(strategy)}
+            >
+              {strategy === 'ipa' ? 'IPA' : strategy === 'pseudo' ? 'Pseudo' : 'Anchor'}
+            </Button>
+          ))}
+        </div>
+      ) : null}
+      <div className={styles.previewRow}>
+        <Button
+          appearance="secondary"
+          className={styles.previewButton}
+          disabled={!readyToStart || previewPending}
+          onClick={() => void onPreview('target')}
+          aria-label={`Hear ${targetLabel} sound`}
+        >
+          <PhonemeIcon sound={targetSound} size={24} />
+          <span style={{ marginLeft: 'var(--space-xs)' }}>Hear {targetLabel}</span>
+        </Button>
+        <Button
+          appearance="secondary"
+          className={styles.previewButton}
+          disabled={!readyToStart || previewPending}
+          onClick={() => void onPreview('error')}
+          aria-label={`Hear ${errorLabel} sound`}
+        >
+          <PhonemeIcon sound={errorSound} size={24} />
+          <span style={{ marginLeft: 'var(--space-xs)' }}>Hear {errorLabel}</span>
+        </Button>
+        <Button
+          appearance="primary"
+          className={styles.previewButton}
+          disabled={!readyToStart || previewPending}
+          onClick={() => advance({ force: true })}
+          data-testid="silent-sorting-start-game"
+        >
+          Start game
+        </Button>
+      </div>
+    </>
   )
 }
 
