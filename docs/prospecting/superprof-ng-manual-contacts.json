@@ -1,0 +1,43 @@
+{
+  "generatedAt": "2026-04-18T00:00:00Z",
+  "note": "Curated public contact routes for manual Nigerian ICP additions.",
+  "contacts": [
+    {
+      "name": "Funke Omonkhegbe",
+      "website": "",
+      "publicEmail": "",
+      "publicEmailSource": "",
+      "bestContactUrl": "https://www.instagram.com/omonxspeech_therapy/",
+      "bestContactType": "social",
+      "socials": [
+        "https://www.instagram.com/omonxspeech_therapy/",
+        "https://www.instagram.com/funke_omonx/",
+        "https://ng.linkedin.com/in/funke-omonkhegbe-07a2a61b"
+      ],
+      "enrichmentConfidence": "medium",
+      "contactCandidates": [
+        {
+          "url": "https://www.hernetwork.co/funke-omonkhegbe-inside-the-mind-of-a-change-maker/",
+          "title": "Funke Omonkhegbe: Inside the Mind of a Change-Maker",
+          "type": "website",
+          "score": 42,
+          "nameMatch": true
+        },
+        {
+          "url": "https://www.instagram.com/omonxspeech_therapy/",
+          "title": "CHILD SPEECH THERAPIST IN LAGOS (@omonxspeech_therapy)",
+          "type": "social",
+          "score": 39,
+          "nameMatch": true
+        },
+        {
+          "url": "https://ng.linkedin.com/in/funke-omonkhegbe-07a2a61b",
+          "title": "Funke Omonkhegbe - Founder and Lead Speech and Language Therapist",
+          "type": "social",
+          "score": 38,
+          "nameMatch": true
+        }
+      ]
+    }
+  ]
+}

@@ -6,6 +6,7 @@ const path = require('node:path');
 const ROOT = '/home/ayoola/sen/voicelive-api-salescoach';
 const PROSPECTING_DIR = path.join(ROOT, 'docs/prospecting');
 const TOP_PATH = path.join(PROSPECTING_DIR, 'superprof-ng-top-100.json');
+const MANUAL_ADDITIONS_PATH = path.join(PROSPECTING_DIR, 'superprof-ng-manual-icps.json');
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
@@ -13,6 +14,13 @@ function readJson(filePath) {
 
 function writeJson(filePath, value) {
   fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`);
+}
+
+function readOptionalJson(filePath, fallback) {
+  if (!fs.existsSync(filePath)) {
+    return fallback;
+  }
+  return readJson(filePath);
 }
 
 function clean(value) {
@@ -58,6 +66,7 @@ function shortlistScore(profile) {
   if (profile.traits?.parentFacing) score += 8;
   if (profile.traits?.schoolFacing) score += 6;
   if (profile.traits?.telehealthSignal) score += 4;
+  if (profile.traits?.founderOperator) score += 10;
   if (profile.primarySegment === 'Child speech and language specialists') score += 6;
   if ((profile.reviewCount || 0) >= 10) score += 6;
   if ((profile.reviewCount || 0) >= 5) score += 3;
@@ -71,6 +80,28 @@ function shortlistScore(profile) {
     score -= 6;
   }
   return Math.max(0, score);
+}
+
+function mergeProspects(baseProspects, manualProspects) {
+  const merged = new Map();
+
+  for (const profile of [...baseProspects, ...manualProspects]) {
+    const key = clean(profile.profileUrl || profile.name).toLowerCase();
+    const existing = merged.get(key) || {};
+    merged.set(key, {
+      ...existing,
+      ...profile,
+      traits: {
+        ...(existing.traits || {}),
+        ...(profile.traits || {}),
+      },
+      matchedSegments: profile.matchedSegments || existing.matchedSegments || [],
+      buyerProblems: profile.buyerProblems || existing.buyerProblems || [],
+      sourceEvidence: profile.sourceEvidence || existing.sourceEvidence || [],
+    });
+  }
+
+  return [...merged.values()];
 }
 
 function outreachSegment(profile) {
@@ -291,7 +322,9 @@ function writeMarkdownSummary(top, shortlist) {
 }
 
 function main() {
-  const top = readJson(TOP_PATH).prospects || [];
+  const topSource = readJson(TOP_PATH);
+  const manualAdditions = readOptionalJson(MANUAL_ADDITIONS_PATH, { prospects: [] }).prospects || [];
+  const top = mergeProspects(topSource.prospects || [], manualAdditions);
 
   const ranked = top
     .map((profile) => ({
@@ -303,9 +336,18 @@ function main() {
 
   const shortlist = ranked.filter(passesShortlist).slice(0, 25);
 
+  writeJson(TOP_PATH, {
+    ...topSource,
+    generatedAt: new Date().toISOString(),
+    manualAdditionsApplied: manualAdditions.length > 0,
+    manualAdditionArtifact: manualAdditions.length > 0 ? MANUAL_ADDITIONS_PATH : '',
+    totalDedupedProspects: top.length,
+    prospects: top,
+  });
+
   writeJson(path.join(PROSPECTING_DIR, 'superprof-ng-top-25-clean-shortlist.json'), {
     generatedAt: new Date().toISOString(),
-    source: 'live Superprof NG multi-route browser crawl',
+    source: manualAdditions.length > 0 ? 'live Superprof NG multi-route browser crawl plus curated manual ICP additions' : 'live Superprof NG multi-route browser crawl',
     sourceArtifact: TOP_PATH,
     criteria: {
       requiresSpeechPracticeAlignment: true,

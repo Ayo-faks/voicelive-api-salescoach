@@ -1,11 +1,29 @@
 {
-  "generatedAt": "2026-04-11T10:13:12.159Z",
+  "generatedAt": "2026-04-18T06:57:41.515Z",
   "source": "/home/ayoola/sen/voicelive-api-salescoach/docs/prospecting/superprof-ng-top-25-clean-shortlist.json",
   "note": "Manual founder-priority cut favoring explicit speech-language profiles over behavior-therapy-heavy adjacency.",
   "total": 10,
   "prospects": [
     {
       "founderPriorityRank": 1,
+      "founderPriorityTier": "tier-1",
+      "name": "Funke Omonkhegbe",
+      "displayLocation": "Lagos",
+      "shortlistScore": 166,
+      "icpScore": 100,
+      "reviewCount": 0,
+      "explicitSpeechCredential": true,
+      "website": "",
+      "publicEmail": "",
+      "bestContactUrl": "https://www.instagram.com/omonxspeech_therapy/",
+      "enrichmentConfidence": "medium",
+      "profileUrl": "https://ng.linkedin.com/in/funke-omonkhegbe-07a2a61b",
+      "whyNow": "Founder-led pediatric speech practice with UK and Nigeria experience, direct intervention, parent and teacher training, and a clear inclusion-driven clinic story outside the marketplace layer.",
+      "caution": "This is a curated external addition rather than a Superprof-native profile, so validate current intake capacity and preferred contact route before deeper founder time.",
+      "angle": "Lead with home-school carryover, therapist visibility between sessions, and structured support for parents and educators."
+    },
+    {
+      "founderPriorityRank": 2,
       "founderPriorityTier": "tier-1",
       "name": "Peter",
       "displayLocation": "Lagos",
@@ -23,7 +41,7 @@
       "angle": "Lead with between-session continuity for child speech targets and visible parent follow-through."
     },
     {
-      "founderPriorityRank": 2,
+      "founderPriorityRank": 3,
       "founderPriorityTier": "tier-1",
       "name": "Miracle",
       "displayLocation": "Lagos",
@@ -33,15 +51,15 @@
       "explicitSpeechCredential": true,
       "website": "",
       "publicEmail": "",
-      "bestContactUrl": "",
-      "enrichmentConfidence": "low",
+      "bestContactUrl": "https://www.instagram.com/miraclespeechtherapy/reels/",
+      "enrichmentConfidence": "medium",
       "profileUrl": "https://www.superprof.ng/international-certified-speech-therapist-who-helps-kids-young-adults-and-adults-with-delayed-speech-and-language-challenges.html",
       "whyNow": "Clear speech-therapy identity with strong child communication language and enough marketplace proof to justify immediate founder outreach.",
       "caution": "Broad challenge coverage may mean a wider caseload than pure articulation or language-delay work.",
       "angle": "Lead with therapist-controlled home practice and communication gains between sessions."
     },
     {
-      "founderPriorityRank": 3,
+      "founderPriorityRank": 4,
       "founderPriorityTier": "tier-1",
       "name": "Kemily",
       "displayLocation": "Durumi",
@@ -59,8 +77,8 @@
       "angle": "Lead with structured home carryover, progress tracking, and parent coaching support."
     },
     {
-      "founderPriorityRank": 4,
-      "founderPriorityTier": "tier-1",
+      "founderPriorityRank": 5,
+      "founderPriorityTier": "tier-2",
       "name": "Rhodiyat",
       "displayLocation": "Ikeja",
       "shortlistScore": 154,
@@ -77,7 +95,7 @@
       "angle": "Lead with parent-facing follow-through and lightweight therapist review between sessions."
     },
     {
-      "founderPriorityRank": 5,
+      "founderPriorityRank": 6,
       "founderPriorityTier": "tier-2",
       "name": "Adewunmi",
       "displayLocation": "Pakuro",
@@ -95,7 +113,7 @@
       "angle": "Lead with child speech practice, articulation carryover, and therapy visibility outside live sessions."
     },
     {
-      "founderPriorityRank": 6,
+      "founderPriorityRank": 7,
       "founderPriorityTier": "tier-2",
       "name": "Anawanti",
       "displayLocation": "Iddo Tudunwada",
@@ -113,7 +131,7 @@
       "angle": "Lead with school-home carryover and simpler therapist-supervised practice for children with communication needs."
     },
     {
-      "founderPriorityRank": 7,
+      "founderPriorityRank": 8,
       "founderPriorityTier": "tier-2",
       "name": "Akinbobloa",
       "displayLocation": "Abuja municipal",
@@ -131,8 +149,8 @@
       "angle": "Lead with school-linked carryover, therapist review visibility, and child practice between sessions."
     },
     {
-      "founderPriorityRank": 8,
-      "founderPriorityTier": "tier-2",
+      "founderPriorityRank": 9,
+      "founderPriorityTier": "tier-3",
       "name": "Prince",
       "displayLocation": "webcam",
       "shortlistScore": 142,
@@ -149,7 +167,7 @@
       "angle": "Lead with structured speech practice rather than broad therapy administration."
     },
     {
-      "founderPriorityRank": 9,
+      "founderPriorityRank": 10,
       "founderPriorityTier": "tier-3",
       "name": "Kehinde",
       "displayLocation": "Ife",
@@ -165,24 +183,6 @@
       "whyNow": "Explicit audiology and speech pathology background with broad clinical coverage and strong child-speech relevance.",
       "caution": "The listed `₦10/h` price looks like a marketplace anomaly, so confirm seriousness and current practice before investing too much outreach effort.",
       "angle": "Lead with high-structure child speech carryover and therapist-controlled goal tracking."
-    },
-    {
-      "founderPriorityRank": 10,
-      "founderPriorityTier": "tier-3",
-      "name": "Funmilola Christiana",
-      "displayLocation": "Lagos",
-      "shortlistScore": 119,
-      "icpScore": 92,
-      "reviewCount": 18,
-      "explicitSpeechCredential": false,
-      "website": "",
-      "publicEmail": "",
-      "bestContactUrl": "",
-      "enrichmentConfidence": "low",
-      "profileUrl": "https://www.superprof.ng/experience-with-certified-international-license-behavioural-specialist-progress-children-with-behavioural-speech-delay.html",
-      "whyNow": "Not a pure speech-language profile, but the parent/home carryover language and strong review volume make it the best controlled adjacency for founder learning.",
-      "caution": "This is behavior-therapy-heavy and should be treated as a secondary experiment, not the core wedge.",
-      "angle": "Lead with parent follow-through and practical between-session support rather than clinical speech specialization."
     }
   ]
 }

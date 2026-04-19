@@ -1,10 +1,26 @@
 # Superprof Nigeria Founder-Priority Top 10
 
-Generated: 2026-04-11T10:13:12.160Z
+Generated: 2026-04-18T06:57:41.516Z
 
-This is a manual founder cut built from the clean shortlist, with stronger preference for explicit speech-language profiles and a controlled willingness to include one adjacent carryover-heavy profile for learning.
+This is a manual founder cut built from the clean shortlist, with stronger preference for explicit speech-language profiles and room for curated external Nigerian speech-practice operators when the marketplace crawl misses known high-fit clinics.
 
-## 1. Peter
+## 1. Funke Omonkhegbe
+
+Priority tier: tier-1
+
+Why now: Founder-led pediatric speech practice with UK and Nigeria experience, direct intervention, parent and teacher training, and a clear inclusion-driven clinic story outside the marketplace layer.
+
+Caution: This is a curated external addition rather than a Superprof-native profile, so validate current intake capacity and preferred contact route before deeper founder time.
+
+Suggested angle: Lead with home-school carryover, therapist visibility between sessions, and structured support for parents and educators.
+
+Contact route: https://www.instagram.com/omonxspeech_therapy/
+
+Location: Lagos
+
+Profile: https://ng.linkedin.com/in/funke-omonkhegbe-07a2a61b
+
+## 2. Peter
 
 Priority tier: tier-1
 
@@ -20,7 +36,7 @@ Location: Lagos
 
 Profile: https://www.superprof.ng/skilled-speech-and-language-therapist-educational-behavioral-therapist-and-with-passion-seeing-that-the-needed-skills-are.html
 
-## 2. Miracle
+## 3. Miracle
 
 Priority tier: tier-1
 
@@ -30,13 +46,13 @@ Caution: Broad challenge coverage may mean a wider caseload than pure articulati
 
 Suggested angle: Lead with therapist-controlled home practice and communication gains between sessions.
 
-Contact route: No public route recovered yet
+Contact route: https://www.instagram.com/miraclespeechtherapy/reels/
 
 Location: Lagos
 
 Profile: https://www.superprof.ng/international-certified-speech-therapist-who-helps-kids-young-adults-and-adults-with-delayed-speech-and-language-challenges.html
 
-## 3. Kemily
+## 4. Kemily
 
 Priority tier: tier-1
 
@@ -52,9 +68,9 @@ Location: Durumi
 
 Profile: https://www.superprof.ng/highly-experienced-speech-therapist-communication-language-articulation-development-for-children-and-adults.html
 
-## 4. Rhodiyat
+## 5. Rhodiyat
 
-Priority tier: tier-1
+Priority tier: tier-2
 
 Why now: Very clean child speech-therapy positioning with explicit parent guidance and home support language.
 
@@ -68,7 +84,7 @@ Location: Ikeja
 
 Profile: https://www.superprof.ng/qualified-speech-therapy-practitioner-with-experience-working-with-children-with-speech-language-and-communication.html
 
-## 5. Adewunmi
+## 6. Adewunmi
 
 Priority tier: tier-2
 
@@ -84,7 +100,7 @@ Location: Pakuro
 
 Profile: https://www.superprof.ng/expert-speech-therapy-services-for-children-and-adults-location-lagos-and-ogun-state-person-and-online-services-provide.html
 
-## 6. Anawanti
+## 7. Anawanti
 
 Priority tier: tier-2
 
@@ -100,7 +116,7 @@ Location: Iddo Tudunwada
 
 Profile: https://www.superprof.ng/speech-therapist-working-with-children-with-special-needs-such-autism-hearing-handicap-and-down-syndrome-with-more-than-five.html
 
-## 7. Akinbobloa
+## 8. Akinbobloa
 
 Priority tier: tier-2
 
@@ -116,9 +132,9 @@ Location: Abuja municipal
 
 Profile: https://www.superprof.ng/speech-therapist-special-needs-educator-with-years-experience-working-with-neuro-divergent-children-and-speech-disorder.html
 
-## 8. Prince
+## 9. Prince
 
-Priority tier: tier-2
+Priority tier: tier-3
 
 Why now: Explicit speech-language therapist identity and respectable review proof put this profile above most speech-adjacent alternatives.
 
@@ -132,7 +148,7 @@ Location: webcam
 
 Profile: https://www.superprof.ng/experienced-and-skilled-speech-and-language-therapist-work-with-special-needs-children-regular-children-with-speech-and-language.html
 
-## 9. Kehinde
+## 10. Kehinde
 
 Priority tier: tier-3
 
@@ -147,19 +163,3 @@ Contact route: No public route recovered yet
 Location: Ife
 
 Profile: https://www.superprof.ng/skilled-and-certified-speech-therapist-through-online-international-courses-with-practical-history-working-with-children-and.html
-
-## 10. Funmilola Christiana
-
-Priority tier: tier-3
-
-Why now: Not a pure speech-language profile, but the parent/home carryover language and strong review volume make it the best controlled adjacency for founder learning.
-
-Caution: This is behavior-therapy-heavy and should be treated as a secondary experiment, not the core wedge.
-
-Suggested angle: Lead with parent follow-through and practical between-session support rather than clinical speech specialization.
-
-Contact route: No public route recovered yet
-
-Location: Lagos
-
-Profile: https://www.superprof.ng/experience-with-certified-international-license-behavioural-specialist-progress-children-with-behavioural-speech-delay.html

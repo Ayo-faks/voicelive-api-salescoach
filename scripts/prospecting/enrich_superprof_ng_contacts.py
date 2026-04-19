@@ -14,6 +14,7 @@ SHORTLIST_PATH = PROSPECTING_DIR / 'superprof-ng-top-25-clean-shortlist.json'
 OUT_JSON = PROSPECTING_DIR / 'superprof-ng-contact-enrichment.json'
 OUT_CSV = PROSPECTING_DIR / 'superprof-ng-contact-enrichment.csv'
 ENRICHED_OUTREACH_CSV = PROSPECTING_DIR / 'superprof-ng-top-25-founder-outreach-enriched.csv'
+MANUAL_CONTACTS_PATH = PROSPECTING_DIR / 'superprof-ng-manual-contacts.json'
 
 HEADERS = {
     'User-Agent': 'Mozilla/5.0',
@@ -36,14 +37,23 @@ EXCLUDED_DOMAINS = {
     'superprof.com.au', 'www.superprof.com.au',
     'superprof.co.za', 'www.superprof.co.za',
     'superprof.co.uk', 'www.superprof.co.uk',
+    'careersngr.com', 'www.careersngr.com',
+    'msn.com', 'www.msn.com',
+    'telegraph.co.uk', 'www.telegraph.co.uk',
+    'psychologytoday.com', 'www.psychologytoday.com',
 }
 
 DIRECTORY_DOMAINS = {
     'upskillstutor.com.ng', 'www.upskillstutor.com.ng',
     'jiji.ng', 'www.jiji.ng',
+    'classes.ng', 'www.classes.ng',
     'cybo.com', 'www.cybo.com',
     'africabz.com', 'www.africabz.com', 'ng.africabz.com',
     'medpages.info', 'www.medpages.info',
+    'findhealthclinics.com', 'www.findhealthclinics.com',
+    'nigeria24.me', 'www.nigeria24.me',
+    'poidata.io', 'www.poidata.io',
+    'infoisinfo.ng', 'www.infoisinfo.ng', 'lagos.infoisinfo.ng',
 }
 
 EXCLUDED_EMAIL_RE = re.compile(
@@ -140,9 +150,27 @@ def result_type(url):
     return 'website'
 
 
+def is_excluded_domain(domain):
+    normalized = clean(domain).lower()
+    return bool(
+        normalized in EXCLUDED_DOMAINS
+        or normalized.startswith('superprof.')
+        or '.superprof.' in normalized
+    )
+
+
+def has_strong_speech_relevance(text):
+    normalized = clean(text).lower()
+    return bool(re.search(
+        r'speech(?:\s|&|/|-)*(?:and\s+language|language)?|speech\s+therap(?:y|ist)|language\s+therap(?:y|ist)|speech[- ]language|articulation|audiolog|communication\s+(?:needs|delay|difficult|disorder)|slt\b',
+        normalized,
+        re.I,
+    ))
+
+
 def score_candidate(url, title, profile):
     domain = domain_from_url(url)
-    if not domain or domain in EXCLUDED_DOMAINS:
+    if not domain or is_excluded_domain(domain):
         return -999
 
     text = f'{clean(title)} {url}'.lower()
@@ -163,17 +191,33 @@ def score_candidate(url, title, profile):
         score -= 10
     if re.search(r'upskill|jiji|cybo|africabz|medpages', domain, re.I):
         score -= 6
+    if not has_strong_speech_relevance(text):
+        score -= 12
     return score
 
 
 def candidate_name_match(url, title, profile):
-    url_text = clean(url).lower()
+    text = f'{clean(title)} {clean(url)}'.lower()
     tokens = set()
+    full_variants = []
     for variant in search_name_variants(profile):
+        normalized = variant.lower()
+        if ' ' in normalized:
+            full_variants.append(normalized)
         for token in re.split(r'[^a-z0-9]+', variant.lower()):
             if len(token) >= 4:
                 tokens.add(token)
-    return any(token in url_text for token in tokens)
+    if any(variant in text for variant in full_variants):
+        return True
+
+    matched_tokens = [token for token in tokens if token in text]
+    if len(tokens) >= 2:
+        return len(matched_tokens) >= 2
+
+    if len(tokens) == 1:
+        return bool(matched_tokens) and has_strong_speech_relevance(text)
+
+    return False
 
 
 def parse_bing_results(search_html, profile):
@@ -233,6 +277,15 @@ def extract_emails(page_text, candidate_url=''):
     for match in EMAIL_RE.findall(page_text or ''):
         email = clean(match).lower()
         if not email or email in seen or EXCLUDED_EMAIL_RE.search(email):
+            continue
+        if '/' in email or '\\' in email or email.startswith('u00'):
+            continue
+        local_part, _, domain_part = email.partition('@')
+        if not local_part or not domain_part:
+            continue
+        if re.search(r'\.(png|jpg|jpeg|gif|svg|webp|ico)$', local_part, re.I):
+            continue
+        if re.search(r'^(?:\d+x\.)?(png|jpg|jpeg|gif|svg|webp|ico)$', domain_part, re.I):
             continue
         if candidate_domain and domain_from_url(f'https://{email.split("@")[-1]}').replace('www.', '') and domain_from_url(candidate_url) in DIRECTORY_DOMAINS:
             if not email.endswith(f'@{candidate_domain}'):
@@ -350,25 +403,57 @@ def to_csv(rows):
     return '\n'.join(','.join('"' + str(value or '').replace('"', '""') + '"' for value in row) for row in rows)
 
 
+def load_manual_contacts():
+    if not MANUAL_CONTACTS_PATH.exists():
+        return {}
+    payload = json.loads(MANUAL_CONTACTS_PATH.read_text())
+    contacts = payload.get('contacts', [])
+    return {clean(contact.get('name')): contact for contact in contacts if clean(contact.get('name'))}
+
+
 def main():
     shortlist = json.loads(SHORTLIST_PATH.read_text())['prospects']
+    manual_contacts = load_manual_contacts()
     enriched = []
 
     for profile in shortlist:
-        candidates = search_candidates(profile)
-        detailed = [enrich_candidate(candidate) for candidate in candidates[:5]]
-        website = next((candidate for candidate in detailed if candidate['type'] == 'website' and candidate.get('nameMatch')), None)
-        socials = [candidate['url'] for candidate in detailed if candidate['type'] == 'social' and candidate.get('nameMatch')][:3]
-        directories = [candidate for candidate in detailed if candidate['type'] == 'directory']
-        public_email = website['emails'][0] if website and website.get('emails') else ''
-        public_email_source = 'website-search' if public_email else ''
-        if not public_email:
-            for candidate in directories:
-                if candidate.get('emails') and candidate.get('nameMatch'):
-                    public_email = candidate['emails'][0]
-                    public_email_source = 'directory-search'
-                    break
-        best_contact = website or next((candidate for candidate in detailed if candidate['type'] == 'social' and candidate.get('nameMatch')), None) or next((candidate for candidate in directories if candidate.get('emails') and candidate.get('nameMatch')), None)
+        override = manual_contacts.get(clean(profile.get('name')))
+        if override:
+            website_url = clean(override.get('website'))
+            socials = [clean(item) for item in override.get('socials', []) if clean(item)][:3]
+            public_email = clean(override.get('publicEmail'))
+            public_email_source = clean(override.get('publicEmailSource'))
+            best_contact_url = clean(override.get('bestContactUrl')) or website_url or (socials[0] if socials else '')
+            best_contact_type = clean(override.get('bestContactType')) or ('website' if website_url else 'social' if socials else '')
+            detailed = override.get('contactCandidates', [])
+            enrichment_confidence = clean(override.get('enrichmentConfidence')) or confidence({
+                'publicEmail': public_email,
+                'website': website_url,
+                'socials': socials,
+            })
+            website = {'url': website_url} if website_url else None
+        else:
+            candidates = search_candidates(profile)
+            detailed = [enrich_candidate(candidate) for candidate in candidates[:5]]
+            website = next((candidate for candidate in detailed if candidate['type'] == 'website' and candidate.get('nameMatch')), None)
+            socials = [candidate['url'] for candidate in detailed if candidate['type'] == 'social' and candidate.get('nameMatch')][:3]
+            directories = [candidate for candidate in detailed if candidate['type'] == 'directory']
+            public_email = website['emails'][0] if website and website.get('emails') else ''
+            public_email_source = 'website-search' if public_email else ''
+            if not public_email:
+                for candidate in directories:
+                    if candidate.get('emails') and candidate.get('nameMatch'):
+                        public_email = candidate['emails'][0]
+                        public_email_source = 'directory-search'
+                        break
+            best_contact = website or next((candidate for candidate in detailed if candidate['type'] == 'social' and candidate.get('nameMatch')), None) or next((candidate for candidate in directories if candidate.get('emails') and candidate.get('nameMatch')), None)
+            best_contact_url = best_contact['url'] if best_contact else ''
+            best_contact_type = best_contact['type'] if best_contact else ''
+            enrichment_confidence = confidence({
+                'publicEmail': public_email,
+                'website': website['url'] if website else '',
+                'socials': socials,
+            })
 
         enriched.append({
             **profile,
@@ -378,13 +463,9 @@ def main():
             'publicEmail': public_email,
             'publicEmailSource': public_email_source,
             'socials': socials,
-            'bestContactUrl': best_contact['url'] if best_contact else '',
-            'bestContactType': best_contact['type'] if best_contact else '',
-            'enrichmentConfidence': confidence({
-                'publicEmail': public_email,
-                'website': website['url'] if website else '',
-                'socials': socials,
-            }),
+            'bestContactUrl': best_contact_url,
+            'bestContactType': best_contact_type,
+            'enrichmentConfidence': enrichment_confidence,
             'contactCandidates': detailed,
         })
 

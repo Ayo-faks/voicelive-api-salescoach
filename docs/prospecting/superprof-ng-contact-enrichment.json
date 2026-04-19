@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-04-11T10:13:12.128121Z",
+  "generatedAt": "2026-04-18T06:57:41.484147Z",
   "source": "/home/ayoola/sen/voicelive-api-salescoach/docs/prospecting/superprof-ng-top-25-clean-shortlist.json",
-  "total": 19,
+  "total": 20,
   "contacts": [
     {
       "name": "Peter",
@@ -55,6 +55,7 @@
         "I need to review sessions without doing everything manually"
       ],
       "icpScore": 100,
+      "sourceEvidence": [],
       "outreachSegment": "teletherapy-continuity",
       "shortlistScore": 171,
       "displayLocation": "Lagos",
@@ -65,7 +66,180 @@
       "bestContactUrl": "",
       "bestContactType": "",
       "enrichmentConfidence": "low",
-      "contactCandidates": []
+      "contactCandidates": [
+        {
+          "url": "https://www.goafricaonline.com/ng/directory/speech-language-therapists",
+          "title": "Speech and language therapists in Lagos and Nigeria",
+          "domain": "www.goafricaonline.com",
+          "type": "website",
+          "score": 36,
+          "nameMatch": false,
+          "emails": [],
+          "fetchedPages": [
+            "https://www.goafricaonline.com/ng/directory/speech-language-therapists",
+            "https://www.goafricaonline.com/ng/978103-apex-physiotherapy-and-rehabilitation-clinic",
+            "https://www.goafricaonline.com/ng/978097-mobility-physiotherapy-clinic-clinic-or-homecare",
+            "https://www.goafricaonline.com/ng/978100-mobility-physiotherapy-and-chiropractic-clinic",
+            "https://www.goafricaonline.com/ng/978095-nurture-child-development-clinic-lagos"
+          ]
+        },
+        {
+          "url": "https://mychildslt.com/",
+          "title": "MyChild SLT - Play-Based Speech and Language Therapy - Lagos",
+          "domain": "mychildslt.com",
+          "type": "website",
+          "score": 36,
+          "nameMatch": false,
+          "emails": [
+            "email@mychildslt.com",
+            "wissam@chidiak.com"
+          ],
+          "fetchedPages": [
+            "https://mychildslt.com/",
+            "https://www.mychildslt.com/about",
+            "https://www.mychildslt.com/contact"
+          ]
+        },
+        {
+          "url": "https://www.facebook.com/peterrehab/services/",
+          "title": "Peter Speech Therapy Centre - Facebook",
+          "domain": "www.facebook.com",
+          "type": "social",
+          "score": 34,
+          "nameMatch": false,
+          "emails": [],
+          "fetchedPages": []
+        },
+        {
+          "url": "https://ng.linkedin.com/in/oloruntoba-peter-okunade-067558304",
+          "title": "Oloruntoba Peter Okunade - Speech And Language Therapist | LinkedIn",
+          "domain": "ng.linkedin.com",
+          "type": "social",
+          "score": 34,
+          "nameMatch": false,
+          "emails": [],
+          "fetchedPages": []
+        },
+        {
+          "url": "https://helpinghandsng.com/",
+          "title": "Helping Hands Therapy Center - Speech Therapist, Special Education ...",
+          "domain": "helpinghandsng.com",
+          "type": "website",
+          "score": 30,
+          "nameMatch": false,
+          "emails": [],
+          "fetchedPages": []
+        }
+      ]
+    },
+    {
+      "name": "Funke Omonkhegbe",
+      "alternateNames": [
+        "Funke Omonx",
+        "Funke Omonkehegbe"
+      ],
+      "profileUrl": "https://ng.linkedin.com/in/funke-omonkhegbe-07a2a61b",
+      "website": "",
+      "email": "",
+      "emailSource": "",
+      "location": "Lagos",
+      "title": "Founder and Lead Speech and Language Therapist at Omonx Speech Therapy",
+      "bio": "Funke Omonkhegbe is the founder of Omonx Speech Therapy and a certified speech and language therapist with experience across educational and clinical settings in both the UK and Nigeria. Her work includes supporting children with autism, speech delays, and broader communication and developmental needs, alongside parent guidance, teacher training, and school consultancy.",
+      "lessonApproach": "Evidence-based speech and language therapy with direct intervention, strong home-school partnerships, parent and teacher training, and consultancy support for schools and organisations. Positioning is explicitly child-focused and inclusion-led.",
+      "lessonLocation": "Lagos, Nigeria",
+      "rating": null,
+      "reviewCount": 0,
+      "pricePerHourNgn": null,
+      "responseTimeHours": null,
+      "studentsHelped": null,
+      "superprofBadge": "",
+      "firstLessonFree": false,
+      "modalities": {
+        "webcam": false,
+        "inPerson": true
+      },
+      "matchedSegments": [
+        "Child speech and language specialists",
+        "Autism and SEN communication specialists",
+        "School and home follow-through tutors"
+      ],
+      "primarySegment": "Child speech and language specialists",
+      "traits": {
+        "childFocus": true,
+        "adultOnly": false,
+        "schoolFacing": true,
+        "parentFacing": true,
+        "trainingConsultancy": true,
+        "telehealthSignal": false,
+        "broadChildCaseload": true,
+        "speechPracticeAligned": true,
+        "medicallyComplex": false,
+        "explicitSpeechCredential": true,
+        "behaviorOnly": false,
+        "educatorOnly": false,
+        "nonSpeechAdjacency": false,
+        "founderOperator": true
+      },
+      "buyerProblems": [
+        "I need engaging home practice",
+        "I need to personalize exercises quickly",
+        "I need visible progress for parents",
+        "I need continuity between weekly sessions",
+        "I need to review sessions without doing everything manually"
+      ],
+      "icpScore": 100,
+      "sourceType": "manual_external_addition",
+      "sourceEvidence": [
+        {
+          "label": "Her Network feature",
+          "url": "https://www.hernetwork.co/funke-omonkhegbe-inside-the-mind-of-a-change-maker/"
+        },
+        {
+          "label": "LinkedIn profile",
+          "url": "https://ng.linkedin.com/in/funke-omonkhegbe-07a2a61b"
+        },
+        {
+          "label": "Instagram business profile",
+          "url": "https://www.instagram.com/omonxspeech_therapy/"
+        }
+      ],
+      "outreachSegment": "school-home-followthrough",
+      "shortlistScore": 166,
+      "displayLocation": "Lagos",
+      "websiteDomain": "",
+      "publicEmail": "",
+      "publicEmailSource": "",
+      "socials": [
+        "https://www.instagram.com/omonxspeech_therapy/",
+        "https://www.instagram.com/funke_omonx/",
+        "https://ng.linkedin.com/in/funke-omonkhegbe-07a2a61b"
+      ],
+      "bestContactUrl": "https://www.instagram.com/omonxspeech_therapy/",
+      "bestContactType": "social",
+      "enrichmentConfidence": "medium",
+      "contactCandidates": [
+        {
+          "url": "https://www.hernetwork.co/funke-omonkhegbe-inside-the-mind-of-a-change-maker/",
+          "title": "Funke Omonkhegbe: Inside the Mind of a Change-Maker",
+          "type": "website",
+          "score": 42,
+          "nameMatch": true
+        },
+        {
+          "url": "https://www.instagram.com/omonxspeech_therapy/",
+          "title": "CHILD SPEECH THERAPIST IN LAGOS (@omonxspeech_therapy)",
+          "type": "social",
+          "score": 39,
+          "nameMatch": true
+        },
+        {
+          "url": "https://ng.linkedin.com/in/funke-omonkhegbe-07a2a61b",
+          "title": "Funke Omonkhegbe - Founder and Lead Speech and Language Therapist",
+          "type": "social",
+          "score": 38,
+          "nameMatch": true
+        }
+      ]
     },
     {
       "name": "Miracle",
@@ -119,17 +293,80 @@
         "I need to review sessions without doing everything manually"
       ],
       "icpScore": 100,
+      "sourceEvidence": [],
       "outreachSegment": "teletherapy-continuity",
       "shortlistScore": 161,
       "displayLocation": "Lagos",
       "websiteDomain": "",
       "publicEmail": "",
       "publicEmailSource": "",
-      "socials": [],
-      "bestContactUrl": "",
-      "bestContactType": "",
-      "enrichmentConfidence": "low",
-      "contactCandidates": []
+      "socials": [
+        "https://www.instagram.com/miraclespeechtherapy/reels/",
+        "https://www.facebook.com/PatrickSpeechandLanguageCentre/videos/a-miracle-worth-celebrating-building-special-needs-therapists-across-nigeriawhat/1266322668885244/"
+      ],
+      "bestContactUrl": "https://www.instagram.com/miraclespeechtherapy/reels/",
+      "bestContactType": "social",
+      "enrichmentConfidence": "medium",
+      "contactCandidates": [
+        {
+          "url": "https://www.finelib.com/cities/lagos/areas-and-suburbs/lekki/health/speech-therapists",
+          "title": "List of Speech Therapists in Lekki Lagos Island - Finelib.com",
+          "domain": "www.finelib.com",
+          "type": "website",
+          "score": 36,
+          "nameMatch": false,
+          "emails": [],
+          "fetchedPages": [
+            "https://www.finelib.com/cities/lagos/areas-and-suburbs/lekki/health/speech-therapists",
+            "https://www.finelib.com/about.php",
+            "https://www.finelib.com/contact.php",
+            "https://www.finelib.com/about"
+          ]
+        },
+        {
+          "url": "https://www.instagram.com/miraclespeechtherapy/reels/",
+          "title": "Miracle L (@miraclespeechtherapy) \u2022 Instagram photos and videos",
+          "domain": "www.instagram.com",
+          "type": "social",
+          "score": 34,
+          "nameMatch": true,
+          "emails": [],
+          "fetchedPages": []
+        },
+        {
+          "url": "https://www.facebook.com/PatrickSpeechandLanguageCentre/videos/a-miracle-worth-celebrating-building-special-needs-therapists-across-nigeriawhat/1266322668885244/",
+          "title": "A Miracle Worth Celebrating | Building Special Needs Therapists Across ...",
+          "domain": "www.facebook.com",
+          "type": "social",
+          "score": 34,
+          "nameMatch": true,
+          "emails": [],
+          "fetchedPages": []
+        },
+        {
+          "url": "https://helpinghandsng.com/",
+          "title": "Helping Hands Therapy Center - Speech Therapist, Special Education ...",
+          "domain": "helpinghandsng.com",
+          "type": "website",
+          "score": 30,
+          "nameMatch": false,
+          "emails": [],
+          "fetchedPages": []
+        },
+        {
+          "url": "https://peopleandpowerngr.com/2023/11/mrs-ololade-olayinka-nnamani-great-accomplishments-in-speech-and-language-therapy/",
+          "title": "Mrs. Ololade Olayinka Nnamani: Great Accomplishments In Speech and ...",
+          "domain": "peopleandpowerngr.com",
+          "type": "website",
+          "score": 30,
+          "nameMatch": false,
+          "emails": [],
+          "fetchedPages": [
+            "https://peopleandpowerngr.com/2023/11/mrs-ololade-olayinka-nnamani-great-accomplishments-in-speech-and-language-therapy/",
+            "https://peopleandpowerngr.com/contact-us/"
+          ]
+        }
+      ]
     },
     {
       "name": "Anawanti",
@@ -183,6 +420,7 @@
         "I need to review sessions without doing everything manually"
       ],
       "icpScore": 100,
+      "sourceEvidence": [],
       "outreachSegment": "teletherapy-continuity",
       "shortlistScore": 160,
       "displayLocation": "Iddo Tudunwada",
@@ -193,7 +431,94 @@
       "bestContactUrl": "",
       "bestContactType": "",
       "enrichmentConfidence": "low",
-      "contactCandidates": []
+      "contactCandidates": [
+        {
+          "url": "https://wordsandmuchmore.co.uk/",
+          "title": "Private - Leicesterhire Speech & Language Therapy",
+          "domain": "wordsandmuchmore.co.uk",
+          "type": "website",
+          "score": 30,
+          "nameMatch": false,
+          "emails": [],
+          "fetchedPages": [
+            "https://wordsandmuchmore.co.uk/",
+            "https://img1.wsimg.com/isteam/ip/static/pwa-app/logo-default.png/:/rs=w:57,h:57,m",
+            "https://img1.wsimg.com/isteam/ip/static/pwa-app/logo-default.png/:/rs=w:60,h:60,m",
+            "https://img1.wsimg.com/isteam/ip/static/pwa-app/logo-default.png/:/rs=w:72,h:72,m",
+            "https://img1.wsimg.com/isteam/ip/static/pwa-app/logo-default.png/:/rs=w:114,h:114,m"
+          ]
+        },
+        {
+          "url": "https://www.integratedtreatmentservices.co.uk/",
+          "title": "Private Speech & Language Therapy, Therapists, Speech & Language ...",
+          "domain": "www.integratedtreatmentservices.co.uk",
+          "type": "website",
+          "score": 30,
+          "nameMatch": false,
+          "emails": [
+            "info@integratedtreatments.co.uk"
+          ],
+          "fetchedPages": [
+            "https://www.integratedtreatmentservices.co.uk/",
+            "https://www.integratedtreatmentservices.co.uk/wp-content/plugins/contact-form-7/includes/css/styles.css?ver=6.0.6",
+            "https://www.integratedtreatmentservices.co.uk/clinics/",
+            "https://www.integratedtreatmentservices.co.uk/contact/",
+            "https://www.integratedtreatmentservices.co.uk/assessment-contact-form/"
+          ]
+        },
+        {
+          "url": "https://www.magicwordstherapy.co.uk/",
+          "title": "Magic Words - Expert Speech and Language Therapy",
+          "domain": "www.magicwordstherapy.co.uk",
+          "type": "website",
+          "score": 30,
+          "nameMatch": false,
+          "emails": [
+            "user@domain.com",
+            "enquiries@magicwordstherapy.co.uk"
+          ],
+          "fetchedPages": [
+            "https://www.magicwordstherapy.co.uk/",
+            "https://www.magicwordstherapy.co.uk/about-magic-words",
+            "https://www.magicwordstherapy.co.uk/about-magic-words-therapy",
+            "https://www.magicwordstherapy.co.uk/our-speech-and-language-therapy-team",
+            "https://www.magicwordstherapy.co.uk/clinic-locations"
+          ]
+        },
+        {
+          "url": "https://www.tctspeechtherapy.co.uk/",
+          "title": "Two Can Talk | Support Your Childs Communication Today",
+          "domain": "www.tctspeechtherapy.co.uk",
+          "type": "website",
+          "score": 30,
+          "nameMatch": false,
+          "emails": [
+            "user@domain.com"
+          ],
+          "fetchedPages": [
+            "https://www.tctspeechtherapy.co.uk/",
+            "https://www.tctspeechtherapy.co.uk/contact-us"
+          ]
+        },
+        {
+          "url": "https://cambspborochildrenshealth.nhs.uk/services/cambridgeshire-childrens-speech-and-language-therapy-service/",
+          "title": "Cambridgeshire Speech and Language Therapy Service",
+          "domain": "cambspborochildrenshealth.nhs.uk",
+          "type": "website",
+          "score": 30,
+          "nameMatch": false,
+          "emails": [
+            "ccs-tr.slt@nhs.net",
+            "eec.co-production@nhs.net",
+            "ccs-tr.therapyreferrals@nhs.net"
+          ],
+          "fetchedPages": [
+            "https://cambspborochildrenshealth.nhs.uk/services/cambridgeshire-childrens-speech-and-language-therapy-service/",
+            "https://cambspborochildrenshealth.nhs.uk/services/cambridgeshire-and-peterborough-co-production-team/",
+            "https://cambspborochildrenshealth.nhs.uk/services/cambridgeshire-and-peterborough-mecfs-team/"
+          ]
+        }
+      ]
     },
     {
       "name": "Kemily",
@@ -247,6 +572,7 @@
         "I need to review sessions without doing everything manually"
       ],
       "icpScore": 100,
+      "sourceEvidence": [],
       "outreachSegment": "teletherapy-continuity",
       "shortlistScore": 160,
       "displayLocation": "Durumi",
@@ -257,7 +583,71 @@
       "bestContactUrl": "",
       "bestContactType": "",
       "enrichmentConfidence": "low",
-      "contactCandidates": []
+      "contactCandidates": [
+        {
+          "url": "https://speechandlanguage.org.uk/help-for-families/resource-library-for-families/how-do-i-find-a-speech-and-language-therapist/",
+          "title": "How do I find a Speech and Language Therapist?",
+          "domain": "speechandlanguage.org.uk",
+          "type": "website",
+          "score": 30,
+          "nameMatch": false,
+          "emails": [],
+          "fetchedPages": [
+            "https://speechandlanguage.org.uk/help-for-families/resource-library-for-families/how-do-i-find-a-speech-and-language-therapist/",
+            "https://speechandlanguage.org.uk/about-us/",
+            "https://speechandlanguage.org.uk/about-us/our-people/"
+          ]
+        },
+        {
+          "url": "http://www.thespeechlady.co.uk/",
+          "title": "The Speech Lady",
+          "domain": "www.thespeechlady.co.uk",
+          "type": "website",
+          "score": 30,
+          "nameMatch": false,
+          "emails": [
+            "info@thespeechlady.co.uk"
+          ],
+          "fetchedPages": [
+            "http://www.thespeechlady.co.uk/",
+            "http://www.thespeechlady.co.uk/#about",
+            "http://www.thespeechlady.co.uk/#contact"
+          ]
+        },
+        {
+          "url": "https://www.plymouth.co.uk/speech-therapists/",
+          "title": "Speech Therapists in Plymouth & Speech And Language Therapists",
+          "domain": "www.plymouth.co.uk",
+          "type": "website",
+          "score": 30,
+          "nameMatch": false,
+          "emails": [],
+          "fetchedPages": [
+            "https://www.plymouth.co.uk/speech-therapists/",
+            "https://www.plymouth.co.uk/Contact.aspx"
+          ]
+        },
+        {
+          "url": "https://www.oceancityspeechandlanguagetherapy.co.uk/about",
+          "title": "About - Ocean City Speech & Language Therapy",
+          "domain": "www.oceancityspeechandlanguagetherapy.co.uk",
+          "type": "website",
+          "score": 30,
+          "nameMatch": false,
+          "emails": [],
+          "fetchedPages": []
+        },
+        {
+          "url": "https://www.therapy-directory.org.uk/speech-and-language-therapy-search.html",
+          "title": "Find a speech and language therapy specialist - Therapy Directory",
+          "domain": "www.therapy-directory.org.uk",
+          "type": "website",
+          "score": 30,
+          "nameMatch": false,
+          "emails": [],
+          "fetchedPages": []
+        }
+      ]
     },
     {
       "name": "Akinbobloa",
@@ -309,6 +699,7 @@
         "I need to review sessions without doing everything manually"
       ],
       "icpScore": 100,
+      "sourceEvidence": [],
       "outreachSegment": "school-home-followthrough",
       "shortlistScore": 156,
       "displayLocation": "Abuja municipal",
@@ -319,7 +710,69 @@
       "bestContactUrl": "",
       "bestContactType": "",
       "enrichmentConfidence": "low",
-      "contactCandidates": []
+      "contactCandidates": [
+        {
+          "url": "https://helpinghandsng.com/",
+          "title": "Helping Hands Therapy Center - Speech Therapist, Special Education ...",
+          "domain": "helpinghandsng.com",
+          "type": "website",
+          "score": 30,
+          "nameMatch": false,
+          "emails": [],
+          "fetchedPages": []
+        },
+        {
+          "url": "https://www.schoolandcollegelistings.com/NG/Abuja/102011228346357/Blessing-Centre-for-Special-Education",
+          "title": "Blessing Centre for Special Education, Bwari Clos, Abuja Municipal ...",
+          "domain": "www.schoolandcollegelistings.com",
+          "type": "website",
+          "score": 12,
+          "nameMatch": false,
+          "emails": [],
+          "fetchedPages": [
+            "https://www.schoolandcollegelistings.com/NG/Abuja/102011228346357/Blessing-Centre-for-Special-Education",
+            "https://www.schoolandcollegelistings.com/NG/Abuja/102011228346357/Blessing-Centre-for-Special-Education/contact",
+            "https://www.schoolandcollegelistings.com/about",
+            "https://www.schoolandcollegelistings.com/contact/102011228346357"
+          ]
+        },
+        {
+          "url": "https://www.instagram.com/abifaspecialneedstherapy_abuja/",
+          "title": "AntyOjay (@abifaspecialneedstherapy_abuja) - Instagram",
+          "domain": "www.instagram.com",
+          "type": "social",
+          "score": 12,
+          "nameMatch": false,
+          "emails": [],
+          "fetchedPages": []
+        },
+        {
+          "url": "https://www.cybo.com/NG/abuja/speech-therapists/",
+          "title": "Speech therapists in Abuja, Federal Capital Territory, Nigeria",
+          "domain": "www.cybo.com",
+          "type": "directory",
+          "score": 0,
+          "nameMatch": false,
+          "emails": [],
+          "fetchedPages": []
+        },
+        {
+          "url": "https://upskillstutor.com.ng/tutors/speech-therapist/abuja/",
+          "title": "Private Speech therapist in Abuja - UpskillsTutor",
+          "domain": "upskillstutor.com.ng",
+          "type": "directory",
+          "score": 0,
+          "nameMatch": false,
+          "emails": [
+            "info@upskillstutor.com.ng"
+          ],
+          "fetchedPages": [
+            "https://upskillstutor.com.ng/tutors/speech-therapist/abuja/",
+            "https://upskillstutor.com.ng/contacts/",
+            "https://upskillstutor.com.ng/about/"
+          ]
+        }
+      ]
     },
     {
       "name": "Rhodiyat",
@@ -373,6 +826,7 @@
         "I need to review sessions without doing everything manually"
       ],
       "icpScore": 100,
+      "sourceEvidence": [],
       "outreachSegment": "teletherapy-continuity",
       "shortlistScore": 154,
       "displayLocation": "Ikeja",
@@ -435,6 +889,7 @@
         "I need continuity between weekly sessions"
       ],
       "icpScore": 100,
+      "sourceEvidence": [],
       "outreachSegment": "teletherapy-continuity",
       "shortlistScore": 152,
       "displayLocation": "Pakuro",
@@ -498,6 +953,7 @@
         "I need to review sessions without doing everything manually"
       ],
       "icpScore": 100,
+      "sourceEvidence": [],
       "outreachSegment": "teletherapy-continuity",
       "shortlistScore": 142,
       "displayLocation": "webcam",
@@ -562,6 +1018,7 @@
         "I need to review sessions without doing everything manually"
       ],
       "icpScore": 100,
+      "sourceEvidence": [],
       "outreachSegment": "teletherapy-continuity",
       "shortlistScore": 135,
       "displayLocation": "Lagos",
@@ -626,6 +1083,7 @@
         "I need to review sessions without doing everything manually"
       ],
       "icpScore": 100,
+      "sourceEvidence": [],
       "outreachSegment": "teletherapy-continuity",
       "shortlistScore": 134,
       "displayLocation": "Ife",
@@ -689,6 +1147,7 @@
         "I need to review sessions without doing everything manually"
       ],
       "icpScore": 100,
+      "sourceEvidence": [],
       "outreachSegment": "teletherapy-continuity",
       "shortlistScore": 127,
       "displayLocation": "Lagos",
@@ -753,6 +1212,7 @@
         "I need to review sessions without doing everything manually"
       ],
       "icpScore": 100,
+      "sourceEvidence": [],
       "outreachSegment": "teletherapy-continuity",
       "shortlistScore": 125,
       "displayLocation": "Lagos",
@@ -816,6 +1276,7 @@
         "I need to review sessions without doing everything manually"
       ],
       "icpScore": 99,
+      "sourceEvidence": [],
       "outreachSegment": "teletherapy-continuity",
       "shortlistScore": 120,
       "displayLocation": "Lagos",
@@ -878,6 +1339,7 @@
         "I need to review sessions without doing everything manually"
       ],
       "icpScore": 92,
+      "sourceEvidence": [],
       "outreachSegment": "teletherapy-continuity",
       "shortlistScore": 119,
       "displayLocation": "Lagos",
@@ -940,6 +1402,7 @@
         "I need to review sessions without doing everything manually"
       ],
       "icpScore": 92,
+      "sourceEvidence": [],
       "outreachSegment": "school-home-followthrough",
       "shortlistScore": 118,
       "displayLocation": "Port harcourt",
@@ -1003,6 +1466,7 @@
         "I need continuity between weekly sessions"
       ],
       "icpScore": 100,
+      "sourceEvidence": [],
       "outreachSegment": "teletherapy-continuity",
       "shortlistScore": 114,
       "displayLocation": "",
@@ -1065,6 +1529,7 @@
         "I need to review sessions without doing everything manually"
       ],
       "icpScore": 85,
+      "sourceEvidence": [],
       "outreachSegment": "teletherapy-continuity",
       "shortlistScore": 82,
       "displayLocation": "Lagos",
@@ -1126,6 +1591,7 @@
         "I need to review sessions without doing everything manually"
       ],
       "icpScore": 80,
+      "sourceEvidence": [],
       "outreachSegment": "school-home-followthrough",
       "shortlistScore": 74,
       "displayLocation": "Aro-Okigwe",
@@ -1189,6 +1655,7 @@
         "I need to review sessions without doing everything manually"
       ],
       "icpScore": 91,
+      "sourceEvidence": [],
       "outreachSegment": "teletherapy-continuity",
       "shortlistScore": 71,
       "displayLocation": "Abuja municipal",
