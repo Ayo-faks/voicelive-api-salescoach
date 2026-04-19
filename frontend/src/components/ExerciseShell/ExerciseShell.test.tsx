@@ -190,6 +190,15 @@ describe('ExerciseShell — PERFORM grammar (items 8, 9)', () => {
     expect(demoted?.querySelector('button[data-for-phase="expose"]')).not.toBeNull()
   })
 
+  it('omits the demoted expose accordion when hideDemotedExpose is true (Stage 8)', async () => {
+    const onBeatEnter = vi.fn().mockResolvedValue(undefined)
+    renderWithHarness({ onBeatEnter, hideDemotedExpose: true })
+    await driveToPerform(onBeatEnter)
+
+    expect(screen.getByRole('button', { name: 'Record' })).toBeTruthy()
+    expect(document.querySelector('[data-slot="expose-demoted"]')).toBeNull()
+  })
+
   it('exposes the current phase via context so adapters can gate scoring callbacks', async () => {
     const phasesSeen: string[] = []
     function PhaseProbe(): ReactElement {

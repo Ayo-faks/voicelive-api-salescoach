@@ -62,6 +62,13 @@ export interface ExerciseShellProps {
   suppressBridge?: boolean
   /** Stage 8: EXPOSE is avatar-side; hide child-facing EXPOSE UI. */
   covertExpose?: boolean
+  /**
+   * Stage 8: suppress the demoted "Hear the sounds" accordion rendered inside
+   * PERFORM. Unlike `covertExpose`, this keeps the child-facing EXPOSE phase
+   * UI (used for topic selection) while hiding the accordion that re-exposes
+   * the avatar-side listening affordance during PERFORM. Default: false.
+   */
+  hideDemotedExpose?: boolean
 
   /** Signals that the realtime WS is ready so queued beats can flush. */
   realtimeReady?: boolean

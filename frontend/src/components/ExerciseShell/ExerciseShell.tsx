@@ -81,6 +81,7 @@ export const ExerciseShell: FC<ExerciseShellProps> = (props) => {
     collapsePerform,
     suppressBridge,
     covertExpose,
+    hideDemotedExpose,
     realtimeReady = true,
     devSlot,
   } = props
@@ -273,7 +274,7 @@ export const ExerciseShell: FC<ExerciseShellProps> = (props) => {
         {showPerform ? (
           <div className="exercise-shell__slot exercise-shell__slot--perform" data-slot="perform">
             {slots.perform}
-            {!covertExpose ? (
+            {!covertExpose && !hideDemotedExpose ? (
               <details className="exercise-shell__expose-accordion" data-slot="expose-demoted">
                 <summary>Hear the sounds</summary>
                 {slots.expose}
