@@ -24,6 +24,9 @@ export type ExerciseType =
   | 'generalisation'
   | 'cluster_blending'
   | 'syllable_practice'
+  | 'auditory_bombardment'
+  | 'word_position_practice'
+  | 'structured_conversation'
 
 export type ExerciseDifficulty = 'easy' | 'medium' | 'hard'
 
@@ -34,6 +37,43 @@ export interface MinimalPairItem {
   word_b: string
 }
 
+/**
+ * Stage 0 auditory bombardment exemplar. Each entry represents one
+ * clinician-approved target-word token that will be played back to the
+ * child during the auditory flood beat. `imageAssetId` is a traceability
+ * anchor back to `data/images/manifest.json`; the runtime image path is
+ * taken from the parallel `ExerciseMetadata.imageAssets[]` array at the
+ * same index, so authors MUST keep the two lists in the same order.
+ */
+export interface ExerciseExemplar {
+  word: string
+  imageAssetId: string
+  audioSource: 'tts' | 'curated'
+  position: WordPosition
+  ssmlHint?: string
+  rate?: string
+}
+
+/**
+ * Stage 6 `two_word_phrase` exemplar. Each entry is one carrier+target
+ * phrase (e.g. "my thumb", "red fish"). Scoring narrows to
+ * `targetWord` only; `carrierWord` provides natural co-articulation
+ * context. `imageAssetId` anchors to `data/images/manifest.json`
+ * (category `phrase_card`). `ssmlTemplate` may contain a
+ * `<phoneme>` tag for the target word for TTS modelling during
+ * EXPOSE; `rate` controls modelling speed.
+ */
+export interface PhraseExemplar {
+  phraseText: string
+  targetWord: string
+  carrierWord: string
+  targetPosition: 'initial' | 'medial' | 'final'
+  imageAssetId: string
+  audioSource: 'tts' | 'curated'
+  ssmlTemplate?: string
+  rate?: string
+}
+
 export interface ExerciseMetadata {
   type: ExerciseType
   targetSound: string
@@ -42,7 +82,7 @@ export interface ExerciseMetadata {
   wordPosition?: WordPosition
   errorSound?: string
   repetitionTarget?: number
-  masteryThreshold?: number
+  masteryThreshold?: number | null
   stepNumber?: number
   requiresMic?: boolean
   imageAssets?: string[]
@@ -53,6 +93,115 @@ export interface ExerciseMetadata {
   childAge?: number
   ageRange?: string
   speechLanguage?: string
+  durationSeconds?: number
+  exemplars?: ExerciseExemplar[]
+  /**
+   * Stage 5b `word_position_practice` only. When `'target_only'`, the
+   * runtime scoring reference is narrowed to the currently active
+   * target word instead of the joined `targetWords` list. Defaults to
+   * undefined (existing behaviour — joined list).
+   */
+  scoreScope?: 'target_only' | 'all_words' | 'target_sound_in_utterance'
+  /**
+   * Stage 5b `word_position_practice` only. Ordered list of expected
+   * substitution errors per target sound (e.g. `['f', 'd']` for TH).
+   * Surfaced to the Voice Live personalization block so the avatar can
+   * reflect the child's specific error pattern without coaching.
+   */
+  expectedSubstitutions?: string[]
+  /**
+   * Stage 5b `word_position_practice` only. Position sub-step marker
+   * used by the panel header and intro copy. Mirrors `wordPosition`
+   * but is explicit to avoid ambiguity when `wordPosition='all'`.
+   */
+  subStep?: 'medial' | 'final'
+  /**
+   * Stage 6 `two_word_phrase` only. Carrier+target frame used to
+   * structure phrase exemplars. `adj_noun` (e.g. "red fish"),
+   * `poss_noun` (e.g. "my thumb"). Informs intro copy and rendering.
+   */
+  phraseFrame?: 'adj_noun' | 'poss_noun'
+  /**
+   * Stage 6 `two_word_phrase` only. Ordered list of phrase exemplars.
+   * Runtime advances through them sequentially; scoring narrows to
+   * `phrases[i].targetWord` per attempt.
+   */
+  phrases?: PhraseExemplar[]
+  /**
+   * Stage 8 `structured_conversation` only. Ordered topic definitions
+   * the child picks from during the covert EXPOSE phase. Parallel to
+   * `imageAssets[]`: `topics[i].imageAssetId` anchors to the image
+   * manifest for traceability, `imageAssets[i]` is the actual runtime
+   * image path rendered in the UI.
+   */
+  topics?: StructuredConversationTopic[]
+  /**
+   * Stage 8 `structured_conversation` only. Gate for completion:
+   * minimum number of target-sound-carrying tokens the child must
+   * produce before PERFORM is allowed to complete (paired with
+   * `durationFloorSeconds`). Default: 15.
+   */
+  targetCountGate?: number
+  /**
+   * Stage 8 `structured_conversation` only. Minimum elapsed seconds in
+   * PERFORM before completion is permitted. Default: 120.
+   */
+  durationFloorSeconds?: number
+  /**
+   * Stage 8 `structured_conversation` only. Soft wrap-up hint; the
+   * avatar should move toward a natural close once this duration has
+   * elapsed. Not a hard cutoff.
+   */
+  durationCeilingSeconds?: number
+  /**
+   * Stage 8 `structured_conversation` only. Which repair/response
+   * strategies the avatar is allowed to use when the child produces a
+   * substitution error. `recast_only` is the most conservative;
+   * `recast_and_query_and_expansion` matches the broader SLP brief.
+   */
+  repairPolicy?: 'recast_only' | 'recast_and_query_and_expansion'
+  /**
+   * Stage 8 `structured_conversation` only. Backend-owned scaffold
+   * escalation policy. The frontend merely surfaces the escalation
+   * state from `wulo.scaffold_escalate` events; it does not compute
+   * the policy itself.
+   */
+  scaffoldEscalation?: {
+    windowSeconds?: number
+    minTokensInWindow?: number
+    cooldownSeconds?: number
+  }
+}
+
+/**
+ * Stage 8 `structured_conversation` topic card. Authors supply an
+ * open-prompt set (used while the child is producing target tokens at
+ * a healthy rate) and a target-biased prompt set (used when the
+ * backend tally triggers scaffold escalation).
+ */
+export interface StructuredConversationTopic {
+  topicId: string
+  title: string
+  imageAssetId: string
+  openPrompts: string[]
+  targetBiasedPrompts: string[]
+  suggestedTargetWords: string[]
+}
+
+/**
+ * Stage 8 `structured_conversation` live tally, pushed from the
+ * backend via `wulo.target_tally` events. The frontend treats this
+ * purely as read-only state; all mutation flows through
+ * `wulo.therapist_override`.
+ */
+export interface TargetTally {
+  correctCount: number
+  incorrectCount: number
+  totalCount: number
+  accuracy: number
+  elapsedSeconds: number
+  scaffoldEscalated: boolean
+  standouts?: string[]
 }
 
 export interface Exercise extends Scenario {

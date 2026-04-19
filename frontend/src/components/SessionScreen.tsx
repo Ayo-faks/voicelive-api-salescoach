@@ -17,13 +17,18 @@ import type {
   Message,
   PronunciationAssessment,
   Scenario,
+  TargetTally,
 } from '../types'
 import { ChatPanel } from './ChatPanel'
 import { ExerciseFeedback } from './ExerciseFeedback'
 import { ListeningMinimalPairsPanel } from './ListeningMinimalPairsPanel'
 import { SilentSortingPanel } from './SilentSortingPanel'
+import { AuditoryBombardmentPanel } from './AuditoryBombardmentPanel'
 import { SoundIsolationPanel } from './SoundIsolationPanel'
 import { VowelBlendingPanel } from './VowelBlendingPanel'
+import { WordPositionPracticePanel } from './WordPositionPracticePanel'
+import { TwoWordPhrasePanel } from './TwoWordPhrasePanel'
+import { StructuredConversationPanel } from './StructuredConversationPanel'
 import { VideoPanel } from './VideoPanel'
 import { exerciseRequiresMic } from '../utils/exerciseMode'
 
@@ -151,6 +156,15 @@ interface SessionScreenProps {
   onRecordExerciseSelection?: (text: string) => void
   onInterruptAvatar?: () => void
   onListeningPracticeComplete?: () => void
+  onSilentSortingComplete?: () => void
+  onAuditoryBombardmentComplete?: () => void
+  onWordPositionPracticeComplete?: () => void
+  onTwoWordPhraseComplete?: () => void
+  onStructuredConversationComplete?: () => void
+  onSendRealtime?: (payload: Record<string, unknown>) => void
+  targetTally?: TargetTally | null
+  /** Stage 6+: realtime WS ready so shells can flush queued beats. */
+  realtimeReady?: boolean
 }
 
 function formatExerciseType(value?: string) {
@@ -215,6 +229,14 @@ export function SessionScreen({
   onRecordExerciseSelection,
   onInterruptAvatar,
   onListeningPracticeComplete,
+  onSilentSortingComplete,
+  onAuditoryBombardmentComplete,
+  onWordPositionPracticeComplete,
+  onTwoWordPhraseComplete,
+  onStructuredConversationComplete,
+  onSendRealtime,
+  targetTally,
+  realtimeReady,
 }: SessionScreenProps) {
   const styles = useStyles()
   const customScenario = isCustomScenario(scenario) ? scenario : null
@@ -227,10 +249,63 @@ export function SessionScreen({
   const showMicDock = micRequired
   const isListeningMinimalPairs = exerciseMetadata?.type === 'listening_minimal_pairs'
   const isSilentSorting = exerciseMetadata?.type === 'silent_sorting'
+  const isAuditoryBombardment = exerciseMetadata?.type === 'auditory_bombardment'
   const isSoundIsolation = exerciseMetadata?.type === 'sound_isolation'
   const isVowelBlending = exerciseMetadata?.type === 'vowel_blending'
+  const isWordPositionPractice = exerciseMetadata?.type === 'word_position_practice'
+  const isTwoWordPhrase = exerciseMetadata?.type === 'two_word_phrase'
+  const isStructuredConversation = exerciseMetadata?.type === 'structured_conversation'
 
-  const activityPanel = isListeningMinimalPairs ? (
+  const activityPanel = isStructuredConversation ? (
+    <StructuredConversationPanel
+      scenarioName={scenario?.name}
+      metadata={exerciseMetadata}
+      audience={isChildMode ? 'child' : 'therapist'}
+      readyToStart={connected && introComplete && !sessionFinished}
+      realtimeReady={realtimeReady}
+      recording={recording}
+      targetTally={targetTally ?? null}
+      onToggleRecording={onToggleRecording}
+      onSendRealtime={onSendRealtime}
+      onSpeakExerciseText={onSpeakExerciseText}
+      onExerciseComplete={onStructuredConversationComplete}
+    />
+  ) : isTwoWordPhrase ? (
+    <TwoWordPhrasePanel
+      scenarioName={scenario?.name}
+      metadata={exerciseMetadata}
+      audience={isChildMode ? 'child' : 'therapist'}
+      readyToStart={connected && introComplete && !sessionFinished}
+      realtimeReady={realtimeReady}
+      recording={recording}
+      utteranceFeedback={utteranceFeedback}
+      scoringUtterance={scoringUtterance}
+      onActiveTargetWordChange={onActiveBlendChange}
+      onToggleRecording={onToggleRecording}
+      onExerciseComplete={onTwoWordPhraseComplete}
+    />
+  ) : isWordPositionPractice ? (
+    <WordPositionPracticePanel
+      scenarioName={scenario?.name}
+      metadata={exerciseMetadata}
+      audience={isChildMode ? 'child' : 'therapist'}
+      readyToStart={connected && introComplete && !sessionFinished}
+      recording={recording}
+      utteranceFeedback={utteranceFeedback}
+      scoringUtterance={scoringUtterance}
+      onActiveTargetWordChange={onActiveBlendChange}
+      onToggleRecording={onToggleRecording}
+      onExerciseComplete={onWordPositionPracticeComplete}
+    />
+  ) : isAuditoryBombardment ? (
+    <AuditoryBombardmentPanel
+      scenarioName={scenario?.name}
+      metadata={exerciseMetadata}
+      audience={isChildMode ? 'child' : 'therapist'}
+      readyToStart={connected && introComplete && !sessionFinished}
+      onExerciseComplete={onAuditoryBombardmentComplete}
+    />
+  ) : isListeningMinimalPairs ? (
     <ListeningMinimalPairsPanel
       scenarioName={scenario?.name}
       metadata={exerciseMetadata}
@@ -250,6 +325,7 @@ export function SessionScreen({
       readyToStart={connected && introComplete && !sessionFinished}
       onSendMessage={onSendExerciseMessage}
       onSpeakExerciseText={onSpeakExerciseText}
+      onExerciseComplete={onSilentSortingComplete}
     />
   ) : isSoundIsolation ? (
     <SoundIsolationPanel
@@ -338,7 +414,7 @@ export function SessionScreen({
 
           {activityPanel}
 
-          {isChildMode && !isListeningMinimalPairs && !isSilentSorting ? (
+          {isChildMode && !isListeningMinimalPairs && !isSilentSorting && !isAuditoryBombardment && !isWordPositionPractice && !isTwoWordPhrase ? (
             <ExerciseFeedback
               referenceText={activeReferenceText}
               feedback={utteranceFeedback}

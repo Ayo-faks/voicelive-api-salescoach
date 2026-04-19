@@ -76,6 +76,25 @@ function buildOrient(opts: BeatInstructionOptions): string {
     ].join(' ')
   }
 
+  // Stage 6 two_word_phrase — short, clinical scripted ORIENT per sound-agnostic
+  // template. Scoring narrows to the target word only; carrier word is neutral.
+  if (opts.exerciseType === 'two_word_phrase') {
+    if (audience === 'therapist') {
+      return `Stage 6 two-word phrases for ${childLabel} — we score the target word only; the carrier word is neutral.`
+    }
+    return `Hi ${childLabel}! Two-word game. We say them together. Tap a picture first.`
+  }
+
+  // Stage 8 structured_conversation — connected speech with covert EXPOSE
+  // (topic picker) and no BRIDGE beat (ExerciseShell `suppressBridge`).
+  // Scoring is target-sound-in-utterance; we recast rather than correct.
+  if (opts.exerciseType === 'structured_conversation') {
+    if (audience === 'therapist') {
+      return `Stage 8 conversation for ${childLabel} — recasts only, no hard correction; tally target productions over connected speech.`
+    }
+    return `Hi ${childLabel}! Let's chat together. Pick a topic you like.`
+  }
+
   // Generic ORIENT: short, warm, soft ≤25-word cap. EN-GB rule: avoid "test".
   const body =
     audience === 'therapist'
@@ -108,6 +127,13 @@ function buildBridge(opts: BeatInstructionOptions): string {
   let text: string
   if (opts.exerciseType === 'silent_sorting') {
     text = 'Now sort the pictures.'
+  } else if (opts.exerciseType === 'two_word_phrase') {
+    text = 'Say them together.'
+  } else if (opts.exerciseType === 'structured_conversation') {
+    // Stage 8 has no BRIDGE beat (the panel sets `suppressBridge` on the
+    // shell). This branch exists so a defensive call does not emit the
+    // generic "Your turn now." for a conversation exercise.
+    text = ''
   } else {
     text = 'Your turn now.'
   }

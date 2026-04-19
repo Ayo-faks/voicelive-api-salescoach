@@ -80,12 +80,14 @@ import type {
   Scenario,
   SessionDetail,
   SessionSummary,
+  TargetTally,
   TherapistFeedbackRating,
 } from '../types'
 import { AVATAR_OPTIONS, DEFAULT_AVATAR } from '../types'
 import { APP_TITLE } from './branding'
 import { APP_ROUTE_PARAMS, APP_ROUTES, getDefaultAuthenticatedRoute, resolveAppRoute, type AppRoute } from './routes'
 import { exerciseRequiresMic } from '../utils/exerciseMode'
+import { replaceDrillTokens } from '../utils/drillTokens'
 import { createBeatDispatcher, type BeatDispatcher } from './beatInstructions'
 
 type ConversationTurn = {
@@ -117,6 +119,10 @@ type RealtimeMessage = {
   server_sdp?: unknown
   sdp?: unknown
   answer?: unknown
+  // Stage 8 structured-conversation custom events (backend → client).
+  // `payload` carries the TargetTally snapshot for `wulo.target_tally` and the
+  // scaffold reason for `wulo.scaffold_escalate`.
+  payload?: unknown
 }
 
 type UserMode = 'workspace' | 'child'
@@ -183,7 +189,7 @@ function isCustomScenario(
 
 function getReferenceText(
   scenario: Scenario | CustomScenario | null,
-  activeVowelBlendTarget?: string | null
+  activeTargetWord?: string | null
 ): string {
   if (!scenario) return ''
 
@@ -201,7 +207,16 @@ function getReferenceText(
     }
 
     if (scenario.scenarioData.exerciseType === 'vowel_blending') {
-      return activeVowelBlendTarget || scenario.scenarioData.targetWords[0] || scenario.scenarioData.targetSound
+      return activeTargetWord || scenario.scenarioData.targetWords[0] || scenario.scenarioData.targetSound
+    }
+
+    if (scenario.scenarioData.exerciseType === 'word_position_practice') {
+      return activeTargetWord || scenario.scenarioData.targetWords[0] || scenario.scenarioData.targetSound
+    }
+
+    if (scenario.scenarioData.exerciseType === 'two_word_phrase') {
+      // Stage 6: scoring narrows to the active target word; carrier is not scored.
+      return activeTargetWord || scenario.scenarioData.targetWords[0] || scenario.scenarioData.targetSound
     }
 
     if (
@@ -230,7 +245,19 @@ function getReferenceText(
   }
 
   if (scenario.exerciseMetadata?.type === 'vowel_blending') {
-    return activeVowelBlendTarget || scenario.exerciseMetadata.targetWords?.[0] || scenario.exerciseMetadata.targetSound || ''
+    return activeTargetWord || scenario.exerciseMetadata.targetWords?.[0] || scenario.exerciseMetadata.targetSound || ''
+  }
+
+  if (scenario.exerciseMetadata?.type === 'word_position_practice') {
+    // Stage 5b: when an active target word is tracked, score against that
+    // single word instead of the joined list so per-word success is meaningful.
+    return activeTargetWord || scenario.exerciseMetadata.targetWords?.[0] || scenario.exerciseMetadata.targetSound || ''
+  }
+
+  if (scenario.exerciseMetadata?.type === 'two_word_phrase') {
+    // Stage 6: score the target word only; carrier word is not part of
+    // the reference_text so pronunciation assessment focuses on the target.
+    return activeTargetWord || scenario.exerciseMetadata.targetWords?.[0] || scenario.exerciseMetadata.targetSound || ''
   }
 
   return scenario.exerciseMetadata?.targetWords?.join(' ') || ''
@@ -922,6 +949,9 @@ export default function App() {
   const [utteranceFeedback, setUtteranceFeedback] =
     useState<PronunciationAssessment | null>(null)
   const [scoringUtterance, setScoringUtterance] = useState(false)
+  // Stage 8 structured-conversation: live target-token tally streamed from backend
+  // via `wulo.target_tally` and `wulo.scaffold_escalate` custom WS events.
+  const [targetTally, setTargetTally] = useState<TargetTally | null>(null)
   const [activeVowelBlendTarget, setActiveVowelBlendTarget] = useState<{
     scenarioId: string | null
     target: string
@@ -2354,7 +2384,7 @@ export default function App() {
     }
   }, [])
 
-  const beginSessionWrapUp = useCallback((instructions?: string, finishDelayMs = SESSION_WRAP_UP_DELAY_MS) => {
+  const beginSessionWrapUp = useCallback((instructions?: string, finishDelayMs = SESSION_WRAP_UP_DELAY_MS, options?: { silent?: boolean }) => {
     if (wrapUpInProgress) {
       return
     }
@@ -2367,18 +2397,21 @@ export default function App() {
     setWrapUpInProgress(true)
 
     stopSessionRecordingRef.current()
-    cancelExerciseSpeechQueue()
-    stopAudio()
-    sendRef.current({ type: 'response.cancel' })
-    sendRef.current({
-      type: 'response.create',
-      response: {
-        modalities: ['audio', 'text'],
-        instructions:
-          instructions ||
-          'In one short, warm sentence, praise the child, say today\'s practice is finished, and tell them their session summary is coming up next.',
-      },
-    })
+
+    if (!options?.silent) {
+      cancelExerciseSpeechQueue()
+      stopAudio()
+      sendRef.current({ type: 'response.cancel' })
+      sendRef.current({
+        type: 'response.create',
+        response: {
+          modalities: ['audio', 'text'],
+          instructions:
+            instructions ||
+            'In one short, warm sentence, praise the child, say today\'s practice is finished, and tell them their session summary is coming up next.',
+        },
+      })
+    }
 
     summaryHandoffTimerRef.current = window.setTimeout(() => {
       setShowLoading(true)
@@ -2388,6 +2421,53 @@ export default function App() {
       setFinishRequested(true)
     }, finishDelayMs)
   }, [cancelExerciseSpeechQueue, clearWrapUpTimers, stopAudio, wrapUpInProgress])
+
+  const handleSilentSortingComplete = useCallback(() => {
+    if (sessionFinished || wrapUpInProgress) {
+      return
+    }
+    // REINFORCE beat ("Great sorting! See you next time.") has already been spoken
+    // via onSpeakExerciseText. Silent wrap-up: stop idle nudges + start finish timers
+    // without emitting another TTS response that would step on the beat.
+    beginSessionWrapUp(undefined, SESSION_WRAP_UP_DELAY_MS, { silent: true })
+  }, [beginSessionWrapUp, sessionFinished, wrapUpInProgress])
+
+  const handleAuditoryBombardmentComplete = useCallback(() => {
+    if (sessionFinished || wrapUpInProgress) {
+      return
+    }
+    // Stage 0 listening-only: REINFORCE beat ("Lovely listening! See you next time.")
+    // is spoken by the shell. Silent wrap-up so the beat is not overridden.
+    beginSessionWrapUp(undefined, SESSION_WRAP_UP_DELAY_MS, { silent: true })
+  }, [beginSessionWrapUp, sessionFinished, wrapUpInProgress])
+
+  const handleWordPositionPracticeComplete = useCallback(() => {
+    if (sessionFinished || wrapUpInProgress) {
+      return
+    }
+    // Stage 5b: REINFORCE beat spoken by the shell; silent wrap-up avoids overlap.
+    beginSessionWrapUp(undefined, SESSION_WRAP_UP_DELAY_MS, { silent: true })
+  }, [beginSessionWrapUp, sessionFinished, wrapUpInProgress])
+
+  const handleTwoWordPhraseComplete = useCallback(() => {
+    if (sessionFinished || wrapUpInProgress) {
+      return
+    }
+    // Stage 6: REINFORCE beat spoken by the shell; silent wrap-up avoids overlap.
+    beginSessionWrapUp(undefined, SESSION_WRAP_UP_DELAY_MS, { silent: true })
+  }, [beginSessionWrapUp, sessionFinished, wrapUpInProgress])
+
+  const handleStructuredConversationComplete = useCallback(() => {
+    if (sessionFinished || wrapUpInProgress) {
+      return
+    }
+    // Stage 8: REINFORCE beat spoken by the shell; silent wrap-up avoids overlap.
+    beginSessionWrapUp(undefined, SESSION_WRAP_UP_DELAY_MS, { silent: true })
+  }, [beginSessionWrapUp, sessionFinished, wrapUpInProgress])
+
+  const handleSendRealtime = useCallback((payload: Record<string, unknown>) => {
+    sendRef.current(payload)
+  }, [])
 
   const handleListeningPracticeComplete = useCallback(() => {
     if (sessionFinished || wrapUpInProgress) {
@@ -2401,6 +2481,23 @@ export default function App() {
   }, [beginSessionWrapUp, isChildMode, sessionFinished, wrapUpInProgress])
 
   const handleWebRTCMessage = useCallback((msg: RealtimeMessage) => {
+    // Stage 8 structured-conversation: live target-token tally streamed from
+    // backend. `wulo.target_tally` replaces the full snapshot; scaffold flips
+    // are carried on that snapshot (`scaffoldEscalated`). `wulo.scaffold_escalate`
+    // is a transient signal; the tally remains the source of truth for UI.
+    if (msg.type === 'wulo.target_tally') {
+      const snapshot = msg.payload as TargetTally | undefined
+      if (snapshot && typeof snapshot === 'object') {
+        setTargetTally(snapshot)
+      }
+      return
+    }
+    if (msg.type === 'wulo.scaffold_escalate') {
+      // Tally snapshot will carry scaffoldEscalated=true on the next tick;
+      // nothing else to do here. Kept as an explicit branch for telemetry hooks.
+      return
+    }
+
     if (msg.type === 'proxy.connected' || msg.type === 'session.updated') {
       setSessionReady(true)
     }
@@ -2483,7 +2580,7 @@ export default function App() {
   }), [getPendingAudioMs])
 
   const speakExerciseText = useCallback((text: string) => {
-    const trimmedText = text.trim()
+    const trimmedText = replaceDrillTokens(text.trim())
 
     if (!trimmedText || !connectedRef.current) {
       return Promise.resolve()
@@ -3015,10 +3112,19 @@ export default function App() {
       setScoringUtterance(true)
 
       try {
+        // When scoreScope === 'target_only' (Stage 5b / Stage 6), narrow
+        // exercise_metadata.targetWords to the active reference word so
+        // the backend analyzer (which prefers targetWords over
+        // reference_text) scores only the target, not the joined list.
+        const scopedMetadata =
+          activeExerciseMetadata?.scoreScope === 'target_only' && activeReferenceText
+            ? { ...activeExerciseMetadata, targetWords: [activeReferenceText] }
+            : activeExerciseMetadata
+
         const result = await api.assessUtterance(
           audioData,
           activeReferenceText,
-          activeExerciseMetadata,
+          scopedMetadata,
           selectedScenario || undefined
         )
         setUtteranceFeedback(result)
@@ -3215,7 +3321,7 @@ export default function App() {
       response: {
         modalities: ['audio', 'text'],
         instructions:
-          'In one short sentence, gently check whether the child wants to keep practising. Tell them to tap the microphone if they want another turn.',
+          'Say exactly the following text verbatim in one turn, with no extra words: Tap the microphone when you are ready for another turn.',
       },
     })
   }, [connected, exerciseSpeechActive, isChildMode, isSessionRoute, recording, scoringUtterance, send, sessionFinished])
@@ -4070,6 +4176,14 @@ export default function App() {
       onSpeakExerciseText={speakExerciseText}
       onRecordExerciseSelection={recordExerciseSelection}
       onListeningPracticeComplete={handleListeningPracticeComplete}
+      onSilentSortingComplete={handleSilentSortingComplete}
+      onAuditoryBombardmentComplete={handleAuditoryBombardmentComplete}
+      onWordPositionPracticeComplete={handleWordPositionPracticeComplete}
+      onTwoWordPhraseComplete={handleTwoWordPhraseComplete}
+      onStructuredConversationComplete={handleStructuredConversationComplete}
+      onSendRealtime={handleSendRealtime}
+      targetTally={targetTally}
+      realtimeReady={connected && sessionIntroComplete}
       onInterruptAvatar={() => {
         resetExerciseSpeechTracking()
         send({ type: 'response.cancel' })

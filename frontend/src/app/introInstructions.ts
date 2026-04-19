@@ -41,6 +41,32 @@ export function buildChildIntroInstructions({
       audience: 'child',
     })
   }
+  if (exerciseType === 'two_word_phrase') {
+    return buildBeatInstructions({
+      childName,
+      avatarName,
+      avatarPersona,
+      scenarioName,
+      scenarioDescription,
+      exerciseType,
+      targetSound,
+      beat: 'orient',
+      audience: 'child',
+    })
+  }
+  if (exerciseType === 'structured_conversation') {
+    return buildBeatInstructions({
+      childName,
+      avatarName,
+      avatarPersona,
+      scenarioName,
+      scenarioDescription,
+      exerciseType,
+      targetSound,
+      beat: 'orient',
+      audience: 'child',
+    })
+  }
   const childLabel = childName || 'my friend'
   const exerciseLabel = scenarioName || "today's practice"
   const exerciseContext = scenarioDescription
@@ -73,6 +99,32 @@ export function buildTherapistIntroInstructions({
   targetSound,
 }: IntroInstructionOptions): string {
   if (exerciseType === 'silent_sorting' && targetSound === 'th') {
+    return buildBeatInstructions({
+      childName,
+      avatarName,
+      avatarPersona,
+      scenarioName,
+      scenarioDescription,
+      exerciseType,
+      targetSound,
+      beat: 'orient',
+      audience: 'therapist',
+    })
+  }
+  if (exerciseType === 'two_word_phrase') {
+    return buildBeatInstructions({
+      childName,
+      avatarName,
+      avatarPersona,
+      scenarioName,
+      scenarioDescription,
+      exerciseType,
+      targetSound,
+      beat: 'orient',
+      audience: 'therapist',
+    })
+  }
+  if (exerciseType === 'structured_conversation') {
     return buildBeatInstructions({
       childName,
       avatarName,
