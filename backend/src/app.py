@@ -9,6 +9,7 @@ import asyncio
 import base64
 from collections import defaultdict
 from datetime import datetime, timezone
+from html import escape as html_escape
 import json
 import logging
 import os
@@ -33,8 +34,6 @@ from src.services.email_service import AzureCommunicationEmailService, Invitatio
 from src.services.institutional_memory_service import InstitutionalMemoryService
 from src.services.managers import AgentManager, ScenarioManager
 from src.services.planning_service import PracticePlanningService
-from src.services.report_pipeline import AzureOpenAIReportSummaryAssistant
-from src.services.report_service import ProgressReportService
 from src.services.recommendation_service import RecommendationService
 from src.services.storage_factory import create_storage_service
 from src.services.telemetry import PilotTelemetryService
@@ -43,33 +42,7 @@ from src.services.websocket_handler import VoiceProxyHandler
 # Constants
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 REPO_DIR = Path(__file__).resolve().parents[2]
-INDEX_FILE = "index.html"
-AUDIO_PROCESSOR_FILE = "audio-processor.js"
-
-
-def resolve_static_folder() -> str:
-    """Resolve the frontend bundle location for local source checkouts and containers."""
-    candidate_paths = [
-        BACKEND_DIR / "static",
-        REPO_DIR / "frontend" / "static",
-    ]
-
-    for candidate in candidate_paths:
-        if (candidate / INDEX_FILE).exists():
-            return str(candidate)
-
-    return str(candidate_paths[0])
-
-
-STATIC_FOLDER = resolve_static_folder()
-LOCAL_DEV_TRUSTED_ORIGINS = {
-    "http://127.0.0.1:4173",
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:8000",
-    "http://localhost:4173",
-    "http://localhost:5173",
-    "http://localhost:8000",
-}
+STATIC_FOLDER = str(BACKEND_DIR / "static")
 
 
 def resolve_image_data_folder() -> str:
@@ -88,6 +61,8 @@ def resolve_image_data_folder() -> str:
 
 IMAGE_DATA_FOLDER = resolve_image_data_folder()
 STATIC_URL_PATH = ""
+INDEX_FILE = "index.html"
+AUDIO_PROCESSOR_FILE = "audio-processor.js"
 WEBSOCKET_ENDPOINT = "/ws/voice"
 
 # API endpoints
@@ -111,14 +86,6 @@ API_INVITATION_ACCEPT_ENDPOINT = "/api/invitations/<invitation_id>/accept"
 API_INVITATION_DECLINE_ENDPOINT = "/api/invitations/<invitation_id>/decline"
 API_INVITATION_REVOKE_ENDPOINT = "/api/invitations/<invitation_id>/revoke"
 API_INVITATION_RESEND_ENDPOINT = "/api/invitations/<invitation_id>/resend"
-API_FAMILY_INTAKE_INVITATIONS_ENDPOINT = "/api/family-intake/invitations"
-API_FAMILY_INTAKE_INVITATION_ACCEPT_ENDPOINT = "/api/family-intake/invitations/<invitation_id>/accept"
-API_FAMILY_INTAKE_INVITATION_DECLINE_ENDPOINT = "/api/family-intake/invitations/<invitation_id>/decline"
-API_FAMILY_INTAKE_PROPOSALS_ENDPOINT = "/api/family-intake/proposals"
-API_FAMILY_INTAKE_PENDING_PROPOSALS_ENDPOINT = "/api/family-intake/proposals/pending"
-API_FAMILY_INTAKE_PROPOSAL_APPROVE_ENDPOINT = "/api/family-intake/proposals/<proposal_id>/approve"
-API_FAMILY_INTAKE_PROPOSAL_REJECT_ENDPOINT = "/api/family-intake/proposals/<proposal_id>/reject"
-API_FAMILY_INTAKE_PROPOSAL_RESUBMIT_ENDPOINT = "/api/family-intake/proposals/<proposal_id>/resubmit"
 API_CHILD_SESSIONS_ENDPOINT = "/api/children/<child_id>/sessions"
 API_CHILD_PLANS_ENDPOINT = "/api/children/<child_id>/plans"
 API_CHILD_MEMORY_SUMMARY_ENDPOINT = "/api/children/<child_id>/memory/summary"
@@ -126,16 +93,8 @@ API_CHILD_MEMORY_ITEMS_ENDPOINT = "/api/children/<child_id>/memory/items"
 API_CHILD_MEMORY_PROPOSALS_ENDPOINT = "/api/children/<child_id>/memory/proposals"
 API_INSTITUTIONAL_MEMORY_INSIGHTS_ENDPOINT = "/api/institutional-memory/insights"
 API_CHILD_RECOMMENDATIONS_ENDPOINT = "/api/children/<child_id>/recommendations"
-API_CHILD_REPORTS_ENDPOINT = "/api/children/<child_id>/reports"
 API_MEMORY_EVIDENCE_ENDPOINT = "/api/memory/<subject_type>/<subject_id>/evidence"
 API_RECOMMENDATION_DETAIL_ENDPOINT = "/api/recommendations/<recommendation_id>"
-API_REPORT_DETAIL_ENDPOINT = "/api/reports/<report_id>"
-API_REPORT_EXPORT_ENDPOINT = "/api/reports/<report_id>/export"
-API_REPORT_UPDATE_ENDPOINT = "/api/reports/<report_id>/update"
-API_REPORT_SUMMARY_REWRITE_ENDPOINT = "/api/reports/<report_id>/summary-rewrite"
-API_REPORT_APPROVE_ENDPOINT = "/api/reports/<report_id>/approve"
-API_REPORT_SIGN_ENDPOINT = "/api/reports/<report_id>/sign"
-API_REPORT_ARCHIVE_ENDPOINT = "/api/reports/<report_id>/archive"
 API_SESSION_DETAIL_ENDPOINT = "/api/sessions/<session_id>"
 API_SESSION_FEEDBACK_ENDPOINT = "/api/sessions/<session_id>/feedback"
 API_PLANS_ENDPOINT = "/api/plans"
@@ -162,7 +121,6 @@ USER_NOT_FOUND = "User not found"
 INVALID_ROLE = "Role must be 'therapist', 'parent', or 'admin'"
 INVALID_FEEDBACK_RATING = "Feedback rating must be 'up' or 'down'"
 PLAN_NOT_FOUND = "Practice plan not found"
-REPORT_NOT_FOUND = "Progress report not found"
 PLAN_MESSAGE_REQUIRED = "message is required"
 PLANNER_SERVICE_UNAVAILABLE = "Planner service unavailable"
 MEMORY_PROPOSAL_NOT_FOUND = "Child memory proposal not found"
@@ -199,13 +157,6 @@ def _trusted_origins() -> set[str]:
         _normalize_origin(str(request.host_url or "")),
         _normalize_origin(str(config.get("public_app_url") or "")),
     }
-    if not _is_azure_hosted_environment():
-        origins.update(LOCAL_DEV_TRUSTED_ORIGINS)
-        extra = str(os.environ.get("DEV_EXTRA_TRUSTED_ORIGINS") or "")
-        for entry in extra.split(","):
-            normalized = _normalize_origin(entry.strip())
-            if normalized:
-                origins.add(normalized)
     return {origin for origin in origins if origin}
 
 
@@ -252,7 +203,6 @@ planning_service = None
 child_memory_service = None
 institutional_memory_service = None
 recommendation_service = None
-report_service = None
 email_service = None
 planner_startup_readiness: Dict[str, Any] = {}
 
@@ -264,7 +214,6 @@ def initialize_runtime_services() -> None:
     global child_memory_service
     global institutional_memory_service
     global recommendation_service
-    global report_service
     global email_service
     global planner_startup_readiness
 
@@ -278,10 +227,6 @@ def initialize_runtime_services() -> None:
         child_memory_service,
         institutional_memory_service,
     )
-    report_service = ProgressReportService(
-        storage_service,
-        summary_assistant=AzureOpenAIReportSummaryAssistant.from_settings(config.as_dict),
-    )
     email_service = AzureCommunicationEmailService.from_config(config.as_dict)
     planner_startup_readiness = planning_service.get_readiness(force_refresh=True)
     if not planner_startup_readiness.get("ready"):
@@ -289,17 +234,6 @@ def initialize_runtime_services() -> None:
 
 
 initialize_runtime_services()
-
-
-def _refresh_static_folder() -> str:
-    """Refresh the active static folder so local builds can be picked up without code changes."""
-    if app.static_folder is None:
-        return ""
-
-    static_folder = resolve_static_folder()
-    if app.static_folder != static_folder:
-        app.static_folder = static_folder
-    return static_folder
 
 
 def _normalize_utterance_audio(utterance_payload: Any) -> List[Dict[str, Any]]:
@@ -607,17 +541,7 @@ def _rate_limit_for_request() -> Optional[tuple[int, int]]:
     window = int(config.get("rate_limit_default_window_seconds", 60))
     if rule == API_ANALYZE_ENDPOINT:
         return int(config.get("rate_limit_analyze_limit", 30)), window
-    if rule in {
-        API_CHILD_PLANS_ENDPOINT,
-        API_CHILD_REPORTS_ENDPOINT,
-        API_PLANS_ENDPOINT,
-        API_PLAN_MESSAGES_ENDPOINT,
-        API_PLAN_APPROVE_ENDPOINT,
-        API_REPORT_UPDATE_ENDPOINT,
-        API_REPORT_APPROVE_ENDPOINT,
-        API_REPORT_SIGN_ENDPOINT,
-        API_REPORT_ARCHIVE_ENDPOINT,
-    }:
+    if rule in {API_CHILD_PLANS_ENDPOINT, API_PLANS_ENDPOINT, API_PLAN_MESSAGES_ENDPOINT, API_PLAN_APPROVE_ENDPOINT}:
         return int(config.get("rate_limit_plans_limit", 20)), window
     if rule in {
         API_INVITATIONS_ENDPOINT,
@@ -679,33 +603,9 @@ def _check_csrf_policy() -> Optional[Tuple[Any, int]]:
     origin = _normalize_origin(str(request.headers.get("Origin") or ""))
     referer = _normalize_origin(str(request.headers.get("Referer") or ""))
     trusted_origins = _trusted_origins()
-    # In local dev (non-Azure), allow any private/loopback origin on the common
-    # dev ports so developers can use LAN IPs to test from phones/other devices.
-    allow_private_dev = not _is_azure_hosted_environment()
-
-    def _is_private_dev_origin(value: str) -> bool:
-        if not allow_private_dev or not value:
-            return False
-        parsed = urlsplit(value)
-        host = (parsed.hostname or "").lower()
-        if not host:
-            return False
-        if host in {"localhost", "127.0.0.1", "::1"}:
-            return True
-        if host.startswith("10.") or host.startswith("192.168."):
-            return True
-        if host.startswith("172."):
-            try:
-                second = int(host.split(".")[1])
-                if 16 <= second <= 31:
-                    return True
-            except (ValueError, IndexError):
-                return False
-        return False
-
-    if origin and origin not in trusted_origins and not _is_private_dev_origin(origin):
+    if origin and origin not in trusted_origins:
         return jsonify({"error": "Origin not allowed"}), HTTP_FORBIDDEN
-    if not origin and referer and referer not in trusted_origins and not _is_private_dev_origin(referer):
+    if not origin and referer and referer not in trusted_origins:
         return jsonify({"error": "Referer not allowed"}), HTTP_FORBIDDEN
 
     content_length = request.content_length or 0
@@ -717,8 +617,6 @@ def _check_csrf_policy() -> Optional[Tuple[Any, int]]:
 
 @app.before_request
 def _bind_storage_request_actor() -> None:
-    _refresh_static_folder()
-
     user = _get_authenticated_user()
     if user is None:
         storage_service.clear_request_actor()
@@ -878,40 +776,6 @@ def _send_invitation_email(
     return delivery_payload
 
 
-def _send_family_intake_invitation_email(
-    invitation: Dict[str, Any],
-    *,
-    inviter_name: str,
-) -> Dict[str, Any]:
-    if email_service is None:
-        result = InvitationEmailDeliveryResult(
-            status="not_configured",
-            attempted=False,
-            delivered=False,
-            error="Email service is not configured",
-        )
-        return _serialize_invitation_email_delivery(result)
-
-    delivery_result = email_service.send_family_intake_invitation_email(
-        recipient_email=str(invitation.get("invited_email") or ""),
-        invitation_id=str(invitation.get("id") or ""),
-        workspace_name=str(invitation.get("workspace_name") or "your workspace"),
-        inviter_name=inviter_name,
-        expires_at=str(invitation.get("expires_at") or "") or None,
-    )
-    delivery_payload = _serialize_invitation_email_delivery(delivery_result)
-
-    if delivery_result.status == "failed":
-        logger.warning(
-            "Family intake invitation email delivery failed for %s to %s: %s",
-            invitation.get("id"),
-            invitation.get("invited_email"),
-            delivery_result.error,
-        )
-
-    return delivery_payload
-
-
 def _persist_invitation_email_delivery(invitation_id: str, delivery_payload: Dict[str, Any]) -> None:
     try:
         storage_service.record_child_invitation_email_delivery(invitation_id, delivery_payload)
@@ -939,14 +803,13 @@ def _prepare_custom_scenario(custom_scenario: Dict[str, Any]) -> Dict[str, Any]:
 
 def _serve_index() -> Any:
     """Serve the SPA entry point for browser routes."""
-    static_folder = _refresh_static_folder()
-    if not static_folder or not (Path(static_folder) / INDEX_FILE).exists():
-        logger.error("Static bundle is missing. Cannot serve index.html from %s.", static_folder)
+    if app.static_folder is None:
+        logger.error("STATIC_FOLDER is not set. Cannot serve index.html.")
         import sys  # pylint: disable=C0415
 
         sys.exit(1)
 
-    return send_from_directory(static_folder, INDEX_FILE)
+    return send_from_directory(app.static_folder, INDEX_FILE)
 
 
 def _should_serve_spa_route(path: str) -> bool:
@@ -1201,9 +1064,6 @@ def child_parental_consent(child_id: str):
         privacy_accepted=bool(body.get("privacy_accepted", True)),
         terms_accepted=bool(body.get("terms_accepted", True)),
         ai_notice_accepted=bool(body.get("ai_notice_accepted", True)),
-        personal_data_consent_accepted=bool(body.get("personal_data_consent_accepted", False)),
-        special_category_consent_accepted=bool(body.get("special_category_consent_accepted", False)),
-        parental_responsibility_confirmed=bool(body.get("parental_responsibility_confirmed", False)),
         recorded_by_user_id=user_id,
     )
     _log_audit_event(
@@ -1565,272 +1425,6 @@ def resend_child_invitation(invitation_id: str):
     return jsonify({**invitation, "email_delivery": email_delivery})
 
 
-@app.route(API_FAMILY_INTAKE_INVITATIONS_ENDPOINT, methods=["GET", "POST"])
-def family_intake_invitations():
-    user, guard_response = _require_authenticated()
-    if guard_response is not None:
-        return guard_response
-
-    user_id = str(cast(Dict[str, Any], user).get("id") or "")
-    user_email = str(cast(Dict[str, Any], user).get("email") or "")
-
-    if request.method == "POST":
-        therapist_user, therapist_guard = _require_role(ROLE_THERAPIST, ROLE_ADMIN)
-        if therapist_guard is not None:
-            return therapist_guard
-
-        data = cast(Dict[str, Any], request.get_json(silent=True) or {})
-        invited_email = str(data.get("invited_email") or "").strip().lower()
-        workspace_id = str(data.get("workspace_id") or "").strip()
-        if not invited_email:
-            return jsonify({"error": "invited_email is required"}), HTTP_BAD_REQUEST
-
-        if not workspace_id:
-            default_workspace = storage_service.get_default_workspace_for_user(user_id)
-            workspace_id = str(default_workspace.get("id") or "") if default_workspace else ""
-
-        if not workspace_id:
-            return jsonify({"error": "workspace_id is required"}), HTTP_BAD_REQUEST
-
-        try:
-            invitation = storage_service.create_family_intake_invitation(
-                invited_email=invited_email,
-                invited_by_user_id=user_id,
-                workspace_id=workspace_id,
-            )
-        except ValueError as error:
-            return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
-
-        email_delivery = _send_family_intake_invitation_email(
-            invitation,
-            inviter_name=str(cast(Dict[str, Any], therapist_user).get("name") or "Your therapist"),
-        )
-
-        _log_audit_event(
-            user_id=user_id,
-            action="family_intake.invitation.create",
-            resource_type="family_intake_invitation",
-            resource_id=str(invitation.get("id") or ""),
-            metadata={
-                "workspace_id": workspace_id,
-                "invited_email": invited_email,
-                "email_delivery": email_delivery,
-            },
-        )
-        return jsonify({**invitation, "email_delivery": email_delivery}), HTTP_CREATED
-
-    invitations = storage_service.list_family_intake_invitations_for_user(user_id, user_email)
-    return jsonify(invitations)
-
-
-@app.route(API_FAMILY_INTAKE_INVITATION_ACCEPT_ENDPOINT, methods=["POST"])
-def accept_family_intake_invitation(invitation_id: str):
-    user, guard_response = _require_authenticated()
-    if guard_response is not None:
-        return guard_response
-
-    try:
-        invitation = storage_service.respond_to_family_intake_invitation(
-            invitation_id,
-            user_id=str(cast(Dict[str, Any], user).get("id") or ""),
-            user_email=str(cast(Dict[str, Any], user).get("email") or ""),
-            accept=True,
-        )
-    except ValueError as error:
-        return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
-
-    if invitation is None:
-        return jsonify({"error": INVITATION_NOT_FOUND}), HTTP_NOT_FOUND
-
-    _log_audit_event(
-        user_id=str(cast(Dict[str, Any], user).get("id") or ""),
-        action="family_intake.invitation.accept",
-        resource_type="family_intake_invitation",
-        resource_id=invitation_id,
-        metadata={"workspace_id": invitation.get("workspace_id")},
-    )
-    return jsonify(invitation)
-
-
-@app.route(API_FAMILY_INTAKE_INVITATION_DECLINE_ENDPOINT, methods=["POST"])
-def decline_family_intake_invitation(invitation_id: str):
-    user, guard_response = _require_authenticated()
-    if guard_response is not None:
-        return guard_response
-
-    try:
-        invitation = storage_service.respond_to_family_intake_invitation(
-            invitation_id,
-            user_id=str(cast(Dict[str, Any], user).get("id") or ""),
-            user_email=str(cast(Dict[str, Any], user).get("email") or ""),
-            accept=False,
-        )
-    except ValueError as error:
-        return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
-
-    if invitation is None:
-        return jsonify({"error": INVITATION_NOT_FOUND}), HTTP_NOT_FOUND
-
-    _log_audit_event(
-        user_id=str(cast(Dict[str, Any], user).get("id") or ""),
-        action="family_intake.invitation.decline",
-        resource_type="family_intake_invitation",
-        resource_id=invitation_id,
-        metadata={"workspace_id": invitation.get("workspace_id")},
-    )
-    return jsonify(invitation)
-
-
-@app.route(API_FAMILY_INTAKE_PROPOSALS_ENDPOINT, methods=["GET", "POST"])
-def family_intake_proposals():
-    user, guard_response = _require_authenticated()
-    if guard_response is not None:
-        return guard_response
-
-    user_id = str(cast(Dict[str, Any], user).get("id") or "")
-
-    if request.method == "POST":
-        data = cast(Dict[str, Any], request.get_json(silent=True) or {})
-        invitation_id = str(data.get("family_intake_invitation_id") or "").strip()
-        proposals = data.get("children")
-        if not invitation_id:
-            return jsonify({"error": "family_intake_invitation_id is required"}), HTTP_BAD_REQUEST
-        if not isinstance(proposals, list) or not proposals:
-            return jsonify({"error": "At least one child proposal is required"}), HTTP_BAD_REQUEST
-
-        try:
-            created = storage_service.create_child_intake_proposals(
-                family_intake_invitation_id=invitation_id,
-                created_by_user_id=user_id,
-                proposals=cast(List[Dict[str, Any]], proposals),
-            )
-        except ValueError as error:
-            return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
-
-        _log_audit_event(
-            user_id=user_id,
-            action="family_intake.proposals.create",
-            resource_type="child_intake_proposal_batch",
-            resource_id=invitation_id,
-            metadata={"proposal_count": len(created)},
-        )
-        return jsonify(created), HTTP_CREATED
-
-    proposals = storage_service.list_child_intake_proposals_for_user(user_id)
-    return jsonify(proposals)
-
-
-@app.route(API_FAMILY_INTAKE_PENDING_PROPOSALS_ENDPOINT)
-def pending_family_intake_proposals():
-    user, guard_response = _require_role(ROLE_THERAPIST, ROLE_ADMIN)
-    if guard_response is not None:
-        return guard_response
-
-    workspace_id = str(request.args.get("workspace_id") or "").strip() or None
-    proposals = storage_service.list_pending_child_intake_proposals(workspace_id=workspace_id)
-    return jsonify(proposals)
-
-
-@app.route(API_FAMILY_INTAKE_PROPOSAL_APPROVE_ENDPOINT, methods=["POST"])
-def approve_family_intake_proposal(proposal_id: str):
-    user, guard_response = _require_role(ROLE_THERAPIST, ROLE_ADMIN)
-    if guard_response is not None:
-        return guard_response
-
-    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
-    review_note = str(data.get("review_note") or "").strip() or None
-
-    try:
-        proposal = storage_service.approve_child_intake_proposal(
-            proposal_id,
-            reviewed_by_user_id=str(cast(Dict[str, Any], user).get("id") or ""),
-            review_note=review_note,
-        )
-    except ValueError as error:
-        return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
-
-    if proposal is None:
-        return jsonify({"error": "Child intake proposal not found"}), HTTP_NOT_FOUND
-
-    _log_audit_event(
-        user_id=str(cast(Dict[str, Any], user).get("id") or ""),
-        action="family_intake.proposal.approve",
-        resource_type="child_intake_proposal",
-        resource_id=proposal_id,
-        child_id=str(proposal.get("final_child_id") or "") or None,
-        metadata={"workspace_id": proposal.get("workspace_id")},
-    )
-    return jsonify(proposal)
-
-
-@app.route(API_FAMILY_INTAKE_PROPOSAL_REJECT_ENDPOINT, methods=["POST"])
-def reject_family_intake_proposal(proposal_id: str):
-    user, guard_response = _require_role(ROLE_THERAPIST, ROLE_ADMIN)
-    if guard_response is not None:
-        return guard_response
-
-    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
-    review_note = str(data.get("review_note") or "").strip() or None
-
-    try:
-        proposal = storage_service.reject_child_intake_proposal(
-            proposal_id,
-            reviewed_by_user_id=str(cast(Dict[str, Any], user).get("id") or ""),
-            review_note=review_note,
-        )
-    except ValueError as error:
-        return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
-
-    if proposal is None:
-        return jsonify({"error": "Child intake proposal not found"}), HTTP_NOT_FOUND
-
-    _log_audit_event(
-        user_id=str(cast(Dict[str, Any], user).get("id") or ""),
-        action="family_intake.proposal.reject",
-        resource_type="child_intake_proposal",
-        resource_id=proposal_id,
-        metadata={"workspace_id": proposal.get("workspace_id")},
-    )
-    return jsonify(proposal)
-
-
-@app.route(API_FAMILY_INTAKE_PROPOSAL_RESUBMIT_ENDPOINT, methods=["POST"])
-def resubmit_family_intake_proposal(proposal_id: str):
-    user, guard_response = _require_authenticated()
-    if guard_response is not None:
-        return guard_response
-
-    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
-    child_name = str(data.get("child_name") or "").strip()
-    date_of_birth = str(data.get("date_of_birth") or "").strip() or None
-    notes = str(data.get("notes") or "").strip() or None
-    if not child_name:
-        return jsonify({"error": "child_name is required"}), HTTP_BAD_REQUEST
-
-    try:
-        proposal = storage_service.resubmit_child_intake_proposal(
-            proposal_id,
-            created_by_user_id=str(cast(Dict[str, Any], user).get("id") or ""),
-            child_name=child_name,
-            date_of_birth=date_of_birth,
-            notes=notes,
-        )
-    except ValueError as error:
-        return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
-
-    if proposal is None:
-        return jsonify({"error": "Child intake proposal not found"}), HTTP_NOT_FOUND
-
-    _log_audit_event(
-        user_id=str(cast(Dict[str, Any], user).get("id") or ""),
-        action="family_intake.proposal.resubmit",
-        resource_type="child_intake_proposal",
-        resource_id=proposal_id,
-        metadata={"workspace_id": proposal.get("workspace_id")},
-    )
-    return jsonify(proposal)
-
-
 @app.route(API_AGENTS_CREATE_ENDPOINT, methods=["POST"])
 def create_agent():
     """Create a new agent for a scenario.
@@ -2110,13 +1704,37 @@ def synthesize_speech():
         return guard_response
 
     data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+    ssml = cast(str, data.get("ssml") or "").strip()
     text = cast(str, data.get("text") or "").strip()
-    if not text or len(text) > 200:
-        return jsonify({"error": "text is required (max 200 chars)"}), HTTP_BAD_REQUEST
+    phoneme = cast(str, data.get("phoneme") or "").strip()
+    alphabet = cast(str, data.get("alphabet") or "ipa").strip().lower()
+    fallback_text = cast(str, data.get("fallback_text") or "").strip()
 
     voice_name = config["azure_voice_name"]
     speech_key = config["azure_speech_key"]
     speech_region = config["azure_speech_region"]
+
+    if phoneme:
+        if len(phoneme) > 16 or alphabet not in {"ipa", "sapi", "ups"}:
+            return jsonify({"error": "invalid phoneme payload"}), HTTP_BAD_REQUEST
+        safe_phoneme = html_escape(phoneme, quote=True)
+        safe_fallback = html_escape(fallback_text or phoneme, quote=False)
+        safe_voice = html_escape(voice_name, quote=True)
+        ssml = (
+            '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-GB">'
+            f'<voice name="{safe_voice}">'
+            '<prosody rate="-10%">'
+            f'<phoneme alphabet="{alphabet}" ph="{safe_phoneme}">{safe_fallback}</phoneme>'
+            '</prosody>'
+            '</voice>'
+            '</speak>'
+        )
+    elif ssml:
+        if len(ssml) > 2000:
+            return jsonify({"error": "ssml too large (max 2000 chars)"}), HTTP_BAD_REQUEST
+    else:
+        if not text or len(text) > 200:
+            return jsonify({"error": "text is required (max 200 chars)"}), HTTP_BAD_REQUEST
 
     if not speech_key:
         return jsonify({"error": "Speech service not configured"}), HTTP_INTERNAL_SERVER_ERROR
@@ -2130,7 +1748,10 @@ def synthesize_speech():
             speechsdk.SpeechSynthesisOutputFormat.Audio48Khz192KBitRateMonoMp3
         )
         synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=None)
-        result = synthesizer.speak_text_async(text).get()
+        if ssml:
+            result = synthesizer.speak_ssml_async(ssml).get()
+        else:
+            result = synthesizer.speak_text_async(text).get()
 
         if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
             audio_b64 = base64.b64encode(result.audio_data).decode("ascii")
@@ -2413,378 +2034,6 @@ def get_recommendation_detail(recommendation_id: str):
         child_id=str(detail.get("child_id") or ""),
     )
     return jsonify(detail)
-
-
-@app.route(API_CHILD_REPORTS_ENDPOINT, methods=["GET", "POST"])
-def child_progress_reports(child_id: str):
-    """List or create therapist-facing progress reports for a child."""
-    allowed_roles = {ROLE_THERAPIST, ROLE_ADMIN}
-    allowed_relationships = ["therapist"]
-
-    if request.method == "POST":
-        user, guard_response = _require_child_access(
-            child_id,
-            allowed_roles=allowed_roles,
-            allowed_relationships=allowed_relationships,
-        )
-        if guard_response is not None:
-            return guard_response
-
-        data = cast(Dict[str, Any], request.get_json(silent=True) or {})
-        included_session_ids = data.get("included_session_ids")
-        if included_session_ids is not None and not isinstance(included_session_ids, list):
-            return jsonify({"error": "included_session_ids must be a list"}), HTTP_BAD_REQUEST
-        redaction_overrides = data.get("redaction_overrides")
-        if redaction_overrides is not None and not isinstance(redaction_overrides, dict):
-            return jsonify({"error": "redaction_overrides must be an object"}), HTTP_BAD_REQUEST
-
-        try:
-            report = report_service.create_report(
-                child_id=child_id,
-                created_by_user_id=str(cast(Dict[str, Any], user).get("id")),
-                audience=str(data.get("audience") or "therapist"),
-                title=str(data.get("title") or "").strip() or None,
-                report_type=str(data.get("report_type") or "progress_summary").strip() or "progress_summary",
-                period_start=str(data.get("period_start") or "").strip() or None,
-                period_end=str(data.get("period_end") or "").strip() or None,
-                included_session_ids=cast(Optional[List[str]], included_session_ids),
-                summary_text=str(data.get("summary_text") or "").strip() or None,
-                redaction_overrides=cast(Optional[Dict[str, Any]], redaction_overrides),
-            )
-        except ValueError as error:
-            message = str(error)
-            status_code = HTTP_NOT_FOUND if "not found" in message.lower() else HTTP_BAD_REQUEST
-            return jsonify({"error": message}), status_code
-
-        telemetry_service.track_event(
-            "progress_report_created",
-            properties={
-                "child_id": child_id,
-                "report_id": report["id"],
-                "audience": report["audience"],
-            },
-        )
-        _log_audit_event(
-            user_id=str(cast(Dict[str, Any], user).get("id")),
-            action="report.create",
-            resource_type="progress_report",
-            resource_id=str(report.get("id") or ""),
-            child_id=child_id,
-        )
-        return jsonify(report), HTTP_CREATED
-
-    user, guard_response = _require_child_access(
-        child_id,
-        allowed_roles=allowed_roles,
-        allowed_relationships=allowed_relationships,
-    )
-    if guard_response is not None:
-        return guard_response
-
-    try:
-        limit = max(1, min(50, int(request.args.get("limit") or 20)))
-    except (TypeError, ValueError):
-        return jsonify({"error": "limit must be a number between 1 and 50"}), HTTP_BAD_REQUEST
-
-    try:
-        reports = report_service.list_reports(
-            child_id,
-            status=str(request.args.get("status") or "").strip() or None,
-            audience=str(request.args.get("audience") or "").strip() or None,
-            limit=limit,
-        )
-    except ValueError as error:
-        return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
-
-    _log_audit_event(
-        user_id=str(cast(Dict[str, Any], user).get("id")),
-        action="report.list",
-        resource_type="progress_report_collection",
-        resource_id=child_id,
-        child_id=child_id,
-        metadata={"count": len(reports)},
-    )
-    return jsonify(reports)
-
-
-@app.route(API_REPORT_DETAIL_ENDPOINT)
-def get_progress_report(report_id: str):
-    """Return one saved progress report."""
-    user, guard_response = _require_authenticated()
-    if guard_response is not None:
-        return guard_response
-
-    try:
-        report = report_service.get_report(report_id)
-    except ValueError:
-        return jsonify({"error": REPORT_NOT_FOUND}), HTTP_NOT_FOUND
-
-    _, child_guard = _require_child_access(
-        str(report.get("child_id") or ""),
-        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
-        allowed_relationships=["therapist"],
-    )
-    if child_guard is not None:
-        return child_guard
-
-    _log_audit_event(
-        user_id=str(cast(Dict[str, Any], user).get("id")),
-        action="report.read",
-        resource_type="progress_report",
-        resource_id=report_id,
-        child_id=str(report.get("child_id") or ""),
-    )
-    return jsonify(report)
-
-
-@app.route(API_REPORT_EXPORT_ENDPOINT)
-def export_progress_report(report_id: str):
-    """Render one saved progress report as HTML or PDF."""
-    user, guard_response = _require_authenticated()
-    if guard_response is not None:
-        return guard_response
-
-    try:
-        report = report_service.get_report(report_id)
-    except ValueError:
-        return jsonify({"error": REPORT_NOT_FOUND}), HTTP_NOT_FOUND
-
-    _, child_guard = _require_child_access(
-        str(report.get("child_id") or ""),
-        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
-        allowed_relationships=["therapist"],
-    )
-    if child_guard is not None:
-        return child_guard
-
-    export_format = str(request.args.get("format") or "html").strip().lower()
-    if export_format not in {"html", "pdf"}:
-        return jsonify({"error": "format must be html or pdf"}), HTTP_BAD_REQUEST
-
-    download_requested = str(request.args.get("download") or "").strip().lower() in {"1", "true", "yes"}
-    disposition = "attachment" if download_requested else "inline"
-
-    try:
-        if export_format == "pdf":
-            document = report_service.render_report_pdf(report_id)
-            response = app.response_class(document, mimetype="application/pdf")
-        else:
-            document = report_service.render_report_html(report_id)
-            response = app.response_class(document, mimetype="text/html")
-    except RuntimeError as error:
-        return jsonify({"error": str(error)}), 503
-
-    response.headers["Content-Disposition"] = f'{disposition}; filename="progress-report.{export_format}"'
-    response.headers["Cache-Control"] = "no-store"
-
-    _log_audit_event(
-        user_id=str(cast(Dict[str, Any], user).get("id")),
-        action="report.export",
-        resource_type="progress_report",
-        resource_id=report_id,
-        child_id=str(report.get("child_id") or ""),
-        metadata={"format": export_format, "download": download_requested},
-    )
-    return response
-
-
-@app.route(API_REPORT_UPDATE_ENDPOINT, methods=["POST"])
-def update_progress_report(report_id: str):
-    """Update editable draft report fields."""
-    existing_report = storage_service.get_progress_report(report_id)
-    if existing_report is None:
-        return jsonify({"error": REPORT_NOT_FOUND}), HTTP_NOT_FOUND
-
-    user, guard_response = _require_child_access(
-        str(existing_report.get("child_id") or ""),
-        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
-        allowed_relationships=["therapist"],
-    )
-    if guard_response is not None:
-        return guard_response
-
-    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
-    sections = data.get("sections")
-    if sections is not None and not isinstance(sections, list):
-        return jsonify({"error": "sections must be a list"}), HTTP_BAD_REQUEST
-    included_session_ids = data.get("included_session_ids")
-    if included_session_ids is not None and not isinstance(included_session_ids, list):
-        return jsonify({"error": "included_session_ids must be a list"}), HTTP_BAD_REQUEST
-    redaction_overrides = data.get("redaction_overrides")
-    if redaction_overrides is not None and not isinstance(redaction_overrides, dict):
-        return jsonify({"error": "redaction_overrides must be an object"}), HTTP_BAD_REQUEST
-
-    try:
-        report = report_service.update_report(
-            report_id,
-            audience=str(data.get("audience") or "").strip() or None,
-            title=str(data.get("title") or "").strip() or None,
-            period_start=str(data.get("period_start") or "").strip() or None,
-            period_end=str(data.get("period_end") or "").strip() or None,
-            included_session_ids=cast(Optional[List[str]], included_session_ids),
-            summary_text=str(data.get("summary_text") or "").strip() or None,
-            sections=cast(Optional[List[Dict[str, Any]]], sections),
-            redaction_overrides=cast(Optional[Dict[str, Any]], redaction_overrides),
-        )
-    except ValueError as error:
-        message = str(error)
-        status_code = HTTP_NOT_FOUND if "not found" in message.lower() else HTTP_BAD_REQUEST
-        return jsonify({"error": message}), status_code
-
-    _log_audit_event(
-        user_id=str(cast(Dict[str, Any], user).get("id")),
-        action="report.update",
-        resource_type="progress_report",
-        resource_id=report_id,
-        child_id=str(report.get("child_id") or ""),
-    )
-    return jsonify(report)
-
-
-@app.route(API_REPORT_SUMMARY_REWRITE_ENDPOINT, methods=["POST"])
-def suggest_progress_report_summary_rewrite(report_id: str):
-    """Generate a human-reviewed AI summary suggestion for a draft report."""
-    existing_report = storage_service.get_progress_report(report_id)
-    if existing_report is None:
-        return jsonify({"error": REPORT_NOT_FOUND}), HTTP_NOT_FOUND
-
-    user, guard_response = _require_child_access(
-        str(existing_report.get("child_id") or ""),
-        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
-        allowed_relationships=["therapist"],
-    )
-    if guard_response is not None:
-        return guard_response
-
-    try:
-        suggestion = report_service.suggest_summary_rewrite(report_id)
-    except ValueError as error:
-        message = str(error)
-        status_code = HTTP_NOT_FOUND if "not found" in message.lower() else HTTP_BAD_REQUEST
-        return jsonify({"error": message}), status_code
-    except RuntimeError as error:
-        return jsonify({"error": str(error)}), 503
-
-    telemetry_service.track_event(
-        "progress_report_summary_rewrite_suggested",
-        properties={"report_id": report_id, "child_id": existing_report["child_id"]},
-    )
-    _log_audit_event(
-        user_id=str(cast(Dict[str, Any], user).get("id")),
-        action="report.summary_rewrite.suggest",
-        resource_type="progress_report",
-        resource_id=report_id,
-        child_id=str(existing_report.get("child_id") or ""),
-    )
-    return jsonify(suggestion)
-
-
-@app.route(API_REPORT_APPROVE_ENDPOINT, methods=["POST"])
-def approve_progress_report(report_id: str):
-    """Approve a draft report for release."""
-    existing_report = storage_service.get_progress_report(report_id)
-    if existing_report is None:
-        return jsonify({"error": REPORT_NOT_FOUND}), HTTP_NOT_FOUND
-
-    user, guard_response = _require_child_access(
-        str(existing_report.get("child_id") or ""),
-        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
-        allowed_relationships=["therapist"],
-    )
-    if guard_response is not None:
-        return guard_response
-
-    try:
-        report = report_service.approve_report(report_id)
-    except ValueError as error:
-        message = str(error)
-        status_code = HTTP_NOT_FOUND if "not found" in message.lower() else HTTP_BAD_REQUEST
-        return jsonify({"error": message}), status_code
-
-    telemetry_service.track_event(
-        "progress_report_approved",
-        properties={"report_id": report_id, "child_id": report["child_id"]},
-    )
-    _log_audit_event(
-        user_id=str(cast(Dict[str, Any], user).get("id")),
-        action="report.approve",
-        resource_type="progress_report",
-        resource_id=report_id,
-        child_id=str(report.get("child_id") or ""),
-    )
-    return jsonify(report)
-
-
-@app.route(API_REPORT_SIGN_ENDPOINT, methods=["POST"])
-def sign_progress_report(report_id: str):
-    """Apply therapist signature metadata to an approved report."""
-    existing_report = storage_service.get_progress_report(report_id)
-    if existing_report is None:
-        return jsonify({"error": REPORT_NOT_FOUND}), HTTP_NOT_FOUND
-
-    user, guard_response = _require_child_access(
-        str(existing_report.get("child_id") or ""),
-        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
-        allowed_relationships=["therapist"],
-    )
-    if guard_response is not None:
-        return guard_response
-
-    try:
-        report = report_service.sign_report(report_id, str(cast(Dict[str, Any], user).get("id")))
-    except ValueError as error:
-        message = str(error)
-        status_code = HTTP_NOT_FOUND if "not found" in message.lower() else HTTP_BAD_REQUEST
-        return jsonify({"error": message}), status_code
-
-    telemetry_service.track_event(
-        "progress_report_signed",
-        properties={"report_id": report_id, "child_id": report["child_id"]},
-    )
-    _log_audit_event(
-        user_id=str(cast(Dict[str, Any], user).get("id")),
-        action="report.sign",
-        resource_type="progress_report",
-        resource_id=report_id,
-        child_id=str(report.get("child_id") or ""),
-    )
-    return jsonify(report)
-
-
-@app.route(API_REPORT_ARCHIVE_ENDPOINT, methods=["POST"])
-def archive_progress_report(report_id: str):
-    """Archive a completed report."""
-    existing_report = storage_service.get_progress_report(report_id)
-    if existing_report is None:
-        return jsonify({"error": REPORT_NOT_FOUND}), HTTP_NOT_FOUND
-
-    user, guard_response = _require_child_access(
-        str(existing_report.get("child_id") or ""),
-        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
-        allowed_relationships=["therapist"],
-    )
-    if guard_response is not None:
-        return guard_response
-
-    try:
-        report = report_service.archive_report(report_id)
-    except ValueError as error:
-        message = str(error)
-        status_code = HTTP_NOT_FOUND if "not found" in message.lower() else HTTP_BAD_REQUEST
-        return jsonify({"error": message}), status_code
-
-    telemetry_service.track_event(
-        "progress_report_archived",
-        properties={"report_id": report_id, "child_id": report["child_id"]},
-    )
-    _log_audit_event(
-        user_id=str(cast(Dict[str, Any], user).get("id")),
-        action="report.archive",
-        resource_type="progress_report",
-        resource_id=report_id,
-        child_id=str(report.get("child_id") or ""),
-    )
-    return jsonify(report)
 
 
 @app.route(API_MEMORY_EVIDENCE_ENDPOINT)
@@ -3163,7 +2412,7 @@ def _perform_conversation_analysis(
 @app.route(f"/{AUDIO_PROCESSOR_FILE}")
 def audio_processor():
     """Serve the audio processor JavaScript file."""
-    return send_from_directory(_refresh_static_folder(), AUDIO_PROCESSOR_FILE)
+    return send_from_directory("static", AUDIO_PROCESSOR_FILE)
 
 
 @app.route(API_IMAGES_ENDPOINT)

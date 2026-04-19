@@ -14,7 +14,6 @@ import {
 } from '@fluentui/react-components'
 import { ScenarioList } from './ScenarioList'
 import type {
-  FamilyIntakeInvitation,
   ChildInvitation,
   ChildProfile,
   ChildMemoryProposal,
@@ -299,13 +298,9 @@ interface DashboardHomeProps {
   secondaryActionLabel: string
   secondaryActionDisabled?: boolean
   incomingInvitations: ChildInvitation[]
-  pendingIncomingFamilyIntakeInvitations: FamilyIntakeInvitation[]
   invitationActionPendingId: string | null
-  familyIntakeActionPendingId: string | null
   onAcceptInvitation: (invitationId: string) => Promise<unknown>
   onDeclineInvitation: (invitationId: string) => Promise<unknown>
-  onAcceptFamilyIntakeInvitation: (invitationId: string) => Promise<unknown>
-  onDeclineFamilyIntakeInvitation: (invitationId: string) => Promise<unknown>
   childProfiles: ChildProfile[]
   childrenLoading: boolean
   selectedChildId: string | null
@@ -343,13 +338,9 @@ export function DashboardHome({
   secondaryActionLabel,
   secondaryActionDisabled = false,
   incomingInvitations,
-  pendingIncomingFamilyIntakeInvitations,
   invitationActionPendingId,
-  familyIntakeActionPendingId,
   onAcceptInvitation,
   onDeclineInvitation,
-  onAcceptFamilyIntakeInvitation,
-  onDeclineFamilyIntakeInvitation,
   childProfiles,
   childrenLoading,
   selectedChildId,
@@ -401,9 +392,7 @@ export function DashboardHome({
     pendingProposalCount,
   })
   const incomingInvitationCount = incomingInvitations.length
-  const pendingFamilyIntakeInvitationCount = pendingIncomingFamilyIntakeInvitations.length
   const hasLinkedChildren = childProfiles.length > 0
-  const showParentPendingFamilyIntakeInvitations = !isTherapistWorkspace && !hasLinkedChildren && pendingFamilyIntakeInvitationCount > 0
   const showParentPendingInvitations = !isTherapistWorkspace && !hasLinkedChildren && incomingInvitationCount > 0
   const showParentNoLinkedChildren = !isTherapistWorkspace && !hasLinkedChildren && incomingInvitationCount === 0
   const showParentNeedsChildSelection = !isTherapistWorkspace && hasLinkedChildren && !selectedChild
@@ -413,8 +402,6 @@ export function DashboardHome({
       : 'Choose a child and exercise to launch a guided session, or open progress review to look back before you start.'
     : hasLinkedChildren
       ? 'Choose a linked child and exercise, then hand over the device when you are ready to start practice.'
-      : pendingFamilyIntakeInvitationCount > 0
-        ? 'Accept the family intake invite, then open family setup once to submit every child together.'
       : incomingInvitationCount > 0
         ? 'Open the workspace to accept the linked-child invitation before you start practice here.'
         : 'Wait for a therapist invitation to link a child profile before you start supervised practice here.'
@@ -422,8 +409,6 @@ export function DashboardHome({
     ? 'Pick an exercise from the library below to prepare the next guided session.'
     : hasLinkedChildren
       ? 'Use this space to launch a short supervised practice for the active child.'
-      : pendingFamilyIntakeInvitationCount > 0
-        ? 'A therapist has invited your family. Accept the invite here, then open family setup to submit all children in one step.'
       : incomingInvitationCount > 0
         ? 'Your linked child invitation is waiting in the workspace area.'
         : 'No child is linked yet, so practice cannot start until a child profile is available.')
@@ -440,7 +425,7 @@ export function DashboardHome({
                 disabled={childrenLoading || childProfiles.length === 0 || launchInFlight}
                 placeholder={childrenLoading ? 'Loading child profiles...' : 'Select child'}
                 selectedOptions={selectedChildId ? [selectedChildId] : []}
-                value={selectedChild?.name || ''}
+                value={selectedChild?.name}
                 onOptionSelect={(_, data) => {
                   if (data.optionValue) {
                     onSelectChild(data.optionValue)
@@ -619,38 +604,8 @@ export function DashboardHome({
               </div>
             </div>
           </>
-        ) : showParentPendingFamilyIntakeInvitations || showParentPendingInvitations || showParentNoLinkedChildren || showParentNeedsChildSelection ? (
+        ) : showParentPendingInvitations || showParentNoLinkedChildren || showParentNeedsChildSelection ? (
           <div className={styles.memorySignalStrip}>
-            {showParentPendingFamilyIntakeInvitations ? (
-              pendingIncomingFamilyIntakeInvitations.map(invitation => (
-                <div key={invitation.id} className={styles.memorySignalCard}>
-                  <Text className={styles.memorySignalLabel}>Family invite from {invitation.invited_by_name || 'Therapist'}</Text>
-                  <Text className={styles.memorySignalValue}>{invitation.workspace_name || 'Family intake'}</Text>
-                  <Text className={styles.memorySignalCopy}>
-                    Accept once, then open family setup to submit all children together.
-                  </Text>
-                  <div style={{ display: 'flex', gap: 'var(--space-sm)', marginTop: 'var(--space-sm)' }}>
-                    <Button
-                      appearance="primary"
-                      size="small"
-                      disabled={familyIntakeActionPendingId === invitation.id}
-                      onClick={() => { void onAcceptFamilyIntakeInvitation(invitation.id).catch(() => undefined) }}
-                    >
-                      Accept
-                    </Button>
-                    <Button
-                      appearance="secondary"
-                      size="small"
-                      disabled={familyIntakeActionPendingId === invitation.id}
-                      onClick={() => { void onDeclineFamilyIntakeInvitation(invitation.id).catch(() => undefined) }}
-                    >
-                      Decline
-                    </Button>
-                  </div>
-                </div>
-              ))
-            ) : null}
-
             {showParentPendingInvitations ? (
               incomingInvitations.map(invitation => (
                 <div key={invitation.id} className={styles.memorySignalCard}>

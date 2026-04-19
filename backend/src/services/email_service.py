@@ -143,84 +143,8 @@ class AzureCommunicationEmailService:
             provider_message_id=self._extract_message_id(response),
         )
 
-    def send_family_intake_invitation_email(
-        self,
-        *,
-        recipient_email: str,
-        invitation_id: str,
-        workspace_name: str,
-        inviter_name: str,
-        expires_at: Optional[str] = None,
-    ) -> InvitationEmailDeliveryResult:
-        if self._client is None:
-            return InvitationEmailDeliveryResult(
-                status="not_configured",
-                attempted=False,
-                delivered=False,
-                error=self._disabled_reason,
-            )
-
-        invitation_url = self._build_invitation_url(invitation_id, query_param="familyInvitationId")
-        subject = f"Wulo family invitation for {workspace_name}"
-        expiry_copy = self._format_expiry(expires_at)
-        plain_text = (
-            f"{inviter_name} invited you to Wulo to submit family intake details for {workspace_name}.\n\n"
-            f"Open this link to sign in and review the invitation: {invitation_url}\n\n"
-            f"After accepting, you can submit your children together in one step.\n"
-            f"{expiry_copy}"
-        )
-        html = (
-            f"<html><body>"
-            f"<p>{escape(inviter_name)} invited you to Wulo to submit family intake details for <strong>{escape(workspace_name)}</strong>.</p>"
-            f"<p><a href=\"{escape(invitation_url)}\">Open Wulo and review the family invitation</a></p>"
-            f"<p>After accepting, you can submit your children together in one step.</p>"
-            f"<p>{escape(expiry_copy)}</p>"
-            f"</body></html>"
-        )
-        message = {
-            "senderAddress": self._sender_address,
-            "content": {
-                "subject": subject,
-                "plainText": plain_text,
-                "html": html,
-            },
-            "recipients": {
-                "to": [
-                    {
-                        "address": recipient_email,
-                        "displayName": recipient_email,
-                    }
-                ]
-            },
-            "headers": {
-                "X-Wulo-Family-Invitation-Id": invitation_id,
-            },
-        }
-
-        try:
-            poller = self._client.begin_send(message)
-            response = poller.result()
-        except Exception as error:  # pragma: no cover
-            logger.exception("Failed to send family invitation email for %s", invitation_id)
-            return InvitationEmailDeliveryResult(
-                status="failed",
-                attempted=True,
-                delivered=False,
-                error=str(error),
-            )
-
-        return InvitationEmailDeliveryResult(
-            status="sent",
-            attempted=True,
-            delivered=True,
-            provider_message_id=self._extract_message_id(response),
-        )
-
-    def _build_invitation_url(self, invitation_id: str, *, query_param: str = "invitationId", route_path: str = "") -> str:
-        normalized_route = route_path.strip() or "/"
-        if normalized_route and not normalized_route.startswith("/"):
-            normalized_route = f"/{normalized_route}"
-        return f"{self._public_app_url}{normalized_route}?{query_param}={quote(invitation_id)}"
+    def _build_invitation_url(self, invitation_id: str) -> str:
+        return f"{self._public_app_url}/?invitationId={quote(invitation_id)}"
 
     def _format_expiry(self, expires_at: Optional[str]) -> str:
         if not expires_at:

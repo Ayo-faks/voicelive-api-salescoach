@@ -38,13 +38,21 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[FlaskCli
 
 
 def _signup_as_therapist(client: FlaskClient, user_id: str, email: str, name: str = "Test User") -> dict:
-    """Sign up a user through the direct therapist bootstrap flow."""
+    """Sign up a user and promote them to therapist via invite code.
+
+    Uses the storage service directly to create the invite code (admin action),
+    then uses the API to claim it.
+    """
     headers = _auth_headers(user_id, email, name=name)
-    response = client.get("/api/auth/session", headers=headers)
-    assert response.status_code == 200, f"Failed to bootstrap therapist session: {response.get_json()}"
-    payload = response.get_json()
-    assert payload["role"] == "therapist"
-    return payload
+    # Sign up as pending_therapist
+    client.get("/api/auth/session", headers=headers)
+    # Create invite code directly in storage and claim via API
+    storage = app_module.storage_service
+    code = f"CODE-{user_id}"
+    storage.create_invite_code(code, user_id)
+    resp = client.post("/api/auth/claim-invite-code", headers=headers, json={"code": code})
+    assert resp.status_code == 200, f"Failed to claim invite code: {resp.get_json()}"
+    return resp.get_json()
 
 
 def test_protected_routes_require_authentication(client: FlaskClient):
@@ -56,8 +64,8 @@ def test_protected_routes_require_authentication(client: FlaskClient):
         assert response.get_json() == {"error": "Authentication required"}
 
 
-def test_first_user_bootstraps_as_therapist(client: FlaskClient):
-    """The first authenticated principal should bootstrap as a therapist."""
+def test_first_user_bootstraps_as_pending_therapist(client: FlaskClient):
+    """The first authenticated principal should get pending_therapist role."""
     response = client.get(
         "/api/auth/session",
         headers=_auth_headers("user-1", "first@example.com", name="First User"),
@@ -70,15 +78,12 @@ def test_first_user_bootstraps_as_therapist(client: FlaskClient):
     assert payload["name"] == "First User"
     assert payload["email"] == "first@example.com"
     assert payload["provider"] == "aad"
-    assert payload["role"] == "therapist"
-    assert payload["current_workspace_id"] is not None
-    assert len(payload["user_workspaces"]) == 1
-    assert payload["user_workspaces"][0]["role"] == "owner"
-    assert payload["user_workspaces"][0]["is_personal"] is True
+    assert payload["role"] == "pending_therapist"
+    assert payload["user_workspaces"] == []
 
 
-def test_direct_signup_provisions_personal_workspace(client: FlaskClient):
-    """Direct therapist signup should provision a personal workspace."""
+def test_invite_code_upgrades_pending_therapist(client: FlaskClient):
+    """A pending_therapist can claim an invite code to become a therapist."""
     session = _signup_as_therapist(client, "user-1", "first@example.com", name="First User")
 
     assert session["role"] == "therapist"
@@ -88,8 +93,8 @@ def test_direct_signup_provisions_personal_workspace(client: FlaskClient):
     assert session["user_workspaces"][0]["is_personal"] is True
 
 
-def test_all_new_signups_are_therapists(client: FlaskClient):
-    """Every new direct signup should bootstrap as a therapist."""
+def test_all_new_signups_are_pending_therapist(client: FlaskClient):
+    """Every new user who signs up directly gets the pending_therapist role."""
     first_headers = _auth_headers("user-1", "first@example.com", name="First User")
     second_headers = _auth_headers("user-2", "second@example.com", name="Second User")
 
@@ -97,11 +102,11 @@ def test_all_new_signups_are_therapists(client: FlaskClient):
     second_session = client.get("/api/auth/session", headers=second_headers)
 
     assert first_session.status_code == 200
-    assert first_session.get_json()["role"] == "therapist"
-    assert len(first_session.get_json()["user_workspaces"]) == 1
+    assert first_session.get_json()["role"] == "pending_therapist"
+    assert first_session.get_json()["user_workspaces"] == []
     assert second_session.status_code == 200
-    assert second_session.get_json()["role"] == "therapist"
-    assert len(second_session.get_json()["user_workspaces"]) == 1
+    assert second_session.get_json()["role"] == "pending_therapist"
+    assert second_session.get_json()["user_workspaces"] == []
 
 
 def test_invited_user_signs_up_as_parent(client: FlaskClient):

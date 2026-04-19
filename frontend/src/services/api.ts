@@ -10,14 +10,7 @@ import type {
   ChildMemoryItem,
   ChildMemoryProposal,
   ChildInvitation,
-  ChildIntakeProposal,
-  FamilyIntakeInvitation,
   ParentalConsent,
-  ProgressReport,
-  ProgressReportCreateRequest,
-  ProgressReportSummaryRewriteSuggestion,
-  ReportExportFormat,
-  ProgressReportUpdateRequest,
   RecommendationDetail,
   RecommendationLog,
   RecommendationRequest,
@@ -190,8 +183,6 @@ export const api = {
 
   async getScenarios(): Promise<Scenario[]> {
     const res = await fetchWithAuth('/api/scenarios')
-    if (res.status === 401) return []
-    if (!res.ok) throw new Error('Failed to load scenarios')
     return res.json()
   },
 
@@ -293,133 +284,6 @@ export const api = {
     if (!res.ok) {
       const data = await res.json().catch(() => null)
       throw new Error(data?.error || 'Failed to decline invitation')
-    }
-    return res.json()
-  },
-
-  async getFamilyIntakeInvitations(): Promise<FamilyIntakeInvitation[]> {
-    const res = await fetchWithAuth('/api/family-intake/invitations')
-    if (!res.ok) throw new Error('Failed to load family intake invitations')
-    return res.json()
-  },
-
-  async createFamilyIntakeInvitation(payload: {
-    invited_email: string
-    workspace_id?: string
-  }): Promise<FamilyIntakeInvitation> {
-    const res = await fetchWithAuth('/api/family-intake/invitations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => null)
-      throw new Error(data?.error || 'Failed to create family intake invitation')
-    }
-    return res.json()
-  },
-
-  async acceptFamilyIntakeInvitation(invitationId: string): Promise<FamilyIntakeInvitation> {
-    const res = await fetchWithAuth(`/api/family-intake/invitations/${invitationId}/accept`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => null)
-      throw new Error(data?.error || 'Failed to accept family intake invitation')
-    }
-    return res.json()
-  },
-
-  async declineFamilyIntakeInvitation(invitationId: string): Promise<FamilyIntakeInvitation> {
-    const res = await fetchWithAuth(`/api/family-intake/invitations/${invitationId}/decline`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => null)
-      throw new Error(data?.error || 'Failed to decline family intake invitation')
-    }
-    return res.json()
-  },
-
-  async getChildIntakeProposals(): Promise<ChildIntakeProposal[]> {
-    const res = await fetchWithAuth('/api/family-intake/proposals')
-    if (!res.ok) throw new Error('Failed to load child intake proposals')
-    return res.json()
-  },
-
-  async createChildIntakeProposals(payload: {
-    family_intake_invitation_id: string
-    children: Array<{
-      child_name: string
-      date_of_birth?: string
-      notes?: string
-    }>
-  }): Promise<ChildIntakeProposal[]> {
-    const res = await fetchWithAuth('/api/family-intake/proposals', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => null)
-      throw new Error(data?.error || 'Failed to submit child intake proposals')
-    }
-    return res.json()
-  },
-
-  async getPendingChildIntakeProposals(workspaceId?: string): Promise<ChildIntakeProposal[]> {
-    const query = workspaceId ? `?workspace_id=${encodeURIComponent(workspaceId)}` : ''
-    const res = await fetchWithAuth(`/api/family-intake/proposals/pending${query}`)
-    if (!res.ok) throw new Error('Failed to load pending child intake proposals')
-    return res.json()
-  },
-
-  async approveChildIntakeProposal(proposalId: string, review_note?: string): Promise<ChildIntakeProposal> {
-    const res = await fetchWithAuth(`/api/family-intake/proposals/${proposalId}/approve`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ review_note }),
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => null)
-      throw new Error(data?.error || 'Failed to approve child intake proposal')
-    }
-    return res.json()
-  },
-
-  async rejectChildIntakeProposal(proposalId: string, review_note?: string): Promise<ChildIntakeProposal> {
-    const res = await fetchWithAuth(`/api/family-intake/proposals/${proposalId}/reject`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ review_note }),
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => null)
-      throw new Error(data?.error || 'Failed to reject child intake proposal')
-    }
-    return res.json()
-  },
-
-  async resubmitChildIntakeProposal(payload: {
-    proposalId: string
-    child_name: string
-    date_of_birth?: string
-    notes?: string
-  }): Promise<ChildIntakeProposal> {
-    const res = await fetchWithAuth(`/api/family-intake/proposals/${payload.proposalId}/resubmit`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        child_name: payload.child_name,
-        date_of_birth: payload.date_of_birth,
-        notes: payload.notes,
-      }),
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => null)
-      throw new Error(data?.error || 'Failed to resubmit child intake proposal')
     }
     return res.json()
   },
@@ -592,106 +456,6 @@ export const api = {
     return res.json()
   },
 
-  async getChildReports(childId: string, options?: { status?: string; audience?: string; limit?: number }): Promise<ProgressReport[]> {
-    const params = new URLSearchParams()
-    if (options?.status) params.set('status', options.status)
-    if (options?.audience) params.set('audience', options.audience)
-    if (options?.limit != null) params.set('limit', String(options.limit))
-    const query = params.toString()
-    const res = await fetchWithAuth(`/api/children/${childId}/reports${query ? `?${query}` : ''}`)
-    if (!res.ok) throw new Error('Failed to load progress reports')
-    return res.json()
-  },
-
-  async createChildReport(childId: string, payload: ProgressReportCreateRequest): Promise<ProgressReport> {
-    const res = await fetchWithAuth(`/api/children/${childId}/reports`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => null)
-      throw new Error(data?.error || 'Failed to create progress report')
-    }
-    return res.json()
-  },
-
-  async getReport(reportId: string): Promise<ProgressReport> {
-    const res = await fetchWithAuth(`/api/reports/${reportId}`)
-    if (!res.ok) throw new Error('Failed to load progress report')
-    return res.json()
-  },
-
-  async updateReport(reportId: string, payload: ProgressReportUpdateRequest): Promise<ProgressReport> {
-    const res = await fetchWithAuth(`/api/reports/${reportId}/update`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => null)
-      throw new Error(data?.error || 'Failed to update progress report')
-    }
-    return res.json()
-  },
-
-  async suggestReportSummaryRewrite(reportId: string): Promise<ProgressReportSummaryRewriteSuggestion> {
-    const res = await fetchWithAuth(`/api/reports/${reportId}/summary-rewrite`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => null)
-      throw new Error(data?.error || 'Failed to generate report summary suggestion')
-    }
-    return res.json()
-  },
-
-  async approveReport(reportId: string): Promise<ProgressReport> {
-    const res = await fetchWithAuth(`/api/reports/${reportId}/approve`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => null)
-      throw new Error(data?.error || 'Failed to approve progress report')
-    }
-    return res.json()
-  },
-
-  async signReport(reportId: string): Promise<ProgressReport> {
-    const res = await fetchWithAuth(`/api/reports/${reportId}/sign`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => null)
-      throw new Error(data?.error || 'Failed to sign progress report')
-    }
-    return res.json()
-  },
-
-  async archiveReport(reportId: string): Promise<ProgressReport> {
-    const res = await fetchWithAuth(`/api/reports/${reportId}/archive`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => null)
-      throw new Error(data?.error || 'Failed to archive progress report')
-    }
-    return res.json()
-  },
-
-  getReportExportUrl(reportId: string, options?: { download?: boolean; format?: ReportExportFormat }) {
-    const params = new URLSearchParams()
-    params.set('format', options?.format || 'html')
-    if (options?.download) {
-      params.set('download', '1')
-    }
-    return `/api/reports/${reportId}/export?${params.toString()}`
-  },
-
   async getChildMemorySummary(childId: string): Promise<ChildMemorySummary> {
     const res = await fetchWithAuth(`/api/children/${childId}/memory/summary`)
     if (!res.ok) throw new Error('Failed to load child memory summary')
@@ -848,11 +612,14 @@ export const api = {
     return res.json()
   },
 
-  async synthesizeSpeech(text: string): Promise<string> {
+  async synthesizeSpeech(
+    input: string | { text?: string; ssml?: string; phoneme?: string; alphabet?: string; fallback_text?: string }
+  ): Promise<string> {
+    const body = typeof input === 'string' ? { text: input } : input
     const res = await fetchWithAuth('/api/tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify(body),
     })
     if (!res.ok) throw new Error('TTS request failed')
     const data = await res.json()
@@ -871,9 +638,6 @@ export const api = {
     privacy_accepted: boolean
     terms_accepted: boolean
     ai_notice_accepted: boolean
-    personal_data_consent_accepted: boolean
-    special_category_consent_accepted: boolean
-    parental_responsibility_confirmed: boolean
   }): Promise<ParentalConsent> {
     const res = await fetchWithAuth(`/api/children/${childId}/consent`, {
       method: 'POST',

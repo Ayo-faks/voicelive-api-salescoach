@@ -71,16 +71,6 @@ class TestFlaskApp:
 
         assert response.status_code == 404
 
-    def test_audio_processor_route_uses_static_folder(self):
-        """Test audio processor requests are served from the resolved static bundle."""
-        with patch("src.app.send_from_directory") as mock_send:
-            mock_send.return_value = "audio processor"
-
-            response = self.client.get("/audio-processor.js")
-
-            assert response.status_code == 200
-            mock_send.assert_called_once_with(app.static_folder, "audio-processor.js")
-
     def test_index_route_no_static_folder(self):
         """Test index route behavior when static folder is None."""
         original_static_folder = app.static_folder
@@ -156,21 +146,6 @@ class TestFlaskApp:
 
         assert response.status_code == 403
         assert json.loads(response.data)["error"] == "Origin not allowed"
-
-    @patch("src.app.storage_service")
-    def test_mutating_request_allows_local_vite_origin(self, mock_storage_service):
-        mock_storage_service.get_or_create_user.return_value = self._user_payload("admin")
-        mock_storage_service.get_user.return_value = self._user_payload("parent")
-        mock_storage_service.update_user_role.return_value = self._user_payload("therapist")
-
-        response = self.client.post(
-            "/api/users/user-999/role",
-            headers={**self._auth_headers(), "Origin": "http://127.0.0.1:5173"},
-            json={"role": "therapist"},
-        )
-
-        assert response.status_code == 200
-        assert json.loads(response.data)["role"] == "therapist"
 
     @patch("src.app.storage_service")
     def test_mutating_request_rejects_non_json_body(self, mock_storage_service):
@@ -257,116 +232,6 @@ class TestFlaskApp:
         data = json.loads(response.data)
         assert data == mock_scenarios
         mock_scenario_manager.list_scenarios.assert_called_once()
-
-    @patch("src.app.storage_service")
-    def test_get_family_intake_invitations_route(self, mock_storage_service):
-        mock_storage_service.get_or_create_user.return_value = self._user_payload()
-        mock_storage_service.list_family_intake_invitations_for_user.return_value = [
-            {
-                "id": "family-invite-1",
-                "workspace_id": "workspace-1",
-                "workspace_name": "Test Workspace",
-                "invited_email": "parent@example.com",
-                "invited_by_user_id": "user-123",
-                "invited_by_name": "Test User",
-                "accepted_by_user_id": None,
-                "status": "pending",
-                "created_at": "2026-04-15T00:00:00+00:00",
-                "updated_at": "2026-04-15T00:00:00+00:00",
-                "responded_at": None,
-                "expires_at": None,
-                "direction": "sent",
-            }
-        ]
-
-        response = self.client.get("/api/family-intake/invitations", headers=self._auth_headers())
-
-        assert response.status_code == 200
-        data = json.loads(response.data)
-        assert data[0]["id"] == "family-invite-1"
-        mock_storage_service.list_family_intake_invitations_for_user.assert_called_once_with(
-            "user-123",
-            "user@example.com",
-        )
-
-    @patch("src.app._send_family_intake_invitation_email")
-    @patch("src.app.storage_service")
-    def test_create_family_intake_invitation_defaults_to_default_workspace(
-        self,
-        mock_storage_service,
-        mock_send_family_intake_invitation_email,
-    ):
-        mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
-        mock_storage_service.get_default_workspace_for_user.return_value = {"id": "workspace-1"}
-        mock_storage_service.create_family_intake_invitation.return_value = {
-            "id": "family-invite-1",
-            "workspace_id": "workspace-1",
-            "workspace_name": "Test Workspace",
-            "invited_email": "parent@example.com",
-            "invited_by_user_id": "user-123",
-            "invited_by_name": "Test User",
-            "accepted_by_user_id": None,
-            "status": "pending",
-            "created_at": "2026-04-15T00:00:00+00:00",
-            "updated_at": "2026-04-15T00:00:00+00:00",
-            "responded_at": None,
-            "expires_at": None,
-            "direction": "sent",
-        }
-        mock_send_family_intake_invitation_email.return_value = {
-            "status": "not_configured",
-            "attempted": False,
-            "delivered": False,
-            "error": "Email service is not configured",
-        }
-
-        response = self.client.post(
-            "/api/family-intake/invitations",
-            headers={**self._auth_headers(), "Origin": "http://localhost:5173"},
-            json={"invited_email": "parent@example.com"},
-        )
-
-        assert response.status_code == 201
-        data = json.loads(response.data)
-        assert data["workspace_id"] == "workspace-1"
-        mock_storage_service.create_family_intake_invitation.assert_called_once_with(
-            invited_email="parent@example.com",
-            invited_by_user_id="user-123",
-            workspace_id="workspace-1",
-        )
-
-    @patch("src.app.storage_service")
-    def test_get_child_intake_proposals_route(self, mock_storage_service):
-        mock_storage_service.get_or_create_user.return_value = self._user_payload()
-        mock_storage_service.list_child_intake_proposals_for_user.return_value = [
-            {
-                "id": "intake-proposal-1",
-                "family_intake_invitation_id": "family-invite-1",
-                "workspace_id": "workspace-1",
-                "workspace_name": "Test Workspace",
-                "created_by_user_id": "user-123",
-                "created_by_name": "Test User",
-                "reviewed_by_user_id": None,
-                "reviewed_by_name": None,
-                "final_child_id": None,
-                "child_name": "Ayo",
-                "date_of_birth": None,
-                "notes": None,
-                "status": "submitted",
-                "submitted_at": "2026-04-15T00:00:00+00:00",
-                "reviewed_at": None,
-                "review_note": None,
-                "created_at": "2026-04-15T00:00:00+00:00",
-                "updated_at": "2026-04-15T00:00:00+00:00",
-            }
-        ]
-
-        response = self.client.get("/api/family-intake/proposals", headers=self._auth_headers())
-
-        assert response.status_code == 200
-        data = json.loads(response.data)
-        assert data[0]["id"] == "intake-proposal-1"
-        mock_storage_service.list_child_intake_proposals_for_user.assert_called_once_with("user-123")
 
     def test_get_scenarios_route_requires_authentication(self):
         """Test the /api/scenarios endpoint requires auth."""
@@ -977,60 +842,6 @@ class TestFlaskApp:
         assert data["error"] == "Therapist role required"
 
     @patch("src.app.storage_service")
-    def test_save_child_parental_consent_forwards_explicit_gdpr_fields(self, mock_storage_service):
-        """Test the child consent endpoint forwards the explicit GDPR fields to storage."""
-        mock_storage_service.get_or_create_user.return_value = self._user_payload("therapist")
-        mock_storage_service.user_has_child_access.return_value = True
-        mock_storage_service.save_parental_consent.return_value = {
-            "id": "consent-1",
-            "child_id": "child-ayo",
-            "guardian_name": "Parent Example",
-            "guardian_email": "parent@example.com",
-            "consent_type": "full",
-            "privacy_accepted": True,
-            "terms_accepted": True,
-            "ai_notice_accepted": True,
-            "personal_data_consent_accepted": True,
-            "special_category_consent_accepted": True,
-            "parental_responsibility_confirmed": True,
-            "consented_at": "2026-04-14T00:00:00+00:00",
-            "withdrawn_at": None,
-        }
-
-        response = self.client.post(
-            "/api/children/child-ayo/consent",
-            headers={**self._auth_headers(), "Origin": "http://localhost"},
-            json={
-                "guardian_name": "Parent Example",
-                "guardian_email": "parent@example.com",
-                "privacy_accepted": True,
-                "terms_accepted": True,
-                "ai_notice_accepted": True,
-                "personal_data_consent_accepted": True,
-                "special_category_consent_accepted": True,
-                "parental_responsibility_confirmed": True,
-            },
-        )
-
-        assert response.status_code == 201
-        data = json.loads(response.data)
-        assert data["personal_data_consent_accepted"] is True
-        assert data["special_category_consent_accepted"] is True
-        assert data["parental_responsibility_confirmed"] is True
-        mock_storage_service.save_parental_consent.assert_called_once_with(
-            child_id="child-ayo",
-            guardian_name="Parent Example",
-            guardian_email="parent@example.com",
-            privacy_accepted=True,
-            terms_accepted=True,
-            ai_notice_accepted=True,
-            personal_data_consent_accepted=True,
-            special_category_consent_accepted=True,
-            parental_responsibility_confirmed=True,
-            recorded_by_user_id="user-123",
-        )
-
-    @patch("src.app.storage_service")
     def test_get_children_returns_scoped_parent_children(self, mock_storage_service):
         """Test child profile listing is authenticated and scoped to the caller."""
         mock_storage_service.get_or_create_user.return_value = self._user_payload("parent")
@@ -1153,7 +964,7 @@ class TestFlaskApp:
             response = self.client.get("/audio-processor.js")
 
             assert response.status_code == 200
-            mock_send.assert_called_once_with(app.static_folder, "audio-processor.js")
+            mock_send.assert_called_once_with("static", "audio-processor.js")
 
     @patch("src.app.pronunciation_assessor")
     def test_assess_utterance_success(self, mock_pronunciation_assessor):
