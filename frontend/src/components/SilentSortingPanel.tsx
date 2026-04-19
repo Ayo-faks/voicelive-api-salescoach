@@ -240,6 +240,7 @@ interface Props {
   readyToStart?: boolean
   onSendMessage?: (text: string) => void
   onSpeakExerciseText?: (text: string) => Promise<void>
+  onExerciseComplete?: () => void
 }
 
 function getIsMobileSortingMode(): boolean {
@@ -257,6 +258,7 @@ export function SilentSortingPanel({
   readyToStart = true,
   onSendMessage,
   onSpeakExerciseText,
+  onExerciseComplete,
 }: Props) {
   const styles = useStyles()
   const targetSound = metadata?.targetSound || 'target'
@@ -374,18 +376,6 @@ export function SilentSortingPanel({
     return 'Cards to sort'
   }, [errorSound, targetSound])
 
-  const getNarratedBucketLabel = useCallback((bucket: Bucket): string => {
-    if (bucket === 'target') {
-      return `${targetPreviewWord || targetSound} sound home`
-    }
-
-    if (bucket === 'error') {
-      return `${errorPreviewWord || errorSound} sound home`
-    }
-
-    return 'cards to sort'
-  }, [errorPreviewWord, errorSound, targetPreviewWord, targetSound])
-
   const dragEnabled = readyToStart && !mobileFallback
 
   useEffect(() => {
@@ -434,13 +424,15 @@ export function SilentSortingPanel({
     if (expectedBucket === nextBucket) {
       setAssignments(current => ({ ...current, [word]: nextBucket }))
       setLastMove({ word, expectedBucket, attemptedBucket: nextBucket, outcome: 'correct' })
-      onSendMessage?.(`I sorted ${word} into the ${getNarratedBucketLabel(nextBucket)}.`)
       return
     }
 
     setLastMove({ word, expectedBucket, attemptedBucket: nextBucket, outcome: 'incorrect' })
-    onSendMessage?.(`I tried to sort ${word} into the ${getNarratedBucketLabel(nextBucket)}.`)
-  }, [assignments, getExpectedBucket, getNarratedBucketLabel, onSendMessage, readyToStart])
+    // Silent sorting: no per-move agent commentary. Visual feedback only; the
+    // REINFORCE beat speaks once at completion. `onSendMessage` is retained on
+    // the props API but intentionally not invoked during sort actions.
+    void onSendMessage
+  }, [assignments, getExpectedBucket, onSendMessage, readyToStart])
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const word = event.active.data.current?.word as string | undefined
@@ -617,7 +609,7 @@ export function SilentSortingPanel({
         ? 'Starting silent sorting. Preview each sound, then sort.'
         : "Hi, let's listen to two sounds and sort some pictures. Tap each sound to hear it.",
     bridge: 'Now sort the pictures.',
-    reinforce: 'Great sorting! Want another go?',
+    reinforce: 'Great sorting! See you next time.',
   }
 
   const exposeSlot = (
@@ -741,6 +733,14 @@ export function SilentSortingPanel({
         performComplete={performComplete}
         therapistCanSkipIntro={audience === 'therapist'}
         devSlot={devSlot}
+        onBeatEnter={(_phase, beatText) => {
+          if (beatText && onSpeakExerciseText) {
+            void onSpeakExerciseText(beatText)
+          }
+          if (_phase === 'reinforce' && onExerciseComplete) {
+            onExerciseComplete()
+          }
+        }}
       />
     </Card>
   )

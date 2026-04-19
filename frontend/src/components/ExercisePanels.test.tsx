@@ -582,11 +582,14 @@ describe('Exercise panels', () => {
       fireEvent.click(screen.getByRole('button', { name: 'thhh home' }))
       fireEvent.click(screen.getByText('thin'))
 
+      // Silent sorting: no per-move agent commentary. The card is moved into
+      // the target home and `onSendMessage` is never called during a sort.
       await waitFor(() => {
-        expect(handleSendMessage).toHaveBeenCalledWith(
-          'I sorted thin into the thin sound home.',
-        )
+        expect(
+          screen.getByText('thin goes in the thhh home.'),
+        ).toBeTruthy()
       })
+      expect(handleSendMessage).not.toHaveBeenCalled()
     } finally {
       ;(window as unknown as { matchMedia: typeof originalMatchMedia }).matchMedia = originalMatchMedia
     }
