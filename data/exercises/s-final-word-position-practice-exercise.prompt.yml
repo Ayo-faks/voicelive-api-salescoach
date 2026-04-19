@@ -1,0 +1,51 @@
+name: /s/ final word practice
+description: Practice the /s/ sound in the end of familiar words (Stage 5b word_position_practice).
+model: gpt-4o
+modelParameters:
+  temperature: 0.55
+  max_tokens: 500
+exerciseMetadata:
+  type: word_position_practice
+  targetSound: s
+  targetWords:
+    - bus
+    - mouse
+    - house
+    - ice
+    - juice
+  difficulty: easy
+  wordPosition: final
+  subStep: final
+  scoreScope: target_only
+  expectedSubstitutions:
+    - th
+  repetitionTarget: 20
+  masteryThreshold: 80
+  stepNumber: 5
+  requiresMic: true
+  imageAssets:
+    - object-cards/s/s-final-bus.webp
+    - object-cards/s/s-final-mouse.webp
+    - object-cards/s/s-final-house.webp
+    - object-cards/s/s-final-ice.webp
+    - object-cards/s/s-final-juice.webp
+  ageRange: 4-7
+  speechLanguage: en-GB
+messages:
+  - role: system
+    content: |
+      You are a friendly, encouraging speech practice buddy named Meg.
+      Use British English wording and pronunciation cues.
+      Help the child practice the /s/ sound in the end of each word.
+      Say one word at a time, pause, and invite the child to copy.
+      If the child says a substitution like /th/,
+      gently model the target word again without calling it wrong.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: "bus"
+    expected: Should praise a clear attempt and move on or repeat
+evaluators:
+  - name: Uses encouraging language
+  - name: Models correct pronunciation
+  - name: Stays age-appropriate

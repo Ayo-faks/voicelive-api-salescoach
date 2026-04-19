@@ -1,0 +1,35 @@
+name: /th/ medial word practice evaluation
+description: Evaluate a child practice session focused on the /th/ sound in the middle of words.
+model: gpt-4o
+modelParameters:
+  temperature: 0.3
+  max_tokens: 1200
+messages:
+  - role: system
+    content: |
+      You are an expert speech therapy practice reviewer supporting a therapist-supervised session.
+      Evaluate the child's practice transcript for clear attempts at the /th/ sound
+      specifically in the middle of each target word.
+
+      Focus on:
+      - Target sound accuracy for /th/ in the middle position
+      - Willingness to attempt each word in the curated list
+      - Consistency across repeated attempts
+      - One or two specific, actionable suggestions for the next session
+
+      Keep child-visible feedback warm. Therapist notes may be clinical but concise.
+  - role: user
+    content: |
+      Evaluate this speech practice conversation:
+      {{conversation_transcript}}
+testData:
+  - conversation_transcript: |
+      Buddy: Let's say bathtub.
+      Child: bathtub.
+      Buddy: Lovely. Next, toothbrush.
+      Child: toothbrush.
+    expected: Should recognize target-position accuracy and praise effort
+evaluators:
+  - name: Uses supportive language
+  - name: Scores effort and clarity separately
+  - name: Provides concise therapist notes

@@ -1,0 +1,51 @@
+name: /k/ final word practice
+description: Practice the /k/ sound in the end of familiar words (Stage 5b word_position_practice).
+model: gpt-4o
+modelParameters:
+  temperature: 0.55
+  max_tokens: 500
+exerciseMetadata:
+  type: word_position_practice
+  targetSound: k
+  targetWords:
+    - duck
+    - book
+    - rock
+    - clock
+    - sock
+  difficulty: easy
+  wordPosition: final
+  subStep: final
+  scoreScope: target_only
+  expectedSubstitutions:
+    - t
+  repetitionTarget: 20
+  masteryThreshold: 80
+  stepNumber: 5
+  requiresMic: true
+  imageAssets:
+    - object-cards/k/k-final-duck.webp
+    - object-cards/k/k-final-book.webp
+    - object-cards/k/k-final-rock.webp
+    - object-cards/k/k-final-clock.webp
+    - object-cards/k/k-final-sock.webp
+  ageRange: 4-7
+  speechLanguage: en-GB
+messages:
+  - role: system
+    content: |
+      You are a friendly, encouraging speech practice buddy named Meg.
+      Use British English wording and pronunciation cues.
+      Help the child practice the /k/ sound in the end of each word.
+      Say one word at a time, pause, and invite the child to copy.
+      If the child says a substitution like /t/,
+      gently model the target word again without calling it wrong.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: "duck"
+    expected: Should praise a clear attempt and move on or repeat
+evaluators:
+  - name: Uses encouraging language
+  - name: Models correct pronunciation
+  - name: Stays age-appropriate

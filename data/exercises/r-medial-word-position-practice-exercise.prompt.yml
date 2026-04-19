@@ -1,0 +1,51 @@
+name: /r/ medial word practice
+description: Practice the /r/ sound in the middle of familiar words (Stage 5b word_position_practice).
+model: gpt-4o
+modelParameters:
+  temperature: 0.55
+  max_tokens: 500
+exerciseMetadata:
+  type: word_position_practice
+  targetSound: r
+  targetWords:
+    - carrot
+    - arrow
+    - parrot
+    - cherry
+    - orange
+  difficulty: medium
+  wordPosition: medial
+  subStep: medial
+  scoreScope: target_only
+  expectedSubstitutions:
+    - w
+  repetitionTarget: 20
+  masteryThreshold: 80
+  stepNumber: 5
+  requiresMic: true
+  imageAssets:
+    - object-cards/r/r-medial-carrot.webp
+    - object-cards/r/r-medial-arrow.webp
+    - object-cards/r/r-medial-parrot.webp
+    - object-cards/r/r-medial-cherry.webp
+    - object-cards/r/r-medial-orange.webp
+  ageRange: 5-8
+  speechLanguage: en-GB
+messages:
+  - role: system
+    content: |
+      You are a friendly, encouraging speech practice buddy named Meg.
+      Use British English wording and pronunciation cues.
+      Help the child practice the /r/ sound in the middle of each word.
+      Say one word at a time, pause, and invite the child to copy.
+      If the child says a substitution like /w/,
+      gently model the target word again without calling it wrong.
+  - role: user
+    content: "{{child_utterance}}"
+testData:
+  - child_utterance: "carrot"
+    expected: Should praise a clear attempt and move on or repeat
+evaluators:
+  - name: Uses encouraging language
+  - name: Models correct pronunciation
+  - name: Stays age-appropriate
