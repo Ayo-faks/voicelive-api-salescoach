@@ -70,11 +70,7 @@ import type {
   PilotState,
   PlannerReadiness,
   PronunciationAssessment,
-  ProgressReport,
-  ProgressReportCreateRequest,
-  ProgressReportUpdateRequest,
   PracticePlan,
-  ReportExportFormat,
   RecommendationDetail,
   RecommendationLog,
   Scenario,
@@ -85,7 +81,16 @@ import type {
 import { AVATAR_OPTIONS, DEFAULT_AVATAR } from '../types'
 import { APP_TITLE } from './branding'
 import { APP_ROUTE_PARAMS, APP_ROUTES, getDefaultAuthenticatedRoute, resolveAppRoute, type AppRoute } from './routes'
-import { exerciseRequiresMic } from '../utils/exerciseMode'
+import { buildChildIntroInstructions, buildTherapistIntroInstructions } from './introInstructions'
+import { createBeatDispatcher, type BeatDispatcher } from './beatInstructions'
+
+// PR1 Session B — feature flag for beat orchestration. Read once at module
+// load; flipping this requires a rebuild, which matches Vite env semantics.
+const BEAT_ORCHESTRATION_ENABLED = (() => {
+  const raw = (import.meta as unknown as { env?: { VITE_ENABLE_BEAT_ORCHESTRATION?: string | boolean } })
+    .env?.VITE_ENABLE_BEAT_ORCHESTRATION
+  return raw === true || raw === 'true'
+})()
 
 type ConversationTurn = {
   role: string
@@ -130,37 +135,11 @@ type PrewarmedAgent = {
 
 const CHILD_TURN_LIMIT = 10
 const CHILD_MAX_TURNS = 16
-const THERAPIST_TURN_LIMIT = 12
-const THERAPIST_MAX_TURNS = 16
+const THERAPIST_AUTO_SUMMARY_TURN_LIMIT = 4
 const AFFIRMATIVE_FINISH_PATTERN = /\b(yes|yeah|yep|ok|okay|sure|done|finished)\b/i
 const LAUNCH_HANDOFF_DELAY_MS = 240
 const SUMMARY_HANDOFF_DELAY_MS = 1100
 const SESSION_WRAP_UP_DELAY_MS = 3200
-const LISTENING_SESSION_WRAP_UP_DELAY_MS = 5200
-
-function getInitialFinishPromptTurnLimit(isChildMode: boolean): number {
-  return isChildMode ? CHILD_TURN_LIMIT : THERAPIST_TURN_LIMIT
-}
-
-function getMaximumFinishPromptTurnLimit(isChildMode: boolean): number {
-  return isChildMode ? CHILD_MAX_TURNS : THERAPIST_MAX_TURNS
-}
-
-function getFinishPromptInstructions(isChildMode: boolean): string {
-  if (isChildMode) {
-    return 'In one short sentence, ask if the child wants to finish for today and see their session summary now, or keep going for a few more tries. Ask for a yes or no answer and wait for them to reply.'
-  }
-
-  return 'In one short sentence, ask if they want to finish this practice now and open the session summary, or keep going for a few more turns. Ask for a yes or no answer and wait for them to reply.'
-}
-
-function getListeningWrapUpInstructions(isChildMode: boolean): string {
-  if (isChildMode) {
-    return 'Say exactly the following text verbatim in two short, warm sentences with no extra words: Thanks for practicing with me today. I\'m getting your session summary ready now, and I\'ll see you next time.'
-  }
-
-  return 'Say exactly the following text verbatim in two short, warm sentences with no extra words: Thanks for joining today\'s practice. I\'m preparing the session summary now, and I\'ll see you next time.'
-}
 
 function normalizeStoredUserMode(value: string | null): UserMode | null {
   if (value === 'child') {
@@ -180,10 +159,7 @@ function isCustomScenario(
   return Boolean(scenario && 'scenarioData' in scenario)
 }
 
-function getReferenceText(
-  scenario: Scenario | CustomScenario | null,
-  activeVowelBlendTarget?: string | null
-): string {
+function getReferenceText(scenario: Scenario | CustomScenario | null): string {
   if (!scenario) return ''
 
   if (isCustomScenario(scenario)) {
@@ -200,7 +176,7 @@ function getReferenceText(
     }
 
     if (scenario.scenarioData.exerciseType === 'vowel_blending') {
-      return activeVowelBlendTarget || scenario.scenarioData.targetWords[0] || scenario.scenarioData.targetSound
+      return scenario.scenarioData.targetWords[0] || scenario.scenarioData.targetSound
     }
 
     if (
@@ -229,7 +205,7 @@ function getReferenceText(
   }
 
   if (scenario.exerciseMetadata?.type === 'vowel_blending') {
-    return activeVowelBlendTarget || scenario.exerciseMetadata.targetWords?.[0] || scenario.exerciseMetadata.targetSound || ''
+    return scenario.exerciseMetadata.targetWords?.[0] || scenario.exerciseMetadata.targetSound || ''
   }
 
   return scenario.exerciseMetadata?.targetWords?.join(' ') || ''
@@ -247,7 +223,6 @@ function getExerciseMetadata(
       targetWords: scenario.scenarioData.targetWords,
       difficulty: scenario.scenarioData.difficulty,
       childAge: scenario.scenarioData.childAge,
-      requiresMic: exerciseRequiresMic(undefined, scenario.scenarioData.exerciseType),
     }
   }
 
@@ -312,73 +287,6 @@ function getSectionForRoute(route: AppRoute | null): SidebarSection | null {
   }
 
   return null
-}
-
-export function buildChildIntroInstructions({
-  childName,
-  avatarName,
-  avatarPersona,
-  scenarioName,
-  scenarioDescription,
-  requiresMic,
-}: {
-  childName?: string | null
-  avatarName: string
-  avatarPersona: string
-  scenarioName?: string | null
-  scenarioDescription?: string | null
-  requiresMic: boolean
-}): string {
-  const childLabel = childName || 'my friend'
-  const exerciseLabel = scenarioName || "today's practice"
-  const exerciseContext = scenarioDescription
-    ? `Briefly mention this practice focus: ${scenarioDescription}.`
-    : 'Briefly mention that you will practice together.'
-
-  return [
-    `You are ${avatarName}, ${avatarPersona}, and a warm speech-practice buddy for a child named ${childLabel}.`,
-    'Speak first to begin the session.',
-    requiresMic
-      ? `In two short, friendly sentences, greet ${childLabel}, say you are starting ${exerciseLabel}, and tell them to tap the microphone when they are ready to talk.`
-      : `In two short, friendly sentences, greet ${childLabel}, say you are starting ${exerciseLabel}, and tell them to listen for the clue and tap the matching picture.`,
-    exerciseContext,
-    requiresMic ? 'Invite talking only when the child taps the microphone.' : 'Do not mention recording or spoken responses.',
-    'Never use the word "test". Always say "practice" or "exercise".',
-    'Keep the tone calm, encouraging, and child-friendly. Keep it under 35 words.',
-  ].join(' ')
-}
-
-export function buildTherapistIntroInstructions({
-  childName,
-  avatarName,
-  avatarPersona,
-  scenarioName,
-  scenarioDescription,
-  requiresMic,
-}: {
-  childName?: string | null
-  avatarName: string
-  avatarPersona: string
-  scenarioName?: string | null
-  scenarioDescription?: string | null
-  requiresMic: boolean
-}): string {
-  const childLabel = childName || 'the child'
-  const exerciseLabel = scenarioName || "today's practice"
-  const exerciseContext = scenarioDescription
-    ? `Briefly mention this practice focus: ${scenarioDescription}.`
-    : 'Briefly mention that you will guide the practice together.'
-
-  return [
-    `You are ${avatarName}, ${avatarPersona}, and a warm speech-practice buddy supporting a therapist and ${childLabel}.`,
-    'Speak first to begin the session.',
-    requiresMic
-      ? `In two short sentences, welcome the therapist, say you are starting ${exerciseLabel} with ${childLabel}, and ask them to tap the microphone when they are ready to begin.`
-      : `In two short sentences, welcome the therapist, say you are starting ${exerciseLabel} with ${childLabel}, and explain that this is a tap-only listening turn that begins with your clue.`,
-    exerciseContext,
-    requiresMic ? 'Mention the microphone only as the way to begin talking.' : 'Do not mention recording or spoken responses.',
-    'Keep the tone calm, observational, and supportive. Keep it under 35 words.',
-  ].join(' ')
 }
 
 function buildAgentWarmKey(scenarioId: string, avatarValue: string): string {
@@ -883,20 +791,15 @@ export default function App() {
   const [recommendationHistory, setRecommendationHistory] = useState<RecommendationLog[]>([])
   const [selectedRecommendationDetail, setSelectedRecommendationDetail] = useState<RecommendationDetail | null>(null)
   const [selectedPlan, setSelectedPlan] = useState<PracticePlan | null>(null)
-  const [progressReports, setProgressReports] = useState<ProgressReport[]>([])
-  const [selectedReport, setSelectedReport] = useState<ProgressReport | null>(null)
   const [appConfig, setAppConfig] = useState<AppConfig | null>(null)
   const [loadingSessions, setLoadingSessions] = useState(false)
   const [loadingSessionDetail, setLoadingSessionDetail] = useState(false)
   const [loadingPlans, setLoadingPlans] = useState(false)
-  const [loadingReports, setLoadingReports] = useState(false)
   const [loadingMemory, setLoadingMemory] = useState(false)
   const [loadingRecommendations, setLoadingRecommendations] = useState(false)
   const [planSaving, setPlanSaving] = useState(false)
-  const [reportSaving, setReportSaving] = useState(false)
   const [recommendationSaving, setRecommendationSaving] = useState(false)
   const [planError, setPlanError] = useState<string | null>(null)
-  const [reportError, setReportError] = useState<string | null>(null)
   const [memoryError, setMemoryError] = useState<string | null>(null)
   const [recommendationError, setRecommendationError] = useState<string | null>(null)
   const [memoryReviewPendingId, setMemoryReviewPendingId] = useState<string | null>(null)
@@ -921,10 +824,6 @@ export default function App() {
   const [utteranceFeedback, setUtteranceFeedback] =
     useState<PronunciationAssessment | null>(null)
   const [scoringUtterance, setScoringUtterance] = useState(false)
-  const [activeVowelBlendTarget, setActiveVowelBlendTarget] = useState<{
-    scenarioId: string | null
-    target: string
-  } | null>(null)
   const [feedbackRating, setFeedbackRating] = useState<TherapistFeedbackRating | null>(null)
   const [feedbackNote, setFeedbackNote] = useState('')
   const [feedbackSubmittedAt, setFeedbackSubmittedAt] = useState<string | null>(null)
@@ -933,7 +832,6 @@ export default function App() {
   const [consentSaving, setConsentSaving] = useState(false)
   const [consentError, setConsentError] = useState<string | null>(null)
   const [sessionActivityKey, setSessionActivityKey] = useState(0)
-  const [exerciseSpeechActive, setExerciseSpeechActive] = useState(false)
   const [launchInFlight, setLaunchInFlight] = useState(false)
   const prewarmedAgentRef = useRef<PrewarmedAgent | null>(null)
   const prewarmingKeyRef = useRef<string | null>(null)
@@ -945,11 +843,6 @@ export default function App() {
   const summaryHandoffTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null)
   const wrapUpFinishTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null)
   const sendRef = useRef<(msg: unknown) => void>(() => {})
-  const connectedRef = useRef(false)
-  const exerciseSpeechGenerationRef = useRef(0)
-  const exerciseSpeechQueueRef = useRef<Promise<void>>(Promise.resolve())
-  const exerciseSpeechResolveRef = useRef<(() => void) | null>(null)
-  const exerciseSpeechTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null)
   const previousPathRef = useRef(location.pathname)
   const navigationBypassRef = useRef(false)
   const lastQueryChildIdRef = useRef<string | null>(null)
@@ -971,15 +864,11 @@ export default function App() {
     updateCustomScenario,
     deleteCustomScenario,
   } = useScenarios()
-  const { playAudio, stopAudio, getPendingAudioMs } = useAudioPlayer()
+  const { playAudio, stopAudio } = useAudioPlayer()
   const activeScenario = scenarios.find(scenario => scenario.id === selectedScenario) || null
   const selectedChild =
     children.find(child => child.id === selectedChildId) || null
-  const activeVowelBlendReference =
-    activeVowelBlendTarget?.scenarioId === activeScenario?.id
-      ? activeVowelBlendTarget?.target ?? null
-      : null
-  const activeReferenceText = getReferenceText(activeScenario, activeVowelBlendReference)
+  const activeReferenceText = getReferenceText(activeScenario)
   const activeExerciseMetadata = getExerciseMetadata(activeScenario)
   const currentRoute = resolveAppRoute(location.pathname)
   const isDashboardRoute = currentRoute === APP_ROUTES.dashboard
@@ -1001,7 +890,6 @@ export default function App() {
   const querySessionId = searchParams.get(APP_ROUTE_PARAMS.sessionId)
   const queryPlanId = searchParams.get(APP_ROUTE_PARAMS.planId)
   const queryInvitationId = searchParams.get(APP_ROUTE_PARAMS.invitationId)
-  const queryFamilyInvitationId = searchParams.get(APP_ROUTE_PARAMS.familyInvitationId)
   const currentSearch = location.search.startsWith('?') ? location.search.slice(1) : location.search
   const activeAvatarName = getAvatarName(selectedAvatar)
   const activeAvatarPersona = getAvatarPersona(selectedAvatar)
@@ -1011,15 +899,6 @@ export default function App() {
     showLaunchTransition &&
     !launchHandoffReady
   const plannerReadiness: PlannerReadiness | null = appConfig?.planner ?? null
-  const handleActiveBlendChange = useCallback(
-    (blend: string) => {
-      setActiveVowelBlendTarget({
-        scenarioId: selectedScenario || null,
-        target: blend,
-      })
-    },
-    [selectedScenario]
-  )
   const activeSection: SidebarSection = isDashboardRoute
     ? 'dashboard'
     : isSettingsRoute
@@ -1203,8 +1082,6 @@ export default function App() {
   // Pre-compose intro instructions so they're ready the instant the session is ready
   useEffect(() => {
     if (selectedScenario) {
-      const requiresMic = exerciseRequiresMic(activeExerciseMetadata)
-
       pendingIntroRef.current = isChildMode
         ? buildChildIntroInstructions({
             childName: selectedChild?.name,
@@ -1212,7 +1089,8 @@ export default function App() {
             avatarPersona: activeAvatarPersona,
             scenarioName: activeScenario?.name,
             scenarioDescription: activeScenario?.description,
-            requiresMic,
+            exerciseType: activeExerciseMetadata?.type,
+            targetSound: activeExerciseMetadata?.targetSound,
           })
         : buildTherapistIntroInstructions({
             childName: selectedChild?.name,
@@ -1220,12 +1098,45 @@ export default function App() {
             avatarPersona: activeAvatarPersona,
             scenarioName: activeScenario?.name,
             scenarioDescription: activeScenario?.description,
-            requiresMic,
+            exerciseType: activeExerciseMetadata?.type,
+            targetSound: activeExerciseMetadata?.targetSound,
           })
     } else {
       pendingIntroRef.current = null
     }
-  }, [activeAvatarName, activeAvatarPersona, activeExerciseMetadata, activeScenario?.description, activeScenario?.name, isChildMode, selectedChild?.name, selectedScenario])
+  }, [activeAvatarName, activeAvatarPersona, activeExerciseMetadata?.targetSound, activeExerciseMetadata?.type, activeScenario?.description, activeScenario?.name, isChildMode, selectedChild?.name, selectedScenario])
+
+  // PR1 Session B — beat orchestration seam.
+  // Gated behind VITE_ENABLE_BEAT_ORCHESTRATION; OFF by default so the legacy
+  // intro path (pendingIntroRef + response.create in the session-ready effect)
+  // continues to drive avatar speech. When enabled, sendBeat queues beat
+  // instructions until the realtime session is ready, then drains FIFO with
+  // response.cancel + response.create preemption per plan §E.
+  // See docs/exercise-shell-pr1-plan.md §E.1–§E.3.
+  const sessionReadyRef = useRef(false)
+  useEffect(() => {
+    sessionReadyRef.current = sessionReady
+  }, [sessionReady])
+  const beatDispatcherRef = useRef<BeatDispatcher | null>(null)
+  if (BEAT_ORCHESTRATION_ENABLED && beatDispatcherRef.current === null) {
+    beatDispatcherRef.current = createBeatDispatcher({
+      send: envelope => sendRef.current(envelope),
+      isReady: () => sessionReadyRef.current,
+    })
+  }
+  useEffect(() => {
+    if (BEAT_ORCHESTRATION_ENABLED && sessionReady) {
+      beatDispatcherRef.current?.flushIfReady()
+    }
+  }, [sessionReady])
+  const sendBeat = useCallback((instructions: string) => {
+    if (!BEAT_ORCHESTRATION_ENABLED) return
+    beatDispatcherRef.current?.send(instructions)
+  }, [])
+  // Intentionally not wired to any call-site in Session B — wiring lands in a
+  // follow-up PR once the shell's onBeatEnter emits beat events. Reference here
+  // keeps the linter from stripping the helper and documents the contract.
+  void sendBeat
 
   useEffect(() => {
     let cancelled = false
@@ -1316,13 +1227,7 @@ export default function App() {
         window.localStorage.removeItem('wulo.user.mode')
       }
       setShowRoleNotice(false)
-      navigate(
-        {
-          pathname: APP_ROUTES.login,
-          search: location.search,
-        },
-        { replace: true }
-      )
+      navigate(APP_ROUTES.login, { replace: true })
     }
 
     window.addEventListener('auth:expired', handleAuthExpired)
@@ -1331,7 +1236,7 @@ export default function App() {
       cancelled = true
       window.removeEventListener('auth:expired', handleAuthExpired)
     }
-  }, [location.search, navigate, refreshAuthSession, refreshChildren, refreshInvitations, userMode])
+  }, [navigate, refreshAuthSession, refreshChildren, refreshInvitations, userMode])
 
   const handleOpenSession = useCallback(
     async (sessionId: string) => {
@@ -1417,27 +1322,6 @@ export default function App() {
     [isTherapist]
   )
 
-  const handleOpenReportDetail = useCallback(
-    async (reportId: string) => {
-      if (!isTherapist) return
-
-      setLoadingReports(true)
-      setReportError(null)
-
-      try {
-        const report = await api.getReport(reportId)
-        setSelectedReport(report)
-        setProgressReports(current => [report, ...current.filter(item => item.id !== report.id)])
-      } catch (error) {
-        console.error('Failed to load progress report detail:', error)
-        setReportError('Progress report detail could not be loaded right now.')
-      } finally {
-        setLoadingReports(false)
-      }
-    },
-    [isTherapist]
-  )
-
   const handleSelectChild = useCallback(
     (childId: string) => {
       if (!validChildIds.has(childId) || childId === selectedChildId) {
@@ -1449,16 +1333,13 @@ export default function App() {
       setSelectedSession(null)
       setSelectedPlan(null)
       setSelectedRecommendationDetail(null)
-      setSelectedReport(null)
       setSessionSummaries([])
       setChildPlans([])
       setChildMemorySummary(null)
       setChildMemoryItems([])
       setChildMemoryProposals([])
       setRecommendationHistory([])
-      setProgressReports([])
       setPlanError(null)
-      setReportError(null)
       setMemoryError(null)
       setRecommendationError(null)
     },
@@ -1473,19 +1354,16 @@ export default function App() {
 
       setLoadingSessions(true)
       setLoadingPlans(true)
-      setLoadingReports(true)
       setLoadingMemory(true)
       setLoadingRecommendations(true)
       setPlanError(null)
-      setReportError(null)
       setMemoryError(null)
       setRecommendationError(null)
 
       try {
-        const [summaries, plans, reports, memorySummary, memoryItems, memoryProposals, recommendations] = await Promise.all([
+        const [summaries, plans, memorySummary, memoryItems, memoryProposals, recommendations] = await Promise.all([
           api.getChildSessions(childId),
           api.getChildPlans(childId),
-          api.getChildReports(childId, { limit: 20 }),
           api.getChildMemorySummary(childId),
           api.getChildMemoryItems(childId, { includeEvidence: true }),
           api.getChildMemoryProposals(childId, { status: 'pending', includeEvidence: true }),
@@ -1501,17 +1379,10 @@ export default function App() {
 
         setSessionSummaries(summaries)
         setChildPlans(plans)
-        setProgressReports(reports)
         setChildMemorySummary(memorySummary)
         setChildMemoryItems(memoryItems.filter(item => item.status === 'approved' || item.status === 'active'))
         setChildMemoryProposals(memoryProposals)
         setRecommendationHistory(recommendations)
-        setSelectedReport(current => {
-          if (current && reports.some(report => report.id === current.id)) {
-            return reports.find(report => report.id === current.id) || current
-          }
-          return reports[0] || null
-        })
 
         const preferredSessionId =
           (isDashboardRoute && effectiveDashboardSessionId && summaries.some(session => session.id === effectiveDashboardSessionId)
@@ -1577,12 +1448,9 @@ export default function App() {
         setChildMemoryItems([])
         setChildMemoryProposals([])
         setRecommendationHistory([])
-        setProgressReports([])
         setSelectedRecommendationDetail(null)
         setSelectedPlan(null)
-        setSelectedReport(null)
         setPlanError('Practice plans could not be loaded right now.')
-        setReportError('Progress reports could not be loaded right now.')
         setMemoryError('Child memory could not be loaded right now.')
         setRecommendationError('Recommendations could not be loaded right now.')
       } finally {
@@ -1592,7 +1460,6 @@ export default function App() {
         ) {
           setLoadingSessions(false)
           setLoadingPlans(false)
-          setLoadingReports(false)
           setLoadingMemory(false)
           setLoadingRecommendations(false)
         }
@@ -1923,11 +1790,6 @@ export default function App() {
     setSelectedPlan(updatedPlan)
   }, [])
 
-  const upsertReport = useCallback((updatedReport: ProgressReport) => {
-    setSelectedReport(updatedReport)
-    setProgressReports(current => [updatedReport, ...current.filter(report => report.id !== updatedReport.id)])
-  }, [])
-
   const handleCreatePlan = useCallback(
     async (message: string) => {
       if (!selectedChildId || !selectedSession) {
@@ -2119,162 +1981,6 @@ export default function App() {
     [plannerReadiness, selectedChildId, selectedSession?.exercise_metadata?.targetSound, selectedSession?.id]
   )
 
-  const handleCreateReport = useCallback(
-    async (payload: ProgressReportCreateRequest) => {
-      if (!selectedChildId) {
-        setReportError('Choose a child before creating a progress report.')
-        return null
-      }
-
-      setReportSaving(true)
-      setReportError(null)
-
-      try {
-        const report = await api.createChildReport(selectedChildId, payload)
-        upsertReport(report)
-        return report
-      } catch (error) {
-        console.error('Failed to create progress report:', error)
-        setReportError(
-          error instanceof Error ? error.message : 'Progress report creation failed. Try again in a moment.'
-        )
-        return null
-      } finally {
-        setReportSaving(false)
-      }
-    },
-    [selectedChildId, upsertReport]
-  )
-
-  const handleUpdateReport = useCallback(
-    async (payload: ProgressReportUpdateRequest) => {
-      if (!selectedReport) {
-        setReportError('Select a draft report before saving changes.')
-        return null
-      }
-
-      setReportSaving(true)
-      setReportError(null)
-
-      try {
-        const updated = await api.updateReport(selectedReport.id, payload)
-        upsertReport(updated)
-        return updated
-      } catch (error) {
-        console.error('Failed to update progress report:', error)
-        setReportError(
-          error instanceof Error ? error.message : 'Progress report update failed. Try again in a moment.'
-        )
-        return null
-      } finally {
-        setReportSaving(false)
-      }
-    },
-    [selectedReport, upsertReport]
-  )
-
-  const handleSuggestReportSummaryRewrite = useCallback(
-    async (reportId: string) => {
-      setReportSaving(true)
-      setReportError(null)
-
-      try {
-        return await api.suggestReportSummaryRewrite(reportId)
-      } catch (error) {
-        console.error('Failed to generate report summary suggestion:', error)
-        setReportError(
-          error instanceof Error ? error.message : 'Report summary suggestion failed. Try again in a moment.'
-        )
-        return null
-      } finally {
-        setReportSaving(false)
-      }
-    },
-    []
-  )
-
-  const handleOpenReportExport = useCallback(
-    (
-      reportId: string,
-      options?: { mode?: 'preview' | 'download'; format?: ReportExportFormat }
-    ) => {
-      if (typeof window === 'undefined') {
-        return
-      }
-
-      const mode = options?.mode ?? 'preview'
-      const format = options?.format ?? 'html'
-      const url = api.getReportExportUrl(reportId, { download: mode === 'download', format })
-      if (mode === 'download') {
-        window.location.assign(url)
-        return
-      }
-
-      window.open(url, '_blank', 'noopener,noreferrer')
-    },
-    []
-  )
-
-  const handleApproveReport = useCallback(async () => {
-    if (!selectedReport) {
-      setReportError('Choose or create a progress report before approving it.')
-      return
-    }
-
-    setReportSaving(true)
-    setReportError(null)
-
-    try {
-      const approved = await api.approveReport(selectedReport.id)
-      upsertReport(approved)
-    } catch (error) {
-      console.error('Failed to approve progress report:', error)
-      setReportError(error instanceof Error ? error.message : 'Progress report approval failed.')
-    } finally {
-      setReportSaving(false)
-    }
-  }, [selectedReport, upsertReport])
-
-  const handleSignReport = useCallback(async () => {
-    if (!selectedReport) {
-      setReportError('Choose an approved report before signing it.')
-      return
-    }
-
-    setReportSaving(true)
-    setReportError(null)
-
-    try {
-      const signed = await api.signReport(selectedReport.id)
-      upsertReport(signed)
-    } catch (error) {
-      console.error('Failed to sign progress report:', error)
-      setReportError(error instanceof Error ? error.message : 'Progress report signing failed.')
-    } finally {
-      setReportSaving(false)
-    }
-  }, [selectedReport, upsertReport])
-
-  const handleArchiveReport = useCallback(async () => {
-    if (!selectedReport) {
-      setReportError('Choose an approved or signed report before archiving it.')
-      return
-    }
-
-    setReportSaving(true)
-    setReportError(null)
-
-    try {
-      const archived = await api.archiveReport(selectedReport.id)
-      upsertReport(archived)
-    } catch (error) {
-      console.error('Failed to archive progress report:', error)
-      setReportError(error instanceof Error ? error.message : 'Progress report archiving failed.')
-    } finally {
-      setReportSaving(false)
-    }
-  }, [selectedReport, upsertReport])
-
   useEffect(() => {
     if (!isTherapist || !selectedChildId) return
 
@@ -2295,22 +2001,6 @@ export default function App() {
     void handleOpenSession(effectiveDashboardSessionId)
   }, [dashboardSessionIds, effectiveDashboardSessionId, handleOpenSession, isDashboardRoute, loadingSessionDetail, selectedSession?.id])
 
-  const cancelExerciseSpeechQueue = useCallback(() => {
-    if (exerciseSpeechTimerRef.current) {
-      window.clearTimeout(exerciseSpeechTimerRef.current)
-      exerciseSpeechTimerRef.current = null
-    }
-
-    exerciseSpeechGenerationRef.current += 1
-    exerciseSpeechQueueRef.current = Promise.resolve()
-
-    const resolve = exerciseSpeechResolveRef.current
-    exerciseSpeechResolveRef.current = null
-
-    setExerciseSpeechActive(false)
-    resolve?.()
-  }, [])
-
   const clearWrapUpTimers = useCallback(() => {
     if (summaryHandoffTimerRef.current) {
       window.clearTimeout(summaryHandoffTimerRef.current)
@@ -2323,7 +2013,7 @@ export default function App() {
     }
   }, [])
 
-  const beginSessionWrapUp = useCallback((instructions?: string, finishDelayMs = SESSION_WRAP_UP_DELAY_MS) => {
+  const beginSessionWrapUp = useCallback((instructions?: string) => {
     if (wrapUpInProgress) {
       return
     }
@@ -2336,7 +2026,6 @@ export default function App() {
     setWrapUpInProgress(true)
 
     stopSessionRecordingRef.current()
-    cancelExerciseSpeechQueue()
     stopAudio()
     sendRef.current({ type: 'response.cancel' })
     sendRef.current({
@@ -2355,19 +2044,8 @@ export default function App() {
 
     wrapUpFinishTimerRef.current = window.setTimeout(() => {
       setFinishRequested(true)
-    }, finishDelayMs)
-  }, [cancelExerciseSpeechQueue, clearWrapUpTimers, stopAudio, wrapUpInProgress])
-
-  const handleListeningPracticeComplete = useCallback(() => {
-    if (sessionFinished || wrapUpInProgress) {
-      return
-    }
-
-    beginSessionWrapUp(
-      getListeningWrapUpInstructions(isChildMode),
-      LISTENING_SESSION_WRAP_UP_DELAY_MS,
-    )
-  }, [beginSessionWrapUp, isChildMode, sessionFinished, wrapUpInProgress])
+    }, SESSION_WRAP_UP_DELAY_MS)
+  }, [clearWrapUpTimers, stopAudio, wrapUpInProgress])
 
   const handleWebRTCMessage = useCallback((msg: RealtimeMessage) => {
     if (msg.type === 'proxy.connected' || msg.type === 'session.updated') {
@@ -2417,85 +2095,6 @@ export default function App() {
     }
   }, [beginSessionWrapUp])
 
-  const clearExerciseSpeechTimer = useCallback(() => {
-    if (exerciseSpeechTimerRef.current) {
-      window.clearTimeout(exerciseSpeechTimerRef.current)
-      exerciseSpeechTimerRef.current = null
-    }
-  }, [])
-
-  const finishExerciseSpeech = useCallback(() => {
-    clearExerciseSpeechTimer()
-    const resolve = exerciseSpeechResolveRef.current
-    exerciseSpeechResolveRef.current = null
-    setExerciseSpeechActive(false)
-    resolve?.()
-  }, [clearExerciseSpeechTimer])
-
-  const resetExerciseSpeechTracking = useCallback(() => {
-    cancelExerciseSpeechQueue()
-  }, [cancelExerciseSpeechQueue])
-
-  const waitForAssistantAudioDrain = useCallback(() => new Promise<void>(resolve => {
-    const checkAudioDrain = () => {
-      const pendingAudioMs = getPendingAudioMs()
-
-      if (pendingAudioMs <= 0) {
-        resolve()
-        return
-      }
-
-      window.setTimeout(checkAudioDrain, Math.min(250, pendingAudioMs + 40))
-    }
-
-    checkAudioDrain()
-  }), [getPendingAudioMs])
-
-  const speakExerciseText = useCallback((text: string) => {
-    const trimmedText = text.trim()
-
-    if (!trimmedText || !connectedRef.current) {
-      return Promise.resolve()
-    }
-
-    const speechGeneration = exerciseSpeechGenerationRef.current
-
-    setExerciseSpeechActive(true)
-
-    const queuedRun = exerciseSpeechQueueRef.current.then(async () => {
-      await waitForAssistantAudioDrain()
-
-      if (!connectedRef.current || exerciseSpeechGenerationRef.current !== speechGeneration) {
-        setExerciseSpeechActive(false)
-        return
-      }
-
-      return new Promise<void>(resolve => {
-        if (exerciseSpeechGenerationRef.current !== speechGeneration) {
-          resolve()
-          return
-        }
-
-        exerciseSpeechResolveRef.current = resolve
-        clearExerciseSpeechTimer()
-        exerciseSpeechTimerRef.current = window.setTimeout(() => {
-          finishExerciseSpeech()
-        }, 15000)
-
-        sendRef.current({
-          type: 'response.create',
-          response: {
-            modalities: ['audio', 'text'],
-            instructions: `Say exactly the following text verbatim in one turn, with no extra words: ${trimmedText}`,
-          },
-        })
-      })
-    })
-
-    exerciseSpeechQueueRef.current = queuedRun.catch(() => {})
-    return queuedRun
-  }, [clearExerciseSpeechTimer, finishExerciseSpeech, waitForAssistantAudioDrain])
-
   const handleRealtimeTranscript = useCallback(
     (role: 'user' | 'assistant', text: string) => {
       if (role === 'assistant' && text.trim()) {
@@ -2520,13 +2119,6 @@ export default function App() {
         return
       }
 
-      if (role === 'assistant' && exerciseSpeechResolveRef.current) {
-        clearExerciseSpeechTimer()
-        exerciseSpeechTimerRef.current = window.setTimeout(() => {
-          finishExerciseSpeech()
-        }, Math.max(120, getPendingAudioMs() + 40))
-      }
-
       setSessionActivityKey(current => current + 1)
 
       if (
@@ -2540,7 +2132,13 @@ export default function App() {
       const nextTurnCount = childTurnCount + 1
       setChildTurnCount(nextTurnCount)
 
-      const maximumFinishPromptTurnLimit = getMaximumFinishPromptTurnLimit(isChildMode)
+      if (!isChildMode) {
+        if (nextTurnCount >= THERAPIST_AUTO_SUMMARY_TURN_LIMIT) {
+          setFinishRequested(true)
+        }
+
+        return
+      }
 
       if (finishConfirmationPending) {
         if (AFFIRMATIVE_FINISH_PATTERN.test(text)) {
@@ -2551,12 +2149,12 @@ export default function App() {
 
         setFinishConfirmationPending(false)
 
-        if (finishPromptTurnLimit >= maximumFinishPromptTurnLimit) {
+        if (finishPromptTurnLimit >= CHILD_MAX_TURNS) {
           beginSessionWrapUp()
           return
         }
 
-        setFinishPromptTurnLimit(current => Math.min(current + 2, maximumFinishPromptTurnLimit))
+        setFinishPromptTurnLimit(current => Math.min(current + 2, CHILD_MAX_TURNS))
         return
       }
 
@@ -2569,11 +2167,8 @@ export default function App() {
       activeReferenceText,
       beginSessionWrapUp,
       childTurnCount,
-      clearExerciseSpeechTimer,
-      finishExerciseSpeech,
       finishConfirmationPending,
       finishPromptTurnLimit,
-      getPendingAudioMs,
       isChildMode,
       sessionFinished,
       sessionIntroComplete,
@@ -2616,7 +2211,6 @@ export default function App() {
     connectionState,
     connectionMessage,
     messages,
-    addLocalMessage,
     send,
     disconnect,
     clearMessages,
@@ -2633,10 +2227,6 @@ export default function App() {
   useEffect(() => {
     sendRef.current = send
   }, [send])
-
-  useEffect(() => {
-    connectedRef.current = connected
-  }, [connected])
 
   useEffect(() => {
     return () => {
@@ -2670,17 +2260,6 @@ export default function App() {
       },
     })
   }, [connected])
-
-  const recordExerciseSelection = useCallback((text: string) => {
-    const trimmedText = text.trim()
-
-    if (!trimmedText) {
-      return
-    }
-
-    addLocalMessage('user', trimmedText)
-    setSessionActivityKey(current => current + 1)
-  }, [addLocalMessage])
 
   useEffect(() => {
     const previousRoute = resolveAppRoute(previousPathRef.current)
@@ -2853,17 +2432,6 @@ export default function App() {
         return
       }
 
-      if (queryFamilyInvitationId) {
-        navigate(
-          {
-            pathname: APP_ROUTES.settings,
-            search: `?${APP_ROUTE_PARAMS.familyInvitationId}=${encodeURIComponent(queryFamilyInvitationId)}`,
-          },
-          { replace: true }
-        )
-        return
-      }
-
       navigate(
         getDefaultAuthenticatedRoute({
           onboardingComplete,
@@ -2918,7 +2486,6 @@ export default function App() {
     messages.length,
     navigate,
     onboardingComplete,
-    queryFamilyInvitationId,
     queryInvitationId,
     requiresOnboarding,
     showLaunchTransition,
@@ -3100,7 +2667,6 @@ export default function App() {
       await handleToggleRecording()
     }
 
-    resetExerciseSpeechTracking()
     disconnect()
 
     if (currentAgent) {
@@ -3117,7 +2683,7 @@ export default function App() {
     setLaunchHandoffReady(false)
     setScoringUtterance(false)
     setSessionFinished(true)
-  }, [currentAgent, disconnect, handleToggleRecording, recording, releaseAgent, resetExerciseSpeechTracking])
+  }, [currentAgent, disconnect, handleToggleRecording, recording, releaseAgent])
 
   const handleConfirmedFinish = useCallback(async () => {
     clearWrapUpTimers()
@@ -3139,7 +2705,7 @@ export default function App() {
   }, [analyzeCurrentSession, applyAssessmentResult, clearWrapUpTimers, handleFinishPractice])
 
   useEffect(() => {
-    if (!finishPromptQueued || sessionFinished || !connected || exerciseSpeechActive) {
+    if (!finishPromptQueued || !isChildMode || sessionFinished || !connected) {
       return
     }
 
@@ -3150,11 +2716,12 @@ export default function App() {
       type: 'response.create',
       response: {
         modalities: ['audio', 'text'],
-        instructions: getFinishPromptInstructions(isChildMode),
+        instructions:
+          'In one short sentence, ask if the child wants to finish for today and see their session summary now, or keep going for a few more tries. Ask for a yes or no answer and wait for them to reply.',
       },
     })
     setFinishPromptQueued(false)
-  }, [connected, exerciseSpeechActive, finishPromptQueued, isChildMode, send, sessionFinished, stopAudio])
+  }, [connected, finishPromptQueued, isChildMode, send, sessionFinished, stopAudio])
 
   useEffect(() => {
     if (!finishRequested) {
@@ -3166,7 +2733,6 @@ export default function App() {
 
   const sendIdleNudge = useCallback(() => {
     if (
-      exerciseSpeechActive ||
       !isChildMode ||
       !connected ||
       !isSessionRoute ||
@@ -3187,7 +2753,7 @@ export default function App() {
           'In one short sentence, gently check whether the child wants to keep practising. Tell them to tap the microphone if they want another turn.',
       },
     })
-  }, [connected, exerciseSpeechActive, isChildMode, isSessionRoute, recording, scoringUtterance, send, sessionFinished])
+  }, [connected, isChildMode, isSessionRoute, recording, scoringUtterance, send, sessionFinished])
 
   useSessionTimer({
     active:
@@ -3226,11 +2792,10 @@ export default function App() {
 
   useEffect(() => {
     const shouldPrewarm =
-      (authStatus === 'authenticated' &&
-      (((isHomeRoute && !isChildMode && Boolean(selectedChildId)) ||
-        (userMode === 'child' && isHomeRoute)) &&
+      (((!isChildMode && !isDashboardRoute && Boolean(selectedChildId)) ||
+        userMode === 'child') &&
       Boolean(selectedScenario) &&
-      !currentAgent))
+      !currentAgent)
 
     if (!shouldPrewarm || !selectedScenario) {
       const staleAgent = prewarmedAgentRef.current
@@ -3298,11 +2863,10 @@ export default function App() {
       active = false
     }
   }, [
-    authStatus,
     createAgentForSelection,
     currentAgent,
     isChildMode,
-    isHomeRoute,
+    isDashboardRoute,
     releaseAgent,
     selectedAvatar,
     selectedChildId,
@@ -3334,7 +2898,7 @@ export default function App() {
     setSessionIntroComplete(false)
     setSessionFinished(false)
     setChildTurnCount(0)
-    setFinishPromptTurnLimit(getInitialFinishPromptTurnLimit(isChildMode))
+    setFinishPromptTurnLimit(CHILD_TURN_LIMIT)
     setFinishConfirmationPending(false)
     setFinishPromptQueued(false)
     setFinishRequested(false)
@@ -3345,7 +2909,7 @@ export default function App() {
     setShowLaunchTransition(false)
     setLaunchHandoffReady(false)
     setLaunchInFlight(false)
-  }, [clearConversationAudioRecording, clearMessages, clearWrapUpTimers, isChildMode])
+  }, [clearConversationAudioRecording, clearMessages, clearWrapUpTimers])
 
   const startPracticeSession = useCallback(async (avatarValue: string, scenarioOverride?: string) => {
     const activeScenarioId = scenarioOverride ?? selectedScenario
@@ -3380,7 +2944,7 @@ export default function App() {
     setSessionIntroComplete(false)
     setSessionFinished(false)
     setChildTurnCount(0)
-    setFinishPromptTurnLimit(getInitialFinishPromptTurnLimit(isChildMode))
+    setFinishPromptTurnLimit(CHILD_TURN_LIMIT)
     setFinishConfirmationPending(false)
     setFinishPromptQueued(false)
     setFinishRequested(false)
@@ -3414,7 +2978,7 @@ export default function App() {
       setLaunchInFlight(false)
       navigate(APP_ROUTES.home)
     }
-  }, [createAgentForSelection, isChildMode, navigate, selectedScenario])
+  }, [createAgentForSelection, navigate, selectedScenario])
 
   const handleStart = useCallback(async (avatarValue: string, scenarioOverride?: string) => {
     const activeScenarioId = scenarioOverride ?? selectedScenario
@@ -3500,7 +3064,7 @@ export default function App() {
     clearWrapUpTimers()
     setSessionFinished(false)
     setChildTurnCount(0)
-    setFinishPromptTurnLimit(getInitialFinishPromptTurnLimit(isChildMode))
+    setFinishPromptTurnLimit(CHILD_TURN_LIMIT)
     setFinishConfirmationPending(false)
     setFinishPromptQueued(false)
     setFinishRequested(false)
@@ -3514,7 +3078,7 @@ export default function App() {
       window.localStorage.setItem('wulo.user.mode', 'workspace')
     }
     navigate(APP_ROUTES.home)
-  }, [clearWrapUpTimers, isChildMode, navigate])
+  }, [clearWrapUpTimers, navigate])
 
   const handleGoHome = useCallback(() => {
     clearWrapUpTimers()
@@ -3530,7 +3094,7 @@ export default function App() {
     setSessionIntroComplete(false)
     setSessionFinished(false)
     setChildTurnCount(0)
-    setFinishPromptTurnLimit(getInitialFinishPromptTurnLimit(isChildMode))
+    setFinishPromptTurnLimit(CHILD_TURN_LIMIT)
     setFinishConfirmationPending(false)
     setFinishPromptQueued(false)
     setFinishRequested(false)
@@ -3546,7 +3110,7 @@ export default function App() {
     setLaunchInFlight(false)
     setShowRoleNotice(false)
     setMobileSidebarOpen(false)
-  }, [clearConversationAudioRecording, clearMessages, clearWrapUpTimers, disconnect, isChildMode])
+  }, [clearConversationAudioRecording, clearMessages, clearWrapUpTimers, disconnect])
 
   const handleChooseMode = useCallback((mode: UserMode) => {
     if (mode === 'child' && isTherapist && !pilotState?.consent_timestamp) {
@@ -3754,13 +3318,9 @@ export default function App() {
       postLoginParams.set(APP_ROUTE_PARAMS.invitationId, queryInvitationId)
     }
 
-    if (queryFamilyInvitationId) {
-      postLoginParams.set(APP_ROUTE_PARAMS.familyInvitationId, queryFamilyInvitationId)
-    }
-
     const postLoginUrl = `${window.location.origin}${APP_ROUTES.root}${postLoginParams.toString() ? `?${postLoginParams.toString()}` : ''}`
     window.location.href = `/.auth/login/aad?post_login_redirect_uri=${encodeURIComponent(postLoginUrl)}`
-  }, [queryFamilyInvitationId, queryInvitationId])
+  }, [queryInvitationId])
 
   const handleGoogleSignIn = useCallback(() => {
     const postLoginParams = new URLSearchParams()
@@ -3769,13 +3329,9 @@ export default function App() {
       postLoginParams.set(APP_ROUTE_PARAMS.invitationId, queryInvitationId)
     }
 
-    if (queryFamilyInvitationId) {
-      postLoginParams.set(APP_ROUTE_PARAMS.familyInvitationId, queryFamilyInvitationId)
-    }
-
     const postLoginUrl = `${window.location.origin}${APP_ROUTES.root}${postLoginParams.toString() ? `?${postLoginParams.toString()}` : ''}`
     window.location.href = `/.auth/login/google?post_login_redirect_uri=${encodeURIComponent(postLoginUrl)}`
-  }, [queryFamilyInvitationId, queryInvitationId])
+  }, [queryInvitationId])
 
   if (currentRoute === APP_ROUTES.logout) {
     return <LogoutScreen />
@@ -3815,8 +3371,6 @@ export default function App() {
       sessions={sessionSummaries}
       selectedSession={selectedSession}
       selectedPlan={selectedPlan}
-      progressReports={progressReports}
-      selectedReport={selectedReport}
       childMemorySummary={childMemorySummary}
       childMemoryItems={childMemoryItems}
       childMemoryProposals={childMemoryProposals}
@@ -3827,14 +3381,11 @@ export default function App() {
       loadingSessions={loadingSessions}
       loadingSessionDetail={loadingSessionDetail}
       loadingPlans={loadingPlans}
-      loadingReports={loadingReports}
       loadingMemory={loadingMemory}
       loadingRecommendations={loadingRecommendations}
       planSaving={planSaving}
-      reportSaving={reportSaving}
       recommendationSaving={recommendationSaving}
       planError={planError}
-      reportError={reportError}
       memoryError={memoryError}
       recommendationError={recommendationError}
       memoryReviewPendingId={memoryReviewPendingId}
@@ -3845,22 +3396,6 @@ export default function App() {
       }}
       onOpenRecommendationDetail={recommendationId => {
         void handleOpenRecommendationDetail(recommendationId)
-      }}
-      onOpenReportDetail={reportId => {
-        void handleOpenReportDetail(reportId)
-      }}
-      onCreateReport={handleCreateReport}
-      onUpdateReport={handleUpdateReport}
-      onSuggestReportSummaryRewrite={handleSuggestReportSummaryRewrite}
-      onOpenReportExport={handleOpenReportExport}
-      onApproveReport={() => {
-        void handleApproveReport()
-      }}
-      onSignReport={() => {
-        void handleSignReport()
-      }}
-      onArchiveReport={() => {
-        void handleArchiveReport()
       }}
       onCreatePlan={handleCreatePlan}
       onGenerateRecommendations={constraints => {
@@ -3900,7 +3435,6 @@ export default function App() {
       incomingInvitations={incomingInvitations}
       sentInvitations={sentInvitations}
       highlightedInvitationId={queryInvitationId}
-      highlightedFamilyInvitationId={queryFamilyInvitationId}
       invitationDeliveryById={invitationDeliveryById}
       invitationsLoading={invitationsLoading}
       invitationError={invitationError}
@@ -4034,13 +3568,8 @@ export default function App() {
       utteranceFeedback={utteranceFeedback}
       scoringUtterance={scoringUtterance}
       activeReferenceText={activeReferenceText}
-      onActiveBlendChange={handleActiveBlendChange}
       onSendExerciseMessage={sendExerciseMessage}
-      onSpeakExerciseText={speakExerciseText}
-      onRecordExerciseSelection={recordExerciseSelection}
-      onListeningPracticeComplete={handleListeningPracticeComplete}
       onInterruptAvatar={() => {
-        resetExerciseSpeechTracking()
         send({ type: 'response.cancel' })
         stopAudio()
       }}
