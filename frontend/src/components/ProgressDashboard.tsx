@@ -22,7 +22,7 @@ import {
 import type { TabValue } from '@fluentui/react-components'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   CelebrationDonut,
   ComparisonMetricBar,
@@ -47,14 +47,7 @@ import type {
   ChildProfile,
   InstitutionalMemoryInsight,
   PlannerReadiness,
-  ProgressReport,
-  ProgressReportAudience,
-  ProgressReportCreateRequest,
-  ProgressReportRedactionOverrides,
-  ProgressReportSummaryRewriteSuggestion,
-  ProgressReportUpdateRequest,
   PracticePlan,
-  ReportExportFormat,
   RecommendationDetail,
   RecommendationLog,
   SessionDetail,
@@ -76,116 +69,6 @@ const engagementMetrics = [
     max: 10,
   },
 ] as const
-
-type ReportExportMode = 'preview' | 'download'
-type ReportSaveResult = ProgressReport | null | undefined
-
-type NormalizedReportRedactionOverrides = {
-  hide_summary_text: boolean
-  hide_overview_metrics: boolean
-  hide_session_list: boolean
-  hide_internal_metadata: boolean
-  hidden_section_keys: string[]
-}
-
-type SharedReportRedactionToggle = Exclude<keyof NormalizedReportRedactionOverrides, 'hidden_section_keys'>
-
-const SHARED_REPORT_SECTION_OPTIONS: Record<'parent' | 'school', Array<{ key: string; title: string }>> = {
-  parent: [
-    { key: 'overview', title: 'Overview' },
-    { key: 'session-highlights', title: 'Session highlights' },
-    { key: 'family-wins', title: 'What is going well' },
-    { key: 'home-support', title: 'How to support at home' },
-  ],
-  school: [
-    { key: 'overview', title: 'Overview' },
-    { key: 'session-highlights', title: 'Session highlights' },
-    { key: 'school-impact', title: 'School participation impact' },
-    { key: 'classroom-support', title: 'Suggested classroom supports' },
-  ],
-}
-
-const SHARED_REPORT_REDACTION_OPTIONS: Array<{
-  key: SharedReportRedactionToggle
-  label: string
-  helper: string
-}> = [
-  {
-    key: 'hide_summary_text',
-    label: 'Hide executive summary',
-    helper: 'Removes the free-text summary note from shared exports.',
-  },
-  {
-    key: 'hide_overview_metrics',
-    label: 'Hide overview metrics',
-    helper: 'Removes reviewed-session counts and average score cards.',
-  },
-  {
-    key: 'hide_session_list',
-    label: 'Hide included-session list',
-    helper: 'Keeps the shared export from listing each saved session.',
-  },
-  {
-    key: 'hide_internal_metadata',
-    label: 'Hide internal workflow metadata',
-    helper: 'Removes draft status and other internal workflow markers.',
-  },
-]
-
-function isSharedReportAudience(audience: ProgressReportAudience): audience is 'parent' | 'school' {
-  return audience === 'parent' || audience === 'school'
-}
-
-function getSharedReportSectionOptions(audience: ProgressReportAudience): Array<{ key: string; title: string }> {
-  return isSharedReportAudience(audience) ? SHARED_REPORT_SECTION_OPTIONS[audience] : []
-}
-
-function normalizeReportRedactionOverrides(
-  overrides: ProgressReportRedactionOverrides | Record<string, unknown> | null | undefined,
-  audience: ProgressReportAudience,
-): NormalizedReportRedactionOverrides {
-  if (!isSharedReportAudience(audience)) {
-    return {
-      hide_summary_text: false,
-      hide_overview_metrics: false,
-      hide_session_list: false,
-      hide_internal_metadata: false,
-      hidden_section_keys: [],
-    }
-  }
-
-  const availableSectionKeys = new Set(getSharedReportSectionOptions(audience).map(section => section.key))
-  const hiddenSectionKeys = Array.isArray(overrides?.hidden_section_keys)
-    ? overrides.hidden_section_keys
-        .map(sectionKey => String(sectionKey).trim())
-        .filter(sectionKey => sectionKey && availableSectionKeys.has(sectionKey))
-    : []
-
-  return {
-    hide_summary_text: Boolean(overrides?.hide_summary_text),
-    hide_overview_metrics: Boolean(overrides?.hide_overview_metrics),
-    hide_session_list: Boolean(overrides?.hide_session_list),
-    hide_internal_metadata: Boolean(overrides?.hide_internal_metadata),
-    hidden_section_keys: hiddenSectionKeys,
-  }
-}
-
-function buildPersistedReportRedactionOverrides(
-  overrides: NormalizedReportRedactionOverrides,
-  audience: ProgressReportAudience,
-): ProgressReportRedactionOverrides {
-  if (!isSharedReportAudience(audience)) {
-    return {}
-  }
-
-  const persisted: ProgressReportRedactionOverrides = {}
-  if (overrides.hide_summary_text) persisted.hide_summary_text = true
-  if (overrides.hide_overview_metrics) persisted.hide_overview_metrics = true
-  if (overrides.hide_session_list) persisted.hide_session_list = true
-  if (overrides.hide_internal_metadata) persisted.hide_internal_metadata = true
-  if (overrides.hidden_section_keys.length) persisted.hidden_section_keys = overrides.hidden_section_keys
-  return persisted
-}
 
 const useStyles = makeStyles({
   shell: {
@@ -1045,60 +928,6 @@ const useStyles = makeStyles({
     backgroundColor: 'rgba(244, 249, 249, 0.92)',
     minWidth: 0,
   },
-  reportScopeGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-    gap: '12px',
-    '@media (max-width: 720px)': {
-      gridTemplateColumns: '1fr',
-    },
-  },
-  reportDateInput: {
-    width: '100%',
-    minHeight: '36px',
-    borderRadius: 'var(--radius-md)',
-    border: '1px solid rgba(15, 42, 58, 0.14)',
-    padding: '0 12px',
-    font: 'inherit',
-    color: 'var(--color-text-primary)',
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
-  },
-  reportSessionSelection: {
-    display: 'grid',
-    gap: '10px',
-    padding: '12px 14px',
-    border: '1px solid rgba(15, 42, 58, 0.12)',
-    backgroundColor: 'rgba(255, 255, 255, 0.92)',
-  },
-  reportSessionSelectionList: {
-    display: 'grid',
-    gap: '8px',
-    maxHeight: '280px',
-    overflowY: 'auto' as const,
-    paddingRight: '4px',
-  },
-  reportSessionOption: {
-    display: 'grid',
-    gridTemplateColumns: '18px minmax(0, 1fr)',
-    gap: '10px',
-    alignItems: 'start',
-    padding: '10px 12px',
-    border: '1px solid rgba(15, 42, 58, 0.1)',
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
-    cursor: 'pointer',
-  },
-  reportSessionOptionSelected: {
-    border: '1px solid rgba(13, 138, 132, 0.24)',
-    backgroundColor: 'rgba(13, 138, 132, 0.08)',
-  },
-  reportSessionCheckbox: {
-    marginTop: '3px',
-  },
-  reportSessionCopy: {
-    display: 'grid',
-    gap: '4px',
-    minWidth: 0,
-  },
   recommendationLayout: {
     display: 'grid',
     gridTemplateColumns: 'minmax(220px, 300px) minmax(0, 1fr)',
@@ -1321,55 +1150,6 @@ function formatShortDate(timestamp?: string | null) {
   }).format(new Date(timestamp))
 }
 
-function formatDateInputValue(timestamp?: string | null) {
-  const text = String(timestamp || '').trim()
-  if (!text) return ''
-
-  const match = text.match(/^(\d{4}-\d{2}-\d{2})/)
-  if (match) {
-    return match[1]
-  }
-
-  const parsed = new Date(text)
-  if (Number.isNaN(parsed.getTime())) {
-    return ''
-  }
-
-  return parsed.toISOString().slice(0, 10)
-}
-
-function toStartOfDayIso(dateValue: string) {
-  return dateValue ? `${dateValue}T00:00:00+00:00` : undefined
-}
-
-function toEndOfDayIso(dateValue: string) {
-  return dateValue ? `${dateValue}T23:59:59+00:00` : undefined
-}
-
-function sessionFallsWithinDateRange(session: SessionSummary, startDate: string, endDate: string) {
-  const sessionDate = formatDateInputValue(session.timestamp)
-  if (!sessionDate) return false
-  if (startDate && sessionDate < startDate) return false
-  if (endDate && sessionDate > endDate) return false
-  return true
-}
-
-function getDefaultReportDateRange(sessions: SessionSummary[]) {
-  if (!sessions.length) {
-    return { start: '', end: '' }
-  }
-
-  const sortedDates = sessions
-    .map(session => formatDateInputValue(session.timestamp))
-    .filter(Boolean)
-    .sort()
-
-  return {
-    start: sortedDates[0] || '',
-    end: sortedDates[sortedDates.length - 1] || '',
-  }
-}
-
 function buildChildMemoryItemMap(items: ChildMemoryItem[]) {
   return new Map(items.map(item => [item.id, item]))
 }
@@ -1584,8 +1364,6 @@ interface Props {
   sessions: SessionSummary[]
   selectedSession: SessionDetail | null
   selectedPlan: PracticePlan | null
-  progressReports: ProgressReport[]
-  selectedReport: ProgressReport | null
   childMemorySummary: ChildMemorySummary | null
   childMemoryItems: ChildMemoryItem[]
   childMemoryProposals: ChildMemoryProposal[]
@@ -1596,14 +1374,11 @@ interface Props {
   loadingSessions: boolean
   loadingSessionDetail: boolean
   loadingPlans: boolean
-  loadingReports: boolean
   loadingMemory: boolean
   loadingRecommendations: boolean
   planSaving: boolean
-  reportSaving: boolean
   recommendationSaving: boolean
   planError: string | null
-  reportError: string | null
   memoryError: string | null
   recommendationError: string | null
   memoryReviewPendingId: string | null
@@ -1611,14 +1386,6 @@ interface Props {
   onSelectChild: (childId: string) => void
   onOpenSession: (sessionId: string) => void
   onOpenRecommendationDetail: (recommendationId: string) => void | Promise<void>
-  onOpenReportDetail: (reportId: string) => void | Promise<void>
-  onCreateReport: (payload: ProgressReportCreateRequest) => ReportSaveResult | Promise<ReportSaveResult>
-  onUpdateReport: (payload: ProgressReportUpdateRequest) => ReportSaveResult | Promise<ReportSaveResult>
-  onSuggestReportSummaryRewrite: (reportId: string) => Promise<ProgressReportSummaryRewriteSuggestion | null>
-  onOpenReportExport: (reportId: string, options?: { mode?: ReportExportMode; format?: ReportExportFormat }) => void
-  onApproveReport: () => void | Promise<void>
-  onSignReport: () => void | Promise<void>
-  onArchiveReport: () => void | Promise<void>
   onGenerateRecommendations: (therapistConstraints: string) => void | Promise<void>
   onCreatePlan: (message: string) => void | Promise<void>
   onRefinePlan: (message: string) => void | Promise<void>
@@ -1630,7 +1397,7 @@ interface Props {
   onExitToEntry: () => void
 }
 
-type DashboardTab = 'session-detail' | 'memory' | 'recommendations' | 'reports' | 'plan'
+type DashboardTab = 'session-detail' | 'memory' | 'recommendations' | 'plan'
 
 export function ProgressDashboard({
   childProfiles,
@@ -1638,8 +1405,6 @@ export function ProgressDashboard({
   sessions,
   selectedSession,
   selectedPlan,
-  progressReports,
-  selectedReport,
   childMemorySummary,
   childMemoryItems,
   childMemoryProposals,
@@ -1650,14 +1415,11 @@ export function ProgressDashboard({
   loadingSessions,
   loadingSessionDetail,
   loadingPlans,
-  loadingReports,
   loadingMemory,
   loadingRecommendations,
   planSaving,
-  reportSaving,
   recommendationSaving,
   planError,
-  reportError,
   memoryError,
   recommendationError,
   memoryReviewPendingId,
@@ -1665,14 +1427,6 @@ export function ProgressDashboard({
   onSelectChild,
   onOpenSession,
   onOpenRecommendationDetail,
-  onOpenReportDetail,
-  onCreateReport,
-  onUpdateReport,
-  onSuggestReportSummaryRewrite,
-  onOpenReportExport,
-  onApproveReport,
-  onSignReport,
-  onArchiveReport,
   onGenerateRecommendations,
   onCreatePlan,
   onRefinePlan,
@@ -1686,14 +1440,6 @@ export function ProgressDashboard({
   const styles = useStyles()
   const [planPrompt, setPlanPrompt] = useState('')
   const [recommendationPrompt, setRecommendationPrompt] = useState('')
-  const [reportAudience, setReportAudience] = useState<ProgressReportAudience>('therapist')
-  const [reportTitle, setReportTitle] = useState('')
-  const [reportSummary, setReportSummary] = useState('')
-  const [reportSummarySuggestion, setReportSummarySuggestion] = useState<ProgressReportSummaryRewriteSuggestion | null>(null)
-  const [reportPeriodStartDate, setReportPeriodStartDate] = useState('')
-  const [reportPeriodEndDate, setReportPeriodEndDate] = useState('')
-  const [reportSelectedSessionIds, setReportSelectedSessionIds] = useState<string[]>([])
-  const [reportRedactionOverrides, setReportRedactionOverrides] = useState<NormalizedReportRedactionOverrides>(() => normalizeReportRedactionOverrides({}, 'therapist'))
   const [manualMemoryCategory, setManualMemoryCategory] = useState<ChildMemoryCategory>('general')
   const [manualMemoryStatement, setManualMemoryStatement] = useState('')
   const [breakdownViewBySession, setBreakdownViewBySession] = useState<Record<string, 'articulation' | 'engagement'>>({})
@@ -1706,8 +1452,6 @@ export function ProgressDashboard({
   const trendLabel = getTrendLabel(sessions)
   const trendChartData = getTrendChartData(sessions, formatShortDate, formatTimestamp)
   const soundBreakdown = getSoundAccuracyBreakdown(sessions)
-  const reportSessionsInRange = sessions.filter(session => sessionFallsWithinDateRange(session, reportPeriodStartDate, reportPeriodEndDate))
-  const reportComposerCanSubmit = Boolean(selectedChildId && reportSelectedSessionIds.length > 0)
   const hasTrendVisualization = trendChartData.some(point => point.overall != null || point.accuracy != null || point.pronunciation != null)
   const hasSoundVisualization = soundBreakdown.length > 0
   const isSparseDashboard = sessions.length < 2 && !hasSoundVisualization
@@ -1740,50 +1484,6 @@ export function ProgressDashboard({
   const institutionalInsights = Array.isArray(institutionalMemorySnapshot?.insights)
     ? institutionalMemorySnapshot.insights
     : []
-  const sharedReportSectionOptions = getSharedReportSectionOptions(reportAudience)
-  const hiddenSharedSectionCount = reportRedactionOverrides.hidden_section_keys.length
-  const hiddenSharedFieldCount = SHARED_REPORT_REDACTION_OPTIONS.filter(option => reportRedactionOverrides[option.key]).length
-
-  useEffect(() => {
-    if (selectedReport) {
-      const selectedIds = selectedReport.included_session_ids.length
-        ? selectedReport.included_session_ids
-        : sessions
-          .filter(session => sessionFallsWithinDateRange(
-            session,
-            formatDateInputValue(selectedReport.period_start),
-            formatDateInputValue(selectedReport.period_end),
-          ))
-          .map(session => session.id)
-
-      setReportAudience(selectedReport.audience)
-      setReportTitle(selectedReport.title)
-      setReportSummary(selectedReport.summary_text || '')
-      setReportSummarySuggestion(null)
-      setReportPeriodStartDate(formatDateInputValue(selectedReport.period_start))
-      setReportPeriodEndDate(formatDateInputValue(selectedReport.period_end))
-      setReportSelectedSessionIds(selectedIds)
-      setReportRedactionOverrides(normalizeReportRedactionOverrides(selectedReport.redaction_overrides, selectedReport.audience))
-      return
-    }
-
-    if (!sessions.length) {
-      setReportAudience('therapist')
-      setReportTitle('')
-      setReportSummary('')
-      setReportSummarySuggestion(null)
-      setReportPeriodStartDate('')
-      setReportPeriodEndDate('')
-      setReportSelectedSessionIds([])
-      setReportRedactionOverrides(normalizeReportRedactionOverrides({}, 'therapist'))
-      return
-    }
-
-    const defaultRange = getDefaultReportDateRange(sessions)
-    setReportPeriodStartDate(current => current || defaultRange.start)
-    setReportPeriodEndDate(current => current || defaultRange.end)
-    setReportSelectedSessionIds(current => current.length ? current.filter(id => sessions.some(session => session.id === id)) : sessions.map(session => session.id))
-  }, [selectedReport, sessions])
 
   function setSessionBreakdownView(view: 'articulation' | 'engagement') {
     if (!selectedSession?.id) return
@@ -1809,147 +1509,6 @@ export function ProgressDashboard({
   function handleGenerateRecommendation() {
     Promise.resolve(onGenerateRecommendations(recommendationPrompt.trim())).then(() => {
       setRecommendationPrompt('')
-    })
-  }
-
-  function updateReportWindow(nextStartDate: string, nextEndDate: string) {
-    setReportPeriodStartDate(nextStartDate)
-    setReportPeriodEndDate(nextEndDate)
-    setReportSelectedSessionIds(current => current.filter(id => {
-      const matchingSession = sessions.find(session => session.id === id)
-      return matchingSession ? sessionFallsWithinDateRange(matchingSession, nextStartDate, nextEndDate) : false
-    }))
-  }
-
-  function toggleReportSession(sessionId: string) {
-    setReportSelectedSessionIds(current => (
-      current.includes(sessionId)
-        ? current.filter(id => id !== sessionId)
-        : [...current, sessionId]
-    ))
-  }
-
-  function handleSelectAllReportSessions() {
-    setReportSelectedSessionIds(reportSessionsInRange.map(session => session.id))
-  }
-
-  function handleClearReportSessions() {
-    setReportSelectedSessionIds([])
-  }
-
-  function handleReportAudienceChange(nextAudience: ProgressReportAudience) {
-    setReportAudience(nextAudience)
-    setReportRedactionOverrides(current => normalizeReportRedactionOverrides(current, nextAudience))
-  }
-
-  function handleReportSummaryChange(nextSummary: string) {
-    setReportSummary(nextSummary)
-    setReportSummarySuggestion(null)
-  }
-
-  function toggleReportRedactionOverride(key: SharedReportRedactionToggle) {
-    setReportRedactionOverrides(current => normalizeReportRedactionOverrides({
-      ...current,
-      [key]: !current[key],
-    }, reportAudience))
-  }
-
-  function toggleReportSectionVisibility(sectionKey: string) {
-    setReportRedactionOverrides(current => {
-      const hiddenKeys = current.hidden_section_keys.includes(sectionKey)
-        ? current.hidden_section_keys.filter(key => key !== sectionKey)
-        : [...current.hidden_section_keys, sectionKey]
-
-      return normalizeReportRedactionOverrides(
-        {
-          ...current,
-          hidden_section_keys: hiddenKeys,
-        },
-        reportAudience,
-      )
-    })
-  }
-
-  function buildReportComposerPayload(): ProgressReportCreateRequest {
-    return {
-      audience: reportAudience,
-      title: reportTitle.trim() || undefined,
-      summary_text: reportSummary.trim() || undefined,
-      period_start: toStartOfDayIso(reportPeriodStartDate),
-      period_end: toEndOfDayIso(reportPeriodEndDate),
-      included_session_ids: reportSelectedSessionIds,
-      redaction_overrides: buildPersistedReportRedactionOverrides(reportRedactionOverrides, reportAudience),
-    }
-  }
-
-  function handleCreateReport() {
-    Promise.resolve(onCreateReport(buildReportComposerPayload())).then(result => {
-      if (result === null) {
-        return
-      }
-      setActiveTab('reports')
-    })
-  }
-
-  function handleSaveReport() {
-    if (!selectedReport) {
-      return
-    }
-
-    Promise.resolve(onUpdateReport(buildReportComposerPayload())).then(result => {
-      if (result === null) {
-        return
-      }
-      setReportSummarySuggestion(null)
-      setActiveTab('reports')
-    })
-  }
-
-  function handleSuggestReportSummaryRewrite() {
-    if (!selectedReport || selectedReport.status !== 'draft') {
-      return
-    }
-
-    void (async () => {
-      const result = await onUpdateReport(buildReportComposerPayload())
-      if (!result) {
-        return
-      }
-
-      const suggestion = await onSuggestReportSummaryRewrite(result.id)
-      if (!suggestion) {
-        return
-      }
-
-      setReportSummarySuggestion(suggestion)
-    })()
-  }
-
-  function handleApplySuggestedReportSummary() {
-    if (!reportSummarySuggestion) {
-      return
-    }
-
-    setReportSummary(reportSummarySuggestion.suggested_summary_text)
-    setReportSummarySuggestion(null)
-  }
-
-  function handleOpenSelectedReportExport(format: ReportExportFormat, mode: ReportExportMode = 'preview') {
-    if (!selectedReport) {
-      return
-    }
-
-    const openExport = () => onOpenReportExport(selectedReport.id, { format, mode })
-    if (selectedReport.status !== 'draft') {
-      openExport()
-      return
-    }
-
-    Promise.resolve(onUpdateReport(buildReportComposerPayload())).then(result => {
-      if (result === null) {
-        return
-      }
-      openExport()
     })
   }
 
@@ -2034,24 +1593,6 @@ export function ProgressDashboard({
       copy: planMemorySnapshot?.summary_last_compiled_at
         ? `Snapshot ${formatTimestamp(planMemorySnapshot.summary_last_compiled_at)}`
         : 'Memory snapshot appears when a plan has been generated.',
-    },
-  ]
-
-  const reportOverviewCards = [
-    {
-      label: 'Saved reports',
-      value: String(progressReports.length),
-      copy: progressReports.length ? 'Each report keeps its audience, snapshot, and approval state.' : 'No reports have been created for this child yet.',
-    },
-    {
-      label: 'Selected audience',
-      value: selectedReport ? selectedReport.audience : reportAudience,
-      copy: selectedReport ? formatTimestamp(selectedReport.updated_at) : 'Choose an audience profile before generating a draft.',
-    },
-    {
-      label: 'Included sessions',
-      value: String(selectedReport?.included_session_ids.length ?? 0),
-      copy: selectedReport?.summary_text || 'Reports compile saved session reviews, approved memory, planning, and recommendation context.',
     },
   ]
 
@@ -2285,7 +1826,6 @@ export function ProgressDashboard({
               <Tab className={styles.topTab} value="session-detail">Session detail</Tab>
               <Tab className={styles.topTab} value="memory">Memory</Tab>
               <Tab className={styles.topTab} value="recommendations">Recommendations</Tab>
-              <Tab className={styles.topTab} value="reports">Reports</Tab>
               <Tab className={styles.topTab} value="plan">Plan</Tab>
             </TabList>
 
@@ -3057,455 +2597,6 @@ export function ProgressDashboard({
                         ) : (
                           <div className={styles.emptyState}>
                             <Text>Select a recommendation run to inspect its rationale and provenance.</Text>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : null}
-
-            {activeTab === 'reports' ? (
-              <div className={mergeClasses(styles.tabPanel, styles.tabPanelCard)}>
-                <div className={styles.tabOverviewGrid}>
-                  {reportOverviewCards.map(card => (
-                    <div className={styles.overviewCard} key={card.label}>
-                      <Text className={styles.combinedReviewLabel}>{card.label}</Text>
-                      <Text className={styles.overviewValue}>{card.value}</Text>
-                      <Text size={200}>{card.copy}</Text>
-                    </div>
-                  ))}
-                </div>
-
-                <div className={styles.recommendationSection}>
-                  <div>
-                    <Text className={styles.sectionTitle} size={400} weight="semibold">
-                      Audience-specific progress reports
-                    </Text>
-                    <Text className={styles.helperText} size={300}>
-                      Generate a reusable report draft from reviewed sessions, approved child memory, planning context, and saved recommendation history. Drafts can be edited, approved, signed, and archived.
-                    </Text>
-                  </div>
-
-                  <div className={styles.recommendationComposer}>
-                    <Field label="Audience">
-                      <Dropdown
-                        value={reportAudience}
-                        selectedOptions={[reportAudience]}
-                        onOptionSelect={(_, data) => {
-                          if (data.optionValue === 'therapist' || data.optionValue === 'parent' || data.optionValue === 'school') {
-                            handleReportAudienceChange(data.optionValue)
-                          }
-                        }}
-                      >
-                        <Option value="therapist">Therapist</Option>
-                        <Option value="parent">Parent</Option>
-                        <Option value="school">School</Option>
-                      </Dropdown>
-                    </Field>
-                    <div className={styles.reportScopeGrid}>
-                      <Field label="Review window start">
-                        <input
-                          className={styles.reportDateInput}
-                          type="date"
-                          value={reportPeriodStartDate}
-                          onChange={event => updateReportWindow(event.target.value, reportPeriodEndDate)}
-                        />
-                      </Field>
-                      <Field label="Review window end">
-                        <input
-                          className={styles.reportDateInput}
-                          type="date"
-                          value={reportPeriodEndDate}
-                          onChange={event => updateReportWindow(reportPeriodStartDate, event.target.value)}
-                        />
-                      </Field>
-                    </div>
-                    <Field label="Report title">
-                      <Textarea
-                        value={reportTitle}
-                        resize="vertical"
-                        placeholder="Example: Ayo parent progress update"
-                        onChange={(_, data) => setReportTitle(data.value)}
-                      />
-                    </Field>
-                    <Field label="Executive summary note">
-                      <Textarea
-                        value={reportSummary}
-                        resize="vertical"
-                        placeholder="Optional note to keep at the top of the draft."
-                        onChange={(_, data) => handleReportSummaryChange(data.value)}
-                      />
-                    </Field>
-                    {selectedReport?.status === 'draft' ? (
-                      <div className={styles.sectionBlock}>
-                        <div className={styles.summaryRow}>
-                          <Text className={styles.sectionTitle} size={300} weight="semibold">
-                            Draft-only summary rewrite
-                          </Text>
-                          <Badge appearance="tint" className={styles.scoreBadge}>
-                            Human review required
-                          </Badge>
-                        </div>
-                        <Text className={styles.helperText} size={200}>
-                          Generate a rewrite suggestion from the current saved draft, review it, then choose whether to apply it to the editor. Nothing is saved automatically.
-                        </Text>
-                        <div className={styles.memoryActionRow}>
-                          <Button appearance="secondary" disabled={reportSaving || !reportComposerCanSubmit} onClick={handleSuggestReportSummaryRewrite}>
-                            Suggest rewrite
-                          </Button>
-                          {reportSummarySuggestion ? (
-                            <>
-                              <Badge appearance="filled" className={styles.scoreBadgeTeal}>
-                                Draft only
-                              </Badge>
-                              <Button appearance="secondary" disabled={reportSaving} onClick={handleApplySuggestedReportSummary}>
-                                Apply suggestion to editor
-                              </Button>
-                            </>
-                          ) : null}
-                        </div>
-                        {reportSummarySuggestion ? (
-                          <div className={styles.memorySummaryGrid}>
-                            <div className={styles.memoryCard}>
-                              <Text className={styles.combinedReviewLabel}>Current saved summary</Text>
-                              <Text size={200}>{reportSummarySuggestion.source_summary_text || 'No saved summary note yet.'}</Text>
-                            </div>
-                            <div className={styles.memoryCard}>
-                              <Text className={styles.combinedReviewLabel}>Suggested rewrite</Text>
-                              <Text size={200}>{reportSummarySuggestion.suggested_summary_text}</Text>
-                            </div>
-                          </div>
-                        ) : null}
-                      </div>
-                    ) : null}
-                    {isSharedReportAudience(reportAudience) ? (
-                      <div className={styles.reportSessionSelection}>
-                        <div>
-                          <Text className={styles.sectionTitle} size={300} weight="semibold">
-                            Shared export controls
-                          </Text>
-                          <Text className={styles.helperText} size={200}>
-                            Parent and school exports can hide selected fields before HTML preview or true PDF generation.
-                          </Text>
-                        </div>
-                        <div className={styles.memoryActionRow}>
-                          <Badge appearance="tint" className={styles.scoreBadge}>
-                            {hiddenSharedFieldCount} fields hidden
-                          </Badge>
-                          <Badge appearance="tint" className={styles.scoreBadge}>
-                            {hiddenSharedSectionCount} sections hidden
-                          </Badge>
-                        </div>
-                        <div className={styles.reportSessionSelectionList}>
-                          {SHARED_REPORT_REDACTION_OPTIONS.map(option => {
-                            const isSelected = reportRedactionOverrides[option.key]
-
-                            return (
-                              <label
-                                className={mergeClasses(styles.reportSessionOption, isSelected && styles.reportSessionOptionSelected)}
-                                key={option.key}
-                              >
-                                <input
-                                  className={styles.reportSessionCheckbox}
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  onChange={() => toggleReportRedactionOverride(option.key)}
-                                />
-                                <div className={styles.reportSessionCopy}>
-                                  <Text size={300} weight="semibold">
-                                    {option.label}
-                                  </Text>
-                                  <Text size={200}>{option.helper}</Text>
-                                </div>
-                              </label>
-                            )
-                          })}
-                        </div>
-                        <div>
-                          <Text className={styles.sectionTitle} size={300} weight="semibold">
-                            Hide individual sections
-                          </Text>
-                          <Text className={styles.helperText} size={200}>
-                            Exclude any generated section that should not appear in the shared version of this report.
-                          </Text>
-                        </div>
-                        <div className={styles.reportSessionSelectionList}>
-                          {sharedReportSectionOptions.map(section => {
-                            const isSelected = reportRedactionOverrides.hidden_section_keys.includes(section.key)
-
-                            return (
-                              <label
-                                className={mergeClasses(styles.reportSessionOption, isSelected && styles.reportSessionOptionSelected)}
-                                key={section.key}
-                              >
-                                <input
-                                  className={styles.reportSessionCheckbox}
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  onChange={() => toggleReportSectionVisibility(section.key)}
-                                />
-                                <div className={styles.reportSessionCopy}>
-                                  <Text size={300} weight="semibold">
-                                    Hide {section.title}
-                                  </Text>
-                                  <Text size={200}>Removes this section from the shared export preview and PDF.</Text>
-                                </div>
-                              </label>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    ) : null}
-                    <div className={styles.reportSessionSelection}>
-                      <div>
-                        <Text className={styles.sectionTitle} size={300} weight="semibold">
-                          Included sessions
-                        </Text>
-                        <Text className={styles.helperText} size={200}>
-                          Filter the review window with dates, then confirm exactly which saved sessions should appear in this report.
-                        </Text>
-                      </div>
-                      <div className={styles.memoryActionRow}>
-                        <Badge appearance="tint" className={styles.scoreBadge}>
-                          {reportSelectedSessionIds.length} selected
-                        </Badge>
-                        <Badge appearance="tint" className={styles.scoreBadge}>
-                          {reportSessionsInRange.length} in range
-                        </Badge>
-                        <Button appearance="secondary" onClick={handleSelectAllReportSessions} disabled={!reportSessionsInRange.length}>
-                          Select all in range
-                        </Button>
-                        <Button appearance="secondary" onClick={handleClearReportSessions} disabled={!reportSelectedSessionIds.length}>
-                          Clear selection
-                        </Button>
-                      </div>
-                      {reportSessionsInRange.length ? (
-                        <div className={styles.reportSessionSelectionList}>
-                          {reportSessionsInRange.map(session => {
-                            const isSelected = reportSelectedSessionIds.includes(session.id)
-                            const targetSound = session.exercise_metadata?.targetSound || session.exercise.exerciseMetadata?.targetSound
-
-                            return (
-                              <label
-                                className={mergeClasses(styles.reportSessionOption, isSelected && styles.reportSessionOptionSelected)}
-                                key={session.id}
-                              >
-                                <input
-                                  className={styles.reportSessionCheckbox}
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  onChange={() => toggleReportSession(session.id)}
-                                />
-                                <div className={styles.reportSessionCopy}>
-                                  <Text size={300} weight="semibold">
-                                    {session.exercise.name}
-                                  </Text>
-                                  <Text size={200}>
-                                    {formatTimestamp(session.timestamp)}
-                                  </Text>
-                                  <Text size={200}>
-                                    Overall {session.overall_score ?? '—'} • Accuracy {session.accuracy_score ?? '—'}{targetSound ? ` • /${targetSound}/` : ''}
-                                  </Text>
-                                </div>
-                              </label>
-                            )
-                          })}
-                        </div>
-                      ) : (
-                        <div className={styles.emptyState}>
-                          <Text>No saved sessions fall inside the current report window.</Text>
-                        </div>
-                      )}
-                    </div>
-                    <div className={styles.memoryActionRow}>
-                      <Button
-                        appearance="primary"
-                        disabled={reportSaving || !reportComposerCanSubmit}
-                        onClick={handleCreateReport}
-                      >
-                        {reportSaving ? 'Saving…' : 'Generate report'}
-                      </Button>
-                      {selectedReport?.status === 'draft' ? (
-                        <Button
-                          appearance="secondary"
-                          disabled={reportSaving || !reportComposerCanSubmit}
-                          onClick={handleSaveReport}
-                        >
-                          Save draft changes
-                        </Button>
-                      ) : null}
-                      {selectedReport ? (
-                        <Badge appearance="tint" className={styles.scoreBadge}>
-                          {selectedReport.status}
-                        </Badge>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  {reportError ? (
-                    <Text className={styles.errorText} size={300}>
-                      {reportError}
-                    </Text>
-                  ) : null}
-
-                  {loadingReports && !selectedReport && progressReports.length === 0 ? (
-                    <div className={styles.loading}>
-                      <Spinner size="medium" />
-                    </div>
-                  ) : progressReports.length === 0 && !selectedReport ? (
-                    <div className={styles.emptyState}>
-                      <Text>No progress reports have been saved for this child yet. Generate a draft to begin the reporting workflow.</Text>
-                    </div>
-                  ) : (
-                    <div className={styles.recommendationLayout}>
-                      <div className={styles.recommendationHistoryList}>
-                        <Text className={styles.sectionTitle} size={300} weight="semibold">
-                          Report history
-                        </Text>
-                        <Text className={styles.helperText} size={200}>
-                          Most recent first. Open any saved draft or signed report to inspect its generated sections.
-                        </Text>
-                        {progressReports.map(report => {
-                          const isSelected = report.id === selectedReport?.id
-
-                          return (
-                            <Button
-                              appearance="subtle"
-                              className={mergeClasses(
-                                styles.recommendationHistoryButton,
-                                isSelected && styles.recommendationHistoryButtonSelected
-                              )}
-                              key={report.id}
-                              onClick={() => {
-                                void onOpenReportDetail(report.id)
-                              }}
-                            >
-                              <div className={styles.recommendationHistoryContent}>
-                                <div className={styles.summaryRow}>
-                                  <Badge appearance="filled" className={styles.scoreBadgeTeal}>
-                                    {report.audience}
-                                  </Badge>
-                                  <Badge appearance="tint" className={styles.scoreBadge}>
-                                    {report.status}
-                                  </Badge>
-                                </div>
-                                <Text size={300} weight="semibold">
-                                  {report.title}
-                                </Text>
-                                <Text size={200}>{formatTimestamp(report.updated_at)}</Text>
-                                <Text size={200}>{report.summary_text || 'No summary note added yet.'}</Text>
-                              </div>
-                            </Button>
-                          )
-                        })}
-                      </div>
-
-                      <div className={styles.recommendationDetail}>
-                        {selectedReport ? (
-                          <>
-                            <div className={styles.memorySummaryGrid}>
-                              <div className={styles.memoryCard}>
-                                <Text className={styles.combinedReviewLabel}>Audience</Text>
-                                <Text size={500} weight="semibold">{selectedReport.audience}</Text>
-                                <Text size={200}>{formatTimestamp(selectedReport.updated_at)}</Text>
-                              </div>
-
-                              <div className={styles.memoryCard}>
-                                <Text className={styles.combinedReviewLabel}>Review window</Text>
-                                <Text size={500} weight="semibold">{selectedReport.snapshot.session_count ?? 0} sessions</Text>
-                                <Text size={200}>
-                                  {formatShortDate(selectedReport.period_start)} to {formatShortDate(selectedReport.period_end)}
-                                </Text>
-                              </div>
-
-                              <div className={styles.memoryCard}>
-                                <Text className={styles.combinedReviewLabel}>Focus</Text>
-                                <Text size={300}>
-                                  {selectedReport.snapshot.focus_targets?.length
-                                    ? selectedReport.snapshot.focus_targets.join(', ')
-                                    : 'No target sound tagged in this report window.'}
-                                </Text>
-                              </div>
-                            </div>
-
-                            <div className={mergeClasses(styles.recommendationCandidate, styles.recommendationCandidateTop)}>
-                              <div className={styles.summaryRow}>
-                                <Badge appearance="filled" className={styles.scoreBadgeTeal}>Report summary</Badge>
-                                <Badge appearance="tint" className={styles.scoreBadge}>{selectedReport.status}</Badge>
-                              </div>
-                              <Text size={500} weight="semibold">{selectedReport.title}</Text>
-                              <Text size={300}>{selectedReport.summary_text || 'No summary note has been saved for this report yet.'}</Text>
-                            </div>
-
-                            {selectedReport.sections.map(section => (
-                              <div className={styles.sectionBlock} key={section.key}>
-                                <Text className={styles.sectionTitle} size={300} weight="semibold">
-                                  {section.title}
-                                </Text>
-                                {section.narrative ? (
-                                  <div className={styles.textItem}>
-                                    <Text size={200}>{section.narrative}</Text>
-                                  </div>
-                                ) : null}
-                                {section.metrics?.length ? (
-                                  <div className={styles.memorySummaryGrid}>
-                                    {section.metrics.map(metric => (
-                                      <div className={styles.memoryCard} key={`${section.key}-${metric.label}`}>
-                                        <Text className={styles.combinedReviewLabel}>{metric.label}</Text>
-                                        <Text size={400} weight="semibold">{metric.value}</Text>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : null}
-                                {section.bullets?.length ? (
-                                  <div className={styles.textList}>
-                                    {section.bullets.map(bullet => (
-                                      <div className={styles.textItem} key={`${section.key}-${bullet}`}>
-                                        <Text size={200}>{bullet}</Text>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : null}
-                              </div>
-                            ))}
-
-                            <div className={styles.planActions}>
-                              <Button appearance="secondary" disabled={reportSaving} onClick={() => handleOpenSelectedReportExport('html', 'preview')}>
-                                Open print view
-                              </Button>
-                              <Button appearance="secondary" disabled={reportSaving} onClick={() => handleOpenSelectedReportExport('html', 'download')}>
-                                Download HTML
-                              </Button>
-                              <Button appearance="secondary" disabled={reportSaving} onClick={() => handleOpenSelectedReportExport('pdf', 'preview')}>
-                                Preview PDF
-                              </Button>
-                              <Button appearance="secondary" disabled={reportSaving} onClick={() => handleOpenSelectedReportExport('pdf', 'download')}>
-                                Download PDF
-                              </Button>
-                              {selectedReport.status === 'draft' ? (
-                                <>
-                                  <Button appearance="secondary" disabled={reportSaving} onClick={() => { void onApproveReport() }}>
-                                    Approve report
-                                  </Button>
-                                </>
-                              ) : null}
-                              {selectedReport.status === 'approved' ? (
-                                <Button appearance="secondary" disabled={reportSaving} onClick={() => { void onSignReport() }}>
-                                  Sign report
-                                </Button>
-                              ) : null}
-                              {(selectedReport.status === 'approved' || selectedReport.status === 'signed') ? (
-                                <Button appearance="secondary" disabled={reportSaving} onClick={() => { void onArchiveReport() }}>
-                                  Archive report
-                                </Button>
-                              ) : null}
-                            </div>
-                          </>
-                        ) : (
-                          <div className={styles.emptyState}>
-                            <Text>Select a saved report to inspect its generated sections and workflow state.</Text>
                           </div>
                         )}
                       </div>
