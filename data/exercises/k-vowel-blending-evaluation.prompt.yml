@@ -1,4 +1,4 @@
-name: K Vowel Blending Evaluation
+name: /k/ — Syllable Level (CV Blending) Evaluation
 description: Evaluate /k/ plus vowel blending practice
 model: gpt-4o
 modelParameters:

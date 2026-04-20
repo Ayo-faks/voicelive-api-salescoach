@@ -1,4 +1,4 @@
-name: /r/ structured conversation
+name: /r/ — Conversation Level
 description: Open-ended structured conversation eliciting /r/ tokens (Stage 8 structured_conversation).
 model: gpt-4o
 modelParameters:

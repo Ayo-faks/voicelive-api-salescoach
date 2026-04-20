@@ -1,4 +1,4 @@
-name: /r/ medial word practice evaluation
+name: /r/ — Word Level (Medial Position) Evaluation
 description: Evaluate a child practice session focused on the /r/ sound in the middle of words.
 model: gpt-4o
 modelParameters:

@@ -1,4 +1,4 @@
-name: Rory's Red Rocket Story Evaluation
+name: /r/ — Sentence Level (Guided Narrative) Evaluation
 description: Evaluate guided story practice for /r/ words
 model: gpt-4o
 modelParameters:

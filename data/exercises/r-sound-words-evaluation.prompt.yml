@@ -1,4 +1,4 @@
-name: R Sound Words Evaluation
+name: /r/ — Word Level (Initial Position) Evaluation
 description: Evaluate a child practice session focused on the /r/ sound
 model: gpt-4o
 modelParameters:

@@ -1,4 +1,4 @@
-name: S Sound Sorting
+name: /s/ — Auditory Discrimination (Sorting)
 description: Sort /s/ and /sh/ pictures into the right sound homes before speaking
 model: gpt-4o
 modelParameters:

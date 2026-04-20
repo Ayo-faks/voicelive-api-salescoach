@@ -1,4 +1,4 @@
-name: Say the S Sound
+name: /s/ — Word Level (Initial Position)
 description: Practice the /s/ sound at the start of familiar words
 model: gpt-4o
 modelParameters:

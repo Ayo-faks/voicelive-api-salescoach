@@ -24,6 +24,7 @@ from azure.ai.voicelive.models import (
     AudioNoiseReduction,
     AvatarConfig,
     AzureSemanticVad,
+    AzureSemanticVadEn,
     AzureStandardVoice,
     Modality,
     RequestSession,
@@ -33,7 +34,7 @@ from azure.ai.voicelive.models import (
 from src.config import config
 from src.services.azure_openai_auth import build_voicelive_credential
 from src.services.managers import AgentManager, FINISH_SESSION_TOOL
-from src.services.scoring import TargetTokenTally
+from src.services.scoring import ScoredTurnDispatcher, TargetTokenTally
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,7 @@ def _is_local_dev_auth_enabled() -> bool:
 
 # Session configuration defaults
 DEFAULT_TURN_DETECTION_TYPE = "azure_semantic_vad"
+DEFAULT_CONVERSATIONAL_TURN_DETECTION_TYPE = "azure_semantic_vad_en"
 DEFAULT_NOISE_REDUCTION_TYPE = "azure_deep_noise_suppression"
 DEFAULT_ECHO_CANCELLATION_TYPE = "server_echo_cancellation"
 DEFAULT_AVATAR_CHARACTER = "meg"
@@ -74,6 +76,17 @@ WULO_THERAPIST_OVERRIDE_TYPE = "wulo.therapist_override"
 WULO_TARGET_TALLY_TYPE = "wulo.target_tally"
 WULO_SCAFFOLD_ESCALATE_TYPE = "wulo.scaffold_escalate"
 
+# PR12b mic-mode hybrid. When the conversational flag is enabled, the frontend
+# can request a per-turn mode ("conversational" keeps the mic open with
+# continuous VAD; "tap" preserves the legacy push-to-talk path) and announce a
+# scored-turn window around a specific target word. These message types are
+# Wulo-namespaced to avoid collisions with Azure Realtime event types.
+WULO_MIC_MODE_TYPE = "wulo.mic_mode"
+WULO_SCORED_TURN_BEGIN_TYPE = "wulo.scored_turn.begin"
+WULO_SCORED_TURN_END_TYPE = "wulo.scored_turn.end"
+WULO_SCORED_TURN_ACK_TYPE = "wulo.scored_turn.ack"
+WULO_SCORED_TURN_RESULT_TYPE = "wulo.scored_turn.result"
+
 # String match used to identify input transcription completion events from the
 # Azure Realtime API (the SDK exposes this as an enum, but matching by string
 # avoids a hard dependency on a specific SDK version).
@@ -89,6 +102,36 @@ def _is_structured_conversation_enabled() -> bool:
     """
     raw = os.environ.get("WULO_STRUCTURED_CONVERSATION", "")
     return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _is_conversational_mic_enabled() -> bool:
+    """Feature flag for PR12b two-mode mic hybrid.
+
+    Dynamic env lookup (mirrors ``_is_structured_conversation_enabled``) so
+    tests and per-deployment overrides are honored without a process restart.
+    Default off — when off, ``_build_session_config`` preserves the exact
+    legacy ``AzureSemanticVad(type=...)`` snapshot.
+    """
+    env_raw = os.environ.get("CONVERSATIONAL_MIC_ENABLED")
+    if env_raw is not None:
+        return str(env_raw).strip().lower() in {"1", "true", "yes", "on"}
+    return bool(config.get("conversational_mic_enabled", False))
+
+
+def _build_conversational_turn_detection() -> AzureSemanticVadEn:
+    """Build an English semantic VAD with threshold/silence tunables + barge-in.
+
+    Used when the conversational mic flag is enabled. Values are read from
+    config so a deployment can tune sensitivity without a code change.
+    """
+    return AzureSemanticVadEn(
+        type=DEFAULT_CONVERSATIONAL_TURN_DETECTION_TYPE,
+        threshold=float(config.get("semantic_vad_threshold", 0.5)),
+        prefix_padding_ms=int(config.get("semantic_vad_prefix_padding_ms", 300)),
+        silence_duration_ms=int(config.get("semantic_vad_silence_duration_ms", 600)),
+        interrupt_response=True,
+        create_response=True,
+    )
 
 # Log message truncation length
 LOG_MESSAGE_MAX_LENGTH = 100
@@ -198,13 +241,14 @@ class VoiceProxyHandler:
 
     def _get_model(self, agent_config: Optional[Dict[str, Any]]) -> Optional[str]:
         """Get the model name for the connection."""
+        voice_live_model = config.get("voice_live_model") or config["model_deployment_name"]
         if agent_config and agent_config.get("is_azure_agent"):
             return None
         if agent_config:
-            return agent_config.get("model", config["model_deployment_name"])
+            return agent_config.get("model", voice_live_model)
         if config["agent_id"]:
             return None
-        return config["model_deployment_name"]
+        return voice_live_model
 
     def _build_query_params(self, agent_id: Optional[str], agent_config: Optional[Dict[str, Any]]) -> Dict[str, str]:
         """Build additional query parameters for the connection."""
@@ -278,9 +322,14 @@ class VoiceProxyHandler:
         """Create the RequestSession with all configuration."""
         custom_lexicon_url = str(config.get("azure_custom_lexicon_url") or "").strip() or None
 
+        if _is_conversational_mic_enabled():
+            turn_detection: Any = _build_conversational_turn_detection()
+        else:
+            turn_detection = AzureSemanticVad(type=DEFAULT_TURN_DETECTION_TYPE)
+
         session = RequestSession(
             modalities=[Modality.TEXT, Modality.AUDIO, Modality.AVATAR],
-            turn_detection=AzureSemanticVad(type=DEFAULT_TURN_DETECTION_TYPE),
+            turn_detection=turn_detection,
             input_audio_transcription=AudioInputTranscriptionOptions(
                 model=config.get("azure_input_transcription_model", "azure-speech"),
                 language=config.get("azure_input_transcription_language", "en-US"),
@@ -392,9 +441,12 @@ class VoiceProxyHandler:
         tally: Optional[TargetTokenTally] = (
             TargetTokenTally() if _is_structured_conversation_enabled() else None
         )
+        scored_turn: Optional[ScoredTurnDispatcher] = (
+            ScoredTurnDispatcher() if _is_conversational_mic_enabled() else None
+        )
         tasks = [
-            asyncio.create_task(self._forward_client_to_azure(client_ws, azure_conn, tally)),
-            asyncio.create_task(self._forward_azure_to_client(azure_conn, client_ws, tally)),
+            asyncio.create_task(self._forward_client_to_azure(client_ws, azure_conn, tally, scored_turn)),
+            asyncio.create_task(self._forward_azure_to_client(azure_conn, client_ws, tally, scored_turn)),
         ]
 
         _, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
@@ -407,6 +459,7 @@ class VoiceProxyHandler:
         client_ws: simple_websocket.ws.Server,
         azure_conn: VoiceLiveConnection,
         tally: Optional[TargetTokenTally] = None,
+        scored_turn: Optional[ScoredTurnDispatcher] = None,
     ) -> None:
         """Forward messages from client to Azure using SDK.
 
@@ -428,6 +481,10 @@ class VoiceProxyHandler:
                     parsed = json.loads(message)
                     if tally is not None and await self._maybe_handle_wulo_client_event(
                         parsed, tally, client_ws
+                    ):
+                        continue
+                    if scored_turn is not None and await self._maybe_handle_scored_turn_client_event(
+                        parsed, scored_turn, client_ws
                     ):
                         continue
                     await azure_conn.send(parsed)
@@ -496,11 +553,67 @@ class VoiceProxyHandler:
                 {"type": WULO_SCAFFOLD_ESCALATE_TYPE, "payload": escalation},
             )
 
+    async def _maybe_handle_scored_turn_client_event(
+        self,
+        parsed: Dict[str, Any],
+        scored_turn: ScoredTurnDispatcher,
+        client_ws: simple_websocket.ws.Server,
+    ) -> bool:
+        """Handle PR12b.3 scored-turn client events. Returns True if consumed.
+
+        Also swallows ``wulo.mic_mode`` (frontend-only preference broadcast so
+        analytics can see the mode choice — no server-side action required yet).
+        """
+        event_type = str(parsed.get("type") or "")
+        if event_type == WULO_MIC_MODE_TYPE:
+            # Logged only; mode selection is a frontend concern for now.
+            logger.debug("Received wulo.mic_mode: %s", parsed.get("payload"))
+            return True
+        if event_type == WULO_SCORED_TURN_BEGIN_TYPE:
+            payload = parsed.get("payload") or {}
+            turn_id = str(payload.get("turnId") or "").strip()
+            target_word = str(payload.get("targetWord") or "").strip()
+            if not turn_id or not target_word:
+                return True
+            preempted = scored_turn.begin(
+                turn_id=turn_id,
+                target_word=target_word,
+                reference_text=payload.get("referenceText"),
+                window_ms=payload.get("windowMs"),
+            )
+            if preempted is not None:
+                await self._send_message(
+                    client_ws,
+                    {"type": WULO_SCORED_TURN_RESULT_TYPE, "payload": preempted.to_dict()},
+                )
+            await self._send_message(
+                client_ws,
+                {
+                    "type": WULO_SCORED_TURN_ACK_TYPE,
+                    "payload": {"turnId": turn_id, "targetWord": target_word},
+                },
+            )
+            return True
+        if event_type == WULO_SCORED_TURN_END_TYPE:
+            payload = parsed.get("payload") or {}
+            turn_id = str(payload.get("turnId") or "").strip()
+            if not turn_id:
+                return True
+            cancelled = scored_turn.end(turn_id)
+            if cancelled is not None:
+                await self._send_message(
+                    client_ws,
+                    {"type": WULO_SCORED_TURN_RESULT_TYPE, "payload": cancelled.to_dict()},
+                )
+            return True
+        return False
+
     async def _forward_azure_to_client(
         self,
         azure_conn: VoiceLiveConnection,
         client_ws: simple_websocket.ws.Server,
         tally: Optional[TargetTokenTally] = None,
+        scored_turn: Optional[ScoredTurnDispatcher] = None,
     ) -> None:
         """Forward messages from Azure to client using SDK typed events.
 
@@ -526,13 +639,28 @@ class VoiceProxyHandler:
                 elif event.type == ServerEventType.SESSION_UPDATED:
                     logger.info("Session updated")
 
+                event_type_str = str(event_dict.get("type") or "")
                 if tally is not None:
-                    event_type_str = str(event_dict.get("type") or "")
                     if event_type_str == INPUT_AUDIO_TRANSCRIPTION_COMPLETED_TYPE:
                         transcript = str(event_dict.get("transcript") or "").strip()
                         if transcript:
                             tally.ingest_transcript(transcript)
                         await self._emit_tally_snapshot(client_ws, tally)
+
+                if scored_turn is not None and scored_turn.is_active():
+                    # Resolve on transcription completion; otherwise check if
+                    # the window has elapsed and emit a timeout.
+                    result = None
+                    if event_type_str == INPUT_AUDIO_TRANSCRIPTION_COMPLETED_TYPE:
+                        transcript = str(event_dict.get("transcript") or "").strip()
+                        result = scored_turn.ingest_transcript(transcript)
+                    if result is None:
+                        result = scored_turn.check_timeout()
+                    if result is not None:
+                        await self._send_message(
+                            client_ws,
+                            {"type": WULO_SCORED_TURN_RESULT_TYPE, "payload": result.to_dict()},
+                        )
 
         except ConnectionClosed as e:
             logger.debug("Azure connection closed: code=%s, reason=%s", e.code, e.reason)

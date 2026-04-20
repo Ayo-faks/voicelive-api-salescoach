@@ -1,4 +1,4 @@
-name: /sh/ structured conversation
+name: /sh/ — Conversation Level
 description: Open-ended structured conversation eliciting /sh/ tokens (Stage 8 structured_conversation).
 model: gpt-4o
 modelParameters:

@@ -1,4 +1,4 @@
-name: /th/ medial word practice evaluation
+name: /th/ — Word Level (Medial Position) Evaluation
 description: Evaluate a child practice session focused on the /th/ sound in the middle of words.
 model: gpt-4o
 modelParameters:

@@ -1,4 +1,4 @@
-name: K Sound Words
+name: /k/ — Word Level (Initial Position)
 description: Practice the /k/ sound at the start of familiar words
 model: gpt-4o
 modelParameters:

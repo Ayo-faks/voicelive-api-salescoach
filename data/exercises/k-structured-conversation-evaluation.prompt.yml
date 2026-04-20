@@ -1,4 +1,4 @@
-name: /k/ structured conversation evaluation
+name: /k/ — Conversation Level Evaluation
 description: Evaluate a child structured-conversation session focused on natural /k/ production.
 model: gpt-4o
 modelParameters:

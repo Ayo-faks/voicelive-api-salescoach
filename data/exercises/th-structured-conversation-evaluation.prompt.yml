@@ -1,4 +1,4 @@
-name: /th/ structured conversation evaluation
+name: /th/ — Conversation Level Evaluation
 description: Evaluate a child structured-conversation session focused on natural /th/ production.
 model: gpt-4o
 modelParameters:

@@ -1,5 +1,5 @@
-name: Camera Sound Listen
-description: Listen to twelve camera-sound pictures and watch them light up
+name: /k/ — Auditory Bombardment
+description: Twelve camera-sound pictures play automatically while the child listens.
 model: gpt-4o
 modelParameters:
   temperature: 0.2

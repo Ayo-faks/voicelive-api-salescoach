@@ -5,7 +5,35 @@
 
 import type { PracticePlan, SessionDetail, SessionSummary } from '../../types'
 
-export const chartPalette = {
+/**
+ * PR6 — Chart palette tokenization.
+ *
+ * The Recharts colour palette is resolved from CSS custom properties
+ * (`--chart-*` in styles/global.css) so a brand/theme change retints charts
+ * without a rebuild. A hardcoded fallback is used for SSR, jsdom (vitest),
+ * and the first paint before computed styles are available. Values are
+ * cached per theme; call `invalidateChartPalette()` after a theme switch.
+ *
+ * Call sites keep the ergonomic `chartPalette.primary` syntax via a Proxy
+ * that resolves each property on access.
+ */
+const CHART_VAR_MAP = {
+  primary: '--chart-primary',
+  primaryLight: '--chart-primary-light',
+  primaryDark: '--chart-primary-dark',
+  primarySoft: '--chart-primary-soft',
+  warning: '--chart-warning',
+  accent: '--chart-accent',
+  border: '--chart-border',
+  grid: '--chart-grid',
+  axis: '--chart-axis',
+  surface: '--chart-surface',
+  muted: '--chart-muted',
+} as const
+
+export type ChartPalette = Record<keyof typeof CHART_VAR_MAP, string>
+
+const FALLBACK_PALETTE: ChartPalette = {
   primary: '#0d8a84',
   primaryLight: '#20a39e',
   primaryDark: '#06625e',
@@ -17,7 +45,52 @@ export const chartPalette = {
   axis: '#405057',
   surface: '#fffdf9',
   muted: 'rgba(15, 42, 58, 0.08)',
-} as const
+}
+
+let cachedPalette: ChartPalette | null = null
+
+function readPalette(): ChartPalette {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return FALLBACK_PALETTE
+  }
+  const styles = window.getComputedStyle(document.documentElement)
+  const resolved = {} as ChartPalette
+  for (const key of Object.keys(CHART_VAR_MAP) as Array<keyof ChartPalette>) {
+    const raw = styles.getPropertyValue(CHART_VAR_MAP[key]).trim()
+    resolved[key] = raw || FALLBACK_PALETTE[key]
+  }
+  return resolved
+}
+
+export function getChartPalette(): ChartPalette {
+  if (!cachedPalette) {
+    cachedPalette = readPalette()
+  }
+  return cachedPalette
+}
+
+/** Clear the cached palette. Call after swapping themes so charts retint. */
+export function invalidateChartPalette(): void {
+  cachedPalette = null
+}
+
+export const chartPalette: ChartPalette = new Proxy({} as ChartPalette, {
+  get(_target, prop: string | symbol) {
+    if (typeof prop !== 'string' || !(prop in CHART_VAR_MAP)) return undefined
+    return getChartPalette()[prop as keyof ChartPalette]
+  },
+  ownKeys() {
+    return Object.keys(CHART_VAR_MAP)
+  },
+  getOwnPropertyDescriptor(_target, prop) {
+    if (typeof prop !== 'string' || !(prop in CHART_VAR_MAP)) return undefined
+    return {
+      enumerable: true,
+      configurable: true,
+      value: getChartPalette()[prop as keyof ChartPalette],
+    }
+  },
+})
 
 export type TrendChartDatum = {
   label: string
@@ -225,12 +298,14 @@ export function getRadarChartData(selectedSession: SessionDetail | null) {
   return [
     {
       subject: 'Target Sound Accuracy',
+      shortSubject: 'Target Sound',
       score:
         clampScore(pronunciationAssessment?.accuracy_score) ??
         (articulationClarity?.target_sound_accuracy ?? 0) * 10,
     },
     {
       subject: 'Overall Clarity',
+      shortSubject: 'Clarity',
       score:
         (articulationClarity?.overall_clarity ?? null) != null
           ? (articulationClarity?.overall_clarity ?? 0) * 10
@@ -238,6 +313,7 @@ export function getRadarChartData(selectedSession: SessionDetail | null) {
     },
     {
       subject: 'Consistency',
+      shortSubject: 'Consistency',
       score:
         (articulationClarity?.consistency ?? null) != null
           ? (articulationClarity?.consistency ?? 0) * 10
@@ -245,14 +321,17 @@ export function getRadarChartData(selectedSession: SessionDetail | null) {
     },
     {
       subject: 'Task Completion',
+      shortSubject: 'Task',
       score: (engagementAndEffort?.task_completion ?? 0) * 10,
     },
     {
       subject: 'Willingness to Retry',
+      shortSubject: 'Retry',
       score: (engagementAndEffort?.willingness_to_retry ?? 0) * 10,
     },
     {
       subject: 'Self-Correction',
+      shortSubject: 'Self-Correct',
       score: (engagementAndEffort?.self_correction_attempts ?? 0) * 10,
     },
   ]

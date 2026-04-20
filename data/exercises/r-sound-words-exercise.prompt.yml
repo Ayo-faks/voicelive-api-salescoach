@@ -1,4 +1,4 @@
-name: R Sound Words
+name: /r/ — Word Level (Initial Position)
 description: Practice the /r/ sound at the start of familiar words
 model: gpt-4o
 modelParameters:

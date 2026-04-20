@@ -1,4 +1,4 @@
-name: SH Sound Starter
+name: /sh/ — Sound in Isolation
 description: Practice making the /sh/ sound on its own with a shell cue
 model: gpt-4o
 modelParameters:

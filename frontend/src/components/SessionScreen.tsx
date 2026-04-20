@@ -24,6 +24,7 @@ import { ExerciseFeedback } from './ExerciseFeedback'
 import { ListeningMinimalPairsPanel } from './ListeningMinimalPairsPanel'
 import { SilentSortingPanel } from './SilentSortingPanel'
 import { AuditoryBombardmentPanel } from './AuditoryBombardmentPanel'
+import { PhonemeChip } from './PhonemeChip'
 import { SoundIsolationPanel } from './SoundIsolationPanel'
 import { VowelBlendingPanel } from './VowelBlendingPanel'
 import { WordPositionPracticePanel } from './WordPositionPracticePanel'
@@ -31,6 +32,7 @@ import { TwoWordPhrasePanel } from './TwoWordPhrasePanel'
 import { StructuredConversationPanel } from './StructuredConversationPanel'
 import { VideoPanel } from './VideoPanel'
 import { exerciseRequiresMic } from '../utils/exerciseMode'
+import type { MicMode } from '../utils/micMode'
 
 const useStyles = makeStyles({
   stage: {
@@ -83,10 +85,13 @@ const useStyles = makeStyles({
       transition: 'none',
     },
   },
+  // PR8 — more deliberate visual rhythm: teal rule on the leading edge anchors
+  // the card to the brand palette without piling on shadows or radii.
   scenarioCard: {
     padding: 'var(--space-lg)',
     borderRadius: 'var(--radius-lg)',
     border: '1px solid var(--color-border)',
+    borderLeft: '3px solid var(--color-primary)',
     background:
       'radial-gradient(circle at top right, rgba(13, 138, 132, 0.12), transparent 34%), var(--color-bg-card)',
     boxShadow: 'var(--shadow-sm)',
@@ -157,7 +162,7 @@ interface SessionScreenProps {
   onInterruptAvatar?: () => void
   onListeningPracticeComplete?: () => void
   onSilentSortingComplete?: () => void
-  onAuditoryBombardmentComplete?: () => void
+  onAuditoryBombardmentComplete?: (opts?: { immediate?: boolean }) => void
   onWordPositionPracticeComplete?: () => void
   onTwoWordPhraseComplete?: () => void
   onStructuredConversationComplete?: () => void
@@ -165,6 +170,17 @@ interface SessionScreenProps {
   targetTally?: TargetTally | null
   /** Stage 6+: realtime WS ready so shells can flush queued beats. */
   realtimeReady?: boolean
+  /** PR12b.3b — mic-mode preference from App.tsx/useMicMode. Defaults to 'tap'. */
+  micMode?: MicMode
+  /** PR12b.3c.3 — open a scored-turn window (conversational mode only). */
+  onScoredTurnBegin?: (payload: {
+    turnId: string
+    targetWord: string
+    referenceText?: string
+    windowMs?: number
+  }) => void
+  /** PR12b.3c.3 — client-side end of a scored-turn window. */
+  onScoredTurnEnd?: (turnId: string) => void
 }
 
 function formatExerciseType(value?: string) {
@@ -237,6 +253,9 @@ export function SessionScreen({
   onSendRealtime,
   targetTally,
   realtimeReady,
+  micMode = 'tap',
+  onScoredTurnBegin,
+  onScoredTurnEnd,
 }: SessionScreenProps) {
   const styles = useStyles()
   const customScenario = isCustomScenario(scenario) ? scenario : null
@@ -256,12 +275,19 @@ export function SessionScreen({
   const isTwoWordPhrase = exerciseMetadata?.type === 'two_word_phrase'
   const isStructuredConversation = exerciseMetadata?.type === 'structured_conversation'
 
+  // Child mode must not block exercise interactivity on the realtime greeting
+  // (`introComplete`). If the Voice Live WS never emits an assistant transcript
+  // (capacity / bad agent_id / offline dev), a 4-year-old would otherwise see a
+  // dead page. Therapist mode keeps the stricter gate because the summary/
+  // coaching flow still depends on the greeting having landed.
+  const panelReadyToStart = connected && (isChildMode || introComplete) && !sessionFinished
+
   const activityPanel = isStructuredConversation ? (
     <StructuredConversationPanel
       scenarioName={scenario?.name}
       metadata={exerciseMetadata}
       audience={isChildMode ? 'child' : 'therapist'}
-      readyToStart={connected && introComplete && !sessionFinished}
+      readyToStart={panelReadyToStart}
       realtimeReady={realtimeReady}
       recording={recording}
       targetTally={targetTally ?? null}
@@ -275,7 +301,7 @@ export function SessionScreen({
       scenarioName={scenario?.name}
       metadata={exerciseMetadata}
       audience={isChildMode ? 'child' : 'therapist'}
-      readyToStart={connected && introComplete && !sessionFinished}
+      readyToStart={panelReadyToStart}
       realtimeReady={realtimeReady}
       recording={recording}
       utteranceFeedback={utteranceFeedback}
@@ -283,34 +309,41 @@ export function SessionScreen({
       onActiveTargetWordChange={onActiveBlendChange}
       onToggleRecording={onToggleRecording}
       onExerciseComplete={onTwoWordPhraseComplete}
+      micMode={micMode}
+      onScoredTurnBegin={onScoredTurnBegin}
+      onScoredTurnEnd={onScoredTurnEnd}
     />
   ) : isWordPositionPractice ? (
     <WordPositionPracticePanel
       scenarioName={scenario?.name}
       metadata={exerciseMetadata}
       audience={isChildMode ? 'child' : 'therapist'}
-      readyToStart={connected && introComplete && !sessionFinished}
+      readyToStart={panelReadyToStart}
       recording={recording}
       utteranceFeedback={utteranceFeedback}
       scoringUtterance={scoringUtterance}
       onActiveTargetWordChange={onActiveBlendChange}
       onToggleRecording={onToggleRecording}
       onExerciseComplete={onWordPositionPracticeComplete}
+      micMode={micMode}
+      onScoredTurnBegin={onScoredTurnBegin}
+      onScoredTurnEnd={onScoredTurnEnd}
     />
   ) : isAuditoryBombardment ? (
     <AuditoryBombardmentPanel
       scenarioName={scenario?.name}
       metadata={exerciseMetadata}
       audience={isChildMode ? 'child' : 'therapist'}
-      readyToStart={connected && introComplete && !sessionFinished}
+      readyToStart={panelReadyToStart}
       onExerciseComplete={onAuditoryBombardmentComplete}
+      onSpeakExerciseText={onSpeakExerciseText}
     />
   ) : isListeningMinimalPairs ? (
     <ListeningMinimalPairsPanel
       scenarioName={scenario?.name}
       metadata={exerciseMetadata}
       audience={isChildMode ? 'child' : 'therapist'}
-      readyToStart={connected && introComplete && !sessionFinished}
+      readyToStart={panelReadyToStart}
       onSendMessage={onSendExerciseMessage}
       onSpeakExerciseText={onSpeakExerciseText}
       onRecordExerciseSelection={onRecordExerciseSelection}
@@ -322,7 +355,7 @@ export function SessionScreen({
       scenarioName={scenario?.name}
       metadata={exerciseMetadata}
       audience={isChildMode ? 'child' : 'therapist'}
-      readyToStart={connected && introComplete && !sessionFinished}
+      readyToStart={panelReadyToStart}
       onSendMessage={onSendExerciseMessage}
       onSpeakExerciseText={onSpeakExerciseText}
       onExerciseComplete={onSilentSortingComplete}
@@ -335,6 +368,7 @@ export function SessionScreen({
       attempts={messages.filter(message => message.role === 'user').length}
       audience={isChildMode ? 'child' : 'therapist'}
       onSendMessage={onSendExerciseMessage}
+      micMode={micMode}
     />
   ) : isVowelBlending ? (
     <VowelBlendingPanel
@@ -343,6 +377,7 @@ export function SessionScreen({
       attempts={messages.filter(message => message.role === 'user').length}
       onActiveBlendChange={onActiveBlendChange}
       onSendMessage={onSendExerciseMessage}
+      micMode={micMode}
     />
   ) : null
 
@@ -368,14 +403,10 @@ export function SessionScreen({
                   <span className={styles.exerciseChip}>{exerciseType}</span>
                 ) : null}
                 {scenario.exerciseMetadata?.targetSound ? (
-                  <span className={styles.exerciseChip}>
-                    Sound: {scenario.exerciseMetadata.targetSound}
-                  </span>
+                  <PhonemeChip label="Sound" phoneme={scenario.exerciseMetadata.targetSound} />
                 ) : null}
                 {customScenario?.scenarioData.targetSound ? (
-                  <span className={styles.exerciseChip}>
-                    Sound: {customScenario.scenarioData.targetSound}
-                  </span>
+                  <PhonemeChip label="Sound" phoneme={customScenario.scenarioData.targetSound} />
                 ) : null}
                 {scenario.exerciseMetadata?.difficulty ? (
                   <span className={styles.exerciseChip}>
@@ -410,6 +441,7 @@ export function SessionScreen({
             audience={isChildMode ? 'child' : 'therapist'}
             micRequired={micRequired}
             showMicDock={showMicDock}
+            micMode={micMode}
           />
 
           {activityPanel}

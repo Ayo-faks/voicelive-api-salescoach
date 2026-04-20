@@ -31,6 +31,12 @@ import {
   type WorkspaceSummary,
 } from '../types'
 import { api } from '../services/api'
+import {
+  isConversationalMicFlagEnabled,
+  readStoredMicMode,
+  writeStoredMicMode,
+  type MicMode,
+} from '../utils/micMode'
 
 const useStyles = makeStyles({
   layout: {
@@ -41,9 +47,9 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: 'var(--space-sm)',
     padding: 'clamp(1.1rem, 2.4vw, 1.5rem)',
-    border: '1px solid rgba(13, 138, 132, 0.12)',
-    background:
-      'radial-gradient(circle at top right, rgba(32, 163, 158, 0.18), transparent 34%), linear-gradient(135deg, rgba(235, 247, 246, 0.98), rgba(224, 241, 239, 0.98))',
+    borderRadius: 'var(--radius-card)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-bg-card)',
   },
   heroCopy: {
     display: 'grid',
@@ -51,24 +57,23 @@ const useStyles = makeStyles({
     maxWidth: '52ch',
   },
   eyebrow: {
-    color: 'var(--color-primary-light)',
-    fontSize: '0.72rem',
-    fontWeight: '700',
-    letterSpacing: '0.12em',
-    textTransform: 'uppercase',
+    color: 'var(--color-text-tertiary)',
+    fontSize: 'var(--font-body-15-size)',
+    fontWeight: '600',
   },
   title: {
     fontFamily: 'var(--font-display)',
     color: 'var(--color-text-primary)',
-    fontSize: 'clamp(1.8rem, 4vw, 2.5rem)',
-    fontWeight: '800',
-    letterSpacing: '-0.05em',
-    lineHeight: 1.02,
+    fontSize: 'var(--font-display-xl-size)',
+    lineHeight: 'var(--font-display-xl-line)',
+    fontWeight: 'var(--font-display-xl-weight)',
+    letterSpacing: 'var(--font-display-xl-tracking)',
   },
   copy: {
     color: 'var(--color-text-secondary)',
-    fontSize: '0.88rem',
-    lineHeight: 1.5,
+    fontSize: 'var(--font-body-15-size)',
+    lineHeight: 'var(--font-body-15-line)',
+    fontWeight: 'var(--font-body-15-weight)',
     maxWidth: '50ch',
   },
   summaryBar: {
@@ -82,14 +87,14 @@ const useStyles = makeStyles({
     gap: '6px',
     minHeight: '32px',
     paddingInline: '12px',
-    border: '1px solid rgba(13, 138, 132, 0.12)',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-surface-elevated)',
     color: 'var(--color-text-secondary)',
-    fontSize: '0.8rem',
+    fontSize: 'var(--font-body-15-size)',
   },
   summaryValue: {
     color: 'var(--color-text-primary)',
-    fontWeight: '700',
+    fontWeight: '600',
   },
   grid: {
     display: 'grid',
@@ -107,15 +112,16 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: 'var(--space-md)',
     padding: 'var(--space-lg)',
-    border: '1px solid rgba(15, 42, 58, 0.12)',
-    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    borderRadius: 'var(--radius-card)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-bg-card)',
   },
   cardTitle: {
     fontFamily: 'var(--font-display)',
     color: 'var(--color-text-primary)',
-    fontSize: '1.05rem',
-    fontWeight: '700',
-    letterSpacing: '-0.02em',
+    fontSize: 'var(--font-display-lg-size)',
+    lineHeight: 'var(--font-display-lg-line)',
+    fontWeight: 'var(--font-display-lg-weight)',
   },
   controlsGrid: {
     display: 'grid',
@@ -129,20 +135,19 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: '6px',
     padding: 'var(--space-md)',
-    border: '1px solid rgba(15, 42, 58, 0.08)',
-    backgroundColor: 'rgba(248, 252, 251, 0.92)',
+    borderRadius: 'var(--radius-card)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-surface-elevated)',
   },
   label: {
     color: 'var(--color-text-tertiary)',
-    fontSize: '0.75rem',
-    fontWeight: '700',
-    letterSpacing: '0.06em',
-    textTransform: 'uppercase',
+    fontSize: 'var(--font-body-15-size)',
+    fontWeight: '600',
   },
   dropdown: {
     minWidth: '100%',
-    backgroundColor: 'rgba(255,255,255,0.96)',
-    border: '1px solid rgba(13, 138, 132, 0.12)',
+    backgroundColor: 'var(--color-surface-elevated)',
+    border: '1px solid var(--color-border)',
   },
   modeToggleRow: {
     display: 'flex',
@@ -153,16 +158,16 @@ const useStyles = makeStyles({
     minHeight: '38px',
     paddingInline: '14px',
     borderRadius: '999px',
-    border: '1px solid rgba(13, 138, 132, 0.14)',
-    backgroundColor: 'rgba(255, 255, 255, 0.88)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'transparent',
     color: 'var(--color-text-secondary)',
     fontFamily: 'var(--font-display)',
     fontWeight: '600',
   },
   modeButtonActive: {
-    backgroundColor: 'var(--color-primary)',
-    color: 'var(--color-text-inverse)',
-    border: '1px solid var(--color-primary)',
+    backgroundColor: 'var(--color-primary-softer)',
+    color: 'var(--color-primary-dark)',
+    border: '1px solid var(--color-border-strong)',
   },
   helperText: {
     color: 'var(--color-text-secondary)',
@@ -181,13 +186,13 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: '10px',
     padding: 'var(--space-md)',
-    border: '1px solid rgba(13, 138, 132, 0.12)',
-    backgroundColor: 'rgba(248, 252, 251, 0.92)',
+    borderRadius: 'var(--radius-card)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-surface-elevated)',
   },
   listItemHighlighted: {
-    border: '1px solid var(--color-primary)',
-    boxShadow: '0 0 0 1px rgba(13, 138, 132, 0.18)',
-    backgroundColor: 'rgba(223, 245, 241, 0.96)',
+    border: '1px solid var(--color-border-strong)',
+    backgroundColor: 'var(--color-primary-softer)',
   },
   listHeader: {
     display: 'flex',
@@ -197,12 +202,12 @@ const useStyles = makeStyles({
   },
   listTitle: {
     color: 'var(--color-text-primary)',
-    fontWeight: '700',
+    fontWeight: '600',
   },
   listMeta: {
-    color: 'var(--color-text-secondary)',
-    fontSize: '0.8rem',
-    lineHeight: 1.4,
+    color: 'var(--color-text-tertiary)',
+    fontSize: 'var(--font-body-15-size)',
+    lineHeight: 'var(--font-body-15-line)',
   },
   buttonRow: {
     display: 'flex',
@@ -222,10 +227,8 @@ const useStyles = makeStyles({
   },
   statusText: {
     color: 'var(--color-text-tertiary)',
-    fontSize: '0.75rem',
-    textTransform: 'uppercase',
-    letterSpacing: '0.08em',
-    fontWeight: '700',
+    fontSize: 'var(--font-body-15-size)',
+    fontWeight: '600',
   },
   metricRow: {
     display: 'flex',
@@ -233,17 +236,18 @@ const useStyles = makeStyles({
     justifyContent: 'space-between',
     gap: 'var(--space-md)',
     padding: 'var(--space-md)',
-    border: '1px solid rgba(13, 138, 132, 0.12)',
-    backgroundColor: 'rgba(32, 163, 158, 0.08)',
+    borderRadius: 'var(--radius-card)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-primary-softer)',
     '@media (max-width: 720px)': {
       alignItems: 'flex-start',
       flexDirection: 'column',
     },
   },
   metricValue: {
-    color: 'var(--color-primary-light)',
+    color: 'var(--color-primary-dark)',
     fontFamily: 'var(--font-display)',
-    fontWeight: '800',
+    fontWeight: '600',
     letterSpacing: '-0.02em',
   },
   supportCopy: {
@@ -257,16 +261,17 @@ const useStyles = makeStyles({
     gap: '6px',
     width: 'fit-content',
     padding: '6px 10px',
-    border: '1px solid rgba(15, 42, 58, 0.12)',
-    backgroundColor: 'rgba(255, 255, 255, 0.88)',
+    borderRadius: '999px',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-surface-elevated)',
     color: 'var(--color-text-secondary)',
-    fontSize: '0.75rem',
-    fontWeight: '700',
+    fontSize: 'var(--font-body-15-size)',
+    fontWeight: '600',
   },
   statusPillSuccess: {
-    border: '1px solid rgba(13, 138, 132, 0.24)',
+    border: '1px solid var(--color-border-strong)',
     color: 'var(--color-primary-dark)',
-    backgroundColor: 'rgba(223, 245, 241, 0.92)',
+    backgroundColor: 'var(--color-primary-softer)',
   },
   statusPillWarning: {
     border: '1px solid rgba(191, 109, 0, 0.24)',
@@ -429,6 +434,13 @@ export function SettingsView({
   const [dataDeleting, setDataDeleting] = useState(false)
   const [dataDeleteError, setDataDeleteError] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const conversationalMicFlagEnabled = isConversationalMicFlagEnabled()
+  const [micMode, setMicMode] = useState<MicMode>(() => readStoredMicMode())
+  const handleMicModeChange = (next: MicMode) => {
+    if (next === micMode) return
+    setMicMode(next)
+    writeStoredMicMode(next)
+  }
   const invitationRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const familyInvitationRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const roleLabel = authRole || 'Unknown role'
@@ -715,6 +727,32 @@ export function SettingsView({
                 Sets the current buddy used when launching a session.
               </Text>
             </div>
+            {conversationalMicFlagEnabled ? (
+              <div className={styles.controlBlock}>
+                <Text className={styles.label}>Mic style (preview)</Text>
+                <div className={styles.modeToggleRow}>
+                  <Button
+                    appearance="secondary"
+                    className={mergeClasses(styles.modeButton, micMode === 'tap' && styles.modeButtonActive)}
+                    onClick={() => handleMicModeChange('tap')}
+                    aria-pressed={micMode === 'tap'}
+                  >
+                    Tap to talk
+                  </Button>
+                  <Button
+                    appearance="secondary"
+                    className={mergeClasses(styles.modeButton, micMode === 'conversational' && styles.modeButtonActive)}
+                    onClick={() => handleMicModeChange('conversational')}
+                    aria-pressed={micMode === 'conversational'}
+                  >
+                    Conversational
+                  </Button>
+                </div>
+                <Text className={styles.helperText}>
+                  Tap to talk keeps the current push-to-talk flow. Conversational lets the buddy hear the child continuously and score key words automatically.
+                </Text>
+              </div>
+            ) : null}
           </div>
           <div className={styles.metricRow}>
             <Text className={styles.label}>Workspace status</Text>

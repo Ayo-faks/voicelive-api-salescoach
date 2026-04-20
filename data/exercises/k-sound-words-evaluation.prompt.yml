@@ -1,4 +1,4 @@
-name: K Sound Words Evaluation
+name: /k/ — Word Level (Initial Position) Evaluation
 description: Evaluate a child practice session focused on the /k/ sound
 model: gpt-4o
 modelParameters:

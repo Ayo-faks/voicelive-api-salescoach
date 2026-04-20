@@ -1,4 +1,4 @@
-name: SH Sound Starter Evaluation
+name: /sh/ — Sound in Isolation Evaluation
 description: Evaluate isolated /sh/ sound practice
 model: gpt-4o
 modelParameters:

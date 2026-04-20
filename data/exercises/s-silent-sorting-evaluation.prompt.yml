@@ -1,4 +1,4 @@
-name: S Sound Sorting Evaluation
+name: /s/ — Auditory Discrimination (Sorting) Evaluation
 description: Evaluate silent sorting of /s/ and /sh/ words
 model: gpt-4o
 modelParameters:

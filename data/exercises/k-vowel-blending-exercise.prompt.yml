@@ -1,4 +1,4 @@
-name: K Vowel Blending
+name: /k/ — Syllable Level (CV Blending)
 description: Blend /k/ with simple vowels before moving into full words
 model: gpt-4o
 modelParameters:

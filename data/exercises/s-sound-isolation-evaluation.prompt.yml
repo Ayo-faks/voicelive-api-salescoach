@@ -1,4 +1,4 @@
-name: S Sound Starter Evaluation
+name: /s/ — Sound in Isolation Evaluation
 description: Evaluate isolated /s/ sound practice
 model: gpt-4o
 modelParameters:

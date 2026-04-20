@@ -1,4 +1,4 @@
-name: TH Sound Sorting
+name: /th/ — Auditory Discrimination (Sorting)
 description: Sort /th/ and /f/ cards into the right sound homes before speaking
 model: gpt-4o
 modelParameters:

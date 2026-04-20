@@ -66,6 +66,20 @@ export function exercisePhaseReducer(state: PhaseState, event: PhaseEvent): Phas
       return { ...state, phase: 'reinforce' }
     }
 
+    case 'REPLAY': {
+      // reinforce → expose: re-enter EXPOSE without firing ORIENT/BRIDGE so
+      // greetings do not repeat. Reset exposeTouched so the adapter can call
+      // advance() again at the end of the replayed round. performStartedAt is
+      // cleared because any subsequent perform beat should be a fresh run.
+      if (state.phase !== 'reinforce') return state
+      return {
+        ...state,
+        phase: 'expose',
+        exposeTouched: false,
+        performStartedAt: null,
+      }
+    }
+
     case 'THERAPIST_SKIP': {
       const entry = {
         kind: event.kind,
@@ -135,6 +149,7 @@ export interface UseShellAdvanceApi {
   phase: ExercisePhase
   advance: (opts?: { force?: boolean }) => void
   notifyExposeInteract: () => void
+  replay: () => void
 }
 
 export function useShellAdvance(): UseShellAdvanceApi {
@@ -152,5 +167,6 @@ export function useShellAdvance(): UseShellAdvanceApi {
       }
     },
     notifyExposeInteract: () => ctx.dispatch({ type: 'EXPOSE_INTERACT' }),
+    replay: () => ctx.dispatch({ type: 'REPLAY' }),
   }
 }

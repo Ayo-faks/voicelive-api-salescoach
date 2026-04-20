@@ -1,4 +1,4 @@
-name: /f/ structured conversation
+name: /f/ — Conversation Level
 description: Open-ended structured conversation eliciting /f/ tokens (Stage 8 structured_conversation).
 model: gpt-4o
 modelParameters:

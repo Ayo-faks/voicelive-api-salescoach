@@ -1,4 +1,4 @@
-name: /f/ structured conversation evaluation
+name: /f/ — Conversation Level Evaluation
 description: Evaluate a child structured-conversation session focused on natural /f/ production.
 model: gpt-4o
 modelParameters:

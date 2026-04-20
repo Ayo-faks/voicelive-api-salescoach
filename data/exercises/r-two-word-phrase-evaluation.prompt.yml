@@ -1,4 +1,4 @@
-name: /r/ two-word phrase practice evaluation
+name: /r/ — Phrase Level Evaluation
 description: Evaluate a child practice session focused on the /r/ sound inside two-word phrases.
 model: gpt-4o
 modelParameters:

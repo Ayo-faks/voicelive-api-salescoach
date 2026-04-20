@@ -1,4 +1,4 @@
-name: SH Vowel Blending Evaluation
+name: /sh/ — Syllable Level (CV Blending) Evaluation
 description: Evaluate /sh/ plus vowel blending practice
 model: gpt-4o
 modelParameters:

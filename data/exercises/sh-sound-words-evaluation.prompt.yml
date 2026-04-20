@@ -1,4 +1,4 @@
-name: SH Sound Words Evaluation
+name: /sh/ — Word Level (Initial Position) Evaluation
 description: Evaluate a child practice session focused on the /sh/ sound
 model: gpt-4o
 modelParameters:

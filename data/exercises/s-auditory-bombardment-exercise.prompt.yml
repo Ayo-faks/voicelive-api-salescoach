@@ -1,5 +1,5 @@
-name: Snake Sound Listen
-description: Listen to twelve snake-sound pictures and watch them light up
+name: /s/ — Auditory Bombardment
+description: Twelve snake-sound pictures play automatically while the child listens.
 model: gpt-4o
 modelParameters:
   temperature: 0.2

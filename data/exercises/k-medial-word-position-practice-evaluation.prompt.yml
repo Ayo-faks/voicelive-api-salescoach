@@ -1,4 +1,4 @@
-name: /k/ medial word practice evaluation
+name: /k/ — Word Level (Medial Position) Evaluation
 description: Evaluate a child practice session focused on the /k/ sound in the middle of words.
 model: gpt-4o
 modelParameters:

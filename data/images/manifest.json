@@ -736,7 +736,7 @@
       "status": "pending_review",
       "approved": false,
       "size": "1024x1024",
-      "generationPrompt": "Illustration of a single single white tooth, centered on a solid soft teal background (#B2DFDB). Clean flat vector illustration style for children aged 4-8. No text, no extra objects, no shadows, no borders. Simple, friendly, immediately recognisable as 'tooth'. Square composition."
+      "generationPrompt": "Illustration of single white tooth, centered on a solid soft teal background (#B2DFDB). Clean flat vector illustration style for children aged 4-8. No text, no extra objects, no shadows, no borders. Simple, friendly, immediately recognisable as 'tooth'. Square composition."
     },
     {
       "id": "f-initial-fox",
@@ -814,7 +814,7 @@
       "status": "pending_review",
       "approved": false,
       "size": "1024x1024",
-      "generationPrompt": "Illustration of a single single bare foot, centered on a solid soft teal background (#B2DFDB). Clean flat vector illustration style for children aged 4-8. No text, no extra objects, no shadows, no borders. Simple, friendly, immediately recognisable as 'foot'. Square composition."
+      "generationPrompt": "Illustration of single bare foot, centered on a solid soft teal background (#B2DFDB). Clean flat vector illustration style for children aged 4-8. No text, no extra objects, no shadows, no borders. Simple, friendly, immediately recognisable as 'foot'. Square composition."
     },
     {
       "id": "f-initial-four",
@@ -1269,7 +1269,7 @@
       "status": "pending_review",
       "approved": false,
       "size": "1024x1024",
-      "generationPrompt": "Illustration of bathtub, centered on a solid soft teal background (#B2DFDB). Clean flat vector illustration style for children aged 4-8. No text, no extra objects, no shadows, no borders. Simple, friendly, immediately recognisable as 'bathtub'. Square composition."
+      "generationPrompt": "Illustration of a single bathtub, centered on a solid soft teal background (#B2DFDB). Clean flat vector illustration style for children aged 4-8. No text, no extra objects, no shadows, no borders. Simple, friendly, immediately recognisable as 'bathtub'. Square composition."
     },
     {
       "id": "th-medial-toothbrush",
@@ -1282,7 +1282,7 @@
       "status": "pending_review",
       "approved": false,
       "size": "1024x1024",
-      "generationPrompt": "Illustration of toothbrush, centered on a solid soft teal background (#B2DFDB). Clean flat vector illustration style for children aged 4-8. No text, no extra objects, no shadows, no borders. Simple, friendly, immediately recognisable as 'toothbrush'. Square composition."
+      "generationPrompt": "Illustration of a single toothbrush, centered on a solid soft teal background (#B2DFDB). Clean flat vector illustration style for children aged 4-8. No text, no extra objects, no shadows, no borders. Simple, friendly, immediately recognisable as 'toothbrush'. Square composition."
     },
     {
       "id": "th-medial-nothing",
@@ -1295,7 +1295,7 @@
       "status": "pending_review",
       "approved": false,
       "size": "1024x1024",
-      "generationPrompt": "Illustration of the word NOTHING written clearly, centered on a solid soft teal background (#B2DFDB). Clean flat vector illustration style for children aged 4-8. No text, no extra objects, no shadows, no borders. Simple, friendly, immediately recognisable as 'nothing'. Square composition."
+      "generationPrompt": "Illustration of a single the word NOTHING written clearly, centered on a solid soft teal background (#B2DFDB). Clean flat vector illustration style for children aged 4-8. No text, no extra objects, no shadows, no borders. Simple, friendly, immediately recognisable as 'nothing'. Square composition."
     },
     {
       "id": "th-medial-birthday",
@@ -1321,7 +1321,7 @@
       "status": "pending_review",
       "approved": false,
       "size": "1024x1024",
-      "generationPrompt": "Illustration of the word SOMETHING written clearly, centered on a solid soft teal background (#B2DFDB). Clean flat vector illustration style for children aged 4-8. No text, no extra objects, no shadows, no borders. Simple, friendly, immediately recognisable as 'something'. Square composition."
+      "generationPrompt": "Illustration of a single the word SOMETHING written clearly, centered on a solid soft teal background (#B2DFDB). Clean flat vector illustration style for children aged 4-8. No text, no extra objects, no shadows, no borders. Simple, friendly, immediately recognisable as 'something'. Square composition."
     },
     {
       "id": "th-final-mouth",
@@ -1542,7 +1542,7 @@
       "status": "pending_review",
       "approved": false,
       "size": "1024x1024",
-      "generationPrompt": "Illustration of the ocean, centered on a solid soft teal background (#B2DFDB). Clean flat vector illustration style for children aged 4-8. No text, no extra objects, no shadows, no borders. Simple, friendly, immediately recognisable as 'ocean'. Square composition."
+      "generationPrompt": "Illustration of a single the ocean, centered on a solid soft teal background (#B2DFDB). Clean flat vector illustration style for children aged 4-8. No text, no extra objects, no shadows, no borders. Simple, friendly, immediately recognisable as 'ocean'. Square composition."
     },
     {
       "id": "sh-medial-mushroom",

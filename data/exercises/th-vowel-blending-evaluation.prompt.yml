@@ -1,4 +1,4 @@
-name: TH Vowel Blending Evaluation
+name: /th/ — Syllable Level (CV Blending) Evaluation
 description: Evaluate /th/ plus vowel blending practice
 model: gpt-4o
 modelParameters:

@@ -1,4 +1,4 @@
-name: /th/ structured conversation
+name: /th/ — Conversation Level
 description: Open-ended structured conversation eliciting /th/ tokens (Stage 8 structured_conversation).
 model: gpt-4o
 modelParameters:

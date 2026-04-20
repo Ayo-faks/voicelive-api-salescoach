@@ -1,4 +1,4 @@
-name: Sound Match with S and SH
+name: /s/ vs /sh/ — Minimal Pair Contrast
 description: Practice hearing and saying the difference between /s/ and /sh/
 model: gpt-4o
 modelParameters:

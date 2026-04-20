@@ -274,3 +274,176 @@ class TargetTokenTally:
             scaffold_escalated=self._escalated,
             standouts=list(self._standouts),
         )
+
+
+# ---------------------------------------------------------------------------
+# PR12b.3 — scored-turn dispatcher
+# ---------------------------------------------------------------------------
+
+# Default scored-turn window length (ms) used when the client omits it. Mirrors
+# the frontend `ScoredTurn.windowMs` default discussed in the PR12b plan.
+DEFAULT_SCORED_TURN_WINDOW_MS = 3500
+# Hard upper bound so a misbehaving client can't keep a scorer open forever.
+MAX_SCORED_TURN_WINDOW_MS = 15000
+
+
+@dataclass
+class ScoredTurnResult:
+    """JSON-safe scored-turn outcome."""
+
+    turn_id: str
+    target_word: str
+    reference_text: str
+    transcript: Optional[str]
+    verdict: str  # "correct" | "incorrect" | "timeout"
+    elapsed_ms: float
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "turnId": self.turn_id,
+            "targetWord": self.target_word,
+            "referenceText": self.reference_text,
+            "transcript": self.transcript,
+            "verdict": self.verdict,
+            "elapsedMs": self.elapsed_ms,
+        }
+
+
+class ScoredTurnDispatcher:
+    """Pure state machine for a short scored-turn window.
+
+    Lifecycle:
+        begin(turn_id, target_word, reference_text, window_ms)
+          → one of:
+              ingest_transcript(text)  # first non-empty transcript resolves the
+                                       # turn as correct/incorrect based on
+                                       # whether the normalized target word
+                                       # appears in the transcript tokens.
+              end(turn_id)             # client-initiated cancel.
+              check_timeout()          # resolves as "timeout" when elapsed
+                                       # exceeds window_ms.
+
+    Only one turn is tracked at a time — a second ``begin`` while active
+    supersedes the first (emits a synthetic timeout for the stale turn so the
+    frontend reducer clears its state). All timestamps use the injectable
+    ``now_fn`` (seconds, monotonic).
+
+    This class is intentionally unaware of WebSockets, asyncio, and the Azure
+    Speech SDK. Integration with the realtime pipeline lives in
+    ``websocket_handler.py``; a future PR can swap in real pronunciation
+    assessment by calling ``resolve_with_assessment`` instead of
+    ``ingest_transcript``.
+    """
+
+    def __init__(self, now_fn: Optional[Any] = None) -> None:
+        self._now = now_fn or time.monotonic
+        self._turn_id: Optional[str] = None
+        self._target_word_normalized: str = ""
+        self._target_word_raw: str = ""
+        self._reference_text: str = ""
+        self._window_seconds: float = DEFAULT_SCORED_TURN_WINDOW_MS / 1000.0
+        self._started_at: Optional[float] = None
+
+    # ------------------------------------------------------------------
+    # State helpers
+    # ------------------------------------------------------------------
+    @property
+    def active_turn_id(self) -> Optional[str]:
+        return self._turn_id
+
+    def is_active(self) -> bool:
+        return self._turn_id is not None
+
+    # ------------------------------------------------------------------
+    # Lifecycle
+    # ------------------------------------------------------------------
+    def begin(
+        self,
+        *,
+        turn_id: str,
+        target_word: str,
+        reference_text: Optional[str] = None,
+        window_ms: Optional[int] = None,
+    ) -> Optional[ScoredTurnResult]:
+        """Start a new scored-turn window.
+
+        Returns a synthetic timeout result for any previously active turn so
+        the caller can inform the client that the old turn is gone.
+        """
+        preempted: Optional[ScoredTurnResult] = None
+        if self._turn_id is not None:
+            preempted = self._build_result(verdict="timeout", transcript=None)
+        normalized = _normalize_word(target_word or "")
+        clamped_ms = DEFAULT_SCORED_TURN_WINDOW_MS
+        if window_ms is not None:
+            try:
+                clamped_ms = max(500, min(int(window_ms), MAX_SCORED_TURN_WINDOW_MS))
+            except (TypeError, ValueError):
+                clamped_ms = DEFAULT_SCORED_TURN_WINDOW_MS
+        self._turn_id = str(turn_id)
+        self._target_word_raw = str(target_word or "")
+        self._target_word_normalized = normalized
+        self._reference_text = str(reference_text or target_word or "")
+        self._window_seconds = clamped_ms / 1000.0
+        self._started_at = self._now()
+        return preempted
+
+    def end(self, turn_id: str) -> Optional[ScoredTurnResult]:
+        """Client-initiated cancel. Returns a timeout result for the matched
+        turn, or ``None`` if the id doesn't match the active turn."""
+        if self._turn_id is None or self._turn_id != str(turn_id):
+            return None
+        result = self._build_result(verdict="timeout", transcript=None)
+        self._reset()
+        return result
+
+    def ingest_transcript(self, transcript: str) -> Optional[ScoredTurnResult]:
+        """Feed a transcript during the active window. Returns a result when
+        the turn resolves. Transcripts arriving after expiry are ignored (the
+        caller should have called ``check_timeout`` already)."""
+        if self._turn_id is None or self._started_at is None:
+            return None
+        if self._now() - self._started_at > self._window_seconds:
+            # Stale — caller should drive resolution via check_timeout().
+            return None
+        text = (transcript or "").strip()
+        if not text:
+            return None
+        tokens = _tokenize(text)
+        verdict = "correct" if self._target_word_normalized and self._target_word_normalized in tokens else "incorrect"
+        result = self._build_result(verdict=verdict, transcript=text)
+        self._reset()
+        return result
+
+    def check_timeout(self) -> Optional[ScoredTurnResult]:
+        """Resolve the active turn as a timeout if the window has elapsed."""
+        if self._turn_id is None or self._started_at is None:
+            return None
+        if self._now() - self._started_at < self._window_seconds:
+            return None
+        result = self._build_result(verdict="timeout", transcript=None)
+        self._reset()
+        return result
+
+    # ------------------------------------------------------------------
+    # Internals
+    # ------------------------------------------------------------------
+    def _build_result(self, *, verdict: str, transcript: Optional[str]) -> ScoredTurnResult:
+        started = self._started_at if self._started_at is not None else self._now()
+        elapsed_ms = max(0.0, (self._now() - started) * 1000.0)
+        return ScoredTurnResult(
+            turn_id=self._turn_id or "",
+            target_word=self._target_word_raw,
+            reference_text=self._reference_text,
+            transcript=transcript,
+            verdict=verdict,
+            elapsed_ms=elapsed_ms,
+        )
+
+    def _reset(self) -> None:
+        self._turn_id = None
+        self._target_word_normalized = ""
+        self._target_word_raw = ""
+        self._reference_text = ""
+        self._started_at = None
+        self._window_seconds = DEFAULT_SCORED_TURN_WINDOW_MS / 1000.0

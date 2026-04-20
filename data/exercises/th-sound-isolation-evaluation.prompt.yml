@@ -1,4 +1,4 @@
-name: TH Sound Starter Evaluation
+name: /th/ — Sound in Isolation Evaluation
 description: Evaluate isolated /th/ sound practice
 model: gpt-4o
 modelParameters:

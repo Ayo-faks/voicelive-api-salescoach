@@ -63,16 +63,17 @@ export const progressDashboardChartStyleSlots = {
   },
   radarLayout: {
     display: 'grid',
-    gridTemplateColumns: 'minmax(0, 280px) minmax(180px, 1fr)',
+    gridTemplateColumns: '1fr',
     gap: 'var(--space-md)',
     alignItems: 'center',
-    '@media (max-width: 640px)': {
-      gridTemplateColumns: '1fr',
-    },
   },
   radarMetaGrid: {
     display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
     gap: 'var(--space-sm)',
+    '@media (max-width: 640px)': {
+      gridTemplateColumns: '1fr',
+    },
   },
   statTile: {
     border: '1px solid rgba(15, 42, 58, 0.12)',

@@ -1,4 +1,4 @@
-name: TH Sentences
+name: /th/ — Sentence Level
 description: Practice the /th/ sound in short everyday sentences
 model: gpt-4o
 modelParameters:

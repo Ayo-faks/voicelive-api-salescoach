@@ -1,4 +1,4 @@
-name: Listen for K or T Evaluation
+name: /k/ vs /t/ — Auditory Discrimination (Minimal Pairs) Evaluation
 description: Evaluate a listening-only minimal-pairs practice session for /k/ and /t/
 model: gpt-4o
 modelParameters:

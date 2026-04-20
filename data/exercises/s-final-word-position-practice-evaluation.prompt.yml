@@ -1,4 +1,4 @@
-name: /s/ final word practice evaluation
+name: /s/ — Word Level (Final Position) Evaluation
 description: Evaluate a child practice session focused on the /s/ sound in the end of words.
 model: gpt-4o
 modelParameters:

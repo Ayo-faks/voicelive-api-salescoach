@@ -1,4 +1,4 @@
-name: /r/ medial word practice
+name: /r/ — Word Level (Medial Position)
 description: Practice the /r/ sound in the middle of familiar words (Stage 5b word_position_practice).
 model: gpt-4o
 modelParameters:

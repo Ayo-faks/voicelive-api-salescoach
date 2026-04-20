@@ -1,4 +1,4 @@
-name: SH Sound Words
+name: /sh/ — Word Level (Initial Position)
 description: Practice the /sh/ sound at the start of familiar words
 model: gpt-4o
 modelParameters:

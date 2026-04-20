@@ -1,4 +1,4 @@
-name: TH Sound Words
+name: /th/ — Word Level (Initial Position)
 description: Practice the /th/ sound at the start of familiar words
 model: gpt-4o
 modelParameters:

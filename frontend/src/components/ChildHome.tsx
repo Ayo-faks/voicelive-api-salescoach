@@ -19,10 +19,9 @@ const useStyles = makeStyles({
     gridTemplateAreas: '"avatar copy" "action copy"',
     gap: 'var(--space-lg)',
     padding: 'clamp(1.4rem, 3vw, 2.25rem)',
-    borderRadius: '0px',
+    borderRadius: 'var(--radius-card)',
     border: '1px solid var(--color-border)',
-    background:
-      'radial-gradient(circle at top right, rgba(13, 138, 132, 0.16), transparent 34%), radial-gradient(circle at bottom left, rgba(13, 138, 132, 0.08), transparent 32%), linear-gradient(135deg, rgba(233, 245, 246, 0.98), rgba(224, 239, 241, 0.98))',
+    backgroundColor: 'var(--color-surface-elevated)',
     boxShadow: 'var(--shadow-lg)',
     minHeight: '400px',
     overflow: 'hidden',
@@ -51,22 +50,23 @@ const useStyles = makeStyles({
   title: {
     fontFamily: 'var(--font-display)',
     color: 'var(--color-text-primary)',
-    fontSize: 'clamp(2.3rem, 5vw, 4rem)',
-    fontWeight: '800',
-    lineHeight: 0.96,
-    letterSpacing: '-0.05em',
+    fontSize: 'var(--font-display-xl-size)',
+    fontWeight: 'var(--font-display-xl-weight)',
+    lineHeight: 'var(--font-display-xl-line)',
+    letterSpacing: 'var(--font-display-xl-tracking)',
     maxWidth: '520px',
   },
   body: {
     color: 'var(--color-text-secondary)',
-    lineHeight: 1.65,
-    fontSize: '0.95rem',
+    lineHeight: 'var(--font-body-15-line)',
+    fontSize: 'var(--font-body-15-size)',
+    fontWeight: 'var(--font-body-15-weight)',
     maxWidth: '560px',
   },
   heroHint: {
     color: 'var(--color-text-secondary)',
-    fontSize: '0.84rem',
-    lineHeight: 1.55,
+    fontSize: 'var(--font-body-15-size)',
+    lineHeight: 'var(--font-body-15-line)',
     maxWidth: '48ch',
   },
   chipRow: {
@@ -77,7 +77,7 @@ const useStyles = makeStyles({
   chip: {
     minHeight: '28px',
     paddingInline: 'var(--space-sm)',
-    borderRadius: '0px',
+    borderRadius: 'var(--radius-card)',
     backgroundColor: 'rgba(255, 255, 255, 0.78)',
     color: 'var(--color-primary-dark)',
     border: '1px solid rgba(13, 138, 132, 0.12)',
@@ -86,9 +86,9 @@ const useStyles = makeStyles({
     minHeight: '46px',
     minWidth: '152px',
     paddingInline: 'var(--space-lg)',
-    borderRadius: '0px',
+    borderRadius: 'var(--radius-card)',
     fontFamily: 'var(--font-display)',
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: '0.92rem',
     justifySelf: 'center',
     backgroundColor: 'var(--color-primary)',
@@ -115,10 +115,9 @@ const useStyles = makeStyles({
     display: 'grid',
     placeItems: 'center',
     minHeight: '252px',
-    borderRadius: '0px',
+    borderRadius: 'var(--radius-card)',
     border: '1px solid rgba(13, 138, 132, 0.12)',
-    background:
-      'radial-gradient(circle at center, rgba(255, 255, 255, 0.96), rgba(232, 245, 242, 0.84))',
+    backgroundColor: 'var(--color-bg-card)',
     textAlign: 'center',
     padding: '18px',
     alignContent: 'center',
@@ -142,13 +141,17 @@ const useStyles = makeStyles({
     animationDuration: '3.2s',
     animationTimingFunction: 'ease-in-out',
     animationIterationCount: 'infinite',
+    '@media (prefers-reduced-motion: reduce)': {
+      animationName: 'none',
+    },
   },
   avatarLabel: {
     marginTop: 'var(--space-md)',
     color: 'var(--color-text-primary)',
     fontFamily: 'var(--font-display)',
-    fontSize: '1rem',
-    fontWeight: '700',
+    fontSize: 'var(--font-display-lg-size)',
+    fontWeight: 'var(--font-display-lg-weight)',
+    lineHeight: 'var(--font-display-lg-line)',
   },
   avatarHint: {
     color: 'var(--color-text-secondary)',
@@ -158,10 +161,9 @@ const useStyles = makeStyles({
   },
   exerciseSection: {
     padding: 'var(--space-lg)',
-    borderRadius: 'var(--radius-lg)',
+    borderRadius: 'var(--radius-card)',
     border: '1px solid var(--color-border)',
-    background:
-      'linear-gradient(135deg, rgba(233, 245, 246, 0.96), rgba(224, 239, 241, 0.96))',
+    backgroundColor: 'var(--color-surface-elevated)',
     boxShadow: 'var(--shadow-md)',
     '@media (max-width: 760px)': {
       padding: 'var(--space-md)',
@@ -196,7 +198,6 @@ export function ChildHome({
     'Practice buddy'
   const selectedExercise =
     scenarios.find(scenario => scenario.id === selectedScenario) || null
-  const stepNumber = selectedExercise?.exerciseMetadata?.stepNumber
   const targetSound = selectedExercise?.exerciseMetadata?.targetSound
 
   return (
@@ -229,11 +230,6 @@ export function ChildHome({
             {selectedExercise ? (
               <Badge appearance="tint" className={styles.chip}>
                 Exercise: {selectedExercise.name}
-              </Badge>
-            ) : null}
-            {stepNumber ? (
-              <Badge appearance="tint" className={styles.chip}>
-                Step {stepNumber}
               </Badge>
             ) : null}
             {targetSound ? (

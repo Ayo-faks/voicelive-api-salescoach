@@ -1,4 +1,4 @@
-name: R Sound Starter
+name: /r/ — Sound in Isolation
 description: Practice making the /r/ sound on its own with a rocket cue
 model: gpt-4o
 modelParameters:

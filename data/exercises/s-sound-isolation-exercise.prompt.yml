@@ -1,4 +1,4 @@
-name: S Sound Starter
+name: /s/ — Sound in Isolation
 description: Practice making the /s/ sound on its own with a snake cue
 model: gpt-4o
 modelParameters:

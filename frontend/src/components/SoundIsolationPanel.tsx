@@ -6,6 +6,7 @@
 import { Button, Card, Text, makeStyles } from '@fluentui/react-components'
 import { useState } from 'react'
 import type { ExerciseMetadata } from '../types'
+import type { MicMode } from '../utils/micMode'
 import { ImageCard } from './ImageCard'
 import { RepetitionCounter } from './RepetitionCounter'
 
@@ -21,7 +22,8 @@ const useStyles = makeStyles({
   },
   title: {
     fontFamily: 'var(--font-display)',
-    color: 'var(--color-text-primary)',
+    // PR9 — teal panel title anchors each exercise card to the brand palette.
+    color: 'var(--color-primary-dark)',
     fontSize: '1rem',
     fontWeight: '700',
   },
@@ -69,6 +71,8 @@ interface Props {
   attempts: number
   audience?: 'therapist' | 'child'
   onSendMessage?: (text: string) => void
+  /** PR12b.3c — mic-mode preference. Accepted for future conversational-turn wiring; today prop-only. */
+  micMode?: MicMode
 }
 
 export function SoundIsolationPanel({
@@ -77,6 +81,7 @@ export function SoundIsolationPanel({
   attempts,
   audience = 'child',
   onSendMessage,
+  micMode: _micMode = 'tap',
 }: Props) {
   const styles = useStyles()
   const [manualAttempts, setManualAttempts] = useState(0)

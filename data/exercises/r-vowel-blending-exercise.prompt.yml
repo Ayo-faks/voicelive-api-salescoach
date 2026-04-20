@@ -1,4 +1,4 @@
-name: R Vowel Blending
+name: /r/ — Syllable Level (CV Blending)
 description: Blend /r/ with easy vowels before moving into full words
 model: gpt-4o
 modelParameters:

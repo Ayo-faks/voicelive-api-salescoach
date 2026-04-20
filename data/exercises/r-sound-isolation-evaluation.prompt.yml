@@ -1,4 +1,4 @@
-name: R Sound Starter Evaluation
+name: /r/ — Sound in Isolation Evaluation
 description: Evaluate isolated /r/ sound practice
 model: gpt-4o
 modelParameters:

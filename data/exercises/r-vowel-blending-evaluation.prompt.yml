@@ -1,4 +1,4 @@
-name: R Vowel Blending Evaluation
+name: /r/ — Syllable Level (CV Blending) Evaluation
 description: Evaluate /r/ plus vowel blending practice
 model: gpt-4o
 modelParameters:

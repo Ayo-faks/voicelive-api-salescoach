@@ -1,4 +1,4 @@
-name: Listen for R or W Evaluation
+name: /r/ vs /w/ — Auditory Discrimination (Minimal Pairs) Evaluation
 description: Evaluate listening discrimination between /r/ and /w/
 model: gpt-4o
 modelParameters:

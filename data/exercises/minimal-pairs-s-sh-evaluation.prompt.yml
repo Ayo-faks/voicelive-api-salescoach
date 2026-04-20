@@ -1,4 +1,4 @@
-name: Sound Match with S and SH Evaluation
+name: /s/ vs /sh/ — Minimal Pair Contrast Evaluation
 description: Evaluate a minimal-pairs practice session for /s/ and /sh/
 model: gpt-4o
 modelParameters:

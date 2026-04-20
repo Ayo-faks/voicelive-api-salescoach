@@ -1,4 +1,4 @@
-name: R Sound Sorting Evaluation
+name: /r/ — Auditory Discrimination (Sorting) Evaluation
 description: Evaluate sorting /r/ and /w/ words by first sound
 model: gpt-4o
 modelParameters:

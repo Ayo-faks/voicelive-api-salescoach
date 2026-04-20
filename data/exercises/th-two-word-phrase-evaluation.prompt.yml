@@ -1,4 +1,4 @@
-name: /th/ two-word phrase practice evaluation
+name: /th/ — Phrase Level Evaluation
 description: Evaluate a child practice session focused on the /th/ sound inside two-word phrases.
 model: gpt-4o
 modelParameters:

@@ -23,6 +23,7 @@
 import { Badge, Button, Card, ProgressBar, Text, makeStyles, mergeClasses } from '@fluentui/react-components'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ExerciseMetadata, PronunciationAssessment } from '../types'
+import type { MicMode } from '../utils/micMode'
 import { api } from '../services/api'
 import { ImageCard } from './ImageCard'
 import {
@@ -45,7 +46,8 @@ const useStyles = makeStyles({
   },
   title: {
     fontFamily: 'var(--font-display)',
-    color: 'var(--color-text-primary)',
+    // PR9 — teal panel title anchors each exercise card to the brand palette.
+    color: 'var(--color-primary-dark)',
     fontSize: '1rem',
     fontWeight: '700',
   },
@@ -147,6 +149,16 @@ interface Props {
   onActiveTargetWordChange?: (word: string) => void
   onToggleRecording?: () => void | Promise<void>
   onExerciseComplete?: () => void
+  /** PR12b.3c — mic-mode preference. Accepted for future conversational-turn wiring; today prop-only. */
+  micMode?: MicMode
+  /** PR12b.3c.3 — conversational-mode scored-turn callbacks (prop-only today). */
+  onScoredTurnBegin?: (payload: {
+    turnId: string
+    targetWord: string
+    referenceText?: string
+    windowMs?: number
+  }) => void
+  onScoredTurnEnd?: (turnId: string) => void
 }
 
 interface WordProgress {
@@ -173,6 +185,9 @@ export function WordPositionPracticePanel({
   onActiveTargetWordChange,
   onToggleRecording,
   onExerciseComplete,
+  micMode = 'tap',
+  onScoredTurnBegin,
+  onScoredTurnEnd,
 }: Props) {
   const styles = useStyles()
   const targetSound = metadata?.targetSound || 'target'
@@ -251,6 +266,9 @@ export function WordPositionPracticePanel({
               scoringUtterance={scoringUtterance}
               onActiveTargetWordChange={onActiveTargetWordChange}
               onToggleRecording={onToggleRecording}
+              micMode={micMode}
+              onScoredTurnBegin={onScoredTurnBegin}
+              onScoredTurnEnd={onScoredTurnEnd}
             />
           ),
         }}
@@ -417,6 +435,14 @@ interface PerformSlotProps {
   scoringUtterance: boolean
   onActiveTargetWordChange?: (word: string) => void
   onToggleRecording?: () => void | Promise<void>
+  micMode?: MicMode
+  onScoredTurnBegin?: (payload: {
+    turnId: string
+    targetWord: string
+    referenceText?: string
+    windowMs?: number
+  }) => void
+  onScoredTurnEnd?: (turnId: string) => void
 }
 
 function PerformSlot({
@@ -429,6 +455,9 @@ function PerformSlot({
   scoringUtterance,
   onActiveTargetWordChange,
   onToggleRecording,
+  micMode = 'tap',
+  onScoredTurnBegin,
+  onScoredTurnEnd,
 }: PerformSlotProps) {
   const styles = useStyles()
   const ctx = useExercisePhaseContext()
@@ -447,6 +476,28 @@ function PerformSlot({
       onActiveTargetWordChange?.(word)
     }
   }, [activeIndex, onActiveTargetWordChange, targetWords])
+
+  // PR12b.3c.4 — in conversational mode, open a scored-turn window per active
+  // word. The window is closed when the active word changes (auto-advance or
+  // manual select) or the slot unmounts. Tap mode is a no-op.
+  const activeTurnIdRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (micMode !== 'conversational') return
+    const word = targetWords[activeIndex]
+    if (!word || !onScoredTurnBegin) return
+    const turnId =
+      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `wpp-${activeIndex}-${Date.now()}`
+    activeTurnIdRef.current = turnId
+    onScoredTurnBegin({ turnId, targetWord: word })
+    return () => {
+      if (activeTurnIdRef.current === turnId) {
+        onScoredTurnEnd?.(turnId)
+        activeTurnIdRef.current = null
+      }
+    }
+  }, [activeIndex, micMode, onScoredTurnBegin, onScoredTurnEnd, targetWords])
 
   // Observe new utteranceFeedback instances and attribute them to active word.
   useEffect(() => {

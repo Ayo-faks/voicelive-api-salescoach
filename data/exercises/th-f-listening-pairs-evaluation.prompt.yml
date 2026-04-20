@@ -1,4 +1,4 @@
-name: Listen for TH or F Evaluation
+name: /th/ vs /f/ — Auditory Discrimination (Minimal Pairs) Evaluation
 description: Evaluate listening discrimination between /th/ and /f/
 model: gpt-4o
 modelParameters:

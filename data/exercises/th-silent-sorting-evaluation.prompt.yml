@@ -1,4 +1,4 @@
-name: TH Sound Sorting Evaluation
+name: /th/ — Auditory Discrimination (Sorting) Evaluation
 description: Evaluate sorting /th/ and /f/ words by first sound
 model: gpt-4o
 modelParameters:

@@ -78,6 +78,7 @@ describe('DashboardHome', () => {
         onStartScenario={() => {}}
         onStartSession={() => {}}
         onSecondaryAction={() => {}}
+        onOpenRecommendations={() => {}}
         onAddCustomScenario={() => {}}
         onUpdateCustomScenario={() => {}}
         onDeleteCustomScenario={() => {}}
@@ -88,10 +89,9 @@ describe('DashboardHome', () => {
     expect(screen.getByText('Keep /t/ active.')).toBeTruthy()
     expect(screen.getByText('Needs review')).toBeTruthy()
     expect(screen.getByText('Therapist review is waiting in the progress dashboard.')).toBeTruthy()
-    expect(screen.getByText('Top recommendation')).toBeTruthy()
+    expect(screen.getByText('Suggested next')).toBeTruthy()
     expect(screen.getByText('Short /t/ phrases')).toBeTruthy()
-    expect(screen.getByText('Evidence status')).toBeTruthy()
-    expect(screen.getByText('Stale')).toBeTruthy()
+    expect(screen.getByText('Open recommendations →')).toBeTruthy()
   })
 
   it('does not show the add child action in parent workspace mode', () => {

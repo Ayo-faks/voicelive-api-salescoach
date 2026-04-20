@@ -1,5 +1,5 @@
-name: Shell Sound Listen
-description: Listen to twelve shell-sound pictures and watch them light up
+name: /sh/ — Auditory Bombardment
+description: Twelve shell-sound pictures play automatically while the child listens.
 model: gpt-4o
 modelParameters:
   temperature: 0.2

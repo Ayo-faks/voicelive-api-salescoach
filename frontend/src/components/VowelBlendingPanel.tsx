@@ -7,6 +7,7 @@ import { Badge, Button, Card, Text, makeStyles } from '@fluentui/react-component
 import { useEffect, useMemo, useState } from 'react'
 import { getImageAssetUrl } from '../services/api'
 import type { ExerciseMetadata } from '../types'
+import type { MicMode } from '../utils/micMode'
 import { RepetitionCounter } from './RepetitionCounter'
 
 const useStyles = makeStyles({
@@ -21,7 +22,8 @@ const useStyles = makeStyles({
   },
   title: {
     fontFamily: 'var(--font-display)',
-    color: 'var(--color-text-primary)',
+    // PR9 — teal panel title anchors each exercise card to the brand palette.
+    color: 'var(--color-primary-dark)',
     fontSize: '1rem',
     fontWeight: '700',
   },
@@ -103,11 +105,13 @@ interface Props {
   attempts: number
   onActiveBlendChange?: (blend: string) => void
   onSendMessage?: (text: string) => void
+  /** PR12b.3c — mic-mode preference. Accepted for future conversational-turn wiring; today prop-only. */
+  micMode?: MicMode
 }
 
 const DEFAULT_VOWELS = ['a', 'ee', 'eye', 'oo']
 
-export function VowelBlendingPanel({ scenarioName, metadata, attempts, onActiveBlendChange, onSendMessage }: Props) {
+export function VowelBlendingPanel({ scenarioName, metadata, attempts, onActiveBlendChange, onSendMessage, micMode: _micMode = 'tap' }: Props) {
   const styles = useStyles()
   const targetSound = metadata?.targetSound || 's'
   const cueImage = metadata?.imageAssets?.[0]

@@ -1,4 +1,4 @@
-name: K Sound Sorting Evaluation
+name: /k/ — Auditory Discrimination (Sorting) Evaluation
 description: Evaluate sorting /k/ and /t/ words by first sound
 model: gpt-4o
 modelParameters:

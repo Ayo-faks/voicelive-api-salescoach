@@ -1,4 +1,4 @@
-name: /f/ two-word phrase practice evaluation
+name: /f/ — Phrase Level Evaluation
 description: Evaluate a child practice session focused on the /f/ sound inside two-word phrases.
 model: gpt-4o
 modelParameters:

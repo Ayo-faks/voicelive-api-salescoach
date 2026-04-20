@@ -252,12 +252,12 @@ describe('ExerciseShell — PERFORM grammar (items 8, 9)', () => {
 describe('ExerciseShell — therapist skip-intro (items 10, 11)', () => {
   it('does not render skip-intro for child audience', () => {
     renderShell({ audience: 'child', therapistCanSkipIntro: true })
-    expect(screen.queryByRole('button', { name: 'Skip introduction' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Start session' })).toBeNull()
   })
 
   it('does not render skip-intro when therapistCanSkipIntro is false', () => {
     renderShell({ audience: 'therapist', therapistCanSkipIntro: false })
-    expect(screen.queryByRole('button', { name: 'Skip introduction' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Start session' })).toBeNull()
   })
 
   it('calls onTherapistOverride and advances past orient when skip-intro pressed', async () => {
@@ -267,7 +267,7 @@ describe('ExerciseShell — therapist skip-intro (items 10, 11)', () => {
       therapistCanSkipIntro: true,
       onTherapistOverride,
     })
-    const btn = screen.getByRole('button', { name: 'Skip introduction' })
+    const btn = screen.getByRole('button', { name: 'Start session' })
     await act(async () => {
       fireEvent.click(btn)
     })
@@ -384,5 +384,153 @@ describe('ExerciseShell — prefers-reduced-motion (item 17)', () => {
     stubMatchMedia(false)
     renderShell()
     expect(section().dataset.reducedMotion).toBe('false')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Child-mode usability — PR1 Tap-to-start tile + PR2 warm-up timeout.
+// See docs/child-mode-usability-plan.md.
+// ---------------------------------------------------------------------------
+
+describe('ExerciseShell — child-mode Tap to start (PR1)', () => {
+  it('renders a visible Tap to start affordance in orient for child audience', () => {
+    renderShell({ audience: 'child' })
+    const btn = screen.getByRole('button', { name: 'Tap to start' })
+    expect(btn).toBeTruthy()
+    expect(btn.getAttribute('data-primary-affordance')).toBe('true')
+    expect(btn.getAttribute('data-for-phase')).toBe('orient')
+  })
+
+  it('does not render the therapist Skip intro button for child audience', () => {
+    renderShell({ audience: 'child', therapistCanSkipIntro: true })
+    expect(screen.queryByRole('button', { name: 'Start session' })).toBeNull()
+  })
+
+  it('does not render Tap to start for therapist audience', () => {
+    renderShell({ audience: 'therapist' })
+    expect(screen.queryByRole('button', { name: 'Tap to start' })).toBeNull()
+  })
+
+  it('clicking Tap to start unlocks the gesture and flushes the orient beat', async () => {
+    const onBeatEnter = vi.fn().mockResolvedValue(undefined)
+    renderShell({ audience: 'child', onBeatEnter })
+    const btn = screen.getByRole('button', { name: 'Tap to start' })
+    await act(async () => {
+      fireEvent.click(btn)
+    })
+    await waitFor(() =>
+      expect(onBeatEnter).toHaveBeenCalledWith('orient', beats.orient)
+    )
+    await waitFor(() => expect(section().dataset.phase).toBe('expose'))
+    expect(screen.queryByRole('button', { name: 'Tap to start' })).toBeNull()
+  })
+})
+
+describe('ExerciseShell — child-mode realtime warm-up timeout (PR2)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('advances orient → expose after childRealtimeWarmupMs elapses when realtime never becomes ready', async () => {
+    const onBeatEnter = vi.fn().mockResolvedValue(undefined)
+    render(
+      <ExerciseShell
+        {...baseProps({
+          audience: 'child',
+          onBeatEnter,
+          realtimeReady: false,
+          childRealtimeWarmupMs: 50,
+        })}
+      />
+    )
+    // Warming veil visible, beat queued.
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Tap to start' }))
+    })
+    expect(onBeatEnter).not.toHaveBeenCalled()
+    expect(screen.getByTestId('exercise-shell-warming-veil')).toBeTruthy()
+
+    // Advance timers past the warm-up budget.
+    await act(async () => {
+      vi.advanceTimersByTime(60)
+    })
+
+    await vi.waitFor(() =>
+      expect(onBeatEnter).toHaveBeenCalledWith('orient', beats.orient)
+    )
+    await vi.waitFor(() => expect(section().dataset.phase).toBe('expose'))
+    expect(screen.queryByTestId('exercise-shell-warming-veil')).toBeNull()
+    expect(section().dataset.warmupElapsed).toBe('true')
+  })
+
+  it('does not start the warm-up timer for therapist audience', async () => {
+    const onBeatEnter = vi.fn().mockResolvedValue(undefined)
+    render(
+      <ExerciseShell
+        {...baseProps({
+          audience: 'therapist',
+          onBeatEnter,
+          realtimeReady: false,
+          childRealtimeWarmupMs: 50,
+        })}
+      />
+    )
+    await act(async () => {
+      fireEvent.pointerDown(section())
+    })
+    await act(async () => {
+      vi.advanceTimersByTime(500)
+    })
+    // Therapist mode stays gated on realtimeReady.
+    expect(onBeatEnter).not.toHaveBeenCalled()
+    expect(section().dataset.phase).toBe('orient')
+    expect(section().dataset.warmupElapsed).toBe('false')
+  })
+
+  it('does not start the warm-up timer before the first gesture', async () => {
+    const onBeatEnter = vi.fn().mockResolvedValue(undefined)
+    render(
+      <ExerciseShell
+        {...baseProps({
+          audience: 'child',
+          onBeatEnter,
+          realtimeReady: false,
+          childRealtimeWarmupMs: 50,
+        })}
+      />
+    )
+    await act(async () => {
+      vi.advanceTimersByTime(500)
+    })
+    // Without the child tapping, the shell must not auto-speak.
+    expect(onBeatEnter).not.toHaveBeenCalled()
+    expect(section().dataset.phase).toBe('orient')
+    expect(section().dataset.warmupElapsed).toBe('false')
+  })
+
+  it('clears the warm-up timer on unmount (StrictMode-safe)', async () => {
+    const onBeatEnter = vi.fn().mockResolvedValue(undefined)
+    const { unmount } = render(
+      <ExerciseShell
+        {...baseProps({
+          audience: 'child',
+          onBeatEnter,
+          realtimeReady: false,
+          childRealtimeWarmupMs: 50,
+        })}
+      />
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Tap to start' }))
+    })
+    unmount()
+    await act(async () => {
+      vi.advanceTimersByTime(500)
+    })
+    // No error, no callbacks after unmount.
+    expect(onBeatEnter).not.toHaveBeenCalled()
   })
 })

@@ -1,5 +1,5 @@
-name: Thumb Sound Listen
-description: Listen to twelve thumb-sound pictures and watch them light up
+name: /th/ — Auditory Bombardment
+description: Twelve thumb-sound pictures play automatically while the child listens.
 model: gpt-4o
 modelParameters:
   temperature: 0.2

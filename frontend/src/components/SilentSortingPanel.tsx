@@ -54,7 +54,8 @@ const useStyles = makeStyles({
   },
   title: {
     fontFamily: 'var(--font-display)',
-    color: 'var(--color-text-primary)',
+    // PR9 — teal panel title anchors each exercise card to the brand palette.
+    color: 'var(--color-primary-dark)',
     fontSize: '1rem',
     fontWeight: '700',
   },

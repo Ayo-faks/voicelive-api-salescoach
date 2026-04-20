@@ -1,4 +1,4 @@
-name: K Sound Starter Evaluation
+name: /k/ — Sound in Isolation Evaluation
 description: Evaluate isolated /k/ sound practice
 model: gpt-4o
 modelParameters:

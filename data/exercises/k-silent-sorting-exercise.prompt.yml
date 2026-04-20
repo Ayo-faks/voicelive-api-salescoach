@@ -1,4 +1,4 @@
-name: K Sound Sorting
+name: /k/ — Auditory Discrimination (Sorting)
 description: Sort /k/ and /t/ cards into the right sound homes before saying them
 model: gpt-4o
 modelParameters:

@@ -198,10 +198,9 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: 'var(--space-md)',
     padding: 'clamp(1.1rem, 2.2vw, 1.6rem)',
-    borderRadius: '0px',
+    borderRadius: 'var(--radius-card)',
     border: '1px solid var(--color-border)',
-    background:
-      'radial-gradient(circle at top right, rgba(13, 138, 132, 0.09), transparent 34%), radial-gradient(circle at bottom left, rgba(13, 138, 132, 0.04), transparent 32%), linear-gradient(135deg, rgba(240, 247, 247, 0.94), rgba(234, 243, 243, 0.92))',
+    backgroundColor: 'var(--color-bg-card)',
     color: 'var(--color-text-primary)',
   },
   summaryStrip: {
@@ -223,10 +222,9 @@ const useStyles = makeStyles({
   },
   summaryCard: {
     padding: '14px 16px',
-    borderRadius: 'var(--radius-lg)',
+    borderRadius: 'var(--radius-card)',
     border: '1px solid var(--color-border)',
-    backgroundColor: 'rgba(255, 252, 247, 0.9)',
-    boxShadow: 'var(--shadow-md)',
+    backgroundColor: 'var(--color-surface-elevated)',
     display: 'grid',
     gap: '6px',
     alignContent: 'start',
@@ -234,18 +232,16 @@ const useStyles = makeStyles({
   summaryLabel: {
     display: 'block',
     color: 'var(--color-text-tertiary)',
-    fontSize: '0.74rem',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.08em',
-    fontWeight: '700',
+    fontSize: 'var(--font-body-15-size)',
+    fontWeight: '600',
   },
   summaryValue: {
     color: 'var(--color-text-primary)',
     fontFamily: 'var(--font-display)',
-    fontSize: '1.26rem',
-    fontWeight: '800',
-    lineHeight: 1,
-    letterSpacing: '-0.03em',
+    fontSize: 'var(--font-display-lg-size)',
+    lineHeight: 'var(--font-display-lg-line)',
+    fontWeight: '600',
+    letterSpacing: '-0.02em',
   },
   summaryCopy: {
     display: 'block',
@@ -260,7 +256,7 @@ const useStyles = makeStyles({
   },
   summaryCardQuiet: {
     gap: '4px',
-    backgroundColor: 'rgba(255, 252, 247, 0.82)',
+    backgroundColor: 'var(--color-surface-elevated)',
   },
   sparseHeroMarker: {
     display: 'inline-flex',
@@ -328,23 +324,23 @@ const useStyles = makeStyles({
   },
   eyebrow: {
     color: 'var(--color-text-tertiary)',
-    fontSize: '0.74rem',
-    fontWeight: '700',
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase' as const,
+    fontSize: 'var(--font-body-15-size)',
+    fontWeight: '600',
   },
   title: {
     fontFamily: 'var(--font-display)',
     color: 'var(--color-text-primary)',
-    fontSize: 'clamp(1.55rem, 3vw, 2rem)',
-    fontWeight: '800',
-    letterSpacing: '-0.04em',
+    fontSize: 'var(--font-display-xl-size)',
+    lineHeight: 'var(--font-display-xl-line)',
+    fontWeight: 'var(--font-display-xl-weight)',
+    letterSpacing: 'var(--font-display-xl-tracking)',
   },
   subtitle: {
     color: 'var(--color-text-secondary)',
     maxWidth: '52ch',
-    lineHeight: 1.45,
-    fontSize: '0.84rem',
+    fontSize: 'var(--font-body-15-size)',
+    lineHeight: 'var(--font-body-15-line)',
+    fontWeight: 'var(--font-body-15-weight)',
   },
   grid: {
     display: 'grid',
@@ -358,11 +354,9 @@ const useStyles = makeStyles({
   },
   card: {
     padding: 'var(--space-lg)',
-    borderRadius: 'var(--radius-lg)',
-    border: '1px solid rgba(15, 42, 58, 0.16)',
-    background:
-      'radial-gradient(circle at top right, rgba(13, 138, 132, 0.08), transparent 38%), linear-gradient(135deg, rgba(244, 249, 249, 0.94), rgba(238, 245, 245, 0.9) 52%, rgba(252, 248, 240, 0.98))',
-    boxShadow: 'var(--shadow-md)',
+    borderRadius: 'var(--radius-card)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-bg-card)',
     minWidth: 0,
   },
   sidebar: {
@@ -407,14 +401,15 @@ const useStyles = makeStyles({
     minWidth: 0,
   },
   topTabs: {
-    borderBottom: '1px solid rgba(15, 42, 58, 0.12)',
+    borderBottom: '1px solid var(--color-border)',
     paddingBottom: '8px',
     minWidth: 0,
     overflowX: 'auto',
   },
   topTab: {
-    fontWeight: '700',
+    fontWeight: '600',
     color: 'var(--color-text-secondary)',
+    fontSize: 'var(--font-body-15-size)',
   },
   tabPanel: {
     display: 'grid',
@@ -436,18 +431,19 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: '8px',
     padding: '12px 14px',
-    border: '1px solid rgba(15, 42, 58, 0.12)',
-    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    borderRadius: 'var(--radius-card)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-surface-elevated)',
     minWidth: 0,
     overflowWrap: 'anywhere',
   },
   overviewValue: {
     color: 'var(--color-text-primary)',
     fontFamily: 'var(--font-display)',
-    fontSize: '1.26rem',
-    fontWeight: '800',
-    lineHeight: 1,
-    letterSpacing: '-0.03em',
+    fontSize: 'var(--font-display-lg-size)',
+    lineHeight: 'var(--font-display-lg-line)',
+    fontWeight: '600',
+    letterSpacing: '-0.02em',
   },
   backButton: {
     minWidth: '148px',
@@ -743,9 +739,10 @@ const useStyles = makeStyles({
     display: 'block',
     fontFamily: 'var(--font-display)',
     color: 'var(--color-text-primary)',
-    marginBottom: '10px',
-    fontSize: '0.92rem',
+    marginBottom: '12px',
+    fontSize: '0.95rem',
     fontWeight: '700',
+    letterSpacing: '-0.02em',
   },
   tabRow: {
     display: 'flex',
@@ -776,7 +773,7 @@ const useStyles = makeStyles({
   },
   analysisGrid: {
     display: 'grid',
-    gridTemplateColumns: 'minmax(260px, 0.9fr) minmax(0, 1.1fr)',
+    gridTemplateColumns: 'minmax(320px, 1.25fr) minmax(0, 1fr)',
     gap: '16px',
     alignItems: 'start',
     minWidth: 0,
@@ -848,8 +845,8 @@ const useStyles = makeStyles({
   textItem: {
     padding: '12px 14px',
     borderRadius: 'var(--radius-md)',
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
-    border: '1px solid rgba(15, 42, 58, 0.14)',
+    backgroundColor: 'var(--color-surface-elevated)',
+    border: '1px solid var(--color-border)',
     color: 'var(--color-text-primary)',
     fontSize: '0.84rem',
     lineHeight: 1.6,
@@ -921,10 +918,9 @@ const useStyles = makeStyles({
   },
   transcript: {
     padding: 'var(--space-md)',
-    borderRadius: 'var(--radius-md)',
-    background:
-      'linear-gradient(135deg, rgba(233, 245, 246, 0.5), rgba(224, 239, 241, 0.4) 60%, rgba(242, 233, 216, 0.5))',
-    border: '1px solid rgba(13, 138, 132, 0.1)',
+    borderRadius: 'var(--radius-card)',
+    backgroundColor: 'var(--color-surface-elevated)',
+    border: '1px solid var(--color-border)',
     color: 'var(--color-text-secondary)',
     whiteSpace: 'pre-wrap',
     lineHeight: 1.6,
@@ -964,7 +960,13 @@ const useStyles = makeStyles({
     padding: 'var(--space-sm)',
     font: 'inherit',
     color: 'var(--color-text-primary)',
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    backgroundColor: 'var(--color-surface-elevated)',
+    transition: 'border-color 120ms ease, background-color 120ms ease',
+    ':focus-visible': {
+      outline: '2px solid var(--color-primary)',
+      outlineOffset: '2px',
+      border: '1px solid transparent',
+    },
   },
   planActions: {
     display: 'flex',
@@ -977,46 +979,56 @@ const useStyles = makeStyles({
     minWidth: 0,
   },
   planItem: {
-    padding: '10px 12px',
+    padding: '12px 14px',
     borderRadius: 'var(--radius-md)',
-    border: '1px solid rgba(15, 42, 58, 0.1)',
-    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-bg-card)',
     display: 'grid',
     gap: '2px',
     minWidth: 0,
+    transition: 'background-color 120ms ease, border-color 120ms ease',
   },
   conversationItem: {
-    padding: '10px 12px',
+    padding: '12px 14px',
     borderRadius: 'var(--radius-md)',
-    backgroundColor: 'rgba(255, 255, 255, 0.96)',
-    border: '1px solid rgba(15, 42, 58, 0.1)',
+    backgroundColor: 'var(--color-bg-card)',
+    border: '1px solid var(--color-border)',
     display: 'grid',
     gap: '2px',
     minWidth: 0,
+    transition: 'background-color 120ms ease, border-color 120ms ease',
   },
   scoreBadge: {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
     maxWidth: '100%',
-    border: '1px solid var(--color-border-strong)',
-    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderRadius: '9999px',
+    paddingInline: '10px',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-bg-card)',
     color: 'var(--color-text-primary)',
     whiteSpace: 'normal' as const,
     overflowWrap: 'anywhere',
     textAlign: 'center',
   },
   scoreBadgeTeal: {
+    borderRadius: '9999px',
+    paddingInline: '10px',
     border: '1px solid rgba(13, 138, 132, 0.26)',
     backgroundColor: 'rgba(13, 138, 132, 0.14)',
     color: 'var(--color-primary-dark)',
   },
   scoreBadgeSand: {
+    borderRadius: '9999px',
+    paddingInline: '10px',
     border: '1px solid rgba(184, 148, 85, 0.3)',
     backgroundColor: 'rgba(184, 148, 85, 0.14)',
     color: '#7a6131',
   },
   scoreBadgeInk: {
+    borderRadius: '9999px',
+    paddingInline: '10px',
     border: '1px solid rgba(15, 42, 58, 0.22)',
     backgroundColor: 'rgba(15, 42, 58, 0.1)',
     color: 'var(--color-text-primary)',
@@ -1026,8 +1038,8 @@ const useStyles = makeStyles({
   },
   memorySection: {
     display: 'grid',
-    gap: '12px',
-    paddingTop: '12px',
+    gap: '20px',
+    paddingTop: '16px',
     borderTop: '1px solid var(--color-border)',
   },
   recommendationSection: {
@@ -1040,9 +1052,10 @@ const useStyles = makeStyles({
   recommendationComposer: {
     display: 'grid',
     gap: '12px',
-    padding: '12px 14px',
-    border: '1px solid rgba(15, 42, 58, 0.12)',
-    backgroundColor: 'rgba(244, 249, 249, 0.92)',
+    padding: '14px 16px',
+    borderRadius: 'var(--radius-card)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-bg-muted)',
     minWidth: 0,
   },
   reportScopeGrid: {
@@ -1061,14 +1074,21 @@ const useStyles = makeStyles({
     padding: '0 12px',
     font: 'inherit',
     color: 'var(--color-text-primary)',
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    backgroundColor: 'var(--color-surface-elevated)',
+    transition: 'border-color 120ms ease, background-color 120ms ease',
+    ':focus-visible': {
+      outline: '2px solid var(--color-primary)',
+      outlineOffset: '2px',
+      border: '1px solid transparent',
+    },
   },
   reportSessionSelection: {
     display: 'grid',
     gap: '10px',
-    padding: '12px 14px',
-    border: '1px solid rgba(15, 42, 58, 0.12)',
-    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    padding: '14px 16px',
+    borderRadius: 'var(--radius-card)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-bg-card)',
   },
   reportSessionSelectionList: {
     display: 'grid',
@@ -1083,9 +1103,14 @@ const useStyles = makeStyles({
     gap: '10px',
     alignItems: 'start',
     padding: '10px 12px',
-    border: '1px solid rgba(15, 42, 58, 0.1)',
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-surface-elevated)',
     cursor: 'pointer',
+    transition: 'background-color 120ms ease, border-color 120ms ease',
+    ':hover': {
+      backgroundColor: 'rgba(13, 138, 132, 0.06)',
+    },
   },
   reportSessionOptionSelected: {
     border: '1px solid rgba(13, 138, 132, 0.24)',
@@ -1119,10 +1144,15 @@ const useStyles = makeStyles({
     justifyContent: 'flex-start',
     minHeight: '84px',
     padding: '14px',
-    border: '1px solid rgba(15, 42, 58, 0.1)',
-    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-bg-card)',
     width: '100%',
     minWidth: 0,
+    transition: 'background-color 120ms ease, border-color 120ms ease',
+    ':hover': {
+      backgroundColor: 'rgba(13, 138, 132, 0.06)',
+    },
   },
   recommendationHistoryButtonSelected: {
     border: '1px solid rgba(13, 138, 132, 0.22)',
@@ -1144,9 +1174,10 @@ const useStyles = makeStyles({
   recommendationCandidate: {
     display: 'grid',
     gap: '10px',
-    padding: '12px 14px',
-    border: '1px solid rgba(15, 42, 58, 0.12)',
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    padding: '14px 16px',
+    borderRadius: 'var(--radius-card)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-bg-card)',
     minWidth: 0,
     width: '100%',
     alignContent: 'start',
@@ -1164,8 +1195,9 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: '4px',
     padding: '10px 12px',
+    borderRadius: 'var(--radius-md)',
     border: '1px solid rgba(15, 42, 58, 0.08)',
-    backgroundColor: 'rgba(250, 247, 240, 0.92)',
+    backgroundColor: 'var(--color-bg-muted)',
     minWidth: 0,
     overflowWrap: 'anywhere',
   },
@@ -1178,8 +1210,9 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: '6px',
     padding: '10px 12px',
+    borderRadius: 'var(--radius-md)',
     border: '1px solid rgba(15, 42, 58, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    backgroundColor: 'var(--color-bg-card)',
     minWidth: 0,
     overflowWrap: 'anywhere',
   },
@@ -1192,9 +1225,10 @@ const useStyles = makeStyles({
   memoryCard: {
     display: 'grid',
     gap: '10px',
-    padding: '12px 14px',
-    border: '1px solid rgba(15, 42, 58, 0.12)',
-    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    padding: '14px 16px',
+    borderRadius: 'var(--radius-card)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-bg-card)',
     minWidth: 0,
     overflowWrap: 'anywhere',
   },
@@ -1206,9 +1240,10 @@ const useStyles = makeStyles({
   memoryProposalCard: {
     display: 'grid',
     gap: '10px',
-    padding: '12px 14px',
-    border: '1px solid rgba(15, 42, 58, 0.12)',
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    padding: '14px 16px',
+    borderRadius: 'var(--radius-card)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-bg-card)',
     minWidth: 0,
     overflow: 'hidden',
   },
@@ -1222,9 +1257,10 @@ const useStyles = makeStyles({
   memoryComposer: {
     display: 'grid',
     gap: '12px',
-    padding: '12px 14px',
-    border: '1px solid rgba(15, 42, 58, 0.12)',
-    backgroundColor: 'rgba(250, 247, 240, 0.92)',
+    padding: '14px 16px',
+    borderRadius: 'var(--radius-card)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-bg-muted)',
     minWidth: 0,
   },
   memoryComposerGrid: {
@@ -1245,8 +1281,9 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: '6px',
     padding: '10px 12px',
+    borderRadius: 'var(--radius-md)',
     border: '1px solid rgba(15, 42, 58, 0.08)',
-    backgroundColor: 'rgba(244, 249, 249, 0.96)',
+    backgroundColor: 'rgba(13, 138, 132, 0.06)',
     minWidth: 0,
     overflowWrap: 'anywhere',
   },
@@ -1578,6 +1615,27 @@ function renderMarkdown(content: string, styles: ReturnType<typeof useStyles>) {
   )
 }
 
+function isRecommendationEvidenceStale({
+  recommendationCreatedAt,
+  memoryCompiledAt,
+  latestSessionAt,
+  pendingProposalCount,
+}: {
+  recommendationCreatedAt?: string | null
+  memoryCompiledAt?: string | null
+  latestSessionAt?: string | null
+  pendingProposalCount: number
+}): boolean {
+  if (!recommendationCreatedAt) return false
+  const recommendationTimestamp = new Date(recommendationCreatedAt).getTime()
+  if (!Number.isFinite(recommendationTimestamp)) return false
+  if (pendingProposalCount > 0) return true
+  const memoryTimestamp = memoryCompiledAt ? new Date(memoryCompiledAt).getTime() : Number.NaN
+  if (Number.isFinite(memoryTimestamp) && memoryTimestamp > recommendationTimestamp) return true
+  const sessionTimestamp = latestSessionAt ? new Date(latestSessionAt).getTime() : Number.NaN
+  return Number.isFinite(sessionTimestamp) && sessionTimestamp > recommendationTimestamp
+}
+
 interface Props {
   childProfiles: ChildProfile[]
   selectedChildId: string | null
@@ -1628,6 +1686,7 @@ interface Props {
   onCreateMemoryItem: (category: ChildMemoryCategory, statement: string) => void | Promise<void>
   onBackToPractice: () => void
   onExitToEntry: () => void
+  initialTab?: DashboardTab
 }
 
 type DashboardTab = 'session-detail' | 'memory' | 'recommendations' | 'reports' | 'plan'
@@ -1682,6 +1741,7 @@ export function ProgressDashboard({
   onCreateMemoryItem,
   onBackToPractice,
   onExitToEntry,
+  initialTab,
 }: Props) {
   const styles = useStyles()
   const [planPrompt, setPlanPrompt] = useState('')
@@ -1697,7 +1757,12 @@ export function ProgressDashboard({
   const [manualMemoryCategory, setManualMemoryCategory] = useState<ChildMemoryCategory>('general')
   const [manualMemoryStatement, setManualMemoryStatement] = useState('')
   const [breakdownViewBySession, setBreakdownViewBySession] = useState<Record<string, 'articulation' | 'engagement'>>({})
-  const [activeTab, setActiveTab] = useState<DashboardTab>('session-detail')
+  const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab ?? 'session-detail')
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab)
+    }
+  }, [initialTab])
   const plannerReady = plannerReadiness?.ready ?? false
   const aiAssessment = selectedSession?.assessment.ai_assessment
   const pronunciationAssessment = selectedSession?.assessment.pronunciation_assessment
@@ -1999,6 +2064,8 @@ export function ProgressDashboard({
     },
   ]
 
+  const latestRecommendationLog = recommendationHistory[0] ?? null
+
   const recommendationOverviewCards = [
     {
       label: 'Saved runs',
@@ -2014,6 +2081,24 @@ export function ProgressDashboard({
       label: 'Ranked options',
       value: String(selectedRecommendationDetail?.candidate_count ?? 0),
       copy: selectedRecommendationDetail?.rationale || 'Each run preserves ranking rationale and evidence.',
+    },
+    {
+      label: 'Evidence status',
+      value: !latestRecommendationLog
+        ? 'Not run'
+        : isRecommendationEvidenceStale({
+            recommendationCreatedAt: latestRecommendationLog.created_at,
+            memoryCompiledAt: childMemorySummary?.last_compiled_at,
+            latestSessionAt: selectedChild?.last_session_at,
+            pendingProposalCount: childMemoryProposals.length,
+          })
+          ? 'Stale'
+          : 'Current',
+      copy: !latestRecommendationLog
+        ? 'A saved recommendation run is required before evidence freshness can be evaluated.'
+        : childMemoryProposals.length > 0
+          ? 'Pending memory proposals mean the saved recommendation may be missing newly proposed evidence.'
+          : 'Supporting sessions and approved memory are aligned with the latest saved run.',
     },
   ]
 

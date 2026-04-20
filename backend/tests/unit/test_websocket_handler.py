@@ -85,7 +85,11 @@ class TestVoiceProxyHandler:
         """Test getting model name with local agent configuration."""
         mock_config.__getitem__.side_effect = lambda key: {
             "model_deployment_name": "gpt-4o",
+            "voice_live_model": "gpt-5-preview",
         }.get(key, "default")
+        mock_config.get.side_effect = lambda key, default=None: {
+            "voice_live_model": "gpt-5-preview",
+        }.get(key, default)
 
         handler = VoiceProxyHandler(Mock())
         agent_config = {"is_azure_agent": False, "model": "gpt-4"}
@@ -112,12 +116,16 @@ class TestVoiceProxyHandler:
         mock_config.__getitem__.side_effect = lambda key: {
             "agent_id": "",
             "model_deployment_name": "gpt-4o",
+            "voice_live_model": "gpt-5-preview",
         }.get(key, "")
+        mock_config.get.side_effect = lambda key, default=None: {
+            "voice_live_model": "gpt-5-preview",
+        }.get(key, default)
 
         handler = VoiceProxyHandler(Mock())
         model = handler._get_model(None)
 
-        assert model == "gpt-4o"
+        assert model == "gpt-5-preview"
 
     @patch("src.services.websocket_handler.config")
     def test_build_query_params_with_azure_agent(self, mock_config):
@@ -272,6 +280,57 @@ class TestVoiceProxyHandler:
         session = handler._build_session_config(agent_config)
 
         assert session["voice"]["name"] == "en-GB-AbbiNeural"
+
+    @patch("src.services.websocket_handler.config")
+    def test_build_session_config_uses_legacy_vad_by_default(self, mock_config):
+        """With the conversational mic flag off (default), turn_detection stays on the legacy semantic VAD."""
+        mock_config.get.side_effect = lambda key, default=None: {
+            "azure_voice_name": "en-US-TestVoice",
+            "azure_voice_type": "azure-standard",
+            "azure_custom_lexicon_url": "",
+            "azure_avatar_character": "meg",
+            "azure_avatar_style": "casual",
+            "conversational_mic_enabled": False,
+        }.get(key, default)
+
+        handler = VoiceProxyHandler(Mock())
+        os.environ.pop("CONVERSATIONAL_MIC_ENABLED", None)
+
+        session = handler._build_session_config(None)
+
+        assert session["turn_detection"]["type"] == "azure_semantic_vad"
+        # Legacy shape: no tunables, no barge-in flag.
+        assert "threshold" not in session["turn_detection"]
+        assert "interrupt_response" not in session["turn_detection"]
+
+    @patch("src.services.websocket_handler.config")
+    def test_build_session_config_conversational_mode_applies_tunables(self, mock_config):
+        """With CONVERSATIONAL_MIC_ENABLED=true, turn_detection uses the English semantic VAD with barge-in."""
+        mock_config.get.side_effect = lambda key, default=None: {
+            "azure_voice_name": "en-US-TestVoice",
+            "azure_voice_type": "azure-standard",
+            "azure_custom_lexicon_url": "",
+            "azure_avatar_character": "meg",
+            "azure_avatar_style": "casual",
+            "semantic_vad_threshold": 0.55,
+            "semantic_vad_prefix_padding_ms": 320,
+            "semantic_vad_silence_duration_ms": 650,
+        }.get(key, default)
+
+        handler = VoiceProxyHandler(Mock())
+        os.environ["CONVERSATIONAL_MIC_ENABLED"] = "true"
+        try:
+            session = handler._build_session_config(None)
+        finally:
+            os.environ.pop("CONVERSATIONAL_MIC_ENABLED", None)
+
+        td = session["turn_detection"]
+        assert td["type"] == "azure_semantic_vad_en"
+        assert td["threshold"] == 0.55
+        assert td["prefix_padding_ms"] == 320
+        assert td["silence_duration_ms"] == 650
+        assert td["interrupt_response"] is True
+        assert td["create_response"] is True
 
     @pytest.mark.asyncio
     async def test_send_message(self):

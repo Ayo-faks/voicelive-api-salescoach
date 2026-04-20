@@ -1,4 +1,4 @@
-name: TH Vowel Blending
+name: /th/ — Syllable Level (CV Blending)
 description: Blend /th/ with easy vowels before moving into full words
 model: gpt-4o
 modelParameters:

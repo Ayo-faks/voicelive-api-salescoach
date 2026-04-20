@@ -1,4 +1,4 @@
-name: TH Sentences Evaluation
+name: /th/ — Sentence Level Evaluation
 description: Evaluate sentence repetition practice focused on /th/
 model: gpt-4o
 modelParameters:

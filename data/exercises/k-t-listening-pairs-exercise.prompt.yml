@@ -1,4 +1,4 @@
-name: Listen for K or T
+name: /k/ vs /t/ — Auditory Discrimination (Minimal Pairs)
 description: Practice hearing the difference between /k/ and /t/ before speaking
 model: gpt-4o
 modelParameters:

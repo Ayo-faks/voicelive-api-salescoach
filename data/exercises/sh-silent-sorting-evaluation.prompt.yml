@@ -1,4 +1,4 @@
-name: SH Sound Sorting Evaluation
+name: /sh/ — Auditory Discrimination (Sorting) Evaluation
 description: Evaluate sorting /sh/ and /s/ words by first sound
 model: gpt-4o
 modelParameters:

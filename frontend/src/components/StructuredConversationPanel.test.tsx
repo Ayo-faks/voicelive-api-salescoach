@@ -47,7 +47,7 @@ function makeTally(overrides: Partial<TargetTally> = {}): TargetTally {
 }
 
 function skipIntro(): void {
-  const btn = screen.getByLabelText(/Skip introduction/i)
+  const btn = screen.getByLabelText(/Start session/i)
   fireEvent.click(btn)
 }
 

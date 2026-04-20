@@ -16,7 +16,9 @@ import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useMemo, useState } from 'react'
 import type React from 'react'
 import { AVATAR_OPTIONS } from '../types'
+import type { MicMode } from '../utils/micMode'
 import { BuddyAvatar } from './BuddyAvatar'
+import { computeMicAriaLabel, computeMicLabel, computePromptText } from './videoPanelCopy'
 
 const useStyles = makeStyles({
   card: {
@@ -287,6 +289,8 @@ interface Props {
   audience?: 'therapist' | 'child'
   micRequired?: boolean
   showMicDock?: boolean
+  /** PR12b.3b — mic mode drives dock copy + aria. Defaults to legacy 'tap'. */
+  micMode?: MicMode
 }
 
 function markVideoReady(
@@ -317,6 +321,7 @@ export function VideoPanel({
   audience = 'child',
   micRequired = true,
   showMicDock = true,
+  micMode = 'tap',
 }: Props) {
   const styles = useStyles()
   const videoKey = `${avatarValue || 'avatar'}-${childName || 'child'}-${scenarioName || 'scenario'}`
@@ -338,15 +343,14 @@ export function VideoPanel({
   const avatarName = avatarLabel.split(' (')[0]
   const childLabel = childName || 'friend'
   const exerciseLabel = scenarioName || 'today\'s practice'
-  const promptText =
-    scenarioDescription ||
-    (audience === 'therapist'
-      ? micRequired
-        ? `Review ${exerciseLabel} and use the dock microphone when ${childLabel} is ready.`
-        : `Review ${exerciseLabel} and listen for the buddy's clue. This turn is tap-only.`
-      : micRequired
-        ? `We are going to practise ${exerciseLabel} together. Tap to talk when you are ready.`
-        : `We are going to practise ${exerciseLabel} together. Listen first, then tap the matching picture.`)
+  const promptText = computePromptText({
+    scenarioDescription,
+    exerciseLabel,
+    childLabel,
+    audience,
+    micRequired,
+    micMode,
+  })
   const statusLabel =
     sessionFinished && audience === 'child'
       ? `${avatarName} has wrapped up ${childLabel}'s practice.`
@@ -357,21 +361,15 @@ export function VideoPanel({
           ? `${avatarName} is ready to begin.`
           : `${avatarName} is getting ready.`
       : `${avatarName} is getting ready for ${childLabel}.`
-  const micLabel = recording
-    ? 'Listening...'
-    : sessionFinished && audience === 'child'
-      ? 'Practice finished'
-    : processing && audience === 'child'
-      ? 'Checking your try...'
-    : !micRequired
-      ? 'Tap-only listening'
-    : !introComplete
-      ? audience === 'therapist'
-        ? 'Welcome in progress'
-        : 'Listen to your buddy'
-      : audience === 'therapist'
-        ? 'Mic ready'
-      : 'Tap to talk'
+  const micLabel = computeMicLabel({
+    micMode,
+    recording,
+    processing,
+    sessionFinished,
+    introComplete,
+    micRequired,
+    audience,
+  })
   const statusText =
     sessionFinished && audience === 'child'
       ? 'Practice finished'
@@ -481,7 +479,7 @@ export function VideoPanel({
           <div className={styles.micDock}>
             <button
               type="button"
-              aria-label={recording ? 'Stop recording' : 'Start recording'}
+              aria-label={computeMicAriaLabel(micMode, recording)}
               className={mergeClasses(
                 styles.micButton,
                 recording && styles.micButtonActive

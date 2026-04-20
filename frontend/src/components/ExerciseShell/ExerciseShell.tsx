@@ -83,6 +83,7 @@ export const ExerciseShell: FC<ExerciseShellProps> = (props) => {
     covertExpose,
     hideDemotedExpose,
     realtimeReady = true,
+    childRealtimeWarmupMs = 3000,
     devSlot,
   } = props
 
@@ -95,7 +96,39 @@ export const ExerciseShell: FC<ExerciseShellProps> = (props) => {
 
   const [state, dispatch] = useExercisePhase(INITIAL_PHASE_STATE)
   const [gestureUnlocked, setGestureUnlocked] = useState<boolean>(false)
+  const [warmupElapsed, setWarmupElapsed] = useState<boolean>(false)
   const reducedMotion = usePrefersReducedMotion()
+
+  // Child-mode realtime warm-up timeout. Starts only after the first user
+  // gesture (so we never auto-speak before consent) and only when the
+  // realtime channel is still not ready. Once elapsed, the shell treats the
+  // gate as satisfied so orient can flush even if the WS greeting never
+  // arrives (capacity / bad agent_id / offline). Therapist mode opts out.
+  useEffect(() => {
+    if (audience !== 'child') return
+    if (!gestureUnlocked) return
+    if (realtimeReady) return
+    if (warmupElapsed) return
+    if (!Number.isFinite(childRealtimeWarmupMs) || childRealtimeWarmupMs <= 0) {
+      // Infinity / non-positive disables the fallback; keep therapist-style gate.
+      return
+    }
+    const handle = window.setTimeout(() => {
+      setWarmupElapsed(true)
+    }, childRealtimeWarmupMs)
+    return () => {
+      window.clearTimeout(handle)
+    }
+  }, [audience, gestureUnlocked, realtimeReady, warmupElapsed, childRealtimeWarmupMs])
+
+  // If the realtime channel becomes ready organically after a warm-up bypass,
+  // drop the stale flag so reconnect cycles start clean.
+  useEffect(() => {
+    if (realtimeReady && warmupElapsed) setWarmupElapsed(false)
+  }, [realtimeReady, warmupElapsed])
+
+  const effectiveRealtimeReady =
+    realtimeReady || (audience === 'child' && warmupElapsed)
 
   // Capture latest onBeatEnter without re-running the orchestration effect.
   const onBeatEnterRef = useRef(onBeatEnter)
@@ -139,7 +172,7 @@ export const ExerciseShell: FC<ExerciseShellProps> = (props) => {
     const beatText = beatTextForPhase(phase, effectiveBeats)
     if (beatText == null) return
     if (lastPlayedPhaseRef.current === phase) return
-    if (!gestureUnlocked || !realtimeReady) return
+    if (!gestureUnlocked || !effectiveRealtimeReady) return
 
     lastPlayedPhaseRef.current = phase
     let cancelled = false
@@ -165,7 +198,7 @@ export const ExerciseShell: FC<ExerciseShellProps> = (props) => {
   }, [
     state.phase,
     gestureUnlocked,
-    realtimeReady,
+    effectiveRealtimeReady,
     effectiveBeats,
     dispatch,
     collapsePerform,
@@ -230,6 +263,8 @@ export const ExerciseShell: FC<ExerciseShellProps> = (props) => {
         data-reduced-motion={reducedMotion ? 'true' : 'false'}
         data-gesture-unlocked={gestureUnlocked ? 'true' : 'false'}
         data-realtime-ready={realtimeReady ? 'true' : 'false'}
+        data-effective-realtime-ready={effectiveRealtimeReady ? 'true' : 'false'}
+        data-warmup-elapsed={warmupElapsed ? 'true' : 'false'}
         onPointerDown={handleRootGesture}
         onKeyDown={handleRootGesture}
       >
@@ -238,13 +273,13 @@ export const ExerciseShell: FC<ExerciseShellProps> = (props) => {
             <button
               type="button"
               className="exercise-shell__skip-intro"
-              aria-label="Skip introduction"
+              aria-label="Start session"
               onClick={handleSkipIntro}
             >
-              Skip intro
+              Start session
             </button>
           ) : null}
-          {!realtimeReady ? (
+          {!effectiveRealtimeReady ? (
             <div
               className="exercise-shell__warming-veil"
               aria-live="polite"
@@ -254,6 +289,50 @@ export const ExerciseShell: FC<ExerciseShellProps> = (props) => {
             </div>
           ) : null}
         </header>
+
+        {audience === 'child' && phase === 'orient' && !gestureUnlocked ? (
+          <div
+            className="exercise-shell__child-start"
+            data-testid="exercise-shell-child-start-wrap"
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              padding: 'var(--space-lg, 1rem)',
+            }}
+          >
+            <button
+              type="button"
+              data-testid="exercise-shell-child-start"
+              data-primary-affordance="true"
+              data-for-phase="orient"
+              aria-label="Tap to start"
+              onClick={() => setGestureUnlocked(true)}
+              style={{
+                minWidth: '12rem',
+                minHeight: '4rem',
+                padding: '1rem 2rem',
+                backgroundColor: 'var(--color-primary, #6b8afd)',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: 'var(--radius-lg, 1rem)',
+                fontFamily: 'var(--font-display)',
+                fontSize: '1.4rem',
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                cursor: 'pointer',
+                boxShadow: '0 6px 18px rgba(107, 138, 253, 0.35)',
+                animation: reducedMotion
+                  ? undefined
+                  : 'exercise-shell-child-start-pulse 1.8s ease-in-out infinite',
+              }}
+            >
+              Tap to start
+            </button>
+            <style>
+              {'@keyframes exercise-shell-child-start-pulse { 0%,100% { transform: scale(1); box-shadow: 0 6px 18px rgba(107,138,253,0.35) } 50% { transform: scale(1.04); box-shadow: 0 10px 26px rgba(107,138,253,0.5) } }'}
+            </style>
+          </div>
+        ) : null}
 
         <output
           aria-live="polite"

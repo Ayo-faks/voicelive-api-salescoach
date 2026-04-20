@@ -1,4 +1,4 @@
-name: SH Vowel Blending
+name: /sh/ — Syllable Level (CV Blending)
 description: Blend /sh/ with easy vowels before moving into full words
 model: gpt-4o
 modelParameters:

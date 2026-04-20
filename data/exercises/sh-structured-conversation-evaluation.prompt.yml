@@ -1,4 +1,4 @@
-name: /sh/ structured conversation evaluation
+name: /sh/ — Conversation Level Evaluation
 description: Evaluate a child structured-conversation session focused on natural /sh/ production.
 model: gpt-4o
 modelParameters:

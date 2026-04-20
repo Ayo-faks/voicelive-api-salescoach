@@ -35,11 +35,9 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: 'var(--space-lg)',
     padding: 'clamp(1.35rem, 3vw, 2rem)',
-    borderRadius: '0px',
+    borderRadius: 'var(--radius-card)',
     border: '1px solid var(--color-border)',
-    background:
-      'radial-gradient(circle at top right, rgba(13, 138, 132, 0.16), transparent 34%), radial-gradient(circle at bottom left, rgba(13, 138, 132, 0.08), transparent 32%), linear-gradient(135deg, rgba(233, 245, 246, 0.98), rgba(224, 239, 241, 0.98))',
-    boxShadow: 'var(--shadow-lg)',
+    backgroundColor: 'var(--color-bg-card)',
   },
   heroMain: {
     display: 'grid',
@@ -55,10 +53,9 @@ const useStyles = makeStyles({
     display: 'grid',
     placeItems: 'center',
     minHeight: '220px',
-    borderRadius: '0px',
-    border: '1px solid rgba(13, 138, 132, 0.12)',
-    background:
-      'radial-gradient(circle at center, rgba(255,255,255,0.96), rgba(232, 245, 242, 0.84))',
+    borderRadius: 'var(--radius-card)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-surface-elevated)',
     overflow: 'hidden',
   },
   robotPulseRing: {
@@ -66,14 +63,18 @@ const useStyles = makeStyles({
     width: '190px',
     height: '190px',
     borderRadius: '50%',
-    border: '2px solid rgba(13, 138, 132, 0.14)',
+    border: '1px solid rgba(13, 138, 132, 0.12)',
     animationName: {
-      '0%': { transform: 'scale(0.92)', opacity: 0.45 },
-      '100%': { transform: 'scale(1.28)', opacity: 0 },
+      '0%': { transform: 'scale(0.94)', opacity: 0.28 },
+      '100%': { transform: 'scale(1.2)', opacity: 0 },
     },
-    animationDuration: '2.2s',
+    animationDuration: '3.6s',
     animationTimingFunction: 'ease-out',
     animationIterationCount: 'infinite',
+    '@media (prefers-reduced-motion: reduce)': {
+      animation: 'none',
+      opacity: 0.18,
+    },
   },
   robotImage: {
     width: 'min(170px, 78%)',
@@ -82,17 +83,22 @@ const useStyles = makeStyles({
     filter: 'none',
     animationName: {
       '0%, 100%': { transform: 'translateY(0) scale(1)' },
-      '50%': { transform: 'translateY(-5px) scale(1.03)' },
+      '50%': { transform: 'translateY(-3px) scale(1.015)' },
     },
-    animationDuration: '2.8s',
+    animationDuration: '3.4s',
     animationTimingFunction: 'ease-in-out',
     animationIterationCount: 'infinite',
+    '@media (prefers-reduced-motion: reduce)': {
+      animation: 'none',
+    },
   },
   heroControls: {
     display: 'grid',
     gridTemplateColumns: 'repeat(2, minmax(0, 240px))',
     gap: 'var(--space-md)',
     alignItems: 'end',
+    paddingTop: 'var(--space-md)',
+    borderTop: '1px solid var(--color-border)',
     '@media (max-width: 760px)': {
       gridTemplateColumns: '1fr',
     },
@@ -116,16 +122,16 @@ const useStyles = makeStyles({
   title: {
     fontFamily: 'var(--font-display)',
     color: 'var(--color-text-primary)',
-    fontSize: 'clamp(1.9rem, 4vw, 3rem)',
-    fontWeight: '800',
-    lineHeight: 0.98,
-    letterSpacing: '-0.05em',
+    fontSize: 'var(--font-display-xl-size)',
+    lineHeight: 'var(--font-display-xl-line)',
+    fontWeight: 'var(--font-display-xl-weight)' as unknown as number,
+    letterSpacing: 'var(--font-display-xl-tracking)',
     maxWidth: '640px',
   },
   heroHint: {
     color: 'var(--color-text-secondary)',
-    fontSize: '0.9rem',
-    lineHeight: 1.6,
+    fontSize: 'var(--font-body-15-size)',
+    lineHeight: 'var(--font-body-15-line)',
     maxWidth: '58ch',
   },
   chipRow: {
@@ -136,16 +142,16 @@ const useStyles = makeStyles({
   metaBadge: {
     minHeight: '28px',
     paddingInline: 'var(--space-sm)',
-    borderRadius: '0px',
+    borderRadius: 'var(--radius-card)',
     backgroundColor: 'rgba(255, 255, 255, 0.78)',
     color: 'var(--color-primary-dark)',
     fontSize: '0.75rem',
-    border: '1px solid rgba(13, 138, 132, 0.12)',
+    border: '1px solid var(--color-border)',
   },
   body: {
     color: 'var(--color-text-secondary)',
-    lineHeight: 1.65,
-    fontSize: '0.95rem',
+    lineHeight: 'var(--font-body-15-line)',
+    fontSize: 'var(--font-body-15-size)',
     maxWidth: '560px',
   },
   actionRow: {
@@ -157,9 +163,9 @@ const useStyles = makeStyles({
     minHeight: '46px',
     minWidth: '152px',
     paddingInline: 'var(--space-lg)',
-    borderRadius: '0px',
+    borderRadius: 'var(--radius-card)',
     fontFamily: 'var(--font-display)',
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: '0.92rem',
     backgroundColor: 'var(--color-primary)',
     color: 'var(--color-text-inverse)',
@@ -168,21 +174,24 @@ const useStyles = makeStyles({
   },
   secondaryAction: {
     minHeight: '46px',
-    minWidth: '152px',
-    paddingInline: 'var(--space-lg)',
-    borderRadius: '0px',
+    paddingInline: 'var(--space-sm)',
+    borderRadius: 'var(--radius-card)',
     fontFamily: 'var(--font-display)',
-    fontWeight: '600',
-    border: '1px solid var(--color-border)',
-    backgroundColor: 'rgba(255, 255, 255, 0.82)',
+    fontWeight: '500',
+    fontSize: '0.92rem',
+    border: 'none',
+    backgroundColor: 'transparent',
+    color: 'var(--color-primary)',
+    ':hover': {
+      backgroundColor: 'rgba(13, 138, 132, 0.06)',
+      color: 'var(--color-primary-dark)',
+    },
   },
   exerciseSection: {
     padding: 'var(--space-lg)',
-    borderRadius: 'var(--radius-lg)',
+    borderRadius: 'var(--radius-card)',
     border: '1px solid var(--color-border)',
-    background:
-      'linear-gradient(135deg, rgba(233, 245, 246, 0.96), rgba(224, 239, 241, 0.96))',
-    boxShadow: 'var(--shadow-md)',
+    backgroundColor: 'var(--color-bg-card)',
     '@media (max-width: 760px)': {
       padding: 'var(--space-md)',
     },
@@ -202,7 +211,8 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: '6px',
     padding: '12px 14px',
-    border: '1px solid rgba(13, 138, 132, 0.12)',
+    borderRadius: 'var(--radius-card)',
+    border: '1px solid var(--color-border)',
     backgroundColor: 'rgba(255, 255, 255, 0.82)',
   },
   memorySignalLabel: {
@@ -216,13 +226,47 @@ const useStyles = makeStyles({
     color: 'var(--color-text-primary)',
     fontFamily: 'var(--font-display)',
     fontSize: '1rem',
-    fontWeight: '800',
-    lineHeight: 1.1,
+    fontWeight: '600',
+    lineHeight: 1.2,
   },
   memorySignalCopy: {
     color: 'var(--color-text-secondary)',
     fontSize: '0.8rem',
     lineHeight: 1.45,
+  },
+  suggestedNextRow: {
+    display: 'flex',
+    alignItems: 'baseline',
+    flexWrap: 'wrap',
+    gap: '8px',
+    padding: '10px 14px',
+    borderRadius: 'var(--radius-card)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'rgba(255, 255, 255, 0.82)',
+  },
+  suggestedNextLabel: {
+    color: 'var(--color-text-tertiary)',
+    fontSize: '0.72rem',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.08em',
+    fontWeight: '700',
+  },
+  suggestedNextValue: {
+    color: 'var(--color-text-primary)',
+    fontFamily: 'var(--font-display)',
+    fontSize: '0.95rem',
+    fontWeight: '600',
+  },
+  suggestedNextReason: {
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.85rem',
+    flex: '1 1 auto',
+  },
+  suggestedNextLink: {
+    paddingInline: '4px',
+    minHeight: 'auto',
+    color: 'var(--color-primary)',
+    fontWeight: '500',
   },
 })
 
@@ -244,40 +288,6 @@ function formatSignalTimestamp(value?: string | null) {
     hour: 'numeric',
     minute: '2-digit',
   })
-}
-
-function isRecommendationEvidenceStale({
-  recommendationCreatedAt,
-  memoryCompiledAt,
-  latestSessionAt,
-  pendingProposalCount,
-}: {
-  recommendationCreatedAt?: string | null
-  memoryCompiledAt?: string | null
-  latestSessionAt?: string | null
-  pendingProposalCount: number
-}) {
-  if (!recommendationCreatedAt) {
-    return false
-  }
-
-  const recommendationTimestamp = new Date(recommendationCreatedAt).getTime()
-
-  if (!Number.isFinite(recommendationTimestamp)) {
-    return false
-  }
-
-  if (pendingProposalCount > 0) {
-    return true
-  }
-
-  const memoryTimestamp = memoryCompiledAt ? new Date(memoryCompiledAt).getTime() : Number.NaN
-  if (Number.isFinite(memoryTimestamp) && memoryTimestamp > recommendationTimestamp) {
-    return true
-  }
-
-  const sessionTimestamp = latestSessionAt ? new Date(latestSessionAt).getTime() : Number.NaN
-  return Number.isFinite(sessionTimestamp) && sessionTimestamp > recommendationTimestamp
 }
 
 function isCustomScenario(
@@ -324,6 +334,7 @@ interface DashboardHomeProps {
   onStartScenario: (scenarioId: string) => void
   onStartSession: () => void
   onSecondaryAction: () => void
+  onOpenRecommendations?: () => void
   onAddCustomScenario: (
     name: string,
     description: string,
@@ -368,6 +379,7 @@ export function DashboardHome({
   onStartScenario,
   onStartSession,
   onSecondaryAction,
+  onOpenRecommendations,
   onAddCustomScenario,
   onUpdateCustomScenario,
   onDeleteCustomScenario,
@@ -388,18 +400,11 @@ export function DashboardHome({
   const selectedScenarioType = isCustomScenario(selectedScenarioDetail)
     ? selectedScenarioDetail.scenarioData.exerciseType
     : selectedScenarioDetail?.exerciseMetadata?.type
-  const stepNumber = selectedScenarioDetail?.exerciseMetadata?.stepNumber
   const activeTarget = childMemorySummary?.summary.targets?.[0]?.statement ?? null
   const lastMemoryRefresh = childMemorySummary?.last_compiled_at ?? null
   const pendingProposalCount = childMemoryProposals.length
   const latestRecommendation = recommendationHistory[0] ?? null
   const topRecommendation = latestRecommendation?.top_recommendation ?? null
-  const recommendationEvidenceStale = isRecommendationEvidenceStale({
-    recommendationCreatedAt: latestRecommendation?.created_at,
-    memoryCompiledAt: childMemorySummary?.last_compiled_at,
-    latestSessionAt: selectedChild?.last_session_at,
-    pendingProposalCount,
-  })
   const incomingInvitationCount = incomingInvitations.length
   const pendingFamilyIntakeInvitationCount = pendingIncomingFamilyIntakeInvitations.length
   const hasLinkedChildren = childProfiles.length > 0
@@ -432,6 +437,64 @@ export function DashboardHome({
   return (
     <div className={styles.layout}>
       <Card className={styles.hero}>
+        <div className={styles.heroMain}>
+          <div className={styles.robotStage} aria-hidden="true">
+            <div className={styles.robotPulseRing} />
+            <img src="/wulo-robot.webp" alt="" className={styles.robotImage} />
+          </div>
+
+          <div className={styles.heroCopy}>
+            <Text className={styles.title}>
+              {selectedChild
+                ? isTherapistWorkspace
+                  ? `Prepare ${selectedChild.name}'s next practice.`
+                  : `Start ${selectedChild.name}'s supervised practice.`
+                : isTherapistWorkspace
+                  ? 'Prepare the next practice.'
+                  : 'Start supervised practice.'}
+            </Text>
+            <Text className={styles.heroHint}>{heroHint}</Text>
+            <Text className={styles.body}>{heroBody}</Text>
+            <div className={styles.actionRow}>
+              <Button
+                appearance="primary"
+                className={styles.primaryAction}
+                disabled={!canStartSession}
+                onClick={onStartSession}
+              >
+                {launchInFlight ? `${startButtonLabel}...` : startButtonLabel}
+              </Button>
+              <Button
+                appearance="transparent"
+                className={styles.secondaryAction}
+                disabled={secondaryActionDisabled}
+                onClick={onSecondaryAction}
+              >
+                {secondaryActionLabel}
+              </Button>
+            </div>
+            <div className={styles.chipRow}>
+              <Badge appearance="tint" className={styles.metaBadge}>
+                Buddy: {selectedAvatarOption.label}
+              </Badge>
+              {selectedScenarioDetail ? (
+                <Badge appearance="tint" className={styles.metaBadge}>
+                  Exercise: {selectedScenarioDetail.name}
+                </Badge>
+              ) : (
+                <Badge appearance="tint" className={styles.metaBadge}>
+                  {formatExerciseType(selectedScenarioType)}
+                </Badge>
+              )}
+              {targetSoundSummary ? (
+                <Badge appearance="tint" className={styles.metaBadge}>
+                  Sound: {targetSoundSummary}
+                </Badge>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
         <div className={styles.heroControls}>
           <div>
               <Text className={styles.fieldLabel}>Practising with</Text>
@@ -477,68 +540,6 @@ export function DashboardHome({
           </div>
         </div>
 
-        <div className={styles.heroMain}>
-          <div className={styles.robotStage} aria-hidden="true">
-            <div className={styles.robotPulseRing} />
-            <img src="/wulo-robot.webp" alt="" className={styles.robotImage} />
-          </div>
-
-          <div className={styles.heroCopy}>
-            <Text className={styles.title}>
-              {selectedChild
-                ? isTherapistWorkspace
-                  ? `Prepare ${selectedChild.name}'s next practice.`
-                  : `Start ${selectedChild.name}'s supervised practice.`
-                : isTherapistWorkspace
-                  ? 'Prepare the next practice.'
-                  : 'Start supervised practice.'}
-            </Text>
-            <Text className={styles.heroHint}>{heroHint}</Text>
-            <div className={styles.chipRow}>
-              <Badge appearance="tint" className={styles.metaBadge}>
-                Buddy: {selectedAvatarOption.label}
-              </Badge>
-              {selectedScenarioDetail ? (
-                <Badge appearance="tint" className={styles.metaBadge}>
-                  Exercise: {selectedScenarioDetail.name}
-                </Badge>
-              ) : null}
-              <Badge appearance="tint" className={styles.metaBadge}>
-                {formatExerciseType(selectedScenarioType)}
-              </Badge>
-              {stepNumber ? (
-                <Badge appearance="tint" className={styles.metaBadge}>
-                  Step {stepNumber}
-                </Badge>
-              ) : null}
-              {targetSoundSummary ? (
-                <Badge appearance="tint" className={styles.metaBadge}>
-                  Sound: {targetSoundSummary}
-                </Badge>
-              ) : null}
-            </div>
-            <Text className={styles.body}>{heroBody}</Text>
-            <div className={styles.actionRow}>
-              <Button
-                appearance="primary"
-                className={styles.primaryAction}
-                disabled={!canStartSession}
-                onClick={onStartSession}
-              >
-                {launchInFlight ? `${startButtonLabel}...` : startButtonLabel}
-              </Button>
-              <Button
-                appearance="secondary"
-                className={styles.secondaryAction}
-                disabled={secondaryActionDisabled}
-                onClick={onSecondaryAction}
-              >
-                {secondaryActionLabel}
-              </Button>
-            </div>
-          </div>
-        </div>
-
         {selectedChild ? (
           <>
             <div className={styles.memorySignalStrip}>
@@ -577,47 +578,27 @@ export function DashboardHome({
               </div>
             </div>
 
-            <div className={styles.memorySignalStrip}>
-              <div className={styles.memorySignalCard}>
-                <Text className={styles.memorySignalLabel}>Top recommendation</Text>
-                <Text className={styles.memorySignalValue}>
+            {onOpenRecommendations ? (
+              <div className={styles.suggestedNextRow}>
+                <Text className={styles.suggestedNextLabel}>Suggested next</Text>
+                <Text className={styles.suggestedNextValue}>
                   {topRecommendation?.exercise_name || 'No saved run'}
                 </Text>
-                <Text className={styles.memorySignalCopy}>
-                  {topRecommendation?.rationale || 'Generate recommendations in the progress dashboard to surface the next suggested exercise here.'}
+                <Text className={styles.suggestedNextReason}>
+                  {topRecommendation?.rationale
+                    || (latestRecommendation
+                      ? 'Open progress to review the latest saved recommendation run.'
+                      : 'Generate recommendations in progress to surface the next suggested exercise.')}
                 </Text>
+                <Button
+                  appearance="transparent"
+                  className={styles.suggestedNextLink}
+                  onClick={onOpenRecommendations}
+                >
+                  {latestRecommendation ? 'Open recommendations →' : 'Generate in progress →'}
+                </Button>
               </div>
-
-              <div className={styles.memorySignalCard}>
-                <Text className={styles.memorySignalLabel}>Last recommendation run</Text>
-                <Text className={styles.memorySignalValue}>
-                  {formatSignalTimestamp(latestRecommendation?.created_at)}
-                </Text>
-                <Text className={styles.memorySignalCopy}>
-                  {latestRecommendation
-                    ? `Target sound ${latestRecommendation.target_sound ? `/${latestRecommendation.target_sound}/` : 'not captured'} with ${latestRecommendation.candidate_count} ranked option${latestRecommendation.candidate_count === 1 ? '' : 's'}.`
-                    : 'No saved recommendation run exists for this child yet.'}
-                </Text>
-              </div>
-
-              <div className={styles.memorySignalCard}>
-                <Text className={styles.memorySignalLabel}>Evidence status</Text>
-                <Text className={styles.memorySignalValue}>
-                  {!latestRecommendation ? 'Not run' : recommendationEvidenceStale ? 'Stale' : 'Current'}
-                </Text>
-                <Text className={styles.memorySignalCopy}>
-                  {!latestRecommendation
-                    ? 'A saved recommendation run is required before evidence freshness can be evaluated.'
-                    : pendingProposalCount > 0
-                      ? 'Pending memory proposals mean the saved recommendation may be missing newly proposed evidence.'
-                      : childMemorySummary?.last_compiled_at && new Date(childMemorySummary.last_compiled_at).getTime() > new Date(latestRecommendation.created_at).getTime()
-                        ? 'Approved child memory changed after the saved recommendation run.'
-                        : selectedChild.last_session_at && new Date(selectedChild.last_session_at).getTime() > new Date(latestRecommendation.created_at).getTime()
-                          ? 'A newer reviewed session exists than the saved recommendation run.'
-                          : 'Supporting sessions and approved memory are aligned with the latest saved run.'}
-                </Text>
-              </div>
-            </div>
+            ) : null}
           </>
         ) : showParentPendingFamilyIntakeInvitations || showParentPendingInvitations || showParentNoLinkedChildren || showParentNeedsChildSelection ? (
           <div className={styles.memorySignalStrip}>

@@ -1,4 +1,4 @@
-name: S Vowel Blending Evaluation
+name: /s/ — Syllable Level (CV Blending) Evaluation
 description: Evaluate /s/ plus vowel blending practice
 model: gpt-4o
 modelParameters:

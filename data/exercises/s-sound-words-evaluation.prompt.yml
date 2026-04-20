@@ -1,4 +1,4 @@
-name: Say the S Sound Evaluation
+name: /s/ — Word Level (Initial Position) Evaluation
 description: Evaluate a child practice session focused on the /s/ sound
 model: gpt-4o
 modelParameters:

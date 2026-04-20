@@ -58,7 +58,7 @@ const useStyles = makeStyles({
     gap: 'var(--space-lg)',
     padding: 'var(--space-lg)',
     borderRight: '1px solid var(--color-border)',
-    background: 'linear-gradient(135deg, rgba(233, 245, 246, 0.98), rgba(224, 239, 241, 0.98))',
+    background: '#e8f1f0',
     backdropFilter: 'blur(16px)',
     minHeight: '100vh',
     maxHeight: '100vh',
@@ -168,6 +168,20 @@ const useStyles = makeStyles({
     color: 'var(--color-text-secondary)',
     fontFamily: 'var(--font-display)',
     fontWeight: '600',
+    ':hover': {
+      backgroundColor: 'var(--color-surface-elevated)',
+      color: 'var(--color-text-primary)',
+    },
+    ':hover .fui-Button__icon': {
+      color: 'var(--color-text-primary)',
+    },
+    ':active': {
+      backgroundColor: 'var(--color-bg-card)',
+      color: 'var(--color-text-primary)',
+    },
+    ':active .fui-Button__icon': {
+      color: 'var(--color-text-primary)',
+    },
   },
   navButtonCollapsed: {
     justifyContent: 'center',
@@ -378,7 +392,7 @@ export function SidebarNav({
               onClick={onNavigateDashboard}
               style={{ display: showDashboardNav ? undefined : 'none' }}
             >
-              {isExpanded ? 'Dashboard' : ''}
+              {isExpanded ? 'Progress' : ''}
             </Button>
             <Button
               appearance="subtle"

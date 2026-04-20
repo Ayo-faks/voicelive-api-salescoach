@@ -23,6 +23,73 @@ import {
   type ProgressDashboardChartStyles,
 } from './progressDashboardChartShared'
 
+// Wrap a PolarAngleAxis label into at most two lines by splitting at the
+// space nearest the middle. Short labels (<=12 chars) or single-word labels
+// stay on one line.
+function wrapRadarLabel(label: string, maxChars = 12): string[] {
+  if (!label || label.length <= maxChars) return [label]
+  const breaks: number[] = []
+  for (let i = 0; i < label.length; i += 1) {
+    if (label[i] === ' ' || label[i] === '-') breaks.push(i)
+  }
+  if (breaks.length === 0) return [label]
+  const middle = label.length / 2
+  let bestIdx = breaks[0]
+  let bestDist = Math.abs(breaks[0] - middle)
+  for (const idx of breaks) {
+    const dist = Math.abs(idx - middle)
+    if (dist < bestDist) {
+      bestDist = dist
+      bestIdx = idx
+    }
+  }
+  // Keep the hyphen attached to the first line; drop the space when breaking on space.
+  const first = label[bestIdx] === '-' ? label.slice(0, bestIdx + 1) : label.slice(0, bestIdx)
+  const second = label.slice(bestIdx + 1)
+  return [first, second]
+}
+
+// Custom PolarAngleAxis tick: word-wraps long labels into up to two lines and
+// derives textAnchor from each tick's x vs the chart centre, so labels stay
+// anchored outside the polygon without clipping. Canonical Recharts pattern
+// for radar charts with long categorical labels.
+function RadarAngleTick(props: {
+  x?: number
+  y?: number
+  cx?: number
+  cy?: number
+  payload?: { value?: string | number }
+}) {
+  const { x = 0, y = 0, cx = 0, cy = 0, payload } = props
+  const value = typeof payload?.value === 'string' ? payload.value : String(payload?.value ?? '')
+  const lines = wrapRadarLabel(value)
+  const dx = x - cx
+  const anchor: 'start' | 'middle' | 'end' =
+    Math.abs(dx) < 4 ? 'middle' : dx < 0 ? 'end' : 'start'
+  // Balance the wrapped block vertically around the tick's y so labels
+  // above the centre rise upward and labels below fall downward.
+  const lineHeight = 12 // ~1.1em at 11px
+  const totalHeight = (lines.length - 1) * lineHeight
+  const firstLineY = y < cy ? y - totalHeight : y
+
+  return (
+    <text
+      x={x}
+      y={firstLineY}
+      textAnchor={anchor}
+      fill={chartPalette.axis}
+      fontSize={11}
+      fontFamily="Manrope"
+    >
+      {lines.map(line => (
+        <tspan key={line} x={x} dy={line === lines[0] ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  )
+}
+
 export function SessionQualityRadar({
   selectedSession,
   showHeading = true,
@@ -48,11 +115,11 @@ export function SessionQualityRadar({
         </Text>
       ) : null}
       <div className={styles.radarLayout}>
-        <div style={{ width: '100%', maxWidth: '280px', height: '280px' }}>
+        <div style={{ width: '100%', height: '320px', minWidth: 0 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <RadarChart data={data} outerRadius="72%">
+            <RadarChart data={data} outerRadius="78%" margin={{ top: 24, right: 24, bottom: 24, left: 24 }}>
               <PolarGrid stroke="rgba(15, 42, 58, 0.1)" />
-              <PolarAngleAxis dataKey="subject" tick={{ fill: chartPalette.axis, fontSize: 12, fontFamily: 'Manrope' }} />
+              <PolarAngleAxis dataKey="subject" tick={<RadarAngleTick />} />
               <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
               <Radar dataKey="score" stroke={chartPalette.primary} fill={chartPalette.primarySoft} fillOpacity={1} strokeWidth={2} />
             </RadarChart>

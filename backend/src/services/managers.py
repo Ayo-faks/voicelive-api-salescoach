@@ -207,7 +207,10 @@ CRITICAL INTERACTION GUIDELINES:
         scenario_instructions = scenario_data.get("messages", [{}])[0].get("content", "")
         combined_instructions = self.BASE_INSTRUCTIONS + "\n" + scenario_instructions
 
-        model_name = scenario_data.get("model", config["model_deployment_name"])
+        model_name = scenario_data.get(
+            "model",
+            config.get("voice_live_model") or config["model_deployment_name"],
+        )
         temperature = scenario_data.get("modelParameters", {}).get("temperature", 0.7)
         max_tokens = scenario_data.get("modelParameters", {}).get("max_tokens", 2000)
 
