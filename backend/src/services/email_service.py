@@ -57,7 +57,11 @@ class AzureCommunicationEmailService:
             self._disabled_reason = "Email service is not configured"
             return
 
-        self._client = EmailClient.from_connection_string(self._connection_string)
+        try:
+            self._client = EmailClient.from_connection_string(self._connection_string)
+        except Exception as exc:  # noqa: BLE001 - defensive: invalid config must not crash boot
+            self._client = None
+            self._disabled_reason = f"Email service disabled: invalid connection string ({exc})"
 
     @classmethod
     def from_config(cls, config: Mapping[str, Any]) -> "AzureCommunicationEmailService":
