@@ -164,8 +164,12 @@ class HtmlReportExporter:
             if export_context.show_summary_text
             else ""
         )
+        metric_cards_html = "".join(
+            f"<div class=\"metric-card\"><p class=\"metric-label\">{escape(label)}</p><p class=\"metric-value\">{escape(value)}</p></div>"
+            for label, value in export_context.metric_cards
+        )
         metrics_html = (
-            f"<div class=\"metrics\">{''.join(f'<div class=\"metric-card\"><p class=\"metric-label\">{escape(label)}</p><p class=\"metric-value\">{escape(value)}</p></div>' for label, value in export_context.metric_cards)}</div>"
+            f"<div class=\"metrics\">{metric_cards_html}</div>"
             if export_context.show_overview_metrics
             else ""
         )
@@ -176,6 +180,7 @@ class HtmlReportExporter:
         )
         footer_notice_html = f"<p class=\"footer\">{escape(export_context.redaction_notice)}</p>" if export_context.redaction_notice else ""
         content_grid_class = "content-grid" if export_context.show_session_list else "content-grid single-column"
+        badge_row_html = f"<div class=\"badge-row\">{badge_html}</div>" if badge_html else ""
 
         return f"""<!doctype html>
 <html lang=\"en\">
@@ -422,7 +427,7 @@ class HtmlReportExporter:
                 <h1>{escape(str(report.get('title') or 'Progress report'))}</h1>
                 <p class=\"subtitle\">{escape(export_context.subtitle)}</p>
 
-                {f'<div class=\"badge-row\">{badge_html}</div>' if badge_html else ''}
+                {badge_row_html}
                 {summary_html}
                 {metrics_html}
             </section>
