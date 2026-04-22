@@ -437,6 +437,71 @@ export type ProgressReportAudience = 'therapist' | 'parent' | 'school'
 
 export type ProgressReportStatus = 'draft' | 'approved' | 'signed' | 'archived'
 
+export type ProgressReportSource = 'pipeline' | 'ai_insight' | 'manual'
+
+// --- Insights visualization contract (shared with backend visualization_service.py) ---
+
+export type VisualizationKind = 'line' | 'bar' | 'table'
+
+export interface VisualizationChartPoint {
+  x: string | number
+  y: number
+}
+
+export interface VisualizationChartSeries {
+  name: string
+  points: VisualizationChartPoint[]
+}
+
+export interface VisualizationChartSpec {
+  kind: 'line' | 'bar'
+  title: string
+  caption?: string
+  x_label?: string
+  y_label?: string
+  series: VisualizationChartSeries[]
+}
+
+export interface VisualizationTableColumn {
+  key: string
+  label: string
+}
+
+export type VisualizationTableCell = string | number | boolean | null
+
+export interface VisualizationTableSpec {
+  kind: 'table'
+  title: string
+  caption?: string
+  columns: VisualizationTableColumn[]
+  rows: Array<Record<string, VisualizationTableCell>>
+}
+
+export type VisualizationSpec = VisualizationChartSpec | VisualizationTableSpec
+
+// --- Insights voice-state contract (mirrors backend insights_voice_state.py) ---
+
+export type InsightsVoiceState =
+  | 'idle'
+  | 'listening'
+  | 'thinking'
+  | 'speaking'
+  | 'interrupted'
+  | 'error'
+
+export const INSIGHTS_VOICE_STATES: readonly InsightsVoiceState[] = [
+  'idle',
+  'listening',
+  'thinking',
+  'speaking',
+  'interrupted',
+  'error',
+] as const
+
+export function isInsightsVoiceState(value: unknown): value is InsightsVoiceState {
+  return typeof value === 'string' && (INSIGHTS_VOICE_STATES as readonly string[]).includes(value)
+}
+
 export interface ProgressReportMetric {
   label: string
   value: string
@@ -495,6 +560,7 @@ export interface ProgressReport {
   sections: ProgressReportSection[]
   redaction_overrides: ProgressReportRedactionOverrides
   summary_text?: string | null
+  source?: ProgressReportSource
   created_at: string
   updated_at: string
   approved_at?: string | null
@@ -795,7 +861,80 @@ export interface AppConfig {
   telemetry_enabled: boolean
   image_base_path: string
   planner?: PlannerReadiness
+  insights_rail_enabled?: boolean
 }
+
+// --- Phase 4 Insights Agent ----------------------------------------------
+
+export type InsightsScopeType = 'caseload' | 'child' | 'session' | 'report'
+
+export interface InsightsScope {
+  type: InsightsScopeType
+  child_id?: string
+  session_id?: string
+  report_id?: string
+}
+
+export interface InsightsCitation {
+  kind: string
+  child_id?: string
+  session_id?: string
+  report_id?: string
+  plan_id?: string
+  memory_item_id?: string
+  label?: string
+}
+
+export interface InsightsToolTraceEntry {
+  name: string
+  arguments?: Record<string, unknown>
+  result_summary?: string
+  error?: string
+  duration_ms?: number
+}
+
+export interface InsightsMessage {
+  id: string
+  conversation_id: string
+  role: 'user' | 'assistant'
+  content_text: string
+  citations: InsightsCitation[]
+  visualizations: VisualizationSpec[]
+  tool_trace: InsightsToolTraceEntry[]
+  latency_ms: number | null
+  tool_calls_count: number | null
+  prompt_version: string | null
+  error_text: string | null
+  created_at: string
+}
+
+export interface InsightsConversation {
+  id: string
+  user_id: string
+  workspace_id: string | null
+  scope_type: InsightsScopeType
+  scope_child_id: string | null
+  scope_session_id: string | null
+  scope_report_id: string | null
+  title: string | null
+  prompt_version: string
+  created_at: string
+  updated_at: string
+}
+
+export interface InsightsAskResponse {
+  conversation: InsightsConversation
+  user_message: InsightsMessage
+  assistant_message: InsightsMessage
+  tool_calls_count: number
+  latency_ms: number
+}
+
+export interface InsightsConversationDetail {
+  conversation: InsightsConversation
+  messages: InsightsMessage[]
+}
+
 
 export interface AvatarOption {
   value: string

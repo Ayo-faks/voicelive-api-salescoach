@@ -37,6 +37,10 @@ import type {
   Scenario,
   TherapistFeedbackRating,
   WorkspaceSummary,
+  InsightsScope,
+  InsightsAskResponse,
+  InsightsConversation,
+  InsightsConversationDetail,
 } from '../types'
 import { AVATAR_OPTIONS } from '../types'
 
@@ -944,6 +948,51 @@ export const api = {
     if (!res.ok) {
       const data = await res.json().catch(() => null)
       throw new Error(data?.error || 'Failed to delete child data')
+    }
+    return res.json()
+  },
+
+  async askInsights(params: {
+    message: string
+    scope: InsightsScope
+    conversationId?: string | null
+  }): Promise<InsightsAskResponse> {
+    const body: Record<string, unknown> = {
+      message: params.message,
+      scope: params.scope,
+    }
+    if (params.conversationId) body.conversation_id = params.conversationId
+    const res = await fetchWithAuth('/api/insights/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to ask insights')
+    }
+    return res.json()
+  },
+
+  async listInsightsConversations(
+    limit = 50
+  ): Promise<{ conversations: InsightsConversation[] }> {
+    const res = await fetchWithAuth(
+      `/api/insights/conversations?limit=${encodeURIComponent(String(limit))}`
+    )
+    if (!res.ok) throw new Error('Failed to load insights conversations')
+    return res.json()
+  },
+
+  async getInsightsConversation(
+    conversationId: string
+  ): Promise<InsightsConversationDetail> {
+    const res = await fetchWithAuth(
+      `/api/insights/conversations/${encodeURIComponent(conversationId)}`
+    )
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to load conversation')
     }
     return res.json()
   },
