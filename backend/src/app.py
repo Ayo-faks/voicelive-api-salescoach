@@ -293,7 +293,9 @@ def initialize_runtime_services() -> None:
     insights_planner = None
     if os.environ.get("INSIGHTS_PLANNER_MODE", "auto").strip().lower() != "stub":
         try:
-            insights_planner = build_insights_planner_from_env(config.as_dict)
+            # Use ``raw_dict`` (not ``as_dict``) so the planner receives the
+            # real ``azure_openai_api_key`` instead of the redacted value.
+            insights_planner = build_insights_planner_from_env(config.raw_dict)
         except Exception:  # pragma: no cover - defensive
             logger.exception("Failed to build Copilot insights planner; falling back to stub")
             insights_planner = None

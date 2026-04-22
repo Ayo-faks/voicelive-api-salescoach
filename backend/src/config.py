@@ -341,6 +341,15 @@ class Config:
                 redacted[key] = value
         return redacted
 
+    @property
+    def raw_dict(self) -> Dict[str, Any]:
+        """Return config as a plain dict with secret values intact.
+
+        Use only for downstream services that need to read secrets such as
+        ``azure_openai_api_key``. Do NOT log the result.
+        """
+        return dict(self._config)
+
 
 @lru_cache(maxsize=1)
 def get_config() -> Config:
