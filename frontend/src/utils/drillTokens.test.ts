@@ -41,7 +41,7 @@ describe('drillTokens', () => {
       'Try th-ee, thee then th-eye, thigh.',
     )
     expect(replaceDrillTokens('Listen first. TH_THIN_MODEL then F_FIN_MODEL.')).toBe(
-      'Listen first. thin then fin.',
+      'Listen first. th-in, thin then fff-in, fin.',
     )
   })
 
