@@ -8,6 +8,7 @@ import {
   Button,
   Card,
   CardHeader,
+  Checkbox,
   Dropdown,
   Field,
   mergeClasses,
@@ -1758,6 +1759,8 @@ export function ProgressDashboard({
   const [manualMemoryStatement, setManualMemoryStatement] = useState('')
   const [breakdownViewBySession, setBreakdownViewBySession] = useState<Record<string, 'articulation' | 'engagement'>>({})
   const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab ?? 'session-detail')
+  const [reportSourceFilter, setReportSourceFilter] = useState<'all' | 'pipeline' | 'ai_insight' | 'manual'>('all')
+  const [reportReviewAcknowledgedId, setReportReviewAcknowledgedId] = useState<string | null>(null)
   useEffect(() => {
     if (initialTab) {
       setActiveTab(initialTab)
@@ -2001,6 +2004,13 @@ export function ProgressDashboard({
 
   function handleOpenSelectedReportExport(format: ReportExportFormat, mode: ReportExportMode = 'preview') {
     if (!selectedReport) {
+      return
+    }
+
+    // Phase 1 AI-draft review gate: exports for `source==='ai_insight'` drafts
+    // require the therapist to tick the "Reviewed — OK to export" checkbox.
+    // We rely on the disabled state for UI, but belt-and-braces here too.
+    if (selectedReport.source === 'ai_insight' && reportReviewAcknowledgedId !== selectedReport.id) {
       return
     }
 
@@ -3452,39 +3462,82 @@ export function ProgressDashboard({
                         <Text className={styles.helperText} size={200}>
                           Most recent first. Open any saved draft or signed report to inspect its generated sections.
                         </Text>
-                        {progressReports.map(report => {
-                          const isSelected = report.id === selectedReport?.id
-
-                          return (
-                            <Button
-                              appearance="subtle"
-                              className={mergeClasses(
-                                styles.recommendationHistoryButton,
-                                isSelected && styles.recommendationHistoryButtonSelected
-                              )}
-                              key={report.id}
-                              onClick={() => {
-                                void onOpenReportDetail(report.id)
-                              }}
-                            >
-                              <div className={styles.recommendationHistoryContent}>
-                                <div className={styles.summaryRow}>
-                                  <Badge appearance="filled" className={styles.scoreBadgeTeal}>
-                                    {report.audience}
-                                  </Badge>
-                                  <Badge appearance="tint" className={styles.scoreBadge}>
-                                    {report.status}
-                                  </Badge>
-                                </div>
-                                <Text size={300} weight="semibold">
-                                  {report.title}
-                                </Text>
-                                <Text size={200}>{formatTimestamp(report.updated_at)}</Text>
-                                <Text size={200}>{report.summary_text || 'No summary note added yet.'}</Text>
+                        {/* Phase 1 AI-draft: source filter chips. Always rendered so */}
+                        {/* the "AI draft" filter is discoverable even when no AI row exists. */}
+                        <div className={styles.summaryRow}>
+                          {([
+                            { key: 'all', label: 'All' },
+                            { key: 'pipeline', label: 'Pipeline' },
+                            { key: 'ai_insight', label: 'AI draft' },
+                            { key: 'manual', label: 'Manual' },
+                          ] as const).map(chip => {
+                            const pressed = reportSourceFilter === chip.key
+                            return (
+                              <Button
+                                key={chip.key}
+                                appearance={pressed ? 'primary' : 'subtle'}
+                                aria-pressed={pressed}
+                                onClick={() => setReportSourceFilter(chip.key)}
+                                size="small"
+                              >
+                                {chip.label}
+                              </Button>
+                            )
+                          })}
+                        </div>
+                        {(() => {
+                          const filteredReports = progressReports.filter(report => {
+                            if (reportSourceFilter === 'all') return true
+                            const source = report.source ?? 'pipeline'
+                            return source === reportSourceFilter
+                          })
+                          if (filteredReports.length === 0) {
+                            return (
+                              <div className={styles.emptyState}>
+                                <Text>No reports match this filter yet.</Text>
                               </div>
-                            </Button>
-                          )
-                        })}
+                            )
+                          }
+                          return filteredReports.map(report => {
+                            const isSelected = report.id === selectedReport?.id
+                            const isAiDraft = (report.source ?? 'pipeline') === 'ai_insight'
+
+                            return (
+                              <Button
+                                appearance="subtle"
+                                className={mergeClasses(
+                                  styles.recommendationHistoryButton,
+                                  isSelected && styles.recommendationHistoryButtonSelected
+                                )}
+                                key={report.id}
+                                onClick={() => {
+                                  void onOpenReportDetail(report.id)
+                                }}
+                              >
+                                <div className={styles.recommendationHistoryContent}>
+                                  <div className={styles.summaryRow}>
+                                    <Badge appearance="filled" className={styles.scoreBadgeTeal}>
+                                      {report.audience}
+                                    </Badge>
+                                    <Badge appearance="tint" className={styles.scoreBadge}>
+                                      {report.status}
+                                    </Badge>
+                                    {isAiDraft ? (
+                                      <Badge appearance="tint" className={styles.scoreBadge}>
+                                        AI draft
+                                      </Badge>
+                                    ) : null}
+                                  </div>
+                                  <Text size={300} weight="semibold">
+                                    {report.title}
+                                  </Text>
+                                  <Text size={200}>{formatTimestamp(report.updated_at)}</Text>
+                                  <Text size={200}>{report.summary_text || 'No summary note added yet.'}</Text>
+                                </div>
+                              </Button>
+                            )
+                          })
+                        })()}
                       </div>
 
                       <div className={styles.recommendationDetail}>
@@ -3519,9 +3572,21 @@ export function ProgressDashboard({
                               <div className={styles.summaryRow}>
                                 <Badge appearance="filled" className={styles.scoreBadgeTeal}>Report summary</Badge>
                                 <Badge appearance="tint" className={styles.scoreBadge}>{selectedReport.status}</Badge>
+                                {(selectedReport.source ?? 'pipeline') === 'ai_insight' ? (
+                                  <Badge appearance="tint" className={styles.scoreBadge}>AI draft</Badge>
+                                ) : null}
                               </div>
                               <Text size={500} weight="semibold">{selectedReport.title}</Text>
                               <Text size={300}>{selectedReport.summary_text || 'No summary note has been saved for this report yet.'}</Text>
+                              {(selectedReport.source ?? 'pipeline') === 'ai_insight' ? (
+                                <Checkbox
+                                  checked={reportReviewAcknowledgedId === selectedReport.id}
+                                  label="Reviewed — OK to export"
+                                  onChange={(_, data) => {
+                                    setReportReviewAcknowledgedId(data.checked ? selectedReport.id : null)
+                                  }}
+                                />
+                              ) : null}
                             </div>
 
                             {selectedReport.sections.map(section => (
@@ -3557,35 +3622,45 @@ export function ProgressDashboard({
                             ))}
 
                             <div className={styles.planActions}>
-                              <Button appearance="secondary" disabled={reportSaving} onClick={() => handleOpenSelectedReportExport('html', 'preview')}>
-                                Open print view
-                              </Button>
-                              <Button appearance="secondary" disabled={reportSaving} onClick={() => handleOpenSelectedReportExport('html', 'download')}>
-                                Download HTML
-                              </Button>
-                              <Button appearance="secondary" disabled={reportSaving} onClick={() => handleOpenSelectedReportExport('pdf', 'preview')}>
-                                Preview PDF
-                              </Button>
-                              <Button appearance="secondary" disabled={reportSaving} onClick={() => handleOpenSelectedReportExport('pdf', 'download')}>
-                                Download PDF
-                              </Button>
-                              {selectedReport.status === 'draft' ? (
-                                <>
-                                  <Button appearance="secondary" disabled={reportSaving} onClick={() => { void onApproveReport() }}>
-                                    Approve report
-                                  </Button>
-                                </>
-                              ) : null}
-                              {selectedReport.status === 'approved' ? (
-                                <Button appearance="secondary" disabled={reportSaving} onClick={() => { void onSignReport() }}>
-                                  Sign report
-                                </Button>
-                              ) : null}
-                              {(selectedReport.status === 'approved' || selectedReport.status === 'signed') ? (
-                                <Button appearance="secondary" disabled={reportSaving} onClick={() => { void onArchiveReport() }}>
-                                  Archive report
-                                </Button>
-                              ) : null}
+                              {(() => {
+                                // Phase 1 AI-draft gate: exports + approve require the therapist
+                                // to check the per-report "Reviewed — OK to export" acknowledgement.
+                                const isAiDraftReport = (selectedReport.source ?? 'pipeline') === 'ai_insight'
+                                const exportGated = isAiDraftReport && reportReviewAcknowledgedId !== selectedReport.id
+                                return (
+                                  <>
+                                    <Button appearance="secondary" disabled={reportSaving || exportGated} onClick={() => handleOpenSelectedReportExport('html', 'preview')}>
+                                      Open print view
+                                    </Button>
+                                    <Button appearance="secondary" disabled={reportSaving || exportGated} onClick={() => handleOpenSelectedReportExport('html', 'download')}>
+                                      Download HTML
+                                    </Button>
+                                    <Button appearance="secondary" disabled={reportSaving || exportGated} onClick={() => handleOpenSelectedReportExport('pdf', 'preview')}>
+                                      Preview PDF
+                                    </Button>
+                                    <Button appearance="secondary" disabled={reportSaving || exportGated} onClick={() => handleOpenSelectedReportExport('pdf', 'download')}>
+                                      Download PDF
+                                    </Button>
+                                    {selectedReport.status === 'draft' ? (
+                                      <>
+                                        <Button appearance="secondary" disabled={reportSaving || exportGated} onClick={() => { void onApproveReport() }}>
+                                          Approve report
+                                        </Button>
+                                      </>
+                                    ) : null}
+                                    {selectedReport.status === 'approved' ? (
+                                      <Button appearance="secondary" disabled={reportSaving} onClick={() => { void onSignReport() }}>
+                                        Sign report
+                                      </Button>
+                                    ) : null}
+                                    {(selectedReport.status === 'approved' || selectedReport.status === 'signed') ? (
+                                      <Button appearance="secondary" disabled={reportSaving} onClick={() => { void onArchiveReport() }}>
+                                        Archive report
+                                      </Button>
+                                    ) : null}
+                                  </>
+                                )
+                              })()}
                             </div>
                           </>
                         ) : (
