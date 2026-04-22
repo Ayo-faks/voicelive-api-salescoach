@@ -57,10 +57,13 @@ export function useRecorder({
   onRecordingComplete,
 }: UseRecorderOptions = {}) {
   const [recording, setRecording] = useState(false)
+  const [inputLevel, setInputLevel] = useState(0)
   const audioCtxRef = useRef<AudioContext | null>(null)
   const workletRef = useRef<AudioWorkletNode | null>(null)
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
+  const levelRafRef = useRef<number | null>(null)
   const audioRecording = useRef<RecorderAudioChunk[]>([])
 
   const initAudio = useCallback(async () => {
@@ -128,6 +131,33 @@ export function useRecorder({
     worklet.connect(audioCtx.destination)
     worklet.port.postMessage({ command: 'START' })
 
+    // Branch: source -> analyser (for RMS input level visualisation).
+    // Kept separate from the worklet graph so it never affects capture.
+    const analyser = audioCtx.createAnalyser()
+    analyser.fftSize = 1024
+    analyser.smoothingTimeConstant = 0.6
+    source.connect(analyser)
+    analyserRef.current = analyser
+
+    const timeBuffer = new Float32Array(analyser.fftSize)
+    const tick = () => {
+      const node = analyserRef.current
+      if (!node) return
+      node.getFloatTimeDomainData(timeBuffer)
+      let sumSquares = 0
+      for (let i = 0; i < timeBuffer.length; i++) {
+        const v = timeBuffer[i]
+        sumSquares += v * v
+      }
+      const rms = Math.sqrt(sumSquares / timeBuffer.length)
+      // Normalise: rms is in [0, 1] for float32 PCM but typical speech
+      // peaks around 0.2–0.4, so scale for a responsive orb.
+      const normalised = Math.min(1, rms * 3)
+      setInputLevel(normalised)
+      levelRafRef.current = requestAnimationFrame(tick)
+    }
+    levelRafRef.current = requestAnimationFrame(tick)
+
     workletRef.current = worklet
     setRecording(true)
   }, [initAudio, mode, onAudioChunk, onRecordingComplete])
@@ -139,6 +169,16 @@ export function useRecorder({
       workletRef.current.disconnect()
       workletRef.current = null
     }
+
+    if (levelRafRef.current !== null) {
+      cancelAnimationFrame(levelRafRef.current)
+      levelRafRef.current = null
+    }
+    if (analyserRef.current) {
+      analyserRef.current.disconnect()
+      analyserRef.current = null
+    }
+    setInputLevel(0)
 
     sourceRef.current?.disconnect()
     sourceRef.current = null
@@ -178,6 +218,7 @@ export function useRecorder({
 
   return {
     recording,
+    inputLevel,
     toggleRecording,
     getAudioRecording,
     clearAudioRecording,
