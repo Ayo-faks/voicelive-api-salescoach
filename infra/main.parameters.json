@@ -47,6 +47,9 @@
       "copilotAzureApiVersion": {
         "value": "${COPILOT_AZURE_API_VERSION=}"
       },
+      "voiceLiveModel": {
+        "value": "${VOICE_LIVE_MODEL=}"
+      },
       "enablePostgresPersistence": {
         "value": "${ENABLE_POSTGRES_PERSISTENCE=false}"
       },

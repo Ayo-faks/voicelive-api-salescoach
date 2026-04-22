@@ -41,6 +41,9 @@ param copilotPlannerReasoningEffort string = ''
 @description('Optional API version override for the Copilot Azure BYOK provider.')
 param copilotAzureApiVersion string = ''
 
+@description('Optional Voice Live model override. Defaults to the deployed Azure OpenAI model.')
+param voiceLiveModel string = ''
+
 @description('Enable Azure Database for PostgreSQL Flexible Server resources and secret wiring.')
 param enablePostgresPersistence bool = false
 
@@ -605,6 +608,10 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
             {
               name: 'COPILOT_CLI_PATH'
               value: empty(copilotCliPath) ? '/usr/local/bin/copilot' : copilotCliPath
+            }
+            {
+              name: 'VOICE_LIVE_MODEL'
+              value: empty(voiceLiveModel) ? gptDeploymentName : voiceLiveModel
             }
             {
               name: 'COPILOT_PLANNER_MODEL'

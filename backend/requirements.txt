@@ -6,6 +6,7 @@ azure-cognitiveservices-speech==1.47.0
 azure-identity>=1.25.1
 azure-monitor-opentelemetry>=1.6.0
 alembic>=1.16.0
+defusedxml>=0.7.1
 flask==3.1.2
 flask-sock==0.7.0
 github-copilot-sdk

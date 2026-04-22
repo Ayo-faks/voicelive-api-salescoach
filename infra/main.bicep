@@ -50,6 +50,9 @@ param copilotPlannerReasoningEffort string = ''
 @description('Optional API version override for the Copilot Azure BYOK provider.')
 param copilotAzureApiVersion string = ''
 
+@description('Optional Voice Live model override. Defaults to the deployed Azure OpenAI model.')
+param voiceLiveModel string = ''
+
 @description('Enable Azure Database for PostgreSQL Flexible Server resources and secret wiring.')
 param enablePostgresPersistence bool = false
 
@@ -142,6 +145,7 @@ module resources 'resources.bicep' = {
     copilotPlannerModel: copilotPlannerModel
     copilotPlannerReasoningEffort: copilotPlannerReasoningEffort
     copilotAzureApiVersion: copilotAzureApiVersion
+    voiceLiveModel: voiceLiveModel
     enablePostgresPersistence: enablePostgresPersistence
     postgresAdminUsername: postgresAdminUsername
     postgresAdminPassword: postgresAdminPassword
