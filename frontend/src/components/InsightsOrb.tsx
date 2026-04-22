@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useEffect, useMemo, useState } from 'react'
-import { makeStyles, Text, tokens } from '@fluentui/react-components'
+import { makeStyles, mergeClasses, Text, tokens } from '@fluentui/react-components'
 import type { InsightsVoiceState } from '../types'
 
 const STATE_LABELS: Record<InsightsVoiceState, string> = {
@@ -113,6 +113,30 @@ const useStyles = makeStyles({
     color: 'var(--color-text-primary)',
     minHeight: '1.25em',
   },
+  interruptButton: {
+    borderTopWidth: '1px',
+    borderRightWidth: '1px',
+    borderBottomWidth: '1px',
+    borderLeftWidth: '1px',
+    borderTopStyle: 'solid',
+    borderRightStyle: 'solid',
+    borderBottomStyle: 'solid',
+    borderLeftStyle: 'solid',
+    borderTopColor: tokens.colorNeutralStroke2,
+    borderRightColor: tokens.colorNeutralStroke2,
+    borderBottomColor: tokens.colorNeutralStroke2,
+    borderLeftColor: tokens.colorNeutralStroke2,
+    borderRadius: tokens.borderRadiusLarge,
+    backgroundColor: tokens.colorNeutralBackground2,
+    color: tokens.colorNeutralForeground1,
+    padding: '6px 12px',
+    fontSize: tokens.fontSizeBase200,
+    fontWeight: tokens.fontWeightSemibold,
+    cursor: 'pointer',
+    ':hover': {
+      backgroundColor: tokens.colorNeutralBackground3,
+    },
+  },
   transcriptEmpty: {
     color: 'var(--color-text-secondary)',
     fontStyle: 'italic',
@@ -146,6 +170,8 @@ export interface InsightsOrbProps {
   reducedMotion?: boolean
   /** Optional extra aria-label context, e.g. the child name. */
   ariaLabel?: string
+  /** Optional interrupt/stop action rendered beneath the orb while active. */
+  onInterrupt?: () => void
 }
 
 /**
@@ -162,6 +188,7 @@ export function InsightsOrb({
   transcript,
   reducedMotion,
   ariaLabel,
+  onInterrupt,
 }: InsightsOrbProps) {
   const styles = useStyles()
   const prefersReducedMotionFromOs = usePrefersReducedMotion()
@@ -202,18 +229,17 @@ export function InsightsOrb({
   const showHalo = state === 'listening' || state === 'speaking' || state === 'thinking'
   const haloAnimates = state === 'thinking' && !effectiveReducedMotion
 
-  const haloClassName = [
+  const haloClassName = mergeClasses(
     styles.halo,
-    showHalo ? styles.haloActive : '',
-    haloAnimates ? styles.haloThinking : '',
-  ]
-    .filter(Boolean)
-    .join(' ')
+    showHalo ? styles.haloActive : undefined,
+    haloAnimates ? styles.haloThinking : undefined,
+  )
 
-  const orbClassName = [styles.orb, orbStateClass].join(' ')
+  const orbClassName = mergeClasses(styles.orb, orbStateClass)
   const composedAriaLabel = ariaLabel
     ? `${STATE_LABELS[state]} — ${ariaLabel}`
     : STATE_LABELS[state]
+  const showInterruptButton = typeof onInterrupt === 'function' && state !== 'idle' && state !== 'error'
 
   return (
     <div
@@ -244,11 +270,10 @@ export function InsightsOrb({
         {state}
       </Text>
       <Text
-        className={
-          transcript && transcript.trim().length > 0
-            ? styles.transcript
-            : `${styles.transcript} ${styles.transcriptEmpty}`
-        }
+        className={mergeClasses(
+          styles.transcript,
+          transcript && transcript.trim().length > 0 ? undefined : styles.transcriptEmpty,
+        )}
         aria-live="polite"
         data-testid="insights-orb-transcript"
       >
@@ -258,6 +283,16 @@ export function InsightsOrb({
           ? 'Listening…'
           : 'Transcript will appear here.'}
       </Text>
+      {showInterruptButton ? (
+        <button
+          type="button"
+          className={styles.interruptButton}
+          onClick={onInterrupt}
+          data-testid="insights-orb-interrupt"
+        >
+          Stop voice
+        </button>
+      ) : null}
       {/* tokens import is kept for potential theme-aware styling; reference to avoid unused-import lint: */}
       <span data-testid="insights-orb-token-ref" style={{ display: 'none' }}>
         {tokens.borderRadiusCircular}

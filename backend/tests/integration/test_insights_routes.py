@@ -59,7 +59,18 @@ def test_config_flag_on_by_default_for_therapist(client: FlaskClient):
     _bootstrap_therapist(client, headers)
     res = client.get("/api/config", headers=headers)
     assert res.status_code == 200
-    assert res.get_json().get("insights_rail_enabled") is True
+    body = res.get_json()
+    assert body.get("insights_rail_enabled") is True
+    assert {
+        "status",
+        "proxy_enabled",
+        "ws_endpoint",
+        "storage_ready",
+        "telemetry_enabled",
+        "image_base_path",
+        "planner",
+        "insights_rail_enabled",
+    }.issubset(body.keys())
 
 
 def test_config_flag_can_be_disabled_via_env(

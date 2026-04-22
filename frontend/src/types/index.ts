@@ -502,6 +502,101 @@ export function isInsightsVoiceState(value: unknown): value is InsightsVoiceStat
   return typeof value === 'string' && (INSIGHTS_VOICE_STATES as readonly string[]).includes(value)
 }
 
+export type InsightsVoiceMode = 'off' | 'push_to_talk' | 'full_duplex'
+
+export interface TurnStarted {
+  type: 'turn.started'
+  turn_id: string
+  conversation_id?: string
+}
+
+export interface TurnPartialTranscript {
+  type: 'turn.partial_transcript'
+  text: string
+}
+
+export interface TurnFinalTranscript {
+  type: 'turn.final_transcript'
+  text: string
+}
+
+export interface TurnReasoningSummary {
+  type: 'turn.reasoning_summary'
+  text: string
+}
+
+export interface TurnToolStarted {
+  type: 'turn.tool_started'
+  tool: string
+  args?: Record<string, unknown>
+}
+
+export interface TurnToolCompleted {
+  type: 'turn.tool_completed'
+  tool: string
+  result?: unknown
+}
+
+export interface TurnConfirmationRequired {
+  type: 'turn.confirmation_required'
+  tool: string
+  summary: string
+}
+
+export interface TurnDelta {
+  type: 'turn.delta'
+  text: string
+}
+
+export interface TurnCitation {
+  type: 'turn.citation'
+  item: InsightsCitation
+}
+
+export interface TurnAudioChunk {
+  type: 'turn.audio_chunk'
+  data_b64: string
+  format: string
+}
+
+export interface TurnCompleted {
+  type: 'turn.completed'
+  conversation_id: string
+  answer_text: string
+  citations?: InsightsCitation[]
+  visualizations?: VisualizationSpec[]
+}
+
+export interface TurnError {
+  type: 'turn.error'
+  code: string
+  message: string
+}
+
+export interface TurnInterrupt {
+  type: 'turn.interrupt'
+}
+
+export interface TurnInterrupted {
+  type: 'turn.interrupted'
+}
+
+export type InsightsVoiceEnvelope =
+  | TurnStarted
+  | TurnPartialTranscript
+  | TurnFinalTranscript
+  | TurnReasoningSummary
+  | TurnToolStarted
+  | TurnToolCompleted
+  | TurnConfirmationRequired
+  | TurnDelta
+  | TurnCitation
+  | TurnAudioChunk
+  | TurnCompleted
+  | TurnError
+  | TurnInterrupt
+  | TurnInterrupted
+
 export interface ProgressReportMetric {
   label: string
   value: string
@@ -862,6 +957,7 @@ export interface AppConfig {
   image_base_path: string
   planner?: PlannerReadiness
   insights_rail_enabled?: boolean
+  insights_voice_mode?: InsightsVoiceMode
 }
 
 // --- Phase 4 Insights Agent ----------------------------------------------

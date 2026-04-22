@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
 import { InsightsOrb } from './InsightsOrb'
 import type { InsightsVoiceState } from '../types'
 
@@ -67,6 +67,18 @@ describe('InsightsOrb', () => {
     expect(
       screen.getByTestId('insights-orb-transcript').textContent,
     ).toBe("Hello, show me last week's scores.")
+  })
+
+  it('renders an interrupt button while active and calls it on click', () => {
+    const onInterrupt = vi.fn()
+
+    render(<InsightsOrb state="speaking" outputLevel={0.6} onInterrupt={onInterrupt} />)
+
+    const interruptButton = screen.getByTestId('insights-orb-interrupt')
+    expect(interruptButton.textContent).toContain('Stop voice')
+
+    fireEvent.click(interruptButton)
+    expect(onInterrupt).toHaveBeenCalledTimes(1)
   })
 
   it('falls back to the static scale when reducedMotion is true', () => {

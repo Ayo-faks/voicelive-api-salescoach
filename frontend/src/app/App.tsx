@@ -4028,6 +4028,7 @@ export default function App() {
       onBackToPractice={handleExitTherapistView}
       onExitToEntry={handleReturnToEntry}
       insightsRailEnabled={appConfig?.insights_rail_enabled ?? false}
+      insightsVoiceMode={appConfig?.insights_voice_mode ?? 'off'}
     />
   ) : currentRoute === APP_ROUTES.onboarding ? (
     <OnboardingFlow

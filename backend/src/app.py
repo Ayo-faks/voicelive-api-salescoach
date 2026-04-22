@@ -17,7 +17,7 @@ import sys
 import threading
 import time
 from typing import Any, Dict, List, Mapping, Optional, Tuple, cast
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 import simple_websocket.ws  # pyright: ignore[reportMissingTypeStubs]
 from flask import Flask, abort, g, jsonify, request, send_from_directory
@@ -36,6 +36,7 @@ from src.services.insights_service import (
     InsightsAuthorizationError,
     InsightsService,
 )
+from src.services.insights_websocket_handler import InsightsVoiceHandler
 from src.services.managers import AgentManager, ScenarioManager
 from src.services.planning_service import PracticePlanningService
 from src.services.report_pipeline import AzureOpenAIReportSummaryAssistant
@@ -792,6 +793,32 @@ def _require_therapist_user() -> Tuple[Optional[Dict[str, Any]], Optional[Tuple[
     return _require_role(ROLE_THERAPIST, ROLE_ADMIN)
 
 
+def _require_therapist_ws(ws: simple_websocket.ws.Server) -> Optional[Dict[str, Any]]:
+    environ = cast(Dict[str, Any], getattr(ws, "environ", {}) or {})
+    ws_headers = {
+        "X-MS-CLIENT-PRINCIPAL": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL", ""),
+        "X-MS-CLIENT-PRINCIPAL-ID": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_ID", ""),
+        "X-MS-CLIENT-PRINCIPAL-NAME": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_NAME", ""),
+        "X-MS-CLIENT-PRINCIPAL-IDP": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_IDP", ""),
+        "X-MS-CLIENT-PRINCIPAL-EMAIL": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_EMAIL", ""),
+    }
+    user = _get_authenticated_user_from_headers(ws_headers)
+    if user is None:
+        logger.warning("Rejected unauthenticated insights voice WebSocket connection")
+        ws.close(4401, "insights_voice_unauthorized")
+        return None
+
+    if str(user.get("role") or "") not in {ROLE_THERAPIST, ROLE_ADMIN}:
+        logger.warning(
+            "Rejected non-therapist insights voice WebSocket connection for user %s",
+            user.get("id"),
+        )
+        ws.close(4403, "insights_voice_forbidden")
+        return None
+
+    return user
+
+
 def _require_role(*roles: str) -> Tuple[Optional[Dict[str, Any]], Optional[Tuple[Any, int]]]:
     user, guard_response = _require_authenticated()
     if guard_response is not None:
@@ -848,6 +875,17 @@ def _insights_rail_enabled(user: Optional[Dict[str, Any]]) -> bool:
     if raw is None:
         return True
     return str(raw).strip().lower() not in {"0", "false", "no", "off", ""}
+
+
+def _insights_voice_mode_for(user: Optional[Dict[str, Any]]) -> str:
+    if user is None:
+        return "off"
+    if str(user.get("role") or "") not in {ROLE_THERAPIST, ROLE_ADMIN}:
+        return "off"
+    mode = str(os.getenv("INSIGHTS_VOICE_MODE", "off") or "off").strip().lower()
+    if mode in {"push_to_talk", "full_duplex"}:
+        return mode
+    return "off"
 
 
 def _log_audit_event(
@@ -1039,6 +1077,9 @@ def get_config():
             "image_base_path": "/api/images",
             "planner": planning_service.get_readiness(),
             "insights_rail_enabled": _insights_rail_enabled(
+                cast(Dict[str, Any], user) if user else None
+            ),
+            "insights_voice_mode": _insights_voice_mode_for(
                 cast(Dict[str, Any], user) if user else None
             ),
         }
@@ -3403,6 +3444,58 @@ def voice_proxy(ws: simple_websocket.ws.Server):
         asyncio.set_event_loop(loop)
 
     loop.run_until_complete(voice_proxy_handler.handle_connection(ws))
+
+
+def insights_voice_socket(ws: simple_websocket.ws.Server):
+    raw_mode = str(os.getenv("INSIGHTS_VOICE_MODE", "off") or "off").strip().lower()
+    if raw_mode not in {"push_to_talk", "full_duplex"}:
+        ws.close(4404)
+        return
+
+    user = _require_therapist_ws(ws)
+    if user is None:
+        return
+
+    environ = cast(Dict[str, Any], getattr(ws, "environ", {}) or {})
+    query = parse_qs(str(environ.get("QUERY_STRING") or ""), keep_blank_values=False)
+
+    scope_type = str((query.get("scope_type") or ["caseload"])[0] or "caseload").strip() or "caseload"
+    if scope_type not in {"caseload", "child", "session", "report"}:
+        ws.close(4403, "insights_voice_invalid_scope")
+        return
+
+    child_id = str((query.get("child_id") or [""])[0] or "").strip() or None
+    scope: Dict[str, Any] = {"type": scope_type}
+    if child_id:
+        scope["child_id"] = child_id
+
+    if scope_type == "child":
+        if not child_id or not storage_service.user_has_child_access(str(user.get("id") or ""), child_id):
+            ws.close(4403, "insights_voice_forbidden")
+            return
+
+    conversation_id = str((query.get("conversation_id") or [""])[0] or "").strip() or None
+    if conversation_id:
+        conversation = storage_service.get_insight_conversation(
+            conversation_id,
+            user_id=str(user.get("id") or ""),
+        )
+        if conversation is None:
+            ws.close(4403, "insights_voice_forbidden")
+            return
+
+    handler = InsightsVoiceHandler(
+        ws,
+        insights_service=insights_service,
+        storage=storage_service,
+        user=user,
+        scope=scope,
+        conversation_id=conversation_id,
+    )
+    handler.run()
+
+
+sock.route("/ws/insights-voice")(insights_voice_socket)  # pyright: ignore[reportUnknownMemberType]
 
 
 def main():

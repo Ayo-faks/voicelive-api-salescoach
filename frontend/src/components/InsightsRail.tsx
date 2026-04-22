@@ -26,9 +26,15 @@ import type {
   InsightsMessage,
   InsightsScope,
   InsightsScopeType,
+  InsightsVoiceMode,
 } from '../types'
 import { api } from '../services/api'
+import { InsightsOrb } from './InsightsOrb'
 import { VisualizationBlock } from './VisualizationBlock'
+import {
+  useInsightsVoice,
+  type UseInsightsVoiceTurnCompleted,
+} from '../hooks/useInsightsVoice'
 
 const SCOPE_LABELS: Record<InsightsScopeType, string> = {
   caseload: 'Caseload',
@@ -115,7 +121,9 @@ const useStyles = makeStyles({
     justifyContent: 'space-between',
     gap: '8px',
     padding: '10px 12px',
-    borderBottom: `1px solid ${tokens.colorNeutralStroke3}`,
+    background: 'linear-gradient(180deg, rgba(250,252,252,0.96), rgba(240,247,247,0.92))',
+    borderBottom: '1px solid rgba(15,42,58,0.06)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 0 rgba(15,42,58,0.04)',
   },
   topBarLeft: {
     display: 'flex',
@@ -132,29 +140,38 @@ const useStyles = makeStyles({
     alignItems: 'center',
     gap: '4px',
     background: 'transparent',
-    border: 'none',
+    border: '1px solid transparent',
     borderRadius: tokens.borderRadiusMedium,
     padding: '4px 8px',
     cursor: 'pointer',
     fontSize: tokens.fontSizeBase300,
     fontWeight: tokens.fontWeightSemibold,
     color: tokens.colorNeutralForeground1,
+    transition: 'box-shadow 120ms ease, background 120ms ease, border-color 120ms ease',
     ':hover': {
-      background: tokens.colorNeutralBackground2,
+      background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(245,250,250,0.85))',
+      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 2px rgba(15,42,58,0.08)',
+      border: '1px solid rgba(15,42,58,0.08)',
     },
   },
   iconButton: {
     background: 'transparent',
-    border: 'none',
+    border: '1px solid transparent',
     borderRadius: tokens.borderRadiusMedium,
     cursor: 'pointer',
     padding: '6px 8px',
     fontSize: tokens.fontSizeBase300,
     color: tokens.colorNeutralForeground2,
     lineHeight: 1,
+    transition: 'box-shadow 120ms ease, background 120ms ease, border-color 120ms ease',
     ':hover': {
-      background: tokens.colorNeutralBackground2,
+      background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(245,250,250,0.85))',
+      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 2px rgba(15,42,58,0.08)',
+      border: '1px solid rgba(15,42,58,0.08)',
       color: tokens.colorNeutralForeground1,
+    },
+    ':active': {
+      boxShadow: 'inset 0 1px 1px rgba(15,42,58,0.1)',
     },
   },
   menuLabel: {
@@ -562,6 +579,50 @@ const useStyles = makeStyles({
       cursor: 'not-allowed',
     },
   },
+  voiceToggleRow: {
+    display: 'flex',
+    justifyContent: 'flex-start',
+    padding: '0 12px 12px',
+    background: tokens.colorNeutralBackground1,
+  },
+  voiceToggle: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '32px',
+    padding: '0 12px',
+    borderRadius: tokens.borderRadiusCircular,
+    borderTopStyle: 'solid',
+    borderRightStyle: 'solid',
+    borderBottomStyle: 'solid',
+    borderLeftStyle: 'solid',
+    borderTopWidth: '1px',
+    borderRightWidth: '1px',
+    borderBottomWidth: '1px',
+    borderLeftWidth: '1px',
+    borderTopColor: tokens.colorBrandStroke2,
+    borderRightColor: tokens.colorBrandStroke2,
+    borderBottomColor: tokens.colorBrandStroke2,
+    borderLeftColor: tokens.colorBrandStroke2,
+    background: tokens.colorBrandBackground2,
+    color: tokens.colorBrandForeground1,
+    cursor: 'pointer',
+    fontSize: tokens.fontSizeBase200,
+    fontWeight: tokens.fontWeightSemibold,
+    ':disabled': {
+      opacity: 0.5,
+      cursor: 'not-allowed',
+    },
+  },
+  voiceToggleActive: {
+    background: tokens.colorBrandBackground,
+    color: tokens.colorNeutralForegroundOnBrand,
+  },
+  voiceOrbWrap: {
+    padding: '0 12px 12px',
+    borderTop: `1px solid ${tokens.colorNeutralStroke3}`,
+    background: tokens.colorNeutralBackground1,
+  },
 })
 
 export interface InsightsRailProps {
@@ -586,6 +647,40 @@ export interface InsightsRailProps {
   initialMode?: InsightsRailMode
   /** Fires whenever the user collapses / expands / maximises the rail. */
   onModeChange?: (mode: InsightsRailMode) => void
+  insightsVoiceMode?: InsightsVoiceMode
+}
+
+function createClientMessageId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+
+  return `insights-msg-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
+
+function createVoiceMessage(
+  role: 'user' | 'assistant',
+  conversationId: string,
+  contentText: string,
+  options?: {
+    citations?: InsightsCitation[]
+    visualizations?: InsightsMessage['visualizations']
+  },
+): InsightsMessage {
+  return {
+    id: createClientMessageId(),
+    conversation_id: conversationId,
+    role,
+    content_text: contentText,
+    citations: options?.citations ?? [],
+    visualizations: options?.visualizations ?? [],
+    tool_trace: [],
+    latency_ms: null,
+    tool_calls_count: null,
+    prompt_version: 'insights-v1',
+    error_text: null,
+    created_at: new Date().toISOString(),
+  }
 }
 
 function citationLabel(c: InsightsCitation): string {
@@ -626,6 +721,73 @@ function renderMessageContent(content: string, styles: ReturnType<typeof useStyl
   )
 }
 
+interface InsightsVoiceControlsProps {
+  currentScope: InsightsScope
+  conversationId: string | null
+  insightsVoiceMode: InsightsVoiceMode
+  loading: boolean
+  styles: ReturnType<typeof useStyles>
+  onCompleted: (payload: UseInsightsVoiceTurnCompleted) => void
+}
+
+function InsightsVoiceControls({
+  currentScope,
+  conversationId,
+  insightsVoiceMode,
+  loading,
+  styles,
+  onCompleted,
+}: InsightsVoiceControlsProps) {
+  const { voiceState, start, stop, lastTranscript, lastAnswer, outputLevel } = useInsightsVoice({
+    scope: currentScope,
+    conversationId,
+    mode: insightsVoiceMode,
+    onCompleted,
+  })
+  const voiceActive = voiceState !== 'idle'
+  const orbTranscript = lastAnswer || lastTranscript
+
+  const handleToggle = useCallback(() => {
+    if (voiceState === 'idle' || voiceState === 'error') {
+      void start()
+      return
+    }
+    void stop()
+  }, [start, stop, voiceState])
+
+  return (
+    <>
+      <div className={styles.voiceToggleRow}>
+        <button
+          type="button"
+          className={mergeClasses(
+            styles.voiceToggle,
+            voiceActive && styles.voiceToggleActive,
+          )}
+          onClick={handleToggle}
+          disabled={loading}
+          data-testid="insights-rail-voice-toggle"
+          aria-pressed={voiceActive}
+        >
+          {voiceActive ? 'Stop voice' : 'Start voice'}
+        </button>
+      </div>
+      {voiceActive ? (
+        <div className={styles.voiceOrbWrap}>
+          <InsightsOrb
+            state={voiceState}
+            outputLevel={outputLevel}
+            transcript={orbTranscript}
+            onInterrupt={() => {
+              void stop()
+            }}
+          />
+        </div>
+      ) : null}
+    </>
+  )
+}
+
 export function InsightsRail({
   currentScope,
   availableScopes,
@@ -635,6 +797,7 @@ export function InsightsRail({
   mode: requestedMode,
   initialMode,
   onModeChange,
+  insightsVoiceMode = 'off',
 }: InsightsRailProps) {
   const styles = useStyles()
   const [mode, setMode] = useState<InsightsRailMode>(() => requestedMode ?? initialMode ?? readStoredMode())
@@ -738,6 +901,26 @@ export function InsightsRail({
   useEffect(() => {
     void loadHistory()
   }, [loadHistory])
+
+  const handleVoiceCompleted = useCallback(
+    (payload: UseInsightsVoiceTurnCompleted) => {
+      const resolvedConversationId = payload.conversationId || conversationId || createClientMessageId()
+      const nextMessages: InsightsMessage[] = []
+      if (payload.transcript.trim()) {
+        nextMessages.push(createVoiceMessage('user', resolvedConversationId, payload.transcript))
+      }
+      nextMessages.push(
+        createVoiceMessage('assistant', resolvedConversationId, payload.answerText, {
+          citations: payload.citations,
+          visualizations: payload.visualizations,
+        }),
+      )
+      setConversationId(resolvedConversationId)
+      setMessages(prev => [...prev, ...nextMessages])
+      void loadHistory()
+    },
+    [conversationId, loadHistory],
+  )
 
   const handleSend = useCallback(async (override?: string) => {
     const trimmed = (override ?? message).trim()
@@ -1069,6 +1252,17 @@ export function InsightsRail({
           </div>
         ) : null}
       </div>
+
+      {insightsVoiceMode !== 'off' ? (
+        <InsightsVoiceControls
+          currentScope={currentScope}
+          conversationId={conversationId}
+          insightsVoiceMode={insightsVoiceMode}
+          loading={loading}
+          styles={styles}
+          onCompleted={handleVoiceCompleted}
+        />
+      ) : null}
 
       <div className={styles.composerWrap}>
         <div className={styles.composerCard}>

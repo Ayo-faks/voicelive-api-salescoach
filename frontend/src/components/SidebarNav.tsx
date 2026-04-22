@@ -58,7 +58,14 @@ const useStyles = makeStyles({
     gap: 'var(--space-lg)',
     padding: 'var(--space-lg)',
     borderRight: '1px solid var(--color-border)',
-    background: 'linear-gradient(135deg, rgba(233, 245, 246, 0.98), rgba(224, 239, 241, 0.98))',
+    background:
+      'radial-gradient(circle at top left, rgba(13,138,132,0.16), transparent 28%), ' +
+      'radial-gradient(circle at bottom right, rgba(13,138,132,0.08), transparent 32%), ' +
+      'linear-gradient(180deg, rgba(236, 246, 246, 0.98), rgba(222, 238, 240, 0.98))',
+    boxShadow:
+      'inset 0 1px 0 rgba(255,255,255,0.7), ' +
+      'inset -1px 0 0 rgba(15,42,58,0.04), ' +
+      '2px 0 24px rgba(17,36,58,0.06)',
     backdropFilter: 'blur(16px)',
     minHeight: '100vh',
     maxHeight: '100vh',
@@ -112,9 +119,22 @@ const useStyles = makeStyles({
     textAlign: 'left',
     cursor: 'pointer',
   },
-  brandLogo: {
+  brandPlatter: {
     width: '40px',
     height: '40px',
+    borderRadius: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    background:
+      'radial-gradient(circle at 32% 28%, rgba(255,255,255,0.9), rgba(232,244,244,0.6) 60%, rgba(13,138,132,0.12) 100%)',
+    border: '1px solid rgba(13,138,132,0.18)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 6px 14px rgba(13,138,132,0.1)',
+  },
+  brandLogo: {
+    width: '32px',
+    height: '32px',
     objectFit: 'contain',
     flexShrink: 0,
   },
@@ -164,20 +184,31 @@ const useStyles = makeStyles({
     minHeight: '44px',
     paddingInline: '12px',
     border: '1px solid transparent',
+    borderRadius: '12px',
     backgroundColor: 'transparent',
     color: 'var(--color-text-secondary)',
     fontFamily: 'var(--font-display)',
     fontWeight: '600',
+    ':hover': {
+      backgroundColor: 'rgba(255,255,255,0.45)',
+      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)',
+    },
   },
   navButtonCollapsed: {
     justifyContent: 'center',
     paddingInline: 0,
     minWidth: '44px',
+    borderLeft: 'none',
   },
   navButtonActive: {
-    border: '1px solid var(--color-border-strong)',
-    backgroundColor: 'rgba(13, 138, 132, 0.06)',
-    color: 'var(--color-text-primary)',
+    background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(245,251,251,0.85))',
+    border: '1px solid rgba(13,138,132,0.32)',
+    boxShadow:
+      'inset 0 1px 0 rgba(255,255,255,0.85), ' +
+      '0 1px 2px rgba(15,42,58,0.08), ' +
+      '0 0 0 3px rgba(13,138,132,0.06)',
+    color: 'var(--color-primary)',
+    borderLeft: '2px solid #0d8a84',
   },
   selectorCard: {
     display: 'grid',
@@ -196,6 +227,7 @@ const useStyles = makeStyles({
     minWidth: '100%',
     backgroundColor: 'rgba(255,255,255,0.96)',
     border: '1px solid var(--color-border)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 2px rgba(15,42,58,0.04)',
   },
   footer: {
     marginTop: 'auto',
@@ -217,7 +249,8 @@ const useStyles = makeStyles({
     padding: '8px 10px',
     border: '1px solid var(--color-border)',
     borderRadius: '14px',
-    backgroundColor: 'rgba(255,255,255,0.72)',
+    background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(248,252,252,0.82))',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 2px rgba(15,42,58,0.04)',
   },
   userCardCollapsed: {
     justifyContent: 'center',
@@ -230,7 +263,10 @@ const useStyles = makeStyles({
     width: '28px',
     height: '28px',
     borderRadius: '50%',
-    background: 'linear-gradient(135deg, rgba(13, 138, 132, 0.9), rgba(73, 177, 171, 0.9))',
+    background:
+      'radial-gradient(circle at 35% 30%, #49b8b1, #0d8a84 55%, #06625e 100%)',
+    boxShadow:
+      'inset 0 1px 0 rgba(255,255,255,0.45), 0 2px 6px rgba(13,138,132,0.28)',
     color: '#fff',
     fontSize: '12px',
     fontWeight: '700',
@@ -338,7 +374,9 @@ export function SidebarNav({
         <div className={styles.top}>
           <div className={styles.brandRow}>
             <button type="button" className={styles.brandButton} onClick={onBrandClick}>
-              <img src="/wulo-logo.png" alt="Wulo logo" className={styles.brandLogo} />
+              <span className={styles.brandPlatter}>
+                <img src="/wulo-logo.png" alt="Wulo logo" className={styles.brandLogo} />
+              </span>
               <div className={mergeClasses(styles.brandText, !isExpanded && styles.collapsedHidden)}>
                 <Text className={styles.brandTitle}>{appTitle}</Text>
                 <Text className={styles.brandMeta}>{APP_RELEASE_LABEL}</Text>
@@ -360,8 +398,8 @@ export function SidebarNav({
               icon={<HomeIcon className="w-5 h-5" />}
               className={mergeClasses(
                 styles.navButton,
-                !isExpanded && styles.navButtonCollapsed,
                 activeSection === 'home' && styles.navButtonActive,
+                !isExpanded && styles.navButtonCollapsed,
               )}
               onClick={onNavigateHome}
             >
@@ -372,8 +410,8 @@ export function SidebarNav({
               icon={<RectangleGroupIcon className="w-5 h-5" />}
               className={mergeClasses(
                 styles.navButton,
-                !isExpanded && styles.navButtonCollapsed,
                 activeSection === 'dashboard' && styles.navButtonActive,
+                !isExpanded && styles.navButtonCollapsed,
               )}
               onClick={onNavigateDashboard}
               style={{ display: showDashboardNav ? undefined : 'none' }}
@@ -385,8 +423,8 @@ export function SidebarNav({
               icon={<Cog6ToothIcon className="w-5 h-5" />}
               className={mergeClasses(
                 styles.navButton,
-                !isExpanded && styles.navButtonCollapsed,
                 activeSection === 'settings' && styles.navButtonActive,
+                !isExpanded && styles.navButtonCollapsed,
               )}
               onClick={onNavigateSettings}
             >

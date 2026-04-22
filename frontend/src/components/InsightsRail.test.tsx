@@ -26,6 +26,27 @@ vi.mock('../services/api', () => ({
   },
 }))
 
+vi.mock('../hooks/useInsightsVoice', async () => {
+  const React = await import('react')
+  return {
+    useInsightsVoice: () => {
+      const [voiceState, setVoiceState] = React.useState('idle')
+      return {
+        voiceState,
+        start: async () => {
+          setVoiceState('listening')
+        },
+        stop: async () => {
+          setVoiceState('idle')
+        },
+        lastTranscript: '',
+        lastAnswer: '',
+        outputLevel: 0,
+      }
+    },
+  }
+})
+
 import { InsightsRail } from './InsightsRail'
 import type {
   InsightsAskResponse,
@@ -353,5 +374,43 @@ describe('InsightsRail', () => {
     expect(answer.querySelector('ul')).toBeTruthy()
     expect(answer.textContent).toContain('Highlights')
     expect(answer.textContent).toContain('Stronger /t/ accuracy')
+  })
+
+  it('does not render voice controls when insights voice mode is off', async () => {
+    render(<InsightsRail currentScope={childScope} insightsVoiceMode="off" />)
+
+    await screen.findByTestId('insights-rail-input')
+
+    expect(screen.queryByTestId('insights-rail-voice-toggle')).toBeNull()
+    expect(screen.queryByTestId('insights-orb')).toBeNull()
+  })
+
+  it('renders the voice toggle and mounts the orb in listening state on press', async () => {
+    render(<InsightsRail currentScope={childScope} insightsVoiceMode="push_to_talk" />)
+
+    const toggle = await screen.findByTestId('insights-rail-voice-toggle')
+    expect(toggle.getAttribute('aria-pressed')).toBe('false')
+    expect(screen.queryByTestId('insights-orb')).toBeNull()
+
+    fireEvent.click(toggle)
+
+    const orb = await screen.findByTestId('insights-orb')
+    expect(toggle.getAttribute('aria-pressed')).toBe('true')
+    expect(orb.getAttribute('data-state')).toBe('listening')
+    expect(screen.getByTestId('insights-orb-interrupt').textContent).toContain('Stop voice')
+  })
+
+  it('keeps mode-off markup byte-identical to the baseline render', async () => {
+    const baseline = render(<InsightsRail currentScope={childScope} />)
+    await screen.findByTestId('insights-rail-input')
+    const baselineTestIdCount = baseline.container.querySelectorAll('[data-testid]').length
+    baseline.unmount()
+
+    const explicitOff = render(
+      <InsightsRail currentScope={childScope} insightsVoiceMode="off" />,
+    )
+    await screen.findByTestId('insights-rail-input')
+
+    expect(explicitOff.container.querySelectorAll('[data-testid]').length).toBe(baselineTestIdCount)
   })
 })

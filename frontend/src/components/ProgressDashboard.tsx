@@ -25,7 +25,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { InsightsRail, readStoredInsightsRailMode, type InsightsRailMode } from './InsightsRail'
-import type { InsightsScope } from '../types'
+import type { InsightsScope, InsightsVoiceMode } from '../types'
 import {
   CelebrationDonut,
   ComparisonMetricBar,
@@ -1765,6 +1765,7 @@ interface Props {
   initialTab?: DashboardTab
   /** Phase 4 Insights rail. Mounted when enabled AND viewport ≥ 1280px. */
   insightsRailEnabled?: boolean
+  insightsVoiceMode?: InsightsVoiceMode
 }
 
 type DashboardTab = 'session-detail' | 'memory' | 'recommendations' | 'reports' | 'plan'
@@ -1821,6 +1822,7 @@ export function ProgressDashboard({
   onExitToEntry,
   initialTab,
   insightsRailEnabled = false,
+  insightsVoiceMode = 'off',
 }: Props) {
   const styles = useStyles()
   const [planPrompt, setPlanPrompt] = useState('')
@@ -4168,6 +4170,7 @@ export function ProgressDashboard({
           mode={insightsRailMode}
           initialMode={insightsRailMode}
           onModeChange={setInsightsRailMode}
+          insightsVoiceMode={insightsVoiceMode}
         />
       </aside>
     ) : null}
