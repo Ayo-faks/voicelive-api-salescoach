@@ -1,0 +1,56 @@
+{
+  "generatedAt": "2026-04-21T00:00:00Z",
+  "note": "Curated manual additions for UK-based speech and language therapy ICPs who were not surfaced through the ASLTIP directory crawl (e.g. non-ASLTIP members, LinkedIn-sourced). Entries flagged with needsEnrichment:true are stubs awaiting traits/bio before they feed into ICP scoring or outreach shortlists.",
+  "prospects": [
+    {
+      "name": "Chiso Iwuala",
+      "alternateNames": [],
+      "profileUrl": "https://www.linkedin.com/in/chiso-iwuala-02b6a924b/",
+      "website": "",
+      "email": "",
+      "emailSource": "",
+      "location": "United Kingdom",
+      "title": "",
+      "bio": "",
+      "matchedSegments": [],
+      "primarySegment": "",
+      "traits": {
+        "childFocus": null,
+        "adultOnly": null,
+        "schoolFacing": null,
+        "parentFacing": null,
+        "trainingConsultancy": null,
+        "telehealthSignal": null,
+        "broadChildCaseload": null,
+        "speechPracticeAligned": null,
+        "medicallyComplex": null,
+        "explicitSpeechCredential": null,
+        "behaviorOnly": null,
+        "educatorOnly": null,
+        "nonSpeechAdjacency": null,
+        "founderOperator": null
+      },
+      "buyerProblems": [],
+      "icpScore": null,
+      "sourceType": "manual_external_addition",
+      "sourceEvidence": [
+        {
+          "label": "LinkedIn profile",
+          "url": "https://www.linkedin.com/in/chiso-iwuala-02b6a924b/"
+        }
+      ],
+      "needsEnrichment": true,
+      "enrichmentFieldsNeeded": [
+        "title",
+        "bio",
+        "location (city)",
+        "website",
+        "email",
+        "primarySegment",
+        "matchedSegments",
+        "traits",
+        "buyerProblems"
+      ]
+    }
+  ]
+}
