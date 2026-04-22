@@ -99,6 +99,7 @@ This project includes a dev container for easy setup and a build script for  dev
    - Copy `.env.template` to `.env`
    - Fill in your Azure AI Foundry and Speech service keys and endpoints (you can run `azd provision` to create these resources if you haven't already)
    - For local auth testing, set `LOCAL_DEV_AUTH=true` and keep `LOCAL_DEV_USER_ROLE=therapist`
+   - Keep `DATABASE_BACKEND=sqlite` for local runs. The runtime default is `postgres` (used by Azure), which requires `DATABASE_URL`; without the override a fresh `python src/app.py` will abort with `DATABASE_URL is required`.
 
 3. **Build and run**
    ```bash
@@ -107,6 +108,17 @@ This project includes a dev container for easy setup and a build script for  dev
 
    # Start the server
    cd backend && python -m src.app
+   ```
+
+   To iterate on the frontend against a local Flask backend instead of the
+   built bundle, use two terminals from the repo root:
+
+   ```bash
+   # Terminal 1 - backend on :8000
+   cd backend && set -a && source ../.env && set +a && python src/app.py
+
+   # Terminal 2 - Vite dev server on :5173
+   cd frontend && npm run dev -- --host 0.0.0.0 --port 5173 --strictPort
    ```
 
 Visit `http://localhost:8000` to start practising.
