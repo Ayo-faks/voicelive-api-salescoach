@@ -219,7 +219,10 @@ class TestVoiceProxyHandler:
 
         session = handler._build_session_config(agent_config)
 
-        assert session["instructions"] == "Test instructions"
+        assert session["instructions"].startswith("Test instructions")
+        # Phoneme citation rule is appended to every session's instructions so
+        # Voice Live never letter-names target sounds.
+        assert "PHONEME CITATION RULES" in session["instructions"]
         assert session["temperature"] == 0.8
         assert session["max_response_output_tokens"] == 1000
 

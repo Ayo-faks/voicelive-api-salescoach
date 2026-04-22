@@ -17,7 +17,9 @@ from azure.ai.voicelive.models import FunctionTool
 from azure.identity import DefaultAzureCredential
 
 from src.config import config
+from src.services.prompt_rules import PHONEME_CITATION_RULE, append_phoneme_rule
 from src.services.scenario_utils import determine_scenario_directory
+from src.services.tts_normalizer import normalize_for_tts
 
 # Constants
 ROLE_PLAY_FILE_SUFFIX = "-exercise.prompt.yml"
@@ -130,7 +132,10 @@ ScenarioManager = ExerciseManager
 class AgentManager:
     """Manages virtual training agents."""
 
-    # Base instructions for child-friendly speech practice interactions
+    # Base instructions for child-friendly speech practice interactions.
+    # The phoneme citation rule is appended via ``append_phoneme_rule`` in
+    # :meth:`create_agent` so every agent inherits the full target-sound
+    # contract, not only /th/.
     BASE_INSTRUCTIONS = f"""
 
 CRITICAL INTERACTION GUIDELINES:
@@ -205,7 +210,13 @@ CRITICAL INTERACTION GUIDELINES:
         """
 
         scenario_instructions = scenario_data.get("messages", [{}])[0].get("content", "")
-        combined_instructions = self.BASE_INSTRUCTIONS + "\n" + scenario_instructions
+        # Normalise graphemic phoneme citations (e.g. ``/th/``) the therapist
+        # may have hand-written in the exercise YAML into SSML <phoneme> tags
+        # before the text is handed to the model.
+        normalised_scenario = normalize_for_tts(str(scenario_instructions or ""))
+        combined_instructions = append_phoneme_rule(
+            self.BASE_INSTRUCTIONS + "\n" + normalised_scenario
+        )
 
         model_name = scenario_data.get(
             "model",

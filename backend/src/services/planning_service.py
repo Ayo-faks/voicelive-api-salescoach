@@ -18,6 +18,7 @@ from src.config import config
 from src.services.azure_openai_auth import build_copilot_azure_provider_config
 from src.services.child_memory_service import ChildMemoryService
 from src.services.plan_validation import normalize_plan_draft
+from src.services.prompt_rules import append_phoneme_rule
 
 try:
     from copilot import CopilotClient
@@ -391,7 +392,7 @@ class CopilotPlannerRuntime:
             "success_criteria": ["string"],
             "carryover": ["string"],
         }
-        return (
+        return append_phoneme_rule(
             "You are a therapist planning assistant for pediatric speech sessions. "
             "Ground every recommendation in tool output. Always call get_planning_context before drafting. "
             "Use list_candidate_exercises when selecting activities. Never invent exercise ids, scores, or child facts. "

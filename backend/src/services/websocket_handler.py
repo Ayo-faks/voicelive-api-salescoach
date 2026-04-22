@@ -34,7 +34,9 @@ from azure.ai.voicelive.models import (
 from src.config import config
 from src.services.azure_openai_auth import build_voicelive_credential
 from src.services.managers import AgentManager, FINISH_SESSION_TOOL
+from src.services.prompt_rules import append_phoneme_rule
 from src.services.scoring import ScoredTurnDispatcher, TargetTokenTally
+from src.services.tts_normalizer import normalize_for_tts
 
 logger = logging.getLogger(__name__)
 
@@ -364,12 +366,17 @@ class VoiceProxyHandler:
         personalization_text = str(personalization_block or "").strip()
 
         if base_text and personalization_text:
-            return f"{base_text}\n\n{personalization_text}"
-        if base_text:
-            return base_text
-        if personalization_text:
-            return personalization_text
-        return None
+            combined = f"{base_text}\n\n{personalization_text}"
+        elif base_text:
+            combined = base_text
+        elif personalization_text:
+            combined = personalization_text
+        else:
+            return None
+
+        # Append the phoneme citation rule *after* personalisation so it is
+        # not overwritten or diluted by per-session targets/constraints.
+        return append_phoneme_rule(combined)
 
     def _build_personalization_instruction_block(self, agent_config: Optional[Dict[str, Any]]) -> Optional[str]:
         personalization = (agent_config or {}).get("runtime_personalization") or {}
@@ -487,6 +494,7 @@ class VoiceProxyHandler:
                         parsed, scored_turn, client_ws
                     ):
                         continue
+                    self._normalize_outbound_text_fields(parsed)
                     await azure_conn.send(parsed)
                 else:
                     await azure_conn.send(message)
@@ -666,6 +674,47 @@ class VoiceProxyHandler:
             logger.debug("Azure connection closed: code=%s, reason=%s", e.code, e.reason)
         except Exception as e:
             logger.debug("Error forwarding Azure messages: %s", e)
+
+    def _normalize_outbound_text_fields(self, parsed: Any) -> None:
+        """Rewrite graphemic phoneme citations in text fields forwarded to Azure.
+
+        Voice Live renders any text we hand it via its TTS. When we forward a
+        ``session.update`` with ``instructions`` or a ``conversation.item.create``
+        carrying literal text, raw ``/th/``/``/sh/`` strings would be voiced as
+        letter names. We wrap them in SSML ``<phoneme>`` before they leave the
+        proxy. Non-text control frames are left untouched.
+        """
+        if not isinstance(parsed, dict):
+            return
+
+        event_type = str(parsed.get("type") or "")
+
+        if event_type == "session.update":
+            session = parsed.get("session")
+            if isinstance(session, dict):
+                instructions = session.get("instructions")
+                if isinstance(instructions, str) and instructions:
+                    session["instructions"] = normalize_for_tts(instructions)
+
+        elif event_type == "conversation.item.create":
+            item = parsed.get("item")
+            if isinstance(item, dict):
+                content = item.get("content")
+                if isinstance(content, list):
+                    for part in content:
+                        if not isinstance(part, dict):
+                            continue
+                        for key in ("text", "input_text"):
+                            value = part.get(key)
+                            if isinstance(value, str) and value:
+                                part[key] = normalize_for_tts(value)
+
+        elif event_type == "response.create":
+            response = parsed.get("response")
+            if isinstance(response, dict):
+                instructions = response.get("instructions")
+                if isinstance(instructions, str) and instructions:
+                    response["instructions"] = normalize_for_tts(instructions)
 
     async def _send_message(self, ws: simple_websocket.ws.Server, message: Dict[str, str | Dict[str, str]]) -> None:
         """Send a JSON message to a WebSocket."""
