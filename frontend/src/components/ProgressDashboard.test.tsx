@@ -622,3 +622,182 @@ describe('ProgressDashboard visual smoke test', () => {
     )
   })
 })
+
+describe('ProgressDashboard AI draft reports', () => {
+  const aiDraftReport: ProgressReport = {
+    ...progressReports[0],
+    id: 'report-ai-1',
+    title: 'Amina AI draft update',
+    source: 'ai_insight',
+    summary_text: 'AI-drafted summary.',
+  }
+  const pipelineReport: ProgressReport = {
+    ...progressReports[0],
+    id: 'report-pipeline-1',
+    title: 'Amina pipeline report',
+    source: 'pipeline',
+    summary_text: 'Pipeline-drafted summary.',
+  }
+
+  const baseProps = {
+    childProfiles: [
+      {
+        id: 'child-1',
+        name: 'Amina',
+        session_count: sessions.length,
+        last_session_at: '2026-03-15T10:00:00.000Z',
+      },
+    ],
+    selectedChildId: 'child-1',
+    sessions,
+    selectedSession,
+    selectedPlan,
+    childMemorySummary,
+    childMemoryItems,
+    childMemoryProposals,
+    recommendationHistory,
+    selectedRecommendationDetail: recommendationDetail,
+    plannerReadiness,
+    loadingChildren: false,
+    loadingSessions: false,
+    loadingSessionDetail: false,
+    loadingPlans: false,
+    loadingReports: false,
+    loadingMemory: false,
+    loadingRecommendations: false,
+    planSaving: false,
+    reportSaving: false,
+    recommendationSaving: false,
+    planError: null,
+    reportError: null,
+    memoryError: null,
+    recommendationError: null,
+    memoryReviewPendingId: null,
+    manualMemorySaving: false,
+    onSelectChild: () => {},
+    onOpenSession: () => {},
+    onOpenRecommendationDetail: () => {},
+    onOpenReportDetail: () => {},
+    onCreateReport: async (_payload: unknown) => undefined,
+    onUpdateReport: async (_payload: unknown) => undefined,
+    onSuggestReportSummaryRewrite: async () => null,
+    onOpenReportExport: () => {},
+    onApproveReport: () => {},
+    onSignReport: () => {},
+    onArchiveReport: () => {},
+    onGenerateRecommendations: () => {},
+    onCreatePlan: () => {},
+    onRefinePlan: () => {},
+    onApprovePlan: () => {},
+    onApproveMemoryProposal: () => {},
+    onRejectMemoryProposal: () => {},
+    onCreateMemoryItem: () => {},
+    onBackToPractice: () => {},
+    onExitToEntry: () => {},
+  }
+
+  it('renders the AI draft badge and filters reports by source', () => {
+    render(
+      <ProgressDashboard
+        {...(baseProps as unknown as React.ComponentProps<typeof ProgressDashboard>)}
+        progressReports={[aiDraftReport, pipelineReport]}
+        selectedReport={aiDraftReport}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Reports' }))
+
+    // Both reports visible under 'All' (title also renders in the detail header).
+    expect(screen.getAllByText('Amina AI draft update').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Amina pipeline report').length).toBeGreaterThanOrEqual(1)
+
+    // Filter chip, list row, and selected-report header each render the badge.
+    expect(screen.getAllByText('AI draft').length).toBeGreaterThanOrEqual(3)
+
+    // Filter to pipeline only — AI draft row should disappear from history list
+    // (detail header / composer may still show the title).
+    fireEvent.click(screen.getByRole('button', { name: 'Pipeline' }))
+    expect(screen.getByText('Amina pipeline report')).toBeTruthy()
+    // Pipeline chip is now active.
+    expect(screen.getByRole('button', { name: 'Pipeline' }).getAttribute('aria-pressed')).toBe('true')
+
+    // Filter to AI draft only — pipeline row should disappear.
+    fireEvent.click(screen.getByRole('button', { name: 'AI draft' }))
+    expect(screen.queryByText('Amina pipeline report')).toBeNull()
+
+    // Manual has no rows — empty state message shows.
+    fireEvent.click(screen.getByRole('button', { name: 'Manual' }))
+    expect(screen.getByText('No reports match this filter yet.')).toBeTruthy()
+  })
+
+  it('gates AI draft exports until the therapist confirms review', async () => {
+    const onOpenReportExport = vi.fn()
+    const onApproveReport = vi.fn()
+    const onUpdateReport = vi.fn(async (_payload: unknown) => aiDraftReport)
+
+    render(
+      <ProgressDashboard
+        {...(baseProps as unknown as React.ComponentProps<typeof ProgressDashboard>)}
+        progressReports={[aiDraftReport]}
+        selectedReport={aiDraftReport}
+        onOpenReportExport={onOpenReportExport}
+        onApproveReport={onApproveReport}
+        onUpdateReport={onUpdateReport}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Reports' }))
+
+    const previewPdf = screen.getByRole('button', { name: 'Preview PDF' }) as HTMLButtonElement
+    const downloadPdf = screen.getByRole('button', { name: 'Download PDF' }) as HTMLButtonElement
+    const openPrint = screen.getByRole('button', { name: 'Open print view' }) as HTMLButtonElement
+    const downloadHtml = screen.getByRole('button', { name: 'Download HTML' }) as HTMLButtonElement
+    const approveBtn = screen.getByRole('button', { name: 'Approve report' }) as HTMLButtonElement
+
+    // Before acknowledging, every export action is disabled.
+    expect(previewPdf.disabled).toBe(true)
+    expect(downloadPdf.disabled).toBe(true)
+    expect(openPrint.disabled).toBe(true)
+    expect(downloadHtml.disabled).toBe(true)
+    expect(approveBtn.disabled).toBe(true)
+
+    // Click Preview PDF while gated — handler must NOT fire.
+    fireEvent.click(previewPdf)
+    expect(onOpenReportExport).not.toHaveBeenCalled()
+
+    // Confirm review.
+    const ack = screen.getByRole('checkbox', { name: /Reviewed — OK to export/i }) as HTMLInputElement
+    fireEvent.click(ack)
+    expect(ack.checked).toBe(true)
+
+    // Now exports + approve are enabled and handlers fire.
+    const previewPdfAfter = screen.getByRole('button', { name: 'Preview PDF' }) as HTMLButtonElement
+    expect(previewPdfAfter.disabled).toBe(false)
+    fireEvent.click(previewPdfAfter)
+    // Draft exports first save via onUpdateReport, then call onOpenReportExport on the next microtask.
+    await waitFor(() => expect(onOpenReportExport).toHaveBeenCalledTimes(1))
+
+    const approveAfter = screen.getByRole('button', { name: 'Approve report' }) as HTMLButtonElement
+    expect(approveAfter.disabled).toBe(false)
+    fireEvent.click(approveAfter)
+    expect(onApproveReport).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not show the AI draft review gate for pipeline reports', () => {
+    render(
+      <ProgressDashboard
+        {...(baseProps as unknown as React.ComponentProps<typeof ProgressDashboard>)}
+        progressReports={[pipelineReport]}
+        selectedReport={pipelineReport}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Reports' }))
+
+    expect(screen.queryByRole('checkbox', { name: /Reviewed — OK to export/i })).toBeNull()
+    // The filter chip always renders, but the list-row + header badge should NOT. Chip only.
+    expect(screen.getAllByText('AI draft').length).toBe(1)
+    const previewPdf = screen.getByRole('button', { name: 'Preview PDF' }) as HTMLButtonElement
+    expect(previewPdf.disabled).toBe(false)
+  })
+})
