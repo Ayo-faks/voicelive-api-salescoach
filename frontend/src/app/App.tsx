@@ -46,15 +46,7 @@ import { TermsOfService } from '../components/legal/TermsOfService'
 import { AITransparencyNotice } from '../components/legal/AITransparencyNotice'
 import { ParentalConsentDialog } from '../components/legal/ParentalConsentDialog'
 import { useAudioPlayer } from '../hooks/useAudioPlayer'
-import { useMicMode } from '../hooks/useMicMode'
 import { useRealtime } from '../hooks/useRealtime'
-import {
-  buildEndFrame,
-  buildMicModeFrame,
-  composeScoredTurnBegin,
-  handleScoredTurnServerEvent,
-  type ScoredTurnBeginPayload,
-} from '../hooks/scoredTurnBridge'
 import type { RecorderAudioChunk } from '../hooks/useRecorder'
 import { useRecorder } from '../hooks/useRecorder'
 import { useScenarios } from '../hooks/useScenarios'
@@ -350,24 +342,12 @@ function getSectionForRoute(route: AppRoute | null): SidebarSection | null {
   return null
 }
 
-// PR9 — natural-speech guardrails shared by the child and therapist intros.
-// The realtime model was leaking instruction scaffolding into spoken output
-// ("Focus: ...", "tap-only listening turn", stage directions like "*click*").
-// These rules are appended to every intro so the audio stays conversational.
-const NATURAL_SPEECH_RULES = [
-  'Speak naturally, as if talking to a friend. Never read instructions aloud.',
-  'Do not use stage directions, sound effects, or bracketed cues (for example "*click*", "[pause]", "(smiles)"). Produce only spoken words.',
-  'Do not use structural labels such as "Focus:", "Objective:", "Step 1:", or "Clue:". Do not announce what is about to happen — just begin warmly.',
-  'Do not describe the app, the turn type, or mechanics (no phrases like "tap-only", "listening turn", "twelve pictures", "the app plays"). The screen already shows that.',
-  'One flowing sentence. Under twenty words. Warm, calm, unhurried.',
-].join(' ')
-
 export function buildChildIntroInstructions({
   childName,
   avatarName,
   avatarPersona,
-  scenarioName: _scenarioName,
-  scenarioDescription: _scenarioDescription,
+  scenarioName,
+  scenarioDescription,
   requiresMic,
 }: {
   childName?: string | null
@@ -378,16 +358,21 @@ export function buildChildIntroInstructions({
   requiresMic: boolean
 }): string {
   const childLabel = childName || 'my friend'
-  const micCue = requiresMic
-    ? `and invite ${childLabel} to tap the microphone when they are ready to talk`
-    : `and tell ${childLabel} you will listen together`
+  const exerciseLabel = scenarioName || "today's practice"
+  const exerciseContext = scenarioDescription
+    ? `Briefly mention this practice focus: ${scenarioDescription}.`
+    : 'Briefly mention that you will practice together.'
 
   return [
-    `You are ${avatarName}, ${avatarPersona}, a warm speech-practice buddy for ${childLabel}.`,
-    'Speak first to open the session.',
-    `Greet ${childLabel} by name ${micCue}.`,
-    'Never say the word "test"; say "practice" instead.',
-    NATURAL_SPEECH_RULES,
+    `You are ${avatarName}, ${avatarPersona}, and a warm speech-practice buddy for a child named ${childLabel}.`,
+    'Speak first to begin the session.',
+    requiresMic
+      ? `In two short, friendly sentences, greet ${childLabel}, say you are starting ${exerciseLabel}, and tell them to tap the microphone when they are ready to talk.`
+      : `In two short, friendly sentences, greet ${childLabel}, say you are starting ${exerciseLabel}, and tell them to listen for the clue and tap the matching picture.`,
+    exerciseContext,
+    requiresMic ? 'Invite talking only when the child taps the microphone.' : 'Do not mention recording or spoken responses.',
+    'Never use the word "test". Always say "practice" or "exercise".',
+    'Keep the tone calm, encouraging, and child-friendly. Keep it under 35 words.',
   ].join(' ')
 }
 
@@ -395,8 +380,8 @@ export function buildTherapistIntroInstructions({
   childName,
   avatarName,
   avatarPersona,
-  scenarioName: _scenarioName,
-  scenarioDescription: _scenarioDescription,
+  scenarioName,
+  scenarioDescription,
   requiresMic,
 }: {
   childName?: string | null
@@ -407,15 +392,20 @@ export function buildTherapistIntroInstructions({
   requiresMic: boolean
 }): string {
   const childLabel = childName || 'the child'
-  const micCue = requiresMic
-    ? `and invite the therapist to tap the microphone when they are ready to begin`
-    : `and invite the therapist to press Start when they are ready to listen alongside ${childLabel}`
+  const exerciseLabel = scenarioName || "today's practice"
+  const exerciseContext = scenarioDescription
+    ? `Briefly mention this practice focus: ${scenarioDescription}.`
+    : 'Briefly mention that you will guide the practice together.'
 
   return [
-    `You are ${avatarName}, ${avatarPersona}, a warm speech-practice buddy supporting a therapist and ${childLabel}.`,
-    'Speak first to open the session.',
-    `Greet the therapist warmly ${micCue}.`,
-    NATURAL_SPEECH_RULES,
+    `You are ${avatarName}, ${avatarPersona}, and a warm speech-practice buddy supporting a therapist and ${childLabel}.`,
+    'Speak first to begin the session.',
+    requiresMic
+      ? `In two short sentences, welcome the therapist, say you are starting ${exerciseLabel} with ${childLabel}, and ask them to tap the microphone when they are ready to begin.`
+      : `In two short sentences, welcome the therapist, say you are starting ${exerciseLabel} with ${childLabel}, and explain that this is a tap-only listening turn that begins with your clue.`,
+    exerciseContext,
+    requiresMic ? 'Mention the microphone only as the way to begin talking.' : 'Do not mention recording or spoken responses.',
+    'Keep the tone calm, observational, and supportive. Keep it under 35 words.',
   ].join(' ')
 }
 
@@ -473,7 +463,7 @@ const useStyles = makeStyles({
     gap: 'var(--space-md)',
     padding: 'var(--space-lg) var(--space-xl) var(--space-md)',
     borderBottom: '1px solid var(--color-border)',
-    background: '#e8f1f0',
+    background: 'linear-gradient(135deg, rgba(233, 245, 246, 0.97), rgba(224, 239, 241, 0.97))',
     backdropFilter: 'blur(14px)',
     position: 'sticky',
     top: 0,
@@ -859,7 +849,6 @@ export default function App() {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
-  const micMode = useMicMode()
   const [pilotState, setPilotState] = useState<PilotState | null>(null)
   const [pilotStateLoading, setPilotStateLoading] = useState(true)
   const [children, setChildren] = useState<ChildProfile[]>([])
@@ -887,7 +876,6 @@ export default function App() {
   const [parentalConsentByChild, setParentalConsentByChild] = useState<Record<string, boolean>>({})
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
-  const [pendingDashboardTab, setPendingDashboardTab] = useState<'session-detail' | 'memory' | 'recommendations' | 'reports' | 'plan' | undefined>(undefined)
   const [pendingSection, setPendingSection] = useState<SidebarSection | null>(null)
   const [pendingPath, setPendingPath] = useState<AppRoute | null>(null)
   const [showNavigationConfirm, setShowNavigationConfirm] = useState(false)
@@ -989,7 +977,6 @@ export default function App() {
   const wrapUpFinishTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null)
   const sendRef = useRef<(msg: unknown) => void>(() => {})
   const connectedRef = useRef(false)
-  const micModeRef = useRef<ReturnType<typeof useMicMode> | null>(null)
   const exerciseSpeechGenerationRef = useRef(0)
   const exerciseSpeechQueueRef = useRef<Promise<void>>(Promise.resolve())
   const exerciseSpeechResolveRef = useRef<(() => void) | null>(null)
@@ -2445,20 +2432,14 @@ export default function App() {
     beginSessionWrapUp(undefined, SESSION_WRAP_UP_DELAY_MS, { silent: true })
   }, [beginSessionWrapUp, sessionFinished, wrapUpInProgress])
 
-  const handleAuditoryBombardmentComplete = useCallback(
-    (opts?: { immediate?: boolean }) => {
-      if (sessionFinished || wrapUpInProgress) {
-        return
-      }
-      // Stage 0 listening-only: REINFORCE beat ("Lovely listening! See you next time.")
-      // is spoken by the shell. Silent wrap-up so the beat is not overridden.
-      // When `immediate` is true (therapist clicked "End session" explicitly),
-      // skip the usual SESSION_WRAP_UP_DELAY_MS grace window.
-      const delay = opts?.immediate ? 0 : SESSION_WRAP_UP_DELAY_MS
-      beginSessionWrapUp(undefined, delay, { silent: true })
-    },
-    [beginSessionWrapUp, sessionFinished, wrapUpInProgress],
-  )
+  const handleAuditoryBombardmentComplete = useCallback(() => {
+    if (sessionFinished || wrapUpInProgress) {
+      return
+    }
+    // Stage 0 listening-only: REINFORCE beat ("Lovely listening! See you next time.")
+    // is spoken by the shell. Silent wrap-up so the beat is not overridden.
+    beginSessionWrapUp(undefined, SESSION_WRAP_UP_DELAY_MS, { silent: true })
+  }, [beginSessionWrapUp, sessionFinished, wrapUpInProgress])
 
   const handleWordPositionPracticeComplete = useCallback(() => {
     if (sessionFinished || wrapUpInProgress) {
@@ -2500,19 +2481,6 @@ export default function App() {
   }, [beginSessionWrapUp, isChildMode, sessionFinished, wrapUpInProgress])
 
   const handleWebRTCMessage = useCallback((msg: RealtimeMessage) => {
-    // PR12b.3c mic-mode hybrid: route scored-turn ack/result frames through
-    // the pure bridge so the reducer stays in sync. The bridge returns null
-    // for unrelated frames, so the rest of the handler proceeds normally.
-    const micModeApi = micModeRef.current
-    if (micModeApi) {
-      const scoredTurnEvent = handleScoredTurnServerEvent(
-        msg as unknown as Record<string, unknown>,
-        micModeApi,
-      )
-      if (scoredTurnEvent !== null) {
-        return
-      }
-    }
     // Stage 8 structured-conversation: live target-token tally streamed from
     // backend. `wulo.target_tally` replaces the full snapshot; scaffold flips
     // are carried on that snapshot (`scaffoldEscalated`). `wulo.scaffold_escalate`
@@ -2797,42 +2765,6 @@ export default function App() {
   useEffect(() => {
     connectedRef.current = connected
   }, [connected])
-
-  // PR12b.3c mic-mode hybrid: keep a ref to the useMicMode API so
-  // handleWebRTCMessage can dispatch reducer events without re-subscribing.
-  useEffect(() => {
-    micModeRef.current = micMode
-  }, [micMode])
-
-  // PR12b.3c mic-mode hybrid: broadcast mode changes to the backend so
-  // analytics / future server-side routing can see the pilot's choice.
-  useEffect(() => {
-    if (!connected) return
-    sendRef.current(buildMicModeFrame(micMode.state.mode))
-  }, [connected, micMode.state.mode])
-
-  // PR12b.3c.3 mic-mode hybrid: scored-turn begin/end callbacks exposed to
-  // exercise panels. Only meaningful in conversational mode; in tap mode the
-  // reducer guard in `useMicMode` no-ops SCORED_TURN_START, so invoking these
-  // callbacks from a panel is safe regardless of the active mode.
-  const handleScoredTurnBegin = useCallback(
-    (payload: ScoredTurnBeginPayload) => {
-      const { frame, reducerTurn } = composeScoredTurnBegin(
-        payload,
-        typeof performance !== 'undefined' ? performance.now() : Date.now(),
-      )
-      sendRef.current(frame)
-      micMode.startScoredTurn(reducerTurn)
-    },
-    [micMode],
-  )
-  const handleScoredTurnEnd = useCallback(
-    (turnId: string) => {
-      sendRef.current(buildEndFrame(turnId))
-      micMode.endScoredTurn(turnId)
-    },
-    [micMode],
-  )
 
   useEffect(() => {
     return () => {
@@ -3208,6 +3140,7 @@ export default function App() {
 
   const {
     recording,
+    inputLevel: recorderInputLevel,
     toggleRecording,
     getAudioRecording,
     clearAudioRecording: clearConversationAudioRecording,
@@ -4018,7 +3951,6 @@ export default function App() {
       childProfiles={children}
       selectedChildId={selectedChildId}
       sessions={sessionSummaries}
-      initialTab={pendingDashboardTab}
       selectedSession={selectedSession}
       selectedPlan={selectedPlan}
       progressReports={progressReports}
@@ -4087,6 +4019,9 @@ export default function App() {
       }}
       onBackToPractice={handleExitTherapistView}
       onExitToEntry={handleReturnToEntry}
+      insightsRailEnabled={appConfig?.insights_rail_enabled ?? false}
+      insightsVoiceState={recording ? 'listening' : 'idle'}
+      insightsInputLevel={recorderInputLevel}
     />
   ) : currentRoute === APP_ROUTES.onboarding ? (
     <OnboardingFlow
@@ -4203,17 +4138,13 @@ export default function App() {
           }}
           onSecondaryAction={() => {
             if (isTherapist) {
-              setPendingDashboardTab(undefined)
               openSection('dashboard')
               return
             }
 
             openSection('settings')
           }}
-          onOpenRecommendations={isTherapist ? () => {
-            setPendingDashboardTab('recommendations')
-            openSection('dashboard')
-          } : undefined}
+          onOpenRecommendations={isTherapist ? () => openSection('dashboard') : undefined}
           onAddCustomScenario={addCustomScenario}
           onUpdateCustomScenario={updateCustomScenario}
           onDeleteCustomScenario={deleteCustomScenario}
@@ -4257,10 +4188,7 @@ export default function App() {
       onStructuredConversationComplete={handleStructuredConversationComplete}
       onSendRealtime={handleSendRealtime}
       targetTally={targetTally}
-      realtimeReady={connected && (isChildMode || sessionIntroComplete)}
-      micMode={micMode.state.mode}
-      onScoredTurnBegin={handleScoredTurnBegin}
-      onScoredTurnEnd={handleScoredTurnEnd}
+      realtimeReady={connected && sessionIntroComplete}
       onInterruptAvatar={() => {
         resetExerciseSpeechTracking()
         send({ type: 'response.cancel' })

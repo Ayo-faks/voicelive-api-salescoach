@@ -25,7 +25,7 @@ const useStyles = makeStyles({
     padding: 'var(--space-lg)',
     borderRadius: 'var(--radius-lg)',
     border: '1px solid var(--color-border-strong)',
-    backgroundColor: 'var(--color-surface-elevated)',
+    backgroundColor: 'rgba(255, 251, 244, 0.92)',
     boxShadow: 'var(--shadow-sm)',
     gap: 'var(--space-lg)',
     '@media (max-width: 720px)': {
@@ -33,42 +33,32 @@ const useStyles = makeStyles({
       gap: 'var(--space-md)',
     },
   },
-  // PR4 — Apple "Inspector" demotion. The transcript is a secondary surface,
-  // so we drop the eyebrow + large title + description trio and expose a single
-  // <summary> row that folds the whole panel on demand (closed for child by
-  // default, open for therapist).
-  details: {
+  header: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 'var(--space-md)',
-    minHeight: 0,
-    flex: 1,
-  },
-  summary: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 'var(--space-sm)',
-    cursor: 'pointer',
-    listStyle: 'none',
+    gap: 'var(--space-xs)',
     paddingBottom: 'var(--space-sm)',
     borderBottom: '1px solid var(--color-border)',
-    color: 'var(--color-text-secondary)',
-    fontSize: '0.78rem',
-    fontWeight: '600',
-    letterSpacing: '0.02em',
-    '::-webkit-details-marker': {
-      display: 'none',
-    },
   },
-  summaryLabel: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 'var(--space-xs)',
-  },
-  summaryChevron: {
-    fontSize: '0.7rem',
+  eyebrow: {
     color: 'var(--color-text-tertiary)',
+    fontSize: '0.72rem',
+    fontWeight: '700',
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+  },
+  title: {
+    fontFamily: 'var(--font-display)',
+    color: 'var(--color-text-primary)',
+    fontSize: '1.28rem',
+    fontWeight: '800',
+    letterSpacing: '-0.03em',
+  },
+  headerDescription: {
+    color: 'var(--color-text-secondary)',
+    maxWidth: '58ch',
+    fontSize: '0.84rem',
+    lineHeight: 1.55,
   },
   compactHeader: {
     display: 'grid',
@@ -386,36 +376,42 @@ export function ChatPanel({
         </div>
       ) : null}
 
-      {/* PR7 — only surface status text when degraded or when child needs post-session hint.
-          The "Voice ready" pill upstream already conveys the healthy case. */}
-      {connectionState !== 'connected' || (sessionFinished && audience === 'child') ? (
-        <div className={styles.status}>
-          <Text size={200}>{statusText}</Text>
-        </div>
-      ) : null}
+      <div className={styles.status}>
+        <Text size={200}>{statusText}</Text>
+      </div>
     </div>
   )
 
-  // PR7 — transcript summary de-duplicates the page title. Scenario name is
-  // already shown in the page eyebrow and the stimulus card, so the inspector
-  // shows only a generic "Transcript" label + (therapist-only) type chip.
   return (
     <Card className={styles.card}>
-      <details className={styles.details} open={audience === 'therapist'}>
-        <summary className={styles.summary} aria-label="Session transcript">
-          <span className={styles.summaryLabel}>
-            <Text size={200} weight="semibold">Transcript</Text>
-            {audience === 'therapist' && exerciseType ? (
-              <span className={mergeClasses(styles.exerciseChip, styles.compactChip)}>
-                {exerciseType}
-              </span>
-            ) : null}
-          </span>
-          <span className={styles.summaryChevron} aria-hidden>›</span>
-        </summary>
+      <div className={styles.header}>
+        <Text className={styles.eyebrow}>Session transcript</Text>
+        <Text className={styles.title} size={700} weight="semibold" block>
+          Session Transcript
+        </Text>
+        <Text size={300} block className={styles.headerDescription}>
+          Follow the live conversation as it unfolds and keep the session controls within reach.
+        </Text>
+      </div>
 
-        {messagesPanel}
-      </details>
+      {scenario ? (
+        <div className={styles.compactHeader}>
+          <Text className={styles.compactHeaderTitle} size={500} weight="semibold">
+            {scenario.name}
+          </Text>
+          {compactMeta.length > 0 ? (
+            <div className={styles.compactHeaderMeta}>
+              {compactMeta.map(item => (
+                <span key={item} className={mergeClasses(styles.exerciseChip, styles.compactChip)}>
+                  {item}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {messagesPanel}
     </Card>
   )
 }

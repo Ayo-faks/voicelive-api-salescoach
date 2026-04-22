@@ -1688,6 +1688,11 @@ interface Props {
   onBackToPractice: () => void
   onExitToEntry: () => void
   initialTab?: DashboardTab
+  /** Phase 4 Insights rail — currently accepted for forward-compat; rail not yet rendered here. */
+  insightsRailEnabled?: boolean
+  insightsVoiceState?: import('../types').InsightsVoiceState
+  insightsInputLevel?: number
+  insightsOutputLevel?: number
 }
 
 type DashboardTab = 'session-detail' | 'memory' | 'recommendations' | 'reports' | 'plan'
@@ -1743,6 +1748,11 @@ export function ProgressDashboard({
   onBackToPractice,
   onExitToEntry,
   initialTab,
+  // Phase 4 Insights props accepted but not rendered here yet (see App.tsx wiring).
+  insightsRailEnabled: _insightsRailEnabled,
+  insightsVoiceState: _insightsVoiceState,
+  insightsInputLevel: _insightsInputLevel,
+  insightsOutputLevel: _insightsOutputLevel,
 }: Props) {
   const styles = useStyles()
   const [planPrompt, setPlanPrompt] = useState('')
