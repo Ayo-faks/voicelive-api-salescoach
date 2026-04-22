@@ -7,11 +7,17 @@ import { Button, Card, Text, makeStyles } from '@fluentui/react-components'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ExerciseMetadata } from '../types'
 import { api } from '../services/api'
-import { getDrillModelToken } from '../utils/drillTokens'
+import { getDrillWordIpa } from '../utils/drillTokens'
 import { ImageCard } from './ImageCard'
 import { RepetitionCounter } from './RepetitionCounter'
 
 type TurnPhase = 'waiting' | 'instructing' | 'awaiting' | 'evaluating' | 'completed'
+
+// After this many consecutive wrong taps on the same pair, the avatar reveals
+// the target, counts the turn as attempted, and advances to the next pair.
+// Without this cap, a child who keeps tapping the distractor triggers an
+// endless retry loop (the bug that motivated this fix).
+const MAX_RETRIES_PER_PAIR = 2
 
 const useStyles = makeStyles({
   card: {
@@ -103,6 +109,9 @@ export function ListeningMinimalPairsPanel({
   const [statusText, setStatusText] = useState('Your buddy will give the clue first.')
   const turnSequenceRef = useRef(0)
   const completionNotifiedRef = useRef(false)
+  // Tracks wrong-tap count within the current pair's current prompt word.
+  // Reset when the pair advances or when a new prompt word is chosen.
+  const retryCountRef = useRef(0)
 
   const currentPair = pairs[pairIndex] || null
   const canSkipPair = audience === 'therapist' && Boolean(currentPair) && phase === 'awaiting'
@@ -132,6 +141,7 @@ export function ListeningMinimalPairsPanel({
     void resetKey
     turnSequenceRef.current += 1
     completionNotifiedRef.current = false
+    retryCountRef.current = 0
     setPairIndex(0)
     setCompletedTurns(0)
     setPromptWord(null)
@@ -149,9 +159,26 @@ export function ListeningMinimalPairsPanel({
     onCompleteSession?.()
   }, [onCompleteSession])
 
+  // Synthesize `word` through the REST /api/tts endpoint. When we have a
+  // verified IPA pronunciation (see DRILL_WORD_IPA), send phoneme mode so
+  // Azure Speech's SSML + custom-lexicon pipeline clamps the pronunciation
+  // (/fɪn/ instead of /faɪn/). Falls back to plain text otherwise. Returns
+  // the base64-encoded MP3 payload.
+  const synthesizeWord = useCallback(async (word: string): Promise<string> => {
+    const ipa = getDrillWordIpa(word)
+    if (ipa) {
+      return api.synthesizeSpeech({
+        phoneme: ipa,
+        alphabet: 'ipa',
+        fallback_text: word,
+      })
+    }
+    return api.synthesizeSpeech(word)
+  }, [])
+
   const speakWord = useCallback(async (word: string) => {
     try {
-      const audioB64 = await api.synthesizeSpeech(word)
+      const audioB64 = await synthesizeWord(word)
       const bytes = Uint8Array.from(atob(audioB64), c => c.charCodeAt(0))
       const blob = new Blob([bytes], { type: 'audio/mpeg' })
       const url = URL.createObjectURL(blob)
@@ -168,7 +195,7 @@ export function ListeningMinimalPairsPanel({
         window.speechSynthesis.speak(utterance)
       }
     }
-  }, [metadata?.speechLanguage])
+  }, [metadata?.speechLanguage, synthesizeWord])
 
   const audioCache = useRef<Map<string, string>>(new Map())
 
@@ -177,10 +204,10 @@ export function ListeningMinimalPairsPanel({
     if (!currentPair) return
     for (const w of [currentPair.word_a, currentPair.word_b]) {
       if (!audioCache.current.has(w)) {
-        api.synthesizeSpeech(w).then(b64 => audioCache.current.set(w, b64)).catch(() => {})
+        synthesizeWord(w).then(b64 => audioCache.current.set(w, b64)).catch(() => {})
       }
     }
-  }, [currentPair])
+  }, [currentPair, synthesizeWord])
 
   const playWord = useCallback(async (word: string) => {
     const cached = audioCache.current.get(word)
@@ -204,21 +231,26 @@ export function ListeningMinimalPairsPanel({
 
   const buildInstruction = useCallback((word: string, pair = currentPair) => {
     void pair
-    return `Listen carefully. ${getDrillModelToken(word)}. Tap the matching picture.`
+    return `Listen carefully. The word is ${word}. Tap the matching picture.`
   }, [currentPair])
 
   const buildPraiseText = useCallback((word: string) => {
-    return `Great listening. You picked ${getDrillModelToken(word)}.`
+    void word
+    return 'Good listening.'
   }, [])
 
   const buildRetryText = useCallback((word: string, pair = currentPair) => {
     if (!pair) {
-      return `Let's listen again. ${getDrillModelToken(word)}.`
+      return `Let's listen again. The word is ${word}.`
     }
 
     const comparisonWord = word === pair.word_a ? pair.word_b : pair.word_a
-    return `Let's listen again. ${getDrillModelToken(word)}. ${getDrillModelToken(comparisonWord)}.`
+    return `Let's listen again. The word is ${word}. Was it ${word} or ${comparisonWord}?`
   }, [currentPair])
+
+  const buildRevealText = useCallback((word: string) => {
+    return `The word is ${word}. Let's try a new one.`
+  }, [])
 
   const beginInstructionTurn = useCallback(async (nextPromptWord?: string) => {
     if (!currentPair || !readyToStart) {
@@ -292,7 +324,9 @@ export function ListeningMinimalPairsPanel({
 
       if (isCorrectSelection) {
         const praiseText = buildPraiseText(promptWord)
-        setStatusText(praiseText)
+        // UI shows the plain English word; the spoken channel still gets the
+        // drill-token sentinel so the TTS / lexicon path can pronounce it.
+        setStatusText(`Great listening — you picked “${promptWord}”!`)
         await speakExerciseText(praiseText)
 
         if (turnSequenceRef.current !== turnSequence) {
@@ -301,6 +335,42 @@ export function ListeningMinimalPairsPanel({
 
         const nextCompletedTurns = completedTurns + 1
         setCompletedTurns(nextCompletedTurns)
+        retryCountRef.current = 0
+
+        if (repetitionTarget > 0 && nextCompletedTurns >= repetitionTarget) {
+          setPhase('completed')
+          setStatusText('Practice set complete.')
+          notifySessionCompletion()
+          return
+        }
+
+        setPromptWord(null)
+        setSelectedWord(null)
+        setPhase('waiting')
+        setStatusText('Your buddy will give the clue first.')
+        setPairIndex(index => (index + 1) % pairs.length)
+        return
+      }
+
+      // Wrong answer: cap retries so the avatar doesn't loop forever when a
+      // child keeps tapping the distractor. After MAX_RETRIES_PER_PAIR wrong
+      // taps on the same prompt, reveal the target and advance to the next
+      // pair (counting the turn as attempted so the repetition target still
+      // progresses).
+      retryCountRef.current += 1
+
+      if (retryCountRef.current > MAX_RETRIES_PER_PAIR) {
+        const revealText = buildRevealText(promptWord)
+        setStatusText(`The word was “${promptWord}”. Let's try a new one.`)
+        await speakExerciseText(revealText)
+
+        if (turnSequenceRef.current !== turnSequence) {
+          return
+        }
+
+        const nextCompletedTurns = completedTurns + 1
+        setCompletedTurns(nextCompletedTurns)
+        retryCountRef.current = 0
 
         if (repetitionTarget > 0 && nextCompletedTurns >= repetitionTarget) {
           setPhase('completed')
@@ -318,7 +388,9 @@ export function ListeningMinimalPairsPanel({
       }
 
       const retryText = buildRetryText(promptWord, currentPair)
-      setStatusText(retryText)
+      // UI keeps the status line short and sentinel-free; the avatar still
+      // speaks the full retry prompt (with emphasised target + contrast).
+      setStatusText('Not quite — let\'s listen again.')
       await speakExerciseText(retryText)
 
       if (turnSequenceRef.current !== turnSequence) {
@@ -327,7 +399,7 @@ export function ListeningMinimalPairsPanel({
 
       await beginInstructionTurn(promptWord)
     })()
-  }, [beginInstructionTurn, buildPraiseText, buildRetryText, completedTurns, currentPair, notifySessionCompletion, pairs.length, phase, playWord, promptWord, repetitionTarget, speakExerciseText, onRecordExerciseSelection])
+  }, [beginInstructionTurn, buildPraiseText, buildRetryText, buildRevealText, completedTurns, currentPair, notifySessionCompletion, pairs.length, phase, playWord, promptWord, repetitionTarget, speakExerciseText, onRecordExerciseSelection])
 
   const handleSkipPair = useCallback(() => {
     if (!pairs.length || phase !== 'awaiting') {
@@ -335,6 +407,7 @@ export function ListeningMinimalPairsPanel({
     }
 
     turnSequenceRef.current += 1
+    retryCountRef.current = 0
     onInterruptAvatar?.()
     setPromptWord(null)
     setSelectedWord(null)

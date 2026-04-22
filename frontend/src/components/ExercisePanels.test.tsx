@@ -47,19 +47,23 @@ class AudioMock {
   play = vi.fn().mockResolvedValue(undefined)
 }
 
-// The listening panel emits drill-token sentinels (e.g. TH_THIN_MODEL) which
-// the downstream SSML pipeline replaces with child-friendly display text.
+// The listening panel wraps each target word in an SSML <phoneme> tag so
+// Voice Live's TTS pins the pronunciation to the IPA (/θɪn/ for "thin") and
+// does not default short monosyllables to their long-vowel higher-frequency
+// neighbours (e.g. "fine" / "thine"). The SSML is forwarded verbatim via
+// Deterministic "The word is X" carrier on every utterance — the most
+// stable context we've found for pinning the short-vowel pronunciation
+// of homograph-prone words (fin, thin, sin…) on Voice Live's neural TTS.
 const listeningInstruction =
-  'Listen carefully. TH_THIN_MODEL. Tap the matching picture.'
+  'Listen carefully. The word is thin. Tap the matching picture.'
 
-const listeningPraise = 'Great listening. You picked TH_THIN_MODEL.'
+const listeningPraise = 'Good listening.'
 
 const listeningInstructionThorn =
-  'Listen carefully. TH_THORN_MODEL. Tap the matching picture.'
+  'Listen carefully. The word is thorn. Tap the matching picture.'
 
-// Retry prompt after picking 'fin' while the target was 'thin'.
 const listeningRetryThinFin =
-  "Let's listen again. TH_THIN_MODEL. F_FIN_MODEL."
+  `Let's listen again. The word is thin. Was it thin or fin?`
 
 describe('Exercise panels', () => {
   beforeEach(() => {
@@ -167,6 +171,72 @@ describe('Exercise panels', () => {
       3,
       listeningInstruction
     )
+  })
+
+  it('reveals the target and advances after the retry cap is exceeded', async () => {
+    const handleSpeakExerciseText = vi.fn().mockResolvedValue(undefined)
+    const handleRecordSelection = vi.fn()
+
+    // Deterministic prompt selection: Math.random() > 0.5 picks word_a, so
+    // the target is "thin" on pair 1 and "thorn" on pair 2.
+    vi.spyOn(Math, 'random').mockReturnValue(0.9)
+
+    render(
+      <ListeningMinimalPairsPanel
+        audience="child"
+        readyToStart
+        metadata={{
+          targetSound: 'th',
+          errorSound: 'f',
+          repetitionTarget: 4,
+          pairs: [
+            { word_a: 'thin', word_b: 'fin' },
+            { word_a: 'thorn', word_b: 'fawn' },
+          ],
+          speechLanguage: 'en-US',
+        }}
+        onSpeakExerciseText={handleSpeakExerciseText}
+        onRecordExerciseSelection={handleRecordSelection}
+      />,
+    )
+
+    // Wait for the first instruction (target is "thin").
+    await waitFor(() => {
+      expect(handleSpeakExerciseText).toHaveBeenCalledTimes(1)
+    })
+
+    // Two consecutive wrong taps on "fin" — panel should retry, not advance.
+    fireEvent.click(screen.getByText('fin'))
+    await waitFor(() => {
+      expect(handleSpeakExerciseText).toHaveBeenCalledTimes(3)
+    })
+
+    fireEvent.click(screen.getByText('fin'))
+    await waitFor(() => {
+      expect(handleSpeakExerciseText).toHaveBeenCalledTimes(5)
+    })
+
+    // Third wrong tap — now the panel must reveal "thin" and advance to the
+    // next pair instead of looping.
+    fireEvent.click(screen.getByText('fin'))
+
+    await waitFor(() => {
+      // reveal text + instruction for the next pair ("thorn")
+      expect(handleSpeakExerciseText).toHaveBeenCalledTimes(7)
+    })
+
+    expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(
+      6,
+      `The word is thin. Let's try a new one.`
+    )
+    expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(
+      7,
+      'Listen carefully. The word is thorn. Tap the matching picture.'
+    )
+
+    // The new pair's tiles are visible — we really did advance.
+    expect(screen.getByText('thorn')).toBeTruthy()
+    expect(screen.getByText('fawn')).toBeTruthy()
   })
 
   it('praises a correct answer and auto-advances to the next pair', async () => {
