@@ -23,7 +23,9 @@ import {
 import type { TabValue } from '@fluentui/react-components'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { InsightsRail } from './InsightsRail'
+import type { InsightsScope } from '../types'
 import {
   CelebrationDonut,
   ComparisonMetricBar,
@@ -189,11 +191,30 @@ function buildPersistedReportRedactionOverrides(
 }
 
 const useStyles = makeStyles({
+  layoutWithRail: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1fr) 360px',
+    gap: '16px',
+    alignItems: 'flex-start',
+    width: '100%',
+  },
+  railContainer: {
+    position: 'sticky',
+    top: '16px',
+    alignSelf: 'flex-start',
+  },
+  insightsLauncherRow: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '6px',
+    marginTop: '8px',
+  },
   shell: {
     display: 'flex',
     flexDirection: 'column',
     gap: 'var(--space-lg)',
     width: '100%',
+    minWidth: 0,
   },
   hero: {
     display: 'grid',
@@ -1688,7 +1709,7 @@ interface Props {
   onBackToPractice: () => void
   onExitToEntry: () => void
   initialTab?: DashboardTab
-  /** Phase 4 Insights rail — currently accepted for forward-compat; rail not yet rendered here. */
+  /** Phase 4 Insights rail. Mounted when enabled AND viewport ≥ 1280px. */
   insightsRailEnabled?: boolean
   insightsVoiceState?: import('../types').InsightsVoiceState
   insightsInputLevel?: number
@@ -1748,11 +1769,10 @@ export function ProgressDashboard({
   onBackToPractice,
   onExitToEntry,
   initialTab,
-  // Phase 4 Insights props accepted but not rendered here yet (see App.tsx wiring).
-  insightsRailEnabled: _insightsRailEnabled,
-  insightsVoiceState: _insightsVoiceState,
-  insightsInputLevel: _insightsInputLevel,
-  insightsOutputLevel: _insightsOutputLevel,
+  insightsRailEnabled = false,
+  insightsVoiceState,
+  insightsInputLevel,
+  insightsOutputLevel,
 }: Props) {
   const styles = useStyles()
   const [planPrompt, setPlanPrompt] = useState('')
@@ -1771,6 +1791,87 @@ export function ProgressDashboard({
   const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab ?? 'session-detail')
   const [reportSourceFilter, setReportSourceFilter] = useState<'all' | 'pipeline' | 'ai_insight' | 'manual'>('all')
   const [reportReviewAcknowledgedId, setReportReviewAcknowledgedId] = useState<string | null>(null)
+
+  // --- Phase 4 Insights rail wiring ---
+  const [insightsScopeOverride, setInsightsScopeOverride] = useState<InsightsScope | null>(null)
+  const [insightsFocusToken, setInsightsFocusToken] = useState(0)
+  const [isLargeViewport, setIsLargeViewport] = useState<boolean>(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
+    return window.matchMedia('(min-width: 1280px)').matches
+  })
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
+    const mq = window.matchMedia('(min-width: 1280px)')
+    const handler = (event: MediaQueryListEvent) => setIsLargeViewport(event.matches)
+    setIsLargeViewport(mq.matches)
+    if (typeof mq.addEventListener === 'function') {
+      mq.addEventListener('change', handler)
+      return () => mq.removeEventListener('change', handler)
+    }
+    // Safari < 14 fallback
+    mq.addListener(handler)
+    return () => mq.removeListener(handler)
+  }, [])
+  const derivedInsightsScope = useMemo<InsightsScope>(() => {
+    if (activeTab === 'reports' && selectedReport) {
+      return {
+        type: 'report',
+        report_id: selectedReport.id,
+        child_id: selectedChildId ?? undefined,
+      }
+    }
+    if (activeTab === 'session-detail' && selectedSession) {
+      return {
+        type: 'session',
+        session_id: selectedSession.id,
+        child_id: selectedChildId ?? undefined,
+      }
+    }
+    if (selectedChildId) {
+      return { type: 'child', child_id: selectedChildId }
+    }
+    return { type: 'caseload' }
+  }, [activeTab, selectedReport, selectedSession, selectedChildId])
+  const currentInsightsScope = insightsScopeOverride ?? derivedInsightsScope
+  // Clear any sticky override if the derived scope can no longer satisfy it
+  // (e.g., therapist switched children while a session override was pinned).
+  useEffect(() => {
+    if (!insightsScopeOverride) return
+    const override = insightsScopeOverride
+    if (override.type === 'session' && !selectedSession) {
+      setInsightsScopeOverride(null)
+    } else if (override.type === 'report' && !selectedReport) {
+      setInsightsScopeOverride(null)
+    } else if (override.type === 'child' && override.child_id !== selectedChildId) {
+      setInsightsScopeOverride(null)
+    }
+  }, [insightsScopeOverride, selectedChildId, selectedSession, selectedReport])
+  const handleAskAboutThis = useCallback((scope: InsightsScope) => {
+    setInsightsScopeOverride(scope)
+    setInsightsFocusToken(token => token + 1)
+  }, [])
+  const askAboutSession = useCallback(() => {
+    if (!selectedSession) return
+    handleAskAboutThis({
+      type: 'session',
+      session_id: selectedSession.id,
+      child_id: selectedChildId ?? undefined,
+    })
+  }, [handleAskAboutThis, selectedSession, selectedChildId])
+  const askAboutReport = useCallback(() => {
+    if (!selectedReport) return
+    handleAskAboutThis({
+      type: 'report',
+      report_id: selectedReport.id,
+      child_id: selectedChildId ?? undefined,
+    })
+  }, [handleAskAboutThis, selectedReport, selectedChildId])
+  const askAboutReports = useCallback(() => {
+    handleAskAboutThis(
+      selectedChildId ? { type: 'child', child_id: selectedChildId } : { type: 'caseload' },
+    )
+  }, [handleAskAboutThis, selectedChildId])
+  const shouldMountInsightsRail = insightsRailEnabled && isLargeViewport
   useEffect(() => {
     if (initialTab) {
       setActiveTab(initialTab)
@@ -2161,6 +2262,7 @@ export function ProgressDashboard({
   ]
 
   return (
+    <div className={shouldMountInsightsRail ? styles.layoutWithRail : undefined}>
     <div className={styles.shell}>
       <div className={styles.hero}>
         <div className={styles.header}>
@@ -2176,6 +2278,36 @@ export function ProgressDashboard({
             ) : null}
             {isSparseDashboard ? (
               <SparseStateMarker className={styles.sparseHeroMarker} dividerClassName={styles.sparseHeroDivider} />
+            ) : null}
+            {insightsRailEnabled ? (
+              <div className={styles.insightsLauncherRow} aria-label="Ask the insights assistant about this view">
+                <Button
+                  size="small"
+                  appearance="subtle"
+                  data-testid="insights-launcher-session"
+                  disabled={!selectedSession}
+                  onClick={askAboutSession}
+                >
+                  Ask about this session
+                </Button>
+                <Button
+                  size="small"
+                  appearance="subtle"
+                  data-testid="insights-launcher-report"
+                  disabled={!selectedReport}
+                  onClick={askAboutReport}
+                >
+                  Ask about this report
+                </Button>
+                <Button
+                  size="small"
+                  appearance="subtle"
+                  data-testid="insights-launcher-reports"
+                  onClick={askAboutReports}
+                >
+                  Ask about all reports
+                </Button>
+              </div>
             ) : null}
           </div>
 
@@ -3938,6 +4070,19 @@ export function ProgressDashboard({
           </Card>
         </div>
       </div>
+    </div>
+    {shouldMountInsightsRail ? (
+      <aside className={styles.railContainer} aria-label="Insights assistant">
+        <InsightsRail
+          currentScope={currentInsightsScope}
+          onScopeChange={next => setInsightsScopeOverride(next)}
+          focusToken={insightsFocusToken}
+          voiceState={insightsVoiceState}
+          inputLevel={insightsInputLevel}
+          outputLevel={insightsOutputLevel}
+        />
+      </aside>
+    ) : null}
     </div>
   )
 }
