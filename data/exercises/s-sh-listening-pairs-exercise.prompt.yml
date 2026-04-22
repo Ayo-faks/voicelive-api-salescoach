@@ -2,7 +2,7 @@ name: /s/ vs /sh/ — Auditory Discrimination (Minimal Pairs)
 description: Practice hearing the difference between /s/ and /sh/ before speaking
 model: gpt-4o
 modelParameters:
-  temperature: 0.45
+  temperature: 0.2
   max_tokens: 450
 exerciseMetadata:
   type: listening_minimal_pairs
