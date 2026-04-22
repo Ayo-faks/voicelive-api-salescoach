@@ -31,6 +31,11 @@ from src.services.analyzers import ConversationAnalyzer, PronunciationAssessor
 from src.services.child_memory_service import ChildMemoryService
 from src.services.email_service import AzureCommunicationEmailService, InvitationEmailDeliveryResult
 from src.services.institutional_memory_service import InstitutionalMemoryService
+from src.services.insights_copilot_planner import build_insights_planner_from_env
+from src.services.insights_service import (
+    InsightsAuthorizationError,
+    InsightsService,
+)
 from src.services.managers import AgentManager, ScenarioManager
 from src.services.planning_service import PracticePlanningService
 from src.services.report_pipeline import AzureOpenAIReportSummaryAssistant
@@ -254,6 +259,7 @@ institutional_memory_service = None
 recommendation_service = None
 report_service = None
 email_service = None
+insights_service: Optional[InsightsService] = None
 planner_startup_readiness: Dict[str, Any] = {}
 
 
@@ -266,6 +272,7 @@ def initialize_runtime_services() -> None:
     global recommendation_service
     global report_service
     global email_service
+    global insights_service
     global planner_startup_readiness
 
     storage_service = create_storage_service(config.as_dict)
@@ -283,6 +290,23 @@ def initialize_runtime_services() -> None:
         summary_assistant=AzureOpenAIReportSummaryAssistant.from_settings(config.as_dict),
     )
     email_service = AzureCommunicationEmailService.from_config(config.as_dict)
+    insights_planner = None
+    if os.environ.get("INSIGHTS_PLANNER_MODE", "auto").strip().lower() != "stub":
+        try:
+            insights_planner = build_insights_planner_from_env(config.as_dict)
+        except Exception:  # pragma: no cover - defensive
+            logger.exception("Failed to build Copilot insights planner; falling back to stub")
+            insights_planner = None
+        if insights_planner is not None:
+            logger.info("Insights planner: Copilot SDK adapter enabled")
+        else:
+            logger.info("Insights planner: using stub (SDK or credentials not configured)")
+    insights_service = InsightsService(
+        storage_service,
+        child_memory_service=child_memory_service,
+        institutional_memory_service=institutional_memory_service,
+        planner=insights_planner,
+    )
     planner_startup_readiness = planning_service.get_readiness(force_refresh=True)
     if not planner_startup_readiness.get("ready"):
         logger.warning("Planner readiness check failed at startup: %s", planner_startup_readiness)
@@ -806,6 +830,24 @@ def _require_child_access(
     return user, None
 
 
+def _insights_rail_enabled(user: Optional[Dict[str, Any]]) -> bool:
+    """Return whether the Phase 4 Insights Agent UI is enabled for ``user``.
+
+    Only therapists and admins see the rail. The ``INSIGHTS_RAIL_ENABLED``
+    environment variable (default: on) lets staging/prod dark-launch by
+    setting it to ``0``/``false``/``no``/``off``.
+    """
+    if user is None:
+        return False
+    role = str(user.get("role") or "")
+    if role not in (ROLE_THERAPIST, ROLE_ADMIN):
+        return False
+    raw = os.getenv("INSIGHTS_RAIL_ENABLED")
+    if raw is None:
+        return True
+    return str(raw).strip().lower() not in {"0", "false", "no", "off", ""}
+
+
 def _log_audit_event(
     *,
     user_id: Optional[str],
@@ -994,6 +1036,9 @@ def get_config():
             "telemetry_enabled": telemetry_service.enabled,
             "image_base_path": "/api/images",
             "planner": planning_service.get_readiness(),
+            "insights_rail_enabled": _insights_rail_enabled(
+                cast(Dict[str, Any], user) if user else None
+            ),
         }
     )
 
@@ -2380,6 +2425,96 @@ def get_institutional_memory_insights():
         resource_id=str(cast(Dict[str, Any], user).get("id")),
     )
     return jsonify(snapshot)
+
+
+@app.route("/api/insights/ask", methods=["POST"])
+def post_insights_ask():
+    """Run a single Insights Agent turn for a therapist and persist the exchange."""
+    user, guard_response = _require_therapist_user()
+    if guard_response is not None:
+        return guard_response
+
+    payload = request.get_json(silent=True) or {}
+    message = str(payload.get("message") or "").strip()
+    if not message:
+        return jsonify({"error": "message is required"}), 400
+
+    scope_raw = payload.get("scope") or {"type": "caseload"}
+    if not isinstance(scope_raw, dict):
+        return jsonify({"error": "scope must be an object"}), 400
+
+    conversation_id = payload.get("conversation_id")
+    conversation_id = str(conversation_id).strip() if conversation_id else None
+
+    user_id = str(cast(Dict[str, Any], user).get("id"))
+
+    # If the scope names a child, enforce route-level access on top of the
+    # service's own check so we return the standard 403 shape.
+    scope_child_id = scope_raw.get("child_id")
+    if scope_child_id:
+        _, child_guard = _require_child_access(
+            str(scope_child_id),
+            allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+            allowed_relationships=["therapist"],
+        )
+        if child_guard is not None:
+            return child_guard
+
+    try:
+        result = insights_service.ask(
+            user_id=user_id,
+            message=message,
+            scope=scope_raw,
+            conversation_id=conversation_id,
+        )
+    except InsightsAuthorizationError as exc:
+        return jsonify({"error": str(exc)}), HTTP_FORBIDDEN
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    _log_audit_event(
+        user_id=user_id,
+        action="insights.ask",
+        resource_type="insight_conversation",
+        resource_id=str(result["conversation"]["id"]),
+        child_id=str(scope_child_id) if scope_child_id else None,
+        metadata={
+            "tool_calls_count": result.get("tool_calls_count"),
+            "latency_ms": result.get("latency_ms"),
+            "scope_type": scope_raw.get("type"),
+        },
+    )
+    return jsonify(result)
+
+
+@app.route("/api/insights/conversations", methods=["GET"])
+def list_insights_conversations():
+    """List the current therapist's insights conversations, newest first."""
+    user, guard_response = _require_therapist_user()
+    if guard_response is not None:
+        return guard_response
+    user_id = str(cast(Dict[str, Any], user).get("id"))
+    try:
+        limit = int(request.args.get("limit") or 50)
+    except ValueError:
+        limit = 50
+    conversations = insights_service.list_conversations(user_id=user_id, limit=limit)
+    return jsonify({"conversations": conversations})
+
+
+@app.route("/api/insights/conversations/<conversation_id>", methods=["GET"])
+def get_insights_conversation(conversation_id: str):
+    """Return a single insights conversation with its full message history."""
+    user, guard_response = _require_therapist_user()
+    if guard_response is not None:
+        return guard_response
+    user_id = str(cast(Dict[str, Any], user).get("id"))
+    payload = insights_service.get_conversation(
+        user_id=user_id, conversation_id=conversation_id
+    )
+    if payload is None:
+        return jsonify({"error": "not found"}), 404
+    return jsonify(payload)
 
 
 @app.route(API_CHILD_RECOMMENDATIONS_ENDPOINT, methods=["GET", "POST"])
