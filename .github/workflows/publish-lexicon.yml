@@ -1,0 +1,77 @@
+name: publish-lexicon
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "data/lexicons/wulo.pls"
+      - ".github/workflows/publish-lexicon.yml"
+  workflow_dispatch:
+
+# Publishes the canonical Wulo PLS custom lexicon to the Azure Storage
+# container that Azure Speech / Voice Live loads at runtime via
+# ``AZURE_CUSTOM_LEXICON_URL``. Runs on pushes to ``main`` that touch the
+# lexicon, and can be invoked manually for out-of-band releases.
+#
+# Secrets required on the repository / environment:
+#   AZURE_LEXICON_STORAGE_ACCOUNT   — storage account name (not URL)
+#   AZURE_LEXICON_CONTAINER         — blob container name (e.g. ``lexicons``)
+#   AZURE_LEXICON_SAS_TOKEN         — short-lived write SAS; rotated every
+#                                     90 days via the Key Vault rotation
+#                                     runbook in docs/lexicon-rotation.md
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate PLS is well-formed XML
+        run: |
+          python - <<'PY'
+          import xml.etree.ElementTree as ET, sys
+          tree = ET.parse("data/lexicons/wulo.pls")
+          root = tree.getroot()
+          assert root.tag.endswith("lexicon"), f"unexpected root tag: {root.tag}"
+          print(f"wulo.pls parsed OK with {len(list(root))} child elements")
+          PY
+
+      - name: Compute content hash (version pin)
+        id: hash
+        run: |
+          sha=$(sha256sum data/lexicons/wulo.pls | cut -d' ' -f1)
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "publishing wulo.pls with sha256=$sha"
+
+      - name: Upload to Azure Blob Storage
+        env:
+          ACCOUNT: ${{ secrets.AZURE_LEXICON_STORAGE_ACCOUNT }}
+          CONTAINER: ${{ secrets.AZURE_LEXICON_CONTAINER }}
+          SAS: ${{ secrets.AZURE_LEXICON_SAS_TOKEN }}
+          SHA: ${{ steps.hash.outputs.sha }}
+        run: |
+          if [ -z "$ACCOUNT" ] || [ -z "$CONTAINER" ] || [ -z "$SAS" ]; then
+            echo "::error::missing Azure Storage secrets — skipping upload"
+            exit 1
+          fi
+          # Upload both a versioned copy (immutable) and a ``latest`` alias
+          # so the runtime URL stays stable while every deploy keeps history.
+          curl -sSf -X PUT \
+            -H "x-ms-blob-type: BlockBlob" \
+            -H "x-ms-blob-content-type: application/pls+xml" \
+            --data-binary @data/lexicons/wulo.pls \
+            "https://${ACCOUNT}.blob.core.windows.net/${CONTAINER}/wulo-${SHA}.pls?${SAS}"
+          curl -sSf -X PUT \
+            -H "x-ms-blob-type: BlockBlob" \
+            -H "x-ms-blob-content-type: application/pls+xml" \
+            --data-binary @data/lexicons/wulo.pls \
+            "https://${ACCOUNT}.blob.core.windows.net/${CONTAINER}/wulo.pls?${SAS}"
+
+      - name: Summary
+        run: |
+          echo "Published data/lexicons/wulo.pls" >> "$GITHUB_STEP_SUMMARY"
+          echo "sha256=\`${{ steps.hash.outputs.sha }}\`" >> "$GITHUB_STEP_SUMMARY"

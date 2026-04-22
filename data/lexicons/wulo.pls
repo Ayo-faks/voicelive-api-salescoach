@@ -36,7 +36,7 @@
   </lexeme>
   <lexeme>
     <grapheme>R_REE_ALIAS</grapheme>
-    <phoneme>ɹiː.ɹiː</phoneme>
+    <phoneme>ɹiː</phoneme>
   </lexeme>
 
   <!-- /k/ vowel blending -->

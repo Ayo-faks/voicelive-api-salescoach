@@ -1,0 +1,36 @@
+{
+  "$schema": "./phoneme-map.schema.json",
+  "version": 1,
+  "description": "Canonical phoneme→IPA map shared by the backend TTS normaliser and the frontend preview UI. Edit this file (never the downstream copies). No length marks; apply prosody at call sites.",
+  "convention": {
+    "voiceless_th": "key `th` → θ (always). The word `think`.",
+    "voiced_th": "key `dh` → ð (always). The word `this`. `/TH/` uppercase is deprecated legacy.",
+    "case": "keys are lowercase; `/TH/` is the only accepted uppercase form and routes to `dh`."
+  },
+  "phonemes": {
+    "r":  { "ipa": "ɹ",  "anchor": "rabbit",  "pseudo": "rrr" },
+    "s":  { "ipa": "s",  "anchor": "sun",     "pseudo": "sss" },
+    "sh": { "ipa": "ʃ",  "anchor": "sheep",   "pseudo": "shh" },
+    "th": { "ipa": "θ",  "anchor": "think",   "pseudo": "thh" },
+    "dh": { "ipa": "ð",  "anchor": "this",    "pseudo": "dhh" },
+    "k":  { "ipa": "k",  "anchor": "key",     "pseudo": "kuh" },
+    "g":  { "ipa": "ɡ",  "anchor": "goat",    "pseudo": "guh" },
+    "f":  { "ipa": "f",  "anchor": "fish",    "pseudo": "fff" },
+    "v":  { "ipa": "v",  "anchor": "van",     "pseudo": "vvv" },
+    "z":  { "ipa": "z",  "anchor": "zebra",   "pseudo": "zzz" },
+    "zh": { "ipa": "ʒ",  "anchor": "measure", "pseudo": "zhh" },
+    "t":  { "ipa": "t",  "anchor": "toy",     "pseudo": "tuh" },
+    "d":  { "ipa": "d",  "anchor": "dog",     "pseudo": "duh" },
+    "l":  { "ipa": "l",  "anchor": "lion",    "pseudo": "lll" },
+    "w":  { "ipa": "w",  "anchor": "water",   "pseudo": "wuh" },
+    "ch": { "ipa": "tʃ", "anchor": "chair",   "pseudo": "chh" },
+    "j":  { "ipa": "dʒ", "anchor": "jump",    "pseudo": "juh" },
+    "ng": { "ipa": "ŋ",  "anchor": "ring",    "pseudo": "ngg" },
+    "y":  { "ipa": "j",  "anchor": "yes",     "pseudo": "yuh" },
+    "h":  { "ipa": "h",  "anchor": "hat",     "pseudo": "huh" }
+  },
+  "primary_targets": ["r", "s", "sh", "th", "k", "f"],
+  "deprecated_aliases": {
+    "TH": "dh"
+  }
+}
