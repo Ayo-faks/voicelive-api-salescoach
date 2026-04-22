@@ -249,6 +249,7 @@ class StorageService:
                         self._ensure_institutional_memory_tables(connection)
                         self._ensure_recommendation_tables(connection)
                         self._ensure_progress_report_table(connection)
+                        self._ensure_insight_tables(connection)
                         self._ensure_migrations(connection)
                         self._seed_children(connection)
                         logger.info("SQLite committing...")
@@ -288,6 +289,16 @@ class StorageService:
         self._ensure_institutional_memory_tables(connection)
         self._ensure_recommendation_tables(connection)
         self._ensure_progress_report_table(connection)
+        self._ensure_column(
+            connection,
+            "progress_reports",
+            "source",
+            "TEXT NOT NULL DEFAULT 'pipeline'",
+        )
+        connection.execute(
+            "UPDATE progress_reports SET source = 'pipeline' WHERE source IS NULL OR TRIM(source) = ''"
+        )
+        self._ensure_insight_tables(connection)
 
     def _ensure_parental_consents_table(self, connection: sqlite3.Connection) -> None:
         connection.execute(
@@ -826,6 +837,7 @@ class StorageService:
                 redaction_overrides_json TEXT,
                 summary_text TEXT,
                 signed_by_user_id TEXT,
+                source TEXT NOT NULL DEFAULT 'pipeline',
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL,
                 approved_at TEXT,
@@ -842,6 +854,53 @@ class StorageService:
         )
         connection.execute(
             "CREATE INDEX IF NOT EXISTS idx_progress_reports_workspace_created ON progress_reports (workspace_id, created_at DESC)"
+        )
+
+    def _ensure_insight_tables(self, connection: sqlite3.Connection) -> None:
+        """Create the Phase 4 Insights Agent conversation + message tables."""
+        connection.execute(
+            """CREATE TABLE IF NOT EXISTS insight_conversations (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                workspace_id TEXT,
+                scope_type TEXT NOT NULL,
+                scope_child_id TEXT,
+                scope_session_id TEXT,
+                scope_report_id TEXT,
+                title TEXT,
+                prompt_version TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                deleted_at TEXT
+            )"""
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_insight_conversations_user_updated "
+            "ON insight_conversations (user_id, updated_at DESC)"
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_insight_conversations_scope_child "
+            "ON insight_conversations (scope_child_id, updated_at DESC)"
+        )
+        connection.execute(
+            """CREATE TABLE IF NOT EXISTS insight_messages (
+                id TEXT PRIMARY KEY,
+                conversation_id TEXT NOT NULL REFERENCES insight_conversations(id) ON DELETE CASCADE,
+                role TEXT NOT NULL,
+                content_text TEXT NOT NULL,
+                citations_json TEXT,
+                visualizations_json TEXT,
+                tool_trace_json TEXT,
+                latency_ms INTEGER,
+                tool_calls_count INTEGER,
+                prompt_version TEXT,
+                error_text TEXT,
+                created_at TEXT NOT NULL
+            )"""
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_insight_messages_conversation_created "
+            "ON insight_messages (conversation_id, created_at)"
         )
 
     def _ensure_column(self, connection: sqlite3.Connection, table_name: str, column_name: str, definition: str):
@@ -1031,6 +1090,15 @@ class StorageService:
         }
 
     def _build_progress_report_payload(self, row: sqlite3.Row) -> Dict[str, Any]:
+        # ``source`` discriminates pipeline-generated reports from AI-drafted
+        # insights (``ai_insight``) or manually authored ones (``manual``).
+        # Older SQLite rows may be missing the column on very old DB files,
+        # so fall back to ``'pipeline'`` for backwards compatibility.
+        try:
+            raw_source = row["source"]
+        except (IndexError, KeyError):
+            raw_source = None
+        source = str(raw_source).strip() if raw_source else ""
         return {
             "id": row["id"],
             "child_id": row["child_id"],
@@ -1040,6 +1108,7 @@ class StorageService:
             "report_type": row["report_type"],
             "title": row["title"],
             "status": row["status"],
+            "source": source or "pipeline",
             "period_start": row["period_start"],
             "period_end": row["period_end"],
             "included_session_ids": self._loads_json(row["included_session_ids_json"], []),
@@ -3163,6 +3232,7 @@ class StorageService:
                     report_type,
                     title,
                     status,
+                    source,
                     period_start,
                     period_end,
                     included_session_ids_json,
@@ -3176,7 +3246,7 @@ class StorageService:
                     signed_at,
                     archived_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     child_id = excluded.child_id,
                     workspace_id = excluded.workspace_id,
@@ -3186,6 +3256,7 @@ class StorageService:
                     report_type = excluded.report_type,
                     title = excluded.title,
                     status = excluded.status,
+                    source = excluded.source,
                     period_start = excluded.period_start,
                     period_end = excluded.period_end,
                     included_session_ids_json = excluded.included_session_ids_json,
@@ -3208,6 +3279,7 @@ class StorageService:
                     str(report_payload.get("report_type") or "progress_summary"),
                     str(report_payload.get("title") or "Child progress report"),
                     str(report_payload.get("status") or "draft"),
+                    str(report_payload.get("source") or "pipeline"),
                     str(report_payload.get("period_start") or ""),
                     str(report_payload.get("period_end") or ""),
                     self._dumps_json(report_payload.get("included_session_ids") or []),
@@ -3249,6 +3321,7 @@ class StorageService:
                 report_type,
                 title,
                 status,
+                source,
                 period_start,
                 period_end,
                 included_session_ids_json,
@@ -3295,6 +3368,7 @@ class StorageService:
                     report_type,
                     title,
                     status,
+                    source,
                     period_start,
                     period_end,
                     included_session_ids_json,
@@ -4432,5 +4506,222 @@ class StorageService:
             conn.execute("DELETE FROM sessions WHERE child_id = ?", (child_id,))
             conn.execute("DELETE FROM child_memory_summaries WHERE child_id = ?", (child_id,))
             conn.execute("DELETE FROM user_children WHERE child_id = ?", (child_id,))
+            # Cascade insights conversations scoped to this child. Conversation-level
+            # delete removes messages via ON DELETE CASCADE.
+            conn.execute(
+                "DELETE FROM insight_conversations WHERE scope_child_id = ?",
+                (child_id,),
+            )
             conn.execute("DELETE FROM children WHERE id = ?", (child_id,))
+            return True
+
+    # ------------------------------------------------------------------
+    # Insights Agent conversations (Phase 4)
+    # ------------------------------------------------------------------
+
+    def create_insight_conversation(
+        self,
+        *,
+        user_id: str,
+        scope_type: str,
+        prompt_version: str,
+        workspace_id: Optional[str] = None,
+        scope_child_id: Optional[str] = None,
+        scope_session_id: Optional[str] = None,
+        scope_report_id: Optional[str] = None,
+        title: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Create a new insights conversation row and return its payload."""
+        conversation_id = f"insight-conv-{uuid4().hex[:12]}"
+        now = self._utc_now()
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT INTO insight_conversations (
+                    id, user_id, workspace_id, scope_type,
+                    scope_child_id, scope_session_id, scope_report_id,
+                    title, prompt_version, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    conversation_id,
+                    user_id,
+                    workspace_id,
+                    scope_type,
+                    scope_child_id,
+                    scope_session_id,
+                    scope_report_id,
+                    title,
+                    prompt_version,
+                    now,
+                    now,
+                ),
+            )
+        return {
+            "id": conversation_id,
+            "user_id": user_id,
+            "workspace_id": workspace_id,
+            "scope_type": scope_type,
+            "scope_child_id": scope_child_id,
+            "scope_session_id": scope_session_id,
+            "scope_report_id": scope_report_id,
+            "title": title,
+            "prompt_version": prompt_version,
+            "created_at": now,
+            "updated_at": now,
+        }
+
+    def list_insight_conversations_for_user(
+        self,
+        user_id: str,
+        *,
+        limit: int = 50,
+    ) -> List[Dict[str, Any]]:
+        clamped_limit = max(1, min(int(limit or 50), 200))
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT id, user_id, workspace_id, scope_type,
+                       scope_child_id, scope_session_id, scope_report_id,
+                       title, prompt_version, created_at, updated_at
+                FROM insight_conversations
+                WHERE user_id = ? AND deleted_at IS NULL
+                ORDER BY updated_at DESC
+                LIMIT ?
+                """,
+                (user_id, clamped_limit),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def get_insight_conversation(
+        self,
+        conversation_id: str,
+        *,
+        user_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT id, user_id, workspace_id, scope_type,
+                       scope_child_id, scope_session_id, scope_report_id,
+                       title, prompt_version, created_at, updated_at
+                FROM insight_conversations
+                WHERE id = ? AND deleted_at IS NULL
+                """,
+                (conversation_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        payload = dict(row)
+        if user_id is not None and payload.get("user_id") != user_id:
+            return None
+        return payload
+
+    def list_insight_messages(
+        self,
+        conversation_id: str,
+    ) -> List[Dict[str, Any]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT id, conversation_id, role, content_text,
+                       citations_json, visualizations_json, tool_trace_json,
+                       latency_ms, tool_calls_count, prompt_version,
+                       error_text, created_at
+                FROM insight_messages
+                WHERE conversation_id = ?
+                ORDER BY created_at ASC, id ASC
+                """,
+                (conversation_id,),
+            ).fetchall()
+        messages: List[Dict[str, Any]] = []
+        for row in rows:
+            messages.append(
+                {
+                    "id": row["id"],
+                    "conversation_id": row["conversation_id"],
+                    "role": row["role"],
+                    "content_text": row["content_text"],
+                    "citations": self._loads_json(row["citations_json"], []),
+                    "visualizations": self._loads_json(row["visualizations_json"], []),
+                    "tool_trace": self._loads_json(row["tool_trace_json"], []),
+                    "latency_ms": row["latency_ms"],
+                    "tool_calls_count": row["tool_calls_count"],
+                    "prompt_version": row["prompt_version"],
+                    "error_text": row["error_text"],
+                    "created_at": row["created_at"],
+                }
+            )
+        return messages
+
+    def append_insight_message(
+        self,
+        conversation_id: str,
+        *,
+        role: str,
+        content_text: str,
+        citations: Optional[List[Dict[str, Any]]] = None,
+        visualizations: Optional[List[Dict[str, Any]]] = None,
+        tool_trace: Optional[List[Dict[str, Any]]] = None,
+        latency_ms: Optional[int] = None,
+        tool_calls_count: Optional[int] = None,
+        prompt_version: Optional[str] = None,
+        error_text: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        message_id = f"insight-msg-{uuid4().hex[:12]}"
+        now = self._utc_now()
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT INTO insight_messages (
+                    id, conversation_id, role, content_text,
+                    citations_json, visualizations_json, tool_trace_json,
+                    latency_ms, tool_calls_count, prompt_version,
+                    error_text, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    message_id,
+                    conversation_id,
+                    role,
+                    content_text,
+                    self._dumps_json(citations or []),
+                    self._dumps_json(visualizations or []),
+                    self._dumps_json(tool_trace or []),
+                    latency_ms,
+                    tool_calls_count,
+                    prompt_version,
+                    error_text,
+                    now,
+                ),
+            )
+            connection.execute(
+                "UPDATE insight_conversations SET updated_at = ? WHERE id = ?",
+                (now, conversation_id),
+            )
+        return {
+            "id": message_id,
+            "conversation_id": conversation_id,
+            "role": role,
+            "content_text": content_text,
+            "citations": list(citations or []),
+            "visualizations": list(visualizations or []),
+            "tool_trace": list(tool_trace or []),
+            "latency_ms": latency_ms,
+            "tool_calls_count": tool_calls_count,
+            "prompt_version": prompt_version,
+            "error_text": error_text,
+            "created_at": now,
+        }
+
+    def update_insight_conversation_title(
+        self,
+        conversation_id: str,
+        title: str,
+    ) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                "UPDATE insight_conversations SET title = ?, updated_at = ? WHERE id = ?",
+                (title, self._utc_now(), conversation_id),
+            )
         return True

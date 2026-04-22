@@ -341,6 +341,11 @@ class PostgresStorageService:
         }
 
     def _build_progress_report_payload(self, row: Dict[str, Any]) -> Dict[str, Any]:
+        # ``source`` discriminates pipeline-generated reports from AI-drafted
+        # insights (``ai_insight``) or manually authored ones (``manual``).
+        # Fall back defensively for rows written before the column was added.
+        raw_source = row.get("source") if isinstance(row, dict) else None
+        source = str(raw_source).strip() if raw_source else ""
         return {
             "id": row["id"],
             "child_id": row["child_id"],
@@ -350,6 +355,7 @@ class PostgresStorageService:
             "report_type": row["report_type"],
             "title": row["title"],
             "status": row["status"],
+            "source": source or "pipeline",
             "period_start": row["period_start"],
             "period_end": row["period_end"],
             "included_session_ids": self._loads_json(row["included_session_ids_json"], []),
@@ -1918,6 +1924,7 @@ class PostgresStorageService:
                     report_type,
                     title,
                     status,
+                    source,
                     period_start,
                     period_end,
                     included_session_ids_json,
@@ -1932,7 +1939,7 @@ class PostgresStorageService:
                     signed_at,
                     archived_at
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT(id) DO UPDATE SET
                     child_id = excluded.child_id,
                     workspace_id = excluded.workspace_id,
@@ -1941,6 +1948,7 @@ class PostgresStorageService:
                     report_type = excluded.report_type,
                     title = excluded.title,
                     status = excluded.status,
+                    source = excluded.source,
                     period_start = excluded.period_start,
                     period_end = excluded.period_end,
                     included_session_ids_json = excluded.included_session_ids_json,
@@ -1963,6 +1971,7 @@ class PostgresStorageService:
                     str(report_payload.get("report_type") or "progress_summary"),
                     str(report_payload.get("title") or "Progress report"),
                     str(report_payload.get("status") or "draft"),
+                    str(report_payload.get("source") or "pipeline"),
                     str(report_payload.get("period_start") or ""),
                     str(report_payload.get("period_end") or ""),
                     self._dumps_json(report_payload.get("included_session_ids") or []),
@@ -2004,6 +2013,7 @@ class PostgresStorageService:
                 report_type,
                 title,
                 status,
+                source,
                 period_start,
                 period_end,
                 included_session_ids_json,
@@ -2049,6 +2059,7 @@ class PostgresStorageService:
                     report_type,
                     title,
                     status,
+                    source,
                     period_start,
                     period_end,
                     included_session_ids_json,
@@ -3195,5 +3206,229 @@ class PostgresStorageService:
                 cur.execute("DELETE FROM sessions WHERE child_id = %s", (child_id,))
                 cur.execute("DELETE FROM child_memory_summaries WHERE child_id = %s", (child_id,))
                 cur.execute("DELETE FROM user_children WHERE child_id = %s", (child_id,))
+                # Cascade insights conversations scoped to this child; messages
+                # follow via ON DELETE CASCADE in the insight_messages FK.
+                cur.execute(
+                    "DELETE FROM insight_conversations WHERE scope_child_id = %s",
+                    (child_id,),
+                )
                 cur.execute("DELETE FROM children WHERE id = %s", (child_id,))
+                return True
+
+    # ------------------------------------------------------------------
+    # Insights Agent conversations (Phase 4)
+    # ------------------------------------------------------------------
+
+    def create_insight_conversation(
+        self,
+        *,
+        user_id: str,
+        scope_type: str,
+        prompt_version: str,
+        workspace_id: Optional[str] = None,
+        scope_child_id: Optional[str] = None,
+        scope_session_id: Optional[str] = None,
+        scope_report_id: Optional[str] = None,
+        title: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        conversation_id = f"insight-conv-{uuid4().hex[:12]}"
+        now = self._utc_now()
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO insight_conversations (
+                        id, user_id, workspace_id, scope_type,
+                        scope_child_id, scope_session_id, scope_report_id,
+                        title, prompt_version, created_at, updated_at
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (
+                        conversation_id,
+                        user_id,
+                        workspace_id,
+                        scope_type,
+                        scope_child_id,
+                        scope_session_id,
+                        scope_report_id,
+                        title,
+                        prompt_version,
+                        now,
+                        now,
+                    ),
+                )
+        return {
+            "id": conversation_id,
+            "user_id": user_id,
+            "workspace_id": workspace_id,
+            "scope_type": scope_type,
+            "scope_child_id": scope_child_id,
+            "scope_session_id": scope_session_id,
+            "scope_report_id": scope_report_id,
+            "title": title,
+            "prompt_version": prompt_version,
+            "created_at": now,
+            "updated_at": now,
+        }
+
+    def list_insight_conversations_for_user(
+        self,
+        user_id: str,
+        *,
+        limit: int = 50,
+    ) -> List[Dict[str, Any]]:
+        clamped_limit = max(1, min(int(limit or 50), 200))
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, user_id, workspace_id, scope_type,
+                           scope_child_id, scope_session_id, scope_report_id,
+                           title, prompt_version, created_at, updated_at
+                    FROM insight_conversations
+                    WHERE user_id = %s AND deleted_at IS NULL
+                    ORDER BY updated_at DESC
+                    LIMIT %s
+                    """,
+                    (user_id, clamped_limit),
+                )
+                return [dict(row) for row in cur.fetchall()]
+
+    def get_insight_conversation(
+        self,
+        conversation_id: str,
+        *,
+        user_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, user_id, workspace_id, scope_type,
+                           scope_child_id, scope_session_id, scope_report_id,
+                           title, prompt_version, created_at, updated_at
+                    FROM insight_conversations
+                    WHERE id = %s AND deleted_at IS NULL
+                    """,
+                    (conversation_id,),
+                )
+                row = cur.fetchone()
+        if row is None:
+            return None
+        payload = dict(row)
+        if user_id is not None and payload.get("user_id") != user_id:
+            return None
+        return payload
+
+    def list_insight_messages(
+        self,
+        conversation_id: str,
+    ) -> List[Dict[str, Any]]:
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, conversation_id, role, content_text,
+                           citations_json, visualizations_json, tool_trace_json,
+                           latency_ms, tool_calls_count, prompt_version,
+                           error_text, created_at
+                    FROM insight_messages
+                    WHERE conversation_id = %s
+                    ORDER BY created_at ASC, id ASC
+                    """,
+                    (conversation_id,),
+                )
+                rows = cur.fetchall()
+        messages: List[Dict[str, Any]] = []
+        for row in rows:
+            messages.append(
+                {
+                    "id": row["id"],
+                    "conversation_id": row["conversation_id"],
+                    "role": row["role"],
+                    "content_text": row["content_text"],
+                    "citations": self._loads_json(row["citations_json"], []),
+                    "visualizations": self._loads_json(row["visualizations_json"], []),
+                    "tool_trace": self._loads_json(row["tool_trace_json"], []),
+                    "latency_ms": row["latency_ms"],
+                    "tool_calls_count": row["tool_calls_count"],
+                    "prompt_version": row["prompt_version"],
+                    "error_text": row["error_text"],
+                    "created_at": row["created_at"],
+                }
+            )
+        return messages
+
+    def append_insight_message(
+        self,
+        conversation_id: str,
+        *,
+        role: str,
+        content_text: str,
+        citations: Optional[List[Dict[str, Any]]] = None,
+        visualizations: Optional[List[Dict[str, Any]]] = None,
+        tool_trace: Optional[List[Dict[str, Any]]] = None,
+        latency_ms: Optional[int] = None,
+        tool_calls_count: Optional[int] = None,
+        prompt_version: Optional[str] = None,
+        error_text: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        message_id = f"insight-msg-{uuid4().hex[:12]}"
+        now = self._utc_now()
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO insight_messages (
+                        id, conversation_id, role, content_text,
+                        citations_json, visualizations_json, tool_trace_json,
+                        latency_ms, tool_calls_count, prompt_version,
+                        error_text, created_at
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (
+                        message_id,
+                        conversation_id,
+                        role,
+                        content_text,
+                        self._dumps_json(citations or []),
+                        self._dumps_json(visualizations or []),
+                        self._dumps_json(tool_trace or []),
+                        latency_ms,
+                        tool_calls_count,
+                        prompt_version,
+                        error_text,
+                        now,
+                    ),
+                )
+                cur.execute(
+                    "UPDATE insight_conversations SET updated_at = %s WHERE id = %s",
+                    (now, conversation_id),
+                )
+        return {
+            "id": message_id,
+            "conversation_id": conversation_id,
+            "role": role,
+            "content_text": content_text,
+            "citations": list(citations or []),
+            "visualizations": list(visualizations or []),
+            "tool_trace": list(tool_trace or []),
+            "latency_ms": latency_ms,
+            "tool_calls_count": tool_calls_count,
+            "prompt_version": prompt_version,
+            "error_text": error_text,
+            "created_at": now,
+        }
+
+    def update_insight_conversation_title(
+        self,
+        conversation_id: str,
+        title: str,
+    ) -> None:
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE insight_conversations SET title = %s, updated_at = %s WHERE id = %s",
+                    (title, self._utc_now(), conversation_id),
+                )
         return True

@@ -236,3 +236,52 @@ def test_optional_summary_assistant_only_rewrites_saved_summary(tmp_path: Path):
 
     unchanged = service.get_report(report["id"])
     assert unchanged["summary_text"] == report["summary_text"]
+
+
+def test_progress_report_source_defaults_and_ai_insight_roundtrip(tmp_path: Path):
+    """Pipeline-generated reports default to source='pipeline' and AI-drafted reports persist source='ai_insight'."""
+    storage = StorageService(str(tmp_path / "reports-source.db"))
+    _seed_report_context(storage)
+    service = ProgressReportService(storage)
+
+    pipeline_report = service.create_report(
+        child_id="child-ayo",
+        created_by_user_id="therapist-1",
+        audience="therapist",
+        period_start="2026-04-01T00:00:00+00:00",
+        period_end="2026-04-07T23:59:59+00:00",
+        included_session_ids=["session-report-1"],
+    )
+    assert pipeline_report["source"] == "pipeline"
+
+    ai_report = service.create_report(
+        child_id="child-ayo",
+        created_by_user_id="therapist-1",
+        audience="therapist",
+        period_start="2026-04-01T00:00:00+00:00",
+        period_end="2026-04-07T23:59:59+00:00",
+        included_session_ids=["session-report-1"],
+        source="ai_insight",
+    )
+    assert ai_report["source"] == "ai_insight"
+
+    # Unknown source values fall back to the safe default.
+    manual_report = service.create_report(
+        child_id="child-ayo",
+        created_by_user_id="therapist-1",
+        audience="therapist",
+        period_start="2026-04-01T00:00:00+00:00",
+        period_end="2026-04-07T23:59:59+00:00",
+        included_session_ids=["session-report-1"],
+        source="not-a-real-source",
+    )
+    assert manual_report["source"] == "pipeline"
+
+    reloaded = storage.get_progress_report(ai_report["id"])
+    assert reloaded is not None
+    assert reloaded["source"] == "ai_insight"
+
+    listed = storage.list_progress_reports_for_child("child-ayo")
+    by_id = {row["id"]: row["source"] for row in listed}
+    assert by_id[pipeline_report["id"]] == "pipeline"
+    assert by_id[ai_report["id"]] == "ai_insight"

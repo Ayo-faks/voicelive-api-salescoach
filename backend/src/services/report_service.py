@@ -135,6 +135,7 @@ class ProgressReportService:
         included_session_ids: Optional[Sequence[str]] = None,
         summary_text: Optional[str] = None,
         redaction_overrides: Optional[Dict[str, Any]] = None,
+        source: str = "pipeline",
     ) -> Dict[str, Any]:
         artifacts = self._build_report_artifacts(
             child_id=child_id,
@@ -152,6 +153,10 @@ class ProgressReportService:
         sections = artifacts.sections
         included_sessions = artifacts.included_sessions
 
+        normalized_source = str(source or "pipeline").strip().lower() or "pipeline"
+        if normalized_source not in {"pipeline", "ai_insight", "manual"}:
+            normalized_source = "pipeline"
+
         return self.storage_service.save_progress_report(
             {
                 "id": f"report-{uuid4().hex[:12]}",
@@ -162,6 +167,7 @@ class ProgressReportService:
                 "report_type": str(report_type or DEFAULT_REPORT_TYPE),
                 "title": title or self._build_title(child, normalized_audience, resolved_period_end),
                 "status": "draft",
+                "source": normalized_source,
                 "period_start": resolved_period_start,
                 "period_end": resolved_period_end,
                 "included_session_ids": [str(session.get("id") or "") for session in included_sessions if session.get("id")],
