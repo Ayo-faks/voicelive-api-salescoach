@@ -378,7 +378,7 @@ export function SidebarNav({
               onClick={onNavigateDashboard}
               style={{ display: showDashboardNav ? undefined : 'none' }}
             >
-              {isExpanded ? 'Dashboard' : ''}
+              {isExpanded ? 'Progress' : ''}
             </Button>
             <Button
               appearance="subtle"

@@ -541,6 +541,78 @@ describe('ProgressDashboard visual smoke test', () => {
     expect(screen.getByLabelText('Plan confidence gauge')).toBeTruthy()
   })
 
+  it('shows clearer report launcher copy and switches to Reports when no report is selected', () => {
+    render(
+      <ProgressDashboard
+        childProfiles={[
+          {
+            id: 'child-1',
+            name: 'Amina',
+            session_count: sessions.length,
+            last_session_at: '2026-03-15T10:00:00.000Z',
+          },
+        ]}
+        selectedChildId="child-1"
+        sessions={sessions}
+        selectedSession={selectedSession}
+        selectedPlan={selectedPlan}
+        progressReports={progressReports}
+        selectedReport={null}
+        childMemorySummary={childMemorySummary}
+        childMemoryItems={childMemoryItems}
+        childMemoryProposals={childMemoryProposals}
+        recommendationHistory={recommendationHistory}
+        selectedRecommendationDetail={recommendationDetail}
+        plannerReadiness={plannerReadiness}
+        loadingChildren={false}
+        loadingSessions={false}
+        loadingSessionDetail={false}
+        loadingPlans={false}
+        loadingReports={false}
+        loadingMemory={false}
+        loadingRecommendations={false}
+        planSaving={false}
+        reportSaving={false}
+        recommendationSaving={false}
+        planError={null}
+        reportError={null}
+        memoryError={null}
+        recommendationError={null}
+        memoryReviewPendingId={null}
+        manualMemorySaving={false}
+        onSelectChild={() => {}}
+        onOpenSession={() => {}}
+        onOpenRecommendationDetail={() => {}}
+        onOpenReportDetail={() => {}}
+        onCreateReport={async _payload => undefined}
+        onUpdateReport={async _payload => undefined}
+        onSuggestReportSummaryRewrite={async () => null}
+        onOpenReportExport={() => {}}
+        onApproveReport={() => {}}
+        onSignReport={() => {}}
+        onArchiveReport={() => {}}
+        onGenerateRecommendations={() => {}}
+        onCreatePlan={() => {}}
+        onRefinePlan={() => {}}
+        onApprovePlan={() => {}}
+        onApproveMemoryProposal={() => {}}
+        onRejectMemoryProposal={() => {}}
+        onCreateMemoryItem={() => {}}
+        onBackToPractice={() => {}}
+        onExitToEntry={() => {}}
+        insightsRailEnabled
+      />
+    )
+
+    const launcher = screen.getByTestId('insights-launcher-report') as HTMLButtonElement
+    expect(launcher.disabled).toBe(false)
+    expect(launcher.textContent).toBe('Select a report first')
+
+    fireEvent.click(launcher)
+
+    expect(screen.getByRole('tab', { name: 'Reports' }).getAttribute('aria-selected')).toBe('true')
+  })
+
   it('lets the therapist review and apply a summary rewrite suggestion before saving', async () => {
     const onUpdateReport = vi.fn(async _payload => progressReports[0])
     const onSuggestReportSummaryRewrite = vi.fn(async () => rewriteSuggestion)
@@ -799,5 +871,31 @@ describe('ProgressDashboard AI draft reports', () => {
     expect(screen.getAllByText('AI draft').length).toBe(1)
     const previewPdf = screen.getByRole('button', { name: 'Preview PDF' }) as HTMLButtonElement
     expect(previewPdf.disabled).toBe(false)
+  })
+
+  it('collapses the insights rail into a header Ask Wulo launcher and reopens it', async () => {
+    render(
+      <ProgressDashboard
+        {...(baseProps as unknown as React.ComponentProps<typeof ProgressDashboard>)}
+        progressReports={[aiDraftReport]}
+        selectedReport={aiDraftReport}
+        insightsRailEnabled
+      />,
+    )
+
+    expect(screen.queryByTestId('insights-header-launcher')).toBeNull()
+
+    fireEvent.click(await screen.findByTestId('insights-rail-collapse'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('insights-header-launcher')).toBeTruthy()
+    })
+    expect(screen.queryByTestId('insights-rail-input')).toBeNull()
+
+    fireEvent.click(screen.getByTestId('insights-header-launcher'))
+
+    const input = await screen.findByTestId('insights-rail-input')
+    expect(input).toBeTruthy()
+    expect(screen.queryByTestId('insights-header-launcher')).toBeNull()
   })
 })

@@ -165,7 +165,11 @@ class CopilotInsightsPlanner:
             client = self._create_client()
             await client.start()
             session = await client.create_session(**session_kwargs)
-            prompt = self._build_prompt(history=history, user_message=user_message)
+            prompt = self._build_prompt(
+                history=history,
+                user_message=user_message,
+                scope=context.scope,
+            )
             response = await session.send_and_wait(prompt)
             raw_text = self._extract_response_text(response)
         except Exception as exc:
@@ -291,7 +295,11 @@ class CopilotInsightsPlanner:
     # -- Prompt + response shaping -----------------------------------------
 
     def _build_prompt(
-        self, *, history: Sequence[Dict[str, Any]], user_message: str
+        self,
+        *,
+        history: Sequence[Dict[str, Any]],
+        user_message: str,
+        scope: Optional[Mapping[str, Any]] = None,
     ) -> str:
         """Fold prior turns into a single user prompt.
 
@@ -300,6 +308,18 @@ class CopilotInsightsPlanner:
         message. We keep the last few turns only to stay within context.
         """
         lines: List[str] = []
+        if scope:
+            scope_type = str(scope.get("type") or "caseload")
+            lines.append(
+                "Active scope (authoritative — use these exact IDs when "
+                "calling tools; never pass names or guessed IDs):"
+            )
+            lines.append(f"  scope_type: {scope_type}")
+            for key in ("child_id", "session_id", "report_id"):
+                value = scope.get(key)
+                if value:
+                    lines.append(f"  {key}: {value}")
+            lines.append("")
         recent = list(history or [])[-8:]
         if recent:
             lines.append("Conversation so far (most recent last):")

@@ -52,6 +52,7 @@ import { useRecorder } from '../hooks/useRecorder'
 import { useScenarios } from '../hooks/useScenarios'
 import { useSessionTimer } from '../hooks/useSessionTimer'
 import { useWebRTC } from '../hooks/useWebRTC'
+import { getBackToPracticeRoute } from './dashboardRouteHelpers'
 import { api, parseAvatarValue, type AuthSession } from '../services/api'
 import type {
   Assessment,
@@ -3631,8 +3632,15 @@ export default function App() {
   }, [navigate])
 
   const handleExitTherapistView = useCallback(() => {
-    navigate(APP_ROUTES.home)
-  }, [navigate])
+    navigate(
+      getBackToPracticeRoute({
+        connected,
+        showLaunchTransition,
+        hasCurrentAgent: Boolean(currentAgent),
+        messageCount: messages.length,
+      })
+    )
+  }, [connected, currentAgent, messages.length, navigate, showLaunchTransition])
 
   const handleReturnToEntry = useCallback(() => {
     clearWrapUpTimers()
@@ -4020,8 +4028,6 @@ export default function App() {
       onBackToPractice={handleExitTherapistView}
       onExitToEntry={handleReturnToEntry}
       insightsRailEnabled={appConfig?.insights_rail_enabled ?? false}
-      insightsVoiceState={recording ? 'listening' : 'idle'}
-      insightsInputLevel={recorderInputLevel}
     />
   ) : currentRoute === APP_ROUTES.onboarding ? (
     <OnboardingFlow

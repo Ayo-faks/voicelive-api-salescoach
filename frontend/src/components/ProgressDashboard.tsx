@@ -23,8 +23,8 @@ import {
 import type { TabValue } from '@fluentui/react-components'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { InsightsRail } from './InsightsRail'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { InsightsRail, readStoredInsightsRailMode, type InsightsRailMode } from './InsightsRail'
 import type { InsightsScope } from '../types'
 import {
   CelebrationDonut,
@@ -197,11 +197,36 @@ const useStyles = makeStyles({
     gap: '16px',
     alignItems: 'flex-start',
     width: '100%',
+    position: 'relative',
+  },
+  layoutWithRailCollapsed: {
+    gridTemplateColumns: 'minmax(0, 1fr) 0px',
+  },
+  layoutWithRailFull: {
+    gridTemplateColumns: 'minmax(0, 1fr) 0px',
+    minHeight: 'calc(100vh - 32px)',
   },
   railContainer: {
     position: 'sticky',
     top: '16px',
     alignSelf: 'flex-start',
+    display: 'flex',
+    minHeight: 0,
+  },
+  railContainerCollapsed: {
+    position: 'fixed',
+    top: 'calc(env(safe-area-inset-top, 0px) + 88px)',
+    right: '16px',
+    zIndex: 30,
+    width: '56px',
+  },
+  railContainerHidden: {
+    display: 'none',
+  },
+  railContainerFull: {
+    position: 'fixed',
+    inset: '16px',
+    zIndex: 30,
   },
   insightsLauncherRow: {
     display: 'flex',
@@ -482,6 +507,35 @@ const useStyles = makeStyles({
     display: 'flex',
     gap: 'var(--space-sm)',
     flexWrap: 'wrap',
+  },
+  askWuloButton: {
+    minWidth: '138px',
+    minHeight: '44px',
+    padding: '8px 14px',
+    borderRadius: '0px',
+    border: '1px solid rgba(13, 138, 132, 0.2)',
+    backgroundColor: 'rgba(13, 138, 132, 0.08)',
+    color: 'var(--color-text-primary)',
+    fontFamily: 'var(--font-display)',
+    fontWeight: '600',
+    display: 'grid',
+    justifyItems: 'start',
+    alignContent: 'center',
+    gap: '1px',
+    textAlign: 'left',
+  },
+  askWuloEyebrow: {
+    fontSize: '0.66rem',
+    lineHeight: 1.1,
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
+    color: 'var(--color-primary)',
+  },
+  askWuloLabel: {
+    fontSize: '0.94rem',
+    lineHeight: 1.15,
+    fontWeight: '700',
+    color: 'var(--color-text-primary)',
   },
   exitButton: {
     minWidth: '148px',
@@ -1711,9 +1765,6 @@ interface Props {
   initialTab?: DashboardTab
   /** Phase 4 Insights rail. Mounted when enabled AND viewport ≥ 1280px. */
   insightsRailEnabled?: boolean
-  insightsVoiceState?: import('../types').InsightsVoiceState
-  insightsInputLevel?: number
-  insightsOutputLevel?: number
 }
 
 type DashboardTab = 'session-detail' | 'memory' | 'recommendations' | 'reports' | 'plan'
@@ -1770,9 +1821,6 @@ export function ProgressDashboard({
   onExitToEntry,
   initialTab,
   insightsRailEnabled = false,
-  insightsVoiceState,
-  insightsInputLevel,
-  insightsOutputLevel,
 }: Props) {
   const styles = useStyles()
   const [planPrompt, setPlanPrompt] = useState('')
@@ -1789,29 +1837,25 @@ export function ProgressDashboard({
   const [manualMemoryStatement, setManualMemoryStatement] = useState('')
   const [breakdownViewBySession, setBreakdownViewBySession] = useState<Record<string, 'articulation' | 'engagement'>>({})
   const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab ?? 'session-detail')
+  const heroRef = useRef<HTMLDivElement | null>(null)
+  const [heroHeight, setHeroHeight] = useState<number | null>(null)
+  useEffect(() => {
+    const el = heroRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(entries => {
+      const h = entries[0]?.contentRect.height
+      if (typeof h === 'number' && h > 0) setHeroHeight(Math.round(h))
+    })
+    observer.observe(el)
+    setHeroHeight(Math.round(el.getBoundingClientRect().height))
+    return () => observer.disconnect()
+  }, [])
   const [reportSourceFilter, setReportSourceFilter] = useState<'all' | 'pipeline' | 'ai_insight' | 'manual'>('all')
   const [reportReviewAcknowledgedId, setReportReviewAcknowledgedId] = useState<string | null>(null)
 
   // --- Phase 4 Insights rail wiring ---
   const [insightsScopeOverride, setInsightsScopeOverride] = useState<InsightsScope | null>(null)
   const [insightsFocusToken, setInsightsFocusToken] = useState(0)
-  const [isLargeViewport, setIsLargeViewport] = useState<boolean>(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
-    return window.matchMedia('(min-width: 1280px)').matches
-  })
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
-    const mq = window.matchMedia('(min-width: 1280px)')
-    const handler = (event: MediaQueryListEvent) => setIsLargeViewport(event.matches)
-    setIsLargeViewport(mq.matches)
-    if (typeof mq.addEventListener === 'function') {
-      mq.addEventListener('change', handler)
-      return () => mq.removeEventListener('change', handler)
-    }
-    // Safari < 14 fallback
-    mq.addListener(handler)
-    return () => mq.removeListener(handler)
-  }, [])
   const derivedInsightsScope = useMemo<InsightsScope>(() => {
     if (activeTab === 'reports' && selectedReport) {
       return {
@@ -1848,6 +1892,11 @@ export function ProgressDashboard({
   }, [insightsScopeOverride, selectedChildId, selectedSession, selectedReport])
   const handleAskAboutThis = useCallback((scope: InsightsScope) => {
     setInsightsScopeOverride(scope)
+    setInsightsRailMode(currentMode => (currentMode === 'full' ? 'full' : 'normal'))
+    setInsightsFocusToken(token => token + 1)
+  }, [])
+  const openInsightsRail = useCallback(() => {
+    setInsightsRailMode('normal')
     setInsightsFocusToken(token => token + 1)
   }, [])
   const askAboutSession = useCallback(() => {
@@ -1859,7 +1908,10 @@ export function ProgressDashboard({
     })
   }, [handleAskAboutThis, selectedSession, selectedChildId])
   const askAboutReport = useCallback(() => {
-    if (!selectedReport) return
+    if (!selectedReport) {
+      setActiveTab('reports')
+      return
+    }
     handleAskAboutThis({
       type: 'report',
       report_id: selectedReport.id,
@@ -1871,7 +1923,8 @@ export function ProgressDashboard({
       selectedChildId ? { type: 'child', child_id: selectedChildId } : { type: 'caseload' },
     )
   }, [handleAskAboutThis, selectedChildId])
-  const shouldMountInsightsRail = insightsRailEnabled && isLargeViewport
+  const shouldMountInsightsRail = insightsRailEnabled
+  const [insightsRailMode, setInsightsRailMode] = useState<InsightsRailMode>(() => readStoredInsightsRailMode())
   useEffect(() => {
     if (initialTab) {
       setActiveTab(initialTab)
@@ -2262,14 +2315,24 @@ export function ProgressDashboard({
   ]
 
   return (
-    <div className={shouldMountInsightsRail ? styles.layoutWithRail : undefined}>
+    <div
+      className={
+        shouldMountInsightsRail
+          ? mergeClasses(
+              styles.layoutWithRail,
+              insightsRailMode === 'collapsed' && styles.layoutWithRailCollapsed,
+              insightsRailMode === 'full' && styles.layoutWithRailFull,
+            )
+          : undefined
+      }
+    >
     <div className={styles.shell}>
-      <div className={styles.hero}>
+      <div className={styles.hero} ref={heroRef}>
         <div className={styles.header}>
           <div className={styles.headerCopy}>
             <Text className={styles.eyebrow}>Therapist analytics</Text>
             <Text className={styles.title} size={700} weight="semibold">
-              Session intelligence dashboard
+              Session progress overview
             </Text>
             {heroSubtitle ? (
               <Text className={styles.subtitle} size={300}>
@@ -2294,10 +2357,10 @@ export function ProgressDashboard({
                   size="small"
                   appearance="subtle"
                   data-testid="insights-launcher-report"
-                  disabled={!selectedReport}
                   onClick={askAboutReport}
+                  title={selectedReport ? 'Ask about this report' : 'Switch to Reports and select one first'}
                 >
-                  Ask about this report
+                  {selectedReport ? 'Ask about this report' : 'Select a report first'}
                 </Button>
                 <Button
                   size="small"
@@ -2312,6 +2375,18 @@ export function ProgressDashboard({
           </div>
 
           <div className={styles.headerActions}>
+            {insightsRailEnabled && insightsRailMode === 'collapsed' ? (
+              <Button
+                appearance="subtle"
+                className={styles.askWuloButton}
+                data-testid="insights-header-launcher"
+                onClick={openInsightsRail}
+                title="Open insights assistant"
+              >
+                <span className={styles.askWuloEyebrow}>AI assistant</span>
+                <span className={styles.askWuloLabel}>Ask Wulo</span>
+              </Button>
+            ) : null}
             <Button appearance="subtle" className={styles.exitButton} onClick={onExitToEntry}>
               Return to start
             </Button>
@@ -4072,14 +4147,27 @@ export function ProgressDashboard({
       </div>
     </div>
     {shouldMountInsightsRail ? (
-      <aside className={styles.railContainer} aria-label="Insights assistant">
+      <aside
+        className={mergeClasses(
+          styles.railContainer,
+          insightsRailMode === 'collapsed' && styles.railContainerHidden,
+          insightsRailMode === 'collapsed' && styles.railContainerCollapsed,
+          insightsRailMode === 'full' && styles.railContainerFull,
+        )}
+        aria-label="Insights assistant"
+        style={
+          insightsRailMode === 'normal' && heroHeight
+            ? { height: `${heroHeight + 52}px` }
+            : undefined
+        }
+      >
         <InsightsRail
           currentScope={currentInsightsScope}
           onScopeChange={next => setInsightsScopeOverride(next)}
           focusToken={insightsFocusToken}
-          voiceState={insightsVoiceState}
-          inputLevel={insightsInputLevel}
-          outputLevel={insightsOutputLevel}
+          mode={insightsRailMode}
+          initialMode={insightsRailMode}
+          onModeChange={setInsightsRailMode}
         />
       </aside>
     ) : null}
