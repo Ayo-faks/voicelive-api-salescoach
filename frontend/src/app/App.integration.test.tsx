@@ -311,6 +311,7 @@ const configResponse = {
   ws_endpoint: '/ws/voice',
   storage_ready: true,
   telemetry_enabled: false,
+  appinsights_connection_string: '',
   image_base_path: '/api/images',
   planner: {
     ready: true,

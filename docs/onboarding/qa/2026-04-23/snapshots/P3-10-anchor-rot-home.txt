@@ -1,0 +1,27 @@
+Probe: presence of tour anchors on /home as dev-therapist-001 (fresh LS + reset ui_state)
+Tool: page.evaluate(document.querySelectorAll)
+
+Selectors checked (from frontend/src/onboarding/tours.ts):
+
+  dashboard-home-greeting          PRESENT on /home
+  dashboard-home-create-exercise   MISSING on /home  (never appears in source — stale doc/spec ref)
+  checklist-widget                 PRESENT on /home
+  help-menu                        MISSING on /home  (the correct testid is `help-menu-trigger`; tours.ts uses the correct one — docs that reference `help-menu` are stale)
+  help-menu-trigger                PRESENT on /home  (welcome-therapist step 4 anchor OK)
+  sidebar-nav-settings             PRESENT on /home  (welcome-therapist step 2 anchor OK)
+  sidebar-nav-dashboard            PRESENT on /home  (welcome-therapist step 3 anchor OK)
+  sidebar-nav-home                 PRESENT on /home  (welcome-parent step 3 anchor OK)
+  session-scenario-picker          MISSING on /home  (expected — only present on /session)
+  session-start-button             MISSING on /home  (expected — only present on /session)
+  insights-rail                    MISSING on /home  (would be present when insights rail open)
+  insights-rail-input              MISSING on /home
+  insights-rail-voice-action       MISSING on /home
+  insights-header-launcher         MISSING on /home  (expected — only on /dashboard)
+  insights-launcher-reports        MISSING on /home  (expected — only on /dashboard)
+
+Also [data-tour] attributes in DOM: 0
+  (plan v2 §Tier B #6 refers to `data-tour="…"` anchors but tours.ts in fact uses `data-testid`.
+   Doc↔code mismatch only; runtime uses the testid selectors, which match.)
+
+Conclusion: welcome-therapist tour anchors that fire on /home (steps 1-4) are ALL present.
+The tour should be able to render. However, see separate findings on beacon/tooltip failure.

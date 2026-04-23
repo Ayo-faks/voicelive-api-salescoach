@@ -106,6 +106,7 @@ API_ADMIN_INVITE_CODES_ENDPOINT = "/api/admin/invite-codes"
 API_WORKSPACES_ENDPOINT = "/api/workspaces"
 API_PILOT_STATE_ENDPOINT = "/api/pilot/state"
 API_CONSENT_ENDPOINT = "/api/pilot/consent"
+API_ME_UI_STATE_ENDPOINT = "/api/me/ui-state"
 API_AGENTS_CREATE_ENDPOINT = "/api/agents/create"
 API_ANALYZE_ENDPOINT = "/api/analyze"
 API_ASSESS_UTTERANCE_ENDPOINT = "/api/assess-utterance"
@@ -632,6 +633,8 @@ def _rate_limit_for_request() -> Optional[tuple[int, int]]:
 
     rule = request.url_rule.rule
     window = int(config.get("rate_limit_default_window_seconds", 60))
+    if rule == API_ME_UI_STATE_ENDPOINT and request.method in {"PATCH", "DELETE"}:
+        return int(config.get("rate_limit_ui_state_limit", 60)), window
     if rule == API_ANALYZE_ENDPOINT:
         return int(config.get("rate_limit_analyze_limit", 30)), window
     if rule in {
@@ -883,7 +886,9 @@ def _insights_voice_mode_for(user: Optional[Dict[str, Any]]) -> str:
     if str(user.get("role") or "") not in {ROLE_THERAPIST, ROLE_ADMIN}:
         return "off"
     mode = str(os.getenv("INSIGHTS_VOICE_MODE", "off") or "off").strip().lower()
-    if mode in {"push_to_talk", "full_duplex"}:
+    if mode == "push_to_talk":
+        return "full_duplex"
+    if mode == "full_duplex":
         return mode
     return "off"
 
@@ -1074,6 +1079,9 @@ def get_config():
             "ws_endpoint": WEBSOCKET_ENDPOINT,
             "storage_ready": True,
             "telemetry_enabled": telemetry_service.enabled,
+            "appinsights_connection_string": config.get(
+                "applicationinsights_connection_string", ""
+            ),
             "image_base_path": "/api/images",
             "planner": planning_service.get_readiness(),
             "insights_rail_enabled": _insights_rail_enabled(
@@ -1082,6 +1090,18 @@ def get_config():
             "insights_voice_mode": _insights_voice_mode_for(
                 cast(Dict[str, Any], user) if user else None
             ),
+            "onboarding": {
+                # Kill switch for the v2 onboarding/guidance system
+                # (docs/onboarding/onboarding-plan-v2.md). Setting
+                # ONBOARDING_TOURS_ENABLED=false via azd env disables
+                # all tours without a release.
+                "tours_enabled": os.environ.get(
+                    "ONBOARDING_TOURS_ENABLED", "true"
+                ).strip().lower() not in ("false", "0", "no"),
+                "forced_reset": os.environ.get(
+                    "ONBOARDING_FORCED_RESET", "false"
+                ).strip().lower() in ("true", "1", "yes"),
+            },
         }
     )
 
@@ -2560,6 +2580,168 @@ def get_insights_conversation(conversation_id: str):
     return jsonify(payload)
 
 
+# ---------------------------------------------------------------------------
+# UI state (onboarding/guidance persistence)
+# ---------------------------------------------------------------------------
+#
+# Implements Phase 1 of docs/onboarding/onboarding-plan-v2.md. These routes are
+# authenticated-only — they must remain gated by Easy Auth and must NOT appear
+# in ``globalValidation.excludedPaths`` in infra/resources.bicep.
+
+
+@app.route("/api/me/ui-state", methods=["GET"])
+def get_me_ui_state():
+    """Return the current user's UI state blob."""
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+    user_id = str(cast(Dict[str, Any], user).get("id"))
+    state = storage_service.get_user_ui_state(user_id)
+    return jsonify({"ui_state": state or {}})
+
+
+@app.route("/api/me/ui-state", methods=["PATCH"])
+def patch_me_ui_state():
+    """Shallow-merge a validated patch into the current user's UI state."""
+    from src.schemas.ui_state import validate_ui_state_patch
+
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+    user_id = str(cast(Dict[str, Any], user).get("id"))
+
+    body = request.get_json(silent=True)
+    patch, errors = validate_ui_state_patch(body)
+    if errors:
+        return jsonify({"error": "invalid_ui_state_patch", "details": errors}), 422
+
+    try:
+        merged = storage_service.patch_user_ui_state(user_id, patch)
+    except ValueError as error:
+        code = str(error)
+        if code == "user_not_found":
+            return jsonify({"error": "user_not_found"}), HTTP_NOT_FOUND
+        if code == "ui_state_too_large":
+            return jsonify({"error": "ui_state_too_large"}), 413
+        raise
+
+    try:
+        storage_service.log_ui_state_audit(
+            user_id=user_id,
+            event="ui_state.patched",
+            payload={"keys": sorted(patch.keys())},
+        )
+    except Exception:  # pragma: no cover - audit must never break the write
+        logger.exception("Failed to record ui_state_audit row for %s", user_id)
+
+    _log_audit_event(
+        user_id=user_id,
+        action="ui_state.patched",
+        resource_type="ui_state",
+        resource_id=user_id,
+        metadata={"keys": sorted(patch.keys())},
+    )
+    return jsonify({"ui_state": merged})
+
+
+@app.route("/api/me/ui-state", methods=["DELETE"])
+def delete_me_ui_state():
+    """Reset the current user's UI state to ``{}`` (audited)."""
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+    user_id = str(cast(Dict[str, Any], user).get("id"))
+
+    try:
+        storage_service.reset_user_ui_state(user_id)
+    except ValueError as error:
+        if str(error) == "user_not_found":
+            return jsonify({"error": "user_not_found"}), HTTP_NOT_FOUND
+        raise
+
+    try:
+        storage_service.log_ui_state_audit(
+            user_id=user_id,
+            event="ui_state.reset",
+            payload={},
+        )
+    except Exception:  # pragma: no cover
+        logger.exception("Failed to record ui_state_audit reset for %s", user_id)
+
+    _log_audit_event(
+        user_id=user_id,
+        action="ui_state.reset",
+        resource_type="ui_state",
+        resource_id=user_id,
+    )
+    return jsonify({"ui_state": {}})
+
+
+@app.route("/api/children/<child_id>/ui-state", methods=["GET"])
+def get_child_ui_state(child_id: str):
+    """Return the per-exercise first-run flags for ``child_id`` viewed by this therapist."""
+    user, guard_response = _require_child_access(
+        child_id,
+        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+        allowed_relationships=["therapist"],
+    )
+    if guard_response is not None:
+        return guard_response
+    user_id = str(cast(Dict[str, Any], user).get("id"))
+    payload = storage_service.get_child_ui_state(child_id, user_id)
+    return jsonify(payload)
+
+
+@app.route("/api/children/<child_id>/ui-state", methods=["PUT"])
+def put_child_ui_state(child_id: str):
+    """Set or clear a first-run marker for ``(child_id, this-therapist, exercise_type)``."""
+    from src.schemas.ui_state import validate_child_ui_state_put
+
+    user, guard_response = _require_child_access(
+        child_id,
+        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+        allowed_relationships=["therapist"],
+    )
+    if guard_response is not None:
+        return guard_response
+    user_id = str(cast(Dict[str, Any], user).get("id"))
+
+    body = request.get_json(silent=True)
+    payload, errors = validate_child_ui_state_put(body)
+    if errors:
+        return jsonify({"error": "invalid_child_ui_state", "details": errors}), 422
+
+    result = storage_service.put_child_ui_state_first_run(
+        child_id=child_id,
+        user_id=user_id,
+        exercise_type=payload["exercise_type"],
+        first_run=payload["first_run"],
+    )
+
+    try:
+        storage_service.log_ui_state_audit(
+            user_id=user_id,
+            event="child_ui_state.put",
+            payload={
+                "child_id": child_id,
+                "exercise_type": payload["exercise_type"],
+                "first_run": payload["first_run"],
+            },
+        )
+    except Exception:  # pragma: no cover
+        logger.exception("Failed to record child ui_state_audit row for %s", user_id)
+
+    _log_audit_event(
+        user_id=user_id,
+        action="child_ui_state.put",
+        resource_type="child_ui_state",
+        resource_id=f"{child_id}:{payload['exercise_type']}",
+        child_id=child_id,
+        metadata={"first_run": payload["first_run"]},
+    )
+    return jsonify(result)
+
+
 @app.route(API_CHILD_RECOMMENDATIONS_ENDPOINT, methods=["GET", "POST"])
 def child_recommendations(child_id: str):
     """List or generate therapist-facing next-exercise recommendations."""
@@ -3493,6 +3675,10 @@ def insights_voice_socket(ws: simple_websocket.ws.Server):
         conversation_id=conversation_id,
     )
     handler.run()
+    try:
+        ws.close(1000)
+    except Exception:
+        logger.debug("Failed to close insights voice websocket cleanly", exc_info=True)
 
 
 sock.route("/ws/insights-voice")(insights_voice_socket)  # pyright: ignore[reportUnknownMemberType]

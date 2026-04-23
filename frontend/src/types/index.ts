@@ -483,6 +483,7 @@ export type VisualizationSpec = VisualizationChartSpec | VisualizationTableSpec
 
 export type InsightsVoiceState =
   | 'idle'
+  | 'connecting'
   | 'listening'
   | 'thinking'
   | 'speaking'
@@ -491,6 +492,7 @@ export type InsightsVoiceState =
 
 export const INSIGHTS_VOICE_STATES: readonly InsightsVoiceState[] = [
   'idle',
+  'connecting',
   'listening',
   'thinking',
   'speaking',
@@ -581,7 +583,13 @@ export interface TurnInterrupted {
   type: 'turn.interrupted'
 }
 
+export interface TurnStateEvent {
+  type: 'state'
+  agent_state: 'listening' | 'thinking' | 'speaking' | 'idle'
+}
+
 export type InsightsVoiceEnvelope =
+  | TurnStateEvent
   | TurnStarted
   | TurnPartialTranscript
   | TurnFinalTranscript
@@ -954,10 +962,41 @@ export interface AppConfig {
   ws_endpoint: string
   storage_ready: boolean
   telemetry_enabled: boolean
+  appinsights_connection_string?: string
   image_base_path: string
   planner?: PlannerReadiness
   insights_rail_enabled?: boolean
   insights_voice_mode?: InsightsVoiceMode
+  onboarding?: OnboardingFlags
+}
+
+export interface OnboardingFlags {
+  tours_enabled: boolean
+  forced_reset: boolean
+}
+
+/** Server-persisted UI state for the onboarding / guidance system
+ * (docs/onboarding/onboarding-plan-v2.md). Shape matches the allowlist
+ * enforced by backend/src/schemas/ui_state.py.
+ */
+export interface UiState {
+  tours_seen?: string[]
+  announcements_dismissed?: string[]
+  checklist_state?: Record<string, boolean>
+  help_mode?: 'auto' | 'off'
+  onboarding_complete?: boolean
+}
+
+export interface ChildUiStateEntry {
+  exercise_type: string
+  first_run_at: string | null
+  updated_at: string
+}
+
+export interface ChildUiState {
+  child_id: string
+  user_id: string
+  exercises: ChildUiStateEntry[]
 }
 
 // --- Phase 4 Insights Agent ----------------------------------------------

@@ -25,6 +25,7 @@ import type {
   ChildMemoryEvidenceLink,
   ChildMemoryReviewResult,
   ChildMemorySummary,
+  ChildUiState,
   CustomScenarioData,
   CustomScenario,
   ExerciseMetadata,
@@ -36,6 +37,7 @@ import type {
   SessionSummary,
   Scenario,
   TherapistFeedbackRating,
+  UiState,
   WorkspaceSummary,
   InsightsScope,
   InsightsAskResponse,
@@ -190,6 +192,65 @@ export const api = {
         configPromise = null
       })
     return configPromise
+  },
+
+  // --- UI state (onboarding-plan-v2 Phase 1) ---
+  async getUiState(): Promise<UiState> {
+    const res = await fetchWithAuth('/api/me/ui-state')
+    if (res.status === 401) throw new Error('UNAUTHORIZED')
+    if (!res.ok) throw new Error('Failed to load ui_state')
+    const data = (await res.json()) as { ui_state?: UiState }
+    return data.ui_state ?? {}
+  },
+
+  async patchUiState(patch: UiState): Promise<UiState> {
+    const res = await fetchWithAuth('/api/me/ui-state', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      const error = new Error(data?.error || 'Failed to save ui_state') as Error & {
+        status?: number
+        details?: unknown
+      }
+      error.status = res.status
+      error.details = data?.details
+      throw error
+    }
+    const data = (await res.json()) as { ui_state?: UiState }
+    return data.ui_state ?? {}
+  },
+
+  async resetUiState(): Promise<UiState> {
+    const res = await fetchWithAuth('/api/me/ui-state', { method: 'DELETE' })
+    if (!res.ok) throw new Error('Failed to reset ui_state')
+    const data = (await res.json()) as { ui_state?: UiState }
+    return data.ui_state ?? {}
+  },
+
+  async getChildUiState(childId: string): Promise<ChildUiState> {
+    const res = await fetchWithAuth(
+      `/api/children/${encodeURIComponent(childId)}/ui-state`
+    )
+    if (!res.ok) throw new Error('Failed to load child ui_state')
+    return res.json()
+  },
+
+  async putChildUiState(
+    childId: string,
+    payload: { exercise_type: string; first_run: boolean }
+  ): Promise<void> {
+    const res = await fetchWithAuth(
+      `/api/children/${encodeURIComponent(childId)}/ui-state`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }
+    )
+    if (!res.ok) throw new Error('Failed to save child ui_state')
   },
 
   async getScenarios(): Promise<Scenario[]> {

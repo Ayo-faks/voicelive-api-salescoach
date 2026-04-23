@@ -1,0 +1,24 @@
+Filter: (dc.services|clarity|applicationinsights|monitor.azure|/api/events|/api/telemetry)
+Window: from entry into child mode (localStorage['wulo.user.mode']='child') through HandOffInterstitial dismissal and mascot render.
+Result: ZERO matching requests.
+
+Supporting context (same window, /api/children|/api/me):
+[GET]  /api/children
+[GET]  /api/me/ui-state
+[GET]  /api/children?workspace_id=workspace-c5f4c29bb8e2
+[GET]  /api/children/child-93c14c056994/sessions
+[GET]  /api/children/child-93c14c056994/plans
+[GET]  /api/children/child-93c14c056994/reports?limit=20
+[GET]  /api/children/child-93c14c056994/memory/summary
+[GET]  /api/children/child-93c14c056994/memory/items?include_evidence=true
+[GET]  /api/children/child-93c14c056994/memory/proposals?status=pending&include_evidence=true
+[GET]  /api/children/child-93c14c056994/recommendations?limit=10
+[GET]  /api/children/child-93c14c056994/ui-state
+[PUT]  /api/children/child-93c14c056994/ui-state
+       body: {"exercise_type":"__mascot__","first_run":true}
+
+Spy probe (window.__wuloTelemetrySpy):
+  insightsRequests: []
+  clarityRequests: []
+
+Caveat: see finding "Telemetry sink never wired" — registerAppInsightsSink() is defined in src/services/telemetry.ts but never called anywhere in src/, so trackEvent() is a no-op in ALL modes, not just child mode. The zero-telemetry observation here does not, on its own, prove the child-mode seal; it proves only that no AI connection is live. Re-run this test in an environment where a sink is registered.

@@ -1,0 +1,22 @@
+Test: F-03 Rate-limit on PATCH /api/me/ui-state
+Setup: logged-in as dev-therapist-001 (LOCAL_DEV_AUTH=true)
+Harness: 62 sequential PATCH requests with body {"tours_seen":["test-N"]}, each awaited.
+
+Result:
+  total: 62
+  HTTP 200: 62
+  HTTP 429: 0
+  first 429 index: -1 (never occurred)
+
+Expected per docs/onboarding/onboarding-plan-v2.md Tier A §2:
+  "Rate limit: 60/min per user-key"
+
+Observation: no rate-limit middleware is applied to this route, OR the rate-limit bucket is wider than documented. Fails loose-DoS protection goal.
+
+---
+
+Test: F-04 Unknown key rejection
+Request: PATCH /api/me/ui-state body {"totally_unknown_key_xyz":"nope"}
+Response: 422
+Body: {"details":["unknown field 'totally_unknown_key_xyz'"],"error":"invalid_ui_state_patch"}
+Result: PASS

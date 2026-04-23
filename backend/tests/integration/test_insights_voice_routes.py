@@ -7,9 +7,10 @@ import json
 from collections.abc import Iterator
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import Mock, patch
+from unittest.mock import ANY, Mock, patch
 
 import pytest
+from simple_websocket.errors import ConnectionClosed
 
 import src.app as app_module
 import src.services.insights_websocket_handler as handler_module
@@ -31,15 +32,25 @@ def _pcm_chunk_base64() -> str:
 
 
 class FakeWebSocket:
-    def __init__(self, *, environ: dict[str, str] | None = None, frames: list[str] | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        environ: dict[str, str] | None = None,
+        frames: list[str] | None = None,
+        close_when_empty: bool = False,
+    ) -> None:
         self.environ = environ or {}
         self.frames = list(frames or [])
+        self.close_when_empty = close_when_empty
         self.sent: list[str] = []
         self.closed: tuple[object, object] | None = None
 
     def receive(self, timeout: float | None = None) -> str | None:
-        del timeout
         if not self.frames:
+            if timeout == 0:
+                return None
+            if self.close_when_empty:
+                raise ConnectionClosed()
             return None
         return self.frames.pop(0)
 
@@ -87,21 +98,33 @@ class FakeFuture:
 
 
 class FakePushStream:
-    def __init__(self) -> None:
+    def __init__(self, *, recognizer: "FakeRecognizer | None" = None) -> None:
+        self.recognizer = recognizer
         self.writes: list[bytes] = []
         self.closed = False
 
     def write(self, chunk: bytes) -> None:
         self.writes.append(chunk)
+        if self.recognizer is not None:
+            self.recognizer.on_audio_written(chunk)
 
     def close(self) -> None:
         self.closed = True
 
 
 class FakeRecognizer:
-    def __init__(self, *, partials: list[str], finals: list[str]) -> None:
-        self.partials = partials
-        self.finals = finals
+    def __init__(
+        self,
+        *,
+        partials: list[str] | None = None,
+        finals: list[str] | None = None,
+        turns: list[tuple[list[str], list[str]]] | None = None,
+    ) -> None:
+        resolved_turns = turns
+        if resolved_turns is None:
+            resolved_turns = [(list(partials or []), list(finals or []))]
+        self.turns = list(resolved_turns)
+        self._buffered_audio = bytearray()
         self.recognizing = FakeSignal()
         self.recognized = FakeSignal()
         self.canceled = FakeSignal()
@@ -111,26 +134,37 @@ class FakeRecognizer:
         return FakeFuture()
 
     def stop_continuous_recognition_async(self) -> FakeFuture:
-        for text in self.partials:
-            self.recognizing.emit(
-                SimpleNamespace(
-                    result=SimpleNamespace(
-                        reason=handler_module.speechsdk.ResultReason.RecognizingSpeech,
-                        text=text,
-                    )
-                )
-            )
-        for text in self.finals:
-            self.recognized.emit(
-                SimpleNamespace(
-                    result=SimpleNamespace(
-                        reason=handler_module.speechsdk.ResultReason.RecognizedSpeech,
-                        text=text,
-                    )
-                )
-            )
         self.session_stopped.emit(SimpleNamespace())
         return FakeFuture()
+
+    def on_audio_written(self, chunk: bytes) -> None:
+        if not chunk:
+            return
+        if all(byte == 0 for byte in chunk):
+            if not self._buffered_audio:
+                return
+            partials, finals = self.turns.pop(0) if self.turns else ([], [])
+            for text in partials:
+                self.recognizing.emit(
+                    SimpleNamespace(
+                        result=SimpleNamespace(
+                            reason=handler_module.speechsdk.ResultReason.RecognizingSpeech,
+                            text=text,
+                        )
+                    )
+                )
+            for text in finals:
+                self.recognized.emit(
+                    SimpleNamespace(
+                        result=SimpleNamespace(
+                            reason=handler_module.speechsdk.ResultReason.RecognizedSpeech,
+                            text=text,
+                        )
+                    )
+                )
+            self._buffered_audio.clear()
+            return
+        self._buffered_audio.extend(chunk)
 
 
 def _parse_events(ws: FakeWebSocket) -> list[dict]:
@@ -256,9 +290,10 @@ def test_insights_voice_scope_override_attempt_is_ignored(
                 }
             ),
         ],
+        close_when_empty=True,
     )
     recognizer = FakeRecognizer(partials=["How is she"], finals=["How is she doing?"])
-    push_stream = FakePushStream()
+    push_stream = FakePushStream(recognizer=recognizer)
 
     with patch("src.services.insights_websocket_handler.DefaultAzureCredential"), patch(
         "src.services.insights_websocket_handler.get_bearer_token_provider",
@@ -269,7 +304,7 @@ def test_insights_voice_scope_override_attempt_is_ignored(
         return_value=(recognizer, push_stream),
     ), patch(
         "src.services.insights_websocket_handler.requests.post",
-        return_value=FakeResponse(chunks=[b"pcm-a"]),
+        return_value=FakeResponse(chunks=[b"pcma"]),
     ) as mock_post:
         app_module.insights_voice_socket(ws)
 
@@ -278,9 +313,99 @@ def test_insights_voice_scope_override_attempt_is_ignored(
         scope={"type": "child", "child_id": child["id"]},
         message="How is she doing?",
         conversation_id=None,
+        request_id=ANY,
     )
     assert mock_post.call_count == 1
     assert push_stream.closed is True
-    assert push_stream.writes == [base64.b64decode(_pcm_chunk_base64())]
+    assert push_stream.writes[0] == base64.b64decode(_pcm_chunk_base64())
+    assert all(byte == 0 for byte in push_stream.writes[1])
     assert any(event["type"] == "turn.partial_transcript" for event in _parse_events(ws))
-    assert ws.closed is None
+    assert ws.closed == (1000, None)
+
+
+def test_insights_voice_route_keeps_socket_open_across_two_turns(
+    storage: StorageService, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setenv("INSIGHTS_VOICE_MODE", "push_to_talk")
+    storage.get_or_create_user("therapist-a", "a@example.com", "A", "aad")
+    child = storage.create_child(
+        name="Ayo",
+        created_by_user_id="therapist-a",
+        relationship="therapist",
+    )
+    ask = Mock(
+        side_effect=[
+            {
+                "conversation": {"id": "conv-1"},
+                "assistant_message": {
+                    "content_text": "Stay with short /t/ phrases.",
+                    "citations": [],
+                    "visualizations": [],
+                },
+            },
+            {
+                "conversation": {"id": "conv-1"},
+                "assistant_message": {
+                    "content_text": "Now try a longer sentence.",
+                    "citations": [],
+                    "visualizations": [],
+                },
+            },
+        ]
+    )
+    app_module.insights_service = Mock(ask=ask)
+    second_chunk = base64.b64encode((b"\x01\x00\x02\x00" * 64)).decode("ascii")
+    ws = FakeWebSocket(
+        environ={
+            **_headers("therapist-a", "a@example.com"),
+            "QUERY_STRING": f"scope_type=child&child_id={child['id']}",
+        },
+        frames=[
+            json.dumps({"type": "user_audio_chunk", "data": _pcm_chunk_base64()}),
+            json.dumps({"type": "user_stop"}),
+            json.dumps({"type": "user_audio_chunk", "data": second_chunk}),
+            json.dumps({"type": "user_stop"}),
+        ],
+        close_when_empty=True,
+    )
+    recognizer = FakeRecognizer(
+        turns=[
+            (["How is she"], ["How is she doing?"]),
+            (["Try a"], ["Try a longer sentence"]),
+        ]
+    )
+    push_stream = FakePushStream(recognizer=recognizer)
+
+    with patch("src.services.insights_websocket_handler.DefaultAzureCredential"), patch(
+        "src.services.insights_websocket_handler.get_bearer_token_provider",
+        return_value=lambda: "token-123",
+    ), patch.object(
+        handler_module.InsightsVoiceHandler,
+        "_create_speech_recognizer",
+        return_value=(recognizer, push_stream),
+    ), patch(
+        "src.services.insights_websocket_handler.requests.post",
+        side_effect=[FakeResponse(chunks=[b"pcma"]), FakeResponse(chunks=[b"pcmb"])],
+    ):
+        app_module.insights_voice_socket(ws)
+
+    assert ask.call_count == 2
+    events = _parse_events(ws)
+    completed_events = [event for event in events if event["type"] == "turn.completed"]
+    assert len(completed_events) == 2
+    assert [event["answer_text"] for event in completed_events] == [
+        "Stay with short /t/ phrases.",
+        "Now try a longer sentence.",
+    ]
+    assert [event["agent_state"] for event in events if event["type"] == "state"] == [
+        "listening",
+        "thinking",
+        "speaking",
+        "listening",
+        "thinking",
+        "speaking",
+        "listening",
+    ]
+    assert push_stream.closed is True
+    assert sum(1 for chunk in push_stream.writes if all(byte == 0 for byte in chunk)) == 2
+    assert ws.closed == (1000, None)

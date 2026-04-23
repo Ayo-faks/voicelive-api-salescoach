@@ -643,7 +643,7 @@ export function SilentSortingPanel({
         label="Cards sorted"
       />
       <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-        <div className={styles.homes}>
+        <div className={styles.homes} data-testid="silent-sorting-bins">
           <SortingDropZone
             bucket="target"
             title={`${getPerceptLabel(targetSound)} home`}
@@ -800,7 +800,7 @@ function ExposeSlotBody({
           ))}
         </div>
       ) : null}
-      <div className={styles.previewRow}>
+      <div className={styles.previewRow} data-testid="silent-sorting-sample">
         <Button
           appearance="secondary"
           className={styles.previewButton}

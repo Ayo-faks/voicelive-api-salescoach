@@ -2333,7 +2333,7 @@ export function ProgressDashboard({
         <div className={styles.header}>
           <div className={styles.headerCopy}>
             <Text className={styles.eyebrow}>Therapist analytics</Text>
-            <Text className={styles.title} size={700} weight="semibold">
+            <Text className={styles.title} size={700} weight="semibold" data-testid="progress-dashboard-heading">
               Session progress overview
             </Text>
             {heroSubtitle ? (
@@ -2377,13 +2377,13 @@ export function ProgressDashboard({
           </div>
 
           <div className={styles.headerActions}>
-            {insightsRailEnabled && insightsRailMode === 'collapsed' ? (
+            {insightsRailEnabled ? (
               <Button
                 appearance="subtle"
                 className={styles.askWuloButton}
                 data-testid="insights-header-launcher"
                 onClick={openInsightsRail}
-                title="Open insights assistant"
+                title={insightsRailMode === 'collapsed' ? 'Open insights assistant' : 'Focus insights assistant'}
               >
                 <span className={styles.askWuloEyebrow}>AI assistant</span>
                 <span className={styles.askWuloLabel}>Ask Wulo</span>
@@ -2595,12 +2595,12 @@ export function ProgressDashboard({
               }
             />
 
-            <TabList selectedValue={activeTab} onTabSelect={handleTabSelect} className={styles.topTabs}>
-              <Tab className={styles.topTab} value="session-detail">Session detail</Tab>
-              <Tab className={styles.topTab} value="memory">Memory</Tab>
-              <Tab className={styles.topTab} value="recommendations">Recommendations</Tab>
-              <Tab className={styles.topTab} value="reports">Reports</Tab>
-              <Tab className={styles.topTab} value="plan">Plan</Tab>
+            <TabList selectedValue={activeTab} onTabSelect={handleTabSelect} className={styles.topTabs} data-testid="dashboard-review-tabs">
+              <Tab className={styles.topTab} value="session-detail" data-testid="dashboard-tab-session-detail">Session detail</Tab>
+              <Tab className={styles.topTab} value="memory" data-testid="dashboard-tab-memory">Memory</Tab>
+              <Tab className={styles.topTab} value="recommendations" data-testid="dashboard-tab-recommendations">Recommendations</Tab>
+              <Tab className={styles.topTab} value="reports" data-testid="dashboard-tab-reports">Reports</Tab>
+              <Tab className={styles.topTab} value="plan" data-testid="dashboard-tab-plan">Plan</Tab>
             </TabList>
 
             {activeTab === 'session-detail' ? (

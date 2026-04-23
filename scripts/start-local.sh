@@ -39,6 +39,7 @@ fi
 
 export PUBLIC_APP_URL="${PUBLIC_APP_URL:-http://127.0.0.1:5173}"
 export LOCAL_DEV_AUTH="${LOCAL_DEV_AUTH:-true}"
+export INSIGHTS_VOICE_MODE="${INSIGHTS_VOICE_MODE:-full_duplex}"
 export LOCAL_DEV_USER_ROLE="${LOCAL_DEV_USER_ROLE:-therapist}"
 export LOCAL_DEV_USER_ID="${LOCAL_DEV_USER_ID:-dev-therapist-001}"
 export LOCAL_DEV_USER_NAME="${LOCAL_DEV_USER_NAME:-Dev Therapist}"

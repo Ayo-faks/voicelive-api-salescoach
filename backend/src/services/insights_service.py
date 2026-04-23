@@ -83,6 +83,7 @@ class InsightsRequestContext:
     child_memory_service: Optional[Any] = None
     institutional_memory_service: Optional[Any] = None
     deadline_monotonic: Optional[float] = None
+    request_id: Optional[str] = None
 
     def check_deadline(self) -> None:
         if self.deadline_monotonic is None:
@@ -306,6 +307,7 @@ class InsightsService:
         scope: Optional[Mapping[str, Any]] = None,
         conversation_id: Optional[str] = None,
         workspace_id: Optional[str] = None,
+        request_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Run one bounded turn and return the updated conversation payload."""
 
@@ -343,6 +345,7 @@ class InsightsService:
             child_memory_service=self.child_memory_service,
             institutional_memory_service=self.institutional_memory_service,
             deadline_monotonic=deadline,
+            request_id=request_id,
         )
 
         start = time.monotonic()
@@ -416,6 +419,27 @@ class InsightsService:
 
     def _build_tools(self) -> Dict[str, InsightsTool]:
         return {
+            "get_child_planning_snapshot": InsightsTool(
+                name="get_child_planning_snapshot",
+                description=(
+                    "Fast one-call child planning snapshot for therapist summary, trend, "
+                    "and next-session focus questions. Returns child overview, recent "
+                    "session score summary, recent sessions, recent progress reports, and "
+                    "recent approved memory items. Prefer this before chaining multiple "
+                    "child tools when the active scope already includes a child_id."
+                ),
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "child_id": {"type": "string"},
+                        "session_limit": {"type": "integer", "minimum": 1, "maximum": 20},
+                        "report_limit": {"type": "integer", "minimum": 1, "maximum": 10},
+                        "memory_limit": {"type": "integer", "minimum": 1, "maximum": 10},
+                    },
+                    "required": ["child_id"],
+                },
+                handler=self._tool_get_child_planning_snapshot,
+            ),
             "get_child_overview": InsightsTool(
                 name="get_child_overview",
                 description=(
@@ -517,6 +541,95 @@ class InsightsService:
             "recent_session_count": len(sessions),
         }
 
+    def _tool_get_child_planning_snapshot(
+        self, args: Dict[str, Any], context: InsightsRequestContext
+    ) -> Dict[str, Any]:
+        context.check_deadline()
+        child_id = str(args.get("child_id") or "").strip()
+        if not child_id:
+            raise ValueError("child_id is required")
+        self._require_child_access(context.user_id, child_id)
+
+        session_limit = _clamp_int(args.get("session_limit"), 1, 20, default=8)
+        report_limit = _clamp_int(args.get("report_limit"), 1, 10, default=5)
+        memory_limit = _clamp_int(args.get("memory_limit"), 1, 10, default=5)
+
+        child = context.storage_service.get_child(child_id)
+        if child is None:
+            raise ValueError("child not found")
+
+        sessions = _safe_list_sessions(context.storage_service, child_id)
+        reports = _safe_list_progress_reports(context.storage_service, child_id)
+        memory_items = _safe_list_child_memory_items(context.storage_service, child_id)
+
+        session_rows: List[Dict[str, Any]] = []
+        scores: List[float] = []
+        latest_score: Optional[float] = None
+        for session in sessions[:session_limit]:
+            score_raw = session.get("overall_score")
+            score_value: Optional[float] = None
+            if isinstance(score_raw, (int, float)):
+                score_value = float(score_raw)
+                scores.append(score_value)
+                if latest_score is None:
+                    latest_score = score_value
+            session_rows.append(
+                {
+                    "id": session.get("id"),
+                    "timestamp": session.get("timestamp"),
+                    "overall_score": score_raw,
+                }
+            )
+
+        report_rows: List[Dict[str, Any]] = []
+        for report in reports[:report_limit]:
+            report_rows.append(
+                {
+                    "id": report.get("id"),
+                    "title": report.get("title"),
+                    "status": report.get("status"),
+                    "source": report.get("source"),
+                    "created_at": report.get("created_at"),
+                }
+            )
+
+        approved_memory_rows: List[Dict[str, Any]] = []
+        for item in memory_items[:memory_limit]:
+            approved_memory_rows.append(
+                {
+                    "id": item.get("id"),
+                    "category": item.get("category"),
+                    "key": item.get("key"),
+                    "value": item.get("value"),
+                    "updated_at": item.get("updated_at"),
+                }
+            )
+
+        session_summary: Dict[str, Any] = {
+            "recent_session_count": len(sessions),
+            "scores_available": len(scores),
+            "latest_overall_score": latest_score,
+        }
+        if scores:
+            session_summary.update(
+                {
+                    "average_overall_score": round(sum(scores) / len(scores), 1),
+                    "min_overall_score": min(scores),
+                    "max_overall_score": max(scores),
+                }
+            )
+
+        return {
+            "child": {
+                "id": child.get("id"),
+                "name": child.get("name"),
+            },
+            "session_summary": session_summary,
+            "recent_sessions": session_rows,
+            "progress_reports": report_rows,
+            "approved_memory_items": approved_memory_rows,
+        }
+
     def _tool_list_sessions(
         self, args: Dict[str, Any], context: InsightsRequestContext
     ) -> List[Dict[str, Any]]:
@@ -571,20 +684,10 @@ class InsightsService:
         self._require_child_access(context.user_id, child_id)
         query = str(args.get("query") or "").strip().lower()
         limit = _clamp_int(args.get("limit"), 1, 20, default=10)
-        list_items = getattr(context.storage_service, "list_child_memory_items", None)
-        if not callable(list_items):
-            return []
-        try:
-            items = list_items(child_id) or []
-        except TypeError:
-            items = list_items(child_id=child_id) or []
-        if not isinstance(items, list):
-            return []
+        items = _safe_list_child_memory_items(context.storage_service, child_id)
         results: List[Dict[str, Any]] = []
         for item in items:
             if not isinstance(item, dict):
-                continue
-            if item.get("status") not in (None, "approved", "active"):
                 continue
             text_blob = " ".join(
                 str(item.get(k) or "") for k in ("category", "key", "value", "note", "summary")
@@ -659,6 +762,10 @@ class InsightsService:
             "product. Answer concisely with clinician-appropriate language. "
             "Only use the provided read-only tools to fetch data. Never "
             "invent child names, scores, or sessions. "
+            "For child-scoped summary, trend, planning, or next-session focus "
+            "questions, call get_child_planning_snapshot first and do not chain "
+            "get_child_overview, list_sessions, list_progress_reports, and "
+            "search_memory unless the snapshot is missing a required detail. "
             "When the active scope includes a child_id, session_id, or "
             "report_id, you MUST pass those exact IDs verbatim as tool "
             "arguments — never pass a child's display name (e.g. 'John') "
@@ -763,3 +870,27 @@ def _safe_list_progress_reports(storage: Any, child_id: str) -> List[Dict[str, A
         logger.exception("list_progress_reports_for_child failed")
         return []
     return list(result) if isinstance(result, list) else []
+
+
+def _safe_list_child_memory_items(storage: Any, child_id: str) -> List[Dict[str, Any]]:
+    fn = getattr(storage, "list_child_memory_items", None)
+    if not callable(fn):
+        return []
+    try:
+        result = fn(child_id) or []
+    except TypeError:
+        result = fn(child_id=child_id) or []
+    except Exception:
+        logger.exception("list_child_memory_items failed")
+        return []
+    if not isinstance(result, list):
+        return []
+    filtered: List[Dict[str, Any]] = []
+    for item in result:
+        if not isinstance(item, dict):
+            continue
+        if item.get("status") not in (None, "approved", "active"):
+            continue
+        filtered.append(item)
+    filtered.sort(key=lambda item: str(item.get("updated_at") or ""), reverse=True)
+    return filtered

@@ -23,6 +23,8 @@ import {
 } from '@heroicons/react/24/outline'
 import { APP_RELEASE_LABEL } from '../app/branding'
 import type { ChildProfile, WorkspaceSummary } from '../types'
+import { HelpMenu } from './onboarding/HelpMenu'
+import { requestReplayTour } from '../onboarding/bus'
 
 const useStyles = makeStyles({
   root: {
@@ -305,6 +307,7 @@ interface SidebarNavProps {
   collapsed: boolean
   mobileOpen: boolean
   isTherapist: boolean
+  userRole: string | null
   showDashboardNav: boolean
   settingsLabel: string
   childProfiles: ChildProfile[]
@@ -332,6 +335,7 @@ export function SidebarNav({
   collapsed,
   mobileOpen,
   isTherapist,
+  userRole,
   showDashboardNav,
   settingsLabel,
   childProfiles,
@@ -402,6 +406,7 @@ export function SidebarNav({
                 !isExpanded && styles.navButtonCollapsed,
               )}
               onClick={onNavigateHome}
+              data-testid="sidebar-nav-home"
             >
               {isExpanded ? 'Home' : ''}
             </Button>
@@ -415,6 +420,7 @@ export function SidebarNav({
               )}
               onClick={onNavigateDashboard}
               style={{ display: showDashboardNav ? undefined : 'none' }}
+              data-testid="sidebar-nav-dashboard"
             >
               {isExpanded ? 'Progress' : ''}
             </Button>
@@ -427,6 +433,7 @@ export function SidebarNav({
                 !isExpanded && styles.navButtonCollapsed,
               )}
               onClick={onNavigateSettings}
+              data-testid="sidebar-nav-settings"
             >
               {isExpanded ? settingsLabel : ''}
             </Button>
@@ -480,6 +487,13 @@ export function SidebarNav({
         </div>
 
         <div className={styles.footer}>
+          {isExpanded ? (
+            <HelpMenu
+              currentRole={userRole}
+              onReplayTour={tourId => requestReplayTour(tourId)}
+              triggerClassName={styles.footerButton}
+            />
+          ) : null}
           {isTherapist && isExpanded ? (
             <Button
               appearance="subtle"

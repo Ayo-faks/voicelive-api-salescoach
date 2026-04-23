@@ -26,7 +26,7 @@ import {
   ChevronDownIcon,
   PlusIcon,
 } from '@heroicons/react/24/outline'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, lazy, Suspense } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { AssessmentPanel } from '../components/AssessmentPanel'
 import { AuthGateScreen } from '../components/AuthGateScreen'
@@ -35,6 +35,17 @@ import { ChildHome } from '../components/ChildHome'
 import { ConsentScreen } from '../components/ConsentScreen'
 import { DashboardHome } from '../components/DashboardHome'
 import { OnboardingFlow } from '../components/OnboardingFlow'
+import { OnboardingRuntime } from '../components/onboarding/OnboardingRuntime'
+import { ChecklistContainer } from '../components/onboarding/ChecklistContainer'
+
+// Lazy-load the child-onboarding bundle so adult boots do not pay the
+// cost and child tablets do not pay the adult onboarding cost (Phase 4
+// performance budget).
+const LazyChildOnboardingOrchestrator = lazy(() =>
+  import('../components/childOnboarding').then((m) => ({
+    default: m.ChildOnboardingOrchestrator,
+  })),
+)
 import { ProgressDashboard } from '../components/ProgressDashboard'
 import { SessionScreen } from '../components/SessionScreen'
 import { SessionLaunchOverlay } from '../components/SessionLaunchOverlay'
@@ -51,9 +62,11 @@ import type { RecorderAudioChunk } from '../hooks/useRecorder'
 import { useRecorder } from '../hooks/useRecorder'
 import { useScenarios } from '../hooks/useScenarios'
 import { useSessionTimer } from '../hooks/useSessionTimer'
+import { useUiState } from '../hooks/useUiState'
 import { useWebRTC } from '../hooks/useWebRTC'
 import { getBackToPracticeRoute } from './dashboardRouteHelpers'
 import { api, parseAvatarValue, type AuthSession } from '../services/api'
+import { bootstrapAppInsights } from '../services/appInsights'
 import type {
   Assessment,
   AppConfig,
@@ -436,6 +449,79 @@ const useStyles = makeStyles({
       paddingBottom: 'var(--space-md)',
       paddingLeft: 'var(--space-md)',
     },
+  },
+  childShell: {
+    width: '100%',
+    maxWidth: '1280px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-lg)',
+    margin: '0 auto',
+    padding: 'var(--space-lg) var(--space-xl) var(--space-xl)',
+    overflow: 'auto',
+    '@media (max-width: 720px)': {
+      paddingTop: 'calc(env(safe-area-inset-top, 0px) + var(--space-md))',
+      paddingRight: 'var(--space-md)',
+      paddingBottom: 'var(--space-md)',
+      paddingLeft: 'var(--space-md)',
+      gap: 'var(--space-md)',
+    },
+  },
+  childChrome: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 'var(--space-md)',
+    padding: 'var(--space-md) var(--space-lg)',
+    borderRadius: 'var(--radius-xl)',
+    border: '1px solid rgba(13, 138, 132, 0.12)',
+    background:
+      'linear-gradient(135deg, rgba(244, 250, 250, 0.98), rgba(233, 245, 246, 0.98))',
+    boxShadow: 'var(--shadow-md)',
+    '@media (max-width: 720px)': {
+      padding: 'var(--space-md)',
+      alignItems: 'flex-start',
+      flexDirection: 'column',
+    },
+  },
+  childChromeIdentity: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-sm)',
+    minWidth: 0,
+  },
+  childChromeAvatar: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '999px',
+    display: 'grid',
+    placeItems: 'center',
+    background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
+    color: '#fff',
+    fontWeight: '800',
+    fontSize: '0.95rem',
+    flexShrink: 0,
+  },
+  childChromeText: {
+    minWidth: 0,
+    display: 'grid',
+    gap: '2px',
+  },
+  childChromeTitle: {
+    color: 'var(--color-text-primary)',
+    fontWeight: '700',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  childChromeSubtitle: {
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.85rem',
+  },
+  childShellBody: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-lg)',
   },
   appShell: {
     width: '100%',
@@ -863,10 +949,6 @@ export default function App() {
     return window.localStorage.getItem('wulo.activeWorkspaceId') || null
   })
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null)
-  const [onboardingComplete, setOnboardingComplete] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false
-    return window.localStorage.getItem('wulo.onboarding.complete') === 'true'
-  })
   const [showLoading, setShowLoading] = useState(false)
   const [showAssessment, setShowAssessment] = useState(false)
   const [showRoleNotice, setShowRoleNotice] = useState(false)
@@ -1022,6 +1104,16 @@ export default function App() {
   const isTherapist = authUser?.role === 'therapist' || authUser?.role === 'admin'
   const requiresOnboarding = isTherapist
   const isChildMode = userMode === 'child' && !isDashboardRoute
+  const onboardingUiState = useUiState({
+    disabled: userMode === 'child' || authStatus !== 'authenticated',
+    authenticated: authStatus === 'authenticated',
+  })
+  const onboardingComplete = onboardingUiState.state.onboarding_complete === true
+  const onboardingGatePending =
+    requiresOnboarding &&
+    authStatus === 'authenticated' &&
+    userMode !== 'child' &&
+    onboardingUiState.loading
   const currentWorkspaceMode: UserMode = isChildMode ? 'child' : 'workspace'
   const incomingInvitations = childInvitations.filter(invitation => invitation.direction === 'incoming' && invitation.status === 'pending')
   const sentInvitations = childInvitations.filter(invitation => invitation.direction === 'sent')
@@ -1060,7 +1152,13 @@ export default function App() {
   const showSidebarShell =
     authStatus === 'authenticated' &&
     (!requiresOnboarding || onboardingComplete) &&
+    !isChildMode &&
     (isHomeRoute || isDashboardRoute || isSessionRoute || isSettingsRoute)
+  const showChildChrome =
+    authStatus === 'authenticated' &&
+    (!requiresOnboarding || onboardingComplete) &&
+    isChildMode &&
+    (isHomeRoute || isSessionRoute || isSettingsRoute)
   const contentEyebrow = isDashboardRoute
     ? ''
     : isSettingsRoute
@@ -1394,6 +1492,15 @@ export default function App() {
       window.removeEventListener('auth:expired', handleAuthExpired)
     }
   }, [location.search, navigate, refreshAuthSession, refreshChildren, refreshInvitations, userMode])
+
+  useEffect(() => {
+    const connectionString = appConfig?.appinsights_connection_string?.trim()
+    if (!connectionString) {
+      return
+    }
+
+    void bootstrapAppInsights(connectionString)
+  }, [appConfig?.appinsights_connection_string])
 
   const handleOpenSession = useCallback(
     async (sessionId: string) => {
@@ -2993,6 +3100,10 @@ export default function App() {
         return
       }
 
+      if (onboardingGatePending) {
+        return
+      }
+
       navigate(
         getDefaultAuthenticatedRoute({
           onboardingComplete,
@@ -3003,12 +3114,16 @@ export default function App() {
       return
     }
 
+    if (onboardingGatePending) {
+      return
+    }
+
     if (requiresOnboarding && !onboardingComplete && currentRoute !== APP_ROUTES.onboarding) {
       navigate(APP_ROUTES.onboarding, { replace: true })
       return
     }
 
-    if (!requiresOnboarding && currentRoute === APP_ROUTES.onboarding) {
+    if ((!requiresOnboarding || onboardingComplete) && currentRoute === APP_ROUTES.onboarding) {
       navigate(APP_ROUTES.home, { replace: true })
       return
     }
@@ -3046,6 +3161,7 @@ export default function App() {
     location.search,
     messages.length,
     navigate,
+    onboardingGatePending,
     onboardingComplete,
     queryFamilyInvitationId,
     queryInvitationId,
@@ -3622,14 +3738,14 @@ export default function App() {
   }
 
   const handleCompleteOnboarding = useCallback(() => {
-    setOnboardingComplete(true)
+    onboardingUiState.patch({ onboarding_complete: true })
     setUserMode('workspace')
     if (typeof window !== 'undefined') {
       window.localStorage.setItem('wulo.onboarding.complete', 'true')
       window.localStorage.setItem('wulo.user.mode', 'workspace')
     }
     navigate(APP_ROUTES.home)
-  }, [navigate])
+  }, [navigate, onboardingUiState])
 
   const handleExitTherapistView = useCallback(() => {
     navigate(
@@ -4110,6 +4226,17 @@ export default function App() {
           }}
         />
       ) : (
+        <>
+        <ChecklistContainer
+          role={authUser?.role ?? ''}
+          snapshot={{
+            hasChildren: children.length > 0,
+            hasSessions: sessionSummaries.length > 0,
+            hasReports: sessionSummaries.some(s => s.therapist_feedback != null),
+            hasConsentOnAtLeastOneChild: Object.values(parentalConsentByChild).some(Boolean),
+            onboardingTourSeen: false,
+          }}
+        />
         <DashboardHome
           isTherapistWorkspace={isTherapist}
           secondaryActionLabel={isTherapist ? 'Review progress' : 'Open family setup'}
@@ -4157,6 +4284,7 @@ export default function App() {
           onDeleteCustomScenario={deleteCustomScenario}
           customScenarios={isTherapist ? customScenarios : []}
         />
+        </>
       )
     )
   ) : (
@@ -4205,6 +4333,13 @@ export default function App() {
   )
 
   return (
+    <OnboardingRuntime
+      role={authUser?.role ?? null}
+      userMode={userMode}
+      toursEnabled={appConfig?.onboarding?.tours_enabled ?? true}
+      authenticated={authStatus === 'authenticated'}
+      uiState={onboardingUiState}
+    >
     <div className={styles.page}>
       {showSidebarShell ? (
         <div className={mergeClasses(styles.appShell, isDashboardRoute && styles.appShellDashboard)}>
@@ -4214,6 +4349,7 @@ export default function App() {
             collapsed={sidebarCollapsed}
             mobileOpen={mobileSidebarOpen}
             isTherapist={isTherapist}
+            userRole={authUser?.role ?? null}
             showDashboardNav={showDashboardNav}
             settingsLabel={settingsLabel}
             childProfiles={children}
@@ -4284,6 +4420,35 @@ export default function App() {
 
             <div className={styles.contentBody}>{mainContent}</div>
           </div>
+        </div>
+      ) : showChildChrome ? (
+        <div className={styles.childShell}>
+          <div className={styles.childChrome} data-testid="child-safe-chrome">
+            <button
+              type="button"
+              className={styles.brandHomeButton}
+              onClick={() => requestSection('home')}
+              aria-label="Go to child practice home"
+            >
+              <img src="/wulo-logo.png" alt="Wulo logo" className={styles.brandLogo} />
+              <div>
+                <Text className={styles.appTitle}>{appTitle}</Text>
+                <Text className={styles.appSubtitle}>Child practice mode</Text>
+              </div>
+            </button>
+
+            <div className={styles.childChromeIdentity} aria-label="Child profile summary">
+              <div className={styles.childChromeAvatar} aria-hidden="true">
+                {profileHeaderInitials}
+              </div>
+              <div className={styles.childChromeText}>
+                <Text className={styles.childChromeTitle}>{profileHeaderName}</Text>
+                <Text className={styles.childChromeSubtitle}>{contentTitle}</Text>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.childShellBody}>{mainContent}</div>
         </div>
       ) : (
         <div className={styles.shell}>{mainContent}</div>
@@ -4410,6 +4575,17 @@ export default function App() {
           setLaunchInFlight(false)
         }}
       />
+      {isChildMode && selectedChildId ? (
+        <Suspense fallback={null}>
+          <LazyChildOnboardingOrchestrator
+            childId={selectedChildId}
+            childModeActive={isChildMode}
+            activeExerciseType={activeExerciseMetadata?.type ?? null}
+            wrapUpVisible={sessionFinished}
+          />
+        </Suspense>
+      ) : null}
     </div>
+    </OnboardingRuntime>
   )
 }

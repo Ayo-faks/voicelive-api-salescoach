@@ -72,13 +72,32 @@ describe('InsightsOrb', () => {
   it('renders an interrupt button while active and calls it on click', () => {
     const onInterrupt = vi.fn()
 
-    render(<InsightsOrb state="speaking" outputLevel={0.6} onInterrupt={onInterrupt} />)
+    render(
+      <InsightsOrb
+        state="speaking"
+        outputLevel={0.6}
+        onInterrupt={onInterrupt}
+        interruptLabel="Interrupt reply"
+      />,
+    )
 
     const interruptButton = screen.getByTestId('insights-orb-interrupt')
-    expect(interruptButton.textContent).toContain('Stop voice')
+    expect(interruptButton.textContent).toContain('Interrupt reply')
 
     fireEvent.click(interruptButton)
     expect(onInterrupt).toHaveBeenCalledTimes(1)
+  })
+
+  it('renders a separate end-session action when provided', () => {
+    const onEndSession = vi.fn()
+
+    render(<InsightsOrb state="listening" onEndSession={onEndSession} />)
+
+    const endSessionButton = screen.getByTestId('insights-orb-end-session')
+    expect(endSessionButton.textContent).toContain('End voice session')
+
+    fireEvent.click(endSessionButton)
+    expect(onEndSession).toHaveBeenCalledTimes(1)
   })
 
   it('falls back to the static scale when reducedMotion is true', () => {

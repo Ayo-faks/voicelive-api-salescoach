@@ -105,6 +105,7 @@ class TestFlaskApp:
         assert data["proxy_enabled"] is True
         assert data["ws_endpoint"] == "/ws/voice"
         assert "telemetry_enabled" in data
+        assert "appinsights_connection_string" in data
         assert "planner" in data
 
     @patch("src.app.planning_service")

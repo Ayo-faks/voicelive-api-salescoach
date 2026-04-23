@@ -1061,6 +1061,173 @@ class PostgresStorageService:
             "created_at": created_at,
         }
 
+    # ------------------------------------------------------------------
+    # UI state (onboarding/guidance persistence — see docs/onboarding/onboarding-plan-v2.md)
+    # ------------------------------------------------------------------
+    def get_user_ui_state(self, user_id: str) -> Dict[str, Any]:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT ui_state FROM users WHERE id = %s",
+                (user_id,),
+            ).fetchone()
+        if row is None:
+            return {}
+        return self._loads_json(row["ui_state"], {}) or {}
+
+    def patch_user_ui_state(
+        self,
+        user_id: str,
+        patch: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        from src.schemas.ui_state import validate_merged_size
+
+        def persist(connection: psycopg.Connection[Any]) -> Dict[str, Any]:
+            row = connection.execute(
+                "SELECT ui_state FROM users WHERE id = %s",
+                (user_id,),
+            ).fetchone()
+            if row is None:
+                raise ValueError("user_not_found")
+            current = self._loads_json(row["ui_state"], {}) or {}
+            if not isinstance(current, dict):
+                current = {}
+            merged = dict(current)
+            merged.update(patch)
+            size_errors = validate_merged_size(merged)
+            if size_errors:
+                raise ValueError("ui_state_too_large")
+            connection.execute(
+                "UPDATE users SET ui_state = %s WHERE id = %s",
+                (self._dumps_json(merged), user_id),
+            )
+            return merged
+
+        return self._execute_write(persist)
+
+    def reset_user_ui_state(self, user_id: str) -> Dict[str, Any]:
+        def persist(connection: psycopg.Connection[Any]) -> Dict[str, Any]:
+            row = connection.execute(
+                "SELECT id FROM users WHERE id = %s",
+                (user_id,),
+            ).fetchone()
+            if row is None:
+                raise ValueError("user_not_found")
+            connection.execute(
+                "UPDATE users SET ui_state = %s WHERE id = %s",
+                (self._dumps_json({}), user_id),
+            )
+            return {}
+
+        return self._execute_write(persist)
+
+    def log_ui_state_audit(
+        self,
+        *,
+        user_id: str,
+        event: str,
+        payload: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        created_at = self._utc_now()
+
+        def persist(connection: psycopg.Connection[Any]) -> None:
+            connection.execute(
+                """
+                INSERT INTO ui_state_audit (user_id, event, payload_json, created_at)
+                VALUES (%s, %s, %s, %s)
+                """,
+                (user_id, event, self._dumps_json(payload or {}), created_at),
+            )
+
+        self._execute_write(persist)
+
+    def list_ui_state_audit(self, user_id: str, *, limit: int = 50) -> List[Dict[str, Any]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT id, user_id, event, payload_json, created_at
+                FROM ui_state_audit
+                WHERE user_id = %s
+                ORDER BY id DESC
+                LIMIT %s
+                """,
+                (user_id, max(1, min(int(limit), 500))),
+            ).fetchall()
+        return [
+            {
+                "id": row["id"],
+                "user_id": row["user_id"],
+                "event": row["event"],
+                "payload": self._loads_json(row["payload_json"], {}),
+                "created_at": row["created_at"],
+            }
+            for row in rows
+        ]
+
+    def get_child_ui_state(self, child_id: str, user_id: str) -> Dict[str, Any]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT exercise_type, first_run_at, updated_at
+                FROM child_ui_state
+                WHERE child_id = %s AND user_id = %s
+                ORDER BY updated_at DESC
+                """,
+                (child_id, user_id),
+            ).fetchall()
+        return {
+            "child_id": child_id,
+            "user_id": user_id,
+            "exercises": [
+                {
+                    "exercise_type": row["exercise_type"],
+                    "first_run_at": row["first_run_at"],
+                    "updated_at": row["updated_at"],
+                }
+                for row in rows
+            ],
+        }
+
+    def put_child_ui_state_first_run(
+        self,
+        *,
+        child_id: str,
+        user_id: str,
+        exercise_type: str,
+        first_run: bool,
+    ) -> Dict[str, Any]:
+        now = self._utc_now()
+        first_run_at = now if first_run else None
+
+        def persist(connection: psycopg.Connection[Any]) -> Dict[str, Any]:
+            connection.execute(
+                """
+                INSERT INTO child_ui_state (child_id, user_id, exercise_type, first_run_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s)
+                ON CONFLICT(child_id, user_id, exercise_type) DO UPDATE SET
+                    first_run_at = excluded.first_run_at,
+                    updated_at = excluded.updated_at
+                """,
+                (child_id, user_id, exercise_type, first_run_at, now),
+            )
+            row = connection.execute(
+                """
+                SELECT child_id, user_id, exercise_type, first_run_at, updated_at
+                FROM child_ui_state
+                WHERE child_id = %s AND user_id = %s AND exercise_type = %s
+                """,
+                (child_id, user_id, exercise_type),
+            ).fetchone()
+            assert row is not None
+            return {
+                "child_id": row["child_id"],
+                "user_id": row["user_id"],
+                "exercise_type": row["exercise_type"],
+                "first_run_at": row["first_run_at"],
+                "updated_at": row["updated_at"],
+            }
+
+        return self._execute_write(persist)
+
     def create_child_invitation(
         self,
         *,

@@ -444,7 +444,7 @@ export function DashboardHome({
           </div>
 
           <div className={styles.heroCopy}>
-            <Text className={styles.title}>
+            <Text className={styles.title} data-testid="dashboard-home-greeting">
               {selectedChild
                 ? isTherapistWorkspace
                   ? `Prepare ${selectedChild.name}'s next practice.`

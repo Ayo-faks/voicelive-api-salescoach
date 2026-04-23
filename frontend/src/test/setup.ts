@@ -89,3 +89,15 @@ Object.defineProperty(HTMLElement.prototype, 'clientHeight', {
     return 540
   },
 })
+
+// Stub react-joyride in the jsdom environment — the real library depends on
+// browser APIs that aren't fully available in tests and inflates render
+// output for integration suites. OnboardingRuntime lazily imports this, so
+// tests just need a default export that renders nothing.
+import { vi } from 'vitest'
+vi.mock('react-joyride', () => ({
+  __esModule: true,
+  default: () => null,
+  STATUS: { FINISHED: 'finished', SKIPPED: 'skipped' },
+  EVENTS: { STEP_AFTER: 'step:after' },
+}))

@@ -873,7 +873,7 @@ describe('ProgressDashboard AI draft reports', () => {
     expect(previewPdf.disabled).toBe(false)
   })
 
-  it('collapses the insights rail into a header Ask Wulo launcher and reopens it', async () => {
+  it('keeps the header Ask Wulo launcher available and focuses the rail when clicked', async () => {
     render(
       <ProgressDashboard
         {...(baseProps as unknown as React.ComponentProps<typeof ProgressDashboard>)}
@@ -883,7 +883,7 @@ describe('ProgressDashboard AI draft reports', () => {
       />,
     )
 
-    expect(screen.queryByTestId('insights-header-launcher')).toBeNull()
+    expect(screen.getByTestId('insights-header-launcher')).toBeTruthy()
 
     fireEvent.click(await screen.findByTestId('insights-rail-collapse'))
 
@@ -896,6 +896,6 @@ describe('ProgressDashboard AI draft reports', () => {
 
     const input = await screen.findByTestId('insights-rail-input')
     expect(input).toBeTruthy()
-    expect(screen.queryByTestId('insights-header-launcher')).toBeNull()
+    expect(screen.getByTestId('insights-header-launcher')).toBeTruthy()
   })
 })

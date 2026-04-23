@@ -108,6 +108,7 @@ class TestInsightsServiceAsk:
         # Planner was invoked with the expected surface.
         assert planner.calls[0]["user_message"] == "Summarise recent sessions"
         assert planner.calls[0]["scope"]["child_id"] == child_id
+        assert "get_child_planning_snapshot" in planner.calls[0]["tool_names"]
         assert "get_child_overview" in planner.calls[0]["tool_names"]
 
     def test_ask_continues_existing_conversation(self, tmp_path: Path) -> None:
@@ -214,6 +215,25 @@ class TestInsightsTools:
         assert result["id"] == child_id
         assert result["name"] == "Kid A"
         assert result["recent_session_count"] == 0
+
+    def test_get_child_planning_snapshot_happy_path(self, tmp_path: Path) -> None:
+        storage, user_id, child_id = _bootstrap(tmp_path)
+        svc = InsightsService(storage, planner=StaticPlanner(InsightsPlannerResult("x")))
+        tool = svc.tools["get_child_planning_snapshot"]
+        ctx = InsightsRequestContext(
+            user_id=user_id,
+            scope={"type": "child", "child_id": child_id},
+            storage_service=storage,
+        )
+
+        result = tool.handler({"child_id": child_id}, ctx)
+
+        assert result["child"]["id"] == child_id
+        assert result["child"]["name"] == "Kid A"
+        assert result["session_summary"]["recent_session_count"] == 0
+        assert result["recent_sessions"] == []
+        assert result["progress_reports"] == []
+        assert result["approved_memory_items"] == []
 
 
 class TestStubPlanner:

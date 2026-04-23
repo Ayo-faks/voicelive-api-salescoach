@@ -64,6 +64,10 @@ function readStoredMode(): InsightsRailMode {
   return readStoredInsightsRailMode()
 }
 
+function normalizeInsightsVoiceMode(mode: InsightsVoiceMode): InsightsVoiceMode {
+  return mode === 'push_to_talk' ? 'full_duplex' : mode
+}
+
 function persistMode(mode: InsightsRailMode): void {
   if (typeof window === 'undefined') return
   try {
@@ -415,6 +419,17 @@ const useStyles = makeStyles({
     color: tokens.colorStatusDangerForeground1,
     fontSize: tokens.fontSizeBase200,
   },
+  srOnly: {
+    position: 'absolute',
+    width: '1px',
+    height: '1px',
+    padding: 0,
+    margin: '-1px',
+    overflow: 'hidden',
+    clip: 'rect(0, 0, 0, 0)',
+    whiteSpace: 'nowrap',
+    border: 0,
+  },
   suggestionGroup: {
     display: 'flex',
     flexDirection: 'column',
@@ -540,6 +555,43 @@ const useStyles = makeStyles({
       background: tokens.colorNeutralBackground2,
       color: tokens.colorNeutralForeground1,
     },
+  },
+  voiceButtonActive: {
+    background: tokens.colorBrandBackground2,
+    borderTopColor: tokens.colorBrandStroke2,
+    borderRightColor: tokens.colorBrandStroke2,
+    borderBottomColor: tokens.colorBrandStroke2,
+    borderLeftColor: tokens.colorBrandStroke2,
+    color: tokens.colorBrandForeground1,
+    boxShadow: '0 0 0 1px rgba(13, 138, 132, 0.18)',
+  },
+  voiceButtonListening: {
+    animationName: {
+      '0%': { boxShadow: '0 0 0 0 rgba(13, 138, 132, 0.24)' },
+      '70%': { boxShadow: '0 0 0 8px rgba(13, 138, 132, 0)' },
+      '100%': { boxShadow: '0 0 0 0 rgba(13, 138, 132, 0)' },
+    },
+    animationDuration: '1400ms',
+    animationIterationCount: 'infinite',
+    animationTimingFunction: 'ease-out',
+  },
+  voiceButtonError: {
+    background: tokens.colorPaletteRedBackground1,
+    borderTopColor: tokens.colorPaletteRedBorder2,
+    borderRightColor: tokens.colorPaletteRedBorder2,
+    borderBottomColor: tokens.colorPaletteRedBorder2,
+    borderLeftColor: tokens.colorPaletteRedBorder2,
+    color: tokens.colorPaletteRedForeground1,
+  },
+  voiceButtonBusy: {
+    cursor: 'wait',
+    opacity: 0.85,
+  },
+  voiceInlineError: {
+    maxWidth: '220px',
+    fontSize: tokens.fontSizeBase100,
+    lineHeight: tokens.lineHeightBase200,
+    color: tokens.colorStatusDangerForeground1,
   },
 
   voiceIcon: {
@@ -721,73 +773,6 @@ function renderMessageContent(content: string, styles: ReturnType<typeof useStyl
   )
 }
 
-interface InsightsVoiceControlsProps {
-  currentScope: InsightsScope
-  conversationId: string | null
-  insightsVoiceMode: InsightsVoiceMode
-  loading: boolean
-  styles: ReturnType<typeof useStyles>
-  onCompleted: (payload: UseInsightsVoiceTurnCompleted) => void
-}
-
-function InsightsVoiceControls({
-  currentScope,
-  conversationId,
-  insightsVoiceMode,
-  loading,
-  styles,
-  onCompleted,
-}: InsightsVoiceControlsProps) {
-  const { voiceState, start, stop, lastTranscript, lastAnswer, outputLevel } = useInsightsVoice({
-    scope: currentScope,
-    conversationId,
-    mode: insightsVoiceMode,
-    onCompleted,
-  })
-  const voiceActive = voiceState !== 'idle'
-  const orbTranscript = lastAnswer || lastTranscript
-
-  const handleToggle = useCallback(() => {
-    if (voiceState === 'idle' || voiceState === 'error') {
-      void start()
-      return
-    }
-    void stop()
-  }, [start, stop, voiceState])
-
-  return (
-    <>
-      <div className={styles.voiceToggleRow}>
-        <button
-          type="button"
-          className={mergeClasses(
-            styles.voiceToggle,
-            voiceActive && styles.voiceToggleActive,
-          )}
-          onClick={handleToggle}
-          disabled={loading}
-          data-testid="insights-rail-voice-toggle"
-          aria-pressed={voiceActive}
-        >
-          {voiceActive ? 'Stop voice' : 'Start voice'}
-        </button>
-      </div>
-      {voiceActive ? (
-        <div className={styles.voiceOrbWrap}>
-          <InsightsOrb
-            state={voiceState}
-            outputLevel={outputLevel}
-            transcript={orbTranscript}
-            onInterrupt={() => {
-              void stop()
-            }}
-          />
-        </div>
-      ) : null}
-    </>
-  )
-}
-
 export function InsightsRail({
   currentScope,
   availableScopes,
@@ -800,6 +785,7 @@ export function InsightsRail({
   insightsVoiceMode = 'off',
 }: InsightsRailProps) {
   const styles = useStyles()
+  const defaultVoiceErrorText = 'Microphone blocked - allow access in your browser to use voice.'
   const [mode, setMode] = useState<InsightsRailMode>(() => requestedMode ?? initialMode ?? readStoredMode())
 
   useEffect(() => {
@@ -1007,6 +993,147 @@ export function InsightsRail({
   )
 
   const recentConversations = useMemo(() => conversations.slice(0, 12), [conversations])
+  const effectiveVoiceMode = normalizeInsightsVoiceMode(insightsVoiceMode)
+  const {
+    voiceState,
+    start,
+    stop,
+    endSession,
+    lastTranscript,
+    lastAnswer,
+    lastError,
+    outputLevel,
+  } = useInsightsVoice({
+    scope: currentScope,
+    conversationId,
+    mode: effectiveVoiceMode,
+    onCompleted: handleVoiceCompleted,
+  })
+  const voiceOrbVisible = effectiveVoiceMode !== 'off' && voiceState !== 'idle'
+  const voiceOrbTranscript = lastAnswer || lastTranscript
+  const voiceErrorText = lastError ?? defaultVoiceErrorText
+  const [voiceAnnouncement, setVoiceAnnouncement] = useState('')
+  const previousVoiceStateRef = useRef(voiceState)
+  const previousVoiceErrorRef = useRef<string | null>(lastError ?? null)
+
+  useEffect(() => {
+    if (effectiveVoiceMode === 'off') {
+      previousVoiceStateRef.current = voiceState
+      previousVoiceErrorRef.current = lastError ?? null
+      setVoiceAnnouncement('')
+      return
+    }
+
+    const previousVoiceState = previousVoiceStateRef.current
+    const previousVoiceError = previousVoiceErrorRef.current
+
+    if (previousVoiceState === voiceState && previousVoiceError === (lastError ?? null)) {
+      return
+    }
+
+    let nextAnnouncement = ''
+    switch (voiceState) {
+      case 'connecting':
+        nextAnnouncement = 'Connecting to voice.'
+        break
+      case 'listening':
+        nextAnnouncement = 'Listening.'
+        break
+      case 'thinking':
+        nextAnnouncement = 'Thinking.'
+        break
+      case 'speaking':
+        nextAnnouncement = 'Speaking.'
+        break
+      case 'interrupted':
+        nextAnnouncement = 'Voice stopped.'
+        break
+      case 'error':
+        nextAnnouncement = `Voice error: ${voiceErrorText}`
+        break
+      case 'idle':
+        nextAnnouncement = previousVoiceState !== 'idle' ? 'Voice stopped.' : ''
+        break
+    }
+
+    previousVoiceStateRef.current = voiceState
+    previousVoiceErrorRef.current = lastError ?? null
+    setVoiceAnnouncement(nextAnnouncement)
+  }, [effectiveVoiceMode, lastError, voiceErrorText, voiceState])
+
+  const handleVoiceAction = useCallback(() => {
+    if (effectiveVoiceMode === 'off') {
+      focusComposer()
+      return
+    }
+
+    if (voiceState === 'idle' || voiceState === 'error' || voiceState === 'interrupted') {
+      void start()
+      return
+    }
+
+    if (voiceState === 'connecting' || voiceState === 'thinking') {
+      return
+    }
+
+    if (voiceState === 'speaking') {
+      void stop()
+      return
+    }
+
+    void endSession()
+  }, [effectiveVoiceMode, endSession, focusComposer, start, stop, voiceState])
+
+  const handleEndVoiceSession = useCallback(() => {
+    if (effectiveVoiceMode === 'off' || voiceState === 'idle') {
+      return
+    }
+
+    void endSession()
+  }, [effectiveVoiceMode, endSession, voiceState])
+
+  const voiceActionLabel = useMemo(() => {
+    if (effectiveVoiceMode === 'off') {
+      return 'Talk to Wulo'
+    }
+
+    switch (voiceState) {
+      case 'error':
+        return 'Retry voice'
+      case 'connecting':
+        return 'Connecting...'
+      case 'listening':
+        return 'End voice session'
+      case 'thinking':
+        return 'Waiting for reply'
+      case 'speaking':
+        return 'Interrupt reply'
+      default:
+        return 'Start voice'
+    }
+  }, [effectiveVoiceMode, voiceState])
+
+  const orbInterruptLabel = useMemo(() => {
+    switch (voiceState) {
+      case 'speaking':
+        return 'Interrupt reply'
+      default:
+        return 'Stop voice'
+    }
+  }, [voiceState])
+
+  const voiceActionPressed =
+    effectiveVoiceMode === 'off' ? undefined : voiceState === 'listening' ? true : voiceState === 'idle' ? false : undefined
+  const voiceActionDisabled =
+    loading || (effectiveVoiceMode !== 'off' && (voiceState === 'connecting' || voiceState === 'thinking'))
+  const voiceActionClassName = mergeClasses(
+    styles.toolButton,
+    styles.voiceButton,
+    effectiveVoiceMode !== 'off' && voiceState !== 'idle' ? styles.voiceButtonActive : undefined,
+    voiceState === 'listening' ? styles.voiceButtonListening : undefined,
+    voiceState === 'error' ? styles.voiceButtonError : undefined,
+    voiceState === 'connecting' ? styles.voiceButtonBusy : undefined,
+  )
 
   if (mode === 'collapsed') {
     return (
@@ -1253,15 +1380,19 @@ export function InsightsRail({
         ) : null}
       </div>
 
-      {insightsVoiceMode !== 'off' ? (
-        <InsightsVoiceControls
-          currentScope={currentScope}
-          conversationId={conversationId}
-          insightsVoiceMode={insightsVoiceMode}
-          loading={loading}
-          styles={styles}
-          onCompleted={handleVoiceCompleted}
-        />
+      {voiceOrbVisible ? (
+        <div className={styles.voiceOrbWrap}>
+          <InsightsOrb
+            state={voiceState}
+            outputLevel={outputLevel}
+            transcript={voiceOrbTranscript}
+            onInterrupt={voiceState === 'speaking' ? () => {
+              void stop()
+            } : undefined}
+            interruptLabel={orbInterruptLabel}
+            onEndSession={handleEndVoiceSession}
+          />
+        </div>
       ) : null}
 
       <div className={styles.composerWrap}>
@@ -1278,6 +1409,11 @@ export function InsightsRail({
             data-testid="insights-rail-input"
           />
           <div className={styles.composerFooter}>
+            {effectiveVoiceMode !== 'off' ? (
+              <output className={styles.srOnly} aria-live="polite">
+                {voiceAnnouncement}
+              </output>
+            ) : null}
             <div className={styles.composerTools}>
               <button
                 type="button"
@@ -1288,6 +1424,9 @@ export function InsightsRail({
               >
                 +
               </button>
+              {effectiveVoiceMode !== 'off' && voiceState === 'error' ? (
+                <span className={styles.voiceInlineError}>{voiceErrorText}</span>
+              ) : null}
             </div>
             {hasDraftMessage ? (
               <button
@@ -1304,11 +1443,14 @@ export function InsightsRail({
             ) : (
               <button
                 type="button"
-                className={mergeClasses(styles.toolButton, styles.voiceButton)}
-                onClick={focusComposer}
+                className={voiceActionClassName}
+                onClick={handleVoiceAction}
+                disabled={voiceActionDisabled}
                 data-testid="insights-rail-voice-action"
-                aria-label="Talk to Wulo"
-                title="Talk to Wulo"
+                aria-label={voiceActionLabel}
+                title={voiceActionLabel}
+                {...(effectiveVoiceMode !== 'off' ? { 'data-voice-state': voiceState } : {})}
+                {...(voiceActionPressed === undefined ? {} : { 'aria-pressed': voiceActionPressed })}
               >
                 <MicrophoneIcon className={styles.voiceIcon} />
               </button>

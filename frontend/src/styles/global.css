@@ -250,3 +250,15 @@ div.fui-Badge {
     font-size: 14px;
   }
 }
+
+/* Tour tooltip entry animation (WuloTourTooltip) */
+@keyframes wulo-tour-pop {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

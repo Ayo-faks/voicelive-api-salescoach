@@ -127,6 +127,8 @@ backend/static/
 # Log files
 *.log
 logs
+playwright-report/
+test-results/
 
 # Python
 __pycache__/

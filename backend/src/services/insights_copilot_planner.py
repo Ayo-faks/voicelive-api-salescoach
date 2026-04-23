@@ -27,6 +27,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import time
 from typing import Any, Dict, List, Mapping, Optional, Sequence, cast
 
 from src.services.azure_openai_auth import build_copilot_azure_provider_config
@@ -115,6 +116,25 @@ class CopilotInsightsPlanner:
             )
         )
 
+    def _log_timing(
+        self,
+        *,
+        context: InsightsRequestContext,
+        planner_started_at: float,
+        stage: str,
+        **details: Any,
+    ) -> None:
+        payload: Dict[str, Any] = {
+            "stage": stage,
+            "request_id": context.request_id,
+            "delta_ms": round((time.perf_counter() - planner_started_at) * 1000, 1),
+        }
+        payload.update(details)
+        logger.info(
+            "[insights-planner-timing] %s",
+            json.dumps(payload, default=str, sort_keys=True, separators=(",", ":")),
+        )
+
     # -- Async implementation ----------------------------------------------
 
     async def _run_turn_async(
@@ -127,9 +147,17 @@ class CopilotInsightsPlanner:
         context: InsightsRequestContext,
         tool_call_budget: int,
     ) -> InsightsPlannerResult:
+        planner_started_at = time.perf_counter()
         trace: List[Dict[str, Any]] = []
         call_state = {"count": 0, "budget": max(1, int(tool_call_budget))}
         tool_names = list(tools.keys())
+        self._log_timing(
+            context=context,
+            planner_started_at=planner_started_at,
+            stage="planner_start",
+            history_count=len(history),
+            tool_count=len(tool_names),
+        )
 
         # pre-tool hook enforces per-turn tool-call budget; the SDK looks at
         # the "permissionDecision" field to decide whether to run the tool.
@@ -144,7 +172,13 @@ class CopilotInsightsPlanner:
                 }
             return {"permissionDecision": "allow"}
 
-        sdk_tools = self._build_sdk_tools(tools, context, trace, call_state)
+        sdk_tools = self._build_sdk_tools(
+            tools,
+            context,
+            trace,
+            call_state,
+            planner_started_at=planner_started_at,
+        )
         session_kwargs: Dict[str, Any] = {
             "on_permission_request": _approve_all_permissions,
             "model": self.model,
@@ -164,13 +198,34 @@ class CopilotInsightsPlanner:
         try:
             client = self._create_client()
             await client.start()
+            self._log_timing(
+                context=context,
+                planner_started_at=planner_started_at,
+                stage="client_started",
+            )
             session = await client.create_session(**session_kwargs)
+            self._log_timing(
+                context=context,
+                planner_started_at=planner_started_at,
+                stage="session_created",
+            )
             prompt = self._build_prompt(
                 history=history,
                 user_message=user_message,
                 scope=context.scope,
             )
+            self._log_timing(
+                context=context,
+                planner_started_at=planner_started_at,
+                stage="send_and_wait_start",
+                prompt_chars=len(prompt),
+            )
             response = await session.send_and_wait(prompt)
+            self._log_timing(
+                context=context,
+                planner_started_at=planner_started_at,
+                stage="send_and_wait_end",
+            )
             raw_text = self._extract_response_text(response)
         except Exception as exc:
             logger.exception("CopilotInsightsPlanner turn failed")
@@ -223,6 +278,8 @@ class CopilotInsightsPlanner:
         context: InsightsRequestContext,
         trace: List[Dict[str, Any]],
         call_state: Dict[str, int],
+        *,
+        planner_started_at: float,
     ) -> List[Any]:
         sdk_tools: List[Any] = []
         for insight_tool in tools.values():
@@ -232,7 +289,13 @@ class CopilotInsightsPlanner:
                     description=insight_tool.description,
                     parameters=insight_tool.parameters,
                     skip_permission=True,
-                    handler=self._make_handler(insight_tool, context, trace, call_state),
+                    handler=self._make_handler(
+                        insight_tool,
+                        context,
+                        trace,
+                        call_state,
+                        planner_started_at=planner_started_at,
+                    ),
                 )
             )
         return sdk_tools
@@ -243,12 +306,15 @@ class CopilotInsightsPlanner:
         context: InsightsRequestContext,
         trace: List[Dict[str, Any]],
         call_state: Dict[str, int],
+        *,
+        planner_started_at: float,
     ):
         def handler(invocation: Any) -> Any:
             args = getattr(invocation, "arguments", None) or {}
             if not isinstance(args, dict):
                 args = {}
             call_state["count"] += 1
+            started_at = time.perf_counter()
             entry: Dict[str, Any] = {
                 "name": insight_tool.name,
                 "arguments": dict(args),
@@ -256,16 +322,34 @@ class CopilotInsightsPlanner:
             try:
                 result = insight_tool.handler(dict(args), context)
             except InsightsAuthorizationError as exc:
+                entry["duration_ms"] = int((time.perf_counter() - started_at) * 1000)
                 entry["error"] = f"forbidden: {exc}"
                 trace.append(entry)
+                self._log_timing(
+                    context=context,
+                    planner_started_at=planner_started_at,
+                    stage="tool_completed",
+                    tool=insight_tool.name,
+                    duration_ms=entry["duration_ms"],
+                    status="forbidden",
+                )
                 return ToolResult(
                     text_result_for_llm=json.dumps({"error": "forbidden"}),
                     result_type="error",
                     session_log=f"{insight_tool.name}: forbidden",
                 )
             except ValueError as exc:
+                entry["duration_ms"] = int((time.perf_counter() - started_at) * 1000)
                 entry["error"] = f"invalid: {exc}"
                 trace.append(entry)
+                self._log_timing(
+                    context=context,
+                    planner_started_at=planner_started_at,
+                    stage="tool_completed",
+                    tool=insight_tool.name,
+                    duration_ms=entry["duration_ms"],
+                    status="invalid",
+                )
                 return ToolResult(
                     text_result_for_llm=json.dumps({"error": str(exc)}),
                     result_type="error",
@@ -273,17 +357,35 @@ class CopilotInsightsPlanner:
                 )
             except Exception as exc:  # pragma: no cover - defensive
                 logger.exception("Insights tool %s failed", insight_tool.name)
+                entry["duration_ms"] = int((time.perf_counter() - started_at) * 1000)
                 entry["error"] = f"tool_error: {exc}"
                 trace.append(entry)
+                self._log_timing(
+                    context=context,
+                    planner_started_at=planner_started_at,
+                    stage="tool_completed",
+                    tool=insight_tool.name,
+                    duration_ms=entry["duration_ms"],
+                    status="error",
+                )
                 return ToolResult(
                     text_result_for_llm=json.dumps({"error": "tool_error"}),
                     result_type="error",
                     session_log=f"{insight_tool.name}: error",
                 )
 
+            entry["duration_ms"] = int((time.perf_counter() - started_at) * 1000)
             payload_text = self._serialize_tool_result(result)
             entry["result_summary"] = self._summarize_result(result)
             trace.append(entry)
+            self._log_timing(
+                context=context,
+                planner_started_at=planner_started_at,
+                stage="tool_completed",
+                tool=insight_tool.name,
+                duration_ms=entry["duration_ms"],
+                status="success",
+            )
             return ToolResult(
                 text_result_for_llm=payload_text,
                 result_type="success",

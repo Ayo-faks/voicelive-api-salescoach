@@ -9,6 +9,7 @@ import type { InsightsVoiceState } from '../types'
 
 const STATE_LABELS: Record<InsightsVoiceState, string> = {
   idle: 'Idle — tap the microphone to speak',
+  connecting: 'Connecting',
   listening: 'Listening',
   thinking: 'Thinking',
   speaking: 'Speaking',
@@ -172,6 +173,12 @@ export interface InsightsOrbProps {
   ariaLabel?: string
   /** Optional interrupt/stop action rendered beneath the orb while active. */
   onInterrupt?: () => void
+  /** Optional label for the interrupt action. */
+  interruptLabel?: string
+  /** Optional explicit session-end action rendered beneath the orb while active. */
+  onEndSession?: () => void
+  /** Optional label for the session-end action. */
+  endSessionLabel?: string
 }
 
 /**
@@ -189,6 +196,9 @@ export function InsightsOrb({
   reducedMotion,
   ariaLabel,
   onInterrupt,
+  interruptLabel = 'Stop voice',
+  onEndSession,
+  endSessionLabel = 'End voice session',
 }: InsightsOrbProps) {
   const styles = useStyles()
   const prefersReducedMotionFromOs = usePrefersReducedMotion()
@@ -200,6 +210,8 @@ export function InsightsOrb({
   const scale = useMemo(() => {
     if (effectiveReducedMotion) return BASE_SCALE
     switch (state) {
+      case 'connecting':
+        return BASE_SCALE + THINKING_SWING / 2
       case 'listening':
         return BASE_SCALE + LISTENING_SWING * clampedInput
       case 'speaking':
@@ -216,6 +228,8 @@ export function InsightsOrb({
   const orbStateClass =
     state === 'idle'
       ? styles.orbIdle
+      : state === 'connecting'
+      ? styles.orbThinking
       : state === 'listening'
       ? styles.orbListening
       : state === 'thinking'
@@ -226,8 +240,9 @@ export function InsightsOrb({
       ? styles.orbInterrupted
       : styles.orbError
 
-  const showHalo = state === 'listening' || state === 'speaking' || state === 'thinking'
-  const haloAnimates = state === 'thinking' && !effectiveReducedMotion
+  const showHalo =
+    state === 'connecting' || state === 'listening' || state === 'speaking' || state === 'thinking'
+  const haloAnimates = (state === 'connecting' || state === 'thinking') && !effectiveReducedMotion
 
   const haloClassName = mergeClasses(
     styles.halo,
@@ -239,7 +254,8 @@ export function InsightsOrb({
   const composedAriaLabel = ariaLabel
     ? `${STATE_LABELS[state]} — ${ariaLabel}`
     : STATE_LABELS[state]
-  const showInterruptButton = typeof onInterrupt === 'function' && state !== 'idle' && state !== 'error'
+  const showInterruptButton = typeof onInterrupt === 'function'
+  const showEndSessionButton = typeof onEndSession === 'function'
 
   return (
     <div
@@ -279,19 +295,35 @@ export function InsightsOrb({
       >
         {transcript && transcript.trim().length > 0
           ? transcript
+          : state === 'connecting'
+          ? 'Connecting...'
           : state === 'listening'
           ? 'Listening…'
           : 'Transcript will appear here.'}
       </Text>
-      {showInterruptButton ? (
-        <button
-          type="button"
-          className={styles.interruptButton}
-          onClick={onInterrupt}
-          data-testid="insights-orb-interrupt"
-        >
-          Stop voice
-        </button>
+      {showInterruptButton || showEndSessionButton ? (
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          {showInterruptButton ? (
+            <button
+              type="button"
+              className={styles.interruptButton}
+              onClick={onInterrupt}
+              data-testid="insights-orb-interrupt"
+            >
+              {interruptLabel}
+            </button>
+          ) : null}
+          {showEndSessionButton ? (
+            <button
+              type="button"
+              className={styles.interruptButton}
+              onClick={onEndSession}
+              data-testid="insights-orb-end-session"
+            >
+              {endSessionLabel}
+            </button>
+          ) : null}
+        </div>
       ) : null}
       {/* tokens import is kept for potential theme-aware styling; reference to avoid unused-import lint: */}
       <span data-testid="insights-orb-token-ref" style={{ display: 'none' }}>

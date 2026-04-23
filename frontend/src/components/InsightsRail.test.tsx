@@ -5,6 +5,7 @@
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { InsightsVoiceState } from '../types'
 
 vi.mock('./VisualizationBlock', () => ({
   VisualizationBlock: ({ spec }: { spec: unknown }) => (
@@ -26,22 +27,90 @@ vi.mock('../services/api', () => ({
   },
 }))
 
+type VoiceMockState = {
+  voiceState: InsightsVoiceState
+  lastError: string | null
+  lastTranscript: string
+  lastAnswer: string
+  outputLevel: number
+}
+
+const voiceListeners = new Set<() => void>()
+const startVoiceSpy = vi.fn(async () => {
+  setVoiceMockState({ voiceState: 'listening', lastError: null })
+})
+const stopVoiceSpy = vi.fn(async () => {
+  setVoiceMockState({ voiceState: 'idle' })
+})
+const endSessionVoiceSpy = vi.fn(async () => {
+  setVoiceMockState({ voiceState: 'idle' })
+})
+let voiceMockState: VoiceMockState = {
+  voiceState: 'idle',
+  lastError: null,
+  lastTranscript: '',
+  lastAnswer: '',
+  outputLevel: 0,
+}
+
+function setVoiceMockState(next: Partial<VoiceMockState>) {
+  voiceMockState = {
+    ...voiceMockState,
+    ...next,
+  }
+  for (const listener of voiceListeners) {
+    listener()
+  }
+}
+
+function resetVoiceMockState() {
+  voiceMockState = {
+    voiceState: 'idle',
+    lastError: null,
+    lastTranscript: '',
+    lastAnswer: '',
+    outputLevel: 0,
+  }
+  startVoiceSpy.mockClear()
+  stopVoiceSpy.mockClear()
+  endSessionVoiceSpy.mockClear()
+  startVoiceSpy.mockImplementation(async () => {
+    setVoiceMockState({ voiceState: 'listening', lastError: null })
+  })
+  stopVoiceSpy.mockImplementation(async () => {
+    setVoiceMockState({ voiceState: 'idle' })
+  })
+  endSessionVoiceSpy.mockImplementation(async () => {
+    setVoiceMockState({ voiceState: 'idle' })
+  })
+}
+
 vi.mock('../hooks/useInsightsVoice', async () => {
   const React = await import('react')
   return {
     useInsightsVoice: () => {
-      const [voiceState, setVoiceState] = React.useState('idle')
+      const [, forceRender] = React.useState(0)
+
+      React.useEffect(() => {
+        const listener = () => {
+          forceRender(value => value + 1)
+        }
+        voiceListeners.add(listener)
+        return () => {
+          voiceListeners.delete(listener)
+        }
+      }, [])
+
       return {
-        voiceState,
-        start: async () => {
-          setVoiceState('listening')
-        },
-        stop: async () => {
-          setVoiceState('idle')
-        },
-        lastTranscript: '',
-        lastAnswer: '',
-        outputLevel: 0,
+        voiceState: voiceMockState.voiceState,
+        start: startVoiceSpy,
+        stop: stopVoiceSpy,
+        interrupt: stopVoiceSpy,
+        endSession: endSessionVoiceSpy,
+        lastTranscript: voiceMockState.lastTranscript,
+        lastAnswer: voiceMockState.lastAnswer,
+        lastError: voiceMockState.lastError,
+        outputLevel: voiceMockState.outputLevel,
       }
     },
   }
@@ -130,6 +199,7 @@ describe('InsightsRail', () => {
     askInsights.mockReset()
     listInsightsConversations.mockReset()
     getInsightsConversation.mockReset()
+    resetVoiceMockState()
     listInsightsConversations.mockResolvedValue({ conversations: [] })
     window.localStorage.clear()
   })
@@ -376,28 +446,87 @@ describe('InsightsRail', () => {
     expect(answer.textContent).toContain('Stronger /t/ accuracy')
   })
 
-  it('does not render voice controls when insights voice mode is off', async () => {
+  it('keeps the composer mic focused on the textarea when insights voice mode is off', async () => {
     render(<InsightsRail currentScope={childScope} insightsVoiceMode="off" />)
 
-    await screen.findByTestId('insights-rail-input')
+    const input = (await screen.findByTestId('insights-rail-input')) as HTMLTextAreaElement
+    const voiceAction = screen.getByTestId('insights-rail-voice-action') as HTMLButtonElement
 
     expect(screen.queryByTestId('insights-rail-voice-toggle')).toBeNull()
     expect(screen.queryByTestId('insights-orb')).toBeNull()
+    expect(voiceAction.title).toBe('Talk to Wulo')
+
+    fireEvent.click(voiceAction)
+
+    expect(document.activeElement).toBe(input)
   })
 
-  it('renders the voice toggle and mounts the orb in listening state on press', async () => {
+  it('uses the composer mic to start and explicitly end a continuous voice session', async () => {
     render(<InsightsRail currentScope={childScope} insightsVoiceMode="push_to_talk" />)
 
-    const toggle = await screen.findByTestId('insights-rail-voice-toggle')
-    expect(toggle.getAttribute('aria-pressed')).toBe('false')
+    const voiceAction = (await screen.findByTestId('insights-rail-voice-action')) as HTMLButtonElement
+    expect(voiceAction.getAttribute('aria-pressed')).toBe('false')
     expect(screen.queryByTestId('insights-orb')).toBeNull()
 
-    fireEvent.click(toggle)
+    fireEvent.click(voiceAction)
+
+    await waitFor(() => {
+      expect(startVoiceSpy).toHaveBeenCalledTimes(1)
+    })
 
     const orb = await screen.findByTestId('insights-orb')
-    expect(toggle.getAttribute('aria-pressed')).toBe('true')
+    expect(voiceAction.getAttribute('aria-pressed')).toBe('true')
+    expect(voiceAction.getAttribute('title')).toBe('End voice session')
+    expect(voiceAction.getAttribute('data-voice-state')).toBe('listening')
     expect(orb.getAttribute('data-state')).toBe('listening')
-    expect(screen.getByTestId('insights-orb-interrupt').textContent).toContain('Stop voice')
+    expect(screen.queryByTestId('insights-orb-interrupt')).toBeNull()
+    expect(screen.getByTestId('insights-orb-end-session').textContent).toContain(
+      'End voice session',
+    )
+
+    fireEvent.click(voiceAction)
+
+    await waitFor(() => {
+      expect(endSessionVoiceSpy).toHaveBeenCalledTimes(1)
+      expect(stopVoiceSpy).not.toHaveBeenCalled()
+      expect(voiceAction.getAttribute('aria-pressed')).toBe('false')
+      expect(voiceAction.getAttribute('title')).toBe('Start voice')
+    })
+  })
+
+  it('offers an explicit end-session action distinct from end-turn', async () => {
+    setVoiceMockState({ voiceState: 'listening', lastError: null })
+
+    render(<InsightsRail currentScope={childScope} insightsVoiceMode="push_to_talk" />)
+
+    const voiceAction = (await screen.findByTestId('insights-rail-voice-action')) as HTMLButtonElement
+    expect(voiceAction.title).toBe('End voice session')
+
+    fireEvent.click(screen.getByTestId('insights-orb-end-session'))
+
+    await waitFor(() => {
+      expect(endSessionVoiceSpy).toHaveBeenCalledTimes(1)
+      expect(stopVoiceSpy).not.toHaveBeenCalled()
+    })
+  })
+
+  it('renders inline voice errors and retries from the composer mic', async () => {
+    setVoiceMockState({
+      voiceState: 'error',
+      lastError: 'Microphone blocked - allow access in your browser to use voice.',
+    })
+
+    render(<InsightsRail currentScope={childScope} insightsVoiceMode="push_to_talk" />)
+
+    const voiceAction = (await screen.findByTestId('insights-rail-voice-action')) as HTMLButtonElement
+    expect(voiceAction.title).toBe('Retry voice')
+    expect(screen.getByText('Microphone blocked - allow access in your browser to use voice.')).toBeTruthy()
+
+    fireEvent.click(voiceAction)
+
+    await waitFor(() => {
+      expect(startVoiceSpy).toHaveBeenCalledTimes(1)
+    })
   })
 
   it('keeps mode-off markup byte-identical to the baseline render', async () => {

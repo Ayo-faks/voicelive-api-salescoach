@@ -23,6 +23,23 @@ function getPackageChunkName(id: string) {
     return 'framework'
   }
 
+  const tourPackages = [
+    '/react-joyride/',
+    '/@fastify/deepmerge/',
+    '/@floating-ui/',
+    '/@gilbarbara/deep-equal/',
+    '/@gilbarbara/hooks/',
+    '/@gilbarbara/types/',
+    '/is-lite/',
+    '/react-innertext/',
+    '/scroll/',
+    '/scrollparent/',
+  ]
+
+  if (tourPackages.some(packageName => id.includes(packageName))) {
+    return 'tour'
+  }
+
   if (id.includes('/recharts/') || id.includes('/victory-vendor/') || id.includes('/d3-')) {
     return 'charts'
   }
