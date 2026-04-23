@@ -44,35 +44,56 @@ const useStyles = makeStyles({
     placeItems: 'center',
     padding: 'var(--space-lg)',
     background:
-      'radial-gradient(circle at 12% 14%, rgba(13, 138, 132, 0.16), transparent 20%), radial-gradient(circle at 86% 82%, rgba(13, 138, 132, 0.12), transparent 22%), radial-gradient(circle at 50% 50%, rgba(255,255,255,0.72), rgba(241, 247, 246, 0.92) 48%, #eef5f3 100%)',
+      'radial-gradient(circle at 12% 14%, rgba(13, 138, 132, 0.16), transparent 30%), ' +
+      'radial-gradient(circle at 86% 82%, rgba(13, 138, 132, 0.12), transparent 32%), ' +
+      'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.72), rgba(241, 247, 246, 0.92) 48%, #eef5f3 100%)',
   },
   card: {
-    width: 'min(372px, 100%)',
-    borderRadius: '0px',
+    width: 'min(384px, 100%)',
+    borderRadius: '20px',
     border: '1px solid rgba(17, 36, 58, 0.08)',
-    background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.92))',
-    boxShadow: '0 32px 80px rgba(17, 36, 58, 0.12)',
-    padding: '32px 28px 26px',
+    background:
+      'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,252,252,0.94))',
+    boxShadow:
+      'inset 0 1px 0 rgba(255,255,255,0.85), ' +
+      '0 1px 2px rgba(15,42,58,0.05), ' +
+      '0 32px 80px rgba(17, 36, 58, 0.14)',
+    padding: '34px 30px 28px',
     display: 'grid',
     gap: '18px',
     justifyItems: 'center',
     textAlign: 'center',
-    backdropFilter: 'blur(14px)',
+    backdropFilter: 'blur(16px)',
   },
   brandRow: {
     display: 'grid',
     alignItems: 'center',
     justifyItems: 'center',
-    gap: '8px',
+    gap: '12px',
   },
   brandLockup: {
     display: 'flex',
     alignItems: 'baseline',
     gap: '6px',
   },
+  brandPlatter: {
+    width: '48px',
+    height: '48px',
+    borderRadius: '14px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    background:
+      'radial-gradient(circle at 32% 28%, rgba(255,255,255,0.95), rgba(232,244,244,0.65) 58%, rgba(13,138,132,0.14) 100%)',
+    border: '1px solid rgba(13,138,132,0.18)',
+    boxShadow:
+      'inset 0 1px 0 rgba(255,255,255,0.9), ' +
+      '0 4px 12px rgba(13,138,132,0.12)',
+  },
   brandMark: {
-    width: '30px',
-    height: '30px',
+    width: '32px',
+    height: '32px',
     objectFit: 'contain',
   },
   brandName: {
@@ -125,24 +146,60 @@ const useStyles = makeStyles({
     width: '100%',
   },
   buttonBase: {
-    minHeight: '46px',
+    minHeight: '48px',
     width: '100%',
-    borderRadius: '0px',
+    borderRadius: '12px',
     fontFamily: 'var(--font-display)',
     fontWeight: '700',
     fontSize: '0.95rem',
+    letterSpacing: '-0.01em',
     paddingInline: '16px',
     justifyContent: 'center',
+    transition:
+      'box-shadow 180ms ease, background 180ms ease, border-color 180ms ease, transform 180ms ease',
   },
   primaryButton: {
     backgroundColor: 'var(--color-primary)',
     color: 'var(--color-text-inverse)',
-    border: 'none',
+    border: '1px solid rgba(6, 98, 94, 0.32)',
+    boxShadow:
+      'inset 0 1px 0 rgba(255,255,255,0.32), ' +
+      '0 1px 2px rgba(15,42,58,0.08), ' +
+      '0 6px 18px rgba(13,138,132,0.28)',
+    ':hover': {
+      backgroundColor: 'var(--color-primary)',
+      boxShadow:
+        'inset 0 1px 0 rgba(255,255,255,0.42), ' +
+        '0 2px 4px rgba(15,42,58,0.1), ' +
+        '0 10px 24px rgba(13,138,132,0.34)',
+    },
+    ':active': {
+      boxShadow:
+        'inset 0 1px 2px rgba(6,98,94,0.35), ' +
+        '0 1px 2px rgba(15,42,58,0.08)',
+    },
   },
   secondaryButton: {
-    backgroundColor: '#ffffff',
+    background:
+      'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,250,250,0.88))',
     color: 'var(--color-text-primary)',
     border: '1px solid rgba(17, 36, 58, 0.12)',
+    boxShadow:
+      'inset 0 1px 0 rgba(255,255,255,0.85), ' +
+      '0 1px 2px rgba(15,42,58,0.06)',
+    ':hover': {
+      background:
+        'linear-gradient(180deg, rgba(255,255,255,1), rgba(248,252,252,0.92))',
+      border: '1px solid rgba(17, 36, 58, 0.18)',
+      boxShadow:
+        'inset 0 1px 0 rgba(255,255,255,0.9), ' +
+        '0 2px 4px rgba(15,42,58,0.1), ' +
+        '0 8px 18px rgba(15,42,58,0.08)',
+    },
+    ':active': {
+      boxShadow:
+        'inset 0 1px 2px rgba(15,42,58,0.12)',
+    },
   },
   buttonContent: {
     display: 'inline-flex',
@@ -182,7 +239,9 @@ export function AuthGateScreen({
     <div className={styles.shell}>
       <section className={styles.card}>
         <div className={styles.brandRow}>
-          <img src="/wulo-logo.png" alt="Wulo logo" className={styles.brandMark} />
+          <span className={styles.brandPlatter}>
+            <img src="/wulo-logo.png" alt="Wulo logo" className={styles.brandMark} />
+          </span>
           <div className={styles.brandLockup}>
             <Text className={styles.brandName}>{APP_TITLE}</Text>
             <Text className={styles.brandMeta}>{APP_RELEASE_LABEL}</Text>
