@@ -8,7 +8,7 @@ Pre-flight: signed in as therapist, child `Ayo` has recent sessions + pending me
 
 ## The one-line thesis (say this first, 15s)
 
-> "Wulo turns a single child-facing practice session into a governed clinical loop — session, review, approved memory, explainable recommendation, co-authored plan, parent-ready home support. The avatar is the hook. The loop is the product."
+> "Wulo takes one practice session with a child and turns it into a full clinical loop: the session, a quick review, an approved memory, a recommendation you can explain, a plan you co-author, and a home page the parent can actually use. The avatar pulls the child in. The loop is what we sell."
 
 ---
 
@@ -19,7 +19,7 @@ Open on **Dashboard Home**.
 - Point to the three signal cards: *Active memory*, *Needs review*, *Last memory refresh*.
 - Point to **Suggested next** for Ayo.
 
-Say: "The therapist doesn't start from a blank page. Wulo tells them who needs review, what memory is active, and what to work on next — grounded in prior sessions, not vibes."
+Say: "The therapist never starts from zero. Wulo tells them who to look at, what the system already knows about each child, and what to work on next. It's all based on real past sessions — not guesswork."
 
 ---
 
@@ -30,7 +30,7 @@ Launch `/r/ - Conversation Level` with Ayo + Meg.
 - Run ~20 seconds of real back-and-forth. One clean `/r/` production.
 - End the session from the therapist view.
 
-Say: "Child sees a warm avatar. Therapist sees a clinical instrument — target sound, step in the progression, and everything is captured for review."
+Say: "The child sees a friendly avatar they want to talk to. The therapist sees a clinical tool — the target sound, where the child is in the progression, and a full record of everything that just happened."
 
 ---
 
@@ -41,7 +41,7 @@ Open the just-ended session in **Dashboard → Session detail**, then jump to th
 - Show one **pending memory proposal** from the session.
 - Approve it.
 
-Say: "Nothing enters the child's long-term memory without the therapist. This is how we stay defensible — every fact the AI reasons over was approved by a licensed clinician."
+Say: "Nothing is saved about the child until the therapist says yes. That's the line we don't cross. Every fact the AI uses later was approved by a real clinician first."
 
 ---
 
@@ -51,7 +51,7 @@ Switch to the **Recommendations** tab.
 
 - Open the top recommendation. Point to *ranking factors*, *supporting memory*, *supporting sessions*.
 
-Say: "This isn't a black box. Every recommendation cites the child memory and the sessions behind it. A therapist can defend this to a parent, a supervisor, or a regulator."
+Say: "This isn't a black box. Every suggestion shows you why — which memory it's based on, which sessions back it up. The therapist can explain it to a parent, a manager, or a regulator without blinking."
 
 ---
 
@@ -62,7 +62,7 @@ Switch to the **Plan** tab. Generate or open the next plan.
 - Point to *objective*, *activities*, *success criteria*, **Carryover**.
 - Briefly show the **Reports** tab with the parent audience + *How to support at home*.
 
-Say: "One click turns the recommendation into a structured next session and a parent-ready home practice page. The loop closes at the kitchen table, not just in the clinic."
+Say: "One click turns that recommendation into a ready-to-run next session, and a simple home page for the parent. The loop doesn't stop at the clinic door — it keeps going at the kitchen table."
 
 ---
 
@@ -70,17 +70,17 @@ Say: "One click turns the recommendation into a structured next session and a pa
 
 Open the **Insights rail**. Ask, out loud:
 
-> "Which children are stalled on /r/ at phrase level, and what's working for the ones who moved past it?"
+> "Which children are stuck on /r/ at phrase level, and what's helping the ones who got past it?"
 
 - Let it answer with citations.
 
-Say: "A caseload-wide assistant that reasons over the same governed memory. This is where 40 kids becomes tractable."
+Say: "This is an assistant that looks across the whole caseload, using the same approved memory. It's how a therapist handling 40 kids can actually stay on top of all of them."
 
 ---
 
 ## Close (20s)
 
-> "Avatar gets the child to show up. The loop is why therapists, clinics, and parents stay. Everything you just saw is one approved memory, one explainable recommendation, one plan, one parent page — repeatable for every child, every week."
+> "The avatar gets the child to show up. The loop is why therapists, clinics, and parents stick around. What you just saw — one approved memory, one recommendation you can explain, one plan, one parent page — runs for every child, every week."
 
 ---
 
@@ -90,16 +90,16 @@ Say: "A caseload-wide assistant that reasons over the same governed memory. This
 | --- | --- | --- | --- |
 | 0:00 | Thesis | — | governed loop |
 | 0:15 | Home | DashboardHome | suggested next |
-| 1:00 | Live | Session | warm avatar, clinical instrument |
+| 1:00 | Live | Session | friendly avatar, clinical tool |
 | 2:00 | Memory | Dashboard → Memory | therapist approves |
 | 2:50 | Reco | Dashboard → Recommendations | explainable, cited |
 | 3:35 | Plan | Dashboard → Plan + Reports | carryover, home support |
-| 4:25 | Insights | Insights rail | caseload-wide |
+| 4:25 | Insights | Insights rail | whole caseload |
 | 5:05 | Close | — | loop |
 
 ## Fallback moves
 
-- Avatar stalls → cut to Session detail immediately; the loop story still works without live audio.
-- No fresh memory proposal → open an existing approved item and narrate the approval gate.
-- Insights slow → use a pre-asked conversation from history; the citations still sell it.
-- Running long → drop Scene 6, keep Plan + home support. Never drop the memory approval beat.
+- Avatar stalls → jump straight to Session detail; the loop story still works without live audio.
+- No fresh memory proposal → open an already-approved one and talk through the approval step.
+- Insights slow → use a question you asked earlier; the citations still do the selling.
+- Running long → drop Scene 6 and keep Plan + home support. Never drop the memory approval beat.

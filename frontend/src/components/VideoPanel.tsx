@@ -370,9 +370,13 @@ export function VideoPanel({
     micRequired,
     audience,
   })
+  const avatarAdvisoryMessage =
+    connectionMessage && /avatar/i.test(connectionMessage) ? connectionMessage : null
   const statusText =
     sessionFinished && audience === 'child'
       ? 'Practice finished'
+      : avatarAdvisoryMessage
+      ? avatarAdvisoryMessage
       : connectionState === 'connected'
       ? introComplete
         ? 'Voice ready'

@@ -219,7 +219,7 @@ export function AuditoryBombardmentPanel({
       <Text className={styles.title}>{title}</Text>
       <Text className={styles.body}>
         {audience === 'therapist'
-          ? `Auditory bombardment for ${perceptLabel}. Twelve pictures play automatically.`
+          ? 'Twelve pictures play automatically.'
           : `Watch the pictures light up while you hear the ${perceptLabel} sound.`}
       </Text>
       <ExerciseShell

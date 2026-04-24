@@ -336,6 +336,22 @@ export function useRealtime(options: RealtimeOptions) {
           setConnectionState('connected')
           setConnectionMessage('Voice connection ready.')
           break
+        case 'wulo.avatar_retrying': {
+          // Azure Voice Live avatar is saturated; backend will retry.
+          const payload = (msg as { payload?: { attempt?: number; max_attempts?: number } }).payload
+          const attempt = payload?.attempt ?? 1
+          const maxAttempts = payload?.max_attempts ?? 3
+          setConnectionMessage(
+            `Avatar service is busy — retrying (${attempt}/${maxAttempts})...`,
+          )
+          break
+        }
+        case 'wulo.avatar_unavailable':
+          // Surrender after repeated saturation; session continues voice-only.
+          setConnectionMessage(
+            'Avatar service is unavailable right now — continuing with voice only.',
+          )
+          break
       }
 
       }

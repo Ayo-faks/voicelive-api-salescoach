@@ -89,6 +89,15 @@ WULO_SCORED_TURN_END_TYPE = "wulo.scored_turn.end"
 WULO_SCORED_TURN_ACK_TYPE = "wulo.scored_turn.ack"
 WULO_SCORED_TURN_RESULT_TYPE = "wulo.scored_turn.result"
 
+# Avatar saturation / unavailable surfacing. When Azure Voice Live returns
+# ``avatar_service_resource_exhausted`` for an error event, we translate it
+# into a Wulo-namespaced frame so the UI can show a human-readable banner
+# rather than silently spinning.
+WULO_AVATAR_RETRYING_TYPE = "wulo.avatar_retrying"
+WULO_AVATAR_UNAVAILABLE_TYPE = "wulo.avatar_unavailable"
+AVATAR_RESOURCE_EXHAUSTED_CODE = "avatar_service_resource_exhausted"
+MAX_AVATAR_ATTEMPTS = 3
+
 # String match used to identify input transcription completion events from the
 # Azure Realtime API (the SDK exposes this as an enum, but matching by string
 # avoids a hard dependency on a specific SDK version).
@@ -628,6 +637,8 @@ class VoiceProxyHandler:
         When Stage 8 is enabled, inspect completed input transcription events
         to feed the tally and emit wulo.target_tally / wulo.scaffold_escalate.
         """
+        avatar_retry_attempts = 0
+        avatar_surrendered = False
         try:
             async for event in azure_conn:
                 event_dict = event.as_dict() if hasattr(event, "as_dict") else dict(event)
@@ -642,6 +653,40 @@ class VoiceProxyHandler:
 
                 if event.type == ServerEventType.ERROR:
                     logger.warning("Azure error event: %s", event_dict)
+                    error_obj = event_dict.get("error") or {}
+                    error_code = str(error_obj.get("code") or "")
+                    if error_code == AVATAR_RESOURCE_EXHAUSTED_CODE and not avatar_surrendered:
+                        avatar_retry_attempts += 1
+                        error_message = str(
+                            error_obj.get("message")
+                            or "Azure avatar service is currently saturated."
+                        )
+                        if avatar_retry_attempts >= MAX_AVATAR_ATTEMPTS:
+                            avatar_surrendered = True
+                            await self._send_message(
+                                client_ws,
+                                {
+                                    "type": WULO_AVATAR_UNAVAILABLE_TYPE,
+                                    "payload": {
+                                        "attempts": avatar_retry_attempts,
+                                        "error_code": error_code,
+                                        "message": error_message,
+                                    },
+                                },
+                            )
+                        else:
+                            await self._send_message(
+                                client_ws,
+                                {
+                                    "type": WULO_AVATAR_RETRYING_TYPE,
+                                    "payload": {
+                                        "attempt": avatar_retry_attempts,
+                                        "max_attempts": MAX_AVATAR_ATTEMPTS,
+                                        "error_code": error_code,
+                                        "message": error_message,
+                                    },
+                                },
+                            )
                 elif event.type == ServerEventType.SESSION_CREATED:
                     logger.info("Session created: %s", event_dict.get("session", {}).get("id"))
                 elif event.type == ServerEventType.SESSION_UPDATED:

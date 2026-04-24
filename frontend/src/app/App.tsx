@@ -382,9 +382,9 @@ export function buildChildIntroInstructions({
     'Speak first to begin the session.',
     requiresMic
       ? `In two short, friendly sentences, greet ${childLabel}, say you are starting ${exerciseLabel}, and tell them to tap the microphone when they are ready to talk.`
-      : `In two short, friendly sentences, greet ${childLabel}, say you are starting ${exerciseLabel}, and tell them to listen for the clue and tap the matching picture.`,
+      : `In two short, friendly sentences, greet ${childLabel}, say you are starting ${exerciseLabel}, and tell them to watch and listen as the pictures play.`,
     exerciseContext,
-    requiresMic ? 'Invite talking only when the child taps the microphone.' : 'Do not mention recording or spoken responses.',
+    requiresMic ? 'Invite talking only when the child taps the microphone.' : 'Do not mention recording or spoken responses. Do not invent clues, target words, or sample sounds.',
     'Never use the word "test". Always say "practice" or "exercise".',
     'Keep the tone calm, encouraging, and child-friendly. Keep it under 35 words.',
   ].join(' ')
@@ -416,9 +416,9 @@ export function buildTherapistIntroInstructions({
     'Speak first to begin the session.',
     requiresMic
       ? `In two short sentences, welcome the therapist, say you are starting ${exerciseLabel} with ${childLabel}, and ask them to tap the microphone when they are ready to begin.`
-      : `In two short sentences, welcome the therapist, say you are starting ${exerciseLabel} with ${childLabel}, and explain that this is a tap-only listening turn that begins with your clue.`,
+      : `In two short sentences, welcome the therapist, say you are starting ${exerciseLabel} with ${childLabel}, and note that the pictures will play automatically while ${childLabel} listens.`,
     exerciseContext,
-    requiresMic ? 'Mention the microphone only as the way to begin talking.' : 'Do not mention recording or spoken responses.',
+    requiresMic ? 'Mention the microphone only as the way to begin talking.' : 'Do not mention recording or spoken responses. Do not invent clues, target words, or sample sounds.',
     'Keep the tone calm, observational, and supportive. Keep it under 35 words.',
   ].join(' ')
 }

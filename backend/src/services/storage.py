@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import sqlite3
 import threading
 import time
@@ -54,6 +55,23 @@ class StorageService:
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
+        # Background blob-backup coordination. A single daemon thread
+        # observes ``_backup_dirty`` and uploads the SQLite file at most
+        # once per ``BLOB_BACKUP_MIN_INTERVAL_SECONDS`` so bursty writes
+        # coalesce into a single upload and never block the request path.
+        self._backup_dirty = threading.Event()
+        self._backup_shutdown = threading.Event()
+        self._backup_wakeup = threading.Event()
+        self._backup_thread: Optional[threading.Thread] = None
+        self._backup_thread_lock = threading.Lock()
+        try:
+            self._backup_min_interval = float(
+                os.environ.get("BLOB_BACKUP_MIN_INTERVAL_SECONDS", "30")
+            )
+        except ValueError:
+            self._backup_min_interval = 30.0
+        if self._backup_min_interval < 0:
+            self._backup_min_interval = 0.0
         logger.info("StorageService init: db_path=%s", self.db_path)
         self._initialize()
         logger.info("StorageService init complete")
@@ -1164,21 +1182,86 @@ class StorageService:
             with self._connect() as connection:
                 result = operation(connection)
                 connection.commit()
-            self._trigger_blob_backup()
-            return result
+        # Mark the database dirty and wake the background backup worker.
+        # The worker debounces uploads so bursty writes coalesce into one
+        # backup and never block the request path (previously a sync
+        # upload added ~hundreds of ms per write and, worse, ran the
+        # aiohttp transport inside the request thread which leaked on
+        # 403s).
+        self._mark_backup_dirty()
+        return result
 
-    def _trigger_blob_backup(self) -> None:
-        """Best-effort upload of the local database to Azure Blob Storage."""
-        try:
-            backup_to_blob(
-                str(self.db_path),
-                account_name=str(config["blob_backup_account_name"]),
-                account_key=str(config["blob_backup_account_key"]),
-                container=str(config["blob_backup_container"]),
-                blob_name=str(config["blob_backup_name"]),
+    def _mark_backup_dirty(self) -> None:
+        self._backup_dirty.set()
+        self._ensure_backup_worker_started()
+        self._backup_wakeup.set()
+
+    def _ensure_backup_worker_started(self) -> None:
+        if self._backup_thread is not None and self._backup_thread.is_alive():
+            return
+        with self._backup_thread_lock:
+            if self._backup_thread is not None and self._backup_thread.is_alive():
+                return
+            if not str(config.get("blob_backup_account_name", "")):
+                # No backup target configured; no point starting a worker.
+                return
+            thread = threading.Thread(
+                target=self._backup_worker_loop,
+                name="wulo-blob-backup",
+                daemon=True,
             )
-        except Exception as exc:
-            logger.warning("Blob backup after write failed: %s", exc)
+            self._backup_thread = thread
+            thread.start()
+
+    def _backup_worker_loop(self) -> None:
+        logger.info(
+            "Blob backup worker started (min interval %.1fs)",
+            self._backup_min_interval,
+        )
+        while not self._backup_shutdown.is_set():
+            # Wait until a write marks the DB dirty.
+            self._backup_wakeup.wait()
+            if self._backup_shutdown.is_set():
+                break
+            self._backup_wakeup.clear()
+            # Debounce: let additional writes coalesce before uploading.
+            if self._backup_min_interval > 0:
+                # Returns True if shutdown signalled during the wait.
+                if self._backup_shutdown.wait(self._backup_min_interval):
+                    break
+            if not self._backup_dirty.is_set():
+                continue
+            # Clear before running so writes that land during the upload
+            # re-arm the flag and trigger a follow-up cycle.
+            self._backup_dirty.clear()
+            try:
+                self._run_blob_backup()
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.warning("Blob backup worker iteration failed: %s", exc)
+
+    def _run_blob_backup(self) -> None:
+        backup_to_blob(
+            str(self.db_path),
+            account_name=str(config["blob_backup_account_name"]),
+            account_key=str(config["blob_backup_account_key"]),
+            container=str(config["blob_backup_container"]),
+            blob_name=str(config["blob_backup_name"]),
+        )
+
+    def shutdown(self) -> None:
+        """Flush any pending backup and stop the worker thread."""
+        self._backup_shutdown.set()
+        self._backup_wakeup.set()
+        thread = self._backup_thread
+        if thread is not None and thread.is_alive():
+            thread.join(timeout=5.0)
+        if self._backup_dirty.is_set():
+            try:
+                self._run_blob_backup()
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.warning("Final blob backup on shutdown failed: %s", exc)
+            finally:
+                self._backup_dirty.clear()
 
     def _set_setting(self, key: str, value: Optional[str]):
         def persist_setting(connection: sqlite3.Connection) -> None:
