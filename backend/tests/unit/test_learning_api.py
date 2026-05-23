@@ -264,3 +264,59 @@ def test_voice_frame_invalid_payload_returns_400(client, monkeypatch):
         json={"mode": "text", "payload": ""},
     )
     assert response.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# Multi-subject diagnostic pack (English, Basic Science, ICT, Social Studies)
+# ---------------------------------------------------------------------------
+from src.learning.api import DIAGNOSTICS_DIR  # noqa: E402
+from src.learning.diagnostic import load_subject_diagnostics  # noqa: E402
+
+
+def test_subject_registry_loads_all_fixtures():
+    banks = load_subject_diagnostics(DIAGNOSTICS_DIR)
+    assert len(banks) >= 4
+    for bank in banks:
+        assert bank.subject, f"{bank.diagnostic_id} missing subject"
+        assert len(bank.items) >= 10
+        assert bank.provenance and bank.provenance[0].source
+
+
+def test_get_subjects_endpoint_lists_all_banks(client):
+    response = client.get("/api/learning/subjects")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["count"] >= 5  # maths + 4 new subjects
+    diagnostic_ids = {entry["diagnostic_id"] for entry in body["subjects"]}
+    assert "jss2-english-phase-2" in diagnostic_ids
+    assert "jss2-basic-science-phase-2" in diagnostic_ids
+    assert "jss2-ict-phase-2" in diagnostic_ids
+    assert "jss2-social-studies-phase-2" in diagnostic_ids
+    for entry in body["subjects"]:
+        assert entry["provenance"], f"{entry['diagnostic_id']} missing provenance"
+
+
+def test_start_diagnostic_with_subject_uses_correct_bank(client):
+    response = client.post("/api/learning/diagnostic/start", json={"subject": "ict"})
+    assert response.status_code == 200, response.get_data(as_text=True)
+    body = response.get_json()
+    assert body["diagnostic_id"] == "jss2-ict-phase-2"
+    assert body["subject"] == "ict"
+    ict_skill_ids = {"computer-basics", "data-handling", "online-safety", "algorithms"}
+    assert body["item"]["skill_id"] in ict_skill_ids
+
+
+def test_start_diagnostic_with_unknown_subject_returns_404(client):
+    response = client.post("/api/learning/diagnostic/start", json={"subject": "alchemy"})
+    assert response.status_code == 404
+
+
+def test_start_diagnostic_with_diagnostic_id_uses_correct_bank(client):
+    response = client.post(
+        "/api/learning/diagnostic/start",
+        json={"diagnostic_id": "jss2-english-phase-2"},
+    )
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["diagnostic_id"] == "jss2-english-phase-2"
+    assert body["subject"] == "english"

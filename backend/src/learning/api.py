@@ -29,6 +29,7 @@ from src.learning.diagnostic import (
     DiagnosticItemBank,
     heatmap_status,
     load_item_bank,
+    load_subject_diagnostics,
     normalize_answer,
 )
 from src.learning.mastery import BetaBKT, MasteryEstimator, MasteryUpdateInput
@@ -64,6 +65,9 @@ VOICE_FEATURE_FLAG_ENV = "PATHFINDER_VOICE_ENABLED"
 ITEM_BANK_PATH = (
     Path(__file__).resolve().parents[3] / "data" / "learning" / "jss2_maths_diagnostic_phase_2.json"
 )
+DIAGNOSTICS_DIR = (
+    Path(__file__).resolve().parents[3] / "data" / "learning" / "diagnostics"
+)
 PILOT_METRICS_PATH = (
     Path(__file__).resolve().parents[3]
     / "data"
@@ -88,6 +92,7 @@ class _SessionState:
         "estimates",
         "responses",
         "completed",
+        "bank",
     )
 
     def __init__(
@@ -99,6 +104,7 @@ class _SessionState:
         teacher_id: str,
         diagnostic_id: str,
         selected_items: List[DiagnosticItem],
+        bank: DiagnosticItemBank,
     ) -> None:
         self.session_id = session_id
         self.tenant_id = tenant_id
@@ -111,6 +117,7 @@ class _SessionState:
         self.estimates: Dict[str, MasteryEstimate] = {}
         self.responses: List[StudentResponse] = []
         self.completed = False
+        self.bank = bank
 
 
 class LearningApi:
@@ -121,6 +128,7 @@ class LearningApi:
         repository: Optional[LearningRepository] = None,
         item_bank: Optional[DiagnosticItemBank] = None,
         estimator: Optional[MasteryEstimator] = None,
+        subject_banks: Optional[List[DiagnosticItemBank]] = None,
     ) -> None:
         self.repository: LearningRepository = repository or InMemoryLearningRepository()
         self.item_bank: DiagnosticItemBank = item_bank or load_item_bank(ITEM_BANK_PATH)
@@ -132,7 +140,28 @@ class LearningApi:
         self._pending_plans: Dict[str, Dict[str, Any]] = {}
         self._audit_events: List[Dict[str, Any]] = []
         self._lock = threading.Lock()
-        self._allowed_skill_ids = [skill.skill_id for skill in self.item_bank.skills]
+
+        # Build a subject registry from the primary maths bank plus any extra
+        # subject fixtures shipped under data/learning/diagnostics/. The maths
+        # bank stays the default for back-compat (clients that omit subject /
+        # diagnostic_id keep the existing behaviour).
+        registry_banks: List[DiagnosticItemBank] = [self.item_bank]
+        extra = subject_banks if subject_banks is not None else load_subject_diagnostics(DIAGNOSTICS_DIR)
+        for bank in extra:
+            if bank.diagnostic_id != self.item_bank.diagnostic_id:
+                registry_banks.append(bank)
+        self._banks_by_id: Dict[str, DiagnosticItemBank] = {
+            bank.diagnostic_id: bank for bank in registry_banks
+        }
+        self._banks_by_subject: Dict[str, DiagnosticItemBank] = {
+            bank.subject: bank for bank in registry_banks if bank.subject
+        }
+
+        seen: Dict[str, None] = {}
+        for bank in registry_banks:
+            for skill in bank.skills:
+                seen.setdefault(skill.skill_id, None)
+        self._allowed_skill_ids = list(seen.keys())
         self._validator: PlanValidator[InterventionPlan] = PlanValidator(
             [catalogue_grounding_rule(self._allowed_skill_ids)]
         )
@@ -148,8 +177,9 @@ class LearningApi:
         target_skill_id = payload.get("skill_id")
         item_count = int(payload.get("item_count") or PILOT_DIAGNOSTIC_ITEMS_PER_RUN)
 
+        bank = self._resolve_bank(payload)
         prior = self._student_estimates.get((tenant_id, student_id), {})
-        selected = self.selector.select_items(self.item_bank, prior_mastery=prior, limit=item_count)
+        selected = self.selector.select_items(bank, prior_mastery=prior, limit=item_count)
         if target_skill_id:
             filtered = [item for item in selected if item.skill_id == target_skill_id]
             if filtered:
@@ -162,25 +192,44 @@ class LearningApi:
             class_id=class_id,
             student_id=student_id,
             teacher_id=teacher_id,
-            diagnostic_id=self.item_bank.diagnostic_id,
+            diagnostic_id=bank.diagnostic_id,
             selected_items=selected,
+            bank=bank,
         )
         with self._lock:
             self._sessions[session_id] = state
         self._record_audit(
             tenant_id=tenant_id,
             actor_id=student_id,
-            label=f"Started diagnostic {self.item_bank.diagnostic_id}",
+            label=f"Started diagnostic {bank.diagnostic_id}",
             kind="diagnostic_started",
         )
         return {
             "session_id": session_id,
-            "diagnostic_id": self.item_bank.diagnostic_id,
-            "lang": self.item_bank.lang,
+            "diagnostic_id": bank.diagnostic_id,
+            "subject": bank.subject,
+            "lang": bank.lang,
             "item": _item_to_payload(selected[0]) if selected else None,
             "items_remaining": max(0, len(selected) - 1),
             "items_total": len(selected),
         }
+
+    def _resolve_bank(self, payload: Mapping[str, Any]) -> DiagnosticItemBank:
+        diagnostic_id = payload.get("diagnostic_id")
+        if diagnostic_id:
+            bank = self._banks_by_id.get(str(diagnostic_id))
+            if bank is None:
+                raise LearningApiError(
+                    f"unknown diagnostic_id {diagnostic_id!r}", status_code=404
+                )
+            return bank
+        subject = payload.get("subject")
+        if subject:
+            bank = self._banks_by_subject.get(str(subject))
+            if bank is None:
+                raise LearningApiError(f"unknown subject {subject!r}", status_code=404)
+            return bank
+        return self.item_bank
 
     def answer_diagnostic(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
         session_id = str(payload.get("session_id") or "").strip()
@@ -262,8 +311,8 @@ class LearningApi:
                 student_id=state.student_id,
                 diagnostic_id=state.diagnostic_id,
                 item_count=len(state.selected_items),
-                lang=self.item_bank.lang,
-                provenance=self.item_bank.provenance,
+                lang=state.bank.lang,
+                provenance=state.bank.provenance,
             )
             completion_statement = diagnostic_completion_event_to_xapi(completion_event)
             self.repository.emit_xapi_statement(
@@ -300,19 +349,22 @@ class LearningApi:
     def get_class_mastery(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
         tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
         class_id = str(payload.get("class_id") or PILOT_CLASS_ID)
+        skill_labels: Dict[str, str] = {}
+        for bank in self._banks_by_id.values():
+            for skill in bank.skills:
+                skill_labels.setdefault(skill.skill_id, skill.name)
         cells: List[Dict[str, Any]] = []
         for (event_tenant, student_id), estimates_by_skill in self._student_estimates.items():
             if event_tenant != tenant_id:
                 continue
-            for skill in self.item_bank.skills:
-                estimate = estimates_by_skill.get(skill.skill_id)
-                if estimate is None:
+            for skill_id, estimate in estimates_by_skill.items():
+                if skill_id not in skill_labels:
                     continue
                 cells.append(
                     {
                         "student_id": student_id,
-                        "skill_id": skill.skill_id,
-                        "skill_label": skill.name,
+                        "skill_id": skill_id,
+                        "skill_label": skill_labels[skill_id],
                         "probability": estimate.probability,
                         "uncertainty": estimate.uncertainty,
                         "status": heatmap_status(estimate),
@@ -458,6 +510,28 @@ class LearningApi:
             "lang": report.lang,
             "provenance": [item.model_dump() for item in report.provenance],
         }
+
+    # ------------------------------------------------------------------
+    # Subjects (multi-subject diagnostic registry)
+    # ------------------------------------------------------------------
+    def list_subjects(self, _payload: Mapping[str, Any]) -> Dict[str, Any]:
+        subjects: List[Dict[str, Any]] = []
+        for bank in self._banks_by_id.values():
+            subjects.append(
+                {
+                    "diagnostic_id": bank.diagnostic_id,
+                    "subject": bank.subject,
+                    "title": bank.title,
+                    "lang": bank.lang,
+                    "skill_count": len(bank.skills),
+                    "item_count": len(bank.items),
+                    "skills": [
+                        {"skill_id": s.skill_id, "name": s.name} for s in bank.skills
+                    ],
+                    "provenance": [p.model_dump() for p in bank.provenance],
+                }
+            )
+        return {"subjects": subjects, "count": len(subjects)}
 
     # ------------------------------------------------------------------
     # Voice (F3) — feature-flagged, offline-fallback path
@@ -707,6 +781,11 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
     def _voice_frame(payload: Dict[str, Any]) -> Dict[str, Any]:
         return learning_api.submit_voice_frame(payload)
 
+    @app.route("/api/learning/subjects", methods=["GET"])
+    @_wrap
+    def _subjects(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.list_subjects(payload)
+
     return learning_api
 
 
@@ -714,6 +793,8 @@ __all__ = [
     "LearningApi",
     "LearningApiError",
     "register_learning_api",
+    "DIAGNOSTICS_DIR",
+    "ITEM_BANK_PATH",
     "PILOT_TENANT_ID",
     "PILOT_CLASS_ID",
     "PILOT_STUDENT_ID",

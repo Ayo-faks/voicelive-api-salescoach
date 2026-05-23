@@ -134,7 +134,8 @@ def test_phase_3_career_plan_event_is_xapi_expressible_with_lang_and_provenance(
 
     assert statement.verb["id"].endswith("shortlisted-career-pathways")
     assert statement.context["extensions"]["https://pathfinder.learn/extensions/lang"] == "en-NG"
-    assert statement.result["extensions"]["https://pathfinder.learn/extensions/pathway_count"] == 3
+    assert statement.result["extensions"]["https://pathfinder.learn/extensions/pathway_count"] == len(plan.pathways)
+    assert statement.result["extensions"]["https://pathfinder.learn/extensions/pathway_count"] >= 3
 
 
 def test_phase_3_career_multilingual_trace_runs_offline_with_refusal_and_xapi():

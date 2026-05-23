@@ -37,6 +37,7 @@ class DiagnosticItemBank(LanguageAndProvenanceModel):
     diagnostic_id: str = Field(min_length=1)
     tenant_id: str = Field(min_length=1)
     title: str = Field(min_length=1)
+    subject: Optional[str] = None
     skills: List[Skill] = Field(min_length=1)
     items: List[DiagnosticItem] = Field(min_length=1)
 
@@ -124,6 +125,20 @@ class DeterministicItemSelector:
 
 def load_item_bank(path: Path) -> DiagnosticItemBank:
     return DiagnosticItemBank.model_validate(json.loads(path.read_text(encoding="utf-8")))
+
+
+def load_subject_diagnostics(directory: Path) -> List[DiagnosticItemBank]:
+    """Load every ``*.json`` diagnostic in ``directory`` in sorted filename order.
+
+    Returns an empty list if the directory does not exist so callers can
+    treat the multi-subject pack as optional.
+    """
+    if not directory.exists() or not directory.is_dir():
+        return []
+    banks: List[DiagnosticItemBank] = []
+    for path in sorted(directory.glob("*.json")):
+        banks.append(load_item_bank(path))
+    return banks
 
 
 def normalize_answer(value: str) -> str:
