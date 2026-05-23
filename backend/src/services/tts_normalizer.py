@@ -143,11 +143,7 @@ def _wrap_ssml_phoneme(key: str, *, fallback: str | None = None) -> str:
     """Return an SSML ``<phoneme>`` element for the given canonical key."""
     ipa = PHONEME_MAP[key]
     fallback_text = fallback if fallback is not None else "sound"
-    return (
-        f'<phoneme alphabet="ipa" ph="{_escape_xml(ipa)}">'
-        f"{_escape_xml(fallback_text)}"
-        "</phoneme>"
-    )
+    return f'<phoneme alphabet="ipa" ph="{_escape_xml(ipa)}">' f"{_escape_xml(fallback_text)}" "</phoneme>"
 
 
 def _wrap_anchor_phrase(key: str) -> str:
@@ -242,9 +238,7 @@ def wrap_as_ssml(
     by :func:`normalize_for_tts`. ``body`` may contain mixed plain text and
     SSML phoneme elements.
     """
-    lexicon_fragment = (
-        f'<lexicon uri="{_escape_xml(lexicon_uri)}"/>' if lexicon_uri else ""
-    )
+    lexicon_fragment = f'<lexicon uri="{_escape_xml(lexicon_uri)}"/>' if lexicon_uri else ""
     return (
         '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" '
         f'xml:lang="{_escape_xml(lang)}">'

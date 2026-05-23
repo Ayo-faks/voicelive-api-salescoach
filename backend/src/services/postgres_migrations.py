@@ -97,9 +97,7 @@ def _ensure_runtime_role(admin_database_url: str, runtime_database_url: str) -> 
                 sql.Identifier(runtime_username),
             )
         )
-        connection.execute(
-            sql.SQL("GRANT USAGE ON SCHEMA public TO {}").format(sql.Identifier(runtime_username))
-        )
+        connection.execute(sql.SQL("GRANT USAGE ON SCHEMA public TO {}").format(sql.Identifier(runtime_username)))
         connection.execute(
             sql.SQL("GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO {}").format(
                 sql.Identifier(runtime_username)

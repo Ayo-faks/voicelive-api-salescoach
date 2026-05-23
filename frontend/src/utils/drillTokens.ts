@@ -28,34 +28,35 @@ const DRILL_TOKEN_DISPLAY_MAP = {
   F_FAWN_MODEL: 'fff-awn, fawn',
 } as const
 
-const DRILL_WORD_TO_TOKEN_MAP = Object.entries(DRILL_TOKEN_DISPLAY_MAP).reduce<Record<string, string>>(
-  (tokenMap, [token, displayText]) => {
-    const displaySegments = displayText.split(',')
-    const spokenWord = displayText.includes(',')
-      ? displaySegments[displaySegments.length - 1]?.trim().toLowerCase()
-      : displayText.trim().toLowerCase()
+const DRILL_WORD_TO_TOKEN_MAP = Object.entries(DRILL_TOKEN_DISPLAY_MAP).reduce<
+  Record<string, string>
+>((tokenMap, [token, displayText]) => {
+  const displaySegments = displayText.split(',')
+  const spokenWord = displayText.includes(',')
+    ? displaySegments[displaySegments.length - 1]?.trim().toLowerCase()
+    : displayText.trim().toLowerCase()
 
-    if (spokenWord) {
-      tokenMap[spokenWord] = token
-    }
+  if (spokenWord) {
+    tokenMap[spokenWord] = token
+  }
 
-    return tokenMap
-  },
-  {},
-)
+  return tokenMap
+}, {})
 
 const DRILL_TOKENS = Object.keys(DRILL_TOKEN_DISPLAY_MAP).sort(
-  (left, right) => right.length - left.length,
+  (left, right) => right.length - left.length
 )
 const DRILL_TOKEN_PATTERN = new RegExp(DRILL_TOKENS.join('|'), 'g')
 const DRILL_TOKEN_PREFIXES = new Set(
   DRILL_TOKENS.flatMap(token =>
-    Array.from({ length: token.length - 1 }, (_, index) => token.slice(0, index + 1)),
-  ),
+    Array.from({ length: token.length - 1 }, (_, index) =>
+      token.slice(0, index + 1)
+    )
+  )
 )
 const MAX_DRILL_TOKEN_LENGTH = DRILL_TOKENS.reduce(
   (maxLength, token) => Math.max(maxLength, token.length),
-  0,
+  0
 )
 
 export { DRILL_TOKEN_DISPLAY_MAP }
@@ -158,7 +159,10 @@ export function hasDrillWordIpa(word: string): boolean {
   if (!word) {
     return false
   }
-  return Object.prototype.hasOwnProperty.call(DRILL_WORD_IPA, word.trim().toLowerCase())
+  return Object.prototype.hasOwnProperty.call(
+    DRILL_WORD_IPA,
+    word.trim().toLowerCase()
+  )
 }
 
 /**
@@ -192,7 +196,10 @@ export function replaceDrillTokens(text: string): string {
   }
 
   return text.replace(DRILL_TOKEN_PATTERN, token => {
-    return DRILL_TOKEN_DISPLAY_MAP[token as keyof typeof DRILL_TOKEN_DISPLAY_MAP] ?? token
+    return (
+      DRILL_TOKEN_DISPLAY_MAP[token as keyof typeof DRILL_TOKEN_DISPLAY_MAP] ??
+      token
+    )
   })
 }
 
@@ -202,13 +209,17 @@ export function normalizeStreamingDrillText(text: string): string {
   }
 
   const pendingTokenLength = getPendingTokenLength(text)
-  const safeText = pendingTokenLength > 0 ? text.slice(0, -pendingTokenLength) : text
+  const safeText =
+    pendingTokenLength > 0 ? text.slice(0, -pendingTokenLength) : text
 
   return replaceDrillTokens(safeText)
 }
 
 function getPendingTokenLength(text: string): number {
-  const maxSuffixLength = Math.min(text.length, Math.max(0, MAX_DRILL_TOKEN_LENGTH - 1))
+  const maxSuffixLength = Math.min(
+    text.length,
+    Math.max(0, MAX_DRILL_TOKEN_LENGTH - 1)
+  )
 
   for (let length = maxSuffixLength; length > 0; length -= 1) {
     const suffix = text.slice(-length)

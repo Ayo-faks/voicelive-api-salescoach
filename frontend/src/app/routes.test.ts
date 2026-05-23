@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { APP_ROUTES, getDefaultAuthenticatedRoute, resolveAppRoute } from './routes'
+import {
+  APP_ROUTES,
+  getDefaultAuthenticatedRoute,
+  resolveAppRoute,
+} from './routes'
 
 describe('route helpers', () => {
   it('resolves known app routes and rejects unknown paths', () => {

@@ -1,4 +1,9 @@
-import type { CustomScenario, ExerciseMetadata, ExerciseType, Scenario } from '../types'
+import type {
+  CustomScenario,
+  ExerciseMetadata,
+  ExerciseType,
+  Scenario,
+} from '../types'
 
 type ExerciseTypeLike = ExerciseType | string | null | undefined
 
@@ -12,7 +17,7 @@ export function isTapOnlyExerciseType(type: ExerciseTypeLike): boolean {
 
 export function exerciseRequiresMic(
   metadata?: Partial<ExerciseMetadata> | null,
-  type?: ExerciseTypeLike,
+  type?: ExerciseTypeLike
 ): boolean {
   const resolvedType = type ?? metadata?.type
 
@@ -24,7 +29,7 @@ export function exerciseRequiresMic(
 }
 
 export function getScenarioExerciseType(
-  scenario: Scenario | CustomScenario | null | undefined,
+  scenario: Scenario | CustomScenario | null | undefined
 ): ExerciseTypeLike {
   if (!scenario) {
     return undefined

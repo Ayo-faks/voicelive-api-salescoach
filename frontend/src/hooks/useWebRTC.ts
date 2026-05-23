@@ -5,9 +5,7 @@
 
 import { useRef, useCallback, useEffect } from 'react'
 
-type RTCIceServerInput =
-  | string
-  | RTCIceServer
+type RTCIceServerInput = string | RTCIceServer
 
 type RTCAnswerMessage = {
   server_sdp?: unknown
@@ -20,7 +18,9 @@ function normalizeIceServers(
   username?: string,
   password?: string
 ): RTCIceServer[] {
-  const normalized = (Array.isArray(iceServers) ? iceServers : [iceServers]).map(server =>
+  const normalized = (
+    Array.isArray(iceServers) ? iceServers : [iceServers]
+  ).map(server =>
     typeof server === 'string'
       ? { urls: server }
       : {

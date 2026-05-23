@@ -62,7 +62,9 @@ def load_language_eval_slice(path: Path) -> LanguageEvalSlice:
     return LanguageEvalSlice.model_validate(payload)
 
 
-def build_content_pack_manifest(path: Path, tenant_id: str, pack_key: str, version: str, payload: Dict[str, Any]) -> ContentPackManifest:
+def build_content_pack_manifest(
+    path: Path, tenant_id: str, pack_key: str, version: str, payload: Dict[str, Any]
+) -> ContentPackManifest:
     raw = path.read_bytes()
     provenance = [
         Provenance(

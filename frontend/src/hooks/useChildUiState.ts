@@ -79,7 +79,7 @@ function readOutbox(childId: string): OutboxEntry[] {
         !!entry &&
         typeof entry === 'object' &&
         typeof entry.exercise_type === 'string' &&
-        typeof entry.first_run === 'boolean',
+        typeof entry.first_run === 'boolean'
     )
   } catch {
     return []
@@ -101,9 +101,7 @@ function writeOutbox(childId: string, entries: OutboxEntry[]): void {
 
 function appendOutbox(childId: string, entry: OutboxEntry): void {
   const existing = readOutbox(childId)
-  const deduped = existing.filter(
-    e => e.exercise_type !== entry.exercise_type,
-  )
+  const deduped = existing.filter(e => e.exercise_type !== entry.exercise_type)
   deduped.push(entry)
   writeOutbox(childId, deduped)
 }
@@ -120,7 +118,7 @@ function isServerError(err: unknown): boolean {
 
 export function useChildUiState(
   childId: string | null,
-  options: UseChildUiStateOptions = {},
+  options: UseChildUiStateOptions = {}
 ): UseChildUiStateResult {
   const { disabled = false } = options
   const effectiveDisabled = disabled || !childId
@@ -149,7 +147,9 @@ export function useChildUiState(
     setLoading(true)
     void (async () => {
       try {
-        const blob = (await api.getChildUiState(childId)) as ChildUiStateServerBlob
+        const blob = (await api.getChildUiState(
+          childId
+        )) as ChildUiStateServerBlob
         if (cancelled) return
         setState(flagsFromServer(blob))
         setError(null)
@@ -174,7 +174,7 @@ export function useChildUiState(
             // Refresh so our projected view picks up the replayed writes.
             try {
               const refreshed = (await api.getChildUiState(
-                childId,
+                childId
               )) as ChildUiStateServerBlob
               if (!cancelled) setState(flagsFromServer(refreshed))
             } catch {
@@ -225,11 +225,8 @@ export function useChildUiState(
 
   const writeFlag = useCallback(
     async (
-      flag:
-        | 'mascot_seen'
-        | 'wrap_up_seen'
-        | { exercise_type: string },
-      patch: ChildOnboardingFlags,
+      flag: 'mascot_seen' | 'wrap_up_seen' | { exercise_type: string },
+      patch: ChildOnboardingFlags
     ): Promise<void> => {
       if (effectiveDisabled || !childId) return
       if (!authedRef.current) return
@@ -265,24 +262,24 @@ export function useChildUiState(
         setError(err instanceof Error ? err : new Error(String(err)))
       }
     },
-    [childId, effectiveDisabled, state],
+    [childId, effectiveDisabled, state]
   )
 
   const markMascotSeen = useCallback(
     () => writeFlag('mascot_seen', { mascot_seen: true }),
-    [writeFlag],
+    [writeFlag]
   )
   const markWrapUpSeen = useCallback(
     () => writeFlag('wrap_up_seen', { wrap_up_seen: true }),
-    [writeFlag],
+    [writeFlag]
   )
   const markTutorialSeen = useCallback(
     (exerciseType: string) =>
       writeFlag(
         { exercise_type: exerciseType },
-        { exercise_tutorials_seen: { [exerciseType]: true } },
+        { exercise_tutorials_seen: { [exerciseType]: true } }
       ),
-    [writeFlag],
+    [writeFlag]
   )
 
   const disabledNoop = useMemo(
@@ -294,7 +291,7 @@ export function useChildUiState(
       markTutorialSeen: async () => undefined,
       markWrapUpSeen: async () => undefined,
     }),
-    [],
+    []
   )
 
   if (effectiveDisabled) return disabledNoop

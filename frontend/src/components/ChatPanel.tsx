@@ -10,10 +10,7 @@ import {
   makeStyles,
   mergeClasses,
 } from '@fluentui/react-components'
-import {
-  ChartBarIcon,
-  TrashIcon,
-} from '@heroicons/react/24/outline'
+import { ChartBarIcon, TrashIcon } from '@heroicons/react/24/outline'
 import type { CustomScenario, Message, Scenario } from '../types'
 import { exerciseRequiresMic } from '../utils/exerciseMode'
 
@@ -259,15 +256,10 @@ function isCustomScenario(
 
 export function ChatPanel({
   messages,
-  recording,
-  processing = false,
-  connected,
-  connectionState,
   connectionMessage,
   introComplete = true,
   sessionFinished = false,
   canAnalyze,
-  onToggleRecording,
   onClear,
   onAnalyze,
   scenario,
@@ -277,19 +269,24 @@ export function ChatPanel({
 }: Props) {
   const styles = useStyles()
   const customScenario = isCustomScenario(scenario) ? scenario : null
-  const exerciseTypeValue = customScenario?.scenarioData.exerciseType || scenario?.exerciseMetadata?.type
-  const exerciseType = formatExerciseType(
+  const exerciseTypeValue =
+    customScenario?.scenarioData.exerciseType ||
+    scenario?.exerciseMetadata?.type
+  const exerciseType = formatExerciseType(exerciseTypeValue)
+  const micRequired = exerciseRequiresMic(
+    scenario?.exerciseMetadata,
     exerciseTypeValue
   )
-  const micRequired = exerciseRequiresMic(scenario?.exerciseMetadata, exerciseTypeValue)
   const statusText =
     sessionFinished && audience === 'child'
       ? 'Practice finished. Go home when you are ready.'
       : connectionMessage
   const targetSound =
-    customScenario?.scenarioData.targetSound || scenario?.exerciseMetadata?.targetSound
+    customScenario?.scenarioData.targetSound ||
+    scenario?.exerciseMetadata?.targetSound
   const difficulty =
-    customScenario?.scenarioData.difficulty || scenario?.exerciseMetadata?.difficulty
+    customScenario?.scenarioData.difficulty ||
+    scenario?.exerciseMetadata?.difficulty
   const compactMeta = [
     exerciseType,
     targetSound ? `Sound: ${targetSound}` : null,
@@ -305,16 +302,16 @@ export function ChatPanel({
               {sessionFinished && audience === 'child'
                 ? 'Practice finished'
                 : !introComplete
-                ? audience === 'therapist'
-                  ? 'Opening welcome'
-                  : 'Your buddy is saying hello'
-                : 'Ready when you are'}
+                  ? audience === 'therapist'
+                    ? 'Opening welcome'
+                    : 'Your buddy is saying hello'
+                  : 'Ready when you are'}
             </Text>
             <Text size={300}>
               {sessionFinished && audience === 'child'
                 ? 'Your last word feedback stays visible until you leave this screen.'
                 : !introComplete
-                ? audience === 'therapist'
+                  ? audience === 'therapist'
                     ? micRequired
                       ? 'The avatar is greeting the session now. The dock microphone will unlock right after the welcome.'
                       : 'The avatar is greeting the session now. The first listening clue will start right after the welcome.'
@@ -342,7 +339,9 @@ export function ChatPanel({
               >
                 <div className={styles.messageContent}>
                   <Text size={300}>{msg.content}</Text>
-                  {msg.streaming ? <span className={styles.streamingCursor} /> : null}
+                  {msg.streaming ? (
+                    <span className={styles.streamingCursor} />
+                  ) : null}
                 </div>
               </div>
             ))
@@ -390,19 +389,30 @@ export function ChatPanel({
           Session Transcript
         </Text>
         <Text size={300} block className={styles.headerDescription}>
-          Follow the live conversation as it unfolds and keep the session controls within reach.
+          Follow the live conversation as it unfolds and keep the session
+          controls within reach.
         </Text>
       </div>
 
       {scenario ? (
         <div className={styles.compactHeader}>
-          <Text className={styles.compactHeaderTitle} size={500} weight="semibold">
+          <Text
+            className={styles.compactHeaderTitle}
+            size={500}
+            weight="semibold"
+          >
             {scenario.name}
           </Text>
           {compactMeta.length > 0 ? (
             <div className={styles.compactHeaderMeta}>
               {compactMeta.map(item => (
-                <span key={item} className={mergeClasses(styles.exerciseChip, styles.compactChip)}>
+                <span
+                  key={item}
+                  className={mergeClasses(
+                    styles.exerciseChip,
+                    styles.compactChip
+                  )}
+                >
                   {item}
                 </span>
               ))}

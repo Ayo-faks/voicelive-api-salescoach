@@ -20,7 +20,7 @@ from typing import Any, Dict, List, Mapping, Optional, Tuple, cast
 from urllib.parse import parse_qs, urlsplit
 
 import simple_websocket.ws  # pyright: ignore[reportMissingTypeStubs]
-from flask import Flask, abort, g, jsonify, request, send_from_directory
+from flask import Flask, g, jsonify, request, send_from_directory
 from flask_sock import Sock  # pyright: ignore[reportMissingTypeStubs]
 
 if __package__ in {None, ""}:
@@ -218,6 +218,8 @@ def _trusted_origins() -> set[str]:
 
 def _is_state_changing_request() -> bool:
     return request.method.upper() in UNSAFE_HTTP_METHODS
+
+
 def _is_local_dev_auth_enabled() -> bool:
     """Resolve LOCAL_DEV_AUTH dynamically so tests and shells cannot leak stale import-time state."""
     return str(os.environ.get("LOCAL_DEV_AUTH", str(config["local_dev_auth"]))).strip().lower() == "true"
@@ -402,9 +404,7 @@ def _extract_exercise_telemetry_properties(
     return {
         "scenario_id": scenario_id,
         "session_id": session_id,
-        "exercise_type": _normalize_telemetry_value(
-            metadata.get("type") or metadata.get("exercise_type")
-        ),
+        "exercise_type": _normalize_telemetry_value(metadata.get("type") or metadata.get("exercise_type")),
         "difficulty": _normalize_telemetry_value(metadata.get("difficulty")),
         "is_custom": bool(context.get("is_custom")),
     }
@@ -1079,28 +1079,20 @@ def get_config():
             "ws_endpoint": WEBSOCKET_ENDPOINT,
             "storage_ready": True,
             "telemetry_enabled": telemetry_service.enabled,
-            "appinsights_connection_string": config.get(
-                "applicationinsights_connection_string", ""
-            ),
+            "appinsights_connection_string": config.get("applicationinsights_connection_string", ""),
             "image_base_path": "/api/images",
             "planner": planning_service.get_readiness(),
-            "insights_rail_enabled": _insights_rail_enabled(
-                cast(Dict[str, Any], user) if user else None
-            ),
-            "insights_voice_mode": _insights_voice_mode_for(
-                cast(Dict[str, Any], user) if user else None
-            ),
+            "insights_rail_enabled": _insights_rail_enabled(cast(Dict[str, Any], user) if user else None),
+            "insights_voice_mode": _insights_voice_mode_for(cast(Dict[str, Any], user) if user else None),
             "onboarding": {
                 # Kill switch for the v2 onboarding/guidance system
                 # (docs/onboarding/onboarding-plan-v2.md). Setting
                 # ONBOARDING_TOURS_ENABLED=false via azd env disables
                 # all tours without a release.
-                "tours_enabled": os.environ.get(
-                    "ONBOARDING_TOURS_ENABLED", "true"
-                ).strip().lower() not in ("false", "0", "no"),
-                "forced_reset": os.environ.get(
-                    "ONBOARDING_FORCED_RESET", "false"
-                ).strip().lower() in ("true", "1", "yes"),
+                "tours_enabled": os.environ.get("ONBOARDING_TOURS_ENABLED", "true").strip().lower()
+                not in ("false", "0", "no"),
+                "forced_reset": os.environ.get("ONBOARDING_FORCED_RESET", "false").strip().lower()
+                in ("true", "1", "yes"),
             },
         }
     )
@@ -1621,7 +1613,9 @@ def revoke_child_invitation(invitation_id: str):
         return jsonify({"error": INVITATION_NOT_FOUND}), HTTP_NOT_FOUND
 
     is_admin = str(cast(Dict[str, Any], user).get("role") or "") == ROLE_ADMIN
-    if not is_admin and str(existing_invitation.get("invited_by_user_id") or "") != str(cast(Dict[str, Any], user).get("id") or ""):
+    if not is_admin and str(existing_invitation.get("invited_by_user_id") or "") != str(
+        cast(Dict[str, Any], user).get("id") or ""
+    ):
         return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
 
     invitation = storage_service.revoke_child_invitation(invitation_id)
@@ -1649,7 +1643,9 @@ def resend_child_invitation(invitation_id: str):
         return jsonify({"error": INVITATION_NOT_FOUND}), HTTP_NOT_FOUND
 
     is_admin = str(cast(Dict[str, Any], user).get("role") or "") == ROLE_ADMIN
-    if not is_admin and str(existing_invitation.get("invited_by_user_id") or "") != str(cast(Dict[str, Any], user).get("id") or ""):
+    if not is_admin and str(existing_invitation.get("invited_by_user_id") or "") != str(
+        cast(Dict[str, Any], user).get("id") or ""
+    ):
         return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
 
     invitation = storage_service.resend_child_invitation(invitation_id)
@@ -1658,7 +1654,9 @@ def resend_child_invitation(invitation_id: str):
 
     email_delivery = _send_invitation_email(
         invitation,
-        inviter_name=str(existing_invitation.get("invited_by_name") or cast(Dict[str, Any], user).get("name") or "Your therapist"),
+        inviter_name=str(
+            existing_invitation.get("invited_by_name") or cast(Dict[str, Any], user).get("name") or "Your therapist"
+        ),
     )
     _persist_invitation_email_delivery(str(invitation.get("id") or ""), email_delivery)
 
@@ -1983,9 +1981,7 @@ def create_agent():
 
     try:
         runtime_personalization = (
-            child_memory_service.build_live_session_personalization(child_id)
-            if child_id
-            else None
+            child_memory_service.build_live_session_personalization(child_id) if child_id else None
         )
         agent_id = agent_manager.create_agent(
             scenario_id,
@@ -2119,7 +2115,9 @@ def analyze_conversation():
                 measurements={
                     "duration_ms": synthesis_duration_ms,
                     "pending_proposals": float(len(cast(List[Dict[str, Any]], memory_result.get("proposals") or []))),
-                    "auto_applied_items": float(len(cast(List[Dict[str, Any]], memory_result.get("auto_applied_items") or []))),
+                    "auto_applied_items": float(
+                        len(cast(List[Dict[str, Any]], memory_result.get("auto_applied_items") or []))
+                    ),
                 },
             )
             if synthesis_duration_ms > 750:
@@ -2277,9 +2275,9 @@ def synthesize_speech():
         synthesis_ssml = ssml
     elif phoneme:
         synthesis_ssml = (
-            "<speak version=\"1.0\" xmlns=\"http://www.w3.org/2001/10/synthesis\" xml:lang=\"en-GB\">"
-            f"<voice name=\"{_escape_xml(voice_name)}\">"
-            f"<phoneme alphabet=\"{_escape_xml(alphabet)}\" ph=\"{_escape_xml(phoneme)}\">"
+            '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-GB">'
+            f'<voice name="{_escape_xml(voice_name)}">'
+            f'<phoneme alphabet="{_escape_xml(alphabet)}" ph="{_escape_xml(phoneme)}">'
             f"{_escape_xml(fallback_text)}"
             "</phoneme>"
             "</voice>"
@@ -2572,9 +2570,7 @@ def get_insights_conversation(conversation_id: str):
     if guard_response is not None:
         return guard_response
     user_id = str(cast(Dict[str, Any], user).get("id"))
-    payload = insights_service.get_conversation(
-        user_id=user_id, conversation_id=conversation_id
-    )
+    payload = insights_service.get_conversation(user_id=user_id, conversation_id=conversation_id)
     if payload is None:
         return jsonify({"error": "not found"}), 404
     return jsonify(payload)

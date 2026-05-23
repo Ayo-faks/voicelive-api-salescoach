@@ -151,7 +151,7 @@ def _parse_events(ws: FakeWebSocket) -> list[dict]:
 
 
 def _pcm_chunk_base64() -> str:
-    raw_pcm = (b"\x00\x00\x10\x00" * 64)
+    raw_pcm = b"\x00\x00\x10\x00" * 64
     return base64.b64encode(raw_pcm).decode("ascii")
 
 

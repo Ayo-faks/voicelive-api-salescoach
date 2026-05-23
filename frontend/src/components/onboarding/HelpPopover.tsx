@@ -104,10 +104,7 @@ export function HelpPopover(props: HelpPopoverProps): JSX.Element | null {
   const topic = HELP_TOPICS.find(entry => entry.id === props.topicId)
   if (!topic) return null
 
-  const handleOpenChange = (
-    _event: unknown,
-    data: { open: boolean }
-  ): void => {
+  const handleOpenChange = (_event: unknown, data: { open: boolean }): void => {
     setOpen(data.open)
     if (data.open) {
       telemetry.trackEvent(ONBOARDING_EVENTS.HELP_OPENED, {

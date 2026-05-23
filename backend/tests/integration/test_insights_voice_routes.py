@@ -27,7 +27,7 @@ def _headers(user_id: str, email: str, *, name: str = "Test User") -> dict[str, 
 
 
 def _pcm_chunk_base64() -> str:
-    raw_pcm = (b"\x00\x00\x10\x00" * 64)
+    raw_pcm = b"\x00\x00\x10\x00" * 64
     return base64.b64encode(raw_pcm).decode("ascii")
 
 
@@ -189,9 +189,7 @@ def test_insights_voice_ws_closes_4404_when_flag_off(storage: StorageService, mo
     assert ws.closed == (4404, None)
 
 
-def test_insights_voice_ws_closes_4401_when_unauthenticated(
-    storage: StorageService, monkeypatch: pytest.MonkeyPatch
-):
+def test_insights_voice_ws_closes_4401_when_unauthenticated(storage: StorageService, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("INSIGHTS_VOICE_MODE", "push_to_talk")
     ws = FakeWebSocket(environ={})
 
@@ -200,9 +198,7 @@ def test_insights_voice_ws_closes_4401_when_unauthenticated(
     assert ws.closed == (4401, "insights_voice_unauthorized")
 
 
-def test_insights_voice_ws_closes_4403_without_child_access(
-    storage: StorageService, monkeypatch: pytest.MonkeyPatch
-):
+def test_insights_voice_ws_closes_4403_without_child_access(storage: StorageService, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("INSIGHTS_VOICE_MODE", "push_to_talk")
     therapist_a = storage.get_or_create_user("therapist-a", "a@example.com", "A", "aad")
     storage.get_or_create_user("therapist-b", "b@example.com", "B", "aad")
@@ -247,9 +243,7 @@ def test_insights_voice_ws_closes_4403_for_conversation_hijack(
     assert ws.closed == (4403, "insights_voice_forbidden")
 
 
-def test_insights_voice_scope_override_attempt_is_ignored(
-    storage: StorageService, monkeypatch: pytest.MonkeyPatch
-):
+def test_insights_voice_scope_override_attempt_is_ignored(storage: StorageService, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("INSIGHTS_VOICE_MODE", "push_to_talk")
     storage.get_or_create_user("therapist-a", "a@example.com", "A", "aad")
     child = storage.create_child(

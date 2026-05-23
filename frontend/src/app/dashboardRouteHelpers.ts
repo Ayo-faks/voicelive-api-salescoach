@@ -13,7 +13,10 @@ export function getBackToPracticeRoute({
   hasCurrentAgent,
   messageCount,
 }: BackToPracticeRouteArgs): (typeof APP_ROUTES)[keyof typeof APP_ROUTES] {
-  return connected || showLaunchTransition || hasCurrentAgent || messageCount > 0
+  return connected ||
+    showLaunchTransition ||
+    hasCurrentAgent ||
+    messageCount > 0
     ? APP_ROUTES.session
     : APP_ROUTES.home
 }

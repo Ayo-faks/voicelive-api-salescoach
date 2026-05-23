@@ -67,7 +67,9 @@ class PlanValidator(Generic[TPlan]):
         provenance = getattr(plan, "provenance", None)
         if self.require_provenance and not provenance:
             failures.append(
-                ValidationFailure("missing_provenance", "model output must carry at least one provenance item", ("provenance",))
+                ValidationFailure(
+                    "missing_provenance", "model output must carry at least one provenance item", ("provenance",)
+                )
             )
 
         for rule in self.rules:

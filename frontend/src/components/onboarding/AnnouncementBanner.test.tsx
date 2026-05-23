@@ -10,9 +10,9 @@ import { FluentProvider, webLightTheme } from '@fluentui/react-components'
 import { AnnouncementBanner } from './AnnouncementBanner'
 
 vi.mock('../../onboarding/announcements', async () => {
-  const actual = await vi.importActual<typeof import('../../onboarding/announcements')>(
-    '../../onboarding/announcements'
-  )
+  const actual = await vi.importActual<
+    typeof import('../../onboarding/announcements')
+  >('../../onboarding/announcements')
   return {
     ...actual,
     ANNOUNCEMENTS: [
@@ -48,7 +48,11 @@ describe('AnnouncementBanner', () => {
 
   it('renders the first visible announcement', () => {
     renderWithTheme(
-      <AnnouncementBanner role="therapist" dismissed={[]} onDismiss={() => undefined} />
+      <AnnouncementBanner
+        role="therapist"
+        dismissed={[]}
+        onDismiss={() => undefined}
+      />
     )
     expect(screen.getByTestId('announcement-test-ann-1')).toBeTruthy()
     expect(screen.getByText('Heads up')).toBeTruthy()
@@ -56,7 +60,11 @@ describe('AnnouncementBanner', () => {
 
   it('returns null for child persona', () => {
     const { container } = renderWithTheme(
-      <AnnouncementBanner role="child" dismissed={[]} onDismiss={() => undefined} />
+      <AnnouncementBanner
+        role="child"
+        dismissed={[]}
+        onDismiss={() => undefined}
+      />
     )
     expect(container.querySelector('[data-testid^="announcement-"]')).toBeNull()
   })
@@ -75,7 +83,11 @@ describe('AnnouncementBanner', () => {
   it('fires onDismiss with the id when the close button is clicked', () => {
     const onDismiss = vi.fn()
     renderWithTheme(
-      <AnnouncementBanner role="therapist" dismissed={[]} onDismiss={onDismiss} />
+      <AnnouncementBanner
+        role="therapist"
+        dismissed={[]}
+        onDismiss={onDismiss}
+      />
     )
     fireEvent.click(screen.getByTestId('announcement-test-ann-1-dismiss'))
     expect(onDismiss).toHaveBeenCalledWith('test-ann-1')

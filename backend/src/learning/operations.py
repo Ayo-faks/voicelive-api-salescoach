@@ -109,11 +109,21 @@ def compute_kpi_report(snapshots: List[PilotMetricSnapshot], tenant_id: str) -> 
             evidence_count=len(snapshots),
         )
     ]
-    diagnostic_completion_rate = _ratio(sum(item.completed_diagnostics for item in snapshots), sum(item.assigned_diagnostics for item in snapshots))
-    approved_intervention_rate = _ratio(sum(item.suggestions_approved for item in snapshots), sum(item.suggestions_created for item in snapshots))
-    provenance_coverage = _ratio(sum(item.suggestions_with_provenance for item in snapshots), sum(item.suggestions_created for item in snapshots))
-    safety_rate = _ratio(sum(item.safety_eval_passed for item in snapshots), sum(item.safety_eval_cases for item in snapshots))
-    dsr_turnaround_rate = _ratio(sum(item.dsr_within_sla for item in snapshots), sum(item.dsr_requests for item in snapshots))
+    diagnostic_completion_rate = _ratio(
+        sum(item.completed_diagnostics for item in snapshots), sum(item.assigned_diagnostics for item in snapshots)
+    )
+    approved_intervention_rate = _ratio(
+        sum(item.suggestions_approved for item in snapshots), sum(item.suggestions_created for item in snapshots)
+    )
+    provenance_coverage = _ratio(
+        sum(item.suggestions_with_provenance for item in snapshots), sum(item.suggestions_created for item in snapshots)
+    )
+    safety_rate = _ratio(
+        sum(item.safety_eval_passed for item in snapshots), sum(item.safety_eval_cases for item in snapshots)
+    )
+    dsr_turnaround_rate = _ratio(
+        sum(item.dsr_within_sla for item in snapshots), sum(item.dsr_requests for item in snapshots)
+    )
     active_students = max(item.active_students for item in snapshots)
     cost_per_student_gbp = round(sum(item.total_cost_gbp for item in snapshots) / active_students, 4)
     meets_thresholds = (

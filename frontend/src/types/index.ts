@@ -248,7 +248,12 @@ export interface ParentalConsent {
 
 export type ChildInvitationRelationship = 'parent' | 'therapist'
 
-export type ChildInvitationStatus = 'pending' | 'accepted' | 'declined' | 'revoked' | 'expired'
+export type ChildInvitationStatus =
+  | 'pending'
+  | 'accepted'
+  | 'declined'
+  | 'revoked'
+  | 'expired'
 
 export interface InvitationEmailDelivery {
   status: string
@@ -277,7 +282,12 @@ export interface ChildInvitation {
   workspace_id?: string | null
 }
 
-export type FamilyIntakeInvitationStatus = 'pending' | 'accepted' | 'declined' | 'revoked' | 'expired'
+export type FamilyIntakeInvitationStatus =
+  | 'pending'
+  | 'accepted'
+  | 'declined'
+  | 'revoked'
+  | 'expired'
 
 export interface FamilyIntakeInvitation {
   id: string
@@ -500,8 +510,13 @@ export const INSIGHTS_VOICE_STATES: readonly InsightsVoiceState[] = [
   'error',
 ] as const
 
-export function isInsightsVoiceState(value: unknown): value is InsightsVoiceState {
-  return typeof value === 'string' && (INSIGHTS_VOICE_STATES as readonly string[]).includes(value)
+export function isInsightsVoiceState(
+  value: unknown
+): value is InsightsVoiceState {
+  return (
+    typeof value === 'string' &&
+    (INSIGHTS_VOICE_STATES as readonly string[]).includes(value)
+  )
 }
 
 export type InsightsVoiceMode = 'off' | 'push_to_talk' | 'full_duplex'
@@ -729,7 +744,9 @@ export interface ChildMemorySummaryEntry {
   source_proposal_id?: string | null
 }
 
-export type ChildMemorySummarySections = Partial<Record<ChildMemoryCategory, ChildMemorySummaryEntry[]>>
+export type ChildMemorySummarySections = Partial<
+  Record<ChildMemoryCategory, ChildMemorySummaryEntry[]>
+>
 
 export interface ChildMemorySummary {
   child_id: string
@@ -808,7 +825,10 @@ export interface ChildMemoryCreateResult {
 
 export interface InstitutionalMemoryInsight {
   id: string
-  insight_type: 'strategy_insight' | 'reviewed_pattern' | 'recommendation_tuning'
+  insight_type:
+    | 'strategy_insight'
+    | 'reviewed_pattern'
+    | 'recommendation_tuning'
   status: string
   target_sound?: string | null
   title: string
@@ -1070,7 +1090,6 @@ export interface InsightsConversationDetail {
   messages: InsightsMessage[]
 }
 
-
 export interface AvatarOption {
   value: string
   label: string
@@ -1091,8 +1110,18 @@ export const AVATAR_OPTIONS: AvatarOption[] = [
     color: '#0d8a84',
     persona: 'an adult woman',
   },
-  { value: 'riya', label: 'Riya (Photo)', isPhotoAvatar: true, color: '#a855f7' },
-  { value: 'simone', label: 'Simone (Photo)', isPhotoAvatar: true, color: '#f97316' },
+  {
+    value: 'riya',
+    label: 'Riya (Photo)',
+    isPhotoAvatar: true,
+    color: '#a855f7',
+  },
+  {
+    value: 'simone',
+    label: 'Simone (Photo)',
+    isPhotoAvatar: true,
+    color: '#f97316',
+  },
 ]
 
 export const DEFAULT_AVATAR = 'meg-casual'

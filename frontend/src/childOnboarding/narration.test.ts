@@ -7,7 +7,9 @@ import { afterEach, describe, it, expect, vi } from 'vitest'
 
 import { createNarrationAdapter } from './narration'
 
-function makeHarness(opts: { muted?: boolean; synthesizeDelayMs?: number } = {}) {
+function makeHarness(
+  opts: { muted?: boolean; synthesizeDelayMs?: number } = {}
+) {
   const captions: string[] = []
   const played: string[] = []
   const synthesize = vi.fn(async (input: unknown, _opt?: unknown) => {
@@ -17,7 +19,7 @@ function makeHarness(opts: { muted?: boolean; synthesizeDelayMs?: number } = {})
     const text =
       typeof input === 'string'
         ? input
-        : (input as { text?: string }).text ?? ''
+        : ((input as { text?: string }).text ?? '')
     return `audio::${text}`
   })
   const playAudio = vi.fn((base64: string) => {
@@ -104,7 +106,7 @@ describe('narration adapter', () => {
     const h = makeHarness()
     h.synthesize.mockRejectedValueOnce(new Error('boom'))
     await expect(
-      h.adapter.narrate({ key: 'k1', text: 'hello' }),
+      h.adapter.narrate({ key: 'k1', text: 'hello' })
     ).resolves.toBeUndefined()
     expect(h.captions).toEqual(['hello'])
     expect(h.played).toEqual([])

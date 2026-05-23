@@ -143,7 +143,9 @@ const assistantMessage: InsightsMessage = {
   conversation_id: 'conv-1',
   role: 'assistant',
   content_text: 'Articulation accuracy improved by 12%.',
-  citations: [{ kind: 'session', session_id: 'sess-xyz12345', label: 'Last session' }],
+  citations: [
+    { kind: 'session', session_id: 'sess-xyz12345', label: 'Last session' },
+  ],
   visualizations: [{ kind: 'line', title: 'Trend', series: [] }],
   tool_trace: [],
   latency_ms: 1200,
@@ -209,18 +211,20 @@ describe('InsightsRail', () => {
     const chip = await screen.findByTestId('insights-rail-scope-child')
     expect(chip.getAttribute('aria-pressed')).toBe('true')
     expect(
-      screen.getByTestId('insights-rail-scope-caseload').getAttribute('aria-pressed'),
+      screen
+        .getByTestId('insights-rail-scope-caseload')
+        .getAttribute('aria-pressed')
     ).toBe('false')
   })
 
   it('disables scope chips for missing context', async () => {
     render(<InsightsRail currentScope={{ type: 'caseload' }} />)
     const childChip = (await screen.findByTestId(
-      'insights-rail-scope-child',
+      'insights-rail-scope-child'
     )) as HTMLButtonElement
     expect(childChip.disabled).toBe(true)
     const sessionChip = screen.getByTestId(
-      'insights-rail-scope-session',
+      'insights-rail-scope-session'
     ) as HTMLButtonElement
     expect(sessionChip.disabled).toBe(true)
   })
@@ -229,7 +233,9 @@ describe('InsightsRail', () => {
     askInsights.mockResolvedValue(askResponse)
     render(<InsightsRail currentScope={childScope} />)
 
-    const input = (await screen.findByTestId('insights-rail-input')) as HTMLTextAreaElement
+    const input = (await screen.findByTestId(
+      'insights-rail-input'
+    )) as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: 'How did they do this week?' } })
     fireEvent.click(screen.getByTestId('insights-rail-send'))
 
@@ -246,14 +252,16 @@ describe('InsightsRail', () => {
     expect(screen.getByTestId('insights-rail-visualizations')).toBeTruthy()
     expect(screen.getByTestId('mock-viz')).toBeTruthy()
     expect(screen.getByTestId('insights-rail-citations').textContent).toContain(
-      'Last session',
+      'Last session'
     )
   })
 
   it('shows an error when the request fails', async () => {
     askInsights.mockRejectedValue(new Error('boom'))
     render(<InsightsRail currentScope={childScope} />)
-    const input = (await screen.findByTestId('insights-rail-input')) as HTMLTextAreaElement
+    const input = (await screen.findByTestId(
+      'insights-rail-input'
+    )) as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: 'Hi' } })
     fireEvent.click(screen.getByTestId('insights-rail-send'))
     const err = await screen.findByTestId('insights-rail-error')
@@ -271,7 +279,9 @@ describe('InsightsRail', () => {
     render(<InsightsRail currentScope={childScope} />)
 
     // History now lives behind the "My conversations" menu trigger.
-    const trigger = await screen.findByTestId('insights-rail-conversations-menu')
+    const trigger = await screen.findByTestId(
+      'insights-rail-conversations-menu'
+    )
     fireEvent.click(trigger)
     const item = await screen.findByTestId('insights-rail-history-item')
     expect(item.textContent).toContain('Recent progress')
@@ -281,9 +291,9 @@ describe('InsightsRail', () => {
     })
     const answer = await screen.findByTestId('insights-rail-answer')
     expect(answer.textContent).toContain('Articulation accuracy improved')
-    expect(screen.getByTestId('insights-rail-user-message').textContent).toContain(
-      'How did they do this week?',
-    )
+    expect(
+      screen.getByTestId('insights-rail-user-message').textContent
+    ).toContain('How did they do this week?')
   })
 
   it('calls onScopeChange when a scope chip is selected', async () => {
@@ -292,7 +302,7 @@ describe('InsightsRail', () => {
       <InsightsRail
         currentScope={{ type: 'child', child_id: 'child-1' }}
         onScopeChange={onScopeChange}
-      />,
+      />
     )
     fireEvent.click(await screen.findByTestId('insights-rail-scope-caseload'))
     expect(onScopeChange).toHaveBeenCalledWith({ type: 'caseload' })
@@ -300,10 +310,10 @@ describe('InsightsRail', () => {
 
   it('focuses the composer when focusToken changes', async () => {
     const { rerender } = render(
-      <InsightsRail currentScope={childScope} focusToken={0} />,
+      <InsightsRail currentScope={childScope} focusToken={0} />
     )
     const input = (await screen.findByTestId(
-      'insights-rail-input',
+      'insights-rail-input'
     )) as HTMLTextAreaElement
     expect(document.activeElement).not.toBe(input)
     rerender(<InsightsRail currentScope={childScope} focusToken={1} />)
@@ -318,12 +328,20 @@ describe('InsightsRail', () => {
     fireEvent.click(await screen.findByTestId('insights-rail-collapse'))
 
     await waitFor(() => {
-      expect(screen.getByTestId('insights-rail').getAttribute('data-mode')).toBe('collapsed')
+      expect(
+        screen.getByTestId('insights-rail').getAttribute('data-mode')
+      ).toBe('collapsed')
     })
 
-    expect(screen.getByTestId('insights-rail-launcher').textContent).toContain('Open chat')
-    expect(screen.getByTestId('insights-rail-launcher').textContent).toContain('Ask your data')
-    expect(window.localStorage.getItem('wulo.insightsRail.mode')).toBe('collapsed')
+    expect(screen.getByTestId('insights-rail-launcher').textContent).toContain(
+      'Open chat'
+    )
+    expect(screen.getByTestId('insights-rail-launcher').textContent).toContain(
+      'Ask your data'
+    )
+    expect(window.localStorage.getItem('wulo.insightsRail.mode')).toBe(
+      'collapsed'
+    )
   })
 
   it('can recover from persisted collapsed mode', async () => {
@@ -343,19 +361,19 @@ describe('InsightsRail', () => {
   })
 
   it('keeps prior turns and renders user/assistant bubbles across multiple sends', async () => {
-    askInsights
-      .mockResolvedValueOnce(askResponse)
-      .mockResolvedValueOnce({
-        conversation: baseConversation,
-        user_message: secondUserMessage,
-        assistant_message: secondAssistantMessage,
-        tool_calls_count: 1,
-        latency_ms: 900,
-      } satisfies InsightsAskResponse)
+    askInsights.mockResolvedValueOnce(askResponse).mockResolvedValueOnce({
+      conversation: baseConversation,
+      user_message: secondUserMessage,
+      assistant_message: secondAssistantMessage,
+      tool_calls_count: 1,
+      latency_ms: 900,
+    } satisfies InsightsAskResponse)
 
     render(<InsightsRail currentScope={childScope} />)
 
-    const input = (await screen.findByTestId('insights-rail-input')) as HTMLTextAreaElement
+    const input = (await screen.findByTestId(
+      'insights-rail-input'
+    )) as HTMLTextAreaElement
 
     fireEvent.change(input, { target: { value: 'How did they do this week?' } })
     fireEvent.click(screen.getByTestId('insights-rail-send'))
@@ -370,26 +388,36 @@ describe('InsightsRail', () => {
 
     expect(screen.getAllByTestId('insights-rail-user-message')).toHaveLength(2)
     expect(screen.getAllByTestId('insights-rail-answer')).toHaveLength(2)
-    expect(screen.getByTestId('insights-rail-transcript').textContent).toContain(
-      'How did they do this week?',
-    )
-    expect(screen.getByTestId('insights-rail-transcript').textContent).toContain(
-      'What should I focus on next?',
-    )
-    expect(screen.getByTestId('insights-rail-transcript').textContent).toContain('Wulo')
-    expect(screen.getByTestId('insights-rail-transcript').textContent).toContain('You')
+    expect(
+      screen.getByTestId('insights-rail-transcript').textContent
+    ).toContain('How did they do this week?')
+    expect(
+      screen.getByTestId('insights-rail-transcript').textContent
+    ).toContain('What should I focus on next?')
+    expect(
+      screen.getByTestId('insights-rail-transcript').textContent
+    ).toContain('Wulo')
+    expect(
+      screen.getByTestId('insights-rail-transcript').textContent
+    ).toContain('You')
   })
 
   it('auto-grows the composer as the message gets longer', async () => {
     render(<InsightsRail currentScope={childScope} />)
 
-    const input = (await screen.findByTestId('insights-rail-input')) as HTMLTextAreaElement
+    const input = (await screen.findByTestId(
+      'insights-rail-input'
+    )) as HTMLTextAreaElement
     Object.defineProperty(input, 'scrollHeight', {
       configurable: true,
       get: () => 132,
     })
 
-    fireEvent.change(input, { target: { value: 'This is a much longer question that should grow the composer.' } })
+    fireEvent.change(input, {
+      target: {
+        value: 'This is a much longer question that should grow the composer.',
+      },
+    })
 
     await waitFor(() => {
       expect(input.style.height).toBe('132px')
@@ -400,8 +428,12 @@ describe('InsightsRail', () => {
   it('swaps the composer action between Talk to Wulo and send based on draft text', async () => {
     render(<InsightsRail currentScope={childScope} />)
 
-    const input = (await screen.findByTestId('insights-rail-input')) as HTMLTextAreaElement
-    const voiceAction = screen.getByTestId('insights-rail-voice-action') as HTMLButtonElement
+    const input = (await screen.findByTestId(
+      'insights-rail-input'
+    )) as HTMLTextAreaElement
+    const voiceAction = screen.getByTestId(
+      'insights-rail-voice-action'
+    ) as HTMLButtonElement
 
     expect(voiceAction.title).toBe('Talk to Wulo')
     expect(screen.queryByTestId('insights-rail-send')).toBeNull()
@@ -430,13 +462,16 @@ describe('InsightsRail', () => {
       assistant_message: {
         ...assistantMessage,
         id: 'msg-a-markdown',
-        content_text: '## Highlights\n- Stronger /t/ accuracy\n- Good self-correction',
+        content_text:
+          '## Highlights\n- Stronger /t/ accuracy\n- Good self-correction',
       },
     } satisfies InsightsAskResponse)
 
     render(<InsightsRail currentScope={childScope} />)
 
-    const input = (await screen.findByTestId('insights-rail-input')) as HTMLTextAreaElement
+    const input = (await screen.findByTestId(
+      'insights-rail-input'
+    )) as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: 'Summarise progress' } })
     fireEvent.click(screen.getByTestId('insights-rail-send'))
 
@@ -449,8 +484,12 @@ describe('InsightsRail', () => {
   it('keeps the composer mic focused on the textarea when insights voice mode is off', async () => {
     render(<InsightsRail currentScope={childScope} insightsVoiceMode="off" />)
 
-    const input = (await screen.findByTestId('insights-rail-input')) as HTMLTextAreaElement
-    const voiceAction = screen.getByTestId('insights-rail-voice-action') as HTMLButtonElement
+    const input = (await screen.findByTestId(
+      'insights-rail-input'
+    )) as HTMLTextAreaElement
+    const voiceAction = screen.getByTestId(
+      'insights-rail-voice-action'
+    ) as HTMLButtonElement
 
     expect(screen.queryByTestId('insights-rail-voice-toggle')).toBeNull()
     expect(screen.queryByTestId('insights-orb')).toBeNull()
@@ -462,9 +501,16 @@ describe('InsightsRail', () => {
   })
 
   it('uses the composer mic to start and explicitly end a continuous voice session', async () => {
-    render(<InsightsRail currentScope={childScope} insightsVoiceMode="push_to_talk" />)
+    render(
+      <InsightsRail
+        currentScope={childScope}
+        insightsVoiceMode="push_to_talk"
+      />
+    )
 
-    const voiceAction = (await screen.findByTestId('insights-rail-voice-action')) as HTMLButtonElement
+    const voiceAction = (await screen.findByTestId(
+      'insights-rail-voice-action'
+    )) as HTMLButtonElement
     expect(voiceAction.getAttribute('aria-pressed')).toBe('false')
     expect(screen.queryByTestId('insights-orb')).toBeNull()
 
@@ -480,9 +526,9 @@ describe('InsightsRail', () => {
     expect(voiceAction.getAttribute('data-voice-state')).toBe('listening')
     expect(orb.getAttribute('data-state')).toBe('listening')
     expect(screen.queryByTestId('insights-orb-interrupt')).toBeNull()
-    expect(screen.getByTestId('insights-orb-end-session').textContent).toContain(
-      'End voice session',
-    )
+    expect(
+      screen.getByTestId('insights-orb-end-session').textContent
+    ).toContain('End voice session')
 
     fireEvent.click(voiceAction)
 
@@ -497,9 +543,16 @@ describe('InsightsRail', () => {
   it('offers an explicit end-session action distinct from end-turn', async () => {
     setVoiceMockState({ voiceState: 'listening', lastError: null })
 
-    render(<InsightsRail currentScope={childScope} insightsVoiceMode="push_to_talk" />)
+    render(
+      <InsightsRail
+        currentScope={childScope}
+        insightsVoiceMode="push_to_talk"
+      />
+    )
 
-    const voiceAction = (await screen.findByTestId('insights-rail-voice-action')) as HTMLButtonElement
+    const voiceAction = (await screen.findByTestId(
+      'insights-rail-voice-action'
+    )) as HTMLButtonElement
     expect(voiceAction.title).toBe('End voice session')
 
     fireEvent.click(screen.getByTestId('insights-orb-end-session'))
@@ -513,14 +566,26 @@ describe('InsightsRail', () => {
   it('renders inline voice errors and retries from the composer mic', async () => {
     setVoiceMockState({
       voiceState: 'error',
-      lastError: 'Microphone blocked - allow access in your browser to use voice.',
+      lastError:
+        'Microphone blocked - allow access in your browser to use voice.',
     })
 
-    render(<InsightsRail currentScope={childScope} insightsVoiceMode="push_to_talk" />)
+    render(
+      <InsightsRail
+        currentScope={childScope}
+        insightsVoiceMode="push_to_talk"
+      />
+    )
 
-    const voiceAction = (await screen.findByTestId('insights-rail-voice-action')) as HTMLButtonElement
+    const voiceAction = (await screen.findByTestId(
+      'insights-rail-voice-action'
+    )) as HTMLButtonElement
     expect(voiceAction.title).toBe('Retry voice')
-    expect(screen.getByText('Microphone blocked - allow access in your browser to use voice.')).toBeTruthy()
+    expect(
+      screen.getByText(
+        'Microphone blocked - allow access in your browser to use voice.'
+      )
+    ).toBeTruthy()
 
     fireEvent.click(voiceAction)
 
@@ -532,14 +597,17 @@ describe('InsightsRail', () => {
   it('keeps mode-off markup byte-identical to the baseline render', async () => {
     const baseline = render(<InsightsRail currentScope={childScope} />)
     await screen.findByTestId('insights-rail-input')
-    const baselineTestIdCount = baseline.container.querySelectorAll('[data-testid]').length
+    const baselineTestIdCount =
+      baseline.container.querySelectorAll('[data-testid]').length
     baseline.unmount()
 
     const explicitOff = render(
-      <InsightsRail currentScope={childScope} insightsVoiceMode="off" />,
+      <InsightsRail currentScope={childScope} insightsVoiceMode="off" />
     )
     await screen.findByTestId('insights-rail-input')
 
-    expect(explicitOff.container.querySelectorAll('[data-testid]').length).toBe(baselineTestIdCount)
+    expect(explicitOff.container.querySelectorAll('[data-testid]').length).toBe(
+      baselineTestIdCount
+    )
   })
 })

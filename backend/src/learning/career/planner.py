@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable
 
 from src.common.labour_market import LabourMarketRecord
 from src.learning.models import CareerPathway, CareerPlan, Provenance
@@ -49,7 +49,9 @@ class DeterministicCareerPlanner:
             offline_fallback=self.offline_fallback if request.offline else None,
         )
 
-    def _to_pathway(self, record: LabourMarketRecord, mastery_profile: Dict[str, float], career_consent: bool) -> CareerPathway:
+    def _to_pathway(
+        self, record: LabourMarketRecord, mastery_profile: Dict[str, float], career_consent: bool
+    ) -> CareerPathway:
         mastery_fit = 0.0
         total_weight = sum(record.skill_weights.values()) or 1.0
         for skill_id, weight in record.skill_weights.items():

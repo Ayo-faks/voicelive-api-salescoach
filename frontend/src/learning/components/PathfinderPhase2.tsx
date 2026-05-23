@@ -9,7 +9,11 @@ import {
   makeStyles,
   tokens,
 } from '@fluentui/react-components'
-import { CheckCircleIcon, PaperAirplaneIcon, XCircleIcon } from '@heroicons/react/24/outline'
+import {
+  CheckCircleIcon,
+  PaperAirplaneIcon,
+  XCircleIcon,
+} from '@heroicons/react/24/outline'
 import { useState, type FormEvent } from 'react'
 
 export type ProvenanceView = {
@@ -73,7 +77,10 @@ const statusLabels: Record<HeatmapCellView['status'], string> = {
   needs_support: 'Needs support',
 }
 
-const statusAppearances: Record<HeatmapCellView['status'], 'filled' | 'tint' | 'outline'> = {
+const statusAppearances: Record<
+  HeatmapCellView['status'],
+  'filled' | 'tint' | 'outline'
+> = {
   secure: 'filled',
   developing: 'tint',
   needs_support: 'outline',
@@ -151,7 +158,11 @@ const useStyles = makeStyles({
   },
 })
 
-export function MultimodalIntentBar({ value = '', disabled = false, onSubmitIntent }: MultimodalIntentBarProps) {
+export function MultimodalIntentBar({
+  value = '',
+  disabled = false,
+  onSubmitIntent,
+}: MultimodalIntentBarProps) {
   const styles = useStyles()
   const [intent, setIntent] = useState(value)
 
@@ -163,7 +174,11 @@ export function MultimodalIntentBar({ value = '', disabled = false, onSubmitInte
   }
 
   return (
-    <form className={styles.intentForm} onSubmit={handleSubmit} data-testid="phase2-intent-bar">
+    <form
+      className={styles.intentForm}
+      onSubmit={handleSubmit}
+      data-testid="phase2-intent-bar"
+    >
       <Input
         aria-label="Text request"
         value={intent}
@@ -176,7 +191,9 @@ export function MultimodalIntentBar({ value = '', disabled = false, onSubmitInte
           type="submit"
           appearance="primary"
           disabled={disabled || !intent.trim()}
-          icon={<PaperAirplaneIcon className={styles.icon} aria-hidden="true" />}
+          icon={
+            <PaperAirplaneIcon className={styles.icon} aria-hidden="true" />
+          }
         />
       </Tooltip>
     </form>
@@ -188,27 +205,49 @@ export function TeacherHeatmap({ cells }: TeacherHeatmapProps) {
 
   return (
     <Card className={styles.heatmap} data-testid="phase2-teacher-heatmap">
-      <CardHeader header={<Text weight="semibold">JSS2 mastery heatmap</Text>} />
+      <CardHeader
+        header={<Text weight="semibold">JSS2 mastery heatmap</Text>}
+      />
       <div className={styles.heatmapScroller}>
-        <table className={styles.heatmapGrid} aria-label="JSS2 mastery heatmap grid">
+        <table
+          className={styles.heatmapGrid}
+          aria-label="JSS2 mastery heatmap grid"
+        >
           <thead>
             <tr>
-              <th className={styles.gridHeader} scope="col">Skill</th>
-              <th className={styles.gridHeader} scope="col">Mastery</th>
-              <th className={styles.gridHeader} scope="col">Uncertainty</th>
-              <th className={styles.gridHeader} scope="col">Status</th>
+              <th className={styles.gridHeader} scope="col">
+                Skill
+              </th>
+              <th className={styles.gridHeader} scope="col">
+                Mastery
+              </th>
+              <th className={styles.gridHeader} scope="col">
+                Uncertainty
+              </th>
+              <th className={styles.gridHeader} scope="col">
+                Status
+              </th>
             </tr>
           </thead>
           <tbody>
-            {cells.map((cell) => (
-              <tr key={`${cell.studentId}:${cell.skillId}`} data-testid={`phase2-heatmap-row-${cell.skillId}`}>
+            {cells.map(cell => (
+              <tr
+                key={`${cell.studentId}:${cell.skillId}`}
+                data-testid={`phase2-heatmap-row-${cell.skillId}`}
+              >
                 <td className={styles.gridCell}>
                   <span className={styles.skillLabel}>{cell.skillLabel}</span>
                 </td>
-                <td className={styles.gridCell}>{Math.round(cell.probability * 100)}%</td>
-                <td className={styles.gridCell}>{Math.round(cell.uncertainty * 100)}%</td>
                 <td className={styles.gridCell}>
-                  <Badge appearance={statusAppearances[cell.status]}>{statusLabels[cell.status]}</Badge>
+                  {Math.round(cell.probability * 100)}%
+                </td>
+                <td className={styles.gridCell}>
+                  {Math.round(cell.uncertainty * 100)}%
+                </td>
+                <td className={styles.gridCell}>
+                  <Badge appearance={statusAppearances[cell.status]}>
+                    {statusLabels[cell.status]}
+                  </Badge>
                 </td>
               </tr>
             ))}
@@ -219,7 +258,11 @@ export function TeacherHeatmap({ cells }: TeacherHeatmapProps) {
   )
 }
 
-export function ProvenanceFooter({ provenance }: { provenance: ProvenanceView[] }) {
+export function ProvenanceFooter({
+  provenance,
+}: {
+  provenance: ProvenanceView[]
+}) {
   const styles = useStyles()
 
   return (
@@ -229,15 +272,24 @@ export function ProvenanceFooter({ provenance }: { provenance: ProvenanceView[] 
       data-provenance-count={provenance.length}
     >
       {provenance.map((entry, index) => (
-        <Badge key={`${entry.source}:${entry.ruleId ?? index}`} appearance="outline">
-          {entry.source}{entry.ruleId ? ` / ${entry.ruleId}` : ''} · {entry.evidenceCount} evidence
+        <Badge
+          key={`${entry.source}:${entry.ruleId ?? index}`}
+          appearance="outline"
+        >
+          {entry.source}
+          {entry.ruleId ? ` / ${entry.ruleId}` : ''} · {entry.evidenceCount}{' '}
+          evidence
         </Badge>
       ))}
     </footer>
   )
 }
 
-export function PendingApprovalCard({ plan, onApprove, onReject }: PendingApprovalCardProps) {
+export function PendingApprovalCard({
+  plan,
+  onApprove,
+  onReject,
+}: PendingApprovalCardProps) {
   const styles = useStyles()
 
   return (
@@ -248,8 +300,10 @@ export function PendingApprovalCard({ plan, onApprove, onReject }: PendingApprov
       />
       <Text>{plan.rationale}</Text>
       <div className={styles.planMeta}>
-        {plan.targetSkillIds.map((skillId) => (
-          <Badge key={skillId} appearance="tint">{skillId}</Badge>
+        {plan.targetSkillIds.map(skillId => (
+          <Badge key={skillId} appearance="tint">
+            {skillId}
+          </Badge>
         ))}
       </div>
       <div className={styles.planActions}>
@@ -286,7 +340,11 @@ export function PathfinderPhase2Demo({
     <section className={styles.shell} data-testid="phase2-teacher-workspace">
       <MultimodalIntentBar onSubmitIntent={onSubmitIntent} />
       <TeacherHeatmap cells={cells} />
-      <PendingApprovalCard plan={pendingPlan} onApprove={onApprove} onReject={onReject} />
+      <PendingApprovalCard
+        plan={pendingPlan}
+        onApprove={onApprove}
+        onReject={onReject}
+      />
     </section>
   )
 }

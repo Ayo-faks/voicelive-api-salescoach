@@ -1,6 +1,10 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { PathfinderPhase2Demo, type HeatmapCellView, type PendingApprovalPlanView } from './PathfinderPhase2'
+import {
+  PathfinderPhase2Demo,
+  type HeatmapCellView,
+  type PendingApprovalPlanView,
+} from './PathfinderPhase2'
 
 const provenance = [
   {
@@ -56,7 +60,12 @@ const cells: HeatmapCellView[] = [
 
 const pendingPlan: PendingApprovalPlanView = {
   planId: 'intervention-plan-phase-2',
-  targetSkillIds: ['ratio-proportion', 'fraction-operations', 'linear-equations', 'plane-geometry'],
+  targetSkillIds: [
+    'ratio-proportion',
+    'fraction-operations',
+    'linear-equations',
+    'plane-geometry',
+  ],
   targetStudentIds: ['student-ade'],
   itemTypes: ['reteach', 'guided_practice'],
   suggestedResources: ['ratio-mini-lesson'],
@@ -70,10 +79,14 @@ describe('PathfinderPhase2Demo', () => {
   it('renders the mastery heatmap and pending approval with provenance', () => {
     render(<PathfinderPhase2Demo cells={cells} pendingPlan={pendingPlan} />)
 
-    const pendingApprovalCard = screen.getByTestId('phase2-pending-approval-card')
+    const pendingApprovalCard = screen.getByTestId(
+      'phase2-pending-approval-card'
+    )
     expect(screen.getByTestId('phase2-teacher-workspace')).toBeTruthy()
     expect(screen.getByTestId('phase2-teacher-heatmap')).toBeTruthy()
-    expect(pendingApprovalCard.textContent).toContain('Pending teacher approval')
+    expect(pendingApprovalCard.textContent).toContain(
+      'Pending teacher approval'
+    )
     expect(pendingApprovalCard.textContent).toContain('Synthetic intervention')
     expect(screen.getAllByText('Secure')).toHaveLength(2)
     expect(screen.getByText('Developing')).toBeTruthy()
@@ -86,20 +99,35 @@ describe('PathfinderPhase2Demo', () => {
 
   it('submits text-path teacher intent without applying a plan', () => {
     const onSubmitIntent = vi.fn()
-    render(<PathfinderPhase2Demo cells={cells} pendingPlan={pendingPlan} onSubmitIntent={onSubmitIntent} />)
+    render(
+      <PathfinderPhase2Demo
+        cells={cells}
+        pendingPlan={pendingPlan}
+        onSubmitIntent={onSubmitIntent}
+      />
+    )
 
     fireEvent.change(screen.getByLabelText('Text request'), {
       target: { value: 'Group learners who need fraction support' },
     })
     fireEvent.click(screen.getByLabelText('Send request'))
 
-    expect(onSubmitIntent).toHaveBeenCalledWith('Group learners who need fraction support')
+    expect(onSubmitIntent).toHaveBeenCalledWith(
+      'Group learners who need fraction support'
+    )
   })
 
   it('keeps teacher approval as an explicit action', () => {
     const onApprove = vi.fn()
     const onReject = vi.fn()
-    render(<PathfinderPhase2Demo cells={cells} pendingPlan={pendingPlan} onApprove={onApprove} onReject={onReject} />)
+    render(
+      <PathfinderPhase2Demo
+        cells={cells}
+        pendingPlan={pendingPlan}
+        onApprove={onApprove}
+        onReject={onReject}
+      />
+    )
 
     const card = screen.getByTestId('phase2-pending-approval-card')
     fireEvent.click(within(card).getByRole('button', { name: /approve/i }))

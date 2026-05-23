@@ -16,7 +16,7 @@ import {
 describe('buildBeginFrame / buildEndFrame / buildMicModeFrame', () => {
   it('builds the begin frame with the wire-protocol type', () => {
     expect(
-      buildBeginFrame({ turnId: 't-1', targetWord: 'sun', windowMs: 3500 }),
+      buildBeginFrame({ turnId: 't-1', targetWord: 'sun', windowMs: 3500 })
     ).toEqual({
       type: 'wulo.scored_turn.begin',
       payload: { turnId: 't-1', targetWord: 'sun', windowMs: 3500 },
@@ -46,7 +46,9 @@ describe('handleScoredTurnServerEvent', () => {
 
   it('returns null for unrelated messages', () => {
     const api = makeApi()
-    expect(handleScoredTurnServerEvent({ type: 'wulo.target_tally' }, api)).toBeNull()
+    expect(
+      handleScoredTurnServerEvent({ type: 'wulo.target_tally' }, api)
+    ).toBeNull()
     expect(handleScoredTurnServerEvent(null, api)).toBeNull()
     expect(api.endScoredTurn).not.toHaveBeenCalled()
     expect(api.timeoutScoredTurn).not.toHaveBeenCalled()
@@ -55,8 +57,11 @@ describe('handleScoredTurnServerEvent', () => {
   it('parses ack frames without dispatching', () => {
     const api = makeApi()
     const result = handleScoredTurnServerEvent(
-      { type: 'wulo.scored_turn.ack', payload: { turnId: 't-1', targetWord: 'sun' } },
-      api,
+      {
+        type: 'wulo.scored_turn.ack',
+        payload: { turnId: 't-1', targetWord: 'sun' },
+      },
+      api
     )
     expect(result).toEqual({
       kind: 'ack',
@@ -68,7 +73,10 @@ describe('handleScoredTurnServerEvent', () => {
   it('drops ack frames missing turnId', () => {
     const api = makeApi()
     expect(
-      handleScoredTurnServerEvent({ type: 'wulo.scored_turn.ack', payload: {} }, api),
+      handleScoredTurnServerEvent(
+        { type: 'wulo.scored_turn.ack', payload: {} },
+        api
+      )
     ).toBeNull()
   })
 
@@ -86,7 +94,7 @@ describe('handleScoredTurnServerEvent', () => {
           elapsedMs: 1234,
         },
       },
-      api,
+      api
     )
     expect(result?.kind).toBe('result')
     if (result?.kind === 'result') {
@@ -110,7 +118,7 @@ describe('handleScoredTurnServerEvent', () => {
           elapsedMs: 900,
         },
       },
-      api,
+      api
     )
     expect(api.endScoredTurn).toHaveBeenCalledWith('t-2')
     expect(api.timeoutScoredTurn).not.toHaveBeenCalled()
@@ -130,7 +138,7 @@ describe('handleScoredTurnServerEvent', () => {
           elapsedMs: 3500,
         },
       },
-      api,
+      api
     )
     expect(api.timeoutScoredTurn).toHaveBeenCalledWith('t-3')
     expect(api.endScoredTurn).not.toHaveBeenCalled()
@@ -150,7 +158,7 @@ describe('handleScoredTurnServerEvent', () => {
           elapsedMs: 0,
         },
       },
-      api,
+      api
     )
     if (result?.kind === 'result') {
       expect(result.payload.verdict).toBe('timeout')
@@ -163,8 +171,8 @@ describe('handleScoredTurnServerEvent', () => {
     expect(
       handleScoredTurnServerEvent(
         { type: 'wulo.scored_turn.result', payload: { verdict: 'correct' } },
-        api,
-      ),
+        api
+      )
     ).toBeNull()
     expect(api.endScoredTurn).not.toHaveBeenCalled()
   })
@@ -173,12 +181,22 @@ describe('handleScoredTurnServerEvent', () => {
 describe('composeScoredTurnBegin', () => {
   it('produces frame + reducer turn echoing the caller payload', () => {
     const { frame, reducerTurn } = composeScoredTurnBegin(
-      { turnId: 't-9', targetWord: 'sun', referenceText: 'say sun', windowMs: 2500 },
-      1234,
+      {
+        turnId: 't-9',
+        targetWord: 'sun',
+        referenceText: 'say sun',
+        windowMs: 2500,
+      },
+      1234
     )
     expect(frame).toEqual({
       type: 'wulo.scored_turn.begin',
-      payload: { turnId: 't-9', targetWord: 'sun', referenceText: 'say sun', windowMs: 2500 },
+      payload: {
+        turnId: 't-9',
+        targetWord: 'sun',
+        referenceText: 'say sun',
+        windowMs: 2500,
+      },
     })
     expect(reducerTurn).toEqual({
       turnId: 't-9',
@@ -192,7 +210,7 @@ describe('composeScoredTurnBegin', () => {
   it('defaults referenceText to targetWord and windowMs to DEFAULT when omitted', () => {
     const { frame, reducerTurn } = composeScoredTurnBegin(
       { turnId: 't-10', targetWord: 'fish' },
-      5000,
+      5000
     )
     expect(frame.payload.referenceText).toBe('fish')
     expect(frame.payload.windowMs).toBe(DEFAULT_SCORED_TURN_WINDOW_MS)
@@ -204,7 +222,7 @@ describe('composeScoredTurnBegin', () => {
   it('treats non-positive windowMs as default', () => {
     const { reducerTurn } = composeScoredTurnBegin(
       { turnId: 't-11', targetWord: 'ship', windowMs: 0 },
-      0,
+      0
     )
     expect(reducerTurn.windowMs).toBe(DEFAULT_SCORED_TURN_WINDOW_MS)
   })

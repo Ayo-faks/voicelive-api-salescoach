@@ -20,7 +20,11 @@
  */
 
 import { useCallback, useEffect, useReducer } from 'react'
-import { readStoredMicMode, writeStoredMicMode, type MicMode } from '../utils/micMode'
+import {
+  readStoredMicMode,
+  writeStoredMicMode,
+  type MicMode,
+} from '../utils/micMode'
 
 export interface ScoredTurn {
   /** Client-generated correlation id echoed back on ack/result. */
@@ -50,7 +54,10 @@ export function initialMicModeState(override?: MicMode): MicModeState {
   return { mode: readStoredMicMode(override), scoredTurn: null }
 }
 
-export function micModeReducer(state: MicModeState, event: MicModeEvent): MicModeState {
+export function micModeReducer(
+  state: MicModeState,
+  event: MicModeEvent
+): MicModeState {
   switch (event.type) {
     case 'SET_MODE': {
       if (state.mode === event.mode) return state
@@ -66,7 +73,8 @@ export function micModeReducer(state: MicModeState, event: MicModeEvent): MicMod
     }
     case 'SCORED_TURN_END':
     case 'SCORED_TURN_TIMEOUT': {
-      if (!state.scoredTurn || state.scoredTurn.turnId !== event.turnId) return state
+      if (!state.scoredTurn || state.scoredTurn.turnId !== event.turnId)
+        return state
       return { ...state, scoredTurn: null }
     }
     default: {
@@ -86,7 +94,11 @@ export interface UseMicModeApi {
 
 /** React hook wrapper around `micModeReducer`. Persists `mode` changes. */
 export function useMicMode(override?: MicMode): UseMicModeApi {
-  const [state, dispatch] = useReducer(micModeReducer, override, initialMicModeState)
+  const [state, dispatch] = useReducer(
+    micModeReducer,
+    override,
+    initialMicModeState
+  )
 
   useEffect(() => {
     writeStoredMicMode(state.mode)

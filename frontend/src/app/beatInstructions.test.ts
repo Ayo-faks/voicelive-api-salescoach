@@ -137,15 +137,17 @@ describe('buildBeatInstructions — BRIDGE', () => {
 
   it('throws in dev when bridge exceeds 7 words', () => {
     setDev(true)
-    expect(() => assertBridgeCopy('One two three four five six seven eight')).toThrow(
-      /exceeds 7 words/,
-    )
+    expect(() =>
+      assertBridgeCopy('One two three four five six seven eight')
+    ).toThrow(/exceeds 7 words/)
   })
 
   it('truncates and warns in prod when bridge exceeds 7 words', () => {
     setDev(false)
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const result = assertBridgeCopy('One two three four five six seven eight nine')
+    const result = assertBridgeCopy(
+      'One two three four five six seven eight nine'
+    )
     expect(__testing.wordCount(result)).toBeLessThanOrEqual(BRIDGE_MAX_WORDS)
     expect(warn).toHaveBeenCalled()
   })
@@ -281,7 +283,10 @@ describe('createBeatDispatcher — queue + flush', () => {
       type: 'response.create'
       response: { instructions: string }
     }>
-    expect(creates.map(c => c.response.instructions)).toEqual(['orient-1', 'bridge-1'])
+    expect(creates.map(c => c.response.instructions)).toEqual([
+      'orient-1',
+      'bridge-1',
+    ])
     expect(h.dispatcher.pendingCount()).toBe(0)
   })
 
@@ -335,7 +340,9 @@ describe('createBeatDispatcher — queue + flush', () => {
     })
     dispatcher.send('orient-1')
     // After the throw on the first attempt we retry once and succeed.
-    expect(sent.some(e => (e as { type: string }).type === 'response.create')).toBe(true)
+    expect(
+      sent.some(e => (e as { type: string }).type === 'response.create')
+    ).toBe(true)
     expect(logs.some(l => l.event === 'beat.retry')).toBe(true)
   })
 
@@ -365,6 +372,8 @@ describe('createBeatDispatcher — queue + flush', () => {
     expect(h.logs.some(l => l.event === 'beat.retry')).toBe(true)
     expect(h.logs.some(l => l.event === 'beat.dropped')).toBe(true)
     // No response.create ever successfully landed.
-    expect(h.sent.filter(e => (e as { type: string }).type === 'response.create')).toEqual([])
+    expect(
+      h.sent.filter(e => (e as { type: string }).type === 'response.create')
+    ).toEqual([])
   })
 })

@@ -114,7 +114,9 @@ class FakeWebSocket {
   onopen: (() => void) | null = null
   onmessage: ((event: { data: string }) => void) | null = null
   onerror: (() => void) | null = null
-  onclose: ((event: { code: number; reason: string; wasClean: boolean }) => void) | null = null
+  onclose:
+    | ((event: { code: number; reason: string; wasClean: boolean }) => void)
+    | null = null
 
   constructor(url: string) {
     this.url = url
@@ -160,13 +162,21 @@ function HookHarness({
 
   return (
     <div>
-      <button type="button" onClick={() => void start()} data-testid="hook-start">
+      <button
+        type="button"
+        onClick={() => void start()}
+        data-testid="hook-start"
+      >
         Start
       </button>
       <button type="button" onClick={() => void stop()} data-testid="hook-stop">
         Stop
       </button>
-      <button type="button" onClick={() => void endSession()} data-testid="hook-end-session">
+      <button
+        type="button"
+        onClick={() => void endSession()}
+        data-testid="hook-end-session"
+      >
         End session
       </button>
       <div data-testid="hook-state">{voiceState}</div>
@@ -256,7 +266,9 @@ describe('useInsightsVoice', () => {
     mockInputLevel = 0.2
     rerender(<HookHarness revision={1} />)
 
-    expect(socket.sent).not.toContain(JSON.stringify({ type: 'turn.interrupt' }))
+    expect(socket.sent).not.toContain(
+      JSON.stringify({ type: 'turn.interrupt' })
+    )
 
     now = 2600
     mockInputLevel = 0.22
@@ -266,7 +278,9 @@ describe('useInsightsVoice', () => {
       expect(FakeAudioContext.instances[0]?.suspendCallCount).toBe(1)
     })
 
-    expect(socket.sent).not.toContain(JSON.stringify({ type: 'turn.interrupt' }))
+    expect(socket.sent).not.toContain(
+      JSON.stringify({ type: 'turn.interrupt' })
+    )
 
     now = 2900
     mockInputLevel = 0.24
@@ -329,10 +343,14 @@ describe('useInsightsVoice', () => {
       await new Promise(resolve => window.setTimeout(resolve, 2100))
     })
 
-    expect(FakeAudioContext.instances[0]?.resumeCallCount).toBeGreaterThanOrEqual(1)
+    expect(
+      FakeAudioContext.instances[0]?.resumeCallCount
+    ).toBeGreaterThanOrEqual(1)
     expect(screen.getByTestId('hook-state').textContent).toBe('speaking')
 
-    expect(socket.sent).not.toContain(JSON.stringify({ type: 'turn.interrupt' }))
+    expect(socket.sent).not.toContain(
+      JSON.stringify({ type: 'turn.interrupt' })
+    )
   })
 
   it('rearms listening after turn.interrupted without closing the socket', async () => {
@@ -412,19 +430,25 @@ describe('useInsightsVoice', () => {
     mockInputLevel = 0.22
     rerender(<HookHarness revision={1} />)
 
-    expect(socket.sent).not.toContain(JSON.stringify({ type: 'turn.interrupt' }))
+    expect(socket.sent).not.toContain(
+      JSON.stringify({ type: 'turn.interrupt' })
+    )
 
     now = 2100
     mockInputLevel = 0.23
     rerender(<HookHarness revision={2} />)
 
-    expect(socket.sent).not.toContain(JSON.stringify({ type: 'turn.interrupt' }))
+    expect(socket.sent).not.toContain(
+      JSON.stringify({ type: 'turn.interrupt' })
+    )
 
     now = 2600
     mockInputLevel = 0.24
     rerender(<HookHarness revision={3} />)
 
-    expect(socket.sent).not.toContain(JSON.stringify({ type: 'turn.interrupt' }))
+    expect(socket.sent).not.toContain(
+      JSON.stringify({ type: 'turn.interrupt' })
+    )
 
     now = 2900
     mockInputLevel = 0.25
@@ -461,7 +485,9 @@ describe('useInsightsVoice', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('hook-state').textContent).toBe('listening')
-      expect(screen.getByTestId('hook-error').textContent).toBe("Voice couldn't continue - try again.")
+      expect(screen.getByTestId('hook-error').textContent).toBe(
+        "Voice couldn't continue - try again."
+      )
     })
 
     expect(socket.closeCallCount).toBe(0)
@@ -540,7 +566,7 @@ describe('useInsightsVoice', () => {
         expect(userStopMessage).toMatchObject({ type: 'user_stop' })
         expect(screen.getByTestId('hook-state').textContent).toBe('thinking')
       },
-      { timeout: 1200 },
+      { timeout: 1200 }
     )
   })
 
@@ -584,7 +610,7 @@ describe('useInsightsVoice', () => {
         expect(userStopMessage).toMatchObject({ type: 'user_stop' })
         expect(screen.getByTestId('hook-state').textContent).toBe('thinking')
       },
-      { timeout: 1200 },
+      { timeout: 1200 }
     )
 
     // Backend responds with transcript, TTS, completion, then listening.
@@ -616,7 +642,9 @@ describe('useInsightsVoice', () => {
 
     expect(socket.closeCallCount).toBe(0)
     // No manual end-turn / end-session was invoked.
-    expect(socket.sent).not.toContain(JSON.stringify({ type: 'turn.interrupt' }))
+    expect(socket.sent).not.toContain(
+      JSON.stringify({ type: 'turn.interrupt' })
+    )
   })
 
   it('does not end the session from a stale VAD max-delay timer while thinking', async () => {
@@ -652,7 +680,7 @@ describe('useInsightsVoice', () => {
         expect(userStopMessage).toMatchObject({ type: 'user_stop' })
         expect(screen.getByTestId('hook-state').textContent).toBe('thinking')
       },
-      { timeout: 1200 },
+      { timeout: 1200 }
     )
 
     act(() => {
@@ -893,7 +921,7 @@ describe('useInsightsVoice', () => {
 
   it('surfaces microphone permission failures as an error state', async () => {
     toggleRecording.mockRejectedValueOnce(
-      new DOMException('Permission denied', 'NotAllowedError'),
+      new DOMException('Permission denied', 'NotAllowedError')
     )
 
     render(<HookHarness />)
@@ -903,7 +931,7 @@ describe('useInsightsVoice', () => {
     await waitFor(() => {
       expect(screen.getByTestId('hook-state').textContent).toBe('error')
       expect(screen.getByTestId('hook-error').textContent).toBe(
-        'Microphone blocked - allow access in your browser to use voice.',
+        'Microphone blocked - allow access in your browser to use voice.'
       )
     })
   })

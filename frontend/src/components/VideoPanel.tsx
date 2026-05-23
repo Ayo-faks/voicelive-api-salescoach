@@ -18,7 +18,11 @@ import type React from 'react'
 import { AVATAR_OPTIONS } from '../types'
 import type { MicMode } from '../utils/micMode'
 import { BuddyAvatar } from './BuddyAvatar'
-import { computeMicAriaLabel, computeMicLabel, computePromptText } from './videoPanelCopy'
+import {
+  computeMicAriaLabel,
+  computeMicLabel,
+  computePromptText,
+} from './videoPanelCopy'
 
 const useStyles = makeStyles({
   card: {
@@ -234,7 +238,8 @@ const useStyles = makeStyles({
   },
   micButtonActive: {
     backgroundColor: 'var(--color-primary-dark)',
-    boxShadow: '0 12px 26px rgba(13, 138, 132, 0.22), 0 0 0 14px rgba(13, 138, 132, 0.08)',
+    boxShadow:
+      '0 12px 26px rgba(13, 138, 132, 0.22), 0 0 0 14px rgba(13, 138, 132, 0.08)',
     '&::before': {
       opacity: 1,
       border: '2px solid rgba(13, 138, 132, 0.4)',
@@ -337,12 +342,15 @@ export function VideoPanel({
   }, [avatarValue])
 
   const isPhotoAvatar = useMemo(() => {
-    return AVATAR_OPTIONS.find(option => option.value === avatarValue)?.isPhotoAvatar ?? false
+    return (
+      AVATAR_OPTIONS.find(option => option.value === avatarValue)
+        ?.isPhotoAvatar ?? false
+    )
   }, [avatarValue])
 
   const avatarName = avatarLabel.split(' (')[0]
   const childLabel = childName || 'friend'
-  const exerciseLabel = scenarioName || 'today\'s practice'
+  const exerciseLabel = scenarioName || "today's practice"
   const promptText = computePromptText({
     scenarioDescription,
     exerciseLabel,
@@ -355,12 +363,12 @@ export function VideoPanel({
     sessionFinished && audience === 'child'
       ? `${avatarName} has wrapped up ${childLabel}'s practice.`
       : connectionState === 'connected'
-      ? introPending
-        ? `${avatarName} is welcoming ${childLabel}.`
-        : introComplete
-          ? `${avatarName} is ready to begin.`
-          : `${avatarName} is getting ready.`
-      : `${avatarName} is getting ready for ${childLabel}.`
+        ? introPending
+          ? `${avatarName} is welcoming ${childLabel}.`
+          : introComplete
+            ? `${avatarName} is ready to begin.`
+            : `${avatarName} is getting ready.`
+        : `${avatarName} is getting ready for ${childLabel}.`
   const micLabel = computeMicLabel({
     micMode,
     recording,
@@ -371,28 +379,33 @@ export function VideoPanel({
     audience,
   })
   const avatarAdvisoryMessage =
-    connectionMessage && /avatar/i.test(connectionMessage) ? connectionMessage : null
+    connectionMessage && /avatar/i.test(connectionMessage)
+      ? connectionMessage
+      : null
   const statusText =
     sessionFinished && audience === 'child'
       ? 'Practice finished'
       : avatarAdvisoryMessage
-      ? avatarAdvisoryMessage
-      : connectionState === 'connected'
-      ? introComplete
-        ? 'Voice ready'
-        : 'Welcoming...'
-      : connectionMessage || 'Connecting...'
+        ? avatarAdvisoryMessage
+        : connectionState === 'connected'
+          ? introComplete
+            ? 'Voice ready'
+            : 'Welcoming...'
+          : connectionMessage || 'Connecting...'
 
   const photoContainerStyle = isPhotoAvatar
     ? {
-        aspectRatio: videoAspectRatio && Number.isFinite(videoAspectRatio)
-          ? `${videoAspectRatio}`
-          : '16 / 9',
+        aspectRatio:
+          videoAspectRatio && Number.isFinite(videoAspectRatio)
+            ? `${videoAspectRatio}`
+            : '16 / 9',
       }
     : undefined
 
   return (
-    <Card className={mergeClasses(styles.card, isPhotoAvatar && styles.photoCard)}>
+    <Card
+      className={mergeClasses(styles.card, isPhotoAvatar && styles.photoCard)}
+    >
       <div
         className={mergeClasses(
           styles.videoContainer,
@@ -406,7 +419,10 @@ export function VideoPanel({
         <video
           key={videoKey}
           ref={videoRef}
-          className={mergeClasses(styles.video, isPhotoAvatar && styles.photoVideo)}
+          className={mergeClasses(
+            styles.video,
+            isPhotoAvatar && styles.photoVideo
+          )}
           autoPlay
           playsInline
           onLoadedMetadata={event => {
@@ -416,11 +432,15 @@ export function VideoPanel({
             }
             markVideoReady(videoKey, setLoadedVideoKey, onVideoLoaded)
           }}
-          onCanPlay={() => markVideoReady(videoKey, setLoadedVideoKey, onVideoLoaded)}
+          onCanPlay={() =>
+            markVideoReady(videoKey, setLoadedVideoKey, onVideoLoaded)
+          }
           onLoadedData={() => {
             markVideoReady(videoKey, setLoadedVideoKey, onVideoLoaded)
           }}
-          onPlaying={() => markVideoReady(videoKey, setLoadedVideoKey, onVideoLoaded)}
+          onPlaying={() =>
+            markVideoReady(videoKey, setLoadedVideoKey, onVideoLoaded)
+          }
         >
           <track
             kind="captions"
@@ -465,10 +485,10 @@ export function VideoPanel({
                       ? 'Keep the session moving and open the dock microphone when the child is ready.'
                       : 'The listening turn is ready. The child can tap a picture as soon as the clue plays.'
                     : introComplete
-                    ? micRequired
-                      ? 'The session is ready. Tap the microphone when you want to talk.'
-                      : 'The listening turn is ready. Listen for the clue, then tap a picture.'
-                    : 'Your buddy is getting set up for a calm, friendly practice turn.'}
+                      ? micRequired
+                        ? 'The session is ready. Tap the microphone when you want to talk.'
+                        : 'The listening turn is ready. Listen for the clue, then tap a picture.'
+                      : 'Your buddy is getting set up for a calm, friendly practice turn.'}
               </Text>
             </div>
 

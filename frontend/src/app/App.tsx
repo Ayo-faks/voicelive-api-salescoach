@@ -5,27 +5,17 @@
 
 import {
   Button,
-  Card,
   Dialog,
   DialogActions,
   DialogBody,
   DialogSurface,
   DialogTitle,
-  Dropdown,
-  Option,
   Spinner,
   Text,
   makeStyles,
   mergeClasses,
 } from '@fluentui/react-components'
-import {
-  ClipboardDocumentCheckIcon,
-  HeartIcon,
-  AdjustmentsHorizontalIcon,
-  Bars3Icon,
-  ChevronDownIcon,
-  PlusIcon,
-} from '@heroicons/react/24/outline'
+import { Bars3Icon, PlusIcon } from '@heroicons/react/24/outline'
 import { useCallback, useEffect, useRef, useState, lazy, Suspense } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { AssessmentPanel } from '../components/AssessmentPanel'
@@ -42,9 +32,9 @@ import { ChecklistContainer } from '../components/onboarding/ChecklistContainer'
 // cost and child tablets do not pay the adult onboarding cost (Phase 4
 // performance budget).
 const LazyChildOnboardingOrchestrator = lazy(() =>
-  import('../components/childOnboarding').then((m) => ({
+  import('../components/childOnboarding').then(m => ({
     default: m.ChildOnboardingOrchestrator,
-  })),
+  }))
 )
 import { ProgressDashboard } from '../components/ProgressDashboard'
 import { SessionScreen } from '../components/SessionScreen'
@@ -99,7 +89,13 @@ import type {
 } from '../types'
 import { AVATAR_OPTIONS, DEFAULT_AVATAR } from '../types'
 import { APP_TITLE } from './branding'
-import { APP_ROUTE_PARAMS, APP_ROUTES, getDefaultAuthenticatedRoute, resolveAppRoute, type AppRoute } from './routes'
+import {
+  APP_ROUTE_PARAMS,
+  APP_ROUTES,
+  getDefaultAuthenticatedRoute,
+  resolveAppRoute,
+  type AppRoute,
+} from './routes'
 import { exerciseRequiresMic } from '../utils/exerciseMode'
 import { replaceDrillTokens } from '../utils/drillTokens'
 import { createBeatDispatcher, type BeatDispatcher } from './beatInstructions'
@@ -153,8 +149,8 @@ const CHILD_TURN_LIMIT = 10
 const CHILD_MAX_TURNS = 16
 const THERAPIST_TURN_LIMIT = 12
 const THERAPIST_MAX_TURNS = 16
-const AFFIRMATIVE_FINISH_PATTERN = /\b(yes|yeah|yep|ok|okay|sure|done|finished)\b/i
-const LAUNCH_HANDOFF_DELAY_MS = 240
+const AFFIRMATIVE_FINISH_PATTERN =
+  /\b(yes|yeah|yep|ok|okay|sure|done|finished)\b/i
 const SUMMARY_HANDOFF_DELAY_MS = 1100
 const SESSION_WRAP_UP_DELAY_MS = 3200
 const LISTENING_SESSION_WRAP_UP_DELAY_MS = 5200
@@ -177,10 +173,10 @@ function getFinishPromptInstructions(isChildMode: boolean): string {
 
 function getListeningWrapUpInstructions(isChildMode: boolean): string {
   if (isChildMode) {
-    return 'Say exactly the following text verbatim in two short, warm sentences with no extra words: Thanks for practicing with me today. I\'m getting your session summary ready now, and I\'ll see you next time.'
+    return "Say exactly the following text verbatim in two short, warm sentences with no extra words: Thanks for practicing with me today. I'm getting your session summary ready now, and I'll see you next time."
   }
 
-  return 'Say exactly the following text verbatim in two short, warm sentences with no extra words: Thanks for joining today\'s practice. I\'m preparing the session summary now, and I\'ll see you next time.'
+  return "Say exactly the following text verbatim in two short, warm sentences with no extra words: Thanks for joining today's practice. I'm preparing the session summary now, and I'll see you next time."
 }
 
 function normalizeStoredUserMode(value: string | null): UserMode | null {
@@ -217,20 +213,35 @@ function getReferenceText(
     }
 
     if (scenario.scenarioData.exerciseType === 'sound_isolation') {
-      return scenario.scenarioData.targetWords[0] || scenario.scenarioData.targetSound
+      return (
+        scenario.scenarioData.targetWords[0] ||
+        scenario.scenarioData.targetSound
+      )
     }
 
     if (scenario.scenarioData.exerciseType === 'vowel_blending') {
-      return activeTargetWord || scenario.scenarioData.targetWords[0] || scenario.scenarioData.targetSound
+      return (
+        activeTargetWord ||
+        scenario.scenarioData.targetWords[0] ||
+        scenario.scenarioData.targetSound
+      )
     }
 
     if (scenario.scenarioData.exerciseType === 'word_position_practice') {
-      return activeTargetWord || scenario.scenarioData.targetWords[0] || scenario.scenarioData.targetSound
+      return (
+        activeTargetWord ||
+        scenario.scenarioData.targetWords[0] ||
+        scenario.scenarioData.targetSound
+      )
     }
 
     if (scenario.scenarioData.exerciseType === 'two_word_phrase') {
       // Stage 6: scoring narrows to the active target word; carrier is not scored.
-      return activeTargetWord || scenario.scenarioData.targetWords[0] || scenario.scenarioData.targetSound
+      return (
+        activeTargetWord ||
+        scenario.scenarioData.targetWords[0] ||
+        scenario.scenarioData.targetSound
+      )
     }
 
     if (
@@ -255,23 +266,42 @@ function getReferenceText(
   }
 
   if (scenario.exerciseMetadata?.type === 'sound_isolation') {
-    return scenario.exerciseMetadata.targetWords?.[0] || scenario.exerciseMetadata.targetSound || ''
+    return (
+      scenario.exerciseMetadata.targetWords?.[0] ||
+      scenario.exerciseMetadata.targetSound ||
+      ''
+    )
   }
 
   if (scenario.exerciseMetadata?.type === 'vowel_blending') {
-    return activeTargetWord || scenario.exerciseMetadata.targetWords?.[0] || scenario.exerciseMetadata.targetSound || ''
+    return (
+      activeTargetWord ||
+      scenario.exerciseMetadata.targetWords?.[0] ||
+      scenario.exerciseMetadata.targetSound ||
+      ''
+    )
   }
 
   if (scenario.exerciseMetadata?.type === 'word_position_practice') {
     // Stage 5b: when an active target word is tracked, score against that
     // single word instead of the joined list so per-word success is meaningful.
-    return activeTargetWord || scenario.exerciseMetadata.targetWords?.[0] || scenario.exerciseMetadata.targetSound || ''
+    return (
+      activeTargetWord ||
+      scenario.exerciseMetadata.targetWords?.[0] ||
+      scenario.exerciseMetadata.targetSound ||
+      ''
+    )
   }
 
   if (scenario.exerciseMetadata?.type === 'two_word_phrase') {
     // Stage 6: score the target word only; carrier word is not part of
     // the reference_text so pronunciation assessment focuses on the target.
-    return activeTargetWord || scenario.exerciseMetadata.targetWords?.[0] || scenario.exerciseMetadata.targetSound || ''
+    return (
+      activeTargetWord ||
+      scenario.exerciseMetadata.targetWords?.[0] ||
+      scenario.exerciseMetadata.targetSound ||
+      ''
+    )
   }
 
   return scenario.exerciseMetadata?.targetWords?.join(' ') || ''
@@ -289,7 +319,10 @@ function getExerciseMetadata(
       targetWords: scenario.scenarioData.targetWords,
       difficulty: scenario.scenarioData.difficulty,
       childAge: scenario.scenarioData.childAge,
-      requiresMic: exerciseRequiresMic(undefined, scenario.scenarioData.exerciseType),
+      requiresMic: exerciseRequiresMic(
+        undefined,
+        scenario.scenarioData.exerciseType
+      ),
     }
   }
 
@@ -315,10 +348,7 @@ function getAvatarPersona(avatarValue: string | undefined): string {
 function getProfileInitials(label: string | null | undefined): string {
   if (!label) return 'WP'
 
-  const parts = label
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
+  const parts = label.trim().split(/\s+/).filter(Boolean)
 
   if (parts.length === 0) return 'WP'
 
@@ -384,7 +414,9 @@ export function buildChildIntroInstructions({
       ? `In two short, friendly sentences, greet ${childLabel}, say you are starting ${exerciseLabel}, and tell them to tap the microphone when they are ready to talk.`
       : `In two short, friendly sentences, greet ${childLabel}, say you are starting ${exerciseLabel}, and tell them to watch and listen as the pictures play.`,
     exerciseContext,
-    requiresMic ? 'Invite talking only when the child taps the microphone.' : 'Do not mention recording or spoken responses. Do not invent clues, target words, or sample sounds.',
+    requiresMic
+      ? 'Invite talking only when the child taps the microphone.'
+      : 'Do not mention recording or spoken responses. Do not invent clues, target words, or sample sounds.',
     'Never use the word "test". Always say "practice" or "exercise".',
     'Keep the tone calm, encouraging, and child-friendly. Keep it under 35 words.',
   ].join(' ')
@@ -418,7 +450,9 @@ export function buildTherapistIntroInstructions({
       ? `In two short sentences, welcome the therapist, say you are starting ${exerciseLabel} with ${childLabel}, and ask them to tap the microphone when they are ready to begin.`
       : `In two short sentences, welcome the therapist, say you are starting ${exerciseLabel} with ${childLabel}, and note that the pictures will play automatically while ${childLabel} listens.`,
     exerciseContext,
-    requiresMic ? 'Mention the microphone only as the way to begin talking.' : 'Do not mention recording or spoken responses. Do not invent clues, target words, or sample sounds.',
+    requiresMic
+      ? 'Mention the microphone only as the way to begin talking.'
+      : 'Do not mention recording or spoken responses. Do not invent clues, target words, or sample sounds.',
     'Keep the tone calm, observational, and supportive. Keep it under 35 words.',
   ].join(' ')
 }
@@ -496,7 +530,8 @@ const useStyles = makeStyles({
     borderRadius: '999px',
     display: 'grid',
     placeItems: 'center',
-    background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
+    background:
+      'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
     color: '#fff',
     fontWeight: '800',
     fontSize: '0.95rem',
@@ -533,8 +568,7 @@ const useStyles = makeStyles({
       gridTemplateColumns: '1fr',
     },
   },
-  appShellDashboard: {
-  },
+  appShellDashboard: {},
   contentArea: {
     minWidth: 0,
     minHeight: '100vh',
@@ -542,15 +576,15 @@ const useStyles = makeStyles({
     flexDirection: 'column',
     overflow: 'auto',
   },
-  contentAreaDashboard: {
-  },
+  contentAreaDashboard: {},
   contentHeader: {
     display: 'flex',
     alignItems: 'center',
     gap: 'var(--space-md)',
     padding: 'var(--space-lg) var(--space-xl) var(--space-md)',
     borderBottom: '1px solid var(--color-border)',
-    background: 'linear-gradient(135deg, rgba(233, 245, 246, 0.97), rgba(224, 239, 241, 0.97))',
+    background:
+      'linear-gradient(135deg, rgba(233, 245, 246, 0.97), rgba(224, 239, 241, 0.97))',
     backdropFilter: 'blur(14px)',
     position: 'sticky',
     top: 0,
@@ -563,8 +597,7 @@ const useStyles = makeStyles({
       alignItems: 'flex-start',
     },
   },
-  contentHeaderDashboard: {
-  },
+  contentHeaderDashboard: {},
   contentHeaderMain: {
     width: '100%',
     display: 'flex',
@@ -629,7 +662,8 @@ const useStyles = makeStyles({
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'linear-gradient(135deg, rgba(13, 138, 132, 0.9), rgba(73, 177, 171, 0.9))',
+    background:
+      'linear-gradient(135deg, rgba(13, 138, 132, 0.9), rgba(73, 177, 171, 0.9))',
     color: 'white',
     fontSize: '0.78rem',
     fontWeight: '800',
@@ -722,7 +756,8 @@ const useStyles = makeStyles({
     cursor: 'pointer',
     textAlign: 'left',
     borderRadius: 'var(--radius-md)',
-    transition: 'transform var(--transition-fast), opacity var(--transition-fast)',
+    transition:
+      'transform var(--transition-fast), opacity var(--transition-fast)',
     '&:hover': {
       transform: 'translateY(-1px)',
     },
@@ -743,7 +778,8 @@ const useStyles = makeStyles({
   },
   appTitle: {
     fontFamily: 'var(--font-display)',
-    background: 'linear-gradient(135deg, var(--color-primary-dark), var(--color-primary))',
+    background:
+      'linear-gradient(135deg, var(--color-primary-dark), var(--color-primary))',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     color: 'var(--color-text-primary)',
@@ -944,58 +980,95 @@ export default function App() {
   const [authStatus, setAuthStatus] = useState<AuthStatus>('loading')
   const [authError, setAuthError] = useState<string | null>(null)
   const [authUser, setAuthUser] = useState<AuthSession | null>(null)
-  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null
-    return window.localStorage.getItem('wulo.activeWorkspaceId') || null
-  })
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(
+    () => {
+      if (typeof window === 'undefined') return null
+      return window.localStorage.getItem('wulo.activeWorkspaceId') || null
+    }
+  )
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null)
   const [showLoading, setShowLoading] = useState(false)
   const [showAssessment, setShowAssessment] = useState(false)
   const [showRoleNotice, setShowRoleNotice] = useState(false)
   const [showConsentScreen, setShowConsentScreen] = useState(false)
-  const [showParentalConsentDialog, setShowParentalConsentDialog] = useState(false)
+  const [showParentalConsentDialog, setShowParentalConsentDialog] =
+    useState(false)
   const [parentalConsentSaving, setParentalConsentSaving] = useState(false)
-  const [parentalConsentError, setParentalConsentError] = useState<string | null>(null)
-  const [parentalConsentByChild, setParentalConsentByChild] = useState<Record<string, boolean>>({})
+  const [parentalConsentError, setParentalConsentError] = useState<
+    string | null
+  >(null)
+  const [parentalConsentByChild, setParentalConsentByChild] = useState<
+    Record<string, boolean>
+  >({})
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
-  const [pendingSection, setPendingSection] = useState<SidebarSection | null>(null)
+  const [, setPendingSection] = useState<SidebarSection | null>(null)
   const [pendingPath, setPendingPath] = useState<AppRoute | null>(null)
   const [showNavigationConfirm, setShowNavigationConfirm] = useState(false)
   const [selectedAvatar, setSelectedAvatar] = useState(DEFAULT_AVATAR)
-  const [pendingAvatarValue, setPendingAvatarValue] = useState<string>('meg-casual')
-  const [pendingScenarioId, setPendingScenarioId] = useState<string | null>(null)
+  const [pendingAvatarValue, setPendingAvatarValue] =
+    useState<string>('meg-casual')
+  const [pendingScenarioId, setPendingScenarioId] = useState<string | null>(
+    null
+  )
   const [pendingModeSelection, setPendingModeSelection] =
     useState<UserMode | null>(null)
-  const [roleNoticeIntent, setRoleNoticeIntent] =
-    useState<TherapistGateIntent>('review')
+  const [, setRoleNoticeIntent] = useState<TherapistGateIntent>('review')
   const [userMode, setUserMode] = useState<UserMode | null>(() => {
     if (typeof window === 'undefined') return null
 
-    return normalizeStoredUserMode(window.localStorage.getItem('wulo.user.mode'))
+    return normalizeStoredUserMode(
+      window.localStorage.getItem('wulo.user.mode')
+    )
   })
   const [sessionSummaries, setSessionSummaries] = useState<SessionSummary[]>([])
-  const [selectedSession, setSelectedSession] = useState<SessionDetail | null>(null)
+  const [selectedSession, setSelectedSession] = useState<SessionDetail | null>(
+    null
+  )
   const [childPlans, setChildPlans] = useState<PracticePlan[]>([])
-  const [childMemorySummary, setChildMemorySummary] = useState<ChildMemorySummary | null>(null)
-  const [childMemoryItems, setChildMemoryItems] = useState<ChildMemoryItem[]>([])
-  const [childMemoryProposals, setChildMemoryProposals] = useState<ChildMemoryProposal[]>([])
-  const [childInvitations, setChildInvitations] = useState<ChildInvitation[]>([])
-  const [familyIntakeInvitations, setFamilyIntakeInvitations] = useState<FamilyIntakeInvitation[]>([])
-  const [childIntakeProposals, setChildIntakeProposals] = useState<ChildIntakeProposal[]>([])
-  const [pendingChildIntakeProposals, setPendingChildIntakeProposals] = useState<ChildIntakeProposal[]>([])
-  const [invitationDeliveryById, setInvitationDeliveryById] = useState<Record<string, InvitationEmailDelivery | null | undefined>>({})
+  const [childMemorySummary, setChildMemorySummary] =
+    useState<ChildMemorySummary | null>(null)
+  const [childMemoryItems, setChildMemoryItems] = useState<ChildMemoryItem[]>(
+    []
+  )
+  const [childMemoryProposals, setChildMemoryProposals] = useState<
+    ChildMemoryProposal[]
+  >([])
+  const [childInvitations, setChildInvitations] = useState<ChildInvitation[]>(
+    []
+  )
+  const [familyIntakeInvitations, setFamilyIntakeInvitations] = useState<
+    FamilyIntakeInvitation[]
+  >([])
+  const [childIntakeProposals, setChildIntakeProposals] = useState<
+    ChildIntakeProposal[]
+  >([])
+  const [pendingChildIntakeProposals, setPendingChildIntakeProposals] =
+    useState<ChildIntakeProposal[]>([])
+  const [invitationDeliveryById, setInvitationDeliveryById] = useState<
+    Record<string, InvitationEmailDelivery | null | undefined>
+  >({})
   const [invitationsLoading, setInvitationsLoading] = useState(true)
   const [invitationError, setInvitationError] = useState<string | null>(null)
-  const [invitationActionPendingId, setInvitationActionPendingId] = useState<string | null>(null)
+  const [invitationActionPendingId, setInvitationActionPendingId] = useState<
+    string | null
+  >(null)
   const [familyIntakeLoading, setFamilyIntakeLoading] = useState(true)
-  const [familyIntakeError, setFamilyIntakeError] = useState<string | null>(null)
-  const [familyIntakeActionPendingId, setFamilyIntakeActionPendingId] = useState<string | null>(null)
-  const [recommendationHistory, setRecommendationHistory] = useState<RecommendationLog[]>([])
-  const [selectedRecommendationDetail, setSelectedRecommendationDetail] = useState<RecommendationDetail | null>(null)
+  const [familyIntakeError, setFamilyIntakeError] = useState<string | null>(
+    null
+  )
+  const [familyIntakeActionPendingId, setFamilyIntakeActionPendingId] =
+    useState<string | null>(null)
+  const [recommendationHistory, setRecommendationHistory] = useState<
+    RecommendationLog[]
+  >([])
+  const [selectedRecommendationDetail, setSelectedRecommendationDetail] =
+    useState<RecommendationDetail | null>(null)
   const [selectedPlan, setSelectedPlan] = useState<PracticePlan | null>(null)
   const [progressReports, setProgressReports] = useState<ProgressReport[]>([])
-  const [selectedReport, setSelectedReport] = useState<ProgressReport | null>(null)
+  const [selectedReport, setSelectedReport] = useState<ProgressReport | null>(
+    null
+  )
   const [appConfig, setAppConfig] = useState<AppConfig | null>(null)
   const [loadingSessions, setLoadingSessions] = useState(false)
   const [loadingSessionDetail, setLoadingSessionDetail] = useState(false)
@@ -1009,8 +1082,12 @@ export default function App() {
   const [planError, setPlanError] = useState<string | null>(null)
   const [reportError, setReportError] = useState<string | null>(null)
   const [memoryError, setMemoryError] = useState<string | null>(null)
-  const [recommendationError, setRecommendationError] = useState<string | null>(null)
-  const [memoryReviewPendingId, setMemoryReviewPendingId] = useState<string | null>(null)
+  const [recommendationError, setRecommendationError] = useState<string | null>(
+    null
+  )
+  const [memoryReviewPendingId, setMemoryReviewPendingId] = useState<
+    string | null
+  >(null)
   const [manualMemorySaving, setManualMemorySaving] = useState(false)
   const [currentAgent, setCurrentAgent] = useState<string | null>(null)
   const [sessionStartedAt, setSessionStartedAt] = useState<string | null>(null)
@@ -1024,8 +1101,10 @@ export default function App() {
   const [showLaunchTransition, setShowLaunchTransition] = useState(false)
   const [launchHandoffReady, setLaunchHandoffReady] = useState(false)
   const [childTurnCount, setChildTurnCount] = useState(0)
-  const [finishPromptTurnLimit, setFinishPromptTurnLimit] = useState(CHILD_TURN_LIMIT)
-  const [finishConfirmationPending, setFinishConfirmationPending] = useState(false)
+  const [finishPromptTurnLimit, setFinishPromptTurnLimit] =
+    useState(CHILD_TURN_LIMIT)
+  const [finishConfirmationPending, setFinishConfirmationPending] =
+    useState(false)
   const [finishPromptQueued, setFinishPromptQueued] = useState(false)
   const [finishRequested, setFinishRequested] = useState(false)
   const [wrapUpInProgress, setWrapUpInProgress] = useState(false)
@@ -1039,9 +1118,12 @@ export default function App() {
     scenarioId: string | null
     target: string
   } | null>(null)
-  const [feedbackRating, setFeedbackRating] = useState<TherapistFeedbackRating | null>(null)
+  const [feedbackRating, setFeedbackRating] =
+    useState<TherapistFeedbackRating | null>(null)
   const [feedbackNote, setFeedbackNote] = useState('')
-  const [feedbackSubmittedAt, setFeedbackSubmittedAt] = useState<string | null>(null)
+  const [feedbackSubmittedAt, setFeedbackSubmittedAt] = useState<string | null>(
+    null
+  )
   const [feedbackSaving, setFeedbackSaving] = useState(false)
   const [feedbackError, setFeedbackError] = useState<string | null>(null)
   const [consentSaving, setConsentSaving] = useState(false)
@@ -1056,14 +1138,20 @@ export default function App() {
   const idleNudgePendingRef = useRef(false)
   const skipNextWordFeedbackRef = useRef(false)
   const stopSessionRecordingRef = useRef<() => void>(() => {})
-  const summaryHandoffTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null)
-  const wrapUpFinishTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null)
+  const summaryHandoffTimerRef = useRef<ReturnType<
+    typeof window.setTimeout
+  > | null>(null)
+  const wrapUpFinishTimerRef = useRef<ReturnType<
+    typeof window.setTimeout
+  > | null>(null)
   const sendRef = useRef<(msg: unknown) => void>(() => {})
   const connectedRef = useRef(false)
   const exerciseSpeechGenerationRef = useRef(0)
   const exerciseSpeechQueueRef = useRef<Promise<void>>(Promise.resolve())
   const exerciseSpeechResolveRef = useRef<(() => void) | null>(null)
-  const exerciseSpeechTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null)
+  const exerciseSpeechTimerRef = useRef<ReturnType<
+    typeof window.setTimeout
+  > | null>(null)
   const previousPathRef = useRef(location.pathname)
   const navigationBypassRef = useRef(false)
   const lastQueryChildIdRef = useRef<string | null>(null)
@@ -1086,14 +1174,18 @@ export default function App() {
     deleteCustomScenario,
   } = useScenarios()
   const { playAudio, stopAudio, getPendingAudioMs } = useAudioPlayer()
-  const activeScenario = scenarios.find(scenario => scenario.id === selectedScenario) || null
+  const activeScenario =
+    scenarios.find(scenario => scenario.id === selectedScenario) || null
   const selectedChild =
     children.find(child => child.id === selectedChildId) || null
   const activeVowelBlendReference =
     activeVowelBlendTarget?.scenarioId === activeScenario?.id
-      ? activeVowelBlendTarget?.target ?? null
+      ? (activeVowelBlendTarget?.target ?? null)
       : null
-  const activeReferenceText = getReferenceText(activeScenario, activeVowelBlendReference)
+  const activeReferenceText = getReferenceText(
+    activeScenario,
+    activeVowelBlendReference
+  )
   const activeExerciseMetadata = getExerciseMetadata(activeScenario)
   const currentRoute = resolveAppRoute(location.pathname)
   const isDashboardRoute = currentRoute === APP_ROUTES.dashboard
@@ -1101,39 +1193,55 @@ export default function App() {
   const isSessionRoute = currentRoute === APP_ROUTES.session
   const isHomeRoute = currentRoute === APP_ROUTES.home
   const isChildContextRoute = isHomeRoute || isDashboardRoute || isSettingsRoute
-  const isTherapist = authUser?.role === 'therapist' || authUser?.role === 'admin'
+  const isTherapist =
+    authUser?.role === 'therapist' || authUser?.role === 'admin'
   const requiresOnboarding = isTherapist
   const isChildMode = userMode === 'child' && !isDashboardRoute
   const onboardingUiState = useUiState({
     disabled: userMode === 'child' || authStatus !== 'authenticated',
     authenticated: authStatus === 'authenticated',
   })
-  const onboardingComplete = onboardingUiState.state.onboarding_complete === true
+  const onboardingComplete =
+    onboardingUiState.state.onboarding_complete === true
   const onboardingGatePending =
     requiresOnboarding &&
     authStatus === 'authenticated' &&
     userMode !== 'child' &&
     onboardingUiState.loading
   const currentWorkspaceMode: UserMode = isChildMode ? 'child' : 'workspace'
-  const incomingInvitations = childInvitations.filter(invitation => invitation.direction === 'incoming' && invitation.status === 'pending')
-  const sentInvitations = childInvitations.filter(invitation => invitation.direction === 'sent')
-  const incomingFamilyIntakeInvitations = familyIntakeInvitations.filter(invitation => invitation.direction === 'incoming')
-  const pendingIncomingFamilyIntakeInvitations = incomingFamilyIntakeInvitations.filter(invitation => invitation.status === 'pending')
-  const sentFamilyIntakeInvitations = familyIntakeInvitations.filter(invitation => invitation.direction === 'sent')
+  const incomingInvitations = childInvitations.filter(
+    invitation =>
+      invitation.direction === 'incoming' && invitation.status === 'pending'
+  )
+  const sentInvitations = childInvitations.filter(
+    invitation => invitation.direction === 'sent'
+  )
+  const incomingFamilyIntakeInvitations = familyIntakeInvitations.filter(
+    invitation => invitation.direction === 'incoming'
+  )
+  const pendingIncomingFamilyIntakeInvitations =
+    incomingFamilyIntakeInvitations.filter(
+      invitation => invitation.status === 'pending'
+    )
+  const sentFamilyIntakeInvitations = familyIntakeInvitations.filter(
+    invitation => invitation.direction === 'sent'
+  )
   const queryChildId = searchParams.get(APP_ROUTE_PARAMS.childId)
   const queryScenarioId = searchParams.get(APP_ROUTE_PARAMS.scenarioId)
   const querySessionId = searchParams.get(APP_ROUTE_PARAMS.sessionId)
   const queryPlanId = searchParams.get(APP_ROUTE_PARAMS.planId)
   const queryInvitationId = searchParams.get(APP_ROUTE_PARAMS.invitationId)
-  const queryFamilyInvitationId = searchParams.get(APP_ROUTE_PARAMS.familyInvitationId)
-  const currentSearch = location.search.startsWith('?') ? location.search.slice(1) : location.search
+  const queryFamilyInvitationId = searchParams.get(
+    APP_ROUTE_PARAMS.familyInvitationId
+  )
+  const currentSearch = location.search.startsWith('?')
+    ? location.search.slice(1)
+    : location.search
   const activeAvatarName = getAvatarName(selectedAvatar)
   const activeAvatarPersona = getAvatarPersona(selectedAvatar)
   const appTitle = APP_TITLE
   const launchOverlayVisible =
-    isSessionRoute &&
-    showLaunchTransition &&
-    !launchHandoffReady
+    isSessionRoute && showLaunchTransition && !launchHandoffReady
   const plannerReadiness: PlannerReadiness | null = appConfig?.planner ?? null
   const handleActiveBlendChange = useCallback(
     (blend: string) => {
@@ -1187,30 +1295,39 @@ export default function App() {
             : 'Ready to practise'
   const settingsLabel = isTherapist ? 'Workspace' : 'Family'
   const contentSubtitle = ''
-  const isHomeShellRoute = !isDashboardRoute && !isSettingsRoute && !isSessionRoute
+  const isHomeShellRoute =
+    !isDashboardRoute && !isSettingsRoute && !isSessionRoute
   const showProfileHeader = showSidebarShell && isHomeShellRoute
-  const showHeaderCreateAction = showProfileHeader && isTherapist && !isChildMode
+  const showHeaderCreateAction =
+    showProfileHeader && isTherapist && !isChildMode
   const showDashboardNav = isTherapist && !isChildMode
-  const profileHeaderName = userMode === 'child'
-    ? selectedChild?.name || authUser?.name || 'Child profile'
-    : authUser?.name || 'Workspace profile'
+  const profileHeaderName =
+    userMode === 'child'
+      ? selectedChild?.name || authUser?.name || 'Child profile'
+      : authUser?.name || 'Workspace profile'
   const profileHeaderInitials = getProfileInitials(profileHeaderName)
   const validChildIds = new Set(children.map(child => child.id))
   const homeScenarioIds = new Set(
     (!isChildMode && isTherapist
       ? [...serverScenarios, ...customScenarios]
-      : serverScenarios).map(scenario => scenario.id)
+      : serverScenarios
+    ).map(scenario => scenario.id)
   )
-  const dashboardSessionIds = new Set(sessionSummaries.map(session => session.id))
+  const dashboardSessionIds = new Set(
+    sessionSummaries.map(session => session.id)
+  )
   const dashboardPlanIds = new Set(childPlans.map(plan => plan.id))
   const pendingDashboardSessionId =
-    loadingSessionDetail && latestRequestedSessionIdRef.current && dashboardSessionIds.has(latestRequestedSessionIdRef.current)
+    loadingSessionDetail &&
+    latestRequestedSessionIdRef.current &&
+    dashboardSessionIds.has(latestRequestedSessionIdRef.current)
       ? latestRequestedSessionIdRef.current
       : null
   const queryPlan = queryPlanId
     ? childPlans.find(plan => plan.id === queryPlanId) || null
     : null
-  const effectiveDashboardSessionId = querySessionId || queryPlan?.source_session_id
+  const effectiveDashboardSessionId =
+    querySessionId || queryPlan?.source_session_id
 
   // Auto-select the first scenario when scenarios load and none is selected
   useEffect(() => {
@@ -1235,7 +1352,10 @@ export default function App() {
   useEffect(() => {
     if (authStatus === 'authenticated') {
       refreshChildren().catch(error => {
-        console.error('Failed to refresh children after workspace switch:', error)
+        console.error(
+          'Failed to refresh children after workspace switch:',
+          error
+        )
       })
     }
   }, [authStatus, refreshChildren])
@@ -1250,7 +1370,9 @@ export default function App() {
       console.error('Failed to load invitations:', error)
       setChildInvitations([])
       setInvitationError(
-        error instanceof Error ? error.message : 'Invitations could not be loaded right now.'
+        error instanceof Error
+          ? error.message
+          : 'Invitations could not be loaded right now.'
       )
       throw error
     }
@@ -1263,7 +1385,9 @@ export default function App() {
       const [invitations, proposals, pendingProposals] = await Promise.all([
         api.getFamilyIntakeInvitations(),
         api.getChildIntakeProposals(),
-        isTherapist ? api.getPendingChildIntakeProposals(activeWorkspaceId || undefined) : Promise.resolve([]),
+        isTherapist
+          ? api.getPendingChildIntakeProposals(activeWorkspaceId || undefined)
+          : Promise.resolve([]),
       ])
       setFamilyIntakeInvitations(invitations)
       setChildIntakeProposals(proposals)
@@ -1276,7 +1400,9 @@ export default function App() {
       setChildIntakeProposals([])
       setPendingChildIntakeProposals([])
       setFamilyIntakeError(
-        error instanceof Error ? error.message : 'Family intake data could not be loaded right now.'
+        error instanceof Error
+          ? error.message
+          : 'Family intake data could not be loaded right now.'
       )
       throw error
     } finally {
@@ -1299,10 +1425,17 @@ export default function App() {
 
       // Reconcile activeWorkspaceId against server-known workspaces
       const workspaces = session.user_workspaces || []
-      const currentActive = activeWorkspaceId || window.localStorage.getItem('wulo.activeWorkspaceId')
-      if (currentActive && workspaces.length > 0 && !workspaces.some(w => w.id === currentActive)) {
+      const currentActive =
+        activeWorkspaceId ||
+        window.localStorage.getItem('wulo.activeWorkspaceId')
+      if (
+        currentActive &&
+        workspaces.length > 0 &&
+        !workspaces.some(w => w.id === currentActive)
+      ) {
         // Stale or revoked — reset to server default
-        const fallback = session.current_workspace_id || workspaces[0]?.id || null
+        const fallback =
+          session.current_workspace_id || workspaces[0]?.id || null
         setActiveWorkspaceId(fallback)
         if (fallback) {
           window.localStorage.setItem('wulo.activeWorkspaceId', fallback)
@@ -1311,7 +1444,10 @@ export default function App() {
         }
       } else if (session.current_workspace_id && !currentActive) {
         setActiveWorkspaceId(session.current_workspace_id)
-        window.localStorage.setItem('wulo.activeWorkspaceId', session.current_workspace_id)
+        window.localStorage.setItem(
+          'wulo.activeWorkspaceId',
+          session.current_workspace_id
+        )
       }
 
       setAuthStatus('authenticated')
@@ -1324,7 +1460,11 @@ export default function App() {
         setAuthError(null)
       } else {
         setAuthStatus('error')
-        setAuthError(error instanceof Error ? error.message : 'Failed to load authentication state')
+        setAuthError(
+          error instanceof Error
+            ? error.message
+            : 'Failed to load authentication state'
+        )
       }
       throw error
     }
@@ -1355,7 +1495,16 @@ export default function App() {
     } else {
       pendingIntroRef.current = null
     }
-  }, [activeAvatarName, activeAvatarPersona, activeExerciseMetadata, activeScenario?.description, activeScenario?.name, isChildMode, selectedChild?.name, selectedScenario])
+  }, [
+    activeAvatarName,
+    activeAvatarPersona,
+    activeExerciseMetadata,
+    activeScenario?.description,
+    activeScenario?.name,
+    isChildMode,
+    selectedChild?.name,
+    selectedScenario,
+  ])
 
   // PR1 Session E — beat orchestration seam.
   // The feature flag (VITE_ENABLE_BEAT_ORCHESTRATION) was removed when the
@@ -1394,7 +1543,8 @@ export default function App() {
       .then(session => {
         if (cancelled) return
 
-        api.getConfig()
+        api
+          .getConfig()
           .then(cfg => {
             if (!cancelled) {
               setAppConfig(cfg)
@@ -1406,7 +1556,9 @@ export default function App() {
             }
           })
 
-        const storedMode = normalizeStoredUserMode(window.localStorage.getItem('wulo.user.mode'))
+        const storedMode = normalizeStoredUserMode(
+          window.localStorage.getItem('wulo.user.mode')
+        )
         if (storedMode !== userMode) {
           setUserMode(storedMode)
         }
@@ -1491,7 +1643,14 @@ export default function App() {
       cancelled = true
       window.removeEventListener('auth:expired', handleAuthExpired)
     }
-  }, [location.search, navigate, refreshAuthSession, refreshChildren, refreshInvitations, userMode])
+  }, [
+    location.search,
+    navigate,
+    refreshAuthSession,
+    refreshChildren,
+    refreshInvitations,
+    userMode,
+  ])
 
   useEffect(() => {
     const connectionString = appConfig?.appinsights_connection_string?.trim()
@@ -1556,13 +1715,23 @@ export default function App() {
         setSearchParams(nextParams, { replace: true })
       }
 
-      if (selectedPlan?.source_session_id && selectedPlan.source_session_id !== sessionId) {
+      if (
+        selectedPlan?.source_session_id &&
+        selectedPlan.source_session_id !== sessionId
+      ) {
         setSelectedPlan(null)
       }
 
       await handleOpenSession(sessionId)
     },
-    [currentSearch, handleOpenSession, isDashboardRoute, selectedChildId, selectedPlan?.source_session_id, setSearchParams]
+    [
+      currentSearch,
+      handleOpenSession,
+      isDashboardRoute,
+      selectedChildId,
+      selectedPlan?.source_session_id,
+      setSearchParams,
+    ]
   )
 
   const handleOpenRecommendationDetail = useCallback(
@@ -1578,7 +1747,9 @@ export default function App() {
       } catch (error) {
         console.error('Failed to load recommendation detail:', error)
         setSelectedRecommendationDetail(null)
-        setRecommendationError('Recommendation detail could not be loaded right now.')
+        setRecommendationError(
+          'Recommendation detail could not be loaded right now.'
+        )
       } finally {
         setLoadingRecommendations(false)
       }
@@ -1596,7 +1767,10 @@ export default function App() {
       try {
         const report = await api.getReport(reportId)
         setSelectedReport(report)
-        setProgressReports(current => [report, ...current.filter(item => item.id !== report.id)])
+        setProgressReports(current => [
+          report,
+          ...current.filter(item => item.id !== report.id),
+        ])
       } catch (error) {
         console.error('Failed to load progress report detail:', error)
         setReportError('Progress report detail could not be loaded right now.')
@@ -1651,13 +1825,24 @@ export default function App() {
       setRecommendationError(null)
 
       try {
-        const [summaries, plans, reports, memorySummary, memoryItems, memoryProposals, recommendations] = await Promise.all([
+        const [
+          summaries,
+          plans,
+          reports,
+          memorySummary,
+          memoryItems,
+          memoryProposals,
+          recommendations,
+        ] = await Promise.all([
           api.getChildSessions(childId),
           api.getChildPlans(childId),
           api.getChildReports(childId, { limit: 20 }),
           api.getChildMemorySummary(childId),
           api.getChildMemoryItems(childId, { includeEvidence: true }),
-          api.getChildMemoryProposals(childId, { status: 'pending', includeEvidence: true }),
+          api.getChildMemoryProposals(childId, {
+            status: 'pending',
+            includeEvidence: true,
+          }),
           api.getChildRecommendations(childId),
         ])
 
@@ -1672,7 +1857,11 @@ export default function App() {
         setChildPlans(plans)
         setProgressReports(reports)
         setChildMemorySummary(memorySummary)
-        setChildMemoryItems(memoryItems.filter(item => item.status === 'approved' || item.status === 'active'))
+        setChildMemoryItems(
+          memoryItems.filter(
+            item => item.status === 'approved' || item.status === 'active'
+          )
+        )
         setChildMemoryProposals(memoryProposals)
         setRecommendationHistory(recommendations)
         setSelectedReport(current => {
@@ -1683,9 +1872,12 @@ export default function App() {
         })
 
         const preferredSessionId =
-          (isDashboardRoute && effectiveDashboardSessionId && summaries.some(session => session.id === effectiveDashboardSessionId)
+          (isDashboardRoute &&
+          effectiveDashboardSessionId &&
+          summaries.some(session => session.id === effectiveDashboardSessionId)
             ? effectiveDashboardSessionId
-            : selectedSession?.id && summaries.some(session => session.id === selectedSession.id)
+            : selectedSession?.id &&
+                summaries.some(session => session.id === selectedSession.id)
               ? selectedSession.id
               : summaries[0]?.id) || null
 
@@ -1705,7 +1897,9 @@ export default function App() {
 
         if (recommendations.length > 0) {
           try {
-            const detail = await api.getRecommendationDetail(recommendations[0].id)
+            const detail = await api.getRecommendationDetail(
+              recommendations[0].id
+            )
 
             if (
               childHistoryRequestSequenceRef.current !== requestSequence ||
@@ -1723,9 +1917,14 @@ export default function App() {
               return
             }
 
-            console.error('Failed to load initial recommendation detail:', error)
+            console.error(
+              'Failed to load initial recommendation detail:',
+              error
+            )
             setSelectedRecommendationDetail(null)
-            setRecommendationError('Recommendation detail could not be loaded right now.')
+            setRecommendationError(
+              'Recommendation detail could not be loaded right now.'
+            )
           }
         } else {
           setSelectedRecommendationDetail(null)
@@ -1767,7 +1966,12 @@ export default function App() {
         }
       }
     },
-    [effectiveDashboardSessionId, handleOpenSession, isDashboardRoute, selectedSession?.id]
+    [
+      effectiveDashboardSessionId,
+      handleOpenSession,
+      isDashboardRoute,
+      selectedSession?.id,
+    ]
   )
 
   useEffect(() => {
@@ -1795,7 +1999,11 @@ export default function App() {
   }, [authStatus, children, queryChildId, selectedChildId, validChildIds])
 
   const handleCreateChildProfile = useCallback(
-    async (payload: { name: string; date_of_birth?: string; notes?: string }) => {
+    async (payload: {
+      name: string
+      date_of_birth?: string
+      notes?: string
+    }) => {
       setChildProfileSaving(true)
 
       try {
@@ -1813,14 +2021,11 @@ export default function App() {
     [refreshChildren, activeWorkspaceId]
   )
 
-  const handleSwitchWorkspace = useCallback(
-    (workspaceId: string) => {
-      setActiveWorkspaceId(workspaceId)
-      window.localStorage.setItem('wulo.activeWorkspaceId', workspaceId)
-      setSelectedChildId(null)
-    },
-    []
-  )
+  const handleSwitchWorkspace = useCallback((workspaceId: string) => {
+    setActiveWorkspaceId(workspaceId)
+    window.localStorage.setItem('wulo.activeWorkspaceId', workspaceId)
+    setSelectedChildId(null)
+  }, [])
 
   const handleInviteToChild = useCallback(
     async (payload: { child_id: string; invited_email: string }) => {
@@ -1838,7 +2043,10 @@ export default function App() {
         await refreshInvitations()
         return invitation
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Invitation could not be created right now.'
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Invitation could not be created right now.'
         setInvitationError(message)
         throw error
       } finally {
@@ -1855,9 +2063,16 @@ export default function App() {
 
       try {
         await api.acceptChildInvitation(invitationId)
-        await Promise.all([refreshChildren(), refreshInvitations(), refreshAuthSession()])
+        await Promise.all([
+          refreshChildren(),
+          refreshInvitations(),
+          refreshAuthSession(),
+        ])
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Invitation could not be accepted right now.'
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Invitation could not be accepted right now.'
         setInvitationError(message)
         throw error
       } finally {
@@ -1876,7 +2091,10 @@ export default function App() {
         await api.declineChildInvitation(invitationId)
         await refreshInvitations()
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Invitation could not be declined right now.'
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Invitation could not be declined right now.'
         setInvitationError(message)
         throw error
       } finally {
@@ -1895,7 +2113,10 @@ export default function App() {
         await api.revokeChildInvitation(invitationId)
         await refreshInvitations()
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Invitation could not be revoked right now.'
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Invitation could not be revoked right now.'
         setInvitationError(message)
         throw error
       } finally {
@@ -1921,7 +2142,10 @@ export default function App() {
         await refreshInvitations()
         return invitation
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Invitation could not be resent right now.'
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Invitation could not be resent right now.'
         setInvitationError(message)
         throw error
       } finally {
@@ -1941,7 +2165,10 @@ export default function App() {
         await refreshFamilyIntake()
         return invitation
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Family intake invitation could not be created right now.'
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Family intake invitation could not be created right now.'
         setFamilyIntakeError(message)
         throw error
       } finally {
@@ -1960,7 +2187,10 @@ export default function App() {
         await api.acceptFamilyIntakeInvitation(invitationId)
         await Promise.all([refreshFamilyIntake(), refreshAuthSession()])
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Family intake invitation could not be accepted right now.'
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Family intake invitation could not be accepted right now.'
         setFamilyIntakeError(message)
         throw error
       } finally {
@@ -1979,7 +2209,10 @@ export default function App() {
         await api.declineFamilyIntakeInvitation(invitationId)
         await refreshFamilyIntake()
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Family intake invitation could not be declined right now.'
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Family intake invitation could not be declined right now.'
         setFamilyIntakeError(message)
         throw error
       } finally {
@@ -1992,9 +2225,15 @@ export default function App() {
   const handleSubmitChildIntakeProposals = useCallback(
     async (payload: {
       family_intake_invitation_id: string
-      children: Array<{ child_name: string; date_of_birth?: string; notes?: string }>
+      children: Array<{
+        child_name: string
+        date_of_birth?: string
+        notes?: string
+      }>
     }) => {
-      setFamilyIntakeActionPendingId(`family-submit:${payload.family_intake_invitation_id}`)
+      setFamilyIntakeActionPendingId(
+        `family-submit:${payload.family_intake_invitation_id}`
+      )
       setFamilyIntakeError(null)
 
       try {
@@ -2002,7 +2241,10 @@ export default function App() {
         await refreshFamilyIntake()
         return proposals
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Child intake proposals could not be submitted right now.'
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Child intake proposals could not be submitted right now.'
         setFamilyIntakeError(message)
         throw error
       } finally {
@@ -2018,11 +2260,21 @@ export default function App() {
       setFamilyIntakeError(null)
 
       try {
-        const proposal = await api.approveChildIntakeProposal(proposalId, reviewNote)
-        await Promise.all([refreshChildren(), refreshFamilyIntake(), refreshAuthSession()])
+        const proposal = await api.approveChildIntakeProposal(
+          proposalId,
+          reviewNote
+        )
+        await Promise.all([
+          refreshChildren(),
+          refreshFamilyIntake(),
+          refreshAuthSession(),
+        ])
         return proposal
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Child intake proposal could not be approved right now.'
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Child intake proposal could not be approved right now.'
         setFamilyIntakeError(message)
         throw error
       } finally {
@@ -2038,11 +2290,17 @@ export default function App() {
       setFamilyIntakeError(null)
 
       try {
-        const proposal = await api.rejectChildIntakeProposal(proposalId, reviewNote)
+        const proposal = await api.rejectChildIntakeProposal(
+          proposalId,
+          reviewNote
+        )
         await refreshFamilyIntake()
         return proposal
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Child intake proposal could not be rejected right now.'
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Child intake proposal could not be rejected right now.'
         setFamilyIntakeError(message)
         throw error
       } finally {
@@ -2053,7 +2311,12 @@ export default function App() {
   )
 
   const handleResubmitChildIntakeProposal = useCallback(
-    async (payload: { proposalId: string; child_name: string; date_of_birth?: string; notes?: string }) => {
+    async (payload: {
+      proposalId: string
+      child_name: string
+      date_of_birth?: string
+      notes?: string
+    }) => {
       setFamilyIntakeActionPendingId(payload.proposalId)
       setFamilyIntakeError(null)
 
@@ -2062,7 +2325,10 @@ export default function App() {
         await refreshFamilyIntake()
         return proposal
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Child intake proposal could not be resubmitted right now.'
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Child intake proposal could not be resubmitted right now.'
         setFamilyIntakeError(message)
         throw error
       } finally {
@@ -2073,7 +2339,10 @@ export default function App() {
   )
 
   useEffect(() => {
-    if (queryPlan && (!selectedSession || queryPlan.source_session_id === selectedSession.id)) {
+    if (
+      queryPlan &&
+      (!selectedSession || queryPlan.source_session_id === selectedSession.id)
+    ) {
       setSelectedPlan(queryPlan)
       return
     }
@@ -2083,29 +2352,41 @@ export default function App() {
       return
     }
 
-    const matchingPlan = childPlans.find(plan => plan.source_session_id === selectedSession.id) || null
+    const matchingPlan =
+      childPlans.find(plan => plan.source_session_id === selectedSession.id) ||
+      null
     setSelectedPlan(matchingPlan)
   }, [childPlans, queryPlan, selectedSession])
 
   const upsertPlan = useCallback((updatedPlan: PracticePlan) => {
-    setChildPlans(current => [updatedPlan, ...current.filter(plan => plan.id !== updatedPlan.id)])
+    setChildPlans(current => [
+      updatedPlan,
+      ...current.filter(plan => plan.id !== updatedPlan.id),
+    ])
     setSelectedPlan(updatedPlan)
   }, [])
 
   const upsertReport = useCallback((updatedReport: ProgressReport) => {
     setSelectedReport(updatedReport)
-    setProgressReports(current => [updatedReport, ...current.filter(report => report.id !== updatedReport.id)])
+    setProgressReports(current => [
+      updatedReport,
+      ...current.filter(report => report.id !== updatedReport.id),
+    ])
   }, [])
 
   const handleCreatePlan = useCallback(
     async (message: string) => {
       if (!selectedChildId || !selectedSession) {
-        setPlanError('Select a reviewed session before creating a practice plan.')
+        setPlanError(
+          'Select a reviewed session before creating a practice plan.'
+        )
         return
       }
 
       if (plannerReadiness && !plannerReadiness.ready) {
-        setPlanError(plannerReadiness.reasons[0] || 'Planner runtime is not ready yet.')
+        setPlanError(
+          plannerReadiness.reasons[0] || 'Planner runtime is not ready yet.'
+        )
         return
       }
 
@@ -2132,12 +2413,16 @@ export default function App() {
   const handleRefinePlan = useCallback(
     async (message: string) => {
       if (!selectedPlan) {
-        setPlanError('Create a practice plan before sending a refinement request.')
+        setPlanError(
+          'Create a practice plan before sending a refinement request.'
+        )
         return
       }
 
       if (plannerReadiness && !plannerReadiness.ready) {
-        setPlanError(plannerReadiness.reasons[0] || 'Planner runtime is not ready yet.')
+        setPlanError(
+          plannerReadiness.reasons[0] || 'Planner runtime is not ready yet.'
+        )
         return
       }
 
@@ -2145,7 +2430,10 @@ export default function App() {
       setPlanError(null)
 
       try {
-        const updatedPlan = await api.refinePracticePlan(selectedPlan.id, message)
+        const updatedPlan = await api.refinePracticePlan(
+          selectedPlan.id,
+          message
+        )
         upsertPlan(updatedPlan)
       } catch (error) {
         console.error('Failed to refine practice plan:', error)
@@ -2186,9 +2474,14 @@ export default function App() {
         const result = await api.approveChildMemoryProposal(proposalId)
         setChildMemorySummary(result.summary)
         if (result.approved_item) {
-          setChildMemoryItems(current => [result.approved_item as ChildMemoryItem, ...current.filter(item => item.id !== result.approved_item?.id)])
+          setChildMemoryItems(current => [
+            result.approved_item as ChildMemoryItem,
+            ...current.filter(item => item.id !== result.approved_item?.id),
+          ])
         }
-        setChildMemoryProposals(current => current.filter(proposal => proposal.id !== proposalId))
+        setChildMemoryProposals(current =>
+          current.filter(proposal => proposal.id !== proposalId)
+        )
       } catch (error) {
         console.error('Failed to approve child memory proposal:', error)
         setMemoryError('Child memory approval failed. Try again in a moment.')
@@ -2199,24 +2492,23 @@ export default function App() {
     []
   )
 
-  const handleRejectMemoryProposal = useCallback(
-    async (proposalId: string) => {
-      setMemoryReviewPendingId(proposalId)
-      setMemoryError(null)
+  const handleRejectMemoryProposal = useCallback(async (proposalId: string) => {
+    setMemoryReviewPendingId(proposalId)
+    setMemoryError(null)
 
-      try {
-        const result = await api.rejectChildMemoryProposal(proposalId)
-        setChildMemorySummary(result.summary)
-        setChildMemoryProposals(current => current.filter(proposal => proposal.id !== proposalId))
-      } catch (error) {
-        console.error('Failed to reject child memory proposal:', error)
-        setMemoryError('Child memory rejection failed. Try again in a moment.')
-      } finally {
-        setMemoryReviewPendingId(null)
-      }
-    },
-    []
-  )
+    try {
+      const result = await api.rejectChildMemoryProposal(proposalId)
+      setChildMemorySummary(result.summary)
+      setChildMemoryProposals(current =>
+        current.filter(proposal => proposal.id !== proposalId)
+      )
+    } catch (error) {
+      console.error('Failed to reject child memory proposal:', error)
+      setMemoryError('Child memory rejection failed. Try again in a moment.')
+    } finally {
+      setMemoryReviewPendingId(null)
+    }
+  }, [])
 
   const handleCreateManualMemoryItem = useCallback(
     async (category: string, statement: string) => {
@@ -2235,7 +2527,10 @@ export default function App() {
           memory_type: 'fact',
         })
         setChildMemorySummary(result.summary)
-        setChildMemoryItems(current => [result.item, ...current.filter(item => item.id !== result.item.id)])
+        setChildMemoryItems(current => [
+          result.item,
+          ...current.filter(item => item.id !== result.item.id),
+        ])
       } catch (error) {
         console.error('Failed to create child memory item:', error)
         setMemoryError('Child memory note could not be saved right now.')
@@ -2249,12 +2544,16 @@ export default function App() {
   const handleGenerateRecommendations = useCallback(
     async (therapistConstraints: string) => {
       if (!selectedChildId) {
-        setRecommendationError('Choose a child before generating recommendations.')
+        setRecommendationError(
+          'Choose a child before generating recommendations.'
+        )
         return
       }
 
       if (plannerReadiness && !plannerReadiness.ready) {
-        setRecommendationError(plannerReadiness.reasons[0] || 'Planner runtime is not ready yet.')
+        setRecommendationError(
+          plannerReadiness.reasons[0] || 'Planner runtime is not ready yet.'
+        )
         return
       }
 
@@ -2285,7 +2584,12 @@ export default function App() {
         setRecommendationSaving(false)
       }
     },
-    [plannerReadiness, selectedChildId, selectedSession?.exercise_metadata?.targetSound, selectedSession?.id]
+    [
+      plannerReadiness,
+      selectedChildId,
+      selectedSession?.exercise_metadata?.targetSound,
+      selectedSession?.id,
+    ]
   )
 
   const handleCreateReport = useCallback(
@@ -2305,7 +2609,9 @@ export default function App() {
       } catch (error) {
         console.error('Failed to create progress report:', error)
         setReportError(
-          error instanceof Error ? error.message : 'Progress report creation failed. Try again in a moment.'
+          error instanceof Error
+            ? error.message
+            : 'Progress report creation failed. Try again in a moment.'
         )
         return null
       } finally {
@@ -2332,7 +2638,9 @@ export default function App() {
       } catch (error) {
         console.error('Failed to update progress report:', error)
         setReportError(
-          error instanceof Error ? error.message : 'Progress report update failed. Try again in a moment.'
+          error instanceof Error
+            ? error.message
+            : 'Progress report update failed. Try again in a moment.'
         )
         return null
       } finally {
@@ -2352,7 +2660,9 @@ export default function App() {
       } catch (error) {
         console.error('Failed to generate report summary suggestion:', error)
         setReportError(
-          error instanceof Error ? error.message : 'Report summary suggestion failed. Try again in a moment.'
+          error instanceof Error
+            ? error.message
+            : 'Report summary suggestion failed. Try again in a moment.'
         )
         return null
       } finally {
@@ -2373,7 +2683,10 @@ export default function App() {
 
       const mode = options?.mode ?? 'preview'
       const format = options?.format ?? 'html'
-      const url = api.getReportExportUrl(reportId, { download: mode === 'download', format })
+      const url = api.getReportExportUrl(reportId, {
+        download: mode === 'download',
+        format,
+      })
       if (mode === 'download') {
         window.location.assign(url)
         return
@@ -2398,7 +2711,11 @@ export default function App() {
       upsertReport(approved)
     } catch (error) {
       console.error('Failed to approve progress report:', error)
-      setReportError(error instanceof Error ? error.message : 'Progress report approval failed.')
+      setReportError(
+        error instanceof Error
+          ? error.message
+          : 'Progress report approval failed.'
+      )
     } finally {
       setReportSaving(false)
     }
@@ -2418,7 +2735,11 @@ export default function App() {
       upsertReport(signed)
     } catch (error) {
       console.error('Failed to sign progress report:', error)
-      setReportError(error instanceof Error ? error.message : 'Progress report signing failed.')
+      setReportError(
+        error instanceof Error
+          ? error.message
+          : 'Progress report signing failed.'
+      )
     } finally {
       setReportSaving(false)
     }
@@ -2438,7 +2759,11 @@ export default function App() {
       upsertReport(archived)
     } catch (error) {
       console.error('Failed to archive progress report:', error)
-      setReportError(error instanceof Error ? error.message : 'Progress report archiving failed.')
+      setReportError(
+        error instanceof Error
+          ? error.message
+          : 'Progress report archiving failed.'
+      )
     } finally {
       setReportSaving(false)
     }
@@ -2462,7 +2787,14 @@ export default function App() {
     }
 
     void handleOpenSession(effectiveDashboardSessionId)
-  }, [dashboardSessionIds, effectiveDashboardSessionId, handleOpenSession, isDashboardRoute, loadingSessionDetail, selectedSession?.id])
+  }, [
+    dashboardSessionIds,
+    effectiveDashboardSessionId,
+    handleOpenSession,
+    isDashboardRoute,
+    loadingSessionDetail,
+    selectedSession?.id,
+  ])
 
   const cancelExerciseSpeechQueue = useCallback(() => {
     if (exerciseSpeechTimerRef.current) {
@@ -2492,43 +2824,50 @@ export default function App() {
     }
   }, [])
 
-  const beginSessionWrapUp = useCallback((instructions?: string, finishDelayMs = SESSION_WRAP_UP_DELAY_MS, options?: { silent?: boolean }) => {
-    if (wrapUpInProgress) {
-      return
-    }
+  const beginSessionWrapUp = useCallback(
+    (
+      instructions?: string,
+      finishDelayMs = SESSION_WRAP_UP_DELAY_MS,
+      options?: { silent?: boolean }
+    ) => {
+      if (wrapUpInProgress) {
+        return
+      }
 
-    clearWrapUpTimers()
-    setFinishConfirmationPending(false)
-    setFinishPromptQueued(false)
-    setFinishRequested(false)
-    setSessionFinished(true)
-    setWrapUpInProgress(true)
+      clearWrapUpTimers()
+      setFinishConfirmationPending(false)
+      setFinishPromptQueued(false)
+      setFinishRequested(false)
+      setSessionFinished(true)
+      setWrapUpInProgress(true)
 
-    stopSessionRecordingRef.current()
+      stopSessionRecordingRef.current()
 
-    if (!options?.silent) {
-      cancelExerciseSpeechQueue()
-      stopAudio()
-      sendRef.current({ type: 'response.cancel' })
-      sendRef.current({
-        type: 'response.create',
-        response: {
-          modalities: ['audio', 'text'],
-          instructions:
-            instructions ||
-            'In one short, warm sentence, praise the child, say today\'s practice is finished, and tell them their session summary is coming up next.',
-        },
-      })
-    }
+      if (!options?.silent) {
+        cancelExerciseSpeechQueue()
+        stopAudio()
+        sendRef.current({ type: 'response.cancel' })
+        sendRef.current({
+          type: 'response.create',
+          response: {
+            modalities: ['audio', 'text'],
+            instructions:
+              instructions ||
+              "In one short, warm sentence, praise the child, say today's practice is finished, and tell them their session summary is coming up next.",
+          },
+        })
+      }
 
-    summaryHandoffTimerRef.current = window.setTimeout(() => {
-      setShowLoading(true)
-    }, SUMMARY_HANDOFF_DELAY_MS)
+      summaryHandoffTimerRef.current = window.setTimeout(() => {
+        setShowLoading(true)
+      }, SUMMARY_HANDOFF_DELAY_MS)
 
-    wrapUpFinishTimerRef.current = window.setTimeout(() => {
-      setFinishRequested(true)
-    }, finishDelayMs)
-  }, [cancelExerciseSpeechQueue, clearWrapUpTimers, stopAudio, wrapUpInProgress])
+      wrapUpFinishTimerRef.current = window.setTimeout(() => {
+        setFinishRequested(true)
+      }, finishDelayMs)
+    },
+    [cancelExerciseSpeechQueue, clearWrapUpTimers, stopAudio, wrapUpInProgress]
+  )
 
   const handleSilentSortingComplete = useCallback(() => {
     if (sessionFinished || wrapUpInProgress) {
@@ -2584,74 +2923,80 @@ export default function App() {
 
     beginSessionWrapUp(
       getListeningWrapUpInstructions(isChildMode),
-      LISTENING_SESSION_WRAP_UP_DELAY_MS,
+      LISTENING_SESSION_WRAP_UP_DELAY_MS
     )
   }, [beginSessionWrapUp, isChildMode, sessionFinished, wrapUpInProgress])
 
-  const handleWebRTCMessage = useCallback((msg: RealtimeMessage) => {
-    // Stage 8 structured-conversation: live target-token tally streamed from
-    // backend. `wulo.target_tally` replaces the full snapshot; scaffold flips
-    // are carried on that snapshot (`scaffoldEscalated`). `wulo.scaffold_escalate`
-    // is a transient signal; the tally remains the source of truth for UI.
-    if (msg.type === 'wulo.target_tally') {
-      const snapshot = msg.payload as TargetTally | undefined
-      if (snapshot && typeof snapshot === 'object') {
-        setTargetTally(snapshot)
+  const handleWebRTCMessage = useCallback(
+    (msg: RealtimeMessage) => {
+      // Stage 8 structured-conversation: live target-token tally streamed from
+      // backend. `wulo.target_tally` replaces the full snapshot; scaffold flips
+      // are carried on that snapshot (`scaffoldEscalated`). `wulo.scaffold_escalate`
+      // is a transient signal; the tally remains the source of truth for UI.
+      if (msg.type === 'wulo.target_tally') {
+        const snapshot = msg.payload as TargetTally | undefined
+        if (snapshot && typeof snapshot === 'object') {
+          setTargetTally(snapshot)
+        }
+        return
       }
-      return
-    }
-    if (msg.type === 'wulo.scaffold_escalate') {
-      // Tally snapshot will carry scaffoldEscalated=true on the next tick;
-      // nothing else to do here. Kept as an explicit branch for telemetry hooks.
-      return
-    }
-
-    if (msg.type === 'proxy.connected' || msg.type === 'session.updated') {
-      setSessionReady(true)
-    }
-
-    if (msg.type === 'response.function_call_arguments.done' && msg.name === 'finish_session') {
-      if (msg.call_id) {
-        sendRef.current({
-          type: 'conversation.item.create',
-          item: {
-            type: 'function_call_output',
-            call_id: msg.call_id,
-            output: '{"status": "closing"}',
-          },
-        })
+      if (msg.type === 'wulo.scaffold_escalate') {
+        // Tally snapshot will carry scaffoldEscalated=true on the next tick;
+        // nothing else to do here. Kept as an explicit branch for telemetry hooks.
+        return
       }
-      beginSessionWrapUp()
-      return
-    }
 
-    if (msg.type === 'session.updated') {
-      const session = msg.session
-      const servers =
-        session?.avatar?.ice_servers ||
-        session?.rtc?.ice_servers ||
-        session?.ice_servers
-      const username =
-        session?.avatar?.username ||
-        session?.avatar?.ice_username ||
-        session?.rtc?.ice_username ||
-        session?.ice_username
-      const credential =
-        session?.avatar?.credential ||
-        session?.avatar?.ice_credential ||
-        session?.rtc?.ice_credential ||
-        session?.ice_credential
-
-      if (servers) {
-        setupWebRTC(servers, username, credential)
+      if (msg.type === 'proxy.connected' || msg.type === 'session.updated') {
+        setSessionReady(true)
       }
-    } else if (
-      (msg.server_sdp || msg.sdp || msg.answer) &&
-      msg.type !== 'session.update'
-    ) {
-      handleAnswer(msg)
-    }
-  }, [beginSessionWrapUp])
+
+      if (
+        msg.type === 'response.function_call_arguments.done' &&
+        msg.name === 'finish_session'
+      ) {
+        if (msg.call_id) {
+          sendRef.current({
+            type: 'conversation.item.create',
+            item: {
+              type: 'function_call_output',
+              call_id: msg.call_id,
+              output: '{"status": "closing"}',
+            },
+          })
+        }
+        beginSessionWrapUp()
+        return
+      }
+
+      if (msg.type === 'session.updated') {
+        const session = msg.session
+        const servers =
+          session?.avatar?.ice_servers ||
+          session?.rtc?.ice_servers ||
+          session?.ice_servers
+        const username =
+          session?.avatar?.username ||
+          session?.avatar?.ice_username ||
+          session?.rtc?.ice_username ||
+          session?.ice_username
+        const credential =
+          session?.avatar?.credential ||
+          session?.avatar?.ice_credential ||
+          session?.rtc?.ice_credential ||
+          session?.ice_credential
+
+        if (servers) {
+          setupWebRTC(servers, username, credential)
+        }
+      } else if (
+        (msg.server_sdp || msg.sdp || msg.answer) &&
+        msg.type !== 'session.update'
+      ) {
+        handleAnswer(msg)
+      }
+    },
+    [beginSessionWrapUp]
+  )
 
   const clearExerciseSpeechTimer = useCallback(() => {
     if (exerciseSpeechTimerRef.current) {
@@ -2672,65 +3017,75 @@ export default function App() {
     cancelExerciseSpeechQueue()
   }, [cancelExerciseSpeechQueue])
 
-  const waitForAssistantAudioDrain = useCallback(() => new Promise<void>(resolve => {
-    const checkAudioDrain = () => {
-      const pendingAudioMs = getPendingAudioMs()
+  const waitForAssistantAudioDrain = useCallback(
+    () =>
+      new Promise<void>(resolve => {
+        const checkAudioDrain = () => {
+          const pendingAudioMs = getPendingAudioMs()
 
-      if (pendingAudioMs <= 0) {
-        resolve()
-        return
+          if (pendingAudioMs <= 0) {
+            resolve()
+            return
+          }
+
+          window.setTimeout(checkAudioDrain, Math.min(250, pendingAudioMs + 40))
+        }
+
+        checkAudioDrain()
+      }),
+    [getPendingAudioMs]
+  )
+
+  const speakExerciseText = useCallback(
+    (text: string) => {
+      const trimmedText = replaceDrillTokens(text.trim())
+
+      if (!trimmedText || !connectedRef.current) {
+        return Promise.resolve()
       }
 
-      window.setTimeout(checkAudioDrain, Math.min(250, pendingAudioMs + 40))
-    }
+      const speechGeneration = exerciseSpeechGenerationRef.current
 
-    checkAudioDrain()
-  }), [getPendingAudioMs])
+      setExerciseSpeechActive(true)
 
-  const speakExerciseText = useCallback((text: string) => {
-    const trimmedText = replaceDrillTokens(text.trim())
+      const queuedRun = exerciseSpeechQueueRef.current.then(async () => {
+        await waitForAssistantAudioDrain()
 
-    if (!trimmedText || !connectedRef.current) {
-      return Promise.resolve()
-    }
-
-    const speechGeneration = exerciseSpeechGenerationRef.current
-
-    setExerciseSpeechActive(true)
-
-    const queuedRun = exerciseSpeechQueueRef.current.then(async () => {
-      await waitForAssistantAudioDrain()
-
-      if (!connectedRef.current || exerciseSpeechGenerationRef.current !== speechGeneration) {
-        setExerciseSpeechActive(false)
-        return
-      }
-
-      return new Promise<void>(resolve => {
-        if (exerciseSpeechGenerationRef.current !== speechGeneration) {
-          resolve()
+        if (
+          !connectedRef.current ||
+          exerciseSpeechGenerationRef.current !== speechGeneration
+        ) {
+          setExerciseSpeechActive(false)
           return
         }
 
-        exerciseSpeechResolveRef.current = resolve
-        clearExerciseSpeechTimer()
-        exerciseSpeechTimerRef.current = window.setTimeout(() => {
-          finishExerciseSpeech()
-        }, 15000)
+        return new Promise<void>(resolve => {
+          if (exerciseSpeechGenerationRef.current !== speechGeneration) {
+            resolve()
+            return
+          }
 
-        sendRef.current({
-          type: 'response.create',
-          response: {
-            modalities: ['audio', 'text'],
-            instructions: `Say exactly the following text verbatim in one turn, with no extra words: ${trimmedText}`,
-          },
+          exerciseSpeechResolveRef.current = resolve
+          clearExerciseSpeechTimer()
+          exerciseSpeechTimerRef.current = window.setTimeout(() => {
+            finishExerciseSpeech()
+          }, 15000)
+
+          sendRef.current({
+            type: 'response.create',
+            response: {
+              modalities: ['audio', 'text'],
+              instructions: `Say exactly the following text verbatim in one turn, with no extra words: ${trimmedText}`,
+            },
+          })
         })
       })
-    })
 
-    exerciseSpeechQueueRef.current = queuedRun.catch(() => {})
-    return queuedRun
-  }, [clearExerciseSpeechTimer, finishExerciseSpeech, waitForAssistantAudioDrain])
+      exerciseSpeechQueueRef.current = queuedRun.catch(() => {})
+      return queuedRun
+    },
+    [clearExerciseSpeechTimer, finishExerciseSpeech, waitForAssistantAudioDrain]
+  )
 
   const handleRealtimeTranscript = useCallback(
     (role: 'user' | 'assistant', text: string) => {
@@ -2758,25 +3113,25 @@ export default function App() {
 
       if (role === 'assistant' && exerciseSpeechResolveRef.current) {
         clearExerciseSpeechTimer()
-        exerciseSpeechTimerRef.current = window.setTimeout(() => {
-          finishExerciseSpeech()
-        }, Math.max(120, getPendingAudioMs() + 40))
+        exerciseSpeechTimerRef.current = window.setTimeout(
+          () => {
+            finishExerciseSpeech()
+          },
+          Math.max(120, getPendingAudioMs() + 40)
+        )
       }
 
       setSessionActivityKey(current => current + 1)
 
-      if (
-        role !== 'user' ||
-        !activeReferenceText ||
-        sessionFinished
-      ) {
+      if (role !== 'user' || !activeReferenceText || sessionFinished) {
         return
       }
 
       const nextTurnCount = childTurnCount + 1
       setChildTurnCount(nextTurnCount)
 
-      const maximumFinishPromptTurnLimit = getMaximumFinishPromptTurnLimit(isChildMode)
+      const maximumFinishPromptTurnLimit =
+        getMaximumFinishPromptTurnLimit(isChildMode)
 
       if (finishConfirmationPending) {
         if (AFFIRMATIVE_FINISH_PATTERN.test(text)) {
@@ -2792,7 +3147,9 @@ export default function App() {
           return
         }
 
-        setFinishPromptTurnLimit(current => Math.min(current + 2, maximumFinishPromptTurnLimit))
+        setFinishPromptTurnLimit(current =>
+          Math.min(current + 2, maximumFinishPromptTurnLimit)
+        )
         return
       }
 
@@ -2857,14 +3214,15 @@ export default function App() {
     disconnect,
     clearMessages,
     getRecordings,
-  } =
-    useRealtime({
-      agentId: currentAgent,
-      onMessage: handleWebRTCMessage,
-      onAudioDelta: handleAudioDelta,
-      onTranscript: handleRealtimeTranscript,
-    })
-  const isSessionActive = isSessionRoute && (connected || messages.length > 0 || Boolean(currentAgent))
+  } = useRealtime({
+    agentId: currentAgent,
+    onMessage: handleWebRTCMessage,
+    onAudioDelta: handleAudioDelta,
+    onTranscript: handleRealtimeTranscript,
+  })
+  const isSessionActive =
+    isSessionRoute &&
+    (connected || messages.length > 0 || Boolean(currentAgent))
 
   useEffect(() => {
     sendRef.current = send
@@ -2880,43 +3238,49 @@ export default function App() {
     }
   }, [clearWrapUpTimers])
 
-  const sendExerciseMessage = useCallback((text: string) => {
-    const trimmedText = text.trim()
-    if (!connected || !trimmedText) {
-      return
-    }
+  const sendExerciseMessage = useCallback(
+    (text: string) => {
+      const trimmedText = text.trim()
+      if (!connected || !trimmedText) {
+        return
+      }
 
-    sendRef.current({
-      type: 'conversation.item.create',
-      item: {
-        type: 'message',
-        role: 'user',
-        content: [
-          {
-            type: 'input_text',
-            text: trimmedText,
-          },
-        ],
-      },
-    })
-    sendRef.current({
-      type: 'response.create',
-      response: {
-        modalities: ['audio', 'text'],
-      },
-    })
-  }, [connected])
+      sendRef.current({
+        type: 'conversation.item.create',
+        item: {
+          type: 'message',
+          role: 'user',
+          content: [
+            {
+              type: 'input_text',
+              text: trimmedText,
+            },
+          ],
+        },
+      })
+      sendRef.current({
+        type: 'response.create',
+        response: {
+          modalities: ['audio', 'text'],
+        },
+      })
+    },
+    [connected]
+  )
 
-  const recordExerciseSelection = useCallback((text: string) => {
-    const trimmedText = text.trim()
+  const recordExerciseSelection = useCallback(
+    (text: string) => {
+      const trimmedText = text.trim()
 
-    if (!trimmedText) {
-      return
-    }
+      if (!trimmedText) {
+        return
+      }
 
-    addLocalMessage('user', trimmedText)
-    setSessionActivityKey(current => current + 1)
-  }, [addLocalMessage])
+      addLocalMessage('user', trimmedText)
+      setSessionActivityKey(current => current + 1)
+    },
+    [addLocalMessage]
+  )
 
   useEffect(() => {
     const previousRoute = resolveAppRoute(previousPathRef.current)
@@ -3002,23 +3366,37 @@ export default function App() {
 
     const sessionIdForUrl =
       pendingDashboardSessionId ||
-      (querySessionId && dashboardSessionIds.has(querySessionId) ? querySessionId : null) ||
+      (querySessionId && dashboardSessionIds.has(querySessionId)
+        ? querySessionId
+        : null) ||
       selectedSession?.id ||
       null
 
-    if (isDashboardRoute && sessionIdForUrl && dashboardSessionIds.has(sessionIdForUrl)) {
+    if (
+      isDashboardRoute &&
+      sessionIdForUrl &&
+      dashboardSessionIds.has(sessionIdForUrl)
+    ) {
       nextParams.set(APP_ROUTE_PARAMS.sessionId, sessionIdForUrl)
     } else {
       nextParams.delete(APP_ROUTE_PARAMS.sessionId)
     }
 
-    if (isDashboardRoute && selectedPlan?.id && dashboardPlanIds.has(selectedPlan.id)) {
+    if (
+      isDashboardRoute &&
+      selectedPlan?.id &&
+      dashboardPlanIds.has(selectedPlan.id)
+    ) {
       nextParams.set(APP_ROUTE_PARAMS.planId, selectedPlan.id)
     } else {
       nextParams.delete(APP_ROUTE_PARAMS.planId)
     }
 
-    if (isHomeRoute && selectedScenario && homeScenarioIds.has(selectedScenario)) {
+    if (
+      isHomeRoute &&
+      selectedScenario &&
+      homeScenarioIds.has(selectedScenario)
+    ) {
       nextParams.set(APP_ROUTE_PARAMS.scenarioId, selectedScenario)
     } else {
       nextParams.delete(APP_ROUTE_PARAMS.scenarioId)
@@ -3051,7 +3429,11 @@ export default function App() {
       return
     }
 
-    if (currentRoute === APP_ROUTES.privacy || currentRoute === APP_ROUTES.terms || currentRoute === APP_ROUTES.aiTransparency) {
+    if (
+      currentRoute === APP_ROUTES.privacy ||
+      currentRoute === APP_ROUTES.terms ||
+      currentRoute === APP_ROUTES.aiTransparency
+    ) {
       return
     }
 
@@ -3118,12 +3500,19 @@ export default function App() {
       return
     }
 
-    if (requiresOnboarding && !onboardingComplete && currentRoute !== APP_ROUTES.onboarding) {
+    if (
+      requiresOnboarding &&
+      !onboardingComplete &&
+      currentRoute !== APP_ROUTES.onboarding
+    ) {
       navigate(APP_ROUTES.onboarding, { replace: true })
       return
     }
 
-    if ((!requiresOnboarding || onboardingComplete) && currentRoute === APP_ROUTES.onboarding) {
+    if (
+      (!requiresOnboarding || onboardingComplete) &&
+      currentRoute === APP_ROUTES.onboarding
+    ) {
       navigate(APP_ROUTES.home, { replace: true })
       return
     }
@@ -3133,7 +3522,10 @@ export default function App() {
       return
     }
 
-    if (currentRoute === APP_ROUTES.dashboard && (!isTherapist || userMode === 'child')) {
+    if (
+      currentRoute === APP_ROUTES.dashboard &&
+      (!isTherapist || userMode === 'child')
+    ) {
       setRoleNoticeIntent('review')
       if (!isTherapist) {
         setShowRoleNotice(true)
@@ -3205,9 +3597,8 @@ export default function App() {
     [send]
   )
 
-  const { setupWebRTC, handleAnswer, videoRef } = useWebRTC(
-    sendOffer,
-    () => setAvatarVideoReady(true)
+  const { setupWebRTC, handleAnswer, videoRef } = useWebRTC(sendOffer, () =>
+    setAvatarVideoReady(true)
   )
 
   const sendAudioChunk = useCallback(
@@ -3234,7 +3625,8 @@ export default function App() {
         // the backend analyzer (which prefers targetWords over
         // reference_text) scores only the target, not the joined list.
         const scopedMetadata =
-          activeExerciseMetadata?.scoreScope === 'target_only' && activeReferenceText
+          activeExerciseMetadata?.scoreScope === 'target_only' &&
+          activeReferenceText
             ? { ...activeExerciseMetadata, targetWords: [activeReferenceText] }
             : activeExerciseMetadata
 
@@ -3257,7 +3649,6 @@ export default function App() {
 
   const {
     recording,
-    inputLevel: recorderInputLevel,
     toggleRecording,
     getAudioRecording,
     clearAudioRecording: clearConversationAudioRecording,
@@ -3372,7 +3763,14 @@ export default function App() {
     setLaunchHandoffReady(false)
     setScoringUtterance(false)
     setSessionFinished(true)
-  }, [currentAgent, disconnect, handleToggleRecording, recording, releaseAgent, resetExerciseSpeechTracking])
+  }, [
+    currentAgent,
+    disconnect,
+    handleToggleRecording,
+    recording,
+    releaseAgent,
+    resetExerciseSpeechTracking,
+  ])
 
   const handleConfirmedFinish = useCallback(async () => {
     clearWrapUpTimers()
@@ -3391,10 +3789,20 @@ export default function App() {
       setShowLoading(false)
       setFinishRequested(false)
     }
-  }, [analyzeCurrentSession, applyAssessmentResult, clearWrapUpTimers, handleFinishPractice])
+  }, [
+    analyzeCurrentSession,
+    applyAssessmentResult,
+    clearWrapUpTimers,
+    handleFinishPractice,
+  ])
 
   useEffect(() => {
-    if (!finishPromptQueued || sessionFinished || !connected || exerciseSpeechActive) {
+    if (
+      !finishPromptQueued ||
+      sessionFinished ||
+      !connected ||
+      exerciseSpeechActive
+    ) {
       return
     }
 
@@ -3409,7 +3817,15 @@ export default function App() {
       },
     })
     setFinishPromptQueued(false)
-  }, [connected, exerciseSpeechActive, finishPromptQueued, isChildMode, send, sessionFinished, stopAudio])
+  }, [
+    connected,
+    exerciseSpeechActive,
+    finishPromptQueued,
+    isChildMode,
+    send,
+    sessionFinished,
+    stopAudio,
+  ])
 
   useEffect(() => {
     if (!finishRequested) {
@@ -3442,14 +3858,20 @@ export default function App() {
           'Say exactly the following text verbatim in one turn, with no extra words: Tap the microphone when you are ready for another turn.',
       },
     })
-  }, [connected, exerciseSpeechActive, isChildMode, isSessionRoute, recording, scoringUtterance, send, sessionFinished])
+  }, [
+    connected,
+    exerciseSpeechActive,
+    isChildMode,
+    isSessionRoute,
+    recording,
+    scoringUtterance,
+    send,
+    sessionFinished,
+  ])
 
   useSessionTimer({
     active:
-      isChildMode &&
-      isSessionRoute &&
-      sessionIntroComplete &&
-      !sessionFinished,
+      isChildMode && isSessionRoute && sessionIntroComplete && !sessionFinished,
     activityKey: sessionActivityKey,
     recording,
     onNudge: sendIdleNudge,
@@ -3472,7 +3894,11 @@ export default function App() {
             avatarConfig,
             selectedChildId || undefined
           )
-        : await api.createAgent(scenarioId, avatarConfig, selectedChildId || undefined)
+        : await api.createAgent(
+            scenarioId,
+            avatarConfig,
+            selectedChildId || undefined
+          )
 
       return response.agent_id as string
     },
@@ -3481,11 +3907,11 @@ export default function App() {
 
   useEffect(() => {
     const shouldPrewarm =
-      (authStatus === 'authenticated' &&
-      (((isHomeRoute && !isChildMode && Boolean(selectedChildId)) ||
+      authStatus === 'authenticated' &&
+      ((isHomeRoute && !isChildMode && Boolean(selectedChildId)) ||
         (userMode === 'child' && isHomeRoute)) &&
       Boolean(selectedScenario) &&
-      !currentAgent))
+      !currentAgent
 
     if (!shouldPrewarm || !selectedScenario) {
       const staleAgent = prewarmedAgentRef.current
@@ -3523,7 +3949,10 @@ export default function App() {
 
     warmPromise = (async (): Promise<PrewarmedAgent | null> => {
       try {
-        const agentId = await createAgentForSelection(selectedScenario, selectedAvatar)
+        const agentId = await createAgentForSelection(
+          selectedScenario,
+          selectedAvatar
+        )
         const warmedAgent = { key: desiredKey, agentId }
 
         if (!active || prewarmingKeyRef.current !== desiredKey) {
@@ -3600,107 +4029,132 @@ export default function App() {
     setShowLaunchTransition(false)
     setLaunchHandoffReady(false)
     setLaunchInFlight(false)
-  }, [clearConversationAudioRecording, clearMessages, clearWrapUpTimers, isChildMode])
+  }, [
+    clearConversationAudioRecording,
+    clearMessages,
+    clearWrapUpTimers,
+    isChildMode,
+  ])
 
-  const startPracticeSession = useCallback(async (avatarValue: string, scenarioOverride?: string) => {
-    const activeScenarioId = scenarioOverride ?? selectedScenario
-    if (!activeScenarioId) {
-      setLaunchInFlight(false)
-      return
-    }
-
-    const agentKey = buildAgentWarmKey(activeScenarioId, avatarValue)
-    let agentId = prewarmedAgentRef.current?.key === agentKey
-      ? prewarmedAgentRef.current.agentId
-      : null
-
-    if (!agentId && prewarmingKeyRef.current === agentKey && prewarmPromiseRef.current) {
-      const warmedAgent = await prewarmPromiseRef.current
-      if (warmedAgent?.key === agentKey) {
-        agentId = warmedAgent.agentId
-      }
-    }
-
-    if (agentId && prewarmedAgentRef.current?.agentId === agentId) {
-      prewarmedAgentRef.current = null
-    }
-
-    prewarmingKeyRef.current = null
-    prewarmPromiseRef.current = null
-
-    // Show session UI immediately so the child sees their buddy while the
-    // API call resolves — eliminates the blank/delayed feeling.
-    setSessionReady(false)
-    setSessionIntroRequested(false)
-    setSessionIntroComplete(false)
-    setSessionFinished(false)
-    setChildTurnCount(0)
-    setFinishPromptTurnLimit(getInitialFinishPromptTurnLimit(isChildMode))
-    setFinishConfirmationPending(false)
-    setFinishPromptQueued(false)
-    setFinishRequested(false)
-    setWrapUpInProgress(false)
-    setAvatarVideoReady(false)
-    setAssistantSpeechStarted(false)
-    setShowLaunchTransition(true)
-    setLaunchHandoffReady(false)
-    setUtteranceFeedback(null)
-    setScoringUtterance(false)
-    setSessionStartedAt(new Date().toISOString())
-    setFeedbackRating(null)
-    setFeedbackNote('')
-    setFeedbackSubmittedAt(null)
-    setFeedbackError(null)
-    navigate(APP_ROUTES.session)
-
-    try {
-      if (!agentId) {
-        agentId = await createAgentForSelection(activeScenarioId, avatarValue)
+  const startPracticeSession = useCallback(
+    async (avatarValue: string, scenarioOverride?: string) => {
+      const activeScenarioId = scenarioOverride ?? selectedScenario
+      if (!activeScenarioId) {
+        setLaunchInFlight(false)
+        return
       }
 
-      setCurrentAgent(agentId)
-      setLaunchInFlight(false)
-      navigate(APP_ROUTES.session)
-    } catch (error) {
-      console.error('Failed to create agent:', error)
-      // Revert to home on failure so the child isn't stuck
-      setShowLaunchTransition(false)
+      const agentKey = buildAgentWarmKey(activeScenarioId, avatarValue)
+      let agentId =
+        prewarmedAgentRef.current?.key === agentKey
+          ? prewarmedAgentRef.current.agentId
+          : null
+
+      if (
+        !agentId &&
+        prewarmingKeyRef.current === agentKey &&
+        prewarmPromiseRef.current
+      ) {
+        const warmedAgent = await prewarmPromiseRef.current
+        if (warmedAgent?.key === agentKey) {
+          agentId = warmedAgent.agentId
+        }
+      }
+
+      if (agentId && prewarmedAgentRef.current?.agentId === agentId) {
+        prewarmedAgentRef.current = null
+      }
+
+      prewarmingKeyRef.current = null
+      prewarmPromiseRef.current = null
+
+      // Show session UI immediately so the child sees their buddy while the
+      // API call resolves — eliminates the blank/delayed feeling.
+      setSessionReady(false)
+      setSessionIntroRequested(false)
+      setSessionIntroComplete(false)
+      setSessionFinished(false)
+      setChildTurnCount(0)
+      setFinishPromptTurnLimit(getInitialFinishPromptTurnLimit(isChildMode))
+      setFinishConfirmationPending(false)
+      setFinishPromptQueued(false)
+      setFinishRequested(false)
+      setWrapUpInProgress(false)
+      setAvatarVideoReady(false)
+      setAssistantSpeechStarted(false)
+      setShowLaunchTransition(true)
       setLaunchHandoffReady(false)
-      setLaunchInFlight(false)
-      navigate(APP_ROUTES.home)
-    }
-  }, [createAgentForSelection, isChildMode, navigate, selectedScenario])
+      setUtteranceFeedback(null)
+      setScoringUtterance(false)
+      setSessionStartedAt(new Date().toISOString())
+      setFeedbackRating(null)
+      setFeedbackNote('')
+      setFeedbackSubmittedAt(null)
+      setFeedbackError(null)
+      navigate(APP_ROUTES.session)
 
-  const handleStart = useCallback(async (avatarValue: string, scenarioOverride?: string) => {
-    const activeScenarioId = scenarioOverride ?? selectedScenario
-    if (!activeScenarioId || launchInFlight) return
-
-    setLaunchInFlight(true)
-
-    // Ensure React state is in sync when called with an override
-    if (scenarioOverride && scenarioOverride !== selectedScenario) {
-      setSelectedScenario(scenarioOverride)
-    }
-
-    setPendingModeSelection(null)
-    setPendingScenarioId(null)
-
-    if (isTherapist && !pilotState?.consent_timestamp) {
-      setPendingAvatarValue(avatarValue)
-      setPendingScenarioId(activeScenarioId)
-      setConsentError(null)
-      setShowConsentScreen(true)
-      setLaunchInFlight(false)
-      return
-    }
-
-    // Check parental consent for the selected child
-    if (selectedChildId && !parentalConsentByChild[selectedChildId]) {
       try {
-        const { consent } = await api.getParentalConsent(selectedChildId)
-        if (consent) {
-          setParentalConsentByChild(prev => ({ ...prev, [selectedChildId]: true }))
-        } else {
+        if (!agentId) {
+          agentId = await createAgentForSelection(activeScenarioId, avatarValue)
+        }
+
+        setCurrentAgent(agentId)
+        setLaunchInFlight(false)
+        navigate(APP_ROUTES.session)
+      } catch (error) {
+        console.error('Failed to create agent:', error)
+        // Revert to home on failure so the child isn't stuck
+        setShowLaunchTransition(false)
+        setLaunchHandoffReady(false)
+        setLaunchInFlight(false)
+        navigate(APP_ROUTES.home)
+      }
+    },
+    [createAgentForSelection, isChildMode, navigate, selectedScenario]
+  )
+
+  const handleStart = useCallback(
+    async (avatarValue: string, scenarioOverride?: string) => {
+      const activeScenarioId = scenarioOverride ?? selectedScenario
+      if (!activeScenarioId || launchInFlight) return
+
+      setLaunchInFlight(true)
+
+      // Ensure React state is in sync when called with an override
+      if (scenarioOverride && scenarioOverride !== selectedScenario) {
+        setSelectedScenario(scenarioOverride)
+      }
+
+      setPendingModeSelection(null)
+      setPendingScenarioId(null)
+
+      if (isTherapist && !pilotState?.consent_timestamp) {
+        setPendingAvatarValue(avatarValue)
+        setPendingScenarioId(activeScenarioId)
+        setConsentError(null)
+        setShowConsentScreen(true)
+        setLaunchInFlight(false)
+        return
+      }
+
+      // Check parental consent for the selected child
+      if (selectedChildId && !parentalConsentByChild[selectedChildId]) {
+        try {
+          const { consent } = await api.getParentalConsent(selectedChildId)
+          if (consent) {
+            setParentalConsentByChild(prev => ({
+              ...prev,
+              [selectedChildId]: true,
+            }))
+          } else {
+            setPendingAvatarValue(avatarValue)
+            setPendingScenarioId(activeScenarioId)
+            setParentalConsentError(null)
+            setShowParentalConsentDialog(true)
+            setLaunchInFlight(false)
+            return
+          }
+        } catch {
           setPendingAvatarValue(avatarValue)
           setPendingScenarioId(activeScenarioId)
           setParentalConsentError(null)
@@ -3708,18 +4162,21 @@ export default function App() {
           setLaunchInFlight(false)
           return
         }
-      } catch {
-        setPendingAvatarValue(avatarValue)
-        setPendingScenarioId(activeScenarioId)
-        setParentalConsentError(null)
-        setShowParentalConsentDialog(true)
-        setLaunchInFlight(false)
-        return
       }
-    }
 
-    await startPracticeSession(avatarValue, activeScenarioId)
-  }, [isTherapist, launchInFlight, parentalConsentByChild, pilotState, selectedChildId, selectedScenario, setSelectedScenario, startPracticeSession])
+      await startPracticeSession(avatarValue, activeScenarioId)
+    },
+    [
+      isTherapist,
+      launchInFlight,
+      parentalConsentByChild,
+      pilotState,
+      selectedChildId,
+      selectedScenario,
+      setSelectedScenario,
+      startPracticeSession,
+    ]
+  )
 
   const handleAnalyze = async () => {
     setShowLoading(true)
@@ -3808,72 +4265,94 @@ export default function App() {
     setLaunchInFlight(false)
     setShowRoleNotice(false)
     setMobileSidebarOpen(false)
-  }, [clearConversationAudioRecording, clearMessages, clearWrapUpTimers, disconnect, isChildMode])
+  }, [
+    clearConversationAudioRecording,
+    clearMessages,
+    clearWrapUpTimers,
+    disconnect,
+    isChildMode,
+  ])
 
-  const handleChooseMode = useCallback((mode: UserMode) => {
-    if (mode === 'child' && isTherapist && !pilotState?.consent_timestamp) {
-      setPendingModeSelection('child')
-      setConsentError(null)
-      setShowConsentScreen(true)
-      return
-    }
-
-    if (mode === 'child' && !selectedScenario && serverScenarios[0]) {
-      setSelectedScenario(serverScenarios[0].id)
-    }
-
-    setUserMode(mode)
-
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('wulo.user.mode', mode)
-    }
-    navigate(APP_ROUTES.home)
-  }, [isTherapist, navigate, pilotState?.consent_timestamp, selectedScenario, serverScenarios, setSelectedScenario])
-
-  const openSection = useCallback((section: SidebarSection) => {
-    setMobileSidebarOpen(false)
-    const nextRoute = getSectionRoute(section)
-
-    if (section === 'dashboard') {
-      if (!isTherapist || userMode === 'child') {
-        setRoleNoticeIntent('review')
-        if (!isTherapist) {
-          setShowRoleNotice(true)
-        }
+  const handleChooseMode = useCallback(
+    (mode: UserMode) => {
+      if (mode === 'child' && isTherapist && !pilotState?.consent_timestamp) {
+        setPendingModeSelection('child')
+        setConsentError(null)
+        setShowConsentScreen(true)
         return
       }
 
-      navigate(nextRoute)
-      return
-    }
+      if (mode === 'child' && !selectedScenario && serverScenarios[0]) {
+        setSelectedScenario(serverScenarios[0].id)
+      }
 
-    if (section === 'settings') {
-      navigate(nextRoute)
-      return
-    }
+      setUserMode(mode)
 
-    handleGoHome()
-    navigate(nextRoute)
-  }, [handleGoHome, isTherapist, navigate, userMode])
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('wulo.user.mode', mode)
+      }
+      navigate(APP_ROUTES.home)
+    },
+    [
+      isTherapist,
+      navigate,
+      pilotState?.consent_timestamp,
+      selectedScenario,
+      serverScenarios,
+      setSelectedScenario,
+    ]
+  )
 
-  const requestSection = useCallback((section: SidebarSection) => {
-    const nextRoute = getSectionRoute(section)
-
-    if (section === activeSection && !isSessionActive) {
+  const openSection = useCallback(
+    (section: SidebarSection) => {
       setMobileSidebarOpen(false)
-      return
-    }
+      const nextRoute = getSectionRoute(section)
 
-    if (isSessionActive) {
-      setPendingSection(section)
-      setPendingPath(nextRoute)
-      setShowNavigationConfirm(true)
-      setMobileSidebarOpen(false)
-      return
-    }
+      if (section === 'dashboard') {
+        if (!isTherapist || userMode === 'child') {
+          setRoleNoticeIntent('review')
+          if (!isTherapist) {
+            setShowRoleNotice(true)
+          }
+          return
+        }
 
-    openSection(section)
-  }, [activeSection, isSessionActive, openSection])
+        navigate(nextRoute)
+        return
+      }
+
+      if (section === 'settings') {
+        navigate(nextRoute)
+        return
+      }
+
+      handleGoHome()
+      navigate(nextRoute)
+    },
+    [handleGoHome, isTherapist, navigate, userMode]
+  )
+
+  const requestSection = useCallback(
+    (section: SidebarSection) => {
+      const nextRoute = getSectionRoute(section)
+
+      if (section === activeSection && !isSessionActive) {
+        setMobileSidebarOpen(false)
+        return
+      }
+
+      if (isSessionActive) {
+        setPendingSection(section)
+        setPendingPath(nextRoute)
+        setShowNavigationConfirm(true)
+        setMobileSidebarOpen(false)
+        return
+      }
+
+      openSection(section)
+    },
+    [activeSection, isSessionActive, openSection]
+  )
 
   const handleConfirmSectionChange = useCallback(() => {
     const nextPath = pendingPath
@@ -3924,7 +4403,10 @@ export default function App() {
         return
       }
 
-      await startPracticeSession(pendingAvatarValue, pendingScenarioId ?? undefined)
+      await startPracticeSession(
+        pendingAvatarValue,
+        pendingScenarioId ?? undefined
+      )
       setPendingScenarioId(null)
     } catch (error) {
       console.error('Failed to save consent:', error)
@@ -3944,39 +4426,55 @@ export default function App() {
     startPracticeSession,
   ])
 
-  const handleParentalConsentSubmit = useCallback(async (data: {
-    guardian_name: string
-    guardian_email: string
-    privacy_accepted: boolean
-    terms_accepted: boolean
-    ai_notice_accepted: boolean
-    personal_data_consent_accepted: boolean
-    special_category_consent_accepted: boolean
-    parental_responsibility_confirmed: boolean
-  }) => {
-    if (!selectedChildId) return
-    setParentalConsentSaving(true)
-    setParentalConsentError(null)
+  const handleParentalConsentSubmit = useCallback(
+    async (data: {
+      guardian_name: string
+      guardian_email: string
+      privacy_accepted: boolean
+      terms_accepted: boolean
+      ai_notice_accepted: boolean
+      personal_data_consent_accepted: boolean
+      special_category_consent_accepted: boolean
+      parental_responsibility_confirmed: boolean
+    }) => {
+      if (!selectedChildId) return
+      setParentalConsentSaving(true)
+      setParentalConsentError(null)
 
-    try {
-      await api.saveParentalConsent(selectedChildId, data)
-      setParentalConsentByChild(prev => ({ ...prev, [selectedChildId]: true }))
-      setShowParentalConsentDialog(false)
+      try {
+        await api.saveParentalConsent(selectedChildId, data)
+        setParentalConsentByChild(prev => ({
+          ...prev,
+          [selectedChildId]: true,
+        }))
+        setShowParentalConsentDialog(false)
 
-      await startPracticeSession(pendingAvatarValue, pendingScenarioId ?? undefined)
-      setPendingScenarioId(null)
-    } catch (error) {
-      console.error('Failed to save parental consent:', error)
-      setParentalConsentError('Consent could not be saved right now.')
-      setLaunchInFlight(false)
-    } finally {
-      setParentalConsentSaving(false)
-    }
-  }, [selectedChildId, pendingAvatarValue, pendingScenarioId, startPracticeSession])
+        await startPracticeSession(
+          pendingAvatarValue,
+          pendingScenarioId ?? undefined
+        )
+        setPendingScenarioId(null)
+      } catch (error) {
+        console.error('Failed to save parental consent:', error)
+        setParentalConsentError('Consent could not be saved right now.')
+        setLaunchInFlight(false)
+      } finally {
+        setParentalConsentSaving(false)
+      }
+    },
+    [
+      selectedChildId,
+      pendingAvatarValue,
+      pendingScenarioId,
+      startPracticeSession,
+    ]
+  )
 
   const handleSubmitFeedback = useCallback(async () => {
     if (!assessment?.session_id || !isTherapist || !feedbackRating) {
-      setFeedbackError('Choose a quick rating before saving therapist feedback.')
+      setFeedbackError(
+        'Choose a quick rating before saving therapist feedback.'
+      )
       return
     }
 
@@ -3989,7 +4487,9 @@ export default function App() {
         feedbackRating,
         feedbackNote
       )
-      setFeedbackSubmittedAt(updatedSession.therapist_feedback?.submitted_at || null)
+      setFeedbackSubmittedAt(
+        updatedSession.therapist_feedback?.submitted_at || null
+      )
 
       if (selectedChildId) {
         await loadSessionHistory(selectedChildId)
@@ -4017,7 +4517,10 @@ export default function App() {
     }
 
     if (queryFamilyInvitationId) {
-      postLoginParams.set(APP_ROUTE_PARAMS.familyInvitationId, queryFamilyInvitationId)
+      postLoginParams.set(
+        APP_ROUTE_PARAMS.familyInvitationId,
+        queryFamilyInvitationId
+      )
     }
 
     const postLoginUrl = `${window.location.origin}${APP_ROUTES.root}${postLoginParams.toString() ? `?${postLoginParams.toString()}` : ''}`
@@ -4032,7 +4535,10 @@ export default function App() {
     }
 
     if (queryFamilyInvitationId) {
-      postLoginParams.set(APP_ROUTE_PARAMS.familyInvitationId, queryFamilyInvitationId)
+      postLoginParams.set(
+        APP_ROUTE_PARAMS.familyInvitationId,
+        queryFamilyInvitationId
+      )
     }
 
     const postLoginUrl = `${window.location.origin}${APP_ROUTES.root}${postLoginParams.toString() ? `?${postLoginParams.toString()}` : ''}`
@@ -4070,145 +4576,147 @@ export default function App() {
     )
   }
 
-  const mainContent = currentRoute === APP_ROUTES.dashboard ? (
-    <ProgressDashboard
-      childProfiles={children}
-      selectedChildId={selectedChildId}
-      sessions={sessionSummaries}
-      selectedSession={selectedSession}
-      selectedPlan={selectedPlan}
-      progressReports={progressReports}
-      selectedReport={selectedReport}
-      childMemorySummary={childMemorySummary}
-      childMemoryItems={childMemoryItems}
-      childMemoryProposals={childMemoryProposals}
-      recommendationHistory={recommendationHistory}
-      selectedRecommendationDetail={selectedRecommendationDetail}
-      plannerReadiness={plannerReadiness}
-      loadingChildren={childrenLoading}
-      loadingSessions={loadingSessions}
-      loadingSessionDetail={loadingSessionDetail}
-      loadingPlans={loadingPlans}
-      loadingReports={loadingReports}
-      loadingMemory={loadingMemory}
-      loadingRecommendations={loadingRecommendations}
-      planSaving={planSaving}
-      reportSaving={reportSaving}
-      recommendationSaving={recommendationSaving}
-      planError={planError}
-      reportError={reportError}
-      memoryError={memoryError}
-      recommendationError={recommendationError}
-      memoryReviewPendingId={memoryReviewPendingId}
-      manualMemorySaving={manualMemorySaving}
-      onSelectChild={handleSelectChild}
-      onOpenSession={sessionId => {
-        void handleSelectReviewedSession(sessionId)
-      }}
-      onOpenRecommendationDetail={recommendationId => {
-        void handleOpenRecommendationDetail(recommendationId)
-      }}
-      onOpenReportDetail={reportId => {
-        void handleOpenReportDetail(reportId)
-      }}
-      onCreateReport={handleCreateReport}
-      onUpdateReport={handleUpdateReport}
-      onSuggestReportSummaryRewrite={handleSuggestReportSummaryRewrite}
-      onOpenReportExport={handleOpenReportExport}
-      onApproveReport={() => {
-        void handleApproveReport()
-      }}
-      onSignReport={() => {
-        void handleSignReport()
-      }}
-      onArchiveReport={() => {
-        void handleArchiveReport()
-      }}
-      onCreatePlan={handleCreatePlan}
-      onGenerateRecommendations={constraints => {
-        void handleGenerateRecommendations(constraints)
-      }}
-      onRefinePlan={handleRefinePlan}
-      onApprovePlan={() => {
-        void handleApprovePlan()
-      }}
-      onApproveMemoryProposal={proposalId => {
-        void handleApproveMemoryProposal(proposalId)
-      }}
-      onRejectMemoryProposal={proposalId => {
-        void handleRejectMemoryProposal(proposalId)
-      }}
-      onCreateMemoryItem={(category, statement) => {
-        void handleCreateManualMemoryItem(category, statement)
-      }}
-      onBackToPractice={handleExitTherapistView}
-      onExitToEntry={handleReturnToEntry}
-      insightsRailEnabled={appConfig?.insights_rail_enabled ?? false}
-      insightsVoiceMode={appConfig?.insights_voice_mode ?? 'off'}
-    />
-  ) : currentRoute === APP_ROUTES.onboarding ? (
-    <OnboardingFlow
-      loading={pilotStateLoading}
-      isTherapist={isTherapist}
-      onContinue={handleCompleteOnboarding}
-    />
-  ) : currentRoute === APP_ROUTES.settings ? (
-    <SettingsView
-      isTherapist={isTherapist}
-      canManageChildren
-      currentMode={currentWorkspaceMode}
-      authRole={authUser?.role}
-      selectedChild={selectedChild}
-      childProfiles={children}
-      childProfileSaving={childProfileSaving}
-      incomingInvitations={incomingInvitations}
-      sentInvitations={sentInvitations}
-      highlightedInvitationId={queryInvitationId}
-      highlightedFamilyInvitationId={queryFamilyInvitationId}
-      invitationDeliveryById={invitationDeliveryById}
-      invitationsLoading={invitationsLoading}
-      invitationError={invitationError}
-      invitationActionPendingId={invitationActionPendingId}
-      selectedAvatar={selectedAvatar}
-      onChooseMode={handleChooseMode}
-      onSelectChild={handleSelectChild}
-      onSelectAvatar={setSelectedAvatar}
-      onCreateChild={handleCreateChildProfile}
-      onInviteParent={handleInviteToChild}
-      onAcceptInvitation={handleAcceptInvitation}
-      onDeclineInvitation={handleDeclineInvitation}
-      onRevokeInvitation={handleRevokeInvitation}
-      onResendInvitation={handleResendInvitation}
-      familyIntakeInvitations={familyIntakeInvitations}
-      incomingFamilyIntakeInvitations={incomingFamilyIntakeInvitations}
-      pendingIncomingFamilyIntakeInvitations={pendingIncomingFamilyIntakeInvitations}
-      sentFamilyIntakeInvitations={sentFamilyIntakeInvitations}
-      childIntakeProposals={childIntakeProposals}
-      pendingChildIntakeProposals={pendingChildIntakeProposals}
-      familyIntakeLoading={familyIntakeLoading}
-      familyIntakeError={familyIntakeError}
-      familyIntakeActionPendingId={familyIntakeActionPendingId}
-      activeWorkspaceId={activeWorkspaceId}
-      onCreateFamilyIntakeInvitation={handleCreateFamilyIntakeInvitation}
-      onAcceptFamilyIntakeInvitation={handleAcceptFamilyIntakeInvitation}
-      onDeclineFamilyIntakeInvitation={handleDeclineFamilyIntakeInvitation}
-      onSubmitChildIntakeProposals={handleSubmitChildIntakeProposals}
-      onApproveChildIntakeProposal={handleApproveChildIntakeProposal}
-      onRejectChildIntakeProposal={handleRejectChildIntakeProposal}
-      onResubmitChildIntakeProposal={handleResubmitChildIntakeProposal}
-      userWorkspaces={authUser?.user_workspaces || []}
-    />
-  ) : currentRoute === APP_ROUTES.home ? (
-    loading ? (
-      <div className={styles.loadingContent}>
-        <Spinner size="large" />
-        <Text size={400} weight="semibold">
-          Loading exercises...
-        </Text>
-        <Text size={300}>Your Wulo library is getting ready.</Text>
-      </div>
-    ) : (
-      userMode === 'child' ? (
+  const mainContent =
+    currentRoute === APP_ROUTES.dashboard ? (
+      <ProgressDashboard
+        childProfiles={children}
+        selectedChildId={selectedChildId}
+        sessions={sessionSummaries}
+        selectedSession={selectedSession}
+        selectedPlan={selectedPlan}
+        progressReports={progressReports}
+        selectedReport={selectedReport}
+        childMemorySummary={childMemorySummary}
+        childMemoryItems={childMemoryItems}
+        childMemoryProposals={childMemoryProposals}
+        recommendationHistory={recommendationHistory}
+        selectedRecommendationDetail={selectedRecommendationDetail}
+        plannerReadiness={plannerReadiness}
+        loadingChildren={childrenLoading}
+        loadingSessions={loadingSessions}
+        loadingSessionDetail={loadingSessionDetail}
+        loadingPlans={loadingPlans}
+        loadingReports={loadingReports}
+        loadingMemory={loadingMemory}
+        loadingRecommendations={loadingRecommendations}
+        planSaving={planSaving}
+        reportSaving={reportSaving}
+        recommendationSaving={recommendationSaving}
+        planError={planError}
+        reportError={reportError}
+        memoryError={memoryError}
+        recommendationError={recommendationError}
+        memoryReviewPendingId={memoryReviewPendingId}
+        manualMemorySaving={manualMemorySaving}
+        onSelectChild={handleSelectChild}
+        onOpenSession={sessionId => {
+          void handleSelectReviewedSession(sessionId)
+        }}
+        onOpenRecommendationDetail={recommendationId => {
+          void handleOpenRecommendationDetail(recommendationId)
+        }}
+        onOpenReportDetail={reportId => {
+          void handleOpenReportDetail(reportId)
+        }}
+        onCreateReport={handleCreateReport}
+        onUpdateReport={handleUpdateReport}
+        onSuggestReportSummaryRewrite={handleSuggestReportSummaryRewrite}
+        onOpenReportExport={handleOpenReportExport}
+        onApproveReport={() => {
+          void handleApproveReport()
+        }}
+        onSignReport={() => {
+          void handleSignReport()
+        }}
+        onArchiveReport={() => {
+          void handleArchiveReport()
+        }}
+        onCreatePlan={handleCreatePlan}
+        onGenerateRecommendations={constraints => {
+          void handleGenerateRecommendations(constraints)
+        }}
+        onRefinePlan={handleRefinePlan}
+        onApprovePlan={() => {
+          void handleApprovePlan()
+        }}
+        onApproveMemoryProposal={proposalId => {
+          void handleApproveMemoryProposal(proposalId)
+        }}
+        onRejectMemoryProposal={proposalId => {
+          void handleRejectMemoryProposal(proposalId)
+        }}
+        onCreateMemoryItem={(category, statement) => {
+          void handleCreateManualMemoryItem(category, statement)
+        }}
+        onBackToPractice={handleExitTherapistView}
+        onExitToEntry={handleReturnToEntry}
+        insightsRailEnabled={appConfig?.insights_rail_enabled ?? false}
+        insightsVoiceMode={appConfig?.insights_voice_mode ?? 'off'}
+      />
+    ) : currentRoute === APP_ROUTES.onboarding ? (
+      <OnboardingFlow
+        loading={pilotStateLoading}
+        isTherapist={isTherapist}
+        onContinue={handleCompleteOnboarding}
+      />
+    ) : currentRoute === APP_ROUTES.settings ? (
+      <SettingsView
+        isTherapist={isTherapist}
+        canManageChildren
+        currentMode={currentWorkspaceMode}
+        authRole={authUser?.role}
+        selectedChild={selectedChild}
+        childProfiles={children}
+        childProfileSaving={childProfileSaving}
+        incomingInvitations={incomingInvitations}
+        sentInvitations={sentInvitations}
+        highlightedInvitationId={queryInvitationId}
+        highlightedFamilyInvitationId={queryFamilyInvitationId}
+        invitationDeliveryById={invitationDeliveryById}
+        invitationsLoading={invitationsLoading}
+        invitationError={invitationError}
+        invitationActionPendingId={invitationActionPendingId}
+        selectedAvatar={selectedAvatar}
+        onChooseMode={handleChooseMode}
+        onSelectChild={handleSelectChild}
+        onSelectAvatar={setSelectedAvatar}
+        onCreateChild={handleCreateChildProfile}
+        onInviteParent={handleInviteToChild}
+        onAcceptInvitation={handleAcceptInvitation}
+        onDeclineInvitation={handleDeclineInvitation}
+        onRevokeInvitation={handleRevokeInvitation}
+        onResendInvitation={handleResendInvitation}
+        familyIntakeInvitations={familyIntakeInvitations}
+        incomingFamilyIntakeInvitations={incomingFamilyIntakeInvitations}
+        pendingIncomingFamilyIntakeInvitations={
+          pendingIncomingFamilyIntakeInvitations
+        }
+        sentFamilyIntakeInvitations={sentFamilyIntakeInvitations}
+        childIntakeProposals={childIntakeProposals}
+        pendingChildIntakeProposals={pendingChildIntakeProposals}
+        familyIntakeLoading={familyIntakeLoading}
+        familyIntakeError={familyIntakeError}
+        familyIntakeActionPendingId={familyIntakeActionPendingId}
+        activeWorkspaceId={activeWorkspaceId}
+        onCreateFamilyIntakeInvitation={handleCreateFamilyIntakeInvitation}
+        onAcceptFamilyIntakeInvitation={handleAcceptFamilyIntakeInvitation}
+        onDeclineFamilyIntakeInvitation={handleDeclineFamilyIntakeInvitation}
+        onSubmitChildIntakeProposals={handleSubmitChildIntakeProposals}
+        onApproveChildIntakeProposal={handleApproveChildIntakeProposal}
+        onRejectChildIntakeProposal={handleRejectChildIntakeProposal}
+        onResubmitChildIntakeProposal={handleResubmitChildIntakeProposal}
+        userWorkspaces={authUser?.user_workspaces || []}
+      />
+    ) : currentRoute === APP_ROUTES.home ? (
+      loading ? (
+        <div className={styles.loadingContent}>
+          <Spinner size="large" />
+          <Text size={400} weight="semibold">
+            Loading exercises...
+          </Text>
+          <Text size={300}>Your Wulo library is getting ready.</Text>
+        </div>
+      ) : userMode === 'child' ? (
         <ChildHome
           selectedChild={selectedChild}
           selectedAvatar={selectedAvatar}
@@ -4227,110 +4735,127 @@ export default function App() {
         />
       ) : (
         <>
-        <ChecklistContainer
-          role={authUser?.role ?? ''}
-          snapshot={{
-            hasChildren: children.length > 0,
-            hasSessions: sessionSummaries.length > 0,
-            hasReports: sessionSummaries.some(s => s.therapist_feedback != null),
-            hasConsentOnAtLeastOneChild: Object.values(parentalConsentByChild).some(Boolean),
-            onboardingTourSeen: false,
-          }}
-        />
-        <DashboardHome
-          isTherapistWorkspace={isTherapist}
-          secondaryActionLabel={isTherapist ? 'Review progress' : 'Open family setup'}
-          incomingInvitations={incomingInvitations}
-          pendingIncomingFamilyIntakeInvitations={pendingIncomingFamilyIntakeInvitations}
-          invitationActionPendingId={invitationActionPendingId}
-          familyIntakeActionPendingId={familyIntakeActionPendingId}
-          onAcceptInvitation={handleAcceptInvitation}
-          onDeclineInvitation={handleDeclineInvitation}
-          onAcceptFamilyIntakeInvitation={handleAcceptFamilyIntakeInvitation}
-          onDeclineFamilyIntakeInvitation={handleDeclineFamilyIntakeInvitation}
-          childProfiles={children}
-          childrenLoading={childrenLoading}
-          selectedChildId={selectedChildId}
-          selectedChild={selectedChild}
-          selectedAvatar={selectedAvatar}
-          selectedScenario={selectedScenario}
-          childMemorySummary={childMemorySummary}
-          childMemoryProposals={childMemoryProposals}
-          recommendationHistory={recommendationHistory}
-          launchInFlight={launchInFlight}
-          scenarios={serverScenarios}
-          onSelectChild={handleSelectChild}
-          onSelectAvatar={setSelectedAvatar}
-          onSelectScenario={(scenarioId: string) => {
-            setSelectedScenario(scenarioId)
-          }}
-          onStartScenario={(scenarioId: string) => {
-            void handleStart(selectedAvatar, scenarioId)
-          }}
-          onStartSession={() => {
-            void handleStart(selectedAvatar)
-          }}
-          onSecondaryAction={() => {
-            if (isTherapist) {
-              openSection('dashboard')
-              return
+          <ChecklistContainer
+            role={authUser?.role ?? ''}
+            snapshot={{
+              hasChildren: children.length > 0,
+              hasSessions: sessionSummaries.length > 0,
+              hasReports: sessionSummaries.some(
+                s => s.therapist_feedback != null
+              ),
+              hasConsentOnAtLeastOneChild: Object.values(
+                parentalConsentByChild
+              ).some(Boolean),
+              onboardingTourSeen: false,
+            }}
+          />
+          <DashboardHome
+            isTherapistWorkspace={isTherapist}
+            secondaryActionLabel={
+              isTherapist ? 'Review progress' : 'Open family setup'
             }
+            incomingInvitations={incomingInvitations}
+            pendingIncomingFamilyIntakeInvitations={
+              pendingIncomingFamilyIntakeInvitations
+            }
+            invitationActionPendingId={invitationActionPendingId}
+            familyIntakeActionPendingId={familyIntakeActionPendingId}
+            onAcceptInvitation={handleAcceptInvitation}
+            onDeclineInvitation={handleDeclineInvitation}
+            onAcceptFamilyIntakeInvitation={handleAcceptFamilyIntakeInvitation}
+            onDeclineFamilyIntakeInvitation={
+              handleDeclineFamilyIntakeInvitation
+            }
+            childProfiles={children}
+            childrenLoading={childrenLoading}
+            selectedChildId={selectedChildId}
+            selectedChild={selectedChild}
+            selectedAvatar={selectedAvatar}
+            selectedScenario={selectedScenario}
+            childMemorySummary={childMemorySummary}
+            childMemoryProposals={childMemoryProposals}
+            recommendationHistory={recommendationHistory}
+            launchInFlight={launchInFlight}
+            scenarios={serverScenarios}
+            onSelectChild={handleSelectChild}
+            onSelectAvatar={setSelectedAvatar}
+            onSelectScenario={(scenarioId: string) => {
+              setSelectedScenario(scenarioId)
+            }}
+            onStartScenario={(scenarioId: string) => {
+              void handleStart(selectedAvatar, scenarioId)
+            }}
+            onStartSession={() => {
+              void handleStart(selectedAvatar)
+            }}
+            onSecondaryAction={() => {
+              if (isTherapist) {
+                openSection('dashboard')
+                return
+              }
 
-            openSection('settings')
-          }}
-          onOpenRecommendations={isTherapist ? () => openSection('dashboard') : undefined}
-          onAddCustomScenario={addCustomScenario}
-          onUpdateCustomScenario={updateCustomScenario}
-          onDeleteCustomScenario={deleteCustomScenario}
-          customScenarios={isTherapist ? customScenarios : []}
-        />
+              openSection('settings')
+            }}
+            onOpenRecommendations={
+              isTherapist ? () => openSection('dashboard') : undefined
+            }
+            onAddCustomScenario={addCustomScenario}
+            onUpdateCustomScenario={updateCustomScenario}
+            onDeleteCustomScenario={deleteCustomScenario}
+            customScenarios={isTherapist ? customScenarios : []}
+          />
         </>
       )
+    ) : (
+      <SessionScreen
+        videoRef={videoRef}
+        messages={messages}
+        launching={showLaunchTransition}
+        recording={recording}
+        connected={connected}
+        connectionState={connectionState}
+        connectionMessage={connectionMessage}
+        introComplete={sessionIntroComplete}
+        sessionFinished={sessionFinished}
+        canAnalyze={messages.length > 0}
+        onToggleRecording={handleToggleRecording}
+        onClear={
+          isChildMode
+            ? () => {
+                beginSessionWrapUp()
+              }
+            : handleClearSession
+        }
+        onAnalyze={handleAnalyze}
+        scenario={activeScenario}
+        isChildMode={isChildMode}
+        selectedChild={selectedChild}
+        selectedAvatar={selectedAvatar}
+        introPending={sessionIntroRequested && !sessionIntroComplete}
+        onVideoLoaded={() => setAvatarVideoReady(true)}
+        utteranceFeedback={utteranceFeedback}
+        scoringUtterance={scoringUtterance}
+        activeReferenceText={activeReferenceText}
+        onActiveBlendChange={handleActiveBlendChange}
+        onSendExerciseMessage={sendExerciseMessage}
+        onSpeakExerciseText={speakExerciseText}
+        onRecordExerciseSelection={recordExerciseSelection}
+        onListeningPracticeComplete={handleListeningPracticeComplete}
+        onSilentSortingComplete={handleSilentSortingComplete}
+        onAuditoryBombardmentComplete={handleAuditoryBombardmentComplete}
+        onWordPositionPracticeComplete={handleWordPositionPracticeComplete}
+        onTwoWordPhraseComplete={handleTwoWordPhraseComplete}
+        onStructuredConversationComplete={handleStructuredConversationComplete}
+        onSendRealtime={handleSendRealtime}
+        targetTally={targetTally}
+        realtimeReady={connected && sessionIntroComplete}
+        onInterruptAvatar={() => {
+          resetExerciseSpeechTracking()
+          send({ type: 'response.cancel' })
+          stopAudio()
+        }}
+      />
     )
-  ) : (
-    <SessionScreen
-      videoRef={videoRef}
-      messages={messages}
-      launching={showLaunchTransition}
-      recording={recording}
-      connected={connected}
-      connectionState={connectionState}
-      connectionMessage={connectionMessage}
-      introComplete={sessionIntroComplete}
-      sessionFinished={sessionFinished}
-      canAnalyze={messages.length > 0}
-      onToggleRecording={handleToggleRecording}
-      onClear={isChildMode ? () => { beginSessionWrapUp() } : handleClearSession}
-      onAnalyze={handleAnalyze}
-      scenario={activeScenario}
-      isChildMode={isChildMode}
-      selectedChild={selectedChild}
-      selectedAvatar={selectedAvatar}
-      introPending={sessionIntroRequested && !sessionIntroComplete}
-      onVideoLoaded={() => setAvatarVideoReady(true)}
-      utteranceFeedback={utteranceFeedback}
-      scoringUtterance={scoringUtterance}
-      activeReferenceText={activeReferenceText}
-      onActiveBlendChange={handleActiveBlendChange}
-      onSendExerciseMessage={sendExerciseMessage}
-      onSpeakExerciseText={speakExerciseText}
-      onRecordExerciseSelection={recordExerciseSelection}
-      onListeningPracticeComplete={handleListeningPracticeComplete}
-      onSilentSortingComplete={handleSilentSortingComplete}
-      onAuditoryBombardmentComplete={handleAuditoryBombardmentComplete}
-      onWordPositionPracticeComplete={handleWordPositionPracticeComplete}
-      onTwoWordPhraseComplete={handleTwoWordPhraseComplete}
-      onStructuredConversationComplete={handleStructuredConversationComplete}
-      onSendRealtime={handleSendRealtime}
-      targetTally={targetTally}
-      realtimeReady={connected && sessionIntroComplete}
-      onInterruptAvatar={() => {
-        resetExerciseSpeechTracking()
-        send({ type: 'response.cancel' })
-        stopAudio()
-      }}
-    />
-  )
 
   return (
     <OnboardingRuntime
@@ -4340,252 +4865,307 @@ export default function App() {
       authenticated={authStatus === 'authenticated'}
       uiState={onboardingUiState}
     >
-    <div className={styles.page}>
-      {showSidebarShell ? (
-        <div className={mergeClasses(styles.appShell, isDashboardRoute && styles.appShellDashboard)}>
-          <SidebarNav
-            appTitle={appTitle}
-            activeSection={activeSection}
-            collapsed={sidebarCollapsed}
-            mobileOpen={mobileSidebarOpen}
-            isTherapist={isTherapist}
-            userRole={authUser?.role ?? null}
-            showDashboardNav={showDashboardNav}
-            settingsLabel={settingsLabel}
-            childProfiles={children}
-            childrenLoading={childrenLoading}
-            selectedChildId={selectedChildId}
-            selectedChild={selectedChild}
-            userWorkspaces={authUser?.user_workspaces || []}
-            activeWorkspaceId={activeWorkspaceId}
-            userName={authUser?.name || null}
-            userEmail={authUser?.email || null}
-            onSignOut={() => navigate(APP_ROUTES.logout)}
-            onBrandClick={() => requestSection('home')}
-            onNavigateHome={() => requestSection('home')}
-            onNavigateDashboard={() => requestSection('dashboard')}
-            onNavigateSettings={() => requestSection('settings')}
-            onSelectChild={handleSelectChild}
-            onSwitchWorkspace={handleSwitchWorkspace}
-            onToggleCollapse={() => setSidebarCollapsed(current => !current)}
-            onCloseMobile={() => setMobileSidebarOpen(false)}
-          />
+      <div className={styles.page}>
+        {showSidebarShell ? (
+          <div
+            className={mergeClasses(
+              styles.appShell,
+              isDashboardRoute && styles.appShellDashboard
+            )}
+          >
+            <SidebarNav
+              appTitle={appTitle}
+              activeSection={activeSection}
+              collapsed={sidebarCollapsed}
+              mobileOpen={mobileSidebarOpen}
+              isTherapist={isTherapist}
+              userRole={authUser?.role ?? null}
+              showDashboardNav={showDashboardNav}
+              settingsLabel={settingsLabel}
+              childProfiles={children}
+              childrenLoading={childrenLoading}
+              selectedChildId={selectedChildId}
+              selectedChild={selectedChild}
+              userWorkspaces={authUser?.user_workspaces || []}
+              activeWorkspaceId={activeWorkspaceId}
+              userName={authUser?.name || null}
+              userEmail={authUser?.email || null}
+              onSignOut={() => navigate(APP_ROUTES.logout)}
+              onBrandClick={() => requestSection('home')}
+              onNavigateHome={() => requestSection('home')}
+              onNavigateDashboard={() => requestSection('dashboard')}
+              onNavigateSettings={() => requestSection('settings')}
+              onSelectChild={handleSelectChild}
+              onSwitchWorkspace={handleSwitchWorkspace}
+              onToggleCollapse={() => setSidebarCollapsed(current => !current)}
+              onCloseMobile={() => setMobileSidebarOpen(false)}
+            />
 
-          <div className={mergeClasses(styles.contentArea, isDashboardRoute && styles.contentAreaDashboard)}>
-            <div className={mergeClasses(styles.contentHeader, isDashboardRoute && styles.contentHeaderDashboard)}>
-              <div className={styles.contentHeaderMain}>
-                <div className={styles.headerLead}>
-                  <Button
-                    appearance="subtle"
-                    icon={<Bars3Icon className="w-5 h-5" />}
-                    className={styles.contentMenuButton}
-                    onClick={() => setMobileSidebarOpen(true)}
-                    aria-label="Open navigation"
-                  />
-
-                  {showProfileHeader ? null : (
-                    <div className={styles.contentHeading}>
-                      {contentEyebrow ? (
-                        <Text className={mergeClasses(styles.contentEyebrow, isDashboardRoute && styles.contentEyebrowDashboard)}>{contentEyebrow}</Text>
-                      ) : null}
-                      <Text className={mergeClasses(styles.contentTitle, isDashboardRoute && styles.contentTitleDashboard)}>{contentTitle}</Text>
-                    </div>
-                  )}
-                </div>
-
-                {showProfileHeader ? (
-                  <div className={styles.contentHeaderActions}>
-                    {showHeaderCreateAction ? (
-                      <CustomScenarioEditor
-                        onSave={addCustomScenario}
-                        trigger={
-                          <Button
-                            appearance="primary"
-                            className={styles.headerCreateAction}
-                            icon={<PlusIcon className="w-5 h-5" />}
-                          >
-                            Create exercise
-                          </Button>
-                        }
-                      />
-                    ) : null}
-                  </div>
-                ) : (
-                  contentSubtitle ? (
-                    <Text className={mergeClasses(styles.contentSubtitle, isDashboardRoute && styles.contentSubtitleDashboard)}>{contentSubtitle}</Text>
-                  ) : null
+            <div
+              className={mergeClasses(
+                styles.contentArea,
+                isDashboardRoute && styles.contentAreaDashboard
+              )}
+            >
+              <div
+                className={mergeClasses(
+                  styles.contentHeader,
+                  isDashboardRoute && styles.contentHeaderDashboard
                 )}
+              >
+                <div className={styles.contentHeaderMain}>
+                  <div className={styles.headerLead}>
+                    <Button
+                      appearance="subtle"
+                      icon={<Bars3Icon className="w-5 h-5" />}
+                      className={styles.contentMenuButton}
+                      onClick={() => setMobileSidebarOpen(true)}
+                      aria-label="Open navigation"
+                    />
+
+                    {showProfileHeader ? null : (
+                      <div className={styles.contentHeading}>
+                        {contentEyebrow ? (
+                          <Text
+                            className={mergeClasses(
+                              styles.contentEyebrow,
+                              isDashboardRoute && styles.contentEyebrowDashboard
+                            )}
+                          >
+                            {contentEyebrow}
+                          </Text>
+                        ) : null}
+                        <Text
+                          className={mergeClasses(
+                            styles.contentTitle,
+                            isDashboardRoute && styles.contentTitleDashboard
+                          )}
+                        >
+                          {contentTitle}
+                        </Text>
+                      </div>
+                    )}
+                  </div>
+
+                  {showProfileHeader ? (
+                    <div className={styles.contentHeaderActions}>
+                      {showHeaderCreateAction ? (
+                        <CustomScenarioEditor
+                          onSave={addCustomScenario}
+                          trigger={
+                            <Button
+                              appearance="primary"
+                              className={styles.headerCreateAction}
+                              icon={<PlusIcon className="w-5 h-5" />}
+                            >
+                              Create exercise
+                            </Button>
+                          }
+                        />
+                      ) : null}
+                    </div>
+                  ) : contentSubtitle ? (
+                    <Text
+                      className={mergeClasses(
+                        styles.contentSubtitle,
+                        isDashboardRoute && styles.contentSubtitleDashboard
+                      )}
+                    >
+                      {contentSubtitle}
+                    </Text>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className={styles.contentBody}>{mainContent}</div>
+            </div>
+          </div>
+        ) : showChildChrome ? (
+          <div className={styles.childShell}>
+            <div className={styles.childChrome} data-testid="child-safe-chrome">
+              <button
+                type="button"
+                className={styles.brandHomeButton}
+                onClick={() => requestSection('home')}
+                aria-label="Go to child practice home"
+              >
+                <img
+                  src="/wulo-logo.png"
+                  alt="Wulo logo"
+                  className={styles.brandLogo}
+                />
+                <div>
+                  <Text className={styles.appTitle}>{appTitle}</Text>
+                  <Text className={styles.appSubtitle}>
+                    Child practice mode
+                  </Text>
+                </div>
+              </button>
+
+              <div
+                className={styles.childChromeIdentity}
+                aria-label="Child profile summary"
+              >
+                <div className={styles.childChromeAvatar} aria-hidden="true">
+                  {profileHeaderInitials}
+                </div>
+                <div className={styles.childChromeText}>
+                  <Text className={styles.childChromeTitle}>
+                    {profileHeaderName}
+                  </Text>
+                  <Text className={styles.childChromeSubtitle}>
+                    {contentTitle}
+                  </Text>
+                </div>
               </div>
             </div>
 
-            <div className={styles.contentBody}>{mainContent}</div>
+            <div className={styles.childShellBody}>{mainContent}</div>
           </div>
-        </div>
-      ) : showChildChrome ? (
-        <div className={styles.childShell}>
-          <div className={styles.childChrome} data-testid="child-safe-chrome">
-            <button
-              type="button"
-              className={styles.brandHomeButton}
-              onClick={() => requestSection('home')}
-              aria-label="Go to child practice home"
-            >
-              <img src="/wulo-logo.png" alt="Wulo logo" className={styles.brandLogo} />
-              <div>
-                <Text className={styles.appTitle}>{appTitle}</Text>
-                <Text className={styles.appSubtitle}>Child practice mode</Text>
+        ) : (
+          <div className={styles.shell}>{mainContent}</div>
+        )}
+
+        <SessionLaunchOverlay
+          visible={launchOverlayVisible}
+          avatarValue={selectedAvatar}
+          avatarName={activeAvatarName}
+          exerciseName={activeScenario?.name}
+          childName={selectedChild?.name}
+          exercisePrompt={activeScenario?.description}
+          onCancel={handleClearSession}
+        />
+
+        <Dialog open={showLoading}>
+          <DialogSurface>
+            <DialogBody>
+              <div className={styles.loadingContent}>
+                <Spinner size="large" />
+                <Text size={400} weight="semibold">
+                  Preparing session summary...
+                </Text>
+                <Text size={300}>This may take up to 30 seconds.</Text>
               </div>
-            </button>
+            </DialogBody>
+          </DialogSurface>
+        </Dialog>
 
-            <div className={styles.childChromeIdentity} aria-label="Child profile summary">
-              <div className={styles.childChromeAvatar} aria-hidden="true">
-                {profileHeaderInitials}
-              </div>
-              <div className={styles.childChromeText}>
-                <Text className={styles.childChromeTitle}>{profileHeaderName}</Text>
-                <Text className={styles.childChromeSubtitle}>{contentTitle}</Text>
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.childShellBody}>{mainContent}</div>
-        </div>
-      ) : (
-        <div className={styles.shell}>{mainContent}</div>
-      )}
-
-      <SessionLaunchOverlay
-        visible={launchOverlayVisible}
-        avatarValue={selectedAvatar}
-        avatarName={activeAvatarName}
-        exerciseName={activeScenario?.name}
-        childName={selectedChild?.name}
-        exercisePrompt={activeScenario?.description}
-        onCancel={handleClearSession}
-      />
-
-      <Dialog open={showLoading}>
-        <DialogSurface>
-          <DialogBody>
-            <div className={styles.loadingContent}>
-              <Spinner size="large" />
-              <Text size={400} weight="semibold">
-                Preparing session summary...
+        <Dialog
+          open={showRoleNotice}
+          onOpenChange={(_, data) => setShowRoleNotice(data.open)}
+        >
+          <DialogSurface>
+            <DialogTitle>Role required</DialogTitle>
+            <DialogBody>
+              <Text>
+                This part of Wulo is available only to therapist accounts.
               </Text>
-              <Text size={300}>This may take up to 30 seconds.</Text>
-            </div>
-          </DialogBody>
-        </DialogSurface>
-      </Dialog>
+            </DialogBody>
+            <DialogActions>
+              <Button
+                appearance="secondary"
+                onClick={() => setShowRoleNotice(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                appearance="primary"
+                onClick={() => setShowRoleNotice(false)}
+              >
+                Close
+              </Button>
+            </DialogActions>
+          </DialogSurface>
+        </Dialog>
 
-      <Dialog
-        open={showRoleNotice}
-        onOpenChange={(_, data) => setShowRoleNotice(data.open)}
-      >
-        <DialogSurface>
-          <DialogTitle>Role required</DialogTitle>
-          <DialogBody>
-            <Text>
-              This part of Wulo is available only to therapist accounts.
-            </Text>
-          </DialogBody>
-          <DialogActions>
-            <Button appearance="secondary" onClick={() => setShowRoleNotice(false)}>
-              Cancel
-            </Button>
-            <Button appearance="primary" onClick={() => setShowRoleNotice(false)}>
-              Close
-            </Button>
-          </DialogActions>
-        </DialogSurface>
-      </Dialog>
+        <Dialog
+          open={showNavigationConfirm}
+          onOpenChange={(_, data) => {
+            setShowNavigationConfirm(data.open)
+            if (!data.open) {
+              setPendingSection(null)
+              setPendingPath(null)
+            }
+          }}
+        >
+          <DialogSurface>
+            <DialogTitle>Leave this session?</DialogTitle>
+            <DialogBody>
+              <Text>
+                The current session has unsaved progress. Leaving now will end
+                the live session and clear any unanalysed practice from this
+                screen.
+              </Text>
+            </DialogBody>
+            <DialogActions>
+              <Button
+                appearance="secondary"
+                onClick={() => {
+                  setShowNavigationConfirm(false)
+                  setPendingSection(null)
+                  setPendingPath(null)
+                }}
+              >
+                Stay here
+              </Button>
+              <Button appearance="primary" onClick={handleConfirmSectionChange}>
+                Leave session
+              </Button>
+            </DialogActions>
+          </DialogSurface>
+        </Dialog>
 
-      <Dialog
-        open={showNavigationConfirm}
-        onOpenChange={(_, data) => {
-          setShowNavigationConfirm(data.open)
-          if (!data.open) {
-            setPendingSection(null)
-            setPendingPath(null)
-          }
-        }}
-      >
-        <DialogSurface>
-          <DialogTitle>Leave this session?</DialogTitle>
-          <DialogBody>
-            <Text>
-              The current session has unsaved progress. Leaving now will end the live session and clear any unanalysed practice from this screen.
-            </Text>
-          </DialogBody>
-          <DialogActions>
-            <Button
-              appearance="secondary"
-              onClick={() => {
-                setShowNavigationConfirm(false)
-                setPendingSection(null)
-                setPendingPath(null)
-              }}
-            >
-              Stay here
-            </Button>
-            <Button appearance="primary" onClick={handleConfirmSectionChange}>
-              Leave session
-            </Button>
-          </DialogActions>
-        </DialogSurface>
-      </Dialog>
+        <AssessmentPanel
+          open={showAssessment}
+          assessment={assessment}
+          feedbackRating={feedbackRating}
+          feedbackNote={feedbackNote}
+          feedbackSubmittedAt={feedbackSubmittedAt}
+          feedbackSaving={feedbackSaving}
+          feedbackError={feedbackError}
+          showTherapistControls={!isChildMode && isTherapist}
+          onFeedbackRatingChange={setFeedbackRating}
+          onFeedbackNoteChange={setFeedbackNote}
+          onSubmitFeedback={() => {
+            void handleSubmitFeedback()
+          }}
+          onClose={() => setShowAssessment(false)}
+        />
 
-      <AssessmentPanel
-        open={showAssessment}
-        assessment={assessment}
-        feedbackRating={feedbackRating}
-        feedbackNote={feedbackNote}
-        feedbackSubmittedAt={feedbackSubmittedAt}
-        feedbackSaving={feedbackSaving}
-        feedbackError={feedbackError}
-        showTherapistControls={!isChildMode && isTherapist}
-        onFeedbackRatingChange={setFeedbackRating}
-        onFeedbackNoteChange={setFeedbackNote}
-        onSubmitFeedback={() => {
-          void handleSubmitFeedback()
-        }}
-        onClose={() => setShowAssessment(false)}
-      />
+        <ConsentScreen
+          open={showConsentScreen}
+          saving={consentSaving}
+          error={consentError}
+          onAccept={() => {
+            void handleConsentAccept()
+          }}
+          onCancel={() => setShowConsentScreen(false)}
+        />
 
-      <ConsentScreen
-        open={showConsentScreen}
-        saving={consentSaving}
-        error={consentError}
-        onAccept={() => {
-          void handleConsentAccept()
-        }}
-        onCancel={() => setShowConsentScreen(false)}
-      />
-
-      <ParentalConsentDialog
-        open={showParentalConsentDialog}
-        saving={parentalConsentSaving}
-        error={parentalConsentError}
-        childName={selectedChild?.name || 'this child'}
-        onSubmit={(data) => {
-          void handleParentalConsentSubmit(data)
-        }}
-        onCancel={() => {
-          setShowParentalConsentDialog(false)
-          setLaunchInFlight(false)
-        }}
-      />
-      {isChildMode && selectedChildId ? (
-        <Suspense fallback={null}>
-          <LazyChildOnboardingOrchestrator
-            childId={selectedChildId}
-            childModeActive={isChildMode}
-            activeExerciseType={activeExerciseMetadata?.type ?? null}
-            wrapUpVisible={sessionFinished}
-          />
-        </Suspense>
-      ) : null}
-    </div>
+        <ParentalConsentDialog
+          open={showParentalConsentDialog}
+          saving={parentalConsentSaving}
+          error={parentalConsentError}
+          childName={selectedChild?.name || 'this child'}
+          onSubmit={data => {
+            void handleParentalConsentSubmit(data)
+          }}
+          onCancel={() => {
+            setShowParentalConsentDialog(false)
+            setLaunchInFlight(false)
+          }}
+        />
+        {isChildMode && selectedChildId ? (
+          <Suspense fallback={null}>
+            <LazyChildOnboardingOrchestrator
+              childId={selectedChildId}
+              childModeActive={isChildMode}
+              activeExerciseType={activeExerciseMetadata?.type ?? null}
+              wrapUpVisible={sessionFinished}
+            />
+          </Suspense>
+        ) : null}
+      </div>
     </OnboardingRuntime>
   )
 }

@@ -8,6 +8,7 @@ Adds a ``source`` column to ``progress_reports`` so the therapist UI can
 distinguish pipeline-generated reports from AI-drafted insights (deep research)
 and manually authored reports. Existing rows are backfilled to ``'pipeline'``.
 """
+
 from __future__ import annotations
 
 from alembic import op
@@ -20,15 +21,11 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.execute(
-        "ALTER TABLE progress_reports ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT 'pipeline'"
-    )
+    op.execute("ALTER TABLE progress_reports ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT 'pipeline'")
     # Backfill any pre-existing rows defensively; the DEFAULT above already
     # covers rows inserted after the migration but is a no-op for old rows
     # if the column was added without a default on some replicas.
-    op.execute(
-        "UPDATE progress_reports SET source = 'pipeline' WHERE source IS NULL OR source = ''"
-    )
+    op.execute("UPDATE progress_reports SET source = 'pipeline' WHERE source IS NULL OR source = ''")
 
 
 def downgrade() -> None:

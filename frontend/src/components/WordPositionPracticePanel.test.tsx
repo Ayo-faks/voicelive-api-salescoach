@@ -15,7 +15,7 @@ function seedShellGesture(): void {
   }
 }
 
-vi.mock('../services/api', async (importOriginal) => {
+vi.mock('../services/api', async importOriginal => {
   const actual = await importOriginal<typeof import('../services/api')>()
   return {
     ...actual,
@@ -107,7 +107,7 @@ describe('WordPositionPracticePanel (Stage 5b)', () => {
         scenarioName="SH medial practice"
         metadata={medialMetadata}
         audience="child"
-      />,
+      />
     )
     seedShellGesture()
     await waitFor(() => {
@@ -120,7 +120,7 @@ describe('WordPositionPracticePanel (Stage 5b)', () => {
 
   it('gates Start practice until at least one word has been previewed', async () => {
     render(
-      <WordPositionPracticePanel metadata={medialMetadata} audience="child" />,
+      <WordPositionPracticePanel metadata={medialMetadata} audience="child" />
     )
     seedShellGesture()
 
@@ -147,18 +147,22 @@ describe('WordPositionPracticePanel (Stage 5b)', () => {
         metadata={medialMetadata}
         audience="child"
         onActiveTargetWordChange={onActiveTargetWordChange}
-      />,
+      />
     )
     seedShellGesture()
 
     const preview0 = await screen.findByTestId('wpp-preview-0')
     fireEvent.click(preview0.firstElementChild as HTMLElement)
-    await waitFor(() => expect(vi.mocked(api.synthesizeSpeech)).toHaveBeenCalled())
+    await waitFor(() =>
+      expect(vi.mocked(api.synthesizeSpeech)).toHaveBeenCalled()
+    )
 
     const startButton = await screen.findByRole('button', {
       name: /Start practice/i,
     })
-    await waitFor(() => expect((startButton as HTMLButtonElement).disabled).toBe(false))
+    await waitFor(() =>
+      expect((startButton as HTMLButtonElement).disabled).toBe(false)
+    )
     fireEvent.click(startButton)
 
     await waitFor(() => {
@@ -183,16 +187,22 @@ describe('WordPositionPracticePanel (Stage 5b)', () => {
         metadata={metadata}
         audience="child"
         onActiveTargetWordChange={onActiveTargetWordChange}
-      />,
+      />
     )
     seedShellGesture()
 
     const preview0 = await screen.findByTestId('wpp-preview-0')
     fireEvent.click(preview0.firstElementChild as HTMLElement)
-    await waitFor(() => expect(vi.mocked(api.synthesizeSpeech)).toHaveBeenCalled())
+    await waitFor(() =>
+      expect(vi.mocked(api.synthesizeSpeech)).toHaveBeenCalled()
+    )
 
-    const startButton = await screen.findByRole('button', { name: /Start practice/i })
-    await waitFor(() => expect((startButton as HTMLButtonElement).disabled).toBe(false))
+    const startButton = await screen.findByRole('button', {
+      name: /Start practice/i,
+    })
+    await waitFor(() =>
+      expect((startButton as HTMLButtonElement).disabled).toBe(false)
+    )
     fireEvent.click(startButton)
 
     onActiveTargetWordChange.mockClear()
@@ -204,7 +214,7 @@ describe('WordPositionPracticePanel (Stage 5b)', () => {
         audience="child"
         onActiveTargetWordChange={onActiveTargetWordChange}
         utteranceFeedback={makeAssessment(92)}
-      />,
+      />
     )
 
     await waitFor(() => {
@@ -222,16 +232,22 @@ describe('WordPositionPracticePanel (Stage 5b)', () => {
     }
 
     const { rerender } = render(
-      <WordPositionPracticePanel metadata={metadata} audience="child" />,
+      <WordPositionPracticePanel metadata={metadata} audience="child" />
     )
     seedShellGesture()
 
     const preview0 = await screen.findByTestId('wpp-preview-0')
     fireEvent.click(preview0.firstElementChild as HTMLElement)
-    await waitFor(() => expect(vi.mocked(api.synthesizeSpeech)).toHaveBeenCalled())
+    await waitFor(() =>
+      expect(vi.mocked(api.synthesizeSpeech)).toHaveBeenCalled()
+    )
 
-    const startButton = await screen.findByRole('button', { name: /Start practice/i })
-    await waitFor(() => expect((startButton as HTMLButtonElement).disabled).toBe(false))
+    const startButton = await screen.findByRole('button', {
+      name: /Start practice/i,
+    })
+    await waitFor(() =>
+      expect((startButton as HTMLButtonElement).disabled).toBe(false)
+    )
     fireEvent.click(startButton)
 
     // Low score — should increment attempts but NOT mark word complete.
@@ -240,7 +256,7 @@ describe('WordPositionPracticePanel (Stage 5b)', () => {
         metadata={metadata}
         audience="child"
         utteranceFeedback={makeAssessment(45)}
-      />,
+      />
     )
 
     await waitFor(() => {
@@ -257,7 +273,7 @@ describe('WordPositionPracticePanel (Stage 5b)', () => {
         scenarioName="SH medial practice"
         metadata={medialMetadata}
         audience="child"
-      />,
+      />
     )
     seedShellGesture()
 
@@ -273,10 +289,7 @@ describe('WordPositionPracticePanel (Stage 5b)', () => {
 
   it('includes "middle" beat copy for medial subStep', async () => {
     render(
-      <WordPositionPracticePanel
-        metadata={medialMetadata}
-        audience="child"
-      />,
+      <WordPositionPracticePanel metadata={medialMetadata} audience="child" />
     )
     seedShellGesture()
     await waitFor(() => {
@@ -296,7 +309,7 @@ describe('WordPositionPracticePanel (Stage 5b)', () => {
       ],
     }
     render(
-      <WordPositionPracticePanel metadata={finalMetadata} audience="child" />,
+      <WordPositionPracticePanel metadata={finalMetadata} audience="child" />
     )
     seedShellGesture()
     await waitFor(() => {

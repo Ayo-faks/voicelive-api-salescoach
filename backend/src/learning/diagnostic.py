@@ -89,7 +89,8 @@ class DiagnosticItemSelector(Protocol):
         item_bank: DiagnosticItemBank,
         prior_mastery: Mapping[str, MasteryEstimate],
         limit: int,
-    ) -> List[DiagnosticItem]: ...
+    ) -> List[DiagnosticItem]:
+        raise NotImplementedError
 
 
 class DeterministicItemSelector:
@@ -110,7 +111,10 @@ class DeterministicItemSelector:
             items.sort(key=lambda item: (item.difficulty, item.item_id))
 
         selected: List[DiagnosticItem] = []
-        skill_order = sorted(grouped_items.keys(), key=lambda skill_id: prior_mastery.get(skill_id).probability if skill_id in prior_mastery else 0.5)
+        skill_order = sorted(
+            grouped_items.keys(),
+            key=lambda skill_id: prior_mastery.get(skill_id).probability if skill_id in prior_mastery else 0.5,
+        )
         while len(selected) < limit and any(grouped_items.values()):
             for skill_id in skill_order:
                 if grouped_items[skill_id] and len(selected) < limit:
@@ -261,10 +265,14 @@ class DiagnosticEngine:
                 provenance=item_bank.provenance,
             )
         )
-        validation = PlanValidator([catalogue_grounding_rule([skill.skill_id for skill in item_bank.skills])]).validate(planner_result.plan)
+        validation = PlanValidator([catalogue_grounding_rule([skill.skill_id for skill in item_bank.skills])]).validate(
+            planner_result.plan
+        )
         if not validation.ok:
             raise RuntimeError(validation.audit_reason or "phase_2_plan_validation_failed")
-        self.repository.save_intervention_plan(planner_result.plan, tenant_id=tenant_id, actor_id=teacher_id, status="pending")
+        self.repository.save_intervention_plan(
+            planner_result.plan, tenant_id=tenant_id, actor_id=teacher_id, status="pending"
+        )
 
         return DiagnosticRunResult(
             session=session,

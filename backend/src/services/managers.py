@@ -17,7 +17,7 @@ from azure.ai.voicelive.models import FunctionTool
 from azure.identity import DefaultAzureCredential
 
 from src.config import config
-from src.services.prompt_rules import PHONEME_CITATION_RULE, append_phoneme_rule
+from src.services.prompt_rules import append_phoneme_rule
 from src.services.scenario_utils import determine_scenario_directory
 from src.services.tts_normalizer import normalize_for_tts
 
@@ -126,6 +126,7 @@ class ExerciseManager:
 
         return scenarios
 
+
 ScenarioManager = ExerciseManager
 
 
@@ -214,9 +215,7 @@ CRITICAL INTERACTION GUIDELINES:
         # may have hand-written in the exercise YAML into SSML <phoneme> tags
         # before the text is handed to the model.
         normalised_scenario = normalize_for_tts(str(scenario_instructions or ""))
-        combined_instructions = append_phoneme_rule(
-            self.BASE_INSTRUCTIONS + "\n" + normalised_scenario
-        )
+        combined_instructions = append_phoneme_rule(self.BASE_INSTRUCTIONS + "\n" + normalised_scenario)
 
         model_name = scenario_data.get(
             "model",

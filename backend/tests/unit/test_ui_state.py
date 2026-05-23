@@ -29,7 +29,6 @@ from flask.testing import FlaskClient
 import src.app as app_module
 from src.app import app
 from src.schemas.ui_state import (
-    MAX_UI_STATE_BYTES,
     validate_child_ui_state_put,
     validate_merged_size,
     validate_ui_state_patch,
@@ -79,9 +78,7 @@ class TestUiStateSchema:
         assert errors
 
     def test_checklist_state_typed(self):
-        normalized, errors = validate_ui_state_patch(
-            {"checklist_state": {"first-login": True, "first-child": False}}
-        )
+        normalized, errors = validate_ui_state_patch({"checklist_state": {"first-login": True, "first-child": False}})
         assert errors == []
         assert normalized["checklist_state"] == {"first-login": True, "first-child": False}
 
@@ -110,9 +107,7 @@ class TestUiStateSchema:
         assert errors and "exceeds" in errors[0]
 
     def test_child_ui_state_put_validator(self):
-        normalized, errors = validate_child_ui_state_put(
-            {"exercise_type": "silent_sorting", "first_run": True}
-        )
+        normalized, errors = validate_child_ui_state_put({"exercise_type": "silent_sorting", "first_run": True})
         assert errors == []
         assert normalized == {"exercise_type": "silent_sorting", "first_run": True}
 
@@ -170,9 +165,7 @@ class TestUiStateStorage:
         storage = _fresh_storage(tmp_path)
         _seed_user(storage)
         # Seed the blob close to the cap then attempt an over-the-top merge.
-        storage.patch_user_ui_state(
-            "user-1", {"tours_seen": [f"tour-{i:04d}" for i in range(60)]}
-        )
+        storage.patch_user_ui_state("user-1", {"tours_seen": [f"tour-{i:04d}" for i in range(60)]})
         with pytest.raises(ValueError, match="ui_state_too_large"):
             storage.patch_user_ui_state(
                 "user-1",
@@ -189,9 +182,7 @@ class TestUiStateStorage:
     def test_audit_row_records_keys_only(self, tmp_path):
         storage = _fresh_storage(tmp_path)
         _seed_user(storage)
-        storage.log_ui_state_audit(
-            user_id="user-1", event="ui_state.patched", payload={"keys": ["tours_seen"]}
-        )
+        storage.log_ui_state_audit(user_id="user-1", event="ui_state.patched", payload={"keys": ["tours_seen"]})
         rows = storage.list_ui_state_audit("user-1")
         assert len(rows) == 1
         assert rows[0]["event"] == "ui_state.patched"
@@ -201,9 +192,7 @@ class TestUiStateStorage:
         storage = _fresh_storage(tmp_path)
         _seed_user(storage)
         # Create a child and link it to the user so child_ui_state FK holds.
-        child = storage.create_child(
-            name="Ada", created_by_user_id="user-1", relationship="therapist"
-        )
+        child = storage.create_child(name="Ada", created_by_user_id="user-1", relationship="therapist")
         child_id = child["id"]
 
         set_result = storage.put_child_ui_state_first_run(

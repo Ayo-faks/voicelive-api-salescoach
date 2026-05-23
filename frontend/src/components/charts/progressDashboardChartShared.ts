@@ -147,16 +147,23 @@ function clampScore(value?: number | null) {
 
 function getTrendDelta(sessions: SessionSummary[]) {
   const scores = [...sessions]
-    .sort((left, right) => new Date(left.timestamp).getTime() - new Date(right.timestamp).getTime())
+    .sort(
+      (left, right) =>
+        new Date(left.timestamp).getTime() - new Date(right.timestamp).getTime()
+    )
     .map(session => session.overall_score)
     .filter((score): score is number => typeof score === 'number')
 
   if (scores.length < 2) return null
 
   const midpoint = Math.max(1, Math.floor(scores.length / 2))
-  const earlyAverage = scores.slice(0, midpoint).reduce((total, score) => total + score, 0) / midpoint
+  const earlyAverage =
+    scores.slice(0, midpoint).reduce((total, score) => total + score, 0) /
+    midpoint
   const recentScores = scores.slice(midpoint)
-  const recentAverage = recentScores.reduce((total, score) => total + score, 0) / recentScores.length
+  const recentAverage =
+    recentScores.reduce((total, score) => total + score, 0) /
+    recentScores.length
 
   return Math.round(recentAverage - earlyAverage)
 }
@@ -167,7 +174,10 @@ export function getTrendChartData(
   formatTimestamp: (timestamp?: string | null) => string
 ): TrendChartDatum[] {
   return [...sessions]
-    .sort((left, right) => new Date(left.timestamp).getTime() - new Date(right.timestamp).getTime())
+    .sort(
+      (left, right) =>
+        new Date(left.timestamp).getTime() - new Date(right.timestamp).getTime()
+    )
     .map(session => ({
       label: formatShortDate(session.timestamp),
       fullLabel: formatTimestamp(session.timestamp),
@@ -194,13 +204,18 @@ export function getSoundAccuracyBreakdown(sessions: SessionSummary[]) {
   const grouped = new Map<string, { total: number; count: number }>()
 
   for (const session of sessions) {
-    const sound = session.exercise_metadata?.targetSound || session.exercise.exerciseMetadata?.targetSound
+    const sound =
+      session.exercise_metadata?.targetSound ||
+      session.exercise.exerciseMetadata?.targetSound
     const score = clampScore(session.accuracy_score ?? session.overall_score)
 
     if (!sound || score == null) continue
 
     const current = grouped.get(sound) ?? { total: 0, count: 0 }
-    grouped.set(sound, { total: current.total + score, count: current.count + 1 })
+    grouped.set(sound, {
+      total: current.total + score,
+      count: current.count + 1,
+    })
   }
 
   return Array.from(grouped.entries())
@@ -209,18 +224,36 @@ export function getSoundAccuracyBreakdown(sessions: SessionSummary[]) {
       score: Math.round(summary.total / summary.count),
       count: summary.count,
     }))
-    .sort((left, right) => right.count - left.count || left.sound.localeCompare(right.sound))
+    .sort(
+      (left, right) =>
+        right.count - left.count || left.sound.localeCompare(right.sound)
+    )
     .slice(0, 6)
 }
 
-export function getPlanConfidence(sessions: SessionSummary[], selectedPlan: PracticePlan | null): PlanConfidence | null {
+export function getPlanConfidence(
+  sessions: SessionSummary[],
+  selectedPlan: PracticePlan | null
+): PlanConfidence | null {
   if (!selectedPlan) return null
 
   const sessionFactor = Math.min(36, sessions.length * 6)
   const trendDelta = getTrendDelta(sessions) ?? 0
-  const trendFactor = trendDelta >= 8 ? 28 : trendDelta >= 3 ? 22 : trendDelta >= -2 ? 15 : trendDelta >= -8 ? 8 : 4
+  const trendFactor =
+    trendDelta >= 8
+      ? 28
+      : trendDelta >= 3
+        ? 22
+        : trendDelta >= -2
+          ? 15
+          : trendDelta >= -8
+            ? 8
+            : 4
   const statusFactor = selectedPlan.status === 'approved' ? 28 : 18
-  const value = Math.max(0, Math.min(100, Math.round(sessionFactor + trendFactor + statusFactor)))
+  const value = Math.max(
+    0,
+    Math.min(100, Math.round(sessionFactor + trendFactor + statusFactor))
+  )
 
   let label = 'Developing confidence'
   if (value >= 70) label = 'High confidence'
@@ -255,7 +288,13 @@ export function getCalendarHeatmapData(sessions: SessionSummary[], weeks = 12) {
     counts.set(key, (counts.get(key) ?? 0) + 1)
   }
 
-  const data: Array<{ key: string; week: number; day: number; count: number; label: string }> = []
+  const data: Array<{
+    key: string
+    week: number
+    day: number
+    count: number
+    label: string
+  }> = []
   const start = getCalendarStart(weeks)
 
   for (let week = 0; week < weeks; week += 1) {
@@ -289,7 +328,8 @@ export function getCalendarCellColor(count: number) {
 
 export function getRadarChartData(selectedSession: SessionDetail | null) {
   const aiAssessment = selectedSession?.assessment.ai_assessment
-  const pronunciationAssessment = selectedSession?.assessment.pronunciation_assessment
+  const pronunciationAssessment =
+    selectedSession?.assessment.pronunciation_assessment
   const articulationClarity = aiAssessment?.articulation_clarity
   const engagementAndEffort = aiAssessment?.engagement_and_effort
 
@@ -309,7 +349,7 @@ export function getRadarChartData(selectedSession: SessionDetail | null) {
       score:
         (articulationClarity?.overall_clarity ?? null) != null
           ? (articulationClarity?.overall_clarity ?? 0) * 10
-          : clampScore(pronunciationAssessment?.pronunciation_score) ?? 0,
+          : (clampScore(pronunciationAssessment?.pronunciation_score) ?? 0),
     },
     {
       subject: 'Consistency',
@@ -317,7 +357,7 @@ export function getRadarChartData(selectedSession: SessionDetail | null) {
       score:
         (articulationClarity?.consistency ?? null) != null
           ? (articulationClarity?.consistency ?? 0) * 10
-          : clampScore(pronunciationAssessment?.fluency_score) ?? 0,
+          : (clampScore(pronunciationAssessment?.fluency_score) ?? 0),
     },
     {
       subject: 'Task Completion',
@@ -344,7 +384,12 @@ export function getWordHeatmapColor(accuracy: number) {
   return 'rgba(184, 148, 85, 0.46)'
 }
 
-function polarToCartesian(centerX: number, centerY: number, radius: number, angleInDegrees: number) {
+function polarToCartesian(
+  centerX: number,
+  centerY: number,
+  radius: number,
+  angleInDegrees: number
+) {
   const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180
 
   return {
@@ -353,12 +398,30 @@ function polarToCartesian(centerX: number, centerY: number, radius: number, angl
   }
 }
 
-export function describeArc(centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number) {
+export function describeArc(
+  centerX: number,
+  centerY: number,
+  radius: number,
+  startAngle: number,
+  endAngle: number
+) {
   const start = polarToCartesian(centerX, centerY, radius, endAngle)
   const end = polarToCartesian(centerX, centerY, radius, startAngle)
   const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1'
 
-  return ['M', start.x, start.y, 'A', radius, radius, 0, largeArcFlag, 0, end.x, end.y].join(' ')
+  return [
+    'M',
+    start.x,
+    start.y,
+    'A',
+    radius,
+    radius,
+    0,
+    largeArcFlag,
+    0,
+    end.x,
+    end.y,
+  ].join(' ')
 }
 
 export function getGaugeColor(value: number) {

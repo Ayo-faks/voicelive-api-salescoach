@@ -98,11 +98,7 @@ interface Props {
   onContinue: () => void
 }
 
-export function OnboardingFlow({
-  loading,
-  isTherapist,
-  onContinue,
-}: Props) {
+export function OnboardingFlow({ loading, isTherapist, onContinue }: Props) {
   const styles = useStyles()
 
   if (loading) {
@@ -118,35 +114,53 @@ export function OnboardingFlow({
     <div className={styles.layout}>
       <Card className={styles.heroCard}>
         <Text className={styles.title}>
-          Set up a calm, supervised practice flow before you hand over the device.
+          Set up a calm, supervised practice flow before you hand over the
+          device.
         </Text>
         <Text className={styles.body} size={300}>
-          Wulo supports short speech practice sessions for children while a therapist stays nearby. It offers practice feedback for the session, not diagnosis.
+          Wulo supports short speech practice sessions for children while a
+          therapist stays nearby. It offers practice feedback for the session,
+          not diagnosis.
         </Text>
 
         <div className={styles.checklist}>
           <div className={styles.checklistItem}>
-            <Text className={styles.checklistTitle} size={400} weight="semibold">
+            <Text
+              className={styles.checklistTitle}
+              size={400}
+              weight="semibold"
+            >
               1. Confirm adult access
             </Text>
             <Text className={styles.body} size={300}>
-              Sign in with your account so child sessions and review tools stay with the right adult.
+              Sign in with your account so child sessions and review tools stay
+              with the right adult.
             </Text>
           </div>
           <div className={styles.checklistItem}>
-            <Text className={styles.checklistTitle} size={400} weight="semibold">
+            <Text
+              className={styles.checklistTitle}
+              size={400}
+              weight="semibold"
+            >
               2. Choose the child and exercise
             </Text>
             <Text className={styles.body} size={300}>
-              Pick the child profile, choose the exercise, then start the session when you are ready.
+              Pick the child profile, choose the exercise, then start the
+              session when you are ready.
             </Text>
           </div>
           <div className={styles.checklistItem}>
-            <Text className={styles.checklistTitle} size={400} weight="semibold">
+            <Text
+              className={styles.checklistTitle}
+              size={400}
+              weight="semibold"
+            >
               3. Hand the device to the child
             </Text>
             <Text className={styles.body} size={300}>
-              Stay nearby, guide the child as needed, and review the results afterward.
+              Stay nearby, guide the child as needed, and review the results
+              afterward.
             </Text>
           </div>
         </div>
@@ -157,7 +171,8 @@ export function OnboardingFlow({
           Before the first child session
         </Text>
         <Text className={styles.body} size={300}>
-          Keep this short. Check access once for this browser session, then continue to child setup.
+          Keep this short. Check access once for this browser session, then
+          continue to child setup.
         </Text>
 
         <div className={styles.statusCard}>
@@ -169,7 +184,11 @@ export function OnboardingFlow({
         </div>
 
         <div className={styles.actionRow}>
-          <Button appearance="primary" className={styles.button} onClick={onContinue}>
+          <Button
+            appearance="primary"
+            className={styles.button}
+            onClick={onContinue}
+          >
             Continue to child setup
           </Button>
         </div>

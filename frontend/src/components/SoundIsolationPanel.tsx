@@ -88,7 +88,8 @@ export function SoundIsolationPanel({
   const cueImage = metadata?.imageAssets?.[0]
   const targetSound = metadata?.targetSound || 'sound'
   const repetitionTarget = metadata?.repetitionTarget
-  const cueWord = metadata?.targetWords?.[1] || metadata?.targetWords?.[0] || targetSound
+  const cueWord =
+    metadata?.targetWords?.[1] || metadata?.targetWords?.[0] || targetSound
 
   const handleSoundConfirmed = () => {
     setManualAttempts(current => current + 1)
@@ -99,7 +100,10 @@ export function SoundIsolationPanel({
     <Card className={styles.card}>
       <Text className={styles.title}>{scenarioName || 'Sound practice'}</Text>
       <div className={styles.layout}>
-        <ImageCard word={metadata?.targetWords?.[0] || targetSound} imagePath={cueImage} />
+        <ImageCard
+          word={metadata?.targetWords?.[0] || targetSound}
+          imagePath={cueImage}
+        />
         <div className={styles.cueText}>
           <Text className={styles.soundMark}>/{targetSound}/</Text>
           <Text className={styles.body}>

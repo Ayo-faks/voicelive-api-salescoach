@@ -41,7 +41,8 @@ const useStyles = makeStyles({
     border: '1px solid rgba(13, 138, 132, 0.12)',
     boxShadow: '0 26px 70px rgba(17, 36, 58, 0.12)',
     transform: 'translateY(0) scale(1)',
-    transition: 'transform 0.44s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.38s ease-out',
+    transition:
+      'transform 0.44s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.38s ease-out',
     '@media (max-width: 720px)': {
       width: 'calc(100vw - 24px)',
       minHeight: 'min(76vh, 560px)',
@@ -285,11 +286,19 @@ export function SessionLaunchOverlay({
   if (!mounted) return null
 
   return (
-    <div className={mergeClasses(styles.overlay, !visible && styles.overlayHidden)}>
-      <div className={mergeClasses(styles.stage, !visible && styles.stageHidden)}>
+    <div
+      className={mergeClasses(styles.overlay, !visible && styles.overlayHidden)}
+    >
+      <div
+        className={mergeClasses(styles.stage, !visible && styles.stageHidden)}
+      >
         <div className={styles.statusBadge}>Preparing live session</div>
         {onCancel && (
-          <button className={styles.cancelButton} onClick={onCancel} type="button">
+          <button
+            className={styles.cancelButton}
+            onClick={onCancel}
+            type="button"
+          >
             ✕ Cancel
           </button>
         )}

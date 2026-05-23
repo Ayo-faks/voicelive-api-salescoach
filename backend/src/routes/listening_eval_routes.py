@@ -16,6 +16,7 @@ The blueprint does not render HTML; it's consumed by the staff React
 surface at ``frontend/src/app/staff/listening-eval``. Every endpoint
 returns JSON except the CSV export.
 """
+
 from __future__ import annotations
 
 from typing import Any, Callable, Dict, Optional, Tuple
@@ -155,9 +156,7 @@ def create_listening_eval_blueprint(
         return Response(
             csv_text,
             mimetype="text/csv",
-            headers={
-                "Content-Disposition": "attachment; filename=listening-eval-votes.csv"
-            },
+            headers={"Content-Disposition": "attachment; filename=listening-eval-votes.csv"},
         )
 
     @bp.get("/dpo-pairs")

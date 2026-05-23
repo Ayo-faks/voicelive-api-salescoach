@@ -43,9 +43,12 @@ logger = logging.getLogger(__name__)
 # WebSocket constants
 AZURE_VOICE_API_VERSION = "2025-05-01-preview"
 AZURE_COGNITIVE_SERVICES_DOMAIN = "cognitiveservices.azure.com"
+
+
 def _is_local_dev_auth_enabled() -> bool:
     """Resolve LOCAL_DEV_AUTH dynamically so test and shell env changes are honored."""
     return str(os.environ.get("LOCAL_DEV_AUTH", str(config.get("local_dev_auth", False)))).strip().lower() == "true"
+
 
 # Session configuration defaults
 DEFAULT_TURN_DETECTION_TYPE = "azure_semantic_vad"
@@ -101,9 +104,7 @@ MAX_AVATAR_ATTEMPTS = 3
 # String match used to identify input transcription completion events from the
 # Azure Realtime API (the SDK exposes this as an enum, but matching by string
 # avoids a hard dependency on a specific SDK version).
-INPUT_AUDIO_TRANSCRIPTION_COMPLETED_TYPE = (
-    "conversation.item.input_audio_transcription.completed"
-)
+INPUT_AUDIO_TRANSCRIPTION_COMPLETED_TYPE = "conversation.item.input_audio_transcription.completed"
 
 
 def _is_structured_conversation_enabled() -> bool:
@@ -143,6 +144,7 @@ def _build_conversational_turn_detection() -> AzureSemanticVadEn:
         interrupt_response=True,
         create_response=True,
     )
+
 
 # Log message truncation length
 LOG_MESSAGE_MAX_LENGTH = 100
@@ -303,7 +305,12 @@ class VoiceProxyHandler:
 
         avatar_config_value = self._build_avatar_config(avatar_character, avatar_style, is_photo_avatar)
 
-        logger.info("Session voice config: voice_name=%s, voice_type=%s, agent_override=%s", voice_name, voice_type, bool(agent_config and agent_config.get("avatar_config", {}).get("voice_name")))
+        logger.info(
+            "Session voice config: voice_name=%s, voice_type=%s, agent_override=%s",
+            voice_name,
+            voice_type,
+            bool(agent_config and agent_config.get("avatar_config", {}).get("voice_name")),
+        )
 
         return self._create_request_session(voice_name, voice_type, avatar_config_value, agent_config)
 
@@ -417,7 +424,7 @@ class VoiceProxyHandler:
             lines.append(f"- Active target sound: /{active_target_sound}/")
         if active_target_word:
             lines.append(
-                f"- Active target word in the current phrase: \"{active_target_word}\" "
+                f'- Active target word in the current phrase: "{active_target_word}" '
                 "(coach this word; the other carrier word is neutral)"
             )
         if word_position in {"initial", "medial", "final"}:
@@ -431,9 +438,7 @@ class VoiceProxyHandler:
             lines.append(f"- Approved effective cues: {'; '.join(approved_effective_cues)}")
         if expected_substitutions:
             subs_fmt = ", ".join(f"/{s}/" for s in expected_substitutions)
-            lines.append(
-                f"- Expected substitutions to gently remodel (never call wrong): {subs_fmt}"
-            )
+            lines.append(f"- Expected substitutions to gently remodel (never call wrong): {subs_fmt}")
 
         if len(lines) <= 3:
             return None
@@ -454,9 +459,7 @@ class VoiceProxyHandler:
         azure_conn: VoiceLiveConnection,
     ) -> None:
         """Handle bidirectional message forwarding."""
-        tally: Optional[TargetTokenTally] = (
-            TargetTokenTally() if _is_structured_conversation_enabled() else None
-        )
+        tally: Optional[TargetTokenTally] = TargetTokenTally() if _is_structured_conversation_enabled() else None
         scored_turn: Optional[ScoredTurnDispatcher] = (
             ScoredTurnDispatcher() if _is_conversational_mic_enabled() else None
         )
@@ -495,9 +498,7 @@ class VoiceProxyHandler:
 
                 if isinstance(message, str):
                     parsed = json.loads(message)
-                    if tally is not None and await self._maybe_handle_wulo_client_event(
-                        parsed, tally, client_ws
-                    ):
+                    if tally is not None and await self._maybe_handle_wulo_client_event(parsed, tally, client_ws):
                         continue
                     if scored_turn is not None and await self._maybe_handle_scored_turn_client_event(
                         parsed, scored_turn, client_ws
@@ -657,10 +658,7 @@ class VoiceProxyHandler:
                     error_code = str(error_obj.get("code") or "")
                     if error_code == AVATAR_RESOURCE_EXHAUSTED_CODE and not avatar_surrendered:
                         avatar_retry_attempts += 1
-                        error_message = str(
-                            error_obj.get("message")
-                            or "Azure avatar service is currently saturated."
-                        )
+                        error_message = str(error_obj.get("message") or "Azure avatar service is currently saturated.")
                         if avatar_retry_attempts >= MAX_AVATAR_ATTEMPTS:
                             avatar_surrendered = True
                             await self._send_message(

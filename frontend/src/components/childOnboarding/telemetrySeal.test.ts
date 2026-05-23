@@ -43,7 +43,7 @@ describe('child onboarding telemetry seal', () => {
     }
     expect(
       offenders,
-      `telemetry leaked into child-mode files: ${JSON.stringify(offenders, null, 2)}`,
+      `telemetry leaked into child-mode files: ${JSON.stringify(offenders, null, 2)}`
     ).toEqual([])
   })
 
@@ -53,7 +53,7 @@ describe('child onboarding telemetry seal', () => {
     // prefixes vary by Vite's glob normalization.
     expect(keys.length).toBeGreaterThan(3)
     // Known sentinel files exist in both roots.
-    expect(keys.some((k) => k.endsWith('childUiState.ts'))).toBe(true)
-    expect(keys.some((k) => k.endsWith('ChildMascot.tsx'))).toBe(true)
+    expect(keys.some(k => k.endsWith('childUiState.ts'))).toBe(true)
+    expect(keys.some(k => k.endsWith('ChildMascot.tsx'))).toBe(true)
   })
 })

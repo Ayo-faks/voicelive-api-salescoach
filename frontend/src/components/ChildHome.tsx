@@ -3,7 +3,13 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Badge, Button, Card, Text, makeStyles } from '@fluentui/react-components'
+import {
+  Badge,
+  Button,
+  Card,
+  Text,
+  makeStyles,
+} from '@fluentui/react-components'
 import type { ChildProfile, Scenario } from '../types'
 import { AVATAR_OPTIONS } from '../types'
 import { ScenarioList } from './ScenarioList'
@@ -218,10 +224,13 @@ export function ChildHome({
         <div className={styles.heroCopy}>
           <Text className={styles.eyebrow}>Recommended next practice</Text>
           <Text className={styles.title}>
-            {selectedChild ? `Hi ${selectedChild.name}, let's practise.` : 'Let\'s practise.'}
+            {selectedChild
+              ? `Hi ${selectedChild.name}, let's practise.`
+              : "Let's practise."}
           </Text>
           <Text className={styles.heroHint}>
-            Start the recommended exercise from here, or browse by step below and tap any card to jump straight in.
+            Start the recommended exercise from here, or browse by step below
+            and tap any card to jump straight in.
           </Text>
           <div className={styles.chipRow}>
             <Badge appearance="tint" className={styles.chip}>
@@ -239,9 +248,7 @@ export function ChildHome({
             ) : null}
           </div>
           {selectedExercise ? (
-            <Text className={styles.body}>
-              {selectedExercise.description}
-            </Text>
+            <Text className={styles.body}>{selectedExercise.description}</Text>
           ) : null}
         </div>
 

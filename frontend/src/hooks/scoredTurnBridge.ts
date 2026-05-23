@@ -52,18 +52,22 @@ export interface ScoredTurnFrame<TPayload> {
 
 /** Build the outgoing `wulo.scored_turn.begin` frame. */
 export function buildBeginFrame(
-  payload: ScoredTurnBeginPayload,
+  payload: ScoredTurnBeginPayload
 ): ScoredTurnFrame<ScoredTurnBeginPayload> {
   return { type: 'wulo.scored_turn.begin', payload }
 }
 
 /** Build the outgoing `wulo.scored_turn.end` frame. */
-export function buildEndFrame(turnId: string): ScoredTurnFrame<{ turnId: string }> {
+export function buildEndFrame(
+  turnId: string
+): ScoredTurnFrame<{ turnId: string }> {
   return { type: 'wulo.scored_turn.end', payload: { turnId } }
 }
 
 /** Build the outgoing `wulo.mic_mode` broadcast frame. */
-export function buildMicModeFrame(mode: MicMode): ScoredTurnFrame<{ mode: MicMode }> {
+export function buildMicModeFrame(
+  mode: MicMode
+): ScoredTurnFrame<{ mode: MicMode }> {
   return { type: 'wulo.mic_mode', payload: { mode } }
 }
 
@@ -87,7 +91,7 @@ export const DEFAULT_SCORED_TURN_WINDOW_MS = 4000
  */
 export function composeScoredTurnBegin(
   payload: ScoredTurnBeginPayload,
-  now: number,
+  now: number
 ): {
   frame: ScoredTurnFrame<ScoredTurnBeginPayload>
   reducerTurn: ComposedScoredTurn
@@ -97,7 +101,8 @@ export function composeScoredTurnBegin(
       ? payload.windowMs
       : DEFAULT_SCORED_TURN_WINDOW_MS
   const referenceText =
-    typeof payload.referenceText === 'string' && payload.referenceText.length > 0
+    typeof payload.referenceText === 'string' &&
+    payload.referenceText.length > 0
       ? payload.referenceText
       : payload.targetWord
   const frame = buildBeginFrame({
@@ -130,7 +135,7 @@ export interface ScoredTurnReducerApi {
  */
 export function handleScoredTurnServerEvent(
   msg: Record<string, unknown> | null | undefined,
-  api: ScoredTurnReducerApi,
+  api: ScoredTurnReducerApi
 ):
   | { kind: 'ack'; payload: ScoredTurnAckPayload }
   | { kind: 'result'; payload: ScoredTurnResultPayload }
@@ -170,13 +175,16 @@ function parseResultPayload(raw: unknown): ScoredTurnResultPayload | null {
   if (!turnId) return null
   const verdictRaw = typeof obj.verdict === 'string' ? obj.verdict : ''
   const verdict: ScoredTurnVerdict =
-    verdictRaw === 'correct' || verdictRaw === 'incorrect' || verdictRaw === 'timeout'
+    verdictRaw === 'correct' ||
+    verdictRaw === 'incorrect' ||
+    verdictRaw === 'timeout'
       ? verdictRaw
       : 'timeout'
   return {
     turnId,
     targetWord: typeof obj.targetWord === 'string' ? obj.targetWord : '',
-    referenceText: typeof obj.referenceText === 'string' ? obj.referenceText : '',
+    referenceText:
+      typeof obj.referenceText === 'string' ? obj.referenceText : '',
     transcript: typeof obj.transcript === 'string' ? obj.transcript : null,
     verdict,
     elapsedMs: typeof obj.elapsedMs === 'number' ? obj.elapsedMs : 0,

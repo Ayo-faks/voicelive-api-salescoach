@@ -105,9 +105,7 @@ class ReportExportContextBuilder:
         ]
         if redaction_overrides[REDACTION_HIDE_INTERNAL_METADATA]:
             metric_cards = [
-                (label, value)
-                for label, value in metric_cards
-                if label not in INTERNAL_METADATA_CARD_LABELS
+                (label, value) for label, value in metric_cards if label not in INTERNAL_METADATA_CARD_LABELS
             ]
 
         badges: List[str] = []
@@ -138,7 +136,8 @@ class ReportExportContextBuilder:
             report=report,
             child_name=child_name,
             subtitle=f"{child_name} • {str(report.get('report_type') or DEFAULT_REPORT_TYPE).replace('_', ' ')}",
-            summary_text=str(report.get("summary_text") or "").strip() or "No summary note has been saved for this report yet.",
+            summary_text=str(report.get("summary_text") or "").strip()
+            or "No summary note has been saved for this report yet.",
             metric_cards=metric_cards,
             included_sessions=included_sessions,
             sections=sections,
@@ -153,34 +152,37 @@ class ReportExportContextBuilder:
 class HtmlReportExporter:
     def render(self, export_context: ExportContext) -> str:
         report = export_context.report
-        session_items_html = "".join(
-            f"<li><span class=\"session-date\">{escape(format_date(session.get('timestamp')))}</span><strong>{escape(str(cast(Dict[str, Any], session.get('exercise') or {}).get('name') or 'Saved session'))}</strong><span>{escape(format_session_metrics(session))}</span></li>"
-            for session in export_context.included_sessions
-        ) or "<li><strong>No saved sessions were available when this export was generated.</strong></li>"
+        session_items_html = (
+            "".join(
+                f"<li><span class=\"session-date\">{escape(format_date(session.get('timestamp')))}</span><strong>{escape(str(cast(Dict[str, Any], session.get('exercise') or {}).get('name') or 'Saved session'))}</strong><span>{escape(format_session_metrics(session))}</span></li>"
+                for session in export_context.included_sessions
+            )
+            or "<li><strong>No saved sessions were available when this export was generated.</strong></li>"
+        )
         section_blocks_html = "".join(self._render_section_html(section) for section in export_context.sections)
-        badge_html = "".join(f"<span class=\"badge\">{escape(badge)}</span>" for badge in export_context.badges)
+        badge_html = "".join(f'<span class="badge">{escape(badge)}</span>' for badge in export_context.badges)
         summary_html = (
-            f"<div class=\"summary\"><p class=\"summary-title\">Executive summary</p><p class=\"summary-text\">{escape(export_context.summary_text)}</p></div>"
+            f'<div class="summary"><p class="summary-title">Executive summary</p><p class="summary-text">{escape(export_context.summary_text)}</p></div>'
             if export_context.show_summary_text
             else ""
         )
         metric_cards_html = "".join(
-            f"<div class=\"metric-card\"><p class=\"metric-label\">{escape(label)}</p><p class=\"metric-value\">{escape(value)}</p></div>"
+            f'<div class="metric-card"><p class="metric-label">{escape(label)}</p><p class="metric-value">{escape(value)}</p></div>'
             for label, value in export_context.metric_cards
         )
-        metrics_html = (
-            f"<div class=\"metrics\">{metric_cards_html}</div>"
-            if export_context.show_overview_metrics
-            else ""
-        )
+        metrics_html = f'<div class="metrics">{metric_cards_html}</div>' if export_context.show_overview_metrics else ""
         session_panel_html = (
-            f"<aside class=\"panel\"><h2>Included sessions</h2><ol class=\"session-list\">{session_items_html}</ol></aside>"
+            f'<aside class="panel"><h2>Included sessions</h2><ol class="session-list">{session_items_html}</ol></aside>'
             if export_context.show_session_list
             else ""
         )
-        footer_notice_html = f"<p class=\"footer\">{escape(export_context.redaction_notice)}</p>" if export_context.redaction_notice else ""
+        footer_notice_html = (
+            f'<p class="footer">{escape(export_context.redaction_notice)}</p>'
+            if export_context.redaction_notice
+            else ""
+        )
         content_grid_class = "content-grid" if export_context.show_session_list else "content-grid single-column"
-        badge_row_html = f"<div class=\"badge-row\">{badge_html}</div>" if badge_html else ""
+        badge_row_html = f'<div class="badge-row">{badge_html}</div>' if badge_html else ""
 
         return f"""<!doctype html>
 <html lang=\"en\">
@@ -457,7 +459,7 @@ class HtmlReportExporter:
         if narrative:
             content_parts.append(f"<p>{escape(narrative)}</p>")
         if metric_html:
-            content_parts.append(f"<div class=\"section-metrics\">{metric_html}</div>")
+            content_parts.append(f'<div class="section-metrics">{metric_html}</div>')
         if bullet_html:
             content_parts.append(f"<ul>{bullet_html}</ul>")
         content_parts.append("</section>")
@@ -522,7 +524,9 @@ class PdfReportExporter:
             )
             for session in export_context.included_sessions:
                 session_name = str(cast(Dict[str, Any], session.get("exercise") or {}).get("name") or "Saved session")
-                session_copy = f"{format_date(session.get('timestamp'))} — {session_name}. {format_session_metrics(session)}"
+                session_copy = (
+                    f"{format_date(session.get('timestamp'))} — {session_name}. {format_session_metrics(session)}"
+                )
                 story.append(Paragraph(pdf_text(session_copy), styles["ReportBullet"]))
 
         for section in export_context.sections:

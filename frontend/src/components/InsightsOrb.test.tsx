@@ -22,14 +22,16 @@ describe('InsightsOrb', () => {
     const orb = screen.getByTestId('insights-orb')
     expect(orb.getAttribute('data-state')).toBe('idle')
     expect(screen.getByTestId('insights-orb-transcript').textContent).toContain(
-      'Transcript will appear here.',
+      'Transcript will appear here.'
     )
     const sphere = screen.getByTestId('insights-orb-sphere') as HTMLElement
     expect(getScaleFactor(sphere)).toBeCloseTo(1, 3)
   })
 
   it('scales the orb with input level while listening', () => {
-    const { rerender } = render(<InsightsOrb state="listening" inputLevel={0} />)
+    const { rerender } = render(
+      <InsightsOrb state="listening" inputLevel={0} />
+    )
     const sphere = screen.getByTestId('insights-orb-sphere') as HTMLElement
     const quietScale = getScaleFactor(sphere)
 
@@ -41,7 +43,9 @@ describe('InsightsOrb', () => {
   })
 
   it('scales the orb with output level while speaking', () => {
-    const { rerender } = render(<InsightsOrb state="speaking" outputLevel={0} />)
+    const { rerender } = render(
+      <InsightsOrb state="speaking" outputLevel={0} />
+    )
     const sphere = screen.getByTestId('insights-orb-sphere') as HTMLElement
     const quiet = getScaleFactor(sphere)
     rerender(<InsightsOrb state="speaking" outputLevel={0.8} />)
@@ -49,7 +53,9 @@ describe('InsightsOrb', () => {
   })
 
   it('ignores levels while thinking, idle, or interrupted', () => {
-    const { rerender } = render(<InsightsOrb state="thinking" inputLevel={1} outputLevel={1} />)
+    const { rerender } = render(
+      <InsightsOrb state="thinking" inputLevel={1} outputLevel={1} />
+    )
     const sphere = screen.getByTestId('insights-orb-sphere') as HTMLElement
     const thinkingScale = getScaleFactor(sphere)
     expect(thinkingScale).toBeGreaterThan(1) // small breathing swing
@@ -63,10 +69,15 @@ describe('InsightsOrb', () => {
   })
 
   it('renders the provided transcript verbatim', () => {
-    render(<InsightsOrb state="listening" transcript="Hello, show me last week's scores." />)
-    expect(
-      screen.getByTestId('insights-orb-transcript').textContent,
-    ).toBe("Hello, show me last week's scores.")
+    render(
+      <InsightsOrb
+        state="listening"
+        transcript="Hello, show me last week's scores."
+      />
+    )
+    expect(screen.getByTestId('insights-orb-transcript').textContent).toBe(
+      "Hello, show me last week's scores."
+    )
   })
 
   it('renders an interrupt button while active and calls it on click', () => {
@@ -78,7 +89,7 @@ describe('InsightsOrb', () => {
         outputLevel={0.6}
         onInterrupt={onInterrupt}
         interruptLabel="Interrupt reply"
-      />,
+      />
     )
 
     const interruptButton = screen.getByTestId('insights-orb-interrupt')
@@ -109,7 +120,11 @@ describe('InsightsOrb', () => {
   })
 
   it('clamps and sanitises out-of-range / NaN levels', () => {
-    const cases: Array<{ state: InsightsVoiceState; input?: number; output?: number }> = [
+    const cases: Array<{
+      state: InsightsVoiceState
+      input?: number
+      output?: number
+    }> = [
       { state: 'listening', input: Number.NaN },
       { state: 'listening', input: -5 },
       { state: 'listening', input: 42 },
@@ -117,9 +132,11 @@ describe('InsightsOrb', () => {
     ]
     for (const { state, input, output } of cases) {
       const { unmount } = render(
-        <InsightsOrb state={state} inputLevel={input} outputLevel={output} />,
+        <InsightsOrb state={state} inputLevel={input} outputLevel={output} />
       )
-      const scale = getScaleFactor(screen.getByTestId('insights-orb-sphere') as HTMLElement)
+      const scale = getScaleFactor(
+        screen.getByTestId('insights-orb-sphere') as HTMLElement
+      )
       expect(Number.isFinite(scale)).toBe(true)
       expect(scale).toBeGreaterThanOrEqual(1)
       expect(scale).toBeLessThanOrEqual(1.5)
@@ -132,9 +149,13 @@ describe('InsightsOrb', () => {
     expect(screen.getByRole('img').getAttribute('aria-label')).toContain('Idle')
 
     rerender(<InsightsOrb state="error" />)
-    expect(screen.getByRole('img').getAttribute('aria-label')).toContain('error')
+    expect(screen.getByRole('img').getAttribute('aria-label')).toContain(
+      'error'
+    )
 
     rerender(<InsightsOrb state="listening" ariaLabel="Noah's caseload" />)
-    expect(screen.getByRole('img').getAttribute('aria-label')).toContain("Noah's caseload")
+    expect(screen.getByRole('img').getAttribute('aria-label')).toContain(
+      "Noah's caseload"
+    )
   })
 })

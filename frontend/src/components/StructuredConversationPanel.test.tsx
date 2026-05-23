@@ -57,7 +57,7 @@ describe('StructuredConversationPanel (Stage 8)', () => {
       <StructuredConversationPanel
         metadata={{ ...baseMetadata, topics: [] }}
         audience="therapist"
-      />,
+      />
     )
     skipIntro()
     await waitFor(() => {
@@ -73,16 +73,18 @@ describe('StructuredConversationPanel (Stage 8)', () => {
         audience="therapist"
         realtimeReady
         onSendRealtime={onSendRealtime}
-      />,
+      />
     )
     const configure = onSendRealtime.mock.calls.find(
-      ([p]) => (p as { type: string }).type === 'wulo.tally_configure',
+      ([p]) => (p as { type: string }).type === 'wulo.tally_configure'
     )
     expect(configure).toBeTruthy()
     if (!configure) return
-    const payload = (configure[0] as { payload: { suggestedTargetWords: string[] } }).payload
+    const payload = (
+      configure[0] as { payload: { suggestedTargetWords: string[] } }
+    ).payload
     expect(payload.suggestedTargetWords).toEqual(
-      expect.arrayContaining(['shell', 'ship', 'shore', 'sheep', 'shed']),
+      expect.arrayContaining(['shell', 'ship', 'shore', 'sheep', 'shed'])
     )
   })
 
@@ -99,10 +101,12 @@ describe('StructuredConversationPanel (Stage 8)', () => {
           accuracy: 7 / 9,
           elapsedSeconds: 45,
         })}
-      />,
+      />
     )
     skipIntro()
-    const topic = await screen.findByRole('button', { name: /Pick topic Beach day/i })
+    const topic = await screen.findByRole('button', {
+      name: /Pick topic Beach day/i,
+    })
     fireEvent.click(topic)
     const start = await screen.findByTestId('structured-conversation-start')
     await waitFor(() => {
@@ -123,16 +127,18 @@ describe('StructuredConversationPanel (Stage 8)', () => {
         audience="therapist"
         readyToStart
         targetTally={makeTally({ scaffoldEscalated: true })}
-      />,
+      />
     )
     skipIntro()
-    const topic = await screen.findByRole('button', { name: /Pick topic Beach day/i })
+    const topic = await screen.findByRole('button', {
+      name: /Pick topic Beach day/i,
+    })
     fireEvent.click(topic)
     const start = await screen.findByTestId('structured-conversation-start')
     fireEvent.click(start)
     await waitFor(() => {
       expect(
-        document.querySelector('[data-slot="scaffold-escalate-badge"]'),
+        document.querySelector('[data-slot="scaffold-escalate-badge"]')
       ).toBeTruthy()
     })
   })
@@ -145,10 +151,12 @@ describe('StructuredConversationPanel (Stage 8)', () => {
         audience="therapist"
         readyToStart
         onSendRealtime={onSendRealtime}
-      />,
+      />
     )
     skipIntro()
-    const topic = await screen.findByRole('button', { name: /Pick topic Beach day/i })
+    const topic = await screen.findByRole('button', {
+      name: /Pick topic Beach day/i,
+    })
     fireEvent.click(topic)
     fireEvent.click(await screen.findByTestId('structured-conversation-start'))
     const incCorrect = await screen.findByTestId('override-inc-correct')
@@ -172,18 +180,22 @@ describe('StructuredConversationPanel (Stage 8)', () => {
         readyToStart
         onSendRealtime={onSendRealtime}
         onSpeakExerciseText={onSpeakExerciseText}
-      />,
+      />
     )
     skipIntro()
-    const farm = await screen.findByRole('button', { name: /Pick topic Farm visit/i })
+    const farm = await screen.findByRole('button', {
+      name: /Pick topic Farm visit/i,
+    })
     fireEvent.click(farm)
     fireEvent.click(await screen.findByTestId('structured-conversation-start'))
-    fireEvent.click(await screen.findByTestId('structured-conversation-model-it'))
+    fireEvent.click(
+      await screen.findByTestId('structured-conversation-model-it')
+    )
     await waitFor(() => {
       expect(onSpeakExerciseText).toHaveBeenCalledWith('sheep')
     })
     const eventTypes = onSendRealtime.mock.calls.map(
-      c => (c[0] as { type: string }).type,
+      c => (c[0] as { type: string }).type
     )
     expect(eventTypes).toContain('wulo.request_pause')
     expect(eventTypes).toContain('wulo.request_resume')

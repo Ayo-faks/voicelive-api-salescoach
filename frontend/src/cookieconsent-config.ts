@@ -10,7 +10,11 @@ const CLARITY_ID = 'w8lm78zo88'
 function loadClarity(): void {
   if ((window as any).clarity) return
   ;(function (c: any, l: Document, a: string, r: string, i: string) {
-    c[a] = c[a] || function (...args: any[]) { (c[a].q = c[a].q || []).push(args) }
+    c[a] =
+      c[a] ||
+      function (...args: any[]) {
+        ;(c[a].q = c[a].q || []).push(args)
+      }
     const t = l.createElement(r) as HTMLScriptElement
     t.async = true
     t.src = 'https://www.clarity.ms/tag/' + i
@@ -39,9 +43,7 @@ export function initCookieConsent(): void {
         enabled: false,
         readOnly: false,
         autoClear: {
-          cookies: [
-            { name: /^_cl/ },
-          ],
+          cookies: [{ name: /^_cl/ }],
         },
       },
     },

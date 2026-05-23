@@ -15,7 +15,7 @@ function getDefaultScenarioData(): CustomScenarioData {
     targetWords: ['sun', 'sock', 'soap'],
     difficulty: 'easy',
     promptText:
-      'Let\'s practice the /s/ sound together. Say each word slowly after me.',
+      "Let's practice the /s/ sound together. Say each word slowly after me.",
     systemPrompt: `You are Wulo, a warm and playful speech practice buddy helping a child with a therapist-supervised exercise.
 
 EXERCISE STYLE:
@@ -31,7 +31,7 @@ SESSION FLOW:
 3. Encourage another try when needed with calm, positive language
 4. End with a short celebration of effort
 
-Use child-facing language like "Let\'s practice!", "Tap to talk!", and "Great trying!".`,
+Use child-facing language like "Let's practice!", "Tap to talk!", and "Great trying!".`,
   }
 }
 
@@ -44,7 +44,8 @@ function normalizeScenarioData(
     ...defaults,
     ...scenarioData,
     targetWords:
-      Array.isArray(scenarioData?.targetWords) && scenarioData?.targetWords.length
+      Array.isArray(scenarioData?.targetWords) &&
+      scenarioData?.targetWords.length
         ? scenarioData.targetWords
         : defaults.targetWords,
   }

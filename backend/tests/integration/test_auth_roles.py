@@ -463,9 +463,7 @@ def test_parent_cannot_accept_invitation_for_different_email(client: FlaskClient
     )
 
     assert wrong_accept_response.status_code == 400
-    assert wrong_accept_response.get_json() == {
-        "error": "Invitation email does not match the authenticated user"
-    }
+    assert wrong_accept_response.get_json() == {"error": "Invitation email does not match the authenticated user"}
 
 
 def test_expired_invitation_cannot_be_accepted_until_resent(client: FlaskClient):
@@ -528,7 +526,9 @@ def test_export_rejects_get_request(client: FlaskClient):
     _signup_as_therapist(client, "user-1", "first@example.com", name="First User")
 
     child_response = client.post(
-        "/api/children", headers=therapist_headers, json={"name": "ExportChild"},
+        "/api/children",
+        headers=therapist_headers,
+        json={"name": "ExportChild"},
     )
     child_id = child_response.get_json()["id"]
 
@@ -542,7 +542,9 @@ def test_export_rejects_without_confirm(client: FlaskClient):
     _signup_as_therapist(client, "user-1", "first@example.com", name="First User")
 
     child_response = client.post(
-        "/api/children", headers=therapist_headers, json={"name": "ExportChild"},
+        "/api/children",
+        headers=therapist_headers,
+        json={"name": "ExportChild"},
     )
     child_id = child_response.get_json()["id"]
 
@@ -561,7 +563,9 @@ def test_export_rejects_without_reason(client: FlaskClient):
     _signup_as_therapist(client, "user-1", "first@example.com", name="First User")
 
     child_response = client.post(
-        "/api/children", headers=therapist_headers, json={"name": "ExportChild"},
+        "/api/children",
+        headers=therapist_headers,
+        json={"name": "ExportChild"},
     )
     child_id = child_response.get_json()["id"]
 
@@ -586,7 +590,9 @@ def test_export_succeeds_with_confirm_and_reason(client: FlaskClient):
     _signup_as_therapist(client, "user-1", "first@example.com", name="First User")
 
     child_response = client.post(
-        "/api/children", headers=therapist_headers, json={"name": "ExportChild"},
+        "/api/children",
+        headers=therapist_headers,
+        json={"name": "ExportChild"},
     )
     child_id = child_response.get_json()["id"]
 
@@ -664,6 +670,7 @@ def test_admin_can_assign_admin_role(client: FlaskClient):
 
     # Directly set user-1 to admin via storage for test setup
     import src.app as _app
+
     _app.storage_service.update_user_role("user-1", "admin")
 
     response = client.post(
@@ -906,6 +913,7 @@ def test_admin_bypasses_workspace_access_guard(client: FlaskClient):
     _signup_as_therapist(client, "user-admin", "admin@example.com", name="Admin")
 
     import src.app as _app
+
     _app.storage_service.update_user_role("user-admin", "admin")
 
     child_resp = client.post("/api/children", headers=t1_headers, json={"name": "Admin Visible"})
@@ -955,6 +963,7 @@ def test_legacy_child_without_workspace_still_accessible(client: FlaskClient):
     child_id = child_resp.get_json()["id"]
 
     import src.app as _app
+
     _app.storage_service._execute_write(
         lambda conn: conn.execute("UPDATE children SET workspace_id = NULL WHERE id = ?", (child_id,))
     )

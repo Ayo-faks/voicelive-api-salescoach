@@ -34,9 +34,7 @@ def upgrade() -> None:
         )
         """
     )
-    op.execute(
-        "CREATE INDEX IF NOT EXISTS idx_parental_consents_child ON parental_consents (child_id)"
-    )
+    op.execute("CREATE INDEX IF NOT EXISTS idx_parental_consents_child ON parental_consents (child_id)")
 
 
 def downgrade() -> None:

@@ -5,7 +5,10 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../services/api'
-import { normalizeStreamingDrillText, replaceDrillTokens } from '../utils/drillTokens'
+import {
+  normalizeStreamingDrillText,
+  replaceDrillTokens,
+} from '../utils/drillTokens'
 import type { AppConfig, Message } from '../types'
 
 type RealtimeEvent = Record<string, unknown> & {
@@ -49,7 +52,8 @@ function resolveWebSocketUrl(config: AppConfig): string {
   }
 
   const endpoint =
-    typeof config.ws_endpoint === 'string' && config.ws_endpoint.trim().length > 0
+    typeof config.ws_endpoint === 'string' &&
+    config.ws_endpoint.trim().length > 0
       ? config.ws_endpoint
       : '/ws/voice'
 
@@ -72,7 +76,10 @@ function resolveWebSocketUrl(config: AppConfig): string {
 }
 
 function createClientMessageId(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+  if (
+    typeof crypto !== 'undefined' &&
+    typeof crypto.randomUUID === 'function'
+  ) {
     return crypto.randomUUID()
   }
 
@@ -115,7 +122,9 @@ export function useRealtime(options: RealtimeOptions) {
         return text
       }
 
-      return streaming ? normalizeStreamingDrillText(text) : replaceDrillTokens(text)
+      return streaming
+        ? normalizeStreamingDrillText(text)
+        : replaceDrillTokens(text)
     },
     []
   )
@@ -179,10 +188,10 @@ export function useRealtime(options: RealtimeOptions) {
           prev.map(message =>
             message.id === activeStreamingMessage.id
               ? {
-                ...message,
-                content: nextVisibleTranscript,
-                streaming: false,
-              }
+                  ...message,
+                  content: nextVisibleTranscript,
+                  streaming: false,
+                }
               : message
           )
         )
@@ -271,89 +280,92 @@ export function useRealtime(options: RealtimeOptions) {
         callbackRefs.current.onMessage?.(msg)
 
         switch (msg.type) {
-        case 'response.audio.delta':
-          if (msg.delta) {
-            callbackRefs.current.onAudioDelta?.(msg.delta)
-            audioRecording.current.push({
-              type: 'assistant',
-              data: msg.delta,
-              timestamp: new Date().toISOString(),
-            })
-          }
-          break
-        case 'conversation.item.input_audio_transcription.delta': {
-          const deltaText =
-            typeof msg.delta === 'string'
-              ? msg.delta
-              : typeof msg.transcript === 'string'
-                ? msg.transcript
-                : ''
+          case 'response.audio.delta':
+            if (msg.delta) {
+              callbackRefs.current.onAudioDelta?.(msg.delta)
+              audioRecording.current.push({
+                type: 'assistant',
+                data: msg.delta,
+                timestamp: new Date().toISOString(),
+              })
+            }
+            break
+          case 'conversation.item.input_audio_transcription.delta': {
+            const deltaText =
+              typeof msg.delta === 'string'
+                ? msg.delta
+                : typeof msg.transcript === 'string'
+                  ? msg.transcript
+                  : ''
 
-          appendStreamingMessage('user', deltaText)
-          break
-        }
-        case 'conversation.item.input_audio_transcription.completed':
-          if (msg.transcript) {
-            finalizeStreamingMessage('user', msg.transcript)
-            conversationRecording.current.push({
-              role: 'user',
-              content: msg.transcript,
-            })
-            callbackRefs.current.onTranscript?.('user', msg.transcript)
+            appendStreamingMessage('user', deltaText)
+            break
           }
-          break
-        case 'conversation.item.input_audio_transcription.failed':
-          if (streamingUserMessageRef.current) {
-            setMessages(prev =>
-              prev.filter(message => message.id !== streamingUserMessageRef.current?.id)
+          case 'conversation.item.input_audio_transcription.completed':
+            if (msg.transcript) {
+              finalizeStreamingMessage('user', msg.transcript)
+              conversationRecording.current.push({
+                role: 'user',
+                content: msg.transcript,
+              })
+              callbackRefs.current.onTranscript?.('user', msg.transcript)
+            }
+            break
+          case 'conversation.item.input_audio_transcription.failed':
+            if (streamingUserMessageRef.current) {
+              setMessages(prev =>
+                prev.filter(
+                  message => message.id !== streamingUserMessageRef.current?.id
+                )
+              )
+              streamingUserMessageRef.current = null
+            }
+            break
+          case 'response.audio_transcript.delta': {
+            const deltaText =
+              typeof msg.delta === 'string'
+                ? msg.delta
+                : typeof msg.transcript === 'string'
+                  ? msg.transcript
+                  : ''
+
+            appendStreamingMessage('assistant', deltaText)
+            break
+          }
+          case 'response.audio_transcript.done':
+            if (msg.transcript) {
+              const finalTranscript = replaceDrillTokens(msg.transcript)
+              finalizeStreamingMessage('assistant', finalTranscript)
+              conversationRecording.current.push({
+                role: 'assistant',
+                content: finalTranscript,
+              })
+              callbackRefs.current.onTranscript?.('assistant', finalTranscript)
+            }
+            break
+          case 'proxy.connected':
+            setConnectionState('connected')
+            setConnectionMessage('Voice connection ready.')
+            break
+          case 'wulo.avatar_retrying': {
+            // Azure Voice Live avatar is saturated; backend will retry.
+            const payload = (
+              msg as { payload?: { attempt?: number; max_attempts?: number } }
+            ).payload
+            const attempt = payload?.attempt ?? 1
+            const maxAttempts = payload?.max_attempts ?? 3
+            setConnectionMessage(
+              `Avatar service is busy — retrying (${attempt}/${maxAttempts})...`
             )
-            streamingUserMessageRef.current = null
+            break
           }
-          break
-        case 'response.audio_transcript.delta': {
-          const deltaText =
-            typeof msg.delta === 'string'
-              ? msg.delta
-              : typeof msg.transcript === 'string'
-                ? msg.transcript
-                : ''
-
-          appendStreamingMessage('assistant', deltaText)
-          break
+          case 'wulo.avatar_unavailable':
+            // Surrender after repeated saturation; session continues voice-only.
+            setConnectionMessage(
+              'Avatar service is unavailable right now — continuing with voice only.'
+            )
+            break
         }
-        case 'response.audio_transcript.done':
-          if (msg.transcript) {
-            const finalTranscript = replaceDrillTokens(msg.transcript)
-            finalizeStreamingMessage('assistant', finalTranscript)
-            conversationRecording.current.push({
-              role: 'assistant',
-              content: finalTranscript,
-            })
-            callbackRefs.current.onTranscript?.('assistant', finalTranscript)
-          }
-          break
-        case 'proxy.connected':
-          setConnectionState('connected')
-          setConnectionMessage('Voice connection ready.')
-          break
-        case 'wulo.avatar_retrying': {
-          // Azure Voice Live avatar is saturated; backend will retry.
-          const payload = (msg as { payload?: { attempt?: number; max_attempts?: number } }).payload
-          const attempt = payload?.attempt ?? 1
-          const maxAttempts = payload?.max_attempts ?? 3
-          setConnectionMessage(
-            `Avatar service is busy — retrying (${attempt}/${maxAttempts})...`,
-          )
-          break
-        }
-        case 'wulo.avatar_unavailable':
-          // Surrender after repeated saturation; session continues voice-only.
-          setConnectionMessage(
-            'Avatar service is unavailable right now — continuing with voice only.',
-          )
-          break
-      }
-
       }
 
       ws.onerror = () => {
@@ -426,29 +438,32 @@ export function useRealtime(options: RealtimeOptions) {
     streamingAssistantMessageRef.current = null
   }, [])
 
-  const addLocalMessage = useCallback((role: 'user' | 'assistant', content: string) => {
-    const trimmedContent = content.trim()
+  const addLocalMessage = useCallback(
+    (role: 'user' | 'assistant', content: string) => {
+      const trimmedContent = content.trim()
 
-    if (!trimmedContent) {
-      return
-    }
+      if (!trimmedContent) {
+        return
+      }
 
-    const id = createClientMessageId()
-    setMessages(prev => [
-      ...prev,
-      {
-        id,
+      const id = createClientMessageId()
+      setMessages(prev => [
+        ...prev,
+        {
+          id,
+          role,
+          content: trimmedContent,
+          timestamp: new Date(),
+          streaming: false,
+        },
+      ])
+      conversationRecording.current.push({
         role,
         content: trimmedContent,
-        timestamp: new Date(),
-        streaming: false,
-      },
-    ])
-    conversationRecording.current.push({
-      role,
-      content: trimmedContent,
-    })
-  }, [])
+      })
+    },
+    []
+  )
 
   const getRecordings = useCallback(
     () => ({

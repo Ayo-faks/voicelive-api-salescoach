@@ -76,7 +76,9 @@ function narrowExerciseRow(value: unknown): ExerciseRow | null {
   if (!trimmed || trimmed.length > MAX_EXERCISE_TYPE_LENGTH) return null
   const rawFirstRun = value.first_run_at
   const first_run_at =
-    typeof rawFirstRun === 'string' && rawFirstRun.length > 0 ? rawFirstRun : null
+    typeof rawFirstRun === 'string' && rawFirstRun.length > 0
+      ? rawFirstRun
+      : null
   return { exercise_type: trimmed, first_run_at }
 }
 
@@ -85,7 +87,7 @@ function narrowExerciseRow(value: unknown): ExerciseRow | null {
  * view. Unknown shapes, oversize arrays, and bad rows are dropped.
  */
 export function flagsFromServer(
-  blob: ChildUiStateServerBlob | null | undefined,
+  blob: ChildUiStateServerBlob | null | undefined
 ): ChildOnboardingFlags {
   const flags: ChildOnboardingFlags = {}
   if (!blob || !isRecord(blob)) return flags
@@ -121,7 +123,7 @@ export function flagsFromServer(
  */
 export function mergeFlags(
   current: ChildOnboardingFlags,
-  patch: ChildOnboardingFlags,
+  patch: ChildOnboardingFlags
 ): ChildOnboardingFlags {
   const next: ChildOnboardingFlags = { ...current }
   if (typeof patch.mascot_seen === 'boolean') {
@@ -130,7 +132,10 @@ export function mergeFlags(
   if (typeof patch.wrap_up_seen === 'boolean') {
     next.wrap_up_seen = patch.wrap_up_seen
   }
-  if (patch.exercise_tutorials_seen && isRecord(patch.exercise_tutorials_seen)) {
+  if (
+    patch.exercise_tutorials_seen &&
+    isRecord(patch.exercise_tutorials_seen)
+  ) {
     const merged = { ...(current.exercise_tutorials_seen ?? {}) }
     let count = Object.keys(merged).length
     for (const [key, value] of Object.entries(patch.exercise_tutorials_seen)) {
@@ -153,7 +158,7 @@ export function mergeFlags(
  * keys so they coexist with real exercise entries.
  */
 export function serverKeyForFlag(
-  flag: 'mascot_seen' | 'wrap_up_seen' | { exercise_type: string },
+  flag: 'mascot_seen' | 'wrap_up_seen' | { exercise_type: string }
 ): string {
   if (flag === 'mascot_seen') return MASCOT_FLAG_KEY
   if (flag === 'wrap_up_seen') return WRAP_UP_FLAG_KEY

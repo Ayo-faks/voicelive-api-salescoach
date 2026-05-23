@@ -61,7 +61,8 @@ const VAD_MIN_SPEECH_SAMPLES = 8
 // If a short utterance mostly lands inside warmup, keep a brief lookback so
 // it can still arm once warmup expires instead of streaming silence forever.
 const VAD_RECENT_SPEECH_LOOKBACK_MS = 250
-const MICROPHONE_BLOCKED_ERROR_MESSAGE = 'Microphone blocked - allow access in your browser to use voice.'
+const MICROPHONE_BLOCKED_ERROR_MESSAGE =
+  'Microphone blocked - allow access in your browser to use voice.'
 const INSECURE_CONTEXT_ERROR_MESSAGE =
   'Voice needs a secure context - open the app at localhost or over HTTPS.'
 const VOICE_START_ERROR_MESSAGE = "Voice couldn't start - try again."
@@ -76,7 +77,10 @@ function isMicrophoneAvailable(): boolean {
 
 type RecorderMode = 'off' | 'stream' | 'monitor'
 
-function resolveInsightsVoiceWebSocketUrl(scope: InsightsScope, conversationId?: string | null): string {
+function resolveInsightsVoiceWebSocketUrl(
+  scope: InsightsScope,
+  conversationId?: string | null
+): string {
   const params = new URLSearchParams({ scope_type: scope.type })
   if (scope.child_id) {
     params.set('child_id', scope.child_id)
@@ -140,7 +144,9 @@ function getVoiceErrorMessage(error: unknown, fallback: string): string {
   return fallback
 }
 
-function normalizeInsightsVoiceMode(mode: InsightsVoiceMode): InsightsVoiceMode {
+function normalizeInsightsVoiceMode(
+  mode: InsightsVoiceMode
+): InsightsVoiceMode {
   return mode === 'push_to_talk' ? 'full_duplex' : mode
 }
 
@@ -187,7 +193,9 @@ export function useInsightsVoice({
   const lastSpeechAtRef = useRef<number | null>(null)
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const maxDelayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const falseInterruptTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const falseInterruptTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  )
   const aecWarmupUntilRef = useRef(0)
   const peakLevelRef = useRef(0)
   const stopRef = useRef<() => Promise<void>>(() => Promise.resolve())
@@ -209,14 +217,17 @@ export function useInsightsVoice({
     }
   }, [])
 
-  const logTiming = useCallback((stage: string, details: Record<string, unknown> = {}) => {
-    console.info('[insights-voice-timing]', {
-      stage,
-      t: performance.now(),
-      turnId: timingRef.current.turnId,
-      ...details,
-    })
-  }, [])
+  const logTiming = useCallback(
+    (stage: string, details: Record<string, unknown> = {}) => {
+      console.info('[insights-voice-timing]', {
+        stage,
+        t: performance.now(),
+        turnId: timingRef.current.turnId,
+        ...details,
+      })
+    },
+    []
+  )
 
   const { recording, inputLevel, toggleRecording } = useRecorder({
     mode: 'stream',
@@ -225,8 +236,13 @@ export function useInsightsVoice({
         pendingInterruptAudioChunksRef.current.push(chunk)
         return
       }
-      if (streamInputEnabledRef.current && wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({ type: 'user_audio_chunk', data: chunk }))
+      if (
+        streamInputEnabledRef.current &&
+        wsRef.current?.readyState === WebSocket.OPEN
+      ) {
+        wsRef.current.send(
+          JSON.stringify({ type: 'user_audio_chunk', data: chunk })
+        )
       }
     },
   })
@@ -255,14 +271,6 @@ export function useInsightsVoice({
     pendingInterruptAudioChunksRef.current = []
     clearFalseInterruptTimer()
   }, [clearFalseInterruptTimer])
-
-  const markSocketClosingIntentionally = useCallback(() => {
-    if (wsRef.current) {
-      intentionalCloseSocketRef.current = wsRef.current
-    }
-    pendingConnectRef.current = null
-    inboundBufferRef.current = ''
-  }, [])
 
   const disconnectSocket = useCallback(() => {
     if (wsRef.current) {
@@ -301,7 +309,7 @@ export function useInsightsVoice({
 
       return recorderTransitionRef.current
     },
-    [toggleRecording],
+    [toggleRecording]
   )
 
   const resetListeningDetection = useCallback(() => {
@@ -345,13 +353,14 @@ export function useInsightsVoice({
         setVoiceState(nextState)
       }
     },
-    [resetTentativeInterrupt, stopMeter],
+    [resetTentativeInterrupt, stopMeter]
   )
 
   const pausePlaybackForInterrupt = useCallback(async () => {
     const audioContext = audioContextRef.current
     if (!audioContext || audioContext.state !== 'running') {
-      playbackPausedForInterruptRef.current = !!audioContext && audioContext.state === 'suspended'
+      playbackPausedForInterruptRef.current =
+        !!audioContext && audioContext.state === 'suspended'
       return
     }
 
@@ -373,12 +382,17 @@ export function useInsightsVoice({
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ type: 'turn.interrupt' }))
       for (const chunk of bufferedChunks) {
-        wsRef.current.send(JSON.stringify({ type: 'user_audio_chunk', data: chunk }))
+        wsRef.current.send(
+          JSON.stringify({ type: 'user_audio_chunk', data: chunk })
+        )
       }
     }
     setVoiceState('interrupted')
     void setRecorderMode('stream').catch(error => {
-      console.warn('Unable to switch recorder to streaming after confirmed interruption', error)
+      console.warn(
+        'Unable to switch recorder to streaming after confirmed interruption',
+        error
+      )
     })
   }, [resetTentativeInterrupt, setRecorderMode])
 
@@ -405,7 +419,12 @@ export function useInsightsVoice({
       setLastError(getVoiceErrorMessage(error, VOICE_RUNTIME_ERROR_MESSAGE))
       setVoiceState('error')
     })
-  }, [resetListeningDetection, resetTentativeInterrupt, setRecorderMode, stopMeter])
+  }, [
+    resetListeningDetection,
+    resetTentativeInterrupt,
+    setRecorderMode,
+    stopMeter,
+  ])
 
   const finishPlaybackIfIdle = useCallback(() => {
     if (activePlaybackCountRef.current > 0) {
@@ -445,13 +464,20 @@ export function useInsightsVoice({
     resetTentativeInterrupt()
     if (recorderModeRef.current !== 'monitor') {
       void setRecorderMode('monitor').catch(error => {
-        console.warn('Unable to restore monitor mode after false interruption', error)
+        console.warn(
+          'Unable to restore monitor mode after false interruption',
+          error
+        )
       })
     }
     void resumePlaybackAfterFalseInterrupt().catch(error => {
       console.warn('Unable to resume playback after false interruption', error)
     })
-  }, [resetTentativeInterrupt, resumePlaybackAfterFalseInterrupt, setRecorderMode])
+  }, [
+    resetTentativeInterrupt,
+    resumePlaybackAfterFalseInterrupt,
+    setRecorderMode,
+  ])
 
   const beginTentativeInterrupt = useCallback(() => {
     if (tentativeInterruptRef.current || interruptRequestedRef.current) {
@@ -467,9 +493,16 @@ export function useInsightsVoice({
       resumeTentativeInterrupt()
     }, FALSE_INTERRUPTION_TIMEOUT_MS)
     void pausePlaybackForInterrupt().catch(error => {
-      console.warn('Unable to pause playback during tentative interruption', error)
+      console.warn(
+        'Unable to pause playback during tentative interruption',
+        error
+      )
     })
-  }, [clearFalseInterruptTimer, pausePlaybackForInterrupt, resumeTentativeInterrupt])
+  }, [
+    clearFalseInterruptTimer,
+    pausePlaybackForInterrupt,
+    resumeTentativeInterrupt,
+  ])
 
   const startMeter = useCallback(() => {
     if (meterRafRef.current !== null) {
@@ -501,11 +534,14 @@ export function useInsightsVoice({
     if (!audioContextRef.current) {
       const AudioContextCtor =
         window.AudioContext ||
-        (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+        (window as typeof window & { webkitAudioContext?: typeof AudioContext })
+          .webkitAudioContext
       if (!AudioContextCtor) {
         throw new Error('AudioContext is not available')
       }
-      const audioContext = new AudioContextCtor({ sampleRate: OUTPUT_SAMPLE_RATE })
+      const audioContext = new AudioContextCtor({
+        sampleRate: OUTPUT_SAMPLE_RATE,
+      })
       const gainNode = audioContext.createGain()
       const analyser = audioContext.createAnalyser()
       analyser.fftSize = 1024
@@ -517,7 +553,10 @@ export function useInsightsVoice({
       analyserRef.current = analyser
     }
 
-    if (audioContextRef.current.state === 'suspended' && !playbackPausedForInterruptRef.current) {
+    if (
+      audioContextRef.current.state === 'suspended' &&
+      !playbackPausedForInterruptRef.current
+    ) {
       await audioContextRef.current.resume()
     }
 
@@ -536,7 +575,11 @@ export function useInsightsVoice({
       }
 
       const samples = decodePcmChunk(event.data_b64)
-      const audioBuffer = audioContext.createBuffer(1, samples.length, OUTPUT_SAMPLE_RATE)
+      const audioBuffer = audioContext.createBuffer(
+        1,
+        samples.length,
+        OUTPUT_SAMPLE_RATE
+      )
       const channelSamples = new Float32Array(samples.length)
       channelSamples.set(samples)
       audioBuffer.copyToChannel(channelSamples, 0)
@@ -546,18 +589,25 @@ export function useInsightsVoice({
       source.connect(gainNode)
       activePlaybackSourcesRef.current.add(source)
 
-      const startAt = Math.max(audioContext.currentTime, playbackCursorRef.current)
+      const startAt = Math.max(
+        audioContext.currentTime,
+        playbackCursorRef.current
+      )
       if (activePlaybackCountRef.current === 0) {
         aecWarmupUntilRef.current = performance.now() + AEC_WARMUP_MS
       }
       if (!timingRef.current.firstPlaybackScheduledLogged) {
         timingRef.current.firstPlaybackScheduledLogged = true
         logTiming('first_playback_scheduled', {
-          scheduleLeadMs: Math.round(Math.max(0, startAt - audioContext.currentTime) * 1000),
+          scheduleLeadMs: Math.round(
+            Math.max(0, startAt - audioContext.currentTime) * 1000
+          ),
           sinceUserStopMs:
             timingRef.current.userStopSentAtPerfMs === null
               ? null
-              : Math.round(performance.now() - timingRef.current.userStopSentAtPerfMs),
+              : Math.round(
+                  performance.now() - timingRef.current.userStopSentAtPerfMs
+                ),
         })
       }
       playbackCursorRef.current = startAt + audioBuffer.duration
@@ -566,7 +616,10 @@ export function useInsightsVoice({
 
       source.onended = () => {
         activePlaybackSourcesRef.current.delete(source)
-        activePlaybackCountRef.current = Math.max(0, activePlaybackCountRef.current - 1)
+        activePlaybackCountRef.current = Math.max(
+          0,
+          activePlaybackCountRef.current - 1
+        )
         if (activePlaybackCountRef.current === 0) {
           playbackCursorRef.current = audioContext.currentTime
           if (pendingCompletionRef.current) {
@@ -577,7 +630,7 @@ export function useInsightsVoice({
 
       source.start(startAt)
     },
-    [ensureAudioGraph, finishPlaybackIfIdle, logTiming],
+    [ensureAudioGraph, finishPlaybackIfIdle, logTiming]
   )
 
   const interrupt = useCallback(() => {
@@ -609,7 +662,13 @@ export function useInsightsVoice({
     await setRecorderMode('off')
     disconnectSocket()
     stopPlayback('idle')
-  }, [disconnectSocket, resetListeningDetection, resetTentativeInterrupt, setRecorderMode, stopPlayback])
+  }, [
+    disconnectSocket,
+    resetListeningDetection,
+    resetTentativeInterrupt,
+    setRecorderMode,
+    stopPlayback,
+  ])
 
   const handleEnvelope = useCallback(
     (event: InsightsVoiceEnvelope) => {
@@ -621,7 +680,10 @@ export function useInsightsVoice({
             }
           } else if (event.agent_state === 'thinking') {
             setVoiceState('thinking')
-          } else if (event.agent_state === 'idle' && activePlaybackCountRef.current === 0) {
+          } else if (
+            event.agent_state === 'idle' &&
+            activePlaybackCountRef.current === 0
+          ) {
             setVoiceState('idle')
           }
           break
@@ -638,7 +700,9 @@ export function useInsightsVoice({
             sinceUserStopMs:
               timingRef.current.userStopSentAtPerfMs === null
                 ? null
-                : Math.round(performance.now() - timingRef.current.userStopSentAtPerfMs),
+                : Math.round(
+                    performance.now() - timingRef.current.userStopSentAtPerfMs
+                  ),
           })
           lastTranscriptRef.current = event.text
           setLastTranscript(event.text)
@@ -651,7 +715,9 @@ export function useInsightsVoice({
               sinceUserStopMs:
                 timingRef.current.userStopSentAtPerfMs === null
                   ? null
-                  : Math.round(performance.now() - timingRef.current.userStopSentAtPerfMs),
+                  : Math.round(
+                      performance.now() - timingRef.current.userStopSentAtPerfMs
+                    ),
             })
           }
           if (interruptRequestedRef.current) {
@@ -659,7 +725,10 @@ export function useInsightsVoice({
           }
           if (recorderModeRef.current !== 'monitor') {
             void setRecorderMode('monitor').catch(error => {
-              console.warn('Unable to monitor insights voice interruption input', error)
+              console.warn(
+                'Unable to monitor insights voice interruption input',
+                error
+              )
             })
           }
           void enqueueAudioChunk(event)
@@ -675,10 +744,13 @@ export function useInsightsVoice({
             sinceUserStopMs:
               timingRef.current.userStopSentAtPerfMs === null
                 ? null
-                : Math.round(performance.now() - timingRef.current.userStopSentAtPerfMs),
+                : Math.round(
+                    performance.now() - timingRef.current.userStopSentAtPerfMs
+                  ),
           })
           const completedEvent = event as TurnCompleted
-          const wasInterrupted = interruptedRef.current || interruptRequestedRef.current
+          const wasInterrupted =
+            interruptedRef.current || interruptRequestedRef.current
           setLastError(null)
           setLastAnswer(completedEvent.answer_text)
           onCompleted?.({
@@ -700,7 +772,12 @@ export function useInsightsVoice({
           console.warn('Insights voice turn failed', event.code, event.message)
           interruptedRef.current = false
           interruptRequestedRef.current = false
-          setLastError(getVoiceErrorMessage(new Error(event.message), VOICE_RUNTIME_ERROR_MESSAGE))
+          setLastError(
+            getVoiceErrorMessage(
+              new Error(event.message),
+              VOICE_RUNTIME_ERROR_MESSAGE
+            )
+          )
           stopPlayback('error')
           rearmListening()
           break
@@ -716,7 +793,7 @@ export function useInsightsVoice({
       rearmListening,
       setRecorderMode,
       stopPlayback,
-    ],
+    ]
   )
 
   const handleRawMessage = useCallback(
@@ -745,7 +822,7 @@ export function useInsightsVoice({
         }
       }
     },
-    [handleEnvelope],
+    [handleEnvelope]
   )
 
   const connectSocket = useCallback(async () => {
@@ -793,10 +870,11 @@ export function useInsightsVoice({
           finish(null)
         }
         socket.onclose = event => {
-          console.warn(
-            '[insights-voice] ws close',
-            { code: event.code, reason: event.reason, wasClean: event.wasClean },
-          )
+          console.warn('[insights-voice] ws close', {
+            code: event.code,
+            reason: event.reason,
+            wasClean: event.wasClean,
+          })
           const intentionalClose = intentionalCloseSocketRef.current === socket
           if (intentionalClose) {
             intentionalCloseSocketRef.current = null
@@ -810,7 +888,9 @@ export function useInsightsVoice({
               connectFailedRef.current = false
               return
             }
-            console.warn('Insights voice websocket closed; falling back to text composer.')
+            console.warn(
+              'Insights voice websocket closed; falling back to text composer.'
+            )
             interruptedRef.current = false
             interruptRequestedRef.current = false
             void setRecorderMode('off')
@@ -824,7 +904,14 @@ export function useInsightsVoice({
     })
 
     return pendingConnectRef.current
-  }, [conversationId, effectiveMode, handleRawMessage, scope, setRecorderMode, stopPlayback])
+  }, [
+    conversationId,
+    effectiveMode,
+    handleRawMessage,
+    scope,
+    setRecorderMode,
+    stopPlayback,
+  ])
 
   const start = useCallback(async () => {
     if (effectiveMode === 'off') {
@@ -903,7 +990,10 @@ export function useInsightsVoice({
         timingRef.current.userStopSentAtUnixMs = clientSentAtUnixMs
         logTiming('user_stop_send', { wallClockMs: clientSentAtUnixMs })
         wsRef.current.send(
-          JSON.stringify({ type: 'user_stop', client_sent_at_unix_ms: clientSentAtUnixMs }),
+          JSON.stringify({
+            type: 'user_stop',
+            client_sent_at_unix_ms: clientSentAtUnixMs,
+          })
         )
         setVoiceState('thinking')
       } else {
@@ -922,7 +1012,11 @@ export function useInsightsVoice({
 
   useEffect(() => {
     const now = performance.now()
-    if (voiceState !== 'speaking' || interruptRequestedRef.current || tentativeInterruptRef.current) {
+    if (
+      voiceState !== 'speaking' ||
+      interruptRequestedRef.current ||
+      tentativeInterruptRef.current
+    ) {
       interruptThresholdStartedAtRef.current = null
       return
     }
@@ -948,7 +1042,11 @@ export function useInsightsVoice({
 
   useEffect(() => {
     const now = performance.now()
-    if (!tentativeInterruptRef.current || interruptRequestedRef.current || voiceState !== 'speaking') {
+    if (
+      !tentativeInterruptRef.current ||
+      interruptRequestedRef.current ||
+      voiceState !== 'speaking'
+    ) {
       interruptConfirmationStartedAtRef.current = null
       return
     }
@@ -960,7 +1058,10 @@ export function useInsightsVoice({
       interruptConfirmationStartedAtRef.current = now
       return
     }
-    if (now - interruptConfirmationStartedAtRef.current >= INTERRUPT_CONFIRMATION_MS) {
+    if (
+      now - interruptConfirmationStartedAtRef.current >=
+      INTERRUPT_CONFIRMATION_MS
+    ) {
       interruptConfirmationStartedAtRef.current = null
       commitTentativeInterrupt()
     }

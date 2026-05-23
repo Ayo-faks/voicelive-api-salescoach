@@ -310,8 +310,10 @@ export function AssessmentPanel({
   const pronunciationAssessment = assessment.pronunciation_assessment
 
   const getScoreBadgeClass = (score: number) => {
-    if (score >= 80) return mergeClasses(styles.scoreBadge, styles.scoreBadgeTeal)
-    if (score >= 60) return mergeClasses(styles.scoreBadge, styles.scoreBadgeSand)
+    if (score >= 80)
+      return mergeClasses(styles.scoreBadge, styles.scoreBadgeTeal)
+    if (score >= 60)
+      return mergeClasses(styles.scoreBadge, styles.scoreBadgeSand)
     return mergeClasses(styles.scoreBadge, styles.scoreBadgeInk)
   }
 
@@ -344,7 +346,10 @@ export function AssessmentPanel({
                       : 'Needs Work'}
                 </Badge>
               </div>
-              <ProgressBar value={aiAssessment.overall_score / 100} thickness="large" />
+              <ProgressBar
+                value={aiAssessment.overall_score / 100}
+                thickness="large"
+              />
             </div>
           )}
 
@@ -358,7 +363,9 @@ export function AssessmentPanel({
           >
             <Tab value="overview">Overview</Tab>
             <Tab value="recommendations">Next Steps</Tab>
-            {showTherapistControls ? <Tab value="notes">Therapist Notes</Tab> : null}
+            {showTherapistControls ? (
+              <Tab value="notes">Therapist Notes</Tab>
+            ) : null}
           </TabList>
 
           {/* Content Section */}
@@ -386,12 +393,15 @@ export function AssessmentPanel({
                       <div className={styles.metricHeader}>
                         <Text size={300}>{metric.label}</Text>
                         <Badge appearance="tint" className={styles.scoreBadge}>
-                          {aiAssessment.articulation_clarity[metric.key]}
-                          /{metric.max}
+                          {aiAssessment.articulation_clarity[metric.key]}/
+                          {metric.max}
                         </Badge>
                       </div>
                       <ProgressBar
-                        value={aiAssessment.articulation_clarity[metric.key] / metric.max}
+                        value={
+                          aiAssessment.articulation_clarity[metric.key] /
+                          metric.max
+                        }
                       />
                     </div>
                   ))}
@@ -408,12 +418,15 @@ export function AssessmentPanel({
                       <div className={styles.metricHeader}>
                         <Text size={300}>{metric.label}</Text>
                         <Badge appearance="tint" className={styles.scoreBadge}>
-                          {aiAssessment.engagement_and_effort[metric.key]}
-                          /{metric.max}
+                          {aiAssessment.engagement_and_effort[metric.key]}/
+                          {metric.max}
                         </Badge>
                       </div>
                       <ProgressBar
-                        value={aiAssessment.engagement_and_effort[metric.key] / metric.max}
+                        value={
+                          aiAssessment.engagement_and_effort[metric.key] /
+                          metric.max
+                        }
                       />
                     </div>
                   ))}
@@ -433,21 +446,35 @@ export function AssessmentPanel({
                   <div className={styles.metric}>
                     <div className={styles.metricHeader}>
                       <Text size={300}>Accuracy</Text>
-                      <Badge appearance="filled" className={getScoreBadgeClass(pronunciationAssessment.accuracy_score)}>
+                      <Badge
+                        appearance="filled"
+                        className={getScoreBadgeClass(
+                          pronunciationAssessment.accuracy_score
+                        )}
+                      >
                         {pronunciationAssessment.accuracy_score.toFixed(1)}
                       </Badge>
                     </div>
-                    <ProgressBar value={pronunciationAssessment.accuracy_score / 100} />
+                    <ProgressBar
+                      value={pronunciationAssessment.accuracy_score / 100}
+                    />
                   </div>
 
                   <div className={styles.metric}>
                     <div className={styles.metricHeader}>
                       <Text size={300}>Fluency</Text>
-                      <Badge appearance="filled" className={getScoreBadgeClass(pronunciationAssessment.fluency_score)}>
+                      <Badge
+                        appearance="filled"
+                        className={getScoreBadgeClass(
+                          pronunciationAssessment.fluency_score
+                        )}
+                      >
                         {pronunciationAssessment.fluency_score.toFixed(1)}
                       </Badge>
                     </div>
-                    <ProgressBar value={pronunciationAssessment.fluency_score / 100} />
+                    <ProgressBar
+                      value={pronunciationAssessment.fluency_score / 100}
+                    />
                   </div>
 
                   {pronunciationAssessment.words && (
@@ -496,20 +523,23 @@ export function AssessmentPanel({
                 </div>
                 {aiAssessment.celebration_points.length > 0 ? (
                   <div className={styles.feedbackGrid}>
-                    {aiAssessment.celebration_points.map(
-                      point => (
-                        <div
-                          key={point}
-                          className={mergeClasses(styles.feedbackItem, styles.strengthItem)}
-                        >
-                          <Text className={styles.feedbackText}>{point}</Text>
-                        </div>
-                      )
-                    )}
+                    {aiAssessment.celebration_points.map(point => (
+                      <div
+                        key={point}
+                        className={mergeClasses(
+                          styles.feedbackItem,
+                          styles.strengthItem
+                        )}
+                      >
+                        <Text className={styles.feedbackText}>{point}</Text>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className={styles.noContent}>
-                    <Text>No celebration points available for this session.</Text>
+                    <Text>
+                      No celebration points available for this session.
+                    </Text>
                   </div>
                 )}
               </div>
@@ -522,18 +552,19 @@ export function AssessmentPanel({
                 </div>
                 {aiAssessment.practice_suggestions.length > 0 ? (
                   <div className={styles.feedbackGrid}>
-                    {aiAssessment.practice_suggestions.map(
-                      suggestion => (
-                        <div
-                          key={suggestion}
-                          className={mergeClasses(styles.feedbackItem, styles.improvementItem)}
-                        >
-                          <Text className={styles.feedbackText}>
-                            {suggestion}
-                          </Text>
-                        </div>
-                      )
-                    )}
+                    {aiAssessment.practice_suggestions.map(suggestion => (
+                      <div
+                        key={suggestion}
+                        className={mergeClasses(
+                          styles.feedbackItem,
+                          styles.improvementItem
+                        )}
+                      >
+                        <Text className={styles.feedbackText}>
+                          {suggestion}
+                        </Text>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className={styles.noContent}>
@@ -555,7 +586,8 @@ export function AssessmentPanel({
               />
               <div className={styles.notesScroll}>
                 <Text size={300} className={styles.notesText} block>
-                  {aiAssessment?.therapist_notes || 'No therapist notes available.'}
+                  {aiAssessment?.therapist_notes ||
+                    'No therapist notes available.'}
                 </Text>
               </div>
             </Card>
@@ -574,14 +606,24 @@ export function AssessmentPanel({
               <div className={styles.feedbackButtons}>
                 <Button
                   appearance={feedbackRating === 'up' ? 'primary' : 'secondary'}
-                  className={feedbackRating === 'up' ? styles.primaryButton : styles.secondaryButton}
+                  className={
+                    feedbackRating === 'up'
+                      ? styles.primaryButton
+                      : styles.secondaryButton
+                  }
                   onClick={() => onFeedbackRatingChange('up')}
                 >
                   Helpful session
                 </Button>
                 <Button
-                  appearance={feedbackRating === 'down' ? 'primary' : 'secondary'}
-                  className={feedbackRating === 'down' ? styles.primaryButton : styles.secondaryButton}
+                  appearance={
+                    feedbackRating === 'down' ? 'primary' : 'secondary'
+                  }
+                  className={
+                    feedbackRating === 'down'
+                      ? styles.primaryButton
+                      : styles.secondaryButton
+                  }
                   onClick={() => onFeedbackRatingChange('down')}
                 >
                   Needs follow-up
@@ -608,7 +650,9 @@ export function AssessmentPanel({
                 <Button
                   appearance="primary"
                   className={styles.primaryButton}
-                  disabled={!assessment.session_id || !feedbackRating || feedbackSaving}
+                  disabled={
+                    !assessment.session_id || !feedbackRating || feedbackSaving
+                  }
                   onClick={onSubmitFeedback}
                 >
                   {feedbackSaving ? 'Saving…' : 'Save therapist feedback'}
@@ -618,7 +662,11 @@ export function AssessmentPanel({
           ) : null}
         </DialogBody>
         <DialogActions className={styles.dialogActions}>
-          <Button appearance="primary" className={styles.primaryButton} onClick={onClose}>
+          <Button
+            appearance="primary"
+            className={styles.primaryButton}
+            onClick={onClose}
+          >
             Close
           </Button>
         </DialogActions>

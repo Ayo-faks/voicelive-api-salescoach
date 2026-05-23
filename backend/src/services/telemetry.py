@@ -57,15 +57,9 @@ class PilotTelemetryService:
             return
 
         safe_properties = {
-            key: str(value)
-            for key, value in (properties or {}).items()
-            if value is not None and str(value).strip()
+            key: str(value) for key, value in (properties or {}).items() if value is not None and str(value).strip()
         }
-        safe_measurements = {
-            key: float(value)
-            for key, value in (measurements or {}).items()
-            if value is not None
-        }
+        safe_measurements = {key: float(value) for key, value in (measurements or {}).items() if value is not None}
 
         envelope = {
             "event_name": name,

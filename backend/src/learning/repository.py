@@ -39,9 +39,11 @@ APPROVAL_STATUSES = ("draft", "pending", "approved", "edited_approved", "rejecte
 
 
 class LearningRepository(Protocol):
-    def save_student_response(self, response: StudentResponse, idempotency_key: Optional[str] = None) -> Dict[str, Any]: ...
+    def save_student_response(self, response: StudentResponse, idempotency_key: Optional[str] = None) -> Dict[str, Any]:
+        raise NotImplementedError
 
-    def save_mastery_event(self, event: MasteryEvent, statement: XAPIStatement) -> Dict[str, Any]: ...
+    def save_mastery_event(self, event: MasteryEvent, statement: XAPIStatement) -> Dict[str, Any]:
+        raise NotImplementedError
 
     def save_intervention_plan(
         self,
@@ -49,15 +51,22 @@ class LearningRepository(Protocol):
         tenant_id: str,
         actor_id: str,
         status: str = "pending",
-    ) -> Dict[str, Any]: ...
+    ) -> Dict[str, Any]:
+        raise NotImplementedError
 
-    def record_approval(self, event: ApprovalEvent, statement: XAPIStatement) -> Dict[str, Any]: ...
+    def record_approval(self, event: ApprovalEvent, statement: XAPIStatement) -> Dict[str, Any]:
+        raise NotImplementedError
 
-    def emit_xapi_statement(self, tenant_id: str, actor_id: str, statement: XAPIStatement, sink_status: str) -> Dict[str, Any]: ...
+    def emit_xapi_statement(
+        self, tenant_id: str, actor_id: str, statement: XAPIStatement, sink_status: str
+    ) -> Dict[str, Any]:
+        raise NotImplementedError
 
-    def queue_offline_event(self, event: OfflineQueuedEvent) -> Dict[str, Any]: ...
+    def queue_offline_event(self, event: OfflineQueuedEvent) -> Dict[str, Any]:
+        raise NotImplementedError
 
-    def save_content_pack_manifest(self, manifest: ContentPackManifest) -> Dict[str, Any]: ...
+    def save_content_pack_manifest(self, manifest: ContentPackManifest) -> Dict[str, Any]:
+        raise NotImplementedError
 
 
 def utc_now() -> str:
@@ -134,7 +143,9 @@ class InMemoryLearningRepository:
                 plan["approved_at"] = record["created_at"] if event.action != "rejected" else None
         return record
 
-    def emit_xapi_statement(self, tenant_id: str, actor_id: str, statement: XAPIStatement, sink_status: str) -> Dict[str, Any]:
+    def emit_xapi_statement(
+        self, tenant_id: str, actor_id: str, statement: XAPIStatement, sink_status: str
+    ) -> Dict[str, Any]:
         record = {
             "id": statement.id,
             "tenant_id": tenant_id,
@@ -304,7 +315,9 @@ class LearningPostgresRepository:
         self.storage._execute_write(persist)
         return {"id": event.event_id, "tenant_id": event.tenant_id, "created_at": created_at}
 
-    def emit_xapi_statement(self, tenant_id: str, actor_id: str, statement: XAPIStatement, sink_status: str) -> Dict[str, Any]:
+    def emit_xapi_statement(
+        self, tenant_id: str, actor_id: str, statement: XAPIStatement, sink_status: str
+    ) -> Dict[str, Any]:
         created_at = self.storage._utc_now()
 
         def persist(connection: Any) -> None:

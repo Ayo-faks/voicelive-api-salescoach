@@ -77,9 +77,7 @@ class InsightsVoiceHandler:
         self._turn_sequence = 0
         self._active_turn_sequence = 0
         self._active_turn_id: Optional[str] = None
-        self._flush_silence = b"\x00" * int(
-            INPUT_SAMPLE_RATE * SAMPLE_WIDTH_BYTES * STT_FLUSH_SILENCE_SECONDS
-        )
+        self._flush_silence = b"\x00" * int(INPUT_SAMPLE_RATE * SAMPLE_WIDTH_BYTES * STT_FLUSH_SILENCE_SECONDS)
 
     def _log_stt_diagnostic(self, stage: str, **details: Any) -> None:
         payload: Dict[str, Any] = {

@@ -64,7 +64,9 @@ function readStoredMode(): InsightsRailMode {
   return readStoredInsightsRailMode()
 }
 
-function normalizeInsightsVoiceMode(mode: InsightsVoiceMode): InsightsVoiceMode {
+function normalizeInsightsVoiceMode(
+  mode: InsightsVoiceMode
+): InsightsVoiceMode {
   return mode === 'push_to_talk' ? 'full_duplex' : mode
 }
 
@@ -86,7 +88,8 @@ const useStyles = makeStyles({
     borderRadius: tokens.borderRadiusXLarge,
     backgroundColor: tokens.colorNeutralBackground1,
     border: `1px solid ${tokens.colorNeutralStroke2}`,
-    boxShadow: '0 1px 2px rgba(15, 42, 58, 0.04), 0 8px 24px rgba(15, 42, 58, 0.06)',
+    boxShadow:
+      '0 1px 2px rgba(15, 42, 58, 0.04), 0 8px 24px rgba(15, 42, 58, 0.06)',
     minWidth: '320px',
     overflow: 'hidden',
     width: '100%',
@@ -114,7 +117,8 @@ const useStyles = makeStyles({
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '56px',
-    boxShadow: '0 1px 2px rgba(15, 42, 58, 0.04), 0 8px 24px rgba(15, 42, 58, 0.06)',
+    boxShadow:
+      '0 1px 2px rgba(15, 42, 58, 0.04), 0 8px 24px rgba(15, 42, 58, 0.06)',
     borderRadius: tokens.borderRadiusXLarge,
     border: `1px solid ${tokens.colorBrandStroke2}`,
     backgroundColor: tokens.colorBrandBackground2,
@@ -125,9 +129,11 @@ const useStyles = makeStyles({
     justifyContent: 'space-between',
     gap: '8px',
     padding: '10px 12px',
-    background: 'linear-gradient(180deg, rgba(250,252,252,0.96), rgba(240,247,247,0.92))',
+    background:
+      'linear-gradient(180deg, rgba(250,252,252,0.96), rgba(240,247,247,0.92))',
     borderBottom: '1px solid rgba(15,42,58,0.06)',
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 0 rgba(15,42,58,0.04)',
+    boxShadow:
+      'inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 0 rgba(15,42,58,0.04)',
   },
   topBarLeft: {
     display: 'flex',
@@ -151,10 +157,13 @@ const useStyles = makeStyles({
     fontSize: tokens.fontSizeBase300,
     fontWeight: tokens.fontWeightSemibold,
     color: tokens.colorNeutralForeground1,
-    transition: 'box-shadow 120ms ease, background 120ms ease, border-color 120ms ease',
+    transition:
+      'box-shadow 120ms ease, background 120ms ease, border-color 120ms ease',
     ':hover': {
-      background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(245,250,250,0.85))',
-      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 2px rgba(15,42,58,0.08)',
+      background:
+        'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(245,250,250,0.85))',
+      boxShadow:
+        'inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 2px rgba(15,42,58,0.08)',
       border: '1px solid rgba(15,42,58,0.08)',
     },
   },
@@ -167,10 +176,13 @@ const useStyles = makeStyles({
     fontSize: tokens.fontSizeBase300,
     color: tokens.colorNeutralForeground2,
     lineHeight: 1,
-    transition: 'box-shadow 120ms ease, background 120ms ease, border-color 120ms ease',
+    transition:
+      'box-shadow 120ms ease, background 120ms ease, border-color 120ms ease',
     ':hover': {
-      background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(245,250,250,0.85))',
-      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 2px rgba(15,42,58,0.08)',
+      background:
+        'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(245,250,250,0.85))',
+      boxShadow:
+        'inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 2px rgba(15,42,58,0.08)',
       border: '1px solid rgba(15,42,58,0.08)',
       color: tokens.colorNeutralForeground1,
     },
@@ -380,7 +392,8 @@ const useStyles = makeStyles({
     margin: 0,
   },
   markdownCode: {
-    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+    fontFamily:
+      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
     fontSize: '0.92em',
     padding: '1px 4px',
     borderRadius: tokens.borderRadiusSmall,
@@ -452,7 +465,8 @@ const useStyles = makeStyles({
     letterSpacing: '-0.01em',
     boxShadow: '0 1px 2px rgba(15, 42, 58, 0.04)',
     cursor: 'pointer',
-    transitionProperty: 'background-color, border-color, color, box-shadow, transform',
+    transitionProperty:
+      'background-color, border-color, color, box-shadow, transform',
     transitionDuration: '140ms',
     transitionTimingFunction: 'cubic-bezier(0.2, 0, 0, 1)',
     ':hover': {
@@ -703,7 +717,10 @@ export interface InsightsRailProps {
 }
 
 function createClientMessageId(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+  if (
+    typeof crypto !== 'undefined' &&
+    typeof crypto.randomUUID === 'function'
+  ) {
     return crypto.randomUUID()
   }
 
@@ -717,7 +734,7 @@ function createVoiceMessage(
   options?: {
     citations?: InsightsCitation[]
     visualizations?: InsightsMessage['visualizations']
-  },
+  }
 ): InsightsMessage {
   return {
     id: createClientMessageId(),
@@ -751,20 +768,45 @@ function formatMessageTimestamp(timestamp: string): string {
   return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
 }
 
-function renderMessageContent(content: string, styles: ReturnType<typeof useStyles>) {
+function renderMessageContent(
+  content: string,
+  styles: ReturnType<typeof useStyles>
+) {
   return (
     <div className={styles.markdownContent}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          p: ({ children }) => <p className={styles.markdownParagraph}>{children}</p>,
-          ul: ({ children }) => <ul className={styles.markdownList}>{children}</ul>,
-          ol: ({ children }) => <ol className={styles.markdownList}>{children}</ol>,
-          li: ({ children }) => <li className={styles.markdownListItem}>{children}</li>,
-          code: ({ children }) => <code className={styles.markdownCode}>{children}</code>,
-          h1: ({ children }) => <p className={styles.markdownParagraph}><strong>{children}</strong></p>,
-          h2: ({ children }) => <p className={styles.markdownParagraph}><strong>{children}</strong></p>,
-          h3: ({ children }) => <p className={styles.markdownParagraph}><strong>{children}</strong></p>,
+          p: ({ children }) => (
+            <p className={styles.markdownParagraph}>{children}</p>
+          ),
+          ul: ({ children }) => (
+            <ul className={styles.markdownList}>{children}</ul>
+          ),
+          ol: ({ children }) => (
+            <ol className={styles.markdownList}>{children}</ol>
+          ),
+          li: ({ children }) => (
+            <li className={styles.markdownListItem}>{children}</li>
+          ),
+          code: ({ children }) => (
+            <code className={styles.markdownCode}>{children}</code>
+          ),
+          h1: ({ children }) => (
+            <p className={styles.markdownParagraph}>
+              <strong>{children}</strong>
+            </p>
+          ),
+          h2: ({ children }) => (
+            <p className={styles.markdownParagraph}>
+              <strong>{children}</strong>
+            </p>
+          ),
+          h3: ({ children }) => (
+            <p className={styles.markdownParagraph}>
+              <strong>{children}</strong>
+            </p>
+          ),
         }}
       >
         {content}
@@ -785,8 +827,11 @@ export function InsightsRail({
   insightsVoiceMode = 'off',
 }: InsightsRailProps) {
   const styles = useStyles()
-  const defaultVoiceErrorText = 'Microphone blocked - allow access in your browser to use voice.'
-  const [mode, setMode] = useState<InsightsRailMode>(() => requestedMode ?? initialMode ?? readStoredMode())
+  const defaultVoiceErrorText =
+    'Microphone blocked - allow access in your browser to use voice.'
+  const [mode, setMode] = useState<InsightsRailMode>(
+    () => requestedMode ?? initialMode ?? readStoredMode()
+  )
 
   useEffect(() => {
     if (!requestedMode) return
@@ -799,7 +844,7 @@ export function InsightsRail({
       persistMode(next)
       onModeChange?.(next)
     },
-    [onModeChange],
+    [onModeChange]
   )
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
@@ -813,15 +858,9 @@ export function InsightsRail({
   const suggestionPrompts = useMemo<string[]>(() => {
     switch (currentScope.type) {
       case 'session':
-        return [
-          'Summarise this session',
-          'What should we work on next?',
-        ]
+        return ['Summarise this session', 'What should we work on next?']
       case 'report':
-        return [
-          'Summarise this report',
-          'Highlight the key changes',
-        ]
+        return ['Summarise this report', 'Highlight the key changes']
       case 'child':
         return [
           'How is this child progressing?',
@@ -842,7 +881,9 @@ export function InsightsRail({
       return
     }
 
-    const inner = (node as unknown as HTMLElement | null)?.querySelector?.('textarea')
+    const inner = (node as unknown as HTMLElement | null)?.querySelector?.(
+      'textarea'
+    )
     if (inner instanceof HTMLTextAreaElement) {
       inner.focus()
     }
@@ -863,7 +904,8 @@ export function InsightsRail({
     const measuredHeight = Math.max(node.scrollHeight, COMPOSER_MIN_HEIGHT)
     const nextHeight = Math.min(measuredHeight, COMPOSER_MAX_HEIGHT)
     node.style.height = `${nextHeight}px`
-    node.style.overflowY = measuredHeight > COMPOSER_MAX_HEIGHT ? 'auto' : 'hidden'
+    node.style.overflowY =
+      measuredHeight > COMPOSER_MAX_HEIGHT ? 'auto' : 'hidden'
   }, [])
 
   useEffect(() => {
@@ -890,45 +932,56 @@ export function InsightsRail({
 
   const handleVoiceCompleted = useCallback(
     (payload: UseInsightsVoiceTurnCompleted) => {
-      const resolvedConversationId = payload.conversationId || conversationId || createClientMessageId()
+      const resolvedConversationId =
+        payload.conversationId || conversationId || createClientMessageId()
       const nextMessages: InsightsMessage[] = []
       if (payload.transcript.trim()) {
-        nextMessages.push(createVoiceMessage('user', resolvedConversationId, payload.transcript))
+        nextMessages.push(
+          createVoiceMessage('user', resolvedConversationId, payload.transcript)
+        )
       }
       nextMessages.push(
-        createVoiceMessage('assistant', resolvedConversationId, payload.answerText, {
-          citations: payload.citations,
-          visualizations: payload.visualizations,
-        }),
+        createVoiceMessage(
+          'assistant',
+          resolvedConversationId,
+          payload.answerText,
+          {
+            citations: payload.citations,
+            visualizations: payload.visualizations,
+          }
+        )
       )
       setConversationId(resolvedConversationId)
       setMessages(prev => [...prev, ...nextMessages])
       void loadHistory()
     },
-    [conversationId, loadHistory],
+    [conversationId, loadHistory]
   )
 
-  const handleSend = useCallback(async (override?: string) => {
-    const trimmed = (override ?? message).trim()
-    if (!trimmed || loading) return
-    setLoading(true)
-    setError(null)
-    try {
-      const res: InsightsAskResponse = await api.askInsights({
-        message: trimmed,
-        scope: currentScope,
-        conversationId,
-      })
-      setMessages(prev => [...prev, res.user_message, res.assistant_message])
-      setConversationId(res.conversation.id)
-      setMessage('')
-      void loadHistory()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Request failed')
-    } finally {
-      setLoading(false)
-    }
-  }, [message, loading, currentScope, conversationId, loadHistory])
+  const handleSend = useCallback(
+    async (override?: string) => {
+      const trimmed = (override ?? message).trim()
+      if (!trimmed || loading) return
+      setLoading(true)
+      setError(null)
+      try {
+        const res: InsightsAskResponse = await api.askInsights({
+          message: trimmed,
+          scope: currentScope,
+          conversationId,
+        })
+        setMessages(prev => [...prev, res.user_message, res.assistant_message])
+        setConversationId(res.conversation.id)
+        setMessage('')
+        void loadHistory()
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Request failed')
+      } finally {
+        setLoading(false)
+      }
+    },
+    [message, loading, currentScope, conversationId, loadHistory]
+  )
 
   const handleOpenConversation = useCallback(async (id: string) => {
     setLoading(true)
@@ -938,7 +991,9 @@ export function InsightsRail({
       setConversationId(res.conversation.id)
       setMessages(res.messages)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load conversation')
+      setError(
+        err instanceof Error ? err.message : 'Failed to load conversation'
+      )
     } finally {
       setLoading(false)
     }
@@ -983,16 +1038,20 @@ export function InsightsRail({
         void handleSend()
       }
     },
-    [handleSend],
+    [handleSend]
   )
 
   const historyLabel = useCallback(
     (c: InsightsConversation): string =>
-      c.title || `${SCOPE_LABELS[c.scope_type] ?? c.scope_type} · ${c.updated_at.slice(0, 10)}`,
-    [],
+      c.title ||
+      `${SCOPE_LABELS[c.scope_type] ?? c.scope_type} · ${c.updated_at.slice(0, 10)}`,
+    []
   )
 
-  const recentConversations = useMemo(() => conversations.slice(0, 12), [conversations])
+  const recentConversations = useMemo(
+    () => conversations.slice(0, 12),
+    [conversations]
+  )
   const effectiveVoiceMode = normalizeInsightsVoiceMode(insightsVoiceMode)
   const {
     voiceState,
@@ -1027,7 +1086,10 @@ export function InsightsRail({
     const previousVoiceState = previousVoiceStateRef.current
     const previousVoiceError = previousVoiceErrorRef.current
 
-    if (previousVoiceState === voiceState && previousVoiceError === (lastError ?? null)) {
+    if (
+      previousVoiceState === voiceState &&
+      previousVoiceError === (lastError ?? null)
+    ) {
       return
     }
 
@@ -1067,7 +1129,11 @@ export function InsightsRail({
       return
     }
 
-    if (voiceState === 'idle' || voiceState === 'error' || voiceState === 'interrupted') {
+    if (
+      voiceState === 'idle' ||
+      voiceState === 'error' ||
+      voiceState === 'interrupted'
+    ) {
       void start()
       return
     }
@@ -1123,16 +1189,26 @@ export function InsightsRail({
   }, [voiceState])
 
   const voiceActionPressed =
-    effectiveVoiceMode === 'off' ? undefined : voiceState === 'listening' ? true : voiceState === 'idle' ? false : undefined
+    effectiveVoiceMode === 'off'
+      ? undefined
+      : voiceState === 'listening'
+        ? true
+        : voiceState === 'idle'
+          ? false
+          : undefined
   const voiceActionDisabled =
-    loading || (effectiveVoiceMode !== 'off' && (voiceState === 'connecting' || voiceState === 'thinking'))
+    loading ||
+    (effectiveVoiceMode !== 'off' &&
+      (voiceState === 'connecting' || voiceState === 'thinking'))
   const voiceActionClassName = mergeClasses(
     styles.toolButton,
     styles.voiceButton,
-    effectiveVoiceMode !== 'off' && voiceState !== 'idle' ? styles.voiceButtonActive : undefined,
+    effectiveVoiceMode !== 'off' && voiceState !== 'idle'
+      ? styles.voiceButtonActive
+      : undefined,
     voiceState === 'listening' ? styles.voiceButtonListening : undefined,
     voiceState === 'error' ? styles.voiceButtonError : undefined,
-    voiceState === 'connecting' ? styles.voiceButtonBusy : undefined,
+    voiceState === 'connecting' ? styles.voiceButtonBusy : undefined
   )
 
   if (mode === 'collapsed') {
@@ -1174,10 +1250,18 @@ export function InsightsRail({
 
   return (
     <aside
-      className={mergeClasses(styles.root, mode === 'full' && styles.rootFull, className)}
+      className={mergeClasses(
+        styles.root,
+        mode === 'full' && styles.rootFull,
+        className
+      )}
       data-testid="insights-rail"
       data-mode={mode}
-      aria-label={mode === 'full' ? 'Insights agent rail (full screen)' : 'Insights agent rail'}
+      aria-label={
+        mode === 'full'
+          ? 'Insights agent rail (full screen)'
+          : 'Insights agent rail'
+      }
     >
       <div className={styles.topBar}>
         <div className={styles.topBarLeft}>
@@ -1201,7 +1285,9 @@ export function InsightsRail({
                 data-testid="insights-rail-conversations-menu"
               >
                 My conversations
-                <span aria-hidden style={{ fontSize: '0.8em' }}>▾</span>
+                <span aria-hidden style={{ fontSize: '0.8em' }}>
+                  ▾
+                </span>
               </button>
             </MenuTrigger>
             <MenuPopover>
@@ -1277,7 +1363,7 @@ export function InsightsRail({
                 className={mergeClasses(
                   styles.chip,
                   active && styles.chipActive,
-                  disabled && styles.chipDisabled,
+                  disabled && styles.chipDisabled
                 )}
                 onClick={() => !disabled && handleScopeClick(type)}
                 aria-pressed={active}
@@ -1291,13 +1377,20 @@ export function InsightsRail({
         </fieldset>
 
         {error ? (
-          <div className={styles.error} role="alert" data-testid="insights-rail-error">
+          <div
+            className={styles.error}
+            role="alert"
+            data-testid="insights-rail-error"
+          >
             {error}
           </div>
         ) : null}
 
         {messages.length === 0 && !loading ? (
-          <div className={styles.suggestionGroup} data-testid="insights-rail-suggestions">
+          <div
+            className={styles.suggestionGroup}
+            data-testid="insights-rail-suggestions"
+          >
             {suggestionPrompts.map(prompt => (
               <button
                 key={prompt}
@@ -1314,7 +1407,10 @@ export function InsightsRail({
         ) : null}
 
         {messages.length > 0 ? (
-          <div className={styles.transcript} data-testid="insights-rail-transcript">
+          <div
+            className={styles.transcript}
+            data-testid="insights-rail-transcript"
+          >
             {messages.map(messageEntry => {
               const isAssistant = messageEntry.role === 'assistant'
               return (
@@ -1322,15 +1418,23 @@ export function InsightsRail({
                   key={messageEntry.id}
                   className={mergeClasses(
                     styles.messageRow,
-                    isAssistant ? styles.messageRowAssistant : styles.messageRowUser,
+                    isAssistant
+                      ? styles.messageRowAssistant
+                      : styles.messageRowUser
                   )}
-                  data-testid={isAssistant ? 'insights-rail-answer' : 'insights-rail-user-message'}
+                  data-testid={
+                    isAssistant
+                      ? 'insights-rail-answer'
+                      : 'insights-rail-user-message'
+                  }
                 >
                   <div className={styles.messageMetaRow}>
                     <span
                       className={mergeClasses(
                         styles.messageRoleBadge,
-                        isAssistant ? styles.messageRoleBadgeAssistant : styles.messageRoleBadgeUser,
+                        isAssistant
+                          ? styles.messageRoleBadgeAssistant
+                          : styles.messageRoleBadgeUser
                       )}
                     >
                       {isAssistant ? 'Wulo' : 'You'}
@@ -1342,21 +1446,36 @@ export function InsightsRail({
                   <div
                     className={mergeClasses(
                       styles.messageBubble,
-                      isAssistant ? styles.messageBubbleAssistant : styles.messageBubbleUser,
+                      isAssistant
+                        ? styles.messageBubbleAssistant
+                        : styles.messageBubbleUser
                     )}
                   >
-                    {renderMessageContent(messageEntry.content_text || '(no answer)', styles)}
-                    {isAssistant && messageEntry.visualizations && messageEntry.visualizations.length > 0 ? (
+                    {renderMessageContent(
+                      messageEntry.content_text || '(no answer)',
+                      styles
+                    )}
+                    {isAssistant &&
+                    messageEntry.visualizations &&
+                    messageEntry.visualizations.length > 0 ? (
                       <div className={styles.artifactGroup}>
                         <Text className={styles.artifactLabel}>Charts</Text>
-                        <div className={styles.visualizationStack} data-testid="insights-rail-visualizations">
+                        <div
+                          className={styles.visualizationStack}
+                          data-testid="insights-rail-visualizations"
+                        >
                           {messageEntry.visualizations.map((v, idx) => (
-                            <VisualizationBlock key={`${messageEntry.id}-viz-${idx}`} spec={v} />
+                            <VisualizationBlock
+                              key={`${messageEntry.id}-viz-${idx}`}
+                              spec={v}
+                            />
                           ))}
                         </div>
                       </div>
                     ) : null}
-                    {isAssistant && messageEntry.citations && messageEntry.citations.length > 0 ? (
+                    {isAssistant &&
+                    messageEntry.citations &&
+                    messageEntry.citations.length > 0 ? (
                       <div className={styles.artifactGroup}>
                         <Text className={styles.artifactLabel}>Sources</Text>
                         <div
@@ -1365,7 +1484,10 @@ export function InsightsRail({
                           aria-label="Citations"
                         >
                           {messageEntry.citations.map((c, idx) => (
-                            <span key={`${messageEntry.id}-cit-${idx}`} className={styles.citationChip}>
+                            <span
+                              key={`${messageEntry.id}-cit-${idx}`}
+                              className={styles.citationChip}
+                            >
                               {citationLabel(c)}
                             </span>
                           ))}
@@ -1386,9 +1508,13 @@ export function InsightsRail({
             state={voiceState}
             outputLevel={outputLevel}
             transcript={voiceOrbTranscript}
-            onInterrupt={voiceState === 'speaking' ? () => {
-              void stop()
-            } : undefined}
+            onInterrupt={
+              voiceState === 'speaking'
+                ? () => {
+                    void stop()
+                  }
+                : undefined
+            }
             interruptLabel={orbInterruptLabel}
             onEndSession={handleEndVoiceSession}
           />
@@ -1425,7 +1551,9 @@ export function InsightsRail({
                 +
               </button>
               {effectiveVoiceMode !== 'off' && voiceState === 'error' ? (
-                <span className={styles.voiceInlineError}>{voiceErrorText}</span>
+                <span className={styles.voiceInlineError}>
+                  {voiceErrorText}
+                </span>
               ) : null}
             </div>
             {hasDraftMessage ? (
@@ -1449,8 +1577,12 @@ export function InsightsRail({
                 data-testid="insights-rail-voice-action"
                 aria-label={voiceActionLabel}
                 title={voiceActionLabel}
-                {...(effectiveVoiceMode !== 'off' ? { 'data-voice-state': voiceState } : {})}
-                {...(voiceActionPressed === undefined ? {} : { 'aria-pressed': voiceActionPressed })}
+                {...(effectiveVoiceMode !== 'off'
+                  ? { 'data-voice-state': voiceState }
+                  : {})}
+                {...(voiceActionPressed === undefined
+                  ? {}
+                  : { 'aria-pressed': voiceActionPressed })}
               >
                 <MicrophoneIcon className={styles.voiceIcon} />
               </button>

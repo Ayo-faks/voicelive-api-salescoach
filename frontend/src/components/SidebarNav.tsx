@@ -74,7 +74,8 @@ const useStyles = makeStyles({
     overflowY: 'auto',
     position: 'sticky',
     top: 0,
-    transition: 'width var(--transition-normal), min-width var(--transition-normal), padding var(--transition-normal), transform var(--transition-normal)',
+    transition:
+      'width var(--transition-normal), min-width var(--transition-normal), padding var(--transition-normal), transform var(--transition-normal)',
     '@media (max-width: 720px)': {
       position: 'fixed',
       top: 0,
@@ -132,7 +133,8 @@ const useStyles = makeStyles({
     background:
       'radial-gradient(circle at 32% 28%, rgba(255,255,255,0.9), rgba(232,244,244,0.6) 60%, rgba(13,138,132,0.12) 100%)',
     border: '1px solid rgba(13,138,132,0.18)',
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 6px 14px rgba(13,138,132,0.1)',
+    boxShadow:
+      'inset 0 1px 0 rgba(255,255,255,0.9), 0 6px 14px rgba(13,138,132,0.1)',
   },
   brandLogo: {
     width: '32px',
@@ -203,7 +205,8 @@ const useStyles = makeStyles({
     borderLeft: 'none',
   },
   navButtonActive: {
-    background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(245,251,251,0.85))',
+    background:
+      'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(245,251,251,0.85))',
     border: '1px solid rgba(13,138,132,0.32)',
     boxShadow:
       'inset 0 1px 0 rgba(255,255,255,0.85), ' +
@@ -229,7 +232,8 @@ const useStyles = makeStyles({
     minWidth: '100%',
     backgroundColor: 'rgba(255,255,255,0.96)',
     border: '1px solid var(--color-border)',
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 2px rgba(15,42,58,0.04)',
+    boxShadow:
+      'inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 2px rgba(15,42,58,0.04)',
   },
   footer: {
     marginTop: 'auto',
@@ -251,8 +255,10 @@ const useStyles = makeStyles({
     padding: '8px 10px',
     border: '1px solid var(--color-border)',
     borderRadius: '14px',
-    background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(248,252,252,0.82))',
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 2px rgba(15,42,58,0.04)',
+    background:
+      'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(248,252,252,0.82))',
+    boxShadow:
+      'inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 2px rgba(15,42,58,0.04)',
   },
   userCardCollapsed: {
     justifyContent: 'center',
@@ -363,7 +369,10 @@ export function SidebarNav({
     <div className={styles.root}>
       <button
         type="button"
-        className={mergeClasses(styles.backdrop, mobileOpen && styles.backdropOpen)}
+        className={mergeClasses(
+          styles.backdrop,
+          mobileOpen && styles.backdropOpen
+        )}
         onClick={onCloseMobile}
         aria-label="Close navigation"
       />
@@ -372,16 +381,29 @@ export function SidebarNav({
         className={mergeClasses(
           styles.aside,
           collapsed && styles.asideCollapsed,
-          mobileOpen && styles.asideMobileOpen,
+          mobileOpen && styles.asideMobileOpen
         )}
       >
         <div className={styles.top}>
           <div className={styles.brandRow}>
-            <button type="button" className={styles.brandButton} onClick={onBrandClick}>
+            <button
+              type="button"
+              className={styles.brandButton}
+              onClick={onBrandClick}
+            >
               <span className={styles.brandPlatter}>
-                <img src="/wulo-logo.png" alt="Wulo logo" className={styles.brandLogo} />
+                <img
+                  src="/wulo-logo.png"
+                  alt="Wulo logo"
+                  className={styles.brandLogo}
+                />
               </span>
-              <div className={mergeClasses(styles.brandText, !isExpanded && styles.collapsedHidden)}>
+              <div
+                className={mergeClasses(
+                  styles.brandText,
+                  !isExpanded && styles.collapsedHidden
+                )}
+              >
                 <Text className={styles.brandTitle}>{appTitle}</Text>
                 <Text className={styles.brandMeta}>{APP_RELEASE_LABEL}</Text>
               </div>
@@ -403,7 +425,7 @@ export function SidebarNav({
               className={mergeClasses(
                 styles.navButton,
                 activeSection === 'home' && styles.navButtonActive,
-                !isExpanded && styles.navButtonCollapsed,
+                !isExpanded && styles.navButtonCollapsed
               )}
               onClick={onNavigateHome}
               data-testid="sidebar-nav-home"
@@ -416,7 +438,7 @@ export function SidebarNav({
               className={mergeClasses(
                 styles.navButton,
                 activeSection === 'dashboard' && styles.navButtonActive,
-                !isExpanded && styles.navButtonCollapsed,
+                !isExpanded && styles.navButtonCollapsed
               )}
               onClick={onNavigateDashboard}
               style={{ display: showDashboardNav ? undefined : 'none' }}
@@ -430,7 +452,7 @@ export function SidebarNav({
               className={mergeClasses(
                 styles.navButton,
                 activeSection === 'settings' && styles.navButtonActive,
-                !isExpanded && styles.navButtonCollapsed,
+                !isExpanded && styles.navButtonCollapsed
               )}
               onClick={onNavigateSettings}
               data-testid="sidebar-nav-settings"
@@ -445,7 +467,10 @@ export function SidebarNav({
               <Dropdown
                 className={styles.dropdown}
                 selectedOptions={activeWorkspaceId ? [activeWorkspaceId] : []}
-                value={userWorkspaces.find(w => w.id === activeWorkspaceId)?.name || ''}
+                value={
+                  userWorkspaces.find(w => w.id === activeWorkspaceId)?.name ||
+                  ''
+                }
                 onOptionSelect={(_, data) => {
                   if (data.optionValue) {
                     onSwitchWorkspace(data.optionValue)
@@ -453,7 +478,11 @@ export function SidebarNav({
                 }}
               >
                 {userWorkspaces.map(workspace => (
-                  <Option key={workspace.id} value={workspace.id} text={workspace.name}>
+                  <Option
+                    key={workspace.id}
+                    value={workspace.id}
+                    text={workspace.name}
+                  >
                     {workspace.name}
                   </Option>
                 ))}
@@ -467,7 +496,9 @@ export function SidebarNav({
               <Dropdown
                 className={styles.dropdown}
                 disabled={childrenLoading || childProfiles.length === 0}
-                placeholder={childrenLoading ? 'Loading child profiles...' : 'Select child'}
+                placeholder={
+                  childrenLoading ? 'Loading child profiles...' : 'Select child'
+                }
                 selectedOptions={selectedChildId ? [selectedChildId] : []}
                 value={selectedChild?.name}
                 onOptionSelect={(_, data) => {
@@ -510,13 +541,28 @@ export function SidebarNav({
 
           {isExpanded ? (
             <>
-              <Button appearance="subtle" className={styles.footerButton} as="a" href="/privacy">
+              <Button
+                appearance="subtle"
+                className={styles.footerButton}
+                as="a"
+                href="/privacy"
+              >
                 Privacy
               </Button>
-              <Button appearance="subtle" className={styles.footerButton} as="a" href="/terms">
+              <Button
+                appearance="subtle"
+                className={styles.footerButton}
+                as="a"
+                href="/terms"
+              >
                 Terms
               </Button>
-              <Button appearance="subtle" className={styles.footerButton} as="a" href="/ai-transparency">
+              <Button
+                appearance="subtle"
+                className={styles.footerButton}
+                as="a"
+                href="/ai-transparency"
+              >
                 AI notice
               </Button>
 
@@ -526,7 +572,9 @@ export function SidebarNav({
                 </span>
                 <div className={styles.userInfo}>
                   <Text className={styles.userName}>{userName || 'User'}</Text>
-                  {userEmail ? <Text className={styles.userEmail}>{userEmail}</Text> : null}
+                  {userEmail ? (
+                    <Text className={styles.userEmail}>{userEmail}</Text>
+                  ) : null}
                 </div>
                 <Button
                   appearance="subtle"
@@ -538,7 +586,12 @@ export function SidebarNav({
               </div>
             </>
           ) : (
-            <div className={mergeClasses(styles.userCard, styles.userCardCollapsed)}>
+            <div
+              className={mergeClasses(
+                styles.userCard,
+                styles.userCardCollapsed
+              )}
+            >
               <Button
                 appearance="subtle"
                 icon={<ArrowRightStartOnRectangleIcon className="w-5 h-5" />}

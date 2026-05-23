@@ -258,7 +258,7 @@ class PostgresStorageService:
 
     def _build_invitation_email_delivery_payload(self, row: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         if row.get("email_delivery_status") is None:
-          return None
+            return None
 
         return {
             "status": row["email_delivery_status"],
@@ -384,7 +384,9 @@ class PostgresStorageService:
             "created_at": row["created_at"],
         }
 
-    def _build_recommendation_candidate_payload(self, row: Dict[str, Any], *, child_id: Optional[str] = None) -> Dict[str, Any]:
+    def _build_recommendation_candidate_payload(
+        self, row: Dict[str, Any], *, child_id: Optional[str] = None
+    ) -> Dict[str, Any]:
         return {
             "id": row["id"],
             "recommendation_log_id": row["recommendation_log_id"],
@@ -434,7 +436,9 @@ class PostgresStorageService:
             "archived_at": row["archived_at"],
         }
 
-    def _build_child_invitation_payload(self, row: Dict[str, Any], *, current_email: Optional[str] = None) -> Dict[str, Any]:
+    def _build_child_invitation_payload(
+        self, row: Dict[str, Any], *, current_email: Optional[str] = None
+    ) -> Dict[str, Any]:
         invited_email = str(row["invited_email"] or "")
         normalized_current_email = str(current_email or "").strip().lower()
         direction = "sent"
@@ -606,13 +610,18 @@ class PostgresStorageService:
 
             # If there is a pending family or child invitation for this email, assign parent role.
             # Otherwise, assign therapist immediately.
-            has_pending_invitation = connection.execute(
-                "SELECT 1 FROM child_invitations WHERE LOWER(invited_email) = LOWER(%s) AND status = 'pending' LIMIT 1",
-                (email,),
-            ).fetchone() is not None or connection.execute(
-                "SELECT 1 FROM family_intake_invitations WHERE LOWER(invited_email) = LOWER(%s) AND status = 'pending' LIMIT 1",
-                (email,),
-            ).fetchone() is not None
+            has_pending_invitation = (
+                connection.execute(
+                    "SELECT 1 FROM child_invitations WHERE LOWER(invited_email) = LOWER(%s) AND status = 'pending' LIMIT 1",
+                    (email,),
+                ).fetchone()
+                is not None
+                or connection.execute(
+                    "SELECT 1 FROM family_intake_invitations WHERE LOWER(invited_email) = LOWER(%s) AND status = 'pending' LIMIT 1",
+                    (email,),
+                ).fetchone()
+                is not None
+            )
             role = ROLE_PARENT if has_pending_invitation else ROLE_THERAPIST
             connection.execute(
                 """
@@ -700,7 +709,9 @@ class PostgresStorageService:
             user = connection.execute("SELECT name, email FROM users WHERE id = %s", (user_id,)).fetchone()
             connection.execute("UPDATE users SET role = %s WHERE id = %s", (ROLE_THERAPIST, user_id))
             if user is not None:
-                self._ensure_personal_workspace_for_user(connection, user_id, str(user["name"] or ""), str(user["email"] or ""))
+                self._ensure_personal_workspace_for_user(
+                    connection, user_id, str(user["name"] or ""), str(user["email"] or "")
+                )
                 self._bootstrap_existing_children_for_user(connection, user_id, CHILD_RELATIONSHIP_THERAPIST)
             return True
 
@@ -863,7 +874,10 @@ class PostgresStorageService:
         }
 
     def list_children_for_user(
-        self, user_id: str, include_deleted: bool = False, workspace_id: Optional[str] = None,
+        self,
+        user_id: str,
+        include_deleted: bool = False,
+        workspace_id: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         user = self.get_user(user_id)
         if user is not None and user.get("role") == ROLE_ADMIN and workspace_id is None:
@@ -1317,7 +1331,8 @@ class PostgresStorageService:
 
             # Resolve workspace_id from the child
             child_row = connection.execute(
-                "SELECT workspace_id FROM children WHERE id = %s", (child_id,),
+                "SELECT workspace_id FROM children WHERE id = %s",
+                (child_id,),
             ).fetchone()
             resolved_workspace_id = child_row["workspace_id"] if child_row is not None else None
 
@@ -1388,7 +1403,9 @@ class PostgresStorageService:
             raise RuntimeError("Invitation could not be reloaded after creation")
         return invitation
 
-    def get_child_invitation(self, invitation_id: str, *, current_email: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    def get_child_invitation(
+        self, invitation_id: str, *, current_email: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
         self._expire_stale_child_invitations()
         with self._connect() as connection:
             row = connection.execute(
@@ -1518,10 +1535,7 @@ class PostgresStorageService:
                 """,
                 (user_id, normalized_email),
             ).fetchall()
-        return [
-            self._build_child_invitation_payload(row, current_email=normalized_email)
-            for row in rows
-        ]
+        return [self._build_child_invitation_payload(row, current_email=normalized_email) for row in rows]
 
     def respond_to_child_invitation(
         self,
@@ -1587,7 +1601,11 @@ class PostgresStorageService:
                     (row["child_id"],),
                 ).fetchone()
                 if child_ws is not None and child_ws["workspace_id"] is not None:
-                    ws_role = WORKSPACE_ROLE_PARENT if row["relationship"] == CHILD_RELATIONSHIP_PARENT else WORKSPACE_ROLE_THERAPIST
+                    ws_role = (
+                        WORKSPACE_ROLE_PARENT
+                        if row["relationship"] == CHILD_RELATIONSHIP_PARENT
+                        else WORKSPACE_ROLE_THERAPIST
+                    )
                     connection.execute(
                         """
                         INSERT INTO workspace_members (workspace_id, user_id, role, created_at, updated_at)
@@ -1773,7 +1791,6 @@ class PostgresStorageService:
         if child is None:
             raise ValueError("Child not found")
 
-        child_name = str(session_payload.get("child_name") or child.get("name") or child_id.replace("-", " ").title())
         exercise = dict(session_payload.get("exercise") or {})
         exercise_id = str(session_payload.get("exercise_id") or exercise.get("id") or "unknown-exercise")
         exercise_name = str(exercise.get("name") or "Speech exercise")
@@ -1959,7 +1976,9 @@ class PostgresStorageService:
             "reference_text": row["reference_text"],
         }
 
-    def save_session_feedback(self, session_id: str, rating: str, note: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    def save_session_feedback(
+        self, session_id: str, rating: str, note: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
         feedback_note = (note or "").strip() or None
         submitted_at = self._utc_now()
 
@@ -3196,7 +3215,9 @@ class PostgresStorageService:
                 )
 
         self._execute_write(persist_candidates)
-        return self.list_recommendation_candidates(recommendation_log_id, child_id=str(parent_log.get("child_id") or ""))
+        return self.list_recommendation_candidates(
+            recommendation_log_id, child_id=str(parent_log.get("child_id") or "")
+        )
 
     def list_recommendation_candidates(
         self,
@@ -3233,10 +3254,7 @@ class PostgresStorageService:
                 (recommendation_log_id,),
             ).fetchall()
 
-        return [
-            self._build_recommendation_candidate_payload(row, child_id=resolved_child_id)
-            for row in rows
-        ]
+        return [self._build_recommendation_candidate_payload(row, child_id=resolved_child_id) for row in rows]
 
     # ------------------------------------------------------------------
     # Parental consent
@@ -3271,11 +3289,19 @@ class PostgresStorageService:
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
-                        consent_id, child_id, guardian_name, guardian_email, consent_type,
-                        privacy_accepted, terms_accepted, ai_notice_accepted,
-                        personal_data_consent_accepted, special_category_consent_accepted,
+                        consent_id,
+                        child_id,
+                        guardian_name,
+                        guardian_email,
+                        consent_type,
+                        privacy_accepted,
+                        terms_accepted,
+                        ai_notice_accepted,
+                        personal_data_consent_accepted,
+                        special_category_consent_accepted,
                         parental_responsibility_confirmed,
-                        recorded_by_user_id, now,
+                        recorded_by_user_id,
+                        now,
                     ),
                 )
         return {
@@ -3363,8 +3389,11 @@ class PostgresStorageService:
                 )
                 sessions = [
                     {
-                        "id": r[0], "scenario_id": r[1], "started_at": r[2],
-                        "finished_at": r[3], "transcript": r[4],
+                        "id": r[0],
+                        "scenario_id": r[1],
+                        "started_at": r[2],
+                        "finished_at": r[3],
+                        "transcript": r[4],
                         "summary_json": r[5],
                         "created_at": r[6],
                     }
@@ -3377,7 +3406,8 @@ class PostgresStorageService:
                 )
                 memory_items = [
                     {
-                        "id": r[0], "category": r[1],
+                        "id": r[0],
+                        "category": r[1],
                         "content": r[2],
                         "created_at": r[3],
                     }
@@ -3390,8 +3420,10 @@ class PostgresStorageService:
                 )
                 plans = [
                     {
-                        "id": r[0], "plan_data": r[1],
-                        "status": r[2], "created_at": r[3],
+                        "id": r[0],
+                        "plan_data": r[1],
+                        "status": r[2],
+                        "created_at": r[3],
                     }
                     for r in cur.fetchall()
                 ]
@@ -3407,12 +3439,16 @@ class PostgresStorageService:
             "sessions": sessions,
             "memory_items": memory_items,
             "practice_plans": plans,
-            "parental_consent": {
-                "guardian_name": consent_row[0],
-                "guardian_email": consent_row[1],
-                "consented_at": consent_row[2],
-                "withdrawn_at": consent_row[3],
-            } if consent_row else None,
+            "parental_consent": (
+                {
+                    "guardian_name": consent_row[0],
+                    "guardian_email": consent_row[1],
+                    "consented_at": consent_row[2],
+                    "withdrawn_at": consent_row[3],
+                }
+                if consent_row
+                else None
+            ),
             "exported_at": self._utc_now(),
         }
 
@@ -3429,7 +3465,10 @@ class PostgresStorageService:
                 cur.execute("DELETE FROM parental_consents WHERE child_id = %s", (child_id,))
                 cur.execute("DELETE FROM child_memory_items WHERE child_id = %s", (child_id,))
                 cur.execute("DELETE FROM child_memory_proposals WHERE child_id = %s", (child_id,))
-                cur.execute("DELETE FROM recommendation_candidates WHERE recommendation_log_id IN (SELECT id FROM recommendation_logs WHERE child_id = %s)", (child_id,))
+                cur.execute(
+                    "DELETE FROM recommendation_candidates WHERE recommendation_log_id IN (SELECT id FROM recommendation_logs WHERE child_id = %s)",
+                    (child_id,),
+                )
                 cur.execute("DELETE FROM recommendation_logs WHERE child_id = %s", (child_id,))
                 cur.execute("DELETE FROM progress_reports WHERE child_id = %s", (child_id,))
                 cur.execute("DELETE FROM practice_plans WHERE child_id = %s", (child_id,))

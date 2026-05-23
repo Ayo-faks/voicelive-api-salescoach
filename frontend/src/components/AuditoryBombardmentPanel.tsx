@@ -13,7 +13,12 @@
  * fires `onExerciseComplete`.
  */
 
-import { Card, Text, makeStyles, mergeClasses } from '@fluentui/react-components'
+import {
+  Card,
+  Text,
+  makeStyles,
+  mergeClasses,
+} from '@fluentui/react-components'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ExerciseExemplar, ExerciseMetadata } from '../types'
 import { api } from '../services/api'
@@ -158,10 +163,9 @@ const REINFORCE_DECISION_DELAY_MS = 2500
 const REINFORCE_DECISION_TIMEOUT_MS = 20_000
 
 function decodeAudio(b64: string): string {
-  const blob = new Blob(
-    [Uint8Array.from(atob(b64), c => c.charCodeAt(0))],
-    { type: 'audio/mpeg' },
-  )
+  const blob = new Blob([Uint8Array.from(atob(b64), c => c.charCodeAt(0))], {
+    type: 'audio/mpeg',
+  })
   return URL.createObjectURL(blob)
 }
 
@@ -177,11 +181,11 @@ export function AuditoryBombardmentPanel({
   const targetSound = metadata?.targetSound || 'target'
   const exemplars: ExerciseExemplar[] = useMemo(
     () => (metadata?.exemplars || []).slice(),
-    [metadata?.exemplars],
+    [metadata?.exemplars]
   )
   const imageAssets = useMemo(
     () => metadata?.imageAssets || [],
-    [metadata?.imageAssets],
+    [metadata?.imageAssets]
   )
 
   const shellMetadata: ExerciseMetadata = {
@@ -232,7 +236,9 @@ export function AuditoryBombardmentPanel({
               exemplars={exemplars}
               imageAssets={imageAssets}
               readyToStart={readyToStart}
-              voiceName={metadata?.speechLanguage === 'en-GB' ? undefined : undefined}
+              voiceName={
+                metadata?.speechLanguage === 'en-GB' ? undefined : undefined
+              }
             />
           ),
           // PERFORM is collapsed for Stage 0; shell never renders it but the
@@ -267,7 +273,8 @@ export function AuditoryBombardmentPanel({
           // Child mode keeps the warm bridge + reinforce beats (it never
           // renders the decision prompt).
           const suppressBeatTTS =
-            audience === 'therapist' && (phase === 'bridge' || phase === 'reinforce')
+            audience === 'therapist' &&
+            (phase === 'bridge' || phase === 'reinforce')
           if (!suppressBeatTTS && beatText?.trim() && onSpeakExerciseText) {
             void onSpeakExerciseText(beatText)
           }
@@ -276,7 +283,11 @@ export function AuditoryBombardmentPanel({
           // SESSION_WRAP_UP_DELAY_MS). Therapist mode defers until the
           // decision buttons resolve (Play again / End session / timeout),
           // so do NOT call onExerciseComplete here.
-          if (phase === 'reinforce' && audience === 'child' && onExerciseComplete) {
+          if (
+            phase === 'reinforce' &&
+            audience === 'child' &&
+            onExerciseComplete
+          ) {
             onExerciseComplete()
           }
         }}
@@ -292,7 +303,11 @@ interface PlaybackSlotProps {
   voiceName?: string
 }
 
-function PlaybackSlot({ exemplars, imageAssets, readyToStart, voiceName }: PlaybackSlotProps) {
+function PlaybackSlot({
+  exemplars,
+  imageAssets,
+  voiceName,
+}: PlaybackSlotProps) {
   const styles = useStyles()
   const { advance, notifyExposeInteract } = useShellAdvance()
   const [phase, setPhase] = useState<Phase>('idle')
@@ -331,11 +346,11 @@ function PlaybackSlot({ exemplars, imageAssets, readyToStart, voiceName }: Playb
     const playOne = async (text: string): Promise<void> => {
       const b64 = await api.synthesizeSpeech(
         voiceName ? { text, voiceName } : { text },
-        { signal: controller.signal },
+        { signal: controller.signal }
       )
       if (controller.signal.aborted) return
       const url = decodeAudio(b64)
-      await new Promise<void>((resolve) => {
+      await new Promise<void>(resolve => {
         const audio = new Audio(url)
         const cleanup = () => {
           URL.revokeObjectURL(url)
@@ -343,10 +358,14 @@ function PlaybackSlot({ exemplars, imageAssets, readyToStart, voiceName }: Playb
         }
         audio.onended = cleanup
         audio.onerror = cleanup
-        controller.signal.addEventListener('abort', () => {
-          audio.pause()
-          cleanup()
-        }, { once: true })
+        controller.signal.addEventListener(
+          'abort',
+          () => {
+            audio.pause()
+            cleanup()
+          },
+          { once: true }
+        )
         void audio.play().catch(cleanup)
       })
     }
@@ -360,10 +379,14 @@ function PlaybackSlot({ exemplars, imageAssets, readyToStart, voiceName }: Playb
         if (i < exemplars.length - 1) {
           await new Promise<void>(r => {
             const t = setTimeout(r, INTER_EXEMPLAR_GAP_MS)
-            controller.signal.addEventListener('abort', () => {
-              clearTimeout(t)
-              r()
-            }, { once: true })
+            controller.signal.addEventListener(
+              'abort',
+              () => {
+                clearTimeout(t)
+                r()
+              },
+              { once: true }
+            )
           })
         }
       }
@@ -423,7 +446,8 @@ function PlaybackSlot({ exemplars, imageAssets, readyToStart, voiceName }: Playb
       </div>
       <div className={styles.grid}>
         {exemplars.map((ex, i) => {
-          const done = phase === 'finished' || (phase === 'playing' && i < activeIndex)
+          const done =
+            phase === 'finished' || (phase === 'playing' && i < activeIndex)
           const active = phase === 'playing' && i === activeIndex
           const idle = phase === 'idle'
           return (
@@ -436,7 +460,7 @@ function PlaybackSlot({ exemplars, imageAssets, readyToStart, voiceName }: Playb
                 styles.cardShell,
                 idle && styles.cardIdle,
                 active && styles.cardActive,
-                done && !active && styles.cardDone,
+                done && !active && styles.cardDone
               )}
             >
               <ImageCard word={ex.word} imagePath={imageAssets[i]} />
@@ -467,7 +491,11 @@ interface ReinforceDecisionProps {
 
 const REINFORCE_DECISION_PROMPT = 'Shall we listen again, or wrap up?'
 
-function ReinforceDecision({ onEndSession, onAutoEnd, onSpeakExerciseText }: ReinforceDecisionProps) {
+function ReinforceDecision({
+  onEndSession,
+  onAutoEnd,
+  onSpeakExerciseText,
+}: ReinforceDecisionProps) {
   const styles = useStyles()
   const { replay } = useShellAdvance()
   const [visible, setVisible] = useState(false)
@@ -546,7 +574,10 @@ function ReinforceDecision({ onEndSession, onAutoEnd, onSpeakExerciseText }: Rei
   return (
     <div
       aria-label="Round complete. Play again or end session."
-      className={mergeClasses(styles.decision, visible && styles.decisionVisible)}
+      className={mergeClasses(
+        styles.decision,
+        visible && styles.decisionVisible
+      )}
       data-testid="reinforce-decision"
       data-visible={visible ? 'true' : 'false'}
       onKeyDown={handleKeyDown}
@@ -555,7 +586,10 @@ function ReinforceDecision({ onEndSession, onAutoEnd, onSpeakExerciseText }: Rei
         <button
           ref={playAgainRef}
           type="button"
-          className={mergeClasses(styles.decisionButton, styles.decisionPrimary)}
+          className={mergeClasses(
+            styles.decisionButton,
+            styles.decisionPrimary
+          )}
           data-testid="reinforce-play-again"
           data-primary-affordance="true"
           data-for-phase="reinforce"
@@ -567,7 +601,10 @@ function ReinforceDecision({ onEndSession, onAutoEnd, onSpeakExerciseText }: Rei
         </button>
         <button
           type="button"
-          className={mergeClasses(styles.decisionButton, styles.decisionSecondary)}
+          className={mergeClasses(
+            styles.decisionButton,
+            styles.decisionSecondary
+          )}
           data-testid="reinforce-end-session"
           aria-label="End session"
           onClick={handleEnd}

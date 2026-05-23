@@ -36,9 +36,7 @@ class ReportRedactionPolicy:
         hidden_section_keys = overrides.get(REDACTION_HIDDEN_SECTION_KEYS)
         if isinstance(hidden_section_keys, Sequence) and not isinstance(hidden_section_keys, (str, bytes)):
             normalized[REDACTION_HIDDEN_SECTION_KEYS] = [
-                str(section_key).strip()
-                for section_key in hidden_section_keys
-                if str(section_key).strip()
+                str(section_key).strip() for section_key in hidden_section_keys if str(section_key).strip()
             ]
         return normalized
 

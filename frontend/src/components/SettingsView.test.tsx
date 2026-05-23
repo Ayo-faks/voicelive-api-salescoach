@@ -58,11 +58,15 @@ describe('SettingsView', () => {
         onApproveChildIntakeProposal={async () => ({})}
         onRejectChildIntakeProposal={async () => ({})}
         onResubmitChildIntakeProposal={async () => ({})}
-      />,
+      />
     )
 
     expect(screen.getByText('Linked from your invitation email.')).toBeTruthy()
-    expect(screen.getByText('Child profiles are created by the therapist. Your linked-child invitations and access updates appear in this workspace after sign-in.')).toBeTruthy()
+    expect(
+      screen.getByText(
+        'Child profiles are created by the therapist. Your linked-child invitations and access updates appear in this workspace after sign-in.'
+      )
+    ).toBeTruthy()
     expect(screen.queryByText('Add child profile')).toBeNull()
   })
 
@@ -128,7 +132,7 @@ describe('SettingsView', () => {
         onApproveChildIntakeProposal={async () => ({})}
         onRejectChildIntakeProposal={async () => ({})}
         onResubmitChildIntakeProposal={async () => ({})}
-      />,
+      />
     )
 
     expect(screen.getByText('parent@example.com')).toBeTruthy()
@@ -203,10 +207,12 @@ describe('SettingsView', () => {
         onApproveChildIntakeProposal={async () => ({})}
         onRejectChildIntakeProposal={async () => ({})}
         onResubmitChildIntakeProposal={async () => ({})}
-      />,
+      />
     )
 
-    expect(screen.getByText('Linked from your family invitation email.')).toBeTruthy()
+    expect(
+      screen.getByText('Linked from your family invitation email.')
+    ).toBeTruthy()
     expect(screen.getByText('Accept')).toBeTruthy()
   })
 })

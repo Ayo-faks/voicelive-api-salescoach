@@ -36,7 +36,12 @@ export function SummaryTrendCard({
   styles: ProgressDashboardChartStyles
   trendLabel: string
 }) {
-  const hasSeriesData = data.some(point => point.overall != null || point.accuracy != null || point.pronunciation != null)
+  const hasSeriesData = data.some(
+    point =>
+      point.overall != null ||
+      point.accuracy != null ||
+      point.pronunciation != null
+  )
   const showDots = data.length <= 3 ? { r: 3.5, strokeWidth: 0 } : false
 
   return (
@@ -44,10 +49,15 @@ export function SummaryTrendCard({
       <div className={styles.chartHeader}>
         <div>
           <Text className={styles.summaryLabel}>Progress trendline</Text>
-          <Text className={styles.summaryCopy}>Overall, accuracy, and pronunciation movement across saved sessions.</Text>
+          <Text className={styles.summaryCopy}>
+            Overall, accuracy, and pronunciation movement across saved sessions.
+          </Text>
           <div className={styles.chartLegend}>
             <span className={styles.legendItem}>
-              <span className={styles.legendSwatch} style={{ backgroundColor: chartPalette.primary }} />
+              <span
+                className={styles.legendSwatch}
+                style={{ backgroundColor: chartPalette.primary }}
+              />
               Overall
             </span>
             <span className={styles.legendItem}>
@@ -61,13 +71,18 @@ export function SummaryTrendCard({
               Accuracy
             </span>
             <span className={styles.legendItem}>
-              <span className={styles.legendSwatch} style={{ backgroundColor: chartPalette.warning }} />
+              <span
+                className={styles.legendSwatch}
+                style={{ backgroundColor: chartPalette.warning }}
+              />
               Pronunciation
             </span>
           </div>
         </div>
         <div style={{ display: 'grid', gap: '4px', justifyItems: 'end' }}>
-          <Text className={styles.summaryValue}>{averageScore != null ? `${Math.round(averageScore)}%` : '—'}</Text>
+          <Text className={styles.summaryValue}>
+            {averageScore != null ? `${Math.round(averageScore)}%` : '—'}
+          </Text>
           <Text className={styles.summaryCopy}>{trendLabel}</Text>
         </div>
       </div>
@@ -75,17 +90,28 @@ export function SummaryTrendCard({
       <div className={styles.chartArea}>
         {hasSeriesData ? (
           <ResponsiveContainer width="100%" height={188}>
-            <LineChart data={data} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+            <LineChart
+              data={data}
+              margin={{ top: 8, right: 8, left: -18, bottom: 0 }}
+            >
               <CartesianGrid stroke={chartPalette.grid} vertical={false} />
               <XAxis
                 dataKey="label"
-                tick={{ fill: chartPalette.axis, fontSize: 11, fontFamily: 'Manrope' }}
+                tick={{
+                  fill: chartPalette.axis,
+                  fontSize: 11,
+                  fontFamily: 'Manrope',
+                }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 domain={[0, 100]}
-                tick={{ fill: chartPalette.axis, fontSize: 11, fontFamily: 'Manrope' }}
+                tick={{
+                  fill: chartPalette.axis,
+                  fontSize: 11,
+                  fontFamily: 'Manrope',
+                }}
                 axisLine={false}
                 tickLine={false}
                 width={34}
@@ -100,16 +126,48 @@ export function SummaryTrendCard({
                   fontSize: '12px',
                   color: chartPalette.accent,
                 }}
-                formatter={(value, name) => [typeof value === 'number' ? `${Math.round(value)}%` : '—', String(name)]}
-                labelFormatter={(_label, payload) => payload?.[0]?.payload?.fullLabel || ''}
+                formatter={(value, name) => [
+                  typeof value === 'number' ? `${Math.round(value)}%` : '—',
+                  String(name),
+                ]}
+                labelFormatter={(_label, payload) =>
+                  payload?.[0]?.payload?.fullLabel || ''
+                }
               />
-              <Line type="monotone" dataKey="overall" name="Overall" stroke={chartPalette.primary} strokeWidth={2.5} dot={showDots} connectNulls />
-              <Line type="monotone" dataKey="accuracy" name="Accuracy" stroke={chartPalette.primaryLight} strokeWidth={2} strokeDasharray="5 4" dot={showDots} connectNulls />
-              <Line type="monotone" dataKey="pronunciation" name="Pronunciation" stroke={chartPalette.warning} strokeWidth={2} dot={showDots} connectNulls />
+              <Line
+                type="monotone"
+                dataKey="overall"
+                name="Overall"
+                stroke={chartPalette.primary}
+                strokeWidth={2.5}
+                dot={showDots}
+                connectNulls
+              />
+              <Line
+                type="monotone"
+                dataKey="accuracy"
+                name="Accuracy"
+                stroke={chartPalette.primaryLight}
+                strokeWidth={2}
+                strokeDasharray="5 4"
+                dot={showDots}
+                connectNulls
+              />
+              <Line
+                type="monotone"
+                dataKey="pronunciation"
+                name="Pronunciation"
+                stroke={chartPalette.warning}
+                strokeWidth={2}
+                dot={showDots}
+                connectNulls
+              />
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <div className={styles.sparklineEmpty}>Save one reviewed session to start the visual trendline.</div>
+          <div className={styles.sparklineEmpty}>
+            Save one reviewed session to start the visual trendline.
+          </div>
         )}
       </div>
     </Card>
@@ -128,16 +186,30 @@ export function SoundBreakdownCard({
   return (
     <Card className={styles.summaryCard}>
       <Text className={styles.summaryLabel}>Focus sounds</Text>
-      <Text className={styles.summaryCopy}>Average accuracy by target sound across reviewed sessions.</Text>
+      <Text className={styles.summaryCopy}>
+        Average accuracy by target sound across reviewed sessions.
+      </Text>
       <div className={styles.compactChartArea}>
         {soundBreakdown.length ? (
-          <ResponsiveContainer width="100%" height={Math.max(120, soundBreakdown.length * 30)}>
-            <BarChart data={soundBreakdown} layout="vertical" margin={{ top: 4, right: 28, left: 6, bottom: 0 }}>
+          <ResponsiveContainer
+            width="100%"
+            height={Math.max(120, soundBreakdown.length * 30)}
+          >
+            <BarChart
+              data={soundBreakdown}
+              layout="vertical"
+              margin={{ top: 4, right: 28, left: 6, bottom: 0 }}
+            >
               <XAxis type="number" domain={[0, 100]} hide />
               <YAxis
                 dataKey="sound"
                 type="category"
-                tick={{ fill: chartPalette.accent, fontSize: 12, fontWeight: 700, fontFamily: 'Manrope' }}
+                tick={{
+                  fill: chartPalette.accent,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  fontFamily: 'Manrope',
+                }}
                 axisLine={false}
                 tickLine={false}
                 width={52}
@@ -152,23 +224,42 @@ export function SoundBreakdownCard({
                   fontFamily: 'Manrope',
                   fontSize: '12px',
                 }}
-                formatter={value => [typeof value === 'number' ? `${Math.round(value)}%` : '—', 'Average accuracy']}
+                formatter={value => [
+                  typeof value === 'number' ? `${Math.round(value)}%` : '—',
+                  'Average accuracy',
+                ]}
               />
-              <Bar dataKey="score" fill={chartPalette.primary} background={{ fill: chartPalette.muted }} barSize={22}>
+              <Bar
+                dataKey="score"
+                fill={chartPalette.primary}
+                background={{ fill: chartPalette.muted }}
+                barSize={22}
+              >
                 <LabelList
                   dataKey="score"
                   position="right"
-                  formatter={value => (typeof value === 'number' ? `${Math.round(value)}%` : '')}
-                  style={{ fill: '#2e3a3f', fontSize: 12, fontFamily: 'Manrope' }}
+                  formatter={value =>
+                    typeof value === 'number' ? `${Math.round(value)}%` : ''
+                  }
+                  style={{
+                    fill: '#2e3a3f',
+                    fontSize: 12,
+                    fontFamily: 'Manrope',
+                  }}
                 />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <div className={styles.sparklineEmpty}>Target-sound accuracy appears once reviewed sessions include sound metadata.</div>
+          <div className={styles.sparklineEmpty}>
+            Target-sound accuracy appears once reviewed sessions include sound
+            metadata.
+          </div>
         )}
       </div>
-      <Text className={styles.summaryCopy}>Last saved session: {lastSessionLabel}</Text>
+      <Text className={styles.summaryCopy}>
+        Last saved session: {lastSessionLabel}
+      </Text>
     </Card>
   )
 }

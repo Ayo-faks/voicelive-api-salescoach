@@ -32,9 +32,7 @@ vi.mock('./TourDriver', () => ({
     tour: { id: string } | null
     onComplete: (id: string) => void
   }) =>
-    tour ? (
-      <div data-testid="tour-driver-stub" data-tour-id={tour.id} />
-    ) : null,
+    tour ? <div data-testid="tour-driver-stub" data-tour-id={tour.id} /> : null,
 }))
 
 vi.mock('./AnnouncementBanner', () => ({
@@ -49,7 +47,8 @@ const apiMock = {
 vi.mock('../../services/api', () => ({
   api: {
     getUiState: () => apiMock.getUiState(),
-    patchUiState: (patch: Record<string, unknown>) => apiMock.patchUiState(patch),
+    patchUiState: (patch: Record<string, unknown>) =>
+      apiMock.patchUiState(patch),
   },
 }))
 
@@ -81,7 +80,9 @@ describe('OnboardingRuntime — role-gated auto-trigger (Phase 3)', () => {
     apiMock.getUiState.mockResolvedValue({ tours_seen: [] })
     apiMock.patchUiState.mockClear()
     apiMock.patchUiState.mockImplementation(async patch => patch)
-    trackSpy = vi.spyOn(telemetry, 'trackEvent').mockImplementation(() => undefined)
+    trackSpy = vi
+      .spyOn(telemetry, 'trackEvent')
+      .mockImplementation(() => undefined)
     window.localStorage.clear()
   })
 
@@ -130,7 +131,9 @@ describe('OnboardingRuntime — role-gated auto-trigger (Phase 3)', () => {
     // Give the runtime a chance to (fail to) fire anything.
     await new Promise(resolve => setTimeout(resolve, 50))
 
-    expect(container.querySelector('[data-testid="tour-driver-stub"]')).toBeNull()
+    expect(
+      container.querySelector('[data-testid="tour-driver-stub"]')
+    ).toBeNull()
 
     // Telemetry shim is sealed for child persona. `disableForChild` is
     // called once on mount; every onboarding event after that is a no-op.
@@ -162,6 +165,8 @@ describe('OnboardingRuntime — role-gated auto-trigger (Phase 3)', () => {
     )
 
     await new Promise(resolve => setTimeout(resolve, 50))
-    expect(container.querySelector('[data-testid="tour-driver-stub"]')).toBeNull()
+    expect(
+      container.querySelector('[data-testid="tour-driver-stub"]')
+    ).toBeNull()
   })
 })

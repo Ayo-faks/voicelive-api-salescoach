@@ -1,7 +1,10 @@
 import { createRef } from 'react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { buildChildIntroInstructions, buildTherapistIntroInstructions } from '../app/introInstructions'
+import {
+  buildChildIntroInstructions,
+  buildTherapistIntroInstructions,
+} from '../app/introInstructions'
 import { api } from '../services/api'
 import { ListeningMinimalPairsPanel } from './ListeningMinimalPairsPanel'
 import { SessionScreen } from './SessionScreen'
@@ -62,8 +65,7 @@ const listeningPraise = 'Good listening.'
 const listeningInstructionThorn =
   'Listen carefully. The word is thorn. Tap the matching picture.'
 
-const listeningRetryThinFin =
-  `Let's listen again. The word is thin. Was it thin or fin?`
+const listeningRetryThinFin = `Let's listen again. The word is thin. Was it thin or fin?`
 
 describe('Exercise panels', () => {
   beforeEach(() => {
@@ -105,13 +107,11 @@ describe('Exercise panels', () => {
         }}
         onSpeakExerciseText={handleSpeakExerciseText}
         onRecordExerciseSelection={handleRecordSelection}
-      />,
+      />
     )
 
     await waitFor(() => {
-      expect(handleSpeakExerciseText).toHaveBeenCalledWith(
-        listeningInstruction
-      )
+      expect(handleSpeakExerciseText).toHaveBeenCalledWith(listeningInstruction)
     })
 
     fireEvent.click(screen.getByText('thin'))
@@ -120,7 +120,9 @@ describe('Exercise panels', () => {
     deferredSpeech.resolve()
 
     await waitFor(() => {
-      expect(screen.getByText('Tap the picture that matches the word.')).toBeTruthy()
+      expect(
+        screen.getByText('Tap the picture that matches the word.')
+      ).toBeTruthy()
     })
 
     fireEvent.click(screen.getByText('thin'))
@@ -148,7 +150,7 @@ describe('Exercise panels', () => {
         }}
         onSpeakExerciseText={handleSpeakExerciseText}
         onRecordExerciseSelection={handleRecordSelection}
-      />,
+      />
     )
 
     await waitFor(() => {
@@ -166,7 +168,10 @@ describe('Exercise panels', () => {
       1,
       listeningInstruction
     )
-    expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(2, listeningRetryThinFin)
+    expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(
+      2,
+      listeningRetryThinFin
+    )
     expect(handleSpeakExerciseText).toHaveBeenNthCalledWith(
       3,
       listeningInstruction
@@ -197,7 +202,7 @@ describe('Exercise panels', () => {
         }}
         onSpeakExerciseText={handleSpeakExerciseText}
         onRecordExerciseSelection={handleRecordSelection}
-      />,
+      />
     )
 
     // Wait for the first instruction (target is "thin").
@@ -261,7 +266,7 @@ describe('Exercise panels', () => {
         }}
         onSpeakExerciseText={handleSpeakExerciseText}
         onRecordExerciseSelection={handleRecordSelection}
-      />,
+      />
     )
 
     await waitFor(() => {
@@ -303,11 +308,13 @@ describe('Exercise panels', () => {
           speechLanguage: 'en-US',
         }}
         onSpeakExerciseText={handleSpeakExerciseText}
-      />,
+      />
     )
 
     await waitFor(() => {
-      expect(screen.getByText('Tap the picture that matches the word.')).toBeTruthy()
+      expect(
+        screen.getByText('Tap the picture that matches the word.')
+      ).toBeTruthy()
     })
 
     expect(screen.getByRole('button', { name: 'Skip pair' })).toBeTruthy()
@@ -325,7 +332,7 @@ describe('Exercise panels', () => {
           speechLanguage: 'en-US',
         }}
         onSpeakExerciseText={handleSpeakExerciseText}
-      />,
+      />
     )
 
     await waitFor(() => {
@@ -359,7 +366,7 @@ describe('Exercise panels', () => {
         }}
         onSpeakExerciseText={handleSpeakExerciseText}
         onInterruptAvatar={handleInterruptAvatar}
-      />,
+      />
     )
 
     await waitFor(() => {
@@ -395,7 +402,9 @@ describe('Exercise panels', () => {
     secondInstruction.resolve()
 
     await waitFor(() => {
-      expect(screen.getByText('Tap the picture that matches the word.')).toBeTruthy()
+      expect(
+        screen.getByText('Tap the picture that matches the word.')
+      ).toBeTruthy()
     })
 
     expect(screen.getByRole('button', { name: 'Skip pair' })).toBeTruthy()
@@ -420,13 +429,11 @@ describe('Exercise panels', () => {
         }}
         onSpeakExerciseText={handleSpeakExerciseText}
         onCompleteSession={handleCompleteSession}
-      />,
+      />
     )
 
     await waitFor(() => {
-      expect(handleSpeakExerciseText).toHaveBeenCalledWith(
-        listeningInstruction
-      )
+      expect(handleSpeakExerciseText).toHaveBeenCalledWith(listeningInstruction)
     })
 
     fireEvent.click(screen.getByText('thin'))
@@ -458,7 +465,7 @@ describe('Exercise panels', () => {
         }}
         onSpeakExerciseText={handleSpeakExerciseText}
         onCompleteSession={handleCompleteSession}
-      />,
+      />
     )
 
     await waitFor(() => {
@@ -466,7 +473,9 @@ describe('Exercise panels', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText('Tap the picture that matches the word.')).toBeTruthy()
+      expect(
+        screen.getByText('Tap the picture that matches the word.')
+      ).toBeTruthy()
     })
 
     for (let turn = 1; turn <= 12; turn += 1) {
@@ -477,10 +486,14 @@ describe('Exercise panels', () => {
           expect(handleSpeakExerciseText).toHaveBeenCalledTimes(turn * 2 + 1)
         })
 
-        expect(handleSpeakExerciseText).toHaveBeenLastCalledWith(listeningInstruction)
+        expect(handleSpeakExerciseText).toHaveBeenLastCalledWith(
+          listeningInstruction
+        )
 
         await waitFor(() => {
-          expect(screen.getByText('Tap the picture that matches the word.')).toBeTruthy()
+          expect(
+            screen.getByText('Tap the picture that matches the word.')
+          ).toBeTruthy()
         })
 
         continue
@@ -575,17 +588,23 @@ describe('Exercise panels', () => {
         utteranceFeedback={null}
         scoringUtterance={false}
         activeReferenceText=""
-      />,
+      />
     )
 
     await waitFor(() => {
-      expect(screen.getByText('Tap the picture that matches the word.')).toBeTruthy()
+      expect(
+        screen.getByText('Tap the picture that matches the word.')
+      ).toBeTruthy()
     })
 
-    expect(screen.queryByRole('button', { name: /start recording/i })).toBeNull()
+    expect(
+      screen.queryByRole('button', { name: /start recording/i })
+    ).toBeNull()
     expect(screen.queryByRole('button', { name: /stop recording/i })).toBeNull()
     expect(screen.queryByText(/microphone/i)).toBeNull()
-    expect(screen.getByText('Listen for the clue, then tap the matching picture.')).toBeTruthy()
+    expect(
+      screen.getByText('Listen for the clue, then tap the matching picture.')
+    ).toBeTruthy()
   })
 
   it('sends a sorting message when a card moves into a sound home', async () => {
@@ -593,9 +612,12 @@ describe('Exercise panels', () => {
     // moves via fireEvent.click instead of drag-and-drop, which jsdom cannot
     // faithfully simulate.
     const originalMatchMedia = window.matchMedia
-    ;(window as unknown as { matchMedia: (q: string) => MediaQueryList }).matchMedia = (query: string) =>
+    ;(
+      window as unknown as { matchMedia: (q: string) => MediaQueryList }
+    ).matchMedia = (query: string) =>
       ({
-        matches: query.includes('pointer: coarse') || query.includes('max-width'),
+        matches:
+          query.includes('pointer: coarse') || query.includes('max-width'),
         media: query,
         addEventListener: () => {},
         removeEventListener: () => {},
@@ -614,19 +636,19 @@ describe('Exercise panels', () => {
             targetSound: 'th',
             errorSound: 'f',
             targetWords: ['thin', 'thumb'],
-            imageAssets: [
-              'object-cards/th/th-initial-thin.webp',
-            ],
+            imageAssets: ['object-cards/th/th-initial-thin.webp'],
           }}
           onSendMessage={handleSendMessage}
-        />,
+        />
       )
 
       seedShellGesture()
 
       // ORIENT → EXPOSE: wait for preview buttons to appear.
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Hear thhh sound/i })).toBeTruthy()
+        expect(
+          screen.getByRole('button', { name: /Hear thhh sound/i })
+        ).toBeTruthy()
       })
 
       // Tap both previews so canAdvanceFromExpose flips true.
@@ -636,7 +658,8 @@ describe('Exercise panels', () => {
       // EXPOSE → BRIDGE → PERFORM via Start game.
       await waitFor(() => {
         expect(
-          (screen.getByTestId('silent-sorting-start-game') as HTMLButtonElement).disabled,
+          (screen.getByTestId('silent-sorting-start-game') as HTMLButtonElement)
+            .disabled
         ).toBe(false)
       })
       fireEvent.click(screen.getByTestId('silent-sorting-start-game'))
@@ -655,13 +678,13 @@ describe('Exercise panels', () => {
       // Silent sorting: no per-move agent commentary. The card is moved into
       // the target home and `onSendMessage` is never called during a sort.
       await waitFor(() => {
-        expect(
-          screen.getByText('thin goes in the thhh home.'),
-        ).toBeTruthy()
+        expect(screen.getByText('thin goes in the thhh home.')).toBeTruthy()
       })
       expect(handleSendMessage).not.toHaveBeenCalled()
     } finally {
-      ;(window as unknown as { matchMedia: typeof originalMatchMedia }).matchMedia = originalMatchMedia
+      ;(
+        window as unknown as { matchMedia: typeof originalMatchMedia }
+      ).matchMedia = originalMatchMedia
     }
   })
 
@@ -675,13 +698,15 @@ describe('Exercise panels', () => {
           errorSound: 'f',
           targetWords: ['thin', 'fin'],
         }}
-      />,
+      />
     )
 
     seedShellGesture()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Hear thhh sound/i })).toBeTruthy()
+      expect(
+        screen.getByRole('button', { name: /Hear thhh sound/i })
+      ).toBeTruthy()
     })
 
     fireEvent.click(screen.getByRole('button', { name: /Hear thhh sound/i }))
@@ -708,7 +733,7 @@ describe('Exercise panels', () => {
           errorSound: 'f',
           targetWords: ['thin', 'fin'],
         }}
-      />,
+      />
     )
 
     seedShellGesture()
@@ -722,7 +747,11 @@ describe('Exercise panels', () => {
 
     await waitFor(() => {
       expect(api.synthesizeSpeech).toHaveBeenLastCalledWith(
-        expect.objectContaining({ phoneme: 'f', alphabet: 'ipa', fallback_text: 'sound' })
+        expect.objectContaining({
+          phoneme: 'f',
+          alphabet: 'ipa',
+          fallback_text: 'sound',
+        })
       )
     })
   })
@@ -736,13 +765,15 @@ describe('Exercise panels', () => {
           errorSound: 'f',
           targetWords: ['thin', 'fin'],
         }}
-      />,
+      />
     )
 
     seedShellGesture()
 
     await waitFor(() => {
-      expect(screen.getByText('Hear thhh uses the approved sample asset.')).toBeTruthy()
+      expect(
+        screen.getByText('Hear thhh uses the approved sample asset.')
+      ).toBeTruthy()
     })
   })
 
@@ -755,7 +786,7 @@ describe('Exercise panels', () => {
           errorSound: 'f',
           targetWords: ['thin', 'fin'],
         }}
-      />,
+      />
     )
 
     expect(screen.queryByRole('button', { name: 'Save take' })).toBeNull()
@@ -764,7 +795,9 @@ describe('Exercise panels', () => {
   it('exposes Save take when the dev flag is on and still exports non-asset isolated phonemes', async () => {
     vi.stubEnv('VITE_ENABLE_PREVIEW_EXPORT', 'true')
     vi.mocked(api.synthesizeSpeech).mockClear()
-    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    const clickSpy = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => {})
 
     try {
       render(
@@ -775,21 +808,31 @@ describe('Exercise panels', () => {
             errorSound: 'f',
             targetWords: ['thin', 'fin'],
           }}
-        />,
+        />
       )
 
       seedShellGesture()
 
-      const saveButton = await screen.findByRole('button', { name: 'Save take' })
+      const saveButton = await screen.findByRole('button', {
+        name: 'Save take',
+      })
       expect((saveButton as HTMLButtonElement).disabled).toBe(true)
 
-      fireEvent.click(await screen.findByRole('button', { name: /Hear thhh sound/i }))
+      fireEvent.click(
+        await screen.findByRole('button', { name: /Hear thhh sound/i })
+      )
       await waitFor(() => {
         expect(api.synthesizeSpeech).not.toHaveBeenCalled()
       })
 
       await waitFor(() => {
-        expect((screen.getByRole('button', { name: 'Save take' }) as HTMLButtonElement).disabled).toBe(true)
+        expect(
+          (
+            screen.getByRole('button', {
+              name: 'Save take',
+            }) as HTMLButtonElement
+          ).disabled
+        ).toBe(true)
       })
 
       fireEvent.click(screen.getByRole('button', { name: /Hear fff sound/i }))
@@ -798,7 +841,13 @@ describe('Exercise panels', () => {
       })
 
       await waitFor(() => {
-        expect((screen.getByRole('button', { name: 'Save take' }) as HTMLButtonElement).disabled).toBe(false)
+        expect(
+          (
+            screen.getByRole('button', {
+              name: 'Save take',
+            }) as HTMLButtonElement
+          ).disabled
+        ).toBe(false)
       })
 
       fireEvent.click(screen.getByRole('button', { name: 'Save take' }))
@@ -807,7 +856,9 @@ describe('Exercise panels', () => {
         expect(clickSpy).toHaveBeenCalledTimes(2)
       })
       await waitFor(() => {
-        expect(screen.getByText(/Saved wulo-preview_f_pseudo_fff_voice-unknown_/)).toBeTruthy()
+        expect(
+          screen.getByText(/Saved wulo-preview_f_pseudo_fff_voice-unknown_/)
+        ).toBeTruthy()
       })
     } finally {
       clickSpy.mockRestore()
@@ -828,7 +879,7 @@ describe('Exercise panels', () => {
         }}
         onActiveBlendChange={handleActiveBlendChange}
         onSendMessage={handleSendMessage}
-      />,
+      />
     )
 
     expect(handleActiveBlendChange).toHaveBeenCalledWith('sa')

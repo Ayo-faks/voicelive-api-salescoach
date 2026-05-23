@@ -387,7 +387,9 @@ class TestVoiceProxyHandler:
 
     @patch("src.services.azure_openai_auth.AsyncDefaultAzureCredential")
     @patch("src.services.websocket_handler.config")
-    def test_get_credential_prefers_managed_identity(self, mock_config, mock_async_credential, monkeypatch: pytest.MonkeyPatch):
+    def test_get_credential_prefers_managed_identity(
+        self, mock_config, mock_async_credential, monkeypatch: pytest.MonkeyPatch
+    ):
         """Test VoiceLive auth uses managed identity when Azure runtime markers are present."""
         monkeypatch.setenv("AZURE_CLIENT_ID", "managed-identity-client-id")
         mock_config.get.return_value = "test-api-key"

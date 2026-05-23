@@ -12,11 +12,13 @@ import { OnboardingContext } from '../../onboarding/context'
 import { ONBOARDING_EVENTS } from '../../onboarding/events'
 import { telemetry } from '../../services/telemetry'
 
-function renderPopover(opts: {
-  disabled?: boolean
-  topicId?: string
-  label?: string
-} = {}): ReturnType<typeof render> {
+function renderPopover(
+  opts: {
+    disabled?: boolean
+    topicId?: string
+    label?: string
+  } = {}
+): ReturnType<typeof render> {
   return render(
     <FluentProvider theme={webLightTheme}>
       <OnboardingContext.Provider
@@ -42,7 +44,9 @@ describe('HelpPopover', () => {
 
   it('renders a trigger with an aria-label referencing the explained label', () => {
     renderPopover()
-    const trigger = screen.getByRole('button', { name: 'More about voice mode' })
+    const trigger = screen.getByRole('button', {
+      name: 'More about voice mode',
+    })
     expect(trigger).toBeTruthy()
     expect(trigger.getAttribute('data-testid')).toBe(
       'help-popover-trigger-popover-voice-mode'
@@ -51,9 +55,13 @@ describe('HelpPopover', () => {
   })
 
   it('opens on click and emits HELP_OPENED telemetry with source=popover', () => {
-    const trackSpy = vi.spyOn(telemetry, 'trackEvent').mockImplementation(() => undefined)
+    const trackSpy = vi
+      .spyOn(telemetry, 'trackEvent')
+      .mockImplementation(() => undefined)
     renderPopover()
-    const trigger = screen.getByRole('button', { name: 'More about voice mode' })
+    const trigger = screen.getByRole('button', {
+      name: 'More about voice mode',
+    })
     act(() => {
       fireEvent.click(trigger)
     })
@@ -64,14 +72,20 @@ describe('HelpPopover', () => {
   })
 
   it('renders nothing when the onboarding context is disabled (child persona)', () => {
-    const trackSpy = vi.spyOn(telemetry, 'trackEvent').mockImplementation(() => undefined)
+    const trackSpy = vi
+      .spyOn(telemetry, 'trackEvent')
+      .mockImplementation(() => undefined)
     const { container } = renderPopover({ disabled: true })
-    expect(container.querySelector('[data-testid^="help-popover-trigger-"]')).toBeNull()
+    expect(
+      container.querySelector('[data-testid^="help-popover-trigger-"]')
+    ).toBeNull()
     expect(trackSpy).not.toHaveBeenCalled()
   })
 
   it('renders nothing when the topic id is unknown (fail-closed)', () => {
     const { container } = renderPopover({ topicId: 'does-not-exist' })
-    expect(container.querySelector('[data-testid^="help-popover-trigger-"]')).toBeNull()
+    expect(
+      container.querySelector('[data-testid^="help-popover-trigger-"]')
+    ).toBeNull()
   })
 })

@@ -41,9 +41,11 @@ from flask import Flask, jsonify
 # minimal environments (the PLS files we consume are first-party).
 try:  # pragma: no cover - trivial import guard
     from defusedxml import ElementTree as _ET  # pyright: ignore[reportMissingImports]
+
     _USING_DEFUSED = True
 except ImportError:  # pragma: no cover
     import xml.etree.ElementTree as _ET  # type: ignore[assignment]
+
     _USING_DEFUSED = False
 
 from src.services.drill_tokens import DRILL_TOKEN_DISPLAY_MAP
@@ -92,7 +94,9 @@ def _fetch_bytes(source: str) -> Tuple[bytes, str]:
     if source.startswith(("http://", "https://")):
         try:
             request = Request(source, headers={"User-Agent": "wulo-lexicon-healthcheck/1.0"})
-            with urlopen(request, timeout=_FETCH_TIMEOUT_SECONDS) as response:  # nosec B310 - URL is operator-controlled config
+            with urlopen(
+                request, timeout=_FETCH_TIMEOUT_SECONDS
+            ) as response:  # nosec B310 - URL is operator-controlled config
                 raw = response.read(_MAX_LEXICON_BYTES + 1)
         except (URLError, TimeoutError, OSError) as exc:
             raise RuntimeError(f"lexicon fetch failed: {exc}") from exc
@@ -225,8 +229,7 @@ def run_startup_check(
         return result
 
     message = (
-        f"Lexicon health FAILED: source={result.source} error={result.error} "
-        f"missing_tokens={result.missing_tokens}"
+        f"Lexicon health FAILED: source={result.source} error={result.error} " f"missing_tokens={result.missing_tokens}"
     )
     logger.error(message)
     if strict:
@@ -250,11 +253,16 @@ def register_health_route(
     def _lexicon_health_view() -> Any:  # pragma: no cover - exercised via integration
         source = source_provider() or ""
         if not source:
-            return jsonify({
-                "ok": False,
-                "source": "",
-                "error": "AZURE_CUSTOM_LEXICON_URL not set",
-            }), 503
+            return (
+                jsonify(
+                    {
+                        "ok": False,
+                        "source": "",
+                        "error": "AZURE_CUSTOM_LEXICON_URL not set",
+                    }
+                ),
+                503,
+            )
         result = check_lexicon(source)
         status = 200 if result.ok else 503
         return jsonify(result.to_dict()), status

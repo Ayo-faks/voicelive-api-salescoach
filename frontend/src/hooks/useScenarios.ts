@@ -14,13 +14,15 @@ export function useScenarios() {
   const [customScenarios, setCustomScenarios] = useState<CustomScenario[]>(() =>
     customScenarioService.getAll()
   )
-  const [selectedScenario, setSelectedScenario] = useState<string | null>(() => {
-    if (typeof window === 'undefined') {
-      return null
-    }
+  const [selectedScenario, setSelectedScenario] = useState<string | null>(
+    () => {
+      if (typeof window === 'undefined') {
+        return null
+      }
 
-    return window.sessionStorage.getItem('wulo.selectedScenario')
-  })
+      return window.sessionStorage.getItem('wulo.selectedScenario')
+    }
+  )
   const [loading, setLoading] = useState(true)
 
   // Load scenarios on mount

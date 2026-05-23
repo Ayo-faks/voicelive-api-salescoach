@@ -61,7 +61,10 @@ export function useAudioPlayer() {
       return 0
     }
 
-    const pendingSeconds = Math.max(0, nextPlayTimeRef.current - audioCtx.currentTime)
+    const pendingSeconds = Math.max(
+      0,
+      nextPlayTimeRef.current - audioCtx.currentTime
+    )
     return Math.ceil(pendingSeconds * 1000)
   }, [])
 

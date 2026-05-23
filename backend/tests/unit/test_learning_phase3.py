@@ -82,7 +82,9 @@ def test_phase_3_orchestrator_advisor_refuses_under_16_student_narration_but_all
     advisor = OrchestratorAdvisor()
 
     student_result = advisor.render(plan, audience="student", student_age=14, prompt="Explain my career card")
-    counsellor_result = advisor.render(plan, audience="counsellor", student_age=14, prompt="Explain sourced career card")
+    counsellor_result = advisor.render(
+        plan, audience="counsellor", student_age=14, prompt="Explain sourced career card"
+    )
 
     assert isinstance(student_result, CareerRefusal)
     assert student_result.advisor_decision.allowed is False
@@ -101,7 +103,9 @@ def test_phase_3_multilingual_voice_adapter_queues_yoruba_frame_for_offline_repl
         mode="text",
         payload="Ise wo ni o ba ogbon mi mu",
         lang="yo-NG",
-        provenance=[Provenance(source="phase_3_voice_test", rule_id="yoruba_text_path", confidence=1.0, evidence_count=1)],
+        provenance=[
+            Provenance(source="phase_3_voice_test", rule_id="yoruba_text_path", confidence=1.0, evidence_count=1)
+        ],
     )
 
     result = FlaskSockVoiceTransportAdapter().handle_offline_frame(frame, repository)

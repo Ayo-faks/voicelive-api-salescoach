@@ -1248,10 +1248,7 @@ class TestFlaskApp:
             headers=self._auth_headers(),
         )
         assert response.status_code == 400
-        assert (
-            json.loads(response.data)["error"]
-            == "provide exactly one of text, ssml, or phoneme"
-        )
+        assert json.loads(response.data)["error"] == "provide exactly one of text, ssml, or phoneme"
 
     def test_tts_text_too_long_returns_400(self):
         """Test /api/tts rejects text payloads longer than 200 chars."""

@@ -296,7 +296,9 @@ function isCustomScenario(
   return Boolean(scenario && 'scenarioData' in scenario)
 }
 
-function getTargetSoundSummary(selectedScenario: Scenario | CustomScenario | null) {
+function getTargetSoundSummary(
+  selectedScenario: Scenario | CustomScenario | null
+) {
   if (selectedScenario && 'scenarioData' in selectedScenario) {
     return selectedScenario.scenarioData.targetSound || 'Custom focus'
   }
@@ -395,23 +397,33 @@ export function DashboardHome({
     customScenarios.find(scenario => scenario.id === selectedScenario) ||
     null
 
-  const canStartSession = Boolean(selectedChildId && selectedScenario && !launchInFlight)
+  const canStartSession = Boolean(
+    selectedChildId && selectedScenario && !launchInFlight
+  )
   const targetSoundSummary = getTargetSoundSummary(selectedScenarioDetail)
   const selectedScenarioType = isCustomScenario(selectedScenarioDetail)
     ? selectedScenarioDetail.scenarioData.exerciseType
     : selectedScenarioDetail?.exerciseMetadata?.type
-  const activeTarget = childMemorySummary?.summary.targets?.[0]?.statement ?? null
+  const activeTarget =
+    childMemorySummary?.summary.targets?.[0]?.statement ?? null
   const lastMemoryRefresh = childMemorySummary?.last_compiled_at ?? null
   const pendingProposalCount = childMemoryProposals.length
   const latestRecommendation = recommendationHistory[0] ?? null
   const topRecommendation = latestRecommendation?.top_recommendation ?? null
   const incomingInvitationCount = incomingInvitations.length
-  const pendingFamilyIntakeInvitationCount = pendingIncomingFamilyIntakeInvitations.length
+  const pendingFamilyIntakeInvitationCount =
+    pendingIncomingFamilyIntakeInvitations.length
   const hasLinkedChildren = childProfiles.length > 0
-  const showParentPendingFamilyIntakeInvitations = !isTherapistWorkspace && !hasLinkedChildren && pendingFamilyIntakeInvitationCount > 0
-  const showParentPendingInvitations = !isTherapistWorkspace && !hasLinkedChildren && incomingInvitationCount > 0
-  const showParentNoLinkedChildren = !isTherapistWorkspace && !hasLinkedChildren && incomingInvitationCount === 0
-  const showParentNeedsChildSelection = !isTherapistWorkspace && hasLinkedChildren && !selectedChild
+  const showParentPendingFamilyIntakeInvitations =
+    !isTherapistWorkspace &&
+    !hasLinkedChildren &&
+    pendingFamilyIntakeInvitationCount > 0
+  const showParentPendingInvitations =
+    !isTherapistWorkspace && !hasLinkedChildren && incomingInvitationCount > 0
+  const showParentNoLinkedChildren =
+    !isTherapistWorkspace && !hasLinkedChildren && incomingInvitationCount === 0
+  const showParentNeedsChildSelection =
+    !isTherapistWorkspace && hasLinkedChildren && !selectedChild
   const heroHint = isTherapistWorkspace
     ? selectedScenarioDetail
       ? 'Choose the next exercise, launch a guided session, or review saved progress for this child.'
@@ -420,19 +432,23 @@ export function DashboardHome({
       ? 'Choose a linked child and exercise, then hand over the device when you are ready to start practice.'
       : pendingFamilyIntakeInvitationCount > 0
         ? 'Accept the family intake invite, then open family setup once to submit every child together.'
-      : incomingInvitationCount > 0
-        ? 'Open the workspace to accept the linked-child invitation before you start practice here.'
-        : 'Wait for a therapist invitation to link a child profile before you start supervised practice here.'
-  const heroBody = selectedScenarioDetail?.description || (isTherapistWorkspace
-    ? 'Pick an exercise from the library below to prepare the next guided session.'
-    : hasLinkedChildren
-      ? 'Use this space to launch a short supervised practice for the active child.'
-      : pendingFamilyIntakeInvitationCount > 0
-        ? 'A therapist has invited your family. Accept the invite here, then open family setup to submit all children in one step.'
-      : incomingInvitationCount > 0
-        ? 'Your linked child invitation is waiting in the workspace area.'
-        : 'No child is linked yet, so practice cannot start until a child profile is available.')
-  const startButtonLabel = isTherapistWorkspace ? 'Start session' : 'Start practice'
+        : incomingInvitationCount > 0
+          ? 'Open the workspace to accept the linked-child invitation before you start practice here.'
+          : 'Wait for a therapist invitation to link a child profile before you start supervised practice here.'
+  const heroBody =
+    selectedScenarioDetail?.description ||
+    (isTherapistWorkspace
+      ? 'Pick an exercise from the library below to prepare the next guided session.'
+      : hasLinkedChildren
+        ? 'Use this space to launch a short supervised practice for the active child.'
+        : pendingFamilyIntakeInvitationCount > 0
+          ? 'A therapist has invited your family. Accept the invite here, then open family setup to submit all children in one step.'
+          : incomingInvitationCount > 0
+            ? 'Your linked child invitation is waiting in the workspace area.'
+            : 'No child is linked yet, so practice cannot start until a child profile is available.')
+  const startButtonLabel = isTherapistWorkspace
+    ? 'Start session'
+    : 'Start practice'
 
   return (
     <div className={styles.layout}>
@@ -444,7 +460,10 @@ export function DashboardHome({
           </div>
 
           <div className={styles.heroCopy}>
-            <Text className={styles.title} data-testid="dashboard-home-greeting">
+            <Text
+              className={styles.title}
+              data-testid="dashboard-home-greeting"
+            >
               {selectedChild
                 ? isTherapistWorkspace
                   ? `Prepare ${selectedChild.name}'s next practice.`
@@ -497,46 +516,54 @@ export function DashboardHome({
 
         <div className={styles.heroControls}>
           <div>
-              <Text className={styles.fieldLabel}>Practising with</Text>
-              <Dropdown
-                className={styles.dropdown}
-                disabled={childrenLoading || childProfiles.length === 0 || launchInFlight}
-                placeholder={childrenLoading ? 'Loading child profiles...' : 'Select child'}
-                selectedOptions={selectedChildId ? [selectedChildId] : []}
-                value={selectedChild?.name || ''}
-                onOptionSelect={(_, data) => {
-                  if (data.optionValue) {
-                    onSelectChild(data.optionValue)
-                  }
-                }}
-              >
-                {childProfiles.map(child => (
-                  <Option key={child.id} value={child.id} text={child.name}>
-                    {child.name}
-                  </Option>
-                ))}
-              </Dropdown>
+            <Text className={styles.fieldLabel}>Practising with</Text>
+            <Dropdown
+              className={styles.dropdown}
+              disabled={
+                childrenLoading || childProfiles.length === 0 || launchInFlight
+              }
+              placeholder={
+                childrenLoading ? 'Loading child profiles...' : 'Select child'
+              }
+              selectedOptions={selectedChildId ? [selectedChildId] : []}
+              value={selectedChild?.name || ''}
+              onOptionSelect={(_, data) => {
+                if (data.optionValue) {
+                  onSelectChild(data.optionValue)
+                }
+              }}
+            >
+              {childProfiles.map(child => (
+                <Option key={child.id} value={child.id} text={child.name}>
+                  {child.name}
+                </Option>
+              ))}
+            </Dropdown>
           </div>
 
           <div>
-              <Text className={styles.fieldLabel}>Avatar</Text>
-              <Dropdown
-                className={styles.dropdown}
-                disabled={launchInFlight}
-                selectedOptions={[selectedAvatar]}
-                value={selectedAvatarOption.label}
-                onOptionSelect={(_, data) => {
-                  if (data.optionValue) {
-                    onSelectAvatar(data.optionValue)
-                  }
-                }}
-              >
-                {AVATAR_OPTIONS.map(option => (
-                  <Option key={option.value} value={option.value} text={option.label}>
-                    {option.label}
-                  </Option>
-                ))}
-              </Dropdown>
+            <Text className={styles.fieldLabel}>Avatar</Text>
+            <Dropdown
+              className={styles.dropdown}
+              disabled={launchInFlight}
+              selectedOptions={[selectedAvatar]}
+              value={selectedAvatarOption.label}
+              onOptionSelect={(_, data) => {
+                if (data.optionValue) {
+                  onSelectAvatar(data.optionValue)
+                }
+              }}
+            >
+              {AVATAR_OPTIONS.map(option => (
+                <Option
+                  key={option.value}
+                  value={option.value}
+                  text={option.label}
+                >
+                  {option.label}
+                </Option>
+              ))}
+            </Dropdown>
           </div>
         </div>
 
@@ -549,13 +576,16 @@ export function DashboardHome({
                   {childMemorySummary?.source_item_count ?? 0}
                 </Text>
                 <Text className={styles.memorySignalCopy}>
-                  {activeTarget || 'No approved memory has been compiled for this child yet.'}
+                  {activeTarget ||
+                    'No approved memory has been compiled for this child yet.'}
                 </Text>
               </div>
 
               <div className={styles.memorySignalCard}>
                 <Text className={styles.memorySignalLabel}>Needs review</Text>
-                <Text className={styles.memorySignalValue}>{pendingProposalCount}</Text>
+                <Text className={styles.memorySignalValue}>
+                  {pendingProposalCount}
+                </Text>
                 <Text className={styles.memorySignalCopy}>
                   {pendingProposalCount
                     ? isTherapistWorkspace
@@ -566,7 +596,9 @@ export function DashboardHome({
               </div>
 
               <div className={styles.memorySignalCard}>
-                <Text className={styles.memorySignalLabel}>Last memory refresh</Text>
+                <Text className={styles.memorySignalLabel}>
+                  Last memory refresh
+                </Text>
                 <Text className={styles.memorySignalValue}>
                   {lastMemoryRefresh ? 'Current' : 'Not started'}
                 </Text>
@@ -580,13 +612,15 @@ export function DashboardHome({
 
             {onOpenRecommendations ? (
               <div className={styles.suggestedNextRow}>
-                <Text className={styles.suggestedNextLabel}>Suggested next</Text>
+                <Text className={styles.suggestedNextLabel}>
+                  Suggested next
+                </Text>
                 <Text className={styles.suggestedNextValue}>
                   {topRecommendation?.exercise_name || 'No saved run'}
                 </Text>
                 <Text className={styles.suggestedNextReason}>
-                  {topRecommendation?.rationale
-                    || (latestRecommendation
+                  {topRecommendation?.rationale ||
+                    (latestRecommendation
                       ? 'Open progress to review the latest saved recommendation run.'
                       : 'Generate recommendations in progress to surface the next suggested exercise.')}
                 </Text>
@@ -595,88 +629,140 @@ export function DashboardHome({
                   className={styles.suggestedNextLink}
                   onClick={onOpenRecommendations}
                 >
-                  {latestRecommendation ? 'Open recommendations →' : 'Generate in progress →'}
+                  {latestRecommendation
+                    ? 'Open recommendations →'
+                    : 'Generate in progress →'}
                 </Button>
               </div>
             ) : null}
           </>
-        ) : showParentPendingFamilyIntakeInvitations || showParentPendingInvitations || showParentNoLinkedChildren || showParentNeedsChildSelection ? (
+        ) : showParentPendingFamilyIntakeInvitations ||
+          showParentPendingInvitations ||
+          showParentNoLinkedChildren ||
+          showParentNeedsChildSelection ? (
           <div className={styles.memorySignalStrip}>
-            {showParentPendingFamilyIntakeInvitations ? (
-              pendingIncomingFamilyIntakeInvitations.map(invitation => (
-                <div key={invitation.id} className={styles.memorySignalCard}>
-                  <Text className={styles.memorySignalLabel}>Family invite from {invitation.invited_by_name || 'Therapist'}</Text>
-                  <Text className={styles.memorySignalValue}>{invitation.workspace_name || 'Family intake'}</Text>
-                  <Text className={styles.memorySignalCopy}>
-                    Accept once, then open family setup to submit all children together.
-                  </Text>
-                  <div style={{ display: 'flex', gap: 'var(--space-sm)', marginTop: 'var(--space-sm)' }}>
-                    <Button
-                      appearance="primary"
-                      size="small"
-                      disabled={familyIntakeActionPendingId === invitation.id}
-                      onClick={() => { void onAcceptFamilyIntakeInvitation(invitation.id).catch(() => undefined) }}
+            {showParentPendingFamilyIntakeInvitations
+              ? pendingIncomingFamilyIntakeInvitations.map(invitation => (
+                  <div key={invitation.id} className={styles.memorySignalCard}>
+                    <Text className={styles.memorySignalLabel}>
+                      Family invite from{' '}
+                      {invitation.invited_by_name || 'Therapist'}
+                    </Text>
+                    <Text className={styles.memorySignalValue}>
+                      {invitation.workspace_name || 'Family intake'}
+                    </Text>
+                    <Text className={styles.memorySignalCopy}>
+                      Accept once, then open family setup to submit all children
+                      together.
+                    </Text>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: 'var(--space-sm)',
+                        marginTop: 'var(--space-sm)',
+                      }}
                     >
-                      Accept
-                    </Button>
-                    <Button
-                      appearance="secondary"
-                      size="small"
-                      disabled={familyIntakeActionPendingId === invitation.id}
-                      onClick={() => { void onDeclineFamilyIntakeInvitation(invitation.id).catch(() => undefined) }}
-                    >
-                      Decline
-                    </Button>
+                      <Button
+                        appearance="primary"
+                        size="small"
+                        disabled={familyIntakeActionPendingId === invitation.id}
+                        onClick={() => {
+                          void onAcceptFamilyIntakeInvitation(
+                            invitation.id
+                          ).catch(() => undefined)
+                        }}
+                      >
+                        Accept
+                      </Button>
+                      <Button
+                        appearance="secondary"
+                        size="small"
+                        disabled={familyIntakeActionPendingId === invitation.id}
+                        onClick={() => {
+                          void onDeclineFamilyIntakeInvitation(
+                            invitation.id
+                          ).catch(() => undefined)
+                        }}
+                      >
+                        Decline
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ))
-            ) : null}
+                ))
+              : null}
 
-            {showParentPendingInvitations ? (
-              incomingInvitations.map(invitation => (
-                <div key={invitation.id} className={styles.memorySignalCard}>
-                  <Text className={styles.memorySignalLabel}>Invitation from {invitation.invited_by_name || 'Therapist'}</Text>
-                  <Text className={styles.memorySignalValue}>{invitation.child_name}</Text>
-                  <Text className={styles.memorySignalCopy}>
-                    Accept to link this child and start supervised practice.
-                  </Text>
-                  <div style={{ display: 'flex', gap: 'var(--space-sm)', marginTop: 'var(--space-sm)' }}>
-                    <Button
-                      appearance="primary"
-                      size="small"
-                      disabled={invitationActionPendingId === invitation.id}
-                      onClick={() => { void onAcceptInvitation(invitation.id).catch(() => undefined) }}
+            {showParentPendingInvitations
+              ? incomingInvitations.map(invitation => (
+                  <div key={invitation.id} className={styles.memorySignalCard}>
+                    <Text className={styles.memorySignalLabel}>
+                      Invitation from{' '}
+                      {invitation.invited_by_name || 'Therapist'}
+                    </Text>
+                    <Text className={styles.memorySignalValue}>
+                      {invitation.child_name}
+                    </Text>
+                    <Text className={styles.memorySignalCopy}>
+                      Accept to link this child and start supervised practice.
+                    </Text>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: 'var(--space-sm)',
+                        marginTop: 'var(--space-sm)',
+                      }}
                     >
-                      Accept
-                    </Button>
-                    <Button
-                      appearance="secondary"
-                      size="small"
-                      disabled={invitationActionPendingId === invitation.id}
-                      onClick={() => { void onDeclineInvitation(invitation.id).catch(() => undefined) }}
-                    >
-                      Decline
-                    </Button>
+                      <Button
+                        appearance="primary"
+                        size="small"
+                        disabled={invitationActionPendingId === invitation.id}
+                        onClick={() => {
+                          void onAcceptInvitation(invitation.id).catch(
+                            () => undefined
+                          )
+                        }}
+                      >
+                        Accept
+                      </Button>
+                      <Button
+                        appearance="secondary"
+                        size="small"
+                        disabled={invitationActionPendingId === invitation.id}
+                        onClick={() => {
+                          void onDeclineInvitation(invitation.id).catch(
+                            () => undefined
+                          )
+                        }}
+                      >
+                        Decline
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ))
-            ) : null}
+                ))
+              : null}
 
             {showParentNoLinkedChildren ? (
               <>
                 <div className={styles.memorySignalCard}>
-                  <Text className={styles.memorySignalLabel}>No linked child yet</Text>
-                  <Text className={styles.memorySignalValue}>Action needed</Text>
+                  <Text className={styles.memorySignalLabel}>
+                    No linked child yet
+                  </Text>
+                  <Text className={styles.memorySignalValue}>
+                    Action needed
+                  </Text>
                   <Text className={styles.memorySignalCopy}>
-                    Add a child profile here or wait for a therapist invitation to unlock supervised practice.
+                    Add a child profile here or wait for a therapist invitation
+                    to unlock supervised practice.
                   </Text>
                 </div>
 
                 <div className={styles.memorySignalCard}>
                   <Text className={styles.memorySignalLabel}>Next step</Text>
-                  <Text className={styles.memorySignalValue}>Open family setup</Text>
+                  <Text className={styles.memorySignalValue}>
+                    Open family setup
+                  </Text>
                   <Text className={styles.memorySignalCopy}>
-                    Family setup is where you manage linked children, invitations, and practice access.
+                    Family setup is where you manage linked children,
+                    invitations, and practice access.
                   </Text>
                 </div>
               </>
@@ -685,18 +771,26 @@ export function DashboardHome({
             {showParentNeedsChildSelection ? (
               <>
                 <div className={styles.memorySignalCard}>
-                  <Text className={styles.memorySignalLabel}>Child selection</Text>
-                  <Text className={styles.memorySignalValue}>Choose one child</Text>
+                  <Text className={styles.memorySignalLabel}>
+                    Child selection
+                  </Text>
+                  <Text className={styles.memorySignalValue}>
+                    Choose one child
+                  </Text>
                   <Text className={styles.memorySignalCopy}>
-                    Pick the child you are practising with to load the right exercises and memory context.
+                    Pick the child you are practising with to load the right
+                    exercises and memory context.
                   </Text>
                 </div>
 
                 <div className={styles.memorySignalCard}>
                   <Text className={styles.memorySignalLabel}>Workspace</Text>
-                  <Text className={styles.memorySignalValue}>Family overview</Text>
+                  <Text className={styles.memorySignalValue}>
+                    Family overview
+                  </Text>
                   <Text className={styles.memorySignalCopy}>
-                    Open the workspace to review linked children, invitations, and the current practice setup.
+                    Open the workspace to review linked children, invitations,
+                    and the current practice setup.
                   </Text>
                 </div>
               </>

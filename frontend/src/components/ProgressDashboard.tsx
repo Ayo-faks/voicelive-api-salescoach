@@ -24,7 +24,11 @@ import type { TabValue } from '@fluentui/react-components'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { InsightsRail, readStoredInsightsRailMode, type InsightsRailMode } from './InsightsRail'
+import {
+  InsightsRail,
+  readStoredInsightsRailMode,
+  type InsightsRailMode,
+} from './InsightsRail'
 import type { InsightsScope, InsightsVoiceMode } from '../types'
 import {
   CelebrationDonut,
@@ -91,9 +95,15 @@ type NormalizedReportRedactionOverrides = {
   hidden_section_keys: string[]
 }
 
-type SharedReportRedactionToggle = Exclude<keyof NormalizedReportRedactionOverrides, 'hidden_section_keys'>
+type SharedReportRedactionToggle = Exclude<
+  keyof NormalizedReportRedactionOverrides,
+  'hidden_section_keys'
+>
 
-const SHARED_REPORT_SECTION_OPTIONS: Record<'parent' | 'school', Array<{ key: string; title: string }>> = {
+const SHARED_REPORT_SECTION_OPTIONS: Record<
+  'parent' | 'school',
+  Array<{ key: string; title: string }>
+> = {
   parent: [
     { key: 'overview', title: 'Overview' },
     { key: 'session-highlights', title: 'Session highlights' },
@@ -135,17 +145,27 @@ const SHARED_REPORT_REDACTION_OPTIONS: Array<{
   },
 ]
 
-function isSharedReportAudience(audience: ProgressReportAudience): audience is 'parent' | 'school' {
+function isSharedReportAudience(
+  audience: ProgressReportAudience
+): audience is 'parent' | 'school' {
   return audience === 'parent' || audience === 'school'
 }
 
-function getSharedReportSectionOptions(audience: ProgressReportAudience): Array<{ key: string; title: string }> {
-  return isSharedReportAudience(audience) ? SHARED_REPORT_SECTION_OPTIONS[audience] : []
+function getSharedReportSectionOptions(
+  audience: ProgressReportAudience
+): Array<{ key: string; title: string }> {
+  return isSharedReportAudience(audience)
+    ? SHARED_REPORT_SECTION_OPTIONS[audience]
+    : []
 }
 
 function normalizeReportRedactionOverrides(
-  overrides: ProgressReportRedactionOverrides | Record<string, unknown> | null | undefined,
-  audience: ProgressReportAudience,
+  overrides:
+    | ProgressReportRedactionOverrides
+    | Record<string, unknown>
+    | null
+    | undefined,
+  audience: ProgressReportAudience
 ): NormalizedReportRedactionOverrides {
   if (!isSharedReportAudience(audience)) {
     return {
@@ -157,11 +177,15 @@ function normalizeReportRedactionOverrides(
     }
   }
 
-  const availableSectionKeys = new Set(getSharedReportSectionOptions(audience).map(section => section.key))
+  const availableSectionKeys = new Set(
+    getSharedReportSectionOptions(audience).map(section => section.key)
+  )
   const hiddenSectionKeys = Array.isArray(overrides?.hidden_section_keys)
     ? overrides.hidden_section_keys
         .map(sectionKey => String(sectionKey).trim())
-        .filter(sectionKey => sectionKey && availableSectionKeys.has(sectionKey))
+        .filter(
+          sectionKey => sectionKey && availableSectionKeys.has(sectionKey)
+        )
     : []
 
   return {
@@ -175,7 +199,7 @@ function normalizeReportRedactionOverrides(
 
 function buildPersistedReportRedactionOverrides(
   overrides: NormalizedReportRedactionOverrides,
-  audience: ProgressReportAudience,
+  audience: ProgressReportAudience
 ): ProgressReportRedactionOverrides {
   if (!isSharedReportAudience(audience)) {
     return {}
@@ -186,7 +210,8 @@ function buildPersistedReportRedactionOverrides(
   if (overrides.hide_overview_metrics) persisted.hide_overview_metrics = true
   if (overrides.hide_session_list) persisted.hide_session_list = true
   if (overrides.hide_internal_metadata) persisted.hide_internal_metadata = true
-  if (overrides.hidden_section_keys.length) persisted.hidden_section_keys = overrides.hidden_section_keys
+  if (overrides.hidden_section_keys.length)
+    persisted.hidden_section_keys = overrides.hidden_section_keys
   return persisted
 }
 
@@ -1459,7 +1484,11 @@ function toEndOfDayIso(dateValue: string) {
   return dateValue ? `${dateValue}T23:59:59+00:00` : undefined
 }
 
-function sessionFallsWithinDateRange(session: SessionSummary, startDate: string, endDate: string) {
+function sessionFallsWithinDateRange(
+  session: SessionSummary,
+  startDate: string,
+  endDate: string
+) {
   const sessionDate = formatDateInputValue(session.timestamp)
   if (!sessionDate) return false
   if (startDate && sessionDate < startDate) return false
@@ -1493,11 +1522,7 @@ function renderEvidenceLinks(
   onOpenSession: (sessionId: string) => void
 ) {
   if (!links?.length) {
-    return (
-      <Text size={200}>
-        No linked source evidence yet.
-      </Text>
-    )
+    return <Text size={200}>No linked source evidence yet.</Text>
   }
 
   return (
@@ -1527,7 +1552,9 @@ function renderEvidenceLinks(
   )
 }
 
-function formatInstitutionalInsightType(type: InstitutionalMemoryInsight['insight_type']) {
+function formatInstitutionalInsightType(
+  type: InstitutionalMemoryInsight['insight_type']
+) {
   if (type === 'strategy_insight') return 'Clinic strategy'
   if (type === 'reviewed_pattern') return 'Reviewed pattern'
   return 'Recommendation tuning'
@@ -1540,9 +1567,15 @@ function renderInstitutionalInsights(
   return (
     <div className={styles.memoryList}>
       {insights.map(insight => {
-        const deidentifiedChildCount = insight.provenance?.deidentified_child_count ?? insight.source_child_count
-        const reviewedSessionCount = insight.provenance?.reviewed_session_count ?? insight.source_session_count
-        const approvedMemoryItemCount = insight.provenance?.approved_memory_item_count ?? insight.source_memory_item_count
+        const deidentifiedChildCount =
+          insight.provenance?.deidentified_child_count ??
+          insight.source_child_count
+        const reviewedSessionCount =
+          insight.provenance?.reviewed_session_count ??
+          insight.source_session_count
+        const approvedMemoryItemCount =
+          insight.provenance?.approved_memory_item_count ??
+          insight.source_memory_item_count
 
         return (
           <div className={styles.memoryCard} key={insight.id}>
@@ -1585,21 +1618,30 @@ function getAverageScore(sessions: SessionSummary[]) {
 
   if (scores.length === 0) return null
 
-  return Math.round(scores.reduce((total, score) => total + score, 0) / scores.length)
+  return Math.round(
+    scores.reduce((total, score) => total + score, 0) / scores.length
+  )
 }
 
 function getTrendLabel(sessions: SessionSummary[]) {
   const scores = [...sessions]
-    .sort((left, right) => new Date(left.timestamp).getTime() - new Date(right.timestamp).getTime())
+    .sort(
+      (left, right) =>
+        new Date(left.timestamp).getTime() - new Date(right.timestamp).getTime()
+    )
     .map(session => session.overall_score)
     .filter((score): score is number => typeof score === 'number')
 
   if (scores.length < 2) return 'Build a baseline with a few sessions.'
 
   const midpoint = Math.max(1, Math.floor(scores.length / 2))
-  const earlyAverage = scores.slice(0, midpoint).reduce((total, score) => total + score, 0) / midpoint
+  const earlyAverage =
+    scores.slice(0, midpoint).reduce((total, score) => total + score, 0) /
+    midpoint
   const recentScores = scores.slice(midpoint)
-  const recentAverage = recentScores.reduce((total, score) => total + score, 0) / recentScores.length
+  const recentAverage =
+    recentScores.reduce((total, score) => total + score, 0) /
+    recentScores.length
   const delta = Math.round(recentAverage - earlyAverage)
 
   if (delta >= 6) return `Trending up by ${delta} points.`
@@ -1607,24 +1649,45 @@ function getTrendLabel(sessions: SessionSummary[]) {
   return 'Recent sessions are holding steady.'
 }
 
-function getSummaryStripMode(hasTrendVisualization: boolean, hasSoundVisualization: boolean) {
+function getSummaryStripMode(
+  hasTrendVisualization: boolean,
+  hasSoundVisualization: boolean
+) {
   return hasTrendVisualization && hasSoundVisualization ? 'rich' : 'compact'
 }
 
 function getHeroSubtitle(isSparseDashboard: boolean) {
-  return isSparseDashboard
-    ? ''
-    : ''
+  return isSparseDashboard ? '' : ''
 }
 
-function SparseStateMarker({ className, dividerClassName }: { className: string; dividerClassName: string }) {
+function SparseStateMarker({
+  className,
+  dividerClassName,
+}: {
+  className: string
+  dividerClassName: string
+}) {
   return (
     <div className={className} aria-hidden="true">
       <span className={dividerClassName} />
       <svg viewBox="0 0 28 28" fill="none">
         <title>Dashboard state marker</title>
-        <rect x="4" y="17" width="4" height="7" fill="currentColor" opacity="0.55" />
-        <rect x="12" y="11" width="4" height="13" fill="currentColor" opacity="0.75" />
+        <rect
+          x="4"
+          y="17"
+          width="4"
+          height="7"
+          fill="currentColor"
+          opacity="0.55"
+        />
+        <rect
+          x="12"
+          y="11"
+          width="4"
+          height="13"
+          fill="currentColor"
+          opacity="0.75"
+        />
         <rect x="20" y="7" width="4" height="17" fill="currentColor" />
       </svg>
       <span className={dividerClassName} />
@@ -1675,14 +1738,36 @@ function renderMarkdown(content: string, styles: ReturnType<typeof useStyles>) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          p: ({ children }) => <p className={styles.markdownParagraph}>{children}</p>,
-          ul: ({ children }) => <ul className={styles.markdownList}>{children}</ul>,
-          ol: ({ children }) => <ol className={styles.markdownList}>{children}</ol>,
-          li: ({ children }) => <li className={styles.markdownListItem}>{children}</li>,
-          code: ({ children }) => <code className={styles.markdownCode}>{children}</code>,
-          h1: ({ children }) => <p className={styles.markdownParagraph}><strong>{children}</strong></p>,
-          h2: ({ children }) => <p className={styles.markdownParagraph}><strong>{children}</strong></p>,
-          h3: ({ children }) => <p className={styles.markdownParagraph}><strong>{children}</strong></p>,
+          p: ({ children }) => (
+            <p className={styles.markdownParagraph}>{children}</p>
+          ),
+          ul: ({ children }) => (
+            <ul className={styles.markdownList}>{children}</ul>
+          ),
+          ol: ({ children }) => (
+            <ol className={styles.markdownList}>{children}</ol>
+          ),
+          li: ({ children }) => (
+            <li className={styles.markdownListItem}>{children}</li>
+          ),
+          code: ({ children }) => (
+            <code className={styles.markdownCode}>{children}</code>
+          ),
+          h1: ({ children }) => (
+            <p className={styles.markdownParagraph}>
+              <strong>{children}</strong>
+            </p>
+          ),
+          h2: ({ children }) => (
+            <p className={styles.markdownParagraph}>
+              <strong>{children}</strong>
+            </p>
+          ),
+          h3: ({ children }) => (
+            <p className={styles.markdownParagraph}>
+              <strong>{children}</strong>
+            </p>
+          ),
         }}
       >
         {content}
@@ -1706,10 +1791,21 @@ function isRecommendationEvidenceStale({
   const recommendationTimestamp = new Date(recommendationCreatedAt).getTime()
   if (!Number.isFinite(recommendationTimestamp)) return false
   if (pendingProposalCount > 0) return true
-  const memoryTimestamp = memoryCompiledAt ? new Date(memoryCompiledAt).getTime() : Number.NaN
-  if (Number.isFinite(memoryTimestamp) && memoryTimestamp > recommendationTimestamp) return true
-  const sessionTimestamp = latestSessionAt ? new Date(latestSessionAt).getTime() : Number.NaN
-  return Number.isFinite(sessionTimestamp) && sessionTimestamp > recommendationTimestamp
+  const memoryTimestamp = memoryCompiledAt
+    ? new Date(memoryCompiledAt).getTime()
+    : Number.NaN
+  if (
+    Number.isFinite(memoryTimestamp) &&
+    memoryTimestamp > recommendationTimestamp
+  )
+    return true
+  const sessionTimestamp = latestSessionAt
+    ? new Date(latestSessionAt).getTime()
+    : Number.NaN
+  return (
+    Number.isFinite(sessionTimestamp) &&
+    sessionTimestamp > recommendationTimestamp
+  )
 }
 
 interface Props {
@@ -1746,20 +1842,34 @@ interface Props {
   onOpenSession: (sessionId: string) => void
   onOpenRecommendationDetail: (recommendationId: string) => void | Promise<void>
   onOpenReportDetail: (reportId: string) => void | Promise<void>
-  onCreateReport: (payload: ProgressReportCreateRequest) => ReportSaveResult | Promise<ReportSaveResult>
-  onUpdateReport: (payload: ProgressReportUpdateRequest) => ReportSaveResult | Promise<ReportSaveResult>
-  onSuggestReportSummaryRewrite: (reportId: string) => Promise<ProgressReportSummaryRewriteSuggestion | null>
-  onOpenReportExport: (reportId: string, options?: { mode?: ReportExportMode; format?: ReportExportFormat }) => void
+  onCreateReport: (
+    payload: ProgressReportCreateRequest
+  ) => ReportSaveResult | Promise<ReportSaveResult>
+  onUpdateReport: (
+    payload: ProgressReportUpdateRequest
+  ) => ReportSaveResult | Promise<ReportSaveResult>
+  onSuggestReportSummaryRewrite: (
+    reportId: string
+  ) => Promise<ProgressReportSummaryRewriteSuggestion | null>
+  onOpenReportExport: (
+    reportId: string,
+    options?: { mode?: ReportExportMode; format?: ReportExportFormat }
+  ) => void
   onApproveReport: () => void | Promise<void>
   onSignReport: () => void | Promise<void>
   onArchiveReport: () => void | Promise<void>
-  onGenerateRecommendations: (therapistConstraints: string) => void | Promise<void>
+  onGenerateRecommendations: (
+    therapistConstraints: string
+  ) => void | Promise<void>
   onCreatePlan: (message: string) => void | Promise<void>
   onRefinePlan: (message: string) => void | Promise<void>
   onApprovePlan: () => void | Promise<void>
   onApproveMemoryProposal: (proposalId: string) => void | Promise<void>
   onRejectMemoryProposal: (proposalId: string) => void | Promise<void>
-  onCreateMemoryItem: (category: ChildMemoryCategory, statement: string) => void | Promise<void>
+  onCreateMemoryItem: (
+    category: ChildMemoryCategory,
+    statement: string
+  ) => void | Promise<void>
   onBackToPractice: () => void
   onExitToEntry: () => void
   initialTab?: DashboardTab
@@ -1768,7 +1878,12 @@ interface Props {
   insightsVoiceMode?: InsightsVoiceMode
 }
 
-type DashboardTab = 'session-detail' | 'memory' | 'recommendations' | 'reports' | 'plan'
+type DashboardTab =
+  | 'session-detail'
+  | 'memory'
+  | 'recommendations'
+  | 'reports'
+  | 'plan'
 
 export function ProgressDashboard({
   childProfiles,
@@ -1827,18 +1942,30 @@ export function ProgressDashboard({
   const styles = useStyles()
   const [planPrompt, setPlanPrompt] = useState('')
   const [recommendationPrompt, setRecommendationPrompt] = useState('')
-  const [reportAudience, setReportAudience] = useState<ProgressReportAudience>('therapist')
+  const [reportAudience, setReportAudience] =
+    useState<ProgressReportAudience>('therapist')
   const [reportTitle, setReportTitle] = useState('')
   const [reportSummary, setReportSummary] = useState('')
-  const [reportSummarySuggestion, setReportSummarySuggestion] = useState<ProgressReportSummaryRewriteSuggestion | null>(null)
+  const [reportSummarySuggestion, setReportSummarySuggestion] =
+    useState<ProgressReportSummaryRewriteSuggestion | null>(null)
   const [reportPeriodStartDate, setReportPeriodStartDate] = useState('')
   const [reportPeriodEndDate, setReportPeriodEndDate] = useState('')
-  const [reportSelectedSessionIds, setReportSelectedSessionIds] = useState<string[]>([])
-  const [reportRedactionOverrides, setReportRedactionOverrides] = useState<NormalizedReportRedactionOverrides>(() => normalizeReportRedactionOverrides({}, 'therapist'))
-  const [manualMemoryCategory, setManualMemoryCategory] = useState<ChildMemoryCategory>('general')
+  const [reportSelectedSessionIds, setReportSelectedSessionIds] = useState<
+    string[]
+  >([])
+  const [reportRedactionOverrides, setReportRedactionOverrides] =
+    useState<NormalizedReportRedactionOverrides>(() =>
+      normalizeReportRedactionOverrides({}, 'therapist')
+    )
+  const [manualMemoryCategory, setManualMemoryCategory] =
+    useState<ChildMemoryCategory>('general')
   const [manualMemoryStatement, setManualMemoryStatement] = useState('')
-  const [breakdownViewBySession, setBreakdownViewBySession] = useState<Record<string, 'articulation' | 'engagement'>>({})
-  const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab ?? 'session-detail')
+  const [breakdownViewBySession, setBreakdownViewBySession] = useState<
+    Record<string, 'articulation' | 'engagement'>
+  >({})
+  const [activeTab, setActiveTab] = useState<DashboardTab>(
+    initialTab ?? 'session-detail'
+  )
   const heroRef = useRef<HTMLDivElement | null>(null)
   const [heroHeight, setHeroHeight] = useState<number | null>(null)
   useEffect(() => {
@@ -1852,11 +1979,16 @@ export function ProgressDashboard({
     setHeroHeight(Math.round(el.getBoundingClientRect().height))
     return () => observer.disconnect()
   }, [])
-  const [reportSourceFilter, setReportSourceFilter] = useState<'all' | 'pipeline' | 'ai_insight' | 'manual'>('all')
-  const [reportReviewAcknowledgedId, setReportReviewAcknowledgedId] = useState<string | null>(null)
+  const [reportSourceFilter, setReportSourceFilter] = useState<
+    'all' | 'pipeline' | 'ai_insight' | 'manual'
+  >('all')
+  const [reportReviewAcknowledgedId, setReportReviewAcknowledgedId] = useState<
+    string | null
+  >(null)
 
   // --- Phase 4 Insights rail wiring ---
-  const [insightsScopeOverride, setInsightsScopeOverride] = useState<InsightsScope | null>(null)
+  const [insightsScopeOverride, setInsightsScopeOverride] =
+    useState<InsightsScope | null>(null)
   const [insightsFocusToken, setInsightsFocusToken] = useState(0)
   const derivedInsightsScope = useMemo<InsightsScope>(() => {
     if (activeTab === 'reports' && selectedReport) {
@@ -1888,13 +2020,18 @@ export function ProgressDashboard({
       setInsightsScopeOverride(null)
     } else if (override.type === 'report' && !selectedReport) {
       setInsightsScopeOverride(null)
-    } else if (override.type === 'child' && override.child_id !== selectedChildId) {
+    } else if (
+      override.type === 'child' &&
+      override.child_id !== selectedChildId
+    ) {
       setInsightsScopeOverride(null)
     }
   }, [insightsScopeOverride, selectedChildId, selectedSession, selectedReport])
   const handleAskAboutThis = useCallback((scope: InsightsScope) => {
     setInsightsScopeOverride(scope)
-    setInsightsRailMode(currentMode => (currentMode === 'full' ? 'full' : 'normal'))
+    setInsightsRailMode(currentMode =>
+      currentMode === 'full' ? 'full' : 'normal'
+    )
     setInsightsFocusToken(token => token + 1)
   }, [])
   const openInsightsRail = useCallback(() => {
@@ -1922,11 +2059,15 @@ export function ProgressDashboard({
   }, [handleAskAboutThis, selectedReport, selectedChildId])
   const askAboutReports = useCallback(() => {
     handleAskAboutThis(
-      selectedChildId ? { type: 'child', child_id: selectedChildId } : { type: 'caseload' },
+      selectedChildId
+        ? { type: 'child', child_id: selectedChildId }
+        : { type: 'caseload' }
     )
   }, [handleAskAboutThis, selectedChildId])
   const shouldMountInsightsRail = insightsRailEnabled
-  const [insightsRailMode, setInsightsRailMode] = useState<InsightsRailMode>(() => readStoredInsightsRailMode())
+  const [insightsRailMode, setInsightsRailMode] = useState<InsightsRailMode>(
+    () => readStoredInsightsRailMode()
+  )
   useEffect(() => {
     if (initialTab) {
       setActiveTab(initialTab)
@@ -1934,70 +2075,115 @@ export function ProgressDashboard({
   }, [initialTab])
   const plannerReady = plannerReadiness?.ready ?? false
   const aiAssessment = selectedSession?.assessment.ai_assessment
-  const pronunciationAssessment = selectedSession?.assessment.pronunciation_assessment
-  const selectedChild = childProfiles.find(child => child.id === selectedChildId) || null
+  const pronunciationAssessment =
+    selectedSession?.assessment.pronunciation_assessment
+  const selectedChild =
+    childProfiles.find(child => child.id === selectedChildId) || null
   const averageScore = getAverageScore(sessions)
   const trendLabel = getTrendLabel(sessions)
-  const trendChartData = getTrendChartData(sessions, formatShortDate, formatTimestamp)
+  const trendChartData = getTrendChartData(
+    sessions,
+    formatShortDate,
+    formatTimestamp
+  )
   const soundBreakdown = getSoundAccuracyBreakdown(sessions)
-  const reportSessionsInRange = sessions.filter(session => sessionFallsWithinDateRange(session, reportPeriodStartDate, reportPeriodEndDate))
-  const reportComposerCanSubmit = Boolean(selectedChildId && reportSelectedSessionIds.length > 0)
-  const hasTrendVisualization = trendChartData.some(point => point.overall != null || point.accuracy != null || point.pronunciation != null)
+  const reportSessionsInRange = sessions.filter(session =>
+    sessionFallsWithinDateRange(
+      session,
+      reportPeriodStartDate,
+      reportPeriodEndDate
+    )
+  )
+  const reportComposerCanSubmit = Boolean(
+    selectedChildId && reportSelectedSessionIds.length > 0
+  )
+  const hasTrendVisualization = trendChartData.some(
+    point =>
+      point.overall != null ||
+      point.accuracy != null ||
+      point.pronunciation != null
+  )
   const hasSoundVisualization = soundBreakdown.length > 0
   const isSparseDashboard = sessions.length < 2 && !hasSoundVisualization
-  const summaryStripMode = getSummaryStripMode(hasTrendVisualization, hasSoundVisualization)
+  const summaryStripMode = getSummaryStripMode(
+    hasTrendVisualization,
+    hasSoundVisualization
+  )
   const heroSubtitle = getHeroSubtitle(isSparseDashboard)
-  const articulationAverageMarker = getAverageFromSeries(sessions, 'accuracy_score') != null
-    ? (getAverageFromSeries(sessions, 'accuracy_score') as number) / 10
-    : null
-  const engagementAverageMarker = getAverageFromSeries(sessions, 'overall_score') != null
-    ? (getAverageFromSeries(sessions, 'overall_score') as number) / 10
-    : null
+  const articulationAverageMarker =
+    getAverageFromSeries(sessions, 'accuracy_score') != null
+      ? (getAverageFromSeries(sessions, 'accuracy_score') as number) / 10
+      : null
+  const engagementAverageMarker =
+    getAverageFromSeries(sessions, 'overall_score') != null
+      ? (getAverageFromSeries(sessions, 'overall_score') as number) / 10
+      : null
   const planConfidence = getPlanConfidence(sessions, selectedPlan)
   const transcriptTurns = parseTranscriptTurns(selectedSession?.transcript)
   const celebrationCount = aiAssessment?.celebration_points?.length ?? 0
   const hasArticulationBreakdown = Boolean(aiAssessment?.articulation_clarity)
   const hasEngagementBreakdown = Boolean(aiAssessment?.engagement_and_effort)
-  const selectedSessionBreakdown = selectedSession?.id ? breakdownViewBySession[selectedSession.id] : undefined
-  const activeBreakdown = hasArticulationBreakdown && hasEngagementBreakdown
-    ? selectedSessionBreakdown ?? 'articulation'
-    : hasArticulationBreakdown
-      ? 'articulation'
-      : 'engagement'
-  const summarySections = Object.entries(childMemorySummary?.summary ?? {}).filter(
-    ([, items]) => Array.isArray(items) && items.length > 0
-  )
+  const selectedSessionBreakdown = selectedSession?.id
+    ? breakdownViewBySession[selectedSession.id]
+    : undefined
+  const activeBreakdown =
+    hasArticulationBreakdown && hasEngagementBreakdown
+      ? (selectedSessionBreakdown ?? 'articulation')
+      : hasArticulationBreakdown
+        ? 'articulation'
+        : 'engagement'
+  const summarySections = Object.entries(
+    childMemorySummary?.summary ?? {}
+  ).filter(([, items]) => Array.isArray(items) && items.length > 0)
   const childMemoryItemMap = buildChildMemoryItemMap(childMemoryItems)
   const planMemorySnapshot = selectedPlan?.constraints.child_memory_snapshot
-  const planMemoryItems = Array.isArray(planMemorySnapshot?.used_items) ? planMemorySnapshot.used_items : []
-  const institutionalMemorySnapshot = selectedRecommendationDetail?.ranking_context?.institutional_memory
-  const institutionalInsights = Array.isArray(institutionalMemorySnapshot?.insights)
+  const planMemoryItems = Array.isArray(planMemorySnapshot?.used_items)
+    ? planMemorySnapshot.used_items
+    : []
+  const institutionalMemorySnapshot =
+    selectedRecommendationDetail?.ranking_context?.institutional_memory
+  const institutionalInsights = Array.isArray(
+    institutionalMemorySnapshot?.insights
+  )
     ? institutionalMemorySnapshot.insights
     : []
-  const sharedReportSectionOptions = getSharedReportSectionOptions(reportAudience)
-  const hiddenSharedSectionCount = reportRedactionOverrides.hidden_section_keys.length
-  const hiddenSharedFieldCount = SHARED_REPORT_REDACTION_OPTIONS.filter(option => reportRedactionOverrides[option.key]).length
+  const sharedReportSectionOptions =
+    getSharedReportSectionOptions(reportAudience)
+  const hiddenSharedSectionCount =
+    reportRedactionOverrides.hidden_section_keys.length
+  const hiddenSharedFieldCount = SHARED_REPORT_REDACTION_OPTIONS.filter(
+    option => reportRedactionOverrides[option.key]
+  ).length
 
   useEffect(() => {
     if (selectedReport) {
       const selectedIds = selectedReport.included_session_ids.length
         ? selectedReport.included_session_ids
         : sessions
-          .filter(session => sessionFallsWithinDateRange(
-            session,
-            formatDateInputValue(selectedReport.period_start),
-            formatDateInputValue(selectedReport.period_end),
-          ))
-          .map(session => session.id)
+            .filter(session =>
+              sessionFallsWithinDateRange(
+                session,
+                formatDateInputValue(selectedReport.period_start),
+                formatDateInputValue(selectedReport.period_end)
+              )
+            )
+            .map(session => session.id)
 
       setReportAudience(selectedReport.audience)
       setReportTitle(selectedReport.title)
       setReportSummary(selectedReport.summary_text || '')
       setReportSummarySuggestion(null)
-      setReportPeriodStartDate(formatDateInputValue(selectedReport.period_start))
+      setReportPeriodStartDate(
+        formatDateInputValue(selectedReport.period_start)
+      )
       setReportPeriodEndDate(formatDateInputValue(selectedReport.period_end))
       setReportSelectedSessionIds(selectedIds)
-      setReportRedactionOverrides(normalizeReportRedactionOverrides(selectedReport.redaction_overrides, selectedReport.audience))
+      setReportRedactionOverrides(
+        normalizeReportRedactionOverrides(
+          selectedReport.redaction_overrides,
+          selectedReport.audience
+        )
+      )
       return
     }
 
@@ -2009,14 +2195,20 @@ export function ProgressDashboard({
       setReportPeriodStartDate('')
       setReportPeriodEndDate('')
       setReportSelectedSessionIds([])
-      setReportRedactionOverrides(normalizeReportRedactionOverrides({}, 'therapist'))
+      setReportRedactionOverrides(
+        normalizeReportRedactionOverrides({}, 'therapist')
+      )
       return
     }
 
     const defaultRange = getDefaultReportDateRange(sessions)
     setReportPeriodStartDate(current => current || defaultRange.start)
     setReportPeriodEndDate(current => current || defaultRange.end)
-    setReportSelectedSessionIds(current => current.length ? current.filter(id => sessions.some(session => session.id === id)) : sessions.map(session => session.id))
+    setReportSelectedSessionIds(current =>
+      current.length
+        ? current.filter(id => sessions.some(session => session.id === id))
+        : sessions.map(session => session.id)
+    )
   }, [selectedReport, sessions])
 
   function setSessionBreakdownView(view: 'articulation' | 'engagement') {
@@ -2034,14 +2226,18 @@ export function ProgressDashboard({
       return
     }
 
-    Promise.resolve(onCreateMemoryItem(manualMemoryCategory, normalizedStatement)).then(() => {
+    Promise.resolve(
+      onCreateMemoryItem(manualMemoryCategory, normalizedStatement)
+    ).then(() => {
       setManualMemoryStatement('')
       setManualMemoryCategory('general')
     })
   }
 
   function handleGenerateRecommendation() {
-    Promise.resolve(onGenerateRecommendations(recommendationPrompt.trim())).then(() => {
+    Promise.resolve(
+      onGenerateRecommendations(recommendationPrompt.trim())
+    ).then(() => {
       setRecommendationPrompt('')
     })
   }
@@ -2049,22 +2245,32 @@ export function ProgressDashboard({
   function updateReportWindow(nextStartDate: string, nextEndDate: string) {
     setReportPeriodStartDate(nextStartDate)
     setReportPeriodEndDate(nextEndDate)
-    setReportSelectedSessionIds(current => current.filter(id => {
-      const matchingSession = sessions.find(session => session.id === id)
-      return matchingSession ? sessionFallsWithinDateRange(matchingSession, nextStartDate, nextEndDate) : false
-    }))
+    setReportSelectedSessionIds(current =>
+      current.filter(id => {
+        const matchingSession = sessions.find(session => session.id === id)
+        return matchingSession
+          ? sessionFallsWithinDateRange(
+              matchingSession,
+              nextStartDate,
+              nextEndDate
+            )
+          : false
+      })
+    )
   }
 
   function toggleReportSession(sessionId: string) {
-    setReportSelectedSessionIds(current => (
+    setReportSelectedSessionIds(current =>
       current.includes(sessionId)
         ? current.filter(id => id !== sessionId)
         : [...current, sessionId]
-    ))
+    )
   }
 
   function handleSelectAllReportSessions() {
-    setReportSelectedSessionIds(reportSessionsInRange.map(session => session.id))
+    setReportSelectedSessionIds(
+      reportSessionsInRange.map(session => session.id)
+    )
   }
 
   function handleClearReportSessions() {
@@ -2073,7 +2279,9 @@ export function ProgressDashboard({
 
   function handleReportAudienceChange(nextAudience: ProgressReportAudience) {
     setReportAudience(nextAudience)
-    setReportRedactionOverrides(current => normalizeReportRedactionOverrides(current, nextAudience))
+    setReportRedactionOverrides(current =>
+      normalizeReportRedactionOverrides(current, nextAudience)
+    )
   }
 
   function handleReportSummaryChange(nextSummary: string) {
@@ -2082,10 +2290,15 @@ export function ProgressDashboard({
   }
 
   function toggleReportRedactionOverride(key: SharedReportRedactionToggle) {
-    setReportRedactionOverrides(current => normalizeReportRedactionOverrides({
-      ...current,
-      [key]: !current[key],
-    }, reportAudience))
+    setReportRedactionOverrides(current =>
+      normalizeReportRedactionOverrides(
+        {
+          ...current,
+          [key]: !current[key],
+        },
+        reportAudience
+      )
+    )
   }
 
   function toggleReportSectionVisibility(sectionKey: string) {
@@ -2099,7 +2312,7 @@ export function ProgressDashboard({
           ...current,
           hidden_section_keys: hiddenKeys,
         },
-        reportAudience,
+        reportAudience
       )
     })
   }
@@ -2112,17 +2325,22 @@ export function ProgressDashboard({
       period_start: toStartOfDayIso(reportPeriodStartDate),
       period_end: toEndOfDayIso(reportPeriodEndDate),
       included_session_ids: reportSelectedSessionIds,
-      redaction_overrides: buildPersistedReportRedactionOverrides(reportRedactionOverrides, reportAudience),
+      redaction_overrides: buildPersistedReportRedactionOverrides(
+        reportRedactionOverrides,
+        reportAudience
+      ),
     }
   }
 
   function handleCreateReport() {
-    Promise.resolve(onCreateReport(buildReportComposerPayload())).then(result => {
-      if (result === null) {
-        return
+    Promise.resolve(onCreateReport(buildReportComposerPayload())).then(
+      result => {
+        if (result === null) {
+          return
+        }
+        setActiveTab('reports')
       }
-      setActiveTab('reports')
-    })
+    )
   }
 
   function handleSaveReport() {
@@ -2130,13 +2348,15 @@ export function ProgressDashboard({
       return
     }
 
-    Promise.resolve(onUpdateReport(buildReportComposerPayload())).then(result => {
-      if (result === null) {
-        return
+    Promise.resolve(onUpdateReport(buildReportComposerPayload())).then(
+      result => {
+        if (result === null) {
+          return
+        }
+        setReportSummarySuggestion(null)
+        setActiveTab('reports')
       }
-      setReportSummarySuggestion(null)
-      setActiveTab('reports')
-    })
+    )
   }
 
   function handleSuggestReportSummaryRewrite() {
@@ -2168,7 +2388,10 @@ export function ProgressDashboard({
     setReportSummarySuggestion(null)
   }
 
-  function handleOpenSelectedReportExport(format: ReportExportFormat, mode: ReportExportMode = 'preview') {
+  function handleOpenSelectedReportExport(
+    format: ReportExportFormat,
+    mode: ReportExportMode = 'preview'
+  ) {
     if (!selectedReport) {
       return
     }
@@ -2176,22 +2399,28 @@ export function ProgressDashboard({
     // Phase 1 AI-draft review gate: exports for `source==='ai_insight'` drafts
     // require the therapist to tick the "Reviewed — OK to export" checkbox.
     // We rely on the disabled state for UI, but belt-and-braces here too.
-    if (selectedReport.source === 'ai_insight' && reportReviewAcknowledgedId !== selectedReport.id) {
+    if (
+      selectedReport.source === 'ai_insight' &&
+      reportReviewAcknowledgedId !== selectedReport.id
+    ) {
       return
     }
 
-    const openExport = () => onOpenReportExport(selectedReport.id, { format, mode })
+    const openExport = () =>
+      onOpenReportExport(selectedReport.id, { format, mode })
     if (selectedReport.status !== 'draft') {
       openExport()
       return
     }
 
-    Promise.resolve(onUpdateReport(buildReportComposerPayload())).then(result => {
-      if (result === null) {
-        return
+    Promise.resolve(onUpdateReport(buildReportComposerPayload())).then(
+      result => {
+        if (result === null) {
+          return
+        }
+        openExport()
       }
-      openExport()
-    })
+    )
   }
 
   function handleTabSelect(_: unknown, data: { value: TabValue }) {
@@ -2200,23 +2429,28 @@ export function ProgressDashboard({
     }
   }
 
-  const sessionOverviewCards = selectedSession ? [
-    {
-      label: 'Session date',
-      value: formatShortDate(selectedSession.timestamp),
-      copy: formatTimestamp(selectedSession.timestamp),
-    },
-    {
-      label: 'Overall score',
-      value: String(aiAssessment?.overall_score ?? '—'),
-      copy: selectedSession.exercise.name,
-    },
-    {
-      label: 'Transcript turns',
-      value: String(transcriptTurns.length || 0),
-      copy: transcriptTurns.length > 1 ? 'Parsed conversation turns.' : 'No structured turns detected.',
-    },
-  ] : []
+  const sessionOverviewCards = selectedSession
+    ? [
+        {
+          label: 'Session date',
+          value: formatShortDate(selectedSession.timestamp),
+          copy: formatTimestamp(selectedSession.timestamp),
+        },
+        {
+          label: 'Overall score',
+          value: String(aiAssessment?.overall_score ?? '—'),
+          copy: selectedSession.exercise.name,
+        },
+        {
+          label: 'Transcript turns',
+          value: String(transcriptTurns.length || 0),
+          copy:
+            transcriptTurns.length > 1
+              ? 'Parsed conversation turns.'
+              : 'No structured turns detected.',
+        },
+      ]
+    : []
 
   const memoryOverviewCards = [
     {
@@ -2236,7 +2470,9 @@ export function ProgressDashboard({
     {
       label: 'Planner signal',
       value: childMemorySummary?.summary_text ? 'Ready' : 'Limited',
-      copy: childMemorySummary?.summary_text || 'Approved memory will appear here once it has been reviewed.',
+      copy:
+        childMemorySummary?.summary_text ||
+        'Approved memory will appear here once it has been reviewed.',
     },
   ]
 
@@ -2246,28 +2482,36 @@ export function ProgressDashboard({
     {
       label: 'Saved runs',
       value: String(recommendationHistory.length),
-      copy: recommendationHistory.length ? 'Most recent recommendation runs stay inspectable.' : 'No recommendation runs saved yet.',
+      copy: recommendationHistory.length
+        ? 'Most recent recommendation runs stay inspectable.'
+        : 'No recommendation runs saved yet.',
     },
     {
       label: 'Target sound',
-      value: selectedRecommendationDetail?.target_sound ? `/${selectedRecommendationDetail.target_sound}/` : '—',
-      copy: selectedRecommendationDetail ? formatTimestamp(selectedRecommendationDetail.created_at) : 'Open a saved run to inspect it.',
+      value: selectedRecommendationDetail?.target_sound
+        ? `/${selectedRecommendationDetail.target_sound}/`
+        : '—',
+      copy: selectedRecommendationDetail
+        ? formatTimestamp(selectedRecommendationDetail.created_at)
+        : 'Open a saved run to inspect it.',
     },
     {
       label: 'Ranked options',
       value: String(selectedRecommendationDetail?.candidate_count ?? 0),
-      copy: selectedRecommendationDetail?.rationale || 'Each run preserves ranking rationale and evidence.',
+      copy:
+        selectedRecommendationDetail?.rationale ||
+        'Each run preserves ranking rationale and evidence.',
     },
     {
       label: 'Evidence status',
       value: !latestRecommendationLog
         ? 'Not run'
         : isRecommendationEvidenceStale({
-            recommendationCreatedAt: latestRecommendationLog.created_at,
-            memoryCompiledAt: childMemorySummary?.last_compiled_at,
-            latestSessionAt: selectedChild?.last_session_at,
-            pendingProposalCount: childMemoryProposals.length,
-          })
+              recommendationCreatedAt: latestRecommendationLog.created_at,
+              memoryCompiledAt: childMemorySummary?.last_compiled_at,
+              latestSessionAt: selectedChild?.last_session_at,
+              pendingProposalCount: childMemoryProposals.length,
+            })
           ? 'Stale'
           : 'Current',
       copy: !latestRecommendationLog
@@ -2282,16 +2526,26 @@ export function ProgressDashboard({
     {
       label: 'Planner',
       value: plannerReady ? 'Ready' : 'Limited',
-      copy: plannerReady ? 'Recommendation and plan generation are available.' : 'Planner context is not ready for this child yet.',
+      copy: plannerReady
+        ? 'Recommendation and plan generation are available.'
+        : 'Planner context is not ready for this child yet.',
     },
     {
       label: 'Plan status',
-      value: selectedPlan ? (selectedPlan.status === 'approved' ? 'Approved' : 'Draft') : 'None',
-      copy: selectedPlan ? `${selectedPlan.draft.estimated_duration_minutes} min next-session draft.` : 'No plan saved for this child yet.',
+      value: selectedPlan
+        ? selectedPlan.status === 'approved'
+          ? 'Approved'
+          : 'Draft'
+        : 'None',
+      copy: selectedPlan
+        ? `${selectedPlan.draft.estimated_duration_minutes} min next-session draft.`
+        : 'No plan saved for this child yet.',
     },
     {
       label: 'Memory inputs',
-      value: String(planMemoryItems.length || planMemorySnapshot?.used_item_ids.length || 0),
+      value: String(
+        planMemoryItems.length || planMemorySnapshot?.used_item_ids.length || 0
+      ),
       copy: planMemorySnapshot?.summary_last_compiled_at
         ? `Snapshot ${formatTimestamp(planMemorySnapshot.summary_last_compiled_at)}`
         : 'Memory snapshot appears when a plan has been generated.',
@@ -2302,17 +2556,23 @@ export function ProgressDashboard({
     {
       label: 'Saved reports',
       value: String(progressReports.length),
-      copy: progressReports.length ? 'Each report keeps its audience, snapshot, and approval state.' : 'No reports have been created for this child yet.',
+      copy: progressReports.length
+        ? 'Each report keeps its audience, snapshot, and approval state.'
+        : 'No reports have been created for this child yet.',
     },
     {
       label: 'Selected audience',
       value: selectedReport ? selectedReport.audience : reportAudience,
-      copy: selectedReport ? formatTimestamp(selectedReport.updated_at) : 'Choose an audience profile before generating a draft.',
+      copy: selectedReport
+        ? formatTimestamp(selectedReport.updated_at)
+        : 'Choose an audience profile before generating a draft.',
     },
     {
       label: 'Included sessions',
       value: String(selectedReport?.included_session_ids.length ?? 0),
-      copy: selectedReport?.summary_text || 'Reports compile saved session reviews, approved memory, planning, and recommendation context.',
+      copy:
+        selectedReport?.summary_text ||
+        'Reports compile saved session reviews, approved memory, planning, and recommendation context.',
     },
   ]
 
@@ -2322,1858 +2582,3090 @@ export function ProgressDashboard({
         shouldMountInsightsRail
           ? mergeClasses(
               styles.layoutWithRail,
-              insightsRailMode === 'collapsed' && styles.layoutWithRailCollapsed,
-              insightsRailMode === 'full' && styles.layoutWithRailFull,
+              insightsRailMode === 'collapsed' &&
+                styles.layoutWithRailCollapsed,
+              insightsRailMode === 'full' && styles.layoutWithRailFull
             )
           : undefined
       }
     >
-    <div className={styles.shell}>
-      <div className={styles.hero} ref={heroRef}>
-        <div className={styles.header}>
-          <div className={styles.headerCopy}>
-            <Text className={styles.eyebrow}>Therapist analytics</Text>
-            <Text className={styles.title} size={700} weight="semibold" data-testid="progress-dashboard-heading">
-              Session progress overview
-            </Text>
-            {heroSubtitle ? (
-              <Text className={styles.subtitle} size={300}>
-                {heroSubtitle}
+      <div className={styles.shell}>
+        <div className={styles.hero} ref={heroRef}>
+          <div className={styles.header}>
+            <div className={styles.headerCopy}>
+              <Text className={styles.eyebrow}>Therapist analytics</Text>
+              <Text
+                className={styles.title}
+                size={700}
+                weight="semibold"
+                data-testid="progress-dashboard-heading"
+              >
+                Session progress overview
               </Text>
-            ) : null}
-            {isSparseDashboard ? (
-              <SparseStateMarker className={styles.sparseHeroMarker} dividerClassName={styles.sparseHeroDivider} />
-            ) : null}
-            {insightsRailEnabled ? (
-              <div className={styles.insightsLauncherRow} aria-label="Ask the insights assistant about this view">
-                <Button
-                  size="small"
-                  appearance="subtle"
-                  data-testid="insights-launcher-session"
-                  disabled={!selectedSession}
-                  onClick={askAboutSession}
+              {heroSubtitle ? (
+                <Text className={styles.subtitle} size={300}>
+                  {heroSubtitle}
+                </Text>
+              ) : null}
+              {isSparseDashboard ? (
+                <SparseStateMarker
+                  className={styles.sparseHeroMarker}
+                  dividerClassName={styles.sparseHeroDivider}
+                />
+              ) : null}
+              {insightsRailEnabled ? (
+                <div
+                  className={styles.insightsLauncherRow}
+                  aria-label="Ask the insights assistant about this view"
                 >
-                  Ask about this session
-                </Button>
-                <Button
-                  size="small"
-                  appearance="subtle"
-                  data-testid="insights-launcher-report"
-                  onClick={askAboutReport}
-                  title={selectedReport ? 'Ask about this report' : 'Switch to Reports and select one first'}
-                >
-                  {selectedReport ? 'Ask about this report' : 'Select a report first'}
-                </Button>
-                <Button
-                  size="small"
-                  appearance="subtle"
-                  data-testid="insights-launcher-reports"
-                  onClick={askAboutReports}
-                >
-                  Ask about all reports
-                </Button>
-              </div>
-            ) : null}
-          </div>
+                  <Button
+                    size="small"
+                    appearance="subtle"
+                    data-testid="insights-launcher-session"
+                    disabled={!selectedSession}
+                    onClick={askAboutSession}
+                  >
+                    Ask about this session
+                  </Button>
+                  <Button
+                    size="small"
+                    appearance="subtle"
+                    data-testid="insights-launcher-report"
+                    onClick={askAboutReport}
+                    title={
+                      selectedReport
+                        ? 'Ask about this report'
+                        : 'Switch to Reports and select one first'
+                    }
+                  >
+                    {selectedReport
+                      ? 'Ask about this report'
+                      : 'Select a report first'}
+                  </Button>
+                  <Button
+                    size="small"
+                    appearance="subtle"
+                    data-testid="insights-launcher-reports"
+                    onClick={askAboutReports}
+                  >
+                    Ask about all reports
+                  </Button>
+                </div>
+              ) : null}
+            </div>
 
-          <div className={styles.headerActions}>
-            {insightsRailEnabled ? (
+            <div className={styles.headerActions}>
+              {insightsRailEnabled ? (
+                <Button
+                  appearance="subtle"
+                  className={styles.askWuloButton}
+                  data-testid="insights-header-launcher"
+                  onClick={openInsightsRail}
+                  title={
+                    insightsRailMode === 'collapsed'
+                      ? 'Open insights assistant'
+                      : 'Focus insights assistant'
+                  }
+                >
+                  <span className={styles.askWuloEyebrow}>AI assistant</span>
+                  <span className={styles.askWuloLabel}>Ask Wulo</span>
+                </Button>
+              ) : null}
               <Button
                 appearance="subtle"
-                className={styles.askWuloButton}
-                data-testid="insights-header-launcher"
-                onClick={openInsightsRail}
-                title={insightsRailMode === 'collapsed' ? 'Open insights assistant' : 'Focus insights assistant'}
+                className={styles.exitButton}
+                onClick={onExitToEntry}
               >
-                <span className={styles.askWuloEyebrow}>AI assistant</span>
-                <span className={styles.askWuloLabel}>Ask Wulo</span>
+                Return to start
               </Button>
+              <Button
+                appearance="primary"
+                className={styles.backButton}
+                onClick={onBackToPractice}
+              >
+                Back to practice
+              </Button>
+            </div>
+          </div>
+
+          <div
+            className={mergeClasses(
+              styles.summaryStrip,
+              summaryStripMode === 'compact' && styles.summaryStripCompact
+            )}
+          >
+            <Card className={styles.summaryCard}>
+              <Text className={styles.summaryLabel}>Selected child</Text>
+              <Text className={styles.summaryValue}>
+                {selectedChild?.name || 'Choose child'}
+              </Text>
+              <Text
+                className={mergeClasses(
+                  styles.summaryCopy,
+                  isSparseDashboard && styles.summaryCopyQuiet
+                )}
+              >
+                {selectedChild
+                  ? isSparseDashboard
+                    ? `${selectedChild.session_count ?? sessions.length} reviews saved.`
+                    : `${selectedChild.session_count ?? sessions.length} reviewed sessions available.`
+                  : 'Select a child to populate this workspace.'}
+              </Text>
+            </Card>
+
+            {hasTrendVisualization ? (
+              <SummaryTrendCard
+                averageScore={averageScore}
+                data={trendChartData}
+                styles={styles}
+                trendLabel={trendLabel}
+              />
+            ) : (
+              <Card
+                className={mergeClasses(
+                  styles.summaryCard,
+                  styles.summaryCardQuiet
+                )}
+              >
+                <Text className={styles.summaryLabel}>Reviewed sessions</Text>
+                <Text className={styles.summaryValue}>{sessions.length}</Text>
+                <Text
+                  className={mergeClasses(
+                    styles.summaryCopy,
+                    styles.summaryCopyQuiet
+                  )}
+                >
+                  {isSparseDashboard
+                    ? 'More reviews unlock the charts.'
+                    : trendLabel}
+                </Text>
+                {isSparseDashboard ? (
+                  <SparseStateMarker
+                    className={styles.sparseHeroMarker}
+                    dividerClassName={styles.sparseHeroDivider}
+                  />
+                ) : null}
+              </Card>
+            )}
+
+            {hasSoundVisualization ? (
+              <SoundBreakdownCard
+                lastSessionLabel={formatShortDate(
+                  selectedChild?.last_session_at
+                )}
+                soundBreakdown={soundBreakdown}
+                styles={styles}
+              />
             ) : null}
-            <Button appearance="subtle" className={styles.exitButton} onClick={onExitToEntry}>
-              Return to start
-            </Button>
-            <Button appearance="primary" className={styles.backButton} onClick={onBackToPractice}>
-              Back to practice
-            </Button>
           </div>
         </div>
 
-        <div className={mergeClasses(styles.summaryStrip, summaryStripMode === 'compact' && styles.summaryStripCompact)}>
-          <Card className={styles.summaryCard}>
-            <Text className={styles.summaryLabel}>Selected child</Text>
-            <Text className={styles.summaryValue}>{selectedChild?.name || 'Choose child'}</Text>
-            <Text className={mergeClasses(styles.summaryCopy, isSparseDashboard && styles.summaryCopyQuiet)}>
-              {selectedChild
-                ? isSparseDashboard
-                  ? `${selectedChild.session_count ?? sessions.length} reviews saved.`
-                  : `${selectedChild.session_count ?? sessions.length} reviewed sessions available.`
-                : 'Select a child to populate this workspace.'}
-            </Text>
-          </Card>
+        <div className={styles.grid}>
+          <div className={styles.sidebar}>
+            <Card className={mergeClasses(styles.card, styles.sidebarCard)}>
+              <CardHeader
+                header={
+                  <Text
+                    className={styles.columnTitle}
+                    size={500}
+                    weight="semibold"
+                  >
+                    Children
+                  </Text>
+                }
+              />
 
-          {hasTrendVisualization ? (
-            <SummaryTrendCard
-              averageScore={averageScore}
-              data={trendChartData}
-              styles={styles}
-              trendLabel={trendLabel}
-            />
-          ) : (
-            <Card className={mergeClasses(styles.summaryCard, styles.summaryCardQuiet)}>
-              <Text className={styles.summaryLabel}>Reviewed sessions</Text>
-              <Text className={styles.summaryValue}>{sessions.length}</Text>
-              <Text className={mergeClasses(styles.summaryCopy, styles.summaryCopyQuiet)}>{isSparseDashboard ? 'More reviews unlock the charts.' : trendLabel}</Text>
-              {isSparseDashboard ? (
-                <SparseStateMarker className={styles.sparseHeroMarker} dividerClassName={styles.sparseHeroDivider} />
-              ) : null}
-            </Card>
-          )}
+              {loadingChildren ? (
+                <div className={styles.loading}>
+                  <Spinner size="medium" />
+                </div>
+              ) : (
+                <div className={styles.childList}>
+                  {childProfiles.map(child => {
+                    const isSelected = child.id === selectedChildId
 
-          {hasSoundVisualization ? (
-            <SoundBreakdownCard
-              lastSessionLabel={formatShortDate(selectedChild?.last_session_at)}
-              soundBreakdown={soundBreakdown}
-              styles={styles}
-            />
-          ) : null}
-        </div>
-      </div>
-
-      <div className={styles.grid}>
-        <div className={styles.sidebar}>
-          <Card className={mergeClasses(styles.card, styles.sidebarCard)}>
-            <CardHeader
-              header={
-                <Text className={styles.columnTitle} size={500} weight="semibold">
-                  Children
-                </Text>
-              }
-            />
-
-            {loadingChildren ? (
-              <div className={styles.loading}>
-                <Spinner size="medium" />
-              </div>
-            ) : (
-              <div className={styles.childList}>
-                {childProfiles.map(child => {
-                  const isSelected = child.id === selectedChildId
-
-                  return (
-                    <Button
-                      key={child.id}
-                      appearance="subtle"
-                      className={mergeClasses(
-                        styles.listButton,
-                        isSelected && styles.listButtonSelected
-                      )}
-                      onClick={() => onSelectChild(child.id)}
-                    >
-                      <div className={styles.listButtonContent}>
-                        <div className={styles.rowHeader}>
-                          <div className={styles.rowMain}>
-                            <Text className={styles.listTitle} weight="semibold">
-                              {child.name}
-                            </Text>
-                            <div className={styles.rowMeta}>
-                              <Text className={styles.listMeta} size={200}>
-                                {child.session_count ?? 0} saved sessions
+                    return (
+                      <Button
+                        key={child.id}
+                        appearance="subtle"
+                        className={mergeClasses(
+                          styles.listButton,
+                          isSelected && styles.listButtonSelected
+                        )}
+                        onClick={() => onSelectChild(child.id)}
+                      >
+                        <div className={styles.listButtonContent}>
+                          <div className={styles.rowHeader}>
+                            <div className={styles.rowMain}>
+                              <Text
+                                className={styles.listTitle}
+                                weight="semibold"
+                              >
+                                {child.name}
                               </Text>
-                              <span className={styles.metaDivider} />
-                              <Text className={styles.listMeta} size={200}>
-                                {formatShortDate(child.last_session_at)}
-                              </Text>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Button>
-                  )
-                })}
-              </div>
-            )}
-          </Card>
-
-          <Card className={mergeClasses(styles.card, styles.sidebarCard)}>
-            <CardHeader
-              header={
-                <Text className={styles.columnTitle} size={500} weight="semibold">
-                  Session history
-                </Text>
-              }
-            />
-
-            {loadingSessions ? (
-              <div className={styles.loading}>
-                <Spinner size="medium" />
-              </div>
-            ) : sessions.length === 0 ? (
-              <div className={styles.emptyState}>
-                <Text>No saved sessions for this child yet.</Text>
-              </div>
-            ) : (
-              <>
-                <SessionFrequencyHeatmap sessions={sessions} styles={styles} />
-                <div className={styles.sessionHistoryScroll}>
-                  <div className={styles.sessionHistoryList}>
-                    {sessions.map(session => {
-                      const isSelected = session.id === selectedSession?.id
-                      const targetSound = session.exercise_metadata?.targetSound || session.exercise.exerciseMetadata?.targetSound
-                      const feedbackLabel = session.therapist_feedback?.rating === 'up' ? 'Helpful' : 'Follow-up'
-
-                      return (
-                        <Button
-                          key={session.id}
-                          appearance="subtle"
-                          className={mergeClasses(
-                            styles.sessionHistoryButton,
-                            isSelected && styles.sessionHistoryButtonSelected
-                          )}
-                          onClick={() => onOpenSession(session.id)}
-                        >
-                          <div className={styles.sessionHistoryContent}>
-                            <div className={styles.sessionHistoryHeader}>
-                              <div className={styles.sessionHistoryTitleWrap}>
-                                <Text className={styles.sessionHistoryTitle} weight="semibold">
-                                  {session.exercise.name}
+                              <div className={styles.rowMeta}>
+                                <Text className={styles.listMeta} size={200}>
+                                  {child.session_count ?? 0} saved sessions
                                 </Text>
-                                <div className={styles.sessionHistoryMeta}>
-                                  <Text size={200}>
-                                    {formatShortDate(session.timestamp)}
-                                  </Text>
-                                  {targetSound ? (
-                                    <>
-                                      <span className={styles.metaDivider} />
-                                      <Text size={200}>
-                                        Focus {targetSound}
-                                      </Text>
-                                    </>
-                                  ) : null}
-                                </div>
+                                <span className={styles.metaDivider} />
+                                <Text className={styles.listMeta} size={200}>
+                                  {formatShortDate(child.last_session_at)}
+                                </Text>
                               </div>
-                              <div className={styles.sessionHistoryScoreWrap}>
-                                <Text className={styles.sessionHistoryScore}>{session.overall_score ?? '—'}</Text>
-                                <Text className={styles.sessionHistoryScoreLabel}>Overall</Text>
-                              </div>
-                            </div>
-                            <div className={styles.sessionHistoryMetrics}>
-                              <div className={styles.sessionHistoryMetric}>
-                                <span className={styles.sessionHistoryMetricLabel}>Accuracy</span>
-                                <span className={styles.sessionHistoryMetricValue}>{session.accuracy_score ?? '—'}</span>
-                              </div>
-                              {session.pronunciation_score != null ? (
-                                <div className={styles.sessionHistoryMetric}>
-                                  <span className={styles.sessionHistoryMetricLabel}>Pron</span>
-                                  <span className={styles.sessionHistoryMetricValue}>{Math.round(session.pronunciation_score)}</span>
-                                </div>
-                              ) : null}
-                              {session.therapist_feedback?.rating ? (
-                                <div className={mergeClasses(styles.sessionHistoryMetric, styles.sessionHistoryFeedback)}>
-                                  <span className={styles.sessionHistoryMetricLabel}>Feedback</span>
-                                  <span className={styles.sessionHistoryMetricValue}>{feedbackLabel}</span>
-                                </div>
-                              ) : null}
                             </div>
                           </div>
-                        </Button>
-                      )
-                    })}
-                  </div>
+                        </div>
+                      </Button>
+                    )
+                  })}
                 </div>
-              </>
-            )}
-          </Card>
-        </div>
+              )}
+            </Card>
 
-        <div className={styles.mainColumn}>
-          <Card className={mergeClasses(styles.card, styles.tabShell)}>
-            <CardHeader
-              header={
-                <Text className={styles.columnTitle} size={500} weight="semibold">
-                  Review workspace
-                </Text>
-              }
-            />
-
-            <TabList selectedValue={activeTab} onTabSelect={handleTabSelect} className={styles.topTabs} data-testid="dashboard-review-tabs">
-              <Tab className={styles.topTab} value="session-detail" data-testid="dashboard-tab-session-detail">Session detail</Tab>
-              <Tab className={styles.topTab} value="memory" data-testid="dashboard-tab-memory">Memory</Tab>
-              <Tab className={styles.topTab} value="recommendations" data-testid="dashboard-tab-recommendations">Recommendations</Tab>
-              <Tab className={styles.topTab} value="reports" data-testid="dashboard-tab-reports">Reports</Tab>
-              <Tab className={styles.topTab} value="plan" data-testid="dashboard-tab-plan">Plan</Tab>
-            </TabList>
-
-            {activeTab === 'session-detail' ? (
-              <div className={styles.tabPanel}>
-                <div className={styles.tabOverviewGrid}>
-                  {sessionOverviewCards.map(card => (
-                    <div className={styles.overviewCard} key={card.label}>
-                      <Text className={styles.combinedReviewLabel}>{card.label}</Text>
-                      <Text className={styles.overviewValue}>{card.value}</Text>
-                      <Text size={200}>{card.copy}</Text>
-                    </div>
-                  ))}
-                </div>
-
-                {loadingSessionDetail ? (
-                  <div className={styles.loading}>
-                    <Spinner size="medium" />
-                  </div>
-                ) : !selectedSession ? (
-                  <div className={styles.emptyState}>
-                    <Text>Select a saved session to open the full review.</Text>
-                  </div>
-                ) : (
-                  <div className={styles.detailLayout}>
-              <div className={styles.scoreHeader}>
-                <div>
-                  <Text className={styles.sectionTitle} size={600} weight="semibold">
-                    {selectedSession.exercise.name}
+            <Card className={mergeClasses(styles.card, styles.sidebarCard)}>
+              <CardHeader
+                header={
+                  <Text
+                    className={styles.columnTitle}
+                    size={500}
+                    weight="semibold"
+                  >
+                    Session history
                   </Text>
-                  <Text className={styles.helperText} size={300}>
-                    {selectedSession.child.name} • {formatTimestamp(selectedSession.timestamp)}
-                  </Text>
-                </div>
+                }
+              />
 
-                <div className={styles.scorePanel}>
-                  <Text className={styles.scoreLabel}>Overall result</Text>
-                  <Text className={styles.scoreValue}>
-                    {aiAssessment?.overall_score ?? '—'}
-                  </Text>
-                  <Badge appearance="filled" className={getScoreBadgeClass(styles, aiAssessment?.overall_score)}>
-                    Session score
-                  </Badge>
+              {loadingSessions ? (
+                <div className={styles.loading}>
+                  <Spinner size="medium" />
                 </div>
-              </div>
-
-              {aiAssessment && (
+              ) : sessions.length === 0 ? (
+                <div className={styles.emptyState}>
+                  <Text>No saved sessions for this child yet.</Text>
+                </div>
+              ) : (
                 <>
-                  {(hasArticulationBreakdown || hasEngagementBreakdown) ? (
-                    <div className={styles.sectionBlock}>
-                      <div className={styles.analysisSection}>
-                        <Text className={styles.sectionTitle} size={400} weight="semibold">
-                          Session analysis
-                        </Text>
-                        <Text className={styles.analysisCopy} size={200}>
-                          The radar shows the overall session profile. The tabbed metrics compare detailed scores against the reviewed-session average.
-                        </Text>
-                        <div className={styles.analysisGrid}>
-                          <SessionQualityRadar selectedSession={selectedSession} showHeading={false} styles={styles} />
-                          <div className={styles.compactMetricsBlock}>
-                            {hasArticulationBreakdown && hasEngagementBreakdown ? (
-                              <div className={styles.tabRow}>
-                                <Button
-                                  appearance="subtle"
-                                  className={mergeClasses(styles.tabButton, activeBreakdown === 'articulation' && styles.tabButtonActive)}
-                                  onClick={() => setSessionBreakdownView('articulation')}
-                                >
-                                  Articulation
-                                </Button>
-                                <Button
-                                  appearance="subtle"
-                                  className={mergeClasses(styles.tabButton, activeBreakdown === 'engagement' && styles.tabButtonActive)}
-                                  onClick={() => setSessionBreakdownView('engagement')}
-                                >
-                                  Engagement
-                                </Button>
+                  <SessionFrequencyHeatmap
+                    sessions={sessions}
+                    styles={styles}
+                  />
+                  <div className={styles.sessionHistoryScroll}>
+                    <div className={styles.sessionHistoryList}>
+                      {sessions.map(session => {
+                        const isSelected = session.id === selectedSession?.id
+                        const targetSound =
+                          session.exercise_metadata?.targetSound ||
+                          session.exercise.exerciseMetadata?.targetSound
+                        const feedbackLabel =
+                          session.therapist_feedback?.rating === 'up'
+                            ? 'Helpful'
+                            : 'Follow-up'
+
+                        return (
+                          <Button
+                            key={session.id}
+                            appearance="subtle"
+                            className={mergeClasses(
+                              styles.sessionHistoryButton,
+                              isSelected && styles.sessionHistoryButtonSelected
+                            )}
+                            onClick={() => onOpenSession(session.id)}
+                          >
+                            <div className={styles.sessionHistoryContent}>
+                              <div className={styles.sessionHistoryHeader}>
+                                <div className={styles.sessionHistoryTitleWrap}>
+                                  <Text
+                                    className={styles.sessionHistoryTitle}
+                                    weight="semibold"
+                                  >
+                                    {session.exercise.name}
+                                  </Text>
+                                  <div className={styles.sessionHistoryMeta}>
+                                    <Text size={200}>
+                                      {formatShortDate(session.timestamp)}
+                                    </Text>
+                                    {targetSound ? (
+                                      <>
+                                        <span className={styles.metaDivider} />
+                                        <Text size={200}>
+                                          Focus {targetSound}
+                                        </Text>
+                                      </>
+                                    ) : null}
+                                  </div>
+                                </div>
+                                <div className={styles.sessionHistoryScoreWrap}>
+                                  <Text className={styles.sessionHistoryScore}>
+                                    {session.overall_score ?? '—'}
+                                  </Text>
+                                  <Text
+                                    className={styles.sessionHistoryScoreLabel}
+                                  >
+                                    Overall
+                                  </Text>
+                                </div>
                               </div>
-                            ) : null}
-                            {activeBreakdown === 'articulation' && aiAssessment.articulation_clarity ? articulationMetrics.map(metric => (
-                              <ComparisonMetricBar
-                                key={metric.key}
-                                averageValue={articulationAverageMarker}
-                                label={metric.label}
-                                max={metric.max}
-                                styles={styles}
-                                value={aiAssessment.articulation_clarity[metric.key] ?? 0}
-                              />
-                            )) : null}
-                            {activeBreakdown === 'engagement' && aiAssessment.engagement_and_effort ? engagementMetrics.map(metric => (
-                              <ComparisonMetricBar
-                                key={metric.key}
-                                averageValue={engagementAverageMarker}
-                                label={metric.label}
-                                max={metric.max}
-                                styles={styles}
-                                value={aiAssessment.engagement_and_effort[metric.key] ?? 0}
-                              />
-                            )) : null}
+                              <div className={styles.sessionHistoryMetrics}>
+                                <div className={styles.sessionHistoryMetric}>
+                                  <span
+                                    className={styles.sessionHistoryMetricLabel}
+                                  >
+                                    Accuracy
+                                  </span>
+                                  <span
+                                    className={styles.sessionHistoryMetricValue}
+                                  >
+                                    {session.accuracy_score ?? '—'}
+                                  </span>
+                                </div>
+                                {session.pronunciation_score != null ? (
+                                  <div className={styles.sessionHistoryMetric}>
+                                    <span
+                                      className={
+                                        styles.sessionHistoryMetricLabel
+                                      }
+                                    >
+                                      Pron
+                                    </span>
+                                    <span
+                                      className={
+                                        styles.sessionHistoryMetricValue
+                                      }
+                                    >
+                                      {Math.round(session.pronunciation_score)}
+                                    </span>
+                                  </div>
+                                ) : null}
+                                {session.therapist_feedback?.rating ? (
+                                  <div
+                                    className={mergeClasses(
+                                      styles.sessionHistoryMetric,
+                                      styles.sessionHistoryFeedback
+                                    )}
+                                  >
+                                    <span
+                                      className={
+                                        styles.sessionHistoryMetricLabel
+                                      }
+                                    >
+                                      Feedback
+                                    </span>
+                                    <span
+                                      className={
+                                        styles.sessionHistoryMetricValue
+                                      }
+                                    >
+                                      {feedbackLabel}
+                                    </span>
+                                  </div>
+                                ) : null}
+                              </div>
+                            </div>
+                          </Button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
+            </Card>
+          </div>
+
+          <div className={styles.mainColumn}>
+            <Card className={mergeClasses(styles.card, styles.tabShell)}>
+              <CardHeader
+                header={
+                  <Text
+                    className={styles.columnTitle}
+                    size={500}
+                    weight="semibold"
+                  >
+                    Review workspace
+                  </Text>
+                }
+              />
+
+              <TabList
+                selectedValue={activeTab}
+                onTabSelect={handleTabSelect}
+                className={styles.topTabs}
+                data-testid="dashboard-review-tabs"
+              >
+                <Tab
+                  className={styles.topTab}
+                  value="session-detail"
+                  data-testid="dashboard-tab-session-detail"
+                >
+                  Session detail
+                </Tab>
+                <Tab
+                  className={styles.topTab}
+                  value="memory"
+                  data-testid="dashboard-tab-memory"
+                >
+                  Memory
+                </Tab>
+                <Tab
+                  className={styles.topTab}
+                  value="recommendations"
+                  data-testid="dashboard-tab-recommendations"
+                >
+                  Recommendations
+                </Tab>
+                <Tab
+                  className={styles.topTab}
+                  value="reports"
+                  data-testid="dashboard-tab-reports"
+                >
+                  Reports
+                </Tab>
+                <Tab
+                  className={styles.topTab}
+                  value="plan"
+                  data-testid="dashboard-tab-plan"
+                >
+                  Plan
+                </Tab>
+              </TabList>
+
+              {activeTab === 'session-detail' ? (
+                <div className={styles.tabPanel}>
+                  <div className={styles.tabOverviewGrid}>
+                    {sessionOverviewCards.map(card => (
+                      <div className={styles.overviewCard} key={card.label}>
+                        <Text className={styles.combinedReviewLabel}>
+                          {card.label}
+                        </Text>
+                        <Text className={styles.overviewValue}>
+                          {card.value}
+                        </Text>
+                        <Text size={200}>{card.copy}</Text>
+                      </div>
+                    ))}
+                  </div>
+
+                  {loadingSessionDetail ? (
+                    <div className={styles.loading}>
+                      <Spinner size="medium" />
+                    </div>
+                  ) : !selectedSession ? (
+                    <div className={styles.emptyState}>
+                      <Text>
+                        Select a saved session to open the full review.
+                      </Text>
+                    </div>
+                  ) : (
+                    <div className={styles.detailLayout}>
+                      <div className={styles.scoreHeader}>
+                        <div>
+                          <Text
+                            className={styles.sectionTitle}
+                            size={600}
+                            weight="semibold"
+                          >
+                            {selectedSession.exercise.name}
+                          </Text>
+                          <Text className={styles.helperText} size={300}>
+                            {selectedSession.child.name} •{' '}
+                            {formatTimestamp(selectedSession.timestamp)}
+                          </Text>
+                        </div>
+
+                        <div className={styles.scorePanel}>
+                          <Text className={styles.scoreLabel}>
+                            Overall result
+                          </Text>
+                          <Text className={styles.scoreValue}>
+                            {aiAssessment?.overall_score ?? '—'}
+                          </Text>
+                          <Badge
+                            appearance="filled"
+                            className={getScoreBadgeClass(
+                              styles,
+                              aiAssessment?.overall_score
+                            )}
+                          >
+                            Session score
+                          </Badge>
+                        </div>
+                      </div>
+
+                      {aiAssessment && (
+                        <>
+                          {hasArticulationBreakdown ||
+                          hasEngagementBreakdown ? (
+                            <div className={styles.sectionBlock}>
+                              <div className={styles.analysisSection}>
+                                <Text
+                                  className={styles.sectionTitle}
+                                  size={400}
+                                  weight="semibold"
+                                >
+                                  Session analysis
+                                </Text>
+                                <Text
+                                  className={styles.analysisCopy}
+                                  size={200}
+                                >
+                                  The radar shows the overall session profile.
+                                  The tabbed metrics compare detailed scores
+                                  against the reviewed-session average.
+                                </Text>
+                                <div className={styles.analysisGrid}>
+                                  <SessionQualityRadar
+                                    selectedSession={selectedSession}
+                                    showHeading={false}
+                                    styles={styles}
+                                  />
+                                  <div className={styles.compactMetricsBlock}>
+                                    {hasArticulationBreakdown &&
+                                    hasEngagementBreakdown ? (
+                                      <div className={styles.tabRow}>
+                                        <Button
+                                          appearance="subtle"
+                                          className={mergeClasses(
+                                            styles.tabButton,
+                                            activeBreakdown ===
+                                              'articulation' &&
+                                              styles.tabButtonActive
+                                          )}
+                                          onClick={() =>
+                                            setSessionBreakdownView(
+                                              'articulation'
+                                            )
+                                          }
+                                        >
+                                          Articulation
+                                        </Button>
+                                        <Button
+                                          appearance="subtle"
+                                          className={mergeClasses(
+                                            styles.tabButton,
+                                            activeBreakdown === 'engagement' &&
+                                              styles.tabButtonActive
+                                          )}
+                                          onClick={() =>
+                                            setSessionBreakdownView(
+                                              'engagement'
+                                            )
+                                          }
+                                        >
+                                          Engagement
+                                        </Button>
+                                      </div>
+                                    ) : null}
+                                    {activeBreakdown === 'articulation' &&
+                                    aiAssessment.articulation_clarity
+                                      ? articulationMetrics.map(metric => (
+                                          <ComparisonMetricBar
+                                            key={metric.key}
+                                            averageValue={
+                                              articulationAverageMarker
+                                            }
+                                            label={metric.label}
+                                            max={metric.max}
+                                            styles={styles}
+                                            value={
+                                              aiAssessment.articulation_clarity[
+                                                metric.key
+                                              ] ?? 0
+                                            }
+                                          />
+                                        ))
+                                      : null}
+                                    {activeBreakdown === 'engagement' &&
+                                    aiAssessment.engagement_and_effort
+                                      ? engagementMetrics.map(metric => (
+                                          <ComparisonMetricBar
+                                            key={metric.key}
+                                            averageValue={
+                                              engagementAverageMarker
+                                            }
+                                            label={metric.label}
+                                            max={metric.max}
+                                            styles={styles}
+                                            value={
+                                              aiAssessment
+                                                .engagement_and_effort[
+                                                metric.key
+                                              ] ?? 0
+                                            }
+                                          />
+                                        ))
+                                      : null}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ) : null}
+
+                          {selectedSession.therapist_feedback ? (
+                            <div className={styles.sectionBlock}>
+                              <Text
+                                className={styles.sectionTitle}
+                                size={400}
+                                weight="semibold"
+                              >
+                                Therapist feedback
+                              </Text>
+                              <div className={styles.summaryRow}>
+                                <Badge
+                                  appearance="filled"
+                                  className={mergeClasses(
+                                    styles.scoreBadge,
+                                    selectedSession.therapist_feedback
+                                      .rating === 'up'
+                                      ? styles.scoreBadgeTeal
+                                      : styles.scoreBadgeSand
+                                  )}
+                                >
+                                  {selectedSession.therapist_feedback.rating ===
+                                  'up'
+                                    ? 'Helpful session'
+                                    : 'Needs follow-up'}
+                                </Badge>
+                              </div>
+                              {selectedSession.therapist_feedback.note ? (
+                                <div className={styles.textItem}>
+                                  <Text>
+                                    {selectedSession.therapist_feedback.note}
+                                  </Text>
+                                </div>
+                              ) : null}
+                            </div>
+                          ) : null}
+                        </>
+                      )}
+
+                      {!aiAssessment && selectedSession.therapist_feedback ? (
+                        <div className={styles.sectionBlock}>
+                          <Text
+                            className={styles.sectionTitle}
+                            size={400}
+                            weight="semibold"
+                          >
+                            Therapist feedback
+                          </Text>
+                          <div className={styles.summaryRow}>
+                            <Badge
+                              appearance="filled"
+                              className={mergeClasses(
+                                styles.scoreBadge,
+                                selectedSession.therapist_feedback.rating ===
+                                  'up'
+                                  ? styles.scoreBadgeTeal
+                                  : styles.scoreBadgeSand
+                              )}
+                            >
+                              {selectedSession.therapist_feedback.rating ===
+                              'up'
+                                ? 'Helpful session'
+                                : 'Needs follow-up'}
+                            </Badge>
+                          </div>
+                          {selectedSession.therapist_feedback.note ? (
+                            <div className={styles.textItem}>
+                              <Text>
+                                {selectedSession.therapist_feedback.note}
+                              </Text>
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
+
+                      {pronunciationAssessment && (
+                        <div className={styles.sectionBlock}>
+                          <Text
+                            className={styles.sectionTitle}
+                            size={400}
+                            weight="semibold"
+                          >
+                            Pronunciation review
+                          </Text>
+                          <div className={styles.summaryRow}>
+                            <Badge
+                              appearance="filled"
+                              className={getScoreBadgeClass(
+                                styles,
+                                pronunciationAssessment.accuracy_score
+                              )}
+                            >
+                              Accuracy{' '}
+                              {pronunciationAssessment.accuracy_score?.toFixed(
+                                1
+                              ) ?? '—'}
+                            </Badge>
+                            <Badge
+                              appearance="filled"
+                              className={getScoreBadgeClass(
+                                styles,
+                                pronunciationAssessment.pronunciation_score
+                              )}
+                            >
+                              Pronunciation{' '}
+                              {pronunciationAssessment.pronunciation_score?.toFixed(
+                                1
+                              ) ?? '—'}
+                            </Badge>
+                            <Badge
+                              appearance="tint"
+                              className={getScoreBadgeClass(
+                                styles,
+                                pronunciationAssessment.fluency_score
+                              )}
+                            >
+                              Fluency{' '}
+                              {pronunciationAssessment.fluency_score?.toFixed(
+                                1
+                              ) ?? '—'}
+                            </Badge>
+                          </div>
+
+                          {pronunciationAssessment.words?.length ? (
+                            <WordAccuracyHeatmap
+                              styles={styles}
+                              words={pronunciationAssessment.words}
+                            />
+                          ) : null}
+                        </div>
+                      )}
+
+                      <div className={styles.sectionBlock}>
+                        <Text
+                          className={styles.sectionTitle}
+                          size={400}
+                          weight="semibold"
+                        >
+                          Review summary
+                        </Text>
+                        <div className={styles.combinedReviewGrid}>
+                          <div className={styles.combinedReviewColumn}>
+                            <Text className={styles.combinedReviewLabel}>
+                              Celebration
+                            </Text>
+                            <CelebrationDonut
+                              earned={celebrationCount}
+                              styles={styles}
+                            />
+                          </div>
+
+                          <div className={styles.combinedReviewColumn}>
+                            <Text className={styles.combinedReviewLabel}>
+                              Highlights
+                            </Text>
+                            <div className={styles.textList}>
+                              {(aiAssessment?.celebration_points?.length
+                                ? aiAssessment.celebration_points
+                                : [
+                                    'No celebration points saved for this session.',
+                                  ]
+                              )
+                                .slice(0, 3)
+                                .map(point => (
+                                  <div className={styles.textItem} key={point}>
+                                    {renderMarkdown(point, styles)}
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+
+                          <div className={styles.combinedReviewColumn}>
+                            <Text className={styles.combinedReviewLabel}>
+                              Next steps
+                            </Text>
+                            <div className={styles.textList}>
+                              {(aiAssessment?.practice_suggestions?.length
+                                ? aiAssessment.practice_suggestions
+                                : [
+                                    'No follow-up suggestions saved for this session.',
+                                  ]
+                              )
+                                .slice(0, 3)
+                                .map(suggestion => (
+                                  <div
+                                    className={styles.textItem}
+                                    key={suggestion}
+                                  >
+                                    {renderMarkdown(suggestion, styles)}
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div className={styles.notePanel}>
+                          <Text className={styles.combinedReviewLabel}>
+                            Therapist note
+                          </Text>
+                          <div className={styles.textItem}>
+                            {renderMarkdown(
+                              aiAssessment?.therapist_notes ||
+                                'No therapist notes saved for this session.',
+                              styles
+                            )}
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ) : null}
 
-                  {selectedSession.therapist_feedback ? (
-                    <div className={styles.sectionBlock}>
-                      <Text className={styles.sectionTitle} size={400} weight="semibold">
-                        Therapist feedback
-                      </Text>
-                      <div className={styles.summaryRow}>
-                        <Badge appearance="filled" className={mergeClasses(styles.scoreBadge, selectedSession.therapist_feedback.rating === 'up' ? styles.scoreBadgeTeal : styles.scoreBadgeSand)}>
-                          {selectedSession.therapist_feedback.rating === 'up'
-                            ? 'Helpful session'
-                            : 'Needs follow-up'}
-                        </Badge>
-                      </div>
-                      {selectedSession.therapist_feedback.note ? (
-                        <div className={styles.textItem}>
-                          <Text>{selectedSession.therapist_feedback.note}</Text>
+                      {selectedSession.transcript ? (
+                        <div>
+                          <Text
+                            className={styles.sectionTitle}
+                            size={400}
+                            weight="semibold"
+                          >
+                            Transcript
+                          </Text>
+                          <div className={styles.transcript}>
+                            {transcriptTurns.length > 1 ? (
+                              <div className={styles.transcriptList}>
+                                {transcriptTurns.map((turn, index) => (
+                                  <div
+                                    className={mergeClasses(
+                                      styles.transcriptTurn,
+                                      turn.role === 'user' &&
+                                        styles.transcriptTurnUser,
+                                      turn.role === 'assistant' &&
+                                        styles.transcriptTurnAssistant
+                                    )}
+                                    key={`${turn.role}-${index}-${turn.content}`}
+                                  >
+                                    <Text
+                                      className={styles.transcriptTurnLabel}
+                                      size={200}
+                                    >
+                                      {turn.role === 'user'
+                                        ? 'User'
+                                        : turn.role === 'assistant'
+                                          ? 'Assistant'
+                                          : 'Transcript'}
+                                    </Text>
+                                    {renderMarkdown(turn.content, styles)}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              renderMarkdown(selectedSession.transcript, styles)
+                            )}
+                          </div>
                         </div>
                       ) : null}
                     </div>
-                  ) : null}
-                </>
-              )}
-
-              {!aiAssessment && selectedSession.therapist_feedback ? (
-                <div className={styles.sectionBlock}>
-                  <Text className={styles.sectionTitle} size={400} weight="semibold">
-                    Therapist feedback
-                  </Text>
-                  <div className={styles.summaryRow}>
-                    <Badge appearance="filled" className={mergeClasses(styles.scoreBadge, selectedSession.therapist_feedback.rating === 'up' ? styles.scoreBadgeTeal : styles.scoreBadgeSand)}>
-                      {selectedSession.therapist_feedback.rating === 'up'
-                        ? 'Helpful session'
-                        : 'Needs follow-up'}
-                    </Badge>
-                  </div>
-                  {selectedSession.therapist_feedback.note ? (
-                    <div className={styles.textItem}>
-                      <Text>{selectedSession.therapist_feedback.note}</Text>
-                    </div>
-                  ) : null}
+                  )}
                 </div>
               ) : null}
 
-              {pronunciationAssessment && (
-                <div className={styles.sectionBlock}>
-                  <Text className={styles.sectionTitle} size={400} weight="semibold">
-                    Pronunciation review
-                  </Text>
-                  <div className={styles.summaryRow}>
-                    <Badge appearance="filled" className={getScoreBadgeClass(styles, pronunciationAssessment.accuracy_score)}>
-                      Accuracy {pronunciationAssessment.accuracy_score?.toFixed(1) ?? '—'}
-                    </Badge>
-                    <Badge appearance="filled" className={getScoreBadgeClass(styles, pronunciationAssessment.pronunciation_score)}>
-                      Pronunciation {pronunciationAssessment.pronunciation_score?.toFixed(1) ?? '—'}
-                    </Badge>
-                    <Badge appearance="tint" className={getScoreBadgeClass(styles, pronunciationAssessment.fluency_score)}>
-                      Fluency {pronunciationAssessment.fluency_score?.toFixed(1) ?? '—'}
-                    </Badge>
+              {activeTab === 'memory' ? (
+                <div
+                  className={mergeClasses(styles.tabPanel, styles.tabPanelCard)}
+                >
+                  <div className={styles.tabOverviewGrid}>
+                    {memoryOverviewCards.map(card => (
+                      <div className={styles.overviewCard} key={card.label}>
+                        <Text className={styles.combinedReviewLabel}>
+                          {card.label}
+                        </Text>
+                        <Text className={styles.overviewValue}>
+                          {card.value}
+                        </Text>
+                        <Text size={200}>{card.copy}</Text>
+                      </div>
+                    ))}
                   </div>
-
-                  {pronunciationAssessment.words?.length ? (
-                    <WordAccuracyHeatmap styles={styles} words={pronunciationAssessment.words} />
-                  ) : null}
-                </div>
-              )}
-
-              <div className={styles.sectionBlock}>
-                <Text className={styles.sectionTitle} size={400} weight="semibold">
-                  Review summary
-                </Text>
-                <div className={styles.combinedReviewGrid}>
-                  <div className={styles.combinedReviewColumn}>
-                    <Text className={styles.combinedReviewLabel}>Celebration</Text>
-                    <CelebrationDonut earned={celebrationCount} styles={styles} />
-                  </div>
-
-                  <div className={styles.combinedReviewColumn}>
-                    <Text className={styles.combinedReviewLabel}>Highlights</Text>
-                    <div className={styles.textList}>
-                      {(aiAssessment?.celebration_points?.length
-                        ? aiAssessment.celebration_points
-                        : ['No celebration points saved for this session.']
-                      ).slice(0, 3).map(point => (
-                        <div className={styles.textItem} key={point}>
-                          {renderMarkdown(point, styles)}
-                        </div>
-                      ))}
+                  <div className={styles.memorySection}>
+                    <div>
+                      <Text
+                        className={styles.sectionTitle}
+                        size={400}
+                        weight="semibold"
+                      >
+                        Child memory review
+                      </Text>
+                      <Text className={styles.helperText} size={300}>
+                        Approved memory feeds planning context. Pending
+                        proposals stay separate until a therapist reviews them.
+                      </Text>
                     </div>
-                  </div>
 
-                  <div className={styles.combinedReviewColumn}>
-                    <Text className={styles.combinedReviewLabel}>Next steps</Text>
-                    <div className={styles.textList}>
-                      {(aiAssessment?.practice_suggestions?.length
-                        ? aiAssessment.practice_suggestions
-                        : ['No follow-up suggestions saved for this session.']
-                      ).slice(0, 3).map(suggestion => (
-                        <div className={styles.textItem} key={suggestion}>
-                          {renderMarkdown(suggestion, styles)}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <div className={styles.notePanel}>
-                  <Text className={styles.combinedReviewLabel}>Therapist note</Text>
-                  <div className={styles.textItem}>
-                    {renderMarkdown(aiAssessment?.therapist_notes || 'No therapist notes saved for this session.', styles)}
-                  </div>
-                </div>
-              </div>
-
-              {selectedSession.transcript ? (
-                <div>
-                  <Text className={styles.sectionTitle} size={400} weight="semibold">
-                    Transcript
-                  </Text>
-                  <div className={styles.transcript}>
-                    {transcriptTurns.length > 1 ? (
-                      <div className={styles.transcriptList}>
-                        {transcriptTurns.map((turn, index) => (
-                          <div
-                            className={mergeClasses(
-                              styles.transcriptTurn,
-                              turn.role === 'user' && styles.transcriptTurnUser,
-                              turn.role === 'assistant' && styles.transcriptTurnAssistant
-                            )}
-                            key={`${turn.role}-${index}-${turn.content}`}
-                          >
-                            <Text className={styles.transcriptTurnLabel} size={200}>
-                              {turn.role === 'user' ? 'User' : turn.role === 'assistant' ? 'Assistant' : 'Transcript'}
-                            </Text>
-                            {renderMarkdown(turn.content, styles)}
-                          </div>
-                        ))}
+                    {loadingMemory ? (
+                      <div className={styles.loading}>
+                        <Spinner size="medium" />
                       </div>
                     ) : (
-                      renderMarkdown(selectedSession.transcript, styles)
+                      <>
+                        {summarySections.length ? (
+                          <div className={styles.memoryList}>
+                            {summarySections.map(([category, items]) => (
+                              <div className={styles.memoryCard} key={category}>
+                                <div className={styles.summaryRow}>
+                                  <Badge
+                                    appearance="tint"
+                                    className={styles.scoreBadge}
+                                  >
+                                    {memoryCategoryLabels[category] || category}
+                                  </Badge>
+                                  <Text size={200}>
+                                    {items.length} approved
+                                  </Text>
+                                </div>
+                                <div className={styles.textList}>
+                                  {items.map(item => (
+                                    <div
+                                      className={styles.textItem}
+                                      key={`${category}-${item.id ?? item.statement}`}
+                                    >
+                                      <div className={styles.textStack}>
+                                        <Text size={300} weight="semibold">
+                                          {item.statement}
+                                        </Text>
+                                        {item.confidence != null ? (
+                                          <Text size={200}>
+                                            Confidence{' '}
+                                            {Math.round(item.confidence * 100)}%
+                                          </Text>
+                                        ) : null}
+                                      </div>
+                                      {item.id
+                                        ? renderEvidenceLinks(
+                                            childMemoryItemMap.get(item.id)
+                                              ?.evidence_links,
+                                            styles,
+                                            onOpenSession
+                                          )
+                                        : null}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className={styles.emptyState}>
+                            <Text>
+                              No approved child memory has been compiled yet.
+                            </Text>
+                          </div>
+                        )}
+
+                        <div>
+                          <Text
+                            className={styles.sectionTitle}
+                            size={300}
+                            weight="semibold"
+                          >
+                            Therapist memory note
+                          </Text>
+                          <div className={styles.memoryComposer}>
+                            <Text size={200}>
+                              Add a therapist-authored approved memory item when
+                              you need to preserve a clinically useful fact
+                              without waiting for synthesis.
+                            </Text>
+                            <div className={styles.memoryComposerGrid}>
+                              <Field label="Category">
+                                <Dropdown
+                                  selectedOptions={[manualMemoryCategory]}
+                                  value={
+                                    memoryCategoryLabels[
+                                      manualMemoryCategory
+                                    ] || manualMemoryCategory
+                                  }
+                                  onOptionSelect={(_, data) => {
+                                    if (data.optionValue) {
+                                      setManualMemoryCategory(
+                                        data.optionValue as ChildMemoryCategory
+                                      )
+                                    }
+                                  }}
+                                >
+                                  {Object.entries(memoryCategoryLabels).map(
+                                    ([value, label]) => (
+                                      <Option
+                                        key={value}
+                                        value={value}
+                                        text={label}
+                                      >
+                                        {label}
+                                      </Option>
+                                    )
+                                  )}
+                                </Dropdown>
+                              </Field>
+                              <Field label="Statement">
+                                <Textarea
+                                  value={manualMemoryStatement}
+                                  resize="vertical"
+                                  placeholder="Example: Amina settles faster with short visual models."
+                                  onChange={(_, data) =>
+                                    setManualMemoryStatement(data.value)
+                                  }
+                                />
+                              </Field>
+                            </div>
+                            <div className={styles.memoryActionRow}>
+                              <Button
+                                appearance="primary"
+                                disabled={
+                                  manualMemorySaving ||
+                                  !manualMemoryStatement.trim()
+                                }
+                                onClick={handleCreateManualMemory}
+                              >
+                                {manualMemorySaving
+                                  ? 'Saving…'
+                                  : 'Save approved memory'}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <Text
+                            className={styles.sectionTitle}
+                            size={300}
+                            weight="semibold"
+                          >
+                            Pending proposals
+                          </Text>
+                          {childMemoryProposals.length ? (
+                            <div className={styles.memoryList}>
+                              {childMemoryProposals.map(proposal => {
+                                const sessionIds = Array.isArray(
+                                  proposal.provenance?.session_ids
+                                )
+                                  ? proposal.provenance.session_ids.length
+                                  : 0
+
+                                return (
+                                  <div
+                                    className={styles.memoryProposalCard}
+                                    key={proposal.id}
+                                  >
+                                    <div className={styles.summaryRow}>
+                                      <Badge
+                                        appearance="filled"
+                                        className={styles.scoreBadgeSand}
+                                      >
+                                        {memoryCategoryLabels[
+                                          proposal.category
+                                        ] || proposal.category}
+                                      </Badge>
+                                      <Badge
+                                        appearance="tint"
+                                        className={styles.scoreBadge}
+                                      >
+                                        {proposal.memory_type}
+                                      </Badge>
+                                      {proposal.confidence != null ? (
+                                        <Badge
+                                          appearance="tint"
+                                          className={styles.scoreBadge}
+                                        >
+                                          {Math.round(
+                                            proposal.confidence * 100
+                                          )}
+                                          % confidence
+                                        </Badge>
+                                      ) : null}
+                                    </div>
+                                    <div className={styles.textItem}>
+                                      <div className={styles.textStack}>
+                                        <Text size={300} weight="semibold">
+                                          {proposal.statement}
+                                        </Text>
+                                        <Text size={200}>
+                                          {sessionIds
+                                            ? `Linked to ${sessionIds} session${sessionIds === 1 ? '' : 's'}.`
+                                            : 'Awaiting therapist review.'}
+                                        </Text>
+                                      </div>
+                                      {renderEvidenceLinks(
+                                        proposal.evidence_links,
+                                        styles,
+                                        onOpenSession
+                                      )}
+                                    </div>
+                                    <div className={styles.memoryActionRow}>
+                                      <Button
+                                        appearance="primary"
+                                        onClick={() => {
+                                          void onApproveMemoryProposal(
+                                            proposal.id
+                                          )
+                                        }}
+                                        disabled={
+                                          memoryReviewPendingId === proposal.id
+                                        }
+                                      >
+                                        {memoryReviewPendingId === proposal.id
+                                          ? 'Saving…'
+                                          : 'Approve'}
+                                      </Button>
+                                      <Button
+                                        appearance="secondary"
+                                        onClick={() => {
+                                          void onRejectMemoryProposal(
+                                            proposal.id
+                                          )
+                                        }}
+                                        disabled={
+                                          memoryReviewPendingId === proposal.id
+                                        }
+                                      >
+                                        Reject
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          ) : (
+                            <div className={styles.emptyState}>
+                              <Text>
+                                No pending child memory proposals for this
+                                child.
+                              </Text>
+                            </div>
+                          )}
+                        </div>
+
+                        {memoryError ? (
+                          <Text className={styles.errorText} size={300}>
+                            {memoryError}
+                          </Text>
+                        ) : null}
+                      </>
                     )}
                   </div>
                 </div>
               ) : null}
-                  </div>
-                )}
-              </div>
-            ) : null}
 
-            {activeTab === 'memory' ? (
-              <div className={mergeClasses(styles.tabPanel, styles.tabPanelCard)}>
-                <div className={styles.tabOverviewGrid}>
-                  {memoryOverviewCards.map(card => (
-                    <div className={styles.overviewCard} key={card.label}>
-                      <Text className={styles.combinedReviewLabel}>{card.label}</Text>
-                      <Text className={styles.overviewValue}>{card.value}</Text>
-                      <Text size={200}>{card.copy}</Text>
-                    </div>
-                  ))}
-                </div>
-                <div className={styles.memorySection}>
-                  <div>
-                    <Text className={styles.sectionTitle} size={400} weight="semibold">
-                      Child memory review
-                    </Text>
-                    <Text className={styles.helperText} size={300}>
-                      Approved memory feeds planning context. Pending proposals stay separate until a therapist reviews them.
-                    </Text>
-                  </div>
-
-                  {loadingMemory ? (
-                    <div className={styles.loading}>
-                      <Spinner size="medium" />
-                    </div>
-                  ) : (
-                    <>
-                      {summarySections.length ? (
-                        <div className={styles.memoryList}>
-                          {summarySections.map(([category, items]) => (
-                            <div className={styles.memoryCard} key={category}>
-                              <div className={styles.summaryRow}>
-                                <Badge appearance="tint" className={styles.scoreBadge}>
-                                  {memoryCategoryLabels[category] || category}
-                                </Badge>
-                                <Text size={200}>{items.length} approved</Text>
-                              </div>
-                              <div className={styles.textList}>
-                                {items.map(item => (
-                                  <div className={styles.textItem} key={`${category}-${item.id ?? item.statement}`}>
-                                    <div className={styles.textStack}>
-                                      <Text size={300} weight="semibold">
-                                        {item.statement}
-                                      </Text>
-                                      {item.confidence != null ? (
-                                        <Text size={200}>Confidence {Math.round(item.confidence * 100)}%</Text>
-                                      ) : null}
-                                    </div>
-                                    {item.id ? renderEvidenceLinks(childMemoryItemMap.get(item.id)?.evidence_links, styles, onOpenSession) : null}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className={styles.emptyState}>
-                          <Text>No approved child memory has been compiled yet.</Text>
-                        </div>
-                      )}
-
-                      <div>
-                        <Text className={styles.sectionTitle} size={300} weight="semibold">
-                          Therapist memory note
+              {activeTab === 'recommendations' ? (
+                <div
+                  className={mergeClasses(styles.tabPanel, styles.tabPanelCard)}
+                >
+                  <div className={styles.tabOverviewGrid}>
+                    {recommendationOverviewCards.map(card => (
+                      <div className={styles.overviewCard} key={card.label}>
+                        <Text className={styles.combinedReviewLabel}>
+                          {card.label}
                         </Text>
-                        <div className={styles.memoryComposer}>
-                          <Text size={200}>
-                            Add a therapist-authored approved memory item when you need to preserve a clinically useful fact without waiting for synthesis.
-                          </Text>
-                          <div className={styles.memoryComposerGrid}>
-                            <Field label="Category">
-                              <Dropdown
-                                selectedOptions={[manualMemoryCategory]}
-                                value={memoryCategoryLabels[manualMemoryCategory] || manualMemoryCategory}
-                                onOptionSelect={(_, data) => {
-                                  if (data.optionValue) {
-                                    setManualMemoryCategory(data.optionValue as ChildMemoryCategory)
-                                  }
-                                }}
-                              >
-                                {Object.entries(memoryCategoryLabels).map(([value, label]) => (
-                                  <Option key={value} value={value} text={label}>
-                                    {label}
-                                  </Option>
-                                ))}
-                              </Dropdown>
-                            </Field>
-                            <Field label="Statement">
-                              <Textarea
-                                value={manualMemoryStatement}
-                                resize="vertical"
-                                placeholder="Example: Amina settles faster with short visual models."
-                                onChange={(_, data) => setManualMemoryStatement(data.value)}
-                              />
-                            </Field>
-                          </div>
-                          <div className={styles.memoryActionRow}>
-                            <Button
-                              appearance="primary"
-                              disabled={manualMemorySaving || !manualMemoryStatement.trim()}
-                              onClick={handleCreateManualMemory}
-                            >
-                              {manualMemorySaving ? 'Saving…' : 'Save approved memory'}
-                            </Button>
-                          </div>
-                        </div>
+                        <Text className={styles.overviewValue}>
+                          {card.value}
+                        </Text>
+                        <Text size={200}>{card.copy}</Text>
                       </div>
-
-                      <div>
-                        <Text className={styles.sectionTitle} size={300} weight="semibold">
-                          Pending proposals
-                        </Text>
-                        {childMemoryProposals.length ? (
-                          <div className={styles.memoryList}>
-                            {childMemoryProposals.map(proposal => {
-                              const sessionIds = Array.isArray(proposal.provenance?.session_ids)
-                                ? proposal.provenance.session_ids.length
-                                : 0
-
-                              return (
-                                <div className={styles.memoryProposalCard} key={proposal.id}>
-                                  <div className={styles.summaryRow}>
-                                    <Badge appearance="filled" className={styles.scoreBadgeSand}>
-                                      {memoryCategoryLabels[proposal.category] || proposal.category}
-                                    </Badge>
-                                    <Badge appearance="tint" className={styles.scoreBadge}>
-                                      {proposal.memory_type}
-                                    </Badge>
-                                    {proposal.confidence != null ? (
-                                      <Badge appearance="tint" className={styles.scoreBadge}>
-                                        {Math.round(proposal.confidence * 100)}% confidence
-                                      </Badge>
-                                    ) : null}
-                                  </div>
-                                  <div className={styles.textItem}>
-                                    <div className={styles.textStack}>
-                                      <Text size={300} weight="semibold">
-                                        {proposal.statement}
-                                      </Text>
-                                      <Text size={200}>
-                                        {sessionIds
-                                          ? `Linked to ${sessionIds} session${sessionIds === 1 ? '' : 's'}.`
-                                          : 'Awaiting therapist review.'}
-                                      </Text>
-                                    </div>
-                                    {renderEvidenceLinks(proposal.evidence_links, styles, onOpenSession)}
-                                  </div>
-                                  <div className={styles.memoryActionRow}>
-                                    <Button
-                                      appearance="primary"
-                                      onClick={() => {
-                                        void onApproveMemoryProposal(proposal.id)
-                                      }}
-                                      disabled={memoryReviewPendingId === proposal.id}
-                                    >
-                                      {memoryReviewPendingId === proposal.id ? 'Saving…' : 'Approve'}
-                                    </Button>
-                                    <Button
-                                      appearance="secondary"
-                                      onClick={() => {
-                                        void onRejectMemoryProposal(proposal.id)
-                                      }}
-                                      disabled={memoryReviewPendingId === proposal.id}
-                                    >
-                                      Reject
-                                    </Button>
-                                  </div>
-                                </div>
-                              )
-                            })}
-                          </div>
-                        ) : (
-                          <div className={styles.emptyState}>
-                            <Text>No pending child memory proposals for this child.</Text>
-                          </div>
-                        )}
-                      </div>
-
-                      {memoryError ? (
-                        <Text className={styles.errorText} size={300}>
-                          {memoryError}
-                        </Text>
-                      ) : null}
-                    </>
-                  )}
-                </div>
-              </div>
-            ) : null}
-
-            {activeTab === 'recommendations' ? (
-              <div className={mergeClasses(styles.tabPanel, styles.tabPanelCard)}>
-                <div className={styles.tabOverviewGrid}>
-                  {recommendationOverviewCards.map(card => (
-                    <div className={styles.overviewCard} key={card.label}>
-                      <Text className={styles.combinedReviewLabel}>{card.label}</Text>
-                      <Text className={styles.overviewValue}>{card.value}</Text>
-                      <Text size={200}>{card.copy}</Text>
-                    </div>
-                  ))}
-                </div>
-                <div className={styles.recommendationSection}>
-                  <div>
-                    <Text className={styles.sectionTitle} size={400} weight="semibold">
-                      Next-exercise recommendations
-                    </Text>
-                    <Text className={styles.helperText} size={300}>
-                      Generate a therapist-facing ranking from approved memory, recent sessions, difficulty progression, and your note for this run. Each result stays inspectable through saved scoring reasons and source evidence.
-                    </Text>
+                    ))}
                   </div>
-
-                  <div className={styles.recommendationComposer}>
-                    <Text size={200}>
-                      Add an optional therapist note to steer this ranking run.
-                    </Text>
-                    <Field label="Therapist note for ranking">
-                      <Textarea
-                        value={recommendationPrompt}
-                        resize="vertical"
-                        placeholder="Example: Keep this playful, avoid moving above medium difficulty, and favour cues that use short verbal models."
-                        onChange={(_, data) => setRecommendationPrompt(data.value)}
-                      />
-                    </Field>
-                    <div className={styles.memoryActionRow}>
-                      <Button
-                        appearance="primary"
-                        disabled={recommendationSaving || !plannerReady || !selectedChildId}
-                        onClick={handleGenerateRecommendation}
+                  <div className={styles.recommendationSection}>
+                    <div>
+                      <Text
+                        className={styles.sectionTitle}
+                        size={400}
+                        weight="semibold"
                       >
-                        {recommendationSaving ? 'Generating…' : plannerReady ? 'Generate recommendations' : 'Planner unavailable'}
-                      </Button>
-                      {selectedRecommendationDetail?.target_sound ? (
-                        <Badge appearance="tint" className={styles.scoreBadge}>
-                          Target /{selectedRecommendationDetail.target_sound}/
-                        </Badge>
-                      ) : null}
-                      {selectedRecommendationDetail?.candidate_count ? (
-                        <Badge appearance="tint" className={styles.scoreBadge}>
-                          {selectedRecommendationDetail.candidate_count} ranked candidates
-                        </Badge>
-                      ) : null}
+                        Next-exercise recommendations
+                      </Text>
+                      <Text className={styles.helperText} size={300}>
+                        Generate a therapist-facing ranking from approved
+                        memory, recent sessions, difficulty progression, and
+                        your note for this run. Each result stays inspectable
+                        through saved scoring reasons and source evidence.
+                      </Text>
                     </div>
-                  </div>
 
-                  {recommendationError ? (
-                    <Text className={styles.errorText} size={300}>
-                      {recommendationError}
-                    </Text>
-                  ) : null}
-
-                  {loadingRecommendations && !selectedRecommendationDetail && recommendationHistory.length === 0 ? (
-                    <div className={styles.loading}>
-                      <Spinner size="medium" />
-                    </div>
-                  ) : recommendationHistory.length === 0 && !selectedRecommendationDetail ? (
-                    <div className={styles.emptyState}>
-                      <Text>No recommendation runs have been saved for this child yet. Generate one to compare the ranked options and inspect the evidence behind them.</Text>
-                    </div>
-                  ) : (
-                    <div className={styles.recommendationLayout}>
-                      <div className={styles.recommendationHistoryList}>
-                        <Text className={styles.sectionTitle} size={300} weight="semibold">
-                          Recommendation history
-                        </Text>
-                        <Text className={styles.helperText} size={200}>
-                          Most recent first. Open any saved run to inspect how the ranking was produced.
-                        </Text>
-                        {recommendationHistory.map(recommendation => {
-                          const isSelected = recommendation.id === selectedRecommendationDetail?.id
-
-                          return (
-                            <Button
-                              appearance="subtle"
-                              className={mergeClasses(
-                                styles.recommendationHistoryButton,
-                                isSelected && styles.recommendationHistoryButtonSelected
-                              )}
-                              key={recommendation.id}
-                              onClick={() => {
-                                void onOpenRecommendationDetail(recommendation.id)
-                              }}
-                            >
-                              <div className={styles.recommendationHistoryContent}>
-                                <div className={styles.summaryRow}>
-                                  <Badge appearance="filled" className={styles.scoreBadgeTeal}>
-                                    /{recommendation.target_sound}/
-                                  </Badge>
-                                  {recommendation.top_recommendation ? (
-                                    <Badge appearance="tint" className={styles.scoreBadge}>
-                                      Score {recommendation.top_recommendation.score}
-                                    </Badge>
-                                  ) : null}
-                                </div>
-                                <Text size={300} weight="semibold">
-                                  {recommendation.top_recommendation?.exercise_name || 'Recommendation run'}
-                                </Text>
-                                <Text size={200}>{formatTimestamp(recommendation.created_at)}</Text>
-                                <Text size={200}>{recommendation.rationale}</Text>
-                              </div>
-                            </Button>
-                          )
-                        })}
-                      </div>
-
-                      <div className={styles.recommendationDetail}>
-                        {selectedRecommendationDetail ? (
-                          <>
-                            <div className={styles.memorySummaryGrid}>
-                              <div className={styles.memoryCard}>
-                                <Text className={styles.combinedReviewLabel}>Current target</Text>
-                                <Text size={500} weight="semibold">/{selectedRecommendationDetail.target_sound}/</Text>
-                                <Text size={200}>{formatTimestamp(selectedRecommendationDetail.created_at)}</Text>
-                              </div>
-
-                              <div className={styles.memoryCard}>
-                                <Text className={styles.combinedReviewLabel}>Top score</Text>
-                                <Text size={500} weight="semibold">{selectedRecommendationDetail.top_recommendation_score ?? '—'}</Text>
-                                <Text size={200}>{selectedRecommendationDetail.candidate_count} ranked options logged</Text>
-                              </div>
-
-                              <div className={styles.memoryCard}>
-                                <Text className={styles.combinedReviewLabel}>Therapist note</Text>
-                                <Text size={300}>
-                                  {selectedRecommendationDetail.therapist_constraints?.note || 'No extra therapist constraint note was applied.'}
-                                </Text>
-                              </div>
-                            </div>
-
-                            {selectedRecommendationDetail.top_recommendation ? (
-                              <div className={mergeClasses(styles.recommendationCandidate, styles.recommendationCandidateTop)}>
-                                <div className={styles.summaryRow}>
-                                  <Badge appearance="filled" className={styles.scoreBadgeTeal}>Top recommendation</Badge>
-                                  <Badge appearance="tint" className={styles.scoreBadge}>
-                                    Deterministic score {selectedRecommendationDetail.top_recommendation.score}
-                                  </Badge>
-                                </div>
-                                <Text size={500} weight="semibold">
-                                  {selectedRecommendationDetail.top_recommendation.exercise_name}
-                                </Text>
-                                <Text size={300}>{selectedRecommendationDetail.rationale}</Text>
-                                <Text className={styles.helperText} size={200}>
-                                  Best overall fit from the saved memory and recent-session evidence for this child.
-                                </Text>
-                              </div>
-                            ) : null}
-
-                            {institutionalInsights.length ? (
-                              <div className={styles.sectionBlock}>
-                                <Text className={styles.sectionTitle} size={300} weight="semibold">
-                                  Clinic-level institutional memory
-                                </Text>
-                                <Text className={styles.helperText} size={200}>
-                                  These de-identified clinic patterns come from approved child memory and reviewed therapist outcomes across the clinic. They tune recommendation ranking without becoming child-specific approved facts.
-                                </Text>
-                                {institutionalMemorySnapshot?.summary_text ? (
-                                  <div className={styles.textItem}>
-                                    <Text size={200}>{institutionalMemorySnapshot.summary_text}</Text>
-                                  </div>
-                                ) : null}
-                                {renderInstitutionalInsights(institutionalInsights, styles)}
-                              </div>
-                            ) : null}
-
-                            <div>
-                              <Text className={styles.sectionTitle} size={300} weight="semibold">
-                                Ranked options
-                              </Text>
-                              <Text className={styles.helperText} size={200}>
-                                Review the full ranking when you want to compare alternatives instead of only accepting the top pick.
-                              </Text>
-                            </div>
-
-                            {selectedRecommendationDetail.candidates.map(candidate => {
-                              const metadata = candidate.exercise_metadata || {}
-                              const difficulty = String(metadata.difficulty || metadata.difficulty_level || '').trim()
-                              const targetSound = String(metadata.targetSound || metadata.target_sound || '').trim()
-
-                              return (
-                                <div
-                                  className={mergeClasses(
-                                    styles.recommendationCandidate,
-                                    candidate.rank === 1 && styles.recommendationCandidateTop
-                                  )}
-                                  key={candidate.id}
-                                >
-                                  <div className={styles.sessionHistoryHeader}>
-                                    <div className={styles.sessionHistoryTitleWrap}>
-                                      <div className={styles.summaryRow}>
-                                        <Badge appearance="filled" className={candidate.rank === 1 ? styles.scoreBadgeTeal : styles.scoreBadge}>
-                                          Rank {candidate.rank}
-                                        </Badge>
-                                        <Badge appearance="tint" className={styles.scoreBadge}>Score {candidate.score}</Badge>
-                                        {difficulty ? <Badge appearance="tint" className={styles.scoreBadge}>{difficulty}</Badge> : null}
-                                        {targetSound ? <Badge appearance="tint" className={styles.scoreBadge}>/{targetSound}/</Badge> : null}
-                                      </div>
-                                      <Text className={styles.sessionHistoryTitle} weight="semibold">
-                                        {candidate.exercise_name}
-                                      </Text>
-                                      {candidate.exercise_description ? <Text size={200}>{candidate.exercise_description}</Text> : null}
-                                    </div>
-                                  </div>
-
-                                  <div className={styles.sectionBlock}>
-                                    <Text className={styles.sectionTitle} size={300} weight="semibold">
-                                      Why was this exercise recommended?
-                                    </Text>
-                                    <div className={styles.textItem}>
-                                      {renderMarkdown(candidate.explanation.why_recommended, styles)}
-                                    </div>
-                                    <div className={styles.textItem}>
-                                      {renderMarkdown(candidate.explanation.comparison_to_approved_memory, styles)}
-                                    </div>
-                                  </div>
-
-                                  <div className={styles.sectionBlock}>
-                                    <Text className={styles.sectionTitle} size={300} weight="semibold">
-                                      Ranking factors
-                                    </Text>
-                                    <div className={styles.recommendationFactorList}>
-                                      {Object.entries(candidate.ranking_factors || {}).map(([factorKey, factor]) => (
-                                        <div className={styles.recommendationFactorItem} key={factorKey}>
-                                          <div className={styles.summaryRow}>
-                                            <Badge appearance="tint" className={styles.scoreBadge}>
-                                              {factorKey.replace(/_/g, ' ')}
-                                            </Badge>
-                                            <Badge appearance="tint" className={styles.scoreBadge}>
-                                              {factor.score >= 0 ? '+' : ''}{factor.score}
-                                            </Badge>
-                                          </div>
-                                          <Text size={200}>{factor.reason}</Text>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-
-                                  <div className={styles.metricsGrid}>
-                                    <div className={styles.sectionBlock}>
-                                      <Text className={styles.sectionTitle} size={300} weight="semibold">
-                                        Which approved memory items support it?
-                                      </Text>
-                                      {candidate.explanation.supporting_memory_items.length ? (
-                                        <div className={styles.memoryList}>
-                                          {candidate.explanation.supporting_memory_items.map(item => {
-                                            const hydratedItem = childMemoryItemMap.get(item.id) || item
-
-                                            return (
-                                              <div className={styles.memoryCard} key={item.id}>
-                                                <div className={styles.summaryRow}>
-                                                  <Badge appearance="tint" className={styles.scoreBadge}>
-                                                    {memoryCategoryLabels[item.category] || item.category}
-                                                  </Badge>
-                                                  {item.confidence != null ? (
-                                                    <Badge appearance="tint" className={styles.scoreBadge}>
-                                                      {Math.round(item.confidence * 100)}% confidence
-                                                    </Badge>
-                                                  ) : null}
-                                                </div>
-                                                <Text size={300} weight="semibold">{item.statement}</Text>
-                                                {renderEvidenceLinks(hydratedItem.evidence_links, styles, onOpenSession)}
-                                              </div>
-                                            )
-                                          })}
-                                        </div>
-                                      ) : (
-                                        <div className={styles.emptyState}>
-                                          <Text>No approved memory items were attached to this candidate.</Text>
-                                        </div>
-                                      )}
-                                    </div>
-
-                                    <div className={styles.sectionBlock}>
-                                      <Text className={styles.sectionTitle} size={300} weight="semibold">
-                                        Which sessions support it?
-                                      </Text>
-                                      {candidate.explanation.supporting_sessions.length ? (
-                                        <div className={styles.recommendationSessionList}>
-                                          {candidate.explanation.supporting_sessions.map(session => (
-                                            <div className={styles.recommendationSessionItem} key={session.id}>
-                                              <div className={styles.summaryRow}>
-                                                <Badge appearance="tint" className={styles.scoreBadge}>
-                                                  {session.exercise?.name || 'Saved session'}
-                                                </Badge>
-                                                {session.overall_score != null ? (
-                                                  <Badge appearance="tint" className={styles.scoreBadge}>
-                                                    Overall {session.overall_score}
-                                                  </Badge>
-                                                ) : null}
-                                              </div>
-                                              <Text size={200}>{formatTimestamp(session.timestamp)}</Text>
-                                              <Button
-                                                appearance="subtle"
-                                                className={styles.evidenceButton}
-                                                onClick={() => onOpenSession(session.id)}
-                                              >
-                                                Open source session
-                                              </Button>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      ) : (
-                                        <div className={styles.emptyState}>
-                                          <Text>No saved sessions were attached to this candidate.</Text>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  <div className={styles.sectionBlock}>
-                                    <Text className={styles.sectionTitle} size={300} weight="semibold">
-                                      What evidence might change this recommendation?
-                                    </Text>
-                                    <div className={styles.textItem}>
-                                      {renderMarkdown(candidate.explanation.evidence_that_could_change_recommendation, styles)}
-                                    </div>
-                                  </div>
-                                </div>
-                              )
-                            })}
-                          </>
-                        ) : (
-                          <div className={styles.emptyState}>
-                            <Text>Select a recommendation run to inspect its rationale and provenance.</Text>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : null}
-
-            {activeTab === 'reports' ? (
-              <div className={mergeClasses(styles.tabPanel, styles.tabPanelCard)}>
-                <div className={styles.tabOverviewGrid}>
-                  {reportOverviewCards.map(card => (
-                    <div className={styles.overviewCard} key={card.label}>
-                      <Text className={styles.combinedReviewLabel}>{card.label}</Text>
-                      <Text className={styles.overviewValue}>{card.value}</Text>
-                      <Text size={200}>{card.copy}</Text>
-                    </div>
-                  ))}
-                </div>
-
-                <div className={styles.recommendationSection}>
-                  <div>
-                    <Text className={styles.sectionTitle} size={400} weight="semibold">
-                      Audience-specific progress reports
-                    </Text>
-                    <Text className={styles.helperText} size={300}>
-                      Generate a reusable report draft from reviewed sessions, approved child memory, planning context, and saved recommendation history. Drafts can be edited, approved, signed, and archived.
-                    </Text>
-                  </div>
-
-                  <div className={styles.recommendationComposer}>
-                    <Field label="Audience">
-                      <Dropdown
-                        value={reportAudience}
-                        selectedOptions={[reportAudience]}
-                        onOptionSelect={(_, data) => {
-                          if (data.optionValue === 'therapist' || data.optionValue === 'parent' || data.optionValue === 'school') {
-                            handleReportAudienceChange(data.optionValue)
+                    <div className={styles.recommendationComposer}>
+                      <Text size={200}>
+                        Add an optional therapist note to steer this ranking
+                        run.
+                      </Text>
+                      <Field label="Therapist note for ranking">
+                        <Textarea
+                          value={recommendationPrompt}
+                          resize="vertical"
+                          placeholder="Example: Keep this playful, avoid moving above medium difficulty, and favour cues that use short verbal models."
+                          onChange={(_, data) =>
+                            setRecommendationPrompt(data.value)
                           }
-                        }}
-                      >
-                        <Option value="therapist">Therapist</Option>
-                        <Option value="parent">Parent</Option>
-                        <Option value="school">School</Option>
-                      </Dropdown>
-                    </Field>
-                    <div className={styles.reportScopeGrid}>
-                      <Field label="Review window start">
-                        <input
-                          className={styles.reportDateInput}
-                          type="date"
-                          value={reportPeriodStartDate}
-                          onChange={event => updateReportWindow(event.target.value, reportPeriodEndDate)}
                         />
                       </Field>
-                      <Field label="Review window end">
-                        <input
-                          className={styles.reportDateInput}
-                          type="date"
-                          value={reportPeriodEndDate}
-                          onChange={event => updateReportWindow(reportPeriodStartDate, event.target.value)}
-                        />
-                      </Field>
-                    </div>
-                    <Field label="Report title">
-                      <Textarea
-                        value={reportTitle}
-                        resize="vertical"
-                        placeholder="Example: Ayo parent progress update"
-                        onChange={(_, data) => setReportTitle(data.value)}
-                      />
-                    </Field>
-                    <Field label="Executive summary note">
-                      <Textarea
-                        value={reportSummary}
-                        resize="vertical"
-                        placeholder="Optional note to keep at the top of the draft."
-                        onChange={(_, data) => handleReportSummaryChange(data.value)}
-                      />
-                    </Field>
-                    {selectedReport?.status === 'draft' ? (
-                      <div className={styles.sectionBlock}>
-                        <div className={styles.summaryRow}>
-                          <Text className={styles.sectionTitle} size={300} weight="semibold">
-                            Draft-only summary rewrite
-                          </Text>
-                          <Badge appearance="tint" className={styles.scoreBadge}>
-                            Human review required
+                      <div className={styles.memoryActionRow}>
+                        <Button
+                          appearance="primary"
+                          disabled={
+                            recommendationSaving ||
+                            !plannerReady ||
+                            !selectedChildId
+                          }
+                          onClick={handleGenerateRecommendation}
+                        >
+                          {recommendationSaving
+                            ? 'Generating…'
+                            : plannerReady
+                              ? 'Generate recommendations'
+                              : 'Planner unavailable'}
+                        </Button>
+                        {selectedRecommendationDetail?.target_sound ? (
+                          <Badge
+                            appearance="tint"
+                            className={styles.scoreBadge}
+                          >
+                            Target /{selectedRecommendationDetail.target_sound}/
                           </Badge>
-                        </div>
-                        <Text className={styles.helperText} size={200}>
-                          Generate a rewrite suggestion from the current saved draft, review it, then choose whether to apply it to the editor. Nothing is saved automatically.
-                        </Text>
-                        <div className={styles.memoryActionRow}>
-                          <Button appearance="secondary" disabled={reportSaving || !reportComposerCanSubmit} onClick={handleSuggestReportSummaryRewrite}>
-                            Suggest rewrite
-                          </Button>
-                          {reportSummarySuggestion ? (
-                            <>
-                              <Badge appearance="filled" className={styles.scoreBadgeTeal}>
-                                Draft only
-                              </Badge>
-                              <Button appearance="secondary" disabled={reportSaving} onClick={handleApplySuggestedReportSummary}>
-                                Apply suggestion to editor
-                              </Button>
-                            </>
-                          ) : null}
-                        </div>
-                        {reportSummarySuggestion ? (
-                          <div className={styles.memorySummaryGrid}>
-                            <div className={styles.memoryCard}>
-                              <Text className={styles.combinedReviewLabel}>Current saved summary</Text>
-                              <Text size={200}>{reportSummarySuggestion.source_summary_text || 'No saved summary note yet.'}</Text>
-                            </div>
-                            <div className={styles.memoryCard}>
-                              <Text className={styles.combinedReviewLabel}>Suggested rewrite</Text>
-                              <Text size={200}>{reportSummarySuggestion.suggested_summary_text}</Text>
-                            </div>
-                          </div>
+                        ) : null}
+                        {selectedRecommendationDetail?.candidate_count ? (
+                          <Badge
+                            appearance="tint"
+                            className={styles.scoreBadge}
+                          >
+                            {selectedRecommendationDetail.candidate_count}{' '}
+                            ranked candidates
+                          </Badge>
                         ) : null}
                       </div>
+                    </div>
+
+                    {recommendationError ? (
+                      <Text className={styles.errorText} size={300}>
+                        {recommendationError}
+                      </Text>
                     ) : null}
-                    {isSharedReportAudience(reportAudience) ? (
-                      <div className={styles.reportSessionSelection}>
-                        <div>
-                          <Text className={styles.sectionTitle} size={300} weight="semibold">
-                            Shared export controls
+
+                    {loadingRecommendations &&
+                    !selectedRecommendationDetail &&
+                    recommendationHistory.length === 0 ? (
+                      <div className={styles.loading}>
+                        <Spinner size="medium" />
+                      </div>
+                    ) : recommendationHistory.length === 0 &&
+                      !selectedRecommendationDetail ? (
+                      <div className={styles.emptyState}>
+                        <Text>
+                          No recommendation runs have been saved for this child
+                          yet. Generate one to compare the ranked options and
+                          inspect the evidence behind them.
+                        </Text>
+                      </div>
+                    ) : (
+                      <div className={styles.recommendationLayout}>
+                        <div className={styles.recommendationHistoryList}>
+                          <Text
+                            className={styles.sectionTitle}
+                            size={300}
+                            weight="semibold"
+                          >
+                            Recommendation history
                           </Text>
                           <Text className={styles.helperText} size={200}>
-                            Parent and school exports can hide selected fields before HTML preview or true PDF generation.
+                            Most recent first. Open any saved run to inspect how
+                            the ranking was produced.
                           </Text>
-                        </div>
-                        <div className={styles.memoryActionRow}>
-                          <Badge appearance="tint" className={styles.scoreBadge}>
-                            {hiddenSharedFieldCount} fields hidden
-                          </Badge>
-                          <Badge appearance="tint" className={styles.scoreBadge}>
-                            {hiddenSharedSectionCount} sections hidden
-                          </Badge>
-                        </div>
-                        <div className={styles.reportSessionSelectionList}>
-                          {SHARED_REPORT_REDACTION_OPTIONS.map(option => {
-                            const isSelected = reportRedactionOverrides[option.key]
-
-                            return (
-                              <label
-                                className={mergeClasses(styles.reportSessionOption, isSelected && styles.reportSessionOptionSelected)}
-                                key={option.key}
-                              >
-                                <input
-                                  className={styles.reportSessionCheckbox}
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  onChange={() => toggleReportRedactionOverride(option.key)}
-                                />
-                                <div className={styles.reportSessionCopy}>
-                                  <Text size={300} weight="semibold">
-                                    {option.label}
-                                  </Text>
-                                  <Text size={200}>{option.helper}</Text>
-                                </div>
-                              </label>
-                            )
-                          })}
-                        </div>
-                        <div>
-                          <Text className={styles.sectionTitle} size={300} weight="semibold">
-                            Hide individual sections
-                          </Text>
-                          <Text className={styles.helperText} size={200}>
-                            Exclude any generated section that should not appear in the shared version of this report.
-                          </Text>
-                        </div>
-                        <div className={styles.reportSessionSelectionList}>
-                          {sharedReportSectionOptions.map(section => {
-                            const isSelected = reportRedactionOverrides.hidden_section_keys.includes(section.key)
-
-                            return (
-                              <label
-                                className={mergeClasses(styles.reportSessionOption, isSelected && styles.reportSessionOptionSelected)}
-                                key={section.key}
-                              >
-                                <input
-                                  className={styles.reportSessionCheckbox}
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  onChange={() => toggleReportSectionVisibility(section.key)}
-                                />
-                                <div className={styles.reportSessionCopy}>
-                                  <Text size={300} weight="semibold">
-                                    Hide {section.title}
-                                  </Text>
-                                  <Text size={200}>Removes this section from the shared export preview and PDF.</Text>
-                                </div>
-                              </label>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    ) : null}
-                    <div className={styles.reportSessionSelection}>
-                      <div>
-                        <Text className={styles.sectionTitle} size={300} weight="semibold">
-                          Included sessions
-                        </Text>
-                        <Text className={styles.helperText} size={200}>
-                          Filter the review window with dates, then confirm exactly which saved sessions should appear in this report.
-                        </Text>
-                      </div>
-                      <div className={styles.memoryActionRow}>
-                        <Badge appearance="tint" className={styles.scoreBadge}>
-                          {reportSelectedSessionIds.length} selected
-                        </Badge>
-                        <Badge appearance="tint" className={styles.scoreBadge}>
-                          {reportSessionsInRange.length} in range
-                        </Badge>
-                        <Button appearance="secondary" onClick={handleSelectAllReportSessions} disabled={!reportSessionsInRange.length}>
-                          Select all in range
-                        </Button>
-                        <Button appearance="secondary" onClick={handleClearReportSessions} disabled={!reportSelectedSessionIds.length}>
-                          Clear selection
-                        </Button>
-                      </div>
-                      {reportSessionsInRange.length ? (
-                        <div className={styles.reportSessionSelectionList}>
-                          {reportSessionsInRange.map(session => {
-                            const isSelected = reportSelectedSessionIds.includes(session.id)
-                            const targetSound = session.exercise_metadata?.targetSound || session.exercise.exerciseMetadata?.targetSound
-
-                            return (
-                              <label
-                                className={mergeClasses(styles.reportSessionOption, isSelected && styles.reportSessionOptionSelected)}
-                                key={session.id}
-                              >
-                                <input
-                                  className={styles.reportSessionCheckbox}
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  onChange={() => toggleReportSession(session.id)}
-                                />
-                                <div className={styles.reportSessionCopy}>
-                                  <Text size={300} weight="semibold">
-                                    {session.exercise.name}
-                                  </Text>
-                                  <Text size={200}>
-                                    {formatTimestamp(session.timestamp)}
-                                  </Text>
-                                  <Text size={200}>
-                                    Overall {session.overall_score ?? '—'} • Accuracy {session.accuracy_score ?? '—'}{targetSound ? ` • /${targetSound}/` : ''}
-                                  </Text>
-                                </div>
-                              </label>
-                            )
-                          })}
-                        </div>
-                      ) : (
-                        <div className={styles.emptyState}>
-                          <Text>No saved sessions fall inside the current report window.</Text>
-                        </div>
-                      )}
-                    </div>
-                    <div className={styles.memoryActionRow}>
-                      <Button
-                        appearance="primary"
-                        disabled={reportSaving || !reportComposerCanSubmit}
-                        onClick={handleCreateReport}
-                      >
-                        {reportSaving ? 'Saving…' : 'Generate report'}
-                      </Button>
-                      {selectedReport?.status === 'draft' ? (
-                        <Button
-                          appearance="secondary"
-                          disabled={reportSaving || !reportComposerCanSubmit}
-                          onClick={handleSaveReport}
-                        >
-                          Save draft changes
-                        </Button>
-                      ) : null}
-                      {selectedReport ? (
-                        <Badge appearance="tint" className={styles.scoreBadge}>
-                          {selectedReport.status}
-                        </Badge>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  {reportError ? (
-                    <Text className={styles.errorText} size={300}>
-                      {reportError}
-                    </Text>
-                  ) : null}
-
-                  {loadingReports && !selectedReport && progressReports.length === 0 ? (
-                    <div className={styles.loading}>
-                      <Spinner size="medium" />
-                    </div>
-                  ) : progressReports.length === 0 && !selectedReport ? (
-                    <div className={styles.emptyState}>
-                      <Text>No progress reports have been saved for this child yet. Generate a draft to begin the reporting workflow.</Text>
-                    </div>
-                  ) : (
-                    <div className={styles.recommendationLayout}>
-                      <div className={styles.recommendationHistoryList}>
-                        <Text className={styles.sectionTitle} size={300} weight="semibold">
-                          Report history
-                        </Text>
-                        <Text className={styles.helperText} size={200}>
-                          Most recent first. Open any saved draft or signed report to inspect its generated sections.
-                        </Text>
-                        {/* Phase 1 AI-draft: source filter chips. Always rendered so */}
-                        {/* the "AI draft" filter is discoverable even when no AI row exists. */}
-                        <div className={styles.summaryRow}>
-                          {([
-                            { key: 'all', label: 'All' },
-                            { key: 'pipeline', label: 'Pipeline' },
-                            { key: 'ai_insight', label: 'AI draft' },
-                            { key: 'manual', label: 'Manual' },
-                          ] as const).map(chip => {
-                            const pressed = reportSourceFilter === chip.key
-                            return (
-                              <Button
-                                key={chip.key}
-                                appearance={pressed ? 'primary' : 'subtle'}
-                                aria-pressed={pressed}
-                                onClick={() => setReportSourceFilter(chip.key)}
-                                size="small"
-                              >
-                                {chip.label}
-                              </Button>
-                            )
-                          })}
-                        </div>
-                        {(() => {
-                          const filteredReports = progressReports.filter(report => {
-                            if (reportSourceFilter === 'all') return true
-                            const source = report.source ?? 'pipeline'
-                            return source === reportSourceFilter
-                          })
-                          if (filteredReports.length === 0) {
-                            return (
-                              <div className={styles.emptyState}>
-                                <Text>No reports match this filter yet.</Text>
-                              </div>
-                            )
-                          }
-                          return filteredReports.map(report => {
-                            const isSelected = report.id === selectedReport?.id
-                            const isAiDraft = (report.source ?? 'pipeline') === 'ai_insight'
+                          {recommendationHistory.map(recommendation => {
+                            const isSelected =
+                              recommendation.id ===
+                              selectedRecommendationDetail?.id
 
                             return (
                               <Button
                                 appearance="subtle"
                                 className={mergeClasses(
                                   styles.recommendationHistoryButton,
-                                  isSelected && styles.recommendationHistoryButtonSelected
+                                  isSelected &&
+                                    styles.recommendationHistoryButtonSelected
                                 )}
-                                key={report.id}
+                                key={recommendation.id}
                                 onClick={() => {
-                                  void onOpenReportDetail(report.id)
+                                  void onOpenRecommendationDetail(
+                                    recommendation.id
+                                  )
                                 }}
                               >
-                                <div className={styles.recommendationHistoryContent}>
+                                <div
+                                  className={
+                                    styles.recommendationHistoryContent
+                                  }
+                                >
                                   <div className={styles.summaryRow}>
-                                    <Badge appearance="filled" className={styles.scoreBadgeTeal}>
-                                      {report.audience}
+                                    <Badge
+                                      appearance="filled"
+                                      className={styles.scoreBadgeTeal}
+                                    >
+                                      /{recommendation.target_sound}/
                                     </Badge>
-                                    <Badge appearance="tint" className={styles.scoreBadge}>
-                                      {report.status}
-                                    </Badge>
-                                    {isAiDraft ? (
-                                      <Badge appearance="tint" className={styles.scoreBadge}>
-                                        AI draft
+                                    {recommendation.top_recommendation ? (
+                                      <Badge
+                                        appearance="tint"
+                                        className={styles.scoreBadge}
+                                      >
+                                        Score{' '}
+                                        {
+                                          recommendation.top_recommendation
+                                            .score
+                                        }
                                       </Badge>
                                     ) : null}
                                   </div>
                                   <Text size={300} weight="semibold">
-                                    {report.title}
+                                    {recommendation.top_recommendation
+                                      ?.exercise_name || 'Recommendation run'}
                                   </Text>
-                                  <Text size={200}>{formatTimestamp(report.updated_at)}</Text>
-                                  <Text size={200}>{report.summary_text || 'No summary note added yet.'}</Text>
+                                  <Text size={200}>
+                                    {formatTimestamp(recommendation.created_at)}
+                                  </Text>
+                                  <Text size={200}>
+                                    {recommendation.rationale}
+                                  </Text>
                                 </div>
                               </Button>
                             )
-                          })
-                        })()}
-                      </div>
-
-                      <div className={styles.recommendationDetail}>
-                        {selectedReport ? (
-                          <>
-                            <div className={styles.memorySummaryGrid}>
-                              <div className={styles.memoryCard}>
-                                <Text className={styles.combinedReviewLabel}>Audience</Text>
-                                <Text size={500} weight="semibold">{selectedReport.audience}</Text>
-                                <Text size={200}>{formatTimestamp(selectedReport.updated_at)}</Text>
-                              </div>
-
-                              <div className={styles.memoryCard}>
-                                <Text className={styles.combinedReviewLabel}>Review window</Text>
-                                <Text size={500} weight="semibold">{selectedReport.snapshot.session_count ?? 0} sessions</Text>
-                                <Text size={200}>
-                                  {formatShortDate(selectedReport.period_start)} to {formatShortDate(selectedReport.period_end)}
-                                </Text>
-                              </div>
-
-                              <div className={styles.memoryCard}>
-                                <Text className={styles.combinedReviewLabel}>Focus</Text>
-                                <Text size={300}>
-                                  {selectedReport.snapshot.focus_targets?.length
-                                    ? selectedReport.snapshot.focus_targets.join(', ')
-                                    : 'No target sound tagged in this report window.'}
-                                </Text>
-                              </div>
-                            </div>
-
-                            <div className={mergeClasses(styles.recommendationCandidate, styles.recommendationCandidateTop)}>
-                              <div className={styles.summaryRow}>
-                                <Badge appearance="filled" className={styles.scoreBadgeTeal}>Report summary</Badge>
-                                <Badge appearance="tint" className={styles.scoreBadge}>{selectedReport.status}</Badge>
-                                {(selectedReport.source ?? 'pipeline') === 'ai_insight' ? (
-                                  <Badge appearance="tint" className={styles.scoreBadge}>AI draft</Badge>
-                                ) : null}
-                              </div>
-                              <Text size={500} weight="semibold">{selectedReport.title}</Text>
-                              <Text size={300}>{selectedReport.summary_text || 'No summary note has been saved for this report yet.'}</Text>
-                              {(selectedReport.source ?? 'pipeline') === 'ai_insight' ? (
-                                <Checkbox
-                                  checked={reportReviewAcknowledgedId === selectedReport.id}
-                                  label="Reviewed — OK to export"
-                                  onChange={(_, data) => {
-                                    setReportReviewAcknowledgedId(data.checked ? selectedReport.id : null)
-                                  }}
-                                />
-                              ) : null}
-                            </div>
-
-                            {selectedReport.sections.map(section => (
-                              <div className={styles.sectionBlock} key={section.key}>
-                                <Text className={styles.sectionTitle} size={300} weight="semibold">
-                                  {section.title}
-                                </Text>
-                                {section.narrative ? (
-                                  <div className={styles.textItem}>
-                                    <Text size={200}>{section.narrative}</Text>
-                                  </div>
-                                ) : null}
-                                {section.metrics?.length ? (
-                                  <div className={styles.memorySummaryGrid}>
-                                    {section.metrics.map(metric => (
-                                      <div className={styles.memoryCard} key={`${section.key}-${metric.label}`}>
-                                        <Text className={styles.combinedReviewLabel}>{metric.label}</Text>
-                                        <Text size={400} weight="semibold">{metric.value}</Text>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : null}
-                                {section.bullets?.length ? (
-                                  <div className={styles.textList}>
-                                    {section.bullets.map(bullet => (
-                                      <div className={styles.textItem} key={`${section.key}-${bullet}`}>
-                                        <Text size={200}>{bullet}</Text>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : null}
-                              </div>
-                            ))}
-
-                            <div className={styles.planActions}>
-                              {(() => {
-                                // Phase 1 AI-draft gate: exports + approve require the therapist
-                                // to check the per-report "Reviewed — OK to export" acknowledgement.
-                                const isAiDraftReport = (selectedReport.source ?? 'pipeline') === 'ai_insight'
-                                const exportGated = isAiDraftReport && reportReviewAcknowledgedId !== selectedReport.id
-                                return (
-                                  <>
-                                    <Button appearance="secondary" disabled={reportSaving || exportGated} onClick={() => handleOpenSelectedReportExport('html', 'preview')}>
-                                      Open print view
-                                    </Button>
-                                    <Button appearance="secondary" disabled={reportSaving || exportGated} onClick={() => handleOpenSelectedReportExport('html', 'download')}>
-                                      Download HTML
-                                    </Button>
-                                    <Button appearance="secondary" disabled={reportSaving || exportGated} onClick={() => handleOpenSelectedReportExport('pdf', 'preview')}>
-                                      Preview PDF
-                                    </Button>
-                                    <Button appearance="secondary" disabled={reportSaving || exportGated} onClick={() => handleOpenSelectedReportExport('pdf', 'download')}>
-                                      Download PDF
-                                    </Button>
-                                    {selectedReport.status === 'draft' ? (
-                                      <>
-                                        <Button appearance="secondary" disabled={reportSaving || exportGated} onClick={() => { void onApproveReport() }}>
-                                          Approve report
-                                        </Button>
-                                      </>
-                                    ) : null}
-                                    {selectedReport.status === 'approved' ? (
-                                      <Button appearance="secondary" disabled={reportSaving} onClick={() => { void onSignReport() }}>
-                                        Sign report
-                                      </Button>
-                                    ) : null}
-                                    {(selectedReport.status === 'approved' || selectedReport.status === 'signed') ? (
-                                      <Button appearance="secondary" disabled={reportSaving} onClick={() => { void onArchiveReport() }}>
-                                        Archive report
-                                      </Button>
-                                    ) : null}
-                                  </>
-                                )
-                              })()}
-                            </div>
-                          </>
-                        ) : (
-                          <div className={styles.emptyState}>
-                            <Text>Select a saved report to inspect its generated sections and workflow state.</Text>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : null}
-
-            {activeTab === 'plan' ? (
-              <div className={mergeClasses(styles.tabPanel, styles.tabPanelCard)}>
-                <div className={styles.tabOverviewGrid}>
-                  {planOverviewCards.map(card => (
-                    <div className={styles.overviewCard} key={card.label}>
-                      <Text className={styles.combinedReviewLabel}>{card.label}</Text>
-                      <Text className={styles.overviewValue}>{card.value}</Text>
-                      <Text size={200}>{card.copy}</Text>
-                    </div>
-                  ))}
-                </div>
-                <div className={styles.planSection}>
-                  <div>
-                    <Text className={styles.sectionTitle} size={400} weight="semibold">
-                      Next-session plan
-                    </Text>
-                  </div>
-
-                  {loadingPlans ? (
-                    <div className={styles.loading}>
-                      <Spinner size="medium" />
-                    </div>
-                  ) : selectedPlan ? (
-                    <div className={styles.planList}>
-                      <div className={styles.planSummaryGrid}>
-                        <div className={styles.planList}>
-                          <div className={styles.summaryRow}>
-                            <Badge appearance="filled" className={mergeClasses(styles.scoreBadge, selectedPlan.status === 'approved' ? styles.scoreBadgeTeal : styles.scoreBadgeInk)}>
-                              {selectedPlan.status === 'approved' ? 'Approved plan' : 'Draft plan'}
-                            </Badge>
-                            <Badge appearance="tint" className={styles.scoreBadge}>
-                              {selectedPlan.draft.estimated_duration_minutes} min
-                            </Badge>
-                          </div>
-
-                          <div className={styles.textItem}>
-                            <div className={styles.textStack}>
-                              <Text size={300} weight="semibold">
-                                {selectedPlan.draft.objective.replace(/[*_#`]/g, '').trim()}
-                              </Text>
-                              {selectedPlan.draft.focus_sound ? <Text size={200}>Target sound: {selectedPlan.draft.focus_sound}</Text> : null}
-                            </div>
-                          </div>
+                          })}
                         </div>
 
-                        {planConfidence ? <PlanConfidenceGauge confidence={planConfidence} styles={styles} /> : null}
-                      </div>
-
-                      <div>
-                        <Text className={styles.sectionTitle} size={300} weight="semibold">
-                          Activities
-                        </Text>
-                        <div className={styles.planList}>
-                          {selectedPlan.draft.activities.map(activity => (
-                            <div className={styles.planItem} key={`${activity.exercise_id}-${activity.title}`}>
-                              <Text size={300} weight="semibold">
-                                {activity.title}
-                              </Text>
-                              <Text size={200}>
-                                {activity.exercise_name} • {activity.target_duration_minutes} min
-                              </Text>
-                              {renderMarkdown(activity.reason, styles)}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className={styles.metricsGrid}>
-                        <div>
-                          <Text className={styles.sectionTitle} size={300} weight="semibold">
-                            Cues
-                          </Text>
-                          <div className={styles.textList}>
-                            {selectedPlan.draft.therapist_cues.map(cue => (
-                              <div className={styles.textItem} key={cue}>
-                                {renderMarkdown(cue, styles)}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div>
-                          <Text className={styles.sectionTitle} size={300} weight="semibold">
-                            Success markers
-                          </Text>
-                          <div className={styles.textList}>
-                            {selectedPlan.draft.success_criteria.map(criterion => (
-                              <div className={styles.textItem} key={criterion}>
-                                {renderMarkdown(criterion, styles)}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <Text className={styles.sectionTitle} size={300} weight="semibold">
-                          Carryover
-                        </Text>
-                        <div className={styles.textList}>
-                          {selectedPlan.draft.carryover.map(item => (
-                            <div className={styles.textItem} key={item}>
-                              {renderMarkdown(item, styles)}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {planMemorySnapshot ? (
-                        <div className={styles.provenanceSection}>
-                          <div className={styles.provenanceHeader}>
-                            <Text className={styles.sectionTitle} size={300} weight="semibold">
-                              Memory that informed this plan
-                            </Text>
-                            <Text className={styles.helperText} size={300}>
-                              This saved snapshot shows the approved child memory that was available when the planner produced this draft.
-                            </Text>
-                          </div>
-
-                          <div className={styles.provenanceMeta}>
-                            <Badge appearance="filled" className={styles.scoreBadgeTeal}>
-                              {planMemoryItems.length || planMemorySnapshot.used_item_ids.length} memory inputs
-                            </Badge>
-                            {planMemorySnapshot.summary_last_compiled_at ? (
-                              <Badge appearance="tint" className={styles.scoreBadge}>
-                                Snapshot {formatTimestamp(planMemorySnapshot.summary_last_compiled_at)}
-                              </Badge>
-                            ) : null}
-                          </div>
-
-                          {planMemoryItems.length ? (
-                            <div className={styles.textList}>
-                              {planMemoryItems.map(item => (
-                                <div className={styles.textItem} key={item.id}>
-                                  <div className={styles.summaryRow}>
-                                    <Badge appearance="tint" className={styles.scoreBadge}>
-                                      {memoryCategoryLabels[item.category] || item.category}
-                                    </Badge>
-                                    <Badge appearance="tint" className={styles.scoreBadge}>
-                                      {item.memory_type}
-                                    </Badge>
-                                    {item.confidence != null ? (
-                                      <Text size={200}>Confidence {Math.round(item.confidence * 100)}%</Text>
-                                    ) : null}
-                                  </div>
-                                  <div className={styles.textStack}>
-                                    <Text size={300} weight="semibold">
-                                      {item.statement}
-                                    </Text>
-                                    {item.updated_at ? <Text size={200}>Reviewed {formatTimestamp(item.updated_at)}</Text> : null}
-                                  </div>
-                                  {renderEvidenceLinks(childMemoryItemMap.get(item.id)?.evidence_links, styles, onOpenSession)}
+                        <div className={styles.recommendationDetail}>
+                          {selectedRecommendationDetail ? (
+                            <>
+                              <div className={styles.memorySummaryGrid}>
+                                <div className={styles.memoryCard}>
+                                  <Text className={styles.combinedReviewLabel}>
+                                    Current target
+                                  </Text>
+                                  <Text size={500} weight="semibold">
+                                    /{selectedRecommendationDetail.target_sound}
+                                    /
+                                  </Text>
+                                  <Text size={200}>
+                                    {formatTimestamp(
+                                      selectedRecommendationDetail.created_at
+                                    )}
+                                  </Text>
                                 </div>
-                              ))}
-                            </div>
-                          ) : planMemorySnapshot.summary_text ? (
-                            <div className={styles.textItem}>
-                              {renderMarkdown(planMemorySnapshot.summary_text, styles)}
-                            </div>
+
+                                <div className={styles.memoryCard}>
+                                  <Text className={styles.combinedReviewLabel}>
+                                    Top score
+                                  </Text>
+                                  <Text size={500} weight="semibold">
+                                    {selectedRecommendationDetail.top_recommendation_score ??
+                                      '—'}
+                                  </Text>
+                                  <Text size={200}>
+                                    {
+                                      selectedRecommendationDetail.candidate_count
+                                    }{' '}
+                                    ranked options logged
+                                  </Text>
+                                </div>
+
+                                <div className={styles.memoryCard}>
+                                  <Text className={styles.combinedReviewLabel}>
+                                    Therapist note
+                                  </Text>
+                                  <Text size={300}>
+                                    {selectedRecommendationDetail
+                                      .therapist_constraints?.note ||
+                                      'No extra therapist constraint note was applied.'}
+                                  </Text>
+                                </div>
+                              </div>
+
+                              {selectedRecommendationDetail.top_recommendation ? (
+                                <div
+                                  className={mergeClasses(
+                                    styles.recommendationCandidate,
+                                    styles.recommendationCandidateTop
+                                  )}
+                                >
+                                  <div className={styles.summaryRow}>
+                                    <Badge
+                                      appearance="filled"
+                                      className={styles.scoreBadgeTeal}
+                                    >
+                                      Top recommendation
+                                    </Badge>
+                                    <Badge
+                                      appearance="tint"
+                                      className={styles.scoreBadge}
+                                    >
+                                      Deterministic score{' '}
+                                      {
+                                        selectedRecommendationDetail
+                                          .top_recommendation.score
+                                      }
+                                    </Badge>
+                                  </div>
+                                  <Text size={500} weight="semibold">
+                                    {
+                                      selectedRecommendationDetail
+                                        .top_recommendation.exercise_name
+                                    }
+                                  </Text>
+                                  <Text size={300}>
+                                    {selectedRecommendationDetail.rationale}
+                                  </Text>
+                                  <Text
+                                    className={styles.helperText}
+                                    size={200}
+                                  >
+                                    Best overall fit from the saved memory and
+                                    recent-session evidence for this child.
+                                  </Text>
+                                </div>
+                              ) : null}
+
+                              {institutionalInsights.length ? (
+                                <div className={styles.sectionBlock}>
+                                  <Text
+                                    className={styles.sectionTitle}
+                                    size={300}
+                                    weight="semibold"
+                                  >
+                                    Clinic-level institutional memory
+                                  </Text>
+                                  <Text
+                                    className={styles.helperText}
+                                    size={200}
+                                  >
+                                    These de-identified clinic patterns come
+                                    from approved child memory and reviewed
+                                    therapist outcomes across the clinic. They
+                                    tune recommendation ranking without becoming
+                                    child-specific approved facts.
+                                  </Text>
+                                  {institutionalMemorySnapshot?.summary_text ? (
+                                    <div className={styles.textItem}>
+                                      <Text size={200}>
+                                        {
+                                          institutionalMemorySnapshot.summary_text
+                                        }
+                                      </Text>
+                                    </div>
+                                  ) : null}
+                                  {renderInstitutionalInsights(
+                                    institutionalInsights,
+                                    styles
+                                  )}
+                                </div>
+                              ) : null}
+
+                              <div>
+                                <Text
+                                  className={styles.sectionTitle}
+                                  size={300}
+                                  weight="semibold"
+                                >
+                                  Ranked options
+                                </Text>
+                                <Text className={styles.helperText} size={200}>
+                                  Review the full ranking when you want to
+                                  compare alternatives instead of only accepting
+                                  the top pick.
+                                </Text>
+                              </div>
+
+                              {selectedRecommendationDetail.candidates.map(
+                                candidate => {
+                                  const metadata =
+                                    candidate.exercise_metadata || {}
+                                  const difficulty = String(
+                                    metadata.difficulty ||
+                                      metadata.difficulty_level ||
+                                      ''
+                                  ).trim()
+                                  const targetSound = String(
+                                    metadata.targetSound ||
+                                      metadata.target_sound ||
+                                      ''
+                                  ).trim()
+
+                                  return (
+                                    <div
+                                      className={mergeClasses(
+                                        styles.recommendationCandidate,
+                                        candidate.rank === 1 &&
+                                          styles.recommendationCandidateTop
+                                      )}
+                                      key={candidate.id}
+                                    >
+                                      <div
+                                        className={styles.sessionHistoryHeader}
+                                      >
+                                        <div
+                                          className={
+                                            styles.sessionHistoryTitleWrap
+                                          }
+                                        >
+                                          <div className={styles.summaryRow}>
+                                            <Badge
+                                              appearance="filled"
+                                              className={
+                                                candidate.rank === 1
+                                                  ? styles.scoreBadgeTeal
+                                                  : styles.scoreBadge
+                                              }
+                                            >
+                                              Rank {candidate.rank}
+                                            </Badge>
+                                            <Badge
+                                              appearance="tint"
+                                              className={styles.scoreBadge}
+                                            >
+                                              Score {candidate.score}
+                                            </Badge>
+                                            {difficulty ? (
+                                              <Badge
+                                                appearance="tint"
+                                                className={styles.scoreBadge}
+                                              >
+                                                {difficulty}
+                                              </Badge>
+                                            ) : null}
+                                            {targetSound ? (
+                                              <Badge
+                                                appearance="tint"
+                                                className={styles.scoreBadge}
+                                              >
+                                                /{targetSound}/
+                                              </Badge>
+                                            ) : null}
+                                          </div>
+                                          <Text
+                                            className={
+                                              styles.sessionHistoryTitle
+                                            }
+                                            weight="semibold"
+                                          >
+                                            {candidate.exercise_name}
+                                          </Text>
+                                          {candidate.exercise_description ? (
+                                            <Text size={200}>
+                                              {candidate.exercise_description}
+                                            </Text>
+                                          ) : null}
+                                        </div>
+                                      </div>
+
+                                      <div className={styles.sectionBlock}>
+                                        <Text
+                                          className={styles.sectionTitle}
+                                          size={300}
+                                          weight="semibold"
+                                        >
+                                          Why was this exercise recommended?
+                                        </Text>
+                                        <div className={styles.textItem}>
+                                          {renderMarkdown(
+                                            candidate.explanation
+                                              .why_recommended,
+                                            styles
+                                          )}
+                                        </div>
+                                        <div className={styles.textItem}>
+                                          {renderMarkdown(
+                                            candidate.explanation
+                                              .comparison_to_approved_memory,
+                                            styles
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      <div className={styles.sectionBlock}>
+                                        <Text
+                                          className={styles.sectionTitle}
+                                          size={300}
+                                          weight="semibold"
+                                        >
+                                          Ranking factors
+                                        </Text>
+                                        <div
+                                          className={
+                                            styles.recommendationFactorList
+                                          }
+                                        >
+                                          {Object.entries(
+                                            candidate.ranking_factors || {}
+                                          ).map(([factorKey, factor]) => (
+                                            <div
+                                              className={
+                                                styles.recommendationFactorItem
+                                              }
+                                              key={factorKey}
+                                            >
+                                              <div
+                                                className={styles.summaryRow}
+                                              >
+                                                <Badge
+                                                  appearance="tint"
+                                                  className={styles.scoreBadge}
+                                                >
+                                                  {factorKey.replace(/_/g, ' ')}
+                                                </Badge>
+                                                <Badge
+                                                  appearance="tint"
+                                                  className={styles.scoreBadge}
+                                                >
+                                                  {factor.score >= 0 ? '+' : ''}
+                                                  {factor.score}
+                                                </Badge>
+                                              </div>
+                                              <Text size={200}>
+                                                {factor.reason}
+                                              </Text>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+
+                                      <div className={styles.metricsGrid}>
+                                        <div className={styles.sectionBlock}>
+                                          <Text
+                                            className={styles.sectionTitle}
+                                            size={300}
+                                            weight="semibold"
+                                          >
+                                            Which approved memory items support
+                                            it?
+                                          </Text>
+                                          {candidate.explanation
+                                            .supporting_memory_items.length ? (
+                                            <div className={styles.memoryList}>
+                                              {candidate.explanation.supporting_memory_items.map(
+                                                item => {
+                                                  const hydratedItem =
+                                                    childMemoryItemMap.get(
+                                                      item.id
+                                                    ) || item
+
+                                                  return (
+                                                    <div
+                                                      className={
+                                                        styles.memoryCard
+                                                      }
+                                                      key={item.id}
+                                                    >
+                                                      <div
+                                                        className={
+                                                          styles.summaryRow
+                                                        }
+                                                      >
+                                                        <Badge
+                                                          appearance="tint"
+                                                          className={
+                                                            styles.scoreBadge
+                                                          }
+                                                        >
+                                                          {memoryCategoryLabels[
+                                                            item.category
+                                                          ] || item.category}
+                                                        </Badge>
+                                                        {item.confidence !=
+                                                        null ? (
+                                                          <Badge
+                                                            appearance="tint"
+                                                            className={
+                                                              styles.scoreBadge
+                                                            }
+                                                          >
+                                                            {Math.round(
+                                                              item.confidence *
+                                                                100
+                                                            )}
+                                                            % confidence
+                                                          </Badge>
+                                                        ) : null}
+                                                      </div>
+                                                      <Text
+                                                        size={300}
+                                                        weight="semibold"
+                                                      >
+                                                        {item.statement}
+                                                      </Text>
+                                                      {renderEvidenceLinks(
+                                                        hydratedItem.evidence_links,
+                                                        styles,
+                                                        onOpenSession
+                                                      )}
+                                                    </div>
+                                                  )
+                                                }
+                                              )}
+                                            </div>
+                                          ) : (
+                                            <div className={styles.emptyState}>
+                                              <Text>
+                                                No approved memory items were
+                                                attached to this candidate.
+                                              </Text>
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        <div className={styles.sectionBlock}>
+                                          <Text
+                                            className={styles.sectionTitle}
+                                            size={300}
+                                            weight="semibold"
+                                          >
+                                            Which sessions support it?
+                                          </Text>
+                                          {candidate.explanation
+                                            .supporting_sessions.length ? (
+                                            <div
+                                              className={
+                                                styles.recommendationSessionList
+                                              }
+                                            >
+                                              {candidate.explanation.supporting_sessions.map(
+                                                session => (
+                                                  <div
+                                                    className={
+                                                      styles.recommendationSessionItem
+                                                    }
+                                                    key={session.id}
+                                                  >
+                                                    <div
+                                                      className={
+                                                        styles.summaryRow
+                                                      }
+                                                    >
+                                                      <Badge
+                                                        appearance="tint"
+                                                        className={
+                                                          styles.scoreBadge
+                                                        }
+                                                      >
+                                                        {session.exercise
+                                                          ?.name ||
+                                                          'Saved session'}
+                                                      </Badge>
+                                                      {session.overall_score !=
+                                                      null ? (
+                                                        <Badge
+                                                          appearance="tint"
+                                                          className={
+                                                            styles.scoreBadge
+                                                          }
+                                                        >
+                                                          Overall{' '}
+                                                          {
+                                                            session.overall_score
+                                                          }
+                                                        </Badge>
+                                                      ) : null}
+                                                    </div>
+                                                    <Text size={200}>
+                                                      {formatTimestamp(
+                                                        session.timestamp
+                                                      )}
+                                                    </Text>
+                                                    <Button
+                                                      appearance="subtle"
+                                                      className={
+                                                        styles.evidenceButton
+                                                      }
+                                                      onClick={() =>
+                                                        onOpenSession(
+                                                          session.id
+                                                        )
+                                                      }
+                                                    >
+                                                      Open source session
+                                                    </Button>
+                                                  </div>
+                                                )
+                                              )}
+                                            </div>
+                                          ) : (
+                                            <div className={styles.emptyState}>
+                                              <Text>
+                                                No saved sessions were attached
+                                                to this candidate.
+                                              </Text>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      <div className={styles.sectionBlock}>
+                                        <Text
+                                          className={styles.sectionTitle}
+                                          size={300}
+                                          weight="semibold"
+                                        >
+                                          What evidence might change this
+                                          recommendation?
+                                        </Text>
+                                        <div className={styles.textItem}>
+                                          {renderMarkdown(
+                                            candidate.explanation
+                                              .evidence_that_could_change_recommendation,
+                                            styles
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )
+                                }
+                              )}
+                            </>
                           ) : (
                             <div className={styles.emptyState}>
-                              <Text>This plan predates detailed memory snapshots.</Text>
+                              <Text>
+                                Select a recommendation run to inspect its
+                                rationale and provenance.
+                              </Text>
                             </div>
                           )}
                         </div>
-                      ) : null}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : null}
 
-                      {selectedPlan.conversation.length ? (
+              {activeTab === 'reports' ? (
+                <div
+                  className={mergeClasses(styles.tabPanel, styles.tabPanelCard)}
+                >
+                  <div className={styles.tabOverviewGrid}>
+                    {reportOverviewCards.map(card => (
+                      <div className={styles.overviewCard} key={card.label}>
+                        <Text className={styles.combinedReviewLabel}>
+                          {card.label}
+                        </Text>
+                        <Text className={styles.overviewValue}>
+                          {card.value}
+                        </Text>
+                        <Text size={200}>{card.copy}</Text>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className={styles.recommendationSection}>
+                    <div>
+                      <Text
+                        className={styles.sectionTitle}
+                        size={400}
+                        weight="semibold"
+                      >
+                        Audience-specific progress reports
+                      </Text>
+                      <Text className={styles.helperText} size={300}>
+                        Generate a reusable report draft from reviewed sessions,
+                        approved child memory, planning context, and saved
+                        recommendation history. Drafts can be edited, approved,
+                        signed, and archived.
+                      </Text>
+                    </div>
+
+                    <div className={styles.recommendationComposer}>
+                      <Field label="Audience">
+                        <Dropdown
+                          value={reportAudience}
+                          selectedOptions={[reportAudience]}
+                          onOptionSelect={(_, data) => {
+                            if (
+                              data.optionValue === 'therapist' ||
+                              data.optionValue === 'parent' ||
+                              data.optionValue === 'school'
+                            ) {
+                              handleReportAudienceChange(data.optionValue)
+                            }
+                          }}
+                        >
+                          <Option value="therapist">Therapist</Option>
+                          <Option value="parent">Parent</Option>
+                          <Option value="school">School</Option>
+                        </Dropdown>
+                      </Field>
+                      <div className={styles.reportScopeGrid}>
+                        <Field label="Review window start">
+                          <input
+                            className={styles.reportDateInput}
+                            type="date"
+                            value={reportPeriodStartDate}
+                            onChange={event =>
+                              updateReportWindow(
+                                event.target.value,
+                                reportPeriodEndDate
+                              )
+                            }
+                          />
+                        </Field>
+                        <Field label="Review window end">
+                          <input
+                            className={styles.reportDateInput}
+                            type="date"
+                            value={reportPeriodEndDate}
+                            onChange={event =>
+                              updateReportWindow(
+                                reportPeriodStartDate,
+                                event.target.value
+                              )
+                            }
+                          />
+                        </Field>
+                      </div>
+                      <Field label="Report title">
+                        <Textarea
+                          value={reportTitle}
+                          resize="vertical"
+                          placeholder="Example: Ayo parent progress update"
+                          onChange={(_, data) => setReportTitle(data.value)}
+                        />
+                      </Field>
+                      <Field label="Executive summary note">
+                        <Textarea
+                          value={reportSummary}
+                          resize="vertical"
+                          placeholder="Optional note to keep at the top of the draft."
+                          onChange={(_, data) =>
+                            handleReportSummaryChange(data.value)
+                          }
+                        />
+                      </Field>
+                      {selectedReport?.status === 'draft' ? (
+                        <div className={styles.sectionBlock}>
+                          <div className={styles.summaryRow}>
+                            <Text
+                              className={styles.sectionTitle}
+                              size={300}
+                              weight="semibold"
+                            >
+                              Draft-only summary rewrite
+                            </Text>
+                            <Badge
+                              appearance="tint"
+                              className={styles.scoreBadge}
+                            >
+                              Human review required
+                            </Badge>
+                          </div>
+                          <Text className={styles.helperText} size={200}>
+                            Generate a rewrite suggestion from the current saved
+                            draft, review it, then choose whether to apply it to
+                            the editor. Nothing is saved automatically.
+                          </Text>
+                          <div className={styles.memoryActionRow}>
+                            <Button
+                              appearance="secondary"
+                              disabled={
+                                reportSaving || !reportComposerCanSubmit
+                              }
+                              onClick={handleSuggestReportSummaryRewrite}
+                            >
+                              Suggest rewrite
+                            </Button>
+                            {reportSummarySuggestion ? (
+                              <>
+                                <Badge
+                                  appearance="filled"
+                                  className={styles.scoreBadgeTeal}
+                                >
+                                  Draft only
+                                </Badge>
+                                <Button
+                                  appearance="secondary"
+                                  disabled={reportSaving}
+                                  onClick={handleApplySuggestedReportSummary}
+                                >
+                                  Apply suggestion to editor
+                                </Button>
+                              </>
+                            ) : null}
+                          </div>
+                          {reportSummarySuggestion ? (
+                            <div className={styles.memorySummaryGrid}>
+                              <div className={styles.memoryCard}>
+                                <Text className={styles.combinedReviewLabel}>
+                                  Current saved summary
+                                </Text>
+                                <Text size={200}>
+                                  {reportSummarySuggestion.source_summary_text ||
+                                    'No saved summary note yet.'}
+                                </Text>
+                              </div>
+                              <div className={styles.memoryCard}>
+                                <Text className={styles.combinedReviewLabel}>
+                                  Suggested rewrite
+                                </Text>
+                                <Text size={200}>
+                                  {
+                                    reportSummarySuggestion.suggested_summary_text
+                                  }
+                                </Text>
+                              </div>
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
+                      {isSharedReportAudience(reportAudience) ? (
+                        <div className={styles.reportSessionSelection}>
+                          <div>
+                            <Text
+                              className={styles.sectionTitle}
+                              size={300}
+                              weight="semibold"
+                            >
+                              Shared export controls
+                            </Text>
+                            <Text className={styles.helperText} size={200}>
+                              Parent and school exports can hide selected fields
+                              before HTML preview or true PDF generation.
+                            </Text>
+                          </div>
+                          <div className={styles.memoryActionRow}>
+                            <Badge
+                              appearance="tint"
+                              className={styles.scoreBadge}
+                            >
+                              {hiddenSharedFieldCount} fields hidden
+                            </Badge>
+                            <Badge
+                              appearance="tint"
+                              className={styles.scoreBadge}
+                            >
+                              {hiddenSharedSectionCount} sections hidden
+                            </Badge>
+                          </div>
+                          <div className={styles.reportSessionSelectionList}>
+                            {SHARED_REPORT_REDACTION_OPTIONS.map(option => {
+                              const isSelected =
+                                reportRedactionOverrides[option.key]
+
+                              return (
+                                <label
+                                  className={mergeClasses(
+                                    styles.reportSessionOption,
+                                    isSelected &&
+                                      styles.reportSessionOptionSelected
+                                  )}
+                                  key={option.key}
+                                >
+                                  <input
+                                    className={styles.reportSessionCheckbox}
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() =>
+                                      toggleReportRedactionOverride(option.key)
+                                    }
+                                  />
+                                  <div className={styles.reportSessionCopy}>
+                                    <Text size={300} weight="semibold">
+                                      {option.label}
+                                    </Text>
+                                    <Text size={200}>{option.helper}</Text>
+                                  </div>
+                                </label>
+                              )
+                            })}
+                          </div>
+                          <div>
+                            <Text
+                              className={styles.sectionTitle}
+                              size={300}
+                              weight="semibold"
+                            >
+                              Hide individual sections
+                            </Text>
+                            <Text className={styles.helperText} size={200}>
+                              Exclude any generated section that should not
+                              appear in the shared version of this report.
+                            </Text>
+                          </div>
+                          <div className={styles.reportSessionSelectionList}>
+                            {sharedReportSectionOptions.map(section => {
+                              const isSelected =
+                                reportRedactionOverrides.hidden_section_keys.includes(
+                                  section.key
+                                )
+
+                              return (
+                                <label
+                                  className={mergeClasses(
+                                    styles.reportSessionOption,
+                                    isSelected &&
+                                      styles.reportSessionOptionSelected
+                                  )}
+                                  key={section.key}
+                                >
+                                  <input
+                                    className={styles.reportSessionCheckbox}
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() =>
+                                      toggleReportSectionVisibility(section.key)
+                                    }
+                                  />
+                                  <div className={styles.reportSessionCopy}>
+                                    <Text size={300} weight="semibold">
+                                      Hide {section.title}
+                                    </Text>
+                                    <Text size={200}>
+                                      Removes this section from the shared
+                                      export preview and PDF.
+                                    </Text>
+                                  </div>
+                                </label>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      ) : null}
+                      <div className={styles.reportSessionSelection}>
                         <div>
-                          <Text className={styles.sectionTitle} size={300} weight="semibold">
-                            Recent conversation
+                          <Text
+                            className={styles.sectionTitle}
+                            size={300}
+                            weight="semibold"
+                          >
+                            Included sessions
+                          </Text>
+                          <Text className={styles.helperText} size={200}>
+                            Filter the review window with dates, then confirm
+                            exactly which saved sessions should appear in this
+                            report.
+                          </Text>
+                        </div>
+                        <div className={styles.memoryActionRow}>
+                          <Badge
+                            appearance="tint"
+                            className={styles.scoreBadge}
+                          >
+                            {reportSelectedSessionIds.length} selected
+                          </Badge>
+                          <Badge
+                            appearance="tint"
+                            className={styles.scoreBadge}
+                          >
+                            {reportSessionsInRange.length} in range
+                          </Badge>
+                          <Button
+                            appearance="secondary"
+                            onClick={handleSelectAllReportSessions}
+                            disabled={!reportSessionsInRange.length}
+                          >
+                            Select all in range
+                          </Button>
+                          <Button
+                            appearance="secondary"
+                            onClick={handleClearReportSessions}
+                            disabled={!reportSelectedSessionIds.length}
+                          >
+                            Clear selection
+                          </Button>
+                        </div>
+                        {reportSessionsInRange.length ? (
+                          <div className={styles.reportSessionSelectionList}>
+                            {reportSessionsInRange.map(session => {
+                              const isSelected =
+                                reportSelectedSessionIds.includes(session.id)
+                              const targetSound =
+                                session.exercise_metadata?.targetSound ||
+                                session.exercise.exerciseMetadata?.targetSound
+
+                              return (
+                                <label
+                                  className={mergeClasses(
+                                    styles.reportSessionOption,
+                                    isSelected &&
+                                      styles.reportSessionOptionSelected
+                                  )}
+                                  key={session.id}
+                                >
+                                  <input
+                                    className={styles.reportSessionCheckbox}
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() =>
+                                      toggleReportSession(session.id)
+                                    }
+                                  />
+                                  <div className={styles.reportSessionCopy}>
+                                    <Text size={300} weight="semibold">
+                                      {session.exercise.name}
+                                    </Text>
+                                    <Text size={200}>
+                                      {formatTimestamp(session.timestamp)}
+                                    </Text>
+                                    <Text size={200}>
+                                      Overall {session.overall_score ?? '—'} •
+                                      Accuracy {session.accuracy_score ?? '—'}
+                                      {targetSound ? ` • /${targetSound}/` : ''}
+                                    </Text>
+                                  </div>
+                                </label>
+                              )
+                            })}
+                          </div>
+                        ) : (
+                          <div className={styles.emptyState}>
+                            <Text>
+                              No saved sessions fall inside the current report
+                              window.
+                            </Text>
+                          </div>
+                        )}
+                      </div>
+                      <div className={styles.memoryActionRow}>
+                        <Button
+                          appearance="primary"
+                          disabled={reportSaving || !reportComposerCanSubmit}
+                          onClick={handleCreateReport}
+                        >
+                          {reportSaving ? 'Saving…' : 'Generate report'}
+                        </Button>
+                        {selectedReport?.status === 'draft' ? (
+                          <Button
+                            appearance="secondary"
+                            disabled={reportSaving || !reportComposerCanSubmit}
+                            onClick={handleSaveReport}
+                          >
+                            Save draft changes
+                          </Button>
+                        ) : null}
+                        {selectedReport ? (
+                          <Badge
+                            appearance="tint"
+                            className={styles.scoreBadge}
+                          >
+                            {selectedReport.status}
+                          </Badge>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    {reportError ? (
+                      <Text className={styles.errorText} size={300}>
+                        {reportError}
+                      </Text>
+                    ) : null}
+
+                    {loadingReports &&
+                    !selectedReport &&
+                    progressReports.length === 0 ? (
+                      <div className={styles.loading}>
+                        <Spinner size="medium" />
+                      </div>
+                    ) : progressReports.length === 0 && !selectedReport ? (
+                      <div className={styles.emptyState}>
+                        <Text>
+                          No progress reports have been saved for this child
+                          yet. Generate a draft to begin the reporting workflow.
+                        </Text>
+                      </div>
+                    ) : (
+                      <div className={styles.recommendationLayout}>
+                        <div className={styles.recommendationHistoryList}>
+                          <Text
+                            className={styles.sectionTitle}
+                            size={300}
+                            weight="semibold"
+                          >
+                            Report history
+                          </Text>
+                          <Text className={styles.helperText} size={200}>
+                            Most recent first. Open any saved draft or signed
+                            report to inspect its generated sections.
+                          </Text>
+                          {/* Phase 1 AI-draft: source filter chips. Always rendered so */}
+                          {/* the "AI draft" filter is discoverable even when no AI row exists. */}
+                          <div className={styles.summaryRow}>
+                            {(
+                              [
+                                { key: 'all', label: 'All' },
+                                { key: 'pipeline', label: 'Pipeline' },
+                                { key: 'ai_insight', label: 'AI draft' },
+                                { key: 'manual', label: 'Manual' },
+                              ] as const
+                            ).map(chip => {
+                              const pressed = reportSourceFilter === chip.key
+                              return (
+                                <Button
+                                  key={chip.key}
+                                  appearance={pressed ? 'primary' : 'subtle'}
+                                  aria-pressed={pressed}
+                                  onClick={() =>
+                                    setReportSourceFilter(chip.key)
+                                  }
+                                  size="small"
+                                >
+                                  {chip.label}
+                                </Button>
+                              )
+                            })}
+                          </div>
+                          {(() => {
+                            const filteredReports = progressReports.filter(
+                              report => {
+                                if (reportSourceFilter === 'all') return true
+                                const source = report.source ?? 'pipeline'
+                                return source === reportSourceFilter
+                              }
+                            )
+                            if (filteredReports.length === 0) {
+                              return (
+                                <div className={styles.emptyState}>
+                                  <Text>No reports match this filter yet.</Text>
+                                </div>
+                              )
+                            }
+                            return filteredReports.map(report => {
+                              const isSelected =
+                                report.id === selectedReport?.id
+                              const isAiDraft =
+                                (report.source ?? 'pipeline') === 'ai_insight'
+
+                              return (
+                                <Button
+                                  appearance="subtle"
+                                  className={mergeClasses(
+                                    styles.recommendationHistoryButton,
+                                    isSelected &&
+                                      styles.recommendationHistoryButtonSelected
+                                  )}
+                                  key={report.id}
+                                  onClick={() => {
+                                    void onOpenReportDetail(report.id)
+                                  }}
+                                >
+                                  <div
+                                    className={
+                                      styles.recommendationHistoryContent
+                                    }
+                                  >
+                                    <div className={styles.summaryRow}>
+                                      <Badge
+                                        appearance="filled"
+                                        className={styles.scoreBadgeTeal}
+                                      >
+                                        {report.audience}
+                                      </Badge>
+                                      <Badge
+                                        appearance="tint"
+                                        className={styles.scoreBadge}
+                                      >
+                                        {report.status}
+                                      </Badge>
+                                      {isAiDraft ? (
+                                        <Badge
+                                          appearance="tint"
+                                          className={styles.scoreBadge}
+                                        >
+                                          AI draft
+                                        </Badge>
+                                      ) : null}
+                                    </div>
+                                    <Text size={300} weight="semibold">
+                                      {report.title}
+                                    </Text>
+                                    <Text size={200}>
+                                      {formatTimestamp(report.updated_at)}
+                                    </Text>
+                                    <Text size={200}>
+                                      {report.summary_text ||
+                                        'No summary note added yet.'}
+                                    </Text>
+                                  </div>
+                                </Button>
+                              )
+                            })
+                          })()}
+                        </div>
+
+                        <div className={styles.recommendationDetail}>
+                          {selectedReport ? (
+                            <>
+                              <div className={styles.memorySummaryGrid}>
+                                <div className={styles.memoryCard}>
+                                  <Text className={styles.combinedReviewLabel}>
+                                    Audience
+                                  </Text>
+                                  <Text size={500} weight="semibold">
+                                    {selectedReport.audience}
+                                  </Text>
+                                  <Text size={200}>
+                                    {formatTimestamp(selectedReport.updated_at)}
+                                  </Text>
+                                </div>
+
+                                <div className={styles.memoryCard}>
+                                  <Text className={styles.combinedReviewLabel}>
+                                    Review window
+                                  </Text>
+                                  <Text size={500} weight="semibold">
+                                    {selectedReport.snapshot.session_count ?? 0}{' '}
+                                    sessions
+                                  </Text>
+                                  <Text size={200}>
+                                    {formatShortDate(
+                                      selectedReport.period_start
+                                    )}{' '}
+                                    to{' '}
+                                    {formatShortDate(selectedReport.period_end)}
+                                  </Text>
+                                </div>
+
+                                <div className={styles.memoryCard}>
+                                  <Text className={styles.combinedReviewLabel}>
+                                    Focus
+                                  </Text>
+                                  <Text size={300}>
+                                    {selectedReport.snapshot.focus_targets
+                                      ?.length
+                                      ? selectedReport.snapshot.focus_targets.join(
+                                          ', '
+                                        )
+                                      : 'No target sound tagged in this report window.'}
+                                  </Text>
+                                </div>
+                              </div>
+
+                              <div
+                                className={mergeClasses(
+                                  styles.recommendationCandidate,
+                                  styles.recommendationCandidateTop
+                                )}
+                              >
+                                <div className={styles.summaryRow}>
+                                  <Badge
+                                    appearance="filled"
+                                    className={styles.scoreBadgeTeal}
+                                  >
+                                    Report summary
+                                  </Badge>
+                                  <Badge
+                                    appearance="tint"
+                                    className={styles.scoreBadge}
+                                  >
+                                    {selectedReport.status}
+                                  </Badge>
+                                  {(selectedReport.source ?? 'pipeline') ===
+                                  'ai_insight' ? (
+                                    <Badge
+                                      appearance="tint"
+                                      className={styles.scoreBadge}
+                                    >
+                                      AI draft
+                                    </Badge>
+                                  ) : null}
+                                </div>
+                                <Text size={500} weight="semibold">
+                                  {selectedReport.title}
+                                </Text>
+                                <Text size={300}>
+                                  {selectedReport.summary_text ||
+                                    'No summary note has been saved for this report yet.'}
+                                </Text>
+                                {(selectedReport.source ?? 'pipeline') ===
+                                'ai_insight' ? (
+                                  <Checkbox
+                                    checked={
+                                      reportReviewAcknowledgedId ===
+                                      selectedReport.id
+                                    }
+                                    label="Reviewed — OK to export"
+                                    onChange={(_, data) => {
+                                      setReportReviewAcknowledgedId(
+                                        data.checked ? selectedReport.id : null
+                                      )
+                                    }}
+                                  />
+                                ) : null}
+                              </div>
+
+                              {selectedReport.sections.map(section => (
+                                <div
+                                  className={styles.sectionBlock}
+                                  key={section.key}
+                                >
+                                  <Text
+                                    className={styles.sectionTitle}
+                                    size={300}
+                                    weight="semibold"
+                                  >
+                                    {section.title}
+                                  </Text>
+                                  {section.narrative ? (
+                                    <div className={styles.textItem}>
+                                      <Text size={200}>
+                                        {section.narrative}
+                                      </Text>
+                                    </div>
+                                  ) : null}
+                                  {section.metrics?.length ? (
+                                    <div className={styles.memorySummaryGrid}>
+                                      {section.metrics.map(metric => (
+                                        <div
+                                          className={styles.memoryCard}
+                                          key={`${section.key}-${metric.label}`}
+                                        >
+                                          <Text
+                                            className={
+                                              styles.combinedReviewLabel
+                                            }
+                                          >
+                                            {metric.label}
+                                          </Text>
+                                          <Text size={400} weight="semibold">
+                                            {metric.value}
+                                          </Text>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : null}
+                                  {section.bullets?.length ? (
+                                    <div className={styles.textList}>
+                                      {section.bullets.map(bullet => (
+                                        <div
+                                          className={styles.textItem}
+                                          key={`${section.key}-${bullet}`}
+                                        >
+                                          <Text size={200}>{bullet}</Text>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : null}
+                                </div>
+                              ))}
+
+                              <div className={styles.planActions}>
+                                {(() => {
+                                  // Phase 1 AI-draft gate: exports + approve require the therapist
+                                  // to check the per-report "Reviewed — OK to export" acknowledgement.
+                                  const isAiDraftReport =
+                                    (selectedReport.source ?? 'pipeline') ===
+                                    'ai_insight'
+                                  const exportGated =
+                                    isAiDraftReport &&
+                                    reportReviewAcknowledgedId !==
+                                      selectedReport.id
+                                  return (
+                                    <>
+                                      <Button
+                                        appearance="secondary"
+                                        disabled={reportSaving || exportGated}
+                                        onClick={() =>
+                                          handleOpenSelectedReportExport(
+                                            'html',
+                                            'preview'
+                                          )
+                                        }
+                                      >
+                                        Open print view
+                                      </Button>
+                                      <Button
+                                        appearance="secondary"
+                                        disabled={reportSaving || exportGated}
+                                        onClick={() =>
+                                          handleOpenSelectedReportExport(
+                                            'html',
+                                            'download'
+                                          )
+                                        }
+                                      >
+                                        Download HTML
+                                      </Button>
+                                      <Button
+                                        appearance="secondary"
+                                        disabled={reportSaving || exportGated}
+                                        onClick={() =>
+                                          handleOpenSelectedReportExport(
+                                            'pdf',
+                                            'preview'
+                                          )
+                                        }
+                                      >
+                                        Preview PDF
+                                      </Button>
+                                      <Button
+                                        appearance="secondary"
+                                        disabled={reportSaving || exportGated}
+                                        onClick={() =>
+                                          handleOpenSelectedReportExport(
+                                            'pdf',
+                                            'download'
+                                          )
+                                        }
+                                      >
+                                        Download PDF
+                                      </Button>
+                                      {selectedReport.status === 'draft' ? (
+                                        <>
+                                          <Button
+                                            appearance="secondary"
+                                            disabled={
+                                              reportSaving || exportGated
+                                            }
+                                            onClick={() => {
+                                              void onApproveReport()
+                                            }}
+                                          >
+                                            Approve report
+                                          </Button>
+                                        </>
+                                      ) : null}
+                                      {selectedReport.status === 'approved' ? (
+                                        <Button
+                                          appearance="secondary"
+                                          disabled={reportSaving}
+                                          onClick={() => {
+                                            void onSignReport()
+                                          }}
+                                        >
+                                          Sign report
+                                        </Button>
+                                      ) : null}
+                                      {selectedReport.status === 'approved' ||
+                                      selectedReport.status === 'signed' ? (
+                                        <Button
+                                          appearance="secondary"
+                                          disabled={reportSaving}
+                                          onClick={() => {
+                                            void onArchiveReport()
+                                          }}
+                                        >
+                                          Archive report
+                                        </Button>
+                                      ) : null}
+                                    </>
+                                  )
+                                })()}
+                              </div>
+                            </>
+                          ) : (
+                            <div className={styles.emptyState}>
+                              <Text>
+                                Select a saved report to inspect its generated
+                                sections and workflow state.
+                              </Text>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+
+              {activeTab === 'plan' ? (
+                <div
+                  className={mergeClasses(styles.tabPanel, styles.tabPanelCard)}
+                >
+                  <div className={styles.tabOverviewGrid}>
+                    {planOverviewCards.map(card => (
+                      <div className={styles.overviewCard} key={card.label}>
+                        <Text className={styles.combinedReviewLabel}>
+                          {card.label}
+                        </Text>
+                        <Text className={styles.overviewValue}>
+                          {card.value}
+                        </Text>
+                        <Text size={200}>{card.copy}</Text>
+                      </div>
+                    ))}
+                  </div>
+                  <div className={styles.planSection}>
+                    <div>
+                      <Text
+                        className={styles.sectionTitle}
+                        size={400}
+                        weight="semibold"
+                      >
+                        Next-session plan
+                      </Text>
+                    </div>
+
+                    {loadingPlans ? (
+                      <div className={styles.loading}>
+                        <Spinner size="medium" />
+                      </div>
+                    ) : selectedPlan ? (
+                      <div className={styles.planList}>
+                        <div className={styles.planSummaryGrid}>
+                          <div className={styles.planList}>
+                            <div className={styles.summaryRow}>
+                              <Badge
+                                appearance="filled"
+                                className={mergeClasses(
+                                  styles.scoreBadge,
+                                  selectedPlan.status === 'approved'
+                                    ? styles.scoreBadgeTeal
+                                    : styles.scoreBadgeInk
+                                )}
+                              >
+                                {selectedPlan.status === 'approved'
+                                  ? 'Approved plan'
+                                  : 'Draft plan'}
+                              </Badge>
+                              <Badge
+                                appearance="tint"
+                                className={styles.scoreBadge}
+                              >
+                                {selectedPlan.draft.estimated_duration_minutes}{' '}
+                                min
+                              </Badge>
+                            </div>
+
+                            <div className={styles.textItem}>
+                              <div className={styles.textStack}>
+                                <Text size={300} weight="semibold">
+                                  {selectedPlan.draft.objective
+                                    .replace(/[*_#`]/g, '')
+                                    .trim()}
+                                </Text>
+                                {selectedPlan.draft.focus_sound ? (
+                                  <Text size={200}>
+                                    Target sound:{' '}
+                                    {selectedPlan.draft.focus_sound}
+                                  </Text>
+                                ) : null}
+                              </div>
+                            </div>
+                          </div>
+
+                          {planConfidence ? (
+                            <PlanConfidenceGauge
+                              confidence={planConfidence}
+                              styles={styles}
+                            />
+                          ) : null}
+                        </div>
+
+                        <div>
+                          <Text
+                            className={styles.sectionTitle}
+                            size={300}
+                            weight="semibold"
+                          >
+                            Activities
                           </Text>
                           <div className={styles.planList}>
-                            {selectedPlan.conversation.slice(-2).map((message, index) => (
-                              <div className={styles.conversationItem} key={`${message.role}-${index}-${message.content}`}>
-                                <Text size={200} weight="semibold">
-                                  {message.role === 'user' ? 'Therapist' : 'Planner'}
+                            {selectedPlan.draft.activities.map(activity => (
+                              <div
+                                className={styles.planItem}
+                                key={`${activity.exercise_id}-${activity.title}`}
+                              >
+                                <Text size={300} weight="semibold">
+                                  {activity.title}
                                 </Text>
-                                {renderMarkdown(message.content, styles)}
+                                <Text size={200}>
+                                  {activity.exercise_name} •{' '}
+                                  {activity.target_duration_minutes} min
+                                </Text>
+                                {renderMarkdown(activity.reason, styles)}
                               </div>
                             ))}
                           </div>
                         </div>
-                      ) : null}
-                    </div>
-                  ) : (
-                    <div className={styles.emptyState}>
-                      <Text>No practice plan has been generated for this saved session yet.</Text>
-                    </div>
-                  )}
 
-                  <label>
-                    <Text className={styles.sectionTitle} size={300} weight="semibold">
-                      {selectedPlan ? 'Refine plan' : 'Planning note'}
-                    </Text>
-                    <textarea
-                      className={styles.planComposer}
-                      value={planPrompt}
-                      onChange={event => setPlanPrompt(event.target.value)}
-                      placeholder={
-                        selectedPlan
-                          ? 'Example: Start with listening and shorten the sequence.'
-                          : 'Example: Keep it playful for home carryover.'
-                      }
-                    />
-                  </label>
+                        <div className={styles.metricsGrid}>
+                          <div>
+                            <Text
+                              className={styles.sectionTitle}
+                              size={300}
+                              weight="semibold"
+                            >
+                              Cues
+                            </Text>
+                            <div className={styles.textList}>
+                              {selectedPlan.draft.therapist_cues.map(cue => (
+                                <div className={styles.textItem} key={cue}>
+                                  {renderMarkdown(cue, styles)}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
 
-                  {planError ? (
-                    <Text className={styles.errorText} size={300}>
-                      {planError}
-                    </Text>
-                  ) : null}
+                          <div>
+                            <Text
+                              className={styles.sectionTitle}
+                              size={300}
+                              weight="semibold"
+                            >
+                              Success markers
+                            </Text>
+                            <div className={styles.textList}>
+                              {selectedPlan.draft.success_criteria.map(
+                                criterion => (
+                                  <div
+                                    className={styles.textItem}
+                                    key={criterion}
+                                  >
+                                    {renderMarkdown(criterion, styles)}
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        </div>
 
-                  <div className={styles.planActions}>
-                    {!selectedPlan ? (
-                      <Button
-                        appearance="primary"
-                        onClick={() => {
-                          void onCreatePlan(planPrompt)
-                        }}
-                        disabled={planSaving || !selectedSession || !plannerReady}
-                      >
-                        {planSaving ? 'Generating…' : plannerReady ? 'Generate plan' : 'Planner unavailable'}
-                      </Button>
+                        <div>
+                          <Text
+                            className={styles.sectionTitle}
+                            size={300}
+                            weight="semibold"
+                          >
+                            Carryover
+                          </Text>
+                          <div className={styles.textList}>
+                            {selectedPlan.draft.carryover.map(item => (
+                              <div className={styles.textItem} key={item}>
+                                {renderMarkdown(item, styles)}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {planMemorySnapshot ? (
+                          <div className={styles.provenanceSection}>
+                            <div className={styles.provenanceHeader}>
+                              <Text
+                                className={styles.sectionTitle}
+                                size={300}
+                                weight="semibold"
+                              >
+                                Memory that informed this plan
+                              </Text>
+                              <Text className={styles.helperText} size={300}>
+                                This saved snapshot shows the approved child
+                                memory that was available when the planner
+                                produced this draft.
+                              </Text>
+                            </div>
+
+                            <div className={styles.provenanceMeta}>
+                              <Badge
+                                appearance="filled"
+                                className={styles.scoreBadgeTeal}
+                              >
+                                {planMemoryItems.length ||
+                                  planMemorySnapshot.used_item_ids.length}{' '}
+                                memory inputs
+                              </Badge>
+                              {planMemorySnapshot.summary_last_compiled_at ? (
+                                <Badge
+                                  appearance="tint"
+                                  className={styles.scoreBadge}
+                                >
+                                  Snapshot{' '}
+                                  {formatTimestamp(
+                                    planMemorySnapshot.summary_last_compiled_at
+                                  )}
+                                </Badge>
+                              ) : null}
+                            </div>
+
+                            {planMemoryItems.length ? (
+                              <div className={styles.textList}>
+                                {planMemoryItems.map(item => (
+                                  <div
+                                    className={styles.textItem}
+                                    key={item.id}
+                                  >
+                                    <div className={styles.summaryRow}>
+                                      <Badge
+                                        appearance="tint"
+                                        className={styles.scoreBadge}
+                                      >
+                                        {memoryCategoryLabels[item.category] ||
+                                          item.category}
+                                      </Badge>
+                                      <Badge
+                                        appearance="tint"
+                                        className={styles.scoreBadge}
+                                      >
+                                        {item.memory_type}
+                                      </Badge>
+                                      {item.confidence != null ? (
+                                        <Text size={200}>
+                                          Confidence{' '}
+                                          {Math.round(item.confidence * 100)}%
+                                        </Text>
+                                      ) : null}
+                                    </div>
+                                    <div className={styles.textStack}>
+                                      <Text size={300} weight="semibold">
+                                        {item.statement}
+                                      </Text>
+                                      {item.updated_at ? (
+                                        <Text size={200}>
+                                          Reviewed{' '}
+                                          {formatTimestamp(item.updated_at)}
+                                        </Text>
+                                      ) : null}
+                                    </div>
+                                    {renderEvidenceLinks(
+                                      childMemoryItemMap.get(item.id)
+                                        ?.evidence_links,
+                                      styles,
+                                      onOpenSession
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : planMemorySnapshot.summary_text ? (
+                              <div className={styles.textItem}>
+                                {renderMarkdown(
+                                  planMemorySnapshot.summary_text,
+                                  styles
+                                )}
+                              </div>
+                            ) : (
+                              <div className={styles.emptyState}>
+                                <Text>
+                                  This plan predates detailed memory snapshots.
+                                </Text>
+                              </div>
+                            )}
+                          </div>
+                        ) : null}
+
+                        {selectedPlan.conversation.length ? (
+                          <div>
+                            <Text
+                              className={styles.sectionTitle}
+                              size={300}
+                              weight="semibold"
+                            >
+                              Recent conversation
+                            </Text>
+                            <div className={styles.planList}>
+                              {selectedPlan.conversation
+                                .slice(-2)
+                                .map((message, index) => (
+                                  <div
+                                    className={styles.conversationItem}
+                                    key={`${message.role}-${index}-${message.content}`}
+                                  >
+                                    <Text size={200} weight="semibold">
+                                      {message.role === 'user'
+                                        ? 'Therapist'
+                                        : 'Planner'}
+                                    </Text>
+                                    {renderMarkdown(message.content, styles)}
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
                     ) : (
-                      <>
+                      <div className={styles.emptyState}>
+                        <Text>
+                          No practice plan has been generated for this saved
+                          session yet.
+                        </Text>
+                      </div>
+                    )}
+
+                    <label>
+                      <Text
+                        className={styles.sectionTitle}
+                        size={300}
+                        weight="semibold"
+                      >
+                        {selectedPlan ? 'Refine plan' : 'Planning note'}
+                      </Text>
+                      <textarea
+                        className={styles.planComposer}
+                        value={planPrompt}
+                        onChange={event => setPlanPrompt(event.target.value)}
+                        placeholder={
+                          selectedPlan
+                            ? 'Example: Start with listening and shorten the sequence.'
+                            : 'Example: Keep it playful for home carryover.'
+                        }
+                      />
+                    </label>
+
+                    {planError ? (
+                      <Text className={styles.errorText} size={300}>
+                        {planError}
+                      </Text>
+                    ) : null}
+
+                    <div className={styles.planActions}>
+                      {!selectedPlan ? (
                         <Button
                           appearance="primary"
                           onClick={() => {
-                            void onRefinePlan(planPrompt)
+                            void onCreatePlan(planPrompt)
                           }}
-                          disabled={planSaving || !planPrompt.trim() || !plannerReady}
+                          disabled={
+                            planSaving || !selectedSession || !plannerReady
+                          }
                         >
-                          {planSaving ? 'Updating…' : plannerReady ? 'Refine plan' : 'Planner unavailable'}
+                          {planSaving
+                            ? 'Generating…'
+                            : plannerReady
+                              ? 'Generate plan'
+                              : 'Planner unavailable'}
                         </Button>
-                        <Button
-                          appearance="secondary"
-                          onClick={() => {
-                            void onApprovePlan()
-                          }}
-                          disabled={planSaving || selectedPlan.status === 'approved'}
-                        >
-                          {selectedPlan.status === 'approved' ? 'Approved' : 'Approve plan'}
-                        </Button>
-                      </>
-                    )}
+                      ) : (
+                        <>
+                          <Button
+                            appearance="primary"
+                            onClick={() => {
+                              void onRefinePlan(planPrompt)
+                            }}
+                            disabled={
+                              planSaving || !planPrompt.trim() || !plannerReady
+                            }
+                          >
+                            {planSaving
+                              ? 'Updating…'
+                              : plannerReady
+                                ? 'Refine plan'
+                                : 'Planner unavailable'}
+                          </Button>
+                          <Button
+                            appearance="secondary"
+                            onClick={() => {
+                              void onApprovePlan()
+                            }}
+                            disabled={
+                              planSaving || selectedPlan.status === 'approved'
+                            }
+                          >
+                            {selectedPlan.status === 'approved'
+                              ? 'Approved'
+                              : 'Approve plan'}
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : null}
-          </Card>
+              ) : null}
+            </Card>
+          </div>
         </div>
       </div>
-    </div>
-    {shouldMountInsightsRail ? (
-      <aside
-        className={mergeClasses(
-          styles.railContainer,
-          insightsRailMode === 'collapsed' && styles.railContainerHidden,
-          insightsRailMode === 'collapsed' && styles.railContainerCollapsed,
-          insightsRailMode === 'full' && styles.railContainerFull,
-        )}
-        aria-label="Insights assistant"
-        style={
-          insightsRailMode === 'normal' && heroHeight
-            ? { height: `${heroHeight + 52}px` }
-            : undefined
-        }
-      >
-        <InsightsRail
-          currentScope={currentInsightsScope}
-          onScopeChange={next => setInsightsScopeOverride(next)}
-          focusToken={insightsFocusToken}
-          mode={insightsRailMode}
-          initialMode={insightsRailMode}
-          onModeChange={setInsightsRailMode}
-          insightsVoiceMode={insightsVoiceMode}
-        />
-      </aside>
-    ) : null}
+      {shouldMountInsightsRail ? (
+        <aside
+          className={mergeClasses(
+            styles.railContainer,
+            insightsRailMode === 'collapsed' && styles.railContainerHidden,
+            insightsRailMode === 'collapsed' && styles.railContainerCollapsed,
+            insightsRailMode === 'full' && styles.railContainerFull
+          )}
+          aria-label="Insights assistant"
+          style={
+            insightsRailMode === 'normal' && heroHeight
+              ? { height: `${heroHeight + 52}px` }
+              : undefined
+          }
+        >
+          <InsightsRail
+            currentScope={currentInsightsScope}
+            onScopeChange={next => setInsightsScopeOverride(next)}
+            focusToken={insightsFocusToken}
+            mode={insightsRailMode}
+            initialMode={insightsRailMode}
+            onModeChange={setInsightsRailMode}
+            insightsVoiceMode={insightsVoiceMode}
+          />
+        </aside>
+      ) : null}
     </div>
   )
 }

@@ -67,7 +67,13 @@ interface Props {
   onCancel: () => void
 }
 
-export function ConsentScreen({ open, saving, error, onAccept, onCancel }: Props) {
+export function ConsentScreen({
+  open,
+  saving,
+  error,
+  onAccept,
+  onCancel,
+}: Props) {
   const styles = useStyles()
   const [acknowledged, setAcknowledged] = useState(false)
 
@@ -84,20 +90,31 @@ export function ConsentScreen({ open, saving, error, onAccept, onCancel }: Props
         <DialogBody>
           <div className={styles.body}>
             <Text className={styles.helperText} size={300}>
-              Before the first child session, please confirm that Wulo is being used for therapist-supervised speech practice.
+              Before the first child session, please confirm that Wulo is being
+              used for therapist-supervised speech practice.
             </Text>
             <div className={styles.acknowledgement}>
               <Text className={styles.helperText} size={300}>
                 Practice feedback — not a clinical assessment.
               </Text>
               <Text className={styles.helperText} size={300}>
-                This tool supports supervised practice only and should not be used for diagnosis or unsupervised decision-making.
+                This tool supports supervised practice only and should not be
+                used for diagnosis or unsupervised decision-making.
               </Text>
               <Text className={styles.helperText} size={300}>
                 By continuing, you confirm you have read our{' '}
-                <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>,{' '}
-                <a href="/terms" target="_blank" rel="noreferrer">Terms of Service</a>, and{' '}
-                <a href="/ai-transparency" target="_blank" rel="noreferrer">AI Transparency Notice</a>.
+                <a href="/privacy" target="_blank" rel="noreferrer">
+                  Privacy Policy
+                </a>
+                ,{' '}
+                <a href="/terms" target="_blank" rel="noreferrer">
+                  Terms of Service
+                </a>
+                , and{' '}
+                <a href="/ai-transparency" target="_blank" rel="noreferrer">
+                  AI Transparency Notice
+                </a>
+                .
               </Text>
             </div>
             <Checkbox
@@ -109,10 +126,19 @@ export function ConsentScreen({ open, saving, error, onAccept, onCancel }: Props
           </div>
         </DialogBody>
         <DialogActions>
-          <Button appearance="secondary" className={styles.actionButton} onClick={onCancel}>
+          <Button
+            appearance="secondary"
+            className={styles.actionButton}
+            onClick={onCancel}
+          >
             Cancel
           </Button>
-          <Button appearance="primary" className={mergeClasses(styles.actionButton, styles.primaryButton)} disabled={!acknowledged || saving} onClick={onAccept}>
+          <Button
+            appearance="primary"
+            className={mergeClasses(styles.actionButton, styles.primaryButton)}
+            disabled={!acknowledged || saving}
+            onClick={onAccept}
+          >
             {saving ? 'Saving…' : 'Acknowledge and continue'}
           </Button>
         </DialogActions>

@@ -12,6 +12,7 @@ RLS introduces the Pathfinder Learn GUC names from the contract
 (``app.tenant_id``, ``app.class_id``, ``app.user_id``, ``app.role``) while still
 honouring the legacy request GUCs used by the retained therapy storage layer.
 """
+
 from __future__ import annotations
 
 from alembic import op
@@ -109,7 +110,9 @@ def upgrade() -> None:
         )
         """
     )
-    op.execute("CREATE INDEX IF NOT EXISTS idx_learning_classes_tenant ON learning_classes (tenant_id, updated_at DESC)")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_learning_classes_tenant ON learning_classes (tenant_id, updated_at DESC)"
+    )
 
     op.execute(
         """
@@ -126,7 +129,9 @@ def upgrade() -> None:
         )
         """
     )
-    op.execute("CREATE INDEX IF NOT EXISTS idx_learning_students_tenant_class ON learning_students (tenant_id, class_id, updated_at DESC)")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_learning_students_tenant_class ON learning_students (tenant_id, class_id, updated_at DESC)"
+    )
 
     op.execute(
         """
@@ -141,7 +146,9 @@ def upgrade() -> None:
         )
         """
     )
-    op.execute("CREATE INDEX IF NOT EXISTS idx_learning_teachers_tenant ON learning_teachers (tenant_id, updated_at DESC)")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_learning_teachers_tenant ON learning_teachers (tenant_id, updated_at DESC)"
+    )
 
     op.execute(
         """
@@ -154,7 +161,9 @@ def upgrade() -> None:
         )
         """
     )
-    op.execute("CREATE INDEX IF NOT EXISTS idx_learning_teacher_classes_tenant_class ON learning_teacher_classes (tenant_id, class_id)")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_learning_teacher_classes_tenant_class ON learning_teacher_classes (tenant_id, class_id)"
+    )
 
     op.execute(
         """
@@ -167,7 +176,9 @@ def upgrade() -> None:
         )
         """
     )
-    op.execute("CREATE INDEX IF NOT EXISTS idx_learning_cohorts_tenant ON learning_cohorts (tenant_id, updated_at DESC)")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_learning_cohorts_tenant ON learning_cohorts (tenant_id, updated_at DESC)"
+    )
 
     op.execute(
         """
@@ -180,7 +191,9 @@ def upgrade() -> None:
         )
         """
     )
-    op.execute("CREATE INDEX IF NOT EXISTS idx_learning_cohort_classes_tenant_class ON learning_cohort_classes (tenant_id, class_id)")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_learning_cohort_classes_tenant_class ON learning_cohort_classes (tenant_id, class_id)"
+    )
 
     op.execute(
         """
@@ -196,7 +209,9 @@ def upgrade() -> None:
         )
         """
     )
-    op.execute("CREATE INDEX IF NOT EXISTS idx_learning_standards_tenant ON learning_standards (tenant_id, updated_at DESC)")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_learning_standards_tenant ON learning_standards (tenant_id, updated_at DESC)"
+    )
 
     op.execute(
         """
@@ -211,7 +226,9 @@ def upgrade() -> None:
         )
         """
     )
-    op.execute("CREATE INDEX IF NOT EXISTS idx_learning_skills_tenant_standard ON learning_skills (tenant_id, standard_id, updated_at DESC)")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_learning_skills_tenant_standard ON learning_skills (tenant_id, standard_id, updated_at DESC)"
+    )
 
     op.execute(
         """
@@ -230,7 +247,9 @@ def upgrade() -> None:
         )
         """
     )
-    op.execute("CREATE INDEX IF NOT EXISTS idx_learning_diagnostic_items_tenant_skill ON learning_diagnostic_items (tenant_id, skill_id, updated_at DESC)")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_learning_diagnostic_items_tenant_skill ON learning_diagnostic_items (tenant_id, skill_id, updated_at DESC)"
+    )
 
     op.execute(
         """
@@ -250,7 +269,9 @@ def upgrade() -> None:
         )
         """
     )
-    op.execute("CREATE INDEX IF NOT EXISTS idx_learning_responses_student_created ON learning_student_responses (tenant_id, student_id, created_at DESC)")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_learning_responses_student_created ON learning_student_responses (tenant_id, student_id, created_at DESC)"
+    )
 
     op.execute(
         """
@@ -268,7 +289,9 @@ def upgrade() -> None:
         )
         """
     )
-    op.execute("CREATE INDEX IF NOT EXISTS idx_learning_mastery_events_student_skill ON learning_mastery_events (tenant_id, student_id, skill_id, created_at DESC)")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_learning_mastery_events_student_skill ON learning_mastery_events (tenant_id, student_id, skill_id, created_at DESC)"
+    )
 
     op.execute(
         """
@@ -287,7 +310,9 @@ def upgrade() -> None:
         )
         """
     )
-    op.execute("CREATE INDEX IF NOT EXISTS idx_learning_intervention_plans_tenant_status ON learning_intervention_plans (tenant_id, status, updated_at DESC)")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_learning_intervention_plans_tenant_status ON learning_intervention_plans (tenant_id, status, updated_at DESC)"
+    )
 
     op.execute(
         """
@@ -304,7 +329,9 @@ def upgrade() -> None:
         )
         """
     )
-    op.execute("CREATE INDEX IF NOT EXISTS idx_learning_approvals_plan_created ON learning_approvals (tenant_id, plan_id, created_at DESC)")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_learning_approvals_plan_created ON learning_approvals (tenant_id, plan_id, created_at DESC)"
+    )
 
     op.execute(
         """
@@ -322,7 +349,9 @@ def upgrade() -> None:
         )
         """
     )
-    op.execute("CREATE INDEX IF NOT EXISTS idx_learning_xapi_tenant_created ON learning_xapi_statements (tenant_id, created_at DESC)")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_learning_xapi_tenant_created ON learning_xapi_statements (tenant_id, created_at DESC)"
+    )
 
     op.execute(
         """
@@ -342,7 +371,9 @@ def upgrade() -> None:
         )
         """
     )
-    op.execute("CREATE INDEX IF NOT EXISTS idx_learning_offline_queue_tenant_status ON learning_offline_queue (tenant_id, status, updated_at DESC)")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_learning_offline_queue_tenant_status ON learning_offline_queue (tenant_id, status, updated_at DESC)"
+    )
 
     op.execute(
         """
@@ -360,11 +391,15 @@ def upgrade() -> None:
         )
         """
     )
-    op.execute("CREATE INDEX IF NOT EXISTS idx_learning_content_packs_tenant_key ON learning_content_pack_manifests (tenant_id, pack_key, created_at DESC)")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_learning_content_packs_tenant_key ON learning_content_pack_manifests (tenant_id, pack_key, created_at DESC)"
+    )
 
     _enable_forced_rls()
     for table_name in LEARNING_RLS_TABLES:
-        if table_name in {"learning_classes", "learning_students"}:
+        if table_name == "learning_classes":
+            _class_policy(table_name, "id")
+        elif table_name in {"learning_students"}:
             _class_policy(table_name)
         else:
             _tenant_policy(table_name)

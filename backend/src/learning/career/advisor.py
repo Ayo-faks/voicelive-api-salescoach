@@ -42,7 +42,9 @@ class OrchestratorAdvisor:
 
     unsafe_terms = ("drop out", "guarantee", "hide this", "secret", "loan shark")
 
-    def review(self, plan: CareerPlan, audience: Literal["student", "parent", "counsellor"], student_age: int, prompt: str) -> AdvisorDecision:
+    def review(
+        self, plan: CareerPlan, audience: Literal["student", "parent", "counsellor"], student_age: int, prompt: str
+    ) -> AdvisorDecision:
         provenance = list(plan.provenance) + [
             Provenance(
                 source="OrchestratorAdvisor",

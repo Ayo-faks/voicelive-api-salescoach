@@ -13,7 +13,10 @@ vi.mock('recharts', async importOriginal => {
   return {
     ...actual,
     ResponsiveContainer: ({ children }: { children: ReactNode }) => (
-      <div data-testid="responsive-container" style={{ width: 640, height: 240 }}>
+      <div
+        data-testid="responsive-container"
+        style={{ width: 640, height: 240 }}
+      >
         {children}
       </div>
     ),
@@ -40,7 +43,7 @@ describe('VisualizationBlock', () => {
             },
           ],
         }}
-      />,
+      />
     )
 
     const block = screen.getByTestId('visualization-block')
@@ -66,7 +69,7 @@ describe('VisualizationBlock', () => {
             },
           ],
         }}
-      />,
+      />
     )
 
     const block = screen.getByTestId('visualization-block')
@@ -90,20 +93,26 @@ describe('VisualizationBlock', () => {
             { date: '2026-03-08', overall: 74, note: null },
           ],
         }}
-      />,
+      />
     )
 
     const block = screen.getByTestId('visualization-block')
     expect(block.getAttribute('data-kind')).toBe('table')
     const table = screen.getByTestId('visualization-table') as HTMLTableElement
-    const headerCells = Array.from(table.querySelectorAll('thead th')).map(cell => cell.textContent)
+    const headerCells = Array.from(table.querySelectorAll('thead th')).map(
+      cell => cell.textContent
+    )
     expect(headerCells).toEqual(['Date', 'Overall', 'Note'])
 
     const bodyRows = Array.from(table.querySelectorAll('tbody tr'))
     expect(bodyRows).toHaveLength(2)
-    const firstRowCells = Array.from(bodyRows[0].querySelectorAll('td')).map(cell => cell.textContent)
+    const firstRowCells = Array.from(bodyRows[0].querySelectorAll('td')).map(
+      cell => cell.textContent
+    )
     expect(firstRowCells).toEqual(['2026-03-15', '81', 'Carryover gains'])
-    const secondRowCells = Array.from(bodyRows[1].querySelectorAll('td')).map(cell => cell.textContent)
+    const secondRowCells = Array.from(bodyRows[1].querySelectorAll('td')).map(
+      cell => cell.textContent
+    )
     expect(secondRowCells).toEqual(['2026-03-08', '74', '—'])
   })
 
@@ -111,14 +120,18 @@ describe('VisualizationBlock', () => {
     render(<VisualizationBlock spec={{ kind: 'scatter', title: 'Nope' }} />)
     expect(screen.queryByTestId('visualization-block')).toBeNull()
     expect(
-      screen.getByText('Visualization unavailable — the data did not match the expected format.'),
+      screen.getByText(
+        'Visualization unavailable — the data did not match the expected format.'
+      )
     ).toBeTruthy()
   })
 
   it('renders the fallback when the spec is not an object', () => {
     render(<VisualizationBlock spec={'oops' as unknown as object} />)
     expect(
-      screen.getByText('Visualization unavailable — the data did not match the expected format.'),
+      screen.getByText(
+        'Visualization unavailable — the data did not match the expected format.'
+      )
     ).toBeTruthy()
   })
 
@@ -135,11 +148,13 @@ describe('VisualizationBlock', () => {
             },
           ],
         }}
-      />,
+      />
     )
     expect(screen.queryByTestId('visualization-chart')).toBeNull()
     expect(
-      screen.getByText('Visualization unavailable — the data did not match the expected format.'),
+      screen.getByText(
+        'Visualization unavailable — the data did not match the expected format.'
+      )
     ).toBeTruthy()
   })
 
@@ -152,7 +167,7 @@ describe('VisualizationBlock', () => {
           columns: [{ key: 'a', label: 'A' }],
           rows: [{ a: 'ok', secret: 'leak' }],
         }}
-      />,
+      />
     )
     expect(screen.queryByText('leak')).toBeNull()
     expect(screen.getByText('ok')).toBeTruthy()

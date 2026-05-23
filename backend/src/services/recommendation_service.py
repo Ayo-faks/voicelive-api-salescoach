@@ -130,7 +130,9 @@ class RecommendationService:
                     "parsed": parsed_constraints,
                 },
                 "ranking_context": ranking_inputs["snapshot"],
-                "rationale": str((top_candidate.get("explanation") or {}).get("why_recommended") or top_candidate["rationale"]),
+                "rationale": str(
+                    (top_candidate.get("explanation") or {}).get("why_recommended") or top_candidate["rationale"]
+                ),
                 "created_by_user_id": created_by_user_id,
                 "candidate_count": len(ranked_candidates),
                 "top_recommendation_score": top_candidate.get("score"),
@@ -242,7 +244,9 @@ class RecommendationService:
             if score is not None
         ]
         target_accuracy_scores = [
-            score for score in [self._session_accuracy_score(session) for session in target_sessions] if score is not None
+            score
+            for score in [self._session_accuracy_score(session) for session in target_sessions]
+            if score is not None
         ]
         recent_outcomes = [self._summarize_recent_session(session) for session in recent_sessions]
         desired_difficulty, difficulty_note = self._derive_desired_difficulty(
@@ -476,7 +480,9 @@ class RecommendationService:
     ) -> Dict[str, Any]:
         exercise_id = str(scenario.get("id") or "")
         same_exercise_sessions = [
-            session for session in recent_sessions if str((session.get("exercise") or {}).get("id") or "") == exercise_id
+            session
+            for session in recent_sessions
+            if str((session.get("exercise") or {}).get("id") or "") == exercise_id
         ]
         if not same_exercise_sessions:
             most_recent = recent_sessions[0] if recent_sessions else None
@@ -490,13 +496,25 @@ class RecommendationService:
             if same_type_recent is not None:
                 accuracy = self._session_accuracy_score(same_type_recent)
                 score = 6 if accuracy is None or accuracy >= 70 else -2
-                reason = "recent outcomes support this exercise family" if score >= 0 else "recent outcomes suggest rotating away from this exercise family"
-                return self._make_factor(score=score, reason=reason, supporting_session_ids=[str(same_type_recent.get("id"))])
+                reason = (
+                    "recent outcomes support this exercise family"
+                    if score >= 0
+                    else "recent outcomes suggest rotating away from this exercise family"
+                )
+                return self._make_factor(
+                    score=score, reason=reason, supporting_session_ids=[str(same_type_recent.get("id"))]
+                )
             if most_recent is not None:
-                return self._make_factor(score=4, reason="introduces a fresh exercise while staying on the active target")
+                return self._make_factor(
+                    score=4, reason="introduces a fresh exercise while staying on the active target"
+                )
             return self._make_factor(score=4, reason="recent outcome data is limited")
 
-        accuracies = [score for score in [self._session_accuracy_score(session) for session in same_exercise_sessions] if score is not None]
+        accuracies = [
+            score
+            for score in [self._session_accuracy_score(session) for session in same_exercise_sessions]
+            if score is not None
+        ]
         avg_accuracy = mean(accuracies) if accuracies else None
         if avg_accuracy is None:
             score = 4
@@ -604,7 +622,11 @@ class RecommendationService:
                 score += 2
                 reasons.append("fits a shorter session request")
 
-        if parsed_constraints.get("playful") and scenario_type in {"guided_prompt", "listening_minimal_pairs", "silent_sorting"}:
+        if parsed_constraints.get("playful") and scenario_type in {
+            "guided_prompt",
+            "listening_minimal_pairs",
+            "silent_sorting",
+        }:
             score += 2
             reasons.append("fits a more playful session tone")
 
@@ -685,9 +707,7 @@ class RecommendationService:
             f"{'s' if len(supporting_memory_items) != 1 else ''} and aims for {desired_difficulty} difficulty work."
         )
         if institutional_insights:
-            comparison = (
-                f"{comparison} A separate de-identified clinic-level pattern also supported this format without becoming child memory."
-            )
+            comparison = f"{comparison} A separate de-identified clinic-level pattern also supported this format without becoming child memory."
         evidence_shift = (
             f"If the next sessions show lower engagement or weaker accuracy on {scenario.get('name')}, re-rank toward a simpler format; "
             f"if accuracy stays high, consider moving beyond {desired_difficulty} work."
@@ -718,7 +738,9 @@ class RecommendationService:
         reasons = [
             str(factors[key].get("reason") or "").strip()
             for key in ordered_keys
-            if key in factors and int(factors[key].get("score") or 0) > 0 and str(factors[key].get("reason") or "").strip()
+            if key in factors
+            and int(factors[key].get("score") or 0) > 0
+            and str(factors[key].get("reason") or "").strip()
         ]
         return "; ".join(reasons[:3]) or "Ranked from approved memory and recent session evidence."
 
@@ -726,7 +748,9 @@ class RecommendationService:
         explanation = cast(Dict[str, Any], candidate.get("explanation") or {})
         if not explanation.get("supporting_memory_items"):
             explanation["supporting_memory_items"] = self._select_memory_items(
-                self._group_memory_items(self.child_memory_service.get_active_child_memory(str(candidate.get("child_id") or ""))),
+                self._group_memory_items(
+                    self.child_memory_service.get_active_child_memory(str(candidate.get("child_id") or ""))
+                ),
                 cast(List[str], candidate.get("supporting_memory_item_ids") or []),
             )
         if not explanation.get("supporting_sessions"):
@@ -895,7 +919,11 @@ class RecommendationService:
             if scenario_type in cast(set[str], rule["types"]) or any(phrase in scenario_text for phrase in phrases):
                 return int(rule["score"]), str(rule["reason"])
 
-        keywords = [token for token in re.findall(r"[a-z]{4,}", item_text) if token not in {"child", "sound", "target", "needs", "with", "when"}]
+        keywords = [
+            token
+            for token in re.findall(r"[a-z]{4,}", item_text)
+            if token not in {"child", "sound", "target", "needs", "with", "when"}
+        ]
         if any(keyword in scenario_text for keyword in keywords[:4]):
             return 4, "matched cue wording carried by the scenario description"
         return 0, ""
@@ -919,7 +947,9 @@ class RecommendationService:
     def _memory_evidence_session_ids(self, item: Dict[str, Any]) -> List[str]:
         session_ids = {
             str(session_id)
-            for session_id in cast(List[str], cast(Dict[str, Any], item.get("provenance") or {}).get("session_ids") or [])
+            for session_id in cast(
+                List[str], cast(Dict[str, Any], item.get("provenance") or {}).get("session_ids") or []
+            )
             if str(session_id).strip()
         }
         item_id = str(item.get("id") or "").strip()
@@ -1013,8 +1043,12 @@ class RecommendationService:
         return {
             "score": score,
             "reason": reason,
-            "supporting_memory_item_ids": sorted(set(str(item_id) for item_id in supporting_memory_item_ids or [] if item_id)),
-            "supporting_session_ids": sorted(set(str(session_id) for session_id in supporting_session_ids or [] if session_id)),
+            "supporting_memory_item_ids": sorted(
+                set(str(item_id) for item_id in supporting_memory_item_ids or [] if item_id)
+            ),
+            "supporting_session_ids": sorted(
+                set(str(session_id) for session_id in supporting_session_ids or [] if session_id)
+            ),
         }
 
     def _extend_support_lists(

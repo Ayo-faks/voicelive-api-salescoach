@@ -9,6 +9,7 @@ The cache is intentionally tiny (by default 128 entries / ~8 MiB) and
 purely in-memory — it is safe to disable under memory pressure by setting
 ``TTS_CACHE_MAX_ENTRIES=0`` in the environment.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -77,8 +78,7 @@ class TTSCache:
             self._store[key] = entry
             self._total_bytes += size
             while self._store and (
-                len(self._store) > self._max_entries
-                or (self._max_bytes and self._total_bytes > self._max_bytes)
+                len(self._store) > self._max_entries or (self._max_bytes and self._total_bytes > self._max_bytes)
             ):
                 _, evicted = self._store.popitem(last=False)
                 self._total_bytes -= len(evicted.audio_b64)

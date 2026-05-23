@@ -93,7 +93,10 @@ export function ChildOnboardingOrchestrator({
   return (
     <>
       <HandOffInterstitial active={showHandoff} onStart={handleHandOffStart} />
-      <SilentSortingTutorial active={showTutorial} onComplete={handleTutorialComplete} />
+      <SilentSortingTutorial
+        active={showTutorial}
+        onComplete={handleTutorialComplete}
+      />
       <ChildWrapUpCard active={showWrapUp} onComplete={handleWrapUpDone} />
     </>
   )

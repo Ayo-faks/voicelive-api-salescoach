@@ -5,7 +5,11 @@
 
 import { describe, it, expect } from 'vitest'
 
-import { ANNOUNCEMENTS, listVisibleAnnouncements, type Announcement } from './announcements'
+import {
+  ANNOUNCEMENTS,
+  listVisibleAnnouncements,
+  type Announcement,
+} from './announcements'
 
 describe('listVisibleAnnouncements', () => {
   const baseEntry: Announcement = {
@@ -23,22 +27,25 @@ describe('listVisibleAnnouncements', () => {
       ).toEqual([])
     } else {
       expect(
-        Array.isArray(listVisibleAnnouncements({ role: 'therapist', dismissed: [] }))
+        Array.isArray(
+          listVisibleAnnouncements({ role: 'therapist', dismissed: [] })
+        )
       ).toBe(true)
     }
   })
 
   it('excludes dismissed entries', () => {
     const list = [{ ...baseEntry }]
-    const visible = list.filter(
-      e => !['fixture-1'].includes(e.id)
-    )
+    const visible = list.filter(e => !['fixture-1'].includes(e.id))
     expect(visible).toHaveLength(0)
   })
 
   it('excludes expired entries', () => {
     const past = new Date('2000-01-01T00:00:00Z')
-    const entry: Announcement = { ...baseEntry, expiresAt: '2001-01-01T00:00:00Z' }
+    const entry: Announcement = {
+      ...baseEntry,
+      expiresAt: '2001-01-01T00:00:00Z',
+    }
     // Inline reimplementation of the filter to assert the rule directly.
     const isVisible =
       !entry.expiresAt || new Date(entry.expiresAt).getTime() >= past.getTime()

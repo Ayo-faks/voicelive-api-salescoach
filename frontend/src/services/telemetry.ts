@@ -26,7 +26,9 @@ interface TelemetryService {
 }
 
 let _childMode = false
-let _appInsightsTrack: ((name: string, props?: TelemetryProperties) => void) | null = null
+let _appInsightsTrack:
+  | ((name: string, props?: TelemetryProperties) => void)
+  | null = null
 
 export const telemetry: TelemetryService = {
   get enabled() {

@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildChildIntroInstructions, buildTherapistIntroInstructions } from './introInstructions'
+import {
+  buildChildIntroInstructions,
+  buildTherapistIntroInstructions,
+} from './introInstructions'
 
 const BASE = {
   avatarName: 'Ollie',

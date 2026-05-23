@@ -35,11 +35,14 @@ describe('useUiState loading semantics', () => {
   it('reports loading=true synchronously on first render when enabled+authenticated', () => {
     let resolveFetch: (v: Record<string, unknown>) => void = () => {}
     vi.spyOn(api, 'getUiState').mockImplementation(
-      () => new Promise(resolve => { resolveFetch = resolve }),
+      () =>
+        new Promise(resolve => {
+          resolveFetch = resolve
+        })
     )
 
     const { result } = renderHook(() =>
-      useUiState({ disabled: false, authenticated: true }),
+      useUiState({ disabled: false, authenticated: true })
     )
 
     // Before the effect's fetch has a chance to resolve, the hook must
@@ -59,7 +62,7 @@ describe('useUiState loading semantics', () => {
     })
 
     const { result } = renderHook(() =>
-      useUiState({ disabled: false, authenticated: true }),
+      useUiState({ disabled: false, authenticated: true })
     )
 
     await waitFor(() => expect(result.current.loading).toBe(false))
@@ -82,7 +85,7 @@ describe('useUiState loading semantics', () => {
     const spy = vi.spyOn(api, 'getUiState').mockResolvedValue({})
 
     const { result } = renderHook(() =>
-      useUiState({ disabled: false, authenticated: false }),
+      useUiState({ disabled: false, authenticated: false })
     )
 
     expect(result.current.loading).toBe(false)
@@ -92,13 +95,21 @@ describe('useUiState loading semantics', () => {
   it('flips loading=true synchronously when auth resolves on a later render', async () => {
     let resolveFetch: (v: Record<string, unknown>) => void = () => {}
     vi.spyOn(api, 'getUiState').mockImplementation(
-      () => new Promise(resolve => { resolveFetch = resolve }),
+      () =>
+        new Promise(resolve => {
+          resolveFetch = resolve
+        })
     )
 
     const { result, rerender } = renderHook(
-      ({ disabled, authenticated }: { disabled: boolean; authenticated: boolean }) =>
-        useUiState({ disabled, authenticated }),
-      { initialProps: { disabled: true, authenticated: false } },
+      ({
+        disabled,
+        authenticated,
+      }: {
+        disabled: boolean
+        authenticated: boolean
+      }) => useUiState({ disabled, authenticated }),
+      { initialProps: { disabled: true, authenticated: false } }
     )
 
     expect(result.current.loading).toBe(false)
@@ -123,13 +134,16 @@ describe('useUiState loading semantics', () => {
       .mockResolvedValueOnce({ onboarding_complete: true })
 
     const { result } = renderHook(() =>
-      useUiState({ disabled: false, authenticated: true }),
+      useUiState({ disabled: false, authenticated: true })
     )
     await waitFor(() => expect(result.current.loading).toBe(false))
 
     let resolveSecond: (v: Record<string, unknown>) => void = () => {}
     getSpy.mockImplementationOnce(
-      () => new Promise(resolve => { resolveSecond = resolve }),
+      () =>
+        new Promise(resolve => {
+          resolveSecond = resolve
+        })
     )
 
     act(() => {
@@ -138,7 +152,10 @@ describe('useUiState loading semantics', () => {
     await waitFor(() => expect(result.current.loading).toBe(true))
 
     await act(async () => {
-      resolveSecond({ onboarding_complete: true, tours_seen: ['welcome-therapist'] })
+      resolveSecond({
+        onboarding_complete: true,
+        tours_seen: ['welcome-therapist'],
+      })
     })
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.state.tours_seen).toEqual(['welcome-therapist'])

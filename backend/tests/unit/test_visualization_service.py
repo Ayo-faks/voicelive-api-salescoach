@@ -106,18 +106,13 @@ class TestLineAndBarCharts:
 
     def test_series_count_is_capped(self):
         base = _line_spec()
-        base["series"] = [
-            {"name": f"s{i}", "points": [{"x": i, "y": i}]}
-            for i in range(MAX_SERIES_PER_CHART + 1)
-        ]
+        base["series"] = [{"name": f"s{i}", "points": [{"x": i, "y": i}]} for i in range(MAX_SERIES_PER_CHART + 1)]
         with pytest.raises(VisualizationValidationError):
             validate_visualization(base)
 
     def test_point_count_is_capped(self):
         base = _line_spec()
-        base["series"][0]["points"] = [
-            {"x": i, "y": i} for i in range(MAX_POINTS_PER_SERIES + 1)
-        ]
+        base["series"][0]["points"] = [{"x": i, "y": i} for i in range(MAX_POINTS_PER_SERIES + 1)]
         with pytest.raises(VisualizationValidationError):
             validate_visualization(base)
 
@@ -156,19 +151,14 @@ class TestTable:
 
     def test_column_count_capped(self):
         base = _table_spec()
-        base["columns"] = [
-            {"key": f"c{i}", "label": f"Col {i}"} for i in range(MAX_TABLE_COLUMNS + 1)
-        ]
+        base["columns"] = [{"key": f"c{i}", "label": f"Col {i}"} for i in range(MAX_TABLE_COLUMNS + 1)]
         base["rows"] = []
         with pytest.raises(VisualizationValidationError):
             validate_visualization(base)
 
     def test_row_count_capped(self):
         base = _table_spec()
-        base["rows"] = [
-            {"date": str(i), "overall": i, "note": None}
-            for i in range(MAX_TABLE_ROWS + 1)
-        ]
+        base["rows"] = [{"date": str(i), "overall": i, "note": None} for i in range(MAX_TABLE_ROWS + 1)]
         with pytest.raises(VisualizationValidationError):
             validate_visualization(base)
 

@@ -60,9 +60,7 @@ def validate_visualization(spec: Any) -> Dict[str, Any]:
 
     kind = spec.get("kind")
     if kind not in ALLOWED_KINDS:
-        raise VisualizationValidationError(
-            f"kind must be one of {ALLOWED_KINDS}, got {kind!r}"
-        )
+        raise VisualizationValidationError(f"kind must be one of {ALLOWED_KINDS}, got {kind!r}")
 
     title = _require_str(spec.get("title"), "title", MAX_TITLE_LENGTH)
     caption = _optional_str(spec.get("caption"), "caption", MAX_CAPTION_LENGTH)
@@ -87,9 +85,7 @@ def _validate_chart(spec: Dict[str, Any]) -> Dict[str, Any]:
     if not isinstance(raw_series, list) or not raw_series:
         raise VisualizationValidationError("series must be a non-empty list")
     if len(raw_series) > MAX_SERIES_PER_CHART:
-        raise VisualizationValidationError(
-            f"series may contain at most {MAX_SERIES_PER_CHART} entries"
-        )
+        raise VisualizationValidationError(f"series may contain at most {MAX_SERIES_PER_CHART} entries")
 
     series_out: List[Dict[str, Any]] = []
     for index, series in enumerate(raw_series):
@@ -98,9 +94,7 @@ def _validate_chart(spec: Dict[str, Any]) -> Dict[str, Any]:
         name = _require_str(series.get("name"), f"series[{index}].name", MAX_SERIES_NAME_LENGTH)
         raw_points = series.get("points")
         if not isinstance(raw_points, list) or not raw_points:
-            raise VisualizationValidationError(
-                f"series[{index}].points must be a non-empty list"
-            )
+            raise VisualizationValidationError(f"series[{index}].points must be a non-empty list")
         if len(raw_points) > MAX_POINTS_PER_SERIES:
             raise VisualizationValidationError(
                 f"series[{index}].points may contain at most {MAX_POINTS_PER_SERIES} entries"
@@ -108,9 +102,7 @@ def _validate_chart(spec: Dict[str, Any]) -> Dict[str, Any]:
         points_out: List[Dict[str, Union[str, float]]] = []
         for point_index, point in enumerate(raw_points):
             if not isinstance(point, dict):
-                raise VisualizationValidationError(
-                    f"series[{index}].points[{point_index}] must be an object"
-                )
+                raise VisualizationValidationError(f"series[{index}].points[{point_index}] must be an object")
             x_value = _coerce_axis_value(point.get("x"), f"series[{index}].points[{point_index}].x")
             y_value = _coerce_number(point.get("y"), f"series[{index}].points[{point_index}].y")
             points_out.append({"x": x_value, "y": y_value})
@@ -128,9 +120,7 @@ def _validate_table(spec: Dict[str, Any]) -> Dict[str, Any]:
     if not isinstance(raw_columns, list) or not raw_columns:
         raise VisualizationValidationError("columns must be a non-empty list")
     if len(raw_columns) > MAX_TABLE_COLUMNS:
-        raise VisualizationValidationError(
-            f"columns may contain at most {MAX_TABLE_COLUMNS} entries"
-        )
+        raise VisualizationValidationError(f"columns may contain at most {MAX_TABLE_COLUMNS} entries")
 
     columns_out: List[Dict[str, str]] = []
     keys_seen: set[str] = set()
@@ -148,9 +138,7 @@ def _validate_table(spec: Dict[str, Any]) -> Dict[str, Any]:
     if not isinstance(raw_rows, list):
         raise VisualizationValidationError("rows must be a list")
     if len(raw_rows) > MAX_TABLE_ROWS:
-        raise VisualizationValidationError(
-            f"rows may contain at most {MAX_TABLE_ROWS} entries"
-        )
+        raise VisualizationValidationError(f"rows may contain at most {MAX_TABLE_ROWS} entries")
 
     rows_out: List[Dict[str, ScalarCell]] = []
     allowed_keys = {column["key"] for column in columns_out}

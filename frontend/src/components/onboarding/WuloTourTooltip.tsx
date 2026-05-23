@@ -16,7 +16,13 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Button, FluentProvider, Text, makeStyles, tokens } from '@fluentui/react-components'
+import {
+  Button,
+  FluentProvider,
+  Text,
+  makeStyles,
+  tokens,
+} from '@fluentui/react-components'
 import type { TooltipRenderProps } from 'react-joyride'
 import { wuloTheme } from '../../theme/wuloTheme'
 
@@ -72,8 +78,10 @@ const useStyles = makeStyles({
     padding: '0 10px',
     borderRadius: '999px',
     border: '1px solid rgba(13,138,132,0.18)',
-    background: 'linear-gradient(180deg, rgba(255,255,255,0.9), rgba(236,246,246,0.85))',
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 2px rgba(15,42,58,0.04)',
+    background:
+      'linear-gradient(180deg, rgba(255,255,255,0.9), rgba(236,246,246,0.85))',
+    boxShadow:
+      'inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 2px rgba(15,42,58,0.04)',
     color: '#0d8a84',
     fontSize: '0.72rem',
     fontWeight: 700,
@@ -105,9 +113,11 @@ const useStyles = makeStyles({
   backButton: {
     minHeight: '32px',
     borderRadius: '10px',
-    background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(245,251,251,0.9))',
+    background:
+      'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(245,251,251,0.9))',
     border: '1px solid rgba(13,138,132,0.22)',
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 2px rgba(15,42,58,0.06)',
+    boxShadow:
+      'inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 2px rgba(15,42,58,0.06)',
     color: 'var(--color-text-primary, #0f2a3a)',
     fontWeight: 600,
   },
@@ -128,13 +138,25 @@ const useStyles = makeStyles({
 
 export function WuloTourTooltip(props: WuloTourTooltipProps): JSX.Element {
   const styles = useStyles()
-  const { index, size, step, isLastStep, backProps, primaryProps, skipProps, tooltipProps } = props
+  const {
+    index,
+    size,
+    step,
+    isLastStep,
+    backProps,
+    primaryProps,
+    skipProps,
+    tooltipProps,
+  } = props
 
   const tooltipStyle: CSSProperties = { outline: 'none' }
   const ariaLabel = `Step ${index + 1} of ${size}: ${step.title ?? ''}`
 
   return (
-    <FluentProvider theme={wuloTheme} style={{ backgroundColor: 'transparent' }}>
+    <FluentProvider
+      theme={wuloTheme}
+      style={{ backgroundColor: 'transparent' }}
+    >
       <div
         {...tooltipProps}
         className={styles.root}

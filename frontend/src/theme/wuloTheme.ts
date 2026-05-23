@@ -2,7 +2,8 @@ import { webLightTheme, type Theme } from '@fluentui/react-components'
 
 export const wuloTheme: Theme = {
   ...webLightTheme,
-  fontFamilyBase: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  fontFamilyBase:
+    "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   fontFamilyMonospace: "'IBM Plex Mono', 'JetBrains Mono', monospace",
   colorBrandBackground: '#0d8a84',
   colorBrandBackground2: 'rgba(13, 138, 132, 0.14)',

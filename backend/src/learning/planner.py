@@ -49,11 +49,13 @@ class PlannerResult(BaseModel, Generic[TPlan]):
 
 
 class LearningPlanner(Protocol):
-    def run_turn(self, request: PlannerRequest) -> PlannerResult[InterventionPlan]: ...
+    def run_turn(self, request: PlannerRequest) -> PlannerResult[InterventionPlan]:
+        raise NotImplementedError
 
 
 class CareerPlanner(Protocol):
-    def run_turn(self, request: PlannerRequest) -> PlannerResult[Any]: ...
+    def run_turn(self, request: PlannerRequest) -> PlannerResult[Any]:
+        raise NotImplementedError
 
 
 class StubLearningPlanner:

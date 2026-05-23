@@ -239,7 +239,8 @@ const useStyles = makeStyles({
     border: '1px solid rgba(13, 138, 132, 0.12)',
     backgroundColor: 'rgba(255, 255, 255, 0.92)',
     boxShadow: '0 12px 24px rgba(17, 36, 58, 0.08)',
-    transition: 'border-color var(--transition-fast), box-shadow var(--transition-fast)',
+    transition:
+      'border-color var(--transition-fast), box-shadow var(--transition-fast)',
     '&:hover': {
       border: '1px solid rgba(13, 138, 132, 0.22)',
       boxShadow: '0 16px 30px rgba(17, 36, 58, 0.12)',
@@ -586,16 +587,23 @@ export function ScenarioList({
       ? (stored as SoundFamilyId)
       : 'all'
   })
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
+    {}
+  )
   const [activeStepId, setActiveStepId] = useState(ALL_STEPS_ID)
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
   const activeAvatar = selectedAvatar ?? internalAvatar
   const categoryNavigationEnabled = compactChildMode || !showFooter
-  const filteredScenarios = filterScenarios(scenarios, activityFilter, soundFilter)
+  const filteredScenarios = filterScenarios(
+    scenarios,
+    activityFilter,
+    soundFilter
+  )
   const stepGroups = groupByStep(filteredScenarios)
-  const visibleStepGroups = categoryNavigationEnabled && activeStepId !== ALL_STEPS_ID
-    ? stepGroups.filter(group => group.id === activeStepId)
-    : stepGroups
+  const visibleStepGroups =
+    categoryNavigationEnabled && activeStepId !== ALL_STEPS_ID
+      ? stepGroups.filter(group => group.id === activeStepId)
+      : stepGroups
 
   useEffect(() => {
     if (!compactChildMode || typeof window === 'undefined') {
@@ -611,7 +619,9 @@ export function ScenarioList({
       return
     }
 
-    const activeStepStillVisible = stepGroups.some(group => group.id === activeStepId)
+    const activeStepStillVisible = stepGroups.some(
+      group => group.id === activeStepId
+    )
 
     if (!activeStepStillVisible) {
       setActiveStepId(ALL_STEPS_ID)
@@ -686,7 +696,8 @@ export function ScenarioList({
   }
 
   const activeCategoryLabel =
-    categoryOptions.find(option => option.id === activeStepId)?.label || 'All steps'
+    categoryOptions.find(option => option.id === activeStepId)?.label ||
+    'All steps'
 
   const handleEditCustomScenario = (
     scenario: CustomScenario,
@@ -825,7 +836,9 @@ export function ScenarioList({
                       onClick={() => setMobileDrawerOpen(true)}
                     >
                       Browse steps
-                      <span className={styles.categoryCount}>{activeCategoryLabel}</span>
+                      <span className={styles.categoryCount}>
+                        {activeCategoryLabel}
+                      </span>
                     </Button>
                   </div>
                 ) : null}
@@ -839,7 +852,8 @@ export function ScenarioList({
                         appearance="secondary"
                         className={mergeClasses(
                           styles.filterButton,
-                          activityFilter === filter.id && styles.activeFilterButton
+                          activityFilter === filter.id &&
+                            styles.activeFilterButton
                         )}
                         onClick={() => setActivityFilter(filter.id)}
                       >
@@ -871,7 +885,11 @@ export function ScenarioList({
                 <div className={styles.mobileFilterRow}>
                   <Dropdown
                     className={styles.filterDropdown}
-                    value={ACTIVITY_FILTERS.find(filter => filter.id === activityFilter)?.label || ''}
+                    value={
+                      ACTIVITY_FILTERS.find(
+                        filter => filter.id === activityFilter
+                      )?.label || ''
+                    }
                     selectedOptions={[activityFilter]}
                     onOptionSelect={(_, data) => {
                       if (data.optionValue) {
@@ -887,7 +905,10 @@ export function ScenarioList({
                   </Dropdown>
                   <Dropdown
                     className={styles.filterDropdown}
-                    value={SOUND_FILTERS.find(filter => filter.id === soundFilter)?.label || ''}
+                    value={
+                      SOUND_FILTERS.find(filter => filter.id === soundFilter)
+                        ?.label || ''
+                    }
                     selectedOptions={[soundFilter]}
                     onOptionSelect={(_, data) => {
                       if (data.optionValue) {
@@ -904,7 +925,10 @@ export function ScenarioList({
                 </div>
               </div>
 
-              <Dialog open={mobileDrawerOpen} onOpenChange={(_, data) => setMobileDrawerOpen(data.open)}>
+              <Dialog
+                open={mobileDrawerOpen}
+                onOpenChange={(_, data) => setMobileDrawerOpen(data.open)}
+              >
                 <DialogSurface className={styles.drawerSurface}>
                   <DialogTitle>Browse exercises</DialogTitle>
                   <DialogBody className={styles.drawerBody}>
@@ -916,7 +940,8 @@ export function ScenarioList({
                           appearance="secondary"
                           className={mergeClasses(
                             styles.categoryButton,
-                            activeStepId === option.id && styles.categoryButtonActive
+                            activeStepId === option.id &&
+                              styles.categoryButtonActive
                           )}
                           onClick={() => {
                             setActiveStepId(option.id)
@@ -924,20 +949,30 @@ export function ScenarioList({
                           }}
                         >
                           {option.label}
-                          <span className={styles.categoryCount}>{option.count}</span>
+                          <span className={styles.categoryCount}>
+                            {option.count}
+                          </span>
                         </Button>
                       ))}
                     </div>
 
                     <div className={styles.drawerSection}>
-                      <Text className={styles.drawerSectionTitle}>Activity</Text>
+                      <Text className={styles.drawerSectionTitle}>
+                        Activity
+                      </Text>
                       <Dropdown
                         className={styles.filterDropdown}
-                        value={ACTIVITY_FILTERS.find(filter => filter.id === activityFilter)?.label || ''}
+                        value={
+                          ACTIVITY_FILTERS.find(
+                            filter => filter.id === activityFilter
+                          )?.label || ''
+                        }
                         selectedOptions={[activityFilter]}
                         onOptionSelect={(_, data) => {
                           if (data.optionValue) {
-                            setActivityFilter(data.optionValue as ActivityFilterId)
+                            setActivityFilter(
+                              data.optionValue as ActivityFilterId
+                            )
                           }
                         }}
                       >
@@ -950,10 +985,16 @@ export function ScenarioList({
                     </div>
 
                     <div className={styles.drawerSection}>
-                      <Text className={styles.drawerSectionTitle}>Target sound</Text>
+                      <Text className={styles.drawerSectionTitle}>
+                        Target sound
+                      </Text>
                       <Dropdown
                         className={styles.filterDropdown}
-                        value={SOUND_FILTERS.find(filter => filter.id === soundFilter)?.label || ''}
+                        value={
+                          SOUND_FILTERS.find(
+                            filter => filter.id === soundFilter
+                          )?.label || ''
+                        }
                         selectedOptions={[soundFilter]}
                         onOptionSelect={(_, data) => {
                           if (data.optionValue) {
@@ -974,52 +1015,57 @@ export function ScenarioList({
 
               {visibleStepGroups.length === 0 ? (
                 <Text className={styles.emptyState} size={300}>
-                  No practice matches this filter yet. Try another activity or sound.
+                  No practice matches this filter yet. Try another activity or
+                  sound.
                 </Text>
               ) : (
                 <div className={styles.stepGroups}>
                   {visibleStepGroups.map(group => {
-                const isExpanded = expandedGroups[group.id] ?? false
-                const visibleScenarios = isExpanded
-                  ? group.scenarios
-                  : group.scenarios.slice(0, MAX_CHILD_CARDS_PER_GROUP)
+                    const isExpanded = expandedGroups[group.id] ?? false
+                    const visibleScenarios = isExpanded
+                      ? group.scenarios
+                      : group.scenarios.slice(0, MAX_CHILD_CARDS_PER_GROUP)
 
-                return (
-                  <section key={group.id} className={styles.stepGroup}>
-                    <div className={styles.stepHeader}>
-                      <div className={styles.stepHeading}>
-                        <Text className={styles.stepTitle}>
-                          {group.stepNumber
-                            ? `Step ${group.stepNumber} · ${getStepLabel(group.stepNumber)}`
-                            : group.label}
-                        </Text>
-                        <Text className={styles.groupCount}>
-                          {group.scenarios.length} exercise{group.scenarios.length === 1 ? '' : 's'}
-                        </Text>
-                      </div>
+                    return (
+                      <section key={group.id} className={styles.stepGroup}>
+                        <div className={styles.stepHeader}>
+                          <div className={styles.stepHeading}>
+                            <Text className={styles.stepTitle}>
+                              {group.stepNumber
+                                ? `Step ${group.stepNumber} · ${getStepLabel(group.stepNumber)}`
+                                : group.label}
+                            </Text>
+                            <Text className={styles.groupCount}>
+                              {group.scenarios.length} exercise
+                              {group.scenarios.length === 1 ? '' : 's'}
+                            </Text>
+                          </div>
 
-                      {group.scenarios.length > MAX_CHILD_CARDS_PER_GROUP ? (
-                        <Button
-                          appearance="subtle"
-                          className={styles.showMoreButton}
-                          onClick={() =>
-                            setExpandedGroups(current => ({
-                              ...current,
-                              [group.id]: !isExpanded,
-                            }))
-                          }
-                        >
-                          {isExpanded ? 'Show less' : `Show all ${group.scenarios.length}`}
-                        </Button>
-                      ) : null}
-                    </div>
+                          {group.scenarios.length >
+                          MAX_CHILD_CARDS_PER_GROUP ? (
+                            <Button
+                              appearance="subtle"
+                              className={styles.showMoreButton}
+                              onClick={() =>
+                                setExpandedGroups(current => ({
+                                  ...current,
+                                  [group.id]: !isExpanded,
+                                }))
+                              }
+                            >
+                              {isExpanded
+                                ? 'Show less'
+                                : `Show all ${group.scenarios.length}`}
+                            </Button>
+                          ) : null}
+                        </div>
 
-                    <div className={styles.groupCards}>
-                      {visibleScenarios.map(renderScenarioCard)}
-                    </div>
-                  </section>
-                )
-              })}
+                        <div className={styles.groupCards}>
+                          {visibleScenarios.map(renderScenarioCard)}
+                        </div>
+                      </section>
+                    )
+                  })}
                 </div>
               )}
             </div>
@@ -1077,7 +1123,8 @@ export function ScenarioList({
                       }
                       description={
                         <Text className={styles.cardDescription} size={200}>
-                          {scenario.description || scenario.scenarioData.promptText}
+                          {scenario.description ||
+                            scenario.scenarioData.promptText}
                         </Text>
                       }
                       action={

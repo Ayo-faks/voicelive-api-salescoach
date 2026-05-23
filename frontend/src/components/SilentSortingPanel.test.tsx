@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '../services/api'
 import { SilentSortingPanel } from './SilentSortingPanel'
@@ -73,7 +79,9 @@ describe('SilentSortingPanel (ExerciseShell adapter)', () => {
 
     // Wait for ORIENT→EXPOSE auto-advance.
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Hear thhh sound/i })).toBeTruthy()
+      expect(
+        screen.getByRole('button', { name: /Hear thhh sound/i })
+      ).toBeTruthy()
     })
 
     // No perform-phase affordances before Start.
@@ -85,7 +93,11 @@ describe('SilentSortingPanel (ExerciseShell adapter)', () => {
     await waitFor(() => {
       // Preview resolves and button re-enables (pending cleared).
       expect(
-        (screen.getByRole('button', { name: /Hear thhh sound/i }) as HTMLButtonElement).disabled,
+        (
+          screen.getByRole('button', {
+            name: /Hear thhh sound/i,
+          }) as HTMLButtonElement
+        ).disabled
       ).toBe(false)
     })
     expect(screen.queryAllByText('Cards to sort')).toHaveLength(0)
@@ -94,7 +106,8 @@ describe('SilentSortingPanel (ExerciseShell adapter)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Hear fff sound/i }))
     await waitFor(() => {
       expect(
-        (screen.getByTestId('silent-sorting-start-game') as HTMLButtonElement).disabled,
+        (screen.getByTestId('silent-sorting-start-game') as HTMLButtonElement)
+          .disabled
       ).toBe(false)
     })
     expect(screen.queryAllByText('Cards to sort')).toHaveLength(0)
@@ -112,7 +125,9 @@ describe('SilentSortingPanel (ExerciseShell adapter)', () => {
     seedShellGesture()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Hear thhh sound/i })).toBeTruthy()
+      expect(
+        screen.getByRole('button', { name: /Hear thhh sound/i })
+      ).toBeTruthy()
     })
 
     // Percept labels present.
@@ -134,13 +149,16 @@ describe('SilentSortingPanel (ExerciseShell adapter)', () => {
 
     // Tap both previews so canAdvanceFromExpose flips true and Start enables.
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Hear thhh sound/i })).toBeTruthy()
+      expect(
+        screen.getByRole('button', { name: /Hear thhh sound/i })
+      ).toBeTruthy()
     })
     fireEvent.click(screen.getByRole('button', { name: /Hear thhh sound/i }))
     fireEvent.click(screen.getByRole('button', { name: /Hear fff sound/i }))
     await waitFor(() => {
       expect(
-        (screen.getByTestId('silent-sorting-start-game') as HTMLButtonElement).disabled,
+        (screen.getByTestId('silent-sorting-start-game') as HTMLButtonElement)
+          .disabled
       ).toBe(false)
     })
     fireEvent.click(screen.getByTestId('silent-sorting-start-game'))
@@ -157,7 +175,11 @@ describe('SilentSortingPanel (ExerciseShell adapter)', () => {
     const details = summary.closest('details')
     expect(details).not.toBeNull()
     // Phoneme buttons still reachable from within the demoted panel.
-    expect(within(details as HTMLElement).getByRole('button', { name: /Hear thhh sound/i })).toBeTruthy()
+    expect(
+      within(details as HTMLElement).getByRole('button', {
+        name: /Hear thhh sound/i,
+      })
+    ).toBeTruthy()
   })
 
   it('falls back to TTS candidate when curated asset is missing', async () => {
@@ -167,7 +189,9 @@ describe('SilentSortingPanel (ExerciseShell adapter)', () => {
     seedShellGesture()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Hear fff sound/i })).toBeTruthy()
+      expect(
+        screen.getByRole('button', { name: /Hear fff sound/i })
+      ).toBeTruthy()
     })
 
     // F has no curated asset → must route via api.synthesizeSpeech with the pseudo-spelling "fff".
@@ -185,7 +209,9 @@ describe('SilentSortingPanel (ExerciseShell adapter)', () => {
     seedShellGesture()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Hear thhh sound/i })).toBeTruthy()
+      expect(
+        screen.getByRole('button', { name: /Hear thhh sound/i })
+      ).toBeTruthy()
     })
 
     fireEvent.click(screen.getByRole('button', { name: /Hear thhh sound/i }))
@@ -199,12 +225,14 @@ describe('SilentSortingPanel (ExerciseShell adapter)', () => {
   it('dev save-take appears only when VITE_ENABLE_PREVIEW_EXPORT is set', async () => {
     // Default (flag unset): no Save take button, even for therapists.
     const { unmount } = render(
-      <SilentSortingPanel audience="therapist" metadata={baseMetadata} />,
+      <SilentSortingPanel audience="therapist" metadata={baseMetadata} />
     )
     seedShellGesture()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Hear thhh sound/i })).toBeTruthy()
+      expect(
+        screen.getByRole('button', { name: /Hear thhh sound/i })
+      ).toBeTruthy()
     })
 
     expect(screen.queryByRole('button', { name: 'Save take' })).toBeNull()
@@ -215,7 +243,9 @@ describe('SilentSortingPanel (ExerciseShell adapter)', () => {
     // Flag on: Save take button rendered inside the shell devSlot.
     vi.stubEnv('VITE_ENABLE_PREVIEW_EXPORT', 'true')
     try {
-      render(<SilentSortingPanel audience="therapist" metadata={baseMetadata} />)
+      render(
+        <SilentSortingPanel audience="therapist" metadata={baseMetadata} />
+      )
       seedShellGesture()
 
       await waitFor(() => {

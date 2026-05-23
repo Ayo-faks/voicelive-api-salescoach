@@ -43,7 +43,10 @@ import {
   type TourDefinition,
 } from '../../onboarding/tours'
 import { ONBOARDING_EVENTS } from '../../onboarding/events'
-import { consumePendingReplayTour, onReplayTourRequested } from '../../onboarding/bus'
+import {
+  consumePendingReplayTour,
+  onReplayTourRequested,
+} from '../../onboarding/bus'
 import { OnboardingContext } from '../../onboarding/context'
 import { telemetry } from '../../services/telemetry'
 import { AnnouncementBanner } from './AnnouncementBanner'
@@ -100,7 +103,8 @@ const OnboardingRuntimeBase = forwardRef<
     if (legacyMigrated) return
     if (uiState.loading || isChildContext || !authenticated) return
     if (typeof window === 'undefined') return
-    const legacy = window.localStorage.getItem('wulo.onboarding.complete') === 'true'
+    const legacy =
+      window.localStorage.getItem('wulo.onboarding.complete') === 'true'
     if (!legacy) {
       setLegacyMigrated(true)
       return
@@ -120,7 +124,9 @@ const OnboardingRuntimeBase = forwardRef<
     authenticated,
   ])
 
-  const [replayingTour, setReplayingTour] = useState<TourDefinition | null>(null)
+  const [replayingTour, setReplayingTour] = useState<TourDefinition | null>(
+    null
+  )
 
   const activeTour: TourDefinition | null = useMemo(() => {
     if (replayingTour) return replayingTour
@@ -148,7 +154,9 @@ const OnboardingRuntimeBase = forwardRef<
   // Emit a single `tour_started` event per activation.
   useEffect(() => {
     if (!activeTour) return
-    telemetry.trackEvent(ONBOARDING_EVENTS.TOUR_STARTED, { tour_id: activeTour.id })
+    telemetry.trackEvent(ONBOARDING_EVENTS.TOUR_STARTED, {
+      tour_id: activeTour.id,
+    })
   }, [activeTour])
 
   const handleComplete = (tourId: string): void => {
@@ -245,7 +253,9 @@ export const OnboardingRuntime = forwardRef<
   OnboardingRuntimeProps
 >(function OnboardingRuntime(props, ref) {
   if (props.uiState) {
-    return <OnboardingRuntimeBase {...props} uiState={props.uiState} ref={ref} />
+    return (
+      <OnboardingRuntimeBase {...props} uiState={props.uiState} ref={ref} />
+    )
   }
 
   return <OnboardingRuntimeWithLocalState {...props} ref={ref} />

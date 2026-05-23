@@ -26,7 +26,8 @@ import type { ExercisePhase, ExerciseShellProps, PhaseEvent } from './types'
 const WARMING_COPY = 'Buddy is warming up…'
 
 function prefersReducedMotionNow(): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function')
+    return false
   try {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches
   } catch {
@@ -37,9 +38,14 @@ function prefersReducedMotionNow(): boolean {
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState<boolean>(prefersReducedMotionNow)
   useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
+    if (
+      typeof window === 'undefined' ||
+      typeof window.matchMedia !== 'function'
+    )
+      return
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const handler = (event: MediaQueryListEvent): void => setReduced(event.matches)
+    const handler = (event: MediaQueryListEvent): void =>
+      setReduced(event.matches)
     if (typeof mq.addEventListener === 'function') {
       mq.addEventListener('change', handler)
       return () => mq.removeEventListener('change', handler)
@@ -68,7 +74,7 @@ function beatTextForPhase(
   }
 }
 
-export const ExerciseShell: FC<ExerciseShellProps> = (props) => {
+export const ExerciseShell: FC<ExerciseShellProps> = props => {
   const {
     audience,
     beats,
@@ -88,9 +94,16 @@ export const ExerciseShell: FC<ExerciseShellProps> = (props) => {
   } = props
 
   // BRIDGE copy invariant — throws in dev, warn+truncate in prod.
-  const bridgeCopy = useMemo(() => assertBridgeCopy(beats.bridge), [beats.bridge])
+  const bridgeCopy = useMemo(
+    () => assertBridgeCopy(beats.bridge),
+    [beats.bridge]
+  )
   const effectiveBeats = useMemo(
-    () => ({ orient: beats.orient, bridge: bridgeCopy, reinforce: beats.reinforce }),
+    () => ({
+      orient: beats.orient,
+      bridge: bridgeCopy,
+      reinforce: beats.reinforce,
+    }),
     [beats.orient, bridgeCopy, beats.reinforce]
   )
 
@@ -119,7 +132,13 @@ export const ExerciseShell: FC<ExerciseShellProps> = (props) => {
     return () => {
       window.clearTimeout(handle)
     }
-  }, [audience, gestureUnlocked, realtimeReady, warmupElapsed, childRealtimeWarmupMs])
+  }, [
+    audience,
+    gestureUnlocked,
+    realtimeReady,
+    warmupElapsed,
+    childRealtimeWarmupMs,
+  ])
 
   // If the realtime channel becomes ready organically after a warm-up bypass,
   // drop the stale flag so reconnect cycles start clean.
@@ -144,7 +163,7 @@ export const ExerciseShell: FC<ExerciseShellProps> = (props) => {
   // - `canAdvanceFromExpose` prop fills the reducer gate when the caller didn't pass
   //   `canAdvance` explicitly. Explicit `canAdvance: true` (Start press) still wins.
   const effectiveDispatch = useCallback<Dispatch<PhaseEvent>>(
-    (event) => {
+    event => {
       if (event.type === 'ADVANCE') {
         const explicit = event.canAdvance
         const gateValue =
@@ -160,7 +179,13 @@ export const ExerciseShell: FC<ExerciseShellProps> = (props) => {
       }
       dispatch(event)
     },
-    [dispatch, suppressBridge, state.phase, state.exposeTouched, canAdvanceFromExpose]
+    [
+      dispatch,
+      suppressBridge,
+      state.phase,
+      state.exposeTouched,
+      canAdvanceFromExpose,
+    ]
   )
 
   // Beat orchestration: fire onBeatEnter at ORIENT/BRIDGE/REINFORCE entry; auto-advance
@@ -187,7 +212,11 @@ export const ExerciseShell: FC<ExerciseShellProps> = (props) => {
         if (phase === 'orient') {
           dispatch({ type: 'ORIENT_DONE' })
         } else if (phase === 'bridge') {
-          dispatch(collapsePerform ? { type: 'COLLAPSE_PERFORM' } : { type: 'BRIDGE_DONE' })
+          dispatch(
+            collapsePerform
+              ? { type: 'COLLAPSE_PERFORM' }
+              : { type: 'BRIDGE_DONE' }
+          )
         }
         // REINFORCE does not auto-advance; adapter handles exit.
       })
@@ -228,11 +257,18 @@ export const ExerciseShell: FC<ExerciseShellProps> = (props) => {
       performStartedAt: state.performStartedAt,
       dispatch: effectiveDispatch,
     }),
-    [state.phase, state.exposeTouched, state.performStartedAt, effectiveDispatch]
+    [
+      state.phase,
+      state.exposeTouched,
+      state.performStartedAt,
+      effectiveDispatch,
+    ]
   )
 
   const showSkipIntro =
-    audience === 'therapist' && Boolean(therapistCanSkipIntro) && state.phase === 'orient'
+    audience === 'therapist' &&
+    Boolean(therapistCanSkipIntro) &&
+    state.phase === 'orient'
 
   const handleSkipIntro = (): void => {
     dispatch({ type: 'THERAPIST_SKIP', kind: 'skip-intro' })
@@ -263,7 +299,9 @@ export const ExerciseShell: FC<ExerciseShellProps> = (props) => {
         data-reduced-motion={reducedMotion ? 'true' : 'false'}
         data-gesture-unlocked={gestureUnlocked ? 'true' : 'false'}
         data-realtime-ready={realtimeReady ? 'true' : 'false'}
-        data-effective-realtime-ready={effectiveRealtimeReady ? 'true' : 'false'}
+        data-effective-realtime-ready={
+          effectiveRealtimeReady ? 'true' : 'false'
+        }
         data-warmup-elapsed={warmupElapsed ? 'true' : 'false'}
         onPointerDown={handleRootGesture}
         onKeyDown={handleRootGesture}
@@ -329,7 +367,9 @@ export const ExerciseShell: FC<ExerciseShellProps> = (props) => {
               Tap to start
             </button>
             <style>
-              {'@keyframes exercise-shell-child-start-pulse { 0%,100% { transform: scale(1); box-shadow: 0 6px 18px rgba(107,138,253,0.35) } 50% { transform: scale(1.04); box-shadow: 0 10px 26px rgba(107,138,253,0.5) } }'}
+              {
+                '@keyframes exercise-shell-child-start-pulse { 0%,100% { transform: scale(1); box-shadow: 0 6px 18px rgba(107,138,253,0.35) } 50% { transform: scale(1.04); box-shadow: 0 10px 26px rgba(107,138,253,0.5) } }'
+              }
             </style>
           </div>
         ) : null}
@@ -345,16 +385,25 @@ export const ExerciseShell: FC<ExerciseShellProps> = (props) => {
         </output>
 
         {showExposeMain ? (
-          <div className="exercise-shell__slot exercise-shell__slot--expose" data-slot="expose">
+          <div
+            className="exercise-shell__slot exercise-shell__slot--expose"
+            data-slot="expose"
+          >
             {slots.expose}
           </div>
         ) : null}
 
         {showPerform ? (
-          <div className="exercise-shell__slot exercise-shell__slot--perform" data-slot="perform">
+          <div
+            className="exercise-shell__slot exercise-shell__slot--perform"
+            data-slot="perform"
+          >
             {slots.perform}
             {!covertExpose && !hideDemotedExpose ? (
-              <details className="exercise-shell__expose-accordion" data-slot="expose-demoted">
+              <details
+                className="exercise-shell__expose-accordion"
+                data-slot="expose-demoted"
+              >
                 <summary>Hear the sounds</summary>
                 {slots.expose}
               </details>
@@ -372,7 +421,10 @@ export const ExerciseShell: FC<ExerciseShellProps> = (props) => {
         ) : null}
 
         {devSlot ? (
-          <aside className="exercise-shell__dev-slot" data-testid="exercise-shell-dev-slot">
+          <aside
+            className="exercise-shell__dev-slot"
+            data-testid="exercise-shell-dev-slot"
+          >
             {devSlot}
           </aside>
         ) : null}

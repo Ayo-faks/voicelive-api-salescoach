@@ -1,6 +1,11 @@
 import type { ExerciseType, Scenario } from '../types'
 
-export type ActivityFilterId = 'recommended' | 'listening' | 'sound' | 'words' | 'all'
+export type ActivityFilterId =
+  | 'recommended'
+  | 'listening'
+  | 'sound'
+  | 'words'
+  | 'all'
 export type SoundFamilyId = 'all' | 's' | 'sh' | 'k' | 'th' | 'r' | 'pairs'
 
 export type FilterOption<T extends string> = {
@@ -33,7 +38,10 @@ export const SOUND_FILTERS: FilterOption<SoundFamilyId>[] = [
   { id: 'pairs', label: 'Pairs' },
 ]
 
-const LISTENING_TYPES: ExerciseType[] = ['listening_minimal_pairs', 'silent_sorting']
+const LISTENING_TYPES: ExerciseType[] = [
+  'listening_minimal_pairs',
+  'silent_sorting',
+]
 const SOUND_PRACTICE_TYPES: ExerciseType[] = [
   'sound_isolation',
   'vowel_blending',
@@ -121,7 +129,7 @@ export function getActivityFilterMatch(
 
     return Boolean(
       type &&
-        (LISTENING_TYPES.includes(type) || SOUND_PRACTICE_TYPES.includes(type))
+      (LISTENING_TYPES.includes(type) || SOUND_PRACTICE_TYPES.includes(type))
     )
   }
 
@@ -167,7 +175,8 @@ export function groupByStep(scenarios: Scenario[]): StepGroup[] {
 
   for (const scenario of scenarios) {
     const stepNumber = scenario.exerciseMetadata?.stepNumber
-    const key = typeof stepNumber === 'number' ? `step-${stepNumber}` : 'step-extra'
+    const key =
+      typeof stepNumber === 'number' ? `step-${stepNumber}` : 'step-extra'
 
     if (!groups.has(key)) {
       groups.set(key, {

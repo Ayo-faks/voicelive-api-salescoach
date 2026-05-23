@@ -35,7 +35,10 @@ export function isConversationalMicFlagEnabled(): boolean {
 }
 
 function isMicMode(value: unknown): value is MicMode {
-  return typeof value === 'string' && (VALID_MODES as readonly string[]).includes(value)
+  return (
+    typeof value === 'string' &&
+    (VALID_MODES as readonly string[]).includes(value)
+  )
 }
 
 /**
@@ -49,7 +52,7 @@ function isMicMode(value: unknown): value is MicMode {
  */
 export function readStoredMicMode(
   override?: MicMode,
-  storage: Pick<Storage, 'getItem'> | null = safeLocalStorage(),
+  storage: Pick<Storage, 'getItem'> | null = safeLocalStorage()
 ): MicMode {
   if (override && isMicMode(override)) return override
   if (!isConversationalMicFlagEnabled()) return 'tap'
@@ -66,7 +69,7 @@ export function readStoredMicMode(
 /** Persist the parent-facing toggle. No-op when storage is unavailable. */
 export function writeStoredMicMode(
   mode: MicMode,
-  storage: Pick<Storage, 'setItem'> | null = safeLocalStorage(),
+  storage: Pick<Storage, 'setItem'> | null = safeLocalStorage()
 ): void {
   if (!isMicMode(mode)) return
   if (!storage) return

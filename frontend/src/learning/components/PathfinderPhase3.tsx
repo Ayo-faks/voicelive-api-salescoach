@@ -8,7 +8,12 @@ import {
   makeStyles,
   tokens,
 } from '@fluentui/react-components'
-import { CheckCircleIcon, ShieldCheckIcon, SpeakerWaveIcon, XCircleIcon } from '@heroicons/react/24/outline'
+import {
+  CheckCircleIcon,
+  ShieldCheckIcon,
+  SpeakerWaveIcon,
+  XCircleIcon,
+} from '@heroicons/react/24/outline'
 
 export type Phase3ProvenanceView = {
   source: string
@@ -141,7 +146,11 @@ const useStyles = makeStyles({
   },
 })
 
-export function Phase3ProvenanceFooter({ provenance }: { provenance: Phase3ProvenanceView[] }) {
+export function Phase3ProvenanceFooter({
+  provenance,
+}: {
+  provenance: Phase3ProvenanceView[]
+}) {
   const styles = useStyles()
 
   return (
@@ -151,8 +160,13 @@ export function Phase3ProvenanceFooter({ provenance }: { provenance: Phase3Prove
       data-provenance-count={provenance.length}
     >
       {provenance.map((entry, index) => (
-        <Badge key={`${entry.source}:${entry.ruleId ?? index}`} appearance="outline">
-          {entry.source}{entry.ruleId ? ` / ${entry.ruleId}` : ''} · {entry.evidenceCount} evidence
+        <Badge
+          key={`${entry.source}:${entry.ruleId ?? index}`}
+          appearance="outline"
+        >
+          {entry.source}
+          {entry.ruleId ? ` / ${entry.ruleId}` : ''} · {entry.evidenceCount}{' '}
+          evidence
         </Badge>
       ))}
     </footer>
@@ -169,22 +183,43 @@ export function CareerNavigatorCard({ plan }: CareerNavigatorCardProps) {
         description={<Text size={200}>{plan.lang}</Text>}
       />
       <div className={styles.scroller}>
-        <table className={styles.pathwayTable} aria-label="Career pathway shortlist">
+        <table
+          className={styles.pathwayTable}
+          aria-label="Career pathway shortlist"
+        >
           <thead>
             <tr>
-              <th className={styles.headerCell} scope="col">Pathway</th>
-              <th className={styles.headerCell} scope="col">Fit</th>
-              <th className={styles.headerCell} scope="col">Wage band</th>
-              <th className={styles.headerCell} scope="col">Demand</th>
+              <th className={styles.headerCell} scope="col">
+                Pathway
+              </th>
+              <th className={styles.headerCell} scope="col">
+                Fit
+              </th>
+              <th className={styles.headerCell} scope="col">
+                Wage band
+              </th>
+              <th className={styles.headerCell} scope="col">
+                Demand
+              </th>
             </tr>
           </thead>
           <tbody>
-            {plan.pathways.map((pathway) => (
-              <tr key={pathway.pathwayId} data-testid={`phase3-pathway-${pathway.pathwayId}`}>
+            {plan.pathways.map(pathway => (
+              <tr
+                key={pathway.pathwayId}
+                data-testid={`phase3-pathway-${pathway.pathwayId}`}
+              >
                 <td className={styles.cell}>{pathway.title}</td>
-                <td className={styles.cell}>{Math.round(pathway.fitScore * 100)}%</td>
-                <td className={styles.cell}>{pathway.wageBand.source} · {pathway.wageBand.recency}</td>
-                <td className={styles.cell}>{pathway.demandTrend.source} · {String(pathway.demandTrend.value.trend)}</td>
+                <td className={styles.cell}>
+                  {Math.round(pathway.fitScore * 100)}%
+                </td>
+                <td className={styles.cell}>
+                  {pathway.wageBand.source} · {pathway.wageBand.recency}
+                </td>
+                <td className={styles.cell}>
+                  {pathway.demandTrend.source} ·{' '}
+                  {String(pathway.demandTrend.value.trend)}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -195,14 +230,26 @@ export function CareerNavigatorCard({ plan }: CareerNavigatorCardProps) {
   )
 }
 
-export function CounsellorGatePanel({ plan, decision, onApproveNarration, onRejectNarration }: CounsellorGatePanelProps) {
+export function CounsellorGatePanel({
+  plan,
+  decision,
+  onApproveNarration,
+  onRejectNarration,
+}: CounsellorGatePanelProps) {
   const styles = useStyles()
 
   return (
-    <Card data-testid="phase3-counsellor-gate" data-risk-level={decision.riskLevel}>
+    <Card
+      data-testid="phase3-counsellor-gate"
+      data-risk-level={decision.riskLevel}
+    >
       <CardHeader
         header={<Text weight="semibold">Counsellor narration gate</Text>}
-        description={<Text size={200}>{decision.allowed ? 'Advisor passed' : 'Typed refusal'}</Text>}
+        description={
+          <Text size={200}>
+            {decision.allowed ? 'Advisor passed' : 'Typed refusal'}
+          </Text>
+        }
       />
       {decision.allowed ? (
         <Text>Advisor passed grounding, safety and PII checks.</Text>
@@ -213,7 +260,9 @@ export function CounsellorGatePanel({ plan, decision, onApproveNarration, onReje
         <Tooltip content="Approve narration" relationship="label">
           <Button
             appearance="primary"
-            icon={<CheckCircleIcon className={styles.icon} aria-hidden="true" />}
+            icon={
+              <CheckCircleIcon className={styles.icon} aria-hidden="true" />
+            }
             onClick={() => onApproveNarration?.(plan.planId)}
           />
         </Tooltip>
@@ -229,7 +278,11 @@ export function CounsellorGatePanel({ plan, decision, onApproveNarration, onReje
   )
 }
 
-export function ParentProgressCard({ progress }: { progress: ParentProgressViewModel }) {
+export function ParentProgressCard({
+  progress,
+}: {
+  progress: ParentProgressViewModel
+}) {
   return (
     <Card data-testid="phase3-parent-progress-card">
       <CardHeader
@@ -247,13 +300,18 @@ export function VoiceQueueCard({ voiceQueue }: { voiceQueue: VoiceQueueView }) {
   const styles = useStyles()
 
   return (
-    <Card data-testid="phase3-voice-queue-card" data-queued={voiceQueue.queued ? 'true' : 'false'}>
+    <Card
+      data-testid="phase3-voice-queue-card"
+      data-queued={voiceQueue.queued ? 'true' : 'false'}
+    >
       <CardHeader
         header={<Text weight="semibold">Yoruba voice path</Text>}
         description={<Text size={200}>{voiceQueue.lang}</Text>}
         image={<SpeakerWaveIcon className={styles.icon} aria-hidden="true" />}
       />
-      <Text>{voiceQueue.queued ? voiceQueue.offlineFallback : voiceQueue.transcript}</Text>
+      <Text>
+        {voiceQueue.queued ? voiceQueue.offlineFallback : voiceQueue.transcript}
+      </Text>
       <Phase3ProvenanceFooter provenance={voiceQueue.provenance} />
     </Card>
   )
@@ -271,7 +329,10 @@ export function PathfinderPhase3Demo({
 
   return (
     <section className={styles.shell} data-testid="phase3-pilot-workspace">
-      <Badge appearance="filled" icon={<ShieldCheckIcon className={styles.icon} aria-hidden="true" />}>
+      <Badge
+        appearance="filled"
+        icon={<ShieldCheckIcon className={styles.icon} aria-hidden="true" />}
+      >
         Counsellor-gated pilot view
       </Badge>
       <CareerNavigatorCard plan={plan} />

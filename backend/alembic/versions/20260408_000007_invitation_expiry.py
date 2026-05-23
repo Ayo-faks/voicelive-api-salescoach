@@ -25,7 +25,9 @@ def upgrade() -> None:
         WHERE expires_at IS NULL
         """
     )
-    op.execute("CREATE INDEX IF NOT EXISTS idx_child_invitations_status_expiry ON child_invitations (status, expires_at)")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_child_invitations_status_expiry ON child_invitations (status, expires_at)"
+    )
 
 
 def downgrade() -> None:

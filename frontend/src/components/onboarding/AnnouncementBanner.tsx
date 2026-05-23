@@ -16,12 +16,7 @@
  */
 
 import { useMemo } from 'react'
-import {
-  Button,
-  Text,
-  makeStyles,
-  tokens,
-} from '@fluentui/react-components'
+import { Button, Text, makeStyles, tokens } from '@fluentui/react-components'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 
 import {

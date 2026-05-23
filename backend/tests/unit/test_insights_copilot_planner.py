@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Optional
 
 import pytest
 
@@ -136,9 +136,7 @@ def patch_sdk(monkeypatch):
 
     monkeypatch.setattr(planner_module, "CopilotClient", make_client)
     monkeypatch.setattr(planner_module, "SubprocessConfig", _FakeSubprocessConfig)
-    monkeypatch.setattr(
-        planner_module, "PermissionRequestResult", _FakePermissionRequestResult
-    )
+    monkeypatch.setattr(planner_module, "PermissionRequestResult", _FakePermissionRequestResult)
     monkeypatch.setattr(planner_module, "Tool", _FakeTool)
     monkeypatch.setattr(planner_module, "ToolResult", _FakeToolResult)
     return client_config
@@ -239,7 +237,7 @@ def test_run_turn_parses_json_answer(patch_sdk):
 
 
 def test_run_turn_strips_markdown_fences(patch_sdk):
-    patch_sdk["response_text"] = "```json\n{\"answer_text\": \"Hi\"}\n```"
+    patch_sdk["response_text"] = '```json\n{"answer_text": "Hi"}\n```'
     planner = CopilotInsightsPlanner(settings={})
     result = planner.run_turn(
         system_prompt="sys",

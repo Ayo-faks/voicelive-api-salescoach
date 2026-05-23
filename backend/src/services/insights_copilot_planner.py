@@ -161,9 +161,7 @@ class CopilotInsightsPlanner:
 
         # pre-tool hook enforces per-turn tool-call budget; the SDK looks at
         # the "permissionDecision" field to decide whether to run the tool.
-        async def on_pre_tool_use(
-            input_data: Dict[str, Any], invocation: Dict[str, str]
-        ) -> Dict[str, Any]:
+        async def on_pre_tool_use(input_data: Dict[str, Any], invocation: Dict[str, str]) -> Dict[str, Any]:
             del input_data, invocation
             if call_state["count"] >= call_state["budget"]:
                 return {
@@ -476,15 +474,9 @@ class CopilotInsightsPlanner:
             answer = str(payload.get("answer_text") or "").strip()
             citations_raw = payload.get("citations")
             visualizations_raw = payload.get("visualizations")
-            citations = (
-                [c for c in citations_raw if isinstance(c, dict)]
-                if isinstance(citations_raw, list)
-                else []
-            )
+            citations = [c for c in citations_raw if isinstance(c, dict)] if isinstance(citations_raw, list) else []
             visualizations = (
-                [v for v in visualizations_raw if isinstance(v, dict)]
-                if isinstance(visualizations_raw, list)
-                else []
+                [v for v in visualizations_raw if isinstance(v, dict)] if isinstance(visualizations_raw, list) else []
             )
             if answer:
                 return {

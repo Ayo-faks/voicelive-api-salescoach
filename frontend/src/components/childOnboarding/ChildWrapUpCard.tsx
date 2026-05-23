@@ -106,7 +106,9 @@ export function ChildWrapUpCard({
 
   if (!active) return null
 
-  const cardClass = reducedMotion ? styles.card : `${styles.card} ${styles.dropIn}`
+  const cardClass = reducedMotion
+    ? styles.card
+    : `${styles.card} ${styles.dropIn}`
 
   return (
     <div

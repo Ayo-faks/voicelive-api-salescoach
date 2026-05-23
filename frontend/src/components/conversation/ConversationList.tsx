@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react'
 import { Text } from '@fluentui/react-components'
-import { ConversationTurn, type ConversationTurnProps } from './ConversationTurn'
+import {
+  ConversationTurn,
+  type ConversationTurnProps,
+} from './ConversationTurn'
 import { useConversationStyles } from './conversationStyles'
 
 export interface ConversationListProps {
@@ -32,7 +35,13 @@ export function ConversationList({
             {emptyTitle}
           </Text>
         ) : null}
-        {emptyBody ? typeof emptyBody === 'string' ? <Text size={300}>{emptyBody}</Text> : emptyBody : null}
+        {emptyBody ? (
+          typeof emptyBody === 'string' ? (
+            <Text size={300}>{emptyBody}</Text>
+          ) : (
+            emptyBody
+          )
+        ) : null}
       </output>
     )
   }

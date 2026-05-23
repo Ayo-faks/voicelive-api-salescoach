@@ -30,7 +30,8 @@ class MasteryUpdateResult(LanguageAndProvenanceModel):
 class MasteryEstimator(Protocol):
     offline_fallback_available: bool
 
-    def update(self, update_input: MasteryUpdateInput) -> MasteryUpdateResult: ...
+    def update(self, update_input: MasteryUpdateInput) -> MasteryUpdateResult:
+        raise NotImplementedError
 
 
 class BetaBKT:
@@ -96,6 +97,8 @@ class Elo:
             skill_id=update_input.skill_id,
             lang=update_input.lang,
             provenance=provenance,
-            estimate=MasteryEstimate(kind="elo", rating=rating, deviation=deviation, probability=probability, uncertainty=uncertainty),
+            estimate=MasteryEstimate(
+                kind="elo", rating=rating, deviation=deviation, probability=probability, uncertainty=uncertainty
+            ),
             evidence_count=1,
         )

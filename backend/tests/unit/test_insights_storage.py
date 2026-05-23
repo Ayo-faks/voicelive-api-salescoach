@@ -70,9 +70,7 @@ class TestInsightsConversationStorage:
         assert ids[0] == first["id"]
         assert second["id"] in ids
 
-    def test_append_messages_roundtrip_json_and_updates_parent(
-        self, tmp_path: Path
-    ) -> None:
+    def test_append_messages_roundtrip_json_and_updates_parent(self, tmp_path: Path) -> None:
         service, user_id, child_id = _bootstrap_therapist_with_child(tmp_path)
         conversation = service.create_insight_conversation(
             user_id=user_id,
@@ -98,9 +96,7 @@ class TestInsightsConversationStorage:
                     "title": "Scores",
                     "x_label": "Session",
                     "y_label": "Score",
-                    "series": [
-                        {"name": "overall", "points": [{"x": "s1", "y": 0.4}]}
-                    ],
+                    "series": [{"name": "overall", "points": [{"x": "s1", "y": 0.4}]}],
                 }
             ],
             tool_trace=[
@@ -119,9 +115,7 @@ class TestInsightsConversationStorage:
         messages = service.list_insight_messages(conversation["id"])
         assert [m["role"] for m in messages] == ["user", "assistant"]
         assistant = messages[1]
-        assert assistant["citations"] == [
-            {"kind": "child", "child_id": child_id, "label": "Kid A"}
-        ]
+        assert assistant["citations"] == [{"kind": "child", "child_id": child_id, "label": "Kid A"}]
         assert assistant["visualizations"][0]["kind"] == "line"
         assert assistant["tool_trace"][0]["name"] == "get_child_overview"
         assert assistant["latency_ms"] == 42
@@ -139,9 +133,7 @@ class TestInsightsConversationStorage:
             scope_child_id=child_id,
             prompt_version="insights-v1",
         )
-        service.append_insight_message(
-            conv["id"], role="user", content_text="hello"
-        )
+        service.append_insight_message(conv["id"], role="user", content_text="hello")
 
         # delete_child_data has an inconsistent return (None on success in the
         # happy path today, False when no such child); the effect is what we

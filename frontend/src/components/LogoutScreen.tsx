@@ -15,7 +15,8 @@ const useStyles = makeStyles({
     width: 'min(372px, 100%)',
     borderRadius: '0px',
     border: '1px solid rgba(17, 36, 58, 0.08)',
-    background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.92))',
+    background:
+      'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.92))',
     boxShadow: '0 32px 80px rgba(17, 36, 58, 0.12)',
     padding: '32px 28px 26px',
     display: 'grid',
@@ -116,14 +117,20 @@ export function LogoutScreen() {
       iframe.remove()
     }
     document.body.appendChild(iframe)
-    return () => { iframe.remove() }
+    return () => {
+      iframe.remove()
+    }
   }, [])
 
   return (
     <div className={styles.shell}>
       <section className={styles.card}>
         <div className={styles.brandRow}>
-          <img src="/wulo-logo.png" alt="Wulo logo" className={styles.brandMark} />
+          <img
+            src="/wulo-logo.png"
+            alt="Wulo logo"
+            className={styles.brandMark}
+          />
           <div className={styles.brandLockup}>
             <Text className={styles.brandName}>{APP_TITLE}</Text>
             <Text className={styles.brandMeta}>{APP_RELEASE_LABEL}</Text>
@@ -141,10 +148,15 @@ export function LogoutScreen() {
           <>
             <Text className={styles.eyebrow}>See you soon</Text>
             <Text className={styles.title}>You've been signed out</Text>
-            <Text className={styles.body}>Your session has been cleared. Sign in again to continue practicing.</Text>
+            <Text className={styles.body}>
+              Your session has been cleared. Sign in again to continue
+              practicing.
+            </Text>
             <Button
               className={`${styles.buttonBase} ${styles.primaryButton}`}
-              onClick={() => { window.location.href = '/' }}
+              onClick={() => {
+                window.location.href = '/'
+              }}
             >
               Return to Wulo
             </Button>

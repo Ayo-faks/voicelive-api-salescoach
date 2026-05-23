@@ -25,7 +25,9 @@ describe('EmptyState', () => {
 
     expect(screen.getByTestId('empty-state-settings-no-children')).toBeTruthy()
     expect(screen.getByText('No children yet')).toBeTruthy()
-    expect(screen.getByText('Add your first child to get started.')).toBeTruthy()
+    expect(
+      screen.getByText('Add your first child to get started.')
+    ).toBeTruthy()
   })
 
   it('fires onCtaClick with surface before the action callback', () => {

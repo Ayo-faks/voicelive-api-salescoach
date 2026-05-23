@@ -128,19 +128,46 @@ export function WuloRobot({ size = 220, wink = true }: Props) {
         <ellipse cx="100" cy="214" rx="52" ry="6" fill="url(#wr-shadow)" />
 
         {/* Antenna */}
-        <line x1="100" y1="18" x2="100" y2="38" stroke="#0d8a84" strokeWidth="4" strokeLinecap="round" />
+        <line
+          x1="100"
+          y1="18"
+          x2="100"
+          y2="38"
+          stroke="#0d8a84"
+          strokeWidth="4"
+          strokeLinecap="round"
+        />
         <circle cx="100" cy="14" r="7" fill="#ffca28" />
         <circle cx="100" cy="12" r="3" fill="#fff8e1" opacity="0.7" />
 
         {/* Head */}
-        <rect x="46" y="38" width="108" height="80" rx="26" fill="url(#wr-head)" />
+        <rect
+          x="46"
+          y="38"
+          width="108"
+          height="80"
+          rx="26"
+          fill="url(#wr-head)"
+        />
         {/* Visor / eye area */}
-        <rect x="58" y="54" width="84" height="46" rx="18" fill="url(#wr-screen)" />
+        <rect
+          x="58"
+          y="54"
+          width="84"
+          height="46"
+          rx="18"
+          fill="url(#wr-screen)"
+        />
 
         {/* Left eye */}
         <ellipse cx="82" cy="77" rx="12" ry={winking ? 1.5 : 13} fill="#1a2744">
-          <animate attributeName="ry" dur="0.15s" fill="freeze"
-            from={winking ? '13' : '13'} to={winking ? '1.5' : '13'} />
+          <animate
+            attributeName="ry"
+            dur="0.15s"
+            fill="freeze"
+            from={winking ? '13' : '13'}
+            to={winking ? '1.5' : '13'}
+          />
         </ellipse>
         {!winking && (
           <>
@@ -155,14 +182,27 @@ export function WuloRobot({ size = 220, wink = true }: Props) {
         <circle cx="115" cy="81" r="2" fill="#fff" opacity="0.4" />
 
         {/* Smile */}
-        <path d="M82 92 Q100 106, 118 92" stroke="#065550" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path
+          d="M82 92 Q100 106, 118 92"
+          stroke="#065550"
+          strokeWidth="3"
+          fill="none"
+          strokeLinecap="round"
+        />
 
         {/* Cheek blush */}
         <circle cx="64" cy="88" r="8" fill="#ff8a80" opacity="0.25" />
         <circle cx="136" cy="88" r="8" fill="#ff8a80" opacity="0.25" />
 
         {/* Body */}
-        <rect x="56" y="122" width="88" height="64" rx="22" fill="url(#wr-body)" />
+        <rect
+          x="56"
+          y="122"
+          width="88"
+          height="64"
+          rx="22"
+          fill="url(#wr-body)"
+        />
         {/* Chest circle / speaker */}
         <circle cx="100" cy="150" r="14" fill="#065550" opacity="0.4" />
         <circle cx="100" cy="150" r="9" fill="#4eeae0" opacity="0.6" />

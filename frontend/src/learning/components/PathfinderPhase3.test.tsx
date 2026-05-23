@@ -28,14 +28,20 @@ const plan: CareerPlanView = {
       pathwayId: 'data-analyst-ng',
       title: 'Data analyst',
       fitScore: 0.86,
-      wageBand: { source: 'nbs_phase_3_fixture', recency: '2026-Q1', confidence: 0.78, value: { min_monthly: 250000 } },
+      wageBand: {
+        source: 'nbs_phase_3_fixture',
+        recency: '2026-Q1',
+        confidence: 0.78,
+        value: { min_monthly: 250000 },
+      },
       demandTrend: {
         source: 'world_bank_step_phase_3_fixture',
         recency: '2026-Q1',
         confidence: 0.82,
         value: { trend: 'rising' },
       },
-      rationale: 'Ranked from mastery profile, wage band, demand trend, source recency, and consent state.',
+      rationale:
+        'Ranked from mastery profile, wage band, demand trend, source recency, and consent state.',
     },
   ],
 }
@@ -44,7 +50,8 @@ const decision: AdvisorDecisionView = {
   allowed: false,
   riskLevel: 'refuse',
   reasons: ['under_16_requires_counsellor_signoff'],
-  typedRefusal: 'A counsellor must review this career explanation before it is shown to the learner.',
+  typedRefusal:
+    'A counsellor must review this career explanation before it is shown to the learner.',
 }
 
 const parentProgress: ParentProgressViewModel = {
@@ -72,15 +79,34 @@ const voiceQueue: VoiceQueueView = {
 
 describe('PathfinderPhase3Demo', () => {
   it('renders sourced career, parent, and multilingual voice cards with provenance', () => {
-    render(<PathfinderPhase3Demo plan={plan} decision={decision} parentProgress={parentProgress} voiceQueue={voiceQueue} />)
+    render(
+      <PathfinderPhase3Demo
+        plan={plan}
+        decision={decision}
+        parentProgress={parentProgress}
+        voiceQueue={voiceQueue}
+      />
+    )
 
     expect(screen.getByTestId('phase3-pilot-workspace')).toBeTruthy()
-    expect(screen.getByTestId('phase3-career-card').textContent).toContain('Data analyst')
-    expect(screen.getByTestId('phase3-career-card').textContent).toContain('nbs_phase_3_fixture')
-    expect(screen.getByTestId('phase3-parent-progress-card').textContent).toContain('Linear equations is secure')
-    expect(screen.getByTestId('phase3-voice-queue-card').getAttribute('data-queued')).toBe('true')
-    expect(screen.getByTestId('phase3-voice-queue-card').textContent).toContain('queued_multilingual_voice_frame')
-    expect(screen.getAllByTestId('phase3-provenance-footer').length).toBeGreaterThanOrEqual(3)
+    expect(screen.getByTestId('phase3-career-card').textContent).toContain(
+      'Data analyst'
+    )
+    expect(screen.getByTestId('phase3-career-card').textContent).toContain(
+      'nbs_phase_3_fixture'
+    )
+    expect(
+      screen.getByTestId('phase3-parent-progress-card').textContent
+    ).toContain('Linear equations is secure')
+    expect(
+      screen.getByTestId('phase3-voice-queue-card').getAttribute('data-queued')
+    ).toBe('true')
+    expect(screen.getByTestId('phase3-voice-queue-card').textContent).toContain(
+      'queued_multilingual_voice_frame'
+    )
+    expect(
+      screen.getAllByTestId('phase3-provenance-footer').length
+    ).toBeGreaterThanOrEqual(3)
   })
 
   it('surfaces typed refusal while keeping counsellor signoff explicit', () => {
@@ -94,7 +120,7 @@ describe('PathfinderPhase3Demo', () => {
         voiceQueue={voiceQueue}
         onApproveNarration={onApproveNarration}
         onRejectNarration={onRejectNarration}
-      />,
+      />
     )
 
     const gate = screen.getByTestId('phase3-counsellor-gate')

@@ -11,6 +11,7 @@ structured visualizations, and a concise tool trace per message.
 Columns are kept minimal and vendor-neutral. Prompt/tool versioning and
 latency live on the message row so every answer is auditable.
 """
+
 from __future__ import annotations
 
 from alembic import op

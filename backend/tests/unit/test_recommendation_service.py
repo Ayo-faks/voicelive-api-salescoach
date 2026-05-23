@@ -154,9 +154,7 @@ def test_generate_recommendations_prefers_memory_aligned_phrase_progression(tmp_
     assert detail["ranking_context"]["institutional_memory"]["insights"]
     assert top_candidate["explanation"]["institutional_insights"]
     assert "Ayo" not in detail["ranking_context"]["institutional_memory"]["summary_text"]
-    assert "memory-cue-phrase" in {
-        item["id"] for item in top_candidate["explanation"]["supporting_memory_items"]
-    }
+    assert "memory-cue-phrase" in {item["id"] for item in top_candidate["explanation"]["supporting_memory_items"]}
     assert "session-recommendation-1" in {
         session["id"] for session in top_candidate["explanation"]["supporting_sessions"]
     }

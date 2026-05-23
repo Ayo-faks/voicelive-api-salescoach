@@ -22,7 +22,8 @@ class XAPIStatement(ContractModel):
 
 
 class XAPIEmitter(Protocol):
-    def emit(self, statement: XAPIStatement) -> XAPIStatement: ...
+    def emit(self, statement: XAPIStatement) -> XAPIStatement:
+        raise NotImplementedError
 
 
 class ApprovalEvent(LanguageAndProvenanceModel):
@@ -124,7 +125,10 @@ def diagnostic_completion_event_to_xapi(event: DiagnosticCompletionEvent) -> XAP
         id=event.event_id,
         actor=_actor(event.student_id),
         verb={"id": "http://adlnet.gov/expapi/verbs/completed", "display": {"en": "completed"}},
-        object={"id": f"https://pathfinder.learn/diagnostics/{event.diagnostic_id}", "definition": {"type": "Diagnostic"}},
+        object={
+            "id": f"https://pathfinder.learn/diagnostics/{event.diagnostic_id}",
+            "definition": {"type": "Diagnostic"},
+        },
         result={"extensions": {"https://pathfinder.learn/extensions/item_count": event.item_count}},
         context=_context(event.tenant_id, event.lang, event.provenance),
     )
@@ -134,7 +138,10 @@ def career_plan_event_to_xapi(event: CareerPlanEvent) -> XAPIStatement:
     return XAPIStatement(
         id=event.event_id,
         actor=_actor(event.actor_id),
-        verb={"id": "https://pathfinder.learn/xapi/verbs/shortlisted-career-pathways", "display": {"en": "shortlisted career pathways"}},
+        verb={
+            "id": "https://pathfinder.learn/xapi/verbs/shortlisted-career-pathways",
+            "display": {"en": "shortlisted career pathways"},
+        },
         object={"id": f"https://pathfinder.learn/career-plans/{event.plan_id}", "definition": {"type": "CareerPlan"}},
         result={
             "extensions": {

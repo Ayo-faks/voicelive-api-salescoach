@@ -134,7 +134,8 @@ class InsightsPlanner(Protocol):
         tools: Mapping[str, InsightsTool],
         context: InsightsRequestContext,
         tool_call_budget: int,
-    ) -> InsightsPlannerResult: ...
+    ) -> InsightsPlannerResult:
+        raise NotImplementedError
 
 
 # --- Default stub planner ---------------------------------------------------
@@ -175,9 +176,7 @@ class StubInsightsPlanner:
         if scope_child_id and "get_child_overview" in tools and tool_call_budget > 0:
             start = time.monotonic()
             try:
-                result = tools["get_child_overview"].handler(
-                    {"child_id": scope_child_id}, context
-                )
+                result = tools["get_child_overview"].handler({"child_id": scope_child_id}, context)
             except InsightsAuthorizationError as exc:
                 trace.append(
                     {
@@ -229,8 +228,7 @@ class StubInsightsPlanner:
                     }
                 )
             answer_text = (
-                f"Here's what I have on {child_name}. "
-                f"(Stub planner — the real LLM wiring lands in Phase 4b.)"
+                f"Here's what I have on {child_name}. " f"(Stub planner — the real LLM wiring lands in Phase 4b.)"
             )
             return InsightsPlannerResult(
                 answer_text=answer_text,
@@ -240,9 +238,7 @@ class StubInsightsPlanner:
                 tool_calls_count=tool_calls_count,
             )
 
-        scope_summary = (
-            context.scope.get("type") if isinstance(context.scope, dict) else "caseload"
-        ) or "caseload"
+        scope_summary = (context.scope.get("type") if isinstance(context.scope, dict) else "caseload") or "caseload"
         return InsightsPlannerResult(
             answer_text=(
                 f"(Stub answer for scope '{scope_summary}'.) "
@@ -291,9 +287,7 @@ class InsightsService:
         user_id: str,
         conversation_id: str,
     ) -> Optional[Dict[str, Any]]:
-        conversation = self.storage_service.get_insight_conversation(
-            conversation_id, user_id=user_id
-        )
+        conversation = self.storage_service.get_insight_conversation(conversation_id, user_id=user_id)
         if conversation is None:
             return None
         messages = self.storage_service.list_insight_messages(conversation_id)
@@ -362,10 +356,7 @@ class InsightsService:
         except InsightsBudgetExceeded as exc:
             error_text = f"budget_exceeded: {exc}"
             planner_result = InsightsPlannerResult(
-                answer_text=(
-                    "I couldn't finish in the allotted time. Please try a "
-                    "narrower question or try again."
-                ),
+                answer_text=("I couldn't finish in the allotted time. Please try a " "narrower question or try again."),
                 error_text=error_text,
             )
         except InsightsAuthorizationError as exc:
@@ -402,9 +393,7 @@ class InsightsService:
         )
 
         return {
-            "conversation": self.storage_service.get_insight_conversation(
-                conversation["id"], user_id=user_id
-            ),
+            "conversation": self.storage_service.get_insight_conversation(conversation["id"], user_id=user_id),
             "user_message": user_message_row,
             "assistant_message": assistant_message_row,
             "tool_calls_count": max(0, int(planner_result.tool_calls_count or 0)),
@@ -516,16 +505,12 @@ class InsightsService:
             except TypeError:
                 allowed = bool(check(user_id, child_id))
             if not allowed:
-                raise InsightsAuthorizationError(
-                    f"user {user_id} has no access to child {child_id}"
-                )
+                raise InsightsAuthorizationError(f"user {user_id} has no access to child {child_id}")
             return
         # Defensive fallback: no explicit access helper -> deny by default.
         raise InsightsAuthorizationError("access check unavailable")
 
-    def _tool_get_child_overview(
-        self, args: Dict[str, Any], context: InsightsRequestContext
-    ) -> Dict[str, Any]:
+    def _tool_get_child_overview(self, args: Dict[str, Any], context: InsightsRequestContext) -> Dict[str, Any]:
         context.check_deadline()
         child_id = str(args.get("child_id") or "").strip()
         if not child_id:
@@ -630,9 +615,7 @@ class InsightsService:
             "approved_memory_items": approved_memory_rows,
         }
 
-    def _tool_list_sessions(
-        self, args: Dict[str, Any], context: InsightsRequestContext
-    ) -> List[Dict[str, Any]]:
+    def _tool_list_sessions(self, args: Dict[str, Any], context: InsightsRequestContext) -> List[Dict[str, Any]]:
         context.check_deadline()
         child_id = str(args.get("child_id") or "").strip()
         if not child_id:
@@ -674,9 +657,7 @@ class InsightsService:
             )
         return summaries
 
-    def _tool_search_memory(
-        self, args: Dict[str, Any], context: InsightsRequestContext
-    ) -> List[Dict[str, Any]]:
+    def _tool_search_memory(self, args: Dict[str, Any], context: InsightsRequestContext) -> List[Dict[str, Any]]:
         context.check_deadline()
         child_id = str(args.get("child_id") or "").strip()
         if not child_id:
@@ -727,9 +708,7 @@ class InsightsService:
         first_message: str,
     ) -> Dict[str, Any]:
         if conversation_id:
-            existing = self.storage_service.get_insight_conversation(
-                conversation_id, user_id=user_id
-            )
+            existing = self.storage_service.get_insight_conversation(conversation_id, user_id=user_id)
             if existing is None:
                 raise InsightsAuthorizationError("conversation not found or not owned")
             return existing
@@ -745,9 +724,7 @@ class InsightsService:
             prompt_version=self.PROMPT_VERSION,
         )
 
-    def _sanitize_visualizations(
-        self, raw: Sequence[Any]
-    ) -> List[Dict[str, Any]]:
+    def _sanitize_visualizations(self, raw: Sequence[Any]) -> List[Dict[str, Any]]:
         cleaned: List[Dict[str, Any]] = []
         for spec in raw or []:
             try:

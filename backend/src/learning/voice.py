@@ -7,14 +7,16 @@ from uuid import uuid4
 
 from pydantic import Field
 
-from src.learning.models import ContractModel, LanguageAndProvenanceModel, OfflineQueuedEvent, Provenance
+from src.learning.models import LanguageAndProvenanceModel, OfflineQueuedEvent, Provenance
 from src.learning.repository import LearningRepository
 
 
 class VoiceSocket(Protocol):
-    def receive(self) -> str: ...
+    def receive(self) -> str:
+        raise NotImplementedError
 
-    def send(self, message: str) -> None: ...
+    def send(self, message: str) -> None:
+        raise NotImplementedError
 
 
 class VoiceFrame(LanguageAndProvenanceModel):
@@ -40,7 +42,9 @@ class FlaskSockVoiceTransportAdapter:
 
     offline_fallback = "queued_multilingual_voice_frame"
 
-    def handle_offline_frame(self, frame: VoiceFrame, repository: Optional[LearningRepository] = None) -> VoiceTransportResult:
+    def handle_offline_frame(
+        self, frame: VoiceFrame, repository: Optional[LearningRepository] = None
+    ) -> VoiceTransportResult:
         provenance = list(frame.provenance) + [
             Provenance(
                 source="FlaskSockVoiceTransportAdapter",

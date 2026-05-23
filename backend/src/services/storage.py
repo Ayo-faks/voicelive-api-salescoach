@@ -65,9 +65,7 @@ class StorageService:
         self._backup_thread: Optional[threading.Thread] = None
         self._backup_thread_lock = threading.Lock()
         try:
-            self._backup_min_interval = float(
-                os.environ.get("BLOB_BACKUP_MIN_INTERVAL_SECONDS", "30")
-            )
+            self._backup_min_interval = float(os.environ.get("BLOB_BACKUP_MIN_INTERVAL_SECONDS", "30"))
         except ValueError:
             self._backup_min_interval = 30.0
         if self._backup_min_interval < 0:
@@ -291,9 +289,7 @@ class StorageService:
         self._ensure_column(connection, "users", "role", "TEXT NOT NULL DEFAULT 'parent'")
         self._ensure_column(connection, "users", "created_at", "TEXT")
         self._ensure_workspace_tables(connection)
-        connection.execute(
-            "CREATE INDEX IF NOT EXISTS idx_children_workspace_id ON children (workspace_id)"
-        )
+        connection.execute("CREATE INDEX IF NOT EXISTS idx_children_workspace_id ON children (workspace_id)")
         self._ensure_column(connection, "sessions", "feedback_rating", "TEXT")
         self._ensure_column(connection, "sessions", "feedback_note", "TEXT")
         self._ensure_column(connection, "sessions", "feedback_submitted_at", "TEXT")
@@ -316,9 +312,7 @@ class StorageService:
             "source",
             "TEXT NOT NULL DEFAULT 'pipeline'",
         )
-        connection.execute(
-            "UPDATE progress_reports SET source = 'pipeline' WHERE source IS NULL OR TRIM(source) = ''"
-        )
+        connection.execute("UPDATE progress_reports SET source = 'pipeline' WHERE source IS NULL OR TRIM(source) = ''")
         self._ensure_insight_tables(connection)
 
     def _ensure_parental_consents_table(self, connection: sqlite3.Connection) -> None:
@@ -359,9 +353,7 @@ class StorageService:
             "parental_responsibility_confirmed",
             "BOOLEAN NOT NULL DEFAULT FALSE",
         )
-        connection.execute(
-            "CREATE INDEX IF NOT EXISTS idx_parental_consents_child ON parental_consents (child_id)"
-        )
+        connection.execute("CREATE INDEX IF NOT EXISTS idx_parental_consents_child ON parental_consents (child_id)")
 
     def _ensure_institutional_memory_tables(self, connection: sqlite3.Connection):
         connection.execute(
@@ -525,14 +517,13 @@ class StorageService:
                 FOREIGN KEY (workspace_id) REFERENCES therapist_workspaces(id)
             )"""
         )
-        columns = {
-            str(row["name"])
-            for row in connection.execute("PRAGMA table_info(child_invitations)").fetchall()
-        }
+        columns = {str(row["name"]) for row in connection.execute("PRAGMA table_info(child_invitations)").fetchall()}
         if "expires_at" not in columns:
             connection.execute("ALTER TABLE child_invitations ADD COLUMN expires_at TEXT")
         if "workspace_id" not in columns:
-            connection.execute("ALTER TABLE child_invitations ADD COLUMN workspace_id TEXT REFERENCES therapist_workspaces(id)")
+            connection.execute(
+                "ALTER TABLE child_invitations ADD COLUMN workspace_id TEXT REFERENCES therapist_workspaces(id)"
+            )
         connection.execute(
             "CREATE INDEX IF NOT EXISTS idx_child_invitations_email_status ON child_invitations (invited_email, status, updated_at DESC)"
         )
@@ -721,7 +712,9 @@ class StorageService:
             (workspace_id, user_id, WORKSPACE_ROLE_OWNER, now, now),
         )
 
-    def _build_child_invitation_payload(self, row: sqlite3.Row, *, current_email: Optional[str] = None) -> Dict[str, Any]:
+    def _build_child_invitation_payload(
+        self, row: sqlite3.Row, *, current_email: Optional[str] = None
+    ) -> Dict[str, Any]:
         invited_email = str(row["invited_email"] or "")
         normalized_current_email = str(current_email or "").strip().lower()
         direction = "sent"
@@ -757,7 +750,9 @@ class StorageService:
 
         return payload
 
-    def _build_family_intake_invitation_payload(self, row: sqlite3.Row, *, current_email: Optional[str] = None) -> Dict[str, Any]:
+    def _build_family_intake_invitation_payload(
+        self, row: sqlite3.Row, *, current_email: Optional[str] = None
+    ) -> Dict[str, Any]:
         invited_email = str(row["invited_email"] or "")
         normalized_current_email = str(current_email or "").strip().lower()
         direction = "sent"
@@ -957,10 +952,7 @@ class StorageService:
         )
 
     def _ensure_column(self, connection: sqlite3.Connection, table_name: str, column_name: str, definition: str):
-        columns = {
-            row["name"]
-            for row in connection.execute(f"PRAGMA table_info({table_name})").fetchall()
-        }
+        columns = {row["name"] for row in connection.execute(f"PRAGMA table_info({table_name})").fetchall()}
         if column_name in columns:
             return
 
@@ -1123,7 +1115,9 @@ class StorageService:
             "created_at": row["created_at"],
         }
 
-    def _build_recommendation_candidate_payload(self, row: sqlite3.Row, *, child_id: Optional[str] = None) -> Dict[str, Any]:
+    def _build_recommendation_candidate_payload(
+        self, row: sqlite3.Row, *, child_id: Optional[str] = None
+    ) -> Dict[str, Any]:
         return {
             "id": row["id"],
             "recommendation_log_id": row["recommendation_log_id"],
@@ -1376,13 +1370,18 @@ class StorageService:
 
             # If there is a pending family or child invitation for this email, assign parent role.
             # Otherwise, assign therapist immediately.
-            has_pending_invitation = connection.execute(
-                "SELECT 1 FROM child_invitations WHERE LOWER(invited_email) = LOWER(?) AND status = 'pending' LIMIT 1",
-                (email,),
-            ).fetchone() is not None or connection.execute(
-                "SELECT 1 FROM family_intake_invitations WHERE LOWER(invited_email) = LOWER(?) AND status = 'pending' LIMIT 1",
-                (email,),
-            ).fetchone() is not None
+            has_pending_invitation = (
+                connection.execute(
+                    "SELECT 1 FROM child_invitations WHERE LOWER(invited_email) = LOWER(?) AND status = 'pending' LIMIT 1",
+                    (email,),
+                ).fetchone()
+                is not None
+                or connection.execute(
+                    "SELECT 1 FROM family_intake_invitations WHERE LOWER(invited_email) = LOWER(?) AND status = 'pending' LIMIT 1",
+                    (email,),
+                ).fetchone()
+                is not None
+            )
             role = ROLE_PARENT if has_pending_invitation else ROLE_THERAPIST
             connection.execute(
                 """
@@ -1467,7 +1466,9 @@ class StorageService:
             user = connection.execute("SELECT name, email FROM users WHERE id = ?", (user_id,)).fetchone()
             connection.execute("UPDATE users SET role = ? WHERE id = ?", (ROLE_THERAPIST, user_id))
             if user is not None:
-                self._ensure_personal_workspace_for_user(connection, user_id, str(user["name"] or ""), str(user["email"] or ""))
+                self._ensure_personal_workspace_for_user(
+                    connection, user_id, str(user["name"] or ""), str(user["email"] or "")
+                )
                 self._bootstrap_existing_children_for_user(connection, user_id, CHILD_RELATIONSHIP_THERAPIST)
             return True
 
@@ -1632,7 +1633,10 @@ class StorageService:
         }
 
     def list_children_for_user(
-        self, user_id: str, include_deleted: bool = False, workspace_id: Optional[str] = None,
+        self,
+        user_id: str,
+        include_deleted: bool = False,
+        workspace_id: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         user = self.get_user(user_id)
         if user is not None and user.get("role") == ROLE_ADMIN and workspace_id is None:
@@ -1935,7 +1939,9 @@ class StorageService:
             ).fetchone()
             if row is None:
                 raise ValueError("user_not_found")
-            current = self._loads_json(row["ui_state"], {}) if isinstance(row["ui_state"], str) else (row["ui_state"] or {})
+            current = (
+                self._loads_json(row["ui_state"], {}) if isinstance(row["ui_state"], str) else (row["ui_state"] or {})
+            )
             if not isinstance(current, dict):
                 current = {}
             merged = dict(current)
@@ -2103,7 +2109,8 @@ class StorageService:
 
             # Resolve workspace_id from the child
             child_row = connection.execute(
-                "SELECT workspace_id FROM children WHERE id = ?", (child_id,),
+                "SELECT workspace_id FROM children WHERE id = ?",
+                (child_id,),
             ).fetchone()
             resolved_workspace_id = child_row["workspace_id"] if child_row is not None else None
 
@@ -2174,7 +2181,9 @@ class StorageService:
             raise RuntimeError("Invitation could not be reloaded after creation")
         return invitation
 
-    def get_child_invitation(self, invitation_id: str, *, current_email: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    def get_child_invitation(
+        self, invitation_id: str, *, current_email: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
         self._expire_stale_child_invitations()
         with self._connect() as connection:
             row = connection.execute(
@@ -2304,10 +2313,7 @@ class StorageService:
                 """,
                 (user_id, normalized_email),
             ).fetchall()
-        return [
-            self._build_child_invitation_payload(row, current_email=normalized_email)
-            for row in rows
-        ]
+        return [self._build_child_invitation_payload(row, current_email=normalized_email) for row in rows]
 
     def respond_to_child_invitation(
         self,
@@ -2374,7 +2380,11 @@ class StorageService:
                     (row["child_id"],),
                 ).fetchone()
                 if child_ws is not None and child_ws["workspace_id"] is not None:
-                    ws_role = WORKSPACE_ROLE_PARENT if row["relationship"] == CHILD_RELATIONSHIP_PARENT else WORKSPACE_ROLE_THERAPIST
+                    ws_role = (
+                        WORKSPACE_ROLE_PARENT
+                        if row["relationship"] == CHILD_RELATIONSHIP_PARENT
+                        else WORKSPACE_ROLE_THERAPIST
+                    )
                     connection.execute(
                         """
                         INSERT INTO workspace_members (workspace_id, user_id, role, created_at, updated_at)
@@ -2522,7 +2532,9 @@ class StorageService:
             raise RuntimeError("Family intake invitation could not be reloaded after creation")
         return invitation
 
-    def get_family_intake_invitation(self, invitation_id: str, *, current_email: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    def get_family_intake_invitation(
+        self, invitation_id: str, *, current_email: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
         self._expire_stale_family_intake_invitations()
         with self._connect() as connection:
             row = connection.execute(
@@ -2578,10 +2590,7 @@ class StorageService:
                 """,
                 (user_id, normalized_email),
             ).fetchall()
-        return [
-            self._build_family_intake_invitation_payload(row, current_email=normalized_email)
-            for row in rows
-        ]
+        return [self._build_family_intake_invitation_payload(row, current_email=normalized_email) for row in rows]
 
     def respond_to_family_intake_invitation(
         self,
@@ -2904,7 +2913,13 @@ class StorageService:
                 VALUES (?, ?, ?, ?, ?)
                 ON CONFLICT(workspace_id, user_id) DO NOTHING
                 """,
-                (proposal["workspace_id"], proposal["created_by_user_id"], WORKSPACE_ROLE_PARENT, reviewed_at, reviewed_at),
+                (
+                    proposal["workspace_id"],
+                    proposal["created_by_user_id"],
+                    WORKSPACE_ROLE_PARENT,
+                    reviewed_at,
+                    reviewed_at,
+                ),
             )
             connection.execute(
                 """
@@ -3143,7 +3158,6 @@ class StorageService:
         if child is None:
             raise ValueError("Child not found")
 
-        child_name = str(session_payload.get("child_name") or child.get("name") or child_id.replace("-", " ").title())
         exercise = dict(session_payload.get("exercise") or {})
         exercise_id = str(session_payload.get("exercise_id") or exercise.get("id") or "unknown-exercise")
         exercise_name = str(exercise.get("name") or "Speech exercise")
@@ -3329,7 +3343,9 @@ class StorageService:
             "reference_text": row["reference_text"],
         }
 
-    def save_session_feedback(self, session_id: str, rating: str, note: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    def save_session_feedback(
+        self, session_id: str, rating: str, note: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
         feedback_note = (note or "").strip() or None
         submitted_at = self._utc_now()
 
@@ -4569,7 +4585,9 @@ class StorageService:
                 )
 
         self._execute_write(persist_candidates)
-        return self.list_recommendation_candidates(recommendation_log_id, child_id=str(parent_log.get("child_id") or ""))
+        return self.list_recommendation_candidates(
+            recommendation_log_id, child_id=str(parent_log.get("child_id") or "")
+        )
 
     def list_recommendation_candidates(
         self,
@@ -4606,10 +4624,7 @@ class StorageService:
                 (recommendation_log_id,),
             ).fetchall()
 
-        return [
-            self._build_recommendation_candidate_payload(row, child_id=resolved_child_id)
-            for row in rows
-        ]
+        return [self._build_recommendation_candidate_payload(row, child_id=resolved_child_id) for row in rows]
 
     # ------------------------------------------------------------------
     # Parental consent
@@ -4643,11 +4658,19 @@ class StorageService:
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    consent_id, child_id, guardian_name, guardian_email, consent_type,
-                    privacy_accepted, terms_accepted, ai_notice_accepted,
-                    personal_data_consent_accepted, special_category_consent_accepted,
+                    consent_id,
+                    child_id,
+                    guardian_name,
+                    guardian_email,
+                    consent_type,
+                    privacy_accepted,
+                    terms_accepted,
+                    ai_notice_accepted,
+                    personal_data_consent_accepted,
+                    special_category_consent_accepted,
                     parental_responsibility_confirmed,
-                    recorded_by_user_id, now,
+                    recorded_by_user_id,
+                    now,
                 ),
             )
         return {
@@ -4726,8 +4749,11 @@ class StorageService:
 
             sessions = [
                 {
-                    "id": r[0], "scenario_id": r[1], "started_at": r[2],
-                    "finished_at": r[3], "transcript": r[4],
+                    "id": r[0],
+                    "scenario_id": r[1],
+                    "started_at": r[2],
+                    "finished_at": r[3],
+                    "transcript": r[4],
                     "summary_json": json.loads(r[5]) if r[5] else None,
                     "created_at": r[6],
                 }
@@ -4739,7 +4765,8 @@ class StorageService:
 
             memory_items = [
                 {
-                    "id": r[0], "category": r[1],
+                    "id": r[0],
+                    "category": r[1],
                     "content": json.loads(r[2]) if r[2] else None,
                     "created_at": r[3],
                 }
@@ -4751,8 +4778,10 @@ class StorageService:
 
             plans = [
                 {
-                    "id": r[0], "plan_data": json.loads(r[1]) if r[1] else None,
-                    "status": r[2], "created_at": r[3],
+                    "id": r[0],
+                    "plan_data": json.loads(r[1]) if r[1] else None,
+                    "status": r[2],
+                    "created_at": r[3],
                 }
                 for r in conn.execute(
                     "SELECT id, plan_data_json, status, created_at FROM practice_plans WHERE child_id = ? ORDER BY created_at",
@@ -4770,12 +4799,16 @@ class StorageService:
             "sessions": sessions,
             "memory_items": memory_items,
             "practice_plans": plans,
-            "parental_consent": {
-                "guardian_name": consent_row[0],
-                "guardian_email": consent_row[1],
-                "consented_at": consent_row[2],
-                "withdrawn_at": consent_row[3],
-            } if consent_row else None,
+            "parental_consent": (
+                {
+                    "guardian_name": consent_row[0],
+                    "guardian_email": consent_row[1],
+                    "consented_at": consent_row[2],
+                    "withdrawn_at": consent_row[3],
+                }
+                if consent_row
+                else None
+            ),
             "exported_at": self._utc_now(),
         }
 
@@ -4785,15 +4818,16 @@ class StorageService:
 
     def delete_child_data(self, child_id: str) -> bool:
         with self._connect() as conn:
-            child = conn.execute(
-                "SELECT id FROM children WHERE id = ?", (child_id,)
-            ).fetchone()
+            child = conn.execute("SELECT id FROM children WHERE id = ?", (child_id,)).fetchone()
             if child is None:
                 return False
             conn.execute("DELETE FROM parental_consents WHERE child_id = ?", (child_id,))
             conn.execute("DELETE FROM child_memory_items WHERE child_id = ?", (child_id,))
             conn.execute("DELETE FROM child_memory_proposals WHERE child_id = ?", (child_id,))
-            conn.execute("DELETE FROM recommendation_candidates WHERE recommendation_log_id IN (SELECT id FROM recommendation_logs WHERE child_id = ?)", (child_id,))
+            conn.execute(
+                "DELETE FROM recommendation_candidates WHERE recommendation_log_id IN (SELECT id FROM recommendation_logs WHERE child_id = ?)",
+                (child_id,),
+            )
             conn.execute("DELETE FROM recommendation_logs WHERE child_id = ?", (child_id,))
             conn.execute("DELETE FROM progress_reports WHERE child_id = ?", (child_id,))
             conn.execute("DELETE FROM practice_plans WHERE child_id = ?", (child_id,))

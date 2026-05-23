@@ -13,7 +13,10 @@ export const INITIAL_PHASE_STATE: PhaseState = {
   overrides: [],
 }
 
-export function exercisePhaseReducer(state: PhaseState, event: PhaseEvent): PhaseState {
+export function exercisePhaseReducer(
+  state: PhaseState,
+  event: PhaseEvent
+): PhaseState {
   switch (event.type) {
     case 'START':
       return { ...state, phase: 'orient' }
@@ -126,7 +129,8 @@ export interface ExercisePhaseContextValue {
   dispatch: Dispatch<PhaseEvent>
 }
 
-export const ExercisePhaseContext = createContext<ExercisePhaseContextValue | null>(null)
+export const ExercisePhaseContext =
+  createContext<ExercisePhaseContextValue | null>(null)
 
 export function useExercisePhaseContext(): ExercisePhaseContextValue {
   const ctx = useContext(ExercisePhaseContext)
