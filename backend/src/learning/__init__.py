@@ -10,35 +10,44 @@ from src.learning.mastery import BetaBKT, Elo, MasteryEstimator
 from src.learning.models import (
     CareerPathway,
     CareerPlan,
+    ContentPackManifest,
     DiagnosticItem,
     InterventionPlan,
     MasteryEstimate,
     MasteryEvent,
+    OfflineQueuedEvent,
     Provenance,
     StudentResponse,
 )
 from src.learning.planner import LearningPlanner, PlannerRequest, PlannerResult, StubLearningPlanner
+from src.learning.repository import InMemoryLearningRepository, LearningPostgresRepository, LearningRepository
 from src.learning.validator import PlanValidator, ValidationFailure, ValidationResult
-from src.learning.xapi import AuditLedgerXAPISink, XAPIEmitter, XAPIStatement
+from src.learning.xapi import AuditLedgerXAPISink, RalphXAPISink, XAPIEmitter, XAPIStatement
 
 __all__ = [
     "AuditLedgerXAPISink",
     "BetaBKT",
     "CareerPathway",
     "CareerPlan",
+    "ContentPackManifest",
     "DiagnosticItem",
     "Elo",
     "InterventionPlan",
+    "InMemoryLearningRepository",
+    "LearningPostgresRepository",
     "LearningPlanner",
+    "LearningRepository",
     "MasteryEstimate",
     "MasteryEstimator",
     "MasteryEvent",
+    "OfflineQueuedEvent",
     "PlanValidator",
     "PlannerRequest",
     "PlannerResult",
     "Provenance",
     "StudentResponse",
     "StubLearningPlanner",
+    "RalphXAPISink",
     "ValidationFailure",
     "ValidationResult",
     "XAPIEmitter",

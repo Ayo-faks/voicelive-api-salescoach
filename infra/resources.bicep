@@ -76,6 +76,16 @@ param databaseRunMigrationsOnStartup bool = false
 @description('Comma-separated AZD environment names allowed to run PostgreSQL startup migrations in Azure-hosted environments.')
 param databaseMigrationAllowedEnvironments string = ''
 
+@description('Enable optional Ralph LRS container app for Pathfinder Learn xAPI replay.')
+param enableRalphLrs bool = false
+
+@description('Container image for Ralph LRS. Leave empty to keep Ralph disabled.')
+param ralphLrsImage string = ''
+
+@secure()
+@description('Optional Ralph LRS admin token secret.')
+param ralphLrsAdminToken string = ''
+
 @description('Optional custom domain bindings for the voicelab Container App ingress.')
 param voicelabCustomDomains array = []
 
@@ -144,6 +154,8 @@ var easyAuthEnabled = !empty(microsoftProviderClientId) || !empty(googleProvider
 var usePostgresRuntimeCredential = !empty(postgresAppUsername) && !empty(postgresAppPassword)
 var postgresRuntimeUsername = usePostgresRuntimeCredential ? postgresAppUsername : postgresAdminUsername
 var postgresRuntimePassword = usePostgresRuntimeCredential ? postgresAppPassword : postgresAdminPassword
+var postgresRuntimeConnectionString = enablePostgresPersistence ? 'postgresql://${postgresRuntimeUsername}:${postgresRuntimePassword}@${postgresServer!.properties.fullyQualifiedDomainName}:5432/${postgresDatabaseName}?sslmode=require' : ''
+var postgresAdminConnectionString = enablePostgresPersistence ? 'postgresql://${postgresAdminUsername}:${postgresAdminPassword}@${postgresServer!.properties.fullyQualifiedDomainName}:5432/${postgresDatabaseName}?sslmode=require' : ''
 
 param gptModelName string = 'gpt-4o'
 param gptModelVersion string = '2024-11-20'
@@ -467,11 +479,11 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
           ? [
               {
                 name: 'postgres-database-url'
-                value: 'postgresql://${postgresRuntimeUsername}:${postgresRuntimePassword}@${postgresServer!.properties.fullyQualifiedDomainName}:5432/${postgresDatabaseName}?sslmode=require'
+                value: postgresRuntimeConnectionString
               }
               {
                 name: 'postgres-admin-database-url'
-                value: 'postgresql://${postgresAdminUsername}:${postgresAdminPassword}@${postgresServer!.properties.fullyQualifiedDomainName}:5432/${postgresDatabaseName}?sslmode=require'
+                value: postgresAdminConnectionString
               }
             ]
           : [],
@@ -700,6 +712,75 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
   ]
 }
 
+module ralphLrs 'br/public:avm/res/app/container-app:0.8.0' = if (enableRalphLrs && !empty(ralphLrsImage)) {
+  name: 'ralph-lrs'
+  params: {
+    name: 'ralph-lrs'
+    ingressTargetPort: 8100
+    ingressExternal: false
+    ingressTransport: 'http'
+    scaleMinReplicas: 0
+    scaleMaxReplicas: 1
+    secrets: {
+      secureList: concat(
+        enablePostgresPersistence
+          ? [
+              {
+                name: 'postgres-database-url'
+                value: postgresRuntimeConnectionString
+              }
+            ]
+          : [],
+        !empty(ralphLrsAdminToken)
+          ? [
+              {
+                name: 'ralph-admin-token'
+                value: ralphLrsAdminToken
+              }
+            ]
+          : []
+      )
+    }
+    volumes: []
+    containers: [
+      {
+        image: ralphLrsImage
+        name: 'main'
+        resources: {
+          cpu: json('0.5')
+          memory: '1.0Gi'
+        }
+        volumeMounts: []
+        env: concat(
+          enablePostgresPersistence
+            ? [
+                {
+                  name: 'DATABASE_URL'
+                  secretRef: 'postgres-database-url'
+                }
+              ]
+            : [],
+          !empty(ralphLrsAdminToken)
+            ? [
+                {
+                  name: 'RALPH_ADMIN_TOKEN'
+                  secretRef: 'ralph-admin-token'
+                }
+              ]
+            : []
+        )
+      }
+    ]
+    managedIdentities: {
+      systemAssigned: false
+      userAssignedResourceIds: [voicelabIdentity.outputs.resourceId]
+    }
+    environmentResourceId: containerAppsEnvironment.outputs.resourceId
+    location: location
+    tags: union(tags, { 'azd-service-name': 'ralph-lrs' })
+  }
+}
+
 resource voicelabAuth 'Microsoft.App/containerApps/authConfigs@2024-03-01' = if (easyAuthEnabled) {
   parent: voicelabContainerApp
   name: 'current'
@@ -843,3 +924,4 @@ output POSTGRES_SERVER_FQDN string = enablePostgresPersistence ? postgresServer!
 output POSTGRES_DATABASE_NAME string = enablePostgresPersistence ? postgresDatabaseName : ''
 output AZURE_COMMUNICATION_SERVICE_NAME string = enableAzureCommunicationServicesEmail ? communicationService.name : ''
 output AZURE_EMAIL_COMMUNICATION_SERVICE_NAME string = enableAzureCommunicationServicesEmail ? emailService.name : ''
+output RALPH_LRS_URI string = enableRalphLrs && !empty(ralphLrsImage) ? 'https://${ralphLrs!.outputs.fqdn}' : ''

@@ -33,11 +33,49 @@ WriteResult = TypeVar("WriteResult")
 REQUEST_USER_ID: ContextVar[Optional[str]] = ContextVar("postgres_request_user_id", default=None)
 REQUEST_USER_ROLE: ContextVar[Optional[str]] = ContextVar("postgres_request_user_role", default=None)
 REQUEST_USER_EMAIL: ContextVar[Optional[str]] = ContextVar("postgres_request_user_email", default=None)
+REQUEST_TENANT_ID: ContextVar[Optional[str]] = ContextVar("postgres_request_tenant_id", default=None)
+REQUEST_CLASS_ID: ContextVar[Optional[str]] = ContextVar("postgres_request_class_id", default=None)
 INVITATION_EXPIRATION_DAYS = 7
 WORKSPACE_ROLE_OWNER = "owner"
 WORKSPACE_ROLE_ADMIN = "admin"
 WORKSPACE_ROLE_THERAPIST = "therapist"
 WORKSPACE_ROLE_PARENT = "parent"
+THERAPY_RLS_PROTECTED_TABLES = (
+    "children",
+    "user_children",
+    "sessions",
+    "practice_plans",
+    "child_memory_items",
+    "child_memory_proposals",
+    "child_memory_evidence_links",
+    "child_memory_summaries",
+    "recommendation_logs",
+    "recommendation_candidates",
+    "institutional_memory_insights",
+    "audit_log",
+    "child_invitations",
+    "ui_state_audit",
+    "child_ui_state",
+)
+LEARNING_RLS_PROTECTED_TABLES = (
+    "learning_classes",
+    "learning_students",
+    "learning_teachers",
+    "learning_teacher_classes",
+    "learning_cohorts",
+    "learning_cohort_classes",
+    "learning_standards",
+    "learning_skills",
+    "learning_diagnostic_items",
+    "learning_student_responses",
+    "learning_mastery_events",
+    "learning_intervention_plans",
+    "learning_approvals",
+    "learning_xapi_statements",
+    "learning_offline_queue",
+    "learning_content_pack_manifests",
+)
+RLS_PROTECTED_TABLES = THERAPY_RLS_PROTECTED_TABLES + LEARNING_RLS_PROTECTED_TABLES
 
 
 class PostgresStorageService:
@@ -54,6 +92,8 @@ class PostgresStorageService:
         current_user_id = REQUEST_USER_ID.get()
         current_user_role = REQUEST_USER_ROLE.get()
         current_user_email = REQUEST_USER_EMAIL.get()
+        current_tenant_id = REQUEST_TENANT_ID.get()
+        current_class_id = REQUEST_CLASS_ID.get()
         system_bypass = "on" if current_user_id is None and self.allow_system_bypass else "off"
         connection.execute(
             """
@@ -61,12 +101,20 @@ class PostgresStorageService:
                 set_config('app.current_user_id', %s, false),
                 set_config('app.current_user_role', %s, false),
                 set_config('app.current_user_email', %s, false),
+                set_config('app.user_id', %s, false),
+                set_config('app.role', %s, false),
+                set_config('app.tenant_id', %s, false),
+                set_config('app.class_id', %s, false),
                 set_config('app.system_bypass_rls', %s, false)
             """,
             (
                 current_user_id or "",
                 current_user_role or "",
                 current_user_email or "",
+                current_user_id or "",
+                current_user_role or "",
+                current_tenant_id or "",
+                current_class_id or "",
                 system_bypass,
             ),
         )
@@ -88,15 +136,30 @@ class PostgresStorageService:
     def _dumps_json(self, value: Any) -> Jsonb:
         return Jsonb(value if value is not None else {})
 
-    def set_request_actor(self, user_id: Optional[str], role: Optional[str], email: Optional[str]) -> None:
+    def set_request_actor(
+        self,
+        user_id: Optional[str],
+        role: Optional[str],
+        email: Optional[str],
+        tenant_id: Optional[str] = None,
+        class_id: Optional[str] = None,
+    ) -> None:
         REQUEST_USER_ID.set(str(user_id).strip() or None if user_id is not None else None)
         REQUEST_USER_ROLE.set(str(role).strip().lower() or None if role is not None else None)
         REQUEST_USER_EMAIL.set(str(email).strip().lower() or None if email is not None else None)
+        REQUEST_TENANT_ID.set(str(tenant_id).strip() or None if tenant_id is not None else None)
+        REQUEST_CLASS_ID.set(str(class_id).strip() or None if class_id is not None else None)
+
+    def set_learning_scope(self, tenant_id: Optional[str], class_id: Optional[str] = None) -> None:
+        REQUEST_TENANT_ID.set(str(tenant_id).strip() or None if tenant_id is not None else None)
+        REQUEST_CLASS_ID.set(str(class_id).strip() or None if class_id is not None else None)
 
     def clear_request_actor(self) -> None:
         REQUEST_USER_ID.set(None)
         REQUEST_USER_ROLE.set(None)
         REQUEST_USER_EMAIL.set(None)
+        REQUEST_TENANT_ID.set(None)
+        REQUEST_CLASS_ID.set(None)
 
     def _normalize_workspace_member_role(self, role: Any) -> str:
         normalized = str(role or "").strip().lower()

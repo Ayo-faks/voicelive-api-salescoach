@@ -139,3 +139,18 @@ class AuditLedgerXAPISink:
                 metadata=validated.model_dump(),
             )
         return validated
+
+
+class RalphXAPISink:
+    """Ralph-compatible sink with an offline queue for Phase 1 verification."""
+
+    def __init__(self, endpoint: Optional[str] = None, offline: bool = True) -> None:
+        self.endpoint = endpoint
+        self.offline = offline
+        self.emitted: List[XAPIStatement] = []
+        self.sink_status = "ralph_queued" if offline else "ralph_synced"
+
+    def emit(self, statement: XAPIStatement) -> XAPIStatement:
+        validated = XAPIStatement.model_validate(statement.model_dump())
+        self.emitted.append(validated)
+        return validated

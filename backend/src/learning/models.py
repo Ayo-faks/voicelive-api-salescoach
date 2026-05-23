@@ -165,3 +165,23 @@ class CareerPlan(LanguageAndProvenanceModel):
     student_id: str = Field(min_length=1)
     pathways: List[CareerPathway] = Field(min_length=1)
     requires_counsellor_signoff: bool = True
+
+
+class ContentPackManifest(LanguageAndProvenanceModel):
+    manifest_id: str = Field(default_factory=lambda: f"content-pack-{uuid4().hex[:12]}")
+    tenant_id: str = Field(min_length=1)
+    pack_key: str = Field(min_length=1)
+    version: str = Field(min_length=1)
+    source_uri: str = Field(min_length=1)
+    sha256: str = Field(min_length=64, max_length=64)
+    payload: Dict[str, Any] = Field(default_factory=dict)
+
+
+class OfflineQueuedEvent(ContractModel):
+    queue_id: str = Field(default_factory=lambda: f"offline-queue-{uuid4().hex[:12]}")
+    tenant_id: str = Field(min_length=1)
+    actor_id: str = Field(min_length=1)
+    idempotency_key: str = Field(min_length=1)
+    event_type: str = Field(min_length=1)
+    payload: Dict[str, Any] = Field(default_factory=dict)
+    status: Literal["queued", "replayed", "failed", "manual_review"] = "queued"

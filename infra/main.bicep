@@ -78,6 +78,16 @@ param databaseRunMigrationsOnStartup bool = false
 @description('Comma-separated AZD environment names allowed to run PostgreSQL startup migrations in Azure-hosted environments.')
 param databaseMigrationAllowedEnvironments string = ''
 
+@description('Enable optional Ralph LRS container app for Pathfinder Learn xAPI replay.')
+param enableRalphLrs bool = false
+
+@description('Container image for Ralph LRS. Leave empty to keep Ralph disabled.')
+param ralphLrsImage string = ''
+
+@secure()
+@description('Optional Ralph LRS admin token secret.')
+param ralphLrsAdminToken string = ''
+
 @description('Optional custom domain bindings for the voicelab Container App ingress.')
 param voicelabCustomDomains array = []
 
@@ -154,6 +164,9 @@ module resources 'resources.bicep' = {
     databaseBackend: databaseBackend
     databaseRunMigrationsOnStartup: databaseRunMigrationsOnStartup
     databaseMigrationAllowedEnvironments: databaseMigrationAllowedEnvironments
+    enableRalphLrs: enableRalphLrs
+    ralphLrsImage: ralphLrsImage
+    ralphLrsAdminToken: ralphLrsAdminToken
     voicelabCustomDomains: voicelabCustomDomains
     enableAzureCommunicationServicesEmail: enableAzureCommunicationServicesEmail
     azureCommunicationServicesDataLocation: azureCommunicationServicesDataLocation
@@ -180,3 +193,4 @@ output POSTGRES_SERVER_FQDN string = resources.outputs.POSTGRES_SERVER_FQDN
 output POSTGRES_DATABASE_NAME string = resources.outputs.POSTGRES_DATABASE_NAME
 output AZURE_COMMUNICATION_SERVICE_NAME string = resources.outputs.AZURE_COMMUNICATION_SERVICE_NAME
 output AZURE_EMAIL_COMMUNICATION_SERVICE_NAME string = resources.outputs.AZURE_EMAIL_COMMUNICATION_SERVICE_NAME
+output RALPH_LRS_URI string = resources.outputs.RALPH_LRS_URI
