@@ -39,6 +39,7 @@ from src.learning.models import (
     Provenance,
     StudentResponse,
 )
+from src.learning.operations import compute_kpi_report, load_metric_snapshots
 from src.learning.planner import PlannerRequest, StubLearningPlanner
 from src.learning.repository import InMemoryLearningRepository, LearningRepository
 from src.learning.validator import PlanValidator, catalogue_grounding_rule
@@ -56,8 +57,16 @@ PILOT_CLASS_ID = "class-jss2-a"
 PILOT_STUDENT_ID = "pilot-jss2-student-001"
 PILOT_TEACHER_ID = "pilot-jss2-teacher-001"
 PILOT_DIAGNOSTIC_ITEMS_PER_RUN = 12
+PILOT_KPI_TENANT_ID = "tenant-phase-4"
 ITEM_BANK_PATH = (
     Path(__file__).resolve().parents[3] / "data" / "learning" / "jss2_maths_diagnostic_phase_2.json"
+)
+PILOT_METRICS_PATH = (
+    Path(__file__).resolve().parents[3]
+    / "data"
+    / "learning"
+    / "ops"
+    / "phase_4_pilot_metrics.json"
 )
 
 
@@ -381,6 +390,71 @@ class LearningApi:
         events = [event for event in self._audit_events if event["tenant_id"] == tenant_id]
         return {"events": events[-50:]}
 
+    def get_pilot_kpis(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_KPI_TENANT_ID)
+        snapshots = load_metric_snapshots(PILOT_METRICS_PATH, tenant_id)
+        if not snapshots:
+            raise LearningApiError(
+                f"no pilot metric snapshots for tenant {tenant_id}", status_code=404
+            )
+        report = compute_kpi_report(snapshots, tenant_id)
+        cards = [
+            {
+                "label": "Diagnostic completion",
+                "value": f"{report.diagnostic_completion_rate * 100:.1f}%",
+                "detail": (
+                    f"{sum(item.completed_diagnostics for item in snapshots)} of "
+                    f"{sum(item.assigned_diagnostics for item in snapshots)} assigned diagnostics"
+                ),
+            },
+            {
+                "label": "Approved interventions",
+                "value": f"{report.approved_intervention_rate * 100:.0f}%",
+                "detail": (
+                    f"{sum(item.suggestions_approved for item in snapshots)} of "
+                    f"{sum(item.suggestions_created for item in snapshots)} suggestions approved"
+                ),
+            },
+            {
+                "label": "Provenance coverage",
+                "value": f"{report.provenance_coverage * 100:.1f}%",
+                "detail": "Every suggestion has source evidence"
+                if report.provenance_coverage >= 1.0
+                else "Suggestions missing source evidence",
+            },
+            {
+                "label": "Safety pass rate",
+                "value": f"{report.safety_rate * 100:.1f}%",
+                "detail": (
+                    f"{sum(item.safety_eval_passed for item in snapshots)} of "
+                    f"{sum(item.safety_eval_cases for item in snapshots)} eval cases passed"
+                ),
+            },
+            {
+                "label": "DSR SLA",
+                "value": f"{report.dsr_turnaround_rate * 100:.0f}%",
+                "detail": (
+                    f"{sum(item.dsr_within_sla for item in snapshots)} of "
+                    f"{sum(item.dsr_requests for item in snapshots)} requests within SLA"
+                ),
+            },
+            {
+                "label": "Weekly cost per student",
+                "value": f"GBP {report.cost_per_student_gbp:.2f}",
+                "detail": f"{max(item.active_students for item in snapshots)} active students",
+            },
+        ]
+        return {
+            "source": "fixture",
+            "tenant_id": report.tenant_id,
+            "week_count": report.week_count,
+            "meets_pilot_thresholds": report.meets_pilot_thresholds,
+            "report": report.model_dump(),
+            "cards": cards,
+            "lang": report.lang,
+            "provenance": [item.model_dump() for item in report.provenance],
+        }
+
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
@@ -562,6 +636,11 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
     def _audit(payload: Dict[str, Any]) -> Dict[str, Any]:
         return learning_api.list_audit(payload)
 
+    @app.route("/api/learning/kpis", methods=["GET"])
+    @_wrap
+    def _kpis(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.get_pilot_kpis(payload)
+
     return learning_api
 
 
@@ -573,4 +652,5 @@ __all__ = [
     "PILOT_CLASS_ID",
     "PILOT_STUDENT_ID",
     "PILOT_TEACHER_ID",
+    "PILOT_KPI_TENANT_ID",
 ]

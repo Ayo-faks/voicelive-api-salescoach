@@ -22,7 +22,15 @@ import {
   ExclamationTriangleIcon,
   ShieldCheckIcon,
 } from '@heroicons/react/24/outline'
+import { useEffect, useState } from 'react'
+import { getPilotKpis, type PilotKpiCard, type PilotKpiResponse } from '../api'
 import { pilotMetrics } from '../fixtures'
+
+const fixtureCards: PilotKpiCard[] = pilotMetrics.map(([label, value, detail]) => ({
+  label,
+  value,
+  detail,
+}))
 
 const safetyTrend = [
   { week: 'W1', safety: 97.8, dsr: 100, provenance: 98 },
@@ -220,6 +228,32 @@ function riskClass(
 
 export default function TrustSafetyConsole() {
   const styles = useStyles()
+  const [kpis, setKpis] = useState<PilotKpiResponse | null>(null)
+  const [kpiError, setKpiError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    getPilotKpis()
+      .then(payload => {
+        if (!cancelled) {
+          setKpis(payload)
+          setKpiError(null)
+        }
+      })
+      .catch(err => {
+        if (!cancelled) {
+          setKpiError((err as Error).message)
+          setKpis(null)
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const cards = kpis?.cards ?? fixtureCards
+  const source = kpis?.source ?? 'fixture'
+  const provenanceCount = kpis?.provenance.length ?? 0
 
   return (
     <div className={styles.shell} data-testid="route-trust-safety">
@@ -254,15 +288,47 @@ export default function TrustSafetyConsole() {
         All gates green · canary at 25% · last red-team probe 2026-05-22
       </div>
 
-      <div className={styles.metricStrip}>
-        {pilotMetrics.map(([label, value, detail]) => (
-          <Card key={label} className={styles.metricCard}>
-            <Text className={styles.metricLabel}>{label}</Text>
-            <Text className={styles.metricValue}>{value}</Text>
-            <Text className={styles.metricDetail}>{detail}</Text>
+      <div className={styles.metricStrip} data-testid="pilot-kpi-strip">
+        {cards.map(card => (
+          <Card key={card.label} className={styles.metricCard} data-testid="pilot-kpi-card">
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <Text className={styles.metricLabel}>{card.label}</Text>
+              <Badge
+                appearance={source === 'fixture' ? 'outline' : 'filled'}
+                size="small"
+                data-testid="pilot-kpi-source-badge"
+              >
+                {source}
+              </Badge>
+            </div>
+            <Text className={styles.metricValue}>{card.value}</Text>
+            <Text className={styles.metricDetail}>{card.detail}</Text>
           </Card>
         ))}
       </div>
+      {kpiError && (
+        <Text
+          size={200}
+          style={{ color: tokens.colorPaletteRedForeground1 }}
+          data-testid="pilot-kpi-error"
+        >
+          Showing offline fixture KPIs (backend unavailable: {kpiError}).
+        </Text>
+      )}
+      {provenanceCount > 0 && (
+        <Text size={200} data-testid="pilot-kpi-provenance">
+          Provenance: {provenanceCount} source{provenanceCount === 1 ? '' : 's'}
+          {kpis?.report.meets_pilot_thresholds === false &&
+            ' · thresholds not yet met'}
+        </Text>
+      )}
 
       <div className={styles.twoCol}>
         <Card className={styles.chartCard}>

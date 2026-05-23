@@ -188,3 +188,30 @@ def test_intent_endpoint_returns_validated_plan(client, learning_api: LearningAp
 def test_intent_requires_prompt(client):
     response = client.post("/api/learning/intent", json={})
     assert response.status_code == 400
+
+
+def test_pilot_kpis_endpoint_returns_fixture_cards(client):
+    response = client.get("/api/learning/kpis")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["source"] == "fixture"
+    assert body["tenant_id"] == "tenant-phase-4"
+    assert body["week_count"] >= 1
+    cards = body["cards"]
+    labels = [card["label"] for card in cards]
+    assert labels == [
+        "Diagnostic completion",
+        "Approved interventions",
+        "Provenance coverage",
+        "Safety pass rate",
+        "DSR SLA",
+        "Weekly cost per student",
+    ]
+    # Provenance must be present for every endpoint per architecture rule.
+    assert body["provenance"], "pilot KPI response must carry provenance"
+    assert body["report"]["meets_pilot_thresholds"] in (True, False)
+
+
+def test_pilot_kpis_unknown_tenant_returns_404(client):
+    response = client.get("/api/learning/kpis", query_string={"tenant_id": "tenant-missing"})
+    assert response.status_code == 404

@@ -105,6 +105,38 @@ export type AuditEvent = {
 
 export type AuditResponse = { events: AuditEvent[] }
 
+export type PilotKpiCard = {
+  label: string
+  value: string
+  detail: string
+}
+
+export type PilotKpiProvenance = {
+  source: string
+  rule_id?: string | null
+  confidence: number
+  evidence_count: number
+}
+
+export type PilotKpiResponse = {
+  source: 'fixture' | 'live'
+  tenant_id: string
+  week_count: number
+  meets_pilot_thresholds: boolean
+  cards: PilotKpiCard[]
+  lang: string
+  provenance: PilotKpiProvenance[]
+  report: {
+    diagnostic_completion_rate: number
+    approved_intervention_rate: number
+    provenance_coverage: number
+    safety_rate: number
+    dsr_turnaround_rate: number
+    cost_per_student_gbp: number
+    meets_pilot_thresholds: boolean
+  }
+}
+
 export type DecisionResponse = {
   ok: boolean
   plan_id: string
@@ -237,4 +269,13 @@ export async function listAudit(query: {
   const url = search ? `/api/learning/audit?${search}` : '/api/learning/audit'
   const response = await fetch(url, withDefaults({ method: 'GET' }))
   return jsonOrThrow<AuditResponse>(response)
+}
+
+export async function getPilotKpis(query: {
+  tenant_id?: string
+} = {}): Promise<PilotKpiResponse> {
+  const search = new URLSearchParams(query as Record<string, string>).toString()
+  const url = search ? `/api/learning/kpis?${search}` : '/api/learning/kpis'
+  const response = await fetch(url, withDefaults({ method: 'GET' }))
+  return jsonOrThrow<PilotKpiResponse>(response)
 }
