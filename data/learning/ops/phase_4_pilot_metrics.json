@@ -1,0 +1,72 @@
+{
+  "snapshots": [
+    {
+      "tenant_id": "tenant-phase-4",
+      "week": 1,
+      "assigned_diagnostics": 180,
+      "completed_diagnostics": 158,
+      "suggestions_created": 72,
+      "suggestions_approved": 45,
+      "suggestions_with_provenance": 72,
+      "safety_eval_cases": 300,
+      "safety_eval_passed": 299,
+      "dsr_requests": 2,
+      "dsr_within_sla": 2,
+      "active_students": 280,
+      "total_cost_gbp": 42.5,
+      "lang": "en-NG",
+      "provenance": [{"source": "phase_4_pilot_metrics_fixture", "rule_id": "weekly_rollup", "confidence": 1.0, "evidence_count": 1}]
+    },
+    {
+      "tenant_id": "tenant-phase-4",
+      "week": 2,
+      "assigned_diagnostics": 190,
+      "completed_diagnostics": 177,
+      "suggestions_created": 86,
+      "suggestions_approved": 56,
+      "suggestions_with_provenance": 86,
+      "safety_eval_cases": 300,
+      "safety_eval_passed": 298,
+      "dsr_requests": 1,
+      "dsr_within_sla": 1,
+      "active_students": 292,
+      "total_cost_gbp": 49.75,
+      "lang": "en-NG",
+      "provenance": [{"source": "phase_4_pilot_metrics_fixture", "rule_id": "weekly_rollup", "confidence": 1.0, "evidence_count": 1}]
+    },
+    {
+      "tenant_id": "tenant-phase-4",
+      "week": 3,
+      "assigned_diagnostics": 200,
+      "completed_diagnostics": 189,
+      "suggestions_created": 92,
+      "suggestions_approved": 62,
+      "suggestions_with_provenance": 92,
+      "safety_eval_cases": 300,
+      "safety_eval_passed": 300,
+      "dsr_requests": 3,
+      "dsr_within_sla": 3,
+      "active_students": 300,
+      "total_cost_gbp": 56.25,
+      "lang": "en-NG",
+      "provenance": [{"source": "phase_4_pilot_metrics_fixture", "rule_id": "weekly_rollup", "confidence": 1.0, "evidence_count": 1}]
+    },
+    {
+      "tenant_id": "tenant-phase-4",
+      "week": 4,
+      "assigned_diagnostics": 210,
+      "completed_diagnostics": 199,
+      "suggestions_created": 100,
+      "suggestions_approved": 70,
+      "suggestions_with_provenance": 100,
+      "safety_eval_cases": 300,
+      "safety_eval_passed": 298,
+      "dsr_requests": 2,
+      "dsr_within_sla": 2,
+      "active_students": 300,
+      "total_cost_gbp": 61.5,
+      "lang": "en-NG",
+      "provenance": [{"source": "phase_4_pilot_metrics_fixture", "rule_id": "weekly_rollup", "confidence": 1.0, "evidence_count": 1}]
+    }
+  ]
+}

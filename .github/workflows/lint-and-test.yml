@@ -162,3 +162,24 @@ jobs:
 
     - name: Run Phase 3 architecture contract gate
       run: make verify-phase-3 PYTHON=python
+
+  phase-4-contract:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install Python dependencies
+      working-directory: ./backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-test.txt
+
+    - name: Run Phase 4 architecture contract gate
+      run: make verify-phase-4 PYTHON=python
