@@ -4,7 +4,9 @@ on:
   push:
     branches: [ main ]
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+      - 'refactor/pathfinder-learn-phase-*'
 
 jobs:
   python-test:
