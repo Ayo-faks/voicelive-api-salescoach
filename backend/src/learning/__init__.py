@@ -7,6 +7,15 @@ requires reuse of the existing planner budget pattern.
 """
 
 from src.learning.mastery import BetaBKT, Elo, MasteryEstimator
+from src.learning.diagnostic import (
+    DeterministicItemSelector,
+    DiagnosticAnswer,
+    DiagnosticEngine,
+    DiagnosticItemBank,
+    DiagnosticRunResult,
+    DiagnosticSession,
+    TeacherHeatmap,
+)
 from src.learning.models import (
     CareerPathway,
     CareerPlan,
@@ -30,7 +39,13 @@ __all__ = [
     "CareerPathway",
     "CareerPlan",
     "ContentPackManifest",
+    "DeterministicItemSelector",
+    "DiagnosticAnswer",
+    "DiagnosticEngine",
     "DiagnosticItem",
+    "DiagnosticItemBank",
+    "DiagnosticRunResult",
+    "DiagnosticSession",
     "Elo",
     "InterventionPlan",
     "InMemoryLearningRepository",
@@ -47,6 +62,7 @@ __all__ = [
     "Provenance",
     "StudentResponse",
     "StubLearningPlanner",
+    "TeacherHeatmap",
     "RalphXAPISink",
     "ValidationFailure",
     "ValidationResult",
