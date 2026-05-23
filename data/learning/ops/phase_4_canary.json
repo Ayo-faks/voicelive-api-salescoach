@@ -1,0 +1,30 @@
+{
+  "config": {
+    "tenant_id": "tenant-phase-4",
+    "release_id": "phase-4-canary-ramp-005",
+    "canary_percent": 5,
+    "thresholds": {
+      "safety_rate_min": 0.99,
+      "unsupported_claim_rate_max": 0.01,
+      "p95_latency_ms_max": 1500,
+      "cost_per_student_gbp_max": 0.8,
+      "provenance_coverage_min": 0.995
+    },
+    "rollback_flags": {
+      "flag.ai_suggestions.tenant-phase-4": "deterministic_only",
+      "flag.career_planner.tenant-phase-4": "off",
+      "flag.voice_path.tenant-phase-4": "off"
+    }
+  },
+  "observation": {
+    "tenant_id": "tenant-phase-4",
+    "release_id": "phase-4-canary-ramp-005",
+    "unsupported_claim_rate": 0.012,
+    "safety_rate": 0.985,
+    "p95_latency_ms": 1310,
+    "cost_per_student_gbp": 0.7,
+    "provenance_coverage": 1.0,
+    "lang": "en-NG",
+    "provenance": [{"source": "phase_4_canary_observation_fixture", "rule_id": "guardrail_regression", "confidence": 1.0, "evidence_count": 200}]
+  }
+}
