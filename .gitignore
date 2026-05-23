@@ -168,5 +168,6 @@ Thumbs.db
 
 .pytest_cache
 .azure
+evidence/
 static
 data/wulo.db

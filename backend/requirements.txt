@@ -12,6 +12,7 @@ flask-sock==0.7.0
 github-copilot-sdk
 openai==2.13.0
 pillow>=11.2.1
+pydantic>=2.7,<3  # PRD §7.5/§9.4 structured planner contracts and fail-closed validation
 reportlab>=4.2.0
 psycopg[binary]>=3.2.0
 python-dotenv==1.2.1
