@@ -279,3 +279,40 @@ export async function getPilotKpis(query: {
   const response = await fetch(url, withDefaults({ method: 'GET' }))
   return jsonOrThrow<PilotKpiResponse>(response)
 }
+
+export type VoiceConfigResponse = {
+  enabled: boolean
+  transport: string
+  offline_fallback: string
+}
+
+export type VoiceFrameResponse = {
+  result_id: string
+  accepted: boolean
+  queued: boolean
+  transport: string
+  transcript: string | null
+  offline_fallback: string | null
+  queue_id: string | null
+  lang: string
+  provenance: PilotKpiProvenance[]
+}
+
+export async function getVoiceConfig(): Promise<VoiceConfigResponse> {
+  const response = await fetch('/api/learning/voice/config', withDefaults({ method: 'GET' }))
+  return jsonOrThrow<VoiceConfigResponse>(response)
+}
+
+export async function submitVoiceFrame(payload: {
+  tenant_id?: string
+  actor_id?: string
+  mode?: 'text' | 'audio'
+  payload: string
+  lang?: string
+}): Promise<VoiceFrameResponse> {
+  const response = await fetch(
+    '/api/learning/voice/frame',
+    withDefaults({ method: 'POST', body: JSON.stringify(payload) })
+  )
+  return jsonOrThrow<VoiceFrameResponse>(response)
+}

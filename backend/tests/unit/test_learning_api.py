@@ -215,3 +215,52 @@ def test_pilot_kpis_endpoint_returns_fixture_cards(client):
 def test_pilot_kpis_unknown_tenant_returns_404(client):
     response = client.get("/api/learning/kpis", query_string={"tenant_id": "tenant-missing"})
     assert response.status_code == 404
+
+
+def test_voice_config_defaults_disabled(client, monkeypatch):
+    monkeypatch.delenv("PATHFINDER_VOICE_ENABLED", raising=False)
+    response = client.get("/api/learning/voice/config")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["enabled"] is False
+    assert body["transport"] == "flask-sock"
+    assert body["offline_fallback"] == "queued_multilingual_voice_frame"
+
+
+def test_voice_frame_rejected_when_flag_off(client, monkeypatch):
+    monkeypatch.delenv("PATHFINDER_VOICE_ENABLED", raising=False)
+    response = client.post(
+        "/api/learning/voice/frame",
+        json={"mode": "text", "payload": "hello"},
+    )
+    assert response.status_code == 403
+
+
+def test_voice_frame_queues_offline_when_enabled(client, learning_api, monkeypatch):
+    monkeypatch.setenv("PATHFINDER_VOICE_ENABLED", "1")
+    response = client.post(
+        "/api/learning/voice/frame",
+        json={"mode": "text", "payload": "Bawo ni, how do I solve 3/4 + 1/2?"},
+    )
+    assert response.status_code == 200, response.get_data(as_text=True)
+    body = response.get_json()
+    assert body["accepted"] is True
+    assert body["queued"] is True
+    assert body["offline_fallback"] == "queued_multilingual_voice_frame"
+    assert body["transcript"] == "Bawo ni, how do I solve 3/4 + 1/2?"
+    assert body["queue_id"].startswith("offline-queue-")
+    # provenance carried through
+    assert any(p["rule_id"] == "phase_3_voice_offline_queue" for p in body["provenance"])
+    # audit ledger recorded the queued frame
+    audit = client.get("/api/learning/audit").get_json()
+    kinds = [event["kind"] for event in audit["events"]]
+    assert "voice_frame_queued" in kinds
+
+
+def test_voice_frame_invalid_payload_returns_400(client, monkeypatch):
+    monkeypatch.setenv("PATHFINDER_VOICE_ENABLED", "1")
+    response = client.post(
+        "/api/learning/voice/frame",
+        json={"mode": "text", "payload": ""},
+    )
+    assert response.status_code == 400

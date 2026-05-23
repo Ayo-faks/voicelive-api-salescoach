@@ -16,6 +16,7 @@ layer via row-level security (`assert_learning_rls_contract_active`).
 from __future__ import annotations
 
 import json
+import os
 import threading
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Tuple
@@ -43,6 +44,7 @@ from src.learning.operations import compute_kpi_report, load_metric_snapshots
 from src.learning.planner import PlannerRequest, StubLearningPlanner
 from src.learning.repository import InMemoryLearningRepository, LearningRepository
 from src.learning.validator import PlanValidator, catalogue_grounding_rule
+from src.learning.voice import FlaskSockVoiceTransportAdapter, VoiceFrame
 from src.learning.xapi import (
     ApprovalEvent,
     DiagnosticCompletionEvent,
@@ -58,6 +60,7 @@ PILOT_STUDENT_ID = "pilot-jss2-student-001"
 PILOT_TEACHER_ID = "pilot-jss2-teacher-001"
 PILOT_DIAGNOSTIC_ITEMS_PER_RUN = 12
 PILOT_KPI_TENANT_ID = "tenant-phase-4"
+VOICE_FEATURE_FLAG_ENV = "PATHFINDER_VOICE_ENABLED"
 ITEM_BANK_PATH = (
     Path(__file__).resolve().parents[3] / "data" / "learning" / "jss2_maths_diagnostic_phase_2.json"
 )
@@ -123,6 +126,7 @@ class LearningApi:
         self.item_bank: DiagnosticItemBank = item_bank or load_item_bank(ITEM_BANK_PATH)
         self.estimator: MasteryEstimator = estimator or BetaBKT()
         self.selector = DeterministicItemSelector()
+        self.voice_adapter = FlaskSockVoiceTransportAdapter()
         self._sessions: Dict[str, _SessionState] = {}
         self._student_estimates: Dict[Tuple[str, str], Dict[str, MasteryEstimate]] = {}
         self._pending_plans: Dict[str, Dict[str, Any]] = {}
@@ -456,6 +460,58 @@ class LearningApi:
         }
 
     # ------------------------------------------------------------------
+    # Voice (F3) — feature-flagged, offline-fallback path
+    # ------------------------------------------------------------------
+    @staticmethod
+    def voice_enabled() -> bool:
+        raw = os.environ.get(VOICE_FEATURE_FLAG_ENV, "")
+        return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+    def get_voice_config(self, _payload: Mapping[str, Any]) -> Dict[str, Any]:
+        return {
+            "enabled": self.voice_enabled(),
+            "transport": "flask-sock",
+            "offline_fallback": self.voice_adapter.offline_fallback,
+        }
+
+    def submit_voice_frame(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        if not self.voice_enabled():
+            raise LearningApiError("voice feature disabled", status_code=403)
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        actor_id = str(payload.get("actor_id") or PILOT_STUDENT_ID)
+        mode = str(payload.get("mode") or "text")
+        body = payload.get("payload")
+        if not isinstance(body, str) or not body.strip():
+            raise LearningApiError("payload is required (text)", status_code=400)
+        lang = str(payload.get("lang") or "en-NG")
+        try:
+            frame = VoiceFrame(
+                tenant_id=tenant_id,
+                actor_id=actor_id,
+                mode=mode,
+                payload=body,
+                lang=lang,
+                provenance=[
+                    Provenance(
+                        source="LearningApi.submit_voice_frame",
+                        rule_id="phase_3_voice_entrypoint",
+                        confidence=1.0,
+                        evidence_count=1,
+                    )
+                ],
+            )
+        except Exception as exc:  # pydantic validation surfaces as 400
+            raise LearningApiError(f"invalid voice frame: {exc}", status_code=400) from exc
+        result = self.voice_adapter.handle_offline_frame(frame, repository=self.repository)
+        self._record_audit(
+            tenant_id=tenant_id,
+            actor_id=actor_id,
+            label=f"Queued voice frame ({mode})",
+            kind="voice_frame_queued",
+        )
+        return result.model_dump()
+
+    # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
     def _build_and_persist_pending_plan(self, state: _SessionState) -> Dict[str, Any]:
@@ -640,6 +696,16 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
     @_wrap
     def _kpis(payload: Dict[str, Any]) -> Dict[str, Any]:
         return learning_api.get_pilot_kpis(payload)
+
+    @app.route("/api/learning/voice/config", methods=["GET"])
+    @_wrap
+    def _voice_config(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.get_voice_config(payload)
+
+    @app.route("/api/learning/voice/frame", methods=["POST"])
+    @_wrap
+    def _voice_frame(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.submit_voice_frame(payload)
 
     return learning_api
 

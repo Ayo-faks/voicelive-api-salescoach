@@ -9,8 +9,14 @@ import {
   SparklesIcon,
   WifiIcon,
 } from '@heroicons/react/24/outline'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import DiagnosticPanel from '../components/DiagnosticPanel'
+import {
+  getVoiceConfig,
+  submitVoiceFrame,
+  type VoiceConfigResponse,
+  type VoiceFrameResponse,
+} from '../api'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 
 type Activity = {
@@ -296,6 +302,10 @@ export default function StudentLearningHome() {
   const [activeSkill, setActiveSkill] = useState<string | null>(null)
   const [panelKey, setPanelKey] = useState(0)
   const [completed, setCompleted] = useState(false)
+  const [voiceConfig, setVoiceConfig] = useState<VoiceConfigResponse | null>(null)
+  const [voiceResult, setVoiceResult] = useState<VoiceFrameResponse | null>(null)
+  const [voiceError, setVoiceError] = useState<string | null>(null)
+  const [voiceBusy, setVoiceBusy] = useState(false)
   const today = new Date('2026-05-21')
   const formatted = today.toLocaleDateString('en-GB', {
     weekday: 'long',
@@ -303,10 +313,41 @@ export default function StudentLearningHome() {
     month: 'long',
   })
 
+  useEffect(() => {
+    let cancelled = false
+    getVoiceConfig()
+      .then(cfg => {
+        if (!cancelled) setVoiceConfig(cfg)
+      })
+      .catch(() => {
+        if (!cancelled) setVoiceConfig({ enabled: false, transport: 'flask-sock', offline_fallback: 'queued_multilingual_voice_frame' })
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   function startCheckIn(skillId?: string) {
     setActiveSkill(skillId ?? null)
     setCompleted(false)
     setPanelKey(value => value + 1)
+  }
+
+  async function startVoiceCheckIn() {
+    setVoiceBusy(true)
+    setVoiceError(null)
+    try {
+      const result = await submitVoiceFrame({
+        mode: 'text',
+        payload: "Bawo ni teacher, I want to practise ratio.",
+        lang: 'en-NG',
+      })
+      setVoiceResult(result)
+    } catch (err) {
+      setVoiceError((err as Error).message)
+    } finally {
+      setVoiceBusy(false)
+    }
   }
 
   return (
@@ -340,6 +381,28 @@ export default function StudentLearningHome() {
             Start today's check-in
             <ArrowRightIcon style={{ width: 16, height: 16 }} aria-hidden="true" />
           </button>
+          {voiceConfig?.enabled && (
+            <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <Button
+                appearance="secondary"
+                onClick={startVoiceCheckIn}
+                disabled={voiceBusy}
+                data-testid="start-voice-checkin"
+              >
+                {voiceBusy ? 'Queuing voice frame…' : 'Voice check-in (beta)'}
+              </Button>
+              {voiceResult && (
+                <div data-testid="voice-frame-result" style={{ fontSize: '0.8rem', opacity: 0.85 }}>
+                  Queued: {voiceResult.queue_id} · fallback={voiceResult.offline_fallback}
+                </div>
+              )}
+              {voiceError && (
+                <div data-testid="voice-frame-error" style={{ fontSize: '0.8rem', color: '#ffb4b4' }}>
+                  Voice unavailable: {voiceError}
+                </div>
+              )}
+            </div>
+          )}
         </article>
 
         {(activeSkill !== null || panelKey > 0) && (
