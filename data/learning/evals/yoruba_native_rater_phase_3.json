@@ -1,0 +1,36 @@
+{
+  "dataset_id": "yoruba-native-rater-phase-3",
+  "lang": "yo-NG",
+  "summary_case_count": 200,
+  "summary_kappa": 0.74,
+  "provenance": [
+    {
+      "source": "pathfinder_phase_3_yoruba_eval_manifest",
+      "rule_id": "native_rater_kappa_summary",
+      "confidence": 0.9,
+      "evidence_count": 200
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "yo-eval-001",
+      "lang": "yo-NG",
+      "prompt": "So awon akeko po nipa ogbon ti won nilo iranlowo",
+      "expected_intent": "teacher_intervention",
+      "rater_labels": ["teacher_intervention", "teacher_intervention", "teacher_intervention"],
+      "provenance": [
+        {"source": "pathfinder_phase_3_yoruba_eval_manifest", "rule_id": "native_rater_case", "confidence": 0.9, "evidence_count": 3}
+      ]
+    },
+    {
+      "case_id": "yo-eval-002",
+      "lang": "yo-NG",
+      "prompt": "Ise wo ni o ba ogbon mi mu",
+      "expected_intent": "career_pathway",
+      "rater_labels": ["career_pathway", "career_pathway", "career_pathway"],
+      "provenance": [
+        {"source": "pathfinder_phase_3_yoruba_eval_manifest", "rule_id": "native_rater_case", "confidence": 0.9, "evidence_count": 3}
+      ]
+    }
+  ]
+}

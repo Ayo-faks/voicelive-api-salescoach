@@ -1,0 +1,36 @@
+{
+  "dataset_id": "nigeria-career-labour-market-phase-3",
+  "lang": "en-NG",
+  "records": [
+    {
+      "pathway_id": "data-analyst-ng",
+      "title": "Data analyst",
+      "skill_weights": {"ratio-proportion": 0.2, "fraction-operations": 0.15, "linear-equations": 0.45, "plane-geometry": 0.2},
+      "wage_band": {"source": "nbs_phase_3_fixture", "recency": "2026-Q1", "confidence": 0.78, "value": {"currency": "NGN", "min_monthly": 250000, "max_monthly": 650000}},
+      "demand_trend": {"source": "world_bank_step_phase_3_fixture", "recency": "2026-Q1", "confidence": 0.82, "value": {"trend": "rising", "score": 0.84}},
+      "provenance": [
+        {"source": "phase_3_labour_market_fixture", "rule_id": "sourced_wage_and_demand", "confidence": 0.82, "evidence_count": 2}
+      ]
+    },
+    {
+      "pathway_id": "civil-technician-ng",
+      "title": "Civil engineering technician",
+      "skill_weights": {"ratio-proportion": 0.25, "fraction-operations": 0.15, "linear-equations": 0.25, "plane-geometry": 0.35},
+      "wage_band": {"source": "nbs_phase_3_fixture", "recency": "2026-Q1", "confidence": 0.74, "value": {"currency": "NGN", "min_monthly": 220000, "max_monthly": 540000}},
+      "demand_trend": {"source": "esco_phase_3_fixture", "recency": "2026-Q1", "confidence": 0.76, "value": {"trend": "steady", "score": 0.72}},
+      "provenance": [
+        {"source": "phase_3_labour_market_fixture", "rule_id": "sourced_wage_and_demand", "confidence": 0.76, "evidence_count": 2}
+      ]
+    },
+    {
+      "pathway_id": "health-records-ng",
+      "title": "Health records assistant",
+      "skill_weights": {"ratio-proportion": 0.35, "fraction-operations": 0.25, "linear-equations": 0.25, "plane-geometry": 0.15},
+      "wage_band": {"source": "nbs_phase_3_fixture", "recency": "2026-Q1", "confidence": 0.72, "value": {"currency": "NGN", "min_monthly": 180000, "max_monthly": 420000}},
+      "demand_trend": {"source": "world_bank_step_phase_3_fixture", "recency": "2026-Q1", "confidence": 0.73, "value": {"trend": "steady", "score": 0.68}},
+      "provenance": [
+        {"source": "phase_3_labour_market_fixture", "rule_id": "sourced_wage_and_demand", "confidence": 0.73, "evidence_count": 2}
+      ]
+    }
+  ]
+}

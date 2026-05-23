@@ -1,0 +1,27 @@
+{
+  "pack_key": "yoruba-jss2-maths-and-career-phase-3",
+  "version": "2026.05.phase3",
+  "lang": "yo-NG",
+  "strings": [
+    {"key": "mastery.secure", "text": "O ye e daadaa"},
+    {"key": "mastery.developing", "text": "O n dagbasoke"},
+    {"key": "mastery.needs_support", "text": "O nilo iranlowo"},
+    {"key": "career.counsellor_required", "text": "Oludamoran gbodo se ayewo ki omo ile-iwe to ri alaye ise yi"}
+  ],
+  "planner_prompts": [
+    {"intent": "teacher_intervention", "text": "So awon akeko po nipa ogbon ti won nilo iranlowo"},
+    {"intent": "career_pathway", "text": "Fi ona ise han pelu orisun owo osu ati ibeere oja ise"}
+  ],
+  "voice_prompts": [
+    {"mode": "text", "text": "Mo fe mo bi mo se n se ninu mathimatiki"},
+    {"mode": "text", "text": "Ise wo ni o ba ogbon mi mu"}
+  ],
+  "provenance": [
+    {
+      "source": "pathfinder_phase_3_yoruba_content_pack",
+      "rule_id": "contract_phase_3_yoruba_pack",
+      "confidence": 1.0,
+      "evidence_count": 8
+    }
+  ]
+}
