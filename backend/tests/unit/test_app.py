@@ -3,6 +3,7 @@
 import base64
 import json
 import os
+from pathlib import Path
 from unittest.mock import ANY, AsyncMock, patch
 
 import pytest
@@ -40,30 +41,41 @@ class TestFlaskApp:
         app.config["TESTING"] = True
         self.client: FlaskClient = app.test_client()  # pylint: disable=attribute-defined-outside-init
 
+    @staticmethod
+    def _static_bundle(tmp_path: Path) -> str:
+        (tmp_path / "index.html").write_text("index.html content", encoding="utf-8")
+        return str(tmp_path)
+
     def teardown_method(self):
         """Reset env overrides applied by tests in this class."""
         os.environ.pop("LOCAL_DEV_AUTH", None)
         app_module._RATE_LIMIT_STATE.clear()
 
-    def test_index_route(self):
+    def test_index_route(self, tmp_path):
         """Test the index route serves index.html."""
-        with patch("src.app.send_from_directory") as mock_send:
+        static_folder = self._static_bundle(tmp_path)
+        with patch("src.app.resolve_static_folder", return_value=static_folder), patch(
+            "src.app.send_from_directory"
+        ) as mock_send:
             mock_send.return_value = "index.html content"
 
             response = self.client.get("/")
 
             assert response.status_code == 200
-            mock_send.assert_called_once_with(app.static_folder, "index.html")
+            mock_send.assert_called_once_with(static_folder, "index.html")
 
-    def test_spa_route_serves_index(self):
+    def test_spa_route_serves_index(self, tmp_path):
         """Test SPA deep links resolve to the frontend entry point."""
-        with patch("src.app.send_from_directory") as mock_send:
+        static_folder = self._static_bundle(tmp_path)
+        with patch("src.app.resolve_static_folder", return_value=static_folder), patch(
+            "src.app.send_from_directory"
+        ) as mock_send:
             mock_send.return_value = "index.html content"
 
             response = self.client.get("/dashboard")
 
             assert response.status_code == 200
-            mock_send.assert_called_once_with(app.static_folder, "index.html")
+            mock_send.assert_called_once_with(static_folder, "index.html")
 
     def test_asset_like_route_is_not_swallowed_by_spa_fallback(self):
         """Test asset requests still return 404 when the file is missing."""
