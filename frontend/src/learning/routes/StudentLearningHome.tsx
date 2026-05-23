@@ -9,6 +9,8 @@ import {
   SparklesIcon,
   WifiIcon,
 } from '@heroicons/react/24/outline'
+import { useState } from 'react'
+import DiagnosticPanel from '../components/DiagnosticPanel'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 
 type Activity = {
@@ -17,6 +19,7 @@ type Activity = {
   meta: string
   minutes: number
   type: 'check-in' | 'practice' | 'exit-ticket'
+  skillId?: string
 }
 
 const todaysPath: Activity[] = [
@@ -26,6 +29,7 @@ const todaysPath: Activity[] = [
     meta: 'Ratio & proportion · adaptive',
     minutes: 5,
     type: 'check-in',
+    skillId: 'ratio-proportion',
   },
   {
     id: 'fraction-bar',
@@ -33,6 +37,7 @@ const todaysPath: Activity[] = [
     meta: 'Fraction operations · 6 items',
     minutes: 8,
     type: 'practice',
+    skillId: 'fraction-operations',
   },
   {
     id: 'exit-ticket',
@@ -40,6 +45,7 @@ const todaysPath: Activity[] = [
     meta: 'Teacher reviewed',
     minutes: 3,
     type: 'exit-ticket',
+    skillId: 'linear-equations',
   },
 ]
 
@@ -287,12 +293,21 @@ const useStyles = makeStyles({
 
 export default function StudentLearningHome() {
   const styles = useStyles()
+  const [activeSkill, setActiveSkill] = useState<string | null>(null)
+  const [panelKey, setPanelKey] = useState(0)
+  const [completed, setCompleted] = useState(false)
   const today = new Date('2026-05-21')
   const formatted = today.toLocaleDateString('en-GB', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
   })
+
+  function startCheckIn(skillId?: string) {
+    setActiveSkill(skillId ?? null)
+    setCompleted(false)
+    setPanelKey(value => value + 1)
+  }
 
   return (
     <section className={styles.root} data-testid="route-student-home">
@@ -315,12 +330,32 @@ export default function StudentLearningHome() {
             <span className={styles.heroPill}>en-NG · Yoruba voice</span>
             <span className={styles.heroPill}>JSS2 · Maths</span>
           </div>
-          <button type="button" className={styles.heroCta}>
+          <button
+            type="button"
+            className={styles.heroCta}
+            onClick={() => startCheckIn()}
+            data-testid="start-checkin"
+          >
             <PlayCircleIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
             Start today's check-in
             <ArrowRightIcon style={{ width: 16, height: 16 }} aria-hidden="true" />
           </button>
         </article>
+
+        {(activeSkill !== null || panelKey > 0) && (
+          <DiagnosticPanel
+            key={panelKey}
+            skillId={activeSkill ?? undefined}
+            onCompleted={() => setCompleted(true)}
+          />
+        )}
+
+        {completed && (
+          <div className={styles.banner} data-testid="diagnostic-pending-banner">
+            <SparklesIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+            Plan suggestion sent to your teacher for approval.
+          </div>
+        )}
 
         <div className={styles.banner}>
           <WifiIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
@@ -340,6 +375,8 @@ export default function StudentLearningHome() {
                 type="button"
                 className={styles.pathRow}
                 style={{ textAlign: 'left', font: 'inherit' }}
+                onClick={() => startCheckIn(item.skillId)}
+                data-testid={`path-row-${item.id}`}
               >
                 <div className={styles.pathIcon} aria-hidden="true">
                   <PlayCircleIcon style={{ width: 20, height: 20 }} />
@@ -387,7 +424,12 @@ export default function StudentLearningHome() {
           <p style={{ fontSize: '0.88rem', color: t.brand.textSecondary, lineHeight: 1.5, margin: 0 }}>
             Linear equations · introduce slope using ratios you've practiced.
           </p>
-          <Button appearance="subtle" style={{ marginTop: 12, paddingLeft: 0 }}>
+          <Button
+            appearance="subtle"
+            style={{ marginTop: 12, paddingLeft: 0 }}
+            onClick={() => startCheckIn('linear-equations')}
+            data-testid="preview-path"
+          >
             Preview path
           </Button>
         </article>

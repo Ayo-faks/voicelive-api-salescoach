@@ -6,14 +6,25 @@ import {
   makeStyles,
   tokens,
 } from '@fluentui/react-components'
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   MultimodalIntentBar,
   PendingApprovalCard,
   ProvenanceFooter,
   type HeatmapCellView,
+  type PendingApprovalPlanView,
 } from '../components/PathfinderPhase2'
-import { heatmapCells, pendingPlan, provenance } from '../fixtures'
+import { heatmapCells, pendingPlan as fixturePendingPlan, provenance } from '../fixtures'
+import {
+  approveLearningPlan,
+  getClassMastery,
+  listAudit,
+  listPendingApprovals,
+  rejectLearningPlan,
+  submitIntent,
+  type ClassMasteryCell,
+  type PendingPlanRecord,
+} from '../api'
 
 const skillIds = [
   'ratio-proportion',
@@ -273,6 +284,54 @@ const useStyles = makeStyles({
 
 const filters = ['All JSS2', 'Needs support', 'Developing', 'Secure', 'Group A']
 
+function planRecordToView(record: PendingPlanRecord): PendingApprovalPlanView {
+  return {
+    planId: record.id,
+    targetSkillIds: record.plan.target_skill_ids,
+    targetStudentIds: record.plan.target_student_ids,
+    itemTypes: record.plan.item_types,
+    suggestedResources: record.plan.suggested_resources,
+    rationale: record.plan.rationale,
+    requiresApproval: record.plan.requires_approval,
+    lang: record.plan.lang,
+    provenance: record.plan.provenance.map(item => ({
+      source: item.source,
+      ruleId: item.rule_id ?? undefined,
+      confidence: item.confidence,
+      evidenceCount: item.evidence_count,
+    })),
+  }
+}
+
+function mergeLiveCellsWithFixture(
+  live: ClassMasteryCell[]
+): typeof classRowsBase {
+  if (live.length === 0) return classRowsBase
+  const merged = classRowsBase.map(row => ({
+    ...row,
+    cells: { ...row.cells },
+  }))
+  let liveRow = merged.find(row => row.studentId === 'student-001')
+  if (!liveRow) {
+    liveRow = {
+      studentId: 'student-001',
+      name: 'Tobi A. (live)',
+      cells: {},
+    } as Row
+    merged.unshift(liveRow)
+  }
+  for (const cell of live) {
+    liveRow.cells[cell.skill_id] = {
+      p: cell.probability,
+      u: cell.uncertainty,
+      status: cell.status,
+    }
+  }
+  return merged
+}
+
+const classRowsBase = classRows
+
 export default function TeacherMasteryDashboard() {
   const styles = useStyles()
   const [activeFilter, setActiveFilter] = useState('All JSS2')
@@ -280,9 +339,89 @@ export default function TeacherMasteryDashboard() {
     'Loaded JSS2 maths diagnostic fixture',
     'Teacher approval gate active',
   ])
+  const [liveCells, setLiveCells] = useState<ClassMasteryCell[]>([])
+  const [pendingPlans, setPendingPlans] = useState<PendingPlanRecord[]>([])
+  const [intentBusy, setIntentBusy] = useState(false)
+
+  const refresh = useCallback(async () => {
+    try {
+      const [mastery, approvals, audit] = await Promise.all([
+        getClassMastery(),
+        listPendingApprovals(),
+        listAudit(),
+      ])
+      setLiveCells(mastery.cells)
+      setPendingPlans(approvals.plans)
+      if (audit.events.length > 0) {
+        setAuditEvents(cur => {
+          const baseline = cur.filter(
+            value => !value.startsWith('[live]')
+          )
+          return [
+            ...baseline,
+            ...audit.events.map(event => `[live] ${event.label}`),
+          ]
+        })
+      }
+    } catch (err) {
+      // Backend unavailable in pure-frontend dev — fall back silently.
+      // eslint-disable-next-line no-console
+      console.warn('learning api refresh failed', err)
+    }
+  }, [])
+
+  useEffect(() => {
+    void refresh()
+    const handle = window.setInterval(() => {
+      void refresh()
+    }, 5000)
+    return () => window.clearInterval(handle)
+  }, [refresh])
+
+  const visibleRows = mergeLiveCellsWithFixture(liveCells)
+  const visiblePlan: PendingApprovalPlanView =
+    pendingPlans.length > 0 ? planRecordToView(pendingPlans[0]) : fixturePendingPlan
 
   function pushEvent(e: string) {
     setAuditEvents(cur => [...cur, e])
+  }
+
+  async function handleSubmitIntent(value: string) {
+    pushEvent(`Teacher request: ${value}`)
+    setIntentBusy(true)
+    try {
+      const result = await submitIntent({ prompt: value, role: 'teacher' })
+      pushEvent(
+        `Intent plan ${result.plan.plan_id} ready (${result.plan.target_skill_ids.join(', ')})`
+      )
+      await refresh()
+    } catch (err) {
+      pushEvent(`Intent failed: ${(err as Error).message}`)
+    } finally {
+      setIntentBusy(false)
+    }
+  }
+
+  async function handleApprove(planId: string) {
+    pushEvent(`Approving plan ${planId}…`)
+    try {
+      await approveLearningPlan(planId, { reason: 'Teacher dashboard approval' })
+      pushEvent(`Approved plan ${planId}`)
+      await refresh()
+    } catch (err) {
+      pushEvent(`Approve failed: ${(err as Error).message}`)
+    }
+  }
+
+  async function handleReject(planId: string) {
+    pushEvent(`Rejecting plan ${planId}…`)
+    try {
+      await rejectLearningPlan(planId, { reason: 'Teacher dashboard rejection' })
+      pushEvent(`Rejected plan ${planId}`)
+      await refresh()
+    } catch (err) {
+      pushEvent(`Reject failed: ${(err as Error).message}`)
+    }
   }
 
   return (
@@ -341,14 +480,22 @@ export default function TeacherMasteryDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {classRows.map(row => (
+                {visibleRows.map(row => (
                   <tr key={row.studentId}>
                     <td className={styles.nameCell}>{row.name}</td>
                     {skillIds.map(s => {
                       const c = row.cells[s]
+                      if (!c) {
+                        return (
+                          <td key={s} className={styles.cell} style={{ backgroundColor: '#fafafa' }}>
+                            —
+                          </td>
+                        )
+                      }
                       return (
                         <td
                           key={s}
+                          data-testid={`mastery-cell-${row.studentId}-${s}`}
                           className={styles.cell}
                           style={{
                             backgroundColor: colourForMastery(c.p),
@@ -433,14 +580,15 @@ export default function TeacherMasteryDashboard() {
           <div className={styles.intentCard}>
             <Text weight="semibold">Plan an intervention</Text>
             <MultimodalIntentBar
-              onSubmitIntent={v => pushEvent(`Teacher request: ${v}`)}
+              disabled={intentBusy}
+              onSubmitIntent={value => void handleSubmitIntent(value)}
             />
           </div>
 
           <PendingApprovalCard
-            plan={pendingPlan}
-            onApprove={id => pushEvent(`Approved plan ${id}`)}
-            onReject={id => pushEvent(`Rejected plan ${id}`)}
+            plan={visiblePlan}
+            onApprove={id => void handleApprove(id)}
+            onReject={id => void handleReject(id)}
           />
 
           <Card>
@@ -448,12 +596,15 @@ export default function TeacherMasteryDashboard() {
               header={<Text weight="semibold">Audit events</Text>}
               description={<Text size={200}>Recent local UI actions</Text>}
             />
-            <div style={{ display: 'grid', gap: '6px', marginTop: '8px' }}>
+            <div
+              style={{ display: 'grid', gap: '6px', marginTop: '8px' }}
+              data-testid="audit-events"
+            >
               {auditEvents
-                .slice(-5)
+                .slice(-10)
                 .reverse()
-                .map(e => (
-                  <Badge key={e} appearance="outline">
+                .map((e, idx) => (
+                  <Badge key={`${idx}-${e}`} appearance="outline">
                     {e}
                   </Badge>
                 ))}

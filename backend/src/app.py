@@ -31,6 +31,7 @@ from src.services.analyzers import ConversationAnalyzer, PronunciationAssessor
 from src.services.child_memory_service import ChildMemoryService
 from src.services.email_service import AzureCommunicationEmailService, InvitationEmailDeliveryResult
 from src.services.institutional_memory_service import InstitutionalMemoryService
+from src.learning.api import register_learning_api
 from src.services.insights_copilot_planner import build_insights_planner_from_env
 from src.services.insights_service import (
     InsightsAuthorizationError,
@@ -319,6 +320,7 @@ def initialize_runtime_services() -> None:
 
 
 initialize_runtime_services()
+learning_api = register_learning_api(app)
 
 
 def _refresh_static_folder() -> str:
