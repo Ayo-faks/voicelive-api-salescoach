@@ -54,6 +54,16 @@ class DiagnosticCompletionEvent(LanguageAndProvenanceModel):
     item_count: int = Field(ge=1)
 
 
+class CareerPlanEvent(LanguageAndProvenanceModel):
+    event_id: str = Field(default_factory=lambda: f"career-plan-event-{uuid4().hex[:12]}")
+    event_type: Literal["career_plan"] = "career_plan"
+    tenant_id: str = Field(min_length=1)
+    actor_id: str = Field(min_length=1)
+    student_id: str = Field(min_length=1)
+    plan_id: str = Field(min_length=1)
+    pathway_count: int = Field(ge=1)
+
+
 def _actor(actor_id: str) -> Dict[str, Any]:
     return {"account": {"homePage": "https://pathfinder.learn", "name": actor_id}}
 
@@ -116,6 +126,22 @@ def diagnostic_completion_event_to_xapi(event: DiagnosticCompletionEvent) -> XAP
         verb={"id": "http://adlnet.gov/expapi/verbs/completed", "display": {"en": "completed"}},
         object={"id": f"https://pathfinder.learn/diagnostics/{event.diagnostic_id}", "definition": {"type": "Diagnostic"}},
         result={"extensions": {"https://pathfinder.learn/extensions/item_count": event.item_count}},
+        context=_context(event.tenant_id, event.lang, event.provenance),
+    )
+
+
+def career_plan_event_to_xapi(event: CareerPlanEvent) -> XAPIStatement:
+    return XAPIStatement(
+        id=event.event_id,
+        actor=_actor(event.actor_id),
+        verb={"id": "https://pathfinder.learn/xapi/verbs/shortlisted-career-pathways", "display": {"en": "shortlisted career pathways"}},
+        object={"id": f"https://pathfinder.learn/career-plans/{event.plan_id}", "definition": {"type": "CareerPlan"}},
+        result={
+            "extensions": {
+                "https://pathfinder.learn/extensions/student_id": event.student_id,
+                "https://pathfinder.learn/extensions/pathway_count": event.pathway_count,
+            }
+        },
         context=_context(event.tenant_id, event.lang, event.provenance),
     )
 
