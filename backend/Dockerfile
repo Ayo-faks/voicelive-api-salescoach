@@ -53,7 +53,7 @@ RUN mkdir -p /data /app/bootstrap && chown -R app:app /data /app/bootstrap
 WORKDIR /app
 
 COPY backend/requirements.txt ./
-RUN pip install --no-cache-dir --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org -r requirements.txt
+RUN pip install --no-cache-dir --retries 10 --timeout 120 --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org -r requirements.txt
 
 COPY --chown=app:app backend/src/ ./src/
 COPY --chown=app:app backend/alembic.ini ./alembic.ini

@@ -987,7 +987,7 @@ export function useInsightsVoice({
 
     const socket = await connectSocket()
     if (!socket) {
-      const info = lastCloseInfoRef.current
+      const info = lastCloseInfoRef.current as { code: number; reason: string } | null
       const detail = info
         ? ` (${info.code}${info.reason ? ` ${info.reason}` : ''})`
         : ''
