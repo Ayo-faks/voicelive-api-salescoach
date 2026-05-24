@@ -44,6 +44,70 @@ export type ClassMasteryResponse = {
   source: string
 }
 
+export type StudentProfileSkill = {
+  skill_id: string
+  skill_label: string
+  probability: number
+  uncertainty: number
+  kind: string
+  status: 'secure' | 'developing' | 'needs_support'
+}
+
+export type StudentProfileRecord = {
+  id?: string
+  item_id?: string
+  skill_id?: string
+  response_text?: string
+  correct?: boolean
+  estimate?: MasteryEstimatePayload
+  created_at?: string
+  [key: string]: unknown
+}
+
+export type StudentProfileResponse = {
+  tenant_id: string
+  student_id: string
+  skills: StudentProfileSkill[]
+  recent_mastery_events: StudentProfileRecord[]
+  recent_responses: StudentProfileRecord[]
+  xapi_id: string
+  audit: AuditEvent
+}
+
+export type CatalogueSkill = {
+  skill_id: string
+  tenant_id: string
+  standard_id: string
+  name: string
+  description?: string | null
+  subject?: string | null
+  parent_skill_id?: string | null
+  prerequisites: string[]
+  kc_tags: string[]
+  localisations: Record<string, string>
+  year_group_min?: number | null
+  year_group_max?: number | null
+  status: 'active' | 'draft' | 'archived'
+  lang: string
+  provenance: Array<{
+    source: string
+    rule_id?: string | null
+    confidence: number
+    evidence_count: number
+  }>
+}
+
+export type SkillSearchResponse = {
+  tenant_id: string
+  query: string
+  skills: CatalogueSkill[]
+  total: number
+  limit: number
+  offset: number
+  lang: string
+  provenance: CatalogueSkill['provenance']
+}
+
 export type StartDiagnosticResponse = {
   session_id: string
   diagnostic_id: string
@@ -153,6 +217,16 @@ export type IntentResponse = {
   validated: boolean
 }
 
+export type OverrideMasteryResponse = {
+  ok: boolean
+  student_id: string
+  skill_id: string
+  estimate: MasteryEstimatePayload
+  status: StudentProfileSkill['status']
+  xapi_id: string
+  audit: AuditEvent
+}
+
 async function jsonOrThrow<T>(response: Response): Promise<T> {
   if (!response.ok) {
     let body: string
@@ -175,6 +249,11 @@ function withDefaults(init?: RequestInit): RequestInit {
       ...(init?.headers || {}),
     },
   }
+}
+
+function toSearchParams(query: Record<string, string | undefined>): string {
+  const pairs = Object.entries(query).filter(([, value]) => value === undefined ? false : value === '' ? false : true)
+  return new URLSearchParams(pairs as [string, string][]).toString()
 }
 
 export async function startDiagnostic(payload: {
@@ -214,6 +293,54 @@ export async function getClassMastery(query: {
     : '/api/learning/class/mastery'
   const response = await fetch(url, withDefaults({ method: 'GET' }))
   return jsonOrThrow<ClassMasteryResponse>(response)
+}
+
+export async function getStudentProfile(
+  studentId: string,
+  query: { tenant_id?: string; actor_id?: string } = {}
+): Promise<StudentProfileResponse> {
+  const search = toSearchParams(query)
+  const url = search
+    ? `/api/learning/students/${encodeURIComponent(studentId)}/profile?${search}`
+    : `/api/learning/students/${encodeURIComponent(studentId)}/profile`
+  const response = await fetch(url, withDefaults({ method: 'GET' }))
+  return jsonOrThrow<StudentProfileResponse>(response)
+}
+
+export async function listSkills(query: {
+  tenant_id?: string
+  query?: string
+  subject?: string
+  status?: string
+  limit?: number
+  offset?: number
+} = {}): Promise<SkillSearchResponse> {
+  const search = toSearchParams(
+    Object.fromEntries(
+      Object.entries(query).map(([key, value]) => [key, value === undefined ? undefined : String(value)])
+    )
+  )
+  const url = search ? `/api/learning/skills?${search}` : '/api/learning/skills'
+  const response = await fetch(url, withDefaults({ method: 'GET' }))
+  return jsonOrThrow<SkillSearchResponse>(response)
+}
+
+export async function overrideStudentMastery(
+  studentId: string,
+  payload: {
+    skill_id: string
+    probability: number
+    uncertainty?: number
+    reason: string
+    tenant_id?: string
+    actor_id?: string
+  }
+): Promise<OverrideMasteryResponse> {
+  const response = await fetch(
+    `/api/learning/students/${encodeURIComponent(studentId)}/override`,
+    withDefaults({ method: 'POST', body: JSON.stringify(payload) })
+  )
+  return jsonOrThrow<OverrideMasteryResponse>(response)
 }
 
 export async function listPendingApprovals(query: {

@@ -7,6 +7,7 @@ import {
   tokens,
 } from '@fluentui/react-components'
 import { useCallback, useEffect, useState } from 'react'
+import { StudentProfileDrawer } from '../StudentProfileDrawer'
 import {
   MultimodalIntentBar,
   PendingApprovalCard,
@@ -24,6 +25,7 @@ import {
   submitIntent,
   type ClassMasteryCell,
   type PendingPlanRecord,
+  type StudentProfileSkill,
 } from '../api'
 
 const skillIds = [
@@ -216,6 +218,17 @@ const useStyles = makeStyles({
     minWidth: '64px',
     border: '1px solid transparent',
   },
+  cellButton: {
+    width: '100%',
+    minHeight: '54px',
+    border: 0,
+    borderRadius: '8px',
+    font: 'inherit',
+    fontWeight: 700,
+    cursor: 'pointer',
+    backgroundColor: 'transparent',
+    color: 'inherit',
+  },
   cellUncertainty: {
     display: 'block',
     fontSize: '0.65rem',
@@ -330,6 +343,24 @@ function mergeLiveCellsWithFixture(
   return merged
 }
 
+function rowToProfileSkills(row: Row | undefined): StudentProfileSkill[] {
+  if (!row) return []
+  return skillIds.flatMap(skillId => {
+    const cell = row.cells[skillId]
+    if (!cell) return []
+    return [
+      {
+        skill_id: skillId,
+        skill_label: skillLabels[skillId],
+        probability: cell.p,
+        uncertainty: cell.u,
+        kind: 'beta',
+        status: cell.status,
+      },
+    ]
+  })
+}
+
 const classRowsBase = classRows
 
 export default function TeacherMasteryDashboard() {
@@ -342,6 +373,7 @@ export default function TeacherMasteryDashboard() {
   const [liveCells, setLiveCells] = useState<ClassMasteryCell[]>([])
   const [pendingPlans, setPendingPlans] = useState<PendingPlanRecord[]>([])
   const [intentBusy, setIntentBusy] = useState(false)
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
     try {
@@ -377,6 +409,9 @@ export default function TeacherMasteryDashboard() {
   }, [refresh])
 
   const visibleRows = mergeLiveCellsWithFixture(liveCells)
+  const selectedFallbackSkills = rowToProfileSkills(
+    visibleRows.find(row => row.studentId === selectedStudentId)
+  )
   const visiblePlan: PendingApprovalPlanView =
     pendingPlans.length > 0 ? planRecordToView(pendingPlans[0]) : fixturePendingPlan
 
@@ -493,7 +528,6 @@ export default function TeacherMasteryDashboard() {
                       return (
                         <td
                           key={s}
-                          data-testid={`mastery-cell-${row.studentId}-${s}`}
                           className={styles.cell}
                           style={{
                             backgroundColor: colourForMastery(c.p),
@@ -503,10 +537,18 @@ export default function TeacherMasteryDashboard() {
                             c.p * 100
                           )}% · uncertainty ${Math.round(c.u * 100)}%`}
                         >
-                          {Math.round(c.p * 100)}%
-                          <span className={styles.cellUncertainty}>
-                            ±{Math.round(c.u * 100)}
-                          </span>
+                          <button
+                            type="button"
+                            className={styles.cellButton}
+                            data-testid={`mastery-cell-${row.studentId}-${s}`}
+                            aria-label={`Open profile for ${row.name}, ${skillLabels[s]} mastery`}
+                            onClick={() => setSelectedStudentId(row.studentId)}
+                          >
+                            {Math.round(c.p * 100)}%
+                            <span className={styles.cellUncertainty}>
+                              ±{Math.round(c.u * 100)}
+                            </span>
+                          </button>
                         </td>
                       )
                     })}
@@ -615,6 +657,12 @@ export default function TeacherMasteryDashboard() {
       <span data-testid="legacy-cells-count" style={{ display: 'none' }}>
         {heatmapCells.length}
       </span>
+      <StudentProfileDrawer
+        open={Boolean(selectedStudentId)}
+        studentId={selectedStudentId}
+        fallbackSkills={selectedFallbackSkills}
+        onClose={() => setSelectedStudentId(null)}
+      />
     </div>
   )
 }
