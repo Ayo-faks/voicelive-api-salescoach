@@ -1,5 +1,6 @@
 import {
   Button,
+  Caption1,
   Dialog,
   DialogActions,
   DialogBody,
@@ -12,8 +13,14 @@ import {
   makeStyles,
   tokens,
 } from '@fluentui/react-components'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { StudentProfileSkill } from './api'
+
+type OriginalEstimate = {
+  skillId: string
+  probability: number
+  uncertainty: number
+}
 
 const useStyles = makeStyles({
   body: {
@@ -30,11 +37,26 @@ const useStyles = makeStyles({
     color: tokens.colorPaletteRedForeground1,
     fontWeight: 600,
   },
+  metricCaption: {
+    color: tokens.colorNeutralForeground3,
+  },
   rangeInput: {
     width: '100%',
     accentColor: tokens.colorBrandBackground,
   },
 })
+
+function formatPercent(value: number) {
+  return `${Math.round(value * 100)}%`
+}
+
+function estimateCaption(original: number, current: number) {
+  const originalLabel = formatPercent(original)
+  if (Math.abs(original - current) < 0.0001) {
+    return `Model estimate: ${originalLabel}`
+  }
+  return `Model estimate: ${originalLabel} → New: ${formatPercent(current)}`
+}
 
 export type OverrideMasteryDialogProps = {
   open: boolean
@@ -59,14 +81,28 @@ export function OverrideMasteryDialog({
   const styles = useStyles()
   const [probability, setProbability] = useState(skill?.probability ?? 0.5)
   const [uncertainty, setUncertainty] = useState(skill?.uncertainty ?? 0.1)
+  const [originalEstimate, setOriginalEstimate] = useState<OriginalEstimate | null>(null)
   const [reason, setReason] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const openedSkillIdRef = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!open || !skill) return
+    if (!open || !skill) {
+      openedSkillIdRef.current = null
+      setOriginalEstimate(null)
+      return
+    }
+    if (openedSkillIdRef.current === skill.skill_id) return
+    openedSkillIdRef.current = skill.skill_id
+    const nextUncertainty = skill.uncertainty ?? 0.1
     setProbability(skill.probability)
-    setUncertainty(skill.uncertainty || 0.1)
+    setUncertainty(nextUncertainty)
+    setOriginalEstimate({
+      skillId: skill.skill_id,
+      probability: skill.probability,
+      uncertainty: nextUncertainty,
+    })
     setReason('')
     setError(null)
   }, [open, skill])
@@ -75,6 +111,8 @@ export function OverrideMasteryDialog({
   const uncertaintyValid = uncertainty >= 0 && uncertainty <= 1
   const reasonValid = reason.trim().length >= 5
   const canSubmit = Boolean(skill) && probabilityValid && uncertaintyValid && reasonValid && !busy
+  const originalProbability = originalEstimate?.probability ?? probability
+  const originalUncertainty = originalEstimate?.uncertainty ?? uncertainty
 
   async function handleSubmit() {
     if (!skill || !canSubmit) return
@@ -106,6 +144,9 @@ export function OverrideMasteryDialog({
               : 'Select a skill to override'}
           </Text>
 
+          <Caption1 className={styles.metricCaption}>
+            {estimateCaption(originalProbability, probability)}
+          </Caption1>
           <Field label={`Probability (${Math.round(probability * 100)}%)`} validationState={probabilityValid ? 'none' : 'error'}>
             <div className={styles.metricRow}>
               <input
@@ -130,6 +171,9 @@ export function OverrideMasteryDialog({
             </div>
           </Field>
 
+          <Caption1 className={styles.metricCaption}>
+            {estimateCaption(originalUncertainty, uncertainty)}
+          </Caption1>
           <Field label={`Uncertainty (${Math.round(uncertainty * 100)}%)`} validationState={uncertaintyValid ? 'none' : 'error'}>
             <div className={styles.metricRow}>
               <input
