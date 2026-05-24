@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1920, initial-scale=1" />
+<title>Wulo · The Speech Therapy OS</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- ============================================================ 01 / TITLE -->
+<section class="slide active" data-slide="01" data-name="title">
+  <div class="frame">
+    <header class="brand-row">
+      <a class="wordmark" href="https://wulo.ai" target="_blank" rel="noopener">W<span>U</span>LO</a>
+      <div class="eyebrow accent">Speech Therapy OS</div>
+    </header>
+
+    <div class="grid two title-grid">
+      <div class="title-block">
+        <h1 class="display">The operating system that runs between speech therapy sessions.</h1>
+        <p class="lede">Wulo turns home practice into clinical evidence, so therapists open a session with data, not memory.</p>
+      </div>
+
+      <div class="stack">
+        <article class="panel headline">
+          <div class="metric-eyebrow">Home-practice review</div>
+          <div class="metric-big">30 → 5 <span class="unit">min</span></div>
+          <div class="metric-foot">−83% reconstruction time at the start of a session</div>
+        </article>
+        <article class="panel headline accent-border">
+          <div class="metric-eyebrow">Clinical phonemes</div>
+          <div class="metric-big accent">+22%</div>
+          <div class="metric-foot">Improvement over the off-the-shelf speech model on therapy targets</div>
+        </article>
+      </div>
+    </div>
+
+    <footer class="footnote">
+      <span><a class="footnote-link" href="https://www.youtube.com/watch?v=EPKsGBDSeac" target="_blank" rel="noopener">▶ Watch the 2-minute walkthrough</a></span>
+      <span>Built on Azure Voice Live · Azure Speech · Azure OpenAI · React · Python</span>
+    </footer>
+  </div>
+</section>
+
+<!-- ============================================================ 02 / TLDR -->
+<section class="slide" data-slide="02" data-name="executive-summary">
+  <div class="frame">
+    <header class="slide-head">
+      <div class="eyebrow accent">Executive Summary</div>
+      <h2 class="h1">Wulo in one slide.</h2>
+    </header>
+
+    <div class="grid four cards">
+      <article class="panel">
+        <div class="panel-eyebrow bad">Problem</div>
+        <h3 class="panel-title">30 minutes of a 60-minute session went to reconstruction.</h3>
+        <p class="panel-body">Therapists had no reliable trace of what happened between appointments.</p>
+      </article>
+
+      <article class="panel">
+        <div class="panel-eyebrow warn">Approach</div>
+        <h3 class="panel-title">Automate only what is capturable, inspectable, and reversible by the therapist.</h3>
+        <p class="panel-body">Diagnosis, goal setting, and discharge stay therapist-only. Everything else is drafted by the OS.</p>
+      </article>
+
+      <article class="panel">
+        <div class="panel-eyebrow info">Implementation</div>
+        <h3 class="panel-title">Realtime voice + speech intelligence + admin layer.</h3>
+        <p class="panel-body">Voice Live sessions, phoneme-aware assessment, AI session summaries, draft reports, parent emails, and SMS practice reminders.</p>
+      </article>
+
+      <article class="panel">
+        <div class="panel-eyebrow good">Results</div>
+        <h3 class="panel-title">25 minutes returned per session.</h3>
+        <p class="panel-body">Pre-session reconstruction 30 → 5 min, plus a 22% relative reduction in phoneme error rate on clinical targets versus the off-the-shelf baseline.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 03 / PROBLEM -->
+<section class="slide" data-slide="03" data-name="problem">
+  <div class="frame">
+    <header class="slide-head">
+      <div class="eyebrow bad">01 · The Problem</div>
+      <h2 class="h1">A one-hour session was being eaten by missing context.</h2>
+    </header>
+
+    <div class="grid two-third-one-third">
+      <div class="stack-tight">
+        <p class="lede">Therapists were forced to reconstruct the week before they could treat the child in front of them.</p>
+        <ul class="bullets">
+          <li>Home practice was inconsistent, undocumented, and hard to verify.</li>
+          <li>Parents wanted to help, but lacked time, structure, or clinical confidence.</li>
+          <li>Children needed repeated practice without anyone available to coach it.</li>
+          <li>The first 30 minutes of a 60-minute session disappeared into catch-up and guesswork.</li>
+        </ul>
+      </div>
+
+      <article class="panel emphasis bad-border">
+        <div class="panel-eyebrow bad">The hidden cost</div>
+        <div class="metric-big bad">50%</div>
+        <div class="panel-body">of a one-hour appointment spent rebuilding the missing week.</div>
+        <hr class="rule" />
+        <div class="metric-sub">Therapist-reported baseline, n = 3 SLTs, 12 sessions, Q1 2026.</div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 04 / APPROACH -->
+<section class="slide" data-slide="04" data-name="approach">
+  <div class="frame">
+    <header class="slide-head">
+      <div class="eyebrow warn">02 · The Approach</div>
+      <h2 class="h1">I designed Wulo as an operating system for therapist-led care.</h2>
+    </header>
+
+    <p class="lede wide">The question was not <em>what can AI do?</em> It was <em>what should the OS run on behalf of the therapist, and what must the therapist still own?</em></p>
+
+    <div class="grid four cards">
+      <article class="panel">
+        <div class="panel-index">01</div>
+        <h3 class="panel-title">Capture the signal.</h3>
+        <p class="panel-body">If a practice event is not captured, it is invisible. I capture audio, transcripts, and pronunciation telemetry by default.</p>
+      </article>
+
+      <article class="panel">
+        <div class="panel-index">02</div>
+        <h3 class="panel-title">Compress for review.</h3>
+        <p class="panel-body">Raw signal is not the deliverable. I run a pronunciation analyser that scores and summarises every session into a decision-ready record.</p>
+      </article>
+
+      <article class="panel">
+        <div class="panel-index">03</div>
+        <h3 class="panel-title">Therapist is the authority.</h3>
+        <p class="panel-body">Every AI output is inspectable. Plans, scores, and notes are draft inputs; therapists approve, edit, or reject.</p>
+      </article>
+
+      <article class="panel accent-border">
+        <div class="panel-index">04</div>
+        <h3 class="panel-title">What I chose not to automate.</h3>
+        <p class="panel-body">Diagnosis, goal setting, and discharge stay therapist-only. I never let the OS propose a clinical decision.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 05 / OS SURFACE -->
+<section class="slide" data-slide="05" data-name="os-surface">
+  <div class="frame">
+    <header class="slide-head">
+      <div class="eyebrow warn">Automation Choices</div>
+      <h2 class="h1">What the OS runs for the therapist.</h2>
+    </header>
+
+    <article class="callout">
+      <div class="callout-label">Decision rule</div>
+      <div class="callout-body">Automate where the input signal is <strong>capturable</strong>, the output is <strong>inspectable</strong>, and the therapist remains the <strong>authority</strong>.</div>
+    </article>
+
+    <div class="grid four dense">
+      <article class="panel">
+        <div class="panel-eyebrow accent">Practice runtime</div>
+        <h3 class="panel-title">Guided home sessions</h3>
+        <p class="panel-body">Avatar-led voice practice gives a child structured repetitions without needing a parent to lead every turn.</p>
+      </article>
+      <article class="panel">
+        <div class="panel-eyebrow accent">Capture layer</div>
+        <h3 class="panel-title">Transcript &amp; audio</h3>
+        <p class="panel-body">I stream, transcribe, and store every utterance, replacing memory and recall with a replayable record.</p>
+      </article>
+      <article class="panel">
+        <div class="panel-eyebrow accent">Speech intelligence</div>
+        <h3 class="panel-title">Phoneme scoring</h3>
+        <p class="panel-body">Per-word and per-phoneme pronunciation telemetry, tuned for clinical targets, not generic dictation.</p>
+      </article>
+      <article class="panel">
+        <div class="panel-eyebrow accent">Review intelligence</div>
+        <h3 class="panel-title">Session summaries</h3>
+        <p class="panel-body">I compress effort, clarity, retries, and target accuracy into a clinical-grade review note.</p>
+      </article>
+      <article class="panel span-2">
+        <div class="panel-eyebrow accent">Planning layer</div>
+        <h3 class="panel-title">Next-session drafts the therapist can approve.</h3>
+        <p class="panel-body">I feed saved evidence and approved memory into a GPT-4o planner that proposes the next exercise plan for therapist sign-off. The therapist edits or rejects; nothing auto-applies.</p>
+      </article>
+      <article class="panel span-2">
+        <div class="panel-eyebrow accent">Not automated</div>
+        <h3 class="panel-title">Diagnosis, goal setting, discharge.</h3>
+        <p class="panel-body">These are clinical decisions, not workflow. I never draft them and never propose them.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 06 / ADMIN LAYER -->
+<section class="slide" data-slide="06" data-name="admin-layer">
+  <div class="frame">
+    <header class="slide-head">
+      <div class="eyebrow warn">Automation Choices · Admin layer</div>
+      <h2 class="h1">The paperwork the OS quietly takes off the therapist's desk.</h2>
+    </header>
+
+    <p class="lede wide">Clinical time was not only being lost <em>inside</em> sessions; it was being lost to the admin around them. Wulo treats reports, emails, reminders, and scheduling notes as first-class OS workloads, drafted from real session evidence and submitted for therapist approval.</p>
+
+    <div class="grid four dense">
+      <article class="panel">
+        <div class="panel-eyebrow accent">Report writing · Shipped</div>
+        <h3 class="panel-title">Draft progress reports from real session data.</h3>
+        <p class="panel-body">Transcripts, pronunciation scores, and AI session notes are compressed into a structured progress report. Therapist edits and signs.</p>
+      </article>
+      <article class="panel">
+        <div class="panel-eyebrow accent">Email drafting · Shipped</div>
+        <h3 class="panel-title">Parent and school updates, pre-written.</h3>
+        <p class="panel-body">Wulo drafts the &ldquo;how the week went&rdquo; email per child, grounded in evidence, never invented. The therapist sends or revises in one click.</p>
+      </article>
+      <article class="panel">
+        <div class="panel-eyebrow accent">Exercise reminders · Prototype</div>
+        <h3 class="panel-title">SMS nudges to families at the right cadence.</h3>
+        <p class="panel-body">Targeted text reminders for the day&apos;s practice, driven by the therapist&apos;s plan, the child&apos;s history, and whether they actually practised yesterday.</p>
+      </article>
+      <article class="panel">
+        <div class="panel-eyebrow accent">Routine admin · Designed</div>
+        <h3 class="panel-title">Scheduling, notes, follow-ups.</h3>
+        <p class="panel-body">Session prep notes, post-session summaries, follow-up tasks, and waiting-list communications, generated, queued, and tracked by the OS.</p>
+      </article>
+    </div>
+
+    <article class="callout">
+      <div class="callout-label">Same rule, applied to admin</div>
+      <div class="callout-body">Every draft is grounded in captured evidence, every output is inspectable, and the therapist still presses send.</div>
+    </article>
+  </div>
+</section>
+
+<!-- ============================================================ 07 / TRADEOFFS -->
+<section class="slide" data-slide="07" data-name="tradeoffs">
+  <div class="frame">
+    <header class="slide-head">
+      <div class="eyebrow warn">Approach · Tradeoffs</div>
+      <h2 class="h1">What I chose, what I rejected, and why.</h2>
+    </header>
+
+    <div class="grid three cards">
+      <article class="panel">
+        <div class="panel-eyebrow accent">Realtime stack</div>
+        <h3 class="panel-title">I chose Azure Voice Live.</h3>
+        <p class="panel-body"><strong>Rejected:</strong> OpenAI Realtime API (no avatar, weaker en-GB child speech), LiveKit + Whisper (own infra, no integrated TTS, higher first-token latency).</p>
+        <p class="panel-body"><strong>Why:</strong> I get avatar, realtime ASR, and TTS in one session contract, with one vendor to operate.</p>
+      </article>
+      <article class="panel">
+        <div class="panel-eyebrow accent">Pronunciation pipeline</div>
+        <h3 class="panel-title">I chose Azure Speech PA with a custom PLS lexicon.</h3>
+        <p class="panel-body"><strong>Rejected:</strong> Whisper + Montreal Forced Aligner (no phoneme confidence on child speech), bespoke acoustic model (cost and data unjustified at current scale).</p>
+        <p class="panel-body"><strong>Why:</strong> I get phoneme-level accuracy and reference IPA out of the box; PLS gives me the clinical /r/ target the default lexicon misses.</p>
+      </article>
+      <article class="panel">
+        <div class="panel-eyebrow accent">Storage</div>
+        <h3 class="panel-title">I chose PostgreSQL as source of truth.</h3>
+        <p class="panel-body"><strong>Rejected:</strong> SQLite on Azure Files (SMB locking and corruption risk), Cosmos DB (overkill, weaker relational queries for session history).</p>
+        <p class="panel-body"><strong>Why:</strong> I get typed schemas, joins across child, session, and plan, and a managed HA path. I keep SQLite only as a local dev cache.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 08 / ARCHITECTURE -->
+<section class="slide" data-slide="08" data-name="architecture">
+  <div class="frame">
+    <header class="slide-head">
+      <div class="eyebrow info">03 · Implementation</div>
+      <h2 class="h1">Two loops: realtime practice and asynchronous review.</h2>
+    </header>
+
+    <div class="grid two-third-one-third">
+      <div class="diagram">
+        <div class="layer">
+          <div class="layer-label">Client</div>
+          <div class="layer-cells">
+            <div class="cell">React + TypeScript</div>
+            <div class="cell">AudioWorklet capture (24kHz)</div>
+            <div class="cell">Therapist dashboard</div>
+          </div>
+        </div>
+        <div class="layer-arrow">↓ WebSocket /ws/voice · 24 kHz mono PCM frames</div>
+        <div class="layer">
+          <div class="layer-label">Backend</div>
+          <div class="layer-cells">
+            <div class="cell">Flask + Flask-Sock</div>
+            <div class="cell">Voice Live proxy</div>
+            <div class="cell">Pronunciation analyzer · GPT-4o summariser · SessionRecord writer</div>
+          </div>
+        </div>
+        <div class="layer-arrow">↓ Azure services</div>
+        <div class="layer">
+          <div class="layer-label">AI services</div>
+          <div class="layer-cells">
+            <div class="cell accent-cell">Azure Voice Live · realtime + avatar</div>
+            <div class="cell accent-cell">Azure Speech · pronunciation assessment</div>
+            <div class="cell accent-cell">Azure OpenAI · analysis + planning</div>
+          </div>
+        </div>
+        <div class="layer-arrow">↓ Persistence</div>
+        <div class="layer">
+          <div class="layer-label">State</div>
+          <div class="layer-cells">
+            <div class="cell">PostgreSQL · sessions, memory, plans (source of truth)</div>
+            <div class="cell">Azure Blob · audio + nightly backups</div>
+            <div class="cell">SQLite · local dev cache only</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stack">
+        <article class="panel">
+          <div class="panel-eyebrow accent">Realtime loop</div>
+          <p class="panel-body">I stream audio from the browser to a backend proxy. Voice Live returns assistant audio, avatar video, and transcriptions for the child to react to.</p>
+        </article>
+        <article class="panel">
+          <div class="panel-eyebrow accent">Review loop</div>
+          <p class="panel-body">On session end, I score, summarise, and save the transcript, audio, and target words for the therapist to review before the next appointment.</p>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 09 / DATA CONTRACTS -->
+<section class="slide" data-slide="09" data-name="data-contracts">
+  <div class="frame">
+    <header class="slide-head">
+      <div class="eyebrow info">Implementation · Data contracts</div>
+      <h2 class="h1">The two records that pin the system down.</h2>
+    </header>
+
+    <div class="grid two">
+      <div class="stack-tight">
+        <h3 class="panel-title">SessionRecord (Postgres)</h3>
+        <pre class="code-block">session_id: UUID
+child_id: UUID
+started_at: timestamptz
+duration_s: int
+transcript: jsonb            # ordered turns
+phoneme_scores: PhonemeScore[]
+target_attempts: jsonb
+audio_uri: text              # blob://...
+ai_summary: text
+therapist_notes: text
+approved_at: timestamptz | null</pre>
+        <p class="caption">Written by the review loop on session end.</p>
+      </div>
+
+      <div class="stack-tight">
+        <h3 class="panel-title">PhonemeScore</h3>
+        <pre class="code-block">word: text
+expected_ipa: text
+observed_ipa: text
+accuracy: float              # 0..1
+error_type: enum(substitution, omission, distortion, addition, none)</pre>
+        <p class="caption">Emitted per word by the Azure Speech analyser.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 10 / REALTIME -->
+<section class="slide" data-slide="10" data-name="realtime-loop">
+  <div class="frame">
+    <header class="slide-head">
+      <div class="eyebrow info">Implementation · Realtime</div>
+      <h2 class="h1">The child gets a practice partner. The therapist gets evidence back.</h2>
+    </header>
+
+    <div class="grid two">
+      <figure class="figure">
+        <img src="assets/Screenshot%202026-04-24%20175141.png" alt="Wulo realtime session" />
+        <figcaption>Live avatar-led speech practice session</figcaption>
+      </figure>
+
+      <ol class="steps">
+        <li>
+          <span class="step-num">1</span>
+          <div>
+            <div class="step-title">Capture</div>
+            <p>AudioWorklet streams 24 kHz mono PCM in 20 ms frames to the backend over WebSocket. No WebRTC peer connection.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div>
+            <div class="step-title">Converse</div>
+            <p>Voice Live returns assistant audio, avatar video, and per-turn transcription deltas. Server-side VAD with a 200 ms hangover lets the child barge in at any turn.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div>
+            <div class="step-title">Score</div>
+            <p>Per utterance, I call Azure Speech pronunciation assessment to score accuracy, fluency, and completeness against target words, using a custom PLS lexicon.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">4</span>
+          <div>
+            <div class="step-title">Persist</div>
+            <p>I write transcript, phoneme scores, and AI assessment to Postgres as one typed SessionRecord; audio lands in Blob.</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <article class="callout">
+      <div class="callout-label">Latency budget</div>
+      <div class="callout-body">Target mouth-to-ear &le; 850 ms p95: 20 ms capture frame, WebSocket hop &lt; 30 ms, Voice Live first token &lt; 350 ms, TTS playback start &lt; 450 ms.</div>
+    </article>
+  </div>
+</section>
+
+<!-- ============================================================ 11 / PHONEMES -->
+<section class="slide" data-slide="11" data-name="phoneme-tuning">
+  <div class="frame">
+    <header class="slide-head">
+      <div class="eyebrow info">Implementation · Speech intelligence</div>
+      <h2 class="h1">Making speech AI work for clinical phonemes.</h2>
+    </header>
+
+    <div class="grid two-third-one-third">
+      <div class="stack-tight">
+        <p class="lede">Off-the-shelf speech models were not enough for the clinical /r/ target. I built a phoneme-aware layer on top.</p>
+        <ul class="bullets">
+          <li>Target-sound model linking exercises to specific words, phonemes, and acceptable substitutions for the child's age.</li>
+          <li>Azure Speech pronunciation assessment for word-level accuracy, fluency, and completeness signals.</li>
+          <li>SSML pronunciation lexicon (PLS) so /r/ targets are produced, and evaluated, with the right reference phonemes.</li>
+          <li>I built an eval harness comparing baseline vs phoneme-aware behaviour on therapy-specific prompts.</li>
+        </ul>
+      </div>
+
+      <article class="panel emphasis accent-border">
+        <div class="panel-eyebrow accent">Result on the /r/ target</div>
+        <div class="metric-big accent">+22%</div>
+        <div class="panel-body">Relative reduction in phoneme error rate versus Azure Speech PA default lexicon, on the clinical /r/ target set.</div>
+        <hr class="rule" />
+        <div class="metric-sub">Baseline: Azure Speech PA, en-GB, default lexicon. Treatment: same model with custom PLS for /r/. Eval set: 160 utterances on /r/ targets, scored against an SLT-prepared reference (two raters, disagreements adjudicated).</div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 12 / WHAT BROKE -->
+<section class="slide" data-slide="12" data-name="what-broke">
+  <div class="frame">
+    <header class="slide-head">
+      <div class="eyebrow warn">Where my first approach failed</div>
+      <h2 class="h1">What broke and what I learned.</h2>
+    </header>
+
+    <div class="grid three cards">
+      <article class="panel">
+        <div class="panel-eyebrow warn">Hypothesis 1</div>
+        <h3 class="panel-title">Alias-only lexicon control.</h3>
+        <p class="panel-body"><strong>Result:</strong> token synthesis collapsed into unrelated outputs such as variants of <code>model</code> and <code>row</code>.</p>
+        <p class="panel-body"><strong>Decision:</strong> rejected. Alias-only control was too weak to drive clinically sensitive drill speech.</p>
+      </article>
+      <article class="panel">
+        <div class="panel-eyebrow warn">Hypothesis 2</div>
+        <h3 class="panel-title">Initial phoneme pass.</h3>
+        <p class="panel-body"><strong>Result:</strong> directionally better than alias-only, but recognition was still unstable across the target blends.</p>
+        <p class="panel-body"><strong>Decision:</strong> not production-grade. Held back from the staging rollout.</p>
+      </article>
+      <article class="panel">
+        <div class="panel-eyebrow warn">Hypothesis 3</div>
+        <h3 class="panel-title">Best-candidate phoneme sweep.</h3>
+        <p class="panel-body"><strong>Result:</strong> <code>row</code> strong, <code>rah</code> acceptable, <code>roo</code> and <code>ree</code> weak.</p>
+        <p class="panel-body"><strong>Decision:</strong> shipped as baseline; follow-up scoped to SSML drill lines only.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 13 / DASHBOARD -->
+<section class="slide" data-slide="13" data-name="dashboard">
+  <div class="frame">
+    <header class="slide-head">
+      <div class="eyebrow info">Implementation · Review intelligence</div>
+      <h2 class="h1">Raw practice becomes a decision-ready record.</h2>
+    </header>
+
+    <div class="grid one-third-two-third">
+      <ul class="bullets large">
+        <li><strong>SessionRecord</strong>: session_id, child_id, started_at, duration_s, transcript[], phoneme_scores[], target_attempts[], audio_uri, ai_summary, therapist_notes.</li>
+        <li><strong>PhonemeScore</strong>: word, expected_ipa, observed_ipa, accuracy, error_type.</li>
+        <li><strong>AI session note</strong>: a draft summary of effort, clarity, retries, and a suggested focus for the next session. The therapist approves or edits before it is saved.</li>
+        <li><strong>Therapist feedback</strong> sits on top of the record; I never overwrite raw evidence.</li>
+      </ul>
+
+      <figure class="figure">
+        <img src="assets/Screenshot%202026-04-23%20161434.png" alt="Therapist review dashboard" />
+        <figcaption>Per-session pronunciation, AI assessment, and clinical notes</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 14 / RESULTS -->
+<section class="slide" data-slide="14" data-name="results">
+  <div class="frame">
+    <header class="slide-head">
+      <div class="eyebrow good">04 · Results</div>
+      <h2 class="h1">Measured impact.</h2>
+    </header>
+
+    <div class="grid four">
+      <article class="panel metric-card bad-border">
+        <div class="panel-eyebrow bad">Before</div>
+        <div class="metric-big bad">30 min</div>
+        <div class="panel-body">Manual reconstruction at the start of a 60-minute session.</div>
+      </article>
+      <article class="panel metric-card good-border">
+        <div class="panel-eyebrow good">After</div>
+        <div class="metric-big good">5 min</div>
+        <div class="panel-body">Review using Wulo session evidence and AI summaries.</div>
+      </article>
+      <article class="panel metric-card accent-border">
+        <div class="panel-eyebrow accent">Speech quality</div>
+        <div class="metric-big accent">+22%</div>
+        <div class="panel-body">Relative reduction in phoneme error rate on the clinical /r/ target, vs the off-the-shelf Azure Speech baseline.</div>
+      </article>
+      <article class="panel metric-card">
+        <div class="panel-eyebrow muted">Methodology</div>
+        <p class="panel-body">Reconstruction time: stopwatch-measured, 3 SLTs, 12 sessions baseline vs 12 sessions on Wulo, same caseload mix, Q1 2026.</p>
+        <p class="panel-body">Phoneme error: 160 utterances on /r/ targets, SLT-prepared reference, two raters with adjudication.</p>
+      </article>
+    </div>
+
+    <div class="emphasis-bar">
+      <span class="emphasis-label accent">Bottom line</span>
+      <span>Wulo returned <strong>25 of every 60 minutes</strong> of a therapy session to actual clinical work.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 15 / CLOSING -->
+<section class="slide" data-slide="15" data-name="closing">
+  <div class="frame closing-frame">
+    <div class="eyebrow accent">Closing</div>
+    <h2 class="display tight">A speech therapy OS, not an AI therapist.</h2>
+    <p class="lede wide">Wulo captures practice, analyses speech, summarises evidence, and proposes next steps. The therapist remains the decision maker, but now enters the session with better data and more time.</p>
+
+    <div class="grid three cards closing-grid">
+      <div class="closing-stat">
+        <div class="metric-big accent">30 → 5 min</div>
+        <div class="metric-sub">home-practice review</div>
+      </div>
+      <div class="closing-stat">
+        <div class="metric-big accent">+22%</div>
+        <div class="metric-sub">target phoneme performance</div>
+      </div>
+      <div class="closing-stat">
+        <div class="metric-big good">Next</div>
+        <div class="metric-sub">per-child phoneme adaptation from longitudinal SessionRecords</div>
+      </div>
+    </div>
+
+    <div class="signoff">Wulo · The operating system that runs between speech therapy sessions.</div>
+  </div>
+</section>
+
+<div class="slide-counter" id="slideCounter">01 / 15</div>
+
+<script>
+  (function () {
+    const slides = document.querySelectorAll('.slide');
+    const counter = document.getElementById('slideCounter');
+    function update() {
+      const active = document.querySelector('.slide.active');
+      const total = slides.length;
+      if (active) counter.textContent = active.dataset.slide + ' / ' + String(total).padStart(2, '0');
+    }
+    function show(idx) {
+      slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+      update();
+    }
+    let current = 0;
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { current = Math.min(current + 1, slides.length - 1); show(current); }
+      if (e.key === 'ArrowLeft') { current = Math.max(current - 1, 0); show(current); }
+    });
+    update();
+  })();
+</script>
+</body>
+</html>
