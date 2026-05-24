@@ -1,0 +1,36 @@
+{
+  "diagnostic_id": "jss2-social-studies-phase-2",
+  "subject": "social_studies",
+  "tenant_id": "tenant-phase-2",
+  "title": "JSS2 Social Studies Diagnostic",
+  "lang": "en-NG",
+  "provenance": [
+    {
+      "source": "pathfinder_phase_2_fixture",
+      "source_id": "jss2_social_studies_diagnostic_phase_2",
+      "rule_id": "contract_phase_2_item_bank",
+      "confidence": 1.0,
+      "evidence_count": 12
+    }
+  ],
+  "skills": [
+    { "skill_id": "geography", "standard_id": "ng-jss2-social-studies", "name": "Geography", "description": "Read maps and identify physical and human features of Nigeria." },
+    { "skill_id": "civics", "standard_id": "ng-jss2-social-studies", "name": "Civics", "description": "Describe rights, duties, and basic government structures." },
+    { "skill_id": "economics-basics", "standard_id": "ng-jss2-social-studies", "name": "Economics basics", "description": "Explain wants, needs, supply, and basic exchange." },
+    { "skill_id": "history", "standard_id": "ng-jss2-social-studies", "name": "History", "description": "Recall key events and figures in Nigerian and West African history." }
+  ],
+  "items": [
+    { "item_id": "jss2-soc-geo-001", "skill_id": "geography", "prompt": "How many states are in Nigeria?", "item_type": "short_answer", "difficulty": -1.5, "correct_answer": "36", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "social_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-soc-civ-001", "skill_id": "civics", "prompt": "What is the minimum age to vote in Nigeria?", "item_type": "short_answer", "difficulty": -1.5, "correct_answer": "18", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "social_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-soc-econ-001", "skill_id": "economics-basics", "prompt": "What do we call something you must have to survive, like water?", "item_type": "short_answer", "difficulty": -1.0, "correct_answer": "need", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "social_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-soc-hist-001", "skill_id": "history", "prompt": "In which year did Nigeria gain independence?", "item_type": "short_answer", "difficulty": -1.0, "correct_answer": "1960", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "social_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-soc-geo-002", "skill_id": "geography", "prompt": "Name the longest river in Nigeria.", "item_type": "short_answer", "difficulty": -0.5, "correct_answer": "niger", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "social_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-soc-civ-002", "skill_id": "civics", "prompt": "Which arm of government makes the laws? (one word)", "item_type": "short_answer", "difficulty": -0.5, "correct_answer": "legislature", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "social_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-soc-econ-002", "skill_id": "economics-basics", "prompt": "If supply of a good rises and demand stays the same, the price usually ___.", "item_type": "short_answer", "difficulty": 0.0, "correct_answer": "falls", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "social_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-soc-hist-002", "skill_id": "history", "prompt": "Who was Nigeria's first prime minister?", "item_type": "short_answer", "difficulty": 0.0, "correct_answer": "balewa", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "social_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-soc-geo-003", "skill_id": "geography", "prompt": "Name the capital of Nigeria.", "item_type": "short_answer", "difficulty": 0.5, "correct_answer": "abuja", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "social_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-soc-civ-003", "skill_id": "civics", "prompt": "Name one fundamental human right.", "item_type": "short_answer", "difficulty": 0.5, "correct_answer": "life", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "social_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-soc-econ-003", "skill_id": "economics-basics", "prompt": "What do we call the money a government collects from citizens? (one word)", "item_type": "short_answer", "difficulty": 1.0, "correct_answer": "tax", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "social_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-soc-hist-003", "skill_id": "history", "prompt": "Name the ancient empire centred on Benin City.", "item_type": "short_answer", "difficulty": 1.5, "correct_answer": "benin", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "social_round_robin", "confidence": 1.0, "evidence_count": 1 }] }
+  ]
+}

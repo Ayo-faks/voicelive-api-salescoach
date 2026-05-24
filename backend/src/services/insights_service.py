@@ -20,15 +20,22 @@ service. The service never constructs SQL or mutates data — tools only read.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
+import threading
 import time
+from collections import OrderedDict
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Mapping, Optional, Protocol, Sequence
+from typing import Any, Callable, Dict, List, Mapping, Optional, Protocol, Sequence, Tuple
 
 from src.services.visualization_service import (
     VisualizationValidationError,
     validate_visualization,
+)
+from src.services.voice_agent_contracts import (
+    sanitize_action_suggestions,
+    sanitize_ui_specs,
 )
 
 logger = logging.getLogger(__name__)
@@ -38,8 +45,87 @@ logger = logging.getLogger(__name__)
 
 PROMPT_VERSION = "insights-v1"
 
-DEFAULT_TOOL_CALL_BUDGET = 6
+# Voice latency win 2026-05-24: previously 6; the planner regularly chained 4+
+# serial tool roundtrips at 1–2 s each, dominating end-to-end response time.
+# Tighter budget forces it to use ``get_child_planning_snapshot`` plus at most
+# one drill-down call.
+DEFAULT_TOOL_CALL_BUDGET = 4
 DEFAULT_WALL_CLOCK_BUDGET_SECONDS = 20.0
+
+# Identical (user, scope, message) repeats inside this window skip the planner
+# entirely. Tune via ``INSIGHTS_ANSWER_CACHE_TTL_SECONDS`` (0 disables).
+DEFAULT_ANSWER_CACHE_TTL_SECONDS = 300.0
+DEFAULT_ANSWER_CACHE_MAX_ENTRIES = 256
+
+
+class _AnswerCache:
+    """In-memory TTL + LRU cache of :class:`InsightsPlannerResult` payloads.
+
+    Keyed on (prompt_version, user_id, scope, message). Cache is per-process
+    and intentionally small — it exists to swallow rapid voice-turn repeats
+    (e.g. the user re-asking the same question) so the Copilot planner does
+    not pay its ~1.2 s start + multi-second tool roundtrip cost twice.
+    """
+
+    def __init__(self, *, ttl_seconds: float, max_entries: int) -> None:
+        self.ttl_seconds = max(0.0, float(ttl_seconds))
+        self.max_entries = max(1, int(max_entries))
+        self._entries: "OrderedDict[str, Tuple[float, InsightsPlannerResult]]" = OrderedDict()
+        self._lock = threading.Lock()
+
+    @property
+    def enabled(self) -> bool:
+        return self.ttl_seconds > 0
+
+    @staticmethod
+    def build_key(
+        *,
+        prompt_version: str,
+        user_id: str,
+        scope: Mapping[str, Any],
+        message: str,
+    ) -> str:
+        normalized = json.dumps(
+            {
+                "v": prompt_version,
+                "u": user_id,
+                "s": scope,
+                "m": message.strip().lower(),
+            },
+            sort_keys=True,
+            default=str,
+            separators=(",", ":"),
+        )
+        return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+
+    def get(self, key: str) -> Optional[InsightsPlannerResult]:
+        if not self.enabled:
+            return None
+        now = time.monotonic()
+        with self._lock:
+            entry = self._entries.get(key)
+            if entry is None:
+                return None
+            expires_at, payload = entry
+            if expires_at <= now:
+                self._entries.pop(key, None)
+                return None
+            self._entries.move_to_end(key)
+            return payload
+
+    def put(self, key: str, payload: "InsightsPlannerResult") -> None:
+        if not self.enabled:
+            return
+        expires_at = time.monotonic() + self.ttl_seconds
+        with self._lock:
+            self._entries[key] = (expires_at, payload)
+            self._entries.move_to_end(key)
+            while len(self._entries) > self.max_entries:
+                self._entries.popitem(last=False)
+
+    def clear(self) -> None:
+        with self._lock:
+            self._entries.clear()
 
 ALLOWED_SCOPE_TYPES = frozenset({"caseload", "child", "session", "report"})
 
@@ -112,6 +198,9 @@ class InsightsPlannerResult:
 
     ``answer_text``, ``citations``, and ``visualizations`` are the
     therapist-visible output; ``tool_trace`` is the auditable record.
+    ``ui_specs`` and ``action_suggestions`` are the voice-agent dynamic UI
+    and proposed actions surface (validated downstream by
+    ``voice_agent_contracts``).
     """
 
     answer_text: str
@@ -120,6 +209,8 @@ class InsightsPlannerResult:
     tool_trace: List[Dict[str, Any]] = field(default_factory=list)
     tool_calls_count: int = 0
     error_text: Optional[str] = None
+    ui_specs: List[Dict[str, Any]] = field(default_factory=list)
+    action_suggestions: List[Dict[str, Any]] = field(default_factory=list)
 
 
 class InsightsPlanner(Protocol):
@@ -134,7 +225,8 @@ class InsightsPlanner(Protocol):
         tools: Mapping[str, InsightsTool],
         context: InsightsRequestContext,
         tool_call_budget: int,
-    ) -> InsightsPlannerResult: ...
+    ) -> InsightsPlannerResult:
+        raise NotImplementedError
 
 
 # --- Default stub planner ---------------------------------------------------
@@ -175,9 +267,7 @@ class StubInsightsPlanner:
         if scope_child_id and "get_child_overview" in tools and tool_call_budget > 0:
             start = time.monotonic()
             try:
-                result = tools["get_child_overview"].handler(
-                    {"child_id": scope_child_id}, context
-                )
+                result = tools["get_child_overview"].handler({"child_id": scope_child_id}, context)
             except InsightsAuthorizationError as exc:
                 trace.append(
                     {
@@ -229,8 +319,7 @@ class StubInsightsPlanner:
                     }
                 )
             answer_text = (
-                f"Here's what I have on {child_name}. "
-                f"(Stub planner — the real LLM wiring lands in Phase 4b.)"
+                f"Here's what I have on {child_name}. " f"(Stub planner — the real LLM wiring lands in Phase 4b.)"
             )
             return InsightsPlannerResult(
                 answer_text=answer_text,
@@ -240,9 +329,7 @@ class StubInsightsPlanner:
                 tool_calls_count=tool_calls_count,
             )
 
-        scope_summary = (
-            context.scope.get("type") if isinstance(context.scope, dict) else "caseload"
-        ) or "caseload"
+        scope_summary = (context.scope.get("type") if isinstance(context.scope, dict) else "caseload") or "caseload"
         return InsightsPlannerResult(
             answer_text=(
                 f"(Stub answer for scope '{scope_summary}'.) "
@@ -269,15 +356,23 @@ class InsightsService:
         child_memory_service: Optional[Any] = None,
         institutional_memory_service: Optional[Any] = None,
         planner: Optional[InsightsPlanner] = None,
+        learning_api: Optional[Any] = None,
         tool_call_budget: int = DEFAULT_TOOL_CALL_BUDGET,
         wall_clock_budget_seconds: float = DEFAULT_WALL_CLOCK_BUDGET_SECONDS,
+        answer_cache_ttl_seconds: float = DEFAULT_ANSWER_CACHE_TTL_SECONDS,
+        answer_cache_max_entries: int = DEFAULT_ANSWER_CACHE_MAX_ENTRIES,
     ) -> None:
         self.storage_service = storage_service
         self.child_memory_service = child_memory_service
         self.institutional_memory_service = institutional_memory_service
+        self.learning_api = learning_api
         self.planner: InsightsPlanner = planner or StubInsightsPlanner()
         self.tool_call_budget = max(1, int(tool_call_budget))
         self.wall_clock_budget_seconds = max(1.0, float(wall_clock_budget_seconds))
+        self._answer_cache = _AnswerCache(
+            ttl_seconds=answer_cache_ttl_seconds,
+            max_entries=answer_cache_max_entries,
+        )
         self._tools: Dict[str, InsightsTool] = self._build_tools()
 
     # -- Public API ---------------------------------------------------------
@@ -291,9 +386,7 @@ class InsightsService:
         user_id: str,
         conversation_id: str,
     ) -> Optional[Dict[str, Any]]:
-        conversation = self.storage_service.get_insight_conversation(
-            conversation_id, user_id=user_id
-        )
+        conversation = self.storage_service.get_insight_conversation(conversation_id, user_id=user_id)
         if conversation is None:
             return None
         messages = self.storage_service.list_insight_messages(conversation_id)
@@ -348,45 +441,76 @@ class InsightsService:
             request_id=request_id,
         )
 
+        cache_key = _AnswerCache.build_key(
+            prompt_version=self.PROMPT_VERSION,
+            user_id=user_id,
+            scope=normalized_scope,
+            message=cleaned_message,
+        )
+        cached_result = self._answer_cache.get(cache_key)
+        cache_hit = cached_result is not None
+
         start = time.monotonic()
         error_text: Optional[str] = None
-        try:
-            planner_result = self.planner.run_turn(
-                system_prompt=self._system_prompt(),
-                history=history,
-                user_message=cleaned_message,
-                tools=self._tools,
-                context=context,
-                tool_call_budget=self.tool_call_budget,
-            )
-        except InsightsBudgetExceeded as exc:
-            error_text = f"budget_exceeded: {exc}"
-            planner_result = InsightsPlannerResult(
-                answer_text=(
-                    "I couldn't finish in the allotted time. Please try a "
-                    "narrower question or try again."
+        planner_result: InsightsPlannerResult
+        if cache_hit:
+            assert cached_result is not None
+            planner_result = cached_result
+            logger.info(
+                "[insights-cache] %s",
+                json.dumps(
+                    {
+                        "event": "hit",
+                        "request_id": request_id,
+                        "user_id": user_id,
+                        "scope_type": normalized_scope.get("type"),
+                    },
+                    sort_keys=True,
+                    separators=(",", ":"),
                 ),
-                error_text=error_text,
             )
-        except InsightsAuthorizationError as exc:
-            error_text = f"forbidden: {exc}"
-            planner_result = InsightsPlannerResult(
-                answer_text="I don't have access to that record.",
-                error_text=error_text,
-            )
-        except Exception as exc:  # pragma: no cover - defensive
-            logger.exception("InsightsService planner turn failed")
-            error_text = f"planner_error: {exc}"
-            planner_result = InsightsPlannerResult(
-                answer_text="Something went wrong while answering.",
-                error_text=error_text,
-            )
+        else:
+            try:
+                planner_result = self.planner.run_turn(
+                    system_prompt=self._system_prompt(),
+                    history=history,
+                    user_message=cleaned_message,
+                    tools=self._tools,
+                    context=context,
+                    tool_call_budget=self.tool_call_budget,
+                )
+            except InsightsBudgetExceeded as exc:
+                error_text = f"budget_exceeded: {exc}"
+                planner_result = InsightsPlannerResult(
+                    answer_text=("I couldn't finish in the allotted time. Please try a " "narrower question or try again."),
+                    error_text=error_text,
+                )
+            except InsightsAuthorizationError as exc:
+                error_text = f"forbidden: {exc}"
+                planner_result = InsightsPlannerResult(
+                    answer_text="I don't have access to that record.",
+                    error_text=error_text,
+                )
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.exception("InsightsService planner turn failed")
+                error_text = f"planner_error: {exc}"
+                planner_result = InsightsPlannerResult(
+                    answer_text="Something went wrong while answering.",
+                    error_text=error_text,
+                )
+            else:
+                if planner_result.error_text is None and (planner_result.answer_text or "").strip():
+                    self._answer_cache.put(cache_key, planner_result)
 
         latency_ms = int((time.monotonic() - start) * 1000)
 
         safe_visualizations = self._sanitize_visualizations(planner_result.visualizations)
         safe_citations = _sanitize_citations(planner_result.citations)
         safe_trace = _sanitize_tool_trace(planner_result.tool_trace)
+        safe_ui_specs = sanitize_ui_specs(planner_result.ui_specs)
+        safe_action_suggestions = sanitize_action_suggestions(
+            planner_result.action_suggestions
+        )
 
         assistant_message_row = self.storage_service.append_insight_message(
             conversation["id"],
@@ -400,15 +524,21 @@ class InsightsService:
             prompt_version=self.PROMPT_VERSION,
             error_text=planner_result.error_text,
         )
+        # Voice-agent dynamic UI / proposed actions ride on the returned
+        # message dict (ephemeral, not persisted yet). The websocket handler
+        # forwards these into ``turn.completed``.
+        if safe_ui_specs:
+            assistant_message_row["ui_specs"] = safe_ui_specs
+        if safe_action_suggestions:
+            assistant_message_row["action_suggestions"] = safe_action_suggestions
 
         return {
-            "conversation": self.storage_service.get_insight_conversation(
-                conversation["id"], user_id=user_id
-            ),
+            "conversation": self.storage_service.get_insight_conversation(conversation["id"], user_id=user_id),
             "user_message": user_message_row,
             "assistant_message": assistant_message_row,
             "tool_calls_count": max(0, int(planner_result.tool_calls_count or 0)),
             "latency_ms": latency_ms,
+            "cached": cache_hit,
         }
 
     # -- Tools --------------------------------------------------------------
@@ -504,6 +634,56 @@ class InsightsService:
                 },
                 handler=self._tool_search_memory,
             ),
+            "get_class_mastery_snapshot": InsightsTool(
+                name="get_class_mastery_snapshot",
+                description=(
+                    "Pathfinder Learn: return a mastery heatmap snapshot for "
+                    "a class. Aggregates per-skill mastery probability and "
+                    "status across all students currently in the class. "
+                    "Read-only; safe for teachers and therapists."
+                ),
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "tenant_id": {"type": "string"},
+                        "class_id": {"type": "string"},
+                    },
+                },
+                handler=self._tool_get_class_mastery_snapshot,
+            ),
+            "get_student_mastery_profile": InsightsTool(
+                name="get_student_mastery_profile",
+                description=(
+                    "Pathfinder Learn: return the per-skill mastery profile for "
+                    "one student in a class, plus their recent mastery events. "
+                    "Read-only."
+                ),
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "student_id": {"type": "string"},
+                        "tenant_id": {"type": "string"},
+                    },
+                    "required": ["student_id"],
+                },
+                handler=self._tool_get_student_mastery_profile,
+            ),
+            "list_learning_approvals": InsightsTool(
+                name="list_learning_approvals",
+                description=(
+                    "Pathfinder Learn: list pending intervention plans awaiting "
+                    "teacher review for a class. Returns plan id, target skills, "
+                    "and target students. Read-only."
+                ),
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "tenant_id": {"type": "string"},
+                        "class_id": {"type": "string"},
+                    },
+                },
+                handler=self._tool_list_learning_approvals,
+            ),
         }
 
     def _require_child_access(self, user_id: str, child_id: str) -> None:
@@ -516,16 +696,12 @@ class InsightsService:
             except TypeError:
                 allowed = bool(check(user_id, child_id))
             if not allowed:
-                raise InsightsAuthorizationError(
-                    f"user {user_id} has no access to child {child_id}"
-                )
+                raise InsightsAuthorizationError(f"user {user_id} has no access to child {child_id}")
             return
         # Defensive fallback: no explicit access helper -> deny by default.
         raise InsightsAuthorizationError("access check unavailable")
 
-    def _tool_get_child_overview(
-        self, args: Dict[str, Any], context: InsightsRequestContext
-    ) -> Dict[str, Any]:
+    def _tool_get_child_overview(self, args: Dict[str, Any], context: InsightsRequestContext) -> Dict[str, Any]:
         context.check_deadline()
         child_id = str(args.get("child_id") or "").strip()
         if not child_id:
@@ -630,9 +806,7 @@ class InsightsService:
             "approved_memory_items": approved_memory_rows,
         }
 
-    def _tool_list_sessions(
-        self, args: Dict[str, Any], context: InsightsRequestContext
-    ) -> List[Dict[str, Any]]:
+    def _tool_list_sessions(self, args: Dict[str, Any], context: InsightsRequestContext) -> List[Dict[str, Any]]:
         context.check_deadline()
         child_id = str(args.get("child_id") or "").strip()
         if not child_id:
@@ -674,9 +848,7 @@ class InsightsService:
             )
         return summaries
 
-    def _tool_search_memory(
-        self, args: Dict[str, Any], context: InsightsRequestContext
-    ) -> List[Dict[str, Any]]:
+    def _tool_search_memory(self, args: Dict[str, Any], context: InsightsRequestContext) -> List[Dict[str, Any]]:
         context.check_deadline()
         child_id = str(args.get("child_id") or "").strip()
         if not child_id:
@@ -707,6 +879,123 @@ class InsightsService:
                 break
         return results
 
+    # -- Pathfinder Learn tools --------------------------------------------
+
+    def _require_learning_api(self) -> Any:
+        if self.learning_api is None:
+            raise ValueError("learning_api not configured")
+        return self.learning_api
+
+    def _tool_get_class_mastery_snapshot(
+        self, args: Dict[str, Any], context: InsightsRequestContext
+    ) -> Dict[str, Any]:
+        context.check_deadline()
+        api = self._require_learning_api()
+        payload: Dict[str, Any] = {}
+        if args.get("tenant_id"):
+            payload["tenant_id"] = str(args["tenant_id"])
+        if args.get("class_id"):
+            payload["class_id"] = str(args["class_id"])
+        snapshot = api.get_class_mastery(payload)
+        cells = snapshot.get("cells") or []
+        # Aggregate per-skill so the model can answer "weakest skills" without
+        # scrolling per-student rows.
+        by_skill: Dict[str, Dict[str, Any]] = {}
+        for cell in cells:
+            skill_id = str(cell.get("skill_id") or "")
+            if not skill_id:
+                continue
+            bucket = by_skill.setdefault(
+                skill_id,
+                {
+                    "skill_id": skill_id,
+                    "skill_label": cell.get("skill_label") or skill_id,
+                    "students": 0,
+                    "sum_probability": 0.0,
+                    "low_count": 0,
+                    "high_count": 0,
+                },
+            )
+            bucket["students"] += 1
+            prob = cell.get("probability")
+            if isinstance(prob, (int, float)):
+                bucket["sum_probability"] += float(prob)
+                if prob < 0.4:
+                    bucket["low_count"] += 1
+                elif prob >= 0.75:
+                    bucket["high_count"] += 1
+        skill_summary: List[Dict[str, Any]] = []
+        for bucket in by_skill.values():
+            n = bucket["students"] or 1
+            skill_summary.append(
+                {
+                    "skill_id": bucket["skill_id"],
+                    "skill_label": bucket["skill_label"],
+                    "students_evaluated": bucket["students"],
+                    "avg_probability": round(bucket["sum_probability"] / n, 3),
+                    "low_mastery_count": bucket["low_count"],
+                    "high_mastery_count": bucket["high_count"],
+                }
+            )
+        skill_summary.sort(key=lambda r: r["avg_probability"])
+        return {
+            "tenant_id": snapshot.get("tenant_id"),
+            "class_id": snapshot.get("class_id"),
+            "diagnostic_id": snapshot.get("diagnostic_id"),
+            "skills": skill_summary[:24],
+            "cell_count": len(cells),
+            "source": snapshot.get("source"),
+        }
+
+    def _tool_get_student_mastery_profile(
+        self, args: Dict[str, Any], context: InsightsRequestContext
+    ) -> Dict[str, Any]:
+        context.check_deadline()
+        api = self._require_learning_api()
+        student_id = str(args.get("student_id") or "").strip()
+        if not student_id:
+            raise ValueError("student_id is required")
+        payload: Dict[str, Any] = {"actor_id": context.user_id}
+        if args.get("tenant_id"):
+            payload["tenant_id"] = str(args["tenant_id"])
+        profile = api.get_student_profile(student_id, payload)
+        # Trim recent events to keep the planner context small.
+        recent_events = (profile.get("recent_mastery_events") or [])[-10:]
+        recent_responses = (profile.get("recent_responses") or [])[-10:]
+        return {
+            "tenant_id": profile.get("tenant_id"),
+            "student_id": profile.get("student_id"),
+            "skills": profile.get("skills") or [],
+            "recent_mastery_events": recent_events,
+            "recent_responses": recent_responses,
+        }
+
+    def _tool_list_learning_approvals(
+        self, args: Dict[str, Any], context: InsightsRequestContext
+    ) -> Dict[str, Any]:
+        context.check_deadline()
+        api = self._require_learning_api()
+        payload: Dict[str, Any] = {}
+        if args.get("tenant_id"):
+            payload["tenant_id"] = str(args["tenant_id"])
+        if args.get("class_id"):
+            payload["class_id"] = str(args["class_id"])
+        result = api.list_pending_approvals(payload)
+        plans_out: List[Dict[str, Any]] = []
+        for record in result.get("plans") or []:
+            plan = record.get("plan") or {}
+            plans_out.append(
+                {
+                    "plan_id": plan.get("plan_id") or record.get("plan_id"),
+                    "class_id": record.get("class_id"),
+                    "status": record.get("status"),
+                    "target_skill_ids": plan.get("target_skill_ids") or [],
+                    "target_student_ids": plan.get("target_student_ids") or [],
+                    "rationale": plan.get("rationale"),
+                }
+            )
+        return {"plans": plans_out, "count": len(plans_out)}
+
     # -- Helpers ------------------------------------------------------------
 
     def _authorize_scope(self, *, user_id: str, scope: Dict[str, Any]) -> None:
@@ -727,9 +1016,7 @@ class InsightsService:
         first_message: str,
     ) -> Dict[str, Any]:
         if conversation_id:
-            existing = self.storage_service.get_insight_conversation(
-                conversation_id, user_id=user_id
-            )
+            existing = self.storage_service.get_insight_conversation(conversation_id, user_id=user_id)
             if existing is None:
                 raise InsightsAuthorizationError("conversation not found or not owned")
             return existing
@@ -745,9 +1032,7 @@ class InsightsService:
             prompt_version=self.PROMPT_VERSION,
         )
 
-    def _sanitize_visualizations(
-        self, raw: Sequence[Any]
-    ) -> List[Dict[str, Any]]:
+    def _sanitize_visualizations(self, raw: Sequence[Any]) -> List[Dict[str, Any]]:
         cleaned: List[Dict[str, Any]] = []
         for spec in raw or []:
             try:

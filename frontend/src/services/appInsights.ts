@@ -10,15 +10,22 @@ function sanitizeProperties(
     return undefined
   }
 
-  const entries = Object.entries(properties).filter(([, value]) => value !== null && value !== undefined)
+  const entries = Object.entries(properties).filter(
+    ([, value]) => value !== null && value !== undefined
+  )
   if (entries.length === 0) {
     return undefined
   }
 
-  return Object.fromEntries(entries) as Record<string, string | number | boolean>
+  return Object.fromEntries(entries) as Record<
+    string,
+    string | number | boolean
+  >
 }
 
-export async function bootstrapAppInsights(connectionString: string): Promise<void> {
+export async function bootstrapAppInsights(
+  connectionString: string
+): Promise<void> {
   const normalized = connectionString.trim()
   if (!normalized) {
     return

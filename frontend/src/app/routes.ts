@@ -26,7 +26,7 @@ export type AppRoute = (typeof APP_ROUTES)[keyof typeof APP_ROUTES]
 
 type DefaultRouteArgs = {
   onboardingComplete: boolean
-  role: 'therapist' | 'parent' | 'admin' | 'pending_therapist' | null
+  role: 'therapist' | 'parent' | 'admin' | 'pending_therapist' | 'learner' | 'kid' | 'student' | null
 }
 
 const KNOWN_ROUTES = new Set<AppRoute>(Object.values(APP_ROUTES))

@@ -18,6 +18,7 @@ in ``docs/onboarding/onboarding-plan-v2.md``:
 RLS is enabled on both new tables using the same ``current_setting`` pattern
 established in ``20260408_000006_invitation_rls``.
 """
+
 from __future__ import annotations
 
 from alembic import op
@@ -37,9 +38,7 @@ def upgrade() -> None:
     # ------------------------------------------------------------------
     # users.ui_state column
     # ------------------------------------------------------------------
-    op.execute(
-        "ALTER TABLE users ADD COLUMN IF NOT EXISTS ui_state JSONB NOT NULL DEFAULT '{}'::jsonb"
-    )
+    op.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS ui_state JSONB NOT NULL DEFAULT '{}'::jsonb")
 
     # ------------------------------------------------------------------
     # ui_state_audit: append-only key-level audit of UI state mutations
@@ -56,8 +55,7 @@ def upgrade() -> None:
         """
     )
     op.execute(
-        "CREATE INDEX IF NOT EXISTS idx_ui_state_audit_user_created "
-        "ON ui_state_audit (user_id, created_at DESC)"
+        "CREATE INDEX IF NOT EXISTS idx_ui_state_audit_user_created " "ON ui_state_audit (user_id, created_at DESC)"
     )
 
     # ------------------------------------------------------------------
@@ -75,10 +73,7 @@ def upgrade() -> None:
         )
         """
     )
-    op.execute(
-        "CREATE INDEX IF NOT EXISTS idx_child_ui_state_user "
-        "ON child_ui_state (user_id, updated_at DESC)"
-    )
+    op.execute("CREATE INDEX IF NOT EXISTS idx_child_ui_state_user " "ON child_ui_state (user_id, updated_at DESC)")
 
     # ------------------------------------------------------------------
     # Row-level security (Postgres only; SQLite enforces at application layer)

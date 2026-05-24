@@ -10,10 +10,7 @@ from src.services.lexicon_healthcheck import check_lexicon
 
 
 def _write_pls(tmp_path: Path, graphemes: list[str]) -> Path:
-    lexemes = "\n".join(
-        f"  <lexeme><grapheme>{g}</grapheme><phoneme>θ</phoneme></lexeme>"
-        for g in graphemes
-    )
+    lexemes = "\n".join(f"  <lexeme><grapheme>{g}</grapheme><phoneme>θ</phoneme></lexeme>" for g in graphemes)
     body = textwrap.dedent(
         """\
         <?xml version="1.0" encoding="UTF-8"?>
@@ -78,6 +75,4 @@ class TestCheckLexicon:
 
             pytest.skip(f"lexicon not present at {lexicon_path}")
         result = check_lexicon(str(lexicon_path))
-        assert result.ok is True, (
-            f"wulo.pls is missing tokens: {result.missing_tokens}"
-        )
+        assert result.ok is True, f"wulo.pls is missing tokens: {result.missing_tokens}"

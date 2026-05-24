@@ -16,7 +16,17 @@ function ensureAnchor(testId: string): HTMLElement {
     host = document.createElement('div')
     host.setAttribute('data-testid', testId)
     host.getBoundingClientRect = () =>
-      ({ top: 50, left: 50, width: 200, height: 80, right: 250, bottom: 130, x: 50, y: 50, toJSON: () => ({}) } as DOMRect)
+      ({
+        top: 50,
+        left: 50,
+        width: 200,
+        height: 80,
+        right: 250,
+        bottom: 130,
+        x: 50,
+        y: 50,
+        toJSON: () => ({}),
+      }) as DOMRect
     document.body.appendChild(host)
   }
   return host
@@ -30,7 +40,11 @@ describe('SilentSortingTutorial', () => {
   })
 
   afterEach(() => {
-    for (const a of [silentSortingAnchors.bins, silentSortingAnchors.sample, silentSortingAnchors.finish]) {
+    for (const a of [
+      silentSortingAnchors.bins,
+      silentSortingAnchors.sample,
+      silentSortingAnchors.finish,
+    ]) {
       const el = document.querySelector(`[data-testid="${a.testId}"]`)
       if (el) el.parentNode?.removeChild(el)
     }
@@ -42,21 +56,27 @@ describe('SilentSortingTutorial', () => {
     render(
       <FluentProvider theme={webLightTheme}>
         <SilentSortingTutorial active onComplete={onComplete} />
-      </FluentProvider>,
+      </FluentProvider>
     )
 
     // step 1 — bins
-    expect(screen.getByTestId('child-spotlight-caption').textContent).toMatch(/home/i)
+    expect(screen.getByTestId('child-spotlight-caption').textContent).toMatch(
+      /home/i
+    )
     act(() => {
       fireEvent.click(screen.getByTestId('child-spotlight-next'))
     })
     // step 2 — sample
-    expect(screen.getByTestId('child-spotlight-caption').textContent).toMatch(/hear/i)
+    expect(screen.getByTestId('child-spotlight-caption').textContent).toMatch(
+      /hear/i
+    )
     act(() => {
       fireEvent.click(screen.getByTestId('child-spotlight-next'))
     })
     // step 3 — finish (last)
-    expect(screen.getByTestId('child-spotlight-caption').textContent).toMatch(/cheer/i)
+    expect(screen.getByTestId('child-spotlight-caption').textContent).toMatch(
+      /cheer/i
+    )
     expect(onComplete).not.toHaveBeenCalled()
     act(() => {
       fireEvent.click(screen.getByTestId('child-spotlight-next'))
@@ -69,7 +89,7 @@ describe('SilentSortingTutorial', () => {
     render(
       <FluentProvider theme={webLightTheme}>
         <SilentSortingTutorial active onComplete={onComplete} />
-      </FluentProvider>,
+      </FluentProvider>
     )
     act(() => {
       fireEvent.click(screen.getByTestId('child-spotlight-dismiss'))
@@ -81,8 +101,10 @@ describe('SilentSortingTutorial', () => {
     const { container } = render(
       <FluentProvider theme={webLightTheme}>
         <SilentSortingTutorial active={false} onComplete={vi.fn()} />
-      </FluentProvider>,
+      </FluentProvider>
     )
-    expect(container.querySelector('[data-testid="child-spotlight"]')).toBeNull()
+    expect(
+      container.querySelector('[data-testid="child-spotlight"]')
+    ).toBeNull()
   })
 })

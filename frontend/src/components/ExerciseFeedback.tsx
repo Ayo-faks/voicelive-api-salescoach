@@ -132,8 +132,10 @@ function getScoreColor(score: number): 'success' | 'warning' | 'danger' {
 function getWordCardClass(styles: ReturnType<typeof useStyles>, score: number) {
   const scoreColor = getScoreColor(score)
 
-  if (scoreColor === 'success') return mergeClasses(styles.wordCard, styles.wordCardSuccess)
-  if (scoreColor === 'warning') return mergeClasses(styles.wordCard, styles.wordCardWarning)
+  if (scoreColor === 'success')
+    return mergeClasses(styles.wordCard, styles.wordCardSuccess)
+  if (scoreColor === 'warning')
+    return mergeClasses(styles.wordCard, styles.wordCardWarning)
   return mergeClasses(styles.wordCard, styles.wordCardDanger)
 }
 
@@ -143,11 +145,16 @@ function getPracticeLabel(score: number) {
   return 'Try this sound with me'
 }
 
-function getFeedbackBadgeClass(styles: ReturnType<typeof useStyles>, score: number) {
+function getFeedbackBadgeClass(
+  styles: ReturnType<typeof useStyles>,
+  score: number
+) {
   const scoreColor = getScoreColor(score)
 
-  if (scoreColor === 'success') return mergeClasses(styles.feedbackBadge, styles.feedbackBadgeTeal)
-  if (scoreColor === 'warning') return mergeClasses(styles.feedbackBadge, styles.feedbackBadgeSand)
+  if (scoreColor === 'success')
+    return mergeClasses(styles.feedbackBadge, styles.feedbackBadgeTeal)
+  if (scoreColor === 'warning')
+    return mergeClasses(styles.feedbackBadge, styles.feedbackBadgeSand)
   return mergeClasses(styles.feedbackBadge, styles.feedbackBadgeInk)
 }
 
@@ -157,11 +164,7 @@ function getEncouragementLabel(score: number) {
   return 'Try again'
 }
 
-export function ExerciseFeedback({
-  referenceText,
-  feedback,
-  loading,
-}: Props) {
+export function ExerciseFeedback({ referenceText, feedback, loading }: Props) {
   const styles = useStyles()
   const canScore = Boolean(referenceText.trim())
 
@@ -171,9 +174,12 @@ export function ExerciseFeedback({
         Word feedback
       </Text>
       <Text className={styles.bodyText} size={300}>
-        Word-by-word feedback for your last practice turn appears here when this exercise has target words.
+        Word-by-word feedback for your last practice turn appears here when this
+        exercise has target words.
       </Text>
-      <Text className={styles.disclaimer}>Practice feedback — not a clinical assessment.</Text>
+      <Text className={styles.disclaimer}>
+        Practice feedback — not a clinical assessment.
+      </Text>
 
       {loading && (
         <div className={styles.loadingRow}>
@@ -185,7 +191,8 @@ export function ExerciseFeedback({
       {!canScore && (
         <div className={styles.emptyState}>
           <Text size={300}>
-            This activity is in conversation mode, so practice feedback stays hidden until there are target words.
+            This activity is in conversation mode, so practice feedback stays
+            hidden until there are target words.
           </Text>
         </div>
       )}
@@ -201,7 +208,10 @@ export function ExerciseFeedback({
                 {word.target_word || word.word}
               </Text>
               <div className={styles.feedbackRow}>
-                <Badge appearance="filled" className={getFeedbackBadgeClass(styles, word.accuracy)}>
+                <Badge
+                  appearance="filled"
+                  className={getFeedbackBadgeClass(styles, word.accuracy)}
+                >
                   {getEncouragementLabel(word.accuracy)}
                 </Badge>
                 <Text size={200}>{getPracticeLabel(word.accuracy)}</Text>

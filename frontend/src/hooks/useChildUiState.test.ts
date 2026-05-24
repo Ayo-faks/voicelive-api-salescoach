@@ -30,7 +30,7 @@ describe('useChildUiState', () => {
 
   it('is a complete no-op when disabled', async () => {
     const { result } = renderHook(() =>
-      useChildUiState(CHILD_ID, { disabled: true }),
+      useChildUiState(CHILD_ID, { disabled: true })
     )
     expect(result.current.loading).toBe(false)
     await act(async () => {
@@ -97,9 +97,7 @@ describe('useChildUiState', () => {
   it('replays the outbox on mount', async () => {
     window.localStorage.setItem(
       OUTBOX_KEY,
-      JSON.stringify([
-        { exercise_type: 'silent_sorting', first_run: true },
-      ]),
+      JSON.stringify([{ exercise_type: 'silent_sorting', first_run: true }])
     )
     const putSpy = api.putChildUiState as unknown as ReturnType<typeof vi.fn>
     renderHook(() => useChildUiState(CHILD_ID))

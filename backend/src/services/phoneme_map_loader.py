@@ -5,6 +5,7 @@ used by :mod:`src.services.tts_normalizer`, the frontend preview UI
 (via a generated TS file), and the scoring rules. The JSON file is the
 authoritative artefact; all other copies are derived.
 """
+
 from __future__ import annotations
 
 import json
@@ -69,7 +70,4 @@ def iter_entries() -> List[Tuple[str, str, str, str]]:
     """Return (key, ipa, anchor, pseudo) tuples."""
     data = load_phoneme_map()
     phonemes: Dict[str, Dict[str, str]] = data["phonemes"]  # type: ignore[assignment]
-    return [
-        (key, entry["ipa"], entry["anchor"], entry["pseudo"])
-        for key, entry in phonemes.items()
-    ]
+    return [(key, entry["ipa"], entry["anchor"], entry["pseudo"]) for key, entry in phonemes.items()]

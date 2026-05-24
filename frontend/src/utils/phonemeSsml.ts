@@ -72,14 +72,24 @@ function _anchor(word: string): PreviewCandidate {
  * pseudo-spelling cue is the clinically preferred default for them.
  * Other sounds fall through to the generic IPA-only path below.
  */
-const SOUND_PREVIEW_DEFINITIONS: Readonly<Record<string, SoundPreviewDefinition>> = Object.freeze({
+const SOUND_PREVIEW_DEFINITIONS: Readonly<
+  Record<string, SoundPreviewDefinition>
+> = Object.freeze({
   th: {
     defaultStrategy: 'pseudo',
-    candidates: { ipa: _ipa('θ'), pseudo: _pseudo('thh'), anchor: _anchor('think') },
+    candidates: {
+      ipa: _ipa('θ'),
+      pseudo: _pseudo('thh'),
+      anchor: _anchor('think'),
+    },
   },
   f: {
     defaultStrategy: 'pseudo',
-    candidates: { ipa: _ipa('f'), pseudo: _pseudo('fff'), anchor: _anchor('fish') },
+    candidates: {
+      ipa: _ipa('f'),
+      pseudo: _pseudo('fff'),
+      anchor: _anchor('fish'),
+    },
   },
 })
 
@@ -89,7 +99,7 @@ const SOUND_PREVIEW_DEFINITIONS: Readonly<Record<string, SoundPreviewDefinition>
  * for young listeners to perceive the sound in isolation.
  */
 const LENGTHENED_CONTINUANTS: Readonly<Set<string>> = Object.freeze(
-  new Set(['s', 'ʃ', 'z', 'ʒ', 'f', 'v', 'θ', 'ð', 'ɹ', 'l', 'm', 'n']),
+  new Set(['s', 'ʃ', 'z', 'ʒ', 'f', 'v', 'θ', 'ð', 'ɹ', 'l', 'm', 'n'])
 )
 
 /**

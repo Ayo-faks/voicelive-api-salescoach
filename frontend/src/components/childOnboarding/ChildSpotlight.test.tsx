@@ -14,12 +14,24 @@ function mountAnchor(): HTMLElement {
   const host = document.createElement('div')
   host.setAttribute('data-testid', silentSortingAnchors.bins.testId)
   host.getBoundingClientRect = () =>
-    ({ top: 100, left: 100, width: 200, height: 80, right: 300, bottom: 180, x: 100, y: 100, toJSON: () => ({}) } as DOMRect)
+    ({
+      top: 100,
+      left: 100,
+      width: 200,
+      height: 80,
+      right: 300,
+      bottom: 180,
+      x: 100,
+      y: 100,
+      toJSON: () => ({}),
+    }) as DOMRect
   document.body.appendChild(host)
   return host
 }
 
-function renderSpotlight(props: Partial<React.ComponentProps<typeof ChildSpotlight>> = {}) {
+function renderSpotlight(
+  props: Partial<React.ComponentProps<typeof ChildSpotlight>> = {}
+) {
   const onNext = vi.fn()
   const onDismiss = vi.fn()
   const ui = render(
@@ -31,7 +43,7 @@ function renderSpotlight(props: Partial<React.ComponentProps<typeof ChildSpotlig
         onDismiss={onDismiss}
         {...props}
       />
-    </FluentProvider>,
+    </FluentProvider>
   )
   return { ...ui, onNext, onDismiss }
 }
@@ -52,7 +64,9 @@ describe('ChildSpotlight', () => {
   it('renders caption and CTAs when anchor is mounted', () => {
     renderSpotlight()
     expect(screen.getByTestId('child-spotlight')).toBeTruthy()
-    expect(screen.getByTestId('child-spotlight-caption').textContent).toMatch(/sorting bins/)
+    expect(screen.getByTestId('child-spotlight-caption').textContent).toMatch(
+      /sorting bins/
+    )
     expect(screen.getByTestId('child-spotlight-next')).toBeTruthy()
     expect(screen.getByTestId('child-spotlight-dismiss')).toBeTruthy()
   })
@@ -61,12 +75,16 @@ describe('ChildSpotlight', () => {
     if (anchor) anchor.parentNode?.removeChild(anchor)
     anchor = null
     const { container } = renderSpotlight()
-    expect(container.querySelector('[data-testid="child-spotlight"]')).toBeNull()
+    expect(
+      container.querySelector('[data-testid="child-spotlight"]')
+    ).toBeNull()
   })
 
   it('returns null for an unregistered anchor id', () => {
     const { container } = renderSpotlight({ anchorId: 'does.not.exist' })
-    expect(container.querySelector('[data-testid="child-spotlight"]')).toBeNull()
+    expect(
+      container.querySelector('[data-testid="child-spotlight"]')
+    ).toBeNull()
   })
 
   it('Next button fires onNext, Skip fires onDismiss', () => {

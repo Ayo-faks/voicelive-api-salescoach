@@ -170,7 +170,9 @@ class ProgressReportService:
                 "source": normalized_source,
                 "period_start": resolved_period_start,
                 "period_end": resolved_period_end,
-                "included_session_ids": [str(session.get("id") or "") for session in included_sessions if session.get("id")],
+                "included_session_ids": [
+                    str(session.get("id") or "") for session in included_sessions if session.get("id")
+                ],
                 "snapshot": snapshot,
                 "sections": sections,
                 "redaction_overrides": redaction_overrides or {},
@@ -211,7 +213,11 @@ class ProgressReportService:
         current_redaction_overrides = cast(Dict[str, Any], report.get("redaction_overrides") or {})
 
         normalized_audience = self._normalize_audience(audience) if audience is not None else current_audience
-        normalized_session_ids = self._normalize_session_ids(included_session_ids) if included_session_ids is not None else current_session_ids
+        normalized_session_ids = (
+            self._normalize_session_ids(included_session_ids)
+            if included_session_ids is not None
+            else current_session_ids
+        )
         if included_session_ids is not None and not normalized_session_ids:
             raise ValueError("At least one session must be selected for the report")
 
@@ -241,7 +247,9 @@ class ProgressReportService:
                 selection_provided=bool(current_session_ids),
             )
             previous_generated_title = self._build_title(child, current_audience, period_end_value)
-            previous_generated_summary = self._build_summary_text(child, previous_sessions, current_audience) if previous_sessions else None
+            previous_generated_summary = (
+                self._build_summary_text(child, previous_sessions, current_audience) if previous_sessions else None
+            )
 
             artifacts = self._build_report_artifacts(
                 child_id=child_id,
@@ -255,16 +263,18 @@ class ProgressReportService:
             generated_summary = artifacts.summary_text
             if title is None and str(report.get("title") or "") == previous_generated_title:
                 title_value = generated_title
-            if summary_text is None and previous_generated_summary is not None and str(report.get("summary_text") or "") == previous_generated_summary:
+            if (
+                summary_text is None
+                and previous_generated_summary is not None
+                and str(report.get("summary_text") or "") == previous_generated_summary
+            ):
                 summary_value = generated_summary
             snapshot_value = artifacts.snapshot
             sections_value = artifacts.sections if sections is None else sections
             period_start_value = artifacts.period_start
             period_end_value = artifacts.period_end
             included_session_ids_value = [
-                str(session.get("id") or "")
-                for session in artifacts.included_sessions
-                if session.get("id")
+                str(session.get("id") or "") for session in artifacts.included_sessions if session.get("id")
             ]
 
         updated = self.storage_service.update_progress_report(
@@ -277,7 +287,9 @@ class ProgressReportService:
                 "included_session_ids": included_session_ids_value,
                 "snapshot": snapshot_value,
                 "sections": sections_value,
-                "redaction_overrides": current_redaction_overrides if redaction_overrides is None else redaction_overrides,
+                "redaction_overrides": (
+                    current_redaction_overrides if redaction_overrides is None else redaction_overrides
+                ),
                 "summary_text": summary_value,
             },
         )

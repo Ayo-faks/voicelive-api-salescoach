@@ -60,7 +60,10 @@ describe('helpContent registry', () => {
     // onboarding-plan-v2.md item 12.
     expect(popoverOnly.length).toBeGreaterThanOrEqual(10)
     for (const topic of popoverOnly) {
-      expect(topic.anchorKey, `topic ${topic.id} missing anchorKey`).toBeTruthy()
+      expect(
+        topic.anchorKey,
+        `topic ${topic.id} missing anchorKey`
+      ).toBeTruthy()
     }
   })
 })

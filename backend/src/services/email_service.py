@@ -103,7 +103,7 @@ class AzureCommunicationEmailService:
         html = (
             f"<html><body>"
             f"<p>{escape(inviter_name)} invited you to Wulo for <strong>{escape(child_name)}</strong>.</p>"
-            f"<p><a href=\"{escape(invitation_url)}\">Open Wulo and review the invitation</a></p>"
+            f'<p><a href="{escape(invitation_url)}">Open Wulo and review the invitation</a></p>'
             f"<p>Access type: {escape(relationship_copy)}.</p>"
             f"<p>{escape(expiry_copy)}</p>"
             f"</body></html>"
@@ -176,7 +176,7 @@ class AzureCommunicationEmailService:
         html = (
             f"<html><body>"
             f"<p>{escape(inviter_name)} invited you to Wulo to submit family intake details for <strong>{escape(workspace_name)}</strong>.</p>"
-            f"<p><a href=\"{escape(invitation_url)}\">Open Wulo and review the family invitation</a></p>"
+            f'<p><a href="{escape(invitation_url)}">Open Wulo and review the family invitation</a></p>'
             f"<p>After accepting, you can submit your children together in one step.</p>"
             f"<p>{escape(expiry_copy)}</p>"
             f"</body></html>"
@@ -220,7 +220,9 @@ class AzureCommunicationEmailService:
             provider_message_id=self._extract_message_id(response),
         )
 
-    def _build_invitation_url(self, invitation_id: str, *, query_param: str = "invitationId", route_path: str = "") -> str:
+    def _build_invitation_url(
+        self, invitation_id: str, *, query_param: str = "invitationId", route_path: str = ""
+    ) -> str:
         normalized_route = route_path.strip() or "/"
         if normalized_route and not normalized_route.startswith("/"):
             normalized_route = f"/{normalized_route}"

@@ -7,16 +7,25 @@ import { APP_ROUTE_PARAMS, APP_ROUTES } from './routes'
 import { api } from '../services/api'
 
 vi.mock('@fluentui/react-components', async importOriginal => {
-  const actual = await importOriginal<typeof import('@fluentui/react-components')>()
+  const actual =
+    await importOriginal<typeof import('@fluentui/react-components')>()
 
   return {
     ...actual,
     Dialog: ({ open, children }: { open: boolean; children: ReactNode }) =>
       open ? <div>{children}</div> : null,
-    DialogSurface: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-    DialogBody: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-    DialogTitle: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-    DialogActions: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+    DialogSurface: ({ children }: { children: ReactNode }) => (
+      <div>{children}</div>
+    ),
+    DialogBody: ({ children }: { children: ReactNode }) => (
+      <div>{children}</div>
+    ),
+    DialogTitle: ({ children }: { children: ReactNode }) => (
+      <div>{children}</div>
+    ),
+    DialogActions: ({ children }: { children: ReactNode }) => (
+      <div>{children}</div>
+    ),
   }
 })
 
@@ -24,7 +33,12 @@ const realtimeState = {
   connected: false,
   connectionState: 'connected',
   connectionMessage: 'ready',
-  messages: [] as Array<{ id: string; role: string; content: string; timestamp: Date }>,
+  messages: [] as Array<{
+    id: string
+    role: string
+    content: string
+    timestamp: Date
+  }>,
   send: vi.fn(),
   disconnect: vi.fn(),
   clearMessages: vi.fn(),
@@ -44,13 +58,21 @@ const scenarioFixtures = {
       id: 'scenario-1',
       name: 'Scenario 1',
       description: 'Practice scenario',
-      exerciseMetadata: { type: 'sound_isolation', targetSound: 'k', targetWords: ['cat'] },
+      exerciseMetadata: {
+        type: 'sound_isolation',
+        targetSound: 'k',
+        targetWords: ['cat'],
+      },
     },
     {
       id: 'scenario-2',
       name: 'Scenario 2',
       description: 'Second practice scenario',
-      exerciseMetadata: { type: 'sound_isolation', targetSound: 't', targetWords: ['top'] },
+      exerciseMetadata: {
+        type: 'sound_isolation',
+        targetSound: 't',
+        targetWords: ['top'],
+      },
     },
   ],
   serverScenarios: [
@@ -58,13 +80,21 @@ const scenarioFixtures = {
       id: 'scenario-1',
       name: 'Scenario 1',
       description: 'Practice scenario',
-      exerciseMetadata: { type: 'sound_isolation', targetSound: 'k', targetWords: ['cat'] },
+      exerciseMetadata: {
+        type: 'sound_isolation',
+        targetSound: 'k',
+        targetWords: ['cat'],
+      },
     },
     {
       id: 'scenario-2',
       name: 'Scenario 2',
       description: 'Second practice scenario',
-      exerciseMetadata: { type: 'sound_isolation', targetSound: 't', targetWords: ['top'] },
+      exerciseMetadata: {
+        type: 'sound_isolation',
+        targetSound: 't',
+        targetWords: ['top'],
+      },
     },
   ],
   customScenarios: [],
@@ -90,14 +120,19 @@ vi.mock('../components/ChildHome', () => ({
   }) => (
     <div>
       <div>child-home:{selectedScenario ?? 'none'}</div>
-      <button type="button" onClick={() => onSelectScenario('scenario-2')}>select-scenario-2</button>
-      <button type="button" onClick={() => onStartScenario('scenario-2')}>start-scenario-2</button>
+      <button type="button" onClick={() => onSelectScenario('scenario-2')}>
+        select-scenario-2
+      </button>
+      <button type="button" onClick={() => onStartScenario('scenario-2')}>
+        start-scenario-2
+      </button>
     </div>
   ),
 }))
 
 vi.mock('../components/ConsentScreen', () => ({
-  ConsentScreen: ({ open }: { open: boolean }) => (open ? <div>consent-screen</div> : null),
+  ConsentScreen: ({ open }: { open: boolean }) =>
+    open ? <div>consent-screen</div> : null,
 }))
 
 vi.mock('../components/DashboardHome', () => ({
@@ -112,15 +147,21 @@ vi.mock('../components/DashboardHome', () => ({
   }) => (
     <div>
       <div>dashboard-home:{selectedChildId ?? 'none'}</div>
-      <button type="button" onClick={() => onSelectChild('child-2')}>home-select-child-2</button>
-      <button type="button" onClick={() => onStartScenario('scenario-2')}>start-dashboard-scenario-2</button>
+      <button type="button" onClick={() => onSelectChild('child-2')}>
+        home-select-child-2
+      </button>
+      <button type="button" onClick={() => onStartScenario('scenario-2')}>
+        start-dashboard-scenario-2
+      </button>
     </div>
   ),
 }))
 
 vi.mock('../components/OnboardingFlow', () => ({
   OnboardingFlow: ({ onContinue }: { onContinue: () => void }) => (
-    <button type="button" onClick={onContinue}>complete-onboarding</button>
+    <button type="button" onClick={onContinue}>
+      complete-onboarding
+    </button>
   ),
 }))
 
@@ -139,15 +180,23 @@ vi.mock('../components/ProgressDashboard', () => ({
     onOpenSession: (sessionId: string) => void
   }) => (
     <div>
-      <div>progress-dashboard:{selectedChildId ?? 'none'}:{selectedSession?.id ?? 'none'}:{selectedPlan?.id ?? 'none'}</div>
-      <button type="button" onClick={() => onSelectChild('child-2')}>select-child-2</button>
-      <button type="button" onClick={() => onOpenSession('session-2')}>open-session-2</button>
+      <div>
+        progress-dashboard:{selectedChildId ?? 'none'}:
+        {selectedSession?.id ?? 'none'}:{selectedPlan?.id ?? 'none'}
+      </div>
+      <button type="button" onClick={() => onSelectChild('child-2')}>
+        select-child-2
+      </button>
+      <button type="button" onClick={() => onOpenSession('session-2')}>
+        open-session-2
+      </button>
     </div>
   ),
 }))
 
 vi.mock('../components/SessionLaunchOverlay', () => ({
-  SessionLaunchOverlay: ({ visible }: { visible: boolean }) => (visible ? <div>launch-overlay</div> : null),
+  SessionLaunchOverlay: ({ visible }: { visible: boolean }) =>
+    visible ? <div>launch-overlay</div> : null,
 }))
 
 vi.mock('../components/SessionScreen', () => ({
@@ -166,15 +215,22 @@ vi.mock('../components/SettingsView', () => ({
   }) => (
     <div>
       <div>settings-view:{selectedChild?.id ?? 'none'}</div>
-      <div>settings-family-highlight:{highlightedFamilyInvitationId ?? 'none'}</div>
-      <button type="button" onClick={() => onSelectChild('child-1')}>settings-select-child-1</button>
-      <button type="button" onClick={() => onSelectChild('child-2')}>settings-select-child-2</button>
+      <div>
+        settings-family-highlight:{highlightedFamilyInvitationId ?? 'none'}
+      </div>
+      <button type="button" onClick={() => onSelectChild('child-1')}>
+        settings-select-child-1
+      </button>
+      <button type="button" onClick={() => onSelectChild('child-2')}>
+        settings-select-child-2
+      </button>
     </div>
   ),
 }))
 
 vi.mock('../components/AssessmentPanel', () => ({
-  AssessmentPanel: ({ open }: { open: boolean }) => (open ? <div>assessment-panel</div> : null),
+  AssessmentPanel: ({ open }: { open: boolean }) =>
+    open ? <div>assessment-panel</div> : null,
 }))
 
 vi.mock('../components/SidebarNav', () => ({
@@ -193,10 +249,18 @@ vi.mock('../components/SidebarNav', () => ({
   }) => (
     <div>
       <div>sidebar-nav:{selectedChildId ?? 'none'}</div>
-      <button type="button" onClick={onNavigateHome}>nav-home</button>
-      <button type="button" onClick={onNavigateDashboard}>nav-dashboard</button>
-      <button type="button" onClick={onNavigateSettings}>nav-settings</button>
-      <button type="button" onClick={() => onSelectChild('child-2')}>sidebar-select-child-2</button>
+      <button type="button" onClick={onNavigateHome}>
+        nav-home
+      </button>
+      <button type="button" onClick={onNavigateDashboard}>
+        nav-dashboard
+      </button>
+      <button type="button" onClick={onNavigateSettings}>
+        nav-settings
+      </button>
+      <button type="button" onClick={() => onSelectChild('child-2')}>
+        sidebar-select-child-2
+      </button>
     </div>
   ),
 }))
@@ -226,7 +290,11 @@ vi.mock('../hooks/useWebRTC', () => ({
 }))
 
 vi.mock('../services/api', () => ({
-  parseAvatarValue: vi.fn(() => ({ character: 'meg', style: 'casual', is_photo_avatar: false })),
+  parseAvatarValue: vi.fn(() => ({
+    character: 'meg',
+    style: 'casual',
+    is_photo_avatar: false,
+  })),
   api: {
     getAuthSession: vi.fn(),
     getConfig: vi.fn(),
@@ -279,7 +347,12 @@ const mockedApi = vi.mocked(api)
 
 function LocationProbe() {
   const location = useLocation()
-  return <div data-testid="location">{location.pathname}{location.search}</div>
+  return (
+    <div data-testid="location">
+      {location.pathname}
+      {location.search}
+    </div>
+  )
 }
 
 function renderApp(initialPath: string) {
@@ -328,7 +401,23 @@ const childProfiles = [
   { id: 'child-2', name: 'Ben' },
 ]
 
-const sessionSummariesByChild: Record<string, Array<{ id: string; timestamp: string; exercise: { id: string; name: string; description: string; exerciseMetadata: { type: 'sound_isolation'; targetSound: string; targetWords: string[] } } }>> = {
+const sessionSummariesByChild: Record<
+  string,
+  Array<{
+    id: string
+    timestamp: string
+    exercise: {
+      id: string
+      name: string
+      description: string
+      exerciseMetadata: {
+        type: 'sound_isolation'
+        targetSound: string
+        targetWords: string[]
+      }
+    }
+  }>
+> = {
   'child-1': [
     {
       id: 'session-1',
@@ -337,7 +426,11 @@ const sessionSummariesByChild: Record<string, Array<{ id: string; timestamp: str
         id: 'scenario-1',
         name: 'Scenario 1',
         description: 'Practice scenario',
-        exerciseMetadata: { type: 'sound_isolation', targetSound: 'k', targetWords: ['cat'] },
+        exerciseMetadata: {
+          type: 'sound_isolation',
+          targetSound: 'k',
+          targetWords: ['cat'],
+        },
       },
     },
   ],
@@ -349,7 +442,11 @@ const sessionSummariesByChild: Record<string, Array<{ id: string; timestamp: str
         id: 'scenario-2',
         name: 'Scenario 2',
         description: 'Second practice scenario',
-        exerciseMetadata: { type: 'sound_isolation', targetSound: 't', targetWords: ['top'] },
+        exerciseMetadata: {
+          type: 'sound_isolation',
+          targetSound: 't',
+          targetWords: ['top'],
+        },
       },
     },
   ],
@@ -364,7 +461,11 @@ const sessionDetailsById = {
       id: 'scenario-1',
       name: 'Scenario 1',
       description: 'Practice scenario',
-      exerciseMetadata: { type: 'sound_isolation', targetSound: 'k', targetWords: ['cat'] },
+      exerciseMetadata: {
+        type: 'sound_isolation',
+        targetSound: 'k',
+        targetWords: ['cat'],
+      },
     },
     assessment: { session_id: 'session-1' },
   },
@@ -376,13 +477,41 @@ const sessionDetailsById = {
       id: 'scenario-2',
       name: 'Scenario 2',
       description: 'Second practice scenario',
-      exerciseMetadata: { type: 'sound_isolation', targetSound: 't', targetWords: ['top'] },
+      exerciseMetadata: {
+        type: 'sound_isolation',
+        targetSound: 't',
+        targetWords: ['top'],
+      },
     },
     assessment: { session_id: 'session-2' },
   },
 } as const
 
-const childPlansByChild: Record<string, Array<{ id: string; child_id: string; source_session_id: string; status: 'draft' | 'approved'; title: string; plan_type: string; constraints: Record<string, unknown>; draft: { objective: string; focus_sound: string; rationale: string; estimated_duration_minutes: number; activities: []; therapist_cues: []; success_criteria: []; carryover: [] }; conversation: []; created_at: string; updated_at: string }>> = {
+const childPlansByChild: Record<
+  string,
+  Array<{
+    id: string
+    child_id: string
+    source_session_id: string
+    status: 'draft' | 'approved'
+    title: string
+    plan_type: string
+    constraints: Record<string, unknown>
+    draft: {
+      objective: string
+      focus_sound: string
+      rationale: string
+      estimated_duration_minutes: number
+      activities: []
+      therapist_cues: []
+      success_criteria: []
+      carryover: []
+    }
+    conversation: []
+    created_at: string
+    updated_at: string
+  }>
+> = {
   'child-1': [
     {
       id: 'plan-1',
@@ -585,27 +714,78 @@ describe('App routing integration', () => {
 
     mockedApi.getAuthSession.mockResolvedValue(authenticatedUser)
     mockedApi.getConfig.mockResolvedValue(configResponse as never)
-    mockedApi.getScenarios.mockResolvedValue(scenarioFixtures.serverScenarios as never)
-    mockedApi.getPilotState.mockResolvedValue({ consent_timestamp: null, therapist_pin_configured: false } as never)
-    mockedApi.getParentalConsent.mockResolvedValue({ consent: { id: 'consent-1' } } as never)
-    mockedApi.saveParentalConsent.mockResolvedValue({ id: 'consent-1' } as never)
+    mockedApi.getScenarios.mockResolvedValue(
+      scenarioFixtures.serverScenarios as never
+    )
+    mockedApi.getPilotState.mockResolvedValue({
+      consent_timestamp: null,
+      therapist_pin_configured: false,
+    } as never)
+    mockedApi.getParentalConsent.mockResolvedValue({
+      consent: { id: 'consent-1' },
+    } as never)
+    mockedApi.saveParentalConsent.mockResolvedValue({
+      id: 'consent-1',
+    } as never)
     mockedApi.getChildren.mockResolvedValue([])
     mockedApi.getChildInvitations.mockResolvedValue([] as never)
     mockedApi.getFamilyIntakeInvitations.mockResolvedValue([] as never)
     mockedApi.getChildIntakeProposals.mockResolvedValue([] as never)
     mockedApi.getPendingChildIntakeProposals.mockResolvedValue([] as never)
-    mockedApi.getChildSessions.mockImplementation(async childId => sessionSummariesByChild[childId as keyof typeof sessionSummariesByChild] ?? [])
+    mockedApi.getChildSessions.mockImplementation(
+      async childId =>
+        sessionSummariesByChild[
+          childId as keyof typeof sessionSummariesByChild
+        ] ?? []
+    )
     mockedApi.getChildReports.mockResolvedValue([] as never)
-    mockedApi.getChildPlans.mockImplementation(async childId => childPlansByChild[childId as keyof typeof childPlansByChild] ?? [])
-    mockedApi.getChildMemorySummary.mockImplementation(async childId => childMemorySummaryByChild[childId as keyof typeof childMemorySummaryByChild] as never)
-    mockedApi.getChildMemoryItems.mockImplementation(async childId => childMemoryItemsByChild[childId as keyof typeof childMemoryItemsByChild] as never)
-    mockedApi.getChildMemoryProposals.mockImplementation(async childId => childMemoryProposalsByChild[childId as keyof typeof childMemoryProposalsByChild] as never)
-    mockedApi.getChildRecommendations.mockImplementation(async childId => recommendationHistoryByChild[childId as keyof typeof recommendationHistoryByChild] as never)
-    mockedApi.getRecommendationDetail.mockImplementation(async recommendationId => recommendationDetailsById[recommendationId as keyof typeof recommendationDetailsById] as never)
-    mockedApi.generateChildRecommendations.mockResolvedValue(recommendationDetailsById['recommendation-2'] as never)
-    mockedApi.getSession.mockImplementation(async sessionId => sessionDetailsById[sessionId as keyof typeof sessionDetailsById] as never)
+    mockedApi.getChildPlans.mockImplementation(
+      async childId =>
+        childPlansByChild[childId as keyof typeof childPlansByChild] ?? []
+    )
+    mockedApi.getChildMemorySummary.mockImplementation(
+      async childId =>
+        childMemorySummaryByChild[
+          childId as keyof typeof childMemorySummaryByChild
+        ] as never
+    )
+    mockedApi.getChildMemoryItems.mockImplementation(
+      async childId =>
+        childMemoryItemsByChild[
+          childId as keyof typeof childMemoryItemsByChild
+        ] as never
+    )
+    mockedApi.getChildMemoryProposals.mockImplementation(
+      async childId =>
+        childMemoryProposalsByChild[
+          childId as keyof typeof childMemoryProposalsByChild
+        ] as never
+    )
+    mockedApi.getChildRecommendations.mockImplementation(
+      async childId =>
+        recommendationHistoryByChild[
+          childId as keyof typeof recommendationHistoryByChild
+        ] as never
+    )
+    mockedApi.getRecommendationDetail.mockImplementation(
+      async recommendationId =>
+        recommendationDetailsById[
+          recommendationId as keyof typeof recommendationDetailsById
+        ] as never
+    )
+    mockedApi.generateChildRecommendations.mockResolvedValue(
+      recommendationDetailsById['recommendation-2'] as never
+    )
+    mockedApi.getSession.mockImplementation(
+      async sessionId =>
+        sessionDetailsById[
+          sessionId as keyof typeof sessionDetailsById
+        ] as never
+    )
     mockedApi.createAgent.mockResolvedValue({ agent_id: 'agent-1' } as never)
-    mockedApi.createAgentWithCustomScenario.mockResolvedValue({ agent_id: 'agent-1' } as never)
+    mockedApi.createAgentWithCustomScenario.mockResolvedValue({
+      agent_id: 'agent-1',
+    } as never)
     mockedApi.createChildMemoryItem.mockResolvedValue({
       item: childMemoryItemsByChild['child-2'][0],
       summary: childMemorySummaryByChild['child-2'],
@@ -652,7 +832,9 @@ describe('App routing integration', () => {
   it('preserves family invitation query params when redirecting unauthenticated users to login', async () => {
     mockedApi.getAuthSession.mockRejectedValue(new Error('UNAUTHORIZED'))
 
-    renderApp(`${APP_ROUTES.root}?${APP_ROUTE_PARAMS.familyInvitationId}=family-invite-123`)
+    renderApp(
+      `${APP_ROUTES.root}?${APP_ROUTE_PARAMS.familyInvitationId}=family-invite-123`
+    )
 
     await waitFor(() => {
       expect(screen.getByTestId('location').textContent).toBe(
@@ -662,7 +844,9 @@ describe('App routing integration', () => {
   })
 
   it('routes authenticated users with a family invitation query to settings', async () => {
-    renderApp(`${APP_ROUTES.root}?${APP_ROUTE_PARAMS.familyInvitationId}=family-invite-123`)
+    renderApp(
+      `${APP_ROUTES.root}?${APP_ROUTE_PARAMS.familyInvitationId}=family-invite-123`
+    )
 
     await waitFor(() => {
       expect(screen.getByTestId('location').textContent).toBe(
@@ -670,13 +854,17 @@ describe('App routing integration', () => {
       )
     })
 
-    expect(screen.getByText('settings-family-highlight:family-invite-123')).toBeTruthy()
+    expect(
+      screen.getByText('settings-family-highlight:family-invite-123')
+    ).toBeTruthy()
   })
 
   it('preserves family invitation query params when redirecting unauthenticated settings deep links to login', async () => {
     mockedApi.getAuthSession.mockRejectedValue(new Error('UNAUTHORIZED'))
 
-    renderApp(`${APP_ROUTES.settings}?${APP_ROUTE_PARAMS.familyInvitationId}=family-invite-123`)
+    renderApp(
+      `${APP_ROUTES.settings}?${APP_ROUTE_PARAMS.familyInvitationId}=family-invite-123`
+    )
 
     await waitFor(() => {
       expect(screen.getByTestId('location').textContent).toBe(
@@ -686,7 +874,9 @@ describe('App routing integration', () => {
   })
 
   it('preserves family invitation query params on auth-expired redirects', async () => {
-    renderApp(`${APP_ROUTES.settings}?${APP_ROUTE_PARAMS.familyInvitationId}=family-invite-123`)
+    renderApp(
+      `${APP_ROUTES.settings}?${APP_ROUTE_PARAMS.familyInvitationId}=family-invite-123`
+    )
 
     await waitFor(() => {
       expect(screen.getByTestId('location').textContent).toBe(
@@ -729,7 +919,9 @@ describe('App routing integration', () => {
     renderApp(APP_ROUTES.root)
 
     await waitFor(() => {
-      expect(screen.getByTestId('location').textContent).toBe(APP_ROUTES.onboarding)
+      expect(screen.getByTestId('location').textContent).toBe(
+        APP_ROUTES.onboarding
+      )
     })
 
     fireEvent.click(screen.getByText('complete-onboarding'))
@@ -762,15 +954,24 @@ describe('App routing integration', () => {
     renderApp(`${APP_ROUTES.dashboard}?${APP_ROUTE_PARAMS.childId}=child-2`)
 
     await waitFor(() => {
-      expect(screen.getByText('progress-dashboard:child-2:session-2:plan-2')).toBeTruthy()
+      expect(
+        screen.getByText('progress-dashboard:child-2:session-2:plan-2')
+      ).toBeTruthy()
     })
 
     expect(mockedApi.getChildSessions).toHaveBeenCalledWith('child-2')
     expect(mockedApi.getChildMemorySummary).toHaveBeenCalledWith('child-2')
-    expect(mockedApi.getChildMemoryItems).toHaveBeenCalledWith('child-2', { includeEvidence: true })
-    expect(mockedApi.getChildMemoryProposals).toHaveBeenCalledWith('child-2', { status: 'pending', includeEvidence: true })
+    expect(mockedApi.getChildMemoryItems).toHaveBeenCalledWith('child-2', {
+      includeEvidence: true,
+    })
+    expect(mockedApi.getChildMemoryProposals).toHaveBeenCalledWith('child-2', {
+      status: 'pending',
+      includeEvidence: true,
+    })
     expect(mockedApi.getChildRecommendations).toHaveBeenCalledWith('child-2')
-    expect(mockedApi.getRecommendationDetail).toHaveBeenCalledWith('recommendation-2')
+    expect(mockedApi.getRecommendationDetail).toHaveBeenCalledWith(
+      'recommendation-2'
+    )
   })
 
   it('syncs the selected scenario into the home route query params', async () => {
@@ -831,7 +1032,9 @@ describe('App routing integration', () => {
     renderApp(`${APP_ROUTES.dashboard}?${APP_ROUTE_PARAMS.childId}=child-1`)
 
     await waitFor(() => {
-      expect(screen.getByText('progress-dashboard:child-1:session-1:plan-1')).toBeTruthy()
+      expect(
+        screen.getByText('progress-dashboard:child-1:session-1:plan-1')
+      ).toBeTruthy()
     })
 
     expect(screen.getByText('sidebar-nav:child-1')).toBeTruthy()
@@ -839,7 +1042,9 @@ describe('App routing integration', () => {
     fireEvent.click(screen.getByText('sidebar-select-child-2'))
 
     await waitFor(() => {
-      expect(screen.getByText('progress-dashboard:child-2:session-2:plan-2')).toBeTruthy()
+      expect(
+        screen.getByText('progress-dashboard:child-2:session-2:plan-2')
+      ).toBeTruthy()
     })
 
     await waitFor(() => {
@@ -882,7 +1087,9 @@ describe('App routing integration', () => {
     fireEvent.click(screen.getByText('start-scenario-2'))
 
     await waitFor(() => {
-      expect(screen.getByTestId('location').textContent).toBe(APP_ROUTES.session)
+      expect(screen.getByTestId('location').textContent).toBe(
+        APP_ROUTES.session
+      )
     })
   })
 
@@ -895,13 +1102,16 @@ describe('App routing integration', () => {
     renderApp(`${APP_ROUTES.dashboard}?${APP_ROUTE_PARAMS.childId}=child-1`)
 
     await waitFor(() => {
-      expect(screen.getByText('progress-dashboard:child-1:session-1:plan-1')).toBeTruthy()
+      expect(
+        screen.getByText('progress-dashboard:child-1:session-1:plan-1')
+      ).toBeTruthy()
     })
 
     fireEvent.click(screen.getByText('select-child-2'))
 
     await waitFor(() => {
-      const search = screen.getByTestId('location').textContent?.split('?')[1] || ''
+      const search =
+        screen.getByTestId('location').textContent?.split('?')[1] || ''
       const params = new URLSearchParams(search)
       expect(params.get(APP_ROUTE_PARAMS.childId)).toBe('child-2')
       expect(params.get(APP_ROUTE_PARAMS.sessionId)).toBe('session-2')
@@ -914,9 +1124,14 @@ describe('App routing integration', () => {
     window.localStorage.setItem('wulo.user.mode', 'workspace')
     mockedApi.getAuthSession.mockResolvedValue(therapistUser)
     mockedApi.getChildren.mockResolvedValue(childProfiles as never)
-    mockedApi.getPilotState.mockResolvedValue({ consent_timestamp: '2026-04-01T10:00:00.000Z', therapist_pin_configured: false } as never)
+    mockedApi.getPilotState.mockResolvedValue({
+      consent_timestamp: '2026-04-01T10:00:00.000Z',
+      therapist_pin_configured: false,
+    } as never)
 
-    renderApp(`${APP_ROUTES.home}?${APP_ROUTE_PARAMS.childId}=child-1&${APP_ROUTE_PARAMS.scenarioId}=scenario-1`)
+    renderApp(
+      `${APP_ROUTES.home}?${APP_ROUTE_PARAMS.childId}=child-1&${APP_ROUTE_PARAMS.scenarioId}=scenario-1`
+    )
 
     await waitFor(() => {
       expect(screen.getByText('dashboard-home:child-1')).toBeTruthy()
@@ -925,7 +1140,9 @@ describe('App routing integration', () => {
     fireEvent.click(screen.getByText('start-dashboard-scenario-2'))
 
     await waitFor(() => {
-      expect(screen.getByTestId('location').textContent).toBe(APP_ROUTES.session)
+      expect(screen.getByTestId('location').textContent).toBe(
+        APP_ROUTES.session
+      )
     })
   })
 
@@ -940,7 +1157,9 @@ describe('App routing integration', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('progress-dashboard:child-2:session-2:plan-2')).toBeTruthy()
+      expect(
+        screen.getByText('progress-dashboard:child-2:session-2:plan-2')
+      ).toBeTruthy()
     })
 
     expect(screen.queryByText('session-screen')).toBeNull()
@@ -957,7 +1176,9 @@ describe('App routing integration', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('progress-dashboard:child-2:session-2:plan-2')).toBeTruthy()
+      expect(
+        screen.getByText('progress-dashboard:child-2:session-2:plan-2')
+      ).toBeTruthy()
     })
 
     await waitFor(() => {
@@ -983,7 +1204,9 @@ describe('App routing integration', () => {
     renderApp(`${APP_ROUTES.dashboard}?${APP_ROUTE_PARAMS.childId}=child-2`)
 
     await waitFor(() => {
-      expect(screen.getByText('progress-dashboard:child-2:session-2:plan-2')).toBeTruthy()
+      expect(
+        screen.getByText('progress-dashboard:child-2:session-2:plan-2')
+      ).toBeTruthy()
     })
 
     fireEvent.click(screen.getByText('open-session-2'))
@@ -997,13 +1220,15 @@ describe('App routing integration', () => {
 
   it('confirms before leaving an active session route', async () => {
     window.localStorage.setItem('wulo.onboarding.complete', 'true')
-    window.localStorage.setItem('wulo.user.mode', 'child')
+    window.localStorage.setItem('wulo.user.mode', 'workspace')
     realtimeState.connected = true
 
     renderApp(APP_ROUTES.session)
 
     await waitFor(() => {
-      expect(screen.getByTestId('location').textContent).toBe(APP_ROUTES.session)
+      expect(screen.getByTestId('location').textContent).toBe(
+        APP_ROUTES.session
+      )
     })
 
     expect(screen.getByText('session-screen')).toBeTruthy()
@@ -1016,7 +1241,9 @@ describe('App routing integration', () => {
     fireEvent.click(screen.getByText('Leave session'))
 
     await waitFor(() => {
-      expect(screen.getByTestId('location').textContent).toBe(APP_ROUTES.settings)
+      expect(screen.getByTestId('location').textContent).toBe(
+        APP_ROUTES.settings
+      )
     })
 
     expect(screen.getByText('settings-view:none')).toBeTruthy()

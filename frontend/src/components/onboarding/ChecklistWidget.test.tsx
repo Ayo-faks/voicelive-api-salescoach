@@ -53,7 +53,9 @@ describe('ChecklistWidget', () => {
         onToggleItem={() => undefined}
       />
     )
-    expect(container.querySelector('[data-testid="checklist-widget"]')).toBeNull()
+    expect(
+      container.querySelector('[data-testid="checklist-widget"]')
+    ).toBeNull()
   })
 
   it('self-hides when role has no gated items', () => {
@@ -65,7 +67,9 @@ describe('ChecklistWidget', () => {
         onToggleItem={() => undefined}
       />
     )
-    expect(container.querySelector('[data-testid="checklist-widget"]')).toBeNull()
+    expect(
+      container.querySelector('[data-testid="checklist-widget"]')
+    ).toBeNull()
   })
 
   it('calls onToggleItem when "Mark done" is clicked', () => {

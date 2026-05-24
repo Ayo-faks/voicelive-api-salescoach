@@ -81,7 +81,11 @@ class CopilotPlannerRuntime:
 
     def get_readiness(self, force_refresh: bool = False) -> Dict[str, Any]:
         now = time.time()
-        if not force_refresh and self._cached_readiness and (now - self._cached_readiness_at) < READINESS_CACHE_TTL_SECONDS:
+        if (
+            not force_refresh
+            and self._cached_readiness
+            and (now - self._cached_readiness_at) < READINESS_CACHE_TTL_SECONDS
+        ):
             return dict(self._cached_readiness)
 
         readiness = self._build_readiness()
@@ -185,7 +189,11 @@ class CopilotPlannerRuntime:
         using_byok_provider = self._build_provider_config(self.settings) is not None
         using_github_token = bool(self.github_token)
         auth_status = self._check_cli_auth_status(cli_resolution)
-        planner_ready = bool(sdk_available and cli_available and (using_byok_provider or using_github_token or auth_status["authenticated"]))
+        planner_ready = bool(
+            sdk_available
+            and cli_available
+            and (using_byok_provider or using_github_token or auth_status["authenticated"])
+        )
 
         reasons: List[str] = []
         if not sdk_available:
@@ -321,15 +329,20 @@ class CopilotPlannerRuntime:
         focus_sound = str(arguments.get("focus_sound") or "").strip()
         if not focus_sound:
             focus_sound = str(
-                ((planning_context.get("source_session") or {}).get("exercise_metadata") or {}).get("target_sound") or ""
+                ((planning_context.get("source_session") or {}).get("exercise_metadata") or {}).get("target_sound")
+                or ""
             ).strip()
 
         desired_difficulty = str(arguments.get("difficulty") or "").strip().lower()
         if not desired_difficulty:
-            desired_difficulty = str(
-                ((planning_context.get("source_session") or {}).get("exercise_metadata") or {}).get("difficulty")
-                or ""
-            ).strip().lower()
+            desired_difficulty = (
+                str(
+                    ((planning_context.get("source_session") or {}).get("exercise_metadata") or {}).get("difficulty")
+                    or ""
+                )
+                .strip()
+                .lower()
+            )
 
         raw_limit = arguments.get("limit")
         try:
@@ -457,7 +470,9 @@ class PracticePlanningService:
         self.storage_service = storage_service
         self.scenario_manager = scenario_manager
         self.child_memory_service = child_memory_service or ChildMemoryService(storage_service)
-        self.planner_runtime = planner_runtime or CopilotPlannerRuntime(storage_service, scenario_manager, config.as_dict)
+        self.planner_runtime = planner_runtime or CopilotPlannerRuntime(
+            storage_service, scenario_manager, config.as_dict
+        )
 
     def get_readiness(self, force_refresh: bool = False) -> Dict[str, Any]:
         return self.planner_runtime.get_readiness(force_refresh=force_refresh)
@@ -591,7 +606,9 @@ class PracticePlanningService:
     ) -> Dict[str, Any]:
         assessment = source_session.get("assessment") or {}
         ai_assessment = assessment.get("ai_assessment") or source_session.get("ai_assessment") or {}
-        pronunciation = assessment.get("pronunciation_assessment") or source_session.get("pronunciation_assessment") or {}
+        pronunciation = (
+            assessment.get("pronunciation_assessment") or source_session.get("pronunciation_assessment") or {}
+        )
         exercise_metadata = source_session.get("exercise_metadata") or source_session.get("exerciseMetadata") or {}
         exercise = source_session.get("exercise") or {}
         transcript = str(source_session.get("transcript") or "").strip()
@@ -681,7 +698,9 @@ class PracticePlanningService:
         approved_child_memory = cast(Dict[str, Any], planning_context.get("approved_child_memory") or {})
         return {
             "used_item_ids": list(approved_child_memory.get("used_item_ids") or []),
-            "used_items": [dict(item) for item in cast(List[Dict[str, Any]], approved_child_memory.get("active_items") or [])],
+            "used_items": [
+                dict(item) for item in cast(List[Dict[str, Any]], approved_child_memory.get("active_items") or [])
+            ],
             "summary_text": approved_child_memory.get("summary_text"),
             "summary_last_compiled_at": approved_child_memory.get("last_compiled_at"),
             "source_item_count": approved_child_memory.get("source_item_count", 0),

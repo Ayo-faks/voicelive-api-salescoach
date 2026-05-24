@@ -17,6 +17,7 @@ Design notes:
   ``MAX_UI_STATE_BYTES`` (8 KB serialized). This is checked at merge time by
   the storage layer, not here, because we only see the incoming patch.
 """
+
 from __future__ import annotations
 
 import json
@@ -46,9 +47,7 @@ def _is_short_string(value: Any) -> bool:
     return isinstance(value, str) and 0 < len(value) <= MAX_STRING_LENGTH
 
 
-def _validate_string_array(
-    value: Any, *, field: str, errors: List[str]
-) -> List[str] | None:
+def _validate_string_array(value: Any, *, field: str, errors: List[str]) -> List[str] | None:
     if not isinstance(value, list):
         errors.append(f"{field} must be an array of strings")
         return None

@@ -5,6 +5,7 @@ If this test fails, edit only ``data/lexicons/phoneme-map.json`` and then
 either (a) copy the values by hand into the downstream files or (b) run
 ``python scripts/codegen_phoneme_map.py`` to regenerate them.
 """
+
 from __future__ import annotations
 
 import json

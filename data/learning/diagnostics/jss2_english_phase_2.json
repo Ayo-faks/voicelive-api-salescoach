@@ -1,0 +1,36 @@
+{
+  "diagnostic_id": "jss2-english-phase-2",
+  "subject": "english",
+  "tenant_id": "tenant-phase-2",
+  "title": "JSS2 English Language Diagnostic",
+  "lang": "en-NG",
+  "provenance": [
+    {
+      "source": "pathfinder_phase_2_fixture",
+      "source_id": "jss2_english_diagnostic_phase_2",
+      "rule_id": "contract_phase_2_item_bank",
+      "confidence": 1.0,
+      "evidence_count": 12
+    }
+  ],
+  "skills": [
+    { "skill_id": "reading-comprehension", "standard_id": "ng-jss2-english", "name": "Reading comprehension", "description": "Identify explicit and inferred meaning in a short passage." },
+    { "skill_id": "grammar-syntax", "standard_id": "ng-jss2-english", "name": "Grammar and syntax", "description": "Apply tense, agreement, and basic sentence structure." },
+    { "skill_id": "vocabulary", "standard_id": "ng-jss2-english", "name": "Vocabulary", "description": "Use synonyms, antonyms, and word meaning in context." },
+    { "skill_id": "composition", "standard_id": "ng-jss2-english", "name": "Composition", "description": "Organise ideas into clear written paragraphs." }
+  ],
+  "items": [
+    { "item_id": "jss2-en-comp-001", "skill_id": "reading-comprehension", "prompt": "In the sentence 'The market was crowded so Ada went home early', why did Ada go home?", "item_type": "short_answer", "difficulty": -1.5, "correct_answer": "crowded", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "english_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-en-gram-001", "skill_id": "grammar-syntax", "prompt": "Fill the blank: 'She ___ to school every day.' (go / goes / going)", "item_type": "short_answer", "difficulty": -1.5, "correct_answer": "goes", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "english_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-en-vocab-001", "skill_id": "vocabulary", "prompt": "Give one synonym of 'happy'.", "item_type": "short_answer", "difficulty": -1.5, "correct_answer": "glad", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "english_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-en-comp-002", "skill_id": "composition", "prompt": "Which word best joins two contrasting ideas: 'I was tired ___ I finished my homework.' (and / but / so)", "item_type": "short_answer", "difficulty": -1.0, "correct_answer": "but", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "english_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-en-comp-003", "skill_id": "reading-comprehension", "prompt": "Read: 'The rain stopped before noon and the children played outside.' When did the rain stop?", "item_type": "short_answer", "difficulty": -1.0, "correct_answer": "before noon", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "english_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-en-gram-002", "skill_id": "grammar-syntax", "prompt": "Give the past tense of 'write'.", "item_type": "short_answer", "difficulty": -0.5, "correct_answer": "wrote", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "english_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-en-vocab-002", "skill_id": "vocabulary", "prompt": "Give the antonym of 'expand'.", "item_type": "short_answer", "difficulty": -0.5, "correct_answer": "contract", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "english_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-en-comp-004", "skill_id": "composition", "prompt": "Which sentence is in the correct order? (a) 'Quickly ran the boy home.' (b) 'The boy ran home quickly.' Reply a or b.", "item_type": "short_answer", "difficulty": 0.0, "correct_answer": "b", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "english_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-en-gram-003", "skill_id": "grammar-syntax", "prompt": "Choose the correct pronoun: 'The book belongs to ___.' (I / me)", "item_type": "short_answer", "difficulty": 0.0, "correct_answer": "me", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "english_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-en-vocab-003", "skill_id": "vocabulary", "prompt": "What does the prefix 'un-' usually mean? (one word)", "item_type": "short_answer", "difficulty": 0.5, "correct_answer": "not", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "english_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-en-comp-005", "skill_id": "composition", "prompt": "Name the type of sentence: 'Please close the door.' (statement / command / question)", "item_type": "short_answer", "difficulty": 1.0, "correct_answer": "command", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "english_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-en-gram-004", "skill_id": "grammar-syntax", "prompt": "Identify the part of speech of 'quickly' in 'She ran quickly.'", "item_type": "short_answer", "difficulty": 1.5, "correct_answer": "adverb", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "english_round_robin", "confidence": 1.0, "evidence_count": 1 }] }
+  ]
+}

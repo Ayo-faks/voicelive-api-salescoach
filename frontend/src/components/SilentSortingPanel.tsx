@@ -245,11 +245,17 @@ interface Props {
 }
 
 function getIsMobileSortingMode(): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+  if (
+    typeof window === 'undefined' ||
+    typeof window.matchMedia !== 'function'
+  ) {
     return false
   }
 
-  return window.matchMedia('(pointer: coarse)').matches || window.matchMedia('(max-width: 640px)').matches
+  return (
+    window.matchMedia('(pointer: coarse)').matches ||
+    window.matchMedia('(max-width: 640px)').matches
+  )
 }
 
 export function SilentSortingPanel({
@@ -265,13 +271,15 @@ export function SilentSortingPanel({
   const targetSound = metadata?.targetSound || 'target'
   const errorSound = metadata?.errorSound || 'other'
   const words = metadata?.targetWords || []
-  const [mobileFallback, setMobileFallback] = useState(() => getIsMobileSortingMode())
+  const [mobileFallback, setMobileFallback] = useState(() =>
+    getIsMobileSortingMode()
+  )
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8,
       },
-    }),
+    })
   )
   const wordAssetMap = useMemo(() => {
     const map = new Map<string, { imagePath?: string; sound: string }>()
@@ -295,98 +303,136 @@ export function SilentSortingPanel({
   const initialAssignments = useMemo(() => {
     return Object.fromEntries(words.map(word => [word, 'pool' as Bucket]))
   }, [words])
-  const [assignments, setAssignments] = useState<Record<string, Bucket>>(initialAssignments)
+  const [assignments, setAssignments] =
+    useState<Record<string, Bucket>>(initialAssignments)
   const [armedBucket, setArmedBucket] = useState<Bucket | null>(null)
   const [lastMove, setLastMove] = useState<LastMove | null>(null)
 
-  const getExpectedBucket = useCallback((word: string): Bucket => {
-    const sound = wordAssetMap.get(word)?.sound || ''
+  const getExpectedBucket = useCallback(
+    (word: string): Bucket => {
+      const sound = wordAssetMap.get(word)?.sound || ''
 
-    if (sound === targetSound.toLowerCase()) {
-      return 'target'
-    }
+      if (sound === targetSound.toLowerCase()) {
+        return 'target'
+      }
 
-    if (sound === errorSound.toLowerCase()) {
-      return 'error'
-    }
+      if (sound === errorSound.toLowerCase()) {
+        return 'error'
+      }
 
-    return 'pool'
-  }, [errorSound, targetSound, wordAssetMap])
+      return 'pool'
+    },
+    [errorSound, targetSound, wordAssetMap]
+  )
 
-  const getPreviewWordForBucket = useCallback((bucket: 'target' | 'error'): string | null => {
-    const preferredWord = bucket === 'target'
-      ? targetSound.toLowerCase() === 'th' && words.includes('thumb')
-        ? 'thumb'
-        : null
-      : errorSound.toLowerCase() === 'f' && words.includes('fin')
-        ? 'fin'
-        : null
+  const getPreviewWordForBucket = useCallback(
+    (bucket: 'target' | 'error'): string | null => {
+      const preferredWord =
+        bucket === 'target'
+          ? targetSound.toLowerCase() === 'th' && words.includes('thumb')
+            ? 'thumb'
+            : null
+          : errorSound.toLowerCase() === 'f' && words.includes('fin')
+            ? 'fin'
+            : null
 
-    if (preferredWord) {
-      return preferredWord
-    }
+      if (preferredWord) {
+        return preferredWord
+      }
 
-    return words.find(word => getExpectedBucket(word) === bucket) || null
-  }, [errorSound, getExpectedBucket, targetSound, words])
+      return words.find(word => getExpectedBucket(word) === bucket) || null
+    },
+    [errorSound, getExpectedBucket, targetSound, words]
+  )
 
   const targetPreviewWord = getPreviewWordForBucket('target')
   const errorPreviewWord = getPreviewWordForBucket('error')
 
   const previewStrategies = useMemo(() => {
-    return Array.from(new Set([
-      ...getAvailablePreviewStrategies(targetSound),
-      ...getAvailablePreviewStrategies(errorSound),
-    ]))
+    return Array.from(
+      new Set([
+        ...getAvailablePreviewStrategies(targetSound),
+        ...getAvailablePreviewStrategies(errorSound),
+      ])
+    )
   }, [errorSound, targetSound])
 
-  const [previewStrategy, setPreviewStrategy] = useState<PreviewStrategyFamily>(() => getDefaultPreviewStrategy(targetSound))
-  const targetCuratedPreviewAsset = useMemo(() => getCuratedIsolatedPreviewAsset(targetSound), [targetSound])
-  const errorCuratedPreviewAsset = useMemo(() => getCuratedIsolatedPreviewAsset(errorSound), [errorSound])
+  const [previewStrategy, setPreviewStrategy] = useState<PreviewStrategyFamily>(
+    () => getDefaultPreviewStrategy(targetSound)
+  )
+  const targetCuratedPreviewAsset = useMemo(
+    () => getCuratedIsolatedPreviewAsset(targetSound),
+    [targetSound]
+  )
+  const errorCuratedPreviewAsset = useMemo(
+    () => getCuratedIsolatedPreviewAsset(errorSound),
+    [errorSound]
+  )
 
   useEffect(() => {
     const nextDefault = getDefaultPreviewStrategy(targetSound)
-    setPreviewStrategy(current => (previewStrategies.includes(current) ? current : nextDefault))
+    setPreviewStrategy(current =>
+      previewStrategies.includes(current) ? current : nextDefault
+    )
   }, [previewStrategies, targetSound])
 
   const activePreviewLabel = useMemo(() => {
-    return buildPreviewCandidate(targetSound, previewStrategy)?.label
-      ?? buildPreviewCandidate(errorSound, previewStrategy)?.label
-      ?? 'Direct phoneme'
+    return (
+      buildPreviewCandidate(targetSound, previewStrategy)?.label ??
+      buildPreviewCandidate(errorSound, previewStrategy)?.label ??
+      'Direct phoneme'
+    )
   }, [errorSound, previewStrategy, targetSound])
 
   const curatedPreviewNote = useMemo(() => {
     const notes: string[] = []
     if (targetCuratedPreviewAsset) {
-      notes.push(`Hear ${getPerceptLabel(targetSound)} uses the approved sample asset.`)
+      notes.push(
+        `Hear ${getPerceptLabel(targetSound)} uses the approved sample asset.`
+      )
     }
     if (errorCuratedPreviewAsset) {
-      notes.push(`Hear ${getPerceptLabel(errorSound)} uses the approved sample asset.`)
+      notes.push(
+        `Hear ${getPerceptLabel(errorSound)} uses the approved sample asset.`
+      )
     }
     return notes.join(' ')
-  }, [errorCuratedPreviewAsset, errorSound, targetCuratedPreviewAsset, targetSound])
+  }, [
+    errorCuratedPreviewAsset,
+    errorSound,
+    targetCuratedPreviewAsset,
+    targetSound,
+  ])
 
-  const getBucketLabel = useCallback((bucket: Bucket): string => {
-    if (bucket === 'target') {
-      return `${getPerceptLabel(targetSound)} home`
-    }
+  const getBucketLabel = useCallback(
+    (bucket: Bucket): string => {
+      if (bucket === 'target') {
+        return `${getPerceptLabel(targetSound)} home`
+      }
 
-    if (bucket === 'error') {
-      return `${getPerceptLabel(errorSound)} home`
-    }
+      if (bucket === 'error') {
+        return `${getPerceptLabel(errorSound)} home`
+      }
 
-    return 'Cards to sort'
-  }, [errorSound, targetSound])
+      return 'Cards to sort'
+    },
+    [errorSound, targetSound]
+  )
 
   const dragEnabled = readyToStart && !mobileFallback
 
   useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    if (
+      typeof window === 'undefined' ||
+      typeof window.matchMedia !== 'function'
+    ) {
       return
     }
 
     const coarseQuery = window.matchMedia('(pointer: coarse)')
     const compactWidthQuery = window.matchMedia('(max-width: 640px)')
-    const updateMode = () => setMobileFallback(coarseQuery.matches || compactWidthQuery.matches)
+    const updateMode = () =>
+      setMobileFallback(coarseQuery.matches || compactWidthQuery.matches)
 
     updateMode()
     coarseQuery.addEventListener?.('change', updateMode)
@@ -404,48 +450,70 @@ export function SilentSortingPanel({
     setLastMove(null)
   }, [initialAssignments])
 
-  const attemptMoveWord = useCallback((word: string, nextBucket: Bucket) => {
-    if (!readyToStart) {
-      return
-    }
+  const attemptMoveWord = useCallback(
+    (word: string, nextBucket: Bucket) => {
+      if (!readyToStart) {
+        return
+      }
 
-    const currentBucket = assignments[word] || 'pool'
-    if (currentBucket === nextBucket) {
-      return
-    }
+      const currentBucket = assignments[word] || 'pool'
+      if (currentBucket === nextBucket) {
+        return
+      }
 
-    const expectedBucket = getExpectedBucket(word)
+      const expectedBucket = getExpectedBucket(word)
 
-    if (nextBucket === 'pool') {
-      setAssignments(current => ({ ...current, [word]: 'pool' }))
-      setLastMove({ word, expectedBucket, attemptedBucket: nextBucket, outcome: 'returned' })
-      return
-    }
+      if (nextBucket === 'pool') {
+        setAssignments(current => ({ ...current, [word]: 'pool' }))
+        setLastMove({
+          word,
+          expectedBucket,
+          attemptedBucket: nextBucket,
+          outcome: 'returned',
+        })
+        return
+      }
 
-    if (expectedBucket === nextBucket) {
-      setAssignments(current => ({ ...current, [word]: nextBucket }))
-      setLastMove({ word, expectedBucket, attemptedBucket: nextBucket, outcome: 'correct' })
-      return
-    }
+      if (expectedBucket === nextBucket) {
+        setAssignments(current => ({ ...current, [word]: nextBucket }))
+        setLastMove({
+          word,
+          expectedBucket,
+          attemptedBucket: nextBucket,
+          outcome: 'correct',
+        })
+        return
+      }
 
-    setLastMove({ word, expectedBucket, attemptedBucket: nextBucket, outcome: 'incorrect' })
-    // Silent sorting: no per-move agent commentary. Visual feedback only; the
-    // REINFORCE beat speaks once at completion. `onSendMessage` is retained on
-    // the props API but intentionally not invoked during sort actions.
-    void onSendMessage
-  }, [assignments, getExpectedBucket, onSendMessage, readyToStart])
+      setLastMove({
+        word,
+        expectedBucket,
+        attemptedBucket: nextBucket,
+        outcome: 'incorrect',
+      })
+      // Silent sorting: no per-move agent commentary. Visual feedback only; the
+      // REINFORCE beat speaks once at completion. `onSendMessage` is retained on
+      // the props API but intentionally not invoked during sort actions.
+      void onSendMessage
+    },
+    [assignments, getExpectedBucket, onSendMessage, readyToStart]
+  )
 
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const word = event.active.data.current?.word as string | undefined
-    const overId = typeof event.over?.id === 'string' ? event.over.id : undefined
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const word = event.active.data.current?.word as string | undefined
+      const overId =
+        typeof event.over?.id === 'string' ? event.over.id : undefined
 
-    if (!word || !overId?.startsWith('bucket:')) {
-      return
-    }
+      if (!word || !overId?.startsWith('bucket:')) {
+        return
+      }
 
-    const nextBucket = overId.replace('bucket:', '') as Bucket
-    attemptMoveWord(word, nextBucket)
-  }, [attemptMoveWord])
+      const nextBucket = overId.replace('bucket:', '') as Bucket
+      attemptMoveWord(word, nextBucket)
+    },
+    [attemptMoveWord]
+  )
 
   const [previewPending, setPreviewPending] = useState(false)
   const previewAudioRef = useRef<HTMLAudioElement | null>(null)
@@ -455,101 +523,135 @@ export function SilentSortingPanel({
     source: 'asset' | 'tts'
   } | null>(null)
   const [exportStatus, setExportStatus] = useState<string | null>(null)
-  const [exposedSounds, setExposedSounds] = useState<Set<string>>(() => new Set())
+  const [exposedSounds, setExposedSounds] = useState<Set<string>>(
+    () => new Set()
+  )
 
-  const playAudioFromUrl = useCallback(async (url: string, revokeOnEnd = false): Promise<void> => {
-    previewAudioRef.current?.pause()
-    const audio = new Audio(url)
-    previewAudioRef.current = audio
-    if (revokeOnEnd) {
-      audio.addEventListener('ended', () => URL.revokeObjectURL(url))
-    }
-    await audio.play()
-  }, [])
+  const playAudioFromUrl = useCallback(
+    async (url: string, revokeOnEnd = false): Promise<void> => {
+      previewAudioRef.current?.pause()
+      const audio = new Audio(url)
+      previewAudioRef.current = audio
+      if (revokeOnEnd) {
+        audio.addEventListener('ended', () => URL.revokeObjectURL(url))
+      }
+      await audio.play()
+    },
+    []
+  )
 
-  const playPreviewCue = useCallback(async (sound: string): Promise<'asset' | 'tts' | null> => {
-    const curatedAsset = getCuratedIsolatedPreviewAsset(sound)
-    if (curatedAsset) {
+  const playPreviewCue = useCallback(
+    async (sound: string): Promise<'asset' | 'tts' | null> => {
+      const curatedAsset = getCuratedIsolatedPreviewAsset(sound)
+      if (curatedAsset) {
+        try {
+          await playAudioFromUrl(curatedAsset.audioUrl)
+          return 'asset'
+        } catch {
+          return null
+        }
+      }
+
+      const candidate = buildPreviewCandidate(sound, previewStrategy)
+      if (!candidate) {
+        return null
+      }
       try {
-        await playAudioFromUrl(curatedAsset.audioUrl)
-        return 'asset'
+        const audioB64 = await api.synthesizeSpeech(candidate.input)
+        const bytes = Uint8Array.from(atob(audioB64), c => c.charCodeAt(0))
+        const blob = new Blob([bytes], { type: 'audio/mpeg' })
+        const url = URL.createObjectURL(blob)
+        await playAudioFromUrl(url, true)
+        return 'tts'
       } catch {
         return null
       }
-    }
+    },
+    [playAudioFromUrl, previewStrategy]
+  )
 
-    const candidate = buildPreviewCandidate(sound, previewStrategy)
-    if (!candidate) {
-      return null
-    }
-    try {
-      const audioB64 = await api.synthesizeSpeech(candidate.input)
-      const bytes = Uint8Array.from(atob(audioB64), c => c.charCodeAt(0))
-      const blob = new Blob([bytes], { type: 'audio/mpeg' })
-      const url = URL.createObjectURL(blob)
-      await playAudioFromUrl(url, true)
-      return 'tts'
-    } catch {
-      return null
-    }
-  }, [playAudioFromUrl, previewStrategy])
-
-  const handlePreviewSound = useCallback(async (bucket: 'target' | 'error') => {
-    if (!readyToStart || previewPending) {
-      return
-    }
-
-    const sound = bucket === 'target' ? targetSound : errorSound
-    const previewWord = bucket === 'target' ? targetPreviewWord : errorPreviewWord
-
-    setPreviewPending(true)
-    setExportStatus(null)
-    setExposedSounds(current => {
-      if (current.has(bucket)) return current
-      const next = new Set(current)
-      next.add(bucket)
-      return next
-    })
-    try {
-      const source = await playPreviewCue(sound)
-      if (source) {
-        setLastPreviewed({ sound, bucket, source })
+  const handlePreviewSound = useCallback(
+    async (bucket: 'target' | 'error') => {
+      if (!readyToStart || previewPending) {
         return
       }
-      // Fallback: avatar-routed exemplar word (original behaviour) when sound is unmapped.
-      if (onSpeakExerciseText && previewWord) {
-        await onSpeakExerciseText(`${getDrillModelToken(previewWord)}.`)
-      }
-    } finally {
-      setPreviewPending(false)
-    }
-  }, [errorPreviewWord, errorSound, onSpeakExerciseText, playPreviewCue, previewPending, readyToStart, targetPreviewWord, targetSound])
 
-  const handleCardTap = useCallback((word: string) => {
-    if (!readyToStart) {
-      return
-    }
+      const sound = bucket === 'target' ? targetSound : errorSound
+      const previewWord =
+        bucket === 'target' ? targetPreviewWord : errorPreviewWord
 
-    if (!mobileFallback) {
-      return
-    }
-
-    if (!armedBucket) {
-      setLastMove({
-        word,
-        expectedBucket: getExpectedBucket(word),
-        attemptedBucket: 'pool',
-        outcome: 'incorrect',
+      setPreviewPending(true)
+      setExportStatus(null)
+      setExposedSounds(current => {
+        if (current.has(bucket)) return current
+        const next = new Set(current)
+        next.add(bucket)
+        return next
       })
-      return
-    }
+      try {
+        const source = await playPreviewCue(sound)
+        if (source) {
+          setLastPreviewed({ sound, bucket, source })
+          return
+        }
+        // Fallback: avatar-routed exemplar word (original behaviour) when sound is unmapped.
+        if (onSpeakExerciseText && previewWord) {
+          await onSpeakExerciseText(`${getDrillModelToken(previewWord)}.`)
+        }
+      } finally {
+        setPreviewPending(false)
+      }
+    },
+    [
+      errorPreviewWord,
+      errorSound,
+      onSpeakExerciseText,
+      playPreviewCue,
+      previewPending,
+      readyToStart,
+      targetPreviewWord,
+      targetSound,
+    ]
+  )
 
-    attemptMoveWord(word, armedBucket)
-  }, [armedBucket, attemptMoveWord, getExpectedBucket, mobileFallback, readyToStart])
+  const handleCardTap = useCallback(
+    (word: string) => {
+      if (!readyToStart) {
+        return
+      }
+
+      if (!mobileFallback) {
+        return
+      }
+
+      if (!armedBucket) {
+        setLastMove({
+          word,
+          expectedBucket: getExpectedBucket(word),
+          attemptedBucket: 'pool',
+          outcome: 'incorrect',
+        })
+        return
+      }
+
+      attemptMoveWord(word, armedBucket)
+    },
+    [
+      armedBucket,
+      attemptMoveWord,
+      getExpectedBucket,
+      mobileFallback,
+      readyToStart,
+    ]
+  )
 
   const poolWords = words.filter(word => assignments[word] === 'pool')
-  const targetWords = words.filter((_, index) => assignments[words[index]] === 'target')
-  const errorWords = words.filter((_, index) => assignments[words[index]] === 'error')
+  const targetWords = words.filter(
+    (_, index) => assignments[words[index]] === 'target'
+  )
+  const errorWords = words.filter(
+    (_, index) => assignments[words[index]] === 'error'
+  )
 
   const sortingModeText = !readyToStart
     ? 'Your buddy will start the sorting turn first.'
@@ -573,11 +675,12 @@ export function SilentSortingPanel({
             : `Try again. ${lastMove.word} does not go in the ${getBucketLabel(lastMove.attemptedBucket)}.`
     : sortingModeText
 
-  const feedbackTone = lastMove?.outcome === 'correct'
-    ? 'success'
-    : lastMove?.outcome === 'incorrect'
-      ? 'warning'
-      : 'neutral'
+  const feedbackTone =
+    lastMove?.outcome === 'correct'
+      ? 'success'
+      : lastMove?.outcome === 'incorrect'
+        ? 'warning'
+        : 'neutral'
 
   const renderWordCard = (word: string) => (
     <SortingWordCard
@@ -593,7 +696,7 @@ export function SilentSortingPanel({
 
   const canAdvanceFromExpose = useCallback(
     () => exposedSounds.size >= 2,
-    [exposedSounds],
+    [exposedSounds]
   )
 
   const shellMetadata: ExerciseMetadata = {
@@ -635,19 +738,29 @@ export function SilentSortingPanel({
         <Text className={styles.stateLabel}>Sorting mode</Text>
         <Text className={styles.stateValue}>{sortingModeText}</Text>
         <Text className={styles.stateLabel}>Active sound home</Text>
-        <Text className={styles.stateValue}>{armedBucket ? getBucketLabel(armedBucket) : 'None selected'}</Text>
+        <Text className={styles.stateValue}>
+          {armedBucket ? getBucketLabel(armedBucket) : 'None selected'}
+        </Text>
       </div>
       <RepetitionCounter
         current={targetWords.length + errorWords.length}
         target={words.length}
         label="Cards sorted"
       />
-      <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragEnd={handleDragEnd}
+      >
         <div className={styles.homes} data-testid="silent-sorting-bins">
           <SortingDropZone
             bucket="target"
             title={`${getPerceptLabel(targetSound)} home`}
-            hint={targetPreviewWord ? `Try cards like ${targetPreviewWord}.` : 'Target sound'}
+            hint={
+              targetPreviewWord
+                ? `Try cards like ${targetPreviewWord}.`
+                : 'Target sound'
+            }
             badgeLabel="Target sound"
             active={armedBucket === 'target'}
             dropEnabled={dragEnabled}
@@ -659,7 +772,11 @@ export function SilentSortingPanel({
           <SortingDropZone
             bucket="error"
             title={`${getPerceptLabel(errorSound)} home`}
-            hint={errorPreviewWord ? `Try cards like ${errorPreviewWord}.` : 'Comparison sound'}
+            hint={
+              errorPreviewWord
+                ? `Try cards like ${errorPreviewWord}.`
+                : 'Comparison sound'
+            }
             badgeLabel="Comparison sound"
             active={armedBucket === 'error'}
             dropEnabled={dragEnabled}
@@ -688,17 +805,21 @@ export function SilentSortingPanel({
         className={mergeClasses(
           styles.feedback,
           feedbackTone === 'success' && styles.feedbackSuccess,
-          feedbackTone === 'warning' && styles.feedbackWarning,
+          feedbackTone === 'warning' && styles.feedbackWarning
         )}
       >
         {feedbackText}
       </Text>
       <div className={styles.actions}>
-        <Button className={styles.resetButton} appearance="secondary" onClick={() => {
-          setAssignments(initialAssignments)
-          setArmedBucket(null)
-          setLastMove(null)
-        }}>
+        <Button
+          className={styles.resetButton}
+          appearance="secondary"
+          onClick={() => {
+            setAssignments(initialAssignments)
+            setArmedBucket(null)
+            setLastMove(null)
+          }}
+        >
           Reset sorting
         </Button>
       </div>
@@ -783,19 +904,29 @@ function ExposeSlotBody({
     <>
       {audience === 'therapist' && previewStrategies.length > 1 ? (
         <div className={styles.previewStrategyPanel}>
-          <Text className={styles.previewStrategyLabel}>Preview cue: {activePreviewLabel}</Text>
+          <Text className={styles.previewStrategyLabel}>
+            Preview cue: {activePreviewLabel}
+          </Text>
           {curatedPreviewNote ? (
-            <Text className={styles.previewStrategyLabel}>{curatedPreviewNote}</Text>
+            <Text className={styles.previewStrategyLabel}>
+              {curatedPreviewNote}
+            </Text>
           ) : null}
           {previewStrategies.map(strategy => (
             <Button
               key={strategy}
-              appearance={previewStrategy === strategy ? 'primary' : 'secondary'}
+              appearance={
+                previewStrategy === strategy ? 'primary' : 'secondary'
+              }
               className={styles.previewStrategyButton}
               disabled={previewPending}
               onClick={() => setPreviewStrategy(strategy)}
             >
-              {strategy === 'ipa' ? 'IPA' : strategy === 'pseudo' ? 'Pseudo' : 'Anchor'}
+              {strategy === 'ipa'
+                ? 'IPA'
+                : strategy === 'pseudo'
+                  ? 'Pseudo'
+                  : 'Anchor'}
             </Button>
           ))}
         </div>
@@ -809,7 +940,9 @@ function ExposeSlotBody({
           aria-label={`Hear ${targetLabel} sound`}
         >
           <PhonemeIcon sound={targetSound} size={24} />
-          <span style={{ marginLeft: 'var(--space-xs)' }}>Hear {targetLabel}</span>
+          <span style={{ marginLeft: 'var(--space-xs)' }}>
+            Hear {targetLabel}
+          </span>
         </Button>
         <Button
           appearance="secondary"
@@ -819,7 +952,9 @@ function ExposeSlotBody({
           aria-label={`Hear ${errorLabel} sound`}
         >
           <PhonemeIcon sound={errorSound} size={24} />
-          <span style={{ marginLeft: 'var(--space-xs)' }}>Hear {errorLabel}</span>
+          <span style={{ marginLeft: 'var(--space-xs)' }}>
+            Hear {errorLabel}
+          </span>
         </Button>
         <Button
           appearance="primary"
@@ -842,13 +977,19 @@ interface SortingWordCardProps {
   onClick?: () => void
 }
 
-function SortingWordCard({ word, imagePath, dragEnabled, onClick }: SortingWordCardProps) {
+function SortingWordCard({
+  word,
+  imagePath,
+  dragEnabled,
+  onClick,
+}: SortingWordCardProps) {
   const styles = useStyles()
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: `card:${word}`,
-    data: { word },
-    disabled: !dragEnabled,
-  })
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({
+      id: `card:${word}`,
+      data: { word },
+      disabled: !dragEnabled,
+    })
 
   const style = transform
     ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
@@ -858,11 +999,19 @@ function SortingWordCard({ word, imagePath, dragEnabled, onClick }: SortingWordC
     <div
       ref={setNodeRef}
       style={style}
-      className={mergeClasses(styles.cardShell, isDragging && styles.draggingCard)}
+      className={mergeClasses(
+        styles.cardShell,
+        isDragging && styles.draggingCard
+      )}
       {...attributes}
       {...listeners}
     >
-      <ImageCard word={word} imagePath={imagePath} selected={isDragging} onClick={onClick} />
+      <ImageCard
+        word={word}
+        imagePath={imagePath}
+        selected={isDragging}
+        onClick={onClick}
+      />
     </div>
   )
 }
@@ -905,12 +1054,16 @@ function SortingDropZone({
         variant === 'error' && styles.errorHome,
         variant === 'pool' && styles.poolHome,
         active && styles.activeHome,
-        isOver && styles.overHome,
+        isOver && styles.overHome
       )}
     >
       <div className={styles.homeHeader}>
         <Text className={styles.homeTitle}>{title}</Text>
-        <Button appearance={active ? 'primary' : 'secondary'} className={styles.homeToggle} onClick={onArmBucket}>
+        <Button
+          appearance={active ? 'primary' : 'secondary'}
+          className={styles.homeToggle}
+          onClick={onArmBucket}
+        >
           {title}
         </Button>
       </div>

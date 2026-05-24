@@ -7,8 +7,10 @@
 function _readBool(raw: unknown, fallback: boolean): boolean {
   if (raw === undefined || raw === null) return fallback
   const value = String(raw).trim().toLowerCase()
-  if (value === '1' || value === 'true' || value === 'yes' || value === 'on') return true
-  if (value === '0' || value === 'false' || value === 'no' || value === 'off') return false
+  if (value === '1' || value === 'true' || value === 'yes' || value === 'on')
+    return true
+  if (value === '0' || value === 'false' || value === 'no' || value === 'off')
+    return false
   return fallback
 }
 
@@ -24,6 +26,6 @@ export interface FeatureFlags {
 export const featureFlags: FeatureFlags = Object.freeze({
   tts_preview_strategies_unlocked: _readBool(
     import.meta.env.VITE_TTS_PREVIEW_STRATEGIES_UNLOCKED,
-    false,
+    false
   ),
 })

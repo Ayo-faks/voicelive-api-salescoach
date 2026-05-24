@@ -50,18 +50,20 @@ export function ConversationTurn({
   const avatarClass = mergeClasses(
     styles.avatar,
     role === 'child' && styles.avatarChild,
-    role === 'system' && styles.avatarSystem,
+    role === 'system' && styles.avatarSystem
   )
 
   const bodyClass = mergeClasses(
     styles.body,
-    role === 'system' && styles.bodySystem,
+    role === 'system' && styles.bodySystem
   )
 
   return (
     <li
       className={styles.turn}
-      aria-label={typeof content === 'string' ? `${actorName}: ${content}` : actorName}
+      aria-label={
+        typeof content === 'string' ? `${actorName}: ${content}` : actorName
+      }
     >
       <span className={avatarClass} aria-hidden="true">
         {initials(actorName)}
@@ -73,10 +75,12 @@ export function ConversationTurn({
       <div className={bodyClass}>
         <span className={styles.inlineContent}>
           {typeof content === 'string' ? <span>{content}</span> : content}
-          {streaming ? <span className={styles.streamingCursor} aria-hidden="true" /> : null}
+          {streaming ? (
+            <span className={styles.streamingCursor} aria-hidden="true" />
+          ) : null}
         </span>
       </div>
-      {(verdict || targetPhoneme) ? (
+      {verdict || targetPhoneme ? (
         <div className={styles.verdictRow}>
           {verdict ? (
             <span
@@ -84,14 +88,16 @@ export function ConversationTurn({
                 styles.verdictChip,
                 verdict === 'correct' && styles.verdictCorrect,
                 verdict === 'retry' && styles.verdictRetry,
-                verdict === 'off-target' && styles.verdictOffTarget,
+                verdict === 'off-target' && styles.verdictOffTarget
               )}
             >
               {VERDICT_COPY[verdict]}
             </span>
           ) : null}
           {targetPhoneme ? (
-            <span className={mergeClasses(styles.verdictChip, styles.phonemeChip)}>
+            <span
+              className={mergeClasses(styles.verdictChip, styles.phonemeChip)}
+            >
               /{targetPhoneme}/
             </span>
           ) : null}

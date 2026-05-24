@@ -5,7 +5,11 @@
 
 import { describe, it, expect } from 'vitest'
 
-import { evaluateChecklist, CHECKLIST_ITEMS, type AppSnapshot } from './checklist'
+import {
+  evaluateChecklist,
+  CHECKLIST_ITEMS,
+  type AppSnapshot,
+} from './checklist'
 
 const emptySnapshot: AppSnapshot = {
   hasChildren: false,
@@ -21,7 +25,11 @@ describe('evaluateChecklist', () => {
     // All items are gated to therapist|admin currently, so parent sees none.
     expect(parentRows).toHaveLength(0)
 
-    const therapistRows = evaluateChecklist(emptySnapshot, 'therapist', undefined)
+    const therapistRows = evaluateChecklist(
+      emptySnapshot,
+      'therapist',
+      undefined
+    )
     expect(therapistRows.length).toBe(CHECKLIST_ITEMS.length)
   })
 

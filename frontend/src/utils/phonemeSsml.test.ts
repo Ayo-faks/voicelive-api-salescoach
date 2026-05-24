@@ -54,7 +54,9 @@ describe('buildIsolatedPhonemePayload', () => {
   })
 
   it('respects custom fallback_text', () => {
-    expect(buildIsolatedPhonemePayload('f', { fallbackText: 'f sound' })).toEqual({
+    expect(
+      buildIsolatedPhonemePayload('f', { fallbackText: 'f sound' })
+    ).toEqual({
       phoneme: 'f',
       alphabet: 'ipa',
       fallback_text: 'f sound',
@@ -69,7 +71,11 @@ describe('preview strategy helpers', () => {
   })
 
   it('returns all configured strategies for TH', () => {
-    expect(getAvailablePreviewStrategies('th')).toEqual(['ipa', 'pseudo', 'anchor'])
+    expect(getAvailablePreviewStrategies('th')).toEqual([
+      'ipa',
+      'pseudo',
+      'anchor',
+    ])
   })
 
   it('builds pseudo and anchor candidates for TH', () => {

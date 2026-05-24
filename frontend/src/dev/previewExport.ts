@@ -7,27 +7,33 @@
  * `/memories/session/plan.md` for the cleanup checklist.
  */
 
-import type { PhonemePayload, PreviewCandidate, PreviewStrategyFamily } from '../utils/phonemeSsml'
+import type {
+  PhonemePayload,
+  PreviewCandidate,
+  PreviewStrategyFamily,
+} from '../utils/phonemeSsml'
 
 export const PREVIEW_EXPORT_SCHEMA_VERSION = 1
 export const PREVIEW_EXPORT_FILENAME_PREFIX = 'wulo-preview'
 
 const IPA_TO_ASCII: Readonly<Record<string, string>> = Object.freeze({
-  'θ': 'theta',
-  'ð': 'eth',
-  'ʃ': 'esh',
-  'ʒ': 'ezh',
-  'ŋ': 'eng',
-  'ɹ': 'turned-r',
-  'ː': 'long',
-  'f': 'f',
-  's': 's',
-  'z': 'z',
-  'k': 'k',
-  'v': 'v',
+  θ: 'theta',
+  ð: 'eth',
+  ʃ: 'esh',
+  ʒ: 'ezh',
+  ŋ: 'eng',
+  ɹ: 'turned-r',
+  ː: 'long',
+  f: 'f',
+  s: 's',
+  z: 'z',
+  k: 'k',
+  v: 'v',
 })
 
-function isPhonemePayload(input: PreviewCandidate['input']): input is PhonemePayload {
+function isPhonemePayload(
+  input: PreviewCandidate['input']
+): input is PhonemePayload {
   return typeof input === 'object' && input !== null && 'phoneme' in input
 }
 
@@ -82,7 +88,10 @@ export function buildFilenameBase(args: FilenameBaseArgs): string {
   const inputSlug = buildInputSlug(args.candidate)
   const voiceSlug = args.voiceSlug ?? 'voice-unknown'
   const stamp = formatTimestampUtc(args.timestamp)
-  const suffix = args.collisionSuffix && args.collisionSuffix > 1 ? `_${args.collisionSuffix}` : ''
+  const suffix =
+    args.collisionSuffix && args.collisionSuffix > 1
+      ? `_${args.collisionSuffix}`
+      : ''
   return `${PREVIEW_EXPORT_FILENAME_PREFIX}_${soundSlug}_${strategySlug}_${inputSlug}_${voiceSlug}_${stamp}${suffix}`
 }
 
@@ -165,7 +174,9 @@ export function buildMetadata(args: MetadataArgs): PreviewTakeMetadata {
       note: 'not returned by /api/tts',
     },
     app: {
-      path: args.appPath ?? (typeof window !== 'undefined' ? window.location.pathname : '/'),
+      path:
+        args.appPath ??
+        (typeof window !== 'undefined' ? window.location.pathname : '/'),
       panel: 'SilentSortingPanel',
       build: 'dev',
     },
@@ -217,7 +228,9 @@ export interface ExportPreviewTakeResult {
  * Download the given preview take as a paired MP3 + JSON sidecar.
  * Caller must have already obtained `audioBase64` from `api.synthesizeSpeech`.
  */
-export function exportPreviewTake(args: ExportPreviewTakeArgs): ExportPreviewTakeResult {
+export function exportPreviewTake(
+  args: ExportPreviewTakeArgs
+): ExportPreviewTakeResult {
   const timestamp = (args.now ?? (() => new Date()))()
   const stampKey = formatTimestampUtc(timestamp)
   const collisionKeyBase = `${args.sound}_${args.strategy}_${buildInputSlug(args.candidate)}_${stampKey}`
@@ -243,7 +256,9 @@ export function exportPreviewTake(args: ExportPreviewTakeArgs): ExportPreviewTak
     audioBytes: audioBlob.size,
     timestamp,
   })
-  const metadataBlob = new Blob([JSON.stringify(metadata, null, 2)], { type: 'application/json' })
+  const metadataBlob = new Blob([JSON.stringify(metadata, null, 2)], {
+    type: 'application/json',
+  })
 
   triggerBlobDownload(audioBlob, audioFilename)
   triggerBlobDownload(metadataBlob, metadataFilename)
@@ -256,5 +271,8 @@ export function exportPreviewTake(args: ExportPreviewTakeArgs): ExportPreviewTak
  * Centralised so the gate is consistent everywhere and trivial to remove.
  */
 export function isPreviewExportEnabled(): boolean {
-  return Boolean(import.meta.env.DEV) && import.meta.env.VITE_ENABLE_PREVIEW_EXPORT === 'true'
+  return (
+    Boolean(import.meta.env.DEV) &&
+    import.meta.env.VITE_ENABLE_PREVIEW_EXPORT === 'true'
+  )
 }

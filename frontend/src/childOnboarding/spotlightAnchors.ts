@@ -31,7 +31,11 @@ export interface SpotlightAnchor {
   ariaLabel: string
 }
 
-function anchor(id: string, testId: string, ariaLabel: string): SpotlightAnchor {
+function anchor(
+  id: string,
+  testId: string,
+  ariaLabel: string
+): SpotlightAnchor {
   return {
     id,
     testId,
@@ -41,20 +45,16 @@ function anchor(id: string, testId: string, ariaLabel: string): SpotlightAnchor 
 }
 
 export const silentSortingAnchors = {
-  bins: anchor(
-    'silent-sorting.bins',
-    'silent-sorting-bins',
-    'Sorting bins',
-  ),
+  bins: anchor('silent-sorting.bins', 'silent-sorting-bins', 'Sorting bins'),
   sample: anchor(
     'silent-sorting.sample',
     'silent-sorting-sample',
-    'Word preview',
+    'Word preview'
   ),
   finish: anchor(
     'silent-sorting.finish',
     'silent-sorting-start-game',
-    'Start game',
+    'Start game'
   ),
 } as const
 

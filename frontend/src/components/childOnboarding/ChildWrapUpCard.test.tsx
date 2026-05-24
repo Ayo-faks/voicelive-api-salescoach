@@ -14,7 +14,7 @@ describe('ChildWrapUpCard', () => {
     render(
       <FluentProvider theme={webLightTheme}>
         <ChildWrapUpCard active onComplete={vi.fn()} />
-      </FluentProvider>,
+      </FluentProvider>
     )
     expect(screen.getByTestId('child-wrap-up-card')).toBeTruthy()
     expect(screen.getByTestId('child-wrap-up-caption')).toBeTruthy()
@@ -25,9 +25,11 @@ describe('ChildWrapUpCard', () => {
     const { container } = render(
       <FluentProvider theme={webLightTheme}>
         <ChildWrapUpCard active={false} onComplete={vi.fn()} />
-      </FluentProvider>,
+      </FluentProvider>
     )
-    expect(container.querySelector('[data-testid="child-wrap-up-card"]')).toBeNull()
+    expect(
+      container.querySelector('[data-testid="child-wrap-up-card"]')
+    ).toBeNull()
   })
 
   it('fires onComplete once when Done is clicked', () => {
@@ -35,7 +37,7 @@ describe('ChildWrapUpCard', () => {
     render(
       <FluentProvider theme={webLightTheme}>
         <ChildWrapUpCard active onComplete={onComplete} />
-      </FluentProvider>,
+      </FluentProvider>
     )
     act(() => {
       fireEvent.click(screen.getByTestId('child-wrap-up-done'))
@@ -47,7 +49,7 @@ describe('ChildWrapUpCard', () => {
     render(
       <FluentProvider theme={webLightTheme}>
         <ChildWrapUpCard active reducedMotion onComplete={vi.fn()} />
-      </FluentProvider>,
+      </FluentProvider>
     )
     expect(screen.getByTestId('child-wrap-up-card')).toBeTruthy()
   })

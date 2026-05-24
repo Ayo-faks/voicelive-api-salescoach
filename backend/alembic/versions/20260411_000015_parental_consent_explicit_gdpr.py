@@ -29,12 +29,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.execute(
-        "ALTER TABLE parental_consents DROP COLUMN IF EXISTS parental_responsibility_confirmed"
-    )
-    op.execute(
-        "ALTER TABLE parental_consents DROP COLUMN IF EXISTS special_category_consent_accepted"
-    )
-    op.execute(
-        "ALTER TABLE parental_consents DROP COLUMN IF EXISTS personal_data_consent_accepted"
-    )
+    op.execute("ALTER TABLE parental_consents DROP COLUMN IF EXISTS parental_responsibility_confirmed")
+    op.execute("ALTER TABLE parental_consents DROP COLUMN IF EXISTS special_category_consent_accepted")
+    op.execute("ALTER TABLE parental_consents DROP COLUMN IF EXISTS personal_data_consent_accepted")

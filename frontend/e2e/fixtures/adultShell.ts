@@ -138,7 +138,7 @@ async function openPersonaHome(browser: Browser, baseURL: string, persona: Adult
 function createShellFixture(role: AdultRole) {
   return async (
     { browser, baseURL }: { browser: Browser; baseURL: string | undefined },
-    use: (shell: AdultShell) => Promise<void>,
+    run: (shell: AdultShell) => Promise<void>,
   ) => {
     if (!baseURL) {
       throw new Error('Playwright baseURL is required for adult shell fixtures')
@@ -151,7 +151,7 @@ function createShellFixture(role: AdultRole) {
     const shell = await openPersonaHome(browser, baseURL, PERSONAS[role])
 
     try {
-      await use(shell)
+      await run(shell)
     } finally {
       await shell.context.close()
       await adminRequest.dispose()

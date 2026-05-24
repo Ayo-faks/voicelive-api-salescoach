@@ -9,7 +9,9 @@ import { FluentProvider, webLightTheme } from '@fluentui/react-components'
 
 import { ChildMascot } from './ChildMascot'
 
-function renderMascot(overrides: Partial<React.ComponentProps<typeof ChildMascot>> = {}) {
+function renderMascot(
+  overrides: Partial<React.ComponentProps<typeof ChildMascot>> = {}
+) {
   const onComplete = vi.fn()
   const onSkip = vi.fn()
   const result = render(
@@ -21,7 +23,7 @@ function renderMascot(overrides: Partial<React.ComponentProps<typeof ChildMascot
         onSkip={onSkip}
         {...overrides}
       />
-    </FluentProvider>,
+    </FluentProvider>
   )
   return { ...result, onComplete, onSkip }
 }
@@ -33,7 +35,9 @@ describe('ChildMascot', () => {
 
   it('renders caption and primary / skip buttons when active', () => {
     renderMascot()
-    expect(screen.getByTestId('child-mascot-caption').textContent).toMatch(/Hi there/)
+    expect(screen.getByTestId('child-mascot-caption').textContent).toMatch(
+      /Hi there/
+    )
     expect(screen.getByTestId('child-mascot-primary')).toBeTruthy()
     expect(screen.getByTestId('child-mascot-skip')).toBeTruthy()
   })
@@ -42,7 +46,7 @@ describe('ChildMascot', () => {
     const { container } = render(
       <FluentProvider theme={webLightTheme}>
         <ChildMascot active={false} caption="hidden" />
-      </FluentProvider>,
+      </FluentProvider>
     )
     expect(container.querySelector('[data-testid="child-mascot"]')).toBeNull()
   })
@@ -87,7 +91,9 @@ describe('ChildMascot', () => {
 
   it('primary and skip buttons each exceed 44px tap-target via min sizing', () => {
     renderMascot()
-    const primary = screen.getByTestId('child-mascot-primary') as HTMLButtonElement
+    const primary = screen.getByTestId(
+      'child-mascot-primary'
+    ) as HTMLButtonElement
     // jsdom does not compute layout; we assert the component opted into
     // the minimum-size class by checking the class list includes a
     // Griffel-generated entry (non-empty className).

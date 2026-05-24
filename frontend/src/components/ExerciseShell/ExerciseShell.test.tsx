@@ -9,11 +9,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { ExerciseShell } from './ExerciseShell'
 import { useExercisePhaseContext } from './useExercisePhase'
-import type {
-  ExerciseBeatCopy,
-  ExerciseShellProps,
-  PhaseEvent,
-} from './types'
+import type { ExerciseBeatCopy, ExerciseShellProps, PhaseEvent } from './types'
 import type { ExerciseMetadata } from '../../types'
 
 const metadata: ExerciseMetadata = {
@@ -84,7 +80,9 @@ function makeSlots(withHarness: boolean): ExerciseShellProps['slots'] {
   }
 }
 
-function baseProps(overrides: Partial<ExerciseShellProps> = {}): ExerciseShellProps {
+function baseProps(
+  overrides: Partial<ExerciseShellProps> = {}
+): ExerciseShellProps {
   return {
     metadata,
     audience: 'child',
@@ -187,7 +185,9 @@ describe('ExerciseShell — PERFORM grammar (items 8, 9)', () => {
     expect(screen.getByRole('button', { name: 'Record' })).toBeTruthy()
     const demoted = document.querySelector('[data-slot="expose-demoted"]')
     expect(demoted).not.toBeNull()
-    expect(demoted?.querySelector('button[data-for-phase="expose"]')).not.toBeNull()
+    expect(
+      demoted?.querySelector('button[data-for-phase="expose"]')
+    ).not.toBeNull()
   })
 
   it('omits the demoted expose accordion when hideDemotedExpose is true (Stage 8)', async () => {

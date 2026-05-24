@@ -15,7 +15,9 @@ describe('assertBridgeCopy', () => {
   })
 
   it('returns input unchanged when word count ≤ 7', () => {
-    expect(assertBridgeCopy('Now sort the pictures.')).toBe('Now sort the pictures.')
+    expect(assertBridgeCopy('Now sort the pictures.')).toBe(
+      'Now sort the pictures.'
+    )
     expect(assertBridgeCopy('one two three four five six seven')).toBe(
       'one two three four five six seven'
     )
@@ -35,7 +37,9 @@ describe('assertBridgeCopy', () => {
 
   it('in prod logs a warning and truncates to 7 words', () => {
     __envHooks.isDev = () => false
-    const result = assertBridgeCopy('one two three four five six seven eight nine')
+    const result = assertBridgeCopy(
+      'one two three four five six seven eight nine'
+    )
     expect(result).toBe('one two three four five six seven')
     expect(warnSpy).toHaveBeenCalledOnce()
     expect(warnSpy.mock.calls[0]?.[0]).toMatch(/BRIDGE copy must be ≤ 7 words/)

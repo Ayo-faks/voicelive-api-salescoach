@@ -3,7 +3,13 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Badge, Button, Card, Text, makeStyles } from '@fluentui/react-components'
+import {
+  Badge,
+  Button,
+  Card,
+  Text,
+  makeStyles,
+} from '@fluentui/react-components'
 import { useEffect, useMemo, useState } from 'react'
 import { getImageAssetUrl } from '../services/api'
 import type { ExerciseMetadata } from '../types'
@@ -76,7 +82,8 @@ const useStyles = makeStyles({
   railLine: {
     height: '8px',
     borderRadius: '999px',
-    background: 'linear-gradient(90deg, rgba(13,138,132,0.18), rgba(13,138,132,0.45))',
+    background:
+      'linear-gradient(90deg, rgba(13,138,132,0.18), rgba(13,138,132,0.45))',
     position: 'relative',
   },
   blendBadge: {
@@ -111,7 +118,14 @@ interface Props {
 
 const DEFAULT_VOWELS = ['a', 'ee', 'eye', 'oo']
 
-export function VowelBlendingPanel({ scenarioName, metadata, attempts, onActiveBlendChange, onSendMessage, micMode: _micMode = 'tap' }: Props) {
+export function VowelBlendingPanel({
+  scenarioName,
+  metadata,
+  attempts,
+  onActiveBlendChange,
+  onSendMessage,
+  micMode: _micMode = 'tap',
+}: Props) {
   const styles = useStyles()
   const targetSound = metadata?.targetSound || 's'
   const cueImage = metadata?.imageAssets?.[0]
@@ -121,7 +135,9 @@ export function VowelBlendingPanel({ scenarioName, metadata, attempts, onActiveB
       : DEFAULT_VOWELS.map(vowel => `${targetSound}${vowel}`)
   }, [metadata?.targetWords, targetSound])
   const vowels = useMemo(() => {
-    return targets.map(word => word.replace(new RegExp(`^${targetSound}`, 'i'), '') || word)
+    return targets.map(
+      word => word.replace(new RegExp(`^${targetSound}`, 'i'), '') || word
+    )
   }, [targetSound, targets])
   const [selectedIndex, setSelectedIndex] = useState(0)
 
@@ -150,9 +166,14 @@ export function VowelBlendingPanel({ scenarioName, metadata, attempts, onActiveB
     <Card className={styles.card}>
       <Text className={styles.title}>{scenarioName || 'Vowel blending'}</Text>
       <Text className={styles.body}>
-        Slide the sound and the vowel together in your mind, then say the blend smoothly.
+        Slide the sound and the vowel together in your mind, then say the blend
+        smoothly.
       </Text>
-      <RepetitionCounter current={attempts} target={metadata?.repetitionTarget} label="Blend tries" />
+      <RepetitionCounter
+        current={attempts}
+        target={metadata?.repetitionTarget}
+        label="Blend tries"
+      />
       {cueImage ? (
         <div className={styles.cueWrap}>
           <div className={styles.cueImageFrame}>
@@ -164,7 +185,8 @@ export function VowelBlendingPanel({ scenarioName, metadata, attempts, onActiveB
             />
           </div>
           <Text className={styles.body}>
-            Start with the cue sound, then slide into the vowel without breaking the sound apart.
+            Start with the cue sound, then slide into the vowel without breaking
+            the sound apart.
           </Text>
         </div>
       ) : null}

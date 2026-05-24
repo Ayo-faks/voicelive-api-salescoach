@@ -14,6 +14,7 @@ Rewards are only served once the global corpus clears
 Until then, :meth:`RewardService.get_reward` returns ``None`` and the
 pipeline should fall back to SFT without preference weighting.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -56,15 +57,10 @@ class RewardService:
         gate_reason: Optional[str] = None
         if stats["votes"] < MIN_VOTES_FOR_REWARD:
             gated = True
-            gate_reason = (
-                f"need ≥{MIN_VOTES_FOR_REWARD} votes, have {stats['votes']}"
-            )
+            gate_reason = f"need ≥{MIN_VOTES_FOR_REWARD} votes, have {stats['votes']}"
         elif stats["therapists"] < MIN_THERAPISTS_FOR_REWARD:
             gated = True
-            gate_reason = (
-                f"need ≥{MIN_THERAPISTS_FOR_REWARD} distinct therapists, "
-                f"have {stats['therapists']}"
-            )
+            gate_reason = f"need ≥{MIN_THERAPISTS_FOR_REWARD} distinct therapists, " f"have {stats['therapists']}"
 
         rewards = self._listening_eval.list_rewards() if not gated else []
         return RewardSnapshot(
@@ -79,8 +75,6 @@ class RewardService:
         """Return the scalar reward for ``target_token`` or ``None`` when gated."""
         return self.snapshot().get(target_token)
 
-    def rewards_for_tokens(
-        self, target_tokens: Iterable[str]
-    ) -> Dict[str, Optional[float]]:
+    def rewards_for_tokens(self, target_tokens: Iterable[str]) -> Dict[str, Optional[float]]:
         snapshot = self.snapshot()
         return {token: snapshot.get(token) for token in target_tokens}

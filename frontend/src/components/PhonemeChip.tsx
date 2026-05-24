@@ -51,7 +51,10 @@ export function PhonemeChip({ phoneme, label, className }: PhonemeChipProps) {
   if (!normalized) return null
 
   return (
-    <span className={mergeClasses(styles.chip, className)} aria-label={label ? `${label} ${normalized}` : `phoneme ${normalized}`}>
+    <span
+      className={mergeClasses(styles.chip, className)}
+      aria-label={label ? `${label} ${normalized}` : `phoneme ${normalized}`}
+    >
       {label ? <span className={styles.label}>{label}</span> : null}
       <span>/{normalized}/</span>
     </span>

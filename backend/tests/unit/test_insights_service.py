@@ -64,9 +64,7 @@ class TestInsightsServiceAsk:
         planner = StaticPlanner(
             InsightsPlannerResult(
                 answer_text="All good.",
-                citations=[
-                    {"kind": "child", "child_id": child_id, "label": "Kid A"}
-                ],
+                citations=[{"kind": "child", "child_id": child_id, "label": "Kid A"}],
                 visualizations=[
                     {
                         "kind": "table",

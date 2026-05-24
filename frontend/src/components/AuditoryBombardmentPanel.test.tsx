@@ -40,7 +40,7 @@ class AudioMock {
 }
 
 function makeExemplars(words: string[]): ExerciseExemplar[] {
-  return words.map((word) => ({
+  return words.map(word => ({
     word,
     imageAssetId: `th-initial-${word}-card`,
     audioSource: 'tts' as const,
@@ -91,7 +91,9 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
   })
 
   it('renders one ImageCard cell per exemplar in order', async () => {
-    render(<AuditoryBombardmentPanel metadata={baseMetadata} audience="child" />)
+    render(
+      <AuditoryBombardmentPanel metadata={baseMetadata} audience="child" />
+    )
     seedShellGesture()
 
     await waitFor(() => {
@@ -103,7 +105,9 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
   })
 
   it('synthesizes each exemplar in order', async () => {
-    render(<AuditoryBombardmentPanel metadata={baseMetadata} audience="child" />)
+    render(
+      <AuditoryBombardmentPanel metadata={baseMetadata} audience="child" />
+    )
     seedShellGesture()
 
     // PR3 — no second-tap gate. Playback auto-starts when the EXPOSE slot mounts.
@@ -111,7 +115,7 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
       () => {
         expect(vi.mocked(api.synthesizeSpeech)).toHaveBeenCalledTimes(3)
       },
-      { timeout: 3000 },
+      { timeout: 3000 }
     )
 
     const calls = vi.mocked(api.synthesizeSpeech).mock.calls
@@ -124,13 +128,13 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
     let resolveFirstSynth: (value: string) => void = () => {}
     vi.mocked(api.synthesizeSpeech).mockImplementationOnce(
       () =>
-        new Promise<string>((resolve) => {
+        new Promise<string>(resolve => {
           resolveFirstSynth = resolve
-        }),
+        })
     )
 
     const { unmount } = render(
-      <AuditoryBombardmentPanel metadata={baseMetadata} audience="child" />,
+      <AuditoryBombardmentPanel metadata={baseMetadata} audience="child" />
     )
     seedShellGesture()
 
@@ -139,9 +143,11 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
       expect(vi.mocked(api.synthesizeSpeech)).toHaveBeenCalledTimes(1)
     })
 
-    const inFlightSignal = (vi.mocked(api.synthesizeSpeech).mock.calls[0][1] as
-      | { signal?: AbortSignal }
-      | undefined)?.signal
+    const inFlightSignal = (
+      vi.mocked(api.synthesizeSpeech).mock.calls[0][1] as
+        | { signal?: AbortSignal }
+        | undefined
+    )?.signal
     expect(inFlightSignal).toBeDefined()
     expect(inFlightSignal?.aborted).toBe(false)
 
@@ -152,7 +158,9 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
   })
 
   it('does not require the microphone (Stage 0 listening-only)', () => {
-    render(<AuditoryBombardmentPanel metadata={baseMetadata} audience="therapist" />)
+    render(
+      <AuditoryBombardmentPanel metadata={baseMetadata} audience="therapist" />
+    )
     expect(screen.queryByRole('button', { name: /record/i })).toBeNull()
     expect(baseMetadata.requiresMic).toBe(false)
   })
@@ -163,7 +171,9 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
 
   it('shows Play again and End session buttons after the round finishes (therapist)', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
-    render(<AuditoryBombardmentPanel metadata={baseMetadata} audience="therapist" />)
+    render(
+      <AuditoryBombardmentPanel metadata={baseMetadata} audience="therapist" />
+    )
     seedShellGesture()
 
     // Wait for all 3 exemplars to synthesise, then the shell to advance to
@@ -172,7 +182,7 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
       () => {
         expect(vi.mocked(api.synthesizeSpeech)).toHaveBeenCalledTimes(3)
       },
-      { timeout: 3000 },
+      { timeout: 3000 }
     )
 
     await waitFor(() => {
@@ -180,12 +190,16 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
     })
 
     // Buttons are rendered but hidden until REINFORCE_DECISION_DELAY_MS elapses.
-    expect(screen.getByTestId('reinforce-decision').getAttribute('data-visible')).toBe('false')
+    expect(
+      screen.getByTestId('reinforce-decision').getAttribute('data-visible')
+    ).toBe('false')
 
     vi.advanceTimersByTime(2600)
 
     await waitFor(() => {
-      expect(screen.getByTestId('reinforce-decision').getAttribute('data-visible')).toBe('true')
+      expect(
+        screen.getByTestId('reinforce-decision').getAttribute('data-visible')
+      ).toBe('true')
     })
     expect(screen.getByTestId('reinforce-play-again')).toBeTruthy()
     expect(screen.getByTestId('reinforce-end-session')).toBeTruthy()
@@ -193,14 +207,16 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
 
   it('Play again re-triggers the full playback loop (6 total TTS calls for 3 exemplars × 2 rounds)', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
-    render(<AuditoryBombardmentPanel metadata={baseMetadata} audience="therapist" />)
+    render(
+      <AuditoryBombardmentPanel metadata={baseMetadata} audience="therapist" />
+    )
     seedShellGesture()
 
     await waitFor(
       () => {
         expect(vi.mocked(api.synthesizeSpeech)).toHaveBeenCalledTimes(3)
       },
-      { timeout: 3000 },
+      { timeout: 3000 }
     )
 
     // Wait for the shell to finish advancing expose → bridge → reinforce
@@ -213,9 +229,11 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
 
     await waitFor(
       () => {
-        expect(screen.getByTestId('reinforce-decision').getAttribute('data-visible')).toBe('true')
+        expect(
+          screen.getByTestId('reinforce-decision').getAttribute('data-visible')
+        ).toBe('true')
       },
-      { timeout: 3000 },
+      { timeout: 3000 }
     )
 
     fireEvent.click(screen.getByTestId('reinforce-play-again'))
@@ -225,7 +243,7 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
       () => {
         expect(vi.mocked(api.synthesizeSpeech)).toHaveBeenCalledTimes(6)
       },
-      { timeout: 3000 },
+      { timeout: 3000 }
     )
   })
 
@@ -237,7 +255,7 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
         metadata={baseMetadata}
         audience="therapist"
         onExerciseComplete={onComplete}
-      />,
+      />
     )
     seedShellGesture()
 
@@ -245,7 +263,7 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
       () => {
         expect(vi.mocked(api.synthesizeSpeech)).toHaveBeenCalledTimes(3)
       },
-      { timeout: 3000 },
+      { timeout: 3000 }
     )
 
     await waitFor(() => {
@@ -256,9 +274,11 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
 
     await waitFor(
       () => {
-        expect(screen.getByTestId('reinforce-decision').getAttribute('data-visible')).toBe('true')
+        expect(
+          screen.getByTestId('reinforce-decision').getAttribute('data-visible')
+        ).toBe('true')
       },
-      { timeout: 3000 },
+      { timeout: 3000 }
     )
 
     expect(onComplete).not.toHaveBeenCalled()
@@ -277,7 +297,7 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
         metadata={baseMetadata}
         audience="therapist"
         onExerciseComplete={onComplete}
-      />,
+      />
     )
     seedShellGesture()
 
@@ -285,7 +305,7 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
       () => {
         expect(vi.mocked(api.synthesizeSpeech)).toHaveBeenCalledTimes(3)
       },
-      { timeout: 3000 },
+      { timeout: 3000 }
     )
 
     await waitFor(() => {
@@ -312,7 +332,7 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
         metadata={baseMetadata}
         audience="child"
         onExerciseComplete={onComplete}
-      />,
+      />
     )
     seedShellGesture()
 
@@ -320,7 +340,7 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
       () => {
         expect(vi.mocked(api.synthesizeSpeech)).toHaveBeenCalledTimes(3)
       },
-      { timeout: 3000 },
+      { timeout: 3000 }
     )
 
     await waitFor(() => {
@@ -346,7 +366,7 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
         metadata={baseMetadata}
         audience="therapist"
         onSpeakExerciseText={onSpeak}
-      />,
+      />
     )
     seedShellGesture()
 
@@ -366,7 +386,7 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
       expect(onSpeak).toHaveBeenCalledWith('Shall we listen again, or wrap up?')
     })
 
-    const spokenTexts = onSpeak.mock.calls.map((call) => call[0] as string)
+    const spokenTexts = onSpeak.mock.calls.map(call => call[0] as string)
     expect(spokenTexts).not.toContain('Keep listening.')
     expect(spokenTexts).not.toContain('Lovely listening! See you next time.')
   })
@@ -378,16 +398,16 @@ describe('AuditoryBombardmentPanel (Stage 0)', () => {
         metadata={baseMetadata}
         audience="child"
         onSpeakExerciseText={onSpeak}
-      />,
+      />
     )
     seedShellGesture()
 
     await waitFor(() => {
-      const spokenTexts = onSpeak.mock.calls.map((call) => call[0] as string)
+      const spokenTexts = onSpeak.mock.calls.map(call => call[0] as string)
       expect(spokenTexts).toContain('Lovely listening! See you next time.')
     })
 
-    const spokenTexts = onSpeak.mock.calls.map((call) => call[0] as string)
+    const spokenTexts = onSpeak.mock.calls.map(call => call[0] as string)
     // Child mode never renders the decision beat.
     expect(spokenTexts).not.toContain('Shall we listen again, or wrap up?')
   })

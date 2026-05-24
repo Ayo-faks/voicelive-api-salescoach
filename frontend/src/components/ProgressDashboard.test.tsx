@@ -98,8 +98,15 @@ const selectedSession: SessionDetail = {
         total: 24,
       },
       overall_score: 83,
-      celebration_points: ['Clear /t/ in words', 'Strong focus', 'Good retrying'],
-      practice_suggestions: ['Keep short carrier phrases', 'Review /t/ contrast sets'],
+      celebration_points: [
+        'Clear /t/ in words',
+        'Strong focus',
+        'Good retrying',
+      ],
+      practice_suggestions: [
+        'Keep short carrier phrases',
+        'Review /t/ contrast sets',
+      ],
       therapist_notes: 'Confidence rose once the task shifted to phrases.',
     },
     pronunciation_assessment: {
@@ -114,8 +121,12 @@ const selectedSession: SessionDetail = {
       ],
     },
   },
-  therapist_feedback: { rating: 'up', note: 'Useful session for generalisation.' },
-  transcript: 'Amina produced stronger /t/ targets in phrases than in isolation.',
+  therapist_feedback: {
+    rating: 'up',
+    note: 'Useful session for generalisation.',
+  },
+  transcript:
+    'Amina produced stronger /t/ targets in phrases than in isolation.',
 }
 
 const selectedPlan: PracticePlan = {
@@ -196,7 +207,8 @@ const childMemorySummary: ChildMemorySummary = {
       },
     ],
   },
-  summary_text: 'Active targets: Keep /t/ as the active therapy target. Effective cues: Short verbal models help Amina reset quickly.',
+  summary_text:
+    'Active targets: Keep /t/ as the active therapy target. Effective cues: Short verbal models help Amina reset quickly.',
   source_item_count: 2,
   last_compiled_at: '2026-03-15T12:00:00.000Z',
   updated_at: '2026-03-15T12:00:00.000Z',
@@ -209,7 +221,8 @@ const childMemoryProposals: ChildMemoryProposal[] = [
     category: 'blockers',
     memory_type: 'inference',
     status: 'pending',
-    statement: 'Amina still needs high-support practice when /t/ moves into longer phrases.',
+    statement:
+      'Amina still needs high-support practice when /t/ moves into longer phrases.',
     detail: {},
     confidence: 0.69,
     provenance: { session_ids: ['session-3'] },
@@ -224,7 +237,8 @@ const childMemoryProposals: ChildMemoryProposal[] = [
         subject_id: 'proposal-1',
         session_id: 'session-3',
         evidence_kind: 'session',
-        snippet: 'Amina produced stronger /t/ targets in phrases than in isolation.',
+        snippet:
+          'Amina produced stronger /t/ targets in phrases than in isolation.',
         metadata: {},
         created_at: '2026-03-15T12:00:00.000Z',
       },
@@ -254,7 +268,8 @@ const childMemoryItems: ChildMemoryItem[] = [
         subject_id: 'memory-1',
         session_id: 'session-3',
         evidence_kind: 'session',
-        snippet: 'Amina produced stronger /t/ targets in phrases than in isolation.',
+        snippet:
+          'Amina produced stronger /t/ targets in phrases than in isolation.',
         metadata: {},
         created_at: '2026-03-15T12:00:00.000Z',
       },
@@ -276,7 +291,8 @@ const recommendationHistory: RecommendationLog[] = [
       current_target_sound: 't',
       institutional_memory: {
         generated_at: '2026-03-15T12:25:00.000Z',
-        summary_text: 'De-identified clinic-level patterns for /t/ are available from 2 children and 3 reviewed sessions. These tune ranking only after child-specific approved memory.',
+        summary_text:
+          'De-identified clinic-level patterns for /t/ are available from 2 children and 3 reviewed sessions. These tune ranking only after child-specific approved memory.',
         insights: [
           {
             id: 'institutional-pattern-t',
@@ -284,7 +300,8 @@ const recommendationHistory: RecommendationLog[] = [
             status: 'active',
             target_sound: 't',
             title: 'Reviewed pattern summary for /t/',
-            summary: 'Across 3 reviewed sessions from 2 children, two word phrase currently shows the strongest de-identified outcome pattern for /t/.',
+            summary:
+              'Across 3 reviewed sessions from 2 children, two word phrase currently shows the strongest de-identified outcome pattern for /t/.',
             detail: {
               top_exercise_type: 'two_word_phrase',
               ranked_exercise_types: ['two_word_phrase'],
@@ -305,7 +322,8 @@ const recommendationHistory: RecommendationLog[] = [
       },
       approved_memory_item_ids: ['memory-1'],
     },
-    rationale: 'Matched the active /t/ target, approved cue memory, and phrase-level progression.',
+    rationale:
+      'Matched the active /t/ target, approved cue memory, and phrase-level progression.',
     created_by_user_id: 'therapist-1',
     candidate_count: 2,
     top_recommendation_score: 79,
@@ -333,21 +351,40 @@ const recommendationDetail: RecommendationDetail = {
       exercise_id: 'exercise-phrase',
       exercise_name: 'T phrase ladder',
       exercise_description: 'Move /t/ into short phrases.',
-      exercise_metadata: { targetSound: 't', difficulty: 'medium', type: 'two_word_phrase' },
+      exercise_metadata: {
+        targetSound: 't',
+        difficulty: 'medium',
+        type: 'two_word_phrase',
+      },
       score: 79,
       ranking_factors: {
-        target_sound_match: { score: 40, reason: 'matches the active /t/ target' },
-        cue_compatibility: { score: 8, reason: 'aligned with phrase-level cue history' },
-        therapist_constraints: { score: 6, reason: 'matches the therapist\'s requested exercise format' },
+        target_sound_match: {
+          score: 40,
+          reason: 'matches the active /t/ target',
+        },
+        cue_compatibility: {
+          score: 8,
+          reason: 'aligned with phrase-level cue history',
+        },
+        therapist_constraints: {
+          score: 6,
+          reason: "matches the therapist's requested exercise format",
+        },
       },
-      rationale: 'Matched the active /t/ target, approved cue memory, and phrase-level progression.',
+      rationale:
+        'Matched the active /t/ target, approved cue memory, and phrase-level progression.',
       explanation: {
-        why_recommended: 'It best fit the active /t/ target and the child\'s phrase-level cue history.',
-        comparison_to_approved_memory: 'This recommendation stays aligned with approved memory and phrase-level work.',
-        evidence_that_could_change_recommendation: 'If phrase accuracy drops, step back to a simpler exercise.',
+        why_recommended:
+          "It best fit the active /t/ target and the child's phrase-level cue history.",
+        comparison_to_approved_memory:
+          'This recommendation stays aligned with approved memory and phrase-level work.',
+        evidence_that_could_change_recommendation:
+          'If phrase accuracy drops, step back to a simpler exercise.',
         supporting_memory_items: childMemoryItems,
         supporting_sessions: sessions,
-        institutional_insights: recommendationHistory[0].ranking_context.institutional_memory?.insights,
+        institutional_insights:
+          recommendationHistory[0].ranking_context.institutional_memory
+            ?.insights,
         score_summary: 'Deterministic score 79',
       },
       supporting_memory_item_ids: ['memory-1'],
@@ -412,7 +449,10 @@ const progressReports: ProgressReport[] = [
       {
         key: 'clinical-focus',
         title: 'Clinical focus',
-        bullets: ['Current focus: /k/ to /t/ carryover.', 'Phrase-level practice remains appropriate.'],
+        bullets: [
+          'Current focus: /k/ to /t/ carryover.',
+          'Phrase-level practice remains appropriate.',
+        ],
       },
     ],
     redaction_overrides: {},
@@ -428,7 +468,8 @@ const progressReports: ProgressReport[] = [
 const rewriteSuggestion: ProgressReportSummaryRewriteSuggestion = {
   report_id: 'report-1',
   source_summary_text: 'Therapist draft summary.',
-  suggested_summary_text: 'Amina showed stronger /t/ accuracy in short phrases during this review window.',
+  suggested_summary_text:
+    'Amina showed stronger /t/ accuracy in short phrases during this review window.',
   review_required: true,
   draft_only: true,
 }
@@ -500,7 +541,9 @@ describe('ProgressDashboard visual smoke test', () => {
     expect(screen.getByText('Focus sounds')).toBeTruthy()
     expect(screen.getByText('Session analysis')).toBeTruthy()
     expect(screen.getByText('Review summary')).toBeTruthy()
-    expect(screen.getByLabelText('Session frequency calendar heatmap')).toBeTruthy()
+    expect(
+      screen.getByLabelText('Session frequency calendar heatmap')
+    ).toBeTruthy()
     expect(screen.getByLabelText('Celebration points donut chart')).toBeTruthy()
     expect(screen.getByText('cat')).toBeTruthy()
 
@@ -511,7 +554,9 @@ describe('ProgressDashboard visual smoke test', () => {
     expect(screen.getByText('Child memory review')).toBeTruthy()
     expect(screen.getByText('Pending proposals')).toBeTruthy()
     expect(screen.getByText('Therapist memory note')).toBeTruthy()
-    expect(screen.getAllByText('Keep /t/ as the active therapy target.').length).toBeGreaterThan(0)
+    expect(
+      screen.getAllByText('Keep /t/ as the active therapy target.').length
+    ).toBeGreaterThan(0)
 
     fireEvent.click(screen.getByRole('tab', { name: 'Recommendations' }))
 
@@ -519,8 +564,12 @@ describe('ProgressDashboard visual smoke test', () => {
     expect(screen.getByText('Recommendation history')).toBeTruthy()
     expect(screen.getByText('Top recommendation')).toBeTruthy()
     expect(screen.getByText('Ranking factors')).toBeTruthy()
-    expect(screen.getByText('Which approved memory items support it?')).toBeTruthy()
-    expect(screen.getByText('What evidence might change this recommendation?')).toBeTruthy()
+    expect(
+      screen.getByText('Which approved memory items support it?')
+    ).toBeTruthy()
+    expect(
+      screen.getByText('What evidence might change this recommendation?')
+    ).toBeTruthy()
     expect(screen.getByText('Clinic-level institutional memory')).toBeTruthy()
     expect(screen.getByText('Reviewed pattern summary for /t/')).toBeTruthy()
     expect(screen.getAllByText('Open source session').length).toBeGreaterThan(0)
@@ -604,13 +653,17 @@ describe('ProgressDashboard visual smoke test', () => {
       />
     )
 
-    const launcher = screen.getByTestId('insights-launcher-report') as HTMLButtonElement
+    const launcher = screen.getByTestId(
+      'insights-launcher-report'
+    ) as HTMLButtonElement
     expect(launcher.disabled).toBe(false)
     expect(launcher.textContent).toBe('Select a report first')
 
     fireEvent.click(launcher)
 
-    expect(screen.getByRole('tab', { name: 'Reports' }).getAttribute('aria-selected')).toBe('true')
+    expect(
+      screen.getByRole('tab', { name: 'Reports' }).getAttribute('aria-selected')
+    ).toBe('true')
   })
 
   it('lets the therapist review and apply a summary rewrite suggestion before saving', async () => {
@@ -682,16 +735,26 @@ describe('ProgressDashboard visual smoke test', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Suggest rewrite' }))
 
     await waitFor(() => expect(onUpdateReport).toHaveBeenCalledTimes(1))
-    await waitFor(() => expect(onSuggestReportSummaryRewrite).toHaveBeenCalledWith('report-1'))
+    await waitFor(() =>
+      expect(onSuggestReportSummaryRewrite).toHaveBeenCalledWith('report-1')
+    )
 
     expect(await screen.findByText('Current saved summary')).toBeTruthy()
-    expect(screen.getByText(rewriteSuggestion.suggested_summary_text)).toBeTruthy()
+    expect(
+      screen.getByText(rewriteSuggestion.suggested_summary_text)
+    ).toBeTruthy()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Apply suggestion to editor' }))
-
-    expect((screen.getByRole('textbox', { name: 'Executive summary note' }) as HTMLTextAreaElement).value).toBe(
-      rewriteSuggestion.suggested_summary_text
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Apply suggestion to editor' })
     )
+
+    expect(
+      (
+        screen.getByRole('textbox', {
+          name: 'Executive summary note',
+        }) as HTMLTextAreaElement
+      ).value
+    ).toBe(rewriteSuggestion.suggested_summary_text)
   })
 })
 
@@ -771,7 +834,9 @@ describe('ProgressDashboard AI draft reports', () => {
   it('renders the AI draft badge and filters reports by source', () => {
     render(
       <ProgressDashboard
-        {...(baseProps as unknown as React.ComponentProps<typeof ProgressDashboard>)}
+        {...(baseProps as unknown as React.ComponentProps<
+          typeof ProgressDashboard
+        >)}
         progressReports={[aiDraftReport, pipelineReport]}
         selectedReport={aiDraftReport}
       />
@@ -780,8 +845,12 @@ describe('ProgressDashboard AI draft reports', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Reports' }))
 
     // Both reports visible under 'All' (title also renders in the detail header).
-    expect(screen.getAllByText('Amina AI draft update').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getAllByText('Amina pipeline report').length).toBeGreaterThanOrEqual(1)
+    expect(
+      screen.getAllByText('Amina AI draft update').length
+    ).toBeGreaterThanOrEqual(1)
+    expect(
+      screen.getAllByText('Amina pipeline report').length
+    ).toBeGreaterThanOrEqual(1)
 
     // Filter chip, list row, and selected-report header each render the badge.
     expect(screen.getAllByText('AI draft').length).toBeGreaterThanOrEqual(3)
@@ -791,7 +860,11 @@ describe('ProgressDashboard AI draft reports', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Pipeline' }))
     expect(screen.getByText('Amina pipeline report')).toBeTruthy()
     // Pipeline chip is now active.
-    expect(screen.getByRole('button', { name: 'Pipeline' }).getAttribute('aria-pressed')).toBe('true')
+    expect(
+      screen
+        .getByRole('button', { name: 'Pipeline' })
+        .getAttribute('aria-pressed')
+    ).toBe('true')
 
     // Filter to AI draft only — pipeline row should disappear.
     fireEvent.click(screen.getByRole('button', { name: 'AI draft' }))
@@ -809,7 +882,9 @@ describe('ProgressDashboard AI draft reports', () => {
 
     render(
       <ProgressDashboard
-        {...(baseProps as unknown as React.ComponentProps<typeof ProgressDashboard>)}
+        {...(baseProps as unknown as React.ComponentProps<
+          typeof ProgressDashboard
+        >)}
         progressReports={[aiDraftReport]}
         selectedReport={aiDraftReport}
         onOpenReportExport={onOpenReportExport}
@@ -820,11 +895,21 @@ describe('ProgressDashboard AI draft reports', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: 'Reports' }))
 
-    const previewPdf = screen.getByRole('button', { name: 'Preview PDF' }) as HTMLButtonElement
-    const downloadPdf = screen.getByRole('button', { name: 'Download PDF' }) as HTMLButtonElement
-    const openPrint = screen.getByRole('button', { name: 'Open print view' }) as HTMLButtonElement
-    const downloadHtml = screen.getByRole('button', { name: 'Download HTML' }) as HTMLButtonElement
-    const approveBtn = screen.getByRole('button', { name: 'Approve report' }) as HTMLButtonElement
+    const previewPdf = screen.getByRole('button', {
+      name: 'Preview PDF',
+    }) as HTMLButtonElement
+    const downloadPdf = screen.getByRole('button', {
+      name: 'Download PDF',
+    }) as HTMLButtonElement
+    const openPrint = screen.getByRole('button', {
+      name: 'Open print view',
+    }) as HTMLButtonElement
+    const downloadHtml = screen.getByRole('button', {
+      name: 'Download HTML',
+    }) as HTMLButtonElement
+    const approveBtn = screen.getByRole('button', {
+      name: 'Approve report',
+    }) as HTMLButtonElement
 
     // Before acknowledging, every export action is disabled.
     expect(previewPdf.disabled).toBe(true)
@@ -838,18 +923,24 @@ describe('ProgressDashboard AI draft reports', () => {
     expect(onOpenReportExport).not.toHaveBeenCalled()
 
     // Confirm review.
-    const ack = screen.getByRole('checkbox', { name: /Reviewed — OK to export/i }) as HTMLInputElement
+    const ack = screen.getByRole('checkbox', {
+      name: /Reviewed — OK to export/i,
+    }) as HTMLInputElement
     fireEvent.click(ack)
     expect(ack.checked).toBe(true)
 
     // Now exports + approve are enabled and handlers fire.
-    const previewPdfAfter = screen.getByRole('button', { name: 'Preview PDF' }) as HTMLButtonElement
+    const previewPdfAfter = screen.getByRole('button', {
+      name: 'Preview PDF',
+    }) as HTMLButtonElement
     expect(previewPdfAfter.disabled).toBe(false)
     fireEvent.click(previewPdfAfter)
     // Draft exports first save via onUpdateReport, then call onOpenReportExport on the next microtask.
     await waitFor(() => expect(onOpenReportExport).toHaveBeenCalledTimes(1))
 
-    const approveAfter = screen.getByRole('button', { name: 'Approve report' }) as HTMLButtonElement
+    const approveAfter = screen.getByRole('button', {
+      name: 'Approve report',
+    }) as HTMLButtonElement
     expect(approveAfter.disabled).toBe(false)
     fireEvent.click(approveAfter)
     expect(onApproveReport).toHaveBeenCalledTimes(1)
@@ -858,7 +949,9 @@ describe('ProgressDashboard AI draft reports', () => {
   it('does not show the AI draft review gate for pipeline reports', () => {
     render(
       <ProgressDashboard
-        {...(baseProps as unknown as React.ComponentProps<typeof ProgressDashboard>)}
+        {...(baseProps as unknown as React.ComponentProps<
+          typeof ProgressDashboard
+        >)}
         progressReports={[pipelineReport]}
         selectedReport={pipelineReport}
       />
@@ -866,21 +959,27 @@ describe('ProgressDashboard AI draft reports', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: 'Reports' }))
 
-    expect(screen.queryByRole('checkbox', { name: /Reviewed — OK to export/i })).toBeNull()
+    expect(
+      screen.queryByRole('checkbox', { name: /Reviewed — OK to export/i })
+    ).toBeNull()
     // The filter chip always renders, but the list-row + header badge should NOT. Chip only.
     expect(screen.getAllByText('AI draft').length).toBe(1)
-    const previewPdf = screen.getByRole('button', { name: 'Preview PDF' }) as HTMLButtonElement
+    const previewPdf = screen.getByRole('button', {
+      name: 'Preview PDF',
+    }) as HTMLButtonElement
     expect(previewPdf.disabled).toBe(false)
   })
 
   it('keeps the header Ask Wulo launcher available and focuses the rail when clicked', async () => {
     render(
       <ProgressDashboard
-        {...(baseProps as unknown as React.ComponentProps<typeof ProgressDashboard>)}
+        {...(baseProps as unknown as React.ComponentProps<
+          typeof ProgressDashboard
+        >)}
         progressReports={[aiDraftReport]}
         selectedReport={aiDraftReport}
         insightsRailEnabled
-      />,
+      />
     )
 
     expect(screen.getByTestId('insights-header-launcher')).toBeTruthy()

@@ -80,6 +80,15 @@
       "databaseMigrationAllowedEnvironments": {
         "value": "${DATABASE_MIGRATION_ALLOWED_ENVIRONMENTS=}"
       },
+      "pathfinderLearnObservabilityEnabled": {
+        "value": "${PATHFINDER_LEARN_OBSERVABILITY_ENABLED=true}"
+      },
+      "pathfinderLearnPrometheusEnabled": {
+        "value": "${PATHFINDER_LEARN_PROMETHEUS_ENABLED=true}"
+      },
+      "pathfinderLearnOtelEnabled": {
+        "value": "${PATHFINDER_LEARN_OTEL_ENABLED=true}"
+      },
       "voicelabCustomDomains": {
         "value": "${VOICELAB_CUSTOM_DOMAINS=[]}"
       },

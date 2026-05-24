@@ -26,7 +26,9 @@ interface TelemetryService {
 }
 
 let _childMode = false
-let _appInsightsTrack: ((name: string, props?: TelemetryProperties) => void) | null = null
+let _appInsightsTrack:
+  | ((name: string, props?: TelemetryProperties) => void)
+  | null = null
 
 export const telemetry: TelemetryService = {
   get enabled() {
@@ -57,4 +59,9 @@ export function registerAppInsightsSink(
   track: (name: string, props?: TelemetryProperties) => void
 ): void {
   _appInsightsTrack = track
+}
+
+export function resetTelemetryForTests(): void {
+  _childMode = false
+  _appInsightsTrack = null
 }

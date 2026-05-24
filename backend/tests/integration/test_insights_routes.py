@@ -73,9 +73,7 @@ def test_config_flag_on_by_default_for_therapist(client: FlaskClient):
     }.issubset(body.keys())
 
 
-def test_config_flag_can_be_disabled_via_env(
-    client: FlaskClient, monkeypatch: pytest.MonkeyPatch
-):
+def test_config_flag_can_be_disabled_via_env(client: FlaskClient, monkeypatch: pytest.MonkeyPatch):
     headers = _auth_headers("t1", "t1@example.com")
     _bootstrap_therapist(client, headers)
     monkeypatch.setenv("INSIGHTS_RAIL_ENABLED", "0")
@@ -84,9 +82,7 @@ def test_config_flag_can_be_disabled_via_env(
     assert res.get_json().get("insights_rail_enabled") is False
 
 
-def test_config_normalizes_legacy_push_to_talk_voice_mode(
-    client: FlaskClient, monkeypatch: pytest.MonkeyPatch
-):
+def test_config_normalizes_legacy_push_to_talk_voice_mode(client: FlaskClient, monkeypatch: pytest.MonkeyPatch):
     headers = _auth_headers("t1", "t1@example.com")
     _bootstrap_therapist(client, headers)
     monkeypatch.setenv("INSIGHTS_VOICE_MODE", "push_to_talk")

@@ -44,7 +44,10 @@ function wrapRadarLabel(label: string, maxChars = 12): string[] {
     }
   }
   // Keep the hyphen attached to the first line; drop the space when breaking on space.
-  const first = label[bestIdx] === '-' ? label.slice(0, bestIdx + 1) : label.slice(0, bestIdx)
+  const first =
+    label[bestIdx] === '-'
+      ? label.slice(0, bestIdx + 1)
+      : label.slice(0, bestIdx)
   const second = label.slice(bestIdx + 1)
   return [first, second]
 }
@@ -61,7 +64,10 @@ function RadarAngleTick(props: {
   payload?: { value?: string | number }
 }) {
   const { x = 0, y = 0, cx = 0, cy = 0, payload } = props
-  const value = typeof payload?.value === 'string' ? payload.value : String(payload?.value ?? '')
+  const value =
+    typeof payload?.value === 'string'
+      ? payload.value
+      : String(payload?.value ?? '')
   const lines = wrapRadarLabel(value)
   const dx = x - cx
   const anchor: 'start' | 'middle' | 'end' =
@@ -100,7 +106,8 @@ export function SessionQualityRadar({
   styles: ProgressDashboardChartStyles
 }) {
   const data = getRadarChartData(selectedSession)
-  const pronunciationAssessment = selectedSession?.assessment.pronunciation_assessment
+  const pronunciationAssessment =
+    selectedSession?.assessment.pronunciation_assessment
   const aiAssessment = selectedSession?.assessment.ai_assessment
 
   if (!data.length) {
@@ -117,11 +124,26 @@ export function SessionQualityRadar({
       <div className={styles.radarLayout}>
         <div style={{ width: '100%', height: '320px', minWidth: 0 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <RadarChart data={data} outerRadius="78%" margin={{ top: 24, right: 24, bottom: 24, left: 24 }}>
+            <RadarChart
+              data={data}
+              outerRadius="78%"
+              margin={{ top: 24, right: 24, bottom: 24, left: 24 }}
+            >
               <PolarGrid stroke="rgba(15, 42, 58, 0.1)" />
               <PolarAngleAxis dataKey="subject" tick={<RadarAngleTick />} />
-              <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
-              <Radar dataKey="score" stroke={chartPalette.primary} fill={chartPalette.primarySoft} fillOpacity={1} strokeWidth={2} />
+              <PolarRadiusAxis
+                angle={90}
+                domain={[0, 100]}
+                tick={false}
+                axisLine={false}
+              />
+              <Radar
+                dataKey="score"
+                stroke={chartPalette.primary}
+                fill={chartPalette.primarySoft}
+                fillOpacity={1}
+                strokeWidth={2}
+              />
             </RadarChart>
           </ResponsiveContainer>
         </div>
@@ -129,20 +151,35 @@ export function SessionQualityRadar({
         <div className={styles.radarMetaGrid}>
           <div className={styles.statTile}>
             <Text className={styles.summaryLabel}>Overall</Text>
-            <Text className={styles.summaryValue} style={{ fontSize: '1.35rem' }}>
-              {aiAssessment?.overall_score != null ? `${Math.round(aiAssessment.overall_score)}%` : '—'}
+            <Text
+              className={styles.summaryValue}
+              style={{ fontSize: '1.35rem' }}
+            >
+              {aiAssessment?.overall_score != null
+                ? `${Math.round(aiAssessment.overall_score)}%`
+                : '—'}
             </Text>
           </div>
           <div className={styles.statTile}>
             <Text className={styles.summaryLabel}>Pronunciation composite</Text>
-            <Text className={styles.summaryValue} style={{ fontSize: '1.35rem' }}>
-              {pronunciationAssessment?.pronunciation_score != null ? `${Math.round(pronunciationAssessment.pronunciation_score)}%` : '—'}
+            <Text
+              className={styles.summaryValue}
+              style={{ fontSize: '1.35rem' }}
+            >
+              {pronunciationAssessment?.pronunciation_score != null
+                ? `${Math.round(pronunciationAssessment.pronunciation_score)}%`
+                : '—'}
             </Text>
           </div>
           <div className={styles.statTile}>
             <Text className={styles.summaryLabel}>Fluency</Text>
-            <Text className={styles.summaryValue} style={{ fontSize: '1.35rem' }}>
-              {pronunciationAssessment?.fluency_score != null ? `${Math.round(pronunciationAssessment.fluency_score)}%` : '—'}
+            <Text
+              className={styles.summaryValue}
+              style={{ fontSize: '1.35rem' }}
+            >
+              {pronunciationAssessment?.fluency_score != null
+                ? `${Math.round(pronunciationAssessment.fluency_score)}%`
+                : '—'}
             </Text>
           </div>
         </div>
@@ -172,11 +209,31 @@ export function WordAccuracyHeatmap({
           aria-label={`${word.word} scored ${Math.round(word.accuracy)} percent`}
           style={{ width: '100%', height: '72px' }}
         >
-          <rect width="96" height="64" fill={getWordHeatmapColor(word.accuracy)} stroke="rgba(15, 42, 58, 0.08)" />
-          <text x="48" y="27" textAnchor="middle" fill={chartPalette.accent} fontSize="12" fontFamily="Manrope" fontWeight="700">
+          <rect
+            width="96"
+            height="64"
+            fill={getWordHeatmapColor(word.accuracy)}
+            stroke="rgba(15, 42, 58, 0.08)"
+          />
+          <text
+            x="48"
+            y="27"
+            textAnchor="middle"
+            fill={chartPalette.accent}
+            fontSize="12"
+            fontFamily="Manrope"
+            fontWeight="700"
+          >
             {word.word.slice(0, 12)}
           </text>
-          <text x="48" y="46" textAnchor="middle" fill={chartPalette.axis} fontSize="10" fontFamily="Manrope">
+          <text
+            x="48"
+            y="46"
+            textAnchor="middle"
+            fill={chartPalette.axis}
+            fontSize="10"
+            fontFamily="Manrope"
+          >
             {Math.round(word.accuracy)}%
           </text>
           <title>{`${word.word}: ${Math.round(word.accuracy)}%${word.error_type ? `, ${word.error_type}` : ''}`}</title>
@@ -200,8 +257,21 @@ export function CelebrationDonut({
 
   return (
     <div style={{ width: '120px', height: '120px', position: 'relative' }}>
-      <svg viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="Celebration points donut chart">
-        <circle cx="60" cy="60" r={radius} fill="none" stroke="rgba(15, 42, 58, 0.06)" strokeWidth="12" />
+      <svg
+        viewBox="0 0 120 120"
+        width="120"
+        height="120"
+        role="img"
+        aria-label="Celebration points donut chart"
+      >
+        <circle
+          cx="60"
+          cy="60"
+          r={radius}
+          fill="none"
+          stroke="rgba(15, 42, 58, 0.06)"
+          strokeWidth="12"
+        />
         <circle
           cx="60"
           cy="60"
@@ -214,7 +284,16 @@ export function CelebrationDonut({
           transform="rotate(-90 60 60)"
         />
       </svg>
-      <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', textAlign: 'center', pointerEvents: 'none' }}>
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'grid',
+          placeItems: 'center',
+          textAlign: 'center',
+          pointerEvents: 'none',
+        }}
+      >
         <div>
           <Text className={styles.summaryValue} style={{ fontSize: '1.5rem' }}>
             {earned}
@@ -256,18 +335,53 @@ export function PlanConfidenceGauge({
         backgroundColor: 'rgba(255, 253, 249, 0.98)',
       }}
     >
-      <svg viewBox="0 0 180 120" width="180" height="120" role="img" aria-label="Plan confidence gauge">
-        <path d={describeArc(90, 90, radius, 180, 0)} fill="none" stroke="rgba(15, 42, 58, 0.08)" strokeWidth="12" />
-        <path d={describeArc(90, 90, radius, 180, endAngle)} fill="none" stroke={color} strokeWidth="12" />
+      <svg
+        viewBox="0 0 180 120"
+        width="180"
+        height="120"
+        role="img"
+        aria-label="Plan confidence gauge"
+      >
+        <path
+          d={describeArc(90, 90, radius, 180, 0)}
+          fill="none"
+          stroke="rgba(15, 42, 58, 0.08)"
+          strokeWidth="12"
+        />
+        <path
+          d={describeArc(90, 90, radius, 180, endAngle)}
+          fill="none"
+          stroke={color}
+          strokeWidth="12"
+        />
         <circle cx={marker.x} cy={marker.y} r="4" fill={color} />
-        <text x="90" y="80" textAnchor="middle" fill={chartPalette.accent} fontSize="38" fontWeight="700" fontFamily="Manrope">
+        <text
+          x="90"
+          y="80"
+          textAnchor="middle"
+          fill={chartPalette.accent}
+          fontSize="38"
+          fontWeight="700"
+          fontFamily="Manrope"
+        >
           {confidence.value}
         </text>
-        <text x="90" y="98" textAnchor="middle" fill={chartPalette.axis} fontSize="11" fontFamily="Manrope">
+        <text
+          x="90"
+          y="98"
+          textAnchor="middle"
+          fill={chartPalette.axis}
+          fontSize="11"
+          fontFamily="Manrope"
+        >
           confidence
         </text>
       </svg>
-      <Text className={styles.helperText} size={200} style={{ textAlign: 'center' }}>
+      <Text
+        className={styles.helperText}
+        size={200}
+        style={{ textAlign: 'center' }}
+      >
         {confidence.label}
       </Text>
     </div>
@@ -288,7 +402,8 @@ export function ComparisonMetricBar({
   value: number
 }) {
   const currentValue = Math.max(0, Math.min(max, value))
-  const normalizedAverage = averageValue != null ? Math.max(0, Math.min(max, averageValue)) / max : null
+  const normalizedAverage =
+    averageValue != null ? Math.max(0, Math.min(max, averageValue)) / max : null
 
   return (
     <div className={styles.metric}>
@@ -299,16 +414,28 @@ export function ComparisonMetricBar({
         </Badge>
       </div>
       <div className={styles.progressRail}>
-        <ProgressBar value={currentValue / max} style={{ color: chartPalette.primary }} />
+        <ProgressBar
+          value={currentValue / max}
+          style={{ color: chartPalette.primary }}
+        />
         {normalizedAverage != null ? (
-          <div className={styles.progressAverageMarker} style={{ left: `calc(${normalizedAverage * 100}% - 1px)` }}>
+          <div
+            className={styles.progressAverageMarker}
+            style={{ left: `calc(${normalizedAverage * 100}% - 1px)` }}
+          >
             <span className={styles.progressAverageDot} />
           </div>
         ) : null}
       </div>
       <div className={styles.progressMeta}>
-        <span>Session {currentValue}/{max}</span>
-        <span>{averageValue != null ? `Avg ${averageValue.toFixed(1)}/${max}` : 'Avg unavailable'}</span>
+        <span>
+          Session {currentValue}/{max}
+        </span>
+        <span>
+          {averageValue != null
+            ? `Avg ${averageValue.toFixed(1)}/${max}`
+            : 'Avg unavailable'}
+        </span>
       </div>
     </div>
   )

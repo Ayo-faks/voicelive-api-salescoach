@@ -23,6 +23,10 @@ from src.services.azure_openai_auth import (
     DefaultAzureCredential,
     get_bearer_token_provider,
 )
+from src.services.voice_agent_contracts import (
+    sanitize_action_suggestions,
+    sanitize_ui_specs,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +62,7 @@ class InsightsVoiceHandler:
         self.region = str(config.get("azure_speech_region", "swedencentral") or "swedencentral")
         self.language = str(config.get("azure_speech_language", "en-GB") or "en-GB")
         self.speech_key = str(config.get("azure_speech_key") or "").strip()
+        self.speech_resource_id = str(config.get("azure_speech_resource_id") or "").strip()
         self.voice_name = str(config.get("azure_voice_name") or "en-GB-RubiGanges:DragonHDOmniLatestNeural")
         credential = DefaultAzureCredential()
         self._token_provider = get_bearer_token_provider(credential, COGNITIVE_SERVICES_SCOPE)
@@ -77,9 +82,7 @@ class InsightsVoiceHandler:
         self._turn_sequence = 0
         self._active_turn_sequence = 0
         self._active_turn_id: Optional[str] = None
-        self._flush_silence = b"\x00" * int(
-            INPUT_SAMPLE_RATE * SAMPLE_WIDTH_BYTES * STT_FLUSH_SILENCE_SECONDS
-        )
+        self._flush_silence = b"\x00" * int(INPUT_SAMPLE_RATE * SAMPLE_WIDTH_BYTES * STT_FLUSH_SILENCE_SECONDS)
 
     def _log_stt_diagnostic(self, stage: str, **details: Any) -> None:
         payload: Dict[str, Any] = {
@@ -174,6 +177,18 @@ class InsightsVoiceHandler:
                         completed_event["citations"] = citations
                     if visualizations is not None:
                         completed_event["visualizations"] = visualizations
+                    # Voice-agent dynamic UI + action proposals (Phase 1
+                    # contracts). The current planner does not yet emit
+                    # these; defensively sanitize whatever it does send
+                    # so a malformed planner cannot poison the client.
+                    ui_specs = sanitize_ui_specs(assistant_message.get("ui_specs"))
+                    if ui_specs:
+                        completed_event["ui_specs"] = ui_specs
+                    action_suggestions = sanitize_action_suggestions(
+                        assistant_message.get("action_suggestions")
+                    )
+                    if action_suggestions:
+                        completed_event["action_suggestions"] = action_suggestions
 
                     if answer_text:
                         self._send_state("speaking")
@@ -224,6 +239,10 @@ class InsightsVoiceHandler:
         if self.speech_key:
             return {"Ocp-Apim-Subscription-Key": self.speech_key}
         token = self._token_provider()
+        # AAD against a custom-subdomain / disableLocalAuth Speech resource needs the
+        # `aad#<resource-id>#<token>` wrapping (same shape the SDK requires).
+        if self.speech_resource_id:
+            token = f"aad#{self.speech_resource_id}#{token}"
         return {"Authorization": f"Bearer {token}"}
 
     def _create_speech_config(self) -> Any:
@@ -233,8 +252,12 @@ class InsightsVoiceHandler:
                 region=self.region,
                 speech_recognition_language=self.language,
             )
+        token = self._token_provider()
+        # Speech SDK requires AAD tokens to be wrapped as `aad#<resource-id>#<token>`
+        # when the Speech resource has a custom subdomain / disableLocalAuth.
+        auth_token = f"aad#{self.speech_resource_id}#{token}" if self.speech_resource_id else token
         return speechsdk.SpeechConfig(
-            auth_token=self._token_provider(),
+            auth_token=auth_token,
             region=self.region,
             speech_recognition_language=self.language,
         )

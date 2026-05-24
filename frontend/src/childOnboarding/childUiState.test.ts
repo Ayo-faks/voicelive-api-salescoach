@@ -60,28 +60,32 @@ describe('childUiState.flagsFromServer', () => {
   })
 
   it('caps projected entries to MAX_EXERCISE_ENTRIES', () => {
-    const exercises = Array.from({ length: MAX_EXERCISE_ENTRIES + 10 }, (_, i) => ({
-      exercise_type: `ex_${i}`,
-      first_run_at: 'x',
-    }))
+    const exercises = Array.from(
+      { length: MAX_EXERCISE_ENTRIES + 10 },
+      (_, i) => ({
+        exercise_type: `ex_${i}`,
+        first_run_at: 'x',
+      })
+    )
     const flags = flagsFromServer({ exercises } as never)
     expect(Object.keys(flags.exercise_tutorials_seen ?? {}).length).toBe(
-      MAX_EXERCISE_ENTRIES,
+      MAX_EXERCISE_ENTRIES
     )
   })
 })
 
 describe('childUiState.mergeFlags', () => {
   it('merges mascot and wrap-up booleans', () => {
-    expect(
-      mergeFlags({}, { mascot_seen: true, wrap_up_seen: false }),
-    ).toEqual({ mascot_seen: true, wrap_up_seen: false })
+    expect(mergeFlags({}, { mascot_seen: true, wrap_up_seen: false })).toEqual({
+      mascot_seen: true,
+      wrap_up_seen: false,
+    })
   })
 
   it('merges per-exercise flags additively', () => {
     const merged = mergeFlags(
       { exercise_tutorials_seen: { silent_sorting: true } },
-      { exercise_tutorials_seen: { auditory_bombardment: true } },
+      { exercise_tutorials_seen: { auditory_bombardment: true } }
     )
     expect(merged.exercise_tutorials_seen).toEqual({
       silent_sorting: true,
@@ -99,7 +103,7 @@ describe('childUiState.mergeFlags', () => {
           '   ': true,
           ['x'.repeat(200)]: true,
         } as unknown as Record<string, boolean>,
-      },
+      }
     )
     expect(merged.exercise_tutorials_seen).toEqual({ good: true })
   })
@@ -110,7 +114,7 @@ describe('childUiState.serverKeyForFlag', () => {
     expect(serverKeyForFlag('mascot_seen')).toBe(MASCOT_FLAG_KEY)
     expect(serverKeyForFlag('wrap_up_seen')).toBe(WRAP_UP_FLAG_KEY)
     expect(serverKeyForFlag({ exercise_type: 'silent_sorting' })).toBe(
-      'silent_sorting',
+      'silent_sorting'
     )
   })
 })

@@ -39,7 +39,10 @@ export function requestReplayTour(tourId: string): void {
   const replayPath = getTourById(tourId)?.replayPath
   if (replayPath && !window.location.pathname.startsWith(replayPath)) {
     const payload: PendingReplayPayload = { tourId, replayPath }
-    window.sessionStorage.setItem(PENDING_REPLAY_STORAGE_KEY, JSON.stringify(payload))
+    window.sessionStorage.setItem(
+      PENDING_REPLAY_STORAGE_KEY,
+      JSON.stringify(payload)
+    )
     window.location.assign(`${replayPath}${window.location.search}`)
     return
   }
@@ -49,7 +52,10 @@ export function requestReplayTour(tourId: string): void {
 export function consumePendingReplayTour(): string | null {
   const pending = readPendingReplay()
   if (!pending) return null
-  if (pending.replayPath && !window.location.pathname.startsWith(pending.replayPath)) {
+  if (
+    pending.replayPath &&
+    !window.location.pathname.startsWith(pending.replayPath)
+  ) {
     return null
   }
   window.sessionStorage.removeItem(PENDING_REPLAY_STORAGE_KEY)

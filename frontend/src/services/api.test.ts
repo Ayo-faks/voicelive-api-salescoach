@@ -14,7 +14,11 @@ describe('api createAgent payloads', () => {
       json: async () => ({ agent_id: 'agent-1' }),
     } as Response)
 
-    await api.createAgent('scenario-1', { character: 'meg', style: 'casual', is_photo_avatar: false }, 'child-2')
+    await api.createAgent(
+      'scenario-1',
+      { character: 'meg', style: 'casual', is_photo_avatar: false },
+      'child-2'
+    )
 
     expect(fetchMock).toHaveBeenCalledOnce()
     expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/agents/create')

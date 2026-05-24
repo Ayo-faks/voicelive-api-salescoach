@@ -31,7 +31,15 @@ export interface MicLabelInput {
 
 /** Copy for the mic dock button label (under the icon). */
 export function computeMicLabel(input: MicLabelInput): string {
-  const { micMode, recording, processing, sessionFinished, introComplete, micRequired, audience } = input
+  const {
+    micMode,
+    recording,
+    processing,
+    sessionFinished,
+    introComplete,
+    micRequired,
+    audience,
+  } = input
 
   if (recording) return 'Listening...'
   if (sessionFinished && audience === 'child') return 'Practice finished'
@@ -39,18 +47,25 @@ export function computeMicLabel(input: MicLabelInput): string {
   if (!micRequired) return 'Tap-only listening'
 
   if (!introComplete) {
-    return audience === 'therapist' ? 'Welcome in progress' : 'Listen to your buddy'
+    return audience === 'therapist'
+      ? 'Welcome in progress'
+      : 'Listen to your buddy'
   }
 
   if (micMode === 'conversational') {
-    return audience === 'therapist' ? 'Mic open — say anything' : "Mic on — I'm listening"
+    return audience === 'therapist'
+      ? 'Mic open — say anything'
+      : "Mic on — I'm listening"
   }
 
   return audience === 'therapist' ? 'Mic ready' : 'Tap to talk'
 }
 
 /** Aria-label for the mic dock button. */
-export function computeMicAriaLabel(micMode: MicMode, recording: boolean): string {
+export function computeMicAriaLabel(
+  micMode: MicMode,
+  recording: boolean
+): string {
   if (micMode === 'conversational') {
     return recording ? 'Pause microphone' : 'Resume microphone'
   }
@@ -68,7 +83,14 @@ export interface PromptTextInput {
 
 /** Copy for the "Today's practice" prompt card. */
 export function computePromptText(input: PromptTextInput): string {
-  const { scenarioDescription, exerciseLabel, childLabel, audience, micRequired, micMode } = input
+  const {
+    scenarioDescription,
+    exerciseLabel,
+    childLabel,
+    audience,
+    micRequired,
+    micMode,
+  } = input
 
   if (scenarioDescription) return scenarioDescription
 

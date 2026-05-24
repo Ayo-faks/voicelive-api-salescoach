@@ -92,7 +92,8 @@ function resolveGateEnabled(explicit: boolean | undefined): boolean {
     const raw = meta?.VITE_PROGRESSION_GATE
     if (raw === undefined || raw === null || raw === '') return true
     const normalised = String(raw).toLowerCase()
-    if (normalised === '0' || normalised === 'false' || normalised === 'off') return false
+    if (normalised === '0' || normalised === 'false' || normalised === 'off')
+      return false
     return true
   } catch {
     return true
@@ -100,7 +101,7 @@ function resolveGateEnabled(explicit: boolean | undefined): boolean {
 }
 
 export function useSessionProgression(
-  opts: UseSessionProgressionOptions = {},
+  opts: UseSessionProgressionOptions = {}
 ): UseSessionProgressionResult {
   const completedIter = opts.completedStages
   const overrideIter = opts.devOverride
@@ -135,7 +136,13 @@ export function useSessionProgression(
       if (isUnlocked(s)) highest = s
     }
 
-    return { completed, overrides, isUnlocked, nextStage, highestUnlocked: highest }
+    return {
+      completed,
+      overrides,
+      isUnlocked,
+      nextStage,
+      highestUnlocked: highest,
+    }
   }, [audience, completedIter, gateEnabled, overrideIter])
 }
 

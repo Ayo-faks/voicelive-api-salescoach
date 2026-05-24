@@ -25,6 +25,11 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      // Keep classic hook safety checks without making React Compiler migration a hard gate.
+      'react-hooks/immutability': 'off',
+      'react-hooks/preserve-manual-memoization': 'off',
+      'react-hooks/refs': 'off',
+      'react-hooks/set-state-in-effect': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',

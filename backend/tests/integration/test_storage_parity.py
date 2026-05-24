@@ -15,9 +15,9 @@ import pytest
 
 psycopg = pytest.importorskip("psycopg")
 
-from src.services.postgres_migrations import run_postgres_migrations
-from src.services.storage import StorageService
-from src.services.storage_postgres import PostgresStorageService
+from src.services.postgres_migrations import run_postgres_migrations  # noqa: E402
+from src.services.storage import StorageService  # noqa: E402
+from src.services.storage_postgres import PostgresStorageService  # noqa: E402
 
 
 TIMESTAMP_KEYS = {
@@ -289,7 +289,7 @@ def _exercise_storage_backend(service: Any) -> dict[str, Any]:
                 "created_at": "2026-04-05T10:06:30+00:00",
                 "updated_at": "2026-04-05T10:06:30+00:00",
             }
-        ]
+        ],
     )
     recommendation_log = service.save_recommendation_log(
         {
@@ -430,7 +430,9 @@ def _exercise_storage_backend(service: Any) -> dict[str, Any]:
         "summary": summary,
         "summary_reload": service.get_child_memory_summary("child-ayo"),
         "institutional_insights": institutional_insights,
-        "institutional_insights_reload": service.list_institutional_memory_insights(owner_user_id="user-1", status="active"),
+        "institutional_insights_reload": service.list_institutional_memory_insights(
+            owner_user_id="user-1", status="active"
+        ),
         "recommendation_log": service.get_recommendation_log(recommendation_log["id"]),
         "recommendation_history": service.list_recommendation_logs_for_child("child-ayo"),
         "recommendation_candidates": recommendation_candidates,

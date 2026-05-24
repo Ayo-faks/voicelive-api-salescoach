@@ -36,29 +36,37 @@ describe('formatTimestampUtc', () => {
   })
 
   it('zero-pads single-digit components', () => {
-    expect(formatTimestampUtc(new Date(Date.UTC(2026, 0, 3, 4, 5, 0)))).toBe('20260103T0405Z')
+    expect(formatTimestampUtc(new Date(Date.UTC(2026, 0, 3, 4, 5, 0)))).toBe(
+      '20260103T0405Z'
+    )
   })
 })
 
 describe('buildInputSlug', () => {
   it('slugifies plain text candidates', () => {
     expect(buildInputSlug(pseudoThCandidate)).toBe('thh')
-    expect(buildInputSlug({ ...pseudoThCandidate, input: 'think' })).toBe('think')
+    expect(buildInputSlug({ ...pseudoThCandidate, input: 'think' })).toBe(
+      'think'
+    )
   })
 
   it('emits ipa-<ascii> for phoneme payloads', () => {
     expect(buildInputSlug(ipaThCandidate)).toBe('ipa-theta')
-    expect(buildInputSlug({
-      ...ipaThCandidate,
-      input: { phoneme: 'f', alphabet: 'ipa', fallback_text: 'sound' },
-    })).toBe('ipa-f')
+    expect(
+      buildInputSlug({
+        ...ipaThCandidate,
+        input: { phoneme: 'f', alphabet: 'ipa', fallback_text: 'sound' },
+      })
+    ).toBe('ipa-f')
   })
 
   it('falls back to ipa-payload for unknown glyphs', () => {
-    expect(buildInputSlug({
-      ...ipaThCandidate,
-      input: { phoneme: 'qq', alphabet: 'ipa', fallback_text: 'sound' },
-    })).toBe('ipa-payload')
+    expect(
+      buildInputSlug({
+        ...ipaThCandidate,
+        input: { phoneme: 'qq', alphabet: 'ipa', fallback_text: 'sound' },
+      })
+    ).toBe('ipa-payload')
   })
 })
 
@@ -70,8 +78,10 @@ describe('buildFilenameBase', () => {
         strategy: 'pseudo',
         candidate: pseudoThCandidate,
         timestamp: fixedDate,
-      }),
-    ).toBe(`${PREVIEW_EXPORT_FILENAME_PREFIX}_th_pseudo_thh_voice-unknown_20260419T1452Z`)
+      })
+    ).toBe(
+      `${PREVIEW_EXPORT_FILENAME_PREFIX}_th_pseudo_thh_voice-unknown_20260419T1452Z`
+    )
   })
 
   it('uses ipa slug for phoneme payloads', () => {
@@ -81,8 +91,10 @@ describe('buildFilenameBase', () => {
         strategy: 'ipa',
         candidate: ipaThCandidate,
         timestamp: fixedDate,
-      }),
-    ).toBe(`${PREVIEW_EXPORT_FILENAME_PREFIX}_th_ipa_ipa-theta_voice-unknown_20260419T1452Z`)
+      })
+    ).toBe(
+      `${PREVIEW_EXPORT_FILENAME_PREFIX}_th_ipa_ipa-theta_voice-unknown_20260419T1452Z`
+    )
   })
 
   it('appends a collision suffix when greater than one', () => {
@@ -93,7 +105,7 @@ describe('buildFilenameBase', () => {
         candidate: pseudoThCandidate,
         timestamp: fixedDate,
         collisionSuffix: 2,
-      }),
+      })
     ).toMatch(/_20260419T1452Z_2$/)
   })
 })
@@ -122,9 +134,17 @@ describe('buildMetadata', () => {
       alphabet: null,
       fallback_text: null,
     })
-    expect(meta.audio).toEqual({ format: 'mp3', source: 'POST /api/tts', bytes: 1234 })
+    expect(meta.audio).toEqual({
+      format: 'mp3',
+      source: 'POST /api/tts',
+      bytes: 1234,
+    })
     expect(meta.voice.source).toBe('backend-default')
-    expect(meta.app).toEqual({ path: '/session', panel: 'SilentSortingPanel', build: 'dev' })
+    expect(meta.app).toEqual({
+      path: '/session',
+      panel: 'SilentSortingPanel',
+      build: 'dev',
+    })
     expect(meta.saved_at_utc).toBe('2026-04-19T14:52:30Z')
   })
 
@@ -166,7 +186,9 @@ describe('exportPreviewTake', () => {
   })
 
   it('downloads an mp3 and matching json, returns result', () => {
-    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    const clickSpy = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => {})
 
     const result = exportPreviewTake({
       sound: 'th',
@@ -181,7 +203,7 @@ describe('exportPreviewTake', () => {
     expect(result.audioFilename).toBe(`${result.filenameBase}.mp3`)
     expect(result.metadataFilename).toBe(`${result.filenameBase}.json`)
     expect(result.filenameBase).toBe(
-      `${PREVIEW_EXPORT_FILENAME_PREFIX}_th_pseudo_thh_voice-unknown_20260419T1452Z`,
+      `${PREVIEW_EXPORT_FILENAME_PREFIX}_th_pseudo_thh_voice-unknown_20260419T1452Z`
     )
     expect(result.metadata.audio.bytes).toBe(4) // "test" decoded is 4 bytes
 
@@ -189,7 +211,9 @@ describe('exportPreviewTake', () => {
   })
 
   it('appends collision suffix when saved within the same minute', () => {
-    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    const clickSpy = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => {})
 
     const first = exportPreviewTake({
       sound: 'th',

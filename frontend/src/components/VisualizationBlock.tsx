@@ -103,7 +103,10 @@ export function VisualizationBlock({ spec }: VisualizationBlockProps) {
     return (
       <div className={styles.container} aria-label="Unavailable visualization">
         <div className={styles.fallback}>
-          <Text size={200}>Visualization unavailable — the data did not match the expected format.</Text>
+          <Text size={200}>
+            Visualization unavailable — the data did not match the expected
+            format.
+          </Text>
         </div>
       </div>
     )
@@ -133,7 +136,7 @@ export function VisualizationBlock({ spec }: VisualizationBlockProps) {
 
 function renderChart(
   spec: Extract<VisualizationSpec, { kind: 'line' | 'bar' }>,
-  styles: ReturnType<typeof useStyles>,
+  styles: ReturnType<typeof useStyles>
 ) {
   const mergedData = buildChartData(spec)
   const ChartComponent = spec.kind === 'line' ? LineChart : BarChart
@@ -142,16 +145,27 @@ function renderChart(
   return (
     <div className={styles.chartFrame} data-testid="visualization-chart">
       <ResponsiveContainer width="100%" height="100%">
-        <ChartComponent data={mergedData} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
+        <ChartComponent
+          data={mergedData}
+          margin={{ top: 8, right: 16, bottom: 8, left: 0 }}
+        >
           <CartesianGrid stroke={chartPalette.grid} strokeDasharray="3 3" />
           <XAxis
             dataKey="x"
             stroke={chartPalette.axis}
-            label={spec.x_label ? { value: spec.x_label, position: 'insideBottom', offset: -2 } : undefined}
+            label={
+              spec.x_label
+                ? { value: spec.x_label, position: 'insideBottom', offset: -2 }
+                : undefined
+            }
           />
           <YAxis
             stroke={chartPalette.axis}
-            label={spec.y_label ? { value: spec.y_label, angle: -90, position: 'insideLeft' } : undefined}
+            label={
+              spec.y_label
+                ? { value: spec.y_label, angle: -90, position: 'insideLeft' }
+                : undefined
+            }
           />
           <Tooltip />
           <Legend />
@@ -191,7 +205,7 @@ function renderChart(
 
 function renderTable(
   spec: Extract<VisualizationSpec, { kind: 'table' }>,
-  styles: ReturnType<typeof useStyles>,
+  styles: ReturnType<typeof useStyles>
 ) {
   return (
     <div className={styles.tableScroller}>
@@ -243,25 +257,31 @@ function formatCell(value: unknown): string {
 function buildRowKey(
   columns: Array<{ key: string }>,
   row: Record<string, unknown>,
-  fallbackIndex: number,
+  fallbackIndex: number
 ): string {
   const parts: string[] = []
   for (const column of columns) {
     const value = row[column.key]
     if (value === null || value === undefined) {
       parts.push('')
-    } else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    } else if (
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'boolean'
+    ) {
       parts.push(String(value))
     } else {
       parts.push('')
     }
   }
   const joined = parts.join('|')
-  return joined.length > 0 ? `${fallbackIndex}:${joined}` : `row-${fallbackIndex}`
+  return joined.length > 0
+    ? `${fallbackIndex}:${joined}`
+    : `row-${fallbackIndex}`
 }
 
 function buildChartData(
-  spec: Extract<VisualizationSpec, { kind: 'line' | 'bar' }>,
+  spec: Extract<VisualizationSpec, { kind: 'line' | 'bar' }>
 ): Array<Record<string, string | number>> {
   const merged = new Map<string, Record<string, string | number>>()
   for (let index = 0; index < spec.series.length; index += 1) {
@@ -300,7 +320,11 @@ function normalizeSpec(raw: unknown): VisualizationSpec | null {
   if (kind === 'table') {
     const columnsRaw = spec.columns
     const rowsRaw = spec.rows
-    if (!Array.isArray(columnsRaw) || columnsRaw.length === 0 || columnsRaw.length > MAX_TABLE_COLUMNS) {
+    if (
+      !Array.isArray(columnsRaw) ||
+      columnsRaw.length === 0 ||
+      columnsRaw.length > MAX_TABLE_COLUMNS
+    ) {
       return null
     }
     const columns: Array<{ key: string; label: string }> = []
@@ -335,16 +359,28 @@ function normalizeSpec(raw: unknown): VisualizationSpec | null {
   }
 
   const seriesRaw = spec.series
-  if (!Array.isArray(seriesRaw) || seriesRaw.length === 0 || seriesRaw.length > MAX_SERIES_PER_CHART) {
+  if (
+    !Array.isArray(seriesRaw) ||
+    seriesRaw.length === 0 ||
+    seriesRaw.length > MAX_SERIES_PER_CHART
+  ) {
     return null
   }
-  const series: Array<{ name: string; points: Array<{ x: string | number; y: number }> }> = []
+  const series: Array<{
+    name: string
+    points: Array<{ x: string | number; y: number }>
+  }> = []
   for (const item of seriesRaw) {
     if (!item || typeof item !== 'object') return null
     const entry = item as Record<string, unknown>
     const name = sanitizeString(entry.name, 60)
     const pointsRaw = entry.points
-    if (!name || !Array.isArray(pointsRaw) || pointsRaw.length === 0 || pointsRaw.length > MAX_POINTS_PER_SERIES) {
+    if (
+      !name ||
+      !Array.isArray(pointsRaw) ||
+      pointsRaw.length === 0 ||
+      pointsRaw.length > MAX_POINTS_PER_SERIES
+    ) {
       return null
     }
     const points: Array<{ x: string | number; y: number }> = []
@@ -378,7 +414,10 @@ function sanitizeString(value: unknown, maxLength: number): string | null {
   return cleaned.length > maxLength ? cleaned.slice(0, maxLength) : cleaned
 }
 
-function sanitizeOptionalString(value: unknown, maxLength: number): string | null {
+function sanitizeOptionalString(
+  value: unknown,
+  maxLength: number
+): string | null {
   if (value === undefined || value === null) return null
   if (typeof value !== 'string') return null
   const cleaned = value.trim()

@@ -11,7 +11,12 @@ import { getDrillWordIpa } from '../utils/drillTokens'
 import { ImageCard } from './ImageCard'
 import { RepetitionCounter } from './RepetitionCounter'
 
-type TurnPhase = 'waiting' | 'instructing' | 'awaiting' | 'evaluating' | 'completed'
+type TurnPhase =
+  | 'waiting'
+  | 'instructing'
+  | 'awaiting'
+  | 'evaluating'
+  | 'completed'
 
 // After this many consecutive wrong taps on the same pair, the avatar reveals
 // the target, counts the turn as attempted, and advances to the next pair.
@@ -90,7 +95,6 @@ export function ListeningMinimalPairsPanel({
   metadata,
   audience = 'child',
   readyToStart = false,
-  onSendMessage,
   onSpeakExerciseText,
   onRecordExerciseSelection,
   onInterruptAvatar,
@@ -105,8 +109,12 @@ export function ListeningMinimalPairsPanel({
   const [completedTurns, setCompletedTurns] = useState(0)
   const [promptWord, setPromptWord] = useState<string | null>(null)
   const [selectedWord, setSelectedWord] = useState<string | null>(null)
-  const [phase, setPhase] = useState<TurnPhase>(pairs.length > 0 ? 'waiting' : 'completed')
-  const [statusText, setStatusText] = useState('Your buddy will give the clue first.')
+  const [phase, setPhase] = useState<TurnPhase>(
+    pairs.length > 0 ? 'waiting' : 'completed'
+  )
+  const [statusText, setStatusText] = useState(
+    'Your buddy will give the clue first.'
+  )
   const turnSequenceRef = useRef(0)
   const completionNotifiedRef = useRef(false)
   // Tracks wrong-tap count within the current pair's current prompt word.
@@ -114,7 +122,8 @@ export function ListeningMinimalPairsPanel({
   const retryCountRef = useRef(0)
 
   const currentPair = pairs[pairIndex] || null
-  const canSkipPair = audience === 'therapist' && Boolean(currentPair) && phase === 'awaiting'
+  const canSkipPair =
+    audience === 'therapist' && Boolean(currentPair) && phase === 'awaiting'
   const pairSignature = useMemo(
     () => pairs.map(pair => `${pair.word_a}:${pair.word_b}`).join('|'),
     [pairs]
@@ -147,7 +156,11 @@ export function ListeningMinimalPairsPanel({
     setPromptWord(null)
     setSelectedWord(null)
     setPhase(pairs.length > 0 ? 'waiting' : 'completed')
-    setStatusText(pairs.length > 0 ? 'Your buddy will give the clue first.' : 'No listening pairs are available yet.')
+    setStatusText(
+      pairs.length > 0
+        ? 'Your buddy will give the clue first.'
+        : 'No listening pairs are available yet.'
+    )
   }, [pairs.length, resetKey])
 
   const notifySessionCompletion = useCallback(() => {
@@ -176,26 +189,29 @@ export function ListeningMinimalPairsPanel({
     return api.synthesizeSpeech(word)
   }, [])
 
-  const speakWord = useCallback(async (word: string) => {
-    try {
-      const audioB64 = await synthesizeWord(word)
-      const bytes = Uint8Array.from(atob(audioB64), c => c.charCodeAt(0))
-      const blob = new Blob([bytes], { type: 'audio/mpeg' })
-      const url = URL.createObjectURL(blob)
-      const audio = new Audio(url)
-      audio.addEventListener('ended', () => URL.revokeObjectURL(url))
-      await audio.play()
-    } catch {
-      // Fallback to browser TTS if Azure fails
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel()
-        const utterance = new SpeechSynthesisUtterance(word)
-        utterance.lang = metadata?.speechLanguage || 'en-US'
-        utterance.rate = 0.85
-        window.speechSynthesis.speak(utterance)
+  const speakWord = useCallback(
+    async (word: string) => {
+      try {
+        const audioB64 = await synthesizeWord(word)
+        const bytes = Uint8Array.from(atob(audioB64), c => c.charCodeAt(0))
+        const blob = new Blob([bytes], { type: 'audio/mpeg' })
+        const url = URL.createObjectURL(blob)
+        const audio = new Audio(url)
+        audio.addEventListener('ended', () => URL.revokeObjectURL(url))
+        await audio.play()
+      } catch {
+        // Fallback to browser TTS if Azure fails
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel()
+          const utterance = new SpeechSynthesisUtterance(word)
+          utterance.lang = metadata?.speechLanguage || 'en-US'
+          utterance.rate = 0.85
+          window.speechSynthesis.speak(utterance)
+        }
       }
-    }
-  }, [metadata?.speechLanguage, synthesizeWord])
+    },
+    [metadata?.speechLanguage, synthesizeWord]
+  )
 
   const audioCache = useRef<Map<string, string>>(new Map())
 
@@ -204,76 +220,95 @@ export function ListeningMinimalPairsPanel({
     if (!currentPair) return
     for (const w of [currentPair.word_a, currentPair.word_b]) {
       if (!audioCache.current.has(w)) {
-        synthesizeWord(w).then(b64 => audioCache.current.set(w, b64)).catch(() => {})
+        synthesizeWord(w)
+          .then(b64 => audioCache.current.set(w, b64))
+          .catch(() => {})
       }
     }
   }, [currentPair, synthesizeWord])
 
-  const playWord = useCallback(async (word: string) => {
-    const cached = audioCache.current.get(word)
-    if (cached) {
-      const bytes = Uint8Array.from(atob(cached), c => c.charCodeAt(0))
-      const blob = new Blob([bytes], { type: 'audio/mpeg' })
-      const url = URL.createObjectURL(blob)
-      const audio = new Audio(url)
-      audio.addEventListener('ended', () => URL.revokeObjectURL(url))
-      await audio.play()
-    } else {
-      await speakWord(word)
-    }
-  }, [speakWord])
+  const playWord = useCallback(
+    async (word: string) => {
+      const cached = audioCache.current.get(word)
+      if (cached) {
+        const bytes = Uint8Array.from(atob(cached), c => c.charCodeAt(0))
+        const blob = new Blob([bytes], { type: 'audio/mpeg' })
+        const url = URL.createObjectURL(blob)
+        const audio = new Audio(url)
+        audio.addEventListener('ended', () => URL.revokeObjectURL(url))
+        await audio.play()
+      } else {
+        await speakWord(word)
+      }
+    },
+    [speakWord]
+  )
 
-  const speakExerciseText = useCallback(async (text: string) => {
-    if (onSpeakExerciseText) {
-      await onSpeakExerciseText(text)
-    }
-  }, [onSpeakExerciseText])
+  const speakExerciseText = useCallback(
+    async (text: string) => {
+      if (onSpeakExerciseText) {
+        await onSpeakExerciseText(text)
+      }
+    },
+    [onSpeakExerciseText]
+  )
 
-  const buildInstruction = useCallback((word: string, pair = currentPair) => {
-    void pair
-    return `Listen carefully. The word is ${word}. Tap the matching picture.`
-  }, [currentPair])
+  const buildInstruction = useCallback(
+    (word: string, pair = currentPair) => {
+      void pair
+      return `Listen carefully. The word is ${word}. Tap the matching picture.`
+    },
+    [currentPair]
+  )
 
   const buildPraiseText = useCallback((word: string) => {
     void word
     return 'Good listening.'
   }, [])
 
-  const buildRetryText = useCallback((word: string, pair = currentPair) => {
-    if (!pair) {
-      return `Let's listen again. The word is ${word}.`
-    }
+  const buildRetryText = useCallback(
+    (word: string, pair = currentPair) => {
+      if (!pair) {
+        return `Let's listen again. The word is ${word}.`
+      }
 
-    const comparisonWord = word === pair.word_a ? pair.word_b : pair.word_a
-    return `Let's listen again. The word is ${word}. Was it ${word} or ${comparisonWord}?`
-  }, [currentPair])
+      const comparisonWord = word === pair.word_a ? pair.word_b : pair.word_a
+      return `Let's listen again. The word is ${word}. Was it ${word} or ${comparisonWord}?`
+    },
+    [currentPair]
+  )
 
   const buildRevealText = useCallback((word: string) => {
     return `The word is ${word}. Let's try a new one.`
   }, [])
 
-  const beginInstructionTurn = useCallback(async (nextPromptWord?: string) => {
-    if (!currentPair || !readyToStart) {
-      return
-    }
+  const beginInstructionTurn = useCallback(
+    async (nextPromptWord?: string) => {
+      if (!currentPair || !readyToStart) {
+        return
+      }
 
-    const turnSequence = ++turnSequenceRef.current
-    const resolvedPromptWord = nextPromptWord ?? (Math.random() > 0.5 ? currentPair.word_a : currentPair.word_b)
+      const turnSequence = ++turnSequenceRef.current
+      const resolvedPromptWord =
+        nextPromptWord ??
+        (Math.random() > 0.5 ? currentPair.word_a : currentPair.word_b)
 
-    setPromptWord(resolvedPromptWord)
-    setSelectedWord(null)
-    setPhase('instructing')
-    setStatusText(`Listen for ${resolvedPromptWord}.`)
+      setPromptWord(resolvedPromptWord)
+      setSelectedWord(null)
+      setPhase('instructing')
+      setStatusText(`Listen for ${resolvedPromptWord}.`)
 
-    await speakExerciseText(buildInstruction(resolvedPromptWord, currentPair))
+      await speakExerciseText(buildInstruction(resolvedPromptWord, currentPair))
 
-    if (turnSequenceRef.current !== turnSequence) {
-      return
-    }
+      if (turnSequenceRef.current !== turnSequence) {
+        return
+      }
 
-    setPhase('awaiting')
-    setStatusText('Tap the picture that matches the word.')
-  }, [buildInstruction, currentPair, readyToStart, speakExerciseText])
+      setPhase('awaiting')
+      setStatusText('Tap the picture that matches the word.')
+    },
+    [buildInstruction, currentPair, readyToStart, speakExerciseText]
+  )
 
   useEffect(() => {
     if (!readyToStart) {
@@ -301,105 +336,132 @@ export function ListeningMinimalPairsPanel({
     if (phase === 'waiting') {
       void beginInstructionTurn(promptWord ?? undefined)
     }
-  }, [beginInstructionTurn, completedTurns, currentPair, notifySessionCompletion, phase, promptWord, readyToStart, repetitionTarget])
+  }, [
+    beginInstructionTurn,
+    completedTurns,
+    currentPair,
+    notifySessionCompletion,
+    phase,
+    promptWord,
+    readyToStart,
+    repetitionTarget,
+  ])
 
-  const handleSelect = useCallback((word: string) => {
-    if (!currentPair || !promptWord || phase !== 'awaiting') {
-      return
-    }
-
-    const turnSequence = ++turnSequenceRef.current
-    const isCorrectSelection = word === promptWord
-
-    setSelectedWord(word)
-    setPhase('evaluating')
-
-    void (async () => {
-      await playWord(word)
-      onRecordExerciseSelection?.(`I picked ${word}.`)
-
-      if (turnSequenceRef.current !== turnSequence) {
+  const handleSelect = useCallback(
+    (word: string) => {
+      if (!currentPair || !promptWord || phase !== 'awaiting') {
         return
       }
 
-      if (isCorrectSelection) {
-        const praiseText = buildPraiseText(promptWord)
-        // UI shows the plain English word; the spoken channel still gets the
-        // drill-token sentinel so the TTS / lexicon path can pronounce it.
-        setStatusText(`Great listening — you picked “${promptWord}”!`)
-        await speakExerciseText(praiseText)
+      const turnSequence = ++turnSequenceRef.current
+      const isCorrectSelection = word === promptWord
+
+      setSelectedWord(word)
+      setPhase('evaluating')
+
+      void (async () => {
+        await playWord(word)
+        onRecordExerciseSelection?.(`I picked ${word}.`)
 
         if (turnSequenceRef.current !== turnSequence) {
           return
         }
 
-        const nextCompletedTurns = completedTurns + 1
-        setCompletedTurns(nextCompletedTurns)
-        retryCountRef.current = 0
+        if (isCorrectSelection) {
+          const praiseText = buildPraiseText(promptWord)
+          // UI shows the plain English word; the spoken channel still gets the
+          // drill-token sentinel so the TTS / lexicon path can pronounce it.
+          setStatusText(`Great listening — you picked “${promptWord}”!`)
+          await speakExerciseText(praiseText)
 
-        if (repetitionTarget > 0 && nextCompletedTurns >= repetitionTarget) {
-          setPhase('completed')
-          setStatusText('Practice set complete.')
-          notifySessionCompletion()
+          if (turnSequenceRef.current !== turnSequence) {
+            return
+          }
+
+          const nextCompletedTurns = completedTurns + 1
+          setCompletedTurns(nextCompletedTurns)
+          retryCountRef.current = 0
+
+          if (repetitionTarget > 0 && nextCompletedTurns >= repetitionTarget) {
+            setPhase('completed')
+            setStatusText('Practice set complete.')
+            notifySessionCompletion()
+            return
+          }
+
+          setPromptWord(null)
+          setSelectedWord(null)
+          setPhase('waiting')
+          setStatusText('Your buddy will give the clue first.')
+          setPairIndex(index => (index + 1) % pairs.length)
           return
         }
 
-        setPromptWord(null)
-        setSelectedWord(null)
-        setPhase('waiting')
-        setStatusText('Your buddy will give the clue first.')
-        setPairIndex(index => (index + 1) % pairs.length)
-        return
-      }
+        // Wrong answer: cap retries so the avatar doesn't loop forever when a
+        // child keeps tapping the distractor. After MAX_RETRIES_PER_PAIR wrong
+        // taps on the same prompt, reveal the target and advance to the next
+        // pair (counting the turn as attempted so the repetition target still
+        // progresses).
+        retryCountRef.current += 1
 
-      // Wrong answer: cap retries so the avatar doesn't loop forever when a
-      // child keeps tapping the distractor. After MAX_RETRIES_PER_PAIR wrong
-      // taps on the same prompt, reveal the target and advance to the next
-      // pair (counting the turn as attempted so the repetition target still
-      // progresses).
-      retryCountRef.current += 1
+        if (retryCountRef.current > MAX_RETRIES_PER_PAIR) {
+          const revealText = buildRevealText(promptWord)
+          setStatusText(`The word was “${promptWord}”. Let's try a new one.`)
+          await speakExerciseText(revealText)
 
-      if (retryCountRef.current > MAX_RETRIES_PER_PAIR) {
-        const revealText = buildRevealText(promptWord)
-        setStatusText(`The word was “${promptWord}”. Let's try a new one.`)
-        await speakExerciseText(revealText)
+          if (turnSequenceRef.current !== turnSequence) {
+            return
+          }
+
+          const nextCompletedTurns = completedTurns + 1
+          setCompletedTurns(nextCompletedTurns)
+          retryCountRef.current = 0
+
+          if (repetitionTarget > 0 && nextCompletedTurns >= repetitionTarget) {
+            setPhase('completed')
+            setStatusText('Practice set complete.')
+            notifySessionCompletion()
+            return
+          }
+
+          setPromptWord(null)
+          setSelectedWord(null)
+          setPhase('waiting')
+          setStatusText('Your buddy will give the clue first.')
+          setPairIndex(index => (index + 1) % pairs.length)
+          return
+        }
+
+        const retryText = buildRetryText(promptWord, currentPair)
+        // UI keeps the status line short and sentinel-free; the avatar still
+        // speaks the full retry prompt (with emphasised target + contrast).
+        setStatusText("Not quite — let's listen again.")
+        await speakExerciseText(retryText)
 
         if (turnSequenceRef.current !== turnSequence) {
           return
         }
 
-        const nextCompletedTurns = completedTurns + 1
-        setCompletedTurns(nextCompletedTurns)
-        retryCountRef.current = 0
-
-        if (repetitionTarget > 0 && nextCompletedTurns >= repetitionTarget) {
-          setPhase('completed')
-          setStatusText('Practice set complete.')
-          notifySessionCompletion()
-          return
-        }
-
-        setPromptWord(null)
-        setSelectedWord(null)
-        setPhase('waiting')
-        setStatusText('Your buddy will give the clue first.')
-        setPairIndex(index => (index + 1) % pairs.length)
-        return
-      }
-
-      const retryText = buildRetryText(promptWord, currentPair)
-      // UI keeps the status line short and sentinel-free; the avatar still
-      // speaks the full retry prompt (with emphasised target + contrast).
-      setStatusText('Not quite — let\'s listen again.')
-      await speakExerciseText(retryText)
-
-      if (turnSequenceRef.current !== turnSequence) {
-        return
-      }
-
-      await beginInstructionTurn(promptWord)
-    })()
-  }, [beginInstructionTurn, buildPraiseText, buildRetryText, buildRevealText, completedTurns, currentPair, notifySessionCompletion, pairs.length, phase, playWord, promptWord, repetitionTarget, speakExerciseText, onRecordExerciseSelection])
+        await beginInstructionTurn(promptWord)
+      })()
+    },
+    [
+      beginInstructionTurn,
+      buildPraiseText,
+      buildRetryText,
+      buildRevealText,
+      completedTurns,
+      currentPair,
+      notifySessionCompletion,
+      pairs.length,
+      phase,
+      playWord,
+      promptWord,
+      repetitionTarget,
+      speakExerciseText,
+      onRecordExerciseSelection,
+    ]
+  )
 
   const handleSkipPair = useCallback(() => {
     if (!pairs.length || phase !== 'awaiting') {
@@ -420,7 +482,9 @@ export function ListeningMinimalPairsPanel({
 
   return (
     <Card className={styles.card}>
-      <Text className={styles.title}>{scenarioName || 'Listening practice'}</Text>
+      <Text className={styles.title}>
+        {scenarioName || 'Listening practice'}
+      </Text>
       <Text className={styles.body}>
         {audience === 'therapist'
           ? 'The buddy gives the full clue first. The child answers with one tap and retries on wrong answers.'

@@ -389,14 +389,9 @@ class PronunciationAssessor:
         # When the caller asks for target-only scoring (Stage 5b / Stage 6),
         # honour the reference_text verbatim rather than the wider
         # targetWords list so the assessor scopes to the active word.
-        score_scope = self._get_exercise_metadata_value(
-            exercise_metadata, "scoreScope", "score_scope"
-        )
+        score_scope = self._get_exercise_metadata_value(exercise_metadata, "scoreScope", "score_scope")
         if isinstance(score_scope, str) and score_scope == "target_only":
-            return [
-                match.group(0)
-                for match in REFERENCE_WORD_PATTERN.finditer(reference_text or "")
-            ]
+            return [match.group(0) for match in REFERENCE_WORD_PATTERN.finditer(reference_text or "")]
 
         target_words = self._get_exercise_metadata_value(exercise_metadata, "targetWords", "target_words")
         if isinstance(target_words, list):
@@ -507,11 +502,14 @@ class PronunciationAssessor:
     def _create_speech_config(self, exercise_metadata: Optional[Dict[str, Any]] = None) -> speechsdk.SpeechConfig:
         """Create speech configuration."""
         speech_config = speechsdk.SpeechConfig(subscription=self.speech_key, region=self.speech_region)
-        speech_language = self._get_exercise_metadata_value(
-            exercise_metadata,
-            "speechLanguage",
-            "speech_language",
-        ) or config["azure_speech_language"]
+        speech_language = (
+            self._get_exercise_metadata_value(
+                exercise_metadata,
+                "speechLanguage",
+                "speech_language",
+            )
+            or config["azure_speech_language"]
+        )
         speech_config.speech_recognition_language = speech_language
         return speech_config
 
@@ -621,11 +619,14 @@ class PronunciationAssessor:
         """Perform the actual pronunciation assessment."""
         self._log_assessment_info(wav_audio, reference_text)
 
-        speech_language = self._get_exercise_metadata_value(
-            exercise_metadata,
-            "speechLanguage",
-            "speech_language",
-        ) or config["azure_speech_language"]
+        speech_language = (
+            self._get_exercise_metadata_value(
+                exercise_metadata,
+                "speechLanguage",
+                "speech_language",
+            )
+            or config["azure_speech_language"]
+        )
         speech_config = self._create_speech_config(exercise_metadata)
         pronunciation_config = self._create_pronunciation_config(reference_text)
         audio_config = self._create_audio_config(wav_audio)

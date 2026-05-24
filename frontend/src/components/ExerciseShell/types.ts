@@ -50,7 +50,10 @@ export interface ExerciseShellProps {
   performComplete: boolean
 
   /** Called at every phase transition. May return a Promise that resolves when audio is done. */
-  onBeatEnter?: (phase: ExercisePhase, beatText: string | null) => void | Promise<void>
+  onBeatEnter?: (
+    phase: ExercisePhase,
+    beatText: string | null
+  ) => void | Promise<void>
   onRequestInterrupt?: () => void
 
   therapistCanSkipIntro?: boolean
@@ -106,7 +109,12 @@ export type PhaseEvent =
   | { type: 'BRIDGE_DONE' }
   | { type: 'PERFORM_DONE' }
   | { type: 'RESET' }
-  | { type: 'THERAPIST_SKIP'; kind: TherapistOverrideKind; reason?: string; at?: number }
+  | {
+      type: 'THERAPIST_SKIP'
+      kind: TherapistOverrideKind
+      reason?: string
+      at?: number
+    }
   | { type: 'SUPPRESS_BRIDGE' }
   | { type: 'COLLAPSE_PERFORM' }
   // REPLAY: reinforce → expose without re-running ORIENT/BRIDGE greetings.

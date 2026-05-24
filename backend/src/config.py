@@ -107,9 +107,7 @@ def _parse_bool_env(env_var: str, default: bool = False) -> bool:
         return True
     if value in _FALSY:
         return False
-    raise ConfigError(
-        f"{env_var} must be a boolean (true/false/1/0/yes/no/on/off), got {raw!r}"
-    )
+    raise ConfigError(f"{env_var} must be a boolean (true/false/1/0/yes/no/on/off), got {raw!r}")
 
 
 def _parse_int_env(env_var: str, default: int, *, min_value: Optional[int] = None) -> int:
@@ -164,16 +162,13 @@ class Config:
         database_backend = os.getenv("DATABASE_BACKEND", DEFAULT_DATABASE_BACKEND).strip().lower()
         if database_backend not in ALLOWED_DATABASE_BACKENDS:
             raise ConfigError(
-                f"DATABASE_BACKEND must be one of "
-                f"{sorted(ALLOWED_DATABASE_BACKENDS)}, got {database_backend!r}"
+                f"DATABASE_BACKEND must be one of " f"{sorted(ALLOWED_DATABASE_BACKENDS)}, got {database_backend!r}"
             )
 
         pool_min = _parse_int_env("DATABASE_POOL_MIN", DEFAULT_DATABASE_POOL_MIN, min_value=0)
         pool_max = _parse_int_env("DATABASE_POOL_MAX", DEFAULT_DATABASE_POOL_MAX, min_value=1)
         if pool_max < pool_min:
-            raise ConfigError(
-                f"DATABASE_POOL_MAX ({pool_max}) must be >= DATABASE_POOL_MIN ({pool_min})"
-            )
+            raise ConfigError(f"DATABASE_POOL_MAX ({pool_max}) must be >= DATABASE_POOL_MIN ({pool_min})")
 
         database_url = os.getenv("DATABASE_URL", "")
 
@@ -197,6 +192,7 @@ class Config:
             "resource_group_name": os.getenv("RESOURCE_GROUP_NAME", ""),
             "azure_speech_key": os.getenv("AZURE_SPEECH_KEY", ""),
             "azure_speech_region": os.getenv("AZURE_SPEECH_REGION", DEFAULT_REGION),
+            "azure_speech_resource_id": os.getenv("AZURE_SPEECH_RESOURCE_ID", ""),
             "azure_speech_language": os.getenv("AZURE_SPEECH_LANGUAGE", DEFAULT_SPEECH_LANGUAGE),
             "api_version": DEFAULT_API_VERSION,
             "azure_input_transcription_model": os.getenv(
@@ -218,16 +214,12 @@ class Config:
             "database_admin_url": os.getenv("DATABASE_ADMIN_URL", database_url),
             "database_pool_min": pool_min,
             "database_pool_max": pool_max,
-            "database_run_migrations_on_startup": _parse_bool_env(
-                "DATABASE_RUN_MIGRATIONS_ON_STARTUP", True
-            ),
+            "database_run_migrations_on_startup": _parse_bool_env("DATABASE_RUN_MIGRATIONS_ON_STARTUP", True),
             "database_migration_allowed_environments": os.getenv(
                 "DATABASE_MIGRATION_ALLOWED_ENVIRONMENTS",
                 DEFAULT_DATABASE_MIGRATION_ALLOWED_ENVIRONMENTS,
             ),
-            "deployment_environment_name": os.getenv(
-                "AZD_ENV_NAME", os.getenv("ENVIRONMENT_NAME", "")
-            ),
+            "deployment_environment_name": os.getenv("AZD_ENV_NAME", os.getenv("ENVIRONMENT_NAME", "")),
             "storage_path": os.getenv("STORAGE_PATH", DEFAULT_STORAGE_PATH),
             "bootstrap_storage_seed_path": os.getenv(
                 "BOOTSTRAP_STORAGE_SEED_PATH", DEFAULT_BOOTSTRAP_STORAGE_SEED_PATH
@@ -242,9 +234,7 @@ class Config:
             "azure_communication_services_connection_string": os.getenv(
                 "AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING", ""
             ),
-            "azure_communication_services_sender_address": os.getenv(
-                "AZURE_COMMUNICATION_SERVICES_SENDER_ADDRESS", ""
-            ),
+            "azure_communication_services_sender_address": os.getenv("AZURE_COMMUNICATION_SERVICES_SENDER_ADDRESS", ""),
             "azure_communication_services_sender_display_name": os.getenv(
                 "AZURE_COMMUNICATION_SERVICES_SENDER_DISPLAY_NAME",
                 DEFAULT_ACS_EMAIL_SENDER_DISPLAY_NAME,
@@ -257,9 +247,7 @@ class Config:
             "data_retention_months": _parse_int_env("DATA_RETENTION_MONTHS", 6, min_value=1),
             "copilot_planner_model": os.getenv("COPILOT_PLANNER_MODEL", DEFAULT_COPILOT_PLANNER_MODEL),
             "copilot_planner_reasoning_effort": os.getenv("COPILOT_PLANNER_REASONING_EFFORT", ""),
-            "copilot_azure_api_version": os.getenv(
-                "COPILOT_AZURE_API_VERSION", DEFAULT_COPILOT_AZURE_API_VERSION
-            ),
+            "copilot_azure_api_version": os.getenv("COPILOT_AZURE_API_VERSION", DEFAULT_COPILOT_AZURE_API_VERSION),
             "report_summary_rewrite_enabled": _parse_bool_env("REPORT_SUMMARY_REWRITE_ENABLED"),
             "report_summary_rewrite_model": os.getenv(
                 "REPORT_SUMMARY_REWRITE_MODEL",

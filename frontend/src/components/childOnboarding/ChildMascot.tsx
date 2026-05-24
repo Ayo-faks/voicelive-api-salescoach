@@ -160,7 +160,7 @@ export function ChildMascot({
         onSkip?.()
       }
     },
-    [onSkip],
+    [onSkip]
   )
 
   if (!active) return null
@@ -175,11 +175,17 @@ export function ChildMascot({
       onKeyDown={handleKey}
       data-testid="child-mascot"
     >
-      <div className={mergeClasses(styles.card, !reducedMotion && styles.dropIn)}>
+      <div
+        className={mergeClasses(styles.card, !reducedMotion && styles.dropIn)}
+      >
         <div className={!reducedMotion ? styles.pulseRing : undefined}>
           <BuddyAvatar avatarValue="wulo" size={120} />
         </div>
-        <p id={captionId} className={styles.caption} data-testid="child-mascot-caption">
+        <p
+          id={captionId}
+          className={styles.caption}
+          data-testid="child-mascot-caption"
+        >
           {caption}
         </p>
         <div className={styles.srOnly} aria-live="polite" role="status">

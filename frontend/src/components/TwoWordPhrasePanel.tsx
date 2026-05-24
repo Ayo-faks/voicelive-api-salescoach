@@ -25,10 +25,22 @@
  * narrows `exercise_metadata.targetWords` for `/api/assess-utterance`.
  */
 
-import { Badge, Button, Card, ProgressBar, Text, makeStyles, mergeClasses } from '@fluentui/react-components'
+import {
+  Badge,
+  Button,
+  Card,
+  ProgressBar,
+  Text,
+  makeStyles,
+  mergeClasses,
+} from '@fluentui/react-components'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import type { ExerciseMetadata, PhraseExemplar, PronunciationAssessment } from '../types'
+import type {
+  ExerciseMetadata,
+  PhraseExemplar,
+  PronunciationAssessment,
+} from '../types'
 import type { MicMode } from '../utils/micMode'
 import { api } from '../services/api'
 import { ImageCard } from './ImageCard'
@@ -194,12 +206,15 @@ interface PhraseProgress {
 
 function renderPhraseCaption(
   phrase: PhraseExemplar,
-  targetClass: string,
+  targetClass: string
 ): ReactNode {
   // Split on whitespace but keep order; highlight tokens that equal targetWord.
   const tokens = phrase.phraseText.split(/(\s+)/)
   return tokens.map((tok, i) => {
-    const norm = tok.trim().toLowerCase().replace(/[^a-z']/g, '')
+    const norm = tok
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z']/g, '')
     const targetNorm = phrase.targetWord.toLowerCase()
     if (norm && norm === targetNorm) {
       return (
@@ -230,12 +245,17 @@ export function TwoWordPhrasePanel({
 }: Props) {
   const styles = useStyles()
   const targetSound = metadata?.targetSound || 'target'
-  const phrases: PhraseExemplar[] = useMemo(() => metadata?.phrases ?? [], [metadata?.phrases])
+  const phrases: PhraseExemplar[] = useMemo(
+    () => metadata?.phrases ?? [],
+    [metadata?.phrases]
+  )
   const masteryThreshold = metadata?.masteryThreshold ?? 80
-  const repetitionTarget = metadata?.repetitionTarget ?? Math.max(10, phrases.length * 2)
-  const successesPerPhrase = phrases.length > 0
-    ? Math.max(1, Math.ceil(repetitionTarget / phrases.length))
-    : 1
+  const repetitionTarget =
+    metadata?.repetitionTarget ?? Math.max(10, phrases.length * 2)
+  const successesPerPhrase =
+    phrases.length > 0
+      ? Math.max(1, Math.ceil(repetitionTarget / phrases.length))
+      : 1
   const perceptLabel = getPerceptLabel(targetSound)
   const frame = metadata?.phraseFrame ?? 'adj_noun'
 
@@ -256,7 +276,7 @@ export function TwoWordPhrasePanel({
       bridge: 'Say them together.',
       reinforce: 'Great phrases! See you next time.',
     }),
-    [audience, frame, perceptLabel],
+    [audience, frame, perceptLabel]
   )
 
   return (
@@ -300,7 +320,7 @@ export function TwoWordPhrasePanel({
           ),
         }}
         performComplete={false}
-        onBeatEnter={(phase) => {
+        onBeatEnter={phase => {
           if (phase === 'reinforce' && onExerciseComplete) {
             onExerciseComplete()
           }
@@ -332,7 +352,9 @@ function ExposeSlot({
   const styles = useStyles()
   const { advance, notifyExposeInteract } = useShellAdvance()
   const [playingIndex, setPlayingIndex] = useState<number | null>(null)
-  const [previewedIndexes, setPreviewedIndexes] = useState<Set<number>>(new Set())
+  const [previewedIndexes, setPreviewedIndexes] = useState<Set<number>>(
+    new Set()
+  )
   const abortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
@@ -355,14 +377,16 @@ function ExposeSlot({
         const payload = phrase.ssmlTemplate
           ? { ssml: phrase.ssmlTemplate, fallback_text: phrase.phraseText }
           : { text: phrase.phraseText }
-        const b64 = await api.synthesizeSpeech(payload, { signal: controller.signal })
+        const b64 = await api.synthesizeSpeech(payload, {
+          signal: controller.signal,
+        })
         if (controller.signal.aborted) return
         const blob = new Blob(
           [Uint8Array.from(atob(b64), c => c.charCodeAt(0))],
-          { type: 'audio/mpeg' },
+          { type: 'audio/mpeg' }
         )
         const url = URL.createObjectURL(blob)
-        await new Promise<void>((resolve) => {
+        await new Promise<void>(resolve => {
           const audio = new Audio(url)
           const cleanup = () => {
             URL.revokeObjectURL(url)
@@ -370,10 +394,14 @@ function ExposeSlot({
           }
           audio.onended = cleanup
           audio.onerror = cleanup
-          controller.signal.addEventListener('abort', () => {
-            audio.pause()
-            cleanup()
-          }, { once: true })
+          controller.signal.addEventListener(
+            'abort',
+            () => {
+              audio.pause()
+              cleanup()
+            },
+            { once: true }
+          )
           void audio.play().catch(cleanup)
         })
       } catch {
@@ -389,7 +417,7 @@ function ExposeSlot({
         }
       }
     },
-    [notifyExposeInteract, phrases, playingIndex],
+    [notifyExposeInteract, phrases, playingIndex]
   )
 
   const handleStart = useCallback(() => {
@@ -399,7 +427,8 @@ function ExposeSlot({
     advance()
   }, [advance, onActiveTargetWordChange, phrases])
 
-  const canStart = readyToStart && previewedIndexes.size > 0 && playingIndex === null
+  const canStart =
+    readyToStart && previewedIndexes.size > 0 && playingIndex === null
 
   return (
     <>
@@ -430,13 +459,15 @@ function ExposeSlot({
               data-previewed={previewed ? 'true' : 'false'}
               className={mergeClasses(
                 styles.cellShell,
-                active && styles.cellActive,
+                active && styles.cellActive
               )}
             >
               <ImageCard
                 word={phrase.phraseText}
                 imagePath={imageAssets[i]}
-                onClick={() => { void play(i) }}
+                onClick={() => {
+                  void play(i)
+                }}
                 disabled={playingIndex !== null && playingIndex !== i}
               />
               <div className={styles.phraseCaption}>
@@ -492,8 +523,13 @@ function PerformSlot({
   const styles = useStyles()
   const ctx = useExercisePhaseContext()
   const [activeIndex, setActiveIndex] = useState(0)
-  const [progress, setProgress] = useState<PhraseProgress[]>(
-    () => phrases.map(() => ({ attempts: 0, successes: 0, lastScore: null, complete: false })),
+  const [progress, setProgress] = useState<PhraseProgress[]>(() =>
+    phrases.map(() => ({
+      attempts: 0,
+      successes: 0,
+      lastScore: null,
+      complete: false,
+    }))
   )
   const [micError, setMicError] = useState<string | null>(null)
   const lastFeedbackRef = useRef<PronunciationAssessment | null>(null)
@@ -557,7 +593,9 @@ function PerformSlot({
   useEffect(() => {
     const cur = progress[activeIndex]
     if (!cur?.complete) return
-    const nextIndex = progress.findIndex((p, i) => i > activeIndex && !p.complete)
+    const nextIndex = progress.findIndex(
+      (p, i) => i > activeIndex && !p.complete
+    )
     if (nextIndex >= 0) {
       setActiveIndex(nextIndex)
     } else {
@@ -585,9 +623,13 @@ function PerformSlot({
   const activeImage = imageAssets[activeIndex]
   const activeProgress = progress[activeIndex]
   const overallDone = progress.filter(p => p.complete).length
-  const overallPct = phrases.length > 0 ? (overallDone / phrases.length) * 100 : 0
+  const overallPct =
+    phrases.length > 0 ? (overallDone / phrases.length) * 100 : 0
   const lastScore = activeProgress?.lastScore
-  const lastWasSuccess = lastScore !== null && lastScore !== undefined && lastScore >= masteryThreshold
+  const lastWasSuccess =
+    lastScore !== null &&
+    lastScore !== undefined &&
+    lastScore >= masteryThreshold
 
   if (!activePhrase) return null
 
@@ -601,7 +643,11 @@ function PerformSlot({
       </div>
       <div className={styles.activeBlock}>
         {activeImage ? (
-          <ImageCard word={activePhrase.phraseText} imagePath={activeImage} selected />
+          <ImageCard
+            word={activePhrase.phraseText}
+            imagePath={activeImage}
+            selected
+          />
         ) : null}
         <div style={{ display: 'grid', gap: '8px' }}>
           <Text className={styles.activePhrase}>
@@ -616,7 +662,7 @@ function PerformSlot({
             <Text
               className={mergeClasses(
                 styles.feedback,
-                lastWasSuccess ? styles.feedbackOk : styles.feedbackRetry,
+                lastWasSuccess ? styles.feedbackOk : styles.feedbackRetry
               )}
             >
               {lastWasSuccess
@@ -629,9 +675,15 @@ function PerformSlot({
               appearance="primary"
               className={styles.startButton}
               disabled={scoringUtterance}
-              onClick={() => { void handleMicToggle() }}
+              onClick={() => {
+                void handleMicToggle()
+              }}
             >
-              {recording ? 'Stop' : scoringUtterance ? 'Scoring…' : 'Say the phrase'}
+              {recording
+                ? 'Stop'
+                : scoringUtterance
+                  ? 'Scoring…'
+                  : 'Say the phrase'}
             </Button>
             <Button
               appearance="secondary"
@@ -670,7 +722,7 @@ function PerformSlot({
               className={mergeClasses(
                 styles.cellShell,
                 active && styles.cellActive,
-                disabled && styles.cellDone,
+                disabled && styles.cellDone
               )}
               onClick={selectPhrase}
               disabled={disabled}
@@ -683,11 +735,19 @@ function PerformSlot({
               }}
             >
               {p?.complete ? (
-                <Badge appearance="filled" color="success" className={styles.cellBadge}>
+                <Badge
+                  appearance="filled"
+                  color="success"
+                  className={styles.cellBadge}
+                >
                   Done
                 </Badge>
               ) : null}
-              <ImageCard word={phrase.phraseText} imagePath={imageAssets[i]} selected={active} />
+              <ImageCard
+                word={phrase.phraseText}
+                imagePath={imageAssets[i]}
+                selected={active}
+              />
               <div className={styles.phraseCaption}>
                 {renderPhraseCaption(phrase, styles.phraseTarget)}
               </div>

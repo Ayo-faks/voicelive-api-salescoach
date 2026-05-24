@@ -42,7 +42,9 @@ export function buildBeatInstructions(opts: BeatInstructionOptions): string {
       return buildReinforce(opts)
     /* c8 ignore next 2 */
     default:
-      throw new Error(`buildBeatInstructions: unknown beat "${(opts as { beat: string }).beat}"`)
+      throw new Error(
+        `buildBeatInstructions: unknown beat "${(opts as { beat: string }).beat}"`
+      )
   }
 }
 
@@ -52,7 +54,8 @@ export function buildBeatInstructions(opts: BeatInstructionOptions): string {
 
 function buildOrient(opts: BeatInstructionOptions): string {
   const audience = opts.audience ?? 'child'
-  const childLabel = opts.childName || (audience === 'child' ? 'my friend' : 'the child')
+  const childLabel =
+    opts.childName || (audience === 'child' ? 'my friend' : 'the child')
   const exerciseLabel = opts.scenarioName || "today's practice"
 
   // Scripted clinical path — TH silent_sorting. Preserved verbatim from the
@@ -112,7 +115,7 @@ function enforceOrientSoftCap(text: string): void {
     // tightened rather than silently shipped.
     // eslint-disable-next-line no-console
     console.warn(
-      `[beatInstructions] ORIENT exceeds soft cap (${count} > ${ORIENT_SOFT_WORD_CAP}): "${text}"`,
+      `[beatInstructions] ORIENT exceeds soft cap (${count} > ${ORIENT_SOFT_WORD_CAP}): "${text}"`
     )
   }
 }
@@ -155,12 +158,12 @@ export function assertBridgeCopy(text: string): string {
   }
   if (isDev()) {
     throw new Error(
-      `[beatInstructions] BRIDGE copy exceeds ${BRIDGE_MAX_WORDS} words (got ${words.length}): "${text}"`,
+      `[beatInstructions] BRIDGE copy exceeds ${BRIDGE_MAX_WORDS} words (got ${words.length}): "${text}"`
     )
   }
   // eslint-disable-next-line no-console
   console.warn(
-    `[beatInstructions] BRIDGE copy exceeds ${BRIDGE_MAX_WORDS} words (got ${words.length}); truncating.`,
+    `[beatInstructions] BRIDGE copy exceeds ${BRIDGE_MAX_WORDS} words (got ${words.length}); truncating.`
   )
   const truncated = words.slice(0, BRIDGE_MAX_WORDS).join(' ')
   // Preserve terminal punctuation if the last kept word lost a trailing period.
@@ -173,7 +176,8 @@ export function assertBridgeCopy(text: string): string {
 
 function buildReinforce(opts: BeatInstructionOptions): string {
   const audience = opts.audience ?? 'child'
-  const childLabel = opts.childName || (audience === 'child' ? 'my friend' : 'the child')
+  const childLabel =
+    opts.childName || (audience === 'child' ? 'my friend' : 'the child')
   const praise =
     audience === 'therapist'
       ? `Great session with ${childLabel}.`
@@ -192,12 +196,12 @@ function assertNoCorrective(text: string): void {
     if (lower.includes(term)) {
       if (isDev()) {
         throw new Error(
-          `[beatInstructions] REINFORCE must never be corrective. Found "${term}" in: "${text}"`,
+          `[beatInstructions] REINFORCE must never be corrective. Found "${term}" in: "${text}"`
         )
       }
       // eslint-disable-next-line no-console
       console.warn(
-        `[beatInstructions] REINFORCE contained corrective term "${term}"; scrubbing.`,
+        `[beatInstructions] REINFORCE contained corrective term "${term}"; scrubbing.`
       )
       return
     }
@@ -235,7 +239,9 @@ export interface BeatDispatcher {
   pendingCount(): number
 }
 
-export function createBeatDispatcher(opts: BeatDispatcherOptions): BeatDispatcher {
+export function createBeatDispatcher(
+  opts: BeatDispatcherOptions
+): BeatDispatcher {
   const now = opts.now ?? (() => Date.now())
   const dropAfterMs = opts.dropAfterMs ?? 3000
   const log = opts.logger ?? (() => {})

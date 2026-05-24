@@ -20,7 +20,7 @@ from typing import Any, Dict, List, Mapping, Optional, Tuple, cast
 from urllib.parse import parse_qs, urlsplit
 
 import simple_websocket.ws  # pyright: ignore[reportMissingTypeStubs]
-from flask import Flask, abort, g, jsonify, request, send_from_directory
+from flask import Flask, g, jsonify, request, send_from_directory
 from flask_sock import Sock  # pyright: ignore[reportMissingTypeStubs]
 
 if __package__ in {None, ""}:
@@ -31,12 +31,24 @@ from src.services.analyzers import ConversationAnalyzer, PronunciationAssessor
 from src.services.child_memory_service import ChildMemoryService
 from src.services.email_service import AzureCommunicationEmailService, InvitationEmailDeliveryResult
 from src.services.institutional_memory_service import InstitutionalMemoryService
+from src.learning.api import (
+    LearningApi,
+    PILOT_CLASS_ID,
+    PILOT_STUDENT_ID,
+    PILOT_TENANT_ID,
+    register_learning_api,
+)
+from src.learning.repository_factory import make_repository as make_learning_repository
 from src.services.insights_copilot_planner import build_insights_planner_from_env
 from src.services.insights_service import (
     InsightsAuthorizationError,
     InsightsService,
 )
 from src.services.insights_websocket_handler import InsightsVoiceHandler
+from src.services.voice_agent_action_service import (
+    VoiceAgentActionError,
+    VoiceAgentActionService,
+)
 from src.services.managers import AgentManager, ScenarioManager
 from src.services.planning_service import PracticePlanningService
 from src.services.report_pipeline import AzureOpenAIReportSummaryAssistant
@@ -189,9 +201,25 @@ ROLE_THERAPIST = "therapist"
 ROLE_PARENT = "parent"
 ROLE_ADMIN = "admin"
 ROLE_PENDING_THERAPIST = "pending_therapist"
+ROLE_LEARNER = "learner"
+ROLE_KID = "kid"
+ROLE_STUDENT = "student"
 UNSAFE_HTTP_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+PATHFINDER_LEARN_TEACHER_CLASS_IDS_ENV = "PATHFINDER_LEARN_TEACHER_CLASS_IDS"
+PATHFINDER_LEARN_LEARNER_STUDENT_IDS_ENV = "PATHFINDER_LEARN_LEARNER_STUDENT_IDS"
+PATHFINDER_LEARN_ADMIN_TENANT_IDS_ENV = "PATHFINDER_LEARN_ADMIN_TENANT_IDS"
+PATHFINDER_LEARN_CLASS_IDS = {
+    "class-jss1-a",
+    "class-jss2-a",
+    "class-jss3-a",
+    "class-ss1-a",
+    "class-ss2-a",
+    "class-ss3-a",
+}
+LEARNING_LEARNER_ROLES = {ROLE_PARENT, ROLE_LEARNER, ROLE_KID, ROLE_STUDENT}
 _RATE_LIMIT_STATE: dict[tuple[str, str], list[float]] = defaultdict(list)
 _RATE_LIMIT_LOCK = threading.Lock()
+_LEARNING_TEACHER_SCOPE_EMPTY_WARNED: set[tuple[str, str]] = set()
 
 
 def _normalize_origin(value: str) -> str:
@@ -218,6 +246,8 @@ def _trusted_origins() -> set[str]:
 
 def _is_state_changing_request() -> bool:
     return request.method.upper() in UNSAFE_HTTP_METHODS
+
+
 def _is_local_dev_auth_enabled() -> bool:
     """Resolve LOCAL_DEV_AUTH dynamically so tests and shells cannot leak stale import-time state."""
     return str(os.environ.get("LOCAL_DEV_AUTH", str(config["local_dev_auth"]))).strip().lower() == "true"
@@ -310,6 +340,15 @@ def initialize_runtime_services() -> None:
         child_memory_service=child_memory_service,
         institutional_memory_service=institutional_memory_service,
         planner=insights_planner,
+        tool_call_budget=int(
+            os.environ.get("INSIGHTS_TOOL_CALL_BUDGET", "4") or "4"
+        ),
+        answer_cache_ttl_seconds=float(
+            os.environ.get("INSIGHTS_ANSWER_CACHE_TTL_SECONDS", "300") or "300"
+        ),
+        answer_cache_max_entries=int(
+            os.environ.get("INSIGHTS_ANSWER_CACHE_MAX_ENTRIES", "256") or "256"
+        ),
     )
     planner_startup_readiness = planning_service.get_readiness(force_refresh=True)
     if not planner_startup_readiness.get("ready"):
@@ -317,6 +356,17 @@ def initialize_runtime_services() -> None:
 
 
 initialize_runtime_services()
+learning_repository = make_learning_repository(storage_service=storage_service)
+learning_api = register_learning_api(app, api=LearningApi(repository=learning_repository))
+# Late-bind the learning API into the insights service so the planner can
+# call Pathfinder Learn read-only tools (mastery snapshot, student profile,
+# pending approvals).
+if insights_service is not None:
+    insights_service.learning_api = learning_api
+
+voice_agent_action_service: VoiceAgentActionService = VoiceAgentActionService(
+    learning_api=learning_api
+)
 
 
 def _refresh_static_folder() -> str:
@@ -402,9 +452,7 @@ def _extract_exercise_telemetry_properties(
     return {
         "scenario_id": scenario_id,
         "session_id": session_id,
-        "exercise_type": _normalize_telemetry_value(
-            metadata.get("type") or metadata.get("exercise_type")
-        ),
+        "exercise_type": _normalize_telemetry_value(metadata.get("type") or metadata.get("exercise_type")),
         "difficulty": _normalize_telemetry_value(metadata.get("difficulty")),
         "is_custom": bool(context.get("is_custom")),
     }
@@ -556,7 +604,7 @@ def _normalize_identity_provider(provider: Any) -> str:
 
 def _resolve_local_dev_role() -> str:
     role = _normalize_context_value(os.environ.get("LOCAL_DEV_USER_ROLE")).lower()
-    if role in {ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN}:
+    if role in {ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN, ROLE_LEARNER, ROLE_KID, ROLE_STUDENT}:
         return role
 
     if role:
@@ -606,6 +654,8 @@ def _get_authenticated_user_from_headers(headers: Mapping[str, Any]) -> Optional
         role = _resolve_local_dev_role()
         user = storage_service.get_or_create_user(user_id, email, name, provider)
         if user.get("role") != role:
+            if role in LEARNING_LEARNER_ROLES - {ROLE_PARENT}:
+                return {**user, "role": role}
             updated_user = storage_service.update_user_role(user_id, role)
             if updated_user is not None:
                 return updated_user
@@ -862,6 +912,259 @@ def _require_child_access(
     return user, None
 
 
+def _csv_set(value: Optional[str]) -> set[str]:
+    return {part.strip() for part in str(value or "").split(",") if part.strip()}
+
+
+def _learning_payload() -> Dict[str, Any]:
+    if request.method == "GET":
+        return {key: value for key, value in request.args.items()}
+    if request.form:
+        return {key: value for key, value in request.form.items()}
+    if request.is_json:
+        payload = request.get_json(silent=True) or {}
+        return payload if isinstance(payload, dict) else {}
+    return {}
+
+
+def _learning_student_id_from_path() -> Optional[str]:
+    prefix = "/api/learning/students/"
+    if not request.path.startswith(prefix):
+        return None
+    return request.path[len(prefix):].split("/", 1)[0] or None
+
+
+def _learning_plan_id_from_path() -> Optional[str]:
+    prefix = "/api/learning/approvals/"
+    if not request.path.startswith(prefix) or request.path == "/api/learning/approvals/pending":
+        return None
+    return request.path[len(prefix):].split("/", 1)[0] or None
+
+
+def _learning_plan_class_id(plan_id: Optional[str]) -> Optional[str]:
+    if not plan_id:
+        return None
+    pending_plans = getattr(learning_api, "_pending_plans", {})
+    record = pending_plans.get(plan_id) if isinstance(pending_plans, dict) else None
+    if not record:
+        return None
+    class_id = str(record.get("class_id") or "").strip()
+    return class_id or None
+
+
+def _learning_diagnostic_session(payload: Mapping[str, Any]) -> Any:
+    session_id = str(payload.get("session_id") or "").strip()
+    if not session_id:
+        return None
+    sessions = getattr(learning_api, "_sessions", {})
+    return sessions.get(session_id) if isinstance(sessions, dict) else None
+
+
+def _learning_diagnostic_session_student_id(payload: Mapping[str, Any]) -> Optional[str]:
+    state = _learning_diagnostic_session(payload)
+    student_id = str(getattr(state, "student_id", "") or "").strip() if state else ""
+    return student_id or None
+
+
+def _learning_diagnostic_session_class_id(payload: Mapping[str, Any]) -> Optional[str]:
+    state = _learning_diagnostic_session(payload)
+    class_id = str(getattr(state, "class_id", "") or "").strip() if state else ""
+    return class_id or None
+
+
+def _learning_student_class_id(student_id: Optional[str], tenant_id: str) -> Optional[str]:
+    if not student_id:
+        return None
+    student_classes = getattr(learning_api, "_student_classes", {})
+    if isinstance(student_classes, dict):
+        class_id = student_classes.get((tenant_id, student_id))
+        if class_id:
+            return str(class_id)
+
+    if student_id == PILOT_STUDENT_ID or student_id.startswith("student-"):
+        return PILOT_CLASS_ID
+
+    marker = "-student-"
+    if marker in student_id:
+        return student_id.split(marker, 1)[0]
+    return None
+
+
+def _learning_teacher_class_ids(user: Mapping[str, Any]) -> set[str]:
+    if str(user.get("role") or "") == ROLE_ADMIN:
+        return set()
+    configured = _csv_set(os.environ.get(PATHFINDER_LEARN_TEACHER_CLASS_IDS_ENV))
+    if configured:
+        return configured
+
+    tenant_id = str(_learning_payload().get("tenant_id") or PILOT_TENANT_ID)
+    user_id = str(user.get("id") or "").strip()
+    if not user_id:
+        return set()
+    try:
+        class_ids = learning_repository.list_class_ids_for_teacher(tenant_id, user_id)
+    except Exception:
+        logger.exception("Learning teacher-scope lookup failed for user %s", user_id)
+        return set()
+    if not class_ids:
+        warning_key = (tenant_id, user_id)
+        if warning_key not in _LEARNING_TEACHER_SCOPE_EMPTY_WARNED:
+            _LEARNING_TEACHER_SCOPE_EMPTY_WARNED.add(warning_key)
+            logger.warning("Learning teacher %s has no persisted classes for tenant %s", user_id, tenant_id)
+    return {str(class_id) for class_id in class_ids if str(class_id).strip()}
+
+
+def _learning_admin_tenant_ids(user: Mapping[str, Any]) -> set[str]:
+    configured = _csv_set(os.environ.get(PATHFINDER_LEARN_ADMIN_TENANT_IDS_ENV))
+    if configured:
+        return configured
+
+    tenant_id = str(user.get("tenant_id") or user.get("current_tenant_id") or "").strip()
+    if tenant_id:
+        return {tenant_id}
+
+    user_id = str(user.get("id") or "").strip()
+    if user_id:
+        try:
+            persisted_user = storage_service.get_user(user_id)
+        except Exception:
+            logger.exception("Learning admin tenant lookup failed for user %s", user_id)
+            persisted_user = None
+        if isinstance(persisted_user, Mapping):
+            tenant_id = str(
+                persisted_user.get("tenant_id") or persisted_user.get("current_tenant_id") or ""
+            ).strip()
+            if tenant_id:
+                return {tenant_id}
+
+    return {PILOT_TENANT_ID}
+
+
+def _learning_student_ids_for_user(user: Mapping[str, Any]) -> set[str]:
+    configured = _csv_set(os.environ.get(PATHFINDER_LEARN_LEARNER_STUDENT_IDS_ENV))
+    if configured:
+        return configured
+    try:
+        children = storage_service.list_children_for_user(str(user.get("id") or ""))
+    except Exception:
+        logger.exception("Learning learner-scope lookup failed for user %s", user.get("id"))
+        children = []
+    return {str(child.get("id") or "") for child in children if child.get("id")}
+
+
+def _learning_scope_from_request(payload: Mapping[str, Any]) -> tuple[str, Optional[str]]:
+    tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+    class_id = str(payload.get("class_id") or "").strip() or None
+    plan_class_id = _learning_plan_class_id(_learning_plan_id_from_path())
+    session_class_id = _learning_diagnostic_session_class_id(payload)
+    student_class_id = _learning_student_class_id(_learning_student_id_from_path(), tenant_id)
+    return tenant_id, class_id or plan_class_id or session_class_id or student_class_id
+
+
+def _bind_learning_storage_scope(tenant_id: str, class_id: Optional[str]) -> None:
+    set_learning_scope = getattr(storage_service, "set_learning_scope", None)
+    if callable(set_learning_scope):
+        set_learning_scope(tenant_id, class_id)
+
+
+def _learning_class_guard(user: Mapping[str, Any], class_id: Optional[str]) -> Optional[Tuple[Any, int]]:
+    if str(user.get("role") or "") == ROLE_ADMIN or not class_id:
+        return None
+    if class_id not in _learning_teacher_class_ids(user):
+        return jsonify({"error": "Class access required"}), HTTP_FORBIDDEN
+    return None
+
+
+def _learning_student_guard(user: Mapping[str, Any], student_id: str) -> Optional[Tuple[Any, int]]:
+    role = str(user.get("role") or "")
+    if role == ROLE_ADMIN:
+        return None
+    tenant_id = str(_learning_payload().get("tenant_id") or PILOT_TENANT_ID)
+    if role == ROLE_THERAPIST:
+        return _learning_class_guard(user, _learning_student_class_id(student_id, tenant_id))
+    if role in LEARNING_LEARNER_ROLES and student_id in _learning_student_ids_for_user(user):
+        return None
+    return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
+
+
+def _learning_admin_endpoint(path: str, method: str) -> bool:
+    return (
+        path in {"/api/learning/audit", "/api/learning/kpis", "/api/learning/observability/config", "/api/learning/metrics"}
+        or (path == "/api/learning/skills" and method == "POST")
+        or (path.startswith("/api/learning/skills/") and method == "POST")
+    )
+
+
+def _learning_teacher_endpoint(path: str) -> bool:
+    return (
+        path == "/api/learning/class/mastery"
+        or path.startswith("/api/learning/approvals")
+        or path == "/api/learning/intent"
+        or path.endswith("/override") and path.startswith("/api/learning/students/")
+        or path == "/api/learning/skills"
+        or path.startswith("/api/learning/skills/")
+    )
+
+
+@app.before_request
+def _enforce_learning_api_policy() -> Optional[Tuple[Any, int]]:
+    path = str(request.path or "")
+    if not path.startswith("/api/learning/"):
+        return None
+    if path in {"/api/learning/lti/login", "/api/learning/lti/launch"}:
+        return None
+
+    payload = _learning_payload()
+    tenant_id, class_id = _learning_scope_from_request(payload)
+    _bind_learning_storage_scope(tenant_id, class_id)
+
+    if _learning_admin_endpoint(path, request.method):
+        user, guard_response = _require_role(ROLE_ADMIN)
+        if guard_response is not None or user is None:
+            return guard_response
+        admin_tenant_ids = _learning_admin_tenant_ids(user)
+        if admin_tenant_ids and tenant_id not in admin_tenant_ids:
+            _bind_learning_storage_scope(sorted(admin_tenant_ids)[0], class_id)
+            return jsonify({"error": "Tenant access required"}), HTTP_FORBIDDEN
+        _bind_learning_storage_scope(tenant_id, class_id)
+        return None
+
+    student_id = _learning_student_id_from_path()
+    if student_id and request.method == "GET":
+        user, guard_response = _require_authenticated()
+        if guard_response is not None or user is None:
+            return guard_response
+        return _learning_student_guard(user, student_id)
+
+    if _learning_teacher_endpoint(path):
+        user, guard_response = _require_role(ROLE_THERAPIST, ROLE_ADMIN)
+        if guard_response is not None or user is None:
+            return guard_response
+        return _learning_class_guard(user, class_id)
+
+    user, guard_response = _require_authenticated()
+    if guard_response is not None or user is None:
+        return guard_response
+
+    role = str(user.get("role") or "")
+    if role == ROLE_PENDING_THERAPIST:
+        return jsonify({"error": THERAPIST_ROLE_REQUIRED}), HTTP_FORBIDDEN
+    if role in {ROLE_THERAPIST, ROLE_ADMIN}:
+        return _learning_class_guard(user, class_id)
+    if role in LEARNING_LEARNER_ROLES:
+        payload_student_id = str(payload.get("student_id") or payload.get("actor_id") or "").strip()
+        session_student_id = _learning_diagnostic_session_student_id(payload)
+        owned_student_ids = _learning_student_ids_for_user(user)
+        if path in {"/api/learning/diagnostic/start", "/api/learning/voice/frame"} and not payload_student_id:
+            return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
+        if path == "/api/learning/diagnostic/answer" and session_student_id and session_student_id not in owned_student_ids:
+            return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
+        if payload_student_id and payload_student_id not in owned_student_ids:
+            return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
+        return None
+    return jsonify({"error": THERAPIST_ROLE_REQUIRED}), HTTP_FORBIDDEN
+
+
 def _insights_rail_enabled(user: Optional[Dict[str, Any]]) -> bool:
     """Return whether the Phase 4 Insights Agent UI is enabled for ``user``.
 
@@ -891,6 +1194,37 @@ def _insights_voice_mode_for(user: Optional[Dict[str, Any]]) -> str:
     if mode == "full_duplex":
         return mode
     return "off"
+
+
+def _voice_agent_fullscreen_enabled(user: Optional[Dict[str, Any]]) -> bool:
+    """Whether the fullscreen voice-agent overlay entry point is shown.
+
+    Gated by VOICE_AGENT_FULLSCREEN_ENABLED (default off) and requires a
+    non-off insights voice mode for the calling user so we never expose a
+    launcher that immediately fails to connect.
+    """
+    if user is None:
+        return False
+    if _insights_voice_mode_for(user) == "off":
+        return False
+    raw = os.getenv("VOICE_AGENT_FULLSCREEN_ENABLED", "false")
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _voice_agent_dynamic_ui_enabled(user: Optional[Dict[str, Any]]) -> bool:
+    """Whether the voice agent may render dynamic UI specs in the overlay."""
+    if not _voice_agent_fullscreen_enabled(user):
+        return False
+    raw = os.getenv("VOICE_AGENT_DYNAMIC_UI_ENABLED", "false")
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _voice_agent_actions_enabled(user: Optional[Dict[str, Any]]) -> bool:
+    """Whether the voice agent may propose & execute mutating actions."""
+    if not _voice_agent_dynamic_ui_enabled(user):
+        return False
+    raw = os.getenv("VOICE_AGENT_ACTIONS_ENABLED", "false")
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _log_audit_event(
@@ -1079,28 +1413,23 @@ def get_config():
             "ws_endpoint": WEBSOCKET_ENDPOINT,
             "storage_ready": True,
             "telemetry_enabled": telemetry_service.enabled,
-            "appinsights_connection_string": config.get(
-                "applicationinsights_connection_string", ""
-            ),
+            "appinsights_connection_string": config.get("applicationinsights_connection_string", ""),
             "image_base_path": "/api/images",
             "planner": planning_service.get_readiness(),
-            "insights_rail_enabled": _insights_rail_enabled(
-                cast(Dict[str, Any], user) if user else None
-            ),
-            "insights_voice_mode": _insights_voice_mode_for(
-                cast(Dict[str, Any], user) if user else None
-            ),
+            "insights_rail_enabled": _insights_rail_enabled(cast(Dict[str, Any], user) if user else None),
+            "insights_voice_mode": _insights_voice_mode_for(cast(Dict[str, Any], user) if user else None),
+            "voice_agent_fullscreen_enabled": _voice_agent_fullscreen_enabled(cast(Dict[str, Any], user) if user else None),
+            "voice_agent_dynamic_ui_enabled": _voice_agent_dynamic_ui_enabled(cast(Dict[str, Any], user) if user else None),
+            "voice_agent_actions_enabled": _voice_agent_actions_enabled(cast(Dict[str, Any], user) if user else None),
             "onboarding": {
                 # Kill switch for the v2 onboarding/guidance system
                 # (docs/onboarding/onboarding-plan-v2.md). Setting
                 # ONBOARDING_TOURS_ENABLED=false via azd env disables
                 # all tours without a release.
-                "tours_enabled": os.environ.get(
-                    "ONBOARDING_TOURS_ENABLED", "true"
-                ).strip().lower() not in ("false", "0", "no"),
-                "forced_reset": os.environ.get(
-                    "ONBOARDING_FORCED_RESET", "false"
-                ).strip().lower() in ("true", "1", "yes"),
+                "tours_enabled": os.environ.get("ONBOARDING_TOURS_ENABLED", "true").strip().lower()
+                not in ("false", "0", "no"),
+                "forced_reset": os.environ.get("ONBOARDING_FORCED_RESET", "false").strip().lower()
+                in ("true", "1", "yes"),
             },
         }
     )
@@ -1621,7 +1950,9 @@ def revoke_child_invitation(invitation_id: str):
         return jsonify({"error": INVITATION_NOT_FOUND}), HTTP_NOT_FOUND
 
     is_admin = str(cast(Dict[str, Any], user).get("role") or "") == ROLE_ADMIN
-    if not is_admin and str(existing_invitation.get("invited_by_user_id") or "") != str(cast(Dict[str, Any], user).get("id") or ""):
+    if not is_admin and str(existing_invitation.get("invited_by_user_id") or "") != str(
+        cast(Dict[str, Any], user).get("id") or ""
+    ):
         return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
 
     invitation = storage_service.revoke_child_invitation(invitation_id)
@@ -1649,7 +1980,9 @@ def resend_child_invitation(invitation_id: str):
         return jsonify({"error": INVITATION_NOT_FOUND}), HTTP_NOT_FOUND
 
     is_admin = str(cast(Dict[str, Any], user).get("role") or "") == ROLE_ADMIN
-    if not is_admin and str(existing_invitation.get("invited_by_user_id") or "") != str(cast(Dict[str, Any], user).get("id") or ""):
+    if not is_admin and str(existing_invitation.get("invited_by_user_id") or "") != str(
+        cast(Dict[str, Any], user).get("id") or ""
+    ):
         return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
 
     invitation = storage_service.resend_child_invitation(invitation_id)
@@ -1658,7 +1991,9 @@ def resend_child_invitation(invitation_id: str):
 
     email_delivery = _send_invitation_email(
         invitation,
-        inviter_name=str(existing_invitation.get("invited_by_name") or cast(Dict[str, Any], user).get("name") or "Your therapist"),
+        inviter_name=str(
+            existing_invitation.get("invited_by_name") or cast(Dict[str, Any], user).get("name") or "Your therapist"
+        ),
     )
     _persist_invitation_email_delivery(str(invitation.get("id") or ""), email_delivery)
 
@@ -1983,9 +2318,7 @@ def create_agent():
 
     try:
         runtime_personalization = (
-            child_memory_service.build_live_session_personalization(child_id)
-            if child_id
-            else None
+            child_memory_service.build_live_session_personalization(child_id) if child_id else None
         )
         agent_id = agent_manager.create_agent(
             scenario_id,
@@ -2119,7 +2452,9 @@ def analyze_conversation():
                 measurements={
                     "duration_ms": synthesis_duration_ms,
                     "pending_proposals": float(len(cast(List[Dict[str, Any]], memory_result.get("proposals") or []))),
-                    "auto_applied_items": float(len(cast(List[Dict[str, Any]], memory_result.get("auto_applied_items") or []))),
+                    "auto_applied_items": float(
+                        len(cast(List[Dict[str, Any]], memory_result.get("auto_applied_items") or []))
+                    ),
                 },
             )
             if synthesis_duration_ms > 750:
@@ -2277,9 +2612,9 @@ def synthesize_speech():
         synthesis_ssml = ssml
     elif phoneme:
         synthesis_ssml = (
-            "<speak version=\"1.0\" xmlns=\"http://www.w3.org/2001/10/synthesis\" xml:lang=\"en-GB\">"
-            f"<voice name=\"{_escape_xml(voice_name)}\">"
-            f"<phoneme alphabet=\"{_escape_xml(alphabet)}\" ph=\"{_escape_xml(phoneme)}\">"
+            '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-GB">'
+            f'<voice name="{_escape_xml(voice_name)}">'
+            f'<phoneme alphabet="{_escape_xml(alphabet)}" ph="{_escape_xml(phoneme)}">'
             f"{_escape_xml(fallback_text)}"
             "</phoneme>"
             "</voice>"
@@ -2572,12 +2907,97 @@ def get_insights_conversation(conversation_id: str):
     if guard_response is not None:
         return guard_response
     user_id = str(cast(Dict[str, Any], user).get("id"))
-    payload = insights_service.get_conversation(
-        user_id=user_id, conversation_id=conversation_id
-    )
+    payload = insights_service.get_conversation(user_id=user_id, conversation_id=conversation_id)
     if payload is None:
         return jsonify({"error": "not found"}), 404
     return jsonify(payload)
+
+
+# ---------------------------------------------------------------------------
+# Voice-agent action API
+# ---------------------------------------------------------------------------
+#
+# These endpoints power the safe action loop for the fullscreen voice agent.
+# The model only proposes actions (via the planner contract); the user must
+# explicitly confirm; the server re-validates RBAC and dispatches through
+# the existing LearningApi. All routes require VOICE_AGENT_ACTIONS_ENABLED.
+
+
+def _require_voice_actions_enabled(
+    user: Dict[str, Any],
+) -> Optional[Tuple[Any, int]]:
+    if not _voice_agent_actions_enabled(user):
+        return jsonify({"error": "voice_agent_actions_disabled"}), 403
+    return None
+
+
+@app.route("/api/insights/voice-actions/suggest", methods=["POST"])
+def voice_actions_suggest():
+    user, guard_response = _require_therapist_user()
+    if guard_response is not None:
+        return guard_response
+    user_dict = cast(Dict[str, Any], user)
+    guard = _require_voice_actions_enabled(user_dict)
+    if guard is not None:
+        return guard
+    payload = request.get_json(silent=True) or {}
+    suggestion = payload.get("suggestion") or payload
+    try:
+        record = voice_agent_action_service.suggest(
+            user_id=str(user_dict.get("id")), suggestion=suggestion
+        )
+    except VoiceAgentActionError as exc:
+        return jsonify({"error": str(exc)}), exc.status_code
+    return jsonify(record)
+
+
+@app.route("/api/insights/voice-actions/<suggestion_id>/confirm", methods=["POST"])
+def voice_actions_confirm(suggestion_id: str):
+    user, guard_response = _require_therapist_user()
+    if guard_response is not None:
+        return guard_response
+    user_dict = cast(Dict[str, Any], user)
+    guard = _require_voice_actions_enabled(user_dict)
+    if guard is not None:
+        return guard
+    payload = request.get_json(silent=True) or {}
+    method = str(payload.get("method") or "click")
+    try:
+        record = voice_agent_action_service.confirm(
+            user_id=str(user_dict.get("id")),
+            suggestion_id=suggestion_id,
+            method=method,
+        )
+    except VoiceAgentActionError as exc:
+        return jsonify({"error": str(exc)}), exc.status_code
+    return jsonify(record)
+
+
+@app.route("/api/insights/voice-actions/<suggestion_id>/execute", methods=["POST"])
+def voice_actions_execute(suggestion_id: str):
+    user, guard_response = _require_therapist_user()
+    if guard_response is not None:
+        return guard_response
+    user_dict = cast(Dict[str, Any], user)
+    guard = _require_voice_actions_enabled(user_dict)
+    if guard is not None:
+        return guard
+    payload = request.get_json(silent=True) or {}
+    idempotency_key = (
+        request.headers.get("Idempotency-Key")
+        or str(payload.get("idempotency_key") or "")
+        or None
+    )
+    try:
+        result = voice_agent_action_service.execute(
+            user_id=str(user_dict.get("id")),
+            user_role=str(user_dict.get("role") or ""),
+            suggestion_id=suggestion_id,
+            idempotency_key=idempotency_key,
+        )
+    except VoiceAgentActionError as exc:
+        return jsonify({"error": str(exc)}), exc.status_code
+    return jsonify(result)
 
 
 # ---------------------------------------------------------------------------

@@ -1,4 +1,5 @@
 """Tests for the listening-eval service + RL Stage 0 reward service."""
+
 from __future__ import annotations
 
 import sqlite3

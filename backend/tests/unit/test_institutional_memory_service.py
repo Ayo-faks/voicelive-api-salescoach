@@ -120,8 +120,12 @@ def test_rebuild_insights_compiles_deidentified_cross_child_patterns(tmp_path: P
     snapshot = service.rebuild_insights("therapist-1")
 
     assert snapshot["insights"]
-    tuning_insight = next(insight for insight in snapshot["insights"] if insight["insight_type"] == "recommendation_tuning")
-    strategy_insight = next(insight for insight in snapshot["insights"] if insight["insight_type"] == "strategy_insight")
+    tuning_insight = next(
+        insight for insight in snapshot["insights"] if insight["insight_type"] == "recommendation_tuning"
+    )
+    strategy_insight = next(
+        insight for insight in snapshot["insights"] if insight["insight_type"] == "strategy_insight"
+    )
 
     assert tuning_insight["target_sound"] == "r"
     assert "two_word_phrase" in tuning_insight["detail"]["recommended_exercise_types"]

@@ -1,4 +1,10 @@
-import { Button, Spinner, Text, makeStyles, mergeClasses } from '@fluentui/react-components'
+import {
+  Button,
+  Spinner,
+  Text,
+  makeStyles,
+  mergeClasses,
+} from '@fluentui/react-components'
 import { APP_RELEASE_LABEL, APP_TITLE } from '../app/branding'
 
 type AuthGateStatus = 'loading' | 'unauthenticated' | 'error'
@@ -197,8 +203,7 @@ const useStyles = makeStyles({
         '0 8px 18px rgba(15,42,58,0.08)',
     },
     ':active': {
-      boxShadow:
-        'inset 0 1px 2px rgba(15,42,58,0.12)',
+      boxShadow: 'inset 0 1px 2px rgba(15,42,58,0.12)',
     },
   },
   buttonContent: {
@@ -240,7 +245,11 @@ export function AuthGateScreen({
       <section className={styles.card}>
         <div className={styles.brandRow}>
           <span className={styles.brandPlatter}>
-            <img src="/wulo-logo.png" alt="Wulo logo" className={styles.brandMark} />
+            <img
+              src="/wulo-logo.png"
+              alt="Wulo logo"
+              className={styles.brandMark}
+            />
           </span>
           <div className={styles.brandLockup}>
             <Text className={styles.brandName}>{APP_TITLE}</Text>
@@ -251,7 +260,9 @@ export function AuthGateScreen({
         {status === 'loading' ? (
           <>
             <Text className={styles.eyebrow}>Welcome back</Text>
-            <Text className={mergeClasses(styles.title, styles.loadingTitle)}>Checking your secure session</Text>
+            <Text className={mergeClasses(styles.title, styles.loadingTitle)}>
+              Checking your secure session
+            </Text>
             <Text className={styles.body}>
               Loading your practice workspace and verifying your sign-in state.
             </Text>
@@ -260,11 +271,21 @@ export function AuthGateScreen({
         ) : status === 'error' ? (
           <>
             <Text className={styles.eyebrow}>Welcome back</Text>
-            <Text className={styles.title}>Your session could not be loaded</Text>
-            <Text className={styles.body}>Retry the session check or sign in again.</Text>
+            <Text className={styles.title}>
+              Your session could not be loaded
+            </Text>
+            <Text className={styles.body}>
+              Retry the session check or sign in again.
+            </Text>
             {error ? <Text className={styles.errorText}>{error}</Text> : null}
             <div className={styles.actionStack}>
-              <Button className={mergeClasses(styles.buttonBase, styles.primaryButton)} onClick={onRetry}>
+              <Button
+                className={mergeClasses(
+                  styles.buttonBase,
+                  styles.primaryButton
+                )}
+                onClick={onRetry}
+              >
                 Retry session
               </Button>
             </div>
@@ -277,21 +298,40 @@ export function AuthGateScreen({
             {isLocalAuthOrigin() ? (
               <div className={styles.actionStack}>
                 <Text className={styles.body}>
-                  Local development is running without Azure Easy Auth. Restart the backend with local auth enabled, then recheck the session.
+                  Local development is running without Azure Easy Auth. Restart
+                  the backend with local auth enabled, then recheck the session.
                 </Text>
-                <Button className={mergeClasses(styles.buttonBase, styles.primaryButton)} onClick={onRetry}>
+                <Button
+                  className={mergeClasses(
+                    styles.buttonBase,
+                    styles.primaryButton
+                  )}
+                  onClick={onRetry}
+                >
                   Recheck session
                 </Button>
               </div>
             ) : (
               <div className={styles.actionStack}>
-                <Button className={mergeClasses(styles.buttonBase, styles.secondaryButton)} onClick={onGoogleSignIn}>
+                <Button
+                  className={mergeClasses(
+                    styles.buttonBase,
+                    styles.secondaryButton
+                  )}
+                  onClick={onGoogleSignIn}
+                >
                   <span className={styles.buttonContent}>
                     <GoogleIcon />
                     <span>Continue with Google</span>
                   </span>
                 </Button>
-                <Button className={mergeClasses(styles.buttonBase, styles.primaryButton)} onClick={onMicrosoftSignIn}>
+                <Button
+                  className={mergeClasses(
+                    styles.buttonBase,
+                    styles.primaryButton
+                  )}
+                  onClick={onMicrosoftSignIn}
+                >
                   <span className={styles.buttonContent}>
                     <MicrosoftIcon />
                     <span>Continue with Microsoft</span>

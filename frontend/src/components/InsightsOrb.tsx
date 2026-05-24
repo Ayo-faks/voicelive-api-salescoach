@@ -4,7 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useEffect, useMemo, useState } from 'react'
-import { makeStyles, mergeClasses, Text, tokens } from '@fluentui/react-components'
+import {
+  makeStyles,
+  mergeClasses,
+  Text,
+  tokens,
+} from '@fluentui/react-components'
 import type { InsightsVoiceState } from '../types'
 
 const STATE_LABELS: Record<InsightsVoiceState, string> = {
@@ -50,7 +55,8 @@ const useStyles = makeStyles({
       'radial-gradient(circle at 35% 30%, var(--chart-primary-light, #20a39e), var(--chart-primary, #0d8a84) 55%, var(--chart-primary-dark, #06625e) 100%)',
     boxShadow: '0 6px 20px rgba(13, 138, 132, 0.32)',
     transformOrigin: 'center',
-    transition: 'transform 120ms ease-out, opacity 160ms ease-out, box-shadow 160ms ease-out',
+    transition:
+      'transform 120ms ease-out, opacity 160ms ease-out, box-shadow 160ms ease-out',
     willChange: 'transform',
   },
   orbIdle: {
@@ -229,25 +235,29 @@ export function InsightsOrb({
     state === 'idle'
       ? styles.orbIdle
       : state === 'connecting'
-      ? styles.orbThinking
-      : state === 'listening'
-      ? styles.orbListening
-      : state === 'thinking'
-      ? styles.orbThinking
-      : state === 'speaking'
-      ? styles.orbSpeaking
-      : state === 'interrupted'
-      ? styles.orbInterrupted
-      : styles.orbError
+        ? styles.orbThinking
+        : state === 'listening'
+          ? styles.orbListening
+          : state === 'thinking'
+            ? styles.orbThinking
+            : state === 'speaking'
+              ? styles.orbSpeaking
+              : state === 'interrupted'
+                ? styles.orbInterrupted
+                : styles.orbError
 
   const showHalo =
-    state === 'connecting' || state === 'listening' || state === 'speaking' || state === 'thinking'
-  const haloAnimates = (state === 'connecting' || state === 'thinking') && !effectiveReducedMotion
+    state === 'connecting' ||
+    state === 'listening' ||
+    state === 'speaking' ||
+    state === 'thinking'
+  const haloAnimates =
+    (state === 'connecting' || state === 'thinking') && !effectiveReducedMotion
 
   const haloClassName = mergeClasses(
     styles.halo,
     showHalo ? styles.haloActive : undefined,
-    haloAnimates ? styles.haloThinking : undefined,
+    haloAnimates ? styles.haloThinking : undefined
   )
 
   const orbClassName = mergeClasses(styles.orb, orbStateClass)
@@ -288,7 +298,9 @@ export function InsightsOrb({
       <Text
         className={mergeClasses(
           styles.transcript,
-          transcript && transcript.trim().length > 0 ? undefined : styles.transcriptEmpty,
+          transcript && transcript.trim().length > 0
+            ? undefined
+            : styles.transcriptEmpty
         )}
         aria-live="polite"
         data-testid="insights-orb-transcript"
@@ -296,13 +308,20 @@ export function InsightsOrb({
         {transcript && transcript.trim().length > 0
           ? transcript
           : state === 'connecting'
-          ? 'Connecting...'
-          : state === 'listening'
-          ? 'Listening…'
-          : 'Transcript will appear here.'}
+            ? 'Connecting...'
+            : state === 'listening'
+              ? 'Listening…'
+              : 'Transcript will appear here.'}
       </Text>
       {showInterruptButton || showEndSessionButton ? (
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: '8px',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+          }}
+        >
           {showInterruptButton ? (
             <button
               type="button"
@@ -342,7 +361,10 @@ function clampLevel(value: number | undefined): number {
 
 function usePrefersReducedMotion(): boolean {
   const [prefersReduced, setPrefersReduced] = useState<boolean>(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    if (
+      typeof window === 'undefined' ||
+      typeof window.matchMedia !== 'function'
+    ) {
       return false
     }
     try {
@@ -353,7 +375,10 @@ function usePrefersReducedMotion(): boolean {
   })
 
   useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    if (
+      typeof window === 'undefined' ||
+      typeof window.matchMedia !== 'function'
+    ) {
       return
     }
     let mql: MediaQueryList
@@ -362,7 +387,8 @@ function usePrefersReducedMotion(): boolean {
     } catch {
       return
     }
-    const handler = (event: MediaQueryListEvent) => setPrefersReduced(event.matches)
+    const handler = (event: MediaQueryListEvent) =>
+      setPrefersReduced(event.matches)
     if (typeof mql.addEventListener === 'function') {
       mql.addEventListener('change', handler)
       return () => mql.removeEventListener('change', handler)

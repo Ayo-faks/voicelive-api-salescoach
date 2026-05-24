@@ -1,5 +1,11 @@
 import { useState, useCallback } from 'react'
-import { Button, Input, Text, makeStyles, tokens } from '@fluentui/react-components'
+import {
+  Button,
+  Input,
+  Text,
+  makeStyles,
+  tokens,
+} from '@fluentui/react-components'
 import { api } from '../services/api'
 import type { AuthSession } from '../services/api'
 
@@ -57,7 +63,10 @@ interface InviteCodeScreenProps {
   onSignOut: () => void
 }
 
-export function InviteCodeScreen({ onSuccess, onSignOut }: InviteCodeScreenProps) {
+export function InviteCodeScreen({
+  onSuccess,
+  onSignOut,
+}: InviteCodeScreenProps) {
   const styles = useStyles()
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -82,15 +91,17 @@ export function InviteCodeScreen({ onSuccess, onSignOut }: InviteCodeScreenProps
       <div className={styles.card}>
         <Text className={styles.title}>Welcome to Wulo</Text>
         <Text className={styles.description}>
-          To get started as a therapist, please enter the invite code you received.
-          If you don&apos;t have one, contact your administrator.
+          To get started as a therapist, please enter the invite code you
+          received. If you don&apos;t have one, contact your administrator.
         </Text>
         <div className={styles.inputRow}>
           <Input
             placeholder="Enter invite code"
             value={code}
             onChange={(_, data) => setCode(data.value)}
-            onKeyDown={e => { if (e.key === 'Enter') void handleSubmit() }}
+            onKeyDown={e => {
+              if (e.key === 'Enter') void handleSubmit()
+            }}
             disabled={loading}
             style={{ flex: 1 }}
           />

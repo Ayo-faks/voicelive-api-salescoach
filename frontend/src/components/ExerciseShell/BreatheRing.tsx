@@ -13,11 +13,17 @@ interface BreatheRingProps {
   size?: number
 }
 
-export const BreatheRing: FC<BreatheRingProps> = ({ label, reducedMotion, size = 72 }) => {
+export const BreatheRing: FC<BreatheRingProps> = ({
+  label,
+  reducedMotion,
+  size = 72,
+}) => {
   const stroke = 'var(--color-primary-500, #6b8afd)'
   const ringStyle = reducedMotion
     ? undefined
-    : ({ animation: 'exercise-shell-breathe 3.2s ease-in-out infinite' } as const)
+    : ({
+        animation: 'exercise-shell-breathe 3.2s ease-in-out infinite',
+      } as const)
 
   return (
     <div
@@ -42,8 +48,24 @@ export const BreatheRing: FC<BreatheRingProps> = ({ label, reducedMotion, size =
         aria-hidden="true"
         style={{ display: 'block', transformOrigin: 'center', ...ringStyle }}
       >
-        <circle cx="36" cy="36" r="28" fill="none" stroke={stroke} strokeWidth="2" opacity="0.35" />
-        <circle cx="36" cy="36" r="20" fill="none" stroke={stroke} strokeWidth="2" opacity="0.7" />
+        <circle
+          cx="36"
+          cy="36"
+          r="28"
+          fill="none"
+          stroke={stroke}
+          strokeWidth="2"
+          opacity="0.35"
+        />
+        <circle
+          cx="36"
+          cy="36"
+          r="20"
+          fill="none"
+          stroke={stroke}
+          strokeWidth="2"
+          opacity="0.7"
+        />
       </svg>
       <style>{`@keyframes exercise-shell-breathe { 0%,100% { transform: scale(0.92); opacity: 0.7 } 50% { transform: scale(1.06); opacity: 1 } }`}</style>
       <span>{label}</span>

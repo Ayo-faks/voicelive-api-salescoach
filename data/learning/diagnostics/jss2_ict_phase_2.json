@@ -1,0 +1,36 @@
+{
+  "diagnostic_id": "jss2-ict-phase-2",
+  "subject": "ict",
+  "tenant_id": "tenant-phase-2",
+  "title": "JSS2 ICT and Digital Literacy Diagnostic",
+  "lang": "en-NG",
+  "provenance": [
+    {
+      "source": "pathfinder_phase_2_fixture",
+      "source_id": "jss2_ict_diagnostic_phase_2",
+      "rule_id": "contract_phase_2_item_bank",
+      "confidence": 1.0,
+      "evidence_count": 12
+    }
+  ],
+  "skills": [
+    { "skill_id": "computer-basics", "standard_id": "ng-jss2-ict", "name": "Computer basics", "description": "Identify hardware, software, and core input or output devices." },
+    { "skill_id": "data-handling", "standard_id": "ng-jss2-ict", "name": "Data handling", "description": "Read tables, charts, and basic spreadsheet formulas." },
+    { "skill_id": "online-safety", "standard_id": "ng-jss2-ict", "name": "Online safety", "description": "Apply password, privacy, and safer-use practices online." },
+    { "skill_id": "algorithms", "standard_id": "ng-jss2-ict", "name": "Algorithms", "description": "Order steps to solve a problem and trace simple logic." }
+  ],
+  "items": [
+    { "item_id": "jss2-ict-basics-001", "skill_id": "computer-basics", "prompt": "Is a keyboard an input or output device?", "item_type": "short_answer", "difficulty": -1.5, "correct_answer": "input", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "ict_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-ict-safety-001", "skill_id": "online-safety", "prompt": "True or false: a strong password should contain your full name.", "item_type": "short_answer", "difficulty": -1.5, "correct_answer": "false", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "ict_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-ict-data-001", "skill_id": "data-handling", "prompt": "In a spreadsheet, what does the formula =SUM(A1:A3) calculate?", "item_type": "short_answer", "difficulty": -1.0, "correct_answer": "total", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "ict_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-ict-algo-001", "skill_id": "algorithms", "prompt": "What is the next step after 'turn on the laptop' in the order: turn on, log in, open browser? (one word)", "item_type": "short_answer", "difficulty": -1.0, "correct_answer": "log", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "ict_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-ict-basics-002", "skill_id": "computer-basics", "prompt": "Name one example of an operating system.", "item_type": "short_answer", "difficulty": -0.5, "correct_answer": "windows", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "ict_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-ict-safety-002", "skill_id": "online-safety", "prompt": "What kind of message tries to trick you into giving your password? (one word)", "item_type": "short_answer", "difficulty": -0.5, "correct_answer": "phishing", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "ict_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-ict-data-002", "skill_id": "data-handling", "prompt": "If a bar chart shows 8, 5, and 7, what is the highest value?", "item_type": "short_answer", "difficulty": 0.0, "correct_answer": "8", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "ict_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-ict-algo-002", "skill_id": "algorithms", "prompt": "If x = 3 and y = x + 2, what is y?", "item_type": "short_answer", "difficulty": 0.0, "correct_answer": "5", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "ict_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-ict-basics-003", "skill_id": "computer-basics", "prompt": "How many bits are in one byte?", "item_type": "short_answer", "difficulty": 0.5, "correct_answer": "8", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "ict_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-ict-data-003", "skill_id": "data-handling", "prompt": "In a spreadsheet, which cell reference is column B row 4?", "item_type": "short_answer", "difficulty": 0.5, "correct_answer": "B4", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "ict_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-ict-safety-003", "skill_id": "online-safety", "prompt": "True or false: you should accept friend requests from strangers online.", "item_type": "short_answer", "difficulty": 1.0, "correct_answer": "false", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "ict_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-ict-algo-003", "skill_id": "algorithms", "prompt": "A repeated set of instructions in a program is called a ___.", "item_type": "short_answer", "difficulty": 1.5, "correct_answer": "loop", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "ict_round_robin", "confidence": 1.0, "evidence_count": 1 }] }
+  ]
+}

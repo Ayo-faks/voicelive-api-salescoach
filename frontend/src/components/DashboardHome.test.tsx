@@ -54,7 +54,8 @@ describe('DashboardHome', () => {
             target_sound: 't',
             therapist_constraints: {},
             ranking_context: {},
-            rationale: 'Move into short /t/ phrases while retry energy is high.',
+            rationale:
+              'Move into short /t/ phrases while retry energy is high.',
             candidate_count: 3,
             top_recommendation_score: 0.91,
             created_at: '2026-04-06T10:30:00.000Z',
@@ -63,7 +64,8 @@ describe('DashboardHome', () => {
               exercise_id: 'exercise-1',
               exercise_name: 'Short /t/ phrases',
               score: 0.91,
-              rationale: 'Move into short /t/ phrases while retry energy is high.',
+              rationale:
+                'Move into short /t/ phrases while retry energy is high.',
               supporting_memory_item_ids: ['memory-1'],
               supporting_session_ids: ['session-1'],
             },
@@ -88,7 +90,9 @@ describe('DashboardHome', () => {
     expect(screen.getByText('Active memory')).toBeTruthy()
     expect(screen.getByText('Keep /t/ active.')).toBeTruthy()
     expect(screen.getByText('Needs review')).toBeTruthy()
-    expect(screen.getByText('Therapist review is waiting in the progress dashboard.')).toBeTruthy()
+    expect(
+      screen.getByText('Therapist review is waiting in the progress dashboard.')
+    ).toBeTruthy()
     expect(screen.getByText('Suggested next')).toBeTruthy()
     expect(screen.getByText('Short /t/ phrases')).toBeTruthy()
     expect(screen.getByText('Open recommendations →')).toBeTruthy()
@@ -128,10 +132,14 @@ describe('DashboardHome', () => {
         onAddCustomScenario={() => {}}
         onUpdateCustomScenario={() => {}}
         onDeleteCustomScenario={() => {}}
-      />,
+      />
     )
 
     expect(screen.queryByText('Add child')).toBeNull()
-    expect(screen.getByText('Wait for a therapist invitation to link a child profile before you start supervised practice here.')).toBeTruthy()
+    expect(
+      screen.getByText(
+        'Wait for a therapist invitation to link a child profile before you start supervised practice here.'
+      )
+    ).toBeTruthy()
   })
 })

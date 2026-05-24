@@ -93,15 +93,15 @@
   /* --- Typography rungs (home-screen cleanup) ---
      Three explicit rungs used by DashboardHome / ChildHome so inline pixel
      sizes can be removed. Other screens continue to use their own scales. */
-  --font-display-xl-size: 2rem;       /* 32px — hero headline */
-  --font-display-xl-line: 2.25rem;    /* 36px */
+  --font-display-xl-size: 2rem; /* 32px — hero headline */
+  --font-display-xl-line: 2.25rem; /* 36px */
   --font-display-xl-weight: 600;
   --font-display-xl-tracking: -0.02em;
-  --font-display-lg-size: 1.25rem;    /* 20px — section heading */
-  --font-display-lg-line: 1.75rem;    /* 28px */
+  --font-display-lg-size: 1.25rem; /* 20px — section heading */
+  --font-display-lg-line: 1.75rem; /* 28px */
   --font-display-lg-weight: 600;
-  --font-body-15-size: 0.9375rem;     /* 15px — body + hint */
-  --font-body-15-line: 1.375rem;      /* 22px */
+  --font-body-15-size: 0.9375rem; /* 15px — body + hint */
+  --font-body-15-line: 1.375rem; /* 22px */
   --font-body-15-weight: 400;
 
   /* --- Transitions --- */

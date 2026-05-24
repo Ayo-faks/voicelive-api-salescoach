@@ -21,7 +21,7 @@ import { FluentProvider, webLightTheme } from '@fluentui/react-components'
 
 import { OnboardingRuntime } from './OnboardingRuntime'
 import { ONBOARDING_EVENTS } from '../../onboarding/events'
-import { telemetry } from '../../services/telemetry'
+import { resetTelemetryForTests, telemetry } from '../../services/telemetry'
 
 // Stub the Joyride driver to a plain div. We only care about which tour
 // OnboardingRuntime selects, not whether Joyride mounts correctly.
@@ -32,9 +32,7 @@ vi.mock('./TourDriver', () => ({
     tour: { id: string } | null
     onComplete: (id: string) => void
   }) =>
-    tour ? (
-      <div data-testid="tour-driver-stub" data-tour-id={tour.id} />
-    ) : null,
+    tour ? <div data-testid="tour-driver-stub" data-tour-id={tour.id} /> : null,
 }))
 
 vi.mock('./AnnouncementBanner', () => ({
@@ -49,7 +47,8 @@ const apiMock = {
 vi.mock('../../services/api', () => ({
   api: {
     getUiState: () => apiMock.getUiState(),
-    patchUiState: (patch: Record<string, unknown>) => apiMock.patchUiState(patch),
+    patchUiState: (patch: Record<string, unknown>) =>
+      apiMock.patchUiState(patch),
   },
 }))
 
@@ -77,16 +76,20 @@ describe('OnboardingRuntime — role-gated auto-trigger (Phase 3)', () => {
   let trackSpy: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
+    resetTelemetryForTests()
     apiMock.getUiState.mockClear()
     apiMock.getUiState.mockResolvedValue({ tours_seen: [] })
     apiMock.patchUiState.mockClear()
     apiMock.patchUiState.mockImplementation(async patch => patch)
-    trackSpy = vi.spyOn(telemetry, 'trackEvent').mockImplementation(() => undefined)
+    trackSpy = vi
+      .spyOn(telemetry, 'trackEvent')
+      .mockImplementation(() => undefined)
     window.localStorage.clear()
   })
 
   afterEach(() => {
     vi.restoreAllMocks()
+    resetTelemetryForTests()
   })
 
   it('fresh parent on /home sees welcome-parent', async () => {
@@ -130,7 +133,9 @@ describe('OnboardingRuntime — role-gated auto-trigger (Phase 3)', () => {
     // Give the runtime a chance to (fail to) fire anything.
     await new Promise(resolve => setTimeout(resolve, 50))
 
-    expect(container.querySelector('[data-testid="tour-driver-stub"]')).toBeNull()
+    expect(
+      container.querySelector('[data-testid="tour-driver-stub"]')
+    ).toBeNull()
 
     // Telemetry shim is sealed for child persona. `disableForChild` is
     // called once on mount; every onboarding event after that is a no-op.
@@ -162,6 +167,8 @@ describe('OnboardingRuntime — role-gated auto-trigger (Phase 3)', () => {
     )
 
     await new Promise(resolve => setTimeout(resolve, 50))
-    expect(container.querySelector('[data-testid="tour-driver-stub"]')).toBeNull()
+    expect(
+      container.querySelector('[data-testid="tour-driver-stub"]')
+    ).toBeNull()
   })
 })

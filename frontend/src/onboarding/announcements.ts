@@ -7,8 +7,6 @@
  * Announcement banner registry (v2 Phase 2). Populated per-release.
  */
 
-import { t } from './t'
-
 export type AnnouncementSeverity = 'info' | 'success' | 'warning'
 
 export interface Announcement {
@@ -37,10 +35,16 @@ export function listVisibleAnnouncements(args: {
   const now = args.now ?? new Date()
   return ANNOUNCEMENTS.filter(entry => {
     if (args.dismissed.includes(entry.id)) return false
-    if (entry.expiresAt && new Date(entry.expiresAt).getTime() < now.getTime()) {
+    if (
+      entry.expiresAt &&
+      new Date(entry.expiresAt).getTime() < now.getTime()
+    ) {
       return false
     }
-    if (entry.role && !entry.role.includes(args.role as 'therapist' | 'admin' | 'parent')) {
+    if (
+      entry.role &&
+      !entry.role.includes(args.role as 'therapist' | 'admin' | 'parent')
+    ) {
       return false
     }
     return true

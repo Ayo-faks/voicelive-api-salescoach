@@ -7,9 +7,8 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { FluentProvider } from '@fluentui/react-components'
 import { BrowserRouter } from 'react-router-dom'
-import App from './app/App'
+import PathfinderLearnApp from './learning/PathfinderLearnApp'
 import './styles/global.css'
-import { initCookieConsent } from './cookieconsent-config'
 import { wuloTheme } from './theme/wuloTheme'
 
 const rootElement = document.getElementById('root')
@@ -20,12 +19,10 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <FluentProvider theme={wuloTheme}>
-        <App />
-      </FluentProvider>
-    </BrowserRouter>
+    <FluentProvider theme={wuloTheme}>
+      <BrowserRouter>
+        <PathfinderLearnApp />
+      </BrowserRouter>
+    </FluentProvider>
   </React.StrictMode>
 )
-
-initCookieConsent()

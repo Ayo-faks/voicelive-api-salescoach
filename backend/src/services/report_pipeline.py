@@ -28,7 +28,8 @@ class ReportSummaryAssistant(Protocol):
         child: Dict[str, Any],
         included_sessions: Sequence[Dict[str, Any]],
         snapshot: Dict[str, Any],
-    ) -> str: ...
+    ) -> str:
+        raise NotImplementedError
 
 
 @dataclass(frozen=True)
@@ -144,7 +145,9 @@ class SessionSelectionResolver:
         period_end: Optional[str],
         selection_provided: bool = False,
     ) -> List[Dict[str, Any]]:
-        selected_ids = {str(session_id).strip() for session_id in (included_session_ids or []) if str(session_id).strip()}
+        selected_ids = {
+            str(session_id).strip() for session_id in (included_session_ids or []) if str(session_id).strip()
+        }
         start_dt = parse_iso(period_start)
         end_dt = parse_iso(period_end)
         if start_dt is not None and end_dt is not None and start_dt > end_dt:
@@ -311,7 +314,11 @@ class ReportSummaryBuilder:
         audience: str,
     ) -> str:
         child_name = str(child.get("name") or "This child").strip() or "This child"
-        overall_scores = [score for score in [as_float(session.get("overall_score")) for session in included_sessions] if score is not None]
+        overall_scores = [
+            score
+            for score in [as_float(session.get("overall_score")) for session in included_sessions]
+            if score is not None
+        ]
         average_overall = round(mean(overall_scores), 1) if overall_scores else None
         focus_targets = collect_target_sounds(included_sessions)
         target_copy = ", ".join(focus_targets) if focus_targets else "current speech goals"
@@ -360,16 +367,28 @@ class SnapshotBuilder:
         child: Dict[str, Any],
         included_sessions: Sequence[Dict[str, Any]],
     ) -> Dict[str, Any]:
-        overall_scores = [score for score in [as_float(session.get("overall_score")) for session in included_sessions] if score is not None]
-        accuracy_scores = [score for score in [as_float(session.get("accuracy_score")) for session in included_sessions] if score is not None]
+        overall_scores = [
+            score
+            for score in [as_float(session.get("overall_score")) for session in included_sessions]
+            if score is not None
+        ]
+        accuracy_scores = [
+            score
+            for score in [as_float(session.get("accuracy_score")) for session in included_sessions]
+            if score is not None
+        ]
         pronunciation_scores = [
-            score for score in [as_float(session.get("pronunciation_score")) for session in included_sessions] if score is not None
+            score
+            for score in [as_float(session.get("pronunciation_score")) for session in included_sessions]
+            if score is not None
         ]
         target_sounds = collect_target_sounds(included_sessions)
         child_memory_summary = self.storage_service.get_child_memory_summary(child_id) or {}
         plans = self.storage_service.list_practice_plans_for_child(child_id)
         recommendation_logs = self.storage_service.list_recommendation_logs_for_child(child_id, limit=3)
-        latest_plan = next((plan for plan in plans if str(plan.get("status") or "") == "approved"), plans[0] if plans else None)
+        latest_plan = next(
+            (plan for plan in plans if str(plan.get("status") or "") == "approved"), plans[0] if plans else None
+        )
         latest_recommendation = recommendation_logs[0] if recommendation_logs else None
         top_recommendation_name = None
         top_recommendation_rationale = None
@@ -392,7 +411,9 @@ class SnapshotBuilder:
             "memory_source_item_count": child_memory_summary.get("source_item_count"),
             "plan_title": latest_plan.get("title") if latest_plan else None,
             "plan_status": latest_plan.get("status") if latest_plan else None,
-            "plan_objective": cast(Dict[str, Any], latest_plan.get("draft") or {}).get("objective") if latest_plan else None,
+            "plan_objective": (
+                cast(Dict[str, Any], latest_plan.get("draft") or {}).get("objective") if latest_plan else None
+            ),
             "top_recommendation_name": top_recommendation_name,
             "top_recommendation_rationale": top_recommendation_rationale,
         }
@@ -441,8 +462,14 @@ class SectionBuilder:
                         "title": "Clinical focus",
                         "bullets": [
                             f"Primary focus across the reporting window: {target_copy}.",
-                            summary_text or f"{child_name} benefits from therapist review notes and approved child memory to guide the next session.",
-                            plan_objective or (f"Latest approved plan: {plan_title}." if plan_title else "No approved practice plan is attached yet."),
+                            summary_text
+                            or f"{child_name} benefits from therapist review notes and approved child memory to guide the next session.",
+                            plan_objective
+                            or (
+                                f"Latest approved plan: {plan_title}."
+                                if plan_title
+                                else "No approved practice plan is attached yet."
+                            ),
                         ],
                     },
                     {
@@ -450,7 +477,12 @@ class SectionBuilder:
                         "title": "Next steps",
                         "bullets": [
                             f"Continue shaping treatment around {target_copy}.",
-                            recommendation_rationale or (f"Most recent recommendation: {recommendation_name}." if recommendation_name else "Generate a fresh recommendation run before the next visit."),
+                            recommendation_rationale
+                            or (
+                                f"Most recent recommendation: {recommendation_name}."
+                                if recommendation_name
+                                else "Generate a fresh recommendation run before the next visit."
+                            ),
                         ],
                     },
                 ]
@@ -472,7 +504,8 @@ class SectionBuilder:
                         "title": "How to support at home",
                         "bullets": [
                             plan_objective or "Repeat short, successful practice moments instead of long drills.",
-                            recommendation_name and recommendation_rationale
+                            recommendation_name
+                            and recommendation_rationale
                             and f"A useful next activity is {recommendation_name}: {recommendation_rationale}"
                             or "Keep practice brief, positive, and connected to daily routines.",
                         ],
@@ -487,7 +520,8 @@ class SectionBuilder:
                         "title": "School participation impact",
                         "bullets": [
                             f"Current speech focus relevant to school communication: {target_copy}.",
-                            summary_text or f"{child_name} benefits from clear models and predictable speaking routines.",
+                            summary_text
+                            or f"{child_name} benefits from clear models and predictable speaking routines.",
                         ],
                     },
                     {
@@ -496,7 +530,9 @@ class SectionBuilder:
                         "bullets": [
                             "Allow short response windows and calm repetition when needed.",
                             plan_objective or "Reinforce successful speech attempts during structured speaking tasks.",
-                            recommendation_name and f"Coordinate with therapy on activities similar to {recommendation_name}." or "Coordinate with the therapist on carryover activities.",
+                            recommendation_name
+                            and f"Coordinate with therapy on activities similar to {recommendation_name}."
+                            or "Coordinate with the therapist on carryover activities.",
                         ],
                     },
                 ]

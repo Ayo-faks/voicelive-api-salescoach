@@ -63,10 +63,7 @@ class TestStorageService:
         children = service.list_children_for_user("therapist-1")
 
         with sqlite3.connect(db_path) as connection:
-            columns = {
-                row[1]
-                for row in connection.execute("PRAGMA table_info(children)").fetchall()
-            }
+            columns = {row[1] for row in connection.execute("PRAGMA table_info(children)").fetchall()}
 
         assert "workspace_id" in columns
         assert [child["id"] for child in children] == ["child-legacy"]
@@ -154,10 +151,7 @@ class TestStorageService:
         )
 
         with sqlite3.connect(db_path) as connection:
-            columns = {
-                row[1]
-                for row in connection.execute("PRAGMA table_info(parental_consents)").fetchall()
-            }
+            columns = {row[1] for row in connection.execute("PRAGMA table_info(parental_consents)").fetchall()}
 
         stored_consent = service.get_parental_consent("child-legacy")
 

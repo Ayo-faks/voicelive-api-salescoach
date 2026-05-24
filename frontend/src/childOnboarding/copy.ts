@@ -24,7 +24,7 @@ function capWords(key: string, value: string, max = 25): string {
   const wordCount = value.trim().split(/\s+/).filter(Boolean).length
   if (wordCount > max) {
     throw new Error(
-      `[childOnboarding/copy] "${key}" exceeds ${max}-word cap (${wordCount}).`,
+      `[childOnboarding/copy] "${key}" exceeds ${max}-word cap (${wordCount}).`
     )
   }
   return value
@@ -35,22 +35,22 @@ function capWords(key: string, value: string, max = 25): string {
 export const handoffCopy = {
   title: t(
     'child.handoff.adult.title',
-    capWords('child.handoff.adult.title', 'Hand the device to your child'),
+    capWords('child.handoff.adult.title', 'Hand the device to your child')
   ),
   body: t(
     'child.handoff.adult.body',
     capWords(
       'child.handoff.adult.body',
-      'Pass the tablet to your child now. They can press Start when they are ready to meet their practice buddy.',
-    ),
+      'Pass the tablet to your child now. They can press Start when they are ready to meet their practice buddy.'
+    )
   ),
   startCta: t('child.handoff.adult.start', 'Start'),
   narration: t(
     'child.handoff.adult.narration',
     capWords(
       'child.handoff.adult.narration',
-      'Hand the tablet to your child. They will meet Wulo next.',
-    ),
+      'Hand the tablet to your child. They will meet Wulo next.'
+    )
   ),
 } as const
 
@@ -59,14 +59,14 @@ export const handoffCopy = {
 export const welcomeMascotCopy = {
   title: t(
     'child.welcome-mascot.child.title',
-    capWords('child.welcome-mascot.child.title', 'Hi! I am Wulo.'),
+    capWords('child.welcome-mascot.child.title', 'Hi! I am Wulo.')
   ),
   caption: t(
     'child.welcome-mascot.child.caption',
     capWords(
       'child.welcome-mascot.child.caption',
-      'Hi there! I am Wulo. We will play a small game together. Tap Got it to start.',
-    ),
+      'Hi there! I am Wulo. We will play a small game together. Tap Got it to start.'
+    )
   ),
   primaryCta: t('child.welcome-mascot.child.got-it', 'Got it'),
   skipCta: t('child.welcome-mascot.child.skip', 'Skip'),
@@ -78,22 +78,22 @@ export const silentSortingTutorialCopy = {
     'child.silent-sorting-tutorial.child.bins',
     capWords(
       'child.silent-sorting-tutorial.child.bins',
-      'Drag each card into its matching home.',
-    ),
+      'Drag each card into its matching home.'
+    )
   ),
   sample: t(
     'child.silent-sorting-tutorial.child.sample',
     capWords(
       'child.silent-sorting-tutorial.child.sample',
-      'Tap here any time to hear the word again.',
-    ),
+      'Tap here any time to hear the word again.'
+    )
   ),
   finish: t(
     'child.silent-sorting-tutorial.child.finish',
     capWords(
       'child.silent-sorting-tutorial.child.finish',
-      'Sort every card and your buddy will cheer you on.',
-    ),
+      'Sort every card and your buddy will cheer you on.'
+    )
   ),
   nextCta: t('child.silent-sorting-tutorial.child.next', 'Next'),
   doneCta: t('child.silent-sorting-tutorial.child.done', 'Got it'),
@@ -103,14 +103,14 @@ export const silentSortingTutorialCopy = {
 export const wrapUpCopy = {
   title: t(
     'child.wrap-up.child.title',
-    capWords('child.wrap-up.child.title', 'Great work today!'),
+    capWords('child.wrap-up.child.title', 'Great work today!')
   ),
   caption: t(
     'child.wrap-up.child.caption',
     capWords(
       'child.wrap-up.child.caption',
-      'Nice practising with me! Tap All done to finish up.',
-    ),
+      'Nice practising with me! Tap All done to finish up.'
+    )
   ),
   primaryCta: t('child.wrap-up.child.done', 'All done'),
 } as const

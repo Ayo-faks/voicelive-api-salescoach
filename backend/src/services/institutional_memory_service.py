@@ -273,7 +273,9 @@ class InstitutionalMemoryService:
             follow_up_review_count = int(aggregate["follow_up_review_count"])
             average_overall_score = self._safe_average(aggregate["overall_scores"])
             dominant_difficulty = self._dominant_key(aggregate["difficulty_counts"])
-            helpful_review_rate = round(helpful_review_count / reviewed_session_count, 2) if reviewed_session_count else 0.0
+            helpful_review_rate = (
+                round(helpful_review_count / reviewed_session_count, 2) if reviewed_session_count else 0.0
+            )
 
             patterns_by_target[target_sound].append(
                 {
@@ -427,8 +429,12 @@ class InstitutionalMemoryService:
         target_sound: str,
         insights: Sequence[Dict[str, Any]],
     ) -> str:
-        deidentified_child_count = max(int((insight.get("provenance") or {}).get("deidentified_child_count") or 0) for insight in insights)
-        reviewed_session_count = max(int((insight.get("provenance") or {}).get("reviewed_session_count") or 0) for insight in insights)
+        deidentified_child_count = max(
+            int((insight.get("provenance") or {}).get("deidentified_child_count") or 0) for insight in insights
+        )
+        reviewed_session_count = max(
+            int((insight.get("provenance") or {}).get("reviewed_session_count") or 0) for insight in insights
+        )
         if target_sound:
             return (
                 f"De-identified clinic-level patterns for /{target_sound}/ are available from {deidentified_child_count} children "

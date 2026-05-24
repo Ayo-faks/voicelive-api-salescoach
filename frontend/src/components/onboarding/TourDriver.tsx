@@ -18,7 +18,14 @@
  * `null`, the driver renders nothing.
  */
 
-import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import type { EventData, Step as JoyrideStep } from 'react-joyride'
 
 import type { TourDefinition, TourStep } from '../../onboarding/tours'
@@ -79,7 +86,8 @@ export function TourDriver(props: TourDriverProps): JSX.Element | null {
 
     let cancelled = false
     let frameId: number | null = null
-    const hasAnchor = (): boolean => document.querySelector(firstSelector) !== null
+    const hasAnchor = (): boolean =>
+      document.querySelector(firstSelector) !== null
 
     const markReady = (): boolean => {
       if (cancelled) return false
@@ -136,10 +144,14 @@ export function TourDriver(props: TourDriverProps): JSX.Element | null {
       }
 
       if (data.status === JOYRIDE_STATUS_FINISHED) {
-        telemetry.trackEvent(ONBOARDING_EVENTS.TOUR_COMPLETED, { tour_id: tour.id })
+        telemetry.trackEvent(ONBOARDING_EVENTS.TOUR_COMPLETED, {
+          tour_id: tour.id,
+        })
         onComplete(tour.id, 'completed')
       } else if (data.status === JOYRIDE_STATUS_SKIPPED) {
-        telemetry.trackEvent(ONBOARDING_EVENTS.TOUR_DISMISSED, { tour_id: tour.id })
+        telemetry.trackEvent(ONBOARDING_EVENTS.TOUR_DISMISSED, {
+          tour_id: tour.id,
+        })
         onComplete(tour.id, 'dismissed')
       }
     },

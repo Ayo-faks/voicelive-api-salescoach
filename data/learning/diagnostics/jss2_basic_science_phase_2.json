@@ -1,0 +1,36 @@
+{
+  "diagnostic_id": "jss2-basic-science-phase-2",
+  "subject": "basic_science",
+  "tenant_id": "tenant-phase-2",
+  "title": "JSS2 Basic Science Diagnostic",
+  "lang": "en-NG",
+  "provenance": [
+    {
+      "source": "pathfinder_phase_2_fixture",
+      "source_id": "jss2_basic_science_diagnostic_phase_2",
+      "rule_id": "contract_phase_2_item_bank",
+      "confidence": 1.0,
+      "evidence_count": 12
+    }
+  ],
+  "skills": [
+    { "skill_id": "scientific-method", "standard_id": "ng-jss2-basic-science", "name": "Scientific method", "description": "Apply observation, hypothesis, and inference to simple investigations." },
+    { "skill_id": "living-things", "standard_id": "ng-jss2-basic-science", "name": "Living things", "description": "Classify plants and animals and describe basic life processes." },
+    { "skill_id": "forces-energy", "standard_id": "ng-jss2-basic-science", "name": "Forces and energy", "description": "Describe forces, motion, and forms of energy." },
+    { "skill_id": "matter-states", "standard_id": "ng-jss2-basic-science", "name": "Matter and states", "description": "Identify solids, liquids, gases, and basic changes of state." }
+  ],
+  "items": [
+    { "item_id": "jss2-sci-method-001", "skill_id": "scientific-method", "prompt": "In an experiment the thing you change on purpose is called the ___ variable.", "item_type": "short_answer", "difficulty": -1.5, "correct_answer": "independent", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "science_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-sci-life-001", "skill_id": "living-things", "prompt": "Name the gas that plants take in during photosynthesis.", "item_type": "short_answer", "difficulty": -1.5, "correct_answer": "carbon dioxide", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "science_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-sci-force-001", "skill_id": "forces-energy", "prompt": "Name the force that pulls objects towards the earth.", "item_type": "short_answer", "difficulty": -1.5, "correct_answer": "gravity", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "science_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-sci-matter-001", "skill_id": "matter-states", "prompt": "What state of matter has a fixed shape and volume?", "item_type": "short_answer", "difficulty": -1.0, "correct_answer": "solid", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "science_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-sci-method-002", "skill_id": "scientific-method", "prompt": "An educated guess you test in an experiment is called a ___.", "item_type": "short_answer", "difficulty": -1.0, "correct_answer": "hypothesis", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "science_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-sci-life-002", "skill_id": "living-things", "prompt": "Mammals breathe with which organ?", "item_type": "short_answer", "difficulty": -0.5, "correct_answer": "lungs", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "science_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-sci-force-002", "skill_id": "forces-energy", "prompt": "Name the unit used to measure force.", "item_type": "short_answer", "difficulty": -0.5, "correct_answer": "newton", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "science_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-sci-matter-002", "skill_id": "matter-states", "prompt": "What change of state happens when water boils?", "item_type": "short_answer", "difficulty": 0.0, "correct_answer": "evaporation", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "science_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-sci-method-003", "skill_id": "scientific-method", "prompt": "What do we call the data that does not change in an experiment? (one word)", "item_type": "short_answer", "difficulty": 0.5, "correct_answer": "control", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "science_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-sci-life-003", "skill_id": "living-things", "prompt": "Which class of vertebrate has scales and breathes with gills?", "item_type": "short_answer", "difficulty": 0.5, "correct_answer": "fish", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "science_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-sci-force-003", "skill_id": "forces-energy", "prompt": "Name the form of energy stored in food.", "item_type": "short_answer", "difficulty": 1.0, "correct_answer": "chemical", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "science_round_robin", "confidence": 1.0, "evidence_count": 1 }] },
+    { "item_id": "jss2-sci-matter-003", "skill_id": "matter-states", "prompt": "Which change of state goes directly from solid to gas?", "item_type": "short_answer", "difficulty": 1.5, "correct_answer": "sublimation", "lang": "en-NG", "provenance": [{ "source": "pathfinder_phase_2_fixture", "rule_id": "science_round_robin", "confidence": 1.0, "evidence_count": 1 }] }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "pack_key": "nerdc-jss2-maths-foundation",
+  "version": "phase-1-offline-2026.05",
+  "tenant_scope": "tenant-demo",
+  "lang": "en-NG",
+  "source": "phase_1_synthetic_fixture",
+  "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "skills": [
+    {
+      "skill_id": "ratio",
+      "standard_id": "nerdc-jss2-maths",
+      "name": "Ratios and proportional reasoning"
+    }
+  ],
+  "diagnostic_items": [
+    {
+      "item_id": "item-ratio-001",
+      "skill_id": "ratio",
+      "item_type": "short_answer",
+      "difficulty": 0.1
+    }
+  ]
+}

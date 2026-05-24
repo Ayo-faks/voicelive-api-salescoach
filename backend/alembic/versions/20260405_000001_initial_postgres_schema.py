@@ -91,9 +91,7 @@ def upgrade() -> None:
         )
         """
     )
-    op.execute(
-        "CREATE INDEX IF NOT EXISTS idx_sessions_child_timestamp ON sessions (child_id, timestamp DESC)"
-    )
+    op.execute("CREATE INDEX IF NOT EXISTS idx_sessions_child_timestamp ON sessions (child_id, timestamp DESC)")
     op.execute(
         "CREATE INDEX IF NOT EXISTS idx_practice_plans_child_updated ON practice_plans (child_id, updated_at DESC, created_at DESC)"
     )

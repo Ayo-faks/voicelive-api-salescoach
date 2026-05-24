@@ -138,6 +138,18 @@ For broader backend coverage, run:
 cd backend && /home/ayoola/sen/.venv/bin/python -m pytest tests/
 ```
 
+### Pathfinder Learn Observability
+
+Pathfinder Learn route, decision, and xAPI counters are enabled by default. The backend image installs `backend/requirements.txt`, which includes `prometheus-client>=0.20.0`, and exposes the scrape endpoint at `/api/learning/metrics`.
+
+Runtime flags:
+
+- `PATHFINDER_LEARN_OBSERVABILITY_ENABLED` - set to `0`/`false`/`no`/`off` to disable all Pathfinder Learn route metrics and spans.
+- `PATHFINDER_LEARN_PROMETHEUS_ENABLED` - set to `0`/`false`/`no`/`off` to disable `/api/learning/metrics` while leaving other observability enabled.
+- `PATHFINDER_LEARN_OTEL_ENABLED` - set to `0`/`false`/`no`/`off` to disable OpenTelemetry spans and Azure Monitor custom metrics while leaving Prometheus counters enabled.
+
+For `azd` environments, the flags flow through `infra/main.parameters.json` and default to `true` unless the matching azd env var is set.
+
 ### Copilot Planner Requirements
 
 The therapist planning workflow now uses the GitHub Copilot SDK in the backend.

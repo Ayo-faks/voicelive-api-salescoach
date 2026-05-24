@@ -8,7 +8,9 @@ const MAX_BRIDGE_WORDS = 7
 function defaultIsDev(): boolean {
   try {
     // Vite injects import.meta.env.DEV as boolean.
-    return Boolean((import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV)
+    return Boolean(
+      (import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV
+    )
   } catch {
     return false
   }
@@ -35,8 +37,7 @@ export function assertBridgeCopy(text: string): string {
   if (words.length <= MAX_BRIDGE_WORDS) {
     return text
   }
-  const message =
-    `assertBridgeCopy: BRIDGE copy must be ≤ ${MAX_BRIDGE_WORDS} words, got ${words.length}: "${text}"`
+  const message = `assertBridgeCopy: BRIDGE copy must be ≤ ${MAX_BRIDGE_WORDS} words, got ${words.length}: "${text}"`
   if (__envHooks.isDev()) {
     throw new Error(message)
   }

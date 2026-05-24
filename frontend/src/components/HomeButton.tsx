@@ -58,7 +58,10 @@ export function HomeButton({ isSessionActive, onGoHome }: HomeButtonProps) {
         Home
       </Button>
 
-      <Dialog open={confirmOpen} onOpenChange={(_, data) => setConfirmOpen(data.open)}>
+      <Dialog
+        open={confirmOpen}
+        onOpenChange={(_, data) => setConfirmOpen(data.open)}
+      >
         <DialogSurface>
           <DialogTitle>Leave this session?</DialogTitle>
           <DialogBody>
@@ -70,7 +73,10 @@ export function HomeButton({ isSessionActive, onGoHome }: HomeButtonProps) {
             </div>
           </DialogBody>
           <DialogActions>
-            <Button appearance="secondary" onClick={() => setConfirmOpen(false)}>
+            <Button
+              appearance="secondary"
+              onClick={() => setConfirmOpen(false)}
+            >
               Stay in session
             </Button>
             <Button appearance="primary" onClick={handleConfirm}>

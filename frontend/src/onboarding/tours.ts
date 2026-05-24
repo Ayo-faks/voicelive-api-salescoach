@@ -716,7 +716,10 @@ export function getTourById(id: string): TourDefinition | undefined {
   return ALL_TOURS.find(tour => tour.id === id)
 }
 
-export function tourSupportsRole(tour: TourDefinition, role: string | null | undefined): boolean {
+export function tourSupportsRole(
+  tour: TourDefinition,
+  role: string | null | undefined
+): boolean {
   const roles = Array.isArray(tour.role) ? tour.role : [tour.role]
   return role ? roles.includes(role as TourRole) : false
 }

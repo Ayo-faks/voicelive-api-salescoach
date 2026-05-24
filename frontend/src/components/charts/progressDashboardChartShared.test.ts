@@ -29,7 +29,10 @@ describe('getRadarChartData', () => {
     const data = getRadarChartData(session)
 
     expect(data).toHaveLength(6)
-    expect(data[0]).toMatchObject({ subject: 'Target Sound Accuracy', score: 79 })
+    expect(data[0]).toMatchObject({
+      subject: 'Target Sound Accuracy',
+      score: 79,
+    })
     expect(data[1]).toMatchObject({ subject: 'Overall Clarity', score: 80 })
   })
 })

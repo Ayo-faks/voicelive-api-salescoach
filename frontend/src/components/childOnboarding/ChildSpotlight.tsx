@@ -34,17 +34,9 @@ import {
   shorthands,
   tokens,
 } from '@fluentui/react-components'
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 import { resolveSpotlightAnchor } from '../../childOnboarding/spotlightAnchors'
-import { useReducedMotion } from '../../childOnboarding/useReducedMotion'
 
 const useStyles = makeStyles({
   root: {
@@ -150,11 +142,8 @@ export function ChildSpotlight({
   dismissCtaLabel = 'Skip',
   onNext,
   onDismiss,
-  reducedMotion: reducedMotionProp,
 }: ChildSpotlightProps): JSX.Element | null {
   const styles = useStyles()
-  const detected = useReducedMotion()
-  const reducedMotion = reducedMotionProp ?? detected
   const nextRef = useRef<HTMLButtonElement>(null)
   const previousFocusRef = useRef<Element | null>(null)
 
@@ -198,7 +187,9 @@ export function ChildSpotlight({
     nextRef.current?.focus()
 
     const ro =
-      typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => measure()) : null
+      typeof ResizeObserver !== 'undefined'
+        ? new ResizeObserver(() => measure())
+        : null
     const target = document.querySelector(anchor.selector)
     if (target instanceof HTMLElement && ro) ro.observe(target)
 
@@ -226,7 +217,7 @@ export function ChildSpotlight({
         }
       }
     },
-    [onDismiss, onNext],
+    [onDismiss, onNext]
   )
 
   if (!anchor) {
@@ -236,7 +227,7 @@ export function ChildSpotlight({
 
   if (anchorMissing) {
     devWarn(
-      `Anchor "${anchor.selector}" is not mounted; spotlight silently hidden.`,
+      `Anchor "${anchor.selector}" is not mounted; spotlight silently hidden.`
     )
     return null
   }
@@ -245,14 +236,14 @@ export function ChildSpotlight({
     ? {
         top: Math.min(
           rect.top + rect.height + 12,
-          (typeof window !== 'undefined' ? window.innerHeight : 800) - 180,
+          (typeof window !== 'undefined' ? window.innerHeight : 800) - 180
         ),
         left: Math.max(
           16,
           Math.min(
             rect.left,
-            (typeof window !== 'undefined' ? window.innerWidth : 1200) - 340,
-          ),
+            (typeof window !== 'undefined' ? window.innerWidth : 1200) - 340
+          )
         ),
       }
     : { top: 24, left: 24 }

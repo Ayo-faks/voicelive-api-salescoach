@@ -1,0 +1,1403 @@
+"""HTTP surface for the Pathfinder Learn bounded context.
+
+Stateless adapter (mirrors ``insights_service`` / ``insights_copilot_planner``
+patterns): the module owns a process-local in-memory repository and item bank
+for the pilot demo, and exposes pure functions that the Flask app composes via
+flat ``@app.route`` declarations. All persistence is delegated to
+``LearningRepository``; planner work is bounded by
+``DEFAULT_TOOL_CALL_BUDGET`` / ``DEFAULT_WALL_CLOCK_BUDGET_SECONDS`` carried on
+``PlannerRequest``.
+
+Tenant/actor IDs are accepted from the request body with pilot-demo defaults;
+when wired into Azure the API CA already enforces tenant scope at the storage
+layer via row-level security (`assert_learning_rls_contract_active`).
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import threading
+from pathlib import Path
+from typing import Any, Dict, List, Mapping, Optional, Tuple
+from urllib.parse import urlencode
+from uuid import uuid4
+
+import jwt
+from flask import Flask, Response, jsonify, redirect, request
+
+from src.learning.diagnostic import (
+    DeterministicItemSelector,
+    DiagnosticItemBank,
+    heatmap_status,
+    load_item_bank,
+    load_subject_diagnostics,
+    normalize_answer,
+)
+from src.learning.errors import LearningApiError
+from src.learning.lti import (
+    JWKSProvider,
+    LTIPlatformConfig,
+    LTIValidationError,
+    LTILaunchVerifier,
+    LTIStateStore,
+    fetch_jwks,
+    session_expiry_timestamp,
+)
+from src.learning.mastery import BetaBKT, MasteryEstimator, MasteryUpdateInput
+from src.learning.models import (
+    CatalogueSkill,
+    DiagnosticItem,
+    InterventionPlan,
+    MasteryEstimate,
+    MasteryEvent,
+    Provenance,
+    StudentResponse,
+)
+from src.learning.observability import LearningObservability
+from src.learning.operations import compute_kpi_report, load_metric_snapshots
+from src.learning.planner import PlannerRequest, StubLearningPlanner
+from src.learning.repository import InMemoryLearningRepository, LearningRepository
+from src.learning.skills import SkillCatalogueError, SkillsCatalogueService
+from src.learning.validator import (
+    PlanValidator,
+    catalogue_grounding_rule,
+    catalogue_skill_existence_rule,
+)
+from src.learning.voice import FlaskSockVoiceTransportAdapter, VoiceFrame
+from src.learning.xapi import (
+    ApprovalEvent,
+    DiagnosticCompletionEvent,
+    LTILaunchEvent,
+    OverrideEvent,
+    RalphXAPISink,
+    StudentProfileViewEvent,
+    XAPIStatement,
+    approval_event_to_xapi,
+    build_ralph_sink_from_env,
+    diagnostic_completion_event_to_xapi,
+    lti_launch_event_to_xapi,
+    mastery_event_to_xapi,
+    override_event_to_xapi,
+    student_profile_view_event_to_xapi,
+)
+
+
+PILOT_TENANT_ID = "tenant-phase-2"
+PILOT_CLASS_ID = "class-jss2-a"
+PILOT_STUDENT_ID = "pilot-jss2-student-001"
+PILOT_TEACHER_ID = "pilot-jss2-teacher-001"
+PILOT_DIAGNOSTIC_ITEMS_PER_RUN = 12
+PILOT_KPI_TENANT_ID = "tenant-phase-4"
+VOICE_FEATURE_FLAG_ENV = "PATHFINDER_VOICE_ENABLED"
+
+
+def _resolve_learning_data_dir() -> Path:
+    module_path = Path(__file__).resolve()
+    candidates = [
+        module_path.parents[3] / "data" / "learning",
+        module_path.parents[2] / "data" / "learning",
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[0]
+
+
+LEARNING_DATA_DIR = _resolve_learning_data_dir()
+ITEM_BANK_PATH = LEARNING_DATA_DIR / "jss2_maths_diagnostic_phase_2.json"
+DIAGNOSTICS_DIR = LEARNING_DATA_DIR / "diagnostics"
+PILOT_METRICS_PATH = LEARNING_DATA_DIR / "ops" / "phase_4_pilot_metrics.json"
+
+
+class _SessionState:
+    """Per-session diagnostic transcript held in memory for the pilot demo."""
+
+    __slots__ = (
+        "session_id",
+        "tenant_id",
+        "class_id",
+        "student_id",
+        "teacher_id",
+        "diagnostic_id",
+        "selected_items",
+        "current_index",
+        "estimates",
+        "responses",
+        "completed",
+        "bank",
+    )
+
+    def __init__(
+        self,
+        session_id: str,
+        tenant_id: str,
+        class_id: str,
+        student_id: str,
+        teacher_id: str,
+        diagnostic_id: str,
+        selected_items: List[DiagnosticItem],
+        bank: DiagnosticItemBank,
+    ) -> None:
+        self.session_id = session_id
+        self.tenant_id = tenant_id
+        self.class_id = class_id
+        self.student_id = student_id
+        self.teacher_id = teacher_id
+        self.diagnostic_id = diagnostic_id
+        self.selected_items = selected_items
+        self.current_index = 0
+        self.estimates: Dict[str, MasteryEstimate] = {}
+        self.responses: List[StudentResponse] = []
+        self.completed = False
+        self.bank = bank
+
+
+class LearningApi:
+    """Stateless façade with module-local state, mirroring ``InsightsService``."""
+
+    def __init__(
+        self,
+        repository: Optional[LearningRepository] = None,
+        item_bank: Optional[DiagnosticItemBank] = None,
+        estimator: Optional[MasteryEstimator] = None,
+        subject_banks: Optional[List[DiagnosticItemBank]] = None,
+        sink: Optional[RalphXAPISink] = None,
+        lti_platforms: Optional[List[LTIPlatformConfig]] = None,
+        lti_jwks_provider: Optional[JWKSProvider] = None,
+        lti_state_store: Optional[LTIStateStore] = None,
+        lti_session_secret: Optional[str] = None,
+        observability: Optional[LearningObservability] = None,
+    ) -> None:
+        self.repository: LearningRepository = repository or InMemoryLearningRepository()
+        self.item_bank: DiagnosticItemBank = item_bank or load_item_bank(ITEM_BANK_PATH)
+        self.estimator: MasteryEstimator = estimator or BetaBKT()
+        self.sink: RalphXAPISink = sink or build_ralph_sink_from_env(repository=self.repository)
+        self.lti_verifier = LTILaunchVerifier(lti_platforms or [], lti_jwks_provider or fetch_jwks)
+        self.lti_state_store = lti_state_store or LTIStateStore()
+        self.lti_session_secret = lti_session_secret or os.environ.get("LTI_SESSION_SECRET")
+        self.observability = observability or LearningObservability()
+        self.selector = DeterministicItemSelector()
+        self.voice_adapter = FlaskSockVoiceTransportAdapter()
+        self._sessions: Dict[str, _SessionState] = {}
+        self._student_estimates: Dict[Tuple[str, str], Dict[str, MasteryEstimate]] = {}
+        self._student_classes: Dict[Tuple[str, str], str] = {}
+        self._pending_plans: Dict[str, Dict[str, Any]] = {}
+        self._audit_events: List[Dict[str, Any]] = []
+        self._lock = threading.Lock()
+
+        # Build a subject registry from the primary maths bank plus any extra
+        # subject fixtures shipped under data/learning/diagnostics/. The maths
+        # bank stays the default for back-compat (clients that omit subject /
+        # diagnostic_id keep the existing behaviour).
+        registry_banks: List[DiagnosticItemBank] = [self.item_bank]
+        extra = subject_banks if subject_banks is not None else load_subject_diagnostics(DIAGNOSTICS_DIR)
+        for bank in extra:
+            if bank.diagnostic_id != self.item_bank.diagnostic_id:
+                registry_banks.append(bank)
+        self._banks_by_id: Dict[str, DiagnosticItemBank] = {
+            bank.diagnostic_id: bank for bank in registry_banks
+        }
+        self._banks_by_subject: Dict[str, DiagnosticItemBank] = {
+            bank.subject: bank for bank in registry_banks if bank.subject
+        }
+
+        seen: Dict[str, None] = {}
+        for bank in registry_banks:
+            for skill in bank.skills:
+                seen.setdefault(skill.skill_id, None)
+        self._allowed_skill_ids = list(seen.keys())
+        self._validator: PlanValidator[InterventionPlan] = PlanValidator(
+            [catalogue_grounding_rule(self._allowed_skill_ids)]
+        )
+        self.skills_service = SkillsCatalogueService(self.repository)
+
+    # ------------------------------------------------------------------
+    # Diagnostic flow
+    # ------------------------------------------------------------------
+    def start_diagnostic(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        class_id = str(payload.get("class_id") or PILOT_CLASS_ID)
+        student_id = str(payload.get("student_id") or PILOT_STUDENT_ID)
+        teacher_id = str(payload.get("teacher_id") or PILOT_TEACHER_ID)
+        target_skill_id = payload.get("skill_id")
+        item_count = int(payload.get("item_count") or PILOT_DIAGNOSTIC_ITEMS_PER_RUN)
+
+        bank = self._resolve_bank(payload)
+        prior = self._student_estimates.get((tenant_id, student_id), {})
+        selected = self.selector.select_items(bank, prior_mastery=prior, limit=item_count)
+        if target_skill_id:
+            filtered = [item for item in selected if item.skill_id == target_skill_id]
+            if filtered:
+                selected = filtered
+
+        session_id = f"diagnostic-session-{uuid4().hex[:12]}"
+        state = _SessionState(
+            session_id=session_id,
+            tenant_id=tenant_id,
+            class_id=class_id,
+            student_id=student_id,
+            teacher_id=teacher_id,
+            diagnostic_id=bank.diagnostic_id,
+            selected_items=selected,
+            bank=bank,
+        )
+        with self._lock:
+            self._sessions[session_id] = state
+            self._student_classes[(tenant_id, student_id)] = class_id
+        self._record_audit(
+            tenant_id=tenant_id,
+            actor_id=student_id,
+            label=f"Started diagnostic {bank.diagnostic_id}",
+            kind="diagnostic_started",
+        )
+        return {
+            "session_id": session_id,
+            "diagnostic_id": bank.diagnostic_id,
+            "subject": bank.subject,
+            "lang": bank.lang,
+            "item": _item_to_payload(selected[0]) if selected else None,
+            "items_remaining": max(0, len(selected) - 1),
+            "items_total": len(selected),
+        }
+
+    def _resolve_bank(self, payload: Mapping[str, Any]) -> DiagnosticItemBank:
+        diagnostic_id = payload.get("diagnostic_id")
+        if diagnostic_id:
+            bank = self._banks_by_id.get(str(diagnostic_id))
+            if bank is None:
+                raise LearningApiError(
+                    f"unknown diagnostic_id {diagnostic_id!r}", status_code=404
+                )
+            return bank
+        subject = payload.get("subject")
+        if subject:
+            bank = self._banks_by_subject.get(str(subject))
+            if bank is None:
+                raise LearningApiError(f"unknown subject {subject!r}", status_code=404)
+            return bank
+        return self.item_bank
+
+    def answer_diagnostic(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        session_id = str(payload.get("session_id") or "").strip()
+        item_id = str(payload.get("item_id") or "").strip()
+        response_text = str(payload.get("response_text") or "").strip()
+        if not session_id or not item_id or not response_text:
+            raise LearningApiError(
+                "session_id, item_id, and response_text are required", status_code=400
+            )
+        state = self._sessions.get(session_id)
+        if state is None:
+            raise LearningApiError("unknown diagnostic session", status_code=404)
+        if state.completed:
+            raise LearningApiError("diagnostic session already completed", status_code=409)
+
+        current_item = state.selected_items[state.current_index]
+        if current_item.item_id != item_id:
+            raise LearningApiError(
+                f"expected item {current_item.item_id} but received {item_id}",
+                status_code=409,
+            )
+
+        correct = normalize_answer(response_text) == normalize_answer(current_item.correct_answer or "")
+        response = StudentResponse(
+            tenant_id=state.tenant_id,
+            student_id=state.student_id,
+            item_id=current_item.item_id,
+            skill_id=current_item.skill_id,
+            response_text=response_text,
+            correct=correct,
+            lang=current_item.lang,
+            provenance=current_item.provenance,
+        )
+        self.repository.save_student_response(
+            response, idempotency_key=f"{state.session_id}:{current_item.item_id}"
+        )
+        state.responses.append(response)
+
+        update = self.estimator.update(
+            MasteryUpdateInput(
+                tenant_id=state.tenant_id,
+                student_id=state.student_id,
+                skill_id=current_item.skill_id,
+                correct=correct,
+                prior_estimate=state.estimates.get(current_item.skill_id),
+                item_difficulty=current_item.difficulty,
+                lang=current_item.lang,
+                provenance=current_item.provenance,
+            )
+        )
+        state.estimates[current_item.skill_id] = update.estimate
+        self._student_estimates.setdefault((state.tenant_id, state.student_id), {})[
+            current_item.skill_id
+        ] = update.estimate
+
+        mastery_event = MasteryEvent(
+            tenant_id=state.tenant_id,
+            student_id=state.student_id,
+            skill_id=current_item.skill_id,
+            response_id=response.response_id,
+            estimate=update.estimate,
+            lang=update.lang,
+            provenance=update.provenance,
+        )
+        statement = mastery_event_to_xapi(mastery_event)
+        self.repository.save_mastery_event(mastery_event, statement)
+        self._emit_xapi(state.tenant_id, state.student_id, statement)
+
+        state.current_index += 1
+        next_item_payload: Optional[Dict[str, Any]] = None
+        pending_plan_payload: Optional[Dict[str, Any]] = None
+        completion_payload: Optional[Dict[str, Any]] = None
+        if state.current_index >= len(state.selected_items):
+            state.completed = True
+            completion_event = DiagnosticCompletionEvent(
+                tenant_id=state.tenant_id,
+                student_id=state.student_id,
+                diagnostic_id=state.diagnostic_id,
+                item_count=len(state.selected_items),
+                lang=state.bank.lang,
+                provenance=state.bank.provenance,
+            )
+            completion_statement = diagnostic_completion_event_to_xapi(completion_event)
+            self._emit_xapi(state.tenant_id, state.student_id, completion_statement)
+            completion_payload = completion_statement.model_dump()
+            pending_plan_payload = self._build_and_persist_pending_plan(state)
+        else:
+            next_item_payload = _item_to_payload(state.selected_items[state.current_index])
+
+        self._record_audit(
+            tenant_id=state.tenant_id,
+            actor_id=state.student_id,
+            label=("Answered " + current_item.item_id + (" — correct" if correct else " — incorrect")),
+            kind="diagnostic_answer",
+        )
+
+        return {
+            "session_id": state.session_id,
+            "item_id": current_item.item_id,
+            "correct": correct,
+            "expected_answer": current_item.correct_answer,
+            "mastery_estimate": update.estimate.model_dump(),
+            "next_item": next_item_payload,
+            "items_remaining": max(0, len(state.selected_items) - state.current_index),
+            "completed": state.completed,
+            "pending_plan": pending_plan_payload,
+            "completion_xapi": completion_payload,
+        }
+
+    # ------------------------------------------------------------------
+    # Teacher surfaces
+    # ------------------------------------------------------------------
+    def get_class_mastery(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        class_id = str(payload.get("class_id") or PILOT_CLASS_ID)
+        skill_labels: Dict[str, str] = {}
+        for bank in self._banks_by_id.values():
+            for skill in bank.skills:
+                skill_labels.setdefault(skill.skill_id, skill.name)
+        cells: List[Dict[str, Any]] = []
+        for (event_tenant, student_id), estimates_by_skill in self._student_estimates.items():
+            if event_tenant != tenant_id:
+                continue
+            if self._student_classes.get((event_tenant, student_id), PILOT_CLASS_ID) != class_id:
+                continue
+            for skill_id, estimate in estimates_by_skill.items():
+                if skill_id not in skill_labels:
+                    continue
+                cells.append(
+                    {
+                        "student_id": student_id,
+                        "skill_id": skill_id,
+                        "skill_label": skill_labels[skill_id],
+                        "probability": estimate.probability,
+                        "uncertainty": estimate.uncertainty,
+                        "status": heatmap_status(estimate),
+                    }
+                )
+        return {
+            "tenant_id": tenant_id,
+            "class_id": class_id,
+            "diagnostic_id": self.item_bank.diagnostic_id,
+            "cells": cells,
+            "source": "live_in_memory" if cells else "no_responses_yet",
+        }
+
+    # ------------------------------------------------------------------
+    # Student drilldown (HITL teacher surface)
+    # ------------------------------------------------------------------
+    def get_student_profile(
+        self, student_id: str, payload: Mapping[str, Any]
+    ) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        actor_id = str(payload.get("actor_id") or PILOT_TEACHER_ID)
+
+        skill_labels: Dict[str, str] = {}
+        for bank in self._banks_by_id.values():
+            for skill in bank.skills:
+                skill_labels.setdefault(skill.skill_id, skill.name)
+
+        estimates_by_skill = self._student_estimates.get((tenant_id, student_id), {})
+        skills_payload: List[Dict[str, Any]] = []
+        for skill_id, estimate in estimates_by_skill.items():
+            skills_payload.append(
+                {
+                    "skill_id": skill_id,
+                    "skill_label": skill_labels.get(skill_id, skill_id),
+                    "probability": estimate.probability,
+                    "uncertainty": estimate.uncertainty,
+                    "kind": estimate.kind,
+                    "status": heatmap_status(estimate),
+                }
+            )
+
+        mastery_events = getattr(self.repository, "mastery_events", []) or []
+        recent_events = [
+            rec
+            for rec in mastery_events
+            if rec.get("tenant_id") == tenant_id and rec.get("student_id") == student_id
+        ][-20:]
+        responses = getattr(self.repository, "student_responses", []) or []
+        recent_responses = [
+            rec
+            for rec in responses
+            if rec.get("tenant_id") == tenant_id and rec.get("student_id") == student_id
+        ][-20:]
+
+        event = StudentProfileViewEvent(
+            tenant_id=tenant_id,
+            actor_id=actor_id,
+            student_id=student_id,
+            skill_count=len(skills_payload),
+            lang=self.item_bank.lang,
+            provenance=self.item_bank.provenance,
+        )
+        statement = student_profile_view_event_to_xapi(event)
+        self._emit_xapi(tenant_id, actor_id, statement)
+        self._record_audit(
+            tenant_id=tenant_id,
+            actor_id=actor_id,
+            label=f"Viewed profile for {student_id}",
+            kind="student_profile_view",
+        )
+
+        return {
+            "tenant_id": tenant_id,
+            "student_id": student_id,
+            "skills": skills_payload,
+            "recent_mastery_events": recent_events,
+            "recent_responses": recent_responses,
+            "xapi_id": statement.id,
+            "audit": self._audit_events[-1],
+        }
+
+    def override_mastery(
+        self, student_id: str, payload: Mapping[str, Any]
+    ) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        actor_id = str(payload.get("actor_id") or PILOT_TEACHER_ID)
+        skill_id = str(payload.get("skill_id") or "").strip()
+        reason = str(payload.get("reason") or "").strip()
+        if not skill_id:
+            raise LearningApiError("skill_id required", status_code=400)
+        if not reason:
+            raise LearningApiError("reason required", status_code=400)
+        if skill_id not in self._allowed_skill_ids:
+            raise LearningApiError(f"unknown skill_id: {skill_id}", status_code=404)
+        try:
+            probability = float(payload["probability"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise LearningApiError(
+                "probability (0..1) required", status_code=400
+            ) from exc
+        if not 0.0 <= probability <= 1.0:
+            raise LearningApiError(
+                "probability must be between 0 and 1", status_code=400
+            )
+        uncertainty_raw = payload.get("uncertainty")
+        try:
+            uncertainty = (
+                float(uncertainty_raw) if uncertainty_raw is not None else 0.1
+            )
+        except (TypeError, ValueError) as exc:
+            raise LearningApiError(
+                "uncertainty must be a number between 0 and 1", status_code=400
+            ) from exc
+        if not 0.0 <= uncertainty <= 1.0:
+            raise LearningApiError(
+                "uncertainty must be between 0 and 1", status_code=400
+            )
+
+        a = max(1e-3, probability * 50.0)
+        b = max(1e-3, (1.0 - probability) * 50.0)
+        new_estimate = MasteryEstimate(
+            kind="beta", probability=probability, uncertainty=uncertainty, a=a, b=b
+        )
+        with self._lock:
+            self._student_estimates.setdefault((tenant_id, student_id), {})[
+                skill_id
+            ] = new_estimate
+
+        event = OverrideEvent(
+            tenant_id=tenant_id,
+            actor_id=actor_id,
+            student_id=student_id,
+            skill_id=skill_id,
+            reason=reason,
+            lang=self.item_bank.lang,
+            provenance=self.item_bank.provenance,
+        )
+        statement = override_event_to_xapi(event)
+        self._emit_xapi(tenant_id, actor_id, statement)
+        self._record_audit(
+            tenant_id=tenant_id,
+            actor_id=actor_id,
+            label=f"Override mastery for {student_id}/{skill_id} -> p={probability:.2f}",
+            kind="mastery_override",
+        )
+        return {
+            "ok": True,
+            "student_id": student_id,
+            "skill_id": skill_id,
+            "estimate": new_estimate.model_dump(),
+            "status": heatmap_status(new_estimate),
+            "xapi_id": statement.id,
+            "audit": self._audit_events[-1],
+        }
+
+    # ------------------------------------------------------------------
+    # xAPI emission (sink + repository)
+    # ------------------------------------------------------------------
+    def _emit_xapi(
+        self, tenant_id: str, actor_id: str, statement: XAPIStatement
+    ) -> Dict[str, Any]:
+        emitted = self.sink.emit(statement)
+        record = self.repository.emit_xapi_statement(
+            tenant_id, actor_id, emitted, self.sink.sink_status
+        )
+        self.observability.record_xapi(self.sink.sink_status)
+        return record
+
+    def list_pending_approvals(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        class_id = str(payload.get("class_id") or "").strip()
+        plans = [
+            record
+            for record in self._pending_plans.values()
+            if record["tenant_id"] == tenant_id
+            and record["status"] == "pending"
+            and (not class_id or record.get("class_id") == class_id)
+        ]
+        return {"plans": plans, "count": len(plans)}
+
+    def approve_plan(self, plan_id: str, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        return self._decide_plan(plan_id, payload, action="approved")
+
+    def reject_plan(self, plan_id: str, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        return self._decide_plan(plan_id, payload, action="rejected")
+
+    def edit_and_approve_plan(
+        self, plan_id: str, payload: Mapping[str, Any]
+    ) -> Dict[str, Any]:
+        """Persist a teacher-edited variant of ``plan_id`` and approve it.
+
+        Creates a new ``InterventionPlan`` whose ``parent_plan_id`` links
+        back to the original. The original plan is marked ``edited_approved``
+        via :meth:`record_approval` and the audit/xAPI trail is preserved.
+        """
+
+        record = self._pending_plans.get(plan_id)
+        if record is None:
+            raise LearningApiError(f"plan {plan_id} not found", status_code=404)
+        if record["status"] != "pending":
+            raise LearningApiError(
+                f"plan {plan_id} is already {record['status']}", status_code=409
+            )
+
+        tenant_id = str(payload.get("tenant_id") or record["tenant_id"])
+        actor_id = str(payload.get("actor_id") or PILOT_TEACHER_ID)
+        reason = payload.get("reason")
+        edits = payload.get("edits") or {}
+        if not isinstance(edits, Mapping):
+            raise LearningApiError("edits must be an object", status_code=400)
+
+        original_plan = record["plan"]
+        edited_body = {
+            **original_plan,
+            **{k: edits[k] for k in (
+                "target_skill_ids",
+                "target_student_ids",
+                "item_types",
+                "suggested_resources",
+                "rationale",
+            ) if k in edits},
+        }
+        edited_body["plan_id"] = f"intervention-plan-{uuid4().hex[:12]}"
+        edited_body["parent_plan_id"] = plan_id
+
+        try:
+            edited_plan = InterventionPlan.model_validate(edited_body)
+        except Exception as exc:  # pydantic.ValidationError
+            raise LearningApiError(
+                f"invalid edited plan: {exc}", status_code=400
+            ) from exc
+
+        validation = self._validator.validate(edited_plan)
+        if not validation.ok:
+            raise LearningApiError(
+                validation.audit_reason or "edited_plan_validation_failed",
+                status_code=422,
+            )
+
+        edited_record = self.repository.save_intervention_plan(
+            edited_plan,
+            tenant_id=tenant_id,
+            actor_id=actor_id,
+            status="edited_approved",
+        )
+        edited_record["class_id"] = record.get("class_id")
+        self._pending_plans[edited_plan.plan_id] = edited_record
+
+        event = ApprovalEvent(
+            tenant_id=tenant_id,
+            actor_id=actor_id,
+            plan_id=plan_id,
+            action="edited_approved",
+            reason=str(reason) if reason else None,
+            lang=record["lang"],
+            provenance=[Provenance.model_validate(item) for item in record["provenance"]],
+        )
+        statement = approval_event_to_xapi(event)
+        self.repository.record_approval(event, statement)
+        self._emit_xapi(tenant_id, actor_id, statement)
+        record["status"] = "edited_approved"
+        record["decided_by"] = actor_id
+        self._record_audit(
+            tenant_id=tenant_id,
+            actor_id=actor_id,
+            label=f"Edited & approved plan {plan_id} as {edited_plan.plan_id}",
+            kind="plan_edited_approved",
+        )
+        return {
+            "ok": True,
+            "plan_id": plan_id,
+            "edited_plan_id": edited_plan.plan_id,
+            "action": "edited_approved",
+            "plan": edited_plan.model_dump(),
+            "xapi_id": statement.id,
+            "xapi_statement": statement.model_dump(),
+            "audit": self._audit_events[-1],
+        }
+
+    def submit_intent(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        class_id = str(payload.get("class_id") or PILOT_CLASS_ID)
+        actor_id = str(payload.get("actor_id") or PILOT_TEACHER_ID)
+        role = str(payload.get("role") or "teacher")
+        prompt_text = str(payload.get("prompt") or "").strip()
+        if not prompt_text:
+            raise LearningApiError("prompt is required", status_code=400)
+
+        request_model = PlannerRequest(
+            tenant_id=tenant_id,
+            actor_id=actor_id,
+            role=role,
+            prompt=prompt_text,
+            scope={
+                "skill_ids": self._allowed_skill_ids,
+                "student_ids": self._student_ids_for_class(tenant_id, class_id)
+                or [PILOT_STUDENT_ID],
+            },
+            offline=True,
+            lang=self.item_bank.lang,
+            provenance=self.item_bank.provenance,
+        )
+        result = StubLearningPlanner().run_turn(request_model)
+        validation = self._validator.validate(result.plan)
+        if not validation.ok:
+            raise LearningApiError(
+                validation.audit_reason or "intent_plan_validation_failed",
+                status_code=422,
+            )
+        record = self.repository.save_intervention_plan(
+            result.plan, tenant_id=tenant_id, actor_id=actor_id, status="pending"
+        )
+        record["class_id"] = class_id
+        self._pending_plans[result.plan.plan_id] = record
+        self._record_audit(
+            tenant_id=tenant_id,
+            actor_id=actor_id,
+            label=f"Intent submitted: {prompt_text[:80]}",
+            kind="intent_submitted",
+        )
+        return {
+            "plan": result.plan.model_dump(),
+            "queued": result.queued,
+            "offline_fallback": result.offline_fallback,
+            "validated": True,
+        }
+
+    def list_audit(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        events = [event for event in self._audit_events if event["tenant_id"] == tenant_id]
+        return {"events": events[-50:]}
+
+    # ------------------------------------------------------------------
+    # LTI 1.3 launch flow (pilot/offline-first)
+    # ------------------------------------------------------------------
+    def initiate_lti_login(self, payload: Mapping[str, Any]) -> Dict[str, str]:
+        issuer = str(payload.get("iss") or "").strip()
+        login_hint = str(payload.get("login_hint") or "").strip()
+        target_link_uri = str(payload.get("target_link_uri") or "").strip()
+        client_id = str(payload.get("client_id") or "").strip() or None
+        deployment_id = str(payload.get("lti_deployment_id") or "").strip() or None
+        lti_message_hint = str(payload.get("lti_message_hint") or "").strip() or None
+        if not issuer or not login_hint or not target_link_uri:
+            raise LearningApiError("iss, login_hint and target_link_uri are required", status_code=400)
+
+        platform = self.lti_verifier.find_platform(
+            issuer=issuer,
+            client_id=client_id,
+            deployment_id=deployment_id,
+        )
+        state = self.lti_state_store.create(
+            issuer=platform.issuer,
+            client_id=platform.client_id,
+            target_link_uri=target_link_uri,
+            lti_message_hint=lti_message_hint,
+            deployment_id=deployment_id,
+        )
+        query = {
+            "response_type": "id_token",
+            "response_mode": "form_post",
+            "scope": "openid",
+            "client_id": platform.client_id,
+            "redirect_uri": target_link_uri,
+            "login_hint": login_hint,
+            "state": state.state,
+            "nonce": state.nonce,
+            "prompt": "none",
+        }
+        if lti_message_hint:
+            query["lti_message_hint"] = lti_message_hint
+        separator = "&" if "?" in platform.auth_login_url else "?"
+        return {"redirect_url": f"{platform.auth_login_url}{separator}{urlencode(query)}"}
+
+    def complete_lti_launch(self, payload: Mapping[str, Any]) -> str:
+        id_token = str(payload.get("id_token") or "").strip()
+        state_value = str(payload.get("state") or "").strip()
+        if not id_token or not state_value:
+            raise LearningApiError("id_token and state are required", status_code=400)
+
+        state = self.lti_state_store.pop(state_value)
+        claims = self.lti_verifier.verify(id_token)
+        if claims.iss != state.issuer or claims.nonce != state.nonce:
+            raise LTIValidationError("LTI state mismatch")
+        if state.deployment_id and claims.deployment_id != state.deployment_id:
+            raise LTIValidationError("LTI deployment mismatch")
+
+        tenant_id = claims.context.label or PILOT_TENANT_ID
+        class_id = claims.context.id
+        student_id = claims.sub
+        role = "teacher" if any("Instructor" in role_uri for role_uri in claims.roles) else "learner"
+
+        event = LTILaunchEvent(
+            tenant_id=tenant_id,
+            actor_id=student_id,
+            class_id=class_id,
+            role=role,
+            issuer=claims.iss,
+            deployment_id=claims.deployment_id,
+            resource_link_id=claims.resource_link.id,
+            lang="en",
+            provenance=[
+                Provenance(
+                    source="LearningApi.complete_lti_launch",
+                    source_id=claims.deployment_id,
+                    rule_id="lti_1p3_resource_link_launch",
+                    confidence=1.0,
+                    evidence_count=1,
+                    metadata={"issuer": claims.iss, "resource_link_id": claims.resource_link.id},
+                )
+            ],
+        )
+        statement = lti_launch_event_to_xapi(event)
+        self._emit_xapi(tenant_id, student_id, statement)
+        self._record_audit(
+            tenant_id=tenant_id,
+            actor_id=student_id,
+            label=f"LTI launch for {class_id}/{student_id}",
+            kind="lti_launch",
+        )
+        session_token = self._encode_lti_session(
+            tenant_id=tenant_id,
+            class_id=class_id,
+            student_id=student_id,
+            role=role,
+        )
+        return f"/learning/launch?session={session_token}"
+
+    def _encode_lti_session(self, *, tenant_id: str, class_id: str, student_id: str, role: str) -> str:
+        if not self.lti_session_secret:
+            raise LearningApiError("LTI_SESSION_SECRET is not configured", status_code=500)
+        return jwt.encode(
+            {
+                "tenant_id": tenant_id,
+                "class_id": class_id,
+                "student_id": student_id,
+                "role": role,
+                "exp": session_expiry_timestamp(900),
+            },
+            self.lti_session_secret,
+            algorithm="HS256",
+        )
+
+    def get_pilot_kpis(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_KPI_TENANT_ID)
+        snapshots = load_metric_snapshots(PILOT_METRICS_PATH, tenant_id)
+        if not snapshots:
+            raise LearningApiError(
+                f"no pilot metric snapshots for tenant {tenant_id}", status_code=404
+            )
+        report = compute_kpi_report(snapshots, tenant_id)
+        cards = [
+            {
+                "label": "Diagnostic completion",
+                "value": f"{report.diagnostic_completion_rate * 100:.1f}%",
+                "detail": (
+                    f"{sum(item.completed_diagnostics for item in snapshots)} of "
+                    f"{sum(item.assigned_diagnostics for item in snapshots)} assigned diagnostics"
+                ),
+            },
+            {
+                "label": "Approved interventions",
+                "value": f"{report.approved_intervention_rate * 100:.0f}%",
+                "detail": (
+                    f"{sum(item.suggestions_approved for item in snapshots)} of "
+                    f"{sum(item.suggestions_created for item in snapshots)} suggestions approved"
+                ),
+            },
+            {
+                "label": "Provenance coverage",
+                "value": f"{report.provenance_coverage * 100:.1f}%",
+                "detail": "Every suggestion has source evidence"
+                if report.provenance_coverage >= 1.0
+                else "Suggestions missing source evidence",
+            },
+            {
+                "label": "Safety pass rate",
+                "value": f"{report.safety_rate * 100:.1f}%",
+                "detail": (
+                    f"{sum(item.safety_eval_passed for item in snapshots)} of "
+                    f"{sum(item.safety_eval_cases for item in snapshots)} eval cases passed"
+                ),
+            },
+            {
+                "label": "DSR SLA",
+                "value": f"{report.dsr_turnaround_rate * 100:.0f}%",
+                "detail": (
+                    f"{sum(item.dsr_within_sla for item in snapshots)} of "
+                    f"{sum(item.dsr_requests for item in snapshots)} requests within SLA"
+                ),
+            },
+            {
+                "label": "Weekly cost per student",
+                "value": f"GBP {report.cost_per_student_gbp:.2f}",
+                "detail": f"{max(item.active_students for item in snapshots)} active students",
+            },
+        ]
+        return {
+            "source": "fixture",
+            "tenant_id": report.tenant_id,
+            "week_count": report.week_count,
+            "meets_pilot_thresholds": report.meets_pilot_thresholds,
+            "report": report.model_dump(),
+            "cards": cards,
+            "lang": report.lang,
+            "provenance": [item.model_dump() for item in report.provenance],
+        }
+
+    def get_observability_config(self, _payload: Mapping[str, Any]) -> Dict[str, Any]:
+        return self.observability.config_payload()
+
+    # ------------------------------------------------------------------
+    # Subjects (multi-subject diagnostic registry)
+    # ------------------------------------------------------------------
+    def list_subjects(self, _payload: Mapping[str, Any]) -> Dict[str, Any]:
+        subjects: List[Dict[str, Any]] = []
+        for bank in self._banks_by_id.values():
+            subjects.append(
+                {
+                    "diagnostic_id": bank.diagnostic_id,
+                    "subject": bank.subject,
+                    "title": bank.title,
+                    "lang": bank.lang,
+                    "skill_count": len(bank.skills),
+                    "item_count": len(bank.items),
+                    "skills": [
+                        {"skill_id": s.skill_id, "name": s.name} for s in bank.skills
+                    ],
+                    "provenance": [p.model_dump() for p in bank.provenance],
+                }
+            )
+        return {"subjects": subjects, "count": len(subjects)}
+
+    # ------------------------------------------------------------------
+    # Skills catalogue (Workstream B)
+    # ------------------------------------------------------------------
+    def list_skills(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        query = payload.get("query")
+        subject = payload.get("subject")
+        status = str(payload.get("status") or "active")
+        try:
+            limit = int(payload.get("limit") or 50)
+            offset = int(payload.get("offset") or 0)
+        except (TypeError, ValueError) as exc:
+            raise LearningApiError(f"invalid pagination: {exc}", status_code=400) from exc
+        try:
+            result = self.repository.list_skills(
+                tenant_id,
+                query=str(query) if query else None,
+                subject=str(subject) if subject else None,
+                status=status,
+                limit=limit,
+                offset=offset,
+            )
+        except ValueError as exc:
+            raise LearningApiError(str(exc), status_code=400) from exc
+        return result.model_dump()
+
+    def get_skill(self, skill_id: str, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        skill = self.repository.get_skill(tenant_id, skill_id)
+        if skill is None:
+            raise LearningApiError(f"skill not found: {skill_id}", status_code=404)
+        return skill.model_dump()
+
+    def create_skill(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        body = dict(payload)
+        body.setdefault("tenant_id", PILOT_TENANT_ID)
+        if not body.get("provenance"):
+            body["provenance"] = [
+                {
+                    "source": "LearningApi.create_skill",
+                    "rule_id": "operator_provided",
+                    "confidence": 1.0,
+                    "evidence_count": 1,
+                }
+            ]
+        try:
+            skill = CatalogueSkill.model_validate(body)
+        except Exception as exc:  # pydantic.ValidationError
+            raise LearningApiError(f"invalid skill payload: {exc}", status_code=400) from exc
+        try:
+            created = self.skills_service.create(skill)
+        except SkillCatalogueError as exc:
+            raise LearningApiError(str(exc), status_code=409) from exc
+        return created.model_dump()
+
+    def archive_skill(self, skill_id: str, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        archived = self.skills_service.archive(tenant_id, skill_id)
+        if archived is None:
+            raise LearningApiError(f"skill not found: {skill_id}", status_code=404)
+        return archived.model_dump()
+
+    # ------------------------------------------------------------------
+    # Voice (F3) — feature-flagged, offline-fallback path
+    # ------------------------------------------------------------------
+    @staticmethod
+    def voice_enabled() -> bool:
+        raw = os.environ.get(VOICE_FEATURE_FLAG_ENV, "")
+        return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+    def get_voice_config(self, _payload: Mapping[str, Any]) -> Dict[str, Any]:
+        return {
+            "enabled": self.voice_enabled(),
+            "transport": "flask-sock",
+            "offline_fallback": self.voice_adapter.offline_fallback,
+        }
+
+    def submit_voice_frame(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        if not self.voice_enabled():
+            raise LearningApiError("voice feature disabled", status_code=403)
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        actor_id = str(payload.get("actor_id") or PILOT_STUDENT_ID)
+        mode = str(payload.get("mode") or "text")
+        body = payload.get("payload")
+        if not isinstance(body, str) or not body.strip():
+            raise LearningApiError("payload is required (text)", status_code=400)
+        lang = str(payload.get("lang") or "en-NG")
+        try:
+            frame = VoiceFrame(
+                tenant_id=tenant_id,
+                actor_id=actor_id,
+                mode=mode,
+                payload=body,
+                lang=lang,
+                provenance=[
+                    Provenance(
+                        source="LearningApi.submit_voice_frame",
+                        rule_id="phase_3_voice_entrypoint",
+                        confidence=1.0,
+                        evidence_count=1,
+                    )
+                ],
+            )
+        except Exception as exc:  # pydantic validation surfaces as 400
+            raise LearningApiError(f"invalid voice frame: {exc}", status_code=400) from exc
+        result = self.voice_adapter.handle_offline_frame(frame, repository=self.repository)
+        self._record_audit(
+            tenant_id=tenant_id,
+            actor_id=actor_id,
+            label=f"Queued voice frame ({mode})",
+            kind="voice_frame_queued",
+        )
+        return result.model_dump()
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+    def _build_and_persist_pending_plan(self, state: _SessionState) -> Dict[str, Any]:
+        request_model = PlannerRequest(
+            tenant_id=state.tenant_id,
+            actor_id=state.teacher_id,
+            role="teacher",
+            prompt="Suggest intervention groups for the completed JSS2 diagnostic session.",
+            scope={
+                "skill_ids": list(state.estimates.keys()) or self._allowed_skill_ids,
+                "student_ids": [state.student_id],
+            },
+            offline=True,
+            lang=self.item_bank.lang,
+            provenance=self.item_bank.provenance,
+        )
+        result = StubLearningPlanner().run_turn(request_model)
+        validation = self._validator.validate(result.plan)
+        if not validation.ok:
+            raise LearningApiError(
+                validation.audit_reason or "diagnostic_plan_validation_failed",
+                status_code=500,
+            )
+        record = self.repository.save_intervention_plan(
+            result.plan, tenant_id=state.tenant_id, actor_id=state.teacher_id, status="pending"
+        )
+        record["class_id"] = state.class_id
+        self._pending_plans[result.plan.plan_id] = record
+        return record
+
+    def _student_ids_for_class(self, tenant_id: str, class_id: str) -> List[str]:
+        return list(
+            sorted(
+                student_id
+                for (event_tenant, student_id) in self._student_estimates.keys()
+                if event_tenant == tenant_id
+                and self._student_classes.get((event_tenant, student_id), PILOT_CLASS_ID) == class_id
+            )
+        )
+
+    def _decide_plan(
+        self, plan_id: str, payload: Mapping[str, Any], *, action: str
+    ) -> Dict[str, Any]:
+        record = self._pending_plans.get(plan_id)
+        if record is None:
+            raise LearningApiError(f"plan {plan_id} not found", status_code=404)
+        if record["status"] != "pending":
+            raise LearningApiError(
+                f"plan {plan_id} is already {record['status']}", status_code=409
+            )
+        payload_class_id = str(payload.get("class_id") or "").strip()
+        record_class_id = str(record.get("class_id") or "").strip()
+        if payload_class_id and record_class_id and payload_class_id != record_class_id:
+            raise LearningApiError("plan is not in the requested class", status_code=403)
+        tenant_id = str(payload.get("tenant_id") or record["tenant_id"])
+        actor_id = str(payload.get("actor_id") or PILOT_TEACHER_ID)
+        reason = payload.get("reason")
+        event = ApprovalEvent(
+            tenant_id=tenant_id,
+            actor_id=actor_id,
+            plan_id=plan_id,
+            action=action,
+            reason=str(reason) if reason else None,
+            lang=record["lang"],
+            provenance=[Provenance.model_validate(item) for item in record["provenance"]],
+        )
+        statement = approval_event_to_xapi(event)
+        self.repository.record_approval(event, statement)
+        self._emit_xapi(tenant_id, actor_id, statement)
+        record["status"] = action
+        record["decided_by"] = actor_id
+        self._record_audit(
+            tenant_id=tenant_id,
+            actor_id=actor_id,
+            label=f"{action.title()} plan {plan_id}",
+            kind=f"plan_{action}",
+        )
+        return {
+            "ok": True,
+            "plan_id": plan_id,
+            "action": action,
+            "xapi_id": statement.id,
+            "xapi_statement": statement.model_dump(),
+            "audit": self._audit_events[-1],
+        }
+
+    def _record_audit(self, *, tenant_id: str, actor_id: str, label: str, kind: str) -> None:
+        self._audit_events.append(
+            {
+                "tenant_id": tenant_id,
+                "actor_id": actor_id,
+                "label": label,
+                "kind": kind,
+            }
+        )
+
+    # ------------------------------------------------------------------
+    # Test helpers
+    # ------------------------------------------------------------------
+    def _reset_for_tests(self) -> None:
+        with self._lock:
+            self._sessions.clear()
+            self._student_estimates.clear()
+            self._student_classes.clear()
+            self._pending_plans.clear()
+            self._audit_events.clear()
+        self.observability.reset_for_tests()
+
+
+def _item_to_payload(item: DiagnosticItem) -> Dict[str, Any]:
+    return {
+        "item_id": item.item_id,
+        "skill_id": item.skill_id,
+        "prompt": item.prompt,
+        "item_type": item.item_type,
+        "difficulty": item.difficulty,
+        "lang": item.lang,
+    }
+
+
+def _read_payload() -> Dict[str, Any]:
+    if request.method == "GET":
+        return {k: v for k, v in request.args.items()}
+    if request.form:
+        return {k: v for k, v in request.form.items()}
+    if not request.data:
+        return {}
+    try:
+        payload = json.loads(request.get_data(as_text=True))
+    except json.JSONDecodeError as exc:
+        raise LearningApiError(f"invalid json payload: {exc}", status_code=400) from exc
+    if not isinstance(payload, dict):
+        raise LearningApiError("json payload must be an object", status_code=400)
+    return payload
+
+
+def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> LearningApi:
+    """Register `/api/learning/*` routes on the given Flask app and return the API singleton."""
+
+    learning_api = api or LearningApi()
+
+    decision_actions = {
+        "approve_plan": "approved",
+        "reject_plan": "rejected",
+        "edit_and_approve_plan": "edited_approved",
+    }
+
+    def _record_decision_metric(operation: str, outcome: str, result: Optional[Mapping[str, Any]] = None) -> None:
+        action = str((result or {}).get("action") or decision_actions.get(operation) or "")
+        if action:
+            learning_api.observability.record_decision(action, outcome)
+
+    def _wrap(handler):
+        def view(*args, **kwargs):
+            operation = handler.__name__.lstrip("_")
+            span_attributes = {
+                "learning.operation": operation,
+                "http.method": request.method,
+                "http.route": request.url_rule.rule if request.url_rule else "",
+            }
+            with learning_api.observability.start_span(
+                f"pathfinder.learning.{operation}", span_attributes
+            ) as span:
+                try:
+                    payload = _read_payload()
+                    result = handler(*args, payload=payload, **kwargs)
+                    learning_api.observability.record_request(operation, request.method, "success")
+                    _record_decision_metric(operation, "success", result)
+                    if span is not None:
+                        span.set_attribute("http.status_code", 200)
+                        span.set_attribute("learning.outcome", "success")
+                    return jsonify(result)
+                except LearningApiError as exc:
+                    learning_api.observability.record_request(operation, request.method, "error")
+                    _record_decision_metric(operation, "error")
+                    if span is not None:
+                        span.set_attribute("http.status_code", exc.status_code)
+                        span.set_attribute("learning.outcome", "error")
+                        span.record_exception(exc)
+                    return jsonify({"error": str(exc)}), exc.status_code
+                except Exception as exc:
+                    learning_api.observability.record_request(operation, request.method, "error")
+                    _record_decision_metric(operation, "error")
+                    if span is not None:
+                        span.set_attribute("learning.outcome", "error")
+                        span.record_exception(exc)
+                    raise
+
+        view.__name__ = handler.__name__
+        return view
+
+    @app.route("/api/learning/diagnostic/start", methods=["POST"])
+    @_wrap
+    def _start_diagnostic(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.start_diagnostic(payload)
+
+    @app.route("/api/learning/diagnostic/answer", methods=["POST"])
+    @_wrap
+    def _answer_diagnostic(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.answer_diagnostic(payload)
+
+    @app.route("/api/learning/class/mastery", methods=["GET"])
+    @_wrap
+    def _class_mastery(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.get_class_mastery(payload)
+
+    @app.route("/api/learning/approvals/pending", methods=["GET"])
+    @_wrap
+    def _pending_approvals(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.list_pending_approvals(payload)
+
+    @app.route("/api/learning/approvals/<plan_id>/approve", methods=["POST"])
+    @_wrap
+    def _approve_plan(plan_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.approve_plan(plan_id, payload)
+
+    @app.route("/api/learning/approvals/<plan_id>/reject", methods=["POST"])
+    @_wrap
+    def _reject_plan(plan_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.reject_plan(plan_id, payload)
+
+    @app.route("/api/learning/approvals/<plan_id>/edit-approve", methods=["POST"])
+    @_wrap
+    def _edit_and_approve_plan(plan_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.edit_and_approve_plan(plan_id, payload)
+
+    @app.route("/api/learning/students/<student_id>/profile", methods=["GET"])
+    @_wrap
+    def _student_profile(student_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.get_student_profile(student_id, payload)
+
+    @app.route("/api/learning/students/<student_id>/override", methods=["POST"])
+    @_wrap
+    def _student_override(student_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.override_mastery(student_id, payload)
+
+    @app.route("/api/learning/lti/login", methods=["POST"])
+    @_wrap
+    def _lti_login(payload: Dict[str, Any]) -> Dict[str, str]:
+        return learning_api.initiate_lti_login(payload)
+
+    @app.route("/api/learning/lti/launch", methods=["POST"])
+    def _lti_launch():
+        operation = "lti_launch"
+        with learning_api.observability.start_span(
+            "pathfinder.learning.lti_launch",
+            {
+                "learning.operation": operation,
+                "http.method": request.method,
+                "http.route": request.url_rule.rule if request.url_rule else "",
+            },
+        ) as span:
+            try:
+                location = learning_api.complete_lti_launch(_read_payload())
+                learning_api.observability.record_request(operation, request.method, "success")
+                if span is not None:
+                    span.set_attribute("http.status_code", 302)
+                    span.set_attribute("learning.outcome", "success")
+                return redirect(location, code=302)
+            except LearningApiError as exc:
+                learning_api.observability.record_request(operation, request.method, "error")
+                if span is not None:
+                    span.set_attribute("http.status_code", exc.status_code)
+                    span.set_attribute("learning.outcome", "error")
+                    span.record_exception(exc)
+                return jsonify({"error": str(exc)}), exc.status_code
+
+    @app.route("/api/learning/intent", methods=["POST"])
+    @_wrap
+    def _intent(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.submit_intent(payload)
+
+    @app.route("/api/learning/audit", methods=["GET"])
+    @_wrap
+    def _audit(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.list_audit(payload)
+
+    @app.route("/api/learning/kpis", methods=["GET"])
+    @_wrap
+    def _kpis(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.get_pilot_kpis(payload)
+
+    @app.route("/api/learning/observability/config", methods=["GET"])
+    @_wrap
+    def _observability_config(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.get_observability_config(payload)
+
+    @app.route("/api/learning/metrics", methods=["GET"])
+    def _learning_metrics():
+        if not learning_api.observability.prometheus_enabled:
+            return jsonify({"error": "learning prometheus metrics disabled"}), 403
+        body, content_type = learning_api.observability.render_prometheus()
+        return Response(body, content_type=content_type)
+
+    @app.route("/api/learning/voice/config", methods=["GET"])
+    @_wrap
+    def _voice_config(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.get_voice_config(payload)
+
+    @app.route("/api/learning/voice/frame", methods=["POST"])
+    @_wrap
+    def _voice_frame(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.submit_voice_frame(payload)
+
+    @app.route("/api/learning/subjects", methods=["GET"])
+    @_wrap
+    def _subjects(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.list_subjects(payload)
+
+    @app.route("/api/learning/skills", methods=["GET"])
+    @_wrap
+    def _list_skills(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.list_skills(payload)
+
+    @app.route("/api/learning/skills", methods=["POST"])
+    @_wrap
+    def _create_skill(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.create_skill(payload)
+
+    @app.route("/api/learning/skills/<skill_id>", methods=["GET"])
+    @_wrap
+    def _get_skill(skill_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.get_skill(skill_id, payload)
+
+    @app.route("/api/learning/skills/<skill_id>/archive", methods=["POST"])
+    @_wrap
+    def _archive_skill(skill_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.archive_skill(skill_id, payload)
+
+    return learning_api
+
+
+__all__ = [
+    "LearningApi",
+    "LearningApiError",
+    "register_learning_api",
+    "DIAGNOSTICS_DIR",
+    "ITEM_BANK_PATH",
+    "PILOT_TENANT_ID",
+    "PILOT_CLASS_ID",
+    "PILOT_STUDENT_ID",
+    "PILOT_TEACHER_ID",
+    "PILOT_KPI_TENANT_ID",
+]

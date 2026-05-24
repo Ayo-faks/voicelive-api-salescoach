@@ -36,7 +36,8 @@ const useStyles = makeStyles({
   stage: {
     opacity: 1,
     transform: 'translateY(0) scale(1)',
-    transition: 'opacity 360ms ease-out, transform 420ms cubic-bezier(0.22, 1, 0.36, 1)',
+    transition:
+      'opacity 360ms ease-out, transform 420ms cubic-bezier(0.22, 1, 0.36, 1)',
     willChange: 'opacity, transform',
     '@media (prefers-reduced-motion: reduce)': {
       transition: 'none',
@@ -193,7 +194,10 @@ function getScenarioExerciseMetadata(
       targetSound: scenario.scenarioData.targetSound,
       targetWords: scenario.scenarioData.targetWords,
       difficulty: scenario.scenarioData.difficulty,
-      requiresMic: exerciseRequiresMic(undefined, scenario.scenarioData.exerciseType),
+      requiresMic: exerciseRequiresMic(
+        undefined,
+        scenario.scenarioData.exerciseType
+      ),
     }
   }
 
@@ -244,17 +248,22 @@ export function SessionScreen({
   const micRequired = exerciseRequiresMic(exerciseMetadata)
   const canTalk = micRequired && connected && introComplete && !sessionFinished
   const exerciseType = formatExerciseType(
-    customScenario?.scenarioData.exerciseType || scenario?.exerciseMetadata?.type
+    customScenario?.scenarioData.exerciseType ||
+      scenario?.exerciseMetadata?.type
   )
   const showMicDock = micRequired
-  const isListeningMinimalPairs = exerciseMetadata?.type === 'listening_minimal_pairs'
+  const isListeningMinimalPairs =
+    exerciseMetadata?.type === 'listening_minimal_pairs'
   const isSilentSorting = exerciseMetadata?.type === 'silent_sorting'
-  const isAuditoryBombardment = exerciseMetadata?.type === 'auditory_bombardment'
+  const isAuditoryBombardment =
+    exerciseMetadata?.type === 'auditory_bombardment'
   const isSoundIsolation = exerciseMetadata?.type === 'sound_isolation'
   const isVowelBlending = exerciseMetadata?.type === 'vowel_blending'
-  const isWordPositionPractice = exerciseMetadata?.type === 'word_position_practice'
+  const isWordPositionPractice =
+    exerciseMetadata?.type === 'word_position_practice'
   const isTwoWordPhrase = exerciseMetadata?.type === 'two_word_phrase'
-  const isStructuredConversation = exerciseMetadata?.type === 'structured_conversation'
+  const isStructuredConversation =
+    exerciseMetadata?.type === 'structured_conversation'
 
   const activityPanel = isStructuredConversation ? (
     <StructuredConversationPanel
@@ -348,16 +357,18 @@ export function SessionScreen({
 
   return (
     <div
-      className={mergeClasses(
-        styles.stage,
-        launching && styles.stageLaunching
-      )}
+      className={mergeClasses(styles.stage, launching && styles.stageLaunching)}
     >
       <div className={styles.layout}>
         <div className={styles.heroColumn}>
           {isChildMode && scenario ? (
             <Card className={styles.scenarioCard}>
-              <Text className={styles.scenarioTitle} size={700} weight="semibold" block>
+              <Text
+                className={styles.scenarioTitle}
+                size={700}
+                weight="semibold"
+                block
+              >
                 {scenario.name}
               </Text>
               <Text size={300} block className={styles.scenarioDescription}>
@@ -414,7 +425,12 @@ export function SessionScreen({
 
           {activityPanel}
 
-          {isChildMode && !isListeningMinimalPairs && !isSilentSorting && !isAuditoryBombardment && !isWordPositionPractice && !isTwoWordPhrase ? (
+          {isChildMode &&
+          !isListeningMinimalPairs &&
+          !isSilentSorting &&
+          !isAuditoryBombardment &&
+          !isWordPositionPractice &&
+          !isTwoWordPhrase ? (
             <ExerciseFeedback
               referenceText={activeReferenceText}
               feedback={utteranceFeedback}

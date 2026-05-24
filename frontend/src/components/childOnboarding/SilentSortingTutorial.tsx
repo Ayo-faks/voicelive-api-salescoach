@@ -32,9 +32,18 @@ export interface SilentSortingTutorialProps {
 }
 
 const steps = [
-  { anchorId: silentSortingAnchors.bins.id, caption: silentSortingTutorialCopy.bins },
-  { anchorId: silentSortingAnchors.sample.id, caption: silentSortingTutorialCopy.sample },
-  { anchorId: silentSortingAnchors.finish.id, caption: silentSortingTutorialCopy.finish },
+  {
+    anchorId: silentSortingAnchors.bins.id,
+    caption: silentSortingTutorialCopy.bins,
+  },
+  {
+    anchorId: silentSortingAnchors.sample.id,
+    caption: silentSortingTutorialCopy.sample,
+  },
+  {
+    anchorId: silentSortingAnchors.finish.id,
+    caption: silentSortingTutorialCopy.finish,
+  },
 ] as const
 
 export function SilentSortingTutorial({
@@ -44,7 +53,7 @@ export function SilentSortingTutorial({
   const [stepIndex, setStepIndex] = useState(0)
 
   const handleNext = useCallback(() => {
-    setStepIndex((current) => {
+    setStepIndex(current => {
       const next = current + 1
       if (next >= steps.length) {
         onComplete()
@@ -68,7 +77,11 @@ export function SilentSortingTutorial({
     <ChildSpotlight
       anchorId={step.anchorId}
       caption={step.caption}
-      nextCtaLabel={isLast ? silentSortingTutorialCopy.doneCta : silentSortingTutorialCopy.nextCta}
+      nextCtaLabel={
+        isLast
+          ? silentSortingTutorialCopy.doneCta
+          : silentSortingTutorialCopy.nextCta
+      }
       onNext={handleNext}
       onDismiss={handleDismiss}
     />

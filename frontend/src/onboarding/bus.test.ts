@@ -8,7 +8,11 @@ vi.mock('./tours', () => ({
   getTourById,
 }))
 
-import { consumePendingReplayTour, onReplayTourRequested, requestReplayTour } from './bus'
+import {
+  consumePendingReplayTour,
+  onReplayTourRequested,
+  requestReplayTour,
+} from './bus'
 
 describe('onboarding replay bus', () => {
   beforeEach(() => {

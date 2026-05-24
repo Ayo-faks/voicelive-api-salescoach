@@ -45,19 +45,28 @@ describe('micModeReducer', () => {
 
   it('SCORED_TURN_END clears a matching turn', () => {
     const state = { mode: 'conversational' as const, scoredTurn: turn }
-    const next = micModeReducer(state, { type: 'SCORED_TURN_END', turnId: 't-1' })
+    const next = micModeReducer(state, {
+      type: 'SCORED_TURN_END',
+      turnId: 't-1',
+    })
     expect(next.scoredTurn).toBeNull()
   })
 
   it('SCORED_TURN_END ignores a mismatched turnId (late ack)', () => {
     const state = { mode: 'conversational' as const, scoredTurn: turn }
-    const next = micModeReducer(state, { type: 'SCORED_TURN_END', turnId: 't-stale' })
+    const next = micModeReducer(state, {
+      type: 'SCORED_TURN_END',
+      turnId: 't-stale',
+    })
     expect(next).toBe(state)
   })
 
   it('SCORED_TURN_TIMEOUT clears a matching turn', () => {
     const state = { mode: 'conversational' as const, scoredTurn: turn }
-    const next = micModeReducer(state, { type: 'SCORED_TURN_TIMEOUT', turnId: 't-1' })
+    const next = micModeReducer(state, {
+      type: 'SCORED_TURN_TIMEOUT',
+      turnId: 't-1',
+    })
     expect(next.scoredTurn).toBeNull()
   })
 })

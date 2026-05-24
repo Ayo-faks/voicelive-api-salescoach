@@ -168,5 +168,11 @@ Thumbs.db
 
 .pytest_cache
 .azure
+evidence/
+!evidence/compliance/
+evidence/compliance/bundle.zip
+evidence/compliance/bundle.zip.manifest.json
 static
 data/wulo.db
+# Local dev logs and handoff notes
+.local-logs/

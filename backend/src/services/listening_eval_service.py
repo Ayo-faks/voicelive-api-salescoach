@@ -19,6 +19,7 @@ Tables are created on first use when running against SQLite (local dev).
 Postgres production provisions them via alembic revision
 ``20260421_000020_listening_eval_tables.py``.
 """
+
 from __future__ import annotations
 
 import sqlite3
@@ -26,7 +27,7 @@ import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Callable, ContextManager, Dict, Iterable, List, Optional
+from typing import Any, Callable, ContextManager, Dict, List, Optional
 
 __all__ = [
     "ListeningEvalItem",
@@ -213,12 +214,8 @@ class ListeningEvalService:
             )
         return item
 
-    def list_active_items(
-        self, *, target_sound: Optional[str] = None, limit: int = 50
-    ) -> List[ListeningEvalItem]:
-        query = (
-            "SELECT * FROM listening_eval_items WHERE retired_at IS NULL"
-        )
+    def list_active_items(self, *, target_sound: Optional[str] = None, limit: int = 50) -> List[ListeningEvalItem]:
+        query = "SELECT * FROM listening_eval_items WHERE retired_at IS NULL"
         params: list[Any] = []
         if target_sound:
             query += " AND target_sound = ?"
@@ -233,16 +230,13 @@ class ListeningEvalService:
     def get_item(self, item_id: str) -> Optional[ListeningEvalItem]:
         with self._connect() as conn:
             conn.row_factory = sqlite3.Row
-            row = conn.execute(
-                "SELECT * FROM listening_eval_items WHERE id = ?", (item_id,)
-            ).fetchone()
+            row = conn.execute("SELECT * FROM listening_eval_items WHERE id = ?", (item_id,)).fetchone()
         return self._row_to_item(row) if row else None
 
     def retire_item(self, item_id: str) -> bool:
         with self._connect() as conn:
             cursor = conn.execute(
-                "UPDATE listening_eval_items SET retired_at = ? "
-                "WHERE id = ? AND retired_at IS NULL",
+                "UPDATE listening_eval_items SET retired_at = ? " "WHERE id = ? AND retired_at IS NULL",
                 (_utc_now_iso(), item_id),
             )
             return cursor.rowcount > 0
@@ -338,10 +332,7 @@ class ListeningEvalService:
         gates; this keeps the RL pipeline from training on a thin prior.
         """
         stats = self.total_vote_stats()
-        if (
-            stats["votes"] < MIN_VOTES_FOR_REWARD
-            or stats["therapists"] < MIN_THERAPISTS_FOR_REWARD
-        ):
+        if stats["votes"] < MIN_VOTES_FOR_REWARD or stats["therapists"] < MIN_THERAPISTS_FOR_REWARD:
             return []
 
         now = _utc_now_iso()
@@ -385,16 +376,10 @@ class ListeningEvalService:
             conn.execute("DELETE FROM listening_eval_rewards")
 
             for token, agg in by_token.items():
-                reward = (
-                    agg["weighted_sum"] / agg["weight_total"]
-                    if agg["weight_total"]
-                    else 0.0
-                )
+                reward = agg["weighted_sum"] / agg["weight_total"] if agg["weight_total"] else 0.0
                 counts = agg["counts"]
                 winning = max(counts.items(), key=lambda kv: kv[1])
-                label = (
-                    agg["labels"][winning[0]] if winning[0] in ("a", "b") else "tie"
-                )
+                label = agg["labels"][winning[0]] if winning[0] in ("a", "b") else "tie"
                 total_votes = sum(counts.values())
                 reward_row = ListeningEvalReward(
                     target_token=token,
@@ -428,9 +413,7 @@ class ListeningEvalService:
     def list_rewards(self) -> List[ListeningEvalReward]:
         with self._connect() as conn:
             conn.row_factory = sqlite3.Row
-            rows = conn.execute(
-                "SELECT * FROM listening_eval_rewards ORDER BY reward DESC"
-            ).fetchall()
+            rows = conn.execute("SELECT * FROM listening_eval_rewards ORDER BY reward DESC").fetchall()
         return [
             ListeningEvalReward(
                 target_token=r["target_token"],
@@ -483,9 +466,9 @@ class ListeningEvalService:
             ).fetchall()
         for row in rows:
             preferred_label = (
-                row["variant_a_label"] if row["preferred_variant"] == "a"
-                else row["variant_b_label"] if row["preferred_variant"] == "b"
-                else "tie"
+                row["variant_a_label"]
+                if row["preferred_variant"] == "a"
+                else row["variant_b_label"] if row["preferred_variant"] == "b" else "tie"
             )
             writer.writerow(
                 [
@@ -539,9 +522,7 @@ class ListeningEvalService:
 # ---------------------------------------------------------------------- #
 # DPO / preference-dataset export                                        #
 # ---------------------------------------------------------------------- #
-def build_dpo_preference_pairs(
-    service: ListeningEvalService, *, min_confidence: int = 3
-) -> List[Dict[str, Any]]:
+def build_dpo_preference_pairs(service: ListeningEvalService, *, min_confidence: int = 3) -> List[Dict[str, Any]]:
     """Convert votes into DPO-style preference rows ``{chosen, rejected, weight}``.
 
     Ties and low-confidence (<``min_confidence``) votes are skipped — DPO

@@ -20,7 +20,15 @@
  * returns the single active word instead of the joined `targetWords` list.
  */
 
-import { Badge, Button, Card, ProgressBar, Text, makeStyles, mergeClasses } from '@fluentui/react-components'
+import {
+  Badge,
+  Button,
+  Card,
+  ProgressBar,
+  Text,
+  makeStyles,
+  mergeClasses,
+} from '@fluentui/react-components'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ExerciseMetadata, PronunciationAssessment } from '../types'
 import type { MicMode } from '../utils/micMode'
@@ -197,13 +205,20 @@ export function WordPositionPracticePanel({
       ? metadata.wordPosition
       : undefined)
   const posWord = positionLabel(subStep)
-  const targetWords = useMemo(() => metadata?.targetWords ?? [], [metadata?.targetWords])
-  const imageAssets = useMemo(() => metadata?.imageAssets ?? [], [metadata?.imageAssets])
+  const targetWords = useMemo(
+    () => metadata?.targetWords ?? [],
+    [metadata?.targetWords]
+  )
+  const imageAssets = useMemo(
+    () => metadata?.imageAssets ?? [],
+    [metadata?.imageAssets]
+  )
   const masteryThreshold = metadata?.masteryThreshold ?? 80
   const repetitionTarget = metadata?.repetitionTarget ?? 20
-  const successesPerWord = targetWords.length > 0
-    ? Math.max(1, Math.ceil(repetitionTarget / targetWords.length))
-    : 1
+  const successesPerWord =
+    targetWords.length > 0
+      ? Math.max(1, Math.ceil(repetitionTarget / targetWords.length))
+      : 1
   const perceptLabel = getPerceptLabel(targetSound)
 
   const shellMetadata: ExerciseMetadata = {
@@ -222,12 +237,10 @@ export function WordPositionPracticePanel({
           : posWord
             ? `Let's say ${perceptLabel} words with the sound in the ${posWord}.`
             : `Let's practice ${perceptLabel} words together.`,
-      bridge: posWord
-        ? `Sound goes in the ${posWord}.`
-        : 'Sound on target.',
+      bridge: posWord ? `Sound goes in the ${posWord}.` : 'Sound on target.',
       reinforce: 'Great practice! See you next time.',
     }),
-    [audience, perceptLabel, posWord],
+    [audience, perceptLabel, posWord]
   )
 
   return (
@@ -273,7 +286,7 @@ export function WordPositionPracticePanel({
           ),
         }}
         performComplete={false /* PerformSlot writes via ref-bridge below */}
-        onBeatEnter={(phase) => {
+        onBeatEnter={phase => {
           if (phase === 'reinforce' && onExerciseComplete) {
             onExerciseComplete()
           }
@@ -306,7 +319,9 @@ function ExposeSlot({
   const styles = useStyles()
   const { advance, notifyExposeInteract } = useShellAdvance()
   const [playingIndex, setPlayingIndex] = useState<number | null>(null)
-  const [previewedIndexes, setPreviewedIndexes] = useState<Set<number>>(new Set())
+  const [previewedIndexes, setPreviewedIndexes] = useState<Set<number>>(
+    new Set()
+  )
   const abortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
@@ -328,15 +343,15 @@ function ExposeSlot({
       try {
         const b64 = await api.synthesizeSpeech(
           voiceName ? { text: word, voiceName } : { text: word },
-          { signal: controller.signal },
+          { signal: controller.signal }
         )
         if (controller.signal.aborted) return
         const blob = new Blob(
           [Uint8Array.from(atob(b64), c => c.charCodeAt(0))],
-          { type: 'audio/mpeg' },
+          { type: 'audio/mpeg' }
         )
         const url = URL.createObjectURL(blob)
-        await new Promise<void>((resolve) => {
+        await new Promise<void>(resolve => {
           const audio = new Audio(url)
           const cleanup = () => {
             URL.revokeObjectURL(url)
@@ -344,10 +359,14 @@ function ExposeSlot({
           }
           audio.onended = cleanup
           audio.onerror = cleanup
-          controller.signal.addEventListener('abort', () => {
-            audio.pause()
-            cleanup()
-          }, { once: true })
+          controller.signal.addEventListener(
+            'abort',
+            () => {
+              audio.pause()
+              cleanup()
+            },
+            { once: true }
+          )
           void audio.play().catch(cleanup)
         })
       } catch {
@@ -363,7 +382,7 @@ function ExposeSlot({
         }
       }
     },
-    [notifyExposeInteract, playingIndex, targetWords, voiceName],
+    [notifyExposeInteract, playingIndex, targetWords, voiceName]
   )
 
   const handleStart = useCallback(() => {
@@ -373,7 +392,8 @@ function ExposeSlot({
     advance()
   }, [advance, onActiveTargetWordChange, targetWords])
 
-  const canStart = readyToStart && previewedIndexes.size > 0 && playingIndex === null
+  const canStart =
+    readyToStart && previewedIndexes.size > 0 && playingIndex === null
 
   return (
     <>
@@ -404,13 +424,15 @@ function ExposeSlot({
               data-previewed={previewed ? 'true' : 'false'}
               className={mergeClasses(
                 styles.cellShell,
-                active && styles.cellActive,
+                active && styles.cellActive
               )}
             >
               <ImageCard
                 word={word}
                 imagePath={imageAssets[i]}
-                onClick={() => { void play(i) }}
+                onClick={() => {
+                  void play(i)
+                }}
                 disabled={playingIndex !== null && playingIndex !== i}
               />
             </div>
@@ -462,8 +484,13 @@ function PerformSlot({
   const styles = useStyles()
   const ctx = useExercisePhaseContext()
   const [activeIndex, setActiveIndex] = useState(0)
-  const [progress, setProgress] = useState<WordProgress[]>(
-    () => targetWords.map(() => ({ attempts: 0, successes: 0, lastScore: null, complete: false })),
+  const [progress, setProgress] = useState<WordProgress[]>(() =>
+    targetWords.map(() => ({
+      attempts: 0,
+      successes: 0,
+      lastScore: null,
+      complete: false,
+    }))
   )
   const [micError, setMicError] = useState<string | null>(null)
   const lastFeedbackRef = useRef<PronunciationAssessment | null>(null)
@@ -527,7 +554,9 @@ function PerformSlot({
   useEffect(() => {
     const cur = progress[activeIndex]
     if (!cur?.complete) return
-    const nextIndex = progress.findIndex((p, i) => i > activeIndex && !p.complete)
+    const nextIndex = progress.findIndex(
+      (p, i) => i > activeIndex && !p.complete
+    )
     if (nextIndex >= 0) {
       setActiveIndex(nextIndex)
     } else {
@@ -555,9 +584,13 @@ function PerformSlot({
   const activeImage = imageAssets[activeIndex]
   const activeProgress = progress[activeIndex]
   const overallDone = progress.filter(p => p.complete).length
-  const overallPct = targetWords.length > 0 ? (overallDone / targetWords.length) * 100 : 0
+  const overallPct =
+    targetWords.length > 0 ? (overallDone / targetWords.length) * 100 : 0
   const lastScore = activeProgress?.lastScore
-  const lastWasSuccess = lastScore !== null && lastScore !== undefined && lastScore >= masteryThreshold
+  const lastWasSuccess =
+    lastScore !== null &&
+    lastScore !== undefined &&
+    lastScore >= masteryThreshold
 
   return (
     <>
@@ -582,7 +615,7 @@ function PerformSlot({
             <Text
               className={mergeClasses(
                 styles.feedback,
-                lastWasSuccess ? styles.feedbackOk : styles.feedbackRetry,
+                lastWasSuccess ? styles.feedbackOk : styles.feedbackRetry
               )}
             >
               {lastWasSuccess
@@ -595,9 +628,15 @@ function PerformSlot({
               appearance="primary"
               className={styles.startButton}
               disabled={scoringUtterance}
-              onClick={() => { void handleMicToggle() }}
+              onClick={() => {
+                void handleMicToggle()
+              }}
             >
-              {recording ? 'Stop' : scoringUtterance ? 'Scoring…' : 'Say the word'}
+              {recording
+                ? 'Stop'
+                : scoringUtterance
+                  ? 'Scoring…'
+                  : 'Say the word'}
             </Button>
             <Button
               appearance="secondary"
@@ -636,7 +675,7 @@ function PerformSlot({
               className={mergeClasses(
                 styles.cellShell,
                 active && styles.cellActive,
-                disabled && styles.cellDone,
+                disabled && styles.cellDone
               )}
               onClick={selectWord}
               disabled={disabled}
@@ -649,11 +688,19 @@ function PerformSlot({
               }}
             >
               {p?.complete ? (
-                <Badge appearance="filled" color="success" className={styles.cellBadge}>
+                <Badge
+                  appearance="filled"
+                  color="success"
+                  className={styles.cellBadge}
+                >
                   Done
                 </Badge>
               ) : null}
-              <ImageCard word={word} imagePath={imageAssets[i]} selected={active} />
+              <ImageCard
+                word={word}
+                imagePath={imageAssets[i]}
+                selected={active}
+              />
             </button>
           )
         })}

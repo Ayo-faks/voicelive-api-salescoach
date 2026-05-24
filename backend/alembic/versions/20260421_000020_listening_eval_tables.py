@@ -9,6 +9,7 @@ carries two synthesised audio variants (``variant_a``, ``variant_b``) for the
 same target token. Therapists vote for the clearer production; the aggregate
 preference is the acoustic-quality prior we train on.
 """
+
 from __future__ import annotations
 
 from alembic import op
@@ -59,8 +60,7 @@ def upgrade() -> None:
         """
     )
     op.execute(
-        "CREATE INDEX IF NOT EXISTS idx_listening_eval_votes_item "
-        "ON listening_eval_votes (item_id, created_at DESC)"
+        "CREATE INDEX IF NOT EXISTS idx_listening_eval_votes_item " "ON listening_eval_votes (item_id, created_at DESC)"
     )
     op.execute(
         "CREATE INDEX IF NOT EXISTS idx_listening_eval_votes_therapist "

@@ -60,7 +60,7 @@ export interface NarrationAdapter {
 
 /** Create a narration adapter bound to the caller's audio pipeline. */
 export function createNarrationAdapter(
-  options: NarrationAdapterOptions,
+  options: NarrationAdapterOptions
 ): NarrationAdapter {
   let inFlight: Promise<void> | null = null
   let queued: NarrateRequest | null = null
@@ -78,7 +78,7 @@ export function createNarrationAdapter(
           text: request.text,
           voiceName: request.voiceName,
         },
-        { signal: controller.signal },
+        { signal: controller.signal }
       )
       if (cancelled) return
       options.playAudio(audio)

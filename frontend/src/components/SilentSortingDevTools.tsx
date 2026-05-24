@@ -9,7 +9,10 @@ import { Button, Text, makeStyles } from '@fluentui/react-components'
 import { useCallback, type FC } from 'react'
 import { exportPreviewTake, isPreviewExportEnabled } from '../dev/previewExport'
 import { api } from '../services/api'
-import { buildPreviewCandidate, type PreviewStrategyFamily } from '../utils/phonemeSsml'
+import {
+  buildPreviewCandidate,
+  type PreviewStrategyFamily,
+} from '../utils/phonemeSsml'
 
 const useStyles = makeStyles({
   root: {
@@ -58,7 +61,10 @@ export const SilentSortingDevTools: FC<SilentSortingDevToolsProps> = ({
     if (!lastPreviewed || previewPending || lastPreviewed.source === 'asset') {
       return
     }
-    const candidate = buildPreviewCandidate(lastPreviewed.sound, previewStrategy)
+    const candidate = buildPreviewCandidate(
+      lastPreviewed.sound,
+      previewStrategy
+    )
     if (!candidate) {
       onStatusChange('Save failed: no candidate')
       return
@@ -80,7 +86,13 @@ export const SilentSortingDevTools: FC<SilentSortingDevToolsProps> = ({
     } finally {
       onPendingChange(false)
     }
-  }, [lastPreviewed, onPendingChange, onStatusChange, previewPending, previewStrategy])
+  }, [
+    lastPreviewed,
+    onPendingChange,
+    onStatusChange,
+    previewPending,
+    previewStrategy,
+  ])
 
   if (!isPreviewExportEnabled()) {
     return null

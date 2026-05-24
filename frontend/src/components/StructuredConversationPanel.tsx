@@ -172,7 +172,7 @@ export function StructuredConversationPanel({
   const targetSound = metadata?.targetSound ?? ''
   const perceptLabel = useMemo(
     () => (targetSound ? getPerceptLabel(targetSound) : 'the target sound'),
-    [targetSound],
+    [targetSound]
   )
   const targetCountGate = metadata?.targetCountGate ?? DEFAULT_TARGET_COUNT_GATE
   const durationFloorSeconds =
@@ -225,7 +225,7 @@ export function StructuredConversationPanel({
           ? 'Review productions and overrides together.'
           : 'Great chatting! See you next time.',
     }),
-    [audience, perceptLabel],
+    [audience, perceptLabel]
   )
 
   const shellMetadata = useMemo(
@@ -236,7 +236,7 @@ export function StructuredConversationPanel({
       type: 'structured_conversation' as const,
       imageAssets: [],
     }),
-    [metadata?.difficulty, targetSound],
+    [metadata?.difficulty, targetSound]
   )
 
   const handleOverride = useCallback(
@@ -246,13 +246,13 @@ export function StructuredConversationPanel({
         op === 'increment_correct'
           ? { correctDelta: 1 }
           : op === 'increment_incorrect'
-          ? { incorrectDelta: 1 }
-          : op === 'decrement_correct'
-          ? { correctDelta: -1 }
-          : { incorrectDelta: -1 }
+            ? { incorrectDelta: 1 }
+            : op === 'decrement_correct'
+              ? { correctDelta: -1 }
+              : { incorrectDelta: -1 }
       onSendRealtime({ type: 'wulo.therapist_override', payload })
     },
-    [onSendRealtime],
+    [onSendRealtime]
   )
 
   const handleRequestPause = useCallback(() => {
@@ -271,7 +271,7 @@ export function StructuredConversationPanel({
       <Text className={styles.subtitle}>
         {audience === 'therapist'
           ? `Connected speech for ${perceptLabel}. Target ${targetCountGate} productions over ${durationFloorSeconds}s minimum. Recasts only; no hard correction.`
-          : "Pick a topic, then tell me all about it!"}
+          : 'Pick a topic, then tell me all about it!'}
       </Text>
       <ExerciseShell
         metadata={shellMetadata}
@@ -308,7 +308,10 @@ export function StructuredConversationPanel({
             />
           ),
           reinforce: (
-            <ReinforceSlot audience={audience} targetTally={targetTally ?? null} />
+            <ReinforceSlot
+              audience={audience}
+              targetTally={targetTally ?? null}
+            />
           ),
         }}
         performComplete={performComplete}
@@ -350,14 +353,13 @@ function TopicPickerSlot({
       onSelectTopic(topicId)
       notifyExposeInteract()
     },
-    [notifyExposeInteract, onSelectTopic],
+    [notifyExposeInteract, onSelectTopic]
   )
 
   if (topics.length === 0) {
     return (
       <Text size={300}>
-        (No topics configured. Add <code>topics[]</code> to the exercise
-        YAML.)
+        (No topics configured. Add <code>topics[]</code> to the exercise YAML.)
       </Text>
     )
   }
@@ -377,7 +379,7 @@ function TopicPickerSlot({
               key={topic.topicId}
               className={mergeClasses(
                 styles.topicCell,
-                isSelected && styles.topicCellSelected,
+                isSelected && styles.topicCellSelected
               )}
               data-topic-id={topic.topicId}
               onClick={() => handleSelect(topic.topicId)}
@@ -445,7 +447,7 @@ function PerformSlot({
 
   const topic = useMemo(
     () => topics.find(t => t.topicId === selectedTopicId) ?? null,
-    [selectedTopicId, topics],
+    [selectedTopicId, topics]
   )
 
   const handleModelIt = useCallback(async () => {
@@ -491,7 +493,8 @@ function PerformSlot({
             {total}/{targetCountGate} productions
           </span>
           <span>
-            {Math.min(99, Math.round((elapsed / durationFloorSeconds) * 100))}% time
+            {Math.min(99, Math.round((elapsed / durationFloorSeconds) * 100))}%
+            time
           </span>
         </div>
         <ProgressBar value={progress} thickness="medium" shape="square" />
@@ -539,10 +542,7 @@ function PerformSlot({
           >
             +1 incorrect
           </Button>
-          <Button
-            size="small"
-            onClick={() => onOverride('decrement_correct')}
-          >
+          <Button size="small" onClick={() => onOverride('decrement_correct')}>
             -1 correct
           </Button>
           <Button
@@ -569,22 +569,23 @@ interface ReinforceSlotProps {
 function ReinforceSlot({ audience, targetTally }: ReinforceSlotProps) {
   const styles = useStyles()
   if (!targetTally) {
-    return <Text size={300}>{audience === 'therapist' ? 'No tally recorded.' : 'All done!'}</Text>
+    return (
+      <Text size={300}>
+        {audience === 'therapist' ? 'No tally recorded.' : 'All done!'}
+      </Text>
+    )
   }
   return (
     <div className={styles.summary} data-slot="structured-conversation-summary">
       <Text>
-        {targetTally.correctCount} correct / {targetTally.incorrectCount} incorrect
-        {' '}
-        ({Math.round(targetTally.accuracy * 100)}% accuracy)
+        {targetTally.correctCount} correct / {targetTally.incorrectCount}{' '}
+        incorrect ({Math.round(targetTally.accuracy * 100)}% accuracy)
       </Text>
       <Text>
         {Math.round(targetTally.elapsedSeconds)} seconds of connected speech
       </Text>
       {targetTally.standouts && targetTally.standouts.length > 0 ? (
-        <Text>
-          Great words: {targetTally.standouts.join(', ')}
-        </Text>
+        <Text>Great words: {targetTally.standouts.join(', ')}</Text>
       ) : null}
     </div>
   )

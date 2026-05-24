@@ -127,7 +127,9 @@ export interface ChecklistWidgetProps {
   title?: string
 }
 
-export function ChecklistWidget(props: ChecklistWidgetProps): JSX.Element | null {
+export function ChecklistWidget(
+  props: ChecklistWidgetProps
+): JSX.Element | null {
   const styles = useStyles()
   const evaluated = useMemo(
     () => evaluateChecklist(props.snapshot, props.role, props.userState),
@@ -176,7 +178,10 @@ export function ChecklistWidget(props: ChecklistWidgetProps): JSX.Element | null
         {evaluated.map(({ item, completed }) => (
           <li
             key={item.id}
-            className={mergeClasses(styles.item, completed && styles.itemComplete)}
+            className={mergeClasses(
+              styles.item,
+              completed && styles.itemComplete
+            )}
             data-testid={`checklist-item-${item.id}`}
             data-completed={completed ? 'true' : 'false'}
           >

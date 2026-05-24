@@ -29,7 +29,11 @@ interface Props {
   label?: string
 }
 
-export function RepetitionCounter({ current, target, label = 'Practice count' }: Props) {
+export function RepetitionCounter({
+  current,
+  target,
+  label = 'Practice count',
+}: Props) {
   const styles = useStyles()
   return (
     <div className={styles.wrap}>

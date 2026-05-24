@@ -1,0 +1,76 @@
+{
+  "dataset_id": "nigeria-career-labour-market-phase-3",
+  "lang": "en-NG",
+  "records": [
+    {
+      "pathway_id": "data-analyst-ng",
+      "title": "Data analyst",
+      "skill_weights": {"ratio-proportion": 0.2, "fraction-operations": 0.15, "linear-equations": 0.45, "plane-geometry": 0.2},
+      "wage_band": {"source": "nbs_phase_3_fixture", "recency": "2026-Q1", "confidence": 0.78, "value": {"currency": "NGN", "min_monthly": 250000, "max_monthly": 650000}},
+      "demand_trend": {"source": "world_bank_step_phase_3_fixture", "recency": "2026-Q1", "confidence": 0.82, "value": {"trend": "rising", "score": 0.84}},
+      "provenance": [
+        {"source": "phase_3_labour_market_fixture", "rule_id": "sourced_wage_and_demand", "confidence": 0.82, "evidence_count": 2}
+      ]
+    },
+    {
+      "pathway_id": "civil-technician-ng",
+      "title": "Civil engineering technician",
+      "skill_weights": {"ratio-proportion": 0.25, "fraction-operations": 0.15, "linear-equations": 0.25, "plane-geometry": 0.35},
+      "wage_band": {"source": "nbs_phase_3_fixture", "recency": "2026-Q1", "confidence": 0.74, "value": {"currency": "NGN", "min_monthly": 220000, "max_monthly": 540000}},
+      "demand_trend": {"source": "esco_phase_3_fixture", "recency": "2026-Q1", "confidence": 0.76, "value": {"trend": "steady", "score": 0.72}},
+      "provenance": [
+        {"source": "phase_3_labour_market_fixture", "rule_id": "sourced_wage_and_demand", "confidence": 0.76, "evidence_count": 2}
+      ]
+    },
+    {
+      "pathway_id": "health-records-ng",
+      "title": "Health records assistant",
+      "skill_weights": {"ratio-proportion": 0.35, "fraction-operations": 0.25, "linear-equations": 0.25, "plane-geometry": 0.15},
+      "wage_band": {"source": "nbs_phase_3_fixture", "recency": "2026-Q1", "confidence": 0.72, "value": {"currency": "NGN", "min_monthly": 180000, "max_monthly": 420000}},
+      "demand_trend": {"source": "world_bank_step_phase_3_fixture", "recency": "2026-Q1", "confidence": 0.73, "value": {"trend": "steady", "score": 0.68}},
+      "provenance": [
+        {"source": "phase_3_labour_market_fixture", "rule_id": "sourced_wage_and_demand", "confidence": 0.73, "evidence_count": 2}
+      ]
+    },
+    {
+      "pathway_id": "junior-software-developer-ng",
+      "title": "Junior software developer",
+      "skill_weights": {"algorithms": 0.3, "computer-basics": 0.2, "data-handling": 0.15, "linear-equations": 0.25, "scientific-method": 0.1},
+      "wage_band": {"source": "nbs_phase_3_fixture", "recency": "2026-Q1", "confidence": 0.7, "value": {"currency": "NGN", "min_monthly": 260000, "max_monthly": 720000}},
+      "demand_trend": {"source": "esco_phase_3_fixture", "recency": "2026-Q1", "confidence": 0.75, "value": {"trend": "rising", "score": 0.86}},
+      "provenance": [
+        {"source": "phase_3_labour_market_fixture", "rule_id": "sourced_wage_and_demand", "confidence": 0.75, "evidence_count": 2}
+      ]
+    },
+    {
+      "pathway_id": "content-creator-ng",
+      "title": "Digital content creator",
+      "skill_weights": {"composition": 0.3, "grammar-syntax": 0.2, "vocabulary": 0.15, "online-safety": 0.15, "computer-basics": 0.1, "reading-comprehension": 0.1},
+      "wage_band": {"source": "nbs_phase_3_fixture", "recency": "2026-Q1", "confidence": 0.62, "value": {"currency": "NGN", "min_monthly": 120000, "max_monthly": 480000}},
+      "demand_trend": {"source": "world_bank_step_phase_3_fixture", "recency": "2026-Q1", "confidence": 0.68, "value": {"trend": "rising", "score": 0.78}},
+      "provenance": [
+        {"source": "phase_3_labour_market_fixture", "rule_id": "sourced_wage_and_demand", "confidence": 0.68, "evidence_count": 2}
+      ]
+    },
+    {
+      "pathway_id": "laboratory-technician-ng",
+      "title": "Laboratory technician",
+      "skill_weights": {"scientific-method": 0.3, "living-things": 0.2, "plane-geometry": 0.2, "fraction-operations": 0.15, "matter-states": 0.15},
+      "wage_band": {"source": "nbs_phase_3_fixture", "recency": "2026-Q1", "confidence": 0.72, "value": {"currency": "NGN", "min_monthly": 200000, "max_monthly": 480000}},
+      "demand_trend": {"source": "esco_phase_3_fixture", "recency": "2026-Q1", "confidence": 0.74, "value": {"trend": "steady", "score": 0.78}},
+      "provenance": [
+        {"source": "phase_3_labour_market_fixture", "rule_id": "sourced_wage_and_demand", "confidence": 0.74, "evidence_count": 2}
+      ]
+    },
+    {
+      "pathway_id": "community-health-worker-ng",
+      "title": "Community health worker",
+      "skill_weights": {"living-things": 0.3, "civics": 0.25, "reading-comprehension": 0.2, "scientific-method": 0.15, "ratio-proportion": 0.1},
+      "wage_band": {"source": "nbs_phase_3_fixture", "recency": "2026-Q1", "confidence": 0.7, "value": {"currency": "NGN", "min_monthly": 150000, "max_monthly": 360000}},
+      "demand_trend": {"source": "world_bank_step_phase_3_fixture", "recency": "2026-Q1", "confidence": 0.71, "value": {"trend": "rising", "score": 0.74}},
+      "provenance": [
+        {"source": "phase_3_labour_market_fixture", "rule_id": "sourced_wage_and_demand", "confidence": 0.71, "evidence_count": 2}
+      ]
+    }
+  ]
+}

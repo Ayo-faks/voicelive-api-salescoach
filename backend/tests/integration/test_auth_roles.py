@@ -11,6 +11,7 @@ import pytest
 from flask.testing import FlaskClient
 
 import src.app as app_module
+from src.learning.repository import InMemoryLearningRepository
 from src.services.storage import StorageService
 
 
@@ -29,6 +30,10 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[FlaskCli
     storage_service = StorageService(str(tmp_path / "integration.db"))
     monkeypatch.setattr(app_module, "storage_service", storage_service)
     monkeypatch.setenv("LOCAL_DEV_AUTH", "false")
+    monkeypatch.delenv("PATHFINDER_LEARN_TEACHER_CLASS_IDS", raising=False)
+    monkeypatch.delenv("PATHFINDER_LEARN_ADMIN_TENANT_IDS", raising=False)
+    if isinstance(app_module.learning_repository, InMemoryLearningRepository):
+        app_module.learning_repository.teacher_classes.clear()
     app_module.app.config["TESTING"] = True
 
     with app_module.app.test_client() as test_client:
@@ -49,11 +54,185 @@ def _signup_as_therapist(client: FlaskClient, user_id: str, email: str, name: st
 
 def test_protected_routes_require_authentication(client: FlaskClient):
     """Anonymous callers should receive 401 on authenticated Flask routes."""
-    for route in ["/api/config", "/api/scenarios", "/api/children", "/api/pilot/state"]:
+    for route in ["/api/config", "/api/scenarios", "/api/children", "/api/pilot/state", "/api/learning/class/mastery"]:
         response = client.get(route)
 
         assert response.status_code == 401
         assert response.get_json() == {"error": "Authentication required"}
+
+
+def _signup_as_invited_parent(client: FlaskClient) -> tuple[dict[str, str], str]:
+    therapist_headers = _auth_headers("user-1", "first@example.com", name="Therapist")
+    _signup_as_therapist(client, "user-1", "first@example.com", name="Therapist")
+    child = client.post("/api/children", headers=therapist_headers, json={"name": "Ada"}).get_json()
+    invite_response = client.post(
+        "/api/invitations",
+        headers=therapist_headers,
+        json={"child_id": child["id"], "invited_email": "parent@example.com", "relationship": "parent"},
+    )
+    invitation_id = invite_response.get_json()["id"]
+
+    parent_headers = _auth_headers("user-parent", "parent@example.com", name="Parent User")
+    parent_session = client.get("/api/auth/session", headers=parent_headers)
+    assert parent_session.status_code == 200
+    assert parent_session.get_json()["role"] == "parent"
+    accept_response = client.post(f"/api/invitations/{invitation_id}/accept", headers=parent_headers)
+    assert accept_response.status_code == 200
+    return parent_headers, child["id"]
+
+
+def test_parent_cannot_access_learning_teacher_or_admin_endpoints(client: FlaskClient):
+    """Parents are limited to learner-scoped surfaces, not class/admin learning APIs."""
+    parent_headers, _ = _signup_as_invited_parent(client)
+
+    checks = [
+        ("get", "/api/learning/class/mastery?class_id=class-jss2-a", None),
+        ("get", "/api/learning/approvals/pending?class_id=class-jss2-a", None),
+        ("post", "/api/learning/intent", {"class_id": "class-jss2-a", "prompt": "plan ratio support"}),
+        ("get", "/api/learning/audit", None),
+        ("post", "/api/learning/skills", {}),
+    ]
+
+    for method, route, payload in checks:
+        response = getattr(client, method)(route, headers=parent_headers, json=payload)
+
+        assert response.status_code == 403
+        assert response.get_json() == {"error": "Therapist role required"}
+
+
+def test_learning_class_mastery_rejects_unowned_teacher_class(
+    client: FlaskClient,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    headers = _auth_headers("user-1", "first@example.com", name="Teacher")
+    _signup_as_therapist(client, "user-1", "first@example.com", name="Teacher")
+    monkeypatch.setenv("PATHFINDER_LEARN_TEACHER_CLASS_IDS", "class-jss2-a")
+
+    response = client.get(
+        "/api/learning/class/mastery?class_id=class-jss1-a",
+        headers=headers,
+    )
+
+    assert response.status_code == 403
+    assert response.get_json() == {"error": "Class access required"}
+
+
+def test_learning_class_mastery_allows_persisted_teacher_class(client: FlaskClient):
+    headers = _auth_headers("user-1", "first@example.com", name="Teacher")
+    _signup_as_therapist(client, "user-1", "first@example.com", name="Teacher")
+    assert isinstance(app_module.learning_repository, InMemoryLearningRepository)
+    app_module.learning_repository.seed_teacher_class("tenant-phase-2", "user-1", "class-jss2-a")
+
+    response = client.get(
+        "/api/learning/class/mastery?tenant_id=tenant-phase-2&class_id=class-jss2-a",
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["tenant_id"] == "tenant-phase-2"
+    assert payload["class_id"] == "class-jss2-a"
+
+
+def test_learning_class_mastery_rejects_missing_persisted_teacher_class(client: FlaskClient):
+    headers = _auth_headers("user-1", "first@example.com", name="Teacher")
+    _signup_as_therapist(client, "user-1", "first@example.com", name="Teacher")
+
+    response = client.get(
+        "/api/learning/class/mastery?tenant_id=tenant-phase-2&class_id=class-jss2-a",
+        headers=headers,
+    )
+
+    assert response.status_code == 403
+    assert response.get_json() == {"error": "Class access required"}
+
+
+def test_learning_admin_cross_tenant_audit_forbidden(client: FlaskClient):
+    headers = _auth_headers("admin-1", "admin@example.com", name="Admin")
+    _signup_as_therapist(client, "admin-1", "admin@example.com", name="Admin")
+    app_module.storage_service.update_user_role("admin-1", "admin")
+
+    response = client.get(
+        "/api/learning/audit?tenant_id=tenant-other",
+        headers=headers,
+    )
+
+    assert response.status_code == 403
+    assert response.get_json() == {"error": "Tenant access required"}
+
+
+def test_learning_admin_same_tenant_audit_allowed(client: FlaskClient):
+    headers = _auth_headers("admin-1", "admin@example.com", name="Admin")
+    _signup_as_therapist(client, "admin-1", "admin@example.com", name="Admin")
+    app_module.storage_service.update_user_role("admin-1", "admin")
+
+    response = client.get(
+        "/api/learning/audit?tenant_id=tenant-phase-2",
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    assert response.get_json()["events"] == []
+
+
+def test_parent_learning_diagnostic_is_scoped_to_linked_child(client: FlaskClient):
+    parent_headers, child_id = _signup_as_invited_parent(client)
+    therapist_headers = _auth_headers("user-1", "first@example.com", name="Therapist")
+    app_module.learning_api._reset_for_tests()
+
+    missing_student = client.post(
+        "/api/learning/diagnostic/start",
+        headers=parent_headers,
+        json={},
+    )
+    other_student = client.post(
+        "/api/learning/diagnostic/start",
+        headers=parent_headers,
+        json={"student_id": "unlinked-student"},
+    )
+    own_student = client.post(
+        "/api/learning/diagnostic/start",
+        headers=parent_headers,
+        json={"student_id": child_id},
+    )
+    other_session = client.post(
+        "/api/learning/diagnostic/start",
+        headers=therapist_headers,
+        json={"student_id": "unlinked-student"},
+    )
+
+    assert missing_student.status_code == 403
+    assert other_student.status_code == 403
+    assert missing_student.get_json() == {"error": "Child access required"}
+    assert other_student.get_json() == {"error": "Child access required"}
+    assert own_student.status_code == 200
+    own_payload = own_student.get_json()
+    other_payload = other_session.get_json()
+    assert own_payload["item"] is not None
+    assert other_session.status_code == 200
+
+    other_answer = client.post(
+        "/api/learning/diagnostic/answer",
+        headers=parent_headers,
+        json={
+            "session_id": other_payload["session_id"],
+            "item_id": other_payload["item"]["item_id"],
+            "response_text": "1/2",
+        },
+    )
+    own_answer = client.post(
+        "/api/learning/diagnostic/answer",
+        headers=parent_headers,
+        json={
+            "session_id": own_payload["session_id"],
+            "item_id": own_payload["item"]["item_id"],
+            "response_text": "1/2",
+        },
+    )
+
+    assert other_answer.status_code == 403
+    assert other_answer.get_json() == {"error": "Child access required"}
+    assert own_answer.status_code == 200
 
 
 def test_first_user_bootstraps_as_therapist(client: FlaskClient):
@@ -463,9 +642,7 @@ def test_parent_cannot_accept_invitation_for_different_email(client: FlaskClient
     )
 
     assert wrong_accept_response.status_code == 400
-    assert wrong_accept_response.get_json() == {
-        "error": "Invitation email does not match the authenticated user"
-    }
+    assert wrong_accept_response.get_json() == {"error": "Invitation email does not match the authenticated user"}
 
 
 def test_expired_invitation_cannot_be_accepted_until_resent(client: FlaskClient):
@@ -528,7 +705,9 @@ def test_export_rejects_get_request(client: FlaskClient):
     _signup_as_therapist(client, "user-1", "first@example.com", name="First User")
 
     child_response = client.post(
-        "/api/children", headers=therapist_headers, json={"name": "ExportChild"},
+        "/api/children",
+        headers=therapist_headers,
+        json={"name": "ExportChild"},
     )
     child_id = child_response.get_json()["id"]
 
@@ -542,7 +721,9 @@ def test_export_rejects_without_confirm(client: FlaskClient):
     _signup_as_therapist(client, "user-1", "first@example.com", name="First User")
 
     child_response = client.post(
-        "/api/children", headers=therapist_headers, json={"name": "ExportChild"},
+        "/api/children",
+        headers=therapist_headers,
+        json={"name": "ExportChild"},
     )
     child_id = child_response.get_json()["id"]
 
@@ -561,7 +742,9 @@ def test_export_rejects_without_reason(client: FlaskClient):
     _signup_as_therapist(client, "user-1", "first@example.com", name="First User")
 
     child_response = client.post(
-        "/api/children", headers=therapist_headers, json={"name": "ExportChild"},
+        "/api/children",
+        headers=therapist_headers,
+        json={"name": "ExportChild"},
     )
     child_id = child_response.get_json()["id"]
 
@@ -586,7 +769,9 @@ def test_export_succeeds_with_confirm_and_reason(client: FlaskClient):
     _signup_as_therapist(client, "user-1", "first@example.com", name="First User")
 
     child_response = client.post(
-        "/api/children", headers=therapist_headers, json={"name": "ExportChild"},
+        "/api/children",
+        headers=therapist_headers,
+        json={"name": "ExportChild"},
     )
     child_id = child_response.get_json()["id"]
 
@@ -664,6 +849,7 @@ def test_admin_can_assign_admin_role(client: FlaskClient):
 
     # Directly set user-1 to admin via storage for test setup
     import src.app as _app
+
     _app.storage_service.update_user_role("user-1", "admin")
 
     response = client.post(
@@ -906,6 +1092,7 @@ def test_admin_bypasses_workspace_access_guard(client: FlaskClient):
     _signup_as_therapist(client, "user-admin", "admin@example.com", name="Admin")
 
     import src.app as _app
+
     _app.storage_service.update_user_role("user-admin", "admin")
 
     child_resp = client.post("/api/children", headers=t1_headers, json={"name": "Admin Visible"})
@@ -955,6 +1142,7 @@ def test_legacy_child_without_workspace_still_accessible(client: FlaskClient):
     child_id = child_resp.get_json()["id"]
 
     import src.app as _app
+
     _app.storage_service._execute_write(
         lambda conn: conn.execute("UPDATE children SET workspace_id = NULL WHERE id = ?", (child_id,))
     )

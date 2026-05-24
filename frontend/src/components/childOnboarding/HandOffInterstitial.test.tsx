@@ -14,7 +14,7 @@ describe('HandOffInterstitial', () => {
     render(
       <FluentProvider theme={webLightTheme}>
         <HandOffInterstitial active onStart={vi.fn()} />
-      </FluentProvider>,
+      </FluentProvider>
     )
     expect(screen.getByTestId('handoff-interstitial')).toBeTruthy()
     expect(screen.getByTestId('handoff-start')).toBeTruthy()
@@ -24,9 +24,11 @@ describe('HandOffInterstitial', () => {
     const { container } = render(
       <FluentProvider theme={webLightTheme}>
         <HandOffInterstitial active={false} onStart={vi.fn()} />
-      </FluentProvider>,
+      </FluentProvider>
     )
-    expect(container.querySelector('[data-testid="handoff-interstitial"]')).toBeNull()
+    expect(
+      container.querySelector('[data-testid="handoff-interstitial"]')
+    ).toBeNull()
   })
 
   it('fires onStart exactly once per click', () => {
@@ -34,7 +36,7 @@ describe('HandOffInterstitial', () => {
     render(
       <FluentProvider theme={webLightTheme}>
         <HandOffInterstitial active onStart={onStart} />
-      </FluentProvider>,
+      </FluentProvider>
     )
     act(() => {
       fireEvent.click(screen.getByTestId('handoff-start'))
@@ -47,7 +49,7 @@ describe('HandOffInterstitial', () => {
     render(
       <FluentProvider theme={webLightTheme}>
         <HandOffInterstitial active onStart={onStart} />
-      </FluentProvider>,
+      </FluentProvider>
     )
     const btn = screen.getByTestId('handoff-start') as HTMLButtonElement
     btn.focus()

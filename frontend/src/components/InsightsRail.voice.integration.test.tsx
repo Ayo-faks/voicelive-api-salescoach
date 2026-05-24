@@ -45,7 +45,9 @@ class FakeWebSocket {
   onopen: (() => void) | null = null
   onmessage: ((event: { data: string }) => void) | null = null
   onerror: (() => void) | null = null
-  onclose: ((event: { code: number; reason: string; wasClean: boolean }) => void) | null = null
+  onclose:
+    | ((event: { code: number; reason: string; wasClean: boolean }) => void)
+    | null = null
   closeCallCount = 0
 
   constructor(url: string) {
@@ -99,9 +101,16 @@ describe('InsightsRail voice integration', () => {
   })
 
   it('does not open a second socket when the rail rerenders while voice is active', async () => {
-    render(<InsightsRail currentScope={childScope} insightsVoiceMode="push_to_talk" />)
+    render(
+      <InsightsRail
+        currentScope={childScope}
+        insightsVoiceMode="push_to_talk"
+      />
+    )
 
-    const voiceAction = (await screen.findByTestId('insights-rail-voice-action')) as HTMLButtonElement
+    const voiceAction = (await screen.findByTestId(
+      'insights-rail-voice-action'
+    )) as HTMLButtonElement
     fireEvent.click(voiceAction)
 
     await waitFor(() => {
@@ -121,9 +130,16 @@ describe('InsightsRail voice integration', () => {
   })
 
   it('guards against double-click start races', async () => {
-    render(<InsightsRail currentScope={childScope} insightsVoiceMode="push_to_talk" />)
+    render(
+      <InsightsRail
+        currentScope={childScope}
+        insightsVoiceMode="push_to_talk"
+      />
+    )
 
-    const voiceAction = (await screen.findByTestId('insights-rail-voice-action')) as HTMLButtonElement
+    const voiceAction = (await screen.findByTestId(
+      'insights-rail-voice-action'
+    )) as HTMLButtonElement
     fireEvent.click(voiceAction)
     fireEvent.click(voiceAction)
 
@@ -135,9 +151,16 @@ describe('InsightsRail voice integration', () => {
   })
 
   it('ends the active voice session from the orb without treating it as end-turn', async () => {
-    render(<InsightsRail currentScope={childScope} insightsVoiceMode="push_to_talk" />)
+    render(
+      <InsightsRail
+        currentScope={childScope}
+        insightsVoiceMode="push_to_talk"
+      />
+    )
 
-    const voiceAction = (await screen.findByTestId('insights-rail-voice-action')) as HTMLButtonElement
+    const voiceAction = (await screen.findByTestId(
+      'insights-rail-voice-action'
+    )) as HTMLButtonElement
     fireEvent.click(voiceAction)
 
     await waitFor(() => {

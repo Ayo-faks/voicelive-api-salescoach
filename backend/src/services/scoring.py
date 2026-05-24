@@ -119,9 +119,7 @@ class TargetTokenTally:
         cooldown_seconds: Optional[float] = None,
     ) -> None:
         if suggested_target_words is not None:
-            self._suggested_targets = [
-                _normalize_word(w) for w in suggested_target_words if _normalize_word(w)
-            ]
+            self._suggested_targets = [_normalize_word(w) for w in suggested_target_words if _normalize_word(w)]
         if expected_substitutions is not None:
             self._expected_substitutions = [
                 str(s or "").strip().lower() for s in expected_substitutions if str(s or "").strip()
@@ -234,10 +232,7 @@ class TargetTokenTally:
         if tokens_in_window >= self._min_tokens_in_window:
             return None
 
-        if (
-            self._last_escalation_at is not None
-            and now - self._last_escalation_at < self._cooldown_seconds
-        ):
+        if self._last_escalation_at is not None and now - self._last_escalation_at < self._cooldown_seconds:
             return None
 
         self._escalated = True
