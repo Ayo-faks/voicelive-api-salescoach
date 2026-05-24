@@ -25,11 +25,11 @@ function renderDialog(nextSkill = skill) {
 }
 
 describe('OverrideMasteryDialog', () => {
-  it('shows frozen model estimates and live new values for mastery edits', () => {
+  it('shows frozen current estimates and adjusted values for mastery edits', () => {
     renderDialog()
 
-    expect(screen.getByText('Model estimate: 42%')).toBeTruthy()
-    expect(screen.getByText('Model estimate: 18%')).toBeTruthy()
+    expect(screen.getByText('Current estimate: 42% (unchanged)')).toBeTruthy()
+    expect(screen.getByText('Current uncertainty: 18% (unchanged)')).toBeTruthy()
 
     fireEvent.change(screen.getByLabelText('Probability'), {
       target: { value: '0.65' },
@@ -38,18 +38,18 @@ describe('OverrideMasteryDialog', () => {
       target: { value: '0.11' },
     })
 
-    expect(screen.getByText('Model estimate: 42% → New: 65%')).toBeTruthy()
-    expect(screen.getByText('Model estimate: 18% → New: 11%')).toBeTruthy()
+    expect(screen.getByText('Current estimate: 42% → adjusted value: 65%')).toBeTruthy()
+    expect(screen.getByText('Current uncertainty: 18% → adjusted value: 11%')).toBeTruthy()
 
     fireEvent.change(screen.getByLabelText('Probability'), {
       target: { value: '0.42' },
     })
 
-    expect(screen.getByText('Model estimate: 42%')).toBeTruthy()
-    expect(screen.queryByText('Model estimate: 42% → New: 42%')).toBeNull()
+    expect(screen.getByText('Current estimate: 42% (unchanged)')).toBeTruthy()
+    expect(screen.queryByText('Current estimate: 42% → adjusted value: 42%')).toBeNull()
   })
 
-  it('does not move the model estimate when the open dialog receives refreshed skill data', () => {
+  it('does not move the current estimate when the open dialog receives refreshed skill data', () => {
     const { rerender } = renderDialog()
 
     rerender(
@@ -62,7 +62,7 @@ describe('OverrideMasteryDialog', () => {
       />
     )
 
-    expect(screen.getByText('Model estimate: 42%')).toBeTruthy()
-    expect(screen.getByText('Model estimate: 18%')).toBeTruthy()
+    expect(screen.getByText('Current estimate: 42% (unchanged)')).toBeTruthy()
+    expect(screen.getByText('Current uncertainty: 18% (unchanged)')).toBeTruthy()
   })
 })

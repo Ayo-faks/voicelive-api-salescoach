@@ -129,6 +129,7 @@ class MasteryEvent(LanguageAndProvenanceModel):
 
 class InterventionPlan(LanguageAndProvenanceModel):
     plan_id: str = Field(default_factory=lambda: f"intervention-plan-{uuid4().hex[:12]}")
+    parent_plan_id: Optional[str] = None
     target_skill_ids: List[str] = Field(min_length=1)
     target_student_ids: List[str] = Field(min_length=1)
     item_types: List[str] = Field(min_length=1)
@@ -185,3 +186,43 @@ class OfflineQueuedEvent(ContractModel):
     event_type: str = Field(min_length=1)
     payload: Dict[str, Any] = Field(default_factory=dict)
     status: Literal["queued", "replayed", "failed", "manual_review"] = "queued"
+
+
+# ---------------------------------------------------------------------------
+# Phase 1 — Workstream B1: Skills catalogue
+# ---------------------------------------------------------------------------
+
+
+class CatalogueSkill(LanguageAndProvenanceModel):
+    """A curriculum-mapped skill exposed by the teacher-facing skills library.
+
+    Extends the lightweight :class:`Skill` with the catalogue attributes
+    required for browse/search, hierarchy traversal, and KS/KC mapping. The
+    primary key remains ``skill_id`` so it stays interchangeable with
+    :class:`Skill` at the API boundary.
+    """
+
+    skill_id: str = Field(min_length=1)
+    tenant_id: str = Field(min_length=1)
+    standard_id: str = Field(min_length=1)
+    name: str = Field(min_length=1)
+    description: Optional[str] = None
+    subject: Optional[str] = None
+    parent_skill_id: Optional[str] = None
+    prerequisites: List[str] = Field(default_factory=list)
+    kc_tags: List[str] = Field(default_factory=list)
+    localisations: Dict[str, str] = Field(default_factory=dict)
+    year_group_min: Optional[int] = Field(default=None, ge=1, le=13)
+    year_group_max: Optional[int] = Field(default=None, ge=1, le=13)
+    status: Literal["active", "draft", "archived"] = "active"
+
+
+class SkillSearchResult(LanguageAndProvenanceModel):
+    """Paged search response returned by the skills library API."""
+
+    tenant_id: str = Field(min_length=1)
+    query: str = Field(default="")
+    skills: List[CatalogueSkill] = Field(default_factory=list)
+    total: int = Field(ge=0)
+    limit: int = Field(ge=1, le=200)
+    offset: int = Field(ge=0)

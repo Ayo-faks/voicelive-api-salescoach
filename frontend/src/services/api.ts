@@ -59,7 +59,7 @@ export interface AuthSession {
   name: string
   email: string
   provider: string
-  role: 'therapist' | 'parent' | 'admin' | 'pending_therapist'
+  role: 'therapist' | 'parent' | 'admin' | 'pending_therapist' | 'learner' | 'kid' | 'student'
   current_workspace_id?: string | null
   user_workspaces?: WorkspaceSummary[]
 }

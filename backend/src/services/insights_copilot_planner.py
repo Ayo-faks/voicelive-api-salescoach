@@ -87,7 +87,7 @@ class CopilotInsightsPlanner:
         self.reasoning_effort = str(
             self.settings.get("copilot_insights_reasoning_effort")
             or self.settings.get("copilot_planner_reasoning_effort")
-            or ""
+            or "low"
         ).strip()
         self.cli_path = str(self.settings.get("copilot_cli_path") or "").strip()
         self.github_token = str(self.settings.get("copilot_github_token") or "").strip()
@@ -250,6 +250,8 @@ class CopilotInsightsPlanner:
             answer_text=parsed["answer_text"],
             citations=parsed["citations"],
             visualizations=parsed["visualizations"],
+            ui_specs=parsed.get("ui_specs", []),
+            action_suggestions=parsed.get("action_suggestions", []),
             tool_trace=trace,
             tool_calls_count=call_state["count"],
         )
@@ -432,9 +434,14 @@ class CopilotInsightsPlanner:
             lines.append("")
         lines.append(
             "Return one valid JSON object with keys 'answer_text' (string), "
-            "'citations' (optional array of citation objects), and "
-            "'visualizations' (optional array of visualization specs). "
-            "Do not wrap the JSON in markdown fences."
+            "'citations' (optional array of citation objects), "
+            "'visualizations' (optional array of visualization specs), "
+            "'ui_specs' (optional array of voice-agent UI specs: kinds "
+            "text|table|chart|form|confirmation|studentProfile|planDraft), "
+            "and 'action_suggestions' (optional array of proposed actions; "
+            "each has action_id, action_type, label, risk_level, parameters, "
+            "and rationale). Never propose mutations the user did not ask "
+            "for. Do not wrap the JSON in markdown fences."
         )
         lines.append("")
         lines.append(f"Therapist question: {user_message}")
@@ -474,15 +481,21 @@ class CopilotInsightsPlanner:
             answer = str(payload.get("answer_text") or "").strip()
             citations_raw = payload.get("citations")
             visualizations_raw = payload.get("visualizations")
+            ui_specs_raw = payload.get("ui_specs")
+            actions_raw = payload.get("action_suggestions")
             citations = [c for c in citations_raw if isinstance(c, dict)] if isinstance(citations_raw, list) else []
             visualizations = (
                 [v for v in visualizations_raw if isinstance(v, dict)] if isinstance(visualizations_raw, list) else []
             )
+            ui_specs = [u for u in ui_specs_raw if isinstance(u, dict)] if isinstance(ui_specs_raw, list) else []
+            action_suggestions = [a for a in actions_raw if isinstance(a, dict)] if isinstance(actions_raw, list) else []
             if answer:
                 return {
                     "answer_text": answer,
                     "citations": citations,
                     "visualizations": visualizations,
+                    "ui_specs": ui_specs,
+                    "action_suggestions": action_suggestions,
                 }
 
         # Fallback: treat raw text as plain answer.
@@ -490,6 +503,8 @@ class CopilotInsightsPlanner:
             "answer_text": raw_text.strip(),
             "citations": [],
             "visualizations": [],
+            "ui_specs": [],
+            "action_suggestions": [],
         }
 
     def _serialize_tool_result(self, result: Any) -> str:

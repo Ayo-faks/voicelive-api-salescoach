@@ -57,6 +57,24 @@ cd frontend && npx tsc --noEmit && npm run build
 cd ../backend && /home/ayoola/sen/.venv/bin/python -m pytest tests/unit/test_app.py tests/unit/test_websocket_handler.py tests/integration/test_auth_roles.py
 ```
 
+## Environment Variables
+
+- `LTI_SESSION_SECRET`: HS256 signing secret for short-lived Pathfinder Learn LTI launch session tokens.
+- `PATHFINDER_LEARN_OBSERVABILITY_ENABLED`: Set to `0`/`false` to disable Pathfinder Learn route metrics and spans.
+- `PATHFINDER_LEARN_PROMETHEUS_ENABLED`: Set to `0`/`false` to disable `/api/learning/metrics` and Prometheus counters while leaving other observability on.
+- `PATHFINDER_LEARN_OTEL_ENABLED`: Set to `0`/`false` to disable Pathfinder Learn OpenTelemetry spans and Azure Monitor custom metrics while leaving Prometheus counters on.
+
+## Pathfinder Learn Postgres/RLS Verification
+
+Run live Postgres/RLS verification after migrations and before pilot rollout:
+
+```bash
+cd /home/ayoola/sen/voicelive-api-salescoach-pathfinder-phase-0
+DATABASE_URL='<runtime-postgres-url>' /home/ayoola/sen/.venv/bin/python backend/scripts/verify_learning_postgres_rls.py --json
+```
+
+The verifier checks Alembic head `20260524_000026`, forced RLS on every learning table, tenant policy coverage, A5/B1 columns, storage GUC propagation, and a rollback-only tenant-isolation probe.
+
 ## Deploy Existing Provisioned Environment
 
 If the target environment is already provisioned:

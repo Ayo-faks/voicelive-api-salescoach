@@ -96,6 +96,52 @@ def test_answer_drives_mastery_and_completes(client, learning_api: LearningApi):
     assert result["completion_xapi"]["verb"]["id"].endswith("completed")
 
 
+def test_class_mastery_and_pending_plans_are_scoped_by_class(client, learning_api: LearningApi):
+    jss1 = client.post(
+        "/api/learning/diagnostic/start",
+        json={"class_id": "class-jss1-a", "student_id": "class-jss1-a-student-001"},
+    ).get_json()
+    jss2 = client.post(
+        "/api/learning/diagnostic/start",
+        json={"class_id": "class-jss2-a", "student_id": "student-001"},
+    ).get_json()
+
+    for started in (jss1, jss2):
+        current_item = started["item"]
+        result = None
+        while current_item is not None:
+            bank_item = next(
+                entry for entry in learning_api.item_bank.items if entry.item_id == current_item["item_id"]
+            )
+            result = _answer(client, started["session_id"], current_item, bank_item.correct_answer or "")
+            current_item = result["next_item"]
+        assert result is not None and result["pending_plan"] is not None
+
+    jss1_mastery = client.get(
+        "/api/learning/class/mastery",
+        query_string={"tenant_id": PILOT_TENANT_ID, "class_id": "class-jss1-a"},
+    ).get_json()
+    jss2_mastery = client.get(
+        "/api/learning/class/mastery",
+        query_string={"tenant_id": PILOT_TENANT_ID, "class_id": "class-jss2-a"},
+    ).get_json()
+    assert {cell["student_id"] for cell in jss1_mastery["cells"]} == {"class-jss1-a-student-001"}
+    assert {cell["student_id"] for cell in jss2_mastery["cells"]} == {"student-001"}
+
+    jss1_pending = client.get(
+        "/api/learning/approvals/pending",
+        query_string={"tenant_id": PILOT_TENANT_ID, "class_id": "class-jss1-a"},
+    ).get_json()
+    jss2_pending = client.get(
+        "/api/learning/approvals/pending",
+        query_string={"tenant_id": PILOT_TENANT_ID, "class_id": "class-jss2-a"},
+    ).get_json()
+    assert jss1_pending["count"] == 1
+    assert jss2_pending["count"] == 1
+    assert jss1_pending["plans"][0]["class_id"] == "class-jss1-a"
+    assert jss2_pending["plans"][0]["class_id"] == "class-jss2-a"
+
+
 def test_unknown_session_returns_404(client):
     response = client.post(
         "/api/learning/diagnostic/answer",

@@ -893,6 +893,25 @@ class TestFlaskApp:
 
         assert _resolve_local_dev_role() == "admin"
 
+    def test_resolve_local_dev_role_accepts_kid_override(self, monkeypatch: pytest.MonkeyPatch):
+        """Test Pathfinder learner aliases can be used for local role testing."""
+        monkeypatch.setenv("LOCAL_DEV_USER_ROLE", "kid")
+
+        assert _resolve_local_dev_role() == "kid"
+
+    @patch("src.app.storage_service")
+    def test_local_dev_auth_overlays_kid_role(self, mock_storage_service, monkeypatch: pytest.MonkeyPatch):
+        """Test local dev kid role does not need to be persisted in the core user role schema."""
+        monkeypatch.setenv("LOCAL_DEV_AUTH", "true")
+        monkeypatch.setenv("LOCAL_DEV_USER_ROLE", "kid")
+        mock_storage_service.get_or_create_user.return_value = self._user_payload("parent")
+
+        user = _get_authenticated_user_from_headers({})
+
+        assert user is not None
+        assert user["role"] == "kid"
+        mock_storage_service.update_user_role.assert_not_called()
+
     def test_get_child_sessions_requires_authentication(self):
         """Test therapist review endpoints require an authenticated session."""
         response = self.client.get("/api/children/child-ayo/sessions")

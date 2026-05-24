@@ -1,6 +1,4 @@
 import {
-  Badge,
-  Button,
   Card,
   CardHeader,
   Text,
@@ -25,6 +23,7 @@ import {
 import { useEffect, useState } from 'react'
 import { getPilotKpis, type PilotKpiCard, type PilotKpiResponse } from '../api'
 import { pilotMetrics } from '../fixtures'
+import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 
 const fixtureCards: PilotKpiCard[] = pilotMetrics.map(([label, value, detail]) => ({
   label,
@@ -83,13 +82,95 @@ const useStyles = makeStyles({
     gap: '16px',
     flexWrap: 'wrap',
   },
+  headerCopy: {
+    display: 'grid',
+    gap: '10px',
+  },
   title: {
-    fontFamily: 'Manrope, sans-serif',
-    fontSize: '1.5rem',
-    fontWeight: 800,
+    fontFamily: t.font.display,
+    fontSize: 'clamp(1.6rem, 2.4vw, 2rem)',
+    fontWeight: 700,
+    letterSpacing: '-0.025em',
   },
   subtitle: { color: tokens.colorNeutralForeground2 },
+  headerMeta: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap',
+  },
   actions: { display: 'flex', gap: '8px', flexWrap: 'wrap' },
+  actionButton: {
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    minHeight: '38px',
+    paddingRight: '15px',
+    paddingLeft: '15px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+    color: t.brand.text,
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.84rem',
+    fontWeight: 700,
+  },
+  primaryActionButton: {
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    minHeight: '38px',
+    paddingRight: '15px',
+    paddingLeft: '15px',
+    borderRadius: t.radius.pill,
+    border: `1px solid ${t.brand.ink}`,
+    backgroundColor: t.brand.ink,
+    color: t.brand.onInk,
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.84rem',
+    fontWeight: 700,
+  },
+  pill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '5px',
+    minHeight: '24px',
+    paddingRight: '10px',
+    paddingLeft: '10px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+    color: t.brand.textSecondary,
+    boxSizing: 'border-box',
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    lineHeight: 1.35,
+    whiteSpace: 'nowrap',
+    overflowWrap: 'normal',
+  },
+  pillSolid: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '5px',
+    minHeight: '24px',
+    paddingRight: '10px',
+    paddingLeft: '10px',
+    borderRadius: t.radius.pill,
+    border: `1px solid ${t.brand.ink}`,
+    backgroundColor: t.brand.ink,
+    color: t.brand.onInk,
+    boxSizing: 'border-box',
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    lineHeight: 1.35,
+    whiteSpace: 'nowrap',
+    overflowWrap: 'normal',
+  },
   metricStrip: {
     display: 'grid',
     gridTemplateColumns: 'repeat(6, minmax(0, 1fr))',
@@ -103,9 +184,10 @@ const useStyles = makeStyles({
   },
   metricCard: {
     padding: '14px',
-    borderRadius: '12px',
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
-    backgroundColor: '#fff',
+    borderRadius: t.radius.md,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.card,
+    boxShadow: t.surface.cardElevatedShadow,
     display: 'grid',
     gap: '4px',
   },
@@ -129,34 +211,91 @@ const useStyles = makeStyles({
   },
   chartCard: {
     padding: '16px',
-    borderRadius: '14px',
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
+    borderRadius: t.radius.md,
+    border: t.surface.hairline,
+    boxShadow: t.surface.cardElevatedShadow,
     display: 'grid',
     gap: '8px',
   },
   chartBox: { height: '260px', width: '100%' },
   canaryCard: {
     padding: '16px',
-    borderRadius: '14px',
-    border: '1px solid #0a0a0a',
-    backgroundColor: '#f0fdfa',
+    borderRadius: t.radius.md,
+    border: t.surface.hairline,
+    borderLeft: `3px solid ${t.status.okFg}`,
+    backgroundColor: t.surface.card,
+    boxShadow: t.surface.cardElevatedShadow,
     display: 'grid',
     gap: '10px',
   },
-  canaryTitle: { fontWeight: 800, color: '#000000' },
+  canaryTitle: { fontWeight: 800, color: t.brand.text },
   canaryStages: {
     display: 'flex',
+    alignItems: 'center',
     gap: '6px',
     flexWrap: 'wrap',
   },
+  canaryStage: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    minHeight: '26px',
+    paddingRight: '9px',
+    paddingLeft: '9px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+    color: t.brand.textSecondary,
+    boxSizing: 'border-box',
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    lineHeight: 1.35,
+    whiteSpace: 'nowrap',
+  },
+  canaryStageComplete: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    minHeight: '26px',
+    paddingRight: '9px',
+    paddingLeft: '9px',
+    borderRadius: t.radius.pill,
+    border: `1px solid ${t.brand.ink}`,
+    boxSizing: 'border-box',
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    lineHeight: 1.35,
+    whiteSpace: 'nowrap',
+    backgroundColor: t.brand.ink,
+    color: t.brand.onInk,
+  },
   rollbackBtn: {
-    backgroundColor: '#dc2626',
-    color: '#fff',
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+    justifySelf: 'start',
+    minHeight: '38px',
+    paddingRight: '15px',
+    paddingLeft: '15px',
+    borderRadius: t.radius.pill,
+    fontWeight: 700,
+    backgroundColor: t.brand.surface,
+    color: t.status.criticalFg,
+    border: `1px solid ${t.status.criticalFg}`,
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.84rem',
+    ':hover': {
+      backgroundColor: t.status.criticalBg,
+      color: t.status.criticalFg,
+      border: `1px solid ${t.status.criticalFg}`,
+    },
   },
   auditCard: {
     padding: '16px',
-    borderRadius: '14px',
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
+    borderRadius: t.radius.md,
+    border: t.surface.hairline,
+    boxShadow: t.surface.cardElevatedShadow,
     display: 'grid',
     gap: '8px',
   },
@@ -178,8 +317,8 @@ const useStyles = makeStyles({
   auditTs: { color: tokens.colorNeutralForeground3, fontVariantNumeric: 'tabular-nums' },
   auditActor: { fontWeight: 700 },
   riskBadgeLow: {
-    backgroundColor: '#e5e5e5',
-    color: '#0a0a0a',
+    backgroundColor: t.risk.low.bg,
+    color: t.risk.low.fg,
     padding: '2px 8px',
     borderRadius: '999px',
     fontSize: '0.7rem',
@@ -187,8 +326,8 @@ const useStyles = makeStyles({
     justifySelf: 'start',
   },
   riskBadgeReview: {
-    backgroundColor: '#ededed',
-    color: '#0a0a0a',
+    backgroundColor: t.risk.review.bg,
+    color: t.risk.review.fg,
     padding: '2px 8px',
     borderRadius: '999px',
     fontSize: '0.7rem',
@@ -196,8 +335,8 @@ const useStyles = makeStyles({
     justifySelf: 'start',
   },
   riskBadgeHigh: {
-    backgroundColor: '#1f1f1f',
-    color: '#0a0a0a',
+    backgroundColor: t.risk.high.fg,
+    color: t.brand.onInk,
     padding: '2px 8px',
     borderRadius: '999px',
     fontSize: '0.7rem',
@@ -208,12 +347,19 @@ const useStyles = makeStyles({
     display: 'flex',
     gap: '10px',
     alignItems: 'center',
+    flexWrap: 'wrap',
     padding: '12px 14px',
-    borderRadius: '12px',
-    backgroundColor: '#f5f5f5',
-    border: '1px solid #0a0a0a',
-    color: '#0a0a0a',
+    borderRadius: t.radius.md,
+    backgroundColor: t.surface.card,
+    border: t.surface.hairline,
+    boxShadow: t.surface.cardElevatedShadow,
+    color: t.brand.text,
     fontWeight: 600,
+  },
+  govBannerMeta: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap',
   },
 })
 
@@ -224,6 +370,12 @@ function riskClass(
   if (r === 'high') return styles.riskBadgeHigh
   if (r === 'review') return styles.riskBadgeReview
   return styles.riskBadgeLow
+}
+
+function kpiLabel(label: string) {
+  if (label.toLowerCase() === 'provenance coverage') return 'Evidence coverage'
+  if (label.toLowerCase() === 'dsr sla') return 'Data request SLA'
+  return label
 }
 
 export default function TrustSafetyConsole() {
@@ -251,41 +403,48 @@ export default function TrustSafetyConsole() {
     }
   }, [])
 
-  const cards = kpis?.cards ?? fixtureCards
+  const cards = (kpis?.cards ?? fixtureCards).map(card => ({
+    ...card,
+    label: kpiLabel(card.label),
+  }))
   const source = kpis?.source ?? 'fixture'
   const provenanceCount = kpis?.provenance.length ?? 0
+  const sourceLabel = source === 'live' ? 'Live' : 'Snapshot'
 
   return (
     <div className={styles.shell} data-testid="route-trust-safety">
       <div className={styles.header}>
-        <div>
+        <div className={styles.headerCopy}>
           <Text as="h1" className={styles.title}>
             Trust & Safety Console
           </Text>
-          <Text className={styles.subtitle}>
-            AI Governance Dashboard · safety evals, DSR SLA, provenance,
-            canaries and audit evidence.
-          </Text>
+          <div className={styles.headerMeta} aria-label="Governance context">
+            <span className={styles.pill}>Safety</span>
+            <span className={styles.pill}>Privacy response</span>
+            <span className={styles.pill}>Release readiness</span>
+            <span className={styles.pill}>{sourceLabel} evidence</span>
+            <span className={styles.pill}>{provenanceCount} provenance signals</span>
+          </div>
         </div>
         <div className={styles.actions}>
-          <Button
-            appearance="secondary"
-            icon={<ArrowDownTrayIcon style={{ width: 16, height: 16 }} />}
-          >
-            Export signed bundle
-          </Button>
-          <Button
-            appearance="primary"
-            icon={<ShieldCheckIcon style={{ width: 16, height: 16 }} />}
-          >
-            Run red-team probe
-          </Button>
+          <button type="button" className={styles.actionButton}>
+            <ArrowDownTrayIcon style={{ width: 16, height: 16 }} aria-hidden="true" />
+            Export report
+          </button>
+          <button type="button" className={styles.primaryActionButton}>
+            <ShieldCheckIcon style={{ width: 16, height: 16 }} aria-hidden="true" />
+            Run safety review
+          </button>
         </div>
       </div>
 
       <div className={styles.govBanner}>
         <ShieldCheckIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
-        All gates green · canary at 25% · last red-team probe 2026-05-22
+        <div className={styles.govBannerMeta} aria-label="Release status">
+          <span className={styles.pillSolid}>All gates green</span>
+          <span className={styles.pill}>25% controlled rollout</span>
+          <span className={styles.pill}>Last review 2026-05-22</span>
+        </div>
       </div>
 
       <div className={styles.metricStrip} data-testid="pilot-kpi-strip">
@@ -300,13 +459,12 @@ export default function TrustSafetyConsole() {
               }}
             >
               <Text className={styles.metricLabel}>{card.label}</Text>
-              <Badge
-                appearance={source === 'fixture' ? 'outline' : 'filled'}
-                size="small"
+              <span
+                className={source === 'fixture' ? styles.pill : styles.pillSolid}
                 data-testid="pilot-kpi-source-badge"
               >
-                {source}
-              </Badge>
+                {sourceLabel}
+              </span>
             </div>
             <Text className={styles.metricValue}>{card.value}</Text>
             <Text className={styles.metricDetail}>{card.detail}</Text>
@@ -319,14 +477,14 @@ export default function TrustSafetyConsole() {
           style={{ color: tokens.colorPaletteRedForeground1 }}
           data-testid="pilot-kpi-error"
         >
-          Showing offline fixture KPIs (backend unavailable: {kpiError}).
+          Showing the latest saved KPI snapshot while live metrics reconnect.
         </Text>
       )}
       {provenanceCount > 0 && (
         <Text size={200} data-testid="pilot-kpi-provenance">
-          Provenance: {provenanceCount} source{provenanceCount === 1 ? '' : 's'}
+          Evidence coverage: {provenanceCount} source{provenanceCount === 1 ? '' : 's'}
           {kpis?.report.meets_pilot_thresholds === false &&
-            ' · thresholds not yet met'}
+            ' · review thresholds not yet met'}
         </Text>
       )}
 
@@ -335,34 +493,39 @@ export default function TrustSafetyConsole() {
           <CardHeader
             header={<Text weight="semibold">Governance trends · last 6 weeks</Text>}
             description={
-              <Text size={200}>Safety pass · DSR SLA · provenance coverage</Text>
+              <Text size={200}>Safety pass rate · data request SLA · evidence coverage</Text>
             }
           />
           <div className={styles.chartBox}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={safetyTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="week" tick={{ fontSize: 12 }} />
-                <YAxis domain={[95, 100]} tick={{ fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={t.brand.line} />
+                <XAxis dataKey="week" tick={{ fontSize: 12, fill: t.brand.textTertiary }} />
+                <YAxis domain={[95, 100]} tick={{ fontSize: 12, fill: t.brand.textTertiary }} />
                 <Tooltip />
                 <Legend wrapperStyle={{ fontSize: '0.78rem' }} />
                 <Line
                   type="monotone"
                   dataKey="safety"
-                  stroke="#0a0a0a"
+                  name="Safety pass rate"
+                  stroke={t.brand.ink}
                   strokeWidth={2.5}
                 />
                 <Line
                   type="monotone"
                   dataKey="dsr"
-                  stroke="#525252"
+                  name="Data requests"
+                  stroke={t.brand.inkMuted}
                   strokeWidth={2.5}
+                  strokeDasharray="5 4"
                 />
                 <Line
                   type="monotone"
                   dataKey="provenance"
-                  stroke="#6366f1"
+                  name="Evidence coverage"
+                  stroke={t.brand.textSecondary}
                   strokeWidth={2.5}
+                  strokeDasharray="2 5"
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -370,27 +533,28 @@ export default function TrustSafetyConsole() {
         </Card>
 
         <Card className={styles.canaryCard}>
-          <Text className={styles.canaryTitle}>Release canary</Text>
+          <Text className={styles.canaryTitle}>Release rollout</Text>
           <Text size={200}>
-            Shadow → 5% → 25% → ramp. Auto-rollback armed on safety regression.
+            Private review → 5% → 25% → wider release. Rollback is armed for any safety regression.
           </Text>
           <div className={styles.canaryStages}>
-            <Badge appearance="filled">Shadow ✓</Badge>
-            <Badge appearance="filled">5% ✓</Badge>
-            <Badge appearance="filled">25% ✓</Badge>
-            <Badge appearance="outline">50%</Badge>
-            <Badge appearance="outline">100%</Badge>
+            <span className={styles.canaryStageComplete}>Private review ✓</span>
+            <span className={styles.canaryStageComplete}>5% ✓</span>
+            <span className={styles.canaryStageComplete}>25% ✓</span>
+            <span className={styles.canaryStage}>50%</span>
+            <span className={styles.canaryStage}>100%</span>
           </div>
           <Text size={200}>
-            <strong>Auto-rollback triggers:</strong> safety {'<'} 98%, DSR SLA
-            breach, provenance gap.
+            <strong>Rollback triggers:</strong> safety {'<'} 98%, data request SLA
+            breach, evidence gap.
           </Text>
-          <Button className={styles.rollbackBtn}>
+          <button type="button" className={styles.rollbackBtn}>
             <ExclamationTriangleIcon
               style={{ width: 16, height: 16, marginRight: 6 }}
+              aria-hidden="true"
             />
-            Manual rollback
-          </Button>
+            Pause rollout
+          </button>
         </Card>
       </div>
 
@@ -399,7 +563,7 @@ export default function TrustSafetyConsole() {
           header={<Text weight="semibold">Audit action log</Text>}
           description={
             <Text size={200}>
-              Append-only · all entries signed and stored for 7 years.
+              Signed history kept for compliance review.
             </Text>
           }
         />

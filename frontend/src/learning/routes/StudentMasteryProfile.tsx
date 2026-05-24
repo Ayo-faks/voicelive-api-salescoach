@@ -1,5 +1,4 @@
 import {
-  Badge,
   Card,
   CardHeader,
   Text,
@@ -33,6 +32,7 @@ import {
   parentProgress,
   voiceQueue,
 } from '../fixtures'
+import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 
 const radarData = [
   { skill: 'Ratio', mastery: 42, target: 75 },
@@ -69,9 +69,10 @@ const useStyles = makeStyles({
     gap: '4px',
   },
   title: {
-    fontFamily: 'Manrope, sans-serif',
-    fontSize: '1.5rem',
-    fontWeight: 800,
+    fontFamily: t.font.display,
+    fontSize: 'clamp(1.6rem, 2.4vw, 2rem)',
+    fontWeight: 700,
+    letterSpacing: '-0.025em',
   },
   subtitle: {
     color: tokens.colorNeutralForeground2,
@@ -82,6 +83,44 @@ const useStyles = makeStyles({
     flexWrap: 'wrap',
     marginTop: '6px',
   },
+  softBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    minHeight: '24px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+    color: t.brand.textSecondary,
+    boxSizing: 'border-box',
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    paddingRight: '10px',
+    paddingLeft: '10px',
+    lineHeight: 1.35,
+    whiteSpace: 'normal',
+    overflowWrap: 'anywhere',
+    textAlign: 'left',
+  },
+  softBadgeSolid: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    minHeight: '24px',
+    borderRadius: t.radius.pill,
+    border: `1px solid ${t.brand.ink}`,
+    backgroundColor: t.brand.ink,
+    color: t.brand.onInk,
+    boxSizing: 'border-box',
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    paddingRight: '10px',
+    paddingLeft: '10px',
+    lineHeight: 1.35,
+    whiteSpace: 'normal',
+    overflowWrap: 'anywhere',
+    textAlign: 'left',
+  },
   twoCol: {
     display: 'grid',
     gridTemplateColumns: 'minmax(0, 1.3fr) minmax(0, 1fr)',
@@ -90,8 +129,9 @@ const useStyles = makeStyles({
   },
   chartCard: {
     padding: '16px',
-    borderRadius: '14px',
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
+    borderRadius: t.radius.md,
+    border: t.surface.hairline,
+    boxShadow: t.surface.cardElevatedShadow,
     display: 'grid',
     gap: '10px',
   },
@@ -101,15 +141,17 @@ const useStyles = makeStyles({
   },
   riskCard: {
     padding: '16px',
-    borderRadius: '14px',
-    border: '1px solid #a3a3a3',
-    backgroundColor: '#fffbeb',
+    borderRadius: t.radius.md,
+    border: t.surface.hairline,
+    borderLeft: `3px solid ${t.status.warnFg}`,
+    backgroundColor: t.surface.card,
+    boxShadow: t.surface.cardElevatedShadow,
     display: 'grid',
     gap: '8px',
   },
   riskTitle: {
     fontWeight: 800,
-    color: '#92400e',
+    color: t.brand.text,
   },
   sideStack: {
     display: 'grid',
@@ -118,15 +160,42 @@ const useStyles = makeStyles({
   },
   trajectoryCard: {
     padding: '16px',
-    borderRadius: '14px',
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
+    borderRadius: t.radius.md,
+    border: t.surface.hairline,
+    boxShadow: t.surface.cardElevatedShadow,
     display: 'grid',
     gap: '10px',
+  },
+  auditCard: {
+    padding: '16px',
+    borderRadius: t.radius.md,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+    boxShadow: t.surface.cardElevatedShadow,
+    display: 'grid',
+    gap: '8px',
   },
   tabRow: {
     display: 'flex',
     gap: '6px',
     flexWrap: 'wrap',
+  },
+  auditEventList: {
+    display: 'grid',
+    gap: '6px',
+    marginTop: '8px',
+  },
+  auditEventItem: {
+    display: 'block',
+    padding: '5px 9px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+    color: t.brand.textSecondary,
+    fontSize: '0.72rem',
+    fontWeight: 650,
+    lineHeight: 1.35,
+    overflowWrap: 'anywhere',
   },
 })
 
@@ -143,16 +212,19 @@ export default function StudentMasteryProfile() {
       <div className={styles.headerRow}>
         <div className={styles.studentMeta}>
           <Text as="h1" className={styles.title}>
-            Tobi A. · Learner Insights Profile
-          </Text>
-          <Text className={styles.subtitle}>
-            JSS2 · en-NG · counsellor-gated. Mastery, trajectory, risks and
-            career fit, side-by-side.
+            Tobi A.
           </Text>
           <div className={styles.metaBadges}>
-            <Badge appearance="tint">Current focus: ratio</Badge>
-            <Badge appearance="tint">Review: 2026-06-02</Badge>
-            <Badge appearance="filled">Counsellor sign-off</Badge>
+            <span className={styles.softBadgeSolid}>Learner insights profile</span>
+            <span className={styles.softBadge}>JSS2</span>
+            <span className={styles.softBadge}>English</span>
+            <span className={styles.softBadge}>Mastery trajectory</span>
+            <span className={styles.softBadge}>Career fit</span>
+          </div>
+          <div className={styles.metaBadges}>
+            <span className={styles.softBadge}>Current focus: ratio</span>
+            <span className={styles.softBadge}>Review: 2026-06-02</span>
+            <span className={styles.softBadgeSolid}>Counsellor sign-off</span>
           </div>
         </div>
       </div>
@@ -168,28 +240,28 @@ export default function StudentMasteryProfile() {
           <div className={styles.chartBox}>
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={radarData}>
-                <PolarGrid stroke="#e2e8f0" />
+                <PolarGrid stroke={t.brand.line} />
                 <PolarAngleAxis
                   dataKey="skill"
-                  tick={{ fontSize: 12, fill: '#475569' }}
+                  tick={{ fontSize: 12, fill: t.brand.textSecondary }}
                 />
                 <PolarRadiusAxis
                   angle={30}
                   domain={[0, 100]}
-                  tick={{ fontSize: 10, fill: '#94a3b8' }}
+                  tick={{ fontSize: 10, fill: t.brand.textTertiary }}
                 />
                 <Radar
                   name="Mastery"
                   dataKey="mastery"
-                  stroke="#0a0a0a"
-                  fill="#0a0a0a"
+                  stroke={t.brand.ink}
+                  fill={t.brand.ink}
                   fillOpacity={0.35}
                 />
                 <Radar
                   name="Target"
                   dataKey="target"
-                  stroke="#525252"
-                  fill="#525252"
+                  stroke={t.brand.inkMuted}
+                  fill={t.brand.inkMuted}
                   fillOpacity={0.1}
                 />
               </RadarChart>
@@ -200,8 +272,8 @@ export default function StudentMasteryProfile() {
         <div className={styles.sideStack}>
           <Card className={styles.riskCard}>
             <Text className={styles.riskTitle}>Risks & flags</Text>
-            <Badge appearance="tint">Ratio mastery below 50%</Badge>
-            <Badge appearance="tint">Uncertainty rising on linear eq.</Badge>
+            <span className={styles.softBadge}>Ratio mastery below 50%</span>
+            <span className={styles.softBadge}>Uncertainty rising on linear eq.</span>
             <Text size={200}>
               Two risks open. Counsellor review scheduled 2026-06-02.
             </Text>
@@ -219,21 +291,21 @@ export default function StudentMasteryProfile() {
           <div className={styles.chartBox}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={trajectoryData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="week" tick={{ fontSize: 12 }} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={t.brand.line} />
+                <XAxis dataKey="week" tick={{ fontSize: 12, fill: t.brand.textTertiary }} />
+                <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: t.brand.textTertiary }} />
                 <Tooltip />
                 <Line
                   type="monotone"
                   dataKey="ratio"
-                  stroke="#0a0a0a"
+                  stroke={t.brand.ink}
                   strokeWidth={2.5}
                   dot
                 />
                 <Line
                   type="monotone"
                   dataKey="fractions"
-                  stroke="#525252"
+                  stroke={t.brand.inkMuted}
                   strokeWidth={2.5}
                   dot
                 />
@@ -247,20 +319,20 @@ export default function StudentMasteryProfile() {
           <CounsellorGatePanel
             plan={careerPlan}
             decision={advisorDecision}
-            onApproveNarration={id => pushEvent(`Approved narration ${id}`)}
-            onRejectNarration={id => pushEvent(`Rejected narration ${id}`)}
+            onApproveNarration={() => pushEvent('Counsellor guidance approved')}
+            onRejectNarration={() => pushEvent('Counsellor guidance sent back for revision')}
           />
           <VoiceQueueCard voiceQueue={voiceQueue} />
           {auditEvents.length > 0 && (
-            <Card>
+            <Card className={styles.auditCard}>
               <CardHeader
                 header={<Text weight="semibold">Recent actions</Text>}
               />
-              <div style={{ display: 'grid', gap: '6px', marginTop: '8px' }}>
+              <div className={styles.auditEventList}>
                 {auditEvents.slice(-5).reverse().map(e => (
-                  <Badge key={e} appearance="outline">
+                  <span key={e} className={styles.auditEventItem}>
                     {e}
-                  </Badge>
+                  </span>
                 ))}
               </div>
             </Card>

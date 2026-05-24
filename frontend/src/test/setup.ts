@@ -98,6 +98,7 @@ import { vi } from 'vitest'
 vi.mock('react-joyride', () => ({
   __esModule: true,
   default: () => null,
+  Joyride: () => null,
   STATUS: { FINISHED: 'finished', SKIPPED: 'skipped' },
   EVENTS: { STEP_AFTER: 'step:after' },
 }))

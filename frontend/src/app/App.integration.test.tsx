@@ -1220,7 +1220,7 @@ describe('App routing integration', () => {
 
   it('confirms before leaving an active session route', async () => {
     window.localStorage.setItem('wulo.onboarding.complete', 'true')
-    window.localStorage.setItem('wulo.user.mode', 'child')
+    window.localStorage.setItem('wulo.user.mode', 'workspace')
     realtimeState.connected = true
 
     renderApp(APP_ROUTES.session)

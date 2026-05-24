@@ -27,7 +27,9 @@ from src.learning.repository import LearningRepository
 from src.learning.validator import PlanValidator, catalogue_grounding_rule
 from src.learning.xapi import (
     DiagnosticCompletionEvent,
+    RalphXAPISink,
     XAPIStatement,
+    build_ralph_sink_from_env,
     diagnostic_completion_event_to_xapi,
     mastery_event_to_xapi,
 )
@@ -165,10 +167,18 @@ class DiagnosticEngine:
         repository: LearningRepository,
         selector: Optional[DiagnosticItemSelector] = None,
         estimator: Optional[MasteryEstimator] = None,
+        sink: Optional[RalphXAPISink] = None,
     ) -> None:
         self.repository = repository
         self.selector = selector or DeterministicItemSelector()
         self.estimator = estimator or BetaBKT()
+        self.sink: RalphXAPISink = sink or build_ralph_sink_from_env(repository=repository)
+
+    def _emit_xapi(self, tenant_id: str, actor_id: str, statement: XAPIStatement) -> None:
+        emitted = self.sink.emit(statement)
+        self.repository.emit_xapi_statement(
+            tenant_id, actor_id, emitted, self.sink.sink_status
+        )
 
     def run_offline(
         self,
@@ -242,7 +252,7 @@ class DiagnosticEngine:
             )
             statement = mastery_event_to_xapi(mastery_event)
             self.repository.save_mastery_event(mastery_event, statement)
-            self.repository.emit_xapi_statement(tenant_id, student_id, statement, "ralph_queued")
+            self._emit_xapi(tenant_id, student_id, statement)
             mastery_events.append(mastery_event)
             xapi_statements.append(statement)
 
@@ -255,7 +265,7 @@ class DiagnosticEngine:
             provenance=item_bank.provenance,
         )
         completion_statement = diagnostic_completion_event_to_xapi(completion_event)
-        self.repository.emit_xapi_statement(tenant_id, student_id, completion_statement, "ralph_queued")
+        self._emit_xapi(tenant_id, student_id, completion_statement)
         xapi_statements.append(completion_statement)
 
         heatmap = build_teacher_heatmap(

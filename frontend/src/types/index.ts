@@ -582,6 +582,139 @@ export interface TurnCompleted {
   answer_text: string
   citations?: InsightsCitation[]
   visualizations?: VisualizationSpec[]
+  ui_specs?: VoiceAgentUiSpec[]
+  action_suggestions?: VoiceAgentActionSuggestion[]
+}
+
+// --- Voice-agent dynamic UI & action contracts (Phase 1) ------------------
+
+export type VoiceAgentRiskLevel = 'low' | 'medium' | 'high'
+
+export type VoiceAgentActionType =
+  | 'submit_learning_intent'
+  | 'approve_learning_plan'
+  | 'reject_learning_plan'
+  | 'edit_approve_learning_plan'
+  | 'create_intervention_plan_draft'
+  | 'open_student_profile'
+
+export interface VoiceAgentActionSuggestion {
+  action_id: string
+  action_type: VoiceAgentActionType
+  label: string
+  risk_level: VoiceAgentRiskLevel
+  requires_confirmation: boolean
+  parameters: Record<string, unknown>
+  rationale?: string
+}
+
+export interface VoiceAgentActionResult {
+  action_id: string
+  status: 'success' | 'denied' | 'failed' | 'cancelled'
+  message?: string
+}
+
+export type VoiceAgentFormFieldKind =
+  | 'text'
+  | 'textarea'
+  | 'number'
+  | 'select'
+  | 'boolean'
+  | 'date'
+
+export interface VoiceAgentFormFieldOption {
+  value: string
+  label: string
+}
+
+export interface VoiceAgentFormField {
+  name: string
+  kind: VoiceAgentFormFieldKind
+  label: string
+  required: boolean
+  help?: string
+  placeholder?: string
+  options?: VoiceAgentFormFieldOption[]
+  default?: string | number | boolean
+}
+
+interface VoiceAgentUiSpecBase {
+  id?: string | null
+  title?: string
+}
+
+export interface VoiceAgentTextSpec extends VoiceAgentUiSpecBase {
+  kind: 'text'
+  body: string
+}
+
+export interface VoiceAgentFormSpec extends VoiceAgentUiSpecBase {
+  kind: 'form'
+  submit_label: string
+  fields: VoiceAgentFormField[]
+}
+
+export interface VoiceAgentConfirmationSpec extends VoiceAgentUiSpecBase {
+  kind: 'confirmation'
+  prompt: string
+  confirm_label: string
+  cancel_label: string
+  action_id?: string
+}
+
+export interface VoiceAgentChartSpec extends VoiceAgentUiSpecBase {
+  kind: 'chart' | 'table'
+  payload: Record<string, unknown>
+}
+
+export interface VoiceAgentStudentProfileSpec extends VoiceAgentUiSpecBase {
+  kind: 'studentProfile'
+  student_id: string
+}
+
+export interface VoiceAgentPlanDraftSpec extends VoiceAgentUiSpecBase {
+  kind: 'planDraft'
+  plan_id?: string | null
+  summary: string
+}
+
+export interface VoiceAgentActionResultSpec extends VoiceAgentUiSpecBase {
+  kind: 'actionResult'
+  action_id: string
+  status: string
+  message: string
+}
+
+export type VoiceAgentUiSpec =
+  | VoiceAgentTextSpec
+  | VoiceAgentFormSpec
+  | VoiceAgentConfirmationSpec
+  | VoiceAgentChartSpec
+  | VoiceAgentStudentProfileSpec
+  | VoiceAgentPlanDraftSpec
+  | VoiceAgentActionResultSpec
+
+export interface TurnUiSpec {
+  type: 'turn.ui_spec'
+  spec: VoiceAgentUiSpec
+}
+
+export interface TurnActionSuggested {
+  type: 'turn.action_suggested'
+  suggestion: VoiceAgentActionSuggestion
+}
+
+export interface TurnActionConfirmationRequired {
+  type: 'turn.action_confirmation_required'
+  action_id: string
+  action_type: VoiceAgentActionType
+  prompt: string
+  risk_level: VoiceAgentRiskLevel
+}
+
+export interface TurnActionResult {
+  type: 'turn.action_result'
+  result: VoiceAgentActionResult
 }
 
 export interface TurnError {
@@ -619,6 +752,10 @@ export type InsightsVoiceEnvelope =
   | TurnError
   | TurnInterrupt
   | TurnInterrupted
+  | TurnUiSpec
+  | TurnActionSuggested
+  | TurnActionConfirmationRequired
+  | TurnActionResult
 
 export interface ProgressReportMetric {
   label: string
@@ -987,6 +1124,9 @@ export interface AppConfig {
   planner?: PlannerReadiness
   insights_rail_enabled?: boolean
   insights_voice_mode?: InsightsVoiceMode
+  voice_agent_fullscreen_enabled?: boolean
+  voice_agent_dynamic_ui_enabled?: boolean
+  voice_agent_actions_enabled?: boolean
   onboarding?: OnboardingFlags
 }
 

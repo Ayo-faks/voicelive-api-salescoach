@@ -1,4 +1,4 @@
-import { Badge, Button, Text, makeStyles } from '@fluentui/react-components'
+import { Text, makeStyles } from '@fluentui/react-components'
 import {
   ArrowRightIcon,
   BoltIcon,
@@ -150,6 +150,27 @@ const useStyles = makeStyles({
       boxShadow: '0 10px 24px rgba(0,0,0,0.18)',
     },
   },
+  voiceButton: {
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '36px',
+    paddingRight: '16px',
+    paddingLeft: '16px',
+    borderRadius: t.radius.pill,
+    border: '1px solid rgba(255,255,255,0.22)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    color: t.brand.onInk,
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.84rem',
+    fontWeight: 800,
+    ':disabled': {
+      cursor: 'not-allowed',
+      opacity: 0.55,
+    },
+  },
   card: {
     backgroundColor: t.surface.card,
     border: t.surface.hairline,
@@ -161,6 +182,8 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: '10px',
+    flexWrap: 'wrap',
     marginBottom: '14px',
   },
   cardTitle: {
@@ -173,6 +196,23 @@ const useStyles = makeStyles({
   cardCaption: {
     fontSize: '0.78rem',
     color: t.brand.textTertiary,
+  },
+  softBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    flexShrink: 0,
+    minHeight: '24px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    paddingRight: '10px',
+    paddingLeft: '10px',
+    backgroundColor: t.surface.cardMuted,
+    color: t.brand.textSecondary,
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    lineHeight: 1.35,
+    whiteSpace: 'normal',
+    overflowWrap: 'anywhere',
   },
   banner: {
     display: 'flex',
@@ -220,6 +260,25 @@ const useStyles = makeStyles({
     fontWeight: 600,
     color: t.brand.text,
     fontSize: '0.94rem',
+  },
+  textAction: {
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    justifySelf: 'start',
+    minHeight: '32px',
+    marginTop: '12px',
+    paddingRight: '13px',
+    paddingLeft: '13px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+    color: t.brand.text,
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.78rem',
+    fontWeight: 800,
   },
   pathMeta: {
     fontSize: '0.78rem',
@@ -297,7 +356,11 @@ const useStyles = makeStyles({
   },
 })
 
-export default function StudentLearningHome() {
+type StudentLearningHomeProps = {
+  studentId?: string | null
+}
+
+export default function StudentLearningHome({ studentId }: StudentLearningHomeProps) {
   const styles = useStyles()
   const [activeSkill, setActiveSkill] = useState<string | null>(null)
   const [panelKey, setPanelKey] = useState(0)
@@ -338,6 +401,7 @@ export default function StudentLearningHome() {
     setVoiceError(null)
     try {
       const result = await submitVoiceFrame({
+        actor_id: studentId ?? undefined,
         mode: 'text',
         payload: "Bawo ni teacher, I want to practise ratio.",
         lang: 'en-NG',
@@ -368,7 +432,7 @@ export default function StudentLearningHome() {
               <BoltIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
               7-day streak
             </span>
-            <span className={styles.heroPill}>en-NG · Yoruba voice</span>
+            <span className={styles.heroPill}>English · Yoruba voice</span>
             <span className={styles.heroPill}>JSS2 · Maths</span>
           </div>
           <button
@@ -383,17 +447,18 @@ export default function StudentLearningHome() {
           </button>
           {voiceConfig?.enabled && (
             <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <Button
-                appearance="secondary"
+              <button
+                type="button"
+                className={styles.voiceButton}
                 onClick={startVoiceCheckIn}
                 disabled={voiceBusy}
                 data-testid="start-voice-checkin"
               >
-                {voiceBusy ? 'Queuing voice frame…' : 'Voice check-in (beta)'}
-              </Button>
+                {voiceBusy ? 'Preparing voice check-in…' : 'Voice check-in'}
+              </button>
               {voiceResult && (
                 <div data-testid="voice-frame-result" style={{ fontSize: '0.8rem', opacity: 0.85 }}>
-                  Queued: {voiceResult.queue_id} · fallback={voiceResult.offline_fallback}
+                  Voice response saved for sync.
                 </div>
               )}
               {voiceError && (
@@ -409,6 +474,7 @@ export default function StudentLearningHome() {
           <DiagnosticPanel
             key={panelKey}
             skillId={activeSkill ?? undefined}
+            studentId={studentId}
             onCompleted={() => setCompleted(true)}
           />
         )}
@@ -422,8 +488,7 @@ export default function StudentLearningHome() {
 
         <div className={styles.banner}>
           <WifiIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
-          Offline-ready. Yoruba voice frame queued — will sync when connection
-          returns.
+          Yoruba voice practice is ready and will sync when connection returns.
         </div>
 
         <article className={styles.card}>
@@ -464,7 +529,7 @@ export default function StudentLearningHome() {
         <article className={styles.card}>
           <div className={styles.cardHeader}>
             <Text className={styles.cardTitle}>This week</Text>
-            <Text className={styles.cardCaption}>Mon — Sun · auto-tracked</Text>
+            <Text className={styles.cardCaption}>Mon — Sun · progress updated daily</Text>
           </div>
           <div className={styles.weekGrid}>
             {weeklyTiles.map(tile => (
@@ -482,19 +547,19 @@ export default function StudentLearningHome() {
         <article className={styles.card}>
           <div className={styles.cardHeader}>
             <Text className={styles.cardTitle}>Up next</Text>
-            <Badge appearance="outline">Adaptive</Badge>
+            <span className={styles.softBadge}>Adaptive</span>
           </div>
           <p style={{ fontSize: '0.88rem', color: t.brand.textSecondary, lineHeight: 1.5, margin: 0 }}>
             Linear equations · introduce slope using ratios you've practiced.
           </p>
-          <Button
-            appearance="subtle"
-            style={{ marginTop: 12, paddingLeft: 0 }}
+          <button
+            type="button"
+            className={styles.textAction}
             onClick={() => startCheckIn('linear-equations')}
             data-testid="preview-path"
           >
             Preview path
-          </Button>
+          </button>
         </article>
 
         <article className={styles.card}>
@@ -521,10 +586,10 @@ export default function StudentLearningHome() {
         <article className={styles.card}>
           <div className={styles.cardHeader}>
             <Text className={styles.cardTitle}>Trust</Text>
-            <Badge appearance="outline" color="success">All gates green</Badge>
+            <span className={styles.softBadge}>All gates green</span>
           </div>
           <p style={{ fontSize: '0.82rem', color: t.brand.textSecondary, lineHeight: 1.5, margin: 0 }}>
-            Every recommendation is teacher-reviewed. Provenance and audit log
+            Every recommendation is teacher-reviewed. Evidence and activity log
             available in Trust & Safety.
           </p>
         </article>

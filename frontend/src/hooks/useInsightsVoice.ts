@@ -14,6 +14,8 @@ import type {
   TurnAudioChunk,
   TurnCompleted,
   VisualizationSpec,
+  VoiceAgentActionSuggestion,
+  VoiceAgentUiSpec,
 } from '../types'
 
 interface UseInsightsVoiceOptions {
@@ -21,7 +23,14 @@ interface UseInsightsVoiceOptions {
   conversationId?: string | null
   mode?: InsightsVoiceMode
   onCompleted?: (payload: UseInsightsVoiceTurnCompleted) => void
+  onEndCallRequested?: (transcript: string) => void
 }
+
+// Verbal hang-up phrases. Matched against the final user transcript so the
+// agent closes the call the way ChatGPT voice does when the user says
+// "end call", "goodbye", etc. Kept conservative to avoid false positives.
+const END_CALL_PATTERN =
+  /\b(end (the )?call|hang up|stop listening|that'?s all( for now)?|(good ?bye|bye bye)|(thanks|thank you)[ ,]*(bye|goodbye)|see you( later)?)\b[.! ]*$/i
 
 interface InsightsVoiceTimingState {
   turnId: string | null
@@ -37,6 +46,8 @@ export interface UseInsightsVoiceTurnCompleted {
   answerText: string
   citations?: InsightsCitation[]
   visualizations?: VisualizationSpec[]
+  uiSpecs?: VoiceAgentUiSpec[]
+  actionSuggestions?: VoiceAgentActionSuggestion[]
 }
 
 const INSIGHTS_VOICE_ENDPOINT = '/ws/insights-voice'
@@ -155,6 +166,7 @@ export function useInsightsVoice({
   conversationId,
   mode = 'full_duplex',
   onCompleted,
+  onEndCallRequested,
 }: UseInsightsVoiceOptions) {
   const effectiveMode = normalizeInsightsVoiceMode(mode)
   const [voiceState, setVoiceState] = useState<InsightsVoiceState>('idle')
@@ -162,11 +174,16 @@ export function useInsightsVoice({
   const [lastAnswer, setLastAnswer] = useState('')
   const [lastError, setLastError] = useState<string | null>(null)
   const [outputLevel, setOutputLevel] = useState(0)
+  const [lastUiSpecs, setLastUiSpecs] = useState<VoiceAgentUiSpec[]>([])
+  const [lastActionSuggestions, setLastActionSuggestions] = useState<
+    VoiceAgentActionSuggestion[]
+  >([])
   const wsRef = useRef<WebSocket | null>(null)
   const pendingConnectRef = useRef<Promise<WebSocket | null> | null>(null)
   const inboundBufferRef = useRef('')
   const intentionalCloseSocketRef = useRef<WebSocket | null>(null)
   const connectFailedRef = useRef(false)
+  const lastCloseInfoRef = useRef<{ code: number; reason: string } | null>(null)
   const lastTranscriptRef = useRef('')
   const recordingRef = useRef(false)
   const audioContextRef = useRef<AudioContext | null>(null)
@@ -707,6 +724,17 @@ export function useInsightsVoice({
           lastTranscriptRef.current = event.text
           setLastTranscript(event.text)
           setVoiceState('thinking')
+          if (
+            onEndCallRequested &&
+            typeof event.text === 'string' &&
+            END_CALL_PATTERN.test(event.text.trim())
+          ) {
+            try {
+              onEndCallRequested(event.text)
+            } catch (callbackError) {
+              console.warn('onEndCallRequested handler threw', callbackError)
+            }
+          }
           break
         case 'turn.audio_chunk':
           if (!timingRef.current.firstAudioChunkLogged) {
@@ -753,12 +781,16 @@ export function useInsightsVoice({
             interruptedRef.current || interruptRequestedRef.current
           setLastError(null)
           setLastAnswer(completedEvent.answer_text)
+          setLastUiSpecs(completedEvent.ui_specs ?? [])
+          setLastActionSuggestions(completedEvent.action_suggestions ?? [])
           onCompleted?.({
             conversationId: completedEvent.conversation_id,
             transcript: lastTranscriptRef.current,
             answerText: completedEvent.answer_text,
             citations: completedEvent.citations,
             visualizations: completedEvent.visualizations,
+            uiSpecs: completedEvent.ui_specs,
+            actionSuggestions: completedEvent.action_suggestions,
           })
           interruptRequestedRef.current = false
           if (wasInterrupted) {
@@ -790,6 +822,7 @@ export function useInsightsVoice({
       finishPlaybackIfIdle,
       logTiming,
       onCompleted,
+      onEndCallRequested,
       rearmListening,
       setRecorderMode,
       stopPlayback,
@@ -879,6 +912,9 @@ export function useInsightsVoice({
           if (intentionalClose) {
             intentionalCloseSocketRef.current = null
           }
+          if (!intentionalClose) {
+            lastCloseInfoRef.current = { code: event.code, reason: event.reason || '' }
+          }
           if (wsRef.current === socket) {
             wsRef.current = null
           }
@@ -944,11 +980,18 @@ export function useInsightsVoice({
     setLastAnswer('')
     setLastError(null)
     setOutputLevel(0)
+    setLastUiSpecs([])
+    setLastActionSuggestions([])
     setVoiceState('connecting')
+    lastCloseInfoRef.current = null
 
     const socket = await connectSocket()
     if (!socket) {
-      setLastError(VOICE_CONNECT_ERROR_MESSAGE)
+      const info = lastCloseInfoRef.current
+      const detail = info
+        ? ` (${info.code}${info.reason ? ` ${info.reason}` : ''})`
+        : ''
+      setLastError(`${VOICE_CONNECT_ERROR_MESSAGE}${detail}`)
       setVoiceState('error')
       return
     }
@@ -1199,5 +1242,7 @@ export function useInsightsVoice({
     lastAnswer,
     lastError,
     outputLevel,
+    lastUiSpecs,
+    lastActionSuggestions,
   }
 }

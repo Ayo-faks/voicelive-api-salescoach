@@ -6,7 +6,7 @@
  * dependency-light — no router push, no global store. Surfaces completion +
  * pending plan so the parent route can update its UI.
  */
-import { Badge, Button, Input, Text, makeStyles } from '@fluentui/react-components'
+import { Button, Input, Text, makeStyles } from '@fluentui/react-components'
 import { useEffect, useRef, useState } from 'react'
 import {
   answerDiagnostic,
@@ -20,6 +20,7 @@ import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 
 export type DiagnosticPanelProps = {
   skillId?: string
+  studentId?: string | null
   onCompleted?: (plan: PendingPlanRecord | null) => void
   onItemAnswered?: (result: AnswerDiagnosticResponse) => void
   onError?: (error: Error) => void
@@ -53,6 +54,22 @@ const useStyles = makeStyles({
     fontSize: '0.78rem',
     color: t.brand.textSecondary,
   },
+  statusPill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    minHeight: '24px',
+    paddingRight: '10px',
+    paddingLeft: '10px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+    color: t.brand.textSecondary,
+    boxSizing: 'border-box',
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    lineHeight: 1.35,
+    whiteSpace: 'nowrap',
+  },
   controls: {
     display: 'grid',
     gridTemplateColumns: 'minmax(0,1fr) auto',
@@ -64,12 +81,12 @@ const useStyles = makeStyles({
   },
   feedbackCorrect: {
     fontSize: '0.85rem',
-    color: '#16794f',
+    color: t.status.okFg,
     fontWeight: 600,
   },
   feedbackWrong: {
     fontSize: '0.85rem',
-    color: '#a8351c',
+    color: t.status.criticalFg,
     fontWeight: 600,
   },
   completion: {
@@ -79,8 +96,23 @@ const useStyles = makeStyles({
   },
 })
 
+function displaySkill(value: string) {
+  return value
+    .split('-')
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+function languageLabel(value: string) {
+  if (value === 'en-NG') return 'English'
+  if (value === 'yo-NG') return 'Yoruba'
+  return 'Learner language'
+}
+
 export default function DiagnosticPanel({
   skillId,
+  studentId,
   onCompleted,
   onItemAnswered,
   onError,
@@ -96,10 +128,19 @@ export default function DiagnosticPanel({
   const startedRef = useRef(false)
 
   useEffect(() => {
+    if (!studentId) {
+      setSession(null)
+      setCurrentItem(null)
+      setBusy(false)
+      return
+    }
     if (startedRef.current) return
     startedRef.current = true
     setBusy(true)
-    startDiagnostic(skillId ? { skill_id: skillId } : {})
+    startDiagnostic({
+      ...(skillId ? { skill_id: skillId } : {}),
+      ...(studentId ? { student_id: studentId } : {}),
+    })
       .then(payload => {
         setSession(payload)
         setCurrentItem(payload.item)
@@ -109,7 +150,7 @@ export default function DiagnosticPanel({
         onError?.(err)
       })
       .finally(() => setBusy(false))
-  }, [skillId, onError])
+  }, [skillId, onError, studentId])
 
   async function submitAnswer(e: React.FormEvent) {
     e.preventDefault()
@@ -152,14 +193,14 @@ export default function DiagnosticPanel({
     >
       <div className={styles.header}>
         <Text weight="semibold">Today's check-in</Text>
-        <Badge appearance="outline" data-testid="diagnostic-session">
-          {session?.diagnostic_id ?? 'loading…'}
-        </Badge>
+        <span className={styles.statusPill} data-testid="diagnostic-session">
+          {session ? 'In progress' : 'Preparing'}
+        </span>
       </div>
 
       {error && (
-        <Text role="alert" style={{ color: '#a8351c' }}>
-          {error}
+        <Text role="alert" style={{ color: t.status.criticalFg }}>
+          Check-in could not start. Please try again.
         </Text>
       )}
 
@@ -170,8 +211,8 @@ export default function DiagnosticPanel({
               {currentItem.prompt}
             </p>
             <div className={styles.meta}>
-              <span data-testid="diagnostic-skill">{currentItem.skill_id}</span>
-              <span>{currentItem.lang}</span>
+              <span data-testid="diagnostic-skill">{displaySkill(currentItem.skill_id)}</span>
+              <span>{languageLabel(currentItem.lang)}</span>
               {session && (
                 <span data-testid="diagnostic-remaining">
                   {session.items_total - (lastResult ? lastResult.items_remaining + 0 : session.items_remaining + 1)
@@ -212,7 +253,9 @@ export default function DiagnosticPanel({
         >
           {lastResult.correct
             ? 'Correct — mastery updated.'
-            : `Not quite. Expected ${lastResult.expected_answer ?? '(unknown)'}.`}
+            : lastResult.expected_answer
+              ? `Not quite. Expected ${lastResult.expected_answer}.`
+              : 'Not quite. Review the worked answer with your teacher.'}
         </Text>
       )}
 

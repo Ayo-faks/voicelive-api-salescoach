@@ -172,8 +172,8 @@ export const voiceQueue: VoiceQueueView = {
 export const pilotMetrics: Array<[string, string, string]> = [
   ['Diagnostic completion', '94.8%', '199 of 210 assigned diagnostics'],
   ['Approved interventions', '70%', '70 of 100 suggestions approved'],
-  ['Provenance coverage', '100%', 'Every suggestion has source evidence'],
+  ['Evidence coverage', '100%', 'Every suggestion has source evidence'],
   ['Safety pass rate', '99.3%', '298 of 300 eval cases passed'],
-  ['DSR SLA', '100%', 'All requests completed within SLA'],
+  ['Data request SLA', '100%', 'All requests completed within SLA'],
   ['Weekly cost per student', 'GBP 0.21', '300 active students'],
 ]

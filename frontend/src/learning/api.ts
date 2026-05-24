@@ -137,6 +137,7 @@ export type PendingPlanRecord = {
   status: string
   plan: {
     plan_id: string
+    parent_plan_id?: string | null
     target_skill_ids: string[]
     target_student_ids: string[]
     item_types: string[]
@@ -204,10 +205,20 @@ export type PilotKpiResponse = {
 export type DecisionResponse = {
   ok: boolean
   plan_id: string
+  edited_plan_id?: string
   action: 'approved' | 'edited_approved' | 'rejected'
+  plan?: PendingPlanRecord['plan']
   xapi_id: string
   xapi_statement: Record<string, unknown>
   audit: AuditEvent
+}
+
+export type EditLearningPlanEdits = {
+  target_skill_ids?: string[]
+  target_student_ids?: string[]
+  item_types?: string[]
+  suggested_resources?: string[]
+  rationale?: string
 }
 
 export type IntentResponse = {
@@ -252,7 +263,7 @@ function withDefaults(init?: RequestInit): RequestInit {
 }
 
 function toSearchParams(query: Record<string, string | undefined>): string {
-  const pairs = Object.entries(query).filter(([, value]) => value === undefined ? false : value === '' ? false : true)
+  const pairs = Object.entries(query).filter(([, value]) => value !== undefined && value !== '')
   return new URLSearchParams(pairs as [string, string][]).toString()
 }
 
@@ -287,7 +298,7 @@ export async function getClassMastery(query: {
   tenant_id?: string
   class_id?: string
 } = {}): Promise<ClassMasteryResponse> {
-  const search = new URLSearchParams(query as Record<string, string>).toString()
+  const search = toSearchParams(query)
   const url = search
     ? `/api/learning/class/mastery?${search}`
     : '/api/learning/class/mastery'
@@ -345,8 +356,9 @@ export async function overrideStudentMastery(
 
 export async function listPendingApprovals(query: {
   tenant_id?: string
+  class_id?: string
 } = {}): Promise<ApprovalsResponse> {
-  const search = new URLSearchParams(query as Record<string, string>).toString()
+  const search = toSearchParams(query)
   const url = search
     ? `/api/learning/approvals/pending?${search}`
     : '/api/learning/approvals/pending'
@@ -356,7 +368,7 @@ export async function listPendingApprovals(query: {
 
 export async function approveLearningPlan(
   planId: string,
-  payload: { actor_id?: string; reason?: string } = {}
+  payload: { actor_id?: string; class_id?: string; reason?: string } = {}
 ): Promise<DecisionResponse> {
   const response = await fetch(
     `/api/learning/approvals/${encodeURIComponent(planId)}/approve`,
@@ -367,7 +379,7 @@ export async function approveLearningPlan(
 
 export async function rejectLearningPlan(
   planId: string,
-  payload: { actor_id?: string; reason?: string } = {}
+  payload: { actor_id?: string; class_id?: string; reason?: string } = {}
 ): Promise<DecisionResponse> {
   const response = await fetch(
     `/api/learning/approvals/${encodeURIComponent(planId)}/reject`,
@@ -376,8 +388,25 @@ export async function rejectLearningPlan(
   return jsonOrThrow<DecisionResponse>(response)
 }
 
+export async function editAndApproveLearningPlan(
+  planId: string,
+  payload: {
+    actor_id?: string
+    class_id?: string
+    reason?: string
+    edits: EditLearningPlanEdits
+  }
+): Promise<DecisionResponse> {
+  const response = await fetch(
+    `/api/learning/approvals/${encodeURIComponent(planId)}/edit-approve`,
+    withDefaults({ method: 'POST', body: JSON.stringify(payload) })
+  )
+  return jsonOrThrow<DecisionResponse>(response)
+}
+
 export async function submitIntent(payload: {
   tenant_id?: string
+  class_id?: string
   actor_id?: string
   role?: string
   prompt: string
@@ -392,7 +421,7 @@ export async function submitIntent(payload: {
 export async function listAudit(query: {
   tenant_id?: string
 } = {}): Promise<AuditResponse> {
-  const search = new URLSearchParams(query as Record<string, string>).toString()
+  const search = toSearchParams(query)
   const url = search ? `/api/learning/audit?${search}` : '/api/learning/audit'
   const response = await fetch(url, withDefaults({ method: 'GET' }))
   return jsonOrThrow<AuditResponse>(response)
@@ -401,7 +430,7 @@ export async function listAudit(query: {
 export async function getPilotKpis(query: {
   tenant_id?: string
 } = {}): Promise<PilotKpiResponse> {
-  const search = new URLSearchParams(query as Record<string, string>).toString()
+  const search = toSearchParams(query)
   const url = search ? `/api/learning/kpis?${search}` : '/api/learning/kpis'
   const response = await fetch(url, withDefaults({ method: 'GET' }))
   return jsonOrThrow<PilotKpiResponse>(response)
@@ -442,4 +471,64 @@ export async function submitVoiceFrame(payload: {
     withDefaults({ method: 'POST', body: JSON.stringify(payload) })
   )
   return jsonOrThrow<VoiceFrameResponse>(response)
+}
+
+// --- Voice-agent action API -------------------------------------------------
+
+export interface VoiceAgentActionRecord {
+  suggestion_id: string
+  action_id: string
+  action_type: string
+  label: string
+  risk_level: 'low' | 'medium' | 'high'
+  requires_confirmation: boolean
+  parameters: Record<string, unknown>
+  rationale: string
+  status: string
+}
+
+export interface VoiceAgentActionExecutionResult {
+  suggestion_id: string
+  action_id: string
+  action_type: string
+  status: 'success' | 'denied' | 'failed' | string
+  message: string
+  output: Record<string, unknown>
+  risk_level: 'low' | 'medium' | 'high'
+}
+
+export async function suggestVoiceAction(
+  suggestion: Record<string, unknown>
+): Promise<VoiceAgentActionRecord> {
+  const response = await fetch(
+    '/api/insights/voice-actions/suggest',
+    withDefaults({ method: 'POST', body: JSON.stringify({ suggestion }) })
+  )
+  return jsonOrThrow<VoiceAgentActionRecord>(response)
+}
+
+export async function confirmVoiceAction(
+  suggestionId: string,
+  method: 'click' | 'voice' = 'click'
+): Promise<VoiceAgentActionRecord> {
+  const response = await fetch(
+    `/api/insights/voice-actions/${encodeURIComponent(suggestionId)}/confirm`,
+    withDefaults({ method: 'POST', body: JSON.stringify({ method }) })
+  )
+  return jsonOrThrow<VoiceAgentActionRecord>(response)
+}
+
+export async function executeVoiceAction(
+  suggestionId: string,
+  options: { idempotencyKey?: string } = {}
+): Promise<VoiceAgentActionExecutionResult> {
+  const headers: Record<string, string> = {}
+  if (options.idempotencyKey) {
+    headers['Idempotency-Key'] = options.idempotencyKey
+  }
+  const response = await fetch(
+    `/api/insights/voice-actions/${encodeURIComponent(suggestionId)}/execute`,
+    withDefaults({ method: 'POST', body: JSON.stringify({}), headers })
+  )
+  return jsonOrThrow<VoiceAgentActionExecutionResult>(response)
 }

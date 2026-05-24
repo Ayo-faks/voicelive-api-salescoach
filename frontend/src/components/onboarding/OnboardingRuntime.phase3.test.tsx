@@ -21,7 +21,7 @@ import { FluentProvider, webLightTheme } from '@fluentui/react-components'
 
 import { OnboardingRuntime } from './OnboardingRuntime'
 import { ONBOARDING_EVENTS } from '../../onboarding/events'
-import { telemetry } from '../../services/telemetry'
+import { resetTelemetryForTests, telemetry } from '../../services/telemetry'
 
 // Stub the Joyride driver to a plain div. We only care about which tour
 // OnboardingRuntime selects, not whether Joyride mounts correctly.
@@ -76,6 +76,7 @@ describe('OnboardingRuntime — role-gated auto-trigger (Phase 3)', () => {
   let trackSpy: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
+    resetTelemetryForTests()
     apiMock.getUiState.mockClear()
     apiMock.getUiState.mockResolvedValue({ tours_seen: [] })
     apiMock.patchUiState.mockClear()
@@ -88,6 +89,7 @@ describe('OnboardingRuntime — role-gated auto-trigger (Phase 3)', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
+    resetTelemetryForTests()
   })
 
   it('fresh parent on /home sees welcome-parent', async () => {

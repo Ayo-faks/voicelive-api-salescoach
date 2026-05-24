@@ -17,7 +17,7 @@ afterEach(() => {
 })
 
 describe('SkillLibrary', () => {
-  it('renders the fixture library when the backend catalogue is empty', async () => {
+  it('renders the ready library when the catalogue endpoint is empty', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       jsonResponse({
         tenant_id: 'tenant-phase-2',
@@ -35,14 +35,14 @@ describe('SkillLibrary', () => {
 
     expect(await screen.findByText('Skills Library')).toBeTruthy()
     const label = screen.getByText('Ratio and proportion')
-    const skillId = screen.getByText('ratio-proportion')
+    const focusLabel = screen.getByText('Focus: Ratio Proportion')
     expect(label).toBeTruthy()
-    expect(skillId).toBeTruthy()
-    expect(label).not.toBe(skillId)
+    expect(focusLabel).toBeTruthy()
+    expect(label).not.toBe(focusLabel)
     expect(label.parentElement?.textContent).not.toContain(
       'Ratio and proportionratio-proportion'
     )
-    expect(screen.getByText('Fixture catalogue')).toBeTruthy()
+    expect(screen.getByText('Ready catalogue')).toBeTruthy()
   })
 
   it('renders live catalogue rows when the skills endpoint is hydrated', async () => {
@@ -80,7 +80,7 @@ describe('SkillLibrary', () => {
     render(<SkillLibrary />)
 
     expect(await screen.findByText('Statistics')).toBeTruthy()
-    expect(screen.getByText('Live catalogue')).toBeTruthy()
+    expect(screen.getByText('Updated catalogue')).toBeTruthy()
   })
 
   it('filters visible skills by search text', async () => {

@@ -1,9 +1,8 @@
 import {
-  Button,
   Caption1,
   Dialog,
-  DialogActions,
   DialogBody,
+  DialogContent,
   DialogSurface,
   DialogTitle,
   Field,
@@ -11,10 +10,10 @@ import {
   Text,
   Textarea,
   makeStyles,
-  tokens,
 } from '@fluentui/react-components'
 import { useEffect, useRef, useState } from 'react'
 import type { StudentProfileSkill } from './api'
+import { pathfinderTokens as t } from './theme/pathfinder-tokens'
 
 type OriginalEstimate = {
   skillId: string
@@ -23,9 +22,24 @@ type OriginalEstimate = {
 }
 
 const useStyles = makeStyles({
+  surface: {
+    maxWidth: '560px',
+    width: '100%',
+    borderRadius: t.radius.lg,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+    boxShadow: t.surface.cardHoverShadow,
+  },
+  title: {
+    fontFamily: t.font.display,
+    fontSize: '1.18rem',
+    fontWeight: 800,
+    color: t.brand.text,
+  },
   body: {
     display: 'grid',
-    gap: '14px',
+    gap: '16px',
+    width: '100%',
   },
   metricRow: {
     display: 'grid',
@@ -34,15 +48,73 @@ const useStyles = makeStyles({
     alignItems: 'center',
   },
   error: {
-    color: tokens.colorPaletteRedForeground1,
+    color: t.status.criticalFg,
     fontWeight: 600,
   },
   metricCaption: {
-    color: tokens.colorNeutralForeground3,
+    color: t.brand.textSecondary,
+    fontWeight: 700,
+  },
+  fieldHelp: {
+    color: t.brand.textTertiary,
+    display: 'block',
+    marginTop: '-4px',
+  },
+  intro: {
+    padding: '12px 14px',
+    borderRadius: t.radius.md,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+    color: t.brand.textSecondary,
+    lineHeight: '20px',
   },
   rangeInput: {
     width: '100%',
-    accentColor: tokens.colorBrandBackground,
+    accentColor: t.brand.ink,
+  },
+  dialogActions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '8px',
+    marginTop: '2px',
+  },
+  primaryButton: {
+    appearance: 'none',
+    minHeight: '36px',
+    paddingRight: '16px',
+    paddingLeft: '16px',
+    borderRadius: t.radius.pill,
+    border: `1px solid ${t.brand.ink}`,
+    backgroundColor: t.brand.ink,
+    color: t.brand.onInk,
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.82rem',
+    fontWeight: 800,
+    lineHeight: 1,
+    ':disabled': {
+      cursor: 'not-allowed',
+      opacity: 0.5,
+    },
+  },
+  secondaryButton: {
+    appearance: 'none',
+    minHeight: '36px',
+    paddingRight: '16px',
+    paddingLeft: '16px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+    color: t.brand.text,
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.82rem',
+    fontWeight: 800,
+    lineHeight: 1,
+    ':disabled': {
+      cursor: 'not-allowed',
+      opacity: 0.5,
+    },
   },
 })
 
@@ -50,12 +122,12 @@ function formatPercent(value: number) {
   return `${Math.round(value * 100)}%`
 }
 
-function estimateCaption(original: number, current: number) {
+function estimateCaption(original: number, current: number, noun: string) {
   const originalLabel = formatPercent(original)
   if (Math.abs(original - current) < 0.0001) {
-    return `Model estimate: ${originalLabel}`
+    return `Current ${noun}: ${originalLabel} (unchanged)`
   }
-  return `Model estimate: ${originalLabel} → New: ${formatPercent(current)}`
+  return `Current ${noun}: ${originalLabel} → adjusted value: ${formatPercent(current)}`
 }
 
 export type OverrideMasteryDialogProps = {
@@ -135,19 +207,30 @@ export function OverrideMasteryDialog({
 
   return (
     <Dialog open={open} onOpenChange={(_, data) => !data.open && onClose()}>
-      <DialogSurface aria-label="Override mastery dialog">
-        <DialogTitle>Override mastery</DialogTitle>
-        <DialogBody className={styles.body}>
+      <DialogSurface aria-label="Adjust mastery dialog" className={styles.surface}>
+        <DialogBody>
+          <DialogTitle className={styles.title}>Adjust mastery</DialogTitle>
+          <DialogContent className={styles.body}>
           <Text size={200}>
             {skill
-              ? `${studentId} · ${skill.skill_label} (${skill.skill_id})`
-              : 'Select a skill to override'}
+              ? `Learner profile · ${skill.skill_label}`
+              : 'Select a skill to adjust'}
+          </Text>
+
+          <Text size={200} className={styles.intro}>
+            Adjust the current estimate using your professional judgement. The sliders
+            start at the latest values. Move them only when you have classroom evidence,
+            then record why the adjustment is needed.
           </Text>
 
           <Caption1 className={styles.metricCaption}>
-            {estimateCaption(originalProbability, probability)}
+            {estimateCaption(originalProbability, probability, 'estimate')}
           </Caption1>
-          <Field label={`Probability (${Math.round(probability * 100)}%)`} validationState={probabilityValid ? 'none' : 'error'}>
+          <Field
+            label={`Mastery (${Math.round(probability * 100)}%)`}
+            hint="How likely the student has mastered this skill. 0% = not yet, 100% = secure."
+            validationState={probabilityValid ? 'none' : 'error'}
+          >
             <div className={styles.metricRow}>
               <input
                 className={styles.rangeInput}
@@ -172,9 +255,13 @@ export function OverrideMasteryDialog({
           </Field>
 
           <Caption1 className={styles.metricCaption}>
-            {estimateCaption(originalUncertainty, uncertainty)}
+            {estimateCaption(originalUncertainty, uncertainty, 'uncertainty')}
           </Caption1>
-          <Field label={`Uncertainty (${Math.round(uncertainty * 100)}%)`} validationState={uncertaintyValid ? 'none' : 'error'}>
+          <Field
+            label={`Uncertainty (${Math.round(uncertainty * 100)}%)`}
+            hint="How unsure you are. Lower = more confident. Raise this if you want Pathfinder to keep checking."
+            validationState={uncertaintyValid ? 'none' : 'error'}
+          >
             <div className={styles.metricRow}>
               <input
                 className={styles.rangeInput}
@@ -200,23 +287,24 @@ export function OverrideMasteryDialog({
 
           <Field label="Reason" required validationState={reasonValid || reason.length === 0 ? 'none' : 'error'}>
             <Textarea
-              aria-label="Override reason"
+              aria-label="Adjustment reason"
               value={reason}
               onChange={(_, data) => setReason(data.value)}
-              placeholder="Evidence for this teacher override"
+              placeholder="Why this adjustment is needed"
             />
           </Field>
 
           {error ? <Text className={styles.error}>{error}</Text> : null}
-        </DialogBody>
-        <DialogActions>
-          <Button appearance="secondary" onClick={onClose} disabled={busy}>
+        </DialogContent>
+        <div className={styles.dialogActions}>
+          <button type="button" className={styles.secondaryButton} onClick={onClose} disabled={busy}>
             Cancel
-          </Button>
-          <Button appearance="primary" onClick={() => void handleSubmit()} disabled={!canSubmit}>
-            {busy ? 'Saving…' : 'Save override'}
-          </Button>
-        </DialogActions>
+          </button>
+          <button type="button" className={styles.primaryButton} onClick={() => void handleSubmit()} disabled={!canSubmit}>
+            {busy ? 'Saving…' : 'Save adjustment'}
+          </button>
+        </div>
+        </DialogBody>
       </DialogSurface>
     </Dialog>
   )

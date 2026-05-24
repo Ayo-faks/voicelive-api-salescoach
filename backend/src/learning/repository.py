@@ -7,10 +7,13 @@ from typing import Any, Dict, List, Optional, Protocol
 from uuid import uuid4
 
 from src.learning.models import (
+    CatalogueSkill,
     ContentPackManifest,
     InterventionPlan,
     MasteryEvent,
     OfflineQueuedEvent,
+    Provenance,
+    SkillSearchResult,
     StudentResponse,
 )
 from src.learning.xapi import ApprovalEvent, XAPIStatement
@@ -68,6 +71,33 @@ class LearningRepository(Protocol):
     def save_content_pack_manifest(self, manifest: ContentPackManifest) -> Dict[str, Any]:
         raise NotImplementedError
 
+    def list_class_ids_for_teacher(self, tenant_id: str, user_id: str) -> set[str]:
+        raise NotImplementedError
+
+    # ------------------------------------------------------------------
+    # Phase 1 — Workstream B: skills catalogue
+    # ------------------------------------------------------------------
+    def list_skills(
+        self,
+        tenant_id: str,
+        *,
+        query: Optional[str] = None,
+        subject: Optional[str] = None,
+        status: str = "active",
+        limit: int = 50,
+        offset: int = 0,
+    ) -> SkillSearchResult:
+        raise NotImplementedError
+
+    def get_skill(self, tenant_id: str, skill_id: str) -> Optional[CatalogueSkill]:
+        raise NotImplementedError
+
+    def create_tenant_skill(self, skill: CatalogueSkill) -> CatalogueSkill:
+        raise NotImplementedError
+
+    def archive_skill(self, tenant_id: str, skill_id: str) -> Optional[CatalogueSkill]:
+        raise NotImplementedError
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -90,6 +120,8 @@ class InMemoryLearningRepository:
         self.xapi_statements: List[Dict[str, Any]] = []
         self.offline_queue: List[Dict[str, Any]] = []
         self.content_pack_manifests: List[Dict[str, Any]] = []
+        self.teacher_classes: Dict[tuple[str, str], set[str]] = {}
+        self.skills: Dict[tuple[str, str], CatalogueSkill] = {}
 
     def save_student_response(self, response: StudentResponse, idempotency_key: Optional[str] = None) -> Dict[str, Any]:
         record = response.model_dump()
@@ -177,6 +209,104 @@ class InMemoryLearningRepository:
     def list_student_responses_for_tenant(self, tenant_id: str) -> List[Dict[str, Any]]:
         return [record for record in self.student_responses if record["tenant_id"] == tenant_id]
 
+    def seed_teacher_class(self, tenant_id: str, user_id: str, class_id: str) -> None:
+        self.teacher_classes.setdefault((tenant_id, user_id), set()).add(class_id)
+
+    def list_class_ids_for_teacher(self, tenant_id: str, user_id: str) -> set[str]:
+        return set(self.teacher_classes.get((tenant_id, user_id), set()))
+
+    # ------------------------------------------------------------------
+    # Phase 1 — Workstream B: skills catalogue
+    # ------------------------------------------------------------------
+    def list_skills(
+        self,
+        tenant_id: str,
+        *,
+        query: Optional[str] = None,
+        subject: Optional[str] = None,
+        status: str = "active",
+        limit: int = 50,
+        offset: int = 0,
+    ) -> SkillSearchResult:
+        if limit < 1 or limit > 200:
+            raise ValueError("limit must be between 1 and 200")
+        if offset < 0:
+            raise ValueError("offset must be non-negative")
+        needle = (query or "").strip().lower()
+        rows: List[CatalogueSkill] = []
+        for (tid, _sid), skill in self.skills.items():
+            if tid != tenant_id:
+                continue
+            if status and skill.status != status:
+                continue
+            if subject and (skill.subject or "") != subject:
+                continue
+            if needle:
+                hay = " ".join(
+                    filter(
+                        None,
+                        [
+                            skill.name.lower(),
+                            (skill.description or "").lower(),
+                            " ".join(skill.kc_tags).lower(),
+                        ],
+                    )
+                )
+                if needle not in hay:
+                    continue
+            rows.append(skill)
+        rows.sort(key=lambda s: (s.subject or "", s.name.lower(), s.skill_id))
+        page = rows[offset : offset + limit]
+        # Inherit lang/provenance from the first matching skill so the
+        # SkillSearchResult satisfies LanguageAndProvenanceModel even
+        # when the page is empty.
+        lang = page[0].lang if page else (rows[0].lang if rows else "en-NG")
+        provenance: List[Provenance] = (
+            page[0].provenance
+            if page
+            else (
+                rows[0].provenance
+                if rows
+                else [
+                    Provenance(
+                        source="InMemoryLearningRepository.list_skills",
+                        rule_id="empty_skill_catalogue",
+                        confidence=1.0,
+                        evidence_count=1,
+                    )
+                ]
+            )
+        )
+        return SkillSearchResult(
+            tenant_id=tenant_id,
+            query=query or "",
+            skills=page,
+            total=len(rows),
+            limit=limit,
+            offset=offset,
+            lang=lang,
+            provenance=provenance,
+        )
+
+    def get_skill(self, tenant_id: str, skill_id: str) -> Optional[CatalogueSkill]:
+        return self.skills.get((tenant_id, skill_id))
+
+    def create_tenant_skill(self, skill: CatalogueSkill) -> CatalogueSkill:
+        key = (skill.tenant_id, skill.skill_id)
+        if key in self.skills:
+            raise ValueError(f"skill {skill.skill_id} already exists for tenant {skill.tenant_id}")
+        self.skills[key] = skill
+        return skill
+
+    def archive_skill(self, tenant_id: str, skill_id: str) -> Optional[CatalogueSkill]:
+        key = (tenant_id, skill_id)
+        existing = self.skills.get(key)
+        if existing is None:
+            return None
+        archived = existing.model_copy(update={"status": "archived"})
+        self.skills[key] = archived
+        return archived
+
 
 class LearningPostgresRepository:
     """Postgres repository using the retained storage service connection/GUC path."""
@@ -260,9 +390,9 @@ class LearningPostgresRepository:
                 """
                 INSERT INTO learning_intervention_plans (
                     id, tenant_id, created_by_user_id, status, plan_json,
-                    lang, provenance_json, created_at, updated_at
+                    lang, provenance_json, created_at, updated_at, parent_plan_id
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     plan.plan_id,
@@ -274,11 +404,22 @@ class LearningPostgresRepository:
                     self.storage._dumps_json([item.model_dump() for item in plan.provenance]),
                     created_at,
                     created_at,
+                    plan.parent_plan_id,
                 ),
             )
 
         self.storage._execute_write(persist)
-        return {"id": plan.plan_id, "tenant_id": tenant_id, "status": status, "created_at": created_at}
+        return {
+            "id": plan.plan_id,
+            "tenant_id": tenant_id,
+            "created_by_user_id": actor_id,
+            "status": status,
+            "plan": plan.model_dump(),
+            "lang": plan.lang,
+            "provenance": [item.model_dump() for item in plan.provenance],
+            "created_at": created_at,
+            "updated_at": created_at,
+        }
 
     def record_approval(self, event: ApprovalEvent, statement: XAPIStatement) -> Dict[str, Any]:
         created_at = self.storage._utc_now()
@@ -406,3 +547,213 @@ class LearningPostgresRepository:
 
         self.storage._execute_write(persist)
         return {"id": manifest_id, "tenant_id": manifest.tenant_id, "created_at": created_at}
+
+    def list_class_ids_for_teacher(self, tenant_id: str, user_id: str) -> set[str]:
+        result: Dict[str, Any] = {"class_ids": set()}
+
+        def fetch(connection: Any) -> None:
+            rows = connection.execute(
+                """
+                SELECT tc.class_id
+                FROM learning_teacher_classes AS tc
+                INNER JOIN learning_teachers AS t
+                    ON t.id = tc.teacher_id
+                   AND t.tenant_id = tc.tenant_id
+                WHERE tc.tenant_id = %s
+                  AND t.user_id = %s
+                ORDER BY tc.class_id
+                """,
+                (tenant_id, user_id),
+            ).fetchall()
+            result["class_ids"] = {str(row["class_id"]) for row in rows if row.get("class_id")}
+
+        self.storage._execute_write(fetch)
+        return set(result["class_ids"])
+
+    # ------------------------------------------------------------------
+    # Phase 1 — Workstream B: skills catalogue
+    # ------------------------------------------------------------------
+    def _row_to_catalogue_skill(self, row: Dict[str, Any]) -> CatalogueSkill:
+        provenance_raw = self.storage._loads_json(row.get("provenance_json"), [])
+        if not provenance_raw:
+            provenance_raw = [
+                {
+                    "source": "LearningPostgresRepository.get_skill",
+                    "rule_id": "legacy_skill_no_provenance",
+                    "confidence": 1.0,
+                    "evidence_count": 1,
+                }
+            ]
+        prerequisites = self.storage._loads_json(row.get("prerequisites_json"), [])
+        kc_tags = self.storage._loads_json(row.get("kc_tags_json"), [])
+        localisations = self.storage._loads_json(row.get("localisations_json"), {})
+        return CatalogueSkill(
+            skill_id=row["id"],
+            tenant_id=row["tenant_id"],
+            standard_id=row["standard_id"],
+            name=row["name"],
+            description=row.get("description"),
+            subject=row.get("subject"),
+            parent_skill_id=row.get("parent_skill_id"),
+            prerequisites=list(prerequisites or []),
+            kc_tags=list(kc_tags or []),
+            localisations=dict(localisations or {}),
+            year_group_min=row.get("year_group_min"),
+            year_group_max=row.get("year_group_max"),
+            status=row.get("status") or "active",
+            lang=row.get("lang") or "en-NG",
+            provenance=[Provenance.model_validate(item) for item in provenance_raw],
+        )
+
+    def list_skills(
+        self,
+        tenant_id: str,
+        *,
+        query: Optional[str] = None,
+        subject: Optional[str] = None,
+        status: str = "active",
+        limit: int = 50,
+        offset: int = 0,
+    ) -> SkillSearchResult:
+        if limit < 1 or limit > 200:
+            raise ValueError("limit must be between 1 and 200")
+        if offset < 0:
+            raise ValueError("offset must be non-negative")
+
+        needle = f"%{(query or '').strip().lower()}%" if query else None
+        clauses: List[str] = ["tenant_id = %s"]
+        params: List[Any] = [tenant_id]
+        if status:
+            clauses.append("status = %s")
+            params.append(status)
+        if subject:
+            clauses.append("subject = %s")
+            params.append(subject)
+        if needle:
+            clauses.append(
+                "("
+                "lower(name) LIKE %s OR lower(coalesce(description, '')) LIKE %s "
+                "OR lower(coalesce(kc_tags_json::text, '')) LIKE %s"
+                ")"
+            )
+            params.extend([needle, needle, needle])
+        where_sql = " AND ".join(clauses)
+
+        select_sql = (
+            "SELECT id, tenant_id, standard_id, name, description, parent_skill_id, "
+            "prerequisites_json, kc_tags_json, localisations_json, subject, "
+            "year_group_min, year_group_max, status, lang, provenance_json "
+            f"FROM learning_skills WHERE {where_sql} "
+            "ORDER BY coalesce(subject, ''), lower(name), id "
+            "LIMIT %s OFFSET %s"
+        )
+        count_sql = f"SELECT count(*) AS total FROM learning_skills WHERE {where_sql}"
+
+        result: Dict[str, Any] = {"rows": [], "total": 0}
+
+        def fetch(connection: Any) -> None:
+            rows = connection.execute(select_sql, (*params, limit, offset)).fetchall()
+            total_row = connection.execute(count_sql, tuple(params)).fetchone()
+            result["rows"] = [dict(row) for row in rows]
+            result["total"] = int(total_row["total"] if total_row else 0)
+
+        self.storage._execute_write(fetch)
+        skills = [self._row_to_catalogue_skill(row) for row in result["rows"]]
+        lang = skills[0].lang if skills else "en-NG"
+        provenance = (
+            skills[0].provenance
+            if skills
+            else [
+                Provenance(
+                    source="LearningPostgresRepository.list_skills",
+                    rule_id="empty_skill_catalogue",
+                    confidence=1.0,
+                    evidence_count=1,
+                )
+            ]
+        )
+        return SkillSearchResult(
+            tenant_id=tenant_id,
+            query=query or "",
+            skills=skills,
+            total=result["total"],
+            limit=limit,
+            offset=offset,
+            lang=lang,
+            provenance=provenance,
+        )
+
+    def get_skill(self, tenant_id: str, skill_id: str) -> Optional[CatalogueSkill]:
+        result: Dict[str, Any] = {"row": None}
+
+        def fetch(connection: Any) -> None:
+            row = connection.execute(
+                """
+                SELECT id, tenant_id, standard_id, name, description, parent_skill_id,
+                       prerequisites_json, kc_tags_json, localisations_json, subject,
+                       year_group_min, year_group_max, status, lang, provenance_json
+                FROM learning_skills
+                WHERE tenant_id = %s AND id = %s
+                """,
+                (tenant_id, skill_id),
+            ).fetchone()
+            result["row"] = dict(row) if row else None
+
+        self.storage._execute_write(fetch)
+        if result["row"] is None:
+            return None
+        return self._row_to_catalogue_skill(result["row"])
+
+    def create_tenant_skill(self, skill: CatalogueSkill) -> CatalogueSkill:
+        created_at = self.storage._utc_now()
+
+        def persist(connection: Any) -> None:
+            connection.execute(
+                """
+                INSERT INTO learning_skills (
+                    id, tenant_id, standard_id, name, description, parent_skill_id,
+                    prerequisites_json, kc_tags_json, localisations_json, subject,
+                    year_group_min, year_group_max, status, lang, provenance_json,
+                    created_at, updated_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    skill.skill_id,
+                    skill.tenant_id,
+                    skill.standard_id,
+                    skill.name,
+                    skill.description,
+                    skill.parent_skill_id,
+                    self.storage._dumps_json(list(skill.prerequisites)),
+                    self.storage._dumps_json(list(skill.kc_tags)),
+                    self.storage._dumps_json(dict(skill.localisations)),
+                    skill.subject,
+                    skill.year_group_min,
+                    skill.year_group_max,
+                    skill.status,
+                    skill.lang,
+                    self.storage._dumps_json([p.model_dump() for p in skill.provenance]),
+                    created_at,
+                    created_at,
+                ),
+            )
+
+        self.storage._execute_write(persist)
+        return skill
+
+    def archive_skill(self, tenant_id: str, skill_id: str) -> Optional[CatalogueSkill]:
+        updated_at = self.storage._utc_now()
+
+        def persist(connection: Any) -> None:
+            connection.execute(
+                """
+                UPDATE learning_skills
+                SET status = 'archived', updated_at = %s
+                WHERE tenant_id = %s AND id = %s
+                """,
+                (updated_at, tenant_id, skill_id),
+            )
+
+        self.storage._execute_write(persist)
+        return self.get_skill(tenant_id, skill_id)

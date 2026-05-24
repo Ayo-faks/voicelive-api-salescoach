@@ -1,5 +1,4 @@
 import {
-  Badge,
   Card,
   Input,
   Text,
@@ -12,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useEffect, useMemo, useState } from 'react'
 import { listSkills, type CatalogueSkill } from '../api'
+import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 
 const fallbackSkills: CatalogueSkill[] = [
   {
@@ -97,13 +97,19 @@ const useStyles = makeStyles({
     gap: '16px',
     flexWrap: 'wrap',
   },
-  titleBlock: { display: 'grid', gap: '6px' },
+  titleBlock: { display: 'grid', gap: '10px' },
   title: {
-    fontFamily: 'Manrope, sans-serif',
-    fontSize: '1.5rem',
-    fontWeight: 800,
+    fontFamily: t.font.display,
+    fontSize: 'clamp(1.6rem, 2.4vw, 2rem)',
+    fontWeight: 700,
+    letterSpacing: '-0.025em',
   },
   subtitle: { color: tokens.colorNeutralForeground2, maxWidth: '680px' },
+  headerMeta: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap',
+  },
   toolbar: {
     display: 'flex',
     gap: '10px',
@@ -112,6 +118,64 @@ const useStyles = makeStyles({
   },
   searchBox: { maxWidth: '340px', flex: 1, minWidth: '220px' },
   filters: { display: 'flex', gap: '6px', flexWrap: 'wrap' },
+  pill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '5px',
+    minHeight: '24px',
+    paddingRight: '10px',
+    paddingLeft: '10px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+    color: t.brand.textSecondary,
+    boxSizing: 'border-box',
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    lineHeight: 1.35,
+    whiteSpace: 'nowrap',
+    overflowWrap: 'normal',
+  },
+  pillButton: {
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '26px',
+    paddingRight: '11px',
+    paddingLeft: '11px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.card,
+    color: t.brand.text,
+    boxSizing: 'border-box',
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    lineHeight: 1.35,
+    whiteSpace: 'nowrap',
+  },
+  pillButtonActive: {
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '26px',
+    paddingRight: '11px',
+    paddingLeft: '11px',
+    borderRadius: t.radius.pill,
+    border: `1px solid ${t.brand.ink}`,
+    backgroundColor: t.brand.ink,
+    color: t.brand.onInk,
+    boxSizing: 'border-box',
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    lineHeight: 1.35,
+    whiteSpace: 'nowrap',
+  },
   grid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
@@ -119,8 +183,9 @@ const useStyles = makeStyles({
   },
   card: {
     padding: '16px',
-    borderRadius: '14px',
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
+    borderRadius: t.radius.md,
+    border: t.surface.hairline,
+    boxShadow: t.surface.cardElevatedShadow,
     display: 'grid',
     gap: '10px',
   },
@@ -129,6 +194,7 @@ const useStyles = makeStyles({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     gap: '10px',
+    flexWrap: 'wrap',
   },
   cardTitleBlock: { display: 'block' },
   cardTitle: {
@@ -178,12 +244,23 @@ function yearBand(skill: CatalogueSkill) {
 
 function provenanceLabel(skill: CatalogueSkill) {
   const first = skill.provenance[0]
-  if (!first) return 'No provenance yet'
-  return `${first.source} · ${first.evidence_count} evidence`
+  if (!first) return 'Review notes pending'
+  return `${first.evidence_count} curriculum signal${first.evidence_count === 1 ? '' : 's'}`
 }
 
 function isSubject(value: string | null | undefined): value is string {
   return Boolean(value)
+}
+
+function displayCode(value: string) {
+  return value
+    .replace(/^ng[_-]/i, 'Nigerian ')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\b\w/g, char => char.toUpperCase())
+}
+
+function statusLabel(value: string) {
+  return displayCode(value)
 }
 
 export default function SkillLibrary() {
@@ -244,12 +321,15 @@ export default function SkillLibrary() {
           <Text as="h1" className={styles.title}>
             Skills Library
           </Text>
-          <Text className={styles.subtitle}>
-            Curriculum catalogue · {skills.length} skills · prerequisites,
-            knowledge components, localisations and provenance.
-          </Text>
+          <div className={styles.headerMeta} aria-label="Catalogue context">
+            <span className={styles.pill}>Curriculum catalogue</span>
+            <span className={styles.pill}>{skills.length} skills</span>
+            <span className={styles.pill}>Prerequisites</span>
+            <span className={styles.pill}>Local language signals</span>
+            <span className={styles.pill}>Review evidence</span>
+          </div>
         </div>
-        <Badge appearance="tint">{source === 'live' ? 'Live catalogue' : 'Fixture catalogue'}</Badge>
+        <span className={styles.pill}>{source === 'live' ? 'Updated catalogue' : 'Ready catalogue'}</span>
       </div>
 
       <div className={styles.toolbar}>
@@ -263,14 +343,15 @@ export default function SkillLibrary() {
         </div>
         <div className={styles.filters}>
           {subjects.map(item => (
-            <Badge
+            <button
               key={item}
-              appearance={subject === item ? 'filled' : 'outline'}
+              type="button"
+              aria-pressed={subject === item}
+              className={subject === item ? styles.pillButtonActive : styles.pillButton}
               onClick={() => setSubject(item)}
-              style={{ cursor: 'pointer' }}
             >
               {item}
-            </Badge>
+            </button>
           ))}
         </div>
       </div>
@@ -285,27 +366,28 @@ export default function SkillLibrary() {
                 <div className={styles.cardTitleBlock}>
                   <Text className={styles.cardTitle}>{skill.name}</Text>
                   {' '}
-                  <Text className={styles.cardSkillId}>{skill.skill_id}</Text>
+                  <Text className={styles.cardSkillId}>Focus: {displayCode(skill.skill_id)}</Text>
                 </div>
-                <Badge appearance="outline">{skill.status}</Badge>
+                <span className={styles.pill}>{statusLabel(skill.status)}</span>
               </div>
 
-              <Text size={200}>{skill.description ?? 'No description yet.'}</Text>
+              <Text size={200}>{skill.description ?? 'Description coming soon.'}</Text>
 
               <div className={styles.meta}>
-                <Badge appearance="tint">{skill.subject ?? 'Subject unset'}</Badge>
-                <Badge appearance="outline">{yearBand(skill)}</Badge>
-                <Badge appearance="outline">{skill.standard_id}</Badge>
+                <span className={styles.pill}>{skill.subject ?? 'Subject unset'}</span>
+                <span className={styles.pill}>{yearBand(skill)}</span>
+                <span className={styles.pill}>{displayCode(skill.standard_id)}</span>
               </div>
 
               <div className={styles.tags}>
-                <Badge icon={<Squares2X2Icon width={14} height={14} aria-hidden="true" />} appearance="outline">
-                  {skill.prerequisites.length} prereq
-                </Badge>
+                <span className={styles.pill}>
+                  <Squares2X2Icon width={14} height={14} aria-hidden="true" />
+                  {skill.prerequisites.length} prerequisite{skill.prerequisites.length === 1 ? '' : 's'}
+                </span>
                 {skill.kc_tags.slice(0, 4).map(tag => (
-                  <Badge key={tag} appearance="outline">
-                    {tag}
-                  </Badge>
+                  <span key={tag} className={styles.pill}>
+                    {displayCode(tag)}
+                  </span>
                 ))}
               </div>
 

@@ -1,8 +1,5 @@
 import {
-  Badge,
-  Button,
   Card,
-  CardHeader,
   Input,
   Text,
   makeStyles,
@@ -15,6 +12,7 @@ import {
   MapPinIcon,
 } from '@heroicons/react/24/outline'
 import { useMemo, useState } from 'react'
+import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 
 type Pathway = {
   id: string
@@ -43,7 +41,7 @@ const pathways: Pathway[] = [
     rationale:
       'Strong fit with algebra progress and spreadsheet practice.',
     gaps: ['ratio-proportion', 'fraction-operations'],
-    source: 'labour_market_fixture · 2026-Q2',
+    source: 'Labour market outlook · 2026 Q2',
   },
   {
     id: 'solar-tech',
@@ -56,7 +54,7 @@ const pathways: Pathway[] = [
     duration: '12 months',
     rationale: 'Links geometry and measurement to a practical pathway.',
     gaps: ['plane-geometry'],
-    source: 'labour_market_fixture · 2026-Q2',
+    source: 'Labour market outlook · 2026 Q2',
   },
   {
     id: 'community-health',
@@ -69,7 +67,7 @@ const pathways: Pathway[] = [
     duration: '24 months',
     rationale: 'Bias toward biology and statistics; complements maths base.',
     gaps: ['statistics'],
-    source: 'labour_market_fixture · 2026-Q2',
+    source: 'Labour market outlook · 2026 Q2',
   },
   {
     id: 'creative-designer',
@@ -82,7 +80,7 @@ const pathways: Pathway[] = [
     duration: '9 months',
     rationale: 'Visual reasoning + geometry transfer well.',
     gaps: ['plane-geometry'],
-    source: 'labour_market_fixture · 2026-Q2',
+    source: 'Labour market outlook · 2026 Q2',
   },
   {
     id: 'plumbing-craft',
@@ -95,7 +93,7 @@ const pathways: Pathway[] = [
     duration: '14 months',
     rationale: 'Measurement-heavy; pairs with geometry strength.',
     gaps: ['ratio-proportion'],
-    source: 'labour_market_fixture · 2026-Q2',
+    source: 'Labour market outlook · 2026 Q2',
   },
   {
     id: 'teaching-assistant',
@@ -108,7 +106,7 @@ const pathways: Pathway[] = [
     duration: '12 months',
     rationale: 'Communication strength + JSS2 maths fluency carry across.',
     gaps: ['fraction-operations'],
-    source: 'labour_market_fixture · 2026-Q2',
+    source: 'Labour market outlook · 2026 Q2',
   },
 ]
 
@@ -122,15 +120,27 @@ const categories: Array<Pathway['category'] | 'All'> = [
   'Education',
 ]
 
+function displayCode(value: string) {
+  return value
+    .replace(/[_-]+/g, ' ')
+    .replace(/\b\w/g, char => char.toUpperCase())
+}
+
 const useStyles = makeStyles({
   shell: { display: 'grid', gap: '18px' },
-  header: { display: 'grid', gap: '6px' },
+  header: { display: 'grid', gap: '10px' },
   title: {
-    fontFamily: 'Manrope, sans-serif',
-    fontSize: '1.5rem',
-    fontWeight: 800,
+    fontFamily: t.font.display,
+    fontSize: 'clamp(1.6rem, 2.4vw, 2rem)',
+    fontWeight: 700,
+    letterSpacing: '-0.025em',
   },
   subtitle: { color: tokens.colorNeutralForeground2, maxWidth: '640px' },
+  headerMeta: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap',
+  },
   filterRow: {
     display: 'flex',
     gap: '10px',
@@ -138,6 +148,64 @@ const useStyles = makeStyles({
     alignItems: 'center',
   },
   filters: { display: 'flex', gap: '6px', flexWrap: 'wrap', flex: 1 },
+  pill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '5px',
+    minHeight: '24px',
+    paddingRight: '10px',
+    paddingLeft: '10px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+    color: t.brand.textSecondary,
+    boxSizing: 'border-box',
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    lineHeight: 1.35,
+    whiteSpace: 'nowrap',
+    overflowWrap: 'normal',
+  },
+  pillButton: {
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '26px',
+    paddingRight: '11px',
+    paddingLeft: '11px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.card,
+    color: t.brand.text,
+    boxSizing: 'border-box',
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    lineHeight: 1.35,
+    whiteSpace: 'nowrap',
+  },
+  pillButtonActive: {
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '26px',
+    paddingRight: '11px',
+    paddingLeft: '11px',
+    borderRadius: t.radius.pill,
+    border: `1px solid ${t.brand.ink}`,
+    backgroundColor: t.brand.ink,
+    color: t.brand.onInk,
+    boxSizing: 'border-box',
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    lineHeight: 1.35,
+    whiteSpace: 'nowrap',
+  },
   searchBox: { maxWidth: '320px', flex: 1, minWidth: '180px' },
   grid: {
     display: 'grid',
@@ -146,14 +214,14 @@ const useStyles = makeStyles({
   },
   card: {
     padding: '16px',
-    borderRadius: '16px',
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
+    borderRadius: t.radius.md,
+    border: t.surface.hairline,
+    boxShadow: t.surface.cardElevatedShadow,
     display: 'grid',
     gap: '10px',
-    transition: 'transform 0.15s, box-shadow 0.15s',
+    transition: 'box-shadow 0.15s, border-color 0.15s',
     ':hover': {
-      transform: 'translateY(-2px)',
-      boxShadow: '0 12px 28px rgba(15, 42, 58, 0.12)',
+      boxShadow: t.surface.cardHoverShadow,
     },
   },
   cardHead: {
@@ -161,6 +229,7 @@ const useStyles = makeStyles({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     gap: '10px',
+    flexWrap: 'wrap',
   },
   cardTitle: {
     fontWeight: 800,
@@ -176,7 +245,7 @@ const useStyles = makeStyles({
   fitFill: {
     height: '100%',
     borderRadius: '999px',
-    background: 'linear-gradient(90deg, #0a0a0a, #525252)',
+    background: `linear-gradient(90deg, ${t.brand.ink}, ${t.brand.inkMuted})`,
   },
   metaRow: {
     display: 'flex',
@@ -193,6 +262,44 @@ const useStyles = makeStyles({
     gap: '8px',
     marginTop: '4px',
   },
+  cardButton: {
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '32px',
+    paddingRight: '13px',
+    paddingLeft: '13px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+    color: t.brand.text,
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.76rem',
+    fontWeight: 800,
+    lineHeight: 1,
+    whiteSpace: 'nowrap',
+  },
+  cardButtonActive: {
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '32px',
+    paddingRight: '13px',
+    paddingLeft: '13px',
+    borderRadius: t.radius.pill,
+    border: `1px solid ${t.brand.ink}`,
+    backgroundColor: t.brand.ink,
+    color: t.brand.onInk,
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.76rem',
+    fontWeight: 800,
+    lineHeight: 1,
+    whiteSpace: 'nowrap',
+  },
   source: {
     fontSize: '0.7rem',
     color: tokens.colorNeutralForeground3,
@@ -202,14 +309,33 @@ const useStyles = makeStyles({
   compareBar: {
     position: 'sticky',
     bottom: '70px',
-    backgroundColor: '#0f172a',
-    color: '#fff',
+    backgroundColor: t.brand.ink,
+    color: t.brand.onInk,
     padding: '10px 14px',
-    borderRadius: '12px',
+    borderRadius: t.radius.md,
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: '12px',
+  },
+  compareBarButton: {
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '32px',
+    paddingRight: '14px',
+    paddingLeft: '14px',
+    borderRadius: t.radius.pill,
+    border: '1px solid rgba(255,255,255,0.22)',
+    backgroundColor: t.brand.onInk,
+    color: t.brand.ink,
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.78rem',
+    fontWeight: 800,
+    lineHeight: 1,
+    whiteSpace: 'nowrap',
   },
   empty: {
     padding: '40px',
@@ -249,10 +375,14 @@ export default function PathwaysExplorer() {
         <Text as="h1" className={styles.title}>
           Pathways Explorer
         </Text>
-        <Text className={styles.subtitle}>
-          Career Pathways Marketplace · {pathways.length} pathways · fit, wage
-          band, demand, learning gaps and locally grounded next steps.
-        </Text>
+        <div className={styles.headerMeta} aria-label="Pathway context">
+          <span className={styles.pill}>Career pathways</span>
+          <span className={styles.pill}>{pathways.length} routes</span>
+          <span className={styles.pill}>Fit scoring</span>
+          <span className={styles.pill}>Demand signals</span>
+          <span className={styles.pill}>Learning gaps</span>
+          <span className={styles.pill}>Local next steps</span>
+        </div>
       </div>
 
       <div className={styles.filterRow}>
@@ -271,14 +401,15 @@ export default function PathwaysExplorer() {
         </div>
         <div className={styles.filters}>
           {categories.map(c => (
-            <Badge
+            <button
               key={c}
-              appearance={category === c ? 'filled' : 'outline'}
+              type="button"
+              aria-pressed={category === c}
+              className={category === c ? styles.pillButtonActive : styles.pillButton}
               onClick={() => setCategory(c)}
-              style={{ cursor: 'pointer' }}
             >
               {c}
-            </Badge>
+            </button>
           ))}
         </div>
       </div>
@@ -293,13 +424,13 @@ export default function PathwaysExplorer() {
             <Card key={p.id} className={styles.card}>
               <div className={styles.cardHead}>
                 <Text className={styles.cardTitle}>{p.title}</Text>
-                <Badge appearance="tint">{p.category}</Badge>
+                <span className={styles.pill}>{p.category}</span>
               </div>
 
               <div>
                 <div className={styles.metaRow} style={{ marginBottom: 6 }}>
                   <span>
-                    <strong style={{ color: '#0a0a0a', fontSize: '0.95rem' }}>
+                    <strong style={{ color: t.brand.ink, fontSize: '0.95rem' }}>
                       {p.fit}%
                     </strong>{' '}
                     fit
@@ -340,24 +471,24 @@ export default function PathwaysExplorer() {
                 </Text>
                 <div className={styles.gapPills} style={{ marginTop: 6 }}>
                   {p.gaps.map(g => (
-                    <Badge key={g} appearance="outline">
-                      {g}
-                    </Badge>
+                    <span key={g} className={styles.pill}>
+                      {displayCode(g)}
+                    </span>
                   ))}
                 </div>
               </div>
 
               <div className={styles.cardActions}>
-                <Button
-                  appearance={compare.includes(p.id) ? 'primary' : 'secondary'}
-                  size="small"
+                <button
+                  type="button"
+                  className={compare.includes(p.id) ? styles.cardButtonActive : styles.cardButton}
                   onClick={() => toggleCompare(p.id)}
                 >
                   {compare.includes(p.id) ? 'Comparing' : 'Compare'}
-                </Button>
-                <Button appearance="subtle" size="small">
+                </button>
+                <button type="button" className={styles.cardButton}>
                   View details
-                </Button>
+                </button>
               </div>
 
               <div className={styles.source}>{p.source}</div>
@@ -372,9 +503,9 @@ export default function PathwaysExplorer() {
             {compare.length} pathway{compare.length > 1 ? 's' : ''} ready to
             compare
           </span>
-          <Button appearance="primary" size="small">
+          <button type="button" className={styles.compareBarButton}>
             Compare side-by-side
-          </Button>
+          </button>
         </div>
       )}
     </div>

@@ -78,6 +78,15 @@ param databaseRunMigrationsOnStartup bool = false
 @description('Comma-separated AZD environment names allowed to run PostgreSQL startup migrations in Azure-hosted environments.')
 param databaseMigrationAllowedEnvironments string = ''
 
+@description('Set PATHFINDER_LEARN_OBSERVABILITY_ENABLED for the backend runtime.')
+param pathfinderLearnObservabilityEnabled string = 'true'
+
+@description('Set PATHFINDER_LEARN_PROMETHEUS_ENABLED for the backend runtime.')
+param pathfinderLearnPrometheusEnabled string = 'true'
+
+@description('Set PATHFINDER_LEARN_OTEL_ENABLED for the backend runtime.')
+param pathfinderLearnOtelEnabled string = 'true'
+
 @description('Enable optional Ralph LRS container app for Pathfinder Learn xAPI replay.')
 param enableRalphLrs bool = false
 
@@ -164,6 +173,9 @@ module resources 'resources.bicep' = {
     databaseBackend: databaseBackend
     databaseRunMigrationsOnStartup: databaseRunMigrationsOnStartup
     databaseMigrationAllowedEnvironments: databaseMigrationAllowedEnvironments
+    pathfinderLearnObservabilityEnabled: pathfinderLearnObservabilityEnabled
+    pathfinderLearnPrometheusEnabled: pathfinderLearnPrometheusEnabled
+    pathfinderLearnOtelEnabled: pathfinderLearnOtelEnabled
     enableRalphLrs: enableRalphLrs
     ralphLrsImage: ralphLrsImage
     ralphLrsAdminToken: ralphLrsAdminToken

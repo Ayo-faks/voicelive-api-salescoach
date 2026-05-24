@@ -89,14 +89,14 @@ afterEach(() => {
 })
 
 describe('StudentProfileDrawer', () => {
-  it('renders skills from the mocked profile response', async () => {
+  it('renders skills from the profile response', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(profile))
 
     render(<StudentProfileDrawer open studentId="student-001" onClose={() => {}} />)
 
     expect(await screen.findByText('Ratio and proportion')).toBeTruthy()
     expect(screen.getByText('Needs support')).toBeTruthy()
-    expect(screen.getByText('item-ratio-1 · ratio-proportion · 3:4')).toBeTruthy()
+    expect(screen.getByText('Ratio Proportion · Response: 3:4 · Practice item item ratio 1')).toBeTruthy()
   })
 
   it('does not serialize missing optional query params as undefined strings', async () => {
@@ -124,18 +124,18 @@ describe('StudentProfileDrawer', () => {
     expect(screen.getByText('Needs support')).toBeTruthy()
   })
 
-  it('opens override dialog with the selected skill id', async () => {
+  it('opens adjustment dialog with the selected skill', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(profile))
     render(<StudentProfileDrawer open studentId="student-001" onClose={() => {}} />)
 
     await screen.findByText('Ratio and proportion')
-    fireEvent.click(screen.getByRole('button', { name: /override mastery/i }))
+    fireEvent.click(screen.getByRole('button', { name: /adjust mastery/i }))
 
-    const dialog = screen.getByLabelText('Override mastery dialog')
-    expect(within(dialog).getByText(/ratio-proportion/)).toBeTruthy()
+    const dialog = screen.getByLabelText('Adjust mastery dialog')
+    expect(within(dialog).getByText('Learner profile · Ratio and proportion')).toBeTruthy()
   })
 
-  it('submits a valid override to the override endpoint', async () => {
+  it('submits a valid mastery adjustment to the endpoint', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(jsonResponse(profile))
@@ -154,13 +154,13 @@ describe('StudentProfileDrawer', () => {
     render(<StudentProfileDrawer open studentId="student-001" onClose={() => {}} />)
 
     await screen.findByText('Ratio and proportion')
-    fireEvent.click(screen.getByRole('button', { name: /override mastery/i }))
+    fireEvent.click(screen.getByRole('button', { name: /adjust mastery/i }))
     fireEvent.change(screen.getByLabelText('Probability value'), { target: { value: '0.9' } })
     fireEvent.change(screen.getByLabelText('Uncertainty value'), { target: { value: '0.05' } })
-    fireEvent.change(screen.getByLabelText('Override reason'), {
+    fireEvent.change(screen.getByLabelText('Adjustment reason'), {
       target: { value: 'Teacher observed a secure explanation.' },
     })
-    fireEvent.click(screen.getByRole('button', { name: /save override/i }))
+    fireEvent.click(screen.getByRole('button', { name: /save adjustment/i }))
 
     await waitFor(() => {
       expect(fetchMock.mock.calls[1]?.[0]).toBe('/api/learning/students/student-001/override')
@@ -172,24 +172,24 @@ describe('StudentProfileDrawer', () => {
       uncertainty: 0.05,
       reason: 'Teacher observed a secure explanation.',
     })
-    expect(await screen.findByText('Mastery overridden')).toBeTruthy()
+    expect(await screen.findByText('Mastery adjustment saved')).toBeTruthy()
   })
 
-  it('enables revert for latest teacher overrides and shows the model diff', async () => {
+  it('enables restore for latest teacher adjustments and shows the estimate diff', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(overriddenProfile))
     render(<StudentProfileDrawer open studentId="student-001" onClose={() => {}} />)
 
     await screen.findByText('Ratio and proportion')
-    const revertButton = screen.getByRole('button', { name: /revert to model estimate/i })
+    const revertButton = screen.getByRole('button', { name: /restore estimate/i })
     expect(revertButton.getAttribute('disabled')).toBeNull()
 
     fireEvent.click(revertButton)
 
-    const dialog = screen.getByLabelText('Revert mastery dialog')
-    expect(within(dialog).getByText('Revert from 65% back to 42%?')).toBeTruthy()
+    const dialog = screen.getByLabelText('Restore mastery dialog')
+    expect(within(dialog).getByText('Restore mastery from 65% to 42%?')).toBeTruthy()
   })
 
-  it('submits a revert override using the prior model estimate', async () => {
+  it('submits a restore using the prior estimate', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(jsonResponse(overriddenProfile))
@@ -208,8 +208,8 @@ describe('StudentProfileDrawer', () => {
     render(<StudentProfileDrawer open studentId="student-001" onClose={() => {}} />)
 
     await screen.findByText('Ratio and proportion')
-    fireEvent.click(screen.getByRole('button', { name: /revert to model estimate/i }))
-    fireEvent.click(screen.getByRole('button', { name: /confirm revert/i }))
+    fireEvent.click(screen.getByRole('button', { name: /restore estimate/i }))
+    fireEvent.click(screen.getByRole('button', { name: /confirm restore/i }))
 
     await waitFor(() => {
       expect(fetchMock.mock.calls[1]?.[0]).toBe('/api/learning/students/student-001/override')
@@ -219,19 +219,19 @@ describe('StudentProfileDrawer', () => {
       skill_id: 'ratio-proportion',
       probability: 0.42,
       uncertainty: 0.18,
-      reason: 'Reverted teacher override',
+      reason: 'Restored previous teacher-reviewed estimate',
     })
-    expect(await screen.findByText('Mastery reverted to model estimate')).toBeTruthy()
+    expect(await screen.findByText('Mastery restored to the previous estimate')).toBeTruthy()
   })
 
-  it('disables revert when no prior model estimate is available', async () => {
+  it('disables restore when no previous estimate is available', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(overrideWithoutPriorProfile))
     render(<StudentProfileDrawer open studentId="student-001" onClose={() => {}} />)
 
     await screen.findByText('Ratio and proportion')
-    const revertButton = screen.getByRole('button', { name: /revert to model estimate/i })
+    const revertButton = screen.getByRole('button', { name: /restore estimate/i })
     expect(revertButton.getAttribute('disabled')).not.toBeNull()
-    expect(revertButton.getAttribute('title')).toBe('No prior model estimate available')
+    expect(revertButton.getAttribute('title')).toBe('No previous estimate available')
   })
 })
 
@@ -248,9 +248,9 @@ describe('OverrideMasteryDialog', () => {
     )
 
     fireEvent.change(screen.getByLabelText('Probability value'), { target: { value: '1.2' } })
-    fireEvent.change(screen.getByLabelText('Override reason'), { target: { value: 'Valid reason' } })
+    fireEvent.change(screen.getByLabelText('Adjustment reason'), { target: { value: 'Valid reason' } })
 
-    expect(screen.getByRole('button', { name: /save override/i }).getAttribute('disabled')).not.toBeNull()
+    expect(screen.getByRole('button', { name: /save adjustment/i }).getAttribute('disabled')).not.toBeNull()
   })
 
   it('surfaces a server error message inline', async () => {
@@ -266,8 +266,8 @@ describe('OverrideMasteryDialog', () => {
       />
     )
 
-    fireEvent.change(screen.getByLabelText('Override reason'), { target: { value: 'Valid reason' } })
-    fireEvent.click(screen.getByRole('button', { name: /save override/i }))
+    fireEvent.change(screen.getByLabelText('Adjustment reason'), { target: { value: 'Valid reason' } })
+    fireEvent.click(screen.getByRole('button', { name: /save adjustment/i }))
 
     expect(await screen.findByText(/probability must be between 0 and 1/)).toBeTruthy()
   })

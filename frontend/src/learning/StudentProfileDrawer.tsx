@@ -1,14 +1,5 @@
 import {
-  Badge,
-  Button,
-  DataGrid,
-  DataGridBody,
-  DataGridCell,
-  DataGridHeader,
-  DataGridHeaderCell,
-  DataGridRow,
   Dialog,
-  DialogActions,
   DialogBody,
   DialogSurface,
   DialogTitle,
@@ -16,23 +7,61 @@ import {
   DrawerBody,
   DrawerHeader,
   DrawerHeaderTitle,
-  ProgressBar,
   Text,
-  Tooltip,
-  createTableColumn,
   makeStyles,
-  tokens,
-  type TableColumnDefinition,
 } from '@fluentui/react-components'
 import { useMemo, useState } from 'react'
 import type { StudentProfileRecord, StudentProfileSkill } from './api'
 import { OverrideMasteryDialog } from './OverrideMasteryDialog'
+import { pathfinderTokens as t } from './theme/pathfinder-tokens'
 import { useStudentProfile } from './useStudentProfile'
 
 const useStyles = makeStyles({
+  drawerSurface: {
+    width: 'min(820px, calc(100vw - 32px))',
+    maxWidth: '820px',
+    borderLeft: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+    boxShadow: '-24px 0 64px rgba(0, 0, 0, 0.22)',
+  },
+  drawerHeader: {
+    display: 'grid',
+    gap: '14px',
+    paddingTop: '28px',
+    paddingRight: '28px',
+    paddingBottom: '18px',
+    paddingLeft: '28px',
+    borderBottom: t.surface.hairline,
+    background: `linear-gradient(180deg, ${t.brand.surface}, ${t.surface.cardMuted})`,
+  },
+  drawerHeaderTitle: {
+    fontFamily: t.font.display,
+    fontSize: '1.32rem',
+    fontWeight: 800,
+    letterSpacing: '0',
+  },
   body: {
     display: 'grid',
-    gap: '18px',
+    gap: '22px',
+    paddingTop: '22px',
+    paddingRight: '28px',
+    paddingBottom: '32px',
+    paddingLeft: '28px',
+  },
+  closeButton: {
+    appearance: 'none',
+    minHeight: '36px',
+    paddingRight: '16px',
+    paddingLeft: '16px',
+    borderRadius: t.radius.pill,
+    border: `1px solid ${t.brand.ink}`,
+    backgroundColor: t.brand.ink,
+    color: t.brand.onInk,
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.82rem',
+    fontWeight: 800,
+    lineHeight: 1,
   },
   headerMeta: {
     display: 'flex',
@@ -42,10 +71,70 @@ const useStyles = makeStyles({
   },
   section: {
     display: 'grid',
-    gap: '10px',
+    gap: '12px',
   },
   sectionTitle: {
     fontWeight: 800,
+    color: t.brand.text,
+  },
+  tableFrame: {
+    overflowX: 'auto',
+    borderRadius: t.radius.md,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+    boxShadow: t.surface.cardElevatedShadow,
+  },
+  masteryTable: {
+    width: '100%',
+    minWidth: '640px',
+    borderCollapse: 'collapse',
+  },
+  tableHeadCell: {
+    paddingTop: '12px',
+    paddingRight: '14px',
+    paddingBottom: '12px',
+    paddingLeft: '14px',
+    borderBottom: t.surface.hairline,
+    color: t.brand.textSecondary,
+    fontSize: '0.74rem',
+    fontWeight: 800,
+    textAlign: 'left',
+  },
+  tableCell: {
+    paddingTop: '13px',
+    paddingRight: '14px',
+    paddingBottom: '13px',
+    paddingLeft: '14px',
+    borderBottom: t.surface.hairline,
+    color: t.brand.text,
+    verticalAlign: 'middle',
+    fontSize: '0.86rem',
+  },
+  tableCellLast: {
+    paddingTop: '13px',
+    paddingRight: '14px',
+    paddingBottom: '13px',
+    paddingLeft: '14px',
+    color: t.brand.text,
+    verticalAlign: 'middle',
+    fontSize: '0.86rem',
+  },
+  skillName: {
+    fontWeight: 800,
+  },
+  progressTrack: {
+    width: '92px',
+    height: '4px',
+    marginTop: '6px',
+    borderRadius: t.radius.pill,
+    backgroundColor: t.brand.lineSoft,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    display: 'block',
+    height: '100%',
+    borderRadius: t.radius.pill,
+    backgroundColor: t.brand.ink,
   },
   rowText: {
     display: 'grid',
@@ -61,33 +150,135 @@ const useStyles = makeStyles({
     gap: '8px',
   },
   listItem: {
-    padding: '10px',
-    borderRadius: '8px',
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
-    backgroundColor: tokens.colorNeutralBackground2,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '12px',
+    padding: '12px 14px',
+    borderRadius: t.radius.md,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
   },
   error: {
-    color: tokens.colorPaletteRedForeground1,
+    color: t.status.criticalFg,
     fontWeight: 600,
   },
   toast: {
     padding: '10px 12px',
-    borderRadius: '8px',
-    color: tokens.colorStatusSuccessForeground1,
-    backgroundColor: tokens.colorStatusSuccessBackground1,
+    borderRadius: t.radius.md,
+    color: t.status.okFg,
+    backgroundColor: t.status.okBg,
     fontWeight: 700,
   },
+  statusPill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    minHeight: '24px',
+    paddingRight: '10px',
+    paddingLeft: '10px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    boxSizing: 'border-box',
+    fontSize: '0.72rem',
+    fontWeight: 800,
+    lineHeight: 1.35,
+    whiteSpace: 'nowrap',
+  },
   statusSecure: {
-    backgroundColor: '#ecfdf3',
-    color: '#027a48',
+    backgroundColor: t.risk.low.bg,
+    color: t.risk.low.fg,
   },
   statusDeveloping: {
-    backgroundColor: '#fffaeb',
-    color: '#b54708',
+    backgroundColor: t.risk.review.bg,
+    color: t.risk.review.fg,
   },
   statusSupport: {
-    backgroundColor: '#fef3f2',
-    color: '#b42318',
+    backgroundColor: t.risk.high.bg,
+    color: t.risk.high.fg,
+  },
+  answerPill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    minHeight: '24px',
+    paddingRight: '10px',
+    paddingLeft: '10px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.card,
+    color: t.brand.textSecondary,
+    boxSizing: 'border-box',
+    fontSize: '0.72rem',
+    fontWeight: 800,
+    lineHeight: 1.35,
+    whiteSpace: 'nowrap',
+  },
+  softPill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    minHeight: '24px',
+    paddingRight: '10px',
+    paddingLeft: '10px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+    color: t.brand.textSecondary,
+    boxSizing: 'border-box',
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    lineHeight: 1.35,
+    whiteSpace: 'nowrap',
+  },
+  actionButton: {
+    appearance: 'none',
+    minHeight: '32px',
+    paddingRight: '13px',
+    paddingLeft: '13px',
+    borderRadius: t.radius.pill,
+    border: `1px solid ${t.brand.ink}`,
+    backgroundColor: t.brand.ink,
+    color: t.brand.onInk,
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.76rem',
+    fontWeight: 800,
+    lineHeight: 1,
+    whiteSpace: 'nowrap',
+  },
+  secondaryActionButton: {
+    appearance: 'none',
+    minHeight: '32px',
+    paddingRight: '13px',
+    paddingLeft: '13px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+    color: t.brand.text,
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.76rem',
+    fontWeight: 800,
+    lineHeight: 1,
+    whiteSpace: 'nowrap',
+    ':disabled': {
+      cursor: 'not-allowed',
+      opacity: 0.5,
+    },
+  },
+  dialogSurface: {
+    maxWidth: '480px',
+    borderRadius: t.radius.lg,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+    boxShadow: t.surface.cardHoverShadow,
+  },
+  dialogBody: {
+    display: 'grid',
+    gap: '16px',
+  },
+  dialogActions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '8px',
   },
 })
 
@@ -123,11 +314,22 @@ function statusLabel(status: StudentProfileSkill['status']) {
   return 'Needs support'
 }
 
+function displaySkill(value: string) {
+  return value
+    .split('-')
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
 function formatRecord(record: StudentProfileRecord) {
-  const parts = [record.item_id, record.skill_id, record.response_text]
+  const skill = record.skill_id ? displaySkill(record.skill_id) : null
+  const response = record.response_text ? `Response: ${record.response_text}` : null
+  const item = record.item_id ? `Practice item ${String(record.item_id).replace(/[-_]/g, ' ')}` : null
+  const parts = [skill, response, item]
     .filter(Boolean)
     .map(String)
-  return parts.length > 0 ? parts.join(' · ') : JSON.stringify(record)
+  return parts.length > 0 ? parts.join(' · ') : 'Learning activity recorded'
 }
 
 function statusClass(styles: ReturnType<typeof useStyles>, status: StudentProfileSkill['status']) {
@@ -214,80 +416,19 @@ export function StudentProfileDrawer({
     return options
   }, [rawEvents, skills])
 
-  const columns = useMemo<TableColumnDefinition<StudentProfileSkill>[]>(
-    () => [
-      createTableColumn<StudentProfileSkill>({
-        columnId: 'skill',
-        renderHeaderCell: () => 'Skill',
-        renderCell: item => <Text weight="semibold">{item.skill_label}</Text>,
-      }),
-      createTableColumn<StudentProfileSkill>({
-        columnId: 'probability',
-        renderHeaderCell: () => 'Probability',
-        renderCell: item => (
-          <div className={styles.rowText}>
-            <Text>{Math.round(item.probability * 100)}%</Text>
-            <ProgressBar value={item.probability} thickness="medium" />
-          </div>
-        ),
-      }),
-      createTableColumn<StudentProfileSkill>({
-        columnId: 'uncertainty',
-        renderHeaderCell: () => 'Uncertainty',
-        renderCell: item => <Text>{Math.round(item.uncertainty * 100)}%</Text>,
-      }),
-      createTableColumn<StudentProfileSkill>({
-        columnId: 'status',
-        renderHeaderCell: () => 'Status',
-        renderCell: item => (
-          <Badge className={statusClass(styles, item.status)}>{statusLabel(item.status)}</Badge>
-        ),
-      }),
-      createTableColumn<StudentProfileSkill>({
-        columnId: 'actions',
-        renderHeaderCell: () => 'Actions',
-        renderCell: item => {
-          const revertOption = revertOptions.get(item.skill_id)
-          return (
-            <div className={styles.actionGroup}>
-              <Button size="small" onClick={() => setSelectedSkill(item)}>
-                Override mastery
-              </Button>
-              {revertOption ? (
-                <Tooltip
-                  content={revertOption.prior ? 'Restore the latest model estimate' : 'No prior model estimate available'}
-                  relationship="description"
-                >
-                  <Button
-                    appearance="secondary"
-                    size="small"
-                    disabled={!revertOption.prior}
-                    title={revertOption.prior ? undefined : 'No prior model estimate available'}
-                    onClick={() => {
-                      if (!revertOption.prior) return
-                      setRevertError(null)
-                      setRevertTarget({
-                        skillId: item.skill_id,
-                        skillLabel: item.skill_label,
-                        latest: revertOption.latest,
-                        prior: revertOption.prior,
-                      })
-                    }}
-                  >
-                    Revert to model estimate
-                  </Button>
-                </Tooltip>
-              ) : null}
-            </div>
-          )
-        },
-      }),
-    ],
-    [revertOptions, styles]
-  )
-
   const responses = profile?.recent_responses.slice().reverse() ?? []
   const events = rawEvents.slice().reverse()
+
+  function openRestoreDialog(item: StudentProfileSkill, option: RevertOption) {
+    if (!option.prior) return
+    setRevertError(null)
+    setRevertTarget({
+      skillId: item.skill_id,
+      skillLabel: item.skill_label,
+      latest: option.latest,
+      prior: option.prior,
+    })
+  }
 
   async function handleConfirmRevert() {
     if (!revertTarget) return
@@ -298,9 +439,9 @@ export function StudentProfileDrawer({
         skill_id: revertTarget.skillId,
         probability: revertTarget.prior.probability,
         uncertainty: revertTarget.prior.uncertainty,
-        reason: 'Reverted teacher override',
+        reason: 'Restored previous teacher-reviewed estimate',
       })
-      setToast('Mastery reverted to model estimate')
+      setToast('Mastery restored to the previous estimate')
       setRevertTarget(null)
     } catch (err) {
       setRevertError(err instanceof Error ? err.message : String(err))
@@ -311,38 +452,81 @@ export function StudentProfileDrawer({
 
   return (
     <>
-      <Drawer open={open} position="end" size="large" onOpenChange={(_, data) => !data.open && onClose()}>
-        <DrawerHeader>
-          <DrawerHeaderTitle action={<Button appearance="subtle" aria-label="Close profile" onClick={onClose}>Close</Button>}>
+      <Drawer className={styles.drawerSurface} open={open} position="end" size="large" onOpenChange={(_, data) => !data.open && onClose()}>
+        <DrawerHeader className={styles.drawerHeader}>
+          <DrawerHeaderTitle
+            className={styles.drawerHeaderTitle}
+            action={<button type="button" className={styles.closeButton} aria-label="Close profile" onClick={onClose}>Close</button>}
+          >
             Student profile
           </DrawerHeaderTitle>
           <div className={styles.headerMeta}>
-            <Badge appearance="outline">{studentId ?? 'No student selected'}</Badge>
-            {profile?.tenant_id ? <Badge appearance="tint">Tenant {profile.tenant_id}</Badge> : null}
-            {profile?.audit ? <Badge appearance="outline">Viewed now</Badge> : null}
+            <span className={styles.softPill}>{studentId ? 'Learner selected' : 'No student selected'}</span>
+            {profile?.tenant_id ? <span className={styles.softPill}>School profile</span> : null}
+            {profile?.audit ? <span className={styles.softPill}>Viewed now</span> : null}
           </div>
         </DrawerHeader>
         <DrawerBody className={styles.body}>
           {toast ? <div className={styles.toast} aria-live="polite">{toast}</div> : null}
           {loading ? <Text>Loading profile…</Text> : null}
-          {error ? <Text className={styles.error}>Profile failed: {error.message}</Text> : null}
+          {error ? <Text className={styles.error}>Profile could not load right now.</Text> : null}
 
           <section className={styles.section} aria-label="Skill mastery">
             <Text className={styles.sectionTitle}>Skill mastery</Text>
-            <DataGrid items={skills} columns={columns} getRowId={item => item.skill_id}>
-              <DataGridHeader>
-                <DataGridRow>
-                  {({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
-                </DataGridRow>
-              </DataGridHeader>
-              <DataGridBody<StudentProfileSkill>>
-                {({ item, rowId }) => (
-                  <DataGridRow<StudentProfileSkill> key={rowId}>
-                    {({ renderCell }) => <DataGridCell>{renderCell(item)}</DataGridCell>}
-                  </DataGridRow>
-                )}
-              </DataGridBody>
-            </DataGrid>
+            <div className={styles.tableFrame}>
+              <table className={styles.masteryTable} aria-label="Skill mastery">
+                <thead>
+                  <tr>
+                    <th className={styles.tableHeadCell} scope="col">Skill</th>
+                    <th className={styles.tableHeadCell} scope="col">Probability</th>
+                    <th className={styles.tableHeadCell} scope="col">Uncertainty</th>
+                    <th className={styles.tableHeadCell} scope="col">Status</th>
+                    <th className={styles.tableHeadCell} scope="col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {skills.map((item, index) => {
+                    const revertOption = revertOptions.get(item.skill_id)
+                    const cellClass = index === skills.length - 1 ? styles.tableCellLast : styles.tableCell
+                    return (
+                      <tr key={item.skill_id}>
+                        <td className={cellClass}><span className={styles.skillName}>{item.skill_label}</span></td>
+                        <td className={cellClass}>
+                          <div className={styles.rowText}>
+                            <span>{formatPercent(item.probability)}</span>
+                            <span className={styles.progressTrack} aria-hidden="true">
+                              <span className={styles.progressFill} style={{ width: formatPercent(item.probability) }} />
+                            </span>
+                          </div>
+                        </td>
+                        <td className={cellClass}>{formatPercent(item.uncertainty)}</td>
+                        <td className={cellClass}>
+                          <span className={`${styles.statusPill} ${statusClass(styles, item.status)}`}>{statusLabel(item.status)}</span>
+                        </td>
+                        <td className={cellClass}>
+                          <div className={styles.actionGroup}>
+                            <button type="button" className={styles.actionButton} onClick={() => setSelectedSkill(item)}>
+                              Adjust mastery
+                            </button>
+                            {revertOption ? (
+                              <button
+                                type="button"
+                                className={styles.secondaryActionButton}
+                                disabled={!revertOption.prior}
+                                title={revertOption.prior ? undefined : 'No previous estimate available'}
+                                onClick={() => openRestoreDialog(item, revertOption)}
+                              >
+                                Restore estimate
+                              </button>
+                            ) : null}
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           </section>
 
           <section className={styles.section} aria-label="Recent responses">
@@ -353,7 +537,7 @@ export function StudentProfileDrawer({
                 <div className={styles.listItem} key={`${record.id ?? record.item_id ?? index}-response`}>
                   <Text>{formatRecord(record)}</Text>
                   {typeof record.correct === 'boolean' ? (
-                    <Badge appearance="outline">{record.correct ? 'Correct' : 'Incorrect'}</Badge>
+                    <span className={styles.answerPill}>{record.correct ? 'Correct' : 'Incorrect'}</span>
                   ) : null}
                 </div>
               ))}
@@ -363,7 +547,7 @@ export function StudentProfileDrawer({
           <section className={styles.section} aria-label="Recent mastery events">
             <Text className={styles.sectionTitle}>Recent mastery events</Text>
             <div className={styles.list}>
-              {events.length === 0 ? <Text size={200}>No mastery events yet.</Text> : null}
+              {events.length === 0 ? <Text size={200}>No recent mastery changes yet.</Text> : null}
               {events.slice(0, 20).map((record, index) => (
                 <div className={styles.listItem} key={`${record.id ?? record.skill_id ?? index}-event`}>
                   <Text>{formatRecord(record)}</Text>
@@ -381,30 +565,30 @@ export function StudentProfileDrawer({
         onClose={() => setSelectedSkill(null)}
         onSubmit={async payload => {
           await overrideMastery(payload)
-          setToast('Mastery overridden')
+          setToast('Mastery adjustment saved')
         }}
       />
 
       <Dialog open={Boolean(revertTarget)} onOpenChange={(_, data) => !data.open && setRevertTarget(null)}>
-        <DialogSurface aria-label="Revert mastery dialog">
-          <DialogTitle>Revert to model estimate</DialogTitle>
-          <DialogBody className={styles.body}>
+        <DialogSurface aria-label="Restore mastery dialog" className={styles.dialogSurface}>
+          <DialogBody className={styles.dialogBody}>
+            <DialogTitle>Restore previous estimate</DialogTitle>
             <Text>
               {revertTarget
-                ? `Revert from ${formatPercent(revertTarget.latest.probability)} back to ${formatPercent(revertTarget.prior.probability)}?`
-                : 'Revert this mastery override?'}
+                ? `Restore mastery from ${formatPercent(revertTarget.latest.probability)} to ${formatPercent(revertTarget.prior.probability)}?`
+                : 'Restore this mastery estimate?'}
             </Text>
             {revertTarget ? <Text size={200}>{revertTarget.skillLabel}</Text> : null}
             {revertError ? <Text className={styles.error}>{revertError}</Text> : null}
-          </DialogBody>
-          <DialogActions>
-            <Button appearance="secondary" onClick={() => setRevertTarget(null)} disabled={revertBusy}>
+            <div className={styles.dialogActions}>
+              <button type="button" className={styles.secondaryActionButton} onClick={() => setRevertTarget(null)} disabled={revertBusy}>
               Cancel
-            </Button>
-            <Button appearance="primary" onClick={() => void handleConfirmRevert()} disabled={revertBusy}>
-              {revertBusy ? 'Reverting…' : 'Confirm revert'}
-            </Button>
-          </DialogActions>
+              </button>
+              <button type="button" className={styles.actionButton} onClick={() => void handleConfirmRevert()} disabled={revertBusy}>
+                {revertBusy ? 'Restoring…' : 'Confirm restore'}
+              </button>
+            </div>
+          </DialogBody>
         </DialogSurface>
       </Dialog>
     </>

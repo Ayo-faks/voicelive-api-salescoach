@@ -60,3 +60,8 @@ export function registerAppInsightsSink(
 ): void {
   _appInsightsTrack = track
 }
+
+export function resetTelemetryForTests(): void {
+  _childMode = false
+  _appInsightsTrack = null
+}
