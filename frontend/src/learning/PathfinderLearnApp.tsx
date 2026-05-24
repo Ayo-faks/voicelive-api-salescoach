@@ -1,4 +1,5 @@
-import { Text, makeStyles } from '@fluentui/react-components'
+import { useState } from 'react'
+import { Button, Text, makeStyles } from '@fluentui/react-components'
 import {
   AcademicCapIcon,
   ChartBarIcon,
@@ -13,6 +14,25 @@ import StudentMasteryProfile from './routes/StudentMasteryProfile'
 import TeacherMasteryDashboard from './routes/TeacherMasteryDashboard'
 import TrustSafetyConsole from './routes/TrustSafetyConsole'
 import { pathfinderTokens as t } from './theme/pathfinder-tokens'
+
+export const COOKIE_CONSENT_STORAGE_KEY = 'pathfinder.cookie-consent.v1'
+
+function getStoredCookieConsent(): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    return window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY)
+  } catch {
+    return null
+  }
+}
+
+function storeCookieConsent(choice: 'accepted' | 'managed'): void {
+  try {
+    window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, choice)
+  } catch {
+    // Keep dismissal usable even when storage is blocked.
+  }
+}
 
 type NavItem = {
   to: string
@@ -195,7 +215,89 @@ const useStyles = makeStyles({
   },
   bottomNavLinkActive: { color: t.brand.ink },
   bottomNavIcon: { width: '22px', height: '22px' },
+  cookieBanner: {
+    position: 'fixed',
+    right: '20px',
+    bottom: '20px',
+    zIndex: 30,
+    pointerEvents: 'auto',
+    width: 'min(520px, calc(100vw - 32px))',
+    maxHeight: '35vh',
+    overflowY: 'auto',
+    display: 'grid',
+    gap: '12px',
+    padding: '16px',
+    borderRadius: '8px',
+    backgroundColor: t.brand.surface,
+    borderTop: t.surface.hairline,
+    borderRight: t.surface.hairline,
+    borderBottom: t.surface.hairline,
+    borderLeft: t.surface.hairline,
+    boxShadow: '0 18px 48px rgba(30, 41, 59, 0.22)',
+    boxSizing: 'border-box',
+    '@media (max-width: 1000px)': {
+      right: '12px',
+      bottom: '88px',
+      width: 'calc(100vw - 24px)',
+      maxHeight: '30vh',
+    },
+  },
+  cookieBannerTitle: {
+    fontFamily: t.font.display,
+    fontSize: '0.95rem',
+    fontWeight: 700,
+    color: t.brand.text,
+  },
+  cookieBannerText: {
+    fontSize: '0.82rem',
+    lineHeight: 1.45,
+    color: t.brand.textSecondary,
+  },
+  cookieBannerActions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '8px',
+    flexWrap: 'wrap',
+  },
 })
+
+export function CookieConsentBanner() {
+  const styles = useStyles()
+  const [visible, setVisible] = useState(() => getStoredCookieConsent() === null)
+
+  const dismiss = (choice: 'accepted' | 'managed') => {
+    storeCookieConsent(choice)
+    setVisible(false)
+  }
+
+  if (!visible) return null
+
+  return (
+    <section
+      className={styles.cookieBanner}
+      data-testid="cookie-consent-banner"
+      aria-label="Cookie consent"
+    >
+      <div className={styles.cookieBannerTitle}>We use cookies</div>
+      <Text className={styles.cookieBannerText}>
+        Wulo uses essential cookies for the app to work. Analytics stay off unless
+        you choose to manage preferences later.
+      </Text>
+      <div className={styles.cookieBannerActions}>
+        <Button appearance="secondary" onClick={() => dismiss('managed')}>
+          Manage
+        </Button>
+        <Button
+          appearance="primary"
+          data-testid="cookie-consent-accept"
+          onClick={() => dismiss('accepted')}
+        >
+          Accept
+        </Button>
+      </div>
+    </section>
+  )
+}
 
 export default function PathfinderLearnApp() {
   const styles = useStyles()
@@ -285,6 +387,7 @@ export default function PathfinderLearnApp() {
           {renderNavLinks(styles.bottomNavLink)}
         </nav>
       </main>
+      <CookieConsentBanner />
     </div>
   )
 }

@@ -9,7 +9,6 @@ import { FluentProvider } from '@fluentui/react-components'
 import { BrowserRouter } from 'react-router-dom'
 import PathfinderLearnApp from './learning/PathfinderLearnApp'
 import './styles/global.css'
-import { initCookieConsent } from './cookieconsent-config'
 import { wuloTheme } from './theme/wuloTheme'
 
 const rootElement = document.getElementById('root')
@@ -27,5 +26,3 @@ ReactDOM.createRoot(rootElement).render(
     </FluentProvider>
   </React.StrictMode>
 )
-
-initCookieConsent()
