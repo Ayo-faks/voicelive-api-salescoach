@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button, Text, makeStyles } from '@fluentui/react-components'
 import {
   AcademicCapIcon,
+  BookOpenIcon,
   ChartBarIcon,
   MagnifyingGlassIcon,
   ShieldCheckIcon,
@@ -9,6 +10,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
 import PathwaysExplorer from './routes/PathwaysExplorer'
+import SkillLibrary from './routes/SkillLibrary'
 import StudentLearningHome from './routes/StudentLearningHome'
 import StudentMasteryProfile from './routes/StudentMasteryProfile'
 import TeacherMasteryDashboard from './routes/TeacherMasteryDashboard'
@@ -44,6 +46,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   { to: '/home', label: 'Learner', hint: 'Today', icon: AcademicCapIcon },
   { to: '/teacher', label: 'Teacher', hint: 'Class', icon: ChartBarIcon },
+  { to: '/library', label: 'Library', hint: 'Skills', icon: BookOpenIcon },
   { to: '/profile', label: 'Profile', hint: 'Insights', icon: UserCircleIcon },
   { to: '/pathways', label: 'Pathways', hint: 'Explore', icon: MagnifyingGlassIcon },
   { to: '/safety', label: 'Trust & Safety', hint: 'Console', icon: ShieldCheckIcon },
@@ -190,7 +193,7 @@ const useStyles = makeStyles({
     display: 'none',
     '@media (max-width: 1000px)': {
       display: 'grid',
-      gridTemplateColumns: 'repeat(5, 1fr)',
+      gridTemplateColumns: 'repeat(6, 1fr)',
       gap: '2px',
       position: 'fixed',
       bottom: 0,
@@ -376,6 +379,7 @@ export default function PathfinderLearnApp() {
             <Route index element={<Navigate to="/home" replace />} />
             <Route path="/home" element={<StudentLearningHome />} />
             <Route path="/teacher" element={<TeacherMasteryDashboard />} />
+            <Route path="/library" element={<SkillLibrary />} />
             <Route path="/profile" element={<StudentMasteryProfile />} />
             <Route path="/pathways" element={<PathwaysExplorer />} />
             <Route path="/safety" element={<TrustSafetyConsole />} />
