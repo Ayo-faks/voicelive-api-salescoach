@@ -363,10 +363,8 @@ export default function TeacherMasteryDashboard() {
           ]
         })
       }
-    } catch (err) {
+    } catch {
       // Backend unavailable in pure-frontend dev — fall back silently.
-      // eslint-disable-next-line no-console
-      console.warn('learning api refresh failed', err)
     }
   }, [])
 
