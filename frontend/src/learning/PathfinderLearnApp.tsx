@@ -18,7 +18,7 @@ import LearnerEmptyState from './components/LearnerEmptyState'
 import LearnerSelector from './components/LearnerSelector'
 import VoiceAgentFullscreen from './components/VoiceAgentFullscreen'
 import WelcomeRolePicker from './components/WelcomeRolePicker'
-import { useSelectedLearner } from './hooks/useSelectedLearner'
+import { storeSelectedLearnerId, useSelectedLearner } from './hooks/useSelectedLearner'
 import PathwaysExplorer from './routes/PathwaysExplorer'
 import SkillLibrary from './routes/SkillLibrary'
 import StudentLearningHome from './routes/StudentLearningHome'
@@ -722,18 +722,19 @@ export default function PathfinderLearnApp() {
   // self-learner profile so they can start practising immediately.
   useEffect(() => {
     if (effectiveRole !== 'learner') return
-    if (!authSession?.is_self_learner) return
+    if (!authSession?.authenticated) return
     if (learnerChildren === null) return
     if (learnerChildren.length > 0) return
     let cancelled = false
     api.createSelfLearner()
       .then(child => {
         if (cancelled) return
+        storeSelectedLearnerId(child.id)
         setLearnerChildren([child])
       })
       .catch(() => { /* LearnerEmptyState remains as fallback */ })
     return () => { cancelled = true }
-  }, [effectiveRole, authSession?.is_self_learner, learnerChildren])
+  }, [effectiveRole, authSession?.authenticated, learnerChildren])
 
   const handleOnboardingChosen = useCallback((session: AuthSession) => {
     setAuthSession(session)
@@ -752,14 +753,15 @@ export default function PathfinderLearnApp() {
   const learnerHomeElement = () => {
     if (learnerChildren === null) return null
     if (learnerChildren.length === 0) return <LearnerEmptyState />
+    const activeLearnerId = selectedLearnerId ?? learnerChildren[0]?.id ?? null
     return (
       <>
         <LearnerSelector
           learners={learnerChildren}
-          selectedLearnerId={selectedLearnerId}
+          selectedLearnerId={activeLearnerId}
           onChange={setSelectedLearnerId}
         />
-        <StudentLearningHome key={selectedLearnerId ?? 'no-learner'} studentId={selectedLearnerId} />
+        <StudentLearningHome key={activeLearnerId ?? 'no-learner'} studentId={activeLearnerId} />
       </>
     )
   }

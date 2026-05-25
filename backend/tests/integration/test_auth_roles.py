@@ -283,6 +283,29 @@ def test_all_new_signups_are_therapists(client: FlaskClient):
     assert len(second_session.get_json()["user_workspaces"]) == 1
 
 
+def test_learner_session_reports_self_learner_after_bootstrap(client: FlaskClient):
+    """A learner should see is_self_learner flip after /api/learners/me creates the self child."""
+    headers = _auth_headers("learner-1", "learner@example.com", name="Legacy Learner")
+    signup_response = client.get("/api/auth/session", headers=headers)
+    assert signup_response.status_code == 200
+    app_module.storage_service.update_user_role("learner-1", "learner")
+
+    before_response = client.get("/api/auth/session", headers=headers)
+    create_response = client.post("/api/learners/me", headers=headers)
+    after_response = client.get("/api/auth/session", headers=headers)
+
+    assert before_response.status_code == 200
+    before_payload = before_response.get_json()
+    assert before_payload["role"] == "learner"
+    assert before_payload["is_self_learner"] is False
+    assert create_response.status_code == 200
+    assert create_response.get_json()["name"] == "Legacy Learner"
+    assert after_response.status_code == 200
+    after_payload = after_response.get_json()
+    assert after_payload["role"] == "learner"
+    assert after_payload["is_self_learner"] is True
+
+
 def test_invited_user_signs_up_as_parent(client: FlaskClient):
     """A user who signs up after being invited gets the parent role."""
     therapist_headers = _auth_headers("user-1", "first@example.com", name="Therapist")

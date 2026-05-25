@@ -1,14 +1,114 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AuthSession } from '../../services/api'
+import type { ChildProfile } from '../../types'
+
+const apiMocks = vi.hoisted(() => ({
+  getAuthSession: vi.fn(),
+  getChildren: vi.fn(),
+  getConfig: vi.fn(),
+  createSelfLearner: vi.fn(),
+}))
+
+vi.mock('../../services/api', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../services/api')>()
+  return {
+    ...actual,
+    api: {
+      ...actual.api,
+      getAuthSession: apiMocks.getAuthSession,
+      getChildren: apiMocks.getChildren,
+      getConfig: apiMocks.getConfig,
+      createSelfLearner: apiMocks.createSelfLearner,
+    },
+  }
+})
+
+vi.mock('../routes/StudentLearningHome', () => ({
+  default: ({ studentId }: { studentId: string | null }) => (
+    <div data-testid="student-learning-home">Learner dashboard {studentId}</div>
+  ),
+}))
+
+vi.mock('../routes/TeacherMasteryDashboard', () => ({
+  default: () => <div data-testid="teacher-dashboard" />,
+}))
+
+vi.mock('../routes/SkillLibrary', () => ({
+  default: () => <div data-testid="skill-library" />,
+}))
+
+vi.mock('../routes/StudentMasteryProfile', () => ({
+  default: () => <div data-testid="student-mastery-profile" />,
+}))
+
+vi.mock('../routes/PathwaysExplorer', () => ({
+  default: () => <div data-testid="pathways-explorer" />,
+}))
+
+vi.mock('../routes/TrustSafetyConsole', () => ({
+  default: () => <div data-testid="trust-safety-console" />,
+}))
+
+vi.mock('../components/VoiceAgentFullscreen', () => ({
+  default: () => <div data-testid="voice-agent-fullscreen" />,
+}))
+
+vi.mock('../../components/InsightsRail', () => ({
+  InsightsRail: () => <div data-testid="insights-rail" />,
+}))
+
 import {
   COOKIE_CONSENT_STORAGE_KEY,
   CookieConsentBanner,
+  default as PathfinderLearnApp,
   defaultPathForRole,
   navItemsForRole,
 } from '../PathfinderLearnApp'
 
+const legacyLearnerSession: AuthSession = {
+  authenticated: true,
+  user_id: 'learner-legacy',
+  name: 'Legacy Learner',
+  email: 'legacy@example.com',
+  provider: 'aad',
+  role: 'learner',
+  current_workspace_id: null,
+  user_workspaces: [],
+  needs_onboarding: false,
+  is_self_learner: false,
+}
+
+const selfLearnerChild: ChildProfile = {
+  id: 'child-self',
+  name: 'Legacy Learner',
+  workspace_id: 'workspace-self',
+}
+
+function renderLearningApp() {
+  return render(
+    <MemoryRouter initialEntries={['/home']}>
+      <PathfinderLearnApp />
+    </MemoryRouter>,
+  )
+}
+
 afterEach(() => {
   window.localStorage.clear()
+  vi.clearAllMocks()
+})
+
+beforeEach(() => {
+  apiMocks.getConfig.mockResolvedValue({
+    insights_rail_enabled: false,
+    insights_voice_mode: 'off',
+    voice_agent_fullscreen_enabled: false,
+    voice_agent_actions_enabled: false,
+  })
+  apiMocks.getAuthSession.mockResolvedValue(legacyLearnerSession)
+  apiMocks.getChildren.mockResolvedValue([])
+  apiMocks.createSelfLearner.mockResolvedValue(selfLearnerChild)
 })
 
 describe('CookieConsentBanner', () => {
@@ -58,5 +158,18 @@ describe('Pathfinder role routing helpers', () => {
     expect(defaultPathForRole('parent')).toBe('/profile')
     expect(teacherLabels).toEqual(['Teacher'])
     expect(adminLabels).toEqual(['Teacher', 'Library', 'Profile', 'Pathways', 'Trust & Safety'])
+  })
+})
+
+describe('PathfinderLearnApp learner bootstrapping', () => {
+  it('creates and selects a self-learner for a legacy learner with no children', async () => {
+    renderLearningApp()
+
+    await waitFor(() => expect(apiMocks.createSelfLearner).toHaveBeenCalledTimes(1))
+    const dashboard = await screen.findByTestId('student-learning-home')
+
+    expect(apiMocks.getAuthSession).toHaveBeenCalledTimes(1)
+    expect(apiMocks.getChildren).toHaveBeenCalledWith(null)
+    expect(dashboard.textContent).toContain('child-self')
   })
 })
