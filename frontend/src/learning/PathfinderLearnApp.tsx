@@ -5,6 +5,9 @@ import {
   ArrowRightStartOnRectangleIcon,
   BookOpenIcon,
   ChartBarIcon,
+  Cog6ToothIcon,
+  DocumentTextIcon,
+  InformationCircleIcon,
   MagnifyingGlassIcon,
   ShieldCheckIcon,
   UserCircleIcon,
@@ -55,6 +58,13 @@ type NavItem = {
   allowedRoles: LearningRole[]
 }
 
+type AccountAction = {
+  href: string
+  label: string
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
+  testId: string
+}
+
 export type LearningRole = AuthSession['role'] | 'learner' | 'kid' | 'student' | 'unassigned'
 
 const navItems: NavItem[] = [
@@ -67,6 +77,20 @@ const navItems: NavItem[] = [
 ]
 
 const PATHFINDER_CHAT_SCOPE: InsightsScope = { type: 'caseload' }
+
+const accountActions: AccountAction[] = [
+  { href: '/profile', label: 'Learning profile', icon: UserCircleIcon, testId: 'account-action-profile' },
+  { href: '/settings', label: 'Settings', icon: Cog6ToothIcon, testId: 'account-action-settings' },
+  { href: '/privacy', label: 'Privacy', icon: ShieldCheckIcon, testId: 'account-action-privacy' },
+  { href: '/terms', label: 'Terms', icon: DocumentTextIcon, testId: 'account-action-terms' },
+  { href: '/ai-transparency', label: 'AI notice', icon: InformationCircleIcon, testId: 'account-action-ai-notice' },
+]
+
+function formatRoleLabel(role: LearningRole | 'loading'): string {
+  if (role === 'loading') return 'Loading account'
+  if (role === 'pending_therapist') return 'Pending therapist'
+  return role.charAt(0).toUpperCase() + role.slice(1)
+}
 
 export function normalizeLearningRole(role: string | null | undefined): LearningRole {
   if (role === 'therapist' || role === 'parent' || role === 'admin' || role === 'pending_therapist') {
@@ -204,15 +228,19 @@ const useStyles = makeStyles({
     lineHeight: 1.35,
   },
   userCard: {
-    marginTop: 'auto',
     display: 'grid',
-    gridTemplateColumns: '32px 1fr auto',
-    alignItems: 'center',
     gap: '10px',
     padding: '10px',
     borderRadius: t.radius.sm,
     border: t.surface.hairline,
     backgroundColor: t.brand.surfaceMuted,
+  },
+  userHeader: {
+    display: 'grid',
+    gridTemplateColumns: '32px 1fr',
+    alignItems: 'center',
+    gap: '10px',
+    minWidth: 0,
   },
   userAvatar: {
     width: '32px',
@@ -247,10 +275,67 @@ const useStyles = makeStyles({
     overflow: 'hidden',
     textOverflow: 'ellipsis',
   },
-  signOutButton: {
+  userRole: {
+    fontSize: '0.66rem',
+    color: t.brand.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
+    fontWeight: 700,
+  },
+  accountActions: {
+    display: 'grid',
+    gap: '4px',
+    paddingTop: '8px',
+    borderTop: t.surface.hairline,
+  },
+  accountAction: {
     appearance: 'none',
-    width: '32px',
-    height: '32px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    minHeight: '32px',
+    padding: '6px 8px',
+    borderRadius: t.radius.sm,
+    border: '1px solid transparent',
+    backgroundColor: 'transparent',
+    color: t.brand.textSecondary,
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.78rem',
+    fontWeight: 700,
+    textAlign: 'left',
+    textDecoration: 'none',
+    transition: 'background-color .12s, border-color .12s, color .12s',
+    ':hover': {
+      backgroundColor: t.brand.surface,
+      borderTopColor: t.brand.line,
+      borderRightColor: t.brand.line,
+      borderBottomColor: t.brand.line,
+      borderLeftColor: t.brand.line,
+      color: t.brand.text,
+    },
+  },
+  accountActionIcon: { width: '16px', height: '16px', flexShrink: 0 },
+  mobileAccountActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  mobileUserPill: {
+    display: 'grid',
+    placeItems: 'center',
+    width: '34px',
+    height: '34px',
+    borderRadius: '999px',
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surfaceMuted,
+    textDecoration: 'none',
+    color: t.brand.text,
+  },
+  mobileAccountButton: {
+    appearance: 'none',
+    width: '34px',
+    height: '34px',
     borderRadius: t.radius.sm,
     border: t.surface.hairline,
     backgroundColor: t.brand.surface,
@@ -258,12 +343,24 @@ const useStyles = makeStyles({
     cursor: 'pointer',
     display: 'grid',
     placeItems: 'center',
+    textDecoration: 'none',
     ':hover': {
       color: t.brand.text,
       backgroundColor: t.brand.surfaceMuted,
     },
   },
-  signOutIcon: { width: '18px', height: '18px' },
+  mobileAccountIcon: { width: '18px', height: '18px' },
+  srOnly: {
+    position: 'absolute',
+    width: '1px',
+    height: '1px',
+    padding: 0,
+    margin: '-1px',
+    overflow: 'hidden',
+    clip: 'rect(0, 0, 0, 0)',
+    whiteSpace: 'nowrap',
+    border: 0,
+  },
   main: {
     display: 'flex',
     flexDirection: 'column',
@@ -810,6 +907,51 @@ export default function PathfinderLearnApp() {
       )
     })
 
+  const renderAccountCard = () => {
+    if (!authSession?.authenticated) return null
+    const accountInitial = (authSession.name || authSession.email || '?').charAt(0).toUpperCase()
+    return (
+      <div className={styles.userCard} data-testid="sidebar-user-card">
+        <div className={styles.userHeader}>
+          <span className={styles.userAvatar} aria-hidden="true">
+            {accountInitial}
+          </span>
+          <div className={styles.userInfo}>
+            <Text className={styles.userName}>{authSession.name || 'User'}</Text>
+            {authSession.email ? (
+              <Text className={styles.userEmail}>{authSession.email}</Text>
+            ) : null}
+            <Text className={styles.userRole}>{formatRoleLabel(effectiveRole)}</Text>
+          </div>
+        </div>
+        <nav className={styles.accountActions} aria-label="Account actions">
+          {accountActions.map(action => {
+            const Icon = action.icon
+            return (
+              <a
+                key={action.href}
+                href={action.href}
+                className={styles.accountAction}
+                data-testid={action.testId}
+              >
+                <Icon className={styles.accountActionIcon} aria-hidden="true" />
+                <span>{action.label}</span>
+              </a>
+            )
+          })}
+          <a
+            href="/logout"
+            className={styles.accountAction}
+            data-testid="account-action-sign-out"
+          >
+            <ArrowRightStartOnRectangleIcon className={styles.accountActionIcon} aria-hidden="true" />
+            <span>Sign out</span>
+          </a>
+        </nav>
+      </div>
+    )
+  }
+
   if (effectiveRole === 'unassigned' && authSession?.authenticated) {
     return (
       <FluentProvider theme={pathfinderFluentTheme} className={styles.provider}>
@@ -846,29 +988,7 @@ export default function PathfinderLearnApp() {
             <span>Counsellor sign-off active</span>
           </div>
 
-          {authSession?.authenticated ? (
-            <div className={styles.userCard} data-testid="sidebar-user-card">
-              <span className={styles.userAvatar} aria-hidden="true">
-                {(authSession.name || authSession.email || '?').charAt(0).toUpperCase()}
-              </span>
-              <div className={styles.userInfo}>
-                <Text className={styles.userName}>{authSession.name || 'User'}</Text>
-                {authSession.email ? (
-                  <Text className={styles.userEmail}>{authSession.email}</Text>
-                ) : null}
-              </div>
-              <button
-                type="button"
-                className={styles.signOutButton}
-                onClick={() => { window.location.href = '/logout' }}
-                aria-label="Sign out"
-                title="Sign out"
-                data-testid="sidebar-sign-out"
-              >
-                <ArrowRightStartOnRectangleIcon className={styles.signOutIcon} aria-hidden="true" />
-              </button>
-            </div>
-          ) : null}
+          {renderAccountCard()}
         </aside>
 
         <main className={styles.main}>
@@ -882,6 +1002,41 @@ export default function PathfinderLearnApp() {
                 <Text className={styles.brandSubtitle}>Wulo Learning · JSS1-SS3</Text>
               </div>
             </div>
+            {authSession?.authenticated ? (
+              <div className={styles.mobileAccountActions}>
+                <a
+                  href="/profile"
+                  className={styles.mobileUserPill}
+                  aria-label="Open learning profile"
+                  data-testid="mobile-account-profile"
+                >
+                  <span className={styles.userAvatar} aria-hidden="true">
+                    {(authSession.name || authSession.email || '?').charAt(0).toUpperCase()}
+                  </span>
+                  <span className={styles.srOnly}>Learning profile</span>
+                </a>
+                <a
+                  href="/settings"
+                  className={styles.mobileAccountButton}
+                  aria-label="Open settings"
+                  title="Settings"
+                  data-testid="mobile-account-settings"
+                >
+                  <Cog6ToothIcon className={styles.mobileAccountIcon} aria-hidden="true" />
+                  <span className={styles.srOnly}>Settings</span>
+                </a>
+                <a
+                  href="/logout"
+                  className={styles.mobileAccountButton}
+                  aria-label="Sign out"
+                  title="Sign out"
+                  data-testid="mobile-account-sign-out"
+                >
+                  <ArrowRightStartOnRectangleIcon className={styles.mobileAccountIcon} aria-hidden="true" />
+                  <span className={styles.srOnly}>Sign out</span>
+                </a>
+              </div>
+            ) : null}
           </div>
 
           <div className={styles.content}>

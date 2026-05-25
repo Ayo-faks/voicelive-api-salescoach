@@ -180,6 +180,23 @@ describe('PathfinderLearnApp learner bootstrapping', () => {
     expect(apiMocks.createSelfLearner).not.toHaveBeenCalled()
   })
 
+  it('shows standard account actions for authenticated learners', async () => {
+    renderLearningApp()
+
+    await screen.findByTestId('sidebar-user-card')
+
+    expect(screen.getByText('Legacy Learner')).toBeTruthy()
+    expect(screen.getByText('legacy@example.com')).toBeTruthy()
+    expect(screen.getByTestId('account-action-profile').getAttribute('href')).toBe('/profile')
+    expect(screen.getByTestId('account-action-settings').getAttribute('href')).toBe('/settings')
+    expect(screen.getByTestId('account-action-privacy').getAttribute('href')).toBe('/privacy')
+    expect(screen.getByTestId('account-action-terms').getAttribute('href')).toBe('/terms')
+    expect(screen.getByTestId('account-action-ai-notice').getAttribute('href')).toBe('/ai-transparency')
+    expect(screen.getByTestId('account-action-sign-out').getAttribute('href')).toBe('/logout')
+    expect(screen.getByTestId('mobile-account-settings').getAttribute('href')).toBe('/settings')
+    expect(screen.getByTestId('mobile-account-sign-out').getAttribute('href')).toBe('/logout')
+  })
+
   it('creates and selects a self-learner for a legacy learner with no children', async () => {
     renderLearningApp()
 
