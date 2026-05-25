@@ -17,6 +17,7 @@ import type { AppConfig, ChildProfile, InsightsScope } from '../types'
 import LearnerEmptyState from './components/LearnerEmptyState'
 import LearnerSelector from './components/LearnerSelector'
 import VoiceAgentFullscreen from './components/VoiceAgentFullscreen'
+import WelcomeRolePicker from './components/WelcomeRolePicker'
 import { useSelectedLearner } from './hooks/useSelectedLearner'
 import PathwaysExplorer from './routes/PathwaysExplorer'
 import SkillLibrary from './routes/SkillLibrary'
@@ -54,7 +55,7 @@ type NavItem = {
   allowedRoles: LearningRole[]
 }
 
-export type LearningRole = AuthSession['role'] | 'learner' | 'kid' | 'student'
+export type LearningRole = AuthSession['role'] | 'learner' | 'kid' | 'student' | 'unassigned'
 
 const navItems: NavItem[] = [
   { to: '/home', label: 'Learner', hint: 'Today', icon: AcademicCapIcon, allowedRoles: ['parent', 'learner', 'kid', 'student'] },
@@ -73,6 +74,9 @@ export function normalizeLearningRole(role: string | null | undefined): Learning
   }
   if (role === 'kid' || role === 'student' || role === 'learner') {
     return role
+  }
+  if (role === 'unassigned') {
+    return 'unassigned'
   }
   return 'learner'
 }
@@ -701,6 +705,43 @@ export default function PathfinderLearnApp() {
     }
   }, [])
 
+  // Re-fetch children when role changes to a learner-facing role (e.g. after
+  // role selection on the welcome screen) and the list is currently unknown.
+  useEffect(() => {
+    if (learnerChildren !== null) return
+    if (!authSession?.authenticated) return
+    if (!['parent', 'learner', 'kid', 'student'].includes(effectiveRole)) return
+    let cancelled = false
+    api.getChildren(authSession.current_workspace_id)
+      .then(children => { if (!cancelled) setLearnerChildren(children) })
+      .catch(() => { if (!cancelled) setLearnerChildren([]) })
+    return () => { cancelled = true }
+  }, [authSession?.authenticated, authSession?.current_workspace_id, effectiveRole, learnerChildren])
+
+  // When a self-service learner lands with no children yet, auto-create their
+  // self-learner profile so they can start practising immediately.
+  useEffect(() => {
+    if (effectiveRole !== 'learner') return
+    if (!authSession?.is_self_learner) return
+    if (learnerChildren === null) return
+    if (learnerChildren.length > 0) return
+    let cancelled = false
+    api.createSelfLearner()
+      .then(child => {
+        if (cancelled) return
+        setLearnerChildren([child])
+      })
+      .catch(() => { /* LearnerEmptyState remains as fallback */ })
+    return () => { cancelled = true }
+  }, [effectiveRole, authSession?.is_self_learner, learnerChildren])
+
+  const handleOnboardingChosen = useCallback((session: AuthSession) => {
+    setAuthSession(session)
+    setLearningRole(normalizeLearningRole(session.role))
+    // Force a children refetch on next render path
+    setLearnerChildren(null)
+  }, [])
+
   const routeForRole = (allowedRoles: LearningRole[], element: JSX.Element | null) => {
     if (learningRole === 'loading') return null
     return allowedRoles.includes(effectiveRole)
@@ -753,6 +794,14 @@ export default function PathfinderLearnApp() {
         </NavLink>
       )
     })
+
+  if (effectiveRole === 'unassigned' && authSession?.authenticated) {
+    return (
+      <FluentProvider theme={pathfinderFluentTheme} className={styles.provider}>
+        <WelcomeRolePicker onChosen={handleOnboardingChosen} />
+      </FluentProvider>
+    )
+  }
 
   return (
     <FluentProvider theme={pathfinderFluentTheme} className={styles.provider}>

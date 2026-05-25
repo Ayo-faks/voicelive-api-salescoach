@@ -60,10 +60,14 @@ export interface AuthSession {
   name: string
   email: string
   provider: string
-  role: 'therapist' | 'parent' | 'admin' | 'pending_therapist' | 'learner' | 'kid' | 'student'
+  role: 'therapist' | 'parent' | 'admin' | 'pending_therapist' | 'learner' | 'kid' | 'student' | 'unassigned'
   current_workspace_id?: string | null
   user_workspaces?: WorkspaceSummary[]
+  needs_onboarding?: boolean
+  is_self_learner?: boolean
 }
+
+export type OnboardingIntent = 'learner' | 'parent' | 'teacher'
 
 export function getImageAssetUrl(imagePath: string): string {
   const normalizedPath = imagePath.replace(/^\/+/, '')
@@ -179,6 +183,32 @@ export const api = {
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
       throw new Error(data.error || 'Invalid invite code')
+    }
+    return res.json()
+  },
+
+  async chooseRole(intent: OnboardingIntent): Promise<AuthSession> {
+    const res = await fetchWithAuth('/api/auth/choose-role', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ intent }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.error || 'Could not save role choice')
+    }
+    return res.json()
+  },
+
+  async createSelfLearner(): Promise<ChildProfile> {
+    const res = await fetchWithAuth('/api/learners/me', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.error || 'Could not create learner profile')
     }
     return res.json()
   },

@@ -118,6 +118,8 @@ API_HEALTH_ENDPOINT = "/api/health"
 API_SCENARIOS_ENDPOINT = "/api/scenarios"
 API_AUTH_SESSION_ENDPOINT = "/api/auth/session"
 API_AUTH_CLAIM_INVITE_CODE_ENDPOINT = "/api/auth/claim-invite-code"
+API_AUTH_CHOOSE_ROLE_ENDPOINT = "/api/auth/choose-role"
+API_LEARNERS_SELF_ENDPOINT = "/api/learners/me"
 API_ADMIN_INVITE_CODES_ENDPOINT = "/api/admin/invite-codes"
 API_WORKSPACES_ENDPOINT = "/api/workspaces"
 API_PILOT_STATE_ENDPOINT = "/api/pilot/state"
@@ -208,6 +210,8 @@ ROLE_PENDING_THERAPIST = "pending_therapist"
 ROLE_LEARNER = "learner"
 ROLE_KID = "kid"
 ROLE_STUDENT = "student"
+ROLE_UNASSIGNED = "unassigned"
+B2C_ONBOARDING_FLAG = "PATHFINDER_B2C_ONBOARDING_ENABLED"
 UNSAFE_HTTP_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 PATHFINDER_LEARN_TEACHER_CLASS_IDS_ENV = "PATHFINDER_LEARN_TEACHER_CLASS_IDS"
 PATHFINDER_LEARN_LEARNER_STUDENT_IDS_ENV = "PATHFINDER_LEARN_LEARNER_STUDENT_IDS"
@@ -1480,21 +1484,34 @@ def get_auth_session():
     if user is None:
         return jsonify({"authenticated": False}), HTTP_UNAUTHORIZED
 
-    user_workspaces = storage_service.list_workspaces_for_user(str(user["id"]))
-    default_workspace = storage_service.get_default_workspace_for_user(str(user["id"]))
+    return jsonify(_build_session_payload(cast(Dict[str, Any], user)))
 
-    return jsonify(
-        {
-            "authenticated": True,
-            "user_id": user["id"],
-            "name": user["name"],
-            "email": user["email"],
-            "provider": user["provider"],
-            "role": user["role"],
-            "current_workspace_id": None if default_workspace is None else default_workspace["id"],
-            "user_workspaces": user_workspaces,
-        }
-    )
+
+def _build_session_payload(user: Dict[str, Any]) -> Dict[str, Any]:
+    """Compose the auth-session response for a resolved user dict."""
+    user_id = str(user.get("id") or "")
+    role = str(user.get("role") or "")
+    user_workspaces = storage_service.list_workspaces_for_user(user_id)
+    default_workspace = storage_service.get_default_workspace_for_user(user_id)
+    is_self_learner = False
+    try:
+        is_self_learner = bool(storage_service.has_self_learner(user_id))
+    except (AttributeError, TypeError):
+        is_self_learner = False
+    except Exception:  # pragma: no cover - defensive
+        is_self_learner = False
+    return {
+        "authenticated": True,
+        "user_id": user_id,
+        "name": user.get("name") or "",
+        "email": user.get("email") or "",
+        "provider": user.get("provider") or "",
+        "role": role,
+        "needs_onboarding": role == ROLE_UNASSIGNED,
+        "is_self_learner": is_self_learner,
+        "current_workspace_id": None if default_workspace is None else default_workspace["id"],
+        "user_workspaces": user_workspaces,
+    }
 
 
 @app.route(API_AUTH_CLAIM_INVITE_CODE_ENDPOINT, methods=["POST"])
@@ -1527,21 +1544,93 @@ def claim_invite_code():
 
     # Return fresh session data
     updated_user = storage_service.get_user(user_id)
-    user_workspaces = storage_service.list_workspaces_for_user(user_id)
-    default_workspace = storage_service.get_default_workspace_for_user(user_id)
+    if updated_user is None:
+        return jsonify({"error": "User not found"}), HTTP_NOT_FOUND
+    return jsonify(_build_session_payload(updated_user))
 
-    return jsonify(
-        {
-            "authenticated": True,
-            "user_id": user_id,
-            "name": updated_user["name"] if updated_user else "",
-            "email": updated_user["email"] if updated_user else "",
-            "provider": updated_user["provider"] if updated_user else "",
-            "role": updated_user["role"] if updated_user else "",
-            "current_workspace_id": None if default_workspace is None else default_workspace["id"],
-            "user_workspaces": user_workspaces,
-        }
+
+@app.route(API_AUTH_CHOOSE_ROLE_ENDPOINT, methods=["POST"])
+def choose_role():
+    """Post-signup role picker. Lets an unassigned user pick learner/parent/teacher.
+
+    Body: {"intent": "learner" | "parent" | "teacher"}.
+    """
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
+    user_dict = cast(Dict[str, Any], user)
+    user_id = str(user_dict.get("id") or "")
+    current_role = str(user_dict.get("role") or "")
+    if current_role != ROLE_UNASSIGNED:
+        return jsonify({"error": "Role has already been chosen"}), HTTP_BAD_REQUEST
+
+    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+    intent = str(data.get("intent") or "").strip().lower()
+    if intent == "learner":
+        target_role = ROLE_LEARNER
+    elif intent == "parent":
+        target_role = ROLE_PARENT
+    elif intent == "teacher":
+        target_role = ROLE_PENDING_THERAPIST
+    else:
+        return jsonify({"error": "intent must be one of: learner, parent, teacher"}), HTTP_BAD_REQUEST
+
+    try:
+        storage_service.update_user_role(user_id, target_role)
+    except ValueError as error:
+        return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
+
+    if target_role == ROLE_LEARNER:
+        try:
+            storage_service.find_or_create_self_learner(
+                user_id=user_id,
+                name=str(user_dict.get("name") or ""),
+                email=str(user_dict.get("email") or ""),
+            )
+        except Exception as error:  # pragma: no cover - defensive
+            logger.exception("Failed to bootstrap self-learner: %s", error)
+
+    _log_audit_event(
+        user_id=user_id,
+        action="auth.choose_role",
+        resource_type="user",
+        resource_id=user_id,
+        metadata={"intent": intent, "role": target_role},
     )
+
+    updated_user = storage_service.get_user(user_id)
+    if updated_user is None:
+        return jsonify({"error": "User not found"}), HTTP_NOT_FOUND
+    return jsonify(_build_session_payload(updated_user))
+
+
+@app.route(API_LEARNERS_SELF_ENDPOINT, methods=["POST"])
+def create_self_learner():
+    """Idempotently return (creating if necessary) the caller's self-learner child."""
+    user, guard_response = _require_role(ROLE_LEARNER)
+    if guard_response is not None:
+        return guard_response
+
+    user_dict = cast(Dict[str, Any], user)
+    user_id = str(user_dict.get("id") or "")
+    try:
+        child = storage_service.find_or_create_self_learner(
+            user_id=user_id,
+            name=str(user_dict.get("name") or ""),
+            email=str(user_dict.get("email") or ""),
+        )
+    except ValueError as error:
+        return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
+
+    _log_audit_event(
+        user_id=user_id,
+        action="learner.self_create",
+        resource_type="child",
+        resource_id=str(child.get("id") or ""),
+        child_id=str(child.get("id") or ""),
+    )
+    return jsonify(child)
 
 
 @app.route(API_ADMIN_INVITE_CODES_ENDPOINT, methods=["GET", "POST"])
@@ -1634,7 +1723,7 @@ def child_parental_consent(child_id: str):
     """Manage parental/guardian consent for a child profile."""
     user, guard_response = _require_child_access(
         child_id,
-        allowed_roles={ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN},
+        allowed_roles={ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN, ROLE_LEARNER},
     )
     if guard_response is not None:
         return guard_response
@@ -1691,7 +1780,7 @@ def export_child_data(child_id: str):
     """Export all data for a child as JSON (SAR / data portability)."""
     user, guard_response = _require_child_access(
         child_id,
-        allowed_roles={ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN},
+        allowed_roles={ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN, ROLE_LEARNER},
     )
     if guard_response is not None:
         return guard_response
@@ -1723,7 +1812,7 @@ def delete_child_data(child_id: str):
     """Permanently delete all data for a child (right to erasure)."""
     user, guard_response = _require_child_access(
         child_id,
-        allowed_roles={ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN},
+        allowed_roles={ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN, ROLE_LEARNER},
     )
     if guard_response is not None:
         return guard_response
