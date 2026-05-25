@@ -65,14 +65,9 @@ export default defineConfig({
       input: 'index.html',
       output: {
         manualChunks: getPackageChunkName,
-        entryFileNames: 'js/index.js',
+        entryFileNames: 'js/[name]-[hash].js',
         chunkFileNames: 'js/[name]-[hash].js',
-        assetFileNames: (assetInfo) => {
-          if (assetInfo.name?.endsWith('.css')) {
-            return 'assets/index.css'
-          }
-          return 'assets/[name]-[hash].[ext]'
-        }
+        assetFileNames: 'assets/[name]-[hash][extname]'
       }
     }
   },
