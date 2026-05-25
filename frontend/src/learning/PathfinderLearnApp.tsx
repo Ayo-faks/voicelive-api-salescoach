@@ -9,7 +9,7 @@ import {
   ShieldCheckIcon,
   UserCircleIcon,
 } from '@heroicons/react/24/outline'
-import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
+import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { ChatBubbleLeftRightIcon, MicrophoneIcon, MinusIcon } from '@heroicons/react/24/solid'
 import { InsightsRail } from '../components/InsightsRail'
 import { api, type AuthSession } from '../services/api'
@@ -645,6 +645,8 @@ export function CookieConsentBanner() {
 
 export default function PathfinderLearnApp() {
   const styles = useStyles()
+  const location = useLocation()
+  const [authStatus, setAuthStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading')
   const [learningRole, setLearningRole] = useState<LearningRole | 'loading'>('loading')
   const [learnerChildren, setLearnerChildren] = useState<ChildProfile[] | null>(null)
   const [appConfig, setAppConfig] = useState<AppConfig | null>(null)
@@ -681,8 +683,17 @@ export default function PathfinderLearnApp() {
     let cancelled = false
     api.getAuthSession()
       .then(async session => {
+        if (!session.authenticated) {
+          if (!cancelled) {
+            setAuthStatus('unauthenticated')
+            setAuthSession(null)
+            setLearnerChildren(null)
+          }
+          return
+        }
         const nextRole = normalizeLearningRole(session.role)
         if (!cancelled) {
+          setAuthStatus('authenticated')
           setLearningRole(nextRole)
           setAuthSession(session)
         }
@@ -696,8 +707,9 @@ export default function PathfinderLearnApp() {
       })
       .catch(() => {
         if (!cancelled) {
-          setLearningRole('learner')
-          setLearnerChildren([])
+          setAuthStatus('unauthenticated')
+          setAuthSession(null)
+          setLearnerChildren(null)
         }
       })
     return () => {
@@ -737,6 +749,7 @@ export default function PathfinderLearnApp() {
   }, [effectiveRole, authSession?.authenticated, learnerChildren])
 
   const handleOnboardingChosen = useCallback((session: AuthSession) => {
+    setAuthStatus('authenticated')
     setAuthSession(session)
     setLearningRole(normalizeLearningRole(session.role))
     // Force a children refetch on next render path
@@ -803,6 +816,10 @@ export default function PathfinderLearnApp() {
         <WelcomeRolePicker onChosen={handleOnboardingChosen} />
       </FluentProvider>
     )
+  }
+
+  if (authStatus === 'unauthenticated') {
+    return <Navigate to={{ pathname: '/login', search: location.search }} replace />
   }
 
   return (

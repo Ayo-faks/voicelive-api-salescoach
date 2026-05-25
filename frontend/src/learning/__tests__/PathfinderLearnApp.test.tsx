@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AuthSession } from '../../services/api'
 import type { ChildProfile } from '../../types'
@@ -86,10 +86,16 @@ const selfLearnerChild: ChildProfile = {
   workspace_id: 'workspace-self',
 }
 
+function LocationProbe() {
+  const location = useLocation()
+  return <div data-testid="location">{location.pathname}{location.search}</div>
+}
+
 function renderLearningApp() {
   return render(
     <MemoryRouter initialEntries={['/home']}>
       <PathfinderLearnApp />
+      <LocationProbe />
     </MemoryRouter>,
   )
 }
@@ -162,6 +168,18 @@ describe('Pathfinder role routing helpers', () => {
 })
 
 describe('PathfinderLearnApp learner bootstrapping', () => {
+  it('redirects unauthenticated visitors to login instead of showing the learner empty state', async () => {
+    apiMocks.getAuthSession.mockRejectedValue(new Error('UNAUTHORIZED'))
+
+    renderLearningApp()
+
+    await waitFor(() => expect(screen.getByTestId('location').textContent).toBe('/login'))
+
+    expect(screen.queryByText('No learners linked to this account yet')).toBeNull()
+    expect(apiMocks.getChildren).not.toHaveBeenCalled()
+    expect(apiMocks.createSelfLearner).not.toHaveBeenCalled()
+  })
+
   it('creates and selects a self-learner for a legacy learner with no children', async () => {
     renderLearningApp()
 
