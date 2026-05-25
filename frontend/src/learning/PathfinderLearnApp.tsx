@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
-import { FluentProvider, Text, makeStyles } from '@fluentui/react-components'
+import { useCallback, useEffect, useState } from 'react'
+import { FluentProvider, Text, makeStyles, mergeClasses } from '@fluentui/react-components'
 import {
   AcademicCapIcon,
+  ArrowRightStartOnRectangleIcon,
   BookOpenIcon,
   ChartBarIcon,
   MagnifyingGlassIcon,
@@ -9,9 +10,10 @@ import {
   UserCircleIcon,
 } from '@heroicons/react/24/outline'
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
-import { MicrophoneIcon } from '@heroicons/react/24/solid'
+import { ChatBubbleLeftRightIcon, MicrophoneIcon, MinusIcon } from '@heroicons/react/24/solid'
+import { InsightsRail } from '../components/InsightsRail'
 import { api, type AuthSession } from '../services/api'
-import type { AppConfig, ChildProfile } from '../types'
+import type { AppConfig, ChildProfile, InsightsScope } from '../types'
 import LearnerEmptyState from './components/LearnerEmptyState'
 import LearnerSelector from './components/LearnerSelector'
 import VoiceAgentFullscreen from './components/VoiceAgentFullscreen'
@@ -62,6 +64,8 @@ const navItems: NavItem[] = [
   { to: '/pathways', label: 'Pathways', hint: 'Explore', icon: MagnifyingGlassIcon, allowedRoles: ['parent', 'learner', 'kid', 'student', 'admin'] },
   { to: '/safety', label: 'Trust & Safety', hint: 'Console', icon: ShieldCheckIcon, allowedRoles: ['admin'] },
 ]
+
+const PATHFINDER_CHAT_SCOPE: InsightsScope = { type: 'caseload' }
 
 export function normalizeLearningRole(role: string | null | undefined): LearningRole {
   if (role === 'therapist' || role === 'parent' || role === 'admin' || role === 'pending_therapist') {
@@ -195,6 +199,67 @@ const useStyles = makeStyles({
     fontSize: '0.7rem',
     lineHeight: 1.35,
   },
+  userCard: {
+    marginTop: 'auto',
+    display: 'grid',
+    gridTemplateColumns: '32px 1fr auto',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '10px',
+    borderRadius: t.radius.sm,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surfaceMuted,
+  },
+  userAvatar: {
+    width: '32px',
+    height: '32px',
+    borderRadius: '999px',
+    display: 'grid',
+    placeItems: 'center',
+    backgroundColor: t.brand.ink,
+    color: t.brand.onInk,
+    fontFamily: t.font.display,
+    fontWeight: 700,
+    fontSize: '0.85rem',
+  },
+  userInfo: {
+    display: 'grid',
+    gap: '1px',
+    minWidth: 0,
+  },
+  userName: {
+    fontFamily: t.font.display,
+    fontSize: '0.82rem',
+    fontWeight: 600,
+    color: t.brand.text,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  userEmail: {
+    fontSize: '0.7rem',
+    color: t.brand.textTertiary,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  signOutButton: {
+    appearance: 'none',
+    width: '32px',
+    height: '32px',
+    borderRadius: t.radius.sm,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+    color: t.brand.textSecondary,
+    cursor: 'pointer',
+    display: 'grid',
+    placeItems: 'center',
+    ':hover': {
+      color: t.brand.text,
+      backgroundColor: t.brand.surfaceMuted,
+    },
+  },
+  signOutIcon: { width: '18px', height: '18px' },
   main: {
     display: 'flex',
     flexDirection: 'column',
@@ -280,9 +345,24 @@ const useStyles = makeStyles({
     background: 'linear-gradient(160deg, #3a3a3c 0%, #0a0a0a 100%)',
     boxShadow:
       '0 12px 36px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.18)',
-    transition: 'transform .15s ease, filter .15s ease, box-shadow .15s ease',
-    ':hover': { filter: 'brightness(1.06)' },
-    ':active': { transform: 'scale(0.96)' },
+    transformOrigin: 'center',
+    transition:
+      'transform .18s cubic-bezier(0.2, 0.8, 0.2, 1), filter .15s ease, box-shadow .2s ease',
+    animationName: {
+      from: { opacity: 0, transform: 'translateY(18px) scale(0.5)' },
+      '60%': { opacity: 1, transform: 'translateY(-2px) scale(1.06)' },
+      to: { opacity: 1, transform: 'translateY(0) scale(1)' },
+    },
+    animationDuration: '420ms',
+    animationTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+    animationFillMode: 'both',
+    ':hover': {
+      filter: 'brightness(1.08)',
+      transform: 'translateY(-2px) scale(1.04)',
+      boxShadow:
+        '0 18px 42px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.22)',
+    },
+    ':active': { transform: 'scale(0.92)' },
     '@media (max-width: 1000px)': {
       bottom: '88px',
       right: '16px',
@@ -291,6 +371,155 @@ const useStyles = makeStyles({
     },
   },
   voiceLauncherGlyph: { width: '24px', height: '24px' },
+  chatLauncher: {
+    position: 'fixed',
+    right: '24px',
+    bottom: '96px',
+    zIndex: 40,
+    width: '60px',
+    height: '60px',
+    borderRadius: '999px',
+    border: 'none',
+    cursor: 'pointer',
+    display: 'grid',
+    placeItems: 'center',
+    color: '#ffffff',
+    background: 'linear-gradient(160deg, #3a3a3c 0%, #0a0a0a 100%)',
+    boxShadow:
+      '0 12px 36px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.18)',
+    transformOrigin: 'center',
+    transition:
+      'transform .18s cubic-bezier(0.2, 0.8, 0.2, 1), filter .15s ease, box-shadow .2s ease',
+    animationName: {
+      from: { opacity: 0, transform: 'translateY(18px) scale(0.5)' },
+      '60%': { opacity: 1, transform: 'translateY(-2px) scale(1.06)' },
+      to: { opacity: 1, transform: 'translateY(0) scale(1)' },
+    },
+    animationDuration: '420ms',
+    animationDelay: '60ms',
+    animationTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+    animationFillMode: 'both',
+    ':hover': {
+      filter: 'brightness(1.08)',
+      transform: 'translateY(-2px) scale(1.04)',
+      boxShadow:
+        '0 18px 42px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.22)',
+    },
+    ':active': { transform: 'scale(0.92)' },
+    '@media (max-width: 1000px)': {
+      bottom: '152px',
+      right: '16px',
+      width: '54px',
+      height: '54px',
+    },
+  },
+  chatLauncherGlyph: { width: '24px', height: '24px' },
+  chatPanel: {
+    position: 'fixed',
+    right: '24px',
+    bottom: '96px',
+    zIndex: 45,
+    width: 'min(420px, calc(100vw - 48px))',
+    height: 'min(640px, calc(100vh - 140px))',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    borderRadius: '18px',
+    border: '1px solid rgba(255,255,255,0.06)',
+    boxShadow:
+      '0 24px 64px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)',
+    background: '#0d0d0f',
+    transformOrigin: 'bottom right',
+    willChange: 'transform, opacity',
+    transition:
+      'right 280ms cubic-bezier(0.22, 1, 0.36, 1), left 280ms cubic-bezier(0.22, 1, 0.36, 1), top 280ms cubic-bezier(0.22, 1, 0.36, 1), bottom 280ms cubic-bezier(0.22, 1, 0.36, 1), width 280ms cubic-bezier(0.22, 1, 0.36, 1), height 280ms cubic-bezier(0.22, 1, 0.36, 1)',
+    animationName: {
+      from: {
+        opacity: 0,
+        transform: 'translateY(24px) scale(0.82)',
+        filter: 'blur(6px)',
+      },
+      '60%': {
+        opacity: 1,
+        transform: 'translateY(-2px) scale(1.01)',
+        filter: 'blur(0)',
+      },
+      to: { opacity: 1, transform: 'translateY(0) scale(1)', filter: 'blur(0)' },
+    },
+    animationDuration: '320ms',
+    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    animationFillMode: 'both',
+    '@media (max-width: 1000px)': {
+      right: '12px',
+      bottom: '88px',
+      width: 'calc(100vw - 24px)',
+    },
+  },
+  chatPanelClosing: {
+    animationName: {
+      from: { opacity: 1, transform: 'translateY(0) scale(1)', filter: 'blur(0)' },
+      to: {
+        opacity: 0,
+        transform: 'translateY(16px) scale(0.86)',
+        filter: 'blur(4px)',
+      },
+    },
+    animationDuration: '220ms',
+    animationTimingFunction: 'cubic-bezier(0.4, 0, 1, 1)',
+    animationFillMode: 'forwards',
+    pointerEvents: 'none',
+  },
+  chatPanelExpanded: {
+    right: '24px',
+    left: '24px',
+    top: '24px',
+    bottom: '24px',
+    width: 'auto',
+    height: 'auto',
+    transition:
+      'right 280ms cubic-bezier(0.22, 1, 0.36, 1), left 280ms cubic-bezier(0.22, 1, 0.36, 1), top 280ms cubic-bezier(0.22, 1, 0.36, 1), bottom 280ms cubic-bezier(0.22, 1, 0.36, 1), width 280ms cubic-bezier(0.22, 1, 0.36, 1), height 280ms cubic-bezier(0.22, 1, 0.36, 1)',
+    '@media (max-width: 1000px)': {
+      right: '12px',
+      left: '12px',
+      top: '12px',
+      bottom: '12px',
+    },
+  },
+  chatPanelHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '10px 14px',
+    background: 'linear-gradient(180deg, #1a1a1c 0%, #0d0d0f 100%)',
+    borderBottom: '1px solid rgba(255,255,255,0.06)',
+    color: '#ffffff',
+  },
+  chatPanelTitle: {
+    fontFamily: t.font.text,
+    fontSize: '13px',
+    fontWeight: 600,
+    letterSpacing: '0.02em',
+  },
+  chatPanelMinimize: {
+    appearance: 'none',
+    border: 'none',
+    background: 'transparent',
+    color: '#ffffff',
+    cursor: 'pointer',
+    width: '28px',
+    height: '28px',
+    borderRadius: '8px',
+    display: 'grid',
+    placeItems: 'center',
+    ':hover': { background: 'rgba(255,255,255,0.08)' },
+  },
+  chatPanelMinimizeGlyph: { width: '16px', height: '16px' },
+  chatPanelBody: {
+    flex: 1,
+    minHeight: 0,
+    overflow: 'hidden',
+    position: 'relative',
+  },
   cookieBanner: {
     position: 'fixed',
     right: '20px',
@@ -416,12 +645,25 @@ export default function PathfinderLearnApp() {
   const [learnerChildren, setLearnerChildren] = useState<ChildProfile[] | null>(null)
   const [appConfig, setAppConfig] = useState<AppConfig | null>(null)
   const [voiceOpen, setVoiceOpen] = useState(false)
+  const [chatOpen, setChatOpen] = useState(false)
+  const [chatClosing, setChatClosing] = useState(false)
+  const [chatExpanded, setChatExpanded] = useState(false)
+  const closeChatPanel = useCallback(() => {
+    setChatClosing(true)
+    window.setTimeout(() => {
+      setChatOpen(false)
+      setChatClosing(false)
+      setChatExpanded(false)
+    }, 220)
+  }, [])
+  const [authSession, setAuthSession] = useState<AuthSession | null>(null)
   const { selectedLearnerId, setSelectedLearnerId } = useSelectedLearner(learnerChildren ?? [])
   const effectiveRole = learningRole === 'loading' ? 'learner' : learningRole
   const visibleNavItems = learningRole === 'loading' ? [] : navItemsForRole(effectiveRole)
   const voiceLauncherVisible =
     !!appConfig?.voice_agent_fullscreen_enabled &&
     (appConfig?.insights_voice_mode ?? 'off') !== 'off'
+  const chatLauncherVisible = !!appConfig?.insights_rail_enabled
 
   useEffect(() => {
     let cancelled = false
@@ -436,7 +678,10 @@ export default function PathfinderLearnApp() {
     api.getAuthSession()
       .then(async session => {
         const nextRole = normalizeLearningRole(session.role)
-        if (!cancelled) setLearningRole(nextRole)
+        if (!cancelled) {
+          setLearningRole(nextRole)
+          setAuthSession(session)
+        }
         if (!['parent', 'learner', 'kid', 'student'].includes(nextRole)) return
         try {
           const children = await api.getChildren(session.current_workspace_id)
@@ -532,6 +777,30 @@ export default function PathfinderLearnApp() {
             <span>English · Yoruba voice ready</span>
             <span>Counsellor sign-off active</span>
           </div>
+
+          {authSession?.authenticated ? (
+            <div className={styles.userCard} data-testid="sidebar-user-card">
+              <span className={styles.userAvatar} aria-hidden="true">
+                {(authSession.name || authSession.email || '?').charAt(0).toUpperCase()}
+              </span>
+              <div className={styles.userInfo}>
+                <Text className={styles.userName}>{authSession.name || 'User'}</Text>
+                {authSession.email ? (
+                  <Text className={styles.userEmail}>{authSession.email}</Text>
+                ) : null}
+              </div>
+              <button
+                type="button"
+                className={styles.signOutButton}
+                onClick={() => { window.location.href = '/logout' }}
+                aria-label="Sign out"
+                title="Sign out"
+                data-testid="sidebar-sign-out"
+              >
+                <ArrowRightStartOnRectangleIcon className={styles.signOutIcon} aria-hidden="true" />
+              </button>
+            </div>
+          ) : null}
         </aside>
 
         <main className={styles.main}>
@@ -578,6 +847,53 @@ export default function PathfinderLearnApp() {
           >
             <MicrophoneIcon className={styles.voiceLauncherGlyph} aria-hidden="true" />
           </button>
+        )}
+        {chatLauncherVisible && !chatOpen && (
+          <button
+            type="button"
+            className={styles.chatLauncher}
+            onClick={() => setChatOpen(true)}
+            aria-label="Open Pathfinder text assistant"
+            data-testid="pathfinder-chat-launcher"
+          >
+            <ChatBubbleLeftRightIcon className={styles.chatLauncherGlyph} aria-hidden="true" />
+          </button>
+        )}
+        {chatLauncherVisible && chatOpen && (
+          <aside
+            className={mergeClasses(
+              styles.chatPanel,
+              chatExpanded && styles.chatPanelExpanded,
+              chatClosing && styles.chatPanelClosing
+            )}
+            aria-label="Pathfinder text assistant"
+            data-testid="pathfinder-chat-panel"
+          >
+            <header className={styles.chatPanelHeader}>
+              <span className={styles.chatPanelTitle}>Pathfinder Assistant</span>
+              <button
+                type="button"
+                className={styles.chatPanelMinimize}
+                onClick={closeChatPanel}
+                aria-label="Minimize assistant"
+                data-testid="pathfinder-chat-minimize"
+              >
+                <MinusIcon className={styles.chatPanelMinimizeGlyph} aria-hidden="true" />
+              </button>
+            </header>
+            <div className={styles.chatPanelBody}>
+              <InsightsRail
+                currentScope={PATHFINDER_CHAT_SCOPE}
+                mode={chatExpanded ? 'full' : 'normal'}
+                onModeChange={next => {
+                  if (next === 'collapsed') closeChatPanel()
+                  else if (next === 'full') setChatExpanded(true)
+                  else if (next === 'normal') setChatExpanded(false)
+                }}
+                insightsVoiceMode={appConfig?.insights_voice_mode ?? 'off'}
+              />
+            </div>
+          </aside>
         )}
         {voiceLauncherVisible && (
           <VoiceAgentFullscreen

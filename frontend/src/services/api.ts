@@ -43,6 +43,7 @@ import type {
   InsightsAskResponse,
   InsightsConversation,
   InsightsConversationDetail,
+  ChatAskResponse,
 } from '../types'
 import { AVATAR_OPTIONS } from '../types'
 
@@ -1145,6 +1146,28 @@ export const api = {
     if (!res.ok) {
       const data = await res.json().catch(() => null)
       throw new Error(data?.error || 'Failed to ask insights')
+    }
+    return res.json()
+  },
+
+  async askChat(params: {
+    message: string
+    scope: InsightsScope
+    conversationId?: string | null
+  }): Promise<ChatAskResponse> {
+    const body: Record<string, unknown> = {
+      message: params.message,
+      scope: params.scope,
+    }
+    if (params.conversationId) body.conversation_id = params.conversationId
+    const res = await fetchWithAuth('/api/chat/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || data?.error_text || 'Failed to ask chat')
     }
     return res.json()
   },

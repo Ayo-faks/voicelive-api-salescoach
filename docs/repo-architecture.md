@@ -266,6 +266,49 @@ AZURE_EXTENSION_DIR=/tmp/az-noext DOCKER_CONFIG=$(mktemp -d) azd deploy --enviro
 
 Use the same environment-variable prefix for `azd provision` in WSL when Azure CLI extension state or Docker credential helpers are unreliable.
 
+## Pathfinder Chat (text assistant) — floating launcher
+
+The Pathfinder shell (`frontend/src/learning/PathfinderLearnApp.tsx`) exposes
+the chat assistant as a **floating launcher button** stacked above the voice
+mic in the bottom-right corner (chat icon on top, mic underneath). Clicking it
+opens a **non-fullscreen panel** anchored to the bottom-right that hosts
+`<InsightsRail mode="normal" currentScope={{ type: 'caseload' }} />` from
+`frontend/src/components/InsightsRail.tsx`. The panel header has a single
+**minimize** button (`MinusIcon`) that returns the UI to the launcher state.
+The rail's own "collapse to side tab" control is wired to the same minimize
+handler via `onModeChange`.
+
+Visibility is gated on `appConfig.insights_rail_enabled` (from `/api/config`).
+There is intentionally **no sidebar nav item** and **no dedicated `/chat`
+route** — an earlier "Coach · Ask" sidebar entry was removed because the
+full-screen rail covered the sidebar and the dedicated route was redundant
+with the always-available floating launcher.
+
+The rail calls `POST /api/chat/ask` via `api.askChat` (flat envelope:
+`answer_text`, `citations`, `visualizations`, `ui_specs`,
+`action_suggestions`, `route`, ...). Assistant bubbles that come back with
+`ui_specs` or `action_suggestions` render `VoiceAgentDynamicSurface` inline.
+
+### Follow-up: Option B — contextual chat on existing views
+
+The current floating launcher is a global, caseload-scoped assistant. Option B
+is **deferred**: bind the panel's scope to whatever view the user is on
+(`TeacherMasteryDashboard` → `{ type: 'caseload' }` or a class-scoped variant
+if/when added; `StudentMasteryProfile` →
+`{ type: 'child', child_id: <selectedLearnerId> }`) so users can "ask about
+this".
+
+Open before doing Option B:
+
+- Decide **which** Pathfinder views auto-rebind the scope when the launcher is
+  open (start with one).
+- Design a Pathfinder light-theme variant of `InsightsRail` /
+  `VoiceAgentDynamicSurface` (current styling is dark glass, intentionally
+  consistent with the voice launcher / fullscreen surface).
+- Wire the scope handoff: when the route changes, decide whether to reset the
+  conversation, surface a banner ("Now asking about Tobi A. — start a new
+  chat?"), or keep the existing thread.
+
 ## Related Documents
 
 - `README.md` for the repo overview

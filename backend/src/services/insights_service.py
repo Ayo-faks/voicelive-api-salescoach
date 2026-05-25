@@ -23,6 +23,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
 import threading
 import time
 from collections import OrderedDict
@@ -361,6 +362,8 @@ class InsightsService:
         wall_clock_budget_seconds: float = DEFAULT_WALL_CLOCK_BUDGET_SECONDS,
         answer_cache_ttl_seconds: float = DEFAULT_ANSWER_CACHE_TTL_SECONDS,
         answer_cache_max_entries: int = DEFAULT_ANSWER_CACHE_MAX_ENTRIES,
+        chitchat_handler: Optional[Any] = None,
+        router_config: Optional[Any] = None,
     ) -> None:
         self.storage_service = storage_service
         self.child_memory_service = child_memory_service
@@ -374,6 +377,8 @@ class InsightsService:
             max_entries=answer_cache_max_entries,
         )
         self._tools: Dict[str, InsightsTool] = self._build_tools()
+        self._router_config = router_config or _load_router_config_from_env()
+        self._chitchat_handler = chitchat_handler
 
     # -- Public API ---------------------------------------------------------
 
@@ -451,8 +456,8 @@ class InsightsService:
         cache_hit = cached_result is not None
 
         start = time.monotonic()
-        error_text: Optional[str] = None
         planner_result: InsightsPlannerResult
+        route_decision: Optional[Any] = None
         if cache_hit:
             assert cached_result is not None
             planner_result = cached_result
@@ -470,37 +475,16 @@ class InsightsService:
                 ),
             )
         else:
-            try:
-                planner_result = self.planner.run_turn(
-                    system_prompt=self._system_prompt(),
-                    history=history,
-                    user_message=cleaned_message,
-                    tools=self._tools,
-                    context=context,
-                    tool_call_budget=self.tool_call_budget,
-                )
-            except InsightsBudgetExceeded as exc:
-                error_text = f"budget_exceeded: {exc}"
-                planner_result = InsightsPlannerResult(
-                    answer_text=("I couldn't finish in the allotted time. Please try a " "narrower question or try again."),
-                    error_text=error_text,
-                )
-            except InsightsAuthorizationError as exc:
-                error_text = f"forbidden: {exc}"
-                planner_result = InsightsPlannerResult(
-                    answer_text="I don't have access to that record.",
-                    error_text=error_text,
-                )
-            except Exception as exc:  # pragma: no cover - defensive
-                logger.exception("InsightsService planner turn failed")
-                error_text = f"planner_error: {exc}"
-                planner_result = InsightsPlannerResult(
-                    answer_text="Something went wrong while answering.",
-                    error_text=error_text,
-                )
-            else:
-                if planner_result.error_text is None and (planner_result.answer_text or "").strip():
-                    self._answer_cache.put(cache_key, planner_result)
+            route_decision, planner_result = self._dispatch_turn(
+                cleaned_message=cleaned_message,
+                history=history,
+                context=context,
+                normalized_scope=normalized_scope,
+                request_id=request_id,
+                user_id=user_id,
+            )
+            if planner_result.error_text is None and (planner_result.answer_text or "").strip():
+                self._answer_cache.put(cache_key, planner_result)
 
         latency_ms = int((time.monotonic() - start) * 1000)
 
@@ -539,7 +523,159 @@ class InsightsService:
             "tool_calls_count": max(0, int(planner_result.tool_calls_count or 0)),
             "latency_ms": latency_ms,
             "cached": cache_hit,
+            "route": (route_decision.route if route_decision is not None else ("cached" if cache_hit else "insights")),
         }
+
+    # -- Turn router --------------------------------------------------------
+
+    def _dispatch_turn(
+        self,
+        *,
+        cleaned_message: str,
+        history: Sequence[Mapping[str, Any]],
+        context: InsightsRequestContext,
+        normalized_scope: Mapping[str, Any],
+        request_id: Optional[str],
+        user_id: str,
+    ) -> Tuple[Any, InsightsPlannerResult]:
+        """Classify and dispatch one turn. Returns ``(decision, result)``.
+
+        With ``INSIGHTS_ROUTER_ENABLED=false`` (default) this always picks
+        the planner, matching pre-router behaviour byte-for-byte.
+        """
+
+        # Local import to avoid a circular module-load at package init.
+        from src.services.turn_router import classify
+        from src.services.turn_router.types import RouteDecision
+
+        router_enabled = bool(getattr(self._router_config, "enabled", False))
+        shadow = bool(getattr(self._router_config, "shadow", False))
+
+        if not router_enabled:
+            decision = RouteDecision(
+                route="insights",
+                confidence=1.0,
+                reason="router_disabled",
+                classifier="bypass",
+            )
+            return decision, self._run_planner_with_fallbacks(
+                history=history, user_message=cleaned_message, context=context
+            )
+
+        decision = classify(cleaned_message, scope=normalized_scope, config=self._router_config)
+        self._log_router_decision(
+            decision=decision,
+            request_id=request_id,
+            user_id=user_id,
+            scope_type=normalized_scope.get("type"),
+            shadow=shadow,
+        )
+
+        # Shadow mode: classify and log, but always run the planner.
+        if shadow:
+            return decision, self._run_planner_with_fallbacks(
+                history=history, user_message=cleaned_message, context=context
+            )
+
+        if decision.route == "chitchat":
+            if self._chitchat_handler is None:
+                fallback_decision = RouteDecision(
+                    route="insights",
+                    confidence=1.0,
+                    reason="fallback:no_handler",
+                    classifier="fallback",
+                )
+                return fallback_decision, self._run_planner_with_fallbacks(
+                    history=history, user_message=cleaned_message, context=context
+                )
+            result = self._chitchat_handler.handle(
+                user_message=cleaned_message,
+                history=history,
+                context=context,
+            )
+            # Chitchat handler failed or scrubbed the output → fall back.
+            if result.error_text:
+                fallback_decision = RouteDecision(
+                    route="insights",
+                    confidence=1.0,
+                    reason=f"fallback:{result.error_text.split(':', 1)[0]}",
+                    classifier="fallback",
+                )
+                self._log_router_decision(
+                    decision=fallback_decision,
+                    request_id=request_id,
+                    user_id=user_id,
+                    scope_type=normalized_scope.get("type"),
+                    shadow=False,
+                )
+                return fallback_decision, self._run_planner_with_fallbacks(
+                    history=history, user_message=cleaned_message, context=context
+                )
+            return decision, result
+
+        return decision, self._run_planner_with_fallbacks(
+            history=history, user_message=cleaned_message, context=context
+        )
+
+    def _run_planner_with_fallbacks(
+        self,
+        *,
+        history: Sequence[Mapping[str, Any]],
+        user_message: str,
+        context: InsightsRequestContext,
+    ) -> InsightsPlannerResult:
+        try:
+            return self.planner.run_turn(
+                system_prompt=self._system_prompt(),
+                history=history,
+                user_message=user_message,
+                tools=self._tools,
+                context=context,
+                tool_call_budget=self.tool_call_budget,
+            )
+        except InsightsBudgetExceeded as exc:
+            return InsightsPlannerResult(
+                answer_text=("I couldn't finish in the allotted time. Please try a " "narrower question or try again."),
+                error_text=f"budget_exceeded: {exc}",
+            )
+        except InsightsAuthorizationError as exc:
+            return InsightsPlannerResult(
+                answer_text="I don't have access to that record.",
+                error_text=f"forbidden: {exc}",
+            )
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.exception("InsightsService planner turn failed")
+            return InsightsPlannerResult(
+                answer_text="Something went wrong while answering.",
+                error_text=f"planner_error: {exc}",
+            )
+
+    @staticmethod
+    def _log_router_decision(
+        *,
+        decision: Any,
+        request_id: Optional[str],
+        user_id: str,
+        scope_type: Optional[str],
+        shadow: bool,
+    ) -> None:
+        logger.info(
+            "[insights-router] %s",
+            json.dumps(
+                {
+                    "route": decision.route,
+                    "classifier": decision.classifier,
+                    "reason": decision.reason,
+                    "confidence": round(float(decision.confidence), 3),
+                    "shadow": shadow,
+                    "scope_type": scope_type,
+                    "user_id": user_id,
+                    "request_id": request_id,
+                },
+                sort_keys=True,
+                separators=(",", ":"),
+            ),
+        )
 
     # -- Tools --------------------------------------------------------------
 
@@ -1064,6 +1200,41 @@ class InsightsService:
 
 
 # --- Module helpers ---------------------------------------------------------
+
+
+def _bool_env(name: str, default: bool = False) -> bool:
+    raw = (os.getenv(name) or "").strip().lower()
+    if not raw:
+        return default
+    return raw in {"1", "true", "yes", "on"}
+
+
+def _float_env(name: str, default: float) -> float:
+    raw = (os.getenv(name) or "").strip()
+    if not raw:
+        return default
+    try:
+        return float(raw)
+    except ValueError:
+        return default
+
+
+def _load_router_config_from_env() -> Any:
+    """Return a :class:`RouterConfig` populated from environment variables.
+
+    Imported lazily to keep this module free of optional dependencies at
+    import time.
+    """
+
+    from src.services.turn_router.types import RouterConfig
+
+    return RouterConfig(
+        enabled=_bool_env("INSIGHTS_ROUTER_ENABLED", False),
+        shadow=_bool_env("INSIGHTS_ROUTER_SHADOW", False),
+        chitchat_model=(os.getenv("INSIGHTS_CHITCHAT_MODEL") or "gpt-4o-mini").strip(),
+        chitchat_timeout_seconds=_float_env("INSIGHTS_CHITCHAT_TIMEOUT_SECONDS", 4.0),
+        chitchat_max_tokens=int(_float_env("INSIGHTS_CHITCHAT_MAX_TOKENS", 80)),
+    )
 
 
 def _normalize_scope(scope: Optional[Mapping[str, Any]]) -> Dict[str, Any]:

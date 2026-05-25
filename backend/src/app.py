@@ -16,6 +16,7 @@ from pathlib import Path
 import sys
 import threading
 import time
+import uuid
 from typing import Any, Dict, List, Mapping, Optional, Tuple, cast
 from urllib.parse import parse_qs, urlsplit
 
@@ -43,7 +44,10 @@ from src.services.insights_copilot_planner import build_insights_planner_from_en
 from src.services.insights_service import (
     InsightsAuthorizationError,
     InsightsService,
+    _load_router_config_from_env,
 )
+from src.services.azure_openai_auth import build_openai_client
+from src.services.turn_router.handlers import ChitchatHandler
 from src.services.insights_websocket_handler import InsightsVoiceHandler
 from src.services.voice_agent_action_service import (
     VoiceAgentActionError,
@@ -335,6 +339,30 @@ def initialize_runtime_services() -> None:
             logger.info("Insights planner: Copilot SDK adapter enabled")
         else:
             logger.info("Insights planner: using stub (SDK or credentials not configured)")
+    router_config = _load_router_config_from_env()
+    chitchat_handler = None
+    if router_config.enabled:
+        try:
+            aoai_client = build_openai_client(config.raw_dict)
+        except Exception:  # pragma: no cover - defensive
+            logger.exception("Failed to build AOAI client for chitchat handler")
+            aoai_client = None
+        if aoai_client is not None:
+            chitchat_handler = ChitchatHandler(
+                aoai_client,
+                model=router_config.chitchat_model,
+                timeout_seconds=router_config.chitchat_timeout_seconds,
+                max_tokens=router_config.chitchat_max_tokens,
+            )
+            logger.info(
+                "Insights router: enabled (shadow=%s, model=%s)",
+                router_config.shadow,
+                router_config.chitchat_model,
+            )
+        else:
+            logger.warning(
+                "Insights router enabled but AOAI client unavailable; chitchat will fall back to planner"
+            )
     insights_service = InsightsService(
         storage_service,
         child_memory_service=child_memory_service,
@@ -349,6 +377,8 @@ def initialize_runtime_services() -> None:
         answer_cache_max_entries=int(
             os.environ.get("INSIGHTS_ANSWER_CACHE_MAX_ENTRIES", "256") or "256"
         ),
+        chitchat_handler=chitchat_handler,
+        router_config=router_config,
     )
     planner_startup_readiness = planning_service.get_readiness(force_refresh=True)
     if not planner_startup_readiness.get("ready"):
@@ -604,6 +634,8 @@ def _normalize_identity_provider(provider: Any) -> str:
 
 def _resolve_local_dev_role() -> str:
     role = _normalize_context_value(os.environ.get("LOCAL_DEV_USER_ROLE")).lower()
+    if role == "teacher":
+        return ROLE_THERAPIST
     if role in {ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN, ROLE_LEARNER, ROLE_KID, ROLE_STUDENT}:
         return role
 
@@ -2883,6 +2915,94 @@ def post_insights_ask():
         },
     )
     return jsonify(result)
+
+
+@app.route("/api/chat/ask", methods=["POST"])
+def post_chat_ask():
+    """Text-mode chat endpoint. Thin wrapper over ``insights_service.ask`` that
+    returns a flat envelope tailored for the chat UI."""
+    user, guard_response = _require_therapist_user()
+    if guard_response is not None:
+        return guard_response
+
+    payload = request.get_json(silent=True) or {}
+    message = str(payload.get("message") or "").strip()
+    if not message:
+        return jsonify({"error": "message is required"}), 400
+
+    scope_raw = payload.get("scope") or {"type": "caseload"}
+    if not isinstance(scope_raw, dict):
+        return jsonify({"error": "scope must be an object"}), 400
+
+    conversation_id = payload.get("conversation_id")
+    conversation_id = str(conversation_id).strip() if conversation_id else None
+
+    user_id = str(cast(Dict[str, Any], user).get("id"))
+
+    scope_child_id = scope_raw.get("child_id")
+    if scope_child_id:
+        _, child_guard = _require_child_access(
+            str(scope_child_id),
+            allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+            allowed_relationships=["therapist"],
+        )
+        if child_guard is not None:
+            return child_guard
+
+    request_id = uuid.uuid4().hex
+
+    try:
+        result = insights_service.ask(
+            user_id=user_id,
+            message=message,
+            scope=scope_raw,
+            conversation_id=conversation_id,
+            request_id=request_id,
+        )
+    except InsightsAuthorizationError as exc:
+        return jsonify({"error": str(exc)}), HTTP_FORBIDDEN
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except Exception as exc:  # noqa: BLE001 - boundary handler returns 500 envelope
+        logger.exception("[chat-api] planner failed request_id=%s", request_id)
+        return (
+            jsonify({"error": "planner_failed", "error_text": str(exc), "request_id": request_id}),
+            500,
+        )
+
+    assistant = result.get("assistant_message") or {}
+    conversation = result.get("conversation") or {}
+
+    flat = {
+        "conversation_id": str(conversation.get("id") or ""),
+        "request_id": request_id,
+        "answer_text": assistant.get("content_text") or "",
+        "citations": assistant.get("citations") or [],
+        "visualizations": assistant.get("visualizations") or [],
+        "ui_specs": assistant.get("ui_specs") or [],
+        "action_suggestions": assistant.get("action_suggestions") or [],
+        "route": result.get("route"),
+        "cached": bool(result.get("cached")),
+        "latency_ms": int(result.get("latency_ms") or 0),
+        "tool_calls_count": int(result.get("tool_calls_count") or 0),
+        "error_text": assistant.get("error_text"),
+    }
+
+    _log_audit_event(
+        user_id=user_id,
+        action="chat.ask",
+        resource_type="insight_conversation",
+        resource_id=flat["conversation_id"],
+        child_id=str(scope_child_id) if scope_child_id else None,
+        metadata={
+            "tool_calls_count": flat["tool_calls_count"],
+            "latency_ms": flat["latency_ms"],
+            "scope_type": scope_raw.get("type"),
+            "route": flat["route"],
+            "request_id": request_id,
+        },
+    )
+    return jsonify(flat)
 
 
 @app.route("/api/insights/conversations", methods=["GET"])
