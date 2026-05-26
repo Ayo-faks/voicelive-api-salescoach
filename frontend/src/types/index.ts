@@ -1201,6 +1201,9 @@ export interface InsightsMessage {
   prompt_version: string | null
   error_text: string | null
   created_at: string
+  /** Populated by /api/chat/ask flat envelope; unset on legacy /api/insights/ask. */
+  ui_specs?: VoiceAgentUiSpec[]
+  action_suggestions?: VoiceAgentActionSuggestion[]
 }
 
 export interface InsightsConversation {
@@ -1223,6 +1226,22 @@ export interface InsightsAskResponse {
   assistant_message: InsightsMessage
   tool_calls_count: number
   latency_ms: number
+}
+
+/** Flat envelope returned by POST /api/chat/ask. */
+export interface ChatAskResponse {
+  conversation_id: string
+  request_id: string
+  answer_text: string
+  citations: InsightsCitation[]
+  visualizations: VisualizationSpec[]
+  ui_specs: VoiceAgentUiSpec[]
+  action_suggestions: VoiceAgentActionSuggestion[]
+  route: string | null
+  cached: boolean
+  latency_ms: number
+  tool_calls_count: number
+  error_text: string | null
 }
 
 export interface InsightsConversationDetail {

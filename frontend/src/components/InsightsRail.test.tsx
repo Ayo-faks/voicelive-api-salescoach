@@ -13,13 +13,33 @@ vi.mock('./VisualizationBlock', () => ({
   ),
 }))
 
+vi.mock('../learning/components/VoiceAgentDynamicSurface', () => ({
+  default: ({
+    uiSpecs,
+    actionSuggestions,
+  }: {
+    uiSpecs: unknown[]
+    actionSuggestions: unknown[]
+  }) => (
+    <div
+      data-testid="mock-dynamic-surface"
+      data-ui-specs={uiSpecs.length}
+      data-action-suggestions={actionSuggestions.length}
+    >
+      {JSON.stringify({ uiSpecs, actionSuggestions })}
+    </div>
+  ),
+}))
+
 const askInsights = vi.fn()
+const askChat = vi.fn()
 const listInsightsConversations = vi.fn()
 const getInsightsConversation = vi.fn()
 
 vi.mock('../services/api', () => ({
   api: {
     askInsights: (...args: unknown[]) => askInsights(...args),
+    askChat: (...args: unknown[]) => askChat(...args),
     listInsightsConversations: (...args: unknown[]) =>
       listInsightsConversations(...args),
     getInsightsConversation: (...args: unknown[]) =>
@@ -118,7 +138,7 @@ vi.mock('../hooks/useInsightsVoice', async () => {
 
 import { InsightsRail } from './InsightsRail'
 import type {
-  InsightsAskResponse,
+  ChatAskResponse,
   InsightsConversation,
   InsightsMessage,
   InsightsScope,
@@ -170,19 +190,19 @@ const userMessage: InsightsMessage = {
   created_at: '2026-04-22T10:04:00Z',
 }
 
-const askResponse: InsightsAskResponse = {
-  conversation: baseConversation,
-  user_message: userMessage,
-  assistant_message: assistantMessage,
-  tool_calls_count: 2,
+const askResponse: ChatAskResponse = {
+  conversation_id: baseConversation.id,
+  request_id: 'req-1',
+  answer_text: assistantMessage.content_text,
+  citations: assistantMessage.citations,
+  visualizations: assistantMessage.visualizations,
+  ui_specs: [],
+  action_suggestions: [],
+  route: 'insights',
+  cached: false,
   latency_ms: 1200,
-}
-
-const secondUserMessage: InsightsMessage = {
-  ...userMessage,
-  id: 'msg-u-2',
-  content_text: 'What should I focus on next?',
-  created_at: '2026-04-22T10:06:00Z',
+  tool_calls_count: 2,
+  error_text: null,
 }
 
 const secondAssistantMessage: InsightsMessage = {
@@ -199,6 +219,7 @@ const childScope: InsightsScope = { type: 'child', child_id: 'child-1' }
 describe('InsightsRail', () => {
   beforeEach(() => {
     askInsights.mockReset()
+    askChat.mockReset()
     listInsightsConversations.mockReset()
     getInsightsConversation.mockReset()
     resetVoiceMockState()
@@ -230,7 +251,7 @@ describe('InsightsRail', () => {
   })
 
   it('sends a question and renders answer, viz, and citations', async () => {
-    askInsights.mockResolvedValue(askResponse)
+    askChat.mockResolvedValue(askResponse)
     render(<InsightsRail currentScope={childScope} />)
 
     const input = (await screen.findByTestId(
@@ -240,9 +261,9 @@ describe('InsightsRail', () => {
     fireEvent.click(screen.getByTestId('insights-rail-send'))
 
     await waitFor(() => {
-      expect(askInsights).toHaveBeenCalledTimes(1)
+      expect(askChat).toHaveBeenCalledTimes(1)
     })
-    expect(askInsights.mock.calls[0][0]).toMatchObject({
+    expect(askChat.mock.calls[0][0]).toMatchObject({
       message: 'How did they do this week?',
       scope: childScope,
     })
@@ -254,10 +275,46 @@ describe('InsightsRail', () => {
     expect(screen.getByTestId('insights-rail-citations').textContent).toContain(
       'Last session'
     )
+    expect(screen.queryByTestId('insights-rail-dynamic-surface')).toBeNull()
+  })
+
+  it('renders the dynamic surface when chat returns ui_specs or action_suggestions', async () => {
+    askChat.mockResolvedValue({
+      ...askResponse,
+      ui_specs: [
+        {
+          kind: 'text',
+          id: 'spec-1',
+          title: 'Next step',
+          body: 'Try a short /t/ phrase warm-up.',
+        },
+      ],
+      action_suggestions: [
+        {
+          action_id: 'act-1',
+          action_type: 'open_student_profile',
+          label: 'Open profile',
+          risk_level: 'low',
+          requires_confirmation: false,
+          parameters: { student_id: 'child-1' },
+        },
+      ],
+    } satisfies ChatAskResponse)
+    render(<InsightsRail currentScope={childScope} />)
+
+    const input = (await screen.findByTestId(
+      'insights-rail-input'
+    )) as HTMLTextAreaElement
+    fireEvent.change(input, { target: { value: 'What should I do next?' } })
+    fireEvent.click(screen.getByTestId('insights-rail-send'))
+
+    const surface = await screen.findByTestId('mock-dynamic-surface')
+    expect(surface.getAttribute('data-ui-specs')).toBe('1')
+    expect(surface.getAttribute('data-action-suggestions')).toBe('1')
   })
 
   it('shows an error when the request fails', async () => {
-    askInsights.mockRejectedValue(new Error('boom'))
+    askChat.mockRejectedValue(new Error('boom'))
     render(<InsightsRail currentScope={childScope} />)
     const input = (await screen.findByTestId(
       'insights-rail-input'
@@ -361,13 +418,16 @@ describe('InsightsRail', () => {
   })
 
   it('keeps prior turns and renders user/assistant bubbles across multiple sends', async () => {
-    askInsights.mockResolvedValueOnce(askResponse).mockResolvedValueOnce({
-      conversation: baseConversation,
-      user_message: secondUserMessage,
-      assistant_message: secondAssistantMessage,
-      tool_calls_count: 1,
-      latency_ms: 900,
-    } satisfies InsightsAskResponse)
+    askChat
+      .mockResolvedValueOnce(askResponse)
+      .mockResolvedValueOnce({
+        ...askResponse,
+        answer_text: secondAssistantMessage.content_text,
+        citations: [],
+        visualizations: [],
+        tool_calls_count: 1,
+        latency_ms: 900,
+      } satisfies ChatAskResponse)
 
     render(<InsightsRail currentScope={childScope} />)
 
@@ -457,15 +517,11 @@ describe('InsightsRail', () => {
   })
 
   it('renders assistant markdown formatting for richer responses', async () => {
-    askInsights.mockResolvedValue({
+    askChat.mockResolvedValue({
       ...askResponse,
-      assistant_message: {
-        ...assistantMessage,
-        id: 'msg-a-markdown',
-        content_text:
-          '## Highlights\n- Stronger /t/ accuracy\n- Good self-correction',
-      },
-    } satisfies InsightsAskResponse)
+      answer_text:
+        '## Highlights\n- Stronger /t/ accuracy\n- Good self-correction',
+    } satisfies ChatAskResponse)
 
     render(<InsightsRail currentScope={childScope} />)
 

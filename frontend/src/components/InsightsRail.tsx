@@ -4,12 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
-  Menu,
-  MenuItem,
-  MenuList,
-  MenuPopover,
-  MenuTrigger,
   Spinner,
   Text,
   makeStyles,
@@ -20,17 +16,18 @@ import { MicrophoneIcon } from '@heroicons/react/24/outline'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type {
-  InsightsAskResponse,
   InsightsCitation,
   InsightsConversation,
   InsightsMessage,
   InsightsScope,
   InsightsScopeType,
   InsightsVoiceMode,
+  ChatAskResponse,
 } from '../types'
 import { api } from '../services/api'
 import { InsightsOrb } from './InsightsOrb'
 import { VisualizationBlock } from './VisualizationBlock'
+import VoiceAgentDynamicSurface from '../learning/components/VoiceAgentDynamicSurface'
 import {
   useInsightsVoice,
   type UseInsightsVoiceTurnCompleted,
@@ -96,6 +93,7 @@ const useStyles = makeStyles({
     height: '100%',
     maxHeight: 'calc(100vh - 48px)',
     fontFeatureSettings: '"ss01", "cv11"',
+    position: 'relative',
   },
   rootFull: {
     position: 'absolute',
@@ -118,10 +116,10 @@ const useStyles = makeStyles({
     justifyContent: 'space-between',
     width: '56px',
     boxShadow:
-      '0 1px 2px rgba(15, 42, 58, 0.04), 0 8px 24px rgba(15, 42, 58, 0.06)',
+      '0 1px 2px rgba(15, 15, 15, 0.04), 0 8px 24px rgba(15, 15, 15, 0.06)',
     borderRadius: tokens.borderRadiusXLarge,
-    border: `1px solid ${tokens.colorBrandStroke2}`,
-    backgroundColor: tokens.colorBrandBackground2,
+    border: `1px solid ${tokens.colorNeutralStroke2}`,
+    backgroundColor: tokens.colorNeutralBackground2,
   },
   topBar: {
     display: 'flex',
@@ -200,6 +198,102 @@ const useStyles = makeStyles({
     color: tokens.colorNeutralForeground3,
     padding: '8px 12px 12px',
   },
+  historyBackdrop: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 60,
+    background: 'rgba(0, 0, 0, 0.45)',
+    border: 'none',
+    padding: 0,
+    margin: 0,
+    appearance: 'none',
+    animationName: {
+      from: { opacity: 0 },
+      to: { opacity: 1 },
+    },
+    animationDuration: '180ms',
+    animationTimingFunction: 'ease-out',
+    animationFillMode: 'both',
+    cursor: 'pointer',
+  },
+  historyDrawer: {
+    position: 'fixed',
+    bottom: '96px',
+    right: 'calc(min(420px, calc(100vw - 48px)) + 24px + 8px)',
+    height: 'min(640px, calc(100vh - 140px))',
+    width: '300px',
+    zIndex: 61,
+    display: 'flex',
+    flexDirection: 'column',
+    backgroundColor: '#0d0d0f',
+    border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: '18px',
+    overflow: 'hidden',
+    boxShadow:
+      '0 24px 64px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)',
+    transformOrigin: 'right center',
+    animationName: {
+      from: { transform: 'translateX(12px) scale(0.96)', opacity: 0 },
+      to: { transform: 'translateX(0) scale(1)', opacity: 1 },
+    },
+    animationDuration: '240ms',
+    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    animationFillMode: 'both',
+    '@media (max-width: 1000px)': {
+      right: '12px',
+      left: '12px',
+      bottom: '88px',
+      width: 'auto',
+      height: 'min(70vh, calc(100vh - 120px))',
+    },
+  },
+  historyHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '12px 14px',
+    borderBottom: '1px solid rgba(255,255,255,0.06)',
+  },
+  historyTitle: {
+    fontSize: tokens.fontSizeBase300,
+    fontWeight: tokens.fontWeightSemibold,
+    color: 'rgba(255,255,255,0.92)',
+    letterSpacing: '0.01em',
+  },
+  historyList: {
+    flex: 1,
+    minHeight: 0,
+    overflowY: 'auto',
+    padding: '6px 0',
+  },
+  historyItem: {
+    display: 'block',
+    width: '100%',
+    textAlign: 'left',
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '10px 14px',
+    fontSize: tokens.fontSizeBase300,
+    color: 'rgba(255,255,255,0.86)',
+    lineHeight: 1.35,
+    fontFamily: 'inherit',
+    transition: 'background-color 120ms ease',
+    ':hover': { backgroundColor: 'rgba(255,255,255,0.06)' },
+    ':focus-visible': {
+      outline: `2px solid ${tokens.colorBrandStroke1}`,
+      outlineOffset: '-2px',
+    },
+  },
+  historyItemActive: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    fontWeight: tokens.fontWeightSemibold,
+  },
+  historyEmpty: {
+    fontSize: tokens.fontSizeBase200,
+    color: 'rgba(255,255,255,0.55)',
+    padding: '12px 14px',
+  },
   collapsedLauncher: {
     display: 'flex',
     alignSelf: 'stretch',
@@ -209,7 +303,7 @@ const useStyles = makeStyles({
     flex: 1,
     minHeight: '112px',
     background: 'transparent',
-    border: `1px dashed ${tokens.colorBrandStroke2}`,
+    border: `1px dashed ${tokens.colorNeutralStroke2}`,
     borderRadius: tokens.borderRadiusLarge,
     cursor: 'pointer',
     padding: '12px 6px',
@@ -217,14 +311,14 @@ const useStyles = makeStyles({
     fontSize: tokens.fontSizeBase200,
     fontWeight: tokens.fontWeightSemibold,
     letterSpacing: '0.02em',
-    color: tokens.colorBrandForeground1,
+    color: tokens.colorNeutralForeground1,
   },
   collapsedEyebrow: {
     fontSize: tokens.fontSizeBase100,
     fontWeight: tokens.fontWeightSemibold,
     letterSpacing: '0.08em',
     textTransform: 'uppercase',
-    color: tokens.colorBrandForeground2,
+    color: tokens.colorNeutralForeground3,
   },
   collapsedLabel: {
     fontSize: tokens.fontSizeBase200,
@@ -246,8 +340,8 @@ const useStyles = makeStyles({
     minWidth: '30px',
     minHeight: '30px',
     borderRadius: '999px',
-    background: tokens.colorBrandBackground,
-    color: tokens.colorNeutralForegroundOnBrand,
+    background: tokens.colorNeutralForeground1,
+    color: tokens.colorNeutralBackground1,
     fontSize: tokens.fontSizeBase100,
     fontWeight: tokens.fontWeightBold,
     letterSpacing: '0.08em',
@@ -286,13 +380,13 @@ const useStyles = makeStyles({
     },
   },
   chipActive: {
-    background: 'rgba(13, 138, 132, 0.1)',
-    borderTopColor: '#0d8a84',
-    borderRightColor: '#0d8a84',
-    borderBottomColor: '#0d8a84',
-    borderLeftColor: '#0d8a84',
-    color: '#0d8a84',
-    boxShadow: '0 0 0 1px rgba(13, 138, 132, 0.25)',
+    background: tokens.colorNeutralForeground1,
+    borderTopColor: tokens.colorNeutralForeground1,
+    borderRightColor: tokens.colorNeutralForeground1,
+    borderBottomColor: tokens.colorNeutralForeground1,
+    borderLeftColor: tokens.colorNeutralForeground1,
+    color: tokens.colorNeutralBackground1,
+    boxShadow: '0 1px 2px rgba(15, 15, 15, 0.18)',
   },
   chipDisabled: {
     opacity: 0.45,
@@ -336,8 +430,8 @@ const useStyles = makeStyles({
     letterSpacing: '0.08em',
   },
   messageRoleBadgeUser: {
-    backgroundColor: tokens.colorBrandBackground,
-    color: tokens.colorNeutralForegroundOnBrand,
+    backgroundColor: tokens.colorNeutralForeground1,
+    color: tokens.colorNeutralBackground1,
   },
   messageRoleBadgeAssistant: {
     backgroundColor: tokens.colorNeutralBackground4,
@@ -355,15 +449,59 @@ const useStyles = makeStyles({
     padding: '12px 14px',
     borderRadius: tokens.borderRadiusLarge,
     border: `1px solid ${tokens.colorNeutralStroke2}`,
-    boxShadow: '0 1px 2px rgba(15, 42, 58, 0.04)',
+    boxShadow: '0 1px 2px rgba(15, 15, 15, 0.04)',
     letterSpacing: '-0.01em',
+    animationName: {
+      from: { opacity: 0, transform: 'translateY(6px) scale(0.985)' },
+      to: { opacity: 1, transform: 'translateY(0) scale(1)' },
+    },
+    animationDuration: '260ms',
+    animationTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+    animationFillMode: 'both',
+  },
+  thinkingBubble: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '12px 14px',
+    borderRadius: tokens.borderRadiusLarge,
+    border: `1px solid ${tokens.colorNeutralStroke2}`,
+    backgroundColor: tokens.colorNeutralBackground2,
+    boxShadow: '0 1px 2px rgba(15, 15, 15, 0.04)',
+    animationName: {
+      from: { opacity: 0, transform: 'translateY(6px)' },
+      to: { opacity: 1, transform: 'translateY(0)' },
+    },
+    animationDuration: '220ms',
+    animationTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+    animationFillMode: 'both',
+  },
+  thinkingDot: {
+    width: '6px',
+    height: '6px',
+    borderRadius: '50%',
+    background: tokens.colorNeutralForeground2,
+    display: 'inline-block',
+    animationName: {
+      '0%, 60%, 100%': { transform: 'translateY(0)', opacity: 0.45 },
+      '30%': { transform: 'translateY(-4px)', opacity: 1 },
+    },
+    animationDuration: '1100ms',
+    animationIterationCount: 'infinite',
+    animationTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  },
+  thinkingDot2: {
+    animationDelay: '160ms',
+  },
+  thinkingDot3: {
+    animationDelay: '320ms',
   },
   messageBubbleUser: {
-    backgroundColor: tokens.colorBrandBackground2,
-    borderTopColor: tokens.colorBrandStroke2,
-    borderRightColor: tokens.colorBrandStroke2,
-    borderBottomColor: tokens.colorBrandStroke2,
-    borderLeftColor: tokens.colorBrandStroke2,
+    backgroundColor: tokens.colorNeutralBackground3,
+    borderTopColor: tokens.colorNeutralStroke2,
+    borderRightColor: tokens.colorNeutralStroke2,
+    borderBottomColor: tokens.colorNeutralStroke2,
+    borderLeftColor: tokens.colorNeutralStroke2,
   },
   messageBubbleAssistant: {
     backgroundColor: tokens.colorNeutralBackground2,
@@ -496,11 +634,11 @@ const useStyles = makeStyles({
     transitionDuration: '160ms',
     transitionTimingFunction: 'cubic-bezier(0.2, 0, 0, 1)',
     ':focus-within': {
-      boxShadow: '0 0 0 3px rgba(13, 138, 132, 0.15)',
-      borderTopColor: tokens.colorBrandStroke1,
-      borderRightColor: tokens.colorBrandStroke1,
-      borderBottomColor: tokens.colorBrandStroke1,
-      borderLeftColor: tokens.colorBrandStroke1,
+      boxShadow: '0 0 0 3px rgba(15, 15, 15, 0.10)',
+      borderTopColor: tokens.colorNeutralStroke1,
+      borderRightColor: tokens.colorNeutralStroke1,
+      borderBottomColor: tokens.colorNeutralStroke1,
+      borderLeftColor: tokens.colorNeutralStroke1,
     },
   },
   composerInput: {
@@ -571,19 +709,19 @@ const useStyles = makeStyles({
     },
   },
   voiceButtonActive: {
-    background: tokens.colorBrandBackground2,
-    borderTopColor: tokens.colorBrandStroke2,
-    borderRightColor: tokens.colorBrandStroke2,
-    borderBottomColor: tokens.colorBrandStroke2,
-    borderLeftColor: tokens.colorBrandStroke2,
-    color: tokens.colorBrandForeground1,
-    boxShadow: '0 0 0 1px rgba(13, 138, 132, 0.18)',
+    background: tokens.colorNeutralBackground3,
+    borderTopColor: tokens.colorNeutralStroke1,
+    borderRightColor: tokens.colorNeutralStroke1,
+    borderBottomColor: tokens.colorNeutralStroke1,
+    borderLeftColor: tokens.colorNeutralStroke1,
+    color: tokens.colorNeutralForeground1,
+    boxShadow: '0 0 0 1px rgba(15, 15, 15, 0.14)',
   },
   voiceButtonListening: {
     animationName: {
-      '0%': { boxShadow: '0 0 0 0 rgba(13, 138, 132, 0.24)' },
-      '70%': { boxShadow: '0 0 0 8px rgba(13, 138, 132, 0)' },
-      '100%': { boxShadow: '0 0 0 0 rgba(13, 138, 132, 0)' },
+      '0%': { boxShadow: '0 0 0 0 rgba(15, 15, 15, 0.24)' },
+      '70%': { boxShadow: '0 0 0 8px rgba(15, 15, 15, 0)' },
+      '100%': { boxShadow: '0 0 0 0 rgba(15, 15, 15, 0)' },
     },
     animationDuration: '1400ms',
     animationIterationCount: 'infinite',
@@ -666,12 +804,12 @@ const useStyles = makeStyles({
     borderRightWidth: '1px',
     borderBottomWidth: '1px',
     borderLeftWidth: '1px',
-    borderTopColor: tokens.colorBrandStroke2,
-    borderRightColor: tokens.colorBrandStroke2,
-    borderBottomColor: tokens.colorBrandStroke2,
-    borderLeftColor: tokens.colorBrandStroke2,
-    background: tokens.colorBrandBackground2,
-    color: tokens.colorBrandForeground1,
+    borderTopColor: tokens.colorNeutralStroke2,
+    borderRightColor: tokens.colorNeutralStroke2,
+    borderBottomColor: tokens.colorNeutralStroke2,
+    borderLeftColor: tokens.colorNeutralStroke2,
+    background: tokens.colorNeutralBackground2,
+    color: tokens.colorNeutralForeground1,
     cursor: 'pointer',
     fontSize: tokens.fontSizeBase200,
     fontWeight: tokens.fontWeightSemibold,
@@ -681,8 +819,8 @@ const useStyles = makeStyles({
     },
   },
   voiceToggleActive: {
-    background: tokens.colorBrandBackground,
-    color: tokens.colorNeutralForegroundOnBrand,
+    background: tokens.colorNeutralForeground1,
+    color: tokens.colorNeutralBackground1,
   },
   voiceOrbWrap: {
     padding: '0 12px 12px',
@@ -848,12 +986,16 @@ export function InsightsRail({
   )
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
+  const [awaitingAssistant, setAwaitingAssistant] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [messages, setMessages] = useState<InsightsMessage[]>([])
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [conversations, setConversations] = useState<InsightsConversation[]>([])
+  const [historyOpen, setHistoryOpen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const focusTokenRef = useRef<number | undefined>(focusToken)
+  const transcriptScrollRef = useRef<HTMLDivElement | null>(null)
+  const restoredScopeKeyRef = useRef<string | null>(null)
 
   const suggestionPrompts = useMemo<string[]>(() => {
     switch (currentScope.type) {
@@ -930,6 +1072,97 @@ export function InsightsRail({
     void loadHistory()
   }, [loadHistory])
 
+  const scopeKey = useMemo(() => {
+    const parts: string[] = [currentScope.type]
+    if (currentScope.child_id) parts.push(`child:${currentScope.child_id}`)
+    if (currentScope.session_id) parts.push(`session:${currentScope.session_id}`)
+    if (currentScope.report_id) parts.push(`report:${currentScope.report_id}`)
+    return parts.join('|')
+  }, [
+    currentScope.type,
+    currentScope.child_id,
+    currentScope.session_id,
+    currentScope.report_id,
+  ])
+
+  const conversationStorageKey = useMemo(
+    () => `wulo.insightsRail.conversationId.${scopeKey}`,
+    [scopeKey]
+  )
+
+  // Restore the per-scope conversation from sessionStorage when the scope
+  // changes. Each scope keeps its own thread so switching back to the same
+  // scope continues where the user left off within this browser session.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (restoredScopeKeyRef.current === scopeKey) return
+    restoredScopeKeyRef.current = scopeKey
+    let storedId: string | null = null
+    try {
+      storedId = window.sessionStorage.getItem(conversationStorageKey)
+    } catch {
+      storedId = null
+    }
+    if (!storedId) {
+      setConversationId(null)
+      setMessages([])
+      return
+    }
+    let cancelled = false
+    setConversationId(storedId)
+    const idToLoad = storedId
+    ;(async () => {
+      try {
+        const res = await api.getInsightsConversation(idToLoad)
+        if (cancelled) return
+        setMessages(res.messages || [])
+        setConversationId(res.conversation.id)
+        scrollTranscriptToBottom()
+      } catch {
+        if (cancelled) return
+        // Stored id no longer valid — clear it and start fresh.
+        try {
+          window.sessionStorage.removeItem(conversationStorageKey)
+        } catch {
+          /* ignore */
+        }
+        setConversationId(null)
+        setMessages([])
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [scopeKey, conversationStorageKey])
+
+  // Persist the active conversation id so a reload (or remount of the rail)
+  // re-attaches to the same thread for this scope.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      if (conversationId) {
+        window.sessionStorage.setItem(conversationStorageKey, conversationId)
+      }
+    } catch {
+      /* ignore quota / private mode */
+    }
+  }, [conversationId, conversationStorageKey])
+
+  // Auto-scroll the transcript so the latest reply (or the thinking
+  // indicator) is always in view after each turn.
+  const scrollTranscriptToBottom = useCallback(() => {
+    if (typeof window === 'undefined') return
+    window.requestAnimationFrame(() => {
+      const node = transcriptScrollRef.current
+      if (!node) return
+      if (typeof node.scrollTo === 'function') {
+        node.scrollTo({ top: node.scrollHeight, behavior: 'smooth' })
+      } else {
+        node.scrollTop = node.scrollHeight
+      }
+    })
+  }, [])
+
   const handleVoiceCompleted = useCallback(
     (payload: UseInsightsVoiceTurnCompleted) => {
       const resolvedConversationId =
@@ -953,9 +1186,10 @@ export function InsightsRail({
       )
       setConversationId(resolvedConversationId)
       setMessages(prev => [...prev, ...nextMessages])
+      scrollTranscriptToBottom()
       void loadHistory()
     },
-    [conversationId, loadHistory]
+    [conversationId, loadHistory, scrollTranscriptToBottom]
   )
 
   const handleSend = useCallback(
@@ -964,23 +1198,70 @@ export function InsightsRail({
       if (!trimmed || loading) return
       setLoading(true)
       setError(null)
+      const optimisticConversationId =
+        conversationId || createClientMessageId()
+      const optimisticUser: InsightsMessage = {
+        id: createClientMessageId(),
+        conversation_id: optimisticConversationId,
+        role: 'user',
+        content_text: trimmed,
+        citations: [],
+        visualizations: [],
+        tool_trace: [],
+        latency_ms: null,
+        tool_calls_count: null,
+        prompt_version: 'chat-v1',
+        error_text: null,
+        created_at: new Date().toISOString(),
+      }
+      setMessages(prev => [...prev, optimisticUser])
+      setMessage('')
+      setAwaitingAssistant(true)
+      scrollTranscriptToBottom()
       try {
-        const res: InsightsAskResponse = await api.askInsights({
+        const res: ChatAskResponse = await api.askChat({
           message: trimmed,
           scope: currentScope,
           conversationId,
         })
-        setMessages(prev => [...prev, res.user_message, res.assistant_message])
-        setConversationId(res.conversation.id)
-        setMessage('')
+        const conversationIdNext =
+          res.conversation_id || optimisticConversationId
+        const assistantMsg: InsightsMessage = {
+          id: createClientMessageId(),
+          conversation_id: conversationIdNext,
+          role: 'assistant',
+          content_text: res.answer_text || '',
+          citations: res.citations || [],
+          visualizations: res.visualizations || [],
+          tool_trace: [],
+          latency_ms: res.latency_ms ?? null,
+          tool_calls_count: res.tool_calls_count ?? null,
+          prompt_version: 'chat-v1',
+          error_text: res.error_text ?? null,
+          created_at: new Date().toISOString(),
+          ui_specs: res.ui_specs,
+          action_suggestions: res.action_suggestions,
+        }
+        setMessages(prev =>
+          prev.map(m =>
+            m.id === optimisticUser.id
+              ? { ...m, conversation_id: conversationIdNext }
+              : m
+          ).concat(assistantMsg)
+        )
+        setConversationId(conversationIdNext)
+        scrollTranscriptToBottom()
         void loadHistory()
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Request failed')
+        setMessages(prev => prev.filter(m => m.id !== optimisticUser.id))
+        setMessage(trimmed)
       } finally {
+        setAwaitingAssistant(false)
         setLoading(false)
       }
     },
-    [message, loading, currentScope, conversationId, loadHistory]
+    [message, loading, currentScope, conversationId, loadHistory, scrollTranscriptToBottom]
   )
 
   const handleOpenConversation = useCallback(async (id: string) => {
@@ -990,6 +1271,7 @@ export function InsightsRail({
       const res = await api.getInsightsConversation(id)
       setConversationId(res.conversation.id)
       setMessages(res.messages)
+      scrollTranscriptToBottom()
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Failed to load conversation'
@@ -997,7 +1279,7 @@ export function InsightsRail({
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [scrollTranscriptToBottom])
 
   const handleScopeClick = (type: InsightsScopeType) => {
     if (!onScopeChange) return
@@ -1276,39 +1558,26 @@ export function InsightsRail({
             {/* compose icon */}
             <span aria-hidden>✎</span>
           </button>
-          <Menu>
-            <MenuTrigger disableButtonEnhancement>
-              <button
-                type="button"
-                className={styles.menuTrigger}
-                aria-label="My conversations"
-                data-testid="insights-rail-conversations-menu"
-              >
-                My conversations
-                <span aria-hidden style={{ fontSize: '0.8em' }}>
-                  ▾
-                </span>
-              </button>
-            </MenuTrigger>
-            <MenuPopover>
-              <div className={styles.menuLabel}>Recent</div>
-              {recentConversations.length === 0 ? (
-                <div className={styles.menuEmpty}>No conversations yet.</div>
-              ) : (
-                <MenuList>
-                  {recentConversations.map(c => (
-                    <MenuItem
-                      key={c.id}
-                      onClick={() => void handleOpenConversation(c.id)}
-                      data-testid="insights-rail-history-item"
-                    >
-                      {historyLabel(c)}
-                    </MenuItem>
-                  ))}
-                </MenuList>
-              )}
-            </MenuPopover>
-          </Menu>
+          <button
+            type="button"
+            className={styles.menuTrigger}
+            aria-label="My conversations"
+            aria-haspopup="dialog"
+            aria-expanded={historyOpen}
+            onClick={() => {
+              setHistoryOpen(v => {
+                const next = !v
+                if (next) void loadHistory()
+                return next
+              })
+            }}
+            data-testid="insights-rail-conversations-menu"
+          >
+            My conversations
+            <span aria-hidden style={{ fontSize: '0.8em' }}>
+              ▾
+            </span>
+          </button>
         </div>
         <div className={styles.topBarRight}>
           {mode === 'full' ? (
@@ -1347,7 +1616,7 @@ export function InsightsRail({
         </div>
       </div>
 
-      <div className={styles.body}>
+      <div className={styles.body} ref={transcriptScrollRef}>
         <fieldset
           className={styles.scopeRow}
           aria-label="Insights scope"
@@ -1474,6 +1743,24 @@ export function InsightsRail({
                       </div>
                     ) : null}
                     {isAssistant &&
+                    ((messageEntry.ui_specs &&
+                      messageEntry.ui_specs.length > 0) ||
+                      (messageEntry.action_suggestions &&
+                        messageEntry.action_suggestions.length > 0)) ? (
+                      <div
+                        className={styles.artifactGroup}
+                        data-testid="insights-rail-dynamic-surface"
+                      >
+                        <VoiceAgentDynamicSurface
+                          uiSpecs={messageEntry.ui_specs ?? []}
+                          actionSuggestions={
+                            messageEntry.action_suggestions ?? []
+                          }
+                          actionsEnabled={false}
+                        />
+                      </div>
+                    ) : null}
+                    {isAssistant &&
                     messageEntry.citations &&
                     messageEntry.citations.length > 0 ? (
                       <div className={styles.artifactGroup}>
@@ -1498,6 +1785,47 @@ export function InsightsRail({
                 </div>
               )
             })}
+            {awaitingAssistant ? (
+              <div
+                className={mergeClasses(
+                  styles.messageRow,
+                  styles.messageRowAssistant
+                )}
+                data-testid="insights-rail-thinking"
+                aria-live="polite"
+              >
+                <div className={styles.messageMetaRow}>
+                  <span
+                    className={mergeClasses(
+                      styles.messageRoleBadge,
+                      styles.messageRoleBadgeAssistant
+                    )}
+                  >
+                    Wulo
+                  </span>
+                </div>
+                <div
+                  className={styles.thinkingBubble}
+                  aria-label="Assistant is thinking"
+                >
+                  <span className={styles.thinkingDot} aria-hidden />
+                  <span
+                    className={mergeClasses(
+                      styles.thinkingDot,
+                      styles.thinkingDot2
+                    )}
+                    aria-hidden
+                  />
+                  <span
+                    className={mergeClasses(
+                      styles.thinkingDot,
+                      styles.thinkingDot3
+                    )}
+                    aria-hidden
+                  />
+                </div>
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -1556,15 +1884,15 @@ export function InsightsRail({
                 </span>
               ) : null}
             </div>
-            {hasDraftMessage ? (
+            {hasDraftMessage || loading ? (
               <button
                 type="button"
                 className={styles.sendButton}
                 onClick={() => void handleSend()}
                 disabled={loading || !hasDraftMessage}
                 data-testid="insights-rail-send"
-                aria-label="Send message"
-                title="Send message"
+                aria-label={loading ? 'Sending message' : 'Send message'}
+                title={loading ? 'Sending…' : 'Send message'}
               >
                 {loading ? <Spinner size="tiny" /> : <span aria-hidden>↑</span>}
               </button>
@@ -1590,6 +1918,57 @@ export function InsightsRail({
           </div>
         </div>
       </div>
+      {historyOpen && typeof document !== 'undefined' && createPortal(
+        <>
+          <button
+            type="button"
+            className={styles.historyBackdrop}
+            aria-label="Close conversation history"
+            onClick={() => setHistoryOpen(false)}
+          />
+          <section
+            className={styles.historyDrawer}
+            aria-label="Recent conversations"
+            data-testid="insights-rail-history-drawer"
+          >
+            <div className={styles.historyHeader}>
+              <span className={styles.historyTitle}>Recent</span>
+              <button
+                type="button"
+                className={styles.iconButton}
+                onClick={() => setHistoryOpen(false)}
+                aria-label="Close conversation history"
+              >
+                ✕
+              </button>
+            </div>
+            {recentConversations.length === 0 ? (
+              <div className={styles.historyEmpty}>No conversations yet.</div>
+            ) : (
+              <div className={styles.historyList}>
+                {recentConversations.map(c => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className={mergeClasses(
+                      styles.historyItem,
+                      c.id === conversationId && styles.historyItemActive
+                    )}
+                    onClick={() => {
+                      setHistoryOpen(false)
+                      void handleOpenConversation(c.id)
+                    }}
+                    data-testid="insights-rail-history-item"
+                  >
+                    {historyLabel(c)}
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+        </>,
+        document.body
+      )}
     </aside>
   )
 }

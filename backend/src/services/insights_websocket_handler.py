@@ -161,6 +161,7 @@ class InsightsVoiceHandler:
                         turn_started_at=turn_started_at,
                         stage="ask_end",
                         insights_latency_ms=answer_payload.get("latency_ms"),
+                        route=answer_payload.get("route"),
                     )
                     conversation = answer_payload.get("conversation") or {}
                     assistant_message = answer_payload.get("assistant_message") or {}

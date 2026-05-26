@@ -16,6 +16,7 @@ from pathlib import Path
 import sys
 import threading
 import time
+import uuid
 from typing import Any, Dict, List, Mapping, Optional, Tuple, cast
 from urllib.parse import parse_qs, urlsplit
 
@@ -43,7 +44,10 @@ from src.services.insights_copilot_planner import build_insights_planner_from_en
 from src.services.insights_service import (
     InsightsAuthorizationError,
     InsightsService,
+    _load_router_config_from_env,
 )
+from src.services.azure_openai_auth import build_openai_client
+from src.services.turn_router.handlers import ChitchatHandler
 from src.services.insights_websocket_handler import InsightsVoiceHandler
 from src.services.voice_agent_action_service import (
     VoiceAgentActionError,
@@ -114,6 +118,8 @@ API_HEALTH_ENDPOINT = "/api/health"
 API_SCENARIOS_ENDPOINT = "/api/scenarios"
 API_AUTH_SESSION_ENDPOINT = "/api/auth/session"
 API_AUTH_CLAIM_INVITE_CODE_ENDPOINT = "/api/auth/claim-invite-code"
+API_AUTH_CHOOSE_ROLE_ENDPOINT = "/api/auth/choose-role"
+API_LEARNERS_SELF_ENDPOINT = "/api/learners/me"
 API_ADMIN_INVITE_CODES_ENDPOINT = "/api/admin/invite-codes"
 API_WORKSPACES_ENDPOINT = "/api/workspaces"
 API_PILOT_STATE_ENDPOINT = "/api/pilot/state"
@@ -204,6 +210,8 @@ ROLE_PENDING_THERAPIST = "pending_therapist"
 ROLE_LEARNER = "learner"
 ROLE_KID = "kid"
 ROLE_STUDENT = "student"
+ROLE_UNASSIGNED = "unassigned"
+B2C_ONBOARDING_FLAG = "PATHFINDER_B2C_ONBOARDING_ENABLED"
 UNSAFE_HTTP_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 PATHFINDER_LEARN_TEACHER_CLASS_IDS_ENV = "PATHFINDER_LEARN_TEACHER_CLASS_IDS"
 PATHFINDER_LEARN_LEARNER_STUDENT_IDS_ENV = "PATHFINDER_LEARN_LEARNER_STUDENT_IDS"
@@ -335,6 +343,30 @@ def initialize_runtime_services() -> None:
             logger.info("Insights planner: Copilot SDK adapter enabled")
         else:
             logger.info("Insights planner: using stub (SDK or credentials not configured)")
+    router_config = _load_router_config_from_env()
+    chitchat_handler = None
+    if router_config.enabled:
+        try:
+            aoai_client = build_openai_client(config.raw_dict)
+        except Exception:  # pragma: no cover - defensive
+            logger.exception("Failed to build AOAI client for chitchat handler")
+            aoai_client = None
+        if aoai_client is not None:
+            chitchat_handler = ChitchatHandler(
+                aoai_client,
+                model=router_config.chitchat_model,
+                timeout_seconds=router_config.chitchat_timeout_seconds,
+                max_tokens=router_config.chitchat_max_tokens,
+            )
+            logger.info(
+                "Insights router: enabled (shadow=%s, model=%s)",
+                router_config.shadow,
+                router_config.chitchat_model,
+            )
+        else:
+            logger.warning(
+                "Insights router enabled but AOAI client unavailable; chitchat will fall back to planner"
+            )
     insights_service = InsightsService(
         storage_service,
         child_memory_service=child_memory_service,
@@ -349,6 +381,8 @@ def initialize_runtime_services() -> None:
         answer_cache_max_entries=int(
             os.environ.get("INSIGHTS_ANSWER_CACHE_MAX_ENTRIES", "256") or "256"
         ),
+        chitchat_handler=chitchat_handler,
+        router_config=router_config,
     )
     planner_startup_readiness = planning_service.get_readiness(force_refresh=True)
     if not planner_startup_readiness.get("ready"):
@@ -604,6 +638,8 @@ def _normalize_identity_provider(provider: Any) -> str:
 
 def _resolve_local_dev_role() -> str:
     role = _normalize_context_value(os.environ.get("LOCAL_DEV_USER_ROLE")).lower()
+    if role == "teacher":
+        return ROLE_THERAPIST
     if role in {ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN, ROLE_LEARNER, ROLE_KID, ROLE_STUDENT}:
         return role
 
@@ -1448,21 +1484,34 @@ def get_auth_session():
     if user is None:
         return jsonify({"authenticated": False}), HTTP_UNAUTHORIZED
 
-    user_workspaces = storage_service.list_workspaces_for_user(str(user["id"]))
-    default_workspace = storage_service.get_default_workspace_for_user(str(user["id"]))
+    return jsonify(_build_session_payload(cast(Dict[str, Any], user)))
 
-    return jsonify(
-        {
-            "authenticated": True,
-            "user_id": user["id"],
-            "name": user["name"],
-            "email": user["email"],
-            "provider": user["provider"],
-            "role": user["role"],
-            "current_workspace_id": None if default_workspace is None else default_workspace["id"],
-            "user_workspaces": user_workspaces,
-        }
-    )
+
+def _build_session_payload(user: Dict[str, Any]) -> Dict[str, Any]:
+    """Compose the auth-session response for a resolved user dict."""
+    user_id = str(user.get("id") or "")
+    role = str(user.get("role") or "")
+    user_workspaces = storage_service.list_workspaces_for_user(user_id)
+    default_workspace = storage_service.get_default_workspace_for_user(user_id)
+    is_self_learner = False
+    try:
+        is_self_learner = bool(storage_service.has_self_learner(user_id))
+    except (AttributeError, TypeError):
+        is_self_learner = False
+    except Exception:  # pragma: no cover - defensive
+        is_self_learner = False
+    return {
+        "authenticated": True,
+        "user_id": user_id,
+        "name": user.get("name") or "",
+        "email": user.get("email") or "",
+        "provider": user.get("provider") or "",
+        "role": role,
+        "needs_onboarding": role == ROLE_UNASSIGNED,
+        "is_self_learner": is_self_learner,
+        "current_workspace_id": None if default_workspace is None else default_workspace["id"],
+        "user_workspaces": user_workspaces,
+    }
 
 
 @app.route(API_AUTH_CLAIM_INVITE_CODE_ENDPOINT, methods=["POST"])
@@ -1495,21 +1544,93 @@ def claim_invite_code():
 
     # Return fresh session data
     updated_user = storage_service.get_user(user_id)
-    user_workspaces = storage_service.list_workspaces_for_user(user_id)
-    default_workspace = storage_service.get_default_workspace_for_user(user_id)
+    if updated_user is None:
+        return jsonify({"error": "User not found"}), HTTP_NOT_FOUND
+    return jsonify(_build_session_payload(updated_user))
 
-    return jsonify(
-        {
-            "authenticated": True,
-            "user_id": user_id,
-            "name": updated_user["name"] if updated_user else "",
-            "email": updated_user["email"] if updated_user else "",
-            "provider": updated_user["provider"] if updated_user else "",
-            "role": updated_user["role"] if updated_user else "",
-            "current_workspace_id": None if default_workspace is None else default_workspace["id"],
-            "user_workspaces": user_workspaces,
-        }
+
+@app.route(API_AUTH_CHOOSE_ROLE_ENDPOINT, methods=["POST"])
+def choose_role():
+    """Post-signup role picker. Lets an unassigned user pick learner/parent/teacher.
+
+    Body: {"intent": "learner" | "parent" | "teacher"}.
+    """
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
+    user_dict = cast(Dict[str, Any], user)
+    user_id = str(user_dict.get("id") or "")
+    current_role = str(user_dict.get("role") or "")
+    if current_role != ROLE_UNASSIGNED:
+        return jsonify({"error": "Role has already been chosen"}), HTTP_BAD_REQUEST
+
+    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+    intent = str(data.get("intent") or "").strip().lower()
+    if intent == "learner":
+        target_role = ROLE_LEARNER
+    elif intent == "parent":
+        target_role = ROLE_PARENT
+    elif intent == "teacher":
+        target_role = ROLE_PENDING_THERAPIST
+    else:
+        return jsonify({"error": "intent must be one of: learner, parent, teacher"}), HTTP_BAD_REQUEST
+
+    try:
+        storage_service.update_user_role(user_id, target_role)
+    except ValueError as error:
+        return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
+
+    if target_role == ROLE_LEARNER:
+        try:
+            storage_service.find_or_create_self_learner(
+                user_id=user_id,
+                name=str(user_dict.get("name") or ""),
+                email=str(user_dict.get("email") or ""),
+            )
+        except Exception as error:  # pragma: no cover - defensive
+            logger.exception("Failed to bootstrap self-learner: %s", error)
+
+    _log_audit_event(
+        user_id=user_id,
+        action="auth.choose_role",
+        resource_type="user",
+        resource_id=user_id,
+        metadata={"intent": intent, "role": target_role},
     )
+
+    updated_user = storage_service.get_user(user_id)
+    if updated_user is None:
+        return jsonify({"error": "User not found"}), HTTP_NOT_FOUND
+    return jsonify(_build_session_payload(updated_user))
+
+
+@app.route(API_LEARNERS_SELF_ENDPOINT, methods=["POST"])
+def create_self_learner():
+    """Idempotently return (creating if necessary) the caller's self-learner child."""
+    user, guard_response = _require_role(ROLE_LEARNER)
+    if guard_response is not None:
+        return guard_response
+
+    user_dict = cast(Dict[str, Any], user)
+    user_id = str(user_dict.get("id") or "")
+    try:
+        child = storage_service.find_or_create_self_learner(
+            user_id=user_id,
+            name=str(user_dict.get("name") or ""),
+            email=str(user_dict.get("email") or ""),
+        )
+    except ValueError as error:
+        return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
+
+    _log_audit_event(
+        user_id=user_id,
+        action="learner.self_create",
+        resource_type="child",
+        resource_id=str(child.get("id") or ""),
+        child_id=str(child.get("id") or ""),
+    )
+    return jsonify(child)
 
 
 @app.route(API_ADMIN_INVITE_CODES_ENDPOINT, methods=["GET", "POST"])
@@ -1602,7 +1723,7 @@ def child_parental_consent(child_id: str):
     """Manage parental/guardian consent for a child profile."""
     user, guard_response = _require_child_access(
         child_id,
-        allowed_roles={ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN},
+        allowed_roles={ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN, ROLE_LEARNER},
     )
     if guard_response is not None:
         return guard_response
@@ -1659,7 +1780,7 @@ def export_child_data(child_id: str):
     """Export all data for a child as JSON (SAR / data portability)."""
     user, guard_response = _require_child_access(
         child_id,
-        allowed_roles={ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN},
+        allowed_roles={ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN, ROLE_LEARNER},
     )
     if guard_response is not None:
         return guard_response
@@ -1691,7 +1812,7 @@ def delete_child_data(child_id: str):
     """Permanently delete all data for a child (right to erasure)."""
     user, guard_response = _require_child_access(
         child_id,
-        allowed_roles={ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN},
+        allowed_roles={ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN, ROLE_LEARNER},
     )
     if guard_response is not None:
         return guard_response
@@ -2883,6 +3004,94 @@ def post_insights_ask():
         },
     )
     return jsonify(result)
+
+
+@app.route("/api/chat/ask", methods=["POST"])
+def post_chat_ask():
+    """Text-mode chat endpoint. Thin wrapper over ``insights_service.ask`` that
+    returns a flat envelope tailored for the chat UI."""
+    user, guard_response = _require_therapist_user()
+    if guard_response is not None:
+        return guard_response
+
+    payload = request.get_json(silent=True) or {}
+    message = str(payload.get("message") or "").strip()
+    if not message:
+        return jsonify({"error": "message is required"}), 400
+
+    scope_raw = payload.get("scope") or {"type": "caseload"}
+    if not isinstance(scope_raw, dict):
+        return jsonify({"error": "scope must be an object"}), 400
+
+    conversation_id = payload.get("conversation_id")
+    conversation_id = str(conversation_id).strip() if conversation_id else None
+
+    user_id = str(cast(Dict[str, Any], user).get("id"))
+
+    scope_child_id = scope_raw.get("child_id")
+    if scope_child_id:
+        _, child_guard = _require_child_access(
+            str(scope_child_id),
+            allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+            allowed_relationships=["therapist"],
+        )
+        if child_guard is not None:
+            return child_guard
+
+    request_id = uuid.uuid4().hex
+
+    try:
+        result = insights_service.ask(
+            user_id=user_id,
+            message=message,
+            scope=scope_raw,
+            conversation_id=conversation_id,
+            request_id=request_id,
+        )
+    except InsightsAuthorizationError as exc:
+        return jsonify({"error": str(exc)}), HTTP_FORBIDDEN
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except Exception as exc:  # noqa: BLE001 - boundary handler returns 500 envelope
+        logger.exception("[chat-api] planner failed request_id=%s", request_id)
+        return (
+            jsonify({"error": "planner_failed", "error_text": str(exc), "request_id": request_id}),
+            500,
+        )
+
+    assistant = result.get("assistant_message") or {}
+    conversation = result.get("conversation") or {}
+
+    flat = {
+        "conversation_id": str(conversation.get("id") or ""),
+        "request_id": request_id,
+        "answer_text": assistant.get("content_text") or "",
+        "citations": assistant.get("citations") or [],
+        "visualizations": assistant.get("visualizations") or [],
+        "ui_specs": assistant.get("ui_specs") or [],
+        "action_suggestions": assistant.get("action_suggestions") or [],
+        "route": result.get("route"),
+        "cached": bool(result.get("cached")),
+        "latency_ms": int(result.get("latency_ms") or 0),
+        "tool_calls_count": int(result.get("tool_calls_count") or 0),
+        "error_text": assistant.get("error_text"),
+    }
+
+    _log_audit_event(
+        user_id=user_id,
+        action="chat.ask",
+        resource_type="insight_conversation",
+        resource_id=flat["conversation_id"],
+        child_id=str(scope_child_id) if scope_child_id else None,
+        metadata={
+            "tool_calls_count": flat["tool_calls_count"],
+            "latency_ms": flat["latency_ms"],
+            "scope_type": scope_raw.get("type"),
+            "route": flat["route"],
+            "request_id": request_id,
+        },
+    )
+    return jsonify(flat)
 
 
 @app.route("/api/insights/conversations", methods=["GET"])

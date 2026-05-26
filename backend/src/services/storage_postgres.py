@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from contextvars import ContextVar
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Optional, TypeVar
@@ -24,9 +25,17 @@ ROLE_THERAPIST = "therapist"
 ROLE_PARENT = "parent"
 ROLE_ADMIN = "admin"
 ROLE_PENDING_THERAPIST = "pending_therapist"
+ROLE_LEARNER = "learner"
+ROLE_UNASSIGNED = "unassigned"
 LEGACY_ROLE_USER = "user"
 CHILD_RELATIONSHIP_THERAPIST = "therapist"
 CHILD_RELATIONSHIP_PARENT = "parent"
+CHILD_RELATIONSHIP_SELF = "self"
+B2C_ONBOARDING_FLAG = "PATHFINDER_B2C_ONBOARDING_ENABLED"
+
+
+def _b2c_onboarding_enabled() -> bool:
+    return os.environ.get(B2C_ONBOARDING_FLAG, "false").strip().lower() in ("true", "1", "yes")
 MEMORY_DETAIL_FALLBACK: Dict[str, Any] = {}
 MEMORY_PROVENANCE_FALLBACK: Dict[str, Any] = {}
 WriteResult = TypeVar("WriteResult")
@@ -516,7 +525,14 @@ class PostgresStorageService:
         normalized = str(role or "").strip().lower()
         if normalized == LEGACY_ROLE_USER:
             return ROLE_PARENT
-        if normalized in {ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN, ROLE_PENDING_THERAPIST}:
+        if normalized in {
+            ROLE_THERAPIST,
+            ROLE_PARENT,
+            ROLE_ADMIN,
+            ROLE_PENDING_THERAPIST,
+            ROLE_LEARNER,
+            ROLE_UNASSIGNED,
+        }:
             return normalized
         return ROLE_PARENT
 
@@ -622,7 +638,9 @@ class PostgresStorageService:
                 ).fetchone()
                 is not None
             )
-            role = ROLE_PARENT if has_pending_invitation else ROLE_THERAPIST
+            role = ROLE_PARENT if has_pending_invitation else (
+                ROLE_UNASSIGNED if _b2c_onboarding_enabled() else ROLE_THERAPIST
+            )
             connection.execute(
                 """
                 INSERT INTO users (id, email, name, provider, role, created_at)
@@ -646,7 +664,7 @@ class PostgresStorageService:
 
     def update_user_role(self, user_id: str, role: str) -> Optional[Dict[str, Any]]:
         normalized_role = self._normalize_user_role(role)
-        if normalized_role not in {ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN}:
+        if normalized_role not in {ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN, ROLE_LEARNER, ROLE_PENDING_THERAPIST}:
             raise ValueError("Unsupported role")
 
         def persist_role(connection: psycopg.Connection[Any]) -> int:
@@ -661,7 +679,7 @@ class PostgresStorageService:
                 "UPDATE users SET role = %s WHERE id = %s",
                 (normalized_role, user_id),
             )
-            if cursor.rowcount > 0 and normalized_role in {ROLE_THERAPIST, ROLE_ADMIN}:
+            if cursor.rowcount > 0 and normalized_role in {ROLE_THERAPIST, ROLE_ADMIN, ROLE_LEARNER}:
                 self._ensure_personal_workspace_for_user(
                     connection,
                     user_id,
@@ -762,6 +780,56 @@ class PostgresStorageService:
 
         self._execute_write(persist_assignment)
 
+    def has_self_learner(self, user_id: str) -> bool:
+        """Return True if the user already owns a self-learner child."""
+        def query(connection: psycopg.Connection[Any]) -> bool:
+            row = connection.execute(
+                "SELECT 1 FROM user_children WHERE user_id = %s AND relationship = %s LIMIT 1",
+                (user_id, CHILD_RELATIONSHIP_SELF),
+            ).fetchone()
+            return row is not None
+
+        return self._execute_read(query)
+
+    def find_or_create_self_learner(
+        self,
+        *,
+        user_id: str,
+        name: str,
+        email: str,
+    ) -> Dict[str, Any]:
+        """Return the user's existing self-learner child, or create one.
+
+        Idempotent. Ensures a personal workspace exists first.
+        """
+        def find_existing(connection: psycopg.Connection[Any]) -> Optional[str]:
+            row = connection.execute(
+                """
+                SELECT child_id FROM user_children
+                WHERE user_id = %s AND relationship = %s
+                ORDER BY created_at ASC LIMIT 1
+                """,
+                (user_id, CHILD_RELATIONSHIP_SELF),
+            ).fetchone()
+            return None if row is None else str(row["child_id"])
+
+        existing_id = self._execute_read(find_existing)
+        if existing_id is not None:
+            existing_child = self.get_child(existing_id)
+            if existing_child is not None:
+                return existing_child
+
+        def bootstrap_workspace(connection: psycopg.Connection[Any]) -> None:
+            self._ensure_personal_workspace_for_user(connection, user_id, name or "", email or "")
+
+        self._execute_write(bootstrap_workspace)
+        learner_name = str(name or "").strip() or (email.split("@", 1)[0] if email else "Learner")
+        return self.create_child(
+            name=learner_name,
+            created_by_user_id=user_id,
+            relationship=CHILD_RELATIONSHIP_SELF,
+        )
+
     def create_child(
         self,
         *,
@@ -776,6 +844,14 @@ class PostgresStorageService:
         normalized_name = str(name or "").strip()
         if not normalized_name:
             raise ValueError("name is required")
+
+        normalized_relationship = str(relationship or "").strip().lower()
+        if normalized_relationship not in {
+            CHILD_RELATIONSHIP_THERAPIST,
+            CHILD_RELATIONSHIP_PARENT,
+            CHILD_RELATIONSHIP_SELF,
+        }:
+            raise ValueError("Unsupported relationship")
 
         created_child_id = str(child_id or f"child-{uuid4().hex[:12]}")
         created_at = self._utc_now()
@@ -821,7 +897,7 @@ class PostgresStorageService:
                 INSERT INTO user_children (user_id, child_id, relationship, created_at)
                 VALUES (%s, %s, %s, %s)
                 """,
-                (created_by_user_id, created_child_id, relationship, created_at),
+                (created_by_user_id, created_child_id, normalized_relationship, created_at),
             )
 
         self._execute_write(persist_child)

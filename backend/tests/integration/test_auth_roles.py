@@ -283,6 +283,29 @@ def test_all_new_signups_are_therapists(client: FlaskClient):
     assert len(second_session.get_json()["user_workspaces"]) == 1
 
 
+def test_learner_session_reports_self_learner_after_bootstrap(client: FlaskClient):
+    """A learner should see is_self_learner flip after /api/learners/me creates the self child."""
+    headers = _auth_headers("learner-1", "learner@example.com", name="Legacy Learner")
+    signup_response = client.get("/api/auth/session", headers=headers)
+    assert signup_response.status_code == 200
+    app_module.storage_service.update_user_role("learner-1", "learner")
+
+    before_response = client.get("/api/auth/session", headers=headers)
+    create_response = client.post("/api/learners/me", headers=headers)
+    after_response = client.get("/api/auth/session", headers=headers)
+
+    assert before_response.status_code == 200
+    before_payload = before_response.get_json()
+    assert before_payload["role"] == "learner"
+    assert before_payload["is_self_learner"] is False
+    assert create_response.status_code == 200
+    assert create_response.get_json()["name"] == "Legacy Learner"
+    assert after_response.status_code == 200
+    after_payload = after_response.get_json()
+    assert after_payload["role"] == "learner"
+    assert after_payload["is_self_learner"] is True
+
+
 def test_invited_user_signs_up_as_parent(client: FlaskClient):
     """A user who signs up after being invited gets the parent role."""
     therapist_headers = _auth_headers("user-1", "first@example.com", name="Therapist")
@@ -1150,3 +1173,80 @@ def test_legacy_child_without_workspace_still_accessible(client: FlaskClient):
     # Should still be accessible via user_children link
     sessions_resp = client.get(f"/api/children/{child_id}/sessions", headers=t1_headers)
     assert sessions_resp.status_code == 200
+
+
+# ----------------------- B2C self-serve onboarding -----------------------
+
+
+def test_new_user_defaults_unassigned_when_b2c_flag_enabled(client: FlaskClient, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("PATHFINDER_B2C_ONBOARDING_ENABLED", "true")
+    headers = _auth_headers("user-b2c-1", "new@example.com", name="New User")
+
+    resp = client.get("/api/auth/session", headers=headers)
+    assert resp.status_code == 200
+    payload = resp.get_json()
+    assert payload["role"] == "unassigned"
+    assert payload["needs_onboarding"] is True
+    assert payload["is_self_learner"] is False
+
+
+def test_choose_role_learner_creates_self_learner(client: FlaskClient, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("PATHFINDER_B2C_ONBOARDING_ENABLED", "true")
+    headers = _auth_headers("user-b2c-learner", "learner@example.com", name="Self Learner")
+    client.get("/api/auth/session", headers=headers)
+
+    resp = client.post("/api/auth/choose-role", headers=headers, json={"intent": "learner"})
+    assert resp.status_code == 200, resp.get_json()
+    payload = resp.get_json()
+    assert payload["role"] == "learner"
+    assert payload["needs_onboarding"] is False
+    assert payload["is_self_learner"] is True
+
+    # Second call rejected (role already set).
+    resp2 = client.post("/api/auth/choose-role", headers=headers, json={"intent": "parent"})
+    assert resp2.status_code == 400
+
+
+def test_choose_role_parent_transition(client: FlaskClient, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("PATHFINDER_B2C_ONBOARDING_ENABLED", "true")
+    headers = _auth_headers("user-b2c-parent", "parent2@example.com", name="Parent B2C")
+    client.get("/api/auth/session", headers=headers)
+
+    resp = client.post("/api/auth/choose-role", headers=headers, json={"intent": "parent"})
+    assert resp.status_code == 200
+    assert resp.get_json()["role"] == "parent"
+
+
+def test_choose_role_teacher_transition(client: FlaskClient, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("PATHFINDER_B2C_ONBOARDING_ENABLED", "true")
+    headers = _auth_headers("user-b2c-teacher", "teach@example.com", name="Teacher B2C")
+    client.get("/api/auth/session", headers=headers)
+
+    resp = client.post("/api/auth/choose-role", headers=headers, json={"intent": "teacher"})
+    assert resp.status_code == 200
+    assert resp.get_json()["role"] == "pending_therapist"
+
+
+def test_choose_role_rejects_invalid_intent(client: FlaskClient, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("PATHFINDER_B2C_ONBOARDING_ENABLED", "true")
+    headers = _auth_headers("user-b2c-bad", "bad@example.com", name="Bad Intent")
+    client.get("/api/auth/session", headers=headers)
+
+    resp = client.post("/api/auth/choose-role", headers=headers, json={"intent": "wizard"})
+    assert resp.status_code == 400
+
+
+def test_create_self_learner_idempotent(client: FlaskClient, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("PATHFINDER_B2C_ONBOARDING_ENABLED", "true")
+    headers = _auth_headers("user-b2c-self", "self@example.com", name="Self Person")
+    client.get("/api/auth/session", headers=headers)
+    client.post("/api/auth/choose-role", headers=headers, json={"intent": "learner"})
+
+    r1 = client.post("/api/learners/me", headers=headers)
+    assert r1.status_code in (200, 201)
+    child1 = r1.get_json()
+
+    r2 = client.post("/api/learners/me", headers=headers)
+    assert r2.status_code in (200, 201)
+    child2 = r2.get_json()
+    assert child1["id"] == child2["id"]

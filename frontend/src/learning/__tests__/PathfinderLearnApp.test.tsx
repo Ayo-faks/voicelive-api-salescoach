@@ -1,14 +1,120 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter, useLocation } from 'react-router-dom'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AuthSession } from '../../services/api'
+import type { ChildProfile } from '../../types'
+
+const apiMocks = vi.hoisted(() => ({
+  getAuthSession: vi.fn(),
+  getChildren: vi.fn(),
+  getConfig: vi.fn(),
+  createSelfLearner: vi.fn(),
+}))
+
+vi.mock('../../services/api', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../services/api')>()
+  return {
+    ...actual,
+    api: {
+      ...actual.api,
+      getAuthSession: apiMocks.getAuthSession,
+      getChildren: apiMocks.getChildren,
+      getConfig: apiMocks.getConfig,
+      createSelfLearner: apiMocks.createSelfLearner,
+    },
+  }
+})
+
+vi.mock('../routes/StudentLearningHome', () => ({
+  default: ({ studentId }: { studentId: string | null }) => (
+    <div data-testid="student-learning-home">Learner dashboard {studentId}</div>
+  ),
+}))
+
+vi.mock('../routes/TeacherMasteryDashboard', () => ({
+  default: () => <div data-testid="teacher-dashboard" />,
+}))
+
+vi.mock('../routes/SkillLibrary', () => ({
+  default: () => <div data-testid="skill-library" />,
+}))
+
+vi.mock('../routes/StudentMasteryProfile', () => ({
+  default: () => <div data-testid="student-mastery-profile" />,
+}))
+
+vi.mock('../routes/PathwaysExplorer', () => ({
+  default: () => <div data-testid="pathways-explorer" />,
+}))
+
+vi.mock('../routes/TrustSafetyConsole', () => ({
+  default: () => <div data-testid="trust-safety-console" />,
+}))
+
+vi.mock('../components/VoiceAgentFullscreen', () => ({
+  default: () => <div data-testid="voice-agent-fullscreen" />,
+}))
+
+vi.mock('../../components/InsightsRail', () => ({
+  InsightsRail: () => <div data-testid="insights-rail" />,
+}))
+
 import {
   COOKIE_CONSENT_STORAGE_KEY,
   CookieConsentBanner,
+  default as PathfinderLearnApp,
   defaultPathForRole,
   navItemsForRole,
 } from '../PathfinderLearnApp'
 
+const legacyLearnerSession: AuthSession = {
+  authenticated: true,
+  user_id: 'learner-legacy',
+  name: 'Legacy Learner',
+  email: 'legacy@example.com',
+  provider: 'aad',
+  role: 'learner',
+  current_workspace_id: null,
+  user_workspaces: [],
+  needs_onboarding: false,
+  is_self_learner: false,
+}
+
+const selfLearnerChild: ChildProfile = {
+  id: 'child-self',
+  name: 'Legacy Learner',
+  workspace_id: 'workspace-self',
+}
+
+function LocationProbe() {
+  const location = useLocation()
+  return <div data-testid="location">{location.pathname}{location.search}</div>
+}
+
+function renderLearningApp() {
+  return render(
+    <MemoryRouter initialEntries={['/home']}>
+      <PathfinderLearnApp />
+      <LocationProbe />
+    </MemoryRouter>,
+  )
+}
+
 afterEach(() => {
   window.localStorage.clear()
+  vi.clearAllMocks()
+})
+
+beforeEach(() => {
+  apiMocks.getConfig.mockResolvedValue({
+    insights_rail_enabled: false,
+    insights_voice_mode: 'off',
+    voice_agent_fullscreen_enabled: false,
+    voice_agent_actions_enabled: false,
+  })
+  apiMocks.getAuthSession.mockResolvedValue(legacyLearnerSession)
+  apiMocks.getChildren.mockResolvedValue([])
+  apiMocks.createSelfLearner.mockResolvedValue(selfLearnerChild)
 })
 
 describe('CookieConsentBanner', () => {
@@ -58,5 +164,47 @@ describe('Pathfinder role routing helpers', () => {
     expect(defaultPathForRole('parent')).toBe('/profile')
     expect(teacherLabels).toEqual(['Teacher'])
     expect(adminLabels).toEqual(['Teacher', 'Library', 'Profile', 'Pathways', 'Trust & Safety'])
+  })
+})
+
+describe('PathfinderLearnApp learner bootstrapping', () => {
+  it('redirects unauthenticated visitors to login instead of showing the learner empty state', async () => {
+    apiMocks.getAuthSession.mockRejectedValue(new Error('UNAUTHORIZED'))
+
+    renderLearningApp()
+
+    await waitFor(() => expect(screen.getByTestId('location').textContent).toBe('/login'))
+
+    expect(screen.queryByText('No learners linked to this account yet')).toBeNull()
+    expect(apiMocks.getChildren).not.toHaveBeenCalled()
+    expect(apiMocks.createSelfLearner).not.toHaveBeenCalled()
+  })
+
+  it('shows standard account actions for authenticated learners', async () => {
+    renderLearningApp()
+
+    await screen.findByTestId('sidebar-user-card')
+
+    expect(screen.getByText('Legacy Learner')).toBeTruthy()
+    expect(screen.getByText('legacy@example.com')).toBeTruthy()
+    expect(screen.getByTestId('account-action-profile').getAttribute('href')).toBe('/profile')
+    expect(screen.getByTestId('account-action-settings').getAttribute('href')).toBe('/settings')
+    expect(screen.getByTestId('account-action-privacy').getAttribute('href')).toBe('/privacy')
+    expect(screen.getByTestId('account-action-terms').getAttribute('href')).toBe('/terms')
+    expect(screen.getByTestId('account-action-ai-notice').getAttribute('href')).toBe('/ai-transparency')
+    expect(screen.getByTestId('account-action-sign-out').getAttribute('href')).toBe('/logout')
+    expect(screen.getByTestId('mobile-account-settings').getAttribute('href')).toBe('/settings')
+    expect(screen.getByTestId('mobile-account-sign-out').getAttribute('href')).toBe('/logout')
+  })
+
+  it('creates and selects a self-learner for a legacy learner with no children', async () => {
+    renderLearningApp()
+
+    await waitFor(() => expect(apiMocks.createSelfLearner).toHaveBeenCalledTimes(1))
+    const dashboard = await screen.findByTestId('student-learning-home')
+
+    expect(apiMocks.getAuthSession).toHaveBeenCalledTimes(1)
+    expect(apiMocks.getChildren).toHaveBeenCalledWith(null)
+    expect(dashboard.textContent).toContain('child-self')
   })
 })
