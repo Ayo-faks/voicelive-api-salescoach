@@ -269,7 +269,9 @@ describe('InsightsRail', () => {
     })
 
     const answer = await screen.findByTestId('insights-rail-answer')
-    expect(answer.textContent).toContain('Articulation accuracy improved')
+    await waitFor(() => {
+      expect(answer.textContent).toContain('Articulation accuracy improved')
+    })
     expect(screen.getByTestId('insights-rail-visualizations')).toBeTruthy()
     expect(screen.getByTestId('mock-viz')).toBeTruthy()
     expect(screen.getByTestId('insights-rail-citations').textContent).toContain(
@@ -532,9 +534,11 @@ describe('InsightsRail', () => {
     fireEvent.click(screen.getByTestId('insights-rail-send'))
 
     const answer = await screen.findByTestId('insights-rail-answer')
-    expect(answer.querySelector('ul')).toBeTruthy()
+    await waitFor(() => {
+      expect(answer.querySelector('ul')).toBeTruthy()
+      expect(answer.textContent).toContain('Stronger /t/ accuracy')
+    })
     expect(answer.textContent).toContain('Highlights')
-    expect(answer.textContent).toContain('Stronger /t/ accuracy')
   })
 
   it('keeps the composer mic focused on the textarea when insights voice mode is off', async () => {

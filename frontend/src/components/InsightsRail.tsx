@@ -515,6 +515,22 @@ const useStyles = makeStyles({
     minWidth: 0,
     overflowWrap: 'anywhere',
   },
+  streamingCaret: {
+    display: 'inline-block',
+    width: '7px',
+    height: '1em',
+    marginLeft: '2px',
+    verticalAlign: '-2px',
+    backgroundColor: tokens.colorBrandForeground1,
+    borderRadius: '1px',
+    animationName: {
+      '0%, 50%': { opacity: 1 },
+      '50.01%, 100%': { opacity: 0 },
+    },
+    animationDuration: '900ms',
+    animationIterationCount: 'infinite',
+    animationTimingFunction: 'steps(1, end)',
+  },
   markdownParagraph: {
     margin: 0,
     whiteSpace: 'pre-wrap' as const,
@@ -908,7 +924,8 @@ function formatMessageTimestamp(timestamp: string): string {
 
 function renderMessageContent(
   content: string,
-  styles: ReturnType<typeof useStyles>
+  styles: ReturnType<typeof useStyles>,
+  isStreaming = false
 ) {
   return (
     <div className={styles.markdownContent}>
@@ -949,6 +966,13 @@ function renderMessageContent(
       >
         {content}
       </ReactMarkdown>
+      {isStreaming ? (
+        <span
+          className={styles.streamingCaret}
+          aria-hidden="true"
+          data-testid="insights-rail-streaming-caret"
+        />
+      ) : null}
     </div>
   )
 }
@@ -989,6 +1013,10 @@ export function InsightsRail({
   const [awaitingAssistant, setAwaitingAssistant] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [messages, setMessages] = useState<InsightsMessage[]>([])
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(
+    null
+  )
+  const [streamingCharCount, setStreamingCharCount] = useState(0)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [conversations, setConversations] = useState<InsightsConversation[]>([])
   const [historyOpen, setHistoryOpen] = useState(false)
@@ -1250,6 +1278,14 @@ export function InsightsRail({
           ).concat(assistantMsg)
         )
         setConversationId(conversationIdNext)
+        const fullLen = (assistantMsg.content_text || '').length
+        if (fullLen > 0) {
+          setStreamingMessageId(assistantMsg.id)
+          setStreamingCharCount(0)
+        } else {
+          setStreamingMessageId(null)
+          setStreamingCharCount(0)
+        }
         scrollTranscriptToBottom()
         void loadHistory()
       } catch (err) {
@@ -1267,6 +1303,8 @@ export function InsightsRail({
   const handleOpenConversation = useCallback(async (id: string) => {
     setLoading(true)
     setError(null)
+    setStreamingMessageId(null)
+    setStreamingCharCount(0)
     try {
       const res = await api.getInsightsConversation(id)
       setConversationId(res.conversation.id)
@@ -1310,8 +1348,32 @@ export function InsightsRail({
     setMessages([])
     setMessage('')
     setError(null)
+    setStreamingMessageId(null)
+    setStreamingCharCount(0)
     focusComposer()
   }, [focusComposer])
+
+  useEffect(() => {
+    if (!streamingMessageId) return
+    const target = messages.find(m => m.id === streamingMessageId)
+    const fullText = target?.content_text ?? ''
+    const fullLen = fullText.length
+    if (fullLen === 0) {
+      setStreamingMessageId(null)
+      setStreamingCharCount(0)
+      return
+    }
+    if (streamingCharCount >= fullLen) {
+      setStreamingMessageId(null)
+      return
+    }
+    const step = Math.max(6, Math.ceil(fullLen / 80))
+    const handle = window.setTimeout(() => {
+      setStreamingCharCount(prev => Math.min(fullLen, prev + step))
+      scrollTranscriptToBottom()
+    }, 25)
+    return () => window.clearTimeout(handle)
+  }, [streamingMessageId, streamingCharCount, messages, scrollTranscriptToBottom])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -1682,6 +1744,8 @@ export function InsightsRail({
           >
             {messages.map(messageEntry => {
               const isAssistant = messageEntry.role === 'assistant'
+              const isStreamingThis =
+                isAssistant && messageEntry.id === streamingMessageId
               return (
                 <div
                   key={messageEntry.id}
@@ -1720,10 +1784,17 @@ export function InsightsRail({
                         : styles.messageBubbleUser
                     )}
                   >
-                    {renderMessageContent(
-                      messageEntry.content_text || '(no answer)',
-                      styles
-                    )}
+                    {(() => {
+                      const fullText = messageEntry.content_text || ''
+                      const displayText = isStreamingThis
+                        ? fullText.slice(0, streamingCharCount)
+                        : fullText
+                      return renderMessageContent(
+                        displayText || (isStreamingThis ? '' : '(no answer)'),
+                        styles,
+                        isStreamingThis
+                      )
+                    })()}
                     {isAssistant &&
                     messageEntry.visualizations &&
                     messageEntry.visualizations.length > 0 ? (
