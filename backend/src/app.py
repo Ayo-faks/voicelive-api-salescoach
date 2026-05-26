@@ -9,6 +9,7 @@ import asyncio
 import base64
 from collections import defaultdict
 from datetime import datetime, timezone
+import hashlib
 import json
 import logging
 import os
@@ -21,7 +22,7 @@ from typing import Any, Dict, List, Mapping, Optional, Tuple, cast
 from urllib.parse import parse_qs, urlsplit
 
 import simple_websocket.ws  # pyright: ignore[reportMissingTypeStubs]
-from flask import Flask, g, jsonify, request, send_from_directory
+from flask import Flask, Response, g, jsonify, request, send_from_directory, stream_with_context
 from flask_sock import Sock  # pyright: ignore[reportMissingTypeStubs]
 
 if __package__ in {None, ""}:
@@ -284,6 +285,12 @@ logger = logging.getLogger(__name__)
 # Initialize Flask application
 app = Flask(__name__, static_folder=STATIC_FOLDER, static_url_path=STATIC_URL_PATH)
 sock = Sock(app)
+
+# Kill switch for the SSE chat endpoint. Defaults on; set CHAT_STREAM_ENABLED=false
+# to force the UI's one-shot fallback to /api/chat/ask.
+app.config["chat_stream_enabled"] = os.getenv(
+    "CHAT_STREAM_ENABLED", "true"
+).strip().lower() in ("1", "true", "yes", "on")
 
 # Initialize managers and analyzers
 scenario_manager = ScenarioManager()
@@ -3094,6 +3101,303 @@ def post_chat_ask():
     return jsonify(flat)
 
 
+def _sse_frame(event: str, data: Dict[str, Any]) -> str:
+    """Serialise a single Server-Sent Event frame.
+
+    We emit both ``event:`` (so EventSource-style consumers can dispatch) and
+    a JSON ``data:`` line. Each frame is terminated by a blank line per the
+    SSE spec.
+    """
+    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    return f"event: {event}\ndata: {payload}\n\n"
+
+
+@app.route("/api/chat/stream", methods=["POST"])
+def post_chat_stream():
+    """SSE chat endpoint. Same inputs and authorisation as ``/api/chat/ask``;
+    response is a single ``text/event-stream`` of typed frames:
+
+    * ``meta``      — request_id, prompt_version (sent immediately so the UI
+                      can show a "thinking" caret).
+    * ``token``     — incremental answer text. The current backend emits the
+                      full answer in one frame; this contract leaves room for
+                      true per-token streaming behind the same wire shape.
+    * ``artifacts`` — citations, visualizations, ui_specs, action_suggestions.
+    * ``done``      — terminal frame with conversation_id, message_id,
+                      latency_ms, tool_calls_count, route, cached, error_text.
+    * ``error``     — terminal error frame (HTTP status is still 200 once
+                      the stream is open).
+
+    Guards run BEFORE any bytes are written so authn/authz failures still
+    surface as proper HTTP errors. When ``CHAT_STREAM_ENABLED=false`` the
+    route returns 404 and the UI falls back to ``/api/chat/ask``.
+    """
+    if not app.config.get("chat_stream_enabled", True):
+        return ("", 404)
+
+    user, guard_response = _require_therapist_user()
+    if guard_response is not None:
+        return guard_response
+
+    payload = request.get_json(silent=True) or {}
+    message = str(payload.get("message") or "").strip()
+    if not message:
+        return jsonify({"error": "message is required"}), 400
+
+    scope_raw = payload.get("scope") or {"type": "caseload"}
+    if not isinstance(scope_raw, dict):
+        return jsonify({"error": "scope must be an object"}), 400
+
+    conversation_id_input = payload.get("conversation_id")
+    conversation_id_input = (
+        str(conversation_id_input).strip() if conversation_id_input else None
+    )
+
+    user_id = str(cast(Dict[str, Any], user).get("id"))
+
+    scope_child_id = scope_raw.get("child_id")
+    if scope_child_id:
+        _, child_guard = _require_child_access(
+            str(scope_child_id),
+            allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+            allowed_relationships=["therapist"],
+        )
+        if child_guard is not None:
+            return child_guard
+
+    request_id = uuid.uuid4().hex
+    stream_started_at = time.perf_counter()
+
+    def generate():
+        # Per-stream telemetry. ``outcome`` is updated as we progress; the
+        # ``finally`` block emits one structured log line on terminate
+        # regardless of whether the stream completed, errored, or the client
+        # disconnected mid-flight (which surfaces as ``GeneratorExit``).
+        counters = {"frames_emitted": 0, "bytes_emitted": 0, "ttfb_ms": None}
+        # Default to ``disconnected`` so a client that drops between yields
+        # is recorded correctly — completion/error paths overwrite this.
+        outcome = {"value": "disconnected", "code": None, "conversation_id": None}
+
+        def emit(event: str, data: Dict[str, Any]) -> str:
+            frame = _sse_frame(event, data)
+            counters["frames_emitted"] += 1
+            counters["bytes_emitted"] += len(frame)
+            if counters["ttfb_ms"] is None:
+                counters["ttfb_ms"] = round(
+                    (time.perf_counter() - stream_started_at) * 1000, 1
+                )
+            return frame
+
+        try:
+            # First byte: tell the client the stream is alive so it can show
+            # the thinking caret without waiting for the planner to return.
+            yield emit(
+                "meta",
+                {
+                    "conversation_id": conversation_id_input,
+                    "request_id": request_id,
+                    "prompt_version": "chat-v1",
+                },
+            )
+
+            try:
+                stream_iter = insights_service.ask_stream(
+                    user_id=user_id,
+                    message=message,
+                    scope=scope_raw,
+                    conversation_id=conversation_id_input,
+                    request_id=request_id,
+                )
+            except InsightsAuthorizationError as exc:
+                outcome["value"] = "error"
+                outcome["code"] = "forbidden"
+                yield emit(
+                    "error",
+                    {
+                        "code": "forbidden",
+                        "message": str(exc),
+                        "request_id": request_id,
+                        "retryable": False,
+                    },
+                )
+                return
+            except ValueError as exc:
+                outcome["value"] = "error"
+                outcome["code"] = "invalid"
+                yield emit(
+                    "error",
+                    {
+                        "code": "invalid",
+                        "message": str(exc),
+                        "request_id": request_id,
+                        "retryable": False,
+                    },
+                )
+                return
+            except Exception as exc:  # noqa: BLE001 - boundary handler
+                outcome["value"] = "error"
+                outcome["code"] = "planner_failed"
+                logger.exception(
+                    "[chat-stream] planner failed request_id=%s", request_id
+                )
+                yield emit(
+                    "error",
+                    {
+                        "code": "planner_failed",
+                        "message": str(exc),
+                        "request_id": request_id,
+                        "retryable": True,
+                    },
+                )
+                return
+
+            # Consume the streaming iterator: prose deltas become ``token``
+            # frames, the final dict drives ``artifacts`` + ``done``. Errors
+            # raised by ``ask_stream`` after the first delta are converted
+            # into a final payload with ``error_text`` by the service, so we
+            # don't need a second exception net here.
+            result: Optional[Dict[str, Any]] = None
+            try:
+                for kind, payload in stream_iter:
+                    if kind == "delta":
+                        if payload:
+                            yield emit("token", {"delta": str(payload)})
+                    elif kind == "final":
+                        result = payload if isinstance(payload, dict) else None
+                        break
+            except InsightsAuthorizationError as exc:
+                outcome["value"] = "error"
+                outcome["code"] = "forbidden"
+                yield emit(
+                    "error",
+                    {
+                        "code": "forbidden",
+                        "message": str(exc),
+                        "request_id": request_id,
+                        "retryable": False,
+                    },
+                )
+                return
+            except Exception as exc:  # noqa: BLE001 - boundary handler
+                outcome["value"] = "error"
+                outcome["code"] = "planner_failed"
+                logger.exception(
+                    "[chat-stream] planner streaming failed request_id=%s",
+                    request_id,
+                )
+                yield emit(
+                    "error",
+                    {
+                        "code": "planner_failed",
+                        "message": str(exc),
+                        "request_id": request_id,
+                        "retryable": True,
+                    },
+                )
+                return
+
+            if result is None:
+                outcome["value"] = "error"
+                outcome["code"] = "planner_failed"
+                yield emit(
+                    "error",
+                    {
+                        "code": "planner_failed",
+                        "message": "stream ended without a final result",
+                        "request_id": request_id,
+                        "retryable": True,
+                    },
+                )
+                return
+
+            assistant = result.get("assistant_message") or {}
+            conversation = result.get("conversation") or {}
+            conv_id = str(conversation.get("id") or "")
+            outcome["conversation_id"] = conv_id or None
+            latency_ms = int(result.get("latency_ms") or 0)
+            tool_calls_count = int(result.get("tool_calls_count") or 0)
+            route = result.get("route")
+
+            # Write audit BEFORE the remaining yields. If the client has already
+            # disconnected, the audit log still persists; the assistant turn is
+            # already persisted inside ``insights_service.ask_stream``.
+            _log_audit_event(
+                user_id=user_id,
+                action="chat.ask",
+                resource_type="insight_conversation",
+                resource_id=conv_id,
+                child_id=str(scope_child_id) if scope_child_id else None,
+                metadata={
+                    "tool_calls_count": tool_calls_count,
+                    "latency_ms": latency_ms,
+                    "scope_type": scope_raw.get("type"),
+                    "route": route,
+                    "request_id": request_id,
+                    "transport": "sse",
+                },
+            )
+
+            yield emit(
+                "artifacts",
+                {
+                    "citations": assistant.get("citations") or [],
+                    "visualizations": assistant.get("visualizations") or [],
+                    "ui_specs": assistant.get("ui_specs") or [],
+                    "action_suggestions": assistant.get("action_suggestions") or [],
+                },
+            )
+
+            yield emit(
+                "done",
+                {
+                    "conversation_id": conv_id,
+                    "message_id": str(assistant.get("id") or ""),
+                    "latency_ms": latency_ms,
+                    "tool_calls_count": tool_calls_count,
+                    "route": route,
+                    "cached": bool(result.get("cached")),
+                    "error_text": assistant.get("error_text"),
+                },
+            )
+            outcome["value"] = "completed"
+            # Cached vs live route is the most useful split for the done outcome.
+            outcome["code"] = "cached" if result.get("cached") else (route or "live")
+        finally:
+            total_ms = round((time.perf_counter() - stream_started_at) * 1000, 1)
+            logger.info(
+                "[chat-stream-telemetry] %s",
+                json.dumps(
+                    {
+                        "request_id": request_id,
+                        "conversation_id": outcome["conversation_id"],
+                        "outcome": outcome["value"],
+                        "outcome_code": outcome["code"],
+                        "frames_emitted": counters["frames_emitted"],
+                        "bytes_emitted": counters["bytes_emitted"],
+                        "ttfb_ms": counters["ttfb_ms"],
+                        "total_ms": total_ms,
+                        "scope_type": scope_raw.get("type"),
+                        "user_id_hash": hashlib.sha256(
+                            user_id.encode("utf-8")
+                        ).hexdigest()[:16],
+                    },
+                    default=str,
+                    separators=(",", ":"),
+                    sort_keys=True,
+                ),
+            )
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
+
+
 @app.route("/api/insights/conversations", methods=["GET"])
 def list_insights_conversations():
     """List the current therapist's insights conversations, newest first."""
@@ -4320,7 +4624,9 @@ def main():
     print(f"Starting Voice Live Demo on http://{host}:{port}")
 
     debug_mode = os.getenv("FLASK_ENV") == "development"
-    app.run(host=host, port=port, debug=debug_mode)
+    # threaded=True lets the SSE chat endpoint hold a long-lived response
+    # without blocking the regular REST surface served by the same dev server.
+    app.run(host=host, port=port, debug=debug_mode, threaded=True)
 
 
 if __name__ == "__main__":

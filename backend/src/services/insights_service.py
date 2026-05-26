@@ -28,7 +28,7 @@ import threading
 import time
 from collections import OrderedDict
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Mapping, Optional, Protocol, Sequence, Tuple
+from typing import Any, Callable, Dict, Iterator, List, Mapping, Optional, Protocol, Sequence, Tuple
 
 from src.services.visualization_service import (
     VisualizationValidationError,
@@ -229,6 +229,27 @@ class InsightsPlanner(Protocol):
     ) -> InsightsPlannerResult:
         raise NotImplementedError
 
+    def run_turn_stream(
+        self,
+        *,
+        system_prompt: str,
+        history: Sequence[Dict[str, Any]],
+        user_message: str,
+        tools: Mapping[str, InsightsTool],
+        context: InsightsRequestContext,
+        tool_call_budget: int,
+    ) -> Iterator[Tuple[str, Any]]:
+        """Streaming variant.
+
+        Yields ``("delta", str)`` for incremental prose chunks (zero or more)
+        and finally ``("final", InsightsPlannerResult)`` exactly once. The
+        concatenation of all deltas SHOULD equal the final result's
+        ``answer_text`` but the service does not enforce this — it persists
+        ``answer_text`` from the final result and uses deltas only for the
+        wire-format token stream.
+        """
+        raise NotImplementedError
+
 
 # --- Default stub planner ---------------------------------------------------
 
@@ -340,6 +361,54 @@ class StubInsightsPlanner:
             tool_trace=trace,
             tool_calls_count=tool_calls_count,
         )
+
+    def run_turn_stream(
+        self,
+        *,
+        system_prompt: str,
+        history: Sequence[Dict[str, Any]],
+        user_message: str,
+        tools: Mapping[str, InsightsTool],
+        context: InsightsRequestContext,
+        tool_call_budget: int,
+    ) -> Iterator[Tuple[str, Any]]:
+        """Stub streaming variant: run the turn synchronously then chunk
+        the prose so the wire protocol exercises real per-token framing.
+        """
+        result = self.run_turn(
+            system_prompt=system_prompt,
+            history=history,
+            user_message=user_message,
+            tools=tools,
+            context=context,
+            tool_call_budget=tool_call_budget,
+        )
+        for chunk in _chunk_prose(result.answer_text):
+            yield ("delta", chunk)
+        yield ("final", result)
+
+
+def _chunk_prose(text: str, *, target_chars: int = 24) -> List[str]:
+    """Split a string into ~``target_chars`` chunks at whitespace boundaries.
+
+    Used by the streaming stub to emit multiple ``token`` SSE frames per
+    turn. Whitespace-aware so chunks stay readable if rendered eagerly.
+    """
+    if not text:
+        return []
+    chunks: List[str] = []
+    buf = ""
+    for token in text.split(" "):
+        candidate = (buf + " " + token) if buf else token
+        if len(candidate) >= target_chars:
+            chunks.append(candidate)
+            buf = ""
+        else:
+            buf = candidate
+    if buf:
+        chunks.append(buf)
+    # Restore inter-chunk spaces so concatenation equals the original text.
+    return [c if i == 0 else " " + c.lstrip(" ") for i, c in enumerate(chunks)]
 
 
 # --- Service ----------------------------------------------------------------
@@ -525,6 +594,284 @@ class InsightsService:
             "cached": cache_hit,
             "route": (route_decision.route if route_decision is not None else ("cached" if cache_hit else "insights")),
         }
+
+    def ask_stream(
+        self,
+        *,
+        user_id: str,
+        message: str,
+        scope: Optional[Mapping[str, Any]] = None,
+        conversation_id: Optional[str] = None,
+        workspace_id: Optional[str] = None,
+        request_id: Optional[str] = None,
+    ) -> Iterator[Tuple[str, Any]]:
+        """Streaming variant of :meth:`ask`.
+
+        Yields ``("delta", str)`` zero or more times as the planner produces
+        prose, then ``("final", dict)`` exactly once with the same shape as
+        :meth:`ask`'s return value. Persistence, caching, scope authorization
+        and audit semantics match :meth:`ask` byte-for-byte — only the wire
+        format is different.
+
+        Errors raised here (validation, scope) propagate to the caller before
+        any frames are yielded; errors inside the planner are caught and
+        surfaced via the final payload's ``error_text`` so the stream always
+        terminates cleanly with one ``final`` event.
+        """
+        cleaned_message = (message or "").strip()
+        if not cleaned_message:
+            raise ValueError("message is required")
+
+        normalized_scope = _normalize_scope(scope)
+        self._authorize_scope(user_id=user_id, scope=normalized_scope)
+
+        conversation = self._resolve_conversation(
+            user_id=user_id,
+            conversation_id=conversation_id,
+            scope=normalized_scope,
+            workspace_id=workspace_id,
+            first_message=cleaned_message,
+        )
+
+        history = self.storage_service.list_insight_messages(conversation["id"])
+
+        user_message_row = self.storage_service.append_insight_message(
+            conversation["id"],
+            role="user",
+            content_text=cleaned_message,
+            prompt_version=self.PROMPT_VERSION,
+        )
+
+        deadline = time.monotonic() + self.wall_clock_budget_seconds
+        context = InsightsRequestContext(
+            user_id=user_id,
+            scope=dict(normalized_scope),
+            storage_service=self.storage_service,
+            child_memory_service=self.child_memory_service,
+            institutional_memory_service=self.institutional_memory_service,
+            deadline_monotonic=deadline,
+            request_id=request_id,
+        )
+
+        cache_key = _AnswerCache.build_key(
+            prompt_version=self.PROMPT_VERSION,
+            user_id=user_id,
+            scope=normalized_scope,
+            message=cleaned_message,
+        )
+        cached_result = self._answer_cache.get(cache_key)
+        cache_hit = cached_result is not None
+
+        start = time.monotonic()
+        planner_result: InsightsPlannerResult
+        route: str
+
+        if cache_hit:
+            assert cached_result is not None
+            planner_result = cached_result
+            route = "cached"
+            logger.info(
+                "[insights-cache] %s",
+                json.dumps(
+                    {
+                        "event": "hit",
+                        "request_id": request_id,
+                        "user_id": user_id,
+                        "scope_type": normalized_scope.get("type"),
+                    },
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ),
+            )
+            # Replay the cached prose so the wire shape stays consistent
+            # between cache hits and live turns.
+            for chunk in _chunk_prose(planner_result.answer_text):
+                yield ("delta", chunk)
+        else:
+            # Stream via planner. Router/chitchat paths fall through to
+            # ``run_turn`` (no streaming yet) — we adapt by emitting their
+            # final prose as a single delta to keep the wire contract.
+            from src.services.turn_router import classify
+            from src.services.turn_router.types import RouteDecision
+
+            router_enabled = bool(getattr(self._router_config, "enabled", False))
+            shadow = bool(getattr(self._router_config, "shadow", False))
+
+            decision: Any
+            if not router_enabled:
+                decision = RouteDecision(
+                    route="insights",
+                    confidence=1.0,
+                    reason="router_disabled",
+                    classifier="bypass",
+                )
+            else:
+                decision = classify(
+                    cleaned_message, scope=normalized_scope, config=self._router_config
+                )
+                self._log_router_decision(
+                    decision=decision,
+                    request_id=request_id,
+                    user_id=user_id,
+                    scope_type=normalized_scope.get("type"),
+                    shadow=shadow,
+                )
+
+            use_chitchat = (
+                router_enabled
+                and not shadow
+                and decision.route == "chitchat"
+                and self._chitchat_handler is not None
+            )
+
+            if use_chitchat:
+                # Chitchat handler is non-streaming; mirror the cache-hit shape.
+                planner_result = self._chitchat_handler.handle(
+                    user_message=cleaned_message,
+                    history=history,
+                    context=context,
+                )
+                if planner_result.error_text:
+                    # Fall back to planner with streaming.
+                    fallback_decision = RouteDecision(
+                        route="insights",
+                        confidence=1.0,
+                        reason="fallback:chitchat_error",
+                        classifier="fallback",
+                    )
+                    self._log_router_decision(
+                        decision=fallback_decision,
+                        request_id=request_id,
+                        user_id=user_id,
+                        scope_type=normalized_scope.get("type"),
+                        shadow=shadow,
+                    )
+                    decision = fallback_decision
+                    planner_result = yield from self._stream_planner_with_fallbacks(
+                        history=history,
+                        user_message=cleaned_message,
+                        context=context,
+                    )
+                else:
+                    for chunk in _chunk_prose(planner_result.answer_text):
+                        yield ("delta", chunk)
+            else:
+                planner_result = yield from self._stream_planner_with_fallbacks(
+                    history=history,
+                    user_message=cleaned_message,
+                    context=context,
+                )
+
+            route = decision.route
+            if planner_result.error_text is None and (planner_result.answer_text or "").strip():
+                self._answer_cache.put(cache_key, planner_result)
+
+        latency_ms = int((time.monotonic() - start) * 1000)
+
+        safe_visualizations = self._sanitize_visualizations(planner_result.visualizations)
+        safe_citations = _sanitize_citations(planner_result.citations)
+        safe_trace = _sanitize_tool_trace(planner_result.tool_trace)
+        safe_ui_specs = sanitize_ui_specs(planner_result.ui_specs)
+        safe_action_suggestions = sanitize_action_suggestions(
+            planner_result.action_suggestions
+        )
+
+        assistant_message_row = self.storage_service.append_insight_message(
+            conversation["id"],
+            role="assistant",
+            content_text=planner_result.answer_text or "",
+            citations=safe_citations,
+            visualizations=safe_visualizations,
+            tool_trace=safe_trace,
+            latency_ms=latency_ms,
+            tool_calls_count=max(0, int(planner_result.tool_calls_count or 0)),
+            prompt_version=self.PROMPT_VERSION,
+            error_text=planner_result.error_text,
+        )
+        if safe_ui_specs:
+            assistant_message_row["ui_specs"] = safe_ui_specs
+        if safe_action_suggestions:
+            assistant_message_row["action_suggestions"] = safe_action_suggestions
+
+        yield (
+            "final",
+            {
+                "conversation": self.storage_service.get_insight_conversation(
+                    conversation["id"], user_id=user_id
+                ),
+                "user_message": user_message_row,
+                "assistant_message": assistant_message_row,
+                "tool_calls_count": max(0, int(planner_result.tool_calls_count or 0)),
+                "latency_ms": latency_ms,
+                "cached": cache_hit,
+                "route": route,
+            },
+        )
+
+    def _stream_planner_with_fallbacks(
+        self,
+        *,
+        history: Sequence[Mapping[str, Any]],
+        user_message: str,
+        context: InsightsRequestContext,
+    ) -> Iterator[Tuple[str, Any]]:
+        """Stream from the planner, catching all known failure modes and
+        converting them into a final result with ``error_text``. Yields
+        ``("delta", str)`` items and returns the final
+        :class:`InsightsPlannerResult` (via ``return``) so callers can use
+        ``yield from`` to fan deltas through.
+        """
+        try:
+            iterator = self.planner.run_turn_stream(
+                system_prompt=self._system_prompt(),
+                history=history,
+                user_message=user_message,
+                tools=self._tools,
+                context=context,
+                tool_call_budget=self.tool_call_budget,
+            )
+        except AttributeError:
+            # Planner doesn't implement streaming — fall back to one-shot.
+            result = self._run_planner_with_fallbacks(
+                history=history, user_message=user_message, context=context
+            )
+            for chunk in _chunk_prose(result.answer_text):
+                yield ("delta", chunk)
+            return result
+
+        final_result: Optional[InsightsPlannerResult] = None
+        try:
+            for kind, payload in iterator:
+                if kind == "delta":
+                    if payload:
+                        yield ("delta", str(payload))
+                elif kind == "final":
+                    if isinstance(payload, InsightsPlannerResult):
+                        final_result = payload
+                    break
+        except InsightsBudgetExceeded as exc:
+            final_result = InsightsPlannerResult(
+                answer_text="I couldn't finish in the allotted time. Please try a narrower question or try again.",
+                error_text=f"budget_exceeded: {exc}",
+            )
+        except InsightsAuthorizationError as exc:
+            final_result = InsightsPlannerResult(
+                answer_text="I don't have access to that record.",
+                error_text=f"forbidden: {exc}",
+            )
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.exception("InsightsService streaming planner turn failed")
+            final_result = InsightsPlannerResult(
+                answer_text="Something went wrong while answering.",
+                error_text=f"planner_error: {exc}",
+            )
+
+        if final_result is None:
+            final_result = InsightsPlannerResult(
+                answer_text="Something went wrong while answering.",
+                error_text="planner_error: stream ended without final result",
+            )
+        return final_result
 
     # -- Turn router --------------------------------------------------------
 

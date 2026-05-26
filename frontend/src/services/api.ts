@@ -44,6 +44,7 @@ import type {
   InsightsConversation,
   InsightsConversationDetail,
   ChatAskResponse,
+  ChatStreamEvent,
 } from '../types'
 import { AVATAR_OPTIONS } from '../types'
 
@@ -165,6 +166,138 @@ function extractUserText(conversationMessages: ConversationTurn[]): string {
 
 let cachedConfig: AppConfig | null = null
 let configPromise: Promise<AppConfig> | null = null
+
+/**
+ * Thrown when the SSE chat endpoint is missing (404) or disabled (501). The
+ * UI catches this once per turn and falls back to the legacy one-shot
+ * `/api/chat/ask` so users still get an answer.
+ */
+export class StreamUnsupportedError extends Error {
+  readonly status: number
+  constructor(status: number, message = 'Chat stream not available') {
+    super(message)
+    this.name = 'StreamUnsupportedError'
+    this.status = status
+  }
+}
+
+const STREAM_EVENT_TYPES = new Set([
+  'meta',
+  'token',
+  'artifacts',
+  'done',
+  'error',
+])
+
+async function* chatStreamIterable(params: {
+  message: string
+  scope: InsightsScope
+  conversationId?: string | null
+  signal?: AbortSignal
+}): AsyncIterable<ChatStreamEvent> {
+  const body: Record<string, unknown> = {
+    message: params.message,
+    scope: params.scope,
+  }
+  if (params.conversationId) body.conversation_id = params.conversationId
+
+  const res = await fetch('/api/chat/stream', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'text/event-stream',
+    },
+    body: JSON.stringify(body),
+    signal: params.signal,
+  })
+
+  if (res.status === 401) {
+    window.dispatchEvent(new CustomEvent('auth:expired'))
+    throw new Error('UNAUTHORIZED')
+  }
+  if (res.status === 404 || res.status === 501) {
+    throw new StreamUnsupportedError(res.status)
+  }
+  if (!res.ok) {
+    const data = await res.json().catch(() => null)
+    throw new Error(
+      data?.error || data?.error_text || `Chat stream failed (${res.status})`
+    )
+  }
+  if (!res.body) {
+    throw new StreamUnsupportedError(res.status, 'Stream body missing')
+  }
+
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder('utf-8')
+  let buffer = ''
+
+  try {
+    while (true) {
+      const { value, done } = await reader.read()
+      if (done) {
+        buffer += decoder.decode()
+        if (buffer.trim()) {
+          const ev = parseSseFrame(buffer)
+          if (ev) yield ev
+        }
+        return
+      }
+      buffer += decoder.decode(value, { stream: true })
+      // SSE frames are separated by a blank line (\n\n or \r\n\r\n).
+      let boundary = findFrameBoundary(buffer)
+      while (boundary !== -1) {
+        const rawFrame = buffer.slice(0, boundary)
+        // Advance past the boundary's two newlines (length is encoded in the
+        // return value via the second element).
+        buffer = buffer.slice(boundary + frameBoundaryLength(buffer, boundary))
+        const ev = parseSseFrame(rawFrame)
+        if (ev) yield ev
+        boundary = findFrameBoundary(buffer)
+      }
+    }
+  } finally {
+    try {
+      reader.releaseLock()
+    } catch {
+      /* noop */
+    }
+  }
+}
+
+function findFrameBoundary(buf: string): number {
+  const a = buf.indexOf('\n\n')
+  const b = buf.indexOf('\r\n\r\n')
+  if (a === -1) return b
+  if (b === -1) return a
+  return Math.min(a, b)
+}
+
+function frameBoundaryLength(buf: string, idx: number): number {
+  return buf.startsWith('\r\n\r\n', idx) ? 4 : 2
+}
+
+function parseSseFrame(raw: string): ChatStreamEvent | null {
+  let eventType = 'message'
+  const dataLines: string[] = []
+  for (const line of raw.split(/\r?\n/)) {
+    if (!line || line.startsWith(':')) continue
+    if (line.startsWith('event:')) {
+      eventType = line.slice(6).trim()
+    } else if (line.startsWith('data:')) {
+      dataLines.push(line.slice(5).trim())
+    }
+  }
+  if (!STREAM_EVENT_TYPES.has(eventType) || dataLines.length === 0) return null
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(dataLines.join('\n'))
+  } catch {
+    return null
+  }
+  return { type: eventType, data: parsed } as ChatStreamEvent
+}
 
 export const api = {
   async getAuthSession(): Promise<AuthSession> {
@@ -1200,6 +1333,15 @@ export const api = {
       throw new Error(data?.error || data?.error_text || 'Failed to ask chat')
     }
     return res.json()
+  },
+
+  chatStream(params: {
+    message: string
+    scope: InsightsScope
+    conversationId?: string | null
+    signal?: AbortSignal
+  }): AsyncIterable<ChatStreamEvent> {
+    return chatStreamIterable(params)
   },
 
   async listInsightsConversations(

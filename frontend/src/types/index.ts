@@ -1244,6 +1244,52 @@ export interface ChatAskResponse {
   error_text: string | null
 }
 
+/**
+ * Typed SSE frames emitted by POST /api/chat/stream. Order on the wire is
+ * always meta → token* → artifacts → done, or meta → error. The contract is
+ * shared with the backend in `app.py:post_chat_stream`.
+ */
+export type ChatStreamEvent =
+  | {
+      type: 'meta'
+      data: {
+        conversation_id: string | null
+        request_id: string
+        prompt_version: string
+      }
+    }
+  | { type: 'token'; data: { delta: string } }
+  | {
+      type: 'artifacts'
+      data: {
+        citations: InsightsCitation[]
+        visualizations: VisualizationSpec[]
+        ui_specs: VoiceAgentUiSpec[]
+        action_suggestions: VoiceAgentActionSuggestion[]
+      }
+    }
+  | {
+      type: 'done'
+      data: {
+        conversation_id: string
+        message_id: string
+        latency_ms: number
+        tool_calls_count: number
+        route: string | null
+        cached: boolean
+        error_text: string | null
+      }
+    }
+  | {
+      type: 'error'
+      data: {
+        code: string
+        message: string
+        request_id: string
+        retryable: boolean
+      }
+    }
+
 export interface InsightsConversationDetail {
   conversation: InsightsConversation
   messages: InsightsMessage[]

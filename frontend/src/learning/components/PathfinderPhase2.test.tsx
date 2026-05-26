@@ -85,7 +85,7 @@ describe('PathfinderPhase2Demo', () => {
     expect(screen.getByTestId('phase2-teacher-workspace')).toBeTruthy()
     expect(screen.getByTestId('phase2-teacher-heatmap')).toBeTruthy()
     expect(pendingApprovalCard.textContent).toContain(
-      'Pending teacher approval'
+      '1-2 week practice plan awaiting teacher approval'
     )
     expect(pendingApprovalCard.textContent).toContain('Synthetic intervention')
     expect(screen.getAllByText('Secure')).toHaveLength(2)

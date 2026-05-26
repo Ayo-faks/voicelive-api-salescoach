@@ -33,6 +33,7 @@ vi.mock('../learning/components/VoiceAgentDynamicSurface', () => ({
 
 const askInsights = vi.fn()
 const askChat = vi.fn()
+const chatStream = vi.fn()
 const listInsightsConversations = vi.fn()
 const getInsightsConversation = vi.fn()
 
@@ -40,12 +41,68 @@ vi.mock('../services/api', () => ({
   api: {
     askInsights: (...args: unknown[]) => askInsights(...args),
     askChat: (...args: unknown[]) => askChat(...args),
+    chatStream: (...args: unknown[]) => chatStream(...args),
     listInsightsConversations: (...args: unknown[]) =>
       listInsightsConversations(...args),
     getInsightsConversation: (...args: unknown[]) =>
       getInsightsConversation(...args),
   },
+  StreamUnsupportedError: class StreamUnsupportedError extends Error {},
 }))
+
+/**
+ * Build a fake SSE stream that mirrors a legacy ChatAskResponse. Tests use
+ * this to assert UI behaviour over the new wire protocol without rewriting
+ * fixtures: the helper emits meta → token → artifacts → done in order.
+ */
+function streamFromAskResponse(
+  res: ChatAskResponse
+): AsyncIterable<unknown> {
+  return (async function* () {
+    yield {
+      type: 'meta',
+      data: {
+        conversation_id: res.conversation_id || null,
+        request_id: res.request_id || 'req-test',
+        prompt_version: 'chat-v1',
+      },
+    }
+    if (res.answer_text) {
+      yield { type: 'token', data: { delta: res.answer_text } }
+    }
+    yield {
+      type: 'artifacts',
+      data: {
+        citations: res.citations || [],
+        visualizations: res.visualizations || [],
+        ui_specs: res.ui_specs || [],
+        action_suggestions: res.action_suggestions || [],
+      },
+    }
+    yield {
+      type: 'done',
+      data: {
+        conversation_id: res.conversation_id || '',
+        message_id: 'msg-stream-test',
+        latency_ms: res.latency_ms || 0,
+        tool_calls_count: res.tool_calls_count || 0,
+        route: res.route || null,
+        cached: !!res.cached,
+        error_text: res.error_text ?? null,
+      },
+    }
+  })()
+}
+
+function streamThatRejects(err: Error): AsyncIterable<unknown> {
+  return {
+    [Symbol.asyncIterator]() {
+      return {
+        next: () => Promise.reject(err),
+      }
+    },
+  }
+}
 
 type VoiceMockState = {
   voiceState: InsightsVoiceState
@@ -220,6 +277,7 @@ describe('InsightsRail', () => {
   beforeEach(() => {
     askInsights.mockReset()
     askChat.mockReset()
+    chatStream.mockReset()
     listInsightsConversations.mockReset()
     getInsightsConversation.mockReset()
     resetVoiceMockState()
@@ -251,7 +309,7 @@ describe('InsightsRail', () => {
   })
 
   it('sends a question and renders answer, viz, and citations', async () => {
-    askChat.mockResolvedValue(askResponse)
+    chatStream.mockReturnValue(streamFromAskResponse(askResponse))
     render(<InsightsRail currentScope={childScope} />)
 
     const input = (await screen.findByTestId(
@@ -261,9 +319,9 @@ describe('InsightsRail', () => {
     fireEvent.click(screen.getByTestId('insights-rail-send'))
 
     await waitFor(() => {
-      expect(askChat).toHaveBeenCalledTimes(1)
+      expect(chatStream).toHaveBeenCalledTimes(1)
     })
-    expect(askChat.mock.calls[0][0]).toMatchObject({
+    expect(chatStream.mock.calls[0][0]).toMatchObject({
       message: 'How did they do this week?',
       scope: childScope,
     })
@@ -281,27 +339,29 @@ describe('InsightsRail', () => {
   })
 
   it('renders the dynamic surface when chat returns ui_specs or action_suggestions', async () => {
-    askChat.mockResolvedValue({
-      ...askResponse,
-      ui_specs: [
-        {
-          kind: 'text',
-          id: 'spec-1',
-          title: 'Next step',
-          body: 'Try a short /t/ phrase warm-up.',
-        },
-      ],
-      action_suggestions: [
-        {
-          action_id: 'act-1',
-          action_type: 'open_student_profile',
-          label: 'Open profile',
-          risk_level: 'low',
-          requires_confirmation: false,
-          parameters: { student_id: 'child-1' },
-        },
-      ],
-    } satisfies ChatAskResponse)
+    chatStream.mockReturnValue(
+      streamFromAskResponse({
+        ...askResponse,
+        ui_specs: [
+          {
+            kind: 'text',
+            id: 'spec-1',
+            title: 'Next step',
+            body: 'Try a short /t/ phrase warm-up.',
+          },
+        ],
+        action_suggestions: [
+          {
+            action_id: 'act-1',
+            action_type: 'open_student_profile',
+            label: 'Open profile',
+            risk_level: 'low',
+            requires_confirmation: false,
+            parameters: { student_id: 'child-1' },
+          },
+        ],
+      } satisfies ChatAskResponse)
+    )
     render(<InsightsRail currentScope={childScope} />)
 
     const input = (await screen.findByTestId(
@@ -316,7 +376,7 @@ describe('InsightsRail', () => {
   })
 
   it('shows an error when the request fails', async () => {
-    askChat.mockRejectedValue(new Error('boom'))
+    chatStream.mockReturnValue(streamThatRejects(new Error('boom')))
     render(<InsightsRail currentScope={childScope} />)
     const input = (await screen.findByTestId(
       'insights-rail-input'
@@ -420,16 +480,18 @@ describe('InsightsRail', () => {
   })
 
   it('keeps prior turns and renders user/assistant bubbles across multiple sends', async () => {
-    askChat
-      .mockResolvedValueOnce(askResponse)
-      .mockResolvedValueOnce({
-        ...askResponse,
-        answer_text: secondAssistantMessage.content_text,
-        citations: [],
-        visualizations: [],
-        tool_calls_count: 1,
-        latency_ms: 900,
-      } satisfies ChatAskResponse)
+    chatStream
+      .mockReturnValueOnce(streamFromAskResponse(askResponse))
+      .mockReturnValueOnce(
+        streamFromAskResponse({
+          ...askResponse,
+          answer_text: secondAssistantMessage.content_text,
+          citations: [],
+          visualizations: [],
+          tool_calls_count: 1,
+          latency_ms: 900,
+        } satisfies ChatAskResponse)
+      )
 
     render(<InsightsRail currentScope={childScope} />)
 
@@ -519,11 +581,13 @@ describe('InsightsRail', () => {
   })
 
   it('renders assistant markdown formatting for richer responses', async () => {
-    askChat.mockResolvedValue({
-      ...askResponse,
-      answer_text:
-        '## Highlights\n- Stronger /t/ accuracy\n- Good self-correction',
-    } satisfies ChatAskResponse)
+    chatStream.mockReturnValue(
+      streamFromAskResponse({
+        ...askResponse,
+        answer_text:
+          '## Highlights\n- Stronger /t/ accuracy\n- Good self-correction',
+      } satisfies ChatAskResponse)
+    )
 
     render(<InsightsRail currentScope={childScope} />)
 

@@ -68,15 +68,50 @@ class _FakeResponse:
 class _FakeSession:
     """Drives the tool handlers the adapter registers, then returns text."""
 
-    def __init__(self, kwargs: Dict[str, Any], planned_tool_calls, response_text: str):
+    def __init__(self, kwargs: Dict[str, Any], planned_tool_calls, response_text: str, planned_deltas=None):
         self.kwargs = kwargs
         self.planned_tool_calls = list(planned_tool_calls or [])
+        self.planned_deltas = list(planned_deltas or [])
         self.response_text = response_text
         self.session_id = "sess-fake-1"
         self.tool_results: List[Any] = []
+        self._handlers: List[Any] = []
+
+    def on(self, handler):
+        self._handlers.append(handler)
+
+        def _unsubscribe():
+            if handler in self._handlers:
+                self._handlers.remove(handler)
+
+        return _unsubscribe
+
+    def _dispatch(self, data: Any) -> None:
+        event = type("FakeEvent", (), {"data": data})()
+        for handler in list(self._handlers):
+            handler(event)
 
     async def send_and_wait(self, prompt: str) -> _FakeResponse:
         del prompt
+        # Replay any streaming deltas first so handlers see them in order.
+        if self.planned_deltas:
+            try:
+                from copilot.generated.session_events import AssistantMessageDeltaData
+            except ImportError:  # pragma: no cover
+                AssistantMessageDeltaData = None  # type: ignore[assignment]
+            for chunk in self.planned_deltas:
+                if AssistantMessageDeltaData is not None:
+                    try:
+                        data = AssistantMessageDeltaData(
+                            delta_content=chunk,
+                            message_id="m1",
+                            parent_tool_call_id=None,
+                        )
+                    except TypeError:
+                        data = type("Delta", (), {"delta_content": chunk})()
+                else:
+                    data = type("Delta", (), {"delta_content": chunk})()
+                self._dispatch(data)
         tools_by_name = {t.name: t for t in self.kwargs.get("tools", [])}
         pre_hook = self.kwargs.get("hooks", {}).get("on_pre_tool_use")
         for name, args in self.planned_tool_calls:
@@ -98,10 +133,11 @@ class _FakeSession:
 class _FakeClient:
     last_instance: Optional["_FakeClient"] = None
 
-    def __init__(self, subprocess_config=None, *, planned_tool_calls=None, response_text=""):
+    def __init__(self, subprocess_config=None, *, planned_tool_calls=None, response_text="", planned_deltas=None):
         self.subprocess_config = subprocess_config
         self.planned_tool_calls = planned_tool_calls or []
         self.response_text = response_text
+        self.planned_deltas = planned_deltas or []
         self.started = False
         self.stopped = False
         self.session: Optional[_FakeSession] = None
@@ -114,7 +150,12 @@ class _FakeClient:
         self.stopped = True
 
     async def create_session(self, **kwargs):
-        self.session = _FakeSession(kwargs, self.planned_tool_calls, self.response_text)
+        self.session = _FakeSession(
+            kwargs,
+            self.planned_tool_calls,
+            self.response_text,
+            planned_deltas=self.planned_deltas,
+        )
         return self.session
 
 
@@ -125,13 +166,14 @@ class _FakeClient:
 def patch_sdk(monkeypatch):
     """Install fake SDK symbols and return a factory to configure the client."""
 
-    client_config = {"planned_tool_calls": [], "response_text": ""}
+    client_config = {"planned_tool_calls": [], "response_text": "", "planned_deltas": []}
 
     def make_client(subprocess_config=None):
         return _FakeClient(
             subprocess_config,
             planned_tool_calls=client_config["planned_tool_calls"],
             response_text=client_config["response_text"],
+            planned_deltas=client_config["planned_deltas"],
         )
 
     monkeypatch.setattr(planner_module, "CopilotClient", make_client)
@@ -364,3 +406,116 @@ def test_build_insights_planner_from_env_returns_none_when_sdk_missing(monkeypat
     monkeypatch.setattr(planner_module, "Tool", None)
     monkeypatch.setattr(planner_module, "ToolResult", None)
     assert build_insights_planner_from_env({"copilot_github_token": "x"}) is None
+
+
+# --- Streaming (run_turn_stream) tests ------------------------------------
+
+
+def test_run_turn_stream_yields_deltas_then_final(patch_sdk):
+    """Deltas arrive via assistant.message_delta events; the typed
+    ``emit_artifacts`` tool delivers structured artifacts. The final
+    InsightsPlannerResult must use the concatenated deltas as the
+    answer text and the tool args as citations / visualizations / etc.
+    """
+    patch_sdk["planned_deltas"] = ["Ayo ", "is making ", "progress."]
+    patch_sdk["planned_tool_calls"] = [
+        (
+            "emit_artifacts",
+            {
+                "citations": [
+                    {"kind": "child", "child_id": "child-1", "label": "Ayo"}
+                ],
+                "visualizations": [],
+                "ui_specs": [{"kind": "text", "text": "ok"}],
+                "action_suggestions": [],
+            },
+        ),
+    ]
+    patch_sdk["response_text"] = "ignored when streaming"
+    planner = CopilotInsightsPlanner(settings={})
+
+    events = list(
+        planner.run_turn_stream(
+            system_prompt="sys",
+            history=[],
+            user_message="How is Ayo?",
+            tools={},
+            context=_make_context(),
+            tool_call_budget=4,
+        )
+    )
+
+    kinds = [k for k, _ in events]
+    assert kinds.count("delta") == 3, kinds
+    assert kinds[-1] == "final"
+    deltas = [payload for kind, payload in events if kind == "delta"]
+    assert deltas == ["Ayo ", "is making ", "progress."]
+
+    final_kind, final = events[-1]
+    assert final_kind == "final"
+    assert final.answer_text == "Ayo is making progress."
+    assert final.citations == [
+        {"kind": "child", "child_id": "child-1", "label": "Ayo"}
+    ]
+    assert final.ui_specs == [{"kind": "text", "text": "ok"}]
+    assert final.error_text is None
+    # emit_artifacts itself is recorded in the trace but doesn't count
+    # against the per-turn tool budget.
+    assert final.tool_calls_count == 0
+    assert any(t["name"] == "emit_artifacts" for t in final.tool_trace)
+
+
+def test_run_turn_stream_falls_back_to_final_text_when_no_deltas(patch_sdk):
+    """If the SDK doesn't emit any delta events (e.g., older model that
+    doesn't stream), the adapter must still yield a single ``delta`` with
+    the final assistant content so the user sees a non-empty answer.
+    """
+    patch_sdk["planned_deltas"] = []
+    patch_sdk["planned_tool_calls"] = []
+    patch_sdk["response_text"] = "Plain final answer."
+    planner = CopilotInsightsPlanner(settings={})
+
+    events = list(
+        planner.run_turn_stream(
+            system_prompt="sys",
+            history=[],
+            user_message="hi",
+            tools={},
+            context=_make_context(),
+            tool_call_budget=2,
+        )
+    )
+    deltas = [p for k, p in events if k == "delta"]
+    assert deltas == ["Plain final answer."]
+    _, final = events[-1]
+    assert final.answer_text == "Plain final answer."
+
+
+def test_run_turn_stream_streaming_kwarg_passed(patch_sdk):
+    """The session must be created with ``streaming=True`` and the
+    ``emit_artifacts`` tool registered in ``available_tools``.
+    """
+    patch_sdk["planned_deltas"] = ["ok"]
+    patch_sdk["planned_tool_calls"] = []
+    patch_sdk["response_text"] = ""
+    planner = CopilotInsightsPlanner(settings={})
+
+    list(
+        planner.run_turn_stream(
+            system_prompt="sys",
+            history=[],
+            user_message="hi",
+            tools={},
+            context=_make_context(),
+            tool_call_budget=2,
+        )
+    )
+
+    session = _FakeClient.last_instance.session  # type: ignore[union-attr]
+    assert session.kwargs.get("streaming") is True
+    assert "emit_artifacts" in session.kwargs.get("available_tools", [])
+    assert any(
+        getattr(t, "name", None) == "emit_artifacts"
+        for t in session.kwargs.get("tools", [])
+    )
+

@@ -24,7 +24,7 @@ import type {
   InsightsVoiceMode,
   ChatAskResponse,
 } from '../types'
-import { api } from '../services/api'
+import { api, StreamUnsupportedError } from '../services/api'
 import { InsightsOrb } from './InsightsOrb'
 import { VisualizationBlock } from './VisualizationBlock'
 import VoiceAgentDynamicSurface from '../learning/components/VoiceAgentDynamicSurface'
@@ -515,22 +515,6 @@ const useStyles = makeStyles({
     minWidth: 0,
     overflowWrap: 'anywhere',
   },
-  streamingCaret: {
-    display: 'inline-block',
-    width: '7px',
-    height: '1em',
-    marginLeft: '2px',
-    verticalAlign: '-2px',
-    backgroundColor: tokens.colorBrandForeground1,
-    borderRadius: '1px',
-    animationName: {
-      '0%, 50%': { opacity: 1 },
-      '50.01%, 100%': { opacity: 0 },
-    },
-    animationDuration: '900ms',
-    animationIterationCount: 'infinite',
-    animationTimingFunction: 'steps(1, end)',
-  },
   markdownParagraph: {
     margin: 0,
     whiteSpace: 'pre-wrap' as const,
@@ -924,8 +908,7 @@ function formatMessageTimestamp(timestamp: string): string {
 
 function renderMessageContent(
   content: string,
-  styles: ReturnType<typeof useStyles>,
-  isStreaming = false
+  styles: ReturnType<typeof useStyles>
 ) {
   return (
     <div className={styles.markdownContent}>
@@ -966,13 +949,6 @@ function renderMessageContent(
       >
         {content}
       </ReactMarkdown>
-      {isStreaming ? (
-        <span
-          className={styles.streamingCaret}
-          aria-hidden="true"
-          data-testid="insights-rail-streaming-caret"
-        />
-      ) : null}
     </div>
   )
 }
@@ -1013,10 +989,12 @@ export function InsightsRail({
   const [awaitingAssistant, setAwaitingAssistant] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [messages, setMessages] = useState<InsightsMessage[]>([])
+  // Id of the assistant bubble currently receiving stream frames. While this
+  // is non-null the message renders with a blinking caret. Cleared on `done`,
+  // `error`, abort, or scope switch.
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(
     null
   )
-  const [streamingCharCount, setStreamingCharCount] = useState(0)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [conversations, setConversations] = useState<InsightsConversation[]>([])
   const [historyOpen, setHistoryOpen] = useState(false)
@@ -1024,6 +1002,9 @@ export function InsightsRail({
   const focusTokenRef = useRef<number | undefined>(focusToken)
   const transcriptScrollRef = useRef<HTMLDivElement | null>(null)
   const restoredScopeKeyRef = useRef<string | null>(null)
+  // Aborts the in-flight chat stream when the user starts another turn,
+  // navigates away, or switches scope. Cleared by `handleSend` on completion.
+  const abortRef = useRef<AbortController | null>(null)
 
   const suggestionPrompts = useMemo<string[]>(() => {
     switch (currentScope.type) {
@@ -1224,6 +1205,15 @@ export function InsightsRail({
     async (override?: string) => {
       const trimmed = (override ?? message).trim()
       if (!trimmed || loading) return
+      // Cancel any in-flight stream from a previous turn (defensive — `loading`
+      // should already prevent overlap, but reasoning about React batching is
+      // hard and an orphaned reader would leak the connection).
+      if (abortRef.current) {
+        abortRef.current.abort()
+      }
+      const controller = new AbortController()
+      abortRef.current = controller
+
       setLoading(true)
       setError(null)
       const optimisticConversationId =
@@ -1242,57 +1232,196 @@ export function InsightsRail({
         error_text: null,
         created_at: new Date().toISOString(),
       }
-      setMessages(prev => [...prev, optimisticUser])
+      // Pre-create the assistant bubble so token frames have something to
+      // append to as soon as they arrive.
+      const assistantId = createClientMessageId()
+      const assistantStub: InsightsMessage = {
+        id: assistantId,
+        conversation_id: optimisticConversationId,
+        role: 'assistant',
+        content_text: '',
+        citations: [],
+        visualizations: [],
+        tool_trace: [],
+        latency_ms: null,
+        tool_calls_count: null,
+        prompt_version: 'chat-v1',
+        error_text: null,
+        created_at: new Date().toISOString(),
+      }
+      setMessages(prev => [...prev, optimisticUser, assistantStub])
       setMessage('')
       setAwaitingAssistant(true)
+      setStreamingMessageId(assistantId)
       scrollTranscriptToBottom()
-      try {
-        const res: ChatAskResponse = await api.askChat({
-          message: trimmed,
-          scope: currentScope,
-          conversationId,
-        })
-        const conversationIdNext =
-          res.conversation_id || optimisticConversationId
-        const assistantMsg: InsightsMessage = {
-          id: createClientMessageId(),
-          conversation_id: conversationIdNext,
-          role: 'assistant',
-          content_text: res.answer_text || '',
-          citations: res.citations || [],
-          visualizations: res.visualizations || [],
-          tool_trace: [],
-          latency_ms: res.latency_ms ?? null,
-          tool_calls_count: res.tool_calls_count ?? null,
-          prompt_version: 'chat-v1',
-          error_text: res.error_text ?? null,
-          created_at: new Date().toISOString(),
-          ui_specs: res.ui_specs,
-          action_suggestions: res.action_suggestions,
-        }
+
+      const applyFinalEnvelope = (
+        res: ChatAskResponse,
+        finalConvId: string
+      ) => {
         setMessages(prev =>
-          prev.map(m =>
-            m.id === optimisticUser.id
-              ? { ...m, conversation_id: conversationIdNext }
-              : m
-          ).concat(assistantMsg)
+          prev.map(m => {
+            if (m.id === optimisticUser.id) {
+              return { ...m, conversation_id: finalConvId }
+            }
+            if (m.id === assistantId) {
+              return {
+                ...m,
+                conversation_id: finalConvId,
+                content_text: res.answer_text || '',
+                citations: res.citations || [],
+                visualizations: res.visualizations || [],
+                latency_ms: res.latency_ms ?? null,
+                tool_calls_count: res.tool_calls_count ?? null,
+                error_text: res.error_text ?? null,
+                ui_specs: res.ui_specs,
+                action_suggestions: res.action_suggestions,
+              }
+            }
+            return m
+          })
         )
-        setConversationId(conversationIdNext)
-        const fullLen = (assistantMsg.content_text || '').length
-        if (fullLen > 0) {
-          setStreamingMessageId(assistantMsg.id)
-          setStreamingCharCount(0)
-        } else {
-          setStreamingMessageId(null)
-          setStreamingCharCount(0)
+        setConversationId(finalConvId)
+      }
+
+      try {
+        let nextConversationId = optimisticConversationId
+        let answerText = ''
+        let citations: InsightsCitation[] = []
+        let visualizations: ChatAskResponse['visualizations'] = []
+        let uiSpecs: ChatAskResponse['ui_specs'] | undefined
+        let actionSuggestions: ChatAskResponse['action_suggestions'] | undefined
+        let latencyMs: number | null = null
+        let toolCallsCount: number | null = null
+        let errorText: string | null = null
+        let streamError: { code: string; message: string } | null = null
+
+        try {
+          for await (const ev of api.chatStream({
+            message: trimmed,
+            scope: currentScope,
+            conversationId,
+            signal: controller.signal,
+          })) {
+            switch (ev.type) {
+              case 'meta':
+                if (ev.data.conversation_id) {
+                  nextConversationId = ev.data.conversation_id
+                }
+                break
+              case 'token':
+                answerText += ev.data.delta || ''
+                setMessages(prev =>
+                  prev.map(m =>
+                    m.id === assistantId ? { ...m, content_text: answerText } : m
+                  )
+                )
+                scrollTranscriptToBottom()
+                break
+              case 'artifacts':
+                citations = ev.data.citations || []
+                visualizations = ev.data.visualizations || []
+                uiSpecs = ev.data.ui_specs
+                actionSuggestions = ev.data.action_suggestions
+                setMessages(prev =>
+                  prev.map(m =>
+                    m.id === assistantId
+                      ? {
+                          ...m,
+                          citations,
+                          visualizations,
+                          ui_specs: uiSpecs,
+                          action_suggestions: actionSuggestions,
+                        }
+                      : m
+                  )
+                )
+                break
+              case 'done':
+                nextConversationId =
+                  ev.data.conversation_id || nextConversationId
+                latencyMs = ev.data.latency_ms ?? null
+                toolCallsCount = ev.data.tool_calls_count ?? null
+                errorText = ev.data.error_text ?? null
+                break
+              case 'error':
+                streamError = {
+                  code: ev.data.code,
+                  message: ev.data.message,
+                }
+                break
+            }
+          }
+        } catch (streamErr) {
+          if (streamErr instanceof StreamUnsupportedError) {
+            // Server has streaming disabled or removed — fall back once to
+            // the legacy one-shot endpoint. The UI shows the thinking caret
+            // until the full envelope arrives.
+            const fallback = await api.askChat({
+              message: trimmed,
+              scope: currentScope,
+              conversationId,
+            })
+            const finalConvId =
+              fallback.conversation_id || optimisticConversationId
+            applyFinalEnvelope(fallback, finalConvId)
+            scrollTranscriptToBottom()
+            void loadHistory()
+            return
+          }
+          throw streamErr
         }
+
+        if (streamError) {
+          throw new Error(streamError.message || 'Chat stream failed')
+        }
+
+        // Settle final envelope (use streamed values; the message bubble is
+        // already in sync from per-frame updates above).
+        setMessages(prev =>
+          prev.map(m => {
+            if (m.id === optimisticUser.id) {
+              return { ...m, conversation_id: nextConversationId }
+            }
+            if (m.id === assistantId) {
+              return {
+                ...m,
+                conversation_id: nextConversationId,
+                content_text: answerText,
+                citations,
+                visualizations,
+                ui_specs: uiSpecs,
+                action_suggestions: actionSuggestions,
+                latency_ms: latencyMs,
+                tool_calls_count: toolCallsCount,
+                error_text: errorText,
+              }
+            }
+            return m
+          })
+        )
+        setConversationId(nextConversationId)
         scrollTranscriptToBottom()
         void loadHistory()
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Request failed')
-        setMessages(prev => prev.filter(m => m.id !== optimisticUser.id))
-        setMessage(trimmed)
+        if (controller.signal.aborted) {
+          // Caller aborted (e.g. scope switch). Drop the optimistic + stub
+          // turn silently — no error UI.
+          setMessages(prev =>
+            prev.filter(m => m.id !== optimisticUser.id && m.id !== assistantId)
+          )
+        } else {
+          setError(err instanceof Error ? err.message : 'Request failed')
+          setMessages(prev =>
+            prev.filter(m => m.id !== optimisticUser.id && m.id !== assistantId)
+          )
+          setMessage(trimmed)
+        }
       } finally {
+        if (abortRef.current === controller) {
+          abortRef.current = null
+        }
+        setStreamingMessageId(null)
         setAwaitingAssistant(false)
         setLoading(false)
       }
@@ -1301,10 +1430,15 @@ export function InsightsRail({
   )
 
   const handleOpenConversation = useCallback(async (id: string) => {
+    // Cancel any in-flight stream — the user's switching to a historical
+    // conversation and the streaming bubble is no longer relevant.
+    if (abortRef.current) {
+      abortRef.current.abort()
+      abortRef.current = null
+    }
     setLoading(true)
     setError(null)
     setStreamingMessageId(null)
-    setStreamingCharCount(0)
     try {
       const res = await api.getInsightsConversation(id)
       setConversationId(res.conversation.id)
@@ -1344,36 +1478,27 @@ export function InsightsRail({
   const hasDraftMessage = message.trim().length > 0
 
   const handleNewChat = useCallback(() => {
+    if (abortRef.current) {
+      abortRef.current.abort()
+      abortRef.current = null
+    }
     setConversationId(null)
     setMessages([])
     setMessage('')
     setError(null)
     setStreamingMessageId(null)
-    setStreamingCharCount(0)
     focusComposer()
   }, [focusComposer])
 
+  // Abort any in-flight stream on unmount so we don't leak the reader.
   useEffect(() => {
-    if (!streamingMessageId) return
-    const target = messages.find(m => m.id === streamingMessageId)
-    const fullText = target?.content_text ?? ''
-    const fullLen = fullText.length
-    if (fullLen === 0) {
-      setStreamingMessageId(null)
-      setStreamingCharCount(0)
-      return
+    return () => {
+      if (abortRef.current) {
+        abortRef.current.abort()
+        abortRef.current = null
+      }
     }
-    if (streamingCharCount >= fullLen) {
-      setStreamingMessageId(null)
-      return
-    }
-    const step = Math.max(6, Math.ceil(fullLen / 80))
-    const handle = window.setTimeout(() => {
-      setStreamingCharCount(prev => Math.min(fullLen, prev + step))
-      scrollTranscriptToBottom()
-    }, 25)
-    return () => window.clearTimeout(handle)
-  }, [streamingMessageId, streamingCharCount, messages, scrollTranscriptToBottom])
+  }, [])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -1786,13 +1911,34 @@ export function InsightsRail({
                   >
                     {(() => {
                       const fullText = messageEntry.content_text || ''
-                      const displayText = isStreamingThis
-                        ? fullText.slice(0, streamingCharCount)
-                        : fullText
+                      if (isStreamingThis && !fullText) {
+                        return (
+                          <div
+                            className={styles.thinkingBubble}
+                            aria-label="Assistant is thinking"
+                            data-testid="insights-rail-streaming-thinking"
+                          >
+                            <span className={styles.thinkingDot} aria-hidden />
+                            <span
+                              className={mergeClasses(
+                                styles.thinkingDot,
+                                styles.thinkingDot2
+                              )}
+                              aria-hidden
+                            />
+                            <span
+                              className={mergeClasses(
+                                styles.thinkingDot,
+                                styles.thinkingDot3
+                              )}
+                              aria-hidden
+                            />
+                          </div>
+                        )
+                      }
                       return renderMessageContent(
-                        displayText || (isStreamingThis ? '' : '(no answer)'),
-                        styles,
-                        isStreamingThis
+                        fullText || '(no answer)',
+                        styles
                       )
                     })()}
                     {isAssistant &&
@@ -1856,7 +2002,7 @@ export function InsightsRail({
                 </div>
               )
             })}
-            {awaitingAssistant ? (
+            {awaitingAssistant && !streamingMessageId ? (
               <div
                 className={mergeClasses(
                   styles.messageRow,
