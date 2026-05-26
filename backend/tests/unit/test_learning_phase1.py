@@ -11,6 +11,9 @@ from src.services.storage_postgres import PostgresStorageService
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 MIGRATION_PATH = REPO_ROOT / "backend" / "alembic" / "versions" / "20260523_000024_learning_foundations.py"
+STUDENT_FACT_MIGRATION_PATH = (
+    REPO_ROOT / "backend" / "alembic" / "versions" / "20260524_000027_student_fact_approvals.py"
+)
 TRACE_PATH = REPO_ROOT / "scripts" / "trace_evidence_phase_1.py"
 
 
@@ -42,15 +45,26 @@ def response_fixture(tenant_id="tenant-1"):
 
 def test_phase_1_migration_declares_every_learning_table_with_forced_rls():
     migration = load_module(MIGRATION_PATH, "phase_1_migration")
+    student_fact_migration = load_module(STUDENT_FACT_MIGRATION_PATH, "student_fact_migration")
     source = MIGRATION_PATH.read_text(encoding="utf-8")
+    student_fact_source = STUDENT_FACT_MIGRATION_PATH.read_text(encoding="utf-8")
+    declared_tables = tuple(migration.LEARNING_RLS_TABLES) + tuple(
+        student_fact_migration.LEARNING_STUDENT_FACT_RLS_TABLES
+    )
 
-    assert tuple(migration.LEARNING_RLS_TABLES) == LEARNING_RLS_PROTECTED_TABLES
+    assert declared_tables == LEARNING_RLS_PROTECTED_TABLES
     assert "ENABLE ROW LEVEL SECURITY" in source
     assert "FORCE ROW LEVEL SECURITY" in source
+    assert "ENABLE ROW LEVEL SECURITY" in student_fact_source
+    assert "FORCE ROW LEVEL SECURITY" in student_fact_source
     assert "app.tenant_id" in source
     assert "app.class_id" in source
-    for table_name in LEARNING_RLS_PROTECTED_TABLES:
+    assert "app.tenant_id" in student_fact_source
+    assert "app.class_id" in student_fact_source
+    for table_name in migration.LEARNING_RLS_TABLES:
         assert f"CREATE TABLE IF NOT EXISTS {table_name}" in source
+    for table_name in student_fact_migration.LEARNING_STUDENT_FACT_RLS_TABLES:
+        assert f"CREATE TABLE IF NOT EXISTS {table_name}" in student_fact_source
 
 
 def test_storage_postgres_sets_learning_scope_gucs(monkeypatch):

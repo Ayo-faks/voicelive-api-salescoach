@@ -257,6 +257,26 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: '8px',
   },
+  planSummaryGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: '10px',
+    '@media (max-width: 640px)': { gridTemplateColumns: '1fr' },
+  },
+  planSummaryItem: {
+    display: 'grid',
+    gap: '4px',
+    padding: '12px',
+    borderRadius: t.radius.md,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+  },
+  planSummaryValue: {
+    color: t.brand.text,
+    fontWeight: 800,
+    lineHeight: 1.35,
+    overflowWrap: 'anywhere',
+  },
   planReviewRow: {
     display: 'grid',
     gap: '3px',
@@ -382,6 +402,10 @@ function languageLabel(value: string) {
   if (value === 'en-NG') return 'English'
   if (value === 'yo-NG') return 'Yoruba'
   return 'Learner language'
+}
+
+function learnerCountLabel(count: number) {
+  return `${count} learner${count === 1 ? '' : 's'}`
 }
 
 export function MultimodalIntentBar({
@@ -540,6 +564,12 @@ export function PendingApprovalCard({
     parsedEdits.targetStudentIds.length > 0 &&
     parsedEdits.itemTypes.length > 0 &&
     parsedEdits.rationale.length > 0
+  const practicePlanSummary = [
+    { label: 'Duration', value: '1-2 weeks' },
+    { label: 'Learners', value: learnerCountLabel(plan.targetStudentIds.length) },
+    { label: 'Focus', value: listToText(plan.targetSkillIds) },
+    { label: 'Practice mix', value: listToText(plan.itemTypes) },
+  ]
 
   async function handleSubmitEdit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -556,16 +586,26 @@ export function PendingApprovalCard({
   return (
     <Card className={styles.approvalCard} data-testid="phase2-pending-approval-card">
       <CardHeader
-        header={<Text weight="semibold">Pending teacher approval</Text>}
-        description={<Text size={200}>{languageLabel(plan.lang)} review</Text>}
+        header={<Text weight="semibold">1-2 week practice plan awaiting teacher approval</Text>}
+        description={<Text size={200}>Pathfinder proposes; the teacher stays in charge.</Text>}
       />
-      <Text>{plan.rationale}</Text>
       <div className={styles.planMeta}>
-        {plan.targetSkillIds.map(skillId => (
-          <span key={skillId} className={styles.metaBadge}>
-            {skillId}
-          </span>
+        <span className={styles.metaBadge}>Pathfinder proposal</span>
+        <span className={styles.metaBadge}>{languageLabel(plan.lang)} review</span>
+        <span className={styles.metaBadge}>Teacher approval required</span>
+      </div>
+      <Text>{plan.rationale}</Text>
+      <div className={styles.planSummaryGrid} data-testid="practice-plan-proposal">
+        {practicePlanSummary.map(item => (
+          <div key={item.label} className={styles.planSummaryItem}>
+            <span className={styles.planReviewLabel}>{item.label}</span>
+            <span className={styles.planSummaryValue}>{item.value}</span>
+          </div>
         ))}
+        <div className={styles.planSummaryItem}>
+          <span className={styles.planReviewLabel}>Resources</span>
+          <span className={styles.planSummaryValue}>{listToText(plan.suggestedResources)}</span>
+        </div>
       </div>
       <div className={styles.planActions}>
         {!reviewing ? (

@@ -52,6 +52,41 @@ const trajectoryData = [
   { week: 'W6', ratio: 42, fractions: 61 },
 ]
 
+const parentReadySummary = [
+  {
+    label: 'What we noticed',
+    items: [
+      'Tobi is strongest in geometry and is improving in fractions.',
+      'Ratio and proportion is still the main learning gap this week.',
+      'Recent practice shows Tobi benefits from worked examples before independent questions.',
+    ],
+  },
+  {
+    label: 'What Pathfinder did',
+    items: [
+      'Ran a short diagnostic and adapted the next item after a ratio error.',
+      'Proposed a 1-2 week ratio recovery plan for teacher approval.',
+      'Scheduled spaced retrieval after one bite-sized practice exercise.',
+    ],
+  },
+  {
+    label: 'What to do at home',
+    items: [
+      'Spend 10 minutes twice this week on recipe or shopping ratios.',
+      'Ask Tobi to explain what changed and what stayed the same in each ratio.',
+      'Encourage effort on chemistry and science pathways without promising outcomes.',
+    ],
+  },
+  {
+    label: 'Next school action',
+    items: [
+      `Teacher review is scheduled for ${parentProgress.nextReview}.`,
+      'Personalisation facts only apply after teacher approval.',
+      'Parents can reply with context for the teacher to approve or reject.',
+    ],
+  },
+]
+
 const useStyles = makeStyles({
   shell: {
     display: 'grid',
@@ -197,6 +232,67 @@ const useStyles = makeStyles({
     lineHeight: 1.35,
     overflowWrap: 'anywhere',
   },
+  parentSummaryCard: {
+    padding: '18px',
+    borderRadius: t.radius.xl,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+    boxShadow: t.surface.cardElevatedShadow,
+    display: 'grid',
+    gap: '14px',
+  },
+  parentSummaryHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '12px',
+    alignItems: 'flex-start',
+    flexWrap: 'wrap',
+  },
+  parentSummaryGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: '12px',
+    '@media (max-width: 760px)': { gridTemplateColumns: '1fr' },
+  },
+  parentSummarySection: {
+    display: 'grid',
+    gap: '8px',
+    padding: '12px',
+    borderRadius: t.radius.md,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+  },
+  parentSummaryList: {
+    display: 'grid',
+    gap: '6px',
+    margin: 0,
+    paddingLeft: '18px',
+    color: t.brand.textSecondary,
+    fontSize: '0.88rem',
+    lineHeight: 1.45,
+  },
+  parentSummaryActions: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap',
+  },
+  sendHomeButton: {
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '38px',
+    paddingRight: '15px',
+    paddingLeft: '15px',
+    borderRadius: t.radius.pill,
+    border: `1px solid ${t.brand.ink}`,
+    backgroundColor: t.brand.ink,
+    color: t.brand.onInk,
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.84rem',
+    fontWeight: 800,
+  },
 })
 
 export default function StudentMasteryProfile() {
@@ -228,6 +324,33 @@ export default function StudentMasteryProfile() {
           </div>
         </div>
       </div>
+
+      <Card className={styles.parentSummaryCard} data-testid="parent-ready-summary">
+        <div className={styles.parentSummaryHeader}>
+          <div>
+            <Text weight="semibold">One-page parent-ready summary</Text>
+            <p style={{ margin: '6px 0 0', color: t.brand.textSecondary, lineHeight: 1.45 }}>
+              Plain-language update for home: progress, support plan, next practice, and teacher-controlled memory.
+            </p>
+          </div>
+          <div className={styles.parentSummaryActions}>
+            <span className={styles.softBadgeSolid}>Ready to send home</span>
+            <button type="button" className={styles.sendHomeButton}>Send home summary</button>
+          </div>
+        </div>
+        <div className={styles.parentSummaryGrid}>
+          {parentReadySummary.map(section => (
+            <section key={section.label} className={styles.parentSummarySection}>
+              <Text weight="semibold">{section.label}</Text>
+              <ul className={styles.parentSummaryList}>
+                {section.items.map(item => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      </Card>
 
       <div className={styles.twoCol}>
         <Card className={styles.chartCard}>

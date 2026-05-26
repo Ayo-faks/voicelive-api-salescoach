@@ -1,10 +1,15 @@
 import { Text, makeStyles } from '@fluentui/react-components'
 import {
+  AcademicCapIcon,
   ArrowRightIcon,
   BoltIcon,
+  BookOpenIcon,
+  BriefcaseIcon,
+  CalculatorIcon,
   CheckBadgeIcon,
   ChevronRightIcon,
   ClockIcon,
+  MicrophoneIcon,
   PlayCircleIcon,
   SparklesIcon,
   WifiIcon,
@@ -26,6 +31,82 @@ type Activity = {
   minutes: number
   type: 'check-in' | 'practice' | 'exit-ticket'
   skillId?: string
+}
+
+type DemoStep = {
+  id: string
+  label: string
+  title: string
+  prompt: string
+  helper: string
+  icon: typeof CalculatorIcon
+  options: Array<{
+    id: string
+    label: string
+    meta?: string
+    correct?: boolean
+  }>
+  voiceText?: string
+  adaptation?: {
+    title: string
+    body: string
+    nextStep: DemoStep
+  }
+}
+
+type DemoAnswer = {
+  stepId: string
+  optionId: string
+  label: string
+  correct?: boolean
+  syncStatus?: 'local' | 'sent'
+}
+
+type AdaptiveMoment = {
+  title: string
+  body: string
+}
+
+type PracticeOption = {
+  id: string
+  label: string
+  meta?: string
+  correct?: boolean
+}
+
+type RetrievalSlot = {
+  id: string
+  label: string
+  timing: string
+  focus: string
+}
+
+type PracticeExercise = {
+  planId: string
+  planTitle: string
+  title: string
+  prompt: string
+  hint: string
+  options: PracticeOption[]
+  schedule: RetrievalSlot[]
+}
+
+type PracticeAnswer = {
+  optionId: string
+  label: string
+  correct: boolean
+}
+
+type CareerAnswerPoint = {
+  label: string
+  body: string
+}
+
+type CareerNavigationMoment = {
+  question: string
+  responseLead: string
+  points: CareerAnswerPoint[]
+  sources: string[]
 }
 
 const todaysPath: Activity[] = [
@@ -60,6 +141,161 @@ const weeklyTiles: Array<{ label: string; value: string; delta: string }> = [
   { label: 'Streak', value: '7 days', delta: 'Personal best' },
   { label: 'Mastery', value: '+12%', delta: 'Ratio focus' },
 ]
+
+const deviceModes = [
+  {
+    label: 'Desktop web',
+    value: 'Full learning workspace',
+    detail: 'Diagnostic, practice, career guidance, and teacher status stay visible for classroom or lab use.',
+  },
+  {
+    label: 'Tablet / shared device',
+    value: 'Touch or keyboard',
+    detail: 'Same flow works with mouse, keyboard, or touch for school device carts and family devices.',
+  },
+  {
+    label: 'Phone / offline',
+    value: 'Condensed journey',
+    detail: 'The layout collapses for smaller screens and saves answers locally when connectivity drops.',
+  },
+]
+
+const ratioScaffoldStep: DemoStep = {
+  id: 'adaptive-ratio-scaffold',
+  label: 'Adaptive',
+  title: 'Same idea, smaller step',
+  prompt: 'Pathfinder noticed the ratio slip. If 1 cup rice needs 1.5 cups water, what do 2 cups rice need?',
+  helper: 'The next item changed from a new skill to a scaffolded ratio check so you can recover quickly.',
+  icon: CalculatorIcon,
+  options: [
+    { id: '2', label: '2 cups' },
+    { id: '3', label: '3 cups', correct: true },
+    { id: '4', label: '4 cups' },
+  ],
+}
+
+const demoDiagnosticSteps: DemoStep[] = [
+  {
+    id: 'numeracy-ratio',
+    label: 'Numeracy',
+    title: 'Quick ratio check',
+    prompt: '2 cups rice need 3 cups water. If you use 4 cups rice, how many cups water?',
+    helper: 'Choose the answer that keeps the same recipe balance.',
+    icon: CalculatorIcon,
+    options: [
+      { id: '4', label: '4 cups' },
+      { id: '5', label: '5 cups' },
+      { id: '6', label: '6 cups', correct: true },
+      { id: '8', label: '8 cups' },
+    ],
+    adaptation: {
+      title: 'Pathfinder adapted the next item',
+      body: 'The answer suggests doubling the rice was missed, so the next card stays on ratios and reduces the jump before moving on.',
+      nextStep: ratioScaffoldStep,
+    },
+  },
+  {
+    id: 'reading-lamp',
+    label: 'Reading',
+    title: 'One short passage',
+    prompt: 'Amina charged the solar lamp before sunset so she could study after dinner. Why did she charge it early?',
+    helper: 'Read once, then choose the best reason.',
+    icon: BookOpenIcon,
+    options: [
+      { id: 'rain', label: 'Because rain was coming' },
+      { id: 'study', label: 'So she could study later', correct: true },
+      { id: 'market', label: 'So she could go to market' },
+    ],
+  },
+  {
+    id: 'voice-read-aloud',
+    label: 'Voice',
+    title: 'Read aloud',
+    prompt: 'Read aloud: The small solar lamp helped Amina finish her homework.',
+    helper: 'No marks here. Pathfinder queues the sample offline when voice is unavailable.',
+    icon: MicrophoneIcon,
+    voiceText: 'The small solar lamp helped Amina finish her homework.',
+    options: [
+      { id: 'read-aloud', label: 'I read it aloud', meta: 'Save or queue sample' },
+    ],
+  },
+  {
+    id: 'basic-science-conductor',
+    label: 'Subject',
+    title: 'Basic Science',
+    prompt: 'Which material lets electricity flow best?',
+    helper: 'One subject-specific question, not a full paper.',
+    icon: AcademicCapIcon,
+    options: [
+      { id: 'wood', label: 'Wood' },
+      { id: 'rubber', label: 'Rubber' },
+      { id: 'copper', label: 'Copper', correct: true },
+      { id: 'plastic', label: 'Plastic' },
+    ],
+  },
+  {
+    id: 'career-interest',
+    label: 'Career',
+    title: 'Interest check',
+    prompt: 'Which activity sounds most interesting today?',
+    helper: 'There is no wrong answer. This helps personalise future examples.',
+    icon: BriefcaseIcon,
+    options: [
+      { id: 'build', label: 'Build or fix things' },
+      { id: 'explain', label: 'Explain ideas to people' },
+      { id: 'design', label: 'Draw or design something' },
+      { id: 'investigate', label: 'Investigate how things work' },
+    ],
+  },
+]
+
+const generatedPlanPractice: PracticeExercise = {
+  planId: 'plan-jss2-ratio-recovery',
+  planTitle: 'Teacher-approved ratio recovery plan',
+  title: 'Bite-sized practice exercise',
+  prompt: 'A recipe uses 3 cups of water for 2 cups of rice. How many cups of water are needed for 6 cups of rice?',
+  hint: 'This is the worked-example step from the approved 1-2 week plan: scale both parts by the same amount.',
+  options: [
+    { id: '6', label: '6 cups', meta: 'Same as rice' },
+    { id: '7', label: '7 cups', meta: 'Add one more' },
+    { id: '9', label: '9 cups', meta: 'Scale by 3', correct: true },
+    { id: '12', label: '12 cups', meta: 'Double again' },
+  ],
+  schedule: [
+    { id: 'same-day', label: 'Today', timing: '10 minutes after this exercise', focus: 'Try one similar ratio without the hint.' },
+    { id: 'tomorrow', label: 'Tomorrow', timing: 'Before the next maths lesson', focus: 'Answer a fresh recipe-ratio card.' },
+    { id: 'weekend', label: 'In 4 days', timing: 'Short weekend retrieval', focus: 'Mix ratio with fraction-bar review.' },
+  ],
+}
+
+const careerNavigationMoment: CareerNavigationMoment = {
+  question: "Can I still become a doctor if I'm weak in chemistry?",
+  responseLead:
+    'It may still be possible, but Pathfinder should not promise an outcome. Medicine usually needs strong chemistry and biology, so the honest answer is: keep the goal open while you work on the chemistry gap and compare nearby health pathways.',
+  points: [
+    {
+      label: 'What is realistic',
+      body: 'A weak chemistry score today does not close the door, but medical entry is competitive and usually expects strong science grades over time.',
+    },
+    {
+      label: 'What needs work',
+      body: 'Focus next on atoms, bonding, acids and bases, and quantitative chemistry. Ask your teacher for a 2-week repair plan and retest one small topic at a time.',
+    },
+    {
+      label: 'What alternatives exist',
+      body: 'You can also explore nursing, pharmacy technology, medical laboratory science, public health, health data, or biomedical engineering while chemistry improves.',
+    },
+    {
+      label: 'Next safe step',
+      body: 'Discuss this with a teacher or counsellor before choosing subjects. Pathfinder can show options and gaps, not guarantee admission or a career outcome.',
+    },
+  ],
+  sources: [
+    'Grounded in science-subject requirements',
+    'Uses current mastery snapshot: chemistry needs support',
+    'Counsellor review recommended for career decisions',
+  ],
+}
 
 const useStyles = makeStyles({
   root: {
@@ -291,6 +527,309 @@ const useStyles = makeStyles({
     alignItems: 'center',
     gap: '4px',
   },
+  demoCard: {
+    display: 'grid',
+    gap: '16px',
+    padding: '18px',
+    borderRadius: t.radius.xxl,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+    boxShadow: t.surface.raisedShadow,
+  },
+  demoHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '12px',
+    alignItems: 'flex-start',
+    flexWrap: 'wrap',
+  },
+  demoTitle: {
+    fontFamily: t.font.display,
+    fontSize: '1.24rem',
+    fontWeight: 800,
+    color: t.brand.text,
+    letterSpacing: '0',
+  },
+  demoProgress: {
+    display: 'flex',
+    gap: '6px',
+    flexWrap: 'wrap',
+  },
+  demoDot: {
+    width: '34px',
+    height: '8px',
+    borderRadius: t.radius.pill,
+    backgroundColor: t.brand.lineSoft,
+  },
+  demoDotActive: {
+    width: '34px',
+    height: '8px',
+    borderRadius: t.radius.pill,
+    backgroundColor: t.brand.ink,
+  },
+  demoPromptCard: {
+    display: 'grid',
+    gap: '12px',
+    padding: '18px',
+    borderRadius: t.radius.xl,
+    backgroundColor: t.surface.cardMuted,
+    border: t.surface.hairline,
+  },
+  adaptiveMoment: {
+    display: 'grid',
+    gap: '8px',
+    padding: '14px 16px',
+    borderRadius: t.radius.lg,
+    border: `1px solid ${t.brand.ink}`,
+    backgroundColor: t.brand.surfaceMuted,
+    boxShadow: '0 10px 24px rgba(15, 42, 58, 0.08)',
+  },
+  adaptiveMomentBody: {
+    margin: 0,
+    color: t.brand.textSecondary,
+    fontSize: '0.88rem',
+    lineHeight: 1.45,
+  },
+  demoPromptHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+  },
+  demoPromptIcon: {
+    width: '42px',
+    height: '42px',
+    borderRadius: t.radius.md,
+    display: 'grid',
+    placeItems: 'center',
+    backgroundColor: t.brand.ink,
+    color: t.brand.onInk,
+    flexShrink: 0,
+  },
+  demoPrompt: {
+    margin: 0,
+    color: t.brand.text,
+    fontFamily: t.font.display,
+    fontSize: 'clamp(1.2rem, 5vw, 1.55rem)',
+    lineHeight: 1.18,
+    fontWeight: 800,
+    letterSpacing: '0',
+  },
+  demoHelper: {
+    margin: 0,
+    color: t.brand.textSecondary,
+    fontSize: '0.9rem',
+    lineHeight: 1.45,
+  },
+  demoOptions: {
+    display: 'grid',
+    gap: '10px',
+  },
+  demoOption: {
+    appearance: 'none',
+    width: '100%',
+    minHeight: '58px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '12px',
+    padding: '14px 16px',
+    borderRadius: t.radius.lg,
+    border: `1px solid ${t.brand.line}`,
+    backgroundColor: t.brand.surface,
+    color: t.brand.text,
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '1rem',
+    fontWeight: 800,
+    textAlign: 'left',
+    boxShadow: '0 8px 18px rgba(15, 42, 58, 0.08)',
+  },
+  demoOptionMeta: {
+    color: t.brand.textTertiary,
+    fontSize: '0.76rem',
+    fontWeight: 700,
+  },
+  demoFooter: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '10px',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    color: t.brand.textSecondary,
+    fontSize: '0.82rem',
+  },
+  demoCompleteGrid: {
+    display: 'grid',
+    gap: '8px',
+  },
+  practiceCard: {
+    display: 'grid',
+    gap: '16px',
+    padding: '18px',
+    borderRadius: t.radius.xxl,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+    boxShadow: t.surface.raisedShadow,
+  },
+  practicePromptCard: {
+    display: 'grid',
+    gap: '10px',
+    padding: '16px',
+    borderRadius: t.radius.xl,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+  },
+  practicePrompt: {
+    margin: 0,
+    color: t.brand.text,
+    fontFamily: t.font.display,
+    fontSize: 'clamp(1.16rem, 5vw, 1.48rem)',
+    fontWeight: 800,
+    lineHeight: 1.2,
+    letterSpacing: '0',
+  },
+  practiceOptions: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: '10px',
+    '@media (max-width: 520px)': { gridTemplateColumns: '1fr' },
+  },
+  practiceOption: {
+    appearance: 'none',
+    minHeight: '64px',
+    display: 'grid',
+    gap: '4px',
+    alignContent: 'center',
+    padding: '14px 16px',
+    borderRadius: t.radius.lg,
+    border: `1px solid ${t.brand.line}`,
+    backgroundColor: t.brand.surface,
+    color: t.brand.text,
+    cursor: 'pointer',
+    font: 'inherit',
+    textAlign: 'left',
+    boxShadow: '0 8px 18px rgba(15, 42, 58, 0.08)',
+  },
+  practiceOptionSelected: {
+    appearance: 'none',
+    minHeight: '64px',
+    display: 'grid',
+    gap: '4px',
+    alignContent: 'center',
+    padding: '14px 16px',
+    borderRadius: t.radius.lg,
+    border: `2px solid ${t.brand.ink}`,
+    backgroundColor: t.brand.ink,
+    color: t.brand.onInk,
+    cursor: 'pointer',
+    font: 'inherit',
+    textAlign: 'left',
+    boxShadow: '0 10px 24px rgba(15, 42, 58, 0.16)',
+  },
+  practiceOptionLabel: {
+    fontSize: '1rem',
+    fontWeight: 850,
+  },
+  practiceOptionMeta: {
+    fontSize: '0.76rem',
+    fontWeight: 700,
+    opacity: 0.72,
+  },
+  feedbackCard: {
+    display: 'grid',
+    gap: '8px',
+    padding: '14px 16px',
+    borderRadius: t.radius.lg,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+  },
+  retrievalList: {
+    display: 'grid',
+    gap: '8px',
+    margin: 0,
+    padding: 0,
+    listStyleType: 'none',
+  },
+  retrievalItem: {
+    display: 'grid',
+    gap: '3px',
+    padding: '10px 12px',
+    borderRadius: t.radius.md,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+  },
+  careerAskGrid: {
+    display: 'grid',
+    gap: '10px',
+  },
+  careerInput: {
+    width: '100%',
+    minHeight: '46px',
+    borderRadius: t.radius.lg,
+    border: `1px solid ${t.brand.line}`,
+    boxSizing: 'border-box',
+    paddingRight: '14px',
+    paddingLeft: '14px',
+    color: t.brand.text,
+    backgroundColor: t.brand.surface,
+    font: 'inherit',
+    fontSize: '0.95rem',
+    fontWeight: 700,
+  },
+  careerActions: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: '10px',
+    '@media (max-width: 520px)': { gridTemplateColumns: '1fr' },
+  },
+  careerAction: {
+    appearance: 'none',
+    minHeight: '48px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    paddingRight: '14px',
+    paddingLeft: '14px',
+    borderRadius: t.radius.pill,
+    border: `1px solid ${t.brand.ink}`,
+    backgroundColor: t.brand.ink,
+    color: t.brand.onInk,
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.9rem',
+    fontWeight: 850,
+  },
+  careerActionSecondary: {
+    appearance: 'none',
+    minHeight: '48px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    paddingRight: '14px',
+    paddingLeft: '14px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+    color: t.brand.text,
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.9rem',
+    fontWeight: 850,
+  },
+  careerPointList: {
+    display: 'grid',
+    gap: '8px',
+    margin: 0,
+    padding: 0,
+    listStyleType: 'none',
+  },
+  careerSourceRow: {
+    display: 'flex',
+    gap: '6px',
+    flexWrap: 'wrap',
+  },
   weekGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
@@ -320,6 +859,57 @@ const useStyles = makeStyles({
     color: t.brand.text,
   },
   weekDelta: { fontSize: '0.78rem', color: t.brand.textSecondary },
+  deviceOverviewCard: {
+    display: 'grid',
+    gap: '14px',
+    padding: '18px',
+    borderRadius: t.radius.xl,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+    boxShadow: t.surface.raisedShadow,
+  },
+  deviceOverviewGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: '12px',
+    '@media (max-width: 860px)': { gridTemplateColumns: '1fr' },
+  },
+  deviceModeTile: {
+    display: 'grid',
+    gap: '5px',
+    padding: '13px 14px',
+    borderRadius: t.radius.lg,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+  },
+  deviceModeValue: {
+    color: t.brand.text,
+    fontSize: '0.95rem',
+    fontWeight: 850,
+  },
+  deviceModeDetail: {
+    color: t.brand.textSecondary,
+    fontSize: '0.8rem',
+    lineHeight: 1.45,
+  },
+  demoInteractionGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1.15fr) minmax(260px, 0.85fr)',
+    gap: '14px',
+    alignItems: 'start',
+    '@media (max-width: 780px)': { gridTemplateColumns: '1fr' },
+  },
+  demoPromptStack: {
+    display: 'grid',
+    gap: '12px',
+  },
+  practiceInteractionGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1fr) minmax(260px, 0.9fr)',
+    gap: '14px',
+    alignItems: 'start',
+    '@media (max-width: 780px)': { gridTemplateColumns: '1fr' },
+  },
   sideHeading: {
     fontSize: '0.72rem',
     textTransform: 'uppercase',
@@ -364,6 +954,19 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
   const styles = useStyles()
   const [activeSkill, setActiveSkill] = useState<string | null>(null)
   const [panelKey, setPanelKey] = useState(0)
+  const [checkInActive, setCheckInActive] = useState(false)
+  const [demoActive, setDemoActive] = useState(false)
+  const [demoCompleted, setDemoCompleted] = useState(false)
+  const [demoStepQueue, setDemoStepQueue] = useState<DemoStep[]>(demoDiagnosticSteps)
+  const [demoStepIndex, setDemoStepIndex] = useState(0)
+  const [demoAnswers, setDemoAnswers] = useState<DemoAnswer[]>([])
+  const [demoSyncNote, setDemoSyncNote] = useState<string | null>(null)
+  const [adaptiveMoment, setAdaptiveMoment] = useState<AdaptiveMoment | null>(null)
+  const [demoVoiceBusy, setDemoVoiceBusy] = useState(false)
+  const [practiceAnswer, setPracticeAnswer] = useState<PracticeAnswer | null>(null)
+  const [careerQuestion, setCareerQuestion] = useState(careerNavigationMoment.question)
+  const [careerAnswerVisible, setCareerAnswerVisible] = useState(false)
+  const [careerAskMode, setCareerAskMode] = useState<'text' | 'voice' | null>(null)
   const [completed, setCompleted] = useState(false)
   const [voiceConfig, setVoiceConfig] = useState<VoiceConfigResponse | null>(null)
   const [voiceResult, setVoiceResult] = useState<VoiceFrameResponse | null>(null)
@@ -391,9 +994,102 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
   }, [])
 
   function startCheckIn(skillId?: string) {
+    setDemoActive(false)
+    setDemoCompleted(false)
     setActiveSkill(skillId ?? null)
     setCompleted(false)
+    setCheckInActive(true)
     setPanelKey(value => value + 1)
+  }
+
+  function startDemoDiagnostic() {
+    setActiveSkill(null)
+    setCheckInActive(false)
+    setCompleted(false)
+    setDemoCompleted(false)
+    setDemoStepQueue(demoDiagnosticSteps)
+    setDemoStepIndex(0)
+    setDemoAnswers([])
+    setDemoSyncNote(null)
+    setAdaptiveMoment(null)
+    setDemoActive(true)
+  }
+
+  function saveDemoLocally(answers: DemoAnswer[], stepCount: number) {
+    try {
+      window.localStorage.setItem(
+        'pathfinder-demo-diagnostic:last',
+        JSON.stringify({
+          studentId: studentId ?? 'demo-student',
+          completedAt: new Date().toISOString(),
+          stepCount,
+          answers,
+        })
+      )
+    } catch {
+      // Demo diagnostics are offline-friendly; storage failures should not block the flow.
+    }
+  }
+
+  async function handleDemoAnswer(step: DemoStep, option: DemoStep['options'][number]) {
+    const canScoreStep = step.options.some(candidate => candidate.correct)
+    const shouldAdapt = canScoreStep && !option.correct && Boolean(step.adaptation)
+    let nextQueue = demoStepQueue
+    if (shouldAdapt && step.adaptation) {
+      const nextStepAlreadyInserted = demoStepQueue[demoStepIndex + 1]?.id === step.adaptation.nextStep.id
+      nextQueue = nextStepAlreadyInserted
+        ? demoStepQueue
+        : [
+            ...demoStepQueue.slice(0, demoStepIndex + 1),
+            step.adaptation.nextStep,
+            ...demoStepQueue.slice(demoStepIndex + 1),
+          ]
+      setDemoStepQueue(nextQueue)
+      setAdaptiveMoment({ title: step.adaptation.title, body: step.adaptation.body })
+    } else {
+      setAdaptiveMoment(null)
+    }
+
+    const isVoiceStep = Boolean(step.voiceText)
+    const answerRecord: DemoAnswer = {
+      stepId: step.id,
+      optionId: option.id,
+      label: option.label,
+      correct: option.correct,
+      syncStatus: isVoiceStep ? 'local' : undefined,
+    }
+    const nextAnswers = [...demoAnswers, answerRecord]
+    setDemoAnswers(nextAnswers)
+
+    if (isVoiceStep) {
+      setDemoVoiceBusy(true)
+      try {
+        if (voiceConfig?.enabled) {
+          await submitVoiceFrame({
+            actor_id: studentId ?? undefined,
+            mode: 'text',
+            payload: step.voiceText ?? step.prompt,
+            lang: 'en-NG',
+          })
+          answerRecord.syncStatus = 'sent'
+          setDemoSyncNote('Voice sample saved for teacher review.')
+        } else {
+          setDemoSyncNote('Voice sample queued locally and will sync when voice is available.')
+        }
+      } catch {
+        setDemoSyncNote('Voice sample queued locally and will sync when connection returns.')
+      } finally {
+        setDemoVoiceBusy(false)
+      }
+    }
+
+    if (demoStepIndex >= nextQueue.length - 1) {
+      saveDemoLocally(nextAnswers, nextQueue.length)
+      setDemoActive(false)
+      setDemoCompleted(true)
+      return
+    }
+    setDemoStepIndex(index => index + 1)
   }
 
   async function startVoiceCheckIn() {
@@ -414,6 +1110,58 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
     }
   }
 
+  function handlePracticeAnswer(option: PracticeOption) {
+    const answerRecord: PracticeAnswer = {
+      optionId: option.id,
+      label: option.label,
+      correct: Boolean(option.correct),
+    }
+    setPracticeAnswer(answerRecord)
+    try {
+      window.localStorage.setItem(
+        'pathfinder-practice-loop:last',
+        JSON.stringify({
+          studentId: studentId ?? 'demo-student',
+          planId: generatedPlanPractice.planId,
+          answeredAt: new Date().toISOString(),
+          answer: answerRecord,
+          spacedRetrieval: generatedPlanPractice.schedule,
+        })
+      )
+    } catch {
+      // Local scheduling is best-effort in the offline demo path.
+    }
+  }
+
+  async function handleCareerAsk(mode: 'text' | 'voice') {
+    const question = careerQuestion.trim() || careerNavigationMoment.question
+    setCareerQuestion(question)
+    setCareerAskMode(mode)
+    setCareerAnswerVisible(true)
+    try {
+      if (mode === 'voice' && voiceConfig?.enabled) {
+        await submitVoiceFrame({
+          actor_id: studentId ?? undefined,
+          mode: 'text',
+          payload: question,
+          lang: 'en-NG',
+        })
+      }
+      window.localStorage.setItem(
+        'pathfinder-career-navigation:last',
+        JSON.stringify({
+          studentId: studentId ?? 'demo-student',
+          askedAt: new Date().toISOString(),
+          mode,
+          question,
+          response: careerNavigationMoment,
+        })
+      )
+    } catch {
+      // Career navigation remains available offline; voice/text sync can retry later.
+    }
+  }
+
   return (
     <section className={styles.root} data-testid="route-student-home">
       <div className={styles.main}>
@@ -424,8 +1172,9 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
           </span>
           <h1 className={styles.heroTitle}>Hi Tobi — let's keep the streak.</h1>
           <p className={styles.heroSub}>
-            Your ratio path is 42% mastered. One short check-in today closes the
-            gap with your class average.
+            Your ratio path is 42% mastered. Pathfinder works on desktop web,
+            tablet, and phone, so one short check-in today can happen in class,
+            at home, or offline.
           </p>
           <div className={styles.heroPills}>
             <span className={styles.heroPill}>
@@ -438,11 +1187,11 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
           <button
             type="button"
             className={styles.heroCta}
-            onClick={() => startCheckIn()}
+            onClick={startDemoDiagnostic}
             data-testid="start-checkin"
           >
             <PlayCircleIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
-            Start today's check-in
+            Start 5-step demo
             <ArrowRightIcon style={{ width: 16, height: 16 }} aria-hidden="true" />
           </button>
           {voiceConfig?.enabled && (
@@ -470,26 +1219,253 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
           )}
         </article>
 
-        {(activeSkill !== null || panelKey > 0) && (
-          <DiagnosticPanel
-            key={panelKey}
-            skillId={activeSkill ?? undefined}
-            studentId={studentId}
-            onCompleted={() => setCompleted(true)}
-          />
-        )}
-
-        {completed && (
-          <div className={styles.banner} data-testid="diagnostic-pending-banner">
-            <SparklesIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
-            Plan suggestion sent to your teacher for approval.
+        <article className={styles.deviceOverviewCard} data-testid="cross-device-learner-workspace">
+          <div className={styles.cardHeader}>
+            <div>
+              <Text className={styles.cardTitle}>Web, desktop, tablet, and phone</Text>
+              <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
+                Same learner workflow; the layout widens on desktop and condenses on smaller screens.
+              </p>
+            </div>
+            <span className={styles.softBadge}>Responsive web app</span>
           </div>
-        )}
+          <div className={styles.deviceOverviewGrid}>
+            {deviceModes.map(mode => (
+              <div key={mode.label} className={styles.deviceModeTile}>
+                <span className={styles.weekLabel}>{mode.label}</span>
+                <span className={styles.deviceModeValue}>{mode.value}</span>
+                <span className={styles.deviceModeDetail}>{mode.detail}</span>
+              </div>
+            ))}
+          </div>
+        </article>
 
-        <div className={styles.banner}>
-          <WifiIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
-          Yoruba voice practice is ready and will sync when connection returns.
-        </div>
+        {demoActive && (() => {
+          const step = demoStepQueue[demoStepIndex] ?? demoDiagnosticSteps[0]
+          const StepIcon = step.icon
+          return (
+            <article className={styles.demoCard} data-testid="short-demo-diagnostic">
+              <div className={styles.demoHeader}>
+                <div>
+                  <Text className={styles.demoTitle}>3-5 minute demo diagnostic</Text>
+                  <p className={styles.demoHelper}>Five short signals. Keyboard, mouse, or touch. Works offline.</p>
+                </div>
+                <div className={styles.demoProgress} aria-label="Demo diagnostic progress">
+                  {demoStepQueue.map((item, index) => (
+                    <span
+                      key={item.id}
+                      className={index <= demoStepIndex ? styles.demoDotActive : styles.demoDot}
+                      data-testid={`demo-progress-${index + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.demoInteractionGrid}>
+                <div className={styles.demoPromptStack}>
+                  <div className={styles.demoPromptCard}>
+                    <div className={styles.demoPromptHeader}>
+                      <div className={styles.demoPromptIcon} aria-hidden="true">
+                        <StepIcon style={{ width: 24, height: 24 }} />
+                      </div>
+                      <div>
+                        <span className={styles.softBadge}>{step.label}</span>
+                        <Text className={styles.cardTitle}>{step.title}</Text>
+                      </div>
+                    </div>
+                    <p className={styles.demoPrompt}>{step.prompt}</p>
+                    <p className={styles.demoHelper}>{step.helper}</p>
+                  </div>
+
+                  {adaptiveMoment && (
+                    <div className={styles.adaptiveMoment} data-testid="adaptive-moment">
+                      <span className={styles.softBadge}>Adaptive moment</span>
+                      <Text className={styles.cardTitle}>{adaptiveMoment.title}</Text>
+                      <p className={styles.adaptiveMomentBody}>{adaptiveMoment.body}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.demoOptions}>
+                  {step.options.map(option => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      className={styles.demoOption}
+                      onClick={() => void handleDemoAnswer(step, option)}
+                      disabled={demoVoiceBusy}
+                    >
+                      <span>{option.label}</span>
+                      <span className={styles.demoOptionMeta}>{option.meta ?? 'Select'}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.demoFooter}>
+                <span data-testid="demo-step-count">Step {demoStepIndex + 1} of {demoStepQueue.length}</span>
+                <span>{demoSyncNote ?? 'Saved locally first, synced when online.'}</span>
+              </div>
+            </article>
+          )
+        })()}
+
+              {demoCompleted && (
+                <article className={styles.demoCard} data-testid="short-demo-complete">
+                  <div className={styles.demoCompleteGrid}>
+                    <Text className={styles.demoTitle}>Demo diagnostic complete</Text>
+                    <p className={styles.demoHelper}>
+                      Numeracy, reading, voice, subject knowledge, and career interest signals are saved locally for teacher review.
+                    </p>
+                    <div className={styles.demoProgress}>
+                      {demoAnswers.map(answer => (
+                        <span key={`${answer.stepId}-${answer.optionId}`} className={styles.softBadge}>
+                          {answer.label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </article>
+              )}
+
+              {checkInActive && (activeSkill !== null || panelKey > 0) && (
+                <DiagnosticPanel
+                  key={panelKey}
+                  skillId={activeSkill ?? undefined}
+                  studentId={studentId}
+                  onCompleted={() => setCompleted(true)}
+                />
+              )}
+
+              {completed && (
+                <div className={styles.banner} data-testid="diagnostic-pending-banner">
+                  <SparklesIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+                  Plan suggestion sent to your teacher for approval.
+                </div>
+              )}
+
+              <div className={styles.banner}>
+                <WifiIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+                Yoruba voice practice is ready and will sync when connection returns.
+              </div>
+
+              <article className={styles.practiceCard} data-testid="plan-practice-exercise">
+                <div className={styles.demoHeader}>
+                  <div>
+                    <span className={styles.softBadge}>From generated plan</span>
+                    <Text className={styles.demoTitle}>{generatedPlanPractice.title}</Text>
+                    <p className={styles.demoHelper}>{generatedPlanPractice.planTitle}</p>
+                  </div>
+                  <span className={styles.softBadge}>2 min</span>
+                </div>
+
+                <div className={styles.practiceInteractionGrid}>
+                  <div className={styles.practicePromptCard}>
+                    <p className={styles.practicePrompt}>{generatedPlanPractice.prompt}</p>
+                    <p className={styles.demoHelper}>{generatedPlanPractice.hint}</p>
+                  </div>
+
+                  <div className={styles.practiceOptions}>
+                    {generatedPlanPractice.options.map(option => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        className={practiceAnswer?.optionId === option.id ? styles.practiceOptionSelected : styles.practiceOption}
+                        onClick={() => handlePracticeAnswer(option)}
+                        disabled={Boolean(practiceAnswer)}
+                      >
+                        <span className={styles.practiceOptionLabel}>{option.label}</span>
+                        <span className={styles.practiceOptionMeta}>{option.meta ?? 'Choose answer'}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {practiceAnswer && (
+                  <div className={styles.feedbackCard} data-testid="practice-feedback">
+                    <span className={styles.softBadge}>Immediate feedback</span>
+                    <Text className={styles.cardTitle}>
+                      {practiceAnswer.correct ? 'Correct - the plan is working.' : 'Not quite - scale both parts by 3.'}
+                    </Text>
+                    <p className={styles.demoHelper}>
+                      {practiceAnswer.correct
+                        ? '2 cups of rice became 6 cups, so 3 cups of water becomes 9 cups.'
+                        : 'The worked example says keep the rice-water ratio: 2 -> 6 is x3, so 3 -> 9.'}
+                    </p>
+                    <span className={styles.softBadge}>Spaced retrieval scheduled</span>
+                    <ul className={styles.retrievalList} data-testid="spaced-retrieval-schedule">
+                      {generatedPlanPractice.schedule.map(slot => (
+                        <li key={slot.id} className={styles.retrievalItem}>
+                          <Text weight="semibold">{slot.label} · {slot.timing}</Text>
+                          <span className={styles.demoHelper}>{slot.focus}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </article>
+
+              <article className={styles.practiceCard} data-testid="career-navigation-moment">
+                <div className={styles.demoHeader}>
+                  <div>
+                    <span className={styles.softBadge}>Career Navigator</span>
+                    <Text className={styles.demoTitle}>Ask about a pathway</Text>
+                    <p className={styles.demoHelper}>Voice or text. Grounded guidance, not a promise.</p>
+                  </div>
+                  <BriefcaseIcon style={{ width: 28, height: 28, color: t.brand.text }} aria-hidden="true" />
+                </div>
+
+                <div className={styles.careerAskGrid}>
+                  <input
+                    className={styles.careerInput}
+                    aria-label="Career question"
+                    value={careerQuestion}
+                    onChange={event => setCareerQuestion(event.currentTarget.value)}
+                  />
+                  <div className={styles.careerActions}>
+                    <button
+                      type="button"
+                      className={styles.careerAction}
+                      onClick={() => void handleCareerAsk('text')}
+                    >
+                      <BriefcaseIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+                      Ask by text
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.careerActionSecondary}
+                      onClick={() => void handleCareerAsk('voice')}
+                    >
+                      <MicrophoneIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+                      Ask by voice
+                    </button>
+                  </div>
+                </div>
+
+                {careerAnswerVisible && (
+                  <div className={styles.feedbackCard} data-testid="career-navigation-answer">
+                    <div className={styles.demoHeader}>
+                      <span className={styles.softBadge}>{careerAskMode === 'voice' ? 'Voice question queued' : 'Text question answered'}</span>
+                      <span className={styles.softBadge}>No outcome guarantee</span>
+                    </div>
+                    <Text className={styles.cardTitle}>Can I still become a doctor?</Text>
+                    <p className={styles.demoHelper}>{careerNavigationMoment.responseLead}</p>
+                    <ul className={styles.careerPointList}>
+                      {careerNavigationMoment.points.map(point => (
+                        <li key={point.label} className={styles.retrievalItem}>
+                          <Text weight="semibold">{point.label}</Text>
+                          <span className={styles.demoHelper}>{point.body}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className={styles.careerSourceRow} aria-label="Career answer grounding">
+                      {careerNavigationMoment.sources.map(source => (
+                        <span key={source} className={styles.softBadge}>{source}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </article>
 
         <article className={styles.card}>
           <div className={styles.cardHeader}>

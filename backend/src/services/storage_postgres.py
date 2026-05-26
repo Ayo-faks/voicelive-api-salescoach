@@ -83,6 +83,8 @@ LEARNING_RLS_PROTECTED_TABLES = (
     "learning_xapi_statements",
     "learning_offline_queue",
     "learning_content_pack_manifests",
+    "learning_student_facts",
+    "learning_student_fact_decisions",
 )
 RLS_PROTECTED_TABLES = THERAPY_RLS_PROTECTED_TABLES + LEARNING_RLS_PROTECTED_TABLES
 

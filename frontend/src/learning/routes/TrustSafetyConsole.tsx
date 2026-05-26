@@ -73,6 +73,49 @@ const auditLog = [
   },
 ]
 
+const schoolLeaderSnapshot = [
+  {
+    label: 'Cohort progress',
+    value: '64% on track',
+    detail: '58 students in JSS2 A, +12 pts over 6 weeks',
+  },
+  {
+    label: 'Students at risk',
+    value: '7 flagged',
+    detail: 'Teacher-reviewed intervention queue',
+  },
+  {
+    label: 'Most common skill gaps',
+    value: 'Ratio, fractions',
+    detail: 'Top gaps across diagnostics this week',
+  },
+  {
+    label: 'Practice completion',
+    value: '76%',
+    detail: 'Assigned practice completed within the plan window',
+  },
+  {
+    label: 'Cost per student',
+    value: 'NGN 1,450/wk',
+    detail: 'Pilot operating estimate at current usage',
+  },
+  {
+    label: 'Teacher approvals pending',
+    value: '4 pending',
+    detail: '1 plan and 3 memory facts need review',
+  },
+  {
+    label: 'Intervention impact',
+    value: '+18 pts',
+    detail: 'Median mastery lift after 6-8 weeks of approved support',
+  },
+  {
+    label: 'Family output',
+    value: 'Ready',
+    detail: 'One-page parent summaries can be sent home',
+  },
+]
+
 const useStyles = makeStyles({
   shell: { display: 'grid', gap: '18px' },
   header: {
@@ -181,6 +224,30 @@ const useStyles = makeStyles({
     '@media (max-width: 640px)': {
       gridTemplateColumns: 'repeat(2, 1fr)',
     },
+  },
+  leaderGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+    gap: '10px',
+    '@media (max-width: 1100px)': { gridTemplateColumns: 'repeat(2, 1fr)' },
+    '@media (max-width: 640px)': { gridTemplateColumns: '1fr' },
+  },
+  leaderCard: {
+    padding: '14px',
+    borderRadius: t.radius.md,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+    boxShadow: t.surface.cardElevatedShadow,
+    display: 'grid',
+    gap: '4px',
+  },
+  leaderNarrative: {
+    padding: '16px',
+    borderRadius: t.radius.md,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+    display: 'grid',
+    gap: '8px',
   },
   metricCard: {
     padding: '14px',
@@ -446,6 +513,32 @@ export default function TrustSafetyConsole() {
           <span className={styles.pill}>Last review 2026-05-22</span>
         </div>
       </div>
+
+      <Card className={styles.auditCard} data-testid="school-leader-view">
+        <CardHeader
+          header={<Text weight="semibold">Admin / School Leader View</Text>}
+          description={
+            <Text size={200}>
+              A concrete leadership snapshot: outcomes, risk, skill gaps, usage, unit cost, pending approvals, impact, and family-ready outputs.
+            </Text>
+          }
+        />
+        <div className={styles.leaderGrid}>
+          {schoolLeaderSnapshot.map(item => (
+            <div key={item.label} className={styles.leaderCard}>
+              <Text className={styles.metricLabel}>{item.label}</Text>
+              <Text className={styles.metricValue}>{item.value}</Text>
+              <Text className={styles.metricDetail}>{item.detail}</Text>
+            </div>
+          ))}
+        </div>
+        <div className={styles.leaderNarrative}>
+          <Text weight="semibold">Decision view</Text>
+          <Text size={200}>
+            Leaders can connect the demo to buying logic: Pathfinder shows where the cohort is moving, which students need support, which gaps repeat, whether practice is happening, what the weekly unit cost looks like, and whether approved interventions are changing outcomes after 6-8 weeks.
+          </Text>
+        </div>
+      </Card>
 
       <div className={styles.metricStrip} data-testid="pilot-kpi-strip">
         {cards.map(card => (

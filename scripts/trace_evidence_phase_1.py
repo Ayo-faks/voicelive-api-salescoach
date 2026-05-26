@@ -35,17 +35,29 @@ def _canonical_json(payload: Dict[str, Any]) -> str:
     return json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
 
 
-def _load_migration_module():
+def _load_migration_module(filename: str, module_name: str):
     import importlib
     import importlib.util
 
-    migration_path = BACKEND_ROOT / "alembic" / "versions" / "20260523_000024_learning_foundations.py"
-    spec = importlib.util.spec_from_file_location("phase_1_learning_migration", migration_path)
+    migration_path = BACKEND_ROOT / "alembic" / "versions" / filename
+    spec = importlib.util.spec_from_file_location(module_name, migration_path)
     if spec is None or spec.loader is None:
-        raise RuntimeError(f"cannot_load_phase_1_migration:{migration_path}")
+        raise RuntimeError(f"cannot_load_learning_migration:{migration_path}")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def _learning_rls_tables_from_migrations() -> tuple[str, ...]:
+    foundation = _load_migration_module(
+        "20260523_000024_learning_foundations.py",
+        "phase_1_learning_migration",
+    )
+    student_facts = _load_migration_module(
+        "20260524_000027_student_fact_approvals.py",
+        "student_fact_learning_migration",
+    )
+    return tuple(foundation.LEARNING_RLS_TABLES) + tuple(student_facts.LEARNING_STUDENT_FACT_RLS_TABLES)
 
 
 def _phase_1_scope_dpia(trace: Dict[str, Any]) -> str:
@@ -65,9 +77,9 @@ def _phase_1_scope_dpia(trace: Dict[str, Any]) -> str:
 
 
 def run_trace() -> Dict[str, Any]:
-    migration = _load_migration_module()
-    assert tuple(migration.LEARNING_RLS_TABLES) == LEARNING_RLS_PROTECTED_TABLES
-    assert_learning_rls_contract_active(tuple(migration.LEARNING_RLS_TABLES))
+    learning_rls_tables = _learning_rls_tables_from_migrations()
+    assert learning_rls_tables == LEARNING_RLS_PROTECTED_TABLES
+    assert_learning_rls_contract_active(learning_rls_tables)
 
     provenance = [
         Provenance(

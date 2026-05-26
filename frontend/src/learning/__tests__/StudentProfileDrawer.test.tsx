@@ -13,10 +13,97 @@ const skill: StudentProfileSkill = {
   status: 'needs_support',
 }
 
+const secureSkill: StudentProfileSkill = {
+  skill_id: 'plane-geometry',
+  skill_label: 'Plane geometry',
+  probability: 0.88,
+  uncertainty: 0.07,
+  kind: 'beta',
+  status: 'secure',
+}
+
 const profile: StudentProfileResponse = {
   tenant_id: 'tenant-phase-2',
   student_id: 'student-001',
-  skills: [skill],
+  skills: [skill, secureSkill],
+  strengths: [
+    {
+      skill_id: secureSkill.skill_id,
+      skill_label: secureSkill.skill_label,
+      probability: secureSkill.probability,
+      uncertainty: secureSkill.uncertainty,
+      status: secureSkill.status,
+      evidence: [
+        {
+          source: 'mastery_model',
+          summary: 'Mastery model estimates 88% mastery with 7% uncertainty',
+          skill_id: secureSkill.skill_id,
+          confidence: 0.82,
+        },
+      ],
+    },
+  ],
+  gaps: [
+    {
+      skill_id: skill.skill_id,
+      skill_label: skill.skill_label,
+      probability: skill.probability,
+      uncertainty: skill.uncertainty,
+      status: skill.status,
+      evidence: [
+        {
+          source: 'diagnostic_response',
+          summary: "Incorrect diagnostic response '3:4' on item-ratio-1",
+          skill_id: skill.skill_id,
+          item_id: 'item-ratio-1',
+          correct: false,
+          confidence: 0.9,
+        },
+      ],
+    },
+  ],
+  voice_fluency: {
+    status: 'available',
+    score: 72,
+    label: 'Developing oral reading fluency',
+    evidence: 'Latest oral-reading check: 72/100 fluency, hesitations around ratio vocabulary.',
+    captured_at: '2026-05-24T09:15:00+00:00',
+    lang: 'en-NG',
+    provenance: [
+      {
+        source: 'LearningApi._voice_fluency_for_student',
+        rule_id: 'pilot_oral_reading_fluency_snapshot',
+        confidence: 0.84,
+        evidence_count: 1,
+      },
+    ],
+  },
+  proposed_student_facts: [
+    {
+      id: 'student-fact-1',
+      tenant_id: 'tenant-phase-2',
+      class_id: 'class-jss2-a',
+      student_id: 'student-001',
+      created_by_user_id: 'pathfinder-detector',
+      status: 'pending',
+      lang: 'en-NG',
+      provenance: [],
+      fact: {
+        fact_id: 'student-fact-1',
+        tenant_id: 'tenant-phase-2',
+        class_id: 'class-jss2-a',
+        student_id: 'student-001',
+        student_name: 'Tobi A.',
+        key: 'learning_support',
+        value: 'Needs worked examples before independent ratio practice',
+        evidence: 'Diagnostic response pattern + exit ticket',
+        requires_approval: true,
+        lang: 'en-NG',
+        provenance: [],
+      },
+    },
+  ],
+  approved_student_facts: [],
   recent_responses: [
     {
       id: 'response-1',
@@ -94,8 +181,14 @@ describe('StudentProfileDrawer', () => {
 
     render(<StudentProfileDrawer open studentId="student-001" onClose={() => {}} />)
 
-    expect(await screen.findByText('Ratio and proportion')).toBeTruthy()
-    expect(screen.getByText('Needs support')).toBeTruthy()
+    expect((await screen.findAllByText('Ratio and proportion')).length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Plane geometry').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Needs support').length).toBeGreaterThan(0)
+    expect(screen.getByText('Strengths')).toBeTruthy()
+    expect(screen.getByText('Gaps and evidence')).toBeTruthy()
+    expect(screen.getByText("Incorrect diagnostic response '3:4' on item-ratio-1")).toBeTruthy()
+    expect(screen.getByText('Fluency 72%')).toBeTruthy()
+    expect(screen.getByText('Needs worked examples before independent ratio practice')).toBeTruthy()
     expect(screen.getByText('Ratio Proportion · Response: 3:4 · Practice item item ratio 1')).toBeTruthy()
   })
 
@@ -104,7 +197,7 @@ describe('StudentProfileDrawer', () => {
 
     render(<StudentProfileDrawer open studentId="student-001" onClose={() => {}} />)
 
-    await screen.findByText('Ratio and proportion')
+    await screen.findAllByText('Ratio and proportion')
     expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/learning/students/student-001/profile')
   })
 
@@ -120,16 +213,16 @@ describe('StudentProfileDrawer', () => {
       />
     )
 
-    expect(await screen.findByText('Ratio and proportion')).toBeTruthy()
-    expect(screen.getByText('Needs support')).toBeTruthy()
+    expect((await screen.findAllByText('Ratio and proportion')).length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Needs support').length).toBeGreaterThan(0)
   })
 
   it('opens adjustment dialog with the selected skill', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(profile))
     render(<StudentProfileDrawer open studentId="student-001" onClose={() => {}} />)
 
-    await screen.findByText('Ratio and proportion')
-    fireEvent.click(screen.getByRole('button', { name: /adjust mastery/i }))
+    await screen.findAllByText('Ratio and proportion')
+    fireEvent.click(screen.getAllByRole('button', { name: /adjust mastery/i })[0])
 
     const dialog = screen.getByLabelText('Adjust mastery dialog')
     expect(within(dialog).getByText('Learner profile · Ratio and proportion')).toBeTruthy()
@@ -153,8 +246,8 @@ describe('StudentProfileDrawer', () => {
       .mockResolvedValueOnce(jsonResponse({ ...profile, skills: [{ ...skill, probability: 0.9 }] }))
     render(<StudentProfileDrawer open studentId="student-001" onClose={() => {}} />)
 
-    await screen.findByText('Ratio and proportion')
-    fireEvent.click(screen.getByRole('button', { name: /adjust mastery/i }))
+    await screen.findAllByText('Ratio and proportion')
+    fireEvent.click(screen.getAllByRole('button', { name: /adjust mastery/i })[0])
     fireEvent.change(screen.getByLabelText('Probability value'), { target: { value: '0.9' } })
     fireEvent.change(screen.getByLabelText('Uncertainty value'), { target: { value: '0.05' } })
     fireEvent.change(screen.getByLabelText('Adjustment reason'), {
@@ -179,8 +272,8 @@ describe('StudentProfileDrawer', () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(overriddenProfile))
     render(<StudentProfileDrawer open studentId="student-001" onClose={() => {}} />)
 
-    await screen.findByText('Ratio and proportion')
-    const revertButton = screen.getByRole('button', { name: /restore estimate/i })
+    await screen.findAllByText('Ratio and proportion')
+    const revertButton = screen.getAllByRole('button', { name: /restore estimate/i })[0]
     expect(revertButton.getAttribute('disabled')).toBeNull()
 
     fireEvent.click(revertButton)
@@ -207,8 +300,8 @@ describe('StudentProfileDrawer', () => {
       .mockResolvedValueOnce(jsonResponse(profile))
     render(<StudentProfileDrawer open studentId="student-001" onClose={() => {}} />)
 
-    await screen.findByText('Ratio and proportion')
-    fireEvent.click(screen.getByRole('button', { name: /restore estimate/i }))
+    await screen.findAllByText('Ratio and proportion')
+    fireEvent.click(screen.getAllByRole('button', { name: /restore estimate/i })[0])
     fireEvent.click(screen.getByRole('button', { name: /confirm restore/i }))
 
     await waitFor(() => {
@@ -228,8 +321,8 @@ describe('StudentProfileDrawer', () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(overrideWithoutPriorProfile))
     render(<StudentProfileDrawer open studentId="student-001" onClose={() => {}} />)
 
-    await screen.findByText('Ratio and proportion')
-    const revertButton = screen.getByRole('button', { name: /restore estimate/i })
+    await screen.findAllByText('Ratio and proportion')
+    const revertButton = screen.getAllByRole('button', { name: /restore estimate/i })[0]
     expect(revertButton.getAttribute('disabled')).not.toBeNull()
     expect(revertButton.getAttribute('title')).toBe('No previous estimate available')
   })

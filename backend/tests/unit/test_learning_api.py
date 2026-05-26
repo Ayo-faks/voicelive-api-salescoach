@@ -18,6 +18,7 @@ from flask import Flask
 from src.learning.api import (
     ITEM_BANK_PATH,
     LearningApi,
+    PILOT_PENDING_PLAN_ID,
     PILOT_STUDENT_ID,
     PILOT_TEACHER_ID,
     PILOT_TENANT_ID,
@@ -137,9 +138,24 @@ def test_class_mastery_and_pending_plans_are_scoped_by_class(client, learning_ap
         query_string={"tenant_id": PILOT_TENANT_ID, "class_id": "class-jss2-a"},
     ).get_json()
     assert jss1_pending["count"] == 1
-    assert jss2_pending["count"] == 1
+    assert jss2_pending["count"] == 2
     assert jss1_pending["plans"][0]["class_id"] == "class-jss1-a"
-    assert jss2_pending["plans"][0]["class_id"] == "class-jss2-a"
+    assert all(record["class_id"] == "class-jss2-a" for record in jss2_pending["plans"])
+    assert any(record["id"] == PILOT_PENDING_PLAN_ID for record in jss2_pending["plans"])
+
+
+def test_pilot_pending_practice_plan_is_seeded_for_teacher_demo(client):
+    pending = client.get(
+        "/api/learning/approvals/pending",
+        query_string={"tenant_id": PILOT_TENANT_ID, "class_id": "class-jss2-a"},
+    ).get_json()
+
+    assert any(record["id"] == PILOT_PENDING_PLAN_ID for record in pending["plans"])
+    seeded = next(record for record in pending["plans"] if record["id"] == PILOT_PENDING_PLAN_ID)
+    assert seeded["status"] == "pending"
+    assert seeded["class_id"] == "class-jss2-a"
+    assert seeded["plan"]["requires_approval"] is True
+    assert seeded["plan"]["target_student_ids"] == ["student-001", "student-014", "student-022"]
 
 
 def test_unknown_session_returns_404(client):
@@ -229,6 +245,132 @@ def test_intent_endpoint_returns_validated_plan(client, learning_api: LearningAp
     plan = payload["plan"]
     assert plan["target_skill_ids"]
     assert plan["lang"].startswith("en")
+
+
+def test_student_fact_queue_is_backend_backed_and_scoped(client):
+    pending = client.get(
+        "/api/learning/student-facts/pending",
+        query_string={"tenant_id": PILOT_TENANT_ID, "class_id": "class-jss2-a"},
+    )
+    assert pending.status_code == 200, pending.get_data(as_text=True)
+    body = pending.get_json()
+    assert body["count"] == 3
+    assert {record["fact"]["student_name"] for record in body["facts"]} == {
+        "Tobi A.",
+        "Ibrahim S.",
+        "Zainab H.",
+    }
+
+    proposed = client.post(
+        "/api/learning/student-facts",
+        json={
+            "tenant_id": PILOT_TENANT_ID,
+            "class_id": "class-jss1-a",
+            "student_id": "class-jss1-a-student-001",
+            "student_name": "Adaeze N.",
+            "key": "learning_support",
+            "value": "Needs number-line warmups before fractions",
+            "evidence": "Teacher observation after lesson 2",
+        },
+    )
+    assert proposed.status_code == 200, proposed.get_data(as_text=True)
+
+    jss1 = client.get(
+        "/api/learning/student-facts/pending",
+        query_string={"tenant_id": PILOT_TENANT_ID, "class_id": "class-jss1-a"},
+    ).get_json()
+    assert jss1["count"] == 1
+    assert jss1["facts"][0]["fact"]["student_name"] == "Adaeze N."
+
+
+def test_approving_student_fact_stores_decision_and_personalizes_intent(client, learning_api: LearningApi):
+    pending = client.get(
+        "/api/learning/student-facts/pending",
+        query_string={"tenant_id": PILOT_TENANT_ID, "class_id": "class-jss2-a"},
+    ).get_json()
+    fact_id = pending["facts"][0]["id"]
+
+    approved = client.post(
+        f"/api/learning/student-facts/{fact_id}/approve",
+        json={"actor_id": PILOT_TEACHER_ID, "reason": "Useful for this week's intervention"},
+    )
+    assert approved.status_code == 200, approved.get_data(as_text=True)
+    decision = approved.get_json()
+    assert decision["action"] == "approved"
+    assert decision["fact"]["status"] == "approved"
+    assert decision["xapi_statement"]["object"]["definition"]["type"] == "StudentFact"
+
+    pending_after = client.get(
+        "/api/learning/student-facts/pending",
+        query_string={"tenant_id": PILOT_TENANT_ID, "class_id": "class-jss2-a"},
+    ).get_json()
+    assert pending_after["count"] == 2
+
+    intent = client.post(
+        "/api/learning/intent",
+        json={
+            "tenant_id": PILOT_TENANT_ID,
+            "class_id": "class-jss2-a",
+            "actor_id": PILOT_TEACHER_ID,
+            "role": "teacher",
+            "prompt": "Create a review group using what we know about students.",
+        },
+    ).get_json()
+    personalized_facts = intent["personalization"]["approved_student_facts"]
+    assert any(fact["fact_id"] == fact_id for fact in personalized_facts)
+
+    student_id = decision["fact"]["student_id"]
+    profile = client.get(f"/api/learning/students/{student_id}/profile").get_json()
+    assert any(record["id"] == fact_id for record in profile["approved_student_facts"])
+    assert any(
+        record["verb_id"].endswith("approved-student-fact")
+        for record in learning_api.repository.xapi_statements
+    )
+
+
+def test_student_fact_edit_approve_and_reject_update_queue(client):
+    pending = client.get(
+        "/api/learning/student-facts/pending",
+        query_string={"tenant_id": PILOT_TENANT_ID, "class_id": "class-jss2-a"},
+    ).get_json()
+    edit_id = pending["facts"][0]["id"]
+    reject_id = pending["facts"][1]["id"]
+
+    edited = client.post(
+        f"/api/learning/student-facts/{edit_id}/edit-approve",
+        json={
+            "actor_id": PILOT_TEACHER_ID,
+            "reason": "Teacher clarified the language",
+            "edits": {
+                "value": "Needs two worked ratio examples before independent practice",
+                "evidence": "Diagnostic response pattern, exit ticket, and teacher review",
+            },
+        },
+    )
+    assert edited.status_code == 200, edited.get_data(as_text=True)
+    edited_body = edited.get_json()
+    assert edited_body["action"] == "edited_approved"
+    assert edited_body["fact"]["status"] == "edited_approved"
+    assert edited_body["fact"]["fact"]["value"] == "Needs two worked ratio examples before independent practice"
+
+    rejected = client.post(
+        f"/api/learning/student-facts/{reject_id}/reject",
+        json={"actor_id": PILOT_TEACHER_ID, "reason": "Not enough evidence yet"},
+    )
+    assert rejected.status_code == 200, rejected.get_data(as_text=True)
+    assert rejected.get_json()["fact"]["status"] == "rejected"
+
+    pending_after = client.get(
+        "/api/learning/student-facts/pending",
+        query_string={"tenant_id": PILOT_TENANT_ID, "class_id": "class-jss2-a"},
+    ).get_json()
+    assert pending_after["count"] == 1
+
+    late_edit = client.post(
+        f"/api/learning/student-facts/{edit_id}/edit-approve",
+        json={"actor_id": PILOT_TEACHER_ID, "edits": {"value": "too late"}},
+    )
+    assert late_edit.status_code == 409
 
 
 def test_intent_requires_prompt(client):

@@ -52,7 +52,11 @@ from src.learning.models import (
     MasteryEstimate,
     MasteryEvent,
     Provenance,
+    StudentFactProposal,
+    StudentLearningEvidence,
+    StudentLearningInsight,
     StudentResponse,
+    VoiceFluencyResult,
 )
 from src.learning.observability import LearningObservability
 from src.learning.operations import compute_kpi_report, load_metric_snapshots
@@ -71,6 +75,7 @@ from src.learning.xapi import (
     LTILaunchEvent,
     OverrideEvent,
     RalphXAPISink,
+    StudentFactDecisionEvent,
     StudentProfileViewEvent,
     XAPIStatement,
     approval_event_to_xapi,
@@ -79,6 +84,7 @@ from src.learning.xapi import (
     lti_launch_event_to_xapi,
     mastery_event_to_xapi,
     override_event_to_xapi,
+    student_fact_decision_event_to_xapi,
     student_profile_view_event_to_xapi,
 )
 
@@ -90,6 +96,53 @@ PILOT_TEACHER_ID = "pilot-jss2-teacher-001"
 PILOT_DIAGNOSTIC_ITEMS_PER_RUN = 12
 PILOT_KPI_TENANT_ID = "tenant-phase-4"
 VOICE_FEATURE_FLAG_ENV = "PATHFINDER_VOICE_ENABLED"
+PILOT_STUDENT_FACTS = (
+    {
+        "fact_id": "student-fact-pilot-tobi-ratio-worked-examples",
+        "student_id": "student-001",
+        "student_name": "Tobi A.",
+        "key": "learning_support",
+        "value": "Needs worked examples before independent ratio practice",
+        "evidence": "Diagnostic response pattern + exit ticket",
+    },
+    {
+        "fact_id": "student-fact-pilot-ibrahim-fraction-visuals",
+        "student_id": "student-003",
+        "student_name": "Ibrahim S.",
+        "key": "learning_modality",
+        "value": "Fraction bar visuals improve accuracy",
+        "evidence": "Three recent fraction attempts",
+    },
+    {
+        "fact_id": "student-fact-pilot-zainab-voice-prompts",
+        "student_id": "student-008",
+        "student_name": "Zainab H.",
+        "key": "access_preference",
+        "value": "Prefers short voice prompts for review tasks",
+        "evidence": "Reading drill completion logs",
+    },
+)
+PILOT_PENDING_PLAN_ID = "plan-jss2-ratio-recovery"
+PILOT_VOICE_FLUENCY_RESULTS = {
+    "student-001": {
+        "score": 72.0,
+        "label": "Developing oral reading fluency",
+        "evidence": "Latest oral-reading check: 72/100 fluency, hesitations around ratio vocabulary.",
+        "captured_at": "2026-05-24T09:15:00+00:00",
+    },
+    "student-003": {
+        "score": 64.0,
+        "label": "Needs paced reading support",
+        "evidence": "Latest oral-reading check: 64/100 fluency, pauses increased on multi-step fraction wording.",
+        "captured_at": "2026-05-24T09:20:00+00:00",
+    },
+    "student-008": {
+        "score": 81.0,
+        "label": "Comfortable with short voice prompts",
+        "evidence": "Latest oral-reading check: 81/100 fluency, strongest on short review prompts.",
+        "captured_at": "2026-05-24T09:28:00+00:00",
+    },
+}
 
 
 def _resolve_learning_data_dir() -> Path:
@@ -211,6 +264,80 @@ class LearningApi:
             [catalogue_grounding_rule(self._allowed_skill_ids)]
         )
         self.skills_service = SkillsCatalogueService(self.repository)
+        self._seed_pilot_pending_plan()
+        self._seed_pilot_student_fact_proposals()
+
+    def _seed_pilot_pending_plan(self) -> None:
+        if not isinstance(self.repository, InMemoryLearningRepository):
+            return
+        if any(
+            record["tenant_id"] == PILOT_TENANT_ID
+            and record.get("class_id") == PILOT_CLASS_ID
+            and record["status"] == "pending"
+            for record in self._pending_plans.values()
+        ):
+            return
+        plan = InterventionPlan(
+            plan_id=PILOT_PENDING_PLAN_ID,
+            target_skill_ids=["ratio-proportion", "fraction-operations"],
+            target_student_ids=["student-001", "student-014", "student-022"],
+            item_types=["worked_example", "short_answer", "exit_ticket"],
+            suggested_resources=[
+                "ratio table mini-lesson",
+                "fraction bar check-in",
+                "teacher-led exit ticket",
+            ],
+            rationale=(
+                "Pathfinder proposes a small-group 1-2 week ratio recovery plan "
+                "based on low mastery and high diagnostic uncertainty."
+            ),
+            requires_approval=True,
+            lang=self.item_bank.lang,
+            provenance=[
+                Provenance(
+                    source="LearningApi.seed_pilot_pending_plan",
+                    rule_id="pilot_pending_practice_plan",
+                    confidence=0.9,
+                    evidence_count=3,
+                )
+            ],
+        )
+        record = self.repository.save_intervention_plan(
+            plan,
+            tenant_id=PILOT_TENANT_ID,
+            actor_id="pathfinder-planner",
+            status="pending",
+        )
+        record["class_id"] = PILOT_CLASS_ID
+        self._pending_plans[plan.plan_id] = record
+
+    def _seed_pilot_student_fact_proposals(self) -> None:
+        if not isinstance(self.repository, InMemoryLearningRepository):
+            return
+        existing = self.repository.list_student_facts(
+            PILOT_TENANT_ID,
+            class_id=PILOT_CLASS_ID,
+            status="pending",
+        )
+        if existing:
+            return
+        provenance = [
+            Provenance(
+                source="LearningApi.student_fact_detector",
+                rule_id="pilot_detected_student_fact",
+                confidence=0.82,
+                evidence_count=1,
+            )
+        ]
+        for seed in PILOT_STUDENT_FACTS:
+            fact = StudentFactProposal(
+                tenant_id=PILOT_TENANT_ID,
+                class_id=PILOT_CLASS_ID,
+                lang=self.item_bank.lang,
+                provenance=provenance,
+                **seed,
+            )
+            self.repository.save_student_fact(fact, actor_id="pathfinder-detector", status="pending")
 
     # ------------------------------------------------------------------
     # Diagnostic flow
@@ -348,6 +475,7 @@ class LearningApi:
         state.current_index += 1
         next_item_payload: Optional[Dict[str, Any]] = None
         pending_plan_payload: Optional[Dict[str, Any]] = None
+        pending_fact_payload: List[Dict[str, Any]] = []
         completion_payload: Optional[Dict[str, Any]] = None
         if state.current_index >= len(state.selected_items):
             state.completed = True
@@ -363,6 +491,7 @@ class LearningApi:
             self._emit_xapi(state.tenant_id, state.student_id, completion_statement)
             completion_payload = completion_statement.model_dump()
             pending_plan_payload = self._build_and_persist_pending_plan(state)
+            pending_fact_payload = self._detect_student_facts_from_session(state)
         else:
             next_item_payload = _item_to_payload(state.selected_items[state.current_index])
 
@@ -383,8 +512,61 @@ class LearningApi:
             "items_remaining": max(0, len(state.selected_items) - state.current_index),
             "completed": state.completed,
             "pending_plan": pending_plan_payload,
+            "pending_facts": pending_fact_payload,
             "completion_xapi": completion_payload,
         }
+
+    def _detect_student_facts_from_session(self, state: _SessionState) -> List[Dict[str, Any]]:
+        if not state.estimates:
+            return []
+        weakest_skill_id, weakest_estimate = min(
+            state.estimates.items(),
+            key=lambda item: item[1].probability,
+        )
+        if weakest_estimate.probability >= 0.65:
+            return []
+        existing = self.repository.list_student_facts(
+            state.tenant_id,
+            class_id=state.class_id,
+            student_id=state.student_id,
+        )
+        key = f"diagnostic_gap:{weakest_skill_id}"
+        if any(record["fact"].get("key") == key for record in existing):
+            return []
+        skill_label = next(
+            (skill.name for skill in state.bank.skills if skill.skill_id == weakest_skill_id),
+            weakest_skill_id,
+        )
+        fact = StudentFactProposal(
+            tenant_id=state.tenant_id,
+            class_id=state.class_id,
+            student_id=state.student_id,
+            key=key,
+            value=f"Needs targeted practice on {skill_label}",
+            evidence=(
+                f"Diagnostic {state.diagnostic_id} completed with "
+                f"{weakest_estimate.probability:.0%} mastery estimate"
+            ),
+            lang=state.bank.lang,
+            provenance=[
+                Provenance(
+                    source="LearningApi._detect_student_facts_from_session",
+                    source_id=state.session_id,
+                    rule_id="lowest_mastery_below_threshold",
+                    confidence=0.78,
+                    evidence_count=len(state.responses),
+                    metadata={"skill_id": weakest_skill_id},
+                )
+            ],
+        )
+        record = self.repository.save_student_fact(fact, actor_id="pathfinder-detector", status="pending")
+        self._record_audit(
+            tenant_id=state.tenant_id,
+            actor_id=state.student_id,
+            label=f"Detected pending student fact for {state.student_id}",
+            kind="student_fact_proposed",
+        )
+        return [record]
 
     # ------------------------------------------------------------------
     # Teacher surfaces
@@ -463,6 +645,16 @@ class LearningApi:
             for rec in responses
             if rec.get("tenant_id") == tenant_id and rec.get("student_id") == student_id
         ][-20:]
+        strengths_payload, gaps_payload = self._student_profile_insights(
+            skills_payload,
+            recent_responses,
+            recent_events,
+        )
+        pending_facts = self.repository.list_student_facts(
+            tenant_id,
+            student_id=student_id,
+            status="pending",
+        )
 
         event = StudentProfileViewEvent(
             tenant_id=tenant_id,
@@ -485,11 +677,127 @@ class LearningApi:
             "tenant_id": tenant_id,
             "student_id": student_id,
             "skills": skills_payload,
+            "strengths": strengths_payload,
+            "gaps": gaps_payload,
+            "voice_fluency": self._voice_fluency_for_student(student_id),
+            "proposed_student_facts": pending_facts,
+            "approved_student_facts": self._approved_student_facts(
+                tenant_id,
+                student_id=student_id,
+            ),
             "recent_mastery_events": recent_events,
             "recent_responses": recent_responses,
             "xapi_id": statement.id,
             "audit": self._audit_events[-1],
         }
+
+    def _student_profile_insights(
+        self,
+        skills_payload: List[Dict[str, Any]],
+        recent_responses: List[Dict[str, Any]],
+        recent_events: List[Dict[str, Any]],
+    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+        strengths: List[Dict[str, Any]] = []
+        gaps: List[Dict[str, Any]] = []
+        for skill in skills_payload:
+            evidence = self._evidence_for_skill(skill, recent_responses, recent_events)
+            insight = StudentLearningInsight(
+                skill_id=skill["skill_id"],
+                skill_label=skill["skill_label"],
+                probability=skill["probability"],
+                uncertainty=skill["uncertainty"],
+                status=skill["status"],
+                evidence=evidence,
+            ).model_dump()
+            if skill["status"] == "secure":
+                strengths.append(insight)
+            else:
+                gaps.append(insight)
+        return strengths, gaps
+
+    def _evidence_for_skill(
+        self,
+        skill: Dict[str, Any],
+        recent_responses: List[Dict[str, Any]],
+        recent_events: List[Dict[str, Any]],
+    ) -> List[StudentLearningEvidence]:
+        skill_id = skill["skill_id"]
+        evidence: List[StudentLearningEvidence] = []
+        for response in [rec for rec in recent_responses if rec.get("skill_id") == skill_id][-3:]:
+            correct = response.get("correct")
+            correctness = "Correct" if correct is True else "Incorrect" if correct is False else "Recorded"
+            evidence.append(
+                StudentLearningEvidence(
+                    source="diagnostic_response",
+                    summary=(
+                        f"{correctness} diagnostic response"
+                        f" {response.get('response_text')!r} on {response.get('item_id')}"
+                    ),
+                    skill_id=skill_id,
+                    item_id=response.get("item_id"),
+                    correct=correct if isinstance(correct, bool) else None,
+                    confidence=0.9,
+                )
+            )
+        for event in [rec for rec in recent_events if rec.get("skill_id") == skill_id][-1:]:
+            estimate = event.get("estimate") if isinstance(event.get("estimate"), Mapping) else event
+            probability = estimate.get("probability") if isinstance(estimate, Mapping) else None
+            uncertainty = estimate.get("uncertainty") if isinstance(estimate, Mapping) else None
+            if isinstance(probability, (int, float)) and isinstance(uncertainty, (int, float)):
+                evidence.append(
+                    StudentLearningEvidence(
+                        source="mastery_model",
+                        summary=(
+                            f"Mastery model estimates {probability:.0%} mastery "
+                            f"with {uncertainty:.0%} uncertainty"
+                        ),
+                        skill_id=skill_id,
+                        confidence=0.82,
+                    )
+                )
+        if not evidence:
+            evidence.append(
+                StudentLearningEvidence(
+                    source="mastery_snapshot",
+                    summary=(
+                        f"Current profile estimate is {skill['probability']:.0%} mastery "
+                        f"with {skill['uncertainty']:.0%} uncertainty"
+                    ),
+                    skill_id=skill_id,
+                    confidence=0.72,
+                )
+            )
+        return evidence
+
+    def _voice_fluency_for_student(self, student_id: str) -> Dict[str, Any]:
+        fixture = PILOT_VOICE_FLUENCY_RESULTS.get(student_id)
+        provenance = [
+            Provenance(
+                source="LearningApi._voice_fluency_for_student",
+                rule_id="pilot_oral_reading_fluency_snapshot" if fixture else "no_voice_fluency_sample",
+                confidence=0.84 if fixture else 1.0,
+                evidence_count=1 if fixture else 0,
+            )
+        ]
+        if fixture:
+            return VoiceFluencyResult(
+                status="available",
+                score=fixture["score"],
+                label=fixture["label"],
+                evidence=fixture["evidence"],
+                captured_at=fixture["captured_at"],
+                lang=self.item_bank.lang,
+                provenance=provenance,
+            ).model_dump()
+        return VoiceFluencyResult(
+            status="not_recorded",
+            score=None,
+            label="No voice fluency sample recorded",
+            evidence="Pathfinder has not received an oral-reading fluency sample for this student yet.",
+            captured_at=None,
+            lang=self.item_bank.lang,
+            provenance=provenance,
+        ).model_dump()
 
     def override_mastery(
         self, student_id: str, payload: Mapping[str, Any]
@@ -589,6 +897,145 @@ class LearningApi:
             and (not class_id or record.get("class_id") == class_id)
         ]
         return {"plans": plans, "count": len(plans)}
+
+    def list_student_facts(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        class_id = str(payload.get("class_id") or "").strip() or None
+        student_id = str(payload.get("student_id") or "").strip() or None
+        status_raw = str(payload.get("status") or "pending").strip()
+        status = None if status_raw == "all" else status_raw
+        facts = self.repository.list_student_facts(
+            tenant_id,
+            class_id=class_id,
+            student_id=student_id,
+            status=status,
+        )
+        return {"facts": facts, "count": len(facts)}
+
+    def propose_student_fact(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        class_id = str(payload.get("class_id") or PILOT_CLASS_ID)
+        actor_id = str(payload.get("actor_id") or "pathfinder-detector")
+        body = {
+            "tenant_id": tenant_id,
+            "class_id": class_id,
+            "student_id": payload.get("student_id"),
+            "student_name": payload.get("student_name"),
+            "key": payload.get("key") or "teacher_observation",
+            "value": payload.get("value") or payload.get("fact"),
+            "evidence": payload.get("evidence"),
+            "requires_approval": bool(payload.get("requires_approval", True)),
+            "lang": payload.get("lang") or self.item_bank.lang,
+            "provenance": payload.get("provenance") or [
+                Provenance(
+                    source="LearningApi.propose_student_fact",
+                    rule_id="explicit_detector_submission",
+                    confidence=0.8,
+                    evidence_count=1,
+                ).model_dump()
+            ],
+        }
+        if payload.get("fact_id"):
+            body["fact_id"] = payload.get("fact_id")
+        try:
+            fact = StudentFactProposal.model_validate(body)
+        except Exception as exc:
+            raise LearningApiError(f"invalid student fact: {exc}", status_code=400) from exc
+        record = self.repository.save_student_fact(fact, actor_id=actor_id, status="pending")
+        self._record_audit(
+            tenant_id=tenant_id,
+            actor_id=actor_id,
+            label=f"Proposed student fact for {fact.student_id}",
+            kind="student_fact_proposed",
+        )
+        return {"fact": record, "queued": True, "audit": self._audit_events[-1]}
+
+    def approve_student_fact(self, fact_id: str, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        return self._decide_student_fact(fact_id, payload, action="approved")
+
+    def reject_student_fact(self, fact_id: str, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        return self._decide_student_fact(fact_id, payload, action="rejected")
+
+    def edit_and_approve_student_fact(self, fact_id: str, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        return self._decide_student_fact(fact_id, payload, action="edited_approved")
+
+    def _decide_student_fact(
+        self,
+        fact_id: str,
+        payload: Mapping[str, Any],
+        *,
+        action: str,
+    ) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        actor_id = str(payload.get("actor_id") or PILOT_TEACHER_ID)
+        reason = str(payload.get("reason") or "").strip() or None
+        matches = self.repository.list_student_facts(tenant_id, status=None)
+        record = next((item for item in matches if item["id"] == fact_id), None)
+        if record is None:
+            raise LearningApiError(f"student fact {fact_id} not found", status_code=404)
+        if record["status"] != "pending":
+            raise LearningApiError(f"student fact {fact_id} is already {record['status']}", status_code=409)
+
+        edited_fact: Optional[StudentFactProposal] = None
+        if action == "edited_approved":
+            edits = payload.get("edits") or {}
+            if not isinstance(edits, Mapping):
+                raise LearningApiError("edits must be an object", status_code=400)
+            edited_body = {
+                **record["fact"],
+                **{k: edits[k] for k in ("key", "value", "evidence", "student_name") if k in edits},
+            }
+            try:
+                edited_fact = StudentFactProposal.model_validate(edited_body)
+            except Exception as exc:
+                raise LearningApiError(f"invalid edited student fact: {exc}", status_code=400) from exc
+
+        event = StudentFactDecisionEvent(
+            tenant_id=tenant_id,
+            actor_id=actor_id,
+            fact_id=fact_id,
+            student_id=record["student_id"],
+            action=action,  # type: ignore[arg-type]
+            reason=reason,
+            lang=record["lang"],
+            provenance=[Provenance.model_validate(item) for item in record["provenance"]],
+        )
+        statement = student_fact_decision_event_to_xapi(event)
+        decision = self.repository.record_student_fact_decision(event, statement, edited_fact=edited_fact)
+        self._emit_xapi(tenant_id, actor_id, statement)
+        self._record_audit(
+            tenant_id=tenant_id,
+            actor_id=actor_id,
+            label=f"{action.replace('_', ' ').title()} student fact {fact_id}",
+            kind=f"student_fact_{action}",
+        )
+        facts_after = self.repository.list_student_facts(tenant_id, status=None)
+        updated = next((item for item in facts_after if item["id"] == fact_id), record)
+        return {
+            "ok": True,
+            "fact_id": fact_id,
+            "action": action,
+            "fact": updated,
+            "decision": decision,
+            "xapi_id": statement.id,
+            "xapi_statement": statement.model_dump(),
+            "audit": self._audit_events[-1],
+        }
+
+    def _approved_student_facts(
+        self,
+        tenant_id: str,
+        *,
+        class_id: Optional[str] = None,
+        student_id: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        facts = self.repository.list_student_facts(
+            tenant_id,
+            class_id=class_id,
+            student_id=student_id,
+            status=None,
+        )
+        return [record for record in facts if record["status"] in {"approved", "edited_approved"}]
 
     def approve_plan(self, plan_id: str, payload: Mapping[str, Any]) -> Dict[str, Any]:
         return self._decide_plan(plan_id, payload, action="approved")
@@ -698,6 +1145,8 @@ class LearningApi:
         if not prompt_text:
             raise LearningApiError("prompt is required", status_code=400)
 
+        approved_facts = self._approved_student_facts(tenant_id, class_id=class_id)
+
         request_model = PlannerRequest(
             tenant_id=tenant_id,
             actor_id=actor_id,
@@ -707,6 +1156,7 @@ class LearningApi:
                 "skill_ids": self._allowed_skill_ids,
                 "student_ids": self._student_ids_for_class(tenant_id, class_id)
                 or [PILOT_STUDENT_ID],
+                "approved_student_facts": [record["fact"] for record in approved_facts],
             },
             offline=True,
             lang=self.item_bank.lang,
@@ -735,6 +1185,9 @@ class LearningApi:
             "queued": result.queued,
             "offline_fallback": result.offline_fallback,
             "validated": True,
+            "personalization": {
+                "approved_student_facts": [record["fact"] for record in approved_facts],
+            },
         }
 
     def list_audit(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
@@ -1282,6 +1735,36 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
     @_wrap
     def _edit_and_approve_plan(plan_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         return learning_api.edit_and_approve_plan(plan_id, payload)
+
+    @app.route("/api/learning/student-facts", methods=["GET"])
+    @_wrap
+    def _student_facts(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.list_student_facts(payload)
+
+    @app.route("/api/learning/student-facts", methods=["POST"])
+    @_wrap
+    def _propose_student_fact(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.propose_student_fact(payload)
+
+    @app.route("/api/learning/student-facts/pending", methods=["GET"])
+    @_wrap
+    def _pending_student_facts(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.list_student_facts({**payload, "status": "pending"})
+
+    @app.route("/api/learning/student-facts/<fact_id>/approve", methods=["POST"])
+    @_wrap
+    def _approve_student_fact(fact_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.approve_student_fact(fact_id, payload)
+
+    @app.route("/api/learning/student-facts/<fact_id>/reject", methods=["POST"])
+    @_wrap
+    def _reject_student_fact(fact_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.reject_student_fact(fact_id, payload)
+
+    @app.route("/api/learning/student-facts/<fact_id>/edit-approve", methods=["POST"])
+    @_wrap
+    def _edit_and_approve_student_fact(fact_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.edit_and_approve_student_fact(fact_id, payload)
 
     @app.route("/api/learning/students/<student_id>/profile", methods=["GET"])
     @_wrap

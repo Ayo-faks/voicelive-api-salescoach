@@ -64,10 +64,48 @@ export type StudentProfileRecord = {
   [key: string]: unknown
 }
 
+export type StudentLearningEvidence = {
+  source: string
+  summary: string
+  skill_id?: string | null
+  item_id?: string | null
+  correct?: boolean | null
+  confidence: number
+}
+
+export type StudentLearningInsight = {
+  skill_id: string
+  skill_label: string
+  probability: number
+  uncertainty: number
+  status: StudentProfileSkill['status']
+  evidence: StudentLearningEvidence[]
+}
+
+export type VoiceFluencyResult = {
+  status: 'available' | 'not_recorded'
+  score?: number | null
+  label: string
+  evidence: string
+  captured_at?: string | null
+  lang: string
+  provenance: Array<{
+    source: string
+    rule_id?: string | null
+    confidence: number
+    evidence_count: number
+  }>
+}
+
 export type StudentProfileResponse = {
   tenant_id: string
   student_id: string
   skills: StudentProfileSkill[]
+  strengths: StudentLearningInsight[]
+  gaps: StudentLearningInsight[]
+  voice_fluency: VoiceFluencyResult
+  proposed_student_facts: StudentFactRecord[]
+  approved_student_facts: StudentFactRecord[]
   recent_mastery_events: StudentProfileRecord[]
   recent_responses: StudentProfileRecord[]
   xapi_id: string
@@ -127,7 +165,53 @@ export type AnswerDiagnosticResponse = {
   items_remaining: number
   completed: boolean
   pending_plan: PendingPlanRecord | null
+  pending_facts: StudentFactRecord[]
   completion_xapi: Record<string, unknown> | null
+}
+
+export type StudentFactPayload = {
+  fact_id: string
+  tenant_id: string
+  class_id: string
+  student_id: string
+  student_name?: string | null
+  key: string
+  value: string
+  evidence: string
+  requires_approval: boolean
+  lang: string
+  provenance: Array<{
+    source: string
+    rule_id?: string | null
+    confidence: number
+    evidence_count: number
+  }>
+}
+
+export type StudentFactRecord = {
+  id: string
+  tenant_id: string
+  class_id: string
+  student_id: string
+  created_by_user_id: string
+  status: 'draft' | 'pending' | 'approved' | 'edited_approved' | 'rejected'
+  fact: StudentFactPayload
+  lang: string
+  provenance: Array<Record<string, unknown>>
+  created_at?: string
+  updated_at?: string
+  approved_at?: string | null
+  decided_by?: string
+  decision_reason?: string | null
+}
+
+export type StudentFactsResponse = { facts: StudentFactRecord[]; count: number }
+
+export type EditStudentFactEdits = {
+  key?: string
+  value?: string
+  evidence?: string
+  student_name?: string
 }
 
 export type PendingPlanRecord = {
@@ -226,6 +310,20 @@ export type IntentResponse = {
   queued: boolean
   offline_fallback: string | null
   validated: boolean
+  personalization?: {
+    approved_student_facts: StudentFactPayload[]
+  }
+}
+
+export type StudentFactDecisionResponse = {
+  ok: boolean
+  fact_id: string
+  action: 'approved' | 'edited_approved' | 'rejected'
+  fact: StudentFactRecord
+  decision: Record<string, unknown>
+  xapi_id: string
+  xapi_statement: Record<string, unknown>
+  audit: AuditEvent
 }
 
 export type OverrideMasteryResponse = {
@@ -402,6 +500,57 @@ export async function editAndApproveLearningPlan(
     withDefaults({ method: 'POST', body: JSON.stringify(payload) })
   )
   return jsonOrThrow<DecisionResponse>(response)
+}
+
+export async function listPendingStudentFacts(query: {
+  tenant_id?: string
+  class_id?: string
+  student_id?: string
+} = {}): Promise<StudentFactsResponse> {
+  const search = toSearchParams(query)
+  const url = search
+    ? `/api/learning/student-facts/pending?${search}`
+    : '/api/learning/student-facts/pending'
+  const response = await fetch(url, withDefaults({ method: 'GET' }))
+  return jsonOrThrow<StudentFactsResponse>(response)
+}
+
+export async function approveStudentFact(
+  factId: string,
+  payload: { actor_id?: string; class_id?: string; reason?: string } = {}
+): Promise<StudentFactDecisionResponse> {
+  const response = await fetch(
+    `/api/learning/student-facts/${encodeURIComponent(factId)}/approve`,
+    withDefaults({ method: 'POST', body: JSON.stringify(payload) })
+  )
+  return jsonOrThrow<StudentFactDecisionResponse>(response)
+}
+
+export async function rejectStudentFact(
+  factId: string,
+  payload: { actor_id?: string; class_id?: string; reason?: string } = {}
+): Promise<StudentFactDecisionResponse> {
+  const response = await fetch(
+    `/api/learning/student-facts/${encodeURIComponent(factId)}/reject`,
+    withDefaults({ method: 'POST', body: JSON.stringify(payload) })
+  )
+  return jsonOrThrow<StudentFactDecisionResponse>(response)
+}
+
+export async function editAndApproveStudentFact(
+  factId: string,
+  payload: {
+    actor_id?: string
+    class_id?: string
+    reason?: string
+    edits: EditStudentFactEdits
+  }
+): Promise<StudentFactDecisionResponse> {
+  const response = await fetch(
+    `/api/learning/student-facts/${encodeURIComponent(factId)}/edit-approve`,
+    withDefaults({ method: 'POST', body: JSON.stringify(payload) })
+  )
+  return jsonOrThrow<StudentFactDecisionResponse>(response)
 }
 
 export async function submitIntent(payload: {

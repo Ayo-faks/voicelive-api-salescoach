@@ -5,7 +5,7 @@ import {
   makeStyles,
   tokens,
 } from '@fluentui/react-components'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { StudentProfileDrawer } from '../StudentProfileDrawer'
 import {
   MultimodalIntentBar,
@@ -19,14 +19,19 @@ import { heatmapCells, pendingPlan as fixturePendingPlan, provenance } from '../
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 import {
   approveLearningPlan,
+  approveStudentFact,
   editAndApproveLearningPlan,
+  editAndApproveStudentFact,
   getClassMastery,
   listAudit,
   listPendingApprovals,
+  listPendingStudentFacts,
   rejectLearningPlan,
+  rejectStudentFact,
   submitIntent,
   type ClassMasteryCell,
   type PendingPlanRecord,
+  type StudentFactRecord,
   type StudentProfileSkill,
 } from '../api'
 
@@ -62,7 +67,7 @@ type ClassOption = {
 
 const classOptions: ClassOption[] = [
   { classId: 'class-jss1-a', label: 'JSS1 A', subject: 'Mathematics', learnerCount: 34, supportCount: 5, medianMastery: 64 },
-  { classId: 'class-jss2-a', label: 'JSS2 A', subject: 'Mathematics', learnerCount: 8, supportCount: 3, medianMastery: 68 },
+  { classId: 'class-jss2-a', label: 'JSS2 A', subject: 'Mathematics', learnerCount: 58, supportCount: 7, medianMastery: 68 },
   { classId: 'class-jss3-a', label: 'JSS3 A', subject: 'Mathematics', learnerCount: 31, supportCount: 6, medianMastery: 66 },
   { classId: 'class-ss1-a', label: 'SS1 A', subject: 'Mathematics', learnerCount: 29, supportCount: 4, medianMastery: 71 },
   { classId: 'class-ss2-a', label: 'SS2 A', subject: 'Mathematics', learnerCount: 27, supportCount: 3, medianMastery: 74 },
@@ -75,6 +80,27 @@ type Row = {
   studentId: string
   name: string
   cells: Record<string, { p: number; u: number; status: HeatmapCellView['status'] }>
+}
+
+type StudentFactEditDraft = {
+  key: string
+  value: string
+  evidence: string
+  studentName: string
+}
+
+const emptyStudentFactDraft: StudentFactEditDraft = {
+  key: '',
+  value: '',
+  evidence: '',
+  studentName: '',
+}
+
+type WeakSkillSummary = {
+  skillId: (typeof skillIds)[number]
+  label: string
+  averageMastery: number
+  needsSupportCount: number
 }
 
 const classRows: Row[] = [
@@ -160,6 +186,132 @@ const classRows: Row[] = [
   },
 ]
 
+const pilotClassRosterNames = [
+  ...classRows.map(row => row.name),
+  'Adaeze N.',
+  'Bayo M.',
+  'Chidera U.',
+  'Damilola F.',
+  'Eniola S.',
+  'Farida A.',
+  'Gbolahan T.',
+  'Habiba Y.',
+  'Ifeoma C.',
+  'Jide O.',
+  'Kamsi E.',
+  'Latifah R.',
+  'Moyo A.',
+  'Nkem O.',
+  'Olamide B.',
+  'Praise I.',
+  'Qudus A.',
+  'Rukayat L.',
+  'Seyi D.',
+  'Temilade K.',
+  'Uche N.',
+  'Victoria A.',
+  'Wale J.',
+  'Yewande P.',
+  'Zikora M.',
+  'Anu A.',
+  'Bolu E.',
+  'Chiamaka I.',
+  'Dipo S.',
+  'Esther O.',
+  'Favour N.',
+  'Halima K.',
+  'Ikenna P.',
+  'Jumoke T.',
+  'Adebisi N.',
+  'Blessing U.',
+  'Caleb R.',
+  'Dolapo S.',
+  'Aisha M.',
+  'Bolaji A.',
+  'Chima O.',
+  'Deborah K.',
+  'Emeka N.',
+  'Fatima S.',
+  'Gbenga R.',
+  'Hauwa I.',
+  'Inioluwa A.',
+  'Jason E.',
+  'Kehinde O.',
+  'Laila U.',
+]
+
+const fallbackStudentFacts: StudentFactRecord[] = [
+  {
+    id: 'student-fact-pilot-tobi-ratio-worked-examples',
+    tenant_id: 'tenant-phase-2',
+    class_id: 'class-jss2-a',
+    student_id: 'student-001',
+    created_by_user_id: 'pathfinder-detector',
+    status: 'pending',
+    lang: 'en-NG',
+    provenance: [],
+    fact: {
+      fact_id: 'student-fact-pilot-tobi-ratio-worked-examples',
+      tenant_id: 'tenant-phase-2',
+      class_id: 'class-jss2-a',
+      student_id: 'student-001',
+      student_name: 'Tobi A.',
+      key: 'learning_support',
+      value: 'Needs worked examples before independent ratio practice',
+      evidence: 'Diagnostic response pattern + exit ticket',
+      requires_approval: true,
+      lang: 'en-NG',
+      provenance: [],
+    },
+  },
+  {
+    id: 'student-fact-pilot-ibrahim-fraction-visuals',
+    tenant_id: 'tenant-phase-2',
+    class_id: 'class-jss2-a',
+    student_id: 'student-003',
+    created_by_user_id: 'pathfinder-detector',
+    status: 'pending',
+    lang: 'en-NG',
+    provenance: [],
+    fact: {
+      fact_id: 'student-fact-pilot-ibrahim-fraction-visuals',
+      tenant_id: 'tenant-phase-2',
+      class_id: 'class-jss2-a',
+      student_id: 'student-003',
+      student_name: 'Ibrahim S.',
+      key: 'learning_modality',
+      value: 'Fraction bar visuals improve accuracy',
+      evidence: 'Three recent fraction attempts',
+      requires_approval: true,
+      lang: 'en-NG',
+      provenance: [],
+    },
+  },
+  {
+    id: 'student-fact-pilot-zainab-voice-prompts',
+    tenant_id: 'tenant-phase-2',
+    class_id: 'class-jss2-a',
+    student_id: 'student-008',
+    created_by_user_id: 'pathfinder-detector',
+    status: 'pending',
+    lang: 'en-NG',
+    provenance: [],
+    fact: {
+      fact_id: 'student-fact-pilot-zainab-voice-prompts',
+      tenant_id: 'tenant-phase-2',
+      class_id: 'class-jss2-a',
+      student_id: 'student-008',
+      student_name: 'Zainab H.',
+      key: 'access_preference',
+      value: 'Prefers short voice prompts for review tasks',
+      evidence: 'Reading drill completion logs',
+      requires_approval: true,
+      lang: 'en-NG',
+      provenance: [],
+    },
+  },
+]
+
 const classRosterNames: Record<string, string[]> = {
   'class-jss1-a': [
     'Adaeze N.',
@@ -197,7 +349,7 @@ const classRosterNames: Record<string, string[]> = {
     'Ikenna P.',
     'Jumoke T.',
   ],
-  'class-jss2-a': classRows.map(row => row.name),
+  'class-jss2-a': pilotClassRosterNames,
   'class-jss3-a': [
     'Aisha M.',
     'Bolaji A.',
@@ -449,6 +601,24 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: '12px',
   },
+  profilePrompt: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: '14px',
+    padding: '12px',
+    borderRadius: t.radius.sm,
+    border: `1px solid ${tokens.colorNeutralStroke2}`,
+    backgroundColor: t.brand.surface,
+    '@media (max-width: 720px)': {
+      alignItems: 'flex-start',
+      flexDirection: 'column',
+    },
+  },
+  profilePromptCopy: {
+    display: 'grid',
+    gap: '3px',
+  },
   heatmapScroll: {
     overflowX: 'auto',
   },
@@ -588,7 +758,127 @@ const useStyles = makeStyles({
     lineHeight: 1.35,
     overflowWrap: 'anywhere',
   },
+  insightList: {
+    display: 'grid',
+    gap: '8px',
+  },
+  insightItem: {
+    display: 'grid',
+    gap: '4px',
+    padding: '9px 10px',
+    borderRadius: t.radius.sm,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+  },
+  insightRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '10px',
+    alignItems: 'baseline',
+  },
+  insightMeta: {
+    color: t.brand.textTertiary,
+    fontSize: '0.72rem',
+    lineHeight: 1.35,
+  },
+  memoryTrustCopy: {
+    margin: 0,
+    color: t.brand.textSecondary,
+    fontSize: '0.82rem',
+    lineHeight: 1.45,
+  },
+  factEditForm: {
+    display: 'grid',
+    gap: '8px',
+    marginTop: '6px',
+    padding: '10px',
+    borderRadius: t.radius.md,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+  },
+  factEditField: {
+    display: 'grid',
+    gap: '4px',
+    color: t.brand.text,
+    fontSize: '0.76rem',
+    fontWeight: 800,
+  },
+  factEditInput: {
+    width: '100%',
+    minHeight: '36px',
+    borderRadius: t.radius.sm,
+    border: t.surface.hairline,
+    boxSizing: 'border-box',
+    paddingRight: '10px',
+    paddingLeft: '10px',
+    color: t.brand.text,
+    backgroundColor: t.brand.surface,
+    font: 'inherit',
+    fontSize: '0.82rem',
+  },
+  factEditTextarea: {
+    width: '100%',
+    minHeight: '68px',
+    borderRadius: t.radius.sm,
+    border: t.surface.hairline,
+    boxSizing: 'border-box',
+    padding: '9px 10px',
+    color: t.brand.text,
+    backgroundColor: t.brand.surface,
+    font: 'inherit',
+    fontSize: '0.82rem',
+    resize: 'vertical',
+  },
+  factActions: {
+    display: 'flex',
+    gap: '6px',
+    flexWrap: 'wrap',
+    marginTop: '2px',
+  },
 })
+
+function statusForMastery(probability: number): HeatmapCellView['status'] {
+  if (probability < 0.5) return 'needs_support'
+  if (probability < 0.85) return 'developing'
+  return 'secure'
+}
+
+function pilotCellsForIndex(index: number, sourceRow: Row): Row['cells'] {
+  const ratioMastery = index < 7
+    ? 0.38 + (index % 4) * 0.025
+    : 0.58 + (index % 7) * 0.035
+  const fractionMastery = 0.54 + (index % 6) * 0.025
+  const linearMastery = 0.66 + (index % 8) * 0.025
+  const geometryMastery = Math.min(0.91, 0.78 + (index % 6) * 0.025)
+
+  return {
+    'ratio-proportion': {
+      p: ratioMastery,
+      u: index < 7 ? 0.2 : sourceRow.cells['ratio-proportion'].u,
+      status: statusForMastery(ratioMastery),
+    },
+    'fraction-operations': {
+      p: fractionMastery,
+      u: sourceRow.cells['fraction-operations'].u,
+      status: statusForMastery(fractionMastery),
+    },
+    'linear-equations': {
+      p: linearMastery,
+      u: sourceRow.cells['linear-equations'].u,
+      status: statusForMastery(linearMastery),
+    },
+    'plane-geometry': {
+      p: geometryMastery,
+      u: sourceRow.cells['plane-geometry'].u,
+      status: statusForMastery(geometryMastery),
+    },
+  }
+}
+
+function studentIdForPilotIndex(index: number, sourceRow: Row): string {
+  if (index < classRows.length) return sourceRow.studentId
+  return `student-${String(index + 1).padStart(3, '0')}`
+}
 
 function rowMatchesFilter(row: Row, filter: string): boolean {
   const statuses = Object.values(row.cells).map(cell => cell.status)
@@ -602,18 +892,49 @@ function classRowsForOption(option: ClassOption): Row[] {
   const isPilotClass = option.classId === 'class-jss2-a'
   const rosterNames = classRosterNames[option.classId] ?? classRosterNames['class-jss2-a']
 
+  if (isPilotClass) {
+    return rosterNames.slice(0, option.learnerCount).map((name, index) => {
+      const sourceRow = classRows[index % classRows.length]
+      return {
+        studentId: studentIdForPilotIndex(index, sourceRow),
+        name,
+        cells: pilotCellsForIndex(index, sourceRow),
+      }
+    })
+  }
+
   return rosterNames.map((name, index) => {
     const sourceRow = classRows[index % classRows.length]
     return {
-    studentId: isPilotClass
-      ? sourceRow.studentId
-      : `${option.classId}-student-${String(index + 1).padStart(3, '0')}`,
+      studentId: `${option.classId}-student-${String(index + 1).padStart(3, '0')}`,
       name,
       cells: Object.fromEntries(
         Object.entries(sourceRow.cells).map(([skillId, cell]) => [skillId, { ...cell }])
       ) as Row['cells'],
     }
   })
+}
+
+function isFlaggedForIntervention(row: Row): boolean {
+  return Object.values(row.cells).some(cell => cell.status === 'needs_support')
+}
+
+function weakestSkillSummaries(rows: Row[]): WeakSkillSummary[] {
+  return skillIds
+    .map(skillId => {
+      const cells = rows.flatMap(row => row.cells[skillId] ? [row.cells[skillId]] : [])
+      const averageMastery = cells.length > 0
+        ? cells.reduce((total, cell) => total + cell.p, 0) / cells.length
+        : 0
+      return {
+        skillId,
+        label: skillLabels[skillId],
+        averageMastery,
+        needsSupportCount: cells.filter(cell => cell.status === 'needs_support').length,
+      }
+    })
+    .sort((left, right) => left.averageMastery - right.averageMastery)
+    .slice(0, 3)
 }
 
 function planRecordToView(record: PendingPlanRecord): PendingApprovalPlanView {
@@ -680,6 +1001,15 @@ function rowToProfileSkills(row: Row | undefined): StudentProfileSkill[] {
   })
 }
 
+function draftFromStudentFact(record: StudentFactRecord): StudentFactEditDraft {
+  return {
+    key: record.fact.key,
+    value: record.fact.value,
+    evidence: record.fact.evidence,
+    studentName: record.fact.student_name ?? '',
+  }
+}
+
 export default function TeacherMasteryDashboard() {
   const styles = useStyles()
   const [selectedClassId, setSelectedClassId] = useState('class-jss2-a')
@@ -690,9 +1020,15 @@ export default function TeacherMasteryDashboard() {
   ])
   const [liveCells, setLiveCells] = useState<ClassMasteryCell[]>([])
   const [pendingPlans, setPendingPlans] = useState<PendingPlanRecord[]>([])
+  const [pendingStudentFacts, setPendingStudentFacts] = useState<StudentFactRecord[]>(fallbackStudentFacts)
   const [approvalQueueState, setApprovalQueueState] = useState<'loading' | 'live' | 'offline'>(
     'loading'
   )
+  const [studentFactQueueState, setStudentFactQueueState] = useState<'loading' | 'live' | 'offline'>(
+    'loading'
+  )
+  const [editingStudentFactId, setEditingStudentFactId] = useState<string | null>(null)
+  const [studentFactDraft, setStudentFactDraft] = useState<StudentFactEditDraft>(emptyStudentFactDraft)
   const [intentBusy, setIntentBusy] = useState(false)
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null)
   const selectedClass = classOptions.find(option => option.classId === selectedClassId) ?? classOptions[1]
@@ -706,6 +1042,14 @@ export default function TeacherMasteryDashboard() {
         setPendingPlans(approvals.plans)
       } catch {
         setPendingPlans([])
+      }
+      try {
+        const facts = await listPendingStudentFacts({ class_id: selectedClassId })
+        setPendingStudentFacts(facts.facts)
+        setStudentFactQueueState('live')
+      } catch {
+        setPendingStudentFacts(selectedClassId === 'class-jss2-a' ? fallbackStudentFacts : [])
+        setStudentFactQueueState('offline')
       }
       setApprovalQueueState('live')
       try {
@@ -726,6 +1070,8 @@ export default function TeacherMasteryDashboard() {
       }
     } catch {
       setApprovalQueueState('offline')
+      setStudentFactQueueState('offline')
+      setPendingStudentFacts(selectedClassId === 'class-jss2-a' ? fallbackStudentFacts : [])
       // Backend unavailable in pure-frontend dev — fall back silently.
     }
   }, [selectedClassId])
@@ -740,6 +1086,9 @@ export default function TeacherMasteryDashboard() {
 
   const allRows = mergeLiveCellsWithFixture(liveCells, selectedClass)
   const visibleRows = allRows.filter(row => rowMatchesFilter(row, activeFilter))
+  const flaggedForInterventionCount = allRows.filter(isFlaggedForIntervention).length
+  const weakestSkills = weakestSkillSummaries(allRows)
+  const proposedStudentFactCount = pendingStudentFacts.length
   const selectedFallbackSkills = rowToProfileSkills(
     allRows.find(row => row.studentId === selectedStudentId)
   )
@@ -749,6 +1098,7 @@ export default function TeacherMasteryDashboard() {
       : approvalQueueState === 'offline' && selectedClass.classId === 'class-jss2-a'
         ? fixturePendingPlan
         : null
+  const profileEntryStudent = visibleRows[0]
   const pendingApprovalCount = pendingPlans.length > 0
     ? pendingPlans.length
     : approvalQueueState === 'offline' && selectedClass.classId === 'class-jss2-a'
@@ -763,7 +1113,10 @@ export default function TeacherMasteryDashboard() {
     setSelectedClassId(classId)
     setActiveFilter(statusFilters[0])
     setSelectedStudentId(null)
+    setEditingStudentFactId(null)
+    setStudentFactDraft(emptyStudentFactDraft)
     setLiveCells([])
+    setPendingStudentFacts(classId === 'class-jss2-a' ? fallbackStudentFacts : [])
   }
 
   async function handleSubmitIntent(value: string) {
@@ -830,6 +1183,59 @@ export default function TeacherMasteryDashboard() {
     }
   }
 
+  async function handleApproveFact(factId: string) {
+    pushEvent(`Approving student fact ${factId}…`)
+    try {
+      await approveStudentFact(factId, { class_id: selectedClass.classId, reason: 'Teacher dashboard approval' })
+      pushEvent(`Approved student fact ${factId}`)
+      await refresh()
+    } catch (err) {
+      pushEvent(`Student fact approval failed: ${(err as Error).message}`)
+    }
+  }
+
+  async function handleRejectFact(factId: string) {
+    pushEvent(`Rejecting student fact ${factId}…`)
+    try {
+      await rejectStudentFact(factId, { class_id: selectedClass.classId, reason: 'Teacher dashboard rejection' })
+      pushEvent(`Rejected student fact ${factId}`)
+      await refresh()
+    } catch (err) {
+      pushEvent(`Student fact rejection failed: ${(err as Error).message}`)
+    }
+  }
+
+  function startEditStudentFact(record: StudentFactRecord) {
+    setEditingStudentFactId(record.id)
+    setStudentFactDraft(draftFromStudentFact(record))
+  }
+
+  async function handleEditApproveFact(record: StudentFactRecord) {
+    const editedValue = studentFactDraft.value.trim()
+    const editedEvidence = studentFactDraft.evidence.trim()
+    if (!editedValue || !editedEvidence) return
+
+    pushEvent(`Editing and approving student fact ${record.id}…`)
+    try {
+      await editAndApproveStudentFact(record.id, {
+        class_id: selectedClass.classId,
+        reason: 'Teacher dashboard edited approval',
+        edits: {
+          key: studentFactDraft.key.trim() || record.fact.key,
+          value: editedValue,
+          evidence: editedEvidence,
+          student_name: studentFactDraft.studentName.trim() || undefined,
+        },
+      })
+      pushEvent(`Edited and approved student fact ${record.id}`)
+      setEditingStudentFactId(null)
+      setStudentFactDraft(emptyStudentFactDraft)
+      await refresh()
+    } catch (err) {
+      pushEvent(`Student fact edit approval failed: ${(err as Error).message}`)
+    }
+  }
+
   return (
     <div className={styles.shell} data-testid="route-teacher-dashboard">
       <div className={styles.headerRow}>
@@ -840,7 +1246,7 @@ export default function TeacherMasteryDashboard() {
           <div className={styles.headerMeta} aria-label="Class context">
             <span className={styles.headerMetaChip}>{selectedClass.label}</span>
             <span className={styles.headerMetaChip}>{selectedClass.subject}</span>
-            <span className={styles.headerMetaChip}>{selectedClass.learnerCount} learners</span>
+            <span className={styles.headerMetaChip}>{selectedClass.learnerCount} students</span>
             <span className={styles.headerMetaChip}>Mastery + uncertainty</span>
             <span className={styles.headerMetaChip}>Wulo Learning workspace</span>
           </div>
@@ -881,13 +1287,29 @@ export default function TeacherMasteryDashboard() {
       <div className={styles.twoCol}>
         <Card className={styles.heatmapCard}>
           <CardHeader
-            header={<Text weight="semibold">Knowledge Mastery Heatmap</Text>}
+            header={<Text weight="semibold">Class heatmap</Text>}
             description={
               <Text size={200}>
-                Each cell shows mastery % (large) and uncertainty % (small).
+                {selectedClass.learnerCount} students across {skillIds.length} maths sub-skills. Each cell shows mastery % (large) and uncertainty % (small).
               </Text>
             }
           />
+          <div className={styles.profilePrompt} data-testid="transparent-profile-entry">
+            <div className={styles.profilePromptCopy}>
+              <Text weight="semibold">Transparent student profile</Text>
+              <Text size={200}>
+                Open one learner to inspect strengths, gaps, evidence, recent responses, voice fluency, and proposed memory facts.
+              </Text>
+            </div>
+            <button
+              type="button"
+              className={styles.filterBadgeActive}
+              disabled={!profileEntryStudent}
+              onClick={() => profileEntryStudent && setSelectedStudentId(profileEntryStudent.studentId)}
+            >
+              Open student profile
+            </button>
+          </div>
           <div className={styles.heatmapScroll}>
             <table
               className={styles.heatmapGrid}
@@ -988,27 +1410,163 @@ export default function TeacherMasteryDashboard() {
             <Text weight="semibold">Class summary</Text>
             <div className={styles.summaryGrid}>
               <div className={styles.summaryTile}>
-                <div className={styles.summaryLabel}>Tracked</div>
-                <div className={styles.summaryValue}>{skillIds.length}</div>
-                <Text size={200}>skills</Text>
+                <div className={styles.summaryLabel}>Students</div>
+                <div className={styles.summaryValue}>{selectedClass.learnerCount}</div>
+                <Text size={200}>{selectedClass.learnerCount} students</Text>
               </div>
               <div className={styles.summaryTile}>
-                <div className={styles.summaryLabel}>Support</div>
-                <div className={styles.summaryValue}>{selectedClass.supportCount}</div>
-                <Text size={200}>learners</Text>
+                <div className={styles.summaryLabel}>Intervention</div>
+                <div className={styles.summaryValue}>{flaggedForInterventionCount}</div>
+                <Text size={200}>{flaggedForInterventionCount} students flagged for intervention</Text>
               </div>
               <div className={styles.summaryTile}>
-                <div className={styles.summaryLabel}>Median</div>
-                <div className={styles.summaryValue}>{selectedClass.medianMastery}%</div>
-                <Text size={200}>mastery</Text>
+                <div className={styles.summaryLabel}>Weakest</div>
+                <div className={styles.summaryValue}>{weakestSkills.length}</div>
+                <Text size={200}>weakest sub-skills this week</Text>
               </div>
               <div className={styles.summaryTile}>
-                <div className={styles.summaryLabel}>Pending</div>
-                <div className={styles.summaryValue}>{pendingApprovalCount}</div>
-                <Text size={200}>approval{pendingApprovalCount === 1 ? '' : 's'}</Text>
+                <div className={styles.summaryLabel}>Facts</div>
+                <div className={styles.summaryValue}>{proposedStudentFactCount}</div>
+                <Text size={200}>{proposedStudentFactCount} proposed student facts awaiting approval</Text>
               </div>
             </div>
           </div>
+
+          <Card className={styles.auditCard}>
+            <CardHeader
+              header={<Text weight="semibold">Weakest sub-skills this week</Text>}
+              description={<Text size={200}>Sorted by class-average mastery for {selectedClass.label}</Text>}
+            />
+            <div className={styles.insightList} data-testid="weakest-subskills-list">
+              {weakestSkills.map(skill => (
+                <div key={skill.skillId} className={styles.insightItem}>
+                  <div className={styles.insightRow}>
+                    <Text weight="semibold">{skill.label}</Text>
+                    <Text size={200}>{Math.round(skill.averageMastery * 100)}%</Text>
+                  </div>
+                  <div className={styles.insightMeta}>
+                    {skill.needsSupportCount} student{skill.needsSupportCount === 1 ? '' : 's'} below support threshold
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <Card className={styles.auditCard}>
+            <CardHeader
+              header={<Text weight="semibold">Teacher-controlled memory</Text>}
+              description={<Text size={200}>{proposedStudentFactCount} proposed student facts awaiting approval</Text>}
+            />
+            <p className={styles.memoryTrustCopy}>
+              Proposed facts stay pending until a teacher approves, edits, or rejects them; personalization does not happen invisibly.
+            </p>
+            <div className={styles.insightList} data-testid="student-fact-approval-list">
+              {pendingStudentFacts.map(fact => (
+                <div key={fact.id} className={styles.insightItem}>
+                  <div className={styles.insightRow}>
+                    <Text weight="semibold">{fact.fact.student_name ?? fact.student_id}</Text>
+                    <span className={styles.softBadge}>Awaiting approval</span>
+                  </div>
+                  <div className={styles.insightMeta}>Memory type · {fact.fact.key}</div>
+                  <Text size={200}>{fact.fact.value}</Text>
+                  <div className={styles.insightMeta}>{fact.fact.evidence}</div>
+                  {editingStudentFactId === fact.id ? (
+                    <form
+                      className={styles.factEditForm}
+                      data-testid={`student-fact-edit-${fact.id}`}
+                      onSubmit={(event: FormEvent<HTMLFormElement>) => {
+                        event.preventDefault()
+                        void handleEditApproveFact(fact)
+                      }}
+                    >
+                      <label className={styles.factEditField}>
+                        Student name
+                        <input
+                          className={styles.factEditInput}
+                          aria-label={`Edited student name for ${fact.fact.student_name ?? fact.student_id}`}
+                          value={studentFactDraft.studentName}
+                          onChange={event => {
+                            const studentName = event.currentTarget.value
+                            setStudentFactDraft(current => ({ ...current, studentName }))
+                          }}
+                        />
+                      </label>
+                      <label className={styles.factEditField}>
+                        Memory fact
+                        <textarea
+                          className={styles.factEditTextarea}
+                          aria-label={`Edited memory fact for ${fact.fact.student_name ?? fact.student_id}`}
+                          value={studentFactDraft.value}
+                          onChange={event => {
+                            const value = event.currentTarget.value
+                            setStudentFactDraft(current => ({ ...current, value }))
+                          }}
+                        />
+                      </label>
+                      <label className={styles.factEditField}>
+                        Evidence
+                        <textarea
+                          className={styles.factEditTextarea}
+                          aria-label={`Edited evidence for ${fact.fact.student_name ?? fact.student_id}`}
+                          value={studentFactDraft.evidence}
+                          onChange={event => {
+                            const evidence = event.currentTarget.value
+                            setStudentFactDraft(current => ({ ...current, evidence }))
+                          }}
+                        />
+                      </label>
+                      <div className={styles.factActions}>
+                        <button
+                          type="submit"
+                          className={styles.filterBadgeActive}
+                          disabled={studentFactQueueState !== 'live' || !studentFactDraft.value.trim() || !studentFactDraft.evidence.trim()}
+                        >
+                          Save edited fact
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.filterBadge}
+                          onClick={() => {
+                            setEditingStudentFactId(null)
+                            setStudentFactDraft(emptyStudentFactDraft)
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className={styles.factActions}>
+                      <button
+                        type="button"
+                        className={styles.filterBadge}
+                        disabled={studentFactQueueState !== 'live'}
+                        onClick={() => void handleApproveFact(fact.id)}
+                      >
+                        Approve
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.filterBadge}
+                        disabled={studentFactQueueState !== 'live'}
+                        onClick={() => startEditStudentFact(fact)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.filterBadge}
+                        disabled={studentFactQueueState !== 'live'}
+                        onClick={() => void handleRejectFact(fact.id)}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </Card>
 
           <div className={styles.intentCard}>
             <Text weight="semibold">Plan an intervention</Text>

@@ -52,6 +52,17 @@ class ApprovalEvent(LanguageAndProvenanceModel):
     reason: Optional[str] = None
 
 
+class StudentFactDecisionEvent(LanguageAndProvenanceModel):
+    event_id: str = Field(default_factory=lambda: f"student-fact-decision-{uuid4().hex[:12]}")
+    event_type: Literal["student_fact_decision"] = "student_fact_decision"
+    tenant_id: str = Field(min_length=1)
+    actor_id: str = Field(min_length=1)
+    fact_id: str = Field(min_length=1)
+    student_id: str = Field(min_length=1)
+    action: Literal["approved", "edited_approved", "rejected"]
+    reason: Optional[str] = None
+
+
 class OverrideEvent(LanguageAndProvenanceModel):
     event_id: str = Field(default_factory=lambda: f"override-{uuid4().hex[:12]}")
     event_type: Literal["override"] = "override"
@@ -141,6 +152,20 @@ def approval_event_to_xapi(event: ApprovalEvent) -> XAPIStatement:
         actor=_actor(event.actor_id),
         verb={"id": f"https://pathfinder.learn/xapi/verbs/{event.action}", "display": {"en": event.action}},
         object={"id": f"https://pathfinder.learn/plans/{event.plan_id}", "definition": {"type": "InterventionPlan"}},
+        result={"response": event.reason or event.action},
+        context=_context(event.tenant_id, event.lang, event.provenance),
+    )
+
+
+def student_fact_decision_event_to_xapi(event: StudentFactDecisionEvent) -> XAPIStatement:
+    return XAPIStatement(
+        id=event.event_id,
+        actor=_actor(event.actor_id),
+        verb={"id": f"https://pathfinder.learn/xapi/verbs/{event.action}-student-fact", "display": {"en": event.action}},
+        object={
+            "id": f"https://pathfinder.learn/students/{event.student_id}/facts/{event.fact_id}",
+            "definition": {"type": "StudentFact"},
+        },
         result={"response": event.reason or event.action},
         context=_context(event.tenant_id, event.lang, event.provenance),
     )

@@ -623,16 +623,18 @@ const useStyles = makeStyles({
   },
   cookieBanner: {
     position: 'fixed',
-    right: '20px',
-    bottom: '20px',
+    left: 'calc(260px + 24px)',
+    bottom: '24px',
     zIndex: 30,
     pointerEvents: 'auto',
-    width: 'min(520px, calc(100vw - 32px))',
-    maxHeight: '35vh',
+    width: 'min(560px, calc(100vw - 380px))',
+    maxHeight: '32vh',
     overflowY: 'auto',
     display: 'grid',
-    gap: '12px',
-    padding: '16px',
+    gridTemplateColumns: 'minmax(0, 1fr) auto',
+    gap: '14px',
+    alignItems: 'center',
+    padding: '16px 18px',
     borderRadius: '8px',
     backgroundColor: t.brand.surface,
     borderTop: t.surface.hairline,
@@ -641,12 +643,30 @@ const useStyles = makeStyles({
     borderLeft: t.surface.hairline,
     boxShadow: '0 18px 48px rgba(30, 41, 59, 0.22)',
     boxSizing: 'border-box',
-    '@media (max-width: 1000px)': {
-      right: '12px',
-      bottom: '88px',
-      width: 'calc(100vw - 24px)',
-      maxHeight: '30vh',
+    '@media (max-width: 1200px)': {
+      left: '24px',
+      width: 'min(560px, calc(100vw - 132px))',
     },
+    '@media (max-width: 1000px)': {
+      left: '12px',
+      right: '84px',
+      bottom: '88px',
+      width: 'auto',
+      maxHeight: '28vh',
+      gridTemplateColumns: '1fr',
+      alignItems: 'stretch',
+      gap: '10px',
+      padding: '14px',
+    },
+    '@media (max-width: 560px)': {
+      right: '12px',
+      bottom: '154px',
+    },
+  },
+  cookieBannerCopy: {
+    display: 'grid',
+    gap: '5px',
+    minWidth: 0,
   },
   cookieBannerTitle: {
     fontFamily: t.font.display,
@@ -664,6 +684,9 @@ const useStyles = makeStyles({
     justifyContent: 'flex-end',
     gap: '8px',
     flexWrap: 'wrap',
+    '@media (max-width: 1000px)': {
+      justifyContent: 'flex-start',
+    },
   },
   cookieButton: {
     appearance: 'none',
@@ -718,11 +741,13 @@ export function CookieConsentBanner() {
       data-testid="cookie-consent-banner"
       aria-label="Cookie consent"
     >
-      <div className={styles.cookieBannerTitle}>We use cookies</div>
-      <Text className={styles.cookieBannerText}>
-        Wulo uses essential cookies for the app to work. Analytics stay off unless
-        you choose to manage preferences later.
-      </Text>
+      <div className={styles.cookieBannerCopy}>
+        <div className={styles.cookieBannerTitle}>We use cookies</div>
+        <Text className={styles.cookieBannerText}>
+          Wulo uses essential cookies for the app to work. Analytics stay off unless
+          you choose to manage preferences later.
+        </Text>
+      </div>
       <div className={styles.cookieBannerActions}>
         <button type="button" className={styles.cookieButton} onClick={() => dismiss('managed')}>
           Manage
@@ -1042,6 +1067,7 @@ export default function PathfinderLearnApp() {
           <div className={styles.content}>
             <Routes>
               <Route index element={learningRole === 'loading' ? null : <Navigate to={defaultPathForRole(effectiveRole)} replace />} />
+              <Route path="/logout" element={<Navigate to="/.auth/logout" replace />} />
               <Route path="/home" element={routeForRole(['parent', 'learner', 'kid', 'student'], learnerHomeElement())} />
               <Route path="/teacher" element={routeForRole(['therapist', 'admin'], <TeacherMasteryDashboard />)} />
               <Route path="/library" element={routeForRole(['admin'], <SkillLibrary />)} />

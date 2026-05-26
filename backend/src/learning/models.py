@@ -145,6 +145,44 @@ class InterventionPlan(LanguageAndProvenanceModel):
         return values
 
 
+class StudentFactProposal(LanguageAndProvenanceModel):
+    fact_id: str = Field(default_factory=lambda: f"student-fact-{uuid4().hex[:12]}")
+    tenant_id: str = Field(min_length=1)
+    class_id: str = Field(min_length=1)
+    student_id: str = Field(min_length=1)
+    student_name: Optional[str] = None
+    key: str = Field(min_length=1)
+    value: str = Field(min_length=1)
+    evidence: str = Field(min_length=1)
+    requires_approval: bool = True
+
+
+class StudentLearningEvidence(ContractModel):
+    source: str = Field(min_length=1)
+    summary: str = Field(min_length=1)
+    skill_id: Optional[str] = None
+    item_id: Optional[str] = None
+    correct: Optional[bool] = None
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0)
+
+
+class StudentLearningInsight(ContractModel):
+    skill_id: str = Field(min_length=1)
+    skill_label: str = Field(min_length=1)
+    probability: float = Field(ge=0.0, le=1.0)
+    uncertainty: float = Field(ge=0.0, le=1.0)
+    status: Literal["secure", "developing", "needs_support"]
+    evidence: List[StudentLearningEvidence] = Field(min_length=1)
+
+
+class VoiceFluencyResult(LanguageAndProvenanceModel):
+    status: Literal["available", "not_recorded"]
+    score: Optional[float] = Field(default=None, ge=0.0, le=100.0)
+    label: str = Field(min_length=1)
+    evidence: str = Field(min_length=1)
+    captured_at: Optional[str] = None
+
+
 class LabourMarketSignal(ContractModel):
     source: str = Field(min_length=1)
     recency: str = Field(min_length=1)

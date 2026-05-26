@@ -11,7 +11,12 @@ import {
   makeStyles,
 } from '@fluentui/react-components'
 import { useMemo, useState } from 'react'
-import type { StudentProfileRecord, StudentProfileSkill } from './api'
+import type {
+  StudentFactRecord,
+  StudentLearningInsight,
+  StudentProfileRecord,
+  StudentProfileSkill,
+} from './api'
 import { OverrideMasteryDialog } from './OverrideMasteryDialog'
 import { pathfinderTokens as t } from './theme/pathfinder-tokens'
 import { useStudentProfile } from './useStudentProfile'
@@ -158,6 +163,45 @@ const useStyles = makeStyles({
     borderRadius: t.radius.md,
     border: t.surface.hairline,
     backgroundColor: t.surface.cardMuted,
+  },
+  insightGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: '10px',
+    '@media (max-width: 720px)': { gridTemplateColumns: '1fr' },
+  },
+  insightCard: {
+    display: 'grid',
+    gap: '8px',
+    padding: '12px 14px',
+    borderRadius: t.radius.md,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+  },
+  insightHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '10px',
+    alignItems: 'flex-start',
+  },
+  evidenceList: {
+    display: 'grid',
+    gap: '6px',
+  },
+  evidenceItem: {
+    display: 'block',
+    padding: '7px 9px',
+    borderRadius: t.radius.sm,
+    backgroundColor: t.brand.surface,
+    color: t.brand.textSecondary,
+    fontSize: '0.76rem',
+    lineHeight: 1.35,
+  },
+  voiceMetric: {
+    fontFamily: t.font.display,
+    fontSize: '1.4rem',
+    fontWeight: 800,
+    letterSpacing: '0',
   },
   error: {
     color: t.status.criticalFg,
@@ -342,6 +386,28 @@ function formatPercent(value: number) {
   return `${Math.round(value * 100)}%`
 }
 
+function fallbackInsightFromSkill(skill: StudentProfileSkill): StudentLearningInsight {
+  return {
+    skill_id: skill.skill_id,
+    skill_label: skill.skill_label,
+    probability: skill.probability,
+    uncertainty: skill.uncertainty,
+    status: skill.status,
+    evidence: [
+      {
+        source: 'class_heatmap',
+        summary: `Current heatmap estimate is ${formatPercent(skill.probability)} mastery with ${formatPercent(skill.uncertainty)} uncertainty`,
+        skill_id: skill.skill_id,
+        confidence: 0.72,
+      },
+    ],
+  }
+}
+
+function factStudentName(fact: StudentFactRecord) {
+  return fact.fact.student_name || fact.student_id
+}
+
 function finiteNumber(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null
 }
@@ -418,6 +484,14 @@ export function StudentProfileDrawer({
 
   const responses = profile?.recent_responses.slice().reverse() ?? []
   const events = rawEvents.slice().reverse()
+  const strengths = profile?.strengths?.length
+    ? profile.strengths
+    : skills.filter(item => item.status === 'secure').map(fallbackInsightFromSkill)
+  const gaps = profile?.gaps?.length
+    ? profile.gaps
+    : skills.filter(item => item.status !== 'secure').map(fallbackInsightFromSkill)
+  const proposedFacts = profile?.proposed_student_facts ?? []
+  const voiceFluency = profile?.voice_fluency ?? null
 
   function openRestoreDialog(item: StudentProfileSkill, option: RevertOption) {
     if (!option.prior) return
@@ -470,6 +544,89 @@ export function StudentProfileDrawer({
           {toast ? <div className={styles.toast} aria-live="polite">{toast}</div> : null}
           {loading ? <Text>Loading profile…</Text> : null}
           {error ? <Text className={styles.error}>Profile could not load right now.</Text> : null}
+
+          <section className={styles.section} aria-label="Strengths">
+            <Text className={styles.sectionTitle}>Strengths</Text>
+            <div className={styles.insightGrid}>
+              {strengths.length === 0 ? <Text size={200}>No secure strengths recorded yet.</Text> : null}
+              {strengths.map(item => (
+                <div className={styles.insightCard} key={`${item.skill_id}-strength`}>
+                  <div className={styles.insightHeader}>
+                    <Text weight="semibold">{item.skill_label}</Text>
+                    <span className={`${styles.statusPill} ${statusClass(styles, item.status)}`}>{statusLabel(item.status)}</span>
+                  </div>
+                  <Text size={200}>{formatPercent(item.probability)} mastery, {formatPercent(item.uncertainty)} uncertainty</Text>
+                  <div className={styles.evidenceList}>
+                    {item.evidence.slice(0, 2).map((evidence, index) => (
+                      <span className={styles.evidenceItem} key={`${item.skill_id}-strength-evidence-${index}`}>
+                        {evidence.summary}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className={styles.section} aria-label="Gaps and evidence">
+            <Text className={styles.sectionTitle}>Gaps and evidence</Text>
+            <div className={styles.insightGrid}>
+              {gaps.length === 0 ? <Text size={200}>No current learning gaps recorded.</Text> : null}
+              {gaps.map(item => (
+                <div className={styles.insightCard} key={`${item.skill_id}-gap`}>
+                  <div className={styles.insightHeader}>
+                    <Text weight="semibold">{item.skill_label}</Text>
+                    <span className={`${styles.statusPill} ${statusClass(styles, item.status)}`}>{statusLabel(item.status)}</span>
+                  </div>
+                  <Text size={200}>{formatPercent(item.probability)} mastery, {formatPercent(item.uncertainty)} uncertainty</Text>
+                  <div className={styles.evidenceList}>
+                    {item.evidence.map((evidence, index) => (
+                      <span className={styles.evidenceItem} key={`${item.skill_id}-gap-evidence-${index}`}>
+                        {evidence.summary}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className={styles.section} aria-label="Voice fluency result">
+            <Text className={styles.sectionTitle}>Voice fluency result</Text>
+            <div className={styles.insightCard}>
+              {voiceFluency?.status === 'available' ? (
+                <>
+                  <div className={styles.voiceMetric}>Fluency {Math.round(voiceFluency.score ?? 0)}%</div>
+                  <Text weight="semibold">{voiceFluency.label}</Text>
+                  <span className={styles.evidenceItem}>{voiceFluency.evidence}</span>
+                </>
+              ) : (
+                <>
+                  <Text weight="semibold">No voice fluency sample recorded</Text>
+                  <span className={styles.evidenceItem}>
+                    {voiceFluency?.evidence ?? 'Pathfinder has not received an oral-reading fluency sample for this student yet.'}
+                  </span>
+                </>
+              )}
+            </div>
+          </section>
+
+          <section className={styles.section} aria-label="Proposed memory facts">
+            <Text className={styles.sectionTitle}>Proposed memory facts</Text>
+            <div className={styles.list}>
+              {proposedFacts.length === 0 ? <Text size={200}>No proposed memory facts awaiting approval.</Text> : null}
+              {proposedFacts.map(fact => (
+                <div className={styles.listItem} key={fact.id}>
+                  <div className={styles.rowText}>
+                    <Text weight="semibold">{factStudentName(fact)}</Text>
+                    <Text size={200}>{fact.fact.value}</Text>
+                    <span className={styles.evidenceItem}>{fact.fact.evidence}</span>
+                  </div>
+                  <span className={styles.answerPill}>Awaiting approval</span>
+                </div>
+              ))}
+            </div>
+          </section>
 
           <section className={styles.section} aria-label="Skill mastery">
             <Text className={styles.sectionTitle}>Skill mastery</Text>

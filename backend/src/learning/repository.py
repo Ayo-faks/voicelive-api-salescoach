@@ -14,9 +14,10 @@ from src.learning.models import (
     OfflineQueuedEvent,
     Provenance,
     SkillSearchResult,
+    StudentFactProposal,
     StudentResponse,
 )
-from src.learning.xapi import ApprovalEvent, XAPIStatement
+from src.learning.xapi import ApprovalEvent, StudentFactDecisionEvent, XAPIStatement
 
 
 LEARNING_RLS_PROTECTED_TABLES = (
@@ -36,6 +37,8 @@ LEARNING_RLS_PROTECTED_TABLES = (
     "learning_xapi_statements",
     "learning_offline_queue",
     "learning_content_pack_manifests",
+    "learning_student_facts",
+    "learning_student_fact_decisions",
 )
 LEARNING_REQUEST_GUCS = ("app.tenant_id", "app.class_id", "app.user_id", "app.role")
 APPROVAL_STATUSES = ("draft", "pending", "approved", "edited_approved", "rejected")
@@ -58,6 +61,32 @@ class LearningRepository(Protocol):
         raise NotImplementedError
 
     def record_approval(self, event: ApprovalEvent, statement: XAPIStatement) -> Dict[str, Any]:
+        raise NotImplementedError
+
+    def save_student_fact(
+        self,
+        fact: StudentFactProposal,
+        actor_id: str,
+        status: str = "pending",
+    ) -> Dict[str, Any]:
+        raise NotImplementedError
+
+    def list_student_facts(
+        self,
+        tenant_id: str,
+        *,
+        class_id: Optional[str] = None,
+        student_id: Optional[str] = None,
+        status: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        raise NotImplementedError
+
+    def record_student_fact_decision(
+        self,
+        event: StudentFactDecisionEvent,
+        statement: XAPIStatement,
+        edited_fact: Optional[StudentFactProposal] = None,
+    ) -> Dict[str, Any]:
         raise NotImplementedError
 
     def emit_xapi_statement(
@@ -117,6 +146,8 @@ class InMemoryLearningRepository:
         self.mastery_events: List[Dict[str, Any]] = []
         self.intervention_plans: List[Dict[str, Any]] = []
         self.approvals: List[Dict[str, Any]] = []
+        self.student_facts: List[Dict[str, Any]] = []
+        self.student_fact_decisions: List[Dict[str, Any]] = []
         self.xapi_statements: List[Dict[str, Any]] = []
         self.offline_queue: List[Dict[str, Any]] = []
         self.content_pack_manifests: List[Dict[str, Any]] = []
@@ -173,6 +204,78 @@ class InMemoryLearningRepository:
                 plan["status"] = event.action
                 plan["updated_at"] = record["created_at"]
                 plan["approved_at"] = record["created_at"] if event.action != "rejected" else None
+        return record
+
+    def save_student_fact(
+        self,
+        fact: StudentFactProposal,
+        actor_id: str,
+        status: str = "pending",
+    ) -> Dict[str, Any]:
+        if status not in APPROVAL_STATUSES:
+            raise ValueError(f"unknown student fact status: {status}")
+        record = {
+            "id": fact.fact_id,
+            "tenant_id": fact.tenant_id,
+            "class_id": fact.class_id,
+            "student_id": fact.student_id,
+            "created_by_user_id": actor_id,
+            "status": status,
+            "fact": fact.model_dump(),
+            "lang": fact.lang,
+            "provenance": [item.model_dump() for item in fact.provenance],
+            "created_at": utc_now(),
+            "updated_at": utc_now(),
+            "approved_at": None,
+        }
+        for index, existing in enumerate(self.student_facts):
+            if existing["id"] == fact.fact_id and existing["tenant_id"] == fact.tenant_id:
+                self.student_facts[index] = record
+                return record
+        self.student_facts.append(record)
+        return record
+
+    def list_student_facts(
+        self,
+        tenant_id: str,
+        *,
+        class_id: Optional[str] = None,
+        student_id: Optional[str] = None,
+        status: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        return [
+            record
+            for record in self.student_facts
+            if record["tenant_id"] == tenant_id
+            and (class_id is None or record.get("class_id") == class_id)
+            and (student_id is None or record.get("student_id") == student_id)
+            and (status is None or record.get("status") == status)
+        ]
+
+    def record_student_fact_decision(
+        self,
+        event: StudentFactDecisionEvent,
+        statement: XAPIStatement,
+        edited_fact: Optional[StudentFactProposal] = None,
+    ) -> Dict[str, Any]:
+        record = event.model_dump()
+        record["id"] = event.event_id
+        record["xapi_statement"] = statement.model_dump()
+        record["created_at"] = utc_now()
+        self.student_fact_decisions.append(record)
+        for fact_record in self.student_facts:
+            if fact_record["id"] == event.fact_id and fact_record["tenant_id"] == event.tenant_id:
+                if edited_fact is not None:
+                    fact_record["fact"] = edited_fact.model_dump()
+                    fact_record["lang"] = edited_fact.lang
+                    fact_record["provenance"] = [item.model_dump() for item in edited_fact.provenance]
+                fact_record["status"] = event.action
+                fact_record["updated_at"] = record["created_at"]
+                fact_record["decided_by"] = event.actor_id
+                fact_record["decision_reason"] = event.reason
+                fact_record["approved_at"] = record["created_at"] if event.action != "rejected" else None
+                record["fact"] = fact_record["fact"]
+                break
         return record
 
     def emit_xapi_statement(
@@ -547,6 +650,191 @@ class LearningPostgresRepository:
 
         self.storage._execute_write(persist)
         return {"id": manifest_id, "tenant_id": manifest.tenant_id, "created_at": created_at}
+
+    def _row_to_student_fact_record(self, row: Dict[str, Any]) -> Dict[str, Any]:
+        fact_raw = self.storage._loads_json(row.get("fact_json"), {})
+        provenance_raw = self.storage._loads_json(row.get("provenance_json"), [])
+        if provenance_raw and isinstance(fact_raw, dict):
+            fact_raw = {**fact_raw, "provenance": provenance_raw}
+        fact = StudentFactProposal.model_validate(fact_raw)
+        return {
+            "id": row["id"],
+            "tenant_id": row["tenant_id"],
+            "class_id": row["class_id"],
+            "student_id": row["student_id"],
+            "created_by_user_id": row["created_by_user_id"],
+            "status": row["status"],
+            "fact": fact.model_dump(),
+            "lang": fact.lang,
+            "provenance": [item.model_dump() for item in fact.provenance],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+            "approved_at": row.get("approved_at"),
+            "decided_by": row.get("decided_by"),
+            "decision_reason": row.get("decision_reason"),
+        }
+
+    def save_student_fact(
+        self,
+        fact: StudentFactProposal,
+        actor_id: str,
+        status: str = "pending",
+    ) -> Dict[str, Any]:
+        if status not in APPROVAL_STATUSES:
+            raise ValueError(f"unknown student fact status: {status}")
+        created_at = self.storage._utc_now()
+
+        def persist(connection: Any) -> None:
+            connection.execute(
+                """
+                INSERT INTO learning_student_facts (
+                    id, tenant_id, class_id, student_id, created_by_user_id,
+                    status, fact_json, lang, provenance_json, created_at, updated_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    fact.fact_id,
+                    fact.tenant_id,
+                    fact.class_id,
+                    fact.student_id,
+                    actor_id,
+                    status,
+                    self.storage._dumps_json(fact.model_dump()),
+                    fact.lang,
+                    self.storage._dumps_json([item.model_dump() for item in fact.provenance]),
+                    created_at,
+                    created_at,
+                ),
+            )
+
+        self.storage._execute_write(persist)
+        return {
+            "id": fact.fact_id,
+            "tenant_id": fact.tenant_id,
+            "class_id": fact.class_id,
+            "student_id": fact.student_id,
+            "created_by_user_id": actor_id,
+            "status": status,
+            "fact": fact.model_dump(),
+            "lang": fact.lang,
+            "provenance": [item.model_dump() for item in fact.provenance],
+            "created_at": created_at,
+            "updated_at": created_at,
+            "approved_at": None,
+        }
+
+    def list_student_facts(
+        self,
+        tenant_id: str,
+        *,
+        class_id: Optional[str] = None,
+        student_id: Optional[str] = None,
+        status: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        clauses = ["tenant_id = %s"]
+        params: List[Any] = [tenant_id]
+        if class_id is not None:
+            clauses.append("class_id = %s")
+            params.append(class_id)
+        if student_id is not None:
+            clauses.append("student_id = %s")
+            params.append(student_id)
+        if status is not None:
+            clauses.append("status = %s")
+            params.append(status)
+        where_sql = " AND ".join(clauses)
+        result: Dict[str, Any] = {"rows": []}
+
+        def fetch(connection: Any) -> None:
+            rows = connection.execute(
+                f"""
+                SELECT id, tenant_id, class_id, student_id, created_by_user_id,
+                       status, fact_json, lang, provenance_json, created_at,
+                       updated_at, approved_at, decided_by, decision_reason
+                FROM learning_student_facts
+                WHERE {where_sql}
+                ORDER BY updated_at DESC, created_at DESC
+                """,
+                tuple(params),
+            ).fetchall()
+            result["rows"] = [dict(row) for row in rows]
+
+        self.storage._execute_write(fetch)
+        return [self._row_to_student_fact_record(row) for row in result["rows"]]
+
+    def record_student_fact_decision(
+        self,
+        event: StudentFactDecisionEvent,
+        statement: XAPIStatement,
+        edited_fact: Optional[StudentFactProposal] = None,
+    ) -> Dict[str, Any]:
+        created_at = self.storage._utc_now()
+        decision_id = event.event_id
+        updated_fact = edited_fact.model_dump() if edited_fact is not None else None
+        class_id_result: Dict[str, Any] = {"class_id": ""}
+
+        def persist(connection: Any) -> None:
+            row = connection.execute(
+                """
+                SELECT class_id FROM learning_student_facts
+                WHERE id = %s AND tenant_id = %s
+                """,
+                (event.fact_id, event.tenant_id),
+            ).fetchone()
+            class_id_result["class_id"] = row["class_id"] if row else ""
+            connection.execute(
+                """
+                INSERT INTO learning_student_fact_decisions (
+                    id, tenant_id, class_id, fact_id, actor_id, action, reason,
+                    edited_fact_json, xapi_statement_json, created_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    decision_id,
+                    event.tenant_id,
+                    class_id_result["class_id"],
+                    event.fact_id,
+                    event.actor_id,
+                    event.action,
+                    event.reason,
+                    self.storage._dumps_json(updated_fact) if updated_fact is not None else None,
+                    self.storage._dumps_json(statement.model_dump()),
+                    created_at,
+                ),
+            )
+            connection.execute(
+                """
+                UPDATE learning_student_facts
+                SET status = %s,
+                    fact_json = COALESCE(%s, fact_json),
+                    lang = COALESCE(%s, lang),
+                    provenance_json = COALESCE(%s, provenance_json),
+                    updated_at = %s,
+                    approved_at = CASE WHEN %s = 'rejected' THEN approved_at ELSE %s END,
+                    decided_by = %s,
+                    decision_reason = %s
+                WHERE id = %s AND tenant_id = %s
+                """,
+                (
+                    event.action,
+                    self.storage._dumps_json(updated_fact) if updated_fact is not None else None,
+                    edited_fact.lang if edited_fact is not None else None,
+                    self.storage._dumps_json([item.model_dump() for item in edited_fact.provenance])
+                    if edited_fact is not None else None,
+                    created_at,
+                    event.action,
+                    created_at,
+                    event.actor_id,
+                    event.reason,
+                    event.fact_id,
+                    event.tenant_id,
+                ),
+            )
+
+        self.storage._execute_write(persist)
+        return {"id": decision_id, "tenant_id": event.tenant_id, "class_id": class_id_result["class_id"], "created_at": created_at}
 
     def list_class_ids_for_teacher(self, tenant_id: str, user_id: str) -> set[str]:
         result: Dict[str, Any] = {"class_ids": set()}

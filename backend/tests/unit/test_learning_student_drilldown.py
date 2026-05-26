@@ -70,6 +70,9 @@ def test_profile_returns_skills_responses_and_emits_view_event(
     )
     assert body["recent_responses"] and body["recent_responses"][0]["item_id"] == item["item_id"]
     assert body["recent_mastery_events"]
+    assert body["gaps"]
+    assert body["gaps"][0]["evidence"]
+    assert body["voice_fluency"]["status"] == "not_recorded"
     assert body["xapi_id"]
 
     # xAPI statement was emitted and recorded.
@@ -91,8 +94,24 @@ def test_profile_empty_when_no_responses(client):
     assert response.status_code == 200
     body = response.get_json()
     assert body["skills"] == []
+    assert body["strengths"] == []
+    assert body["gaps"] == []
+    assert body["proposed_student_facts"] == []
     assert body["recent_mastery_events"] == []
     assert body["recent_responses"] == []
+
+
+def test_profile_surfaces_pending_facts_and_voice_fluency_for_selected_pilot_student(client):
+    response = client.get("/api/learning/students/student-001/profile")
+    assert response.status_code == 200, response.get_data(as_text=True)
+    body = response.get_json()
+
+    assert body["voice_fluency"]["status"] == "available"
+    assert body["voice_fluency"]["score"] == pytest.approx(72.0)
+    assert body["proposed_student_facts"]
+    assert body["proposed_student_facts"][0]["fact"]["value"] == (
+        "Needs worked examples before independent ratio practice"
+    )
 
 
 # ----------------------------------------------------------------------
