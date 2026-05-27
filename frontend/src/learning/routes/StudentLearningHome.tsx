@@ -6,13 +6,17 @@ import {
   BookOpenIcon,
   BriefcaseIcon,
   CalculatorIcon,
+  ChartBarIcon,
   CheckBadgeIcon,
   ChevronRightIcon,
   ClockIcon,
+  DocumentTextIcon,
   MicrophoneIcon,
   PlayCircleIcon,
+  ShareIcon,
   SparklesIcon,
   WifiIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 import DiagnosticPanel from '../components/DiagnosticPanel'
@@ -97,6 +101,44 @@ type PracticeAnswer = {
   correct: boolean
 }
 
+type LearnerSetup = {
+  exam: string
+  year: string
+  subject: string
+}
+
+type WeakTopic = {
+  skillId: string
+  label: string
+  mastery: number
+  gap: string
+  nextAction: string
+}
+
+type DailyPlanItem = {
+  id: string
+  label: string
+  minutes: number
+  reason: string
+}
+
+type CareerPathway = {
+  id: string
+  title: string
+  fit: number
+  strength: string
+  gap: string
+}
+
+type WrongAnswerExplanation = {
+  correctAnswer: string
+  whyWrong: string
+  conceptMissed: string
+  simplerExplanation: string
+  similarQuestion: string
+  revisionAction: string
+}
+
 type CareerAnswerPoint = {
   label: string
   body: string
@@ -159,6 +201,97 @@ const deviceModes = [
     detail: 'The layout collapses for smaller screens and saves answers locally when connectivity drops.',
   },
 ]
+
+const examOptions = ['WAEC', 'NECO', 'JAMB', 'Junior WAEC']
+const yearOptions = ['JSS2', 'JSS3', 'SSS1', 'SSS2', 'SSS3']
+const subjectOptions = ['Mathematics', 'English Language', 'Basic Science']
+
+const weakTopicProfile: WeakTopic[] = [
+  {
+    skillId: 'ratio-proportion',
+    label: 'Ratio and proportion',
+    mastery: 42,
+    gap: 'Scaling both parts of a recipe or table',
+    nextAction: 'Practise two worked examples before a timed card.',
+  },
+  {
+    skillId: 'fraction-operations',
+    label: 'Fraction operations',
+    mastery: 61,
+    gap: 'Choosing a common denominator under time pressure',
+    nextAction: 'Review one visual fraction bar, then answer three short questions.',
+  },
+  {
+    skillId: 'reading-inference',
+    label: 'Reading inference',
+    mastery: 68,
+    gap: 'Explaining the reason behind a sentence',
+    nextAction: 'Read one short passage and underline the clue words.',
+  },
+]
+
+const dailyRevisionPlan: DailyPlanItem[] = [
+  {
+    id: 'diagnostic-refresh',
+    label: 'Ratio mini diagnostic',
+    minutes: 5,
+    reason: 'Confirms whether the first weak topic is improving.',
+  },
+  {
+    id: 'mistake-review',
+    label: 'Explain one mistake',
+    minutes: 4,
+    reason: 'Turns a wrong answer into a concept fix.',
+  },
+  {
+    id: 'career-link',
+    label: 'Career fit check',
+    minutes: 3,
+    reason: 'Links today\'s strengths to future pathways without making promises.',
+  },
+]
+
+const careerPathways: CareerPathway[] = [
+  {
+    id: 'health-sciences',
+    title: 'Health sciences',
+    fit: 76,
+    strength: 'Careful reading and steady practice habits',
+    gap: 'Chemistry and quantitative science need stronger mastery.',
+  },
+  {
+    id: 'data-business',
+    title: 'Data and business operations',
+    fit: 82,
+    strength: 'Ratio, pattern spotting, and spreadsheet-style thinking',
+    gap: 'Keep building algebra and English explanation skills.',
+  },
+  {
+    id: 'renewable-energy',
+    title: 'Renewable energy technician',
+    fit: 74,
+    strength: 'Measurement, geometry, and practical problem solving',
+    gap: 'Electricity basics and safety vocabulary need review.',
+  },
+]
+
+const diagnosticWrongAnswerExplanation: WrongAnswerExplanation = {
+  correctAnswer: '6 cups',
+  whyWrong: '4 cups repeats the rice amount instead of scaling the water by the same factor.',
+  conceptMissed: 'Equivalent ratios: both parts must change together.',
+  simplerExplanation: 'The rice doubled from 2 cups to 4 cups, so the water also doubles from 3 cups to 6 cups.',
+  similarQuestion: 'Try this: 1 cup rice needs 1.5 cups water. What do 2 cups rice need?',
+  revisionAction: 'Add ratio scaling to today\'s revision plan.',
+}
+
+const practiceWrongAnswerExplanation: WrongAnswerExplanation = {
+  correctAnswer: '9 cups',
+  whyWrong: 'The rice changed from 2 cups to 6 cups, which is three times larger. The water must also be three times larger.',
+  conceptMissed: 'Scale factor in a ratio table.',
+  simplerExplanation: 'Find the multiplier first: 2 x 3 = 6. Then use the same multiplier for water: 3 x 3 = 9.',
+  similarQuestion: 'A recipe uses 4 cups water for 3 cups rice. How much water for 9 cups rice?',
+  revisionAction: 'Put one ratio-table card into tomorrow\'s spaced retrieval.',
+}
 
 const ratioScaffoldStep: DemoStep = {
   id: 'adaptive-ratio-scaffold',
@@ -515,6 +648,150 @@ const useStyles = makeStyles({
     font: 'inherit',
     fontSize: '0.78rem',
     fontWeight: 800,
+  },
+  setupGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: '12px',
+    '@media (max-width: 720px)': { gridTemplateColumns: '1fr' },
+  },
+  selectField: {
+    display: 'grid',
+    gap: '7px',
+  },
+  selectLabel: {
+    fontSize: '0.72rem',
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
+    color: t.brand.textTertiary,
+    fontWeight: 700,
+  },
+  select: {
+    width: '100%',
+    minHeight: '46px',
+    borderRadius: t.radius.lg,
+    border: `1px solid ${t.brand.line}`,
+    backgroundColor: t.brand.surface,
+    color: t.brand.text,
+    paddingRight: '14px',
+    paddingLeft: '14px',
+    font: 'inherit',
+    fontSize: '0.92rem',
+    fontWeight: 800,
+  },
+  insightGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: '12px',
+    '@media (max-width: 960px)': { gridTemplateColumns: '1fr' },
+  },
+  insightCard: {
+    display: 'grid',
+    gap: '10px',
+    padding: '16px',
+    borderRadius: t.radius.xl,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+    boxShadow: t.surface.raisedShadow,
+  },
+  meterTrack: {
+    width: '100%',
+    height: '8px',
+    borderRadius: t.radius.pill,
+    backgroundColor: t.brand.lineSoft,
+    overflow: 'hidden',
+  },
+  meterFill: {
+    height: '100%',
+    borderRadius: t.radius.pill,
+    backgroundColor: t.brand.ink,
+  },
+  planGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: '10px',
+    '@media (max-width: 720px)': { gridTemplateColumns: '1fr' },
+  },
+  pathwayGrid: {
+    display: 'grid',
+    gap: '10px',
+  },
+  pathwayCard: {
+    display: 'grid',
+    gridTemplateColumns: 'auto 1fr auto',
+    gap: '12px',
+    alignItems: 'start',
+    padding: '14px 16px',
+    borderRadius: t.radius.lg,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+    '@media (max-width: 560px)': { gridTemplateColumns: '1fr' },
+  },
+  sharePanel: {
+    display: 'grid',
+    gap: '12px',
+    padding: '16px',
+    borderRadius: t.radius.xl,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+  },
+  shareActions: {
+    display: 'flex',
+    gap: '10px',
+    flexWrap: 'wrap',
+  },
+  modalBackdrop: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 50,
+    display: 'grid',
+    placeItems: 'center',
+    padding: '20px',
+    backgroundColor: 'rgba(10,10,10,0.42)',
+  },
+  modal: {
+    width: 'min(720px, 100%)',
+    maxHeight: 'calc(100vh - 40px)',
+    overflowY: 'auto',
+    display: 'grid',
+    gap: '14px',
+    padding: '22px',
+    borderRadius: t.radius.xxl,
+    border: '1px solid rgba(255,255,255,0.68)',
+    backgroundColor: t.brand.surface,
+    boxShadow: '0 24px 70px rgba(0,0,0,0.28)',
+  },
+  modalHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '12px',
+    alignItems: 'flex-start',
+  },
+  modalClose: {
+    appearance: 'none',
+    width: '36px',
+    height: '36px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+    color: t.brand.text,
+    display: 'grid',
+    placeItems: 'center',
+    cursor: 'pointer',
+  },
+  explanationGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: '10px',
+    '@media (max-width: 640px)': { gridTemplateColumns: '1fr' },
+  },
+  explanationTile: {
+    display: 'grid',
+    gap: '5px',
+    padding: '13px 14px',
+    borderRadius: t.radius.lg,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
   },
   pathMeta: {
     fontSize: '0.78rem',
@@ -952,6 +1229,11 @@ type StudentLearningHomeProps = {
 
 export default function StudentLearningHome({ studentId }: StudentLearningHomeProps) {
   const styles = useStyles()
+  const [learnerSetup, setLearnerSetup] = useState<LearnerSetup>({
+    exam: examOptions[0],
+    year: yearOptions[0],
+    subject: subjectOptions[0],
+  })
   const [activeSkill, setActiveSkill] = useState<string | null>(null)
   const [panelKey, setPanelKey] = useState(0)
   const [checkInActive, setCheckInActive] = useState(false)
@@ -964,6 +1246,9 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
   const [adaptiveMoment, setAdaptiveMoment] = useState<AdaptiveMoment | null>(null)
   const [demoVoiceBusy, setDemoVoiceBusy] = useState(false)
   const [practiceAnswer, setPracticeAnswer] = useState<PracticeAnswer | null>(null)
+  const [wrongAnswerExplanation, setWrongAnswerExplanation] = useState<WrongAnswerExplanation | null>(null)
+  const [revisionPlanAdded, setRevisionPlanAdded] = useState(false)
+  const [shareStatus, setShareStatus] = useState<string | null>(null)
   const [careerQuestion, setCareerQuestion] = useState(careerNavigationMoment.question)
   const [careerAnswerVisible, setCareerAnswerVisible] = useState(false)
   const [careerAskMode, setCareerAskMode] = useState<'text' | 'voice' | null>(null)
@@ -1012,6 +1297,7 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
     setDemoAnswers([])
     setDemoSyncNote(null)
     setAdaptiveMoment(null)
+    setWrongAnswerExplanation(null)
     setDemoActive(true)
   }
 
@@ -1023,6 +1309,7 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
           studentId: studentId ?? 'demo-student',
           completedAt: new Date().toISOString(),
           stepCount,
+          setup: learnerSetup,
           answers,
         })
       )
@@ -1046,6 +1333,7 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
           ]
       setDemoStepQueue(nextQueue)
       setAdaptiveMoment({ title: step.adaptation.title, body: step.adaptation.body })
+      setWrongAnswerExplanation(diagnosticWrongAnswerExplanation)
     } else {
       setAdaptiveMoment(null)
     }
@@ -1117,12 +1405,16 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
       correct: Boolean(option.correct),
     }
     setPracticeAnswer(answerRecord)
+    if (!answerRecord.correct) {
+      setWrongAnswerExplanation(practiceWrongAnswerExplanation)
+    }
     try {
       window.localStorage.setItem(
         'pathfinder-practice-loop:last',
         JSON.stringify({
           studentId: studentId ?? 'demo-student',
           planId: generatedPlanPractice.planId,
+          setup: learnerSetup,
           answeredAt: new Date().toISOString(),
           answer: answerRecord,
           spacedRetrieval: generatedPlanPractice.schedule,
@@ -1132,6 +1424,49 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
       // Local scheduling is best-effort in the offline demo path.
     }
   }
+
+  function updateLearnerSetup(field: keyof LearnerSetup, value: string) {
+    setLearnerSetup(current => ({ ...current, [field]: value }))
+  }
+
+  function addWeaknessToPlan() {
+    setRevisionPlanAdded(true)
+    try {
+      window.localStorage.setItem(
+        'pathfinder-revision-plan:last-added',
+        JSON.stringify({
+          studentId: studentId ?? 'demo-student',
+          addedAt: new Date().toISOString(),
+          setup: learnerSetup,
+          weakness: wrongAnswerExplanation?.conceptMissed ?? 'Ratio scaling',
+          action: wrongAnswerExplanation?.revisionAction ?? 'Add to daily revision plan.',
+        })
+      )
+    } catch {
+      // Revision-plan edits remain visible even if local storage is unavailable.
+    }
+  }
+
+  const parentSummaryText = `Your Pathfinder update: ${learnerSetup.exam} ${learnerSetup.year} ${learnerSetup.subject}. Current focus: Ratio and proportion at 42% mastery. Today: 5 min diagnostic, explain one mistake, practise one similar question. Career signals: data/business and health sciences are worth exploring while chemistry and algebra improve.`
+
+  function handleParentShare() {
+    setShareStatus('Parent summary ready to share.')
+    try {
+      window.localStorage.setItem(
+        'pathfinder-parent-summary:last',
+        JSON.stringify({
+          studentId: studentId ?? 'demo-student',
+          generatedAt: new Date().toISOString(),
+          setup: learnerSetup,
+          summary: parentSummaryText,
+        })
+      )
+    } catch {
+      // Share summary still renders for the user even if local persistence fails.
+    }
+  }
+
+  const whatsAppHref = `https://wa.me/?text=${encodeURIComponent(parentSummaryText)}`
 
   async function handleCareerAsk(mode: 'text' | 'voice') {
     const question = careerQuestion.trim() || careerNavigationMoment.question
@@ -1170,9 +1505,9 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
             <SparklesIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
             {formatted}
           </span>
-          <h1 className={styles.heroTitle}>Hi Tobi — let's keep the streak.</h1>
+          <h1 className={styles.heroTitle}>Hi, let's keep your streak going.</h1>
           <p className={styles.heroSub}>
-            Your ratio path is 42% mastered. Pathfinder works on desktop web,
+            Your {learnerSetup.exam} {learnerSetup.subject} path is 42% mastered. Pathfinder works on desktop web,
             tablet, and phone, so one short check-in today can happen in class,
             at home, or offline.
           </p>
@@ -1182,7 +1517,8 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
               7-day streak
             </span>
             <span className={styles.heroPill}>English · Yoruba voice</span>
-            <span className={styles.heroPill}>JSS2 · Maths</span>
+            <span className={styles.heroPill}>{learnerSetup.year} · {learnerSetup.subject}</span>
+            <span className={styles.heroPill}>Free for now · no payment step</span>
           </div>
           <button
             type="button"
@@ -1217,6 +1553,53 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
               )}
             </div>
           )}
+        </article>
+
+        <article className={styles.card} data-testid="b2c-learner-setup">
+          <div className={styles.cardHeader}>
+            <div>
+              <Text className={styles.cardTitle}>Choose your exam path</Text>
+              <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
+                Select exam, class/year, and subject before the short diagnostic starts.
+              </p>
+            </div>
+            <span className={styles.softBadge}>B2C free launch</span>
+          </div>
+          <div className={styles.setupGrid}>
+            <label className={styles.selectField}>
+              <span className={styles.selectLabel}>Exam</span>
+              <select
+                className={styles.select}
+                value={learnerSetup.exam}
+                onChange={event => updateLearnerSetup('exam', event.currentTarget.value)}
+                aria-label="Select exam"
+              >
+                {examOptions.map(option => <option key={option} value={option}>{option}</option>)}
+              </select>
+            </label>
+            <label className={styles.selectField}>
+              <span className={styles.selectLabel}>Class / year</span>
+              <select
+                className={styles.select}
+                value={learnerSetup.year}
+                onChange={event => updateLearnerSetup('year', event.currentTarget.value)}
+                aria-label="Select class or year"
+              >
+                {yearOptions.map(option => <option key={option} value={option}>{option}</option>)}
+              </select>
+            </label>
+            <label className={styles.selectField}>
+              <span className={styles.selectLabel}>Subject area</span>
+              <select
+                className={styles.select}
+                value={learnerSetup.subject}
+                onChange={event => updateLearnerSetup('subject', event.currentTarget.value)}
+                aria-label="Select subject"
+              >
+                {subjectOptions.map(option => <option key={option} value={option}>{option}</option>)}
+              </select>
+            </label>
+          </div>
         </article>
 
         <article className={styles.deviceOverviewCard} data-testid="cross-device-learner-workspace">
@@ -1349,6 +1732,61 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
                 Yoruba voice practice is ready and will sync when connection returns.
               </div>
 
+              <article className={styles.card} data-testid="weak-topic-profile">
+                <div className={styles.cardHeader}>
+                  <div>
+                    <Text className={styles.cardTitle}>Weak-topic profile</Text>
+                    <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
+                      Pathfinder turns the diagnostic into the next best topics to repair.
+                    </p>
+                  </div>
+                  <span className={styles.softBadge}>After diagnostic</span>
+                </div>
+                <div className={styles.insightGrid}>
+                  {weakTopicProfile.map(topic => (
+                    <div key={topic.skillId} className={styles.insightCard}>
+                      <span className={styles.weekLabel}>{topic.mastery}% mastered</span>
+                      <Text className={styles.cardTitle}>{topic.label}</Text>
+                      <div className={styles.meterTrack} aria-label={`${topic.label} mastery`}>
+                        <span className={styles.meterFill} style={{ width: `${topic.mastery}%` }} />
+                      </div>
+                      <span className={styles.demoHelper}>{topic.gap}</span>
+                      <button type="button" className={styles.textAction} onClick={() => startCheckIn(topic.skillId)}>
+                        Practise this topic
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </article>
+
+              <article className={styles.card} data-testid="daily-revision-plan">
+                <div className={styles.cardHeader}>
+                  <div>
+                    <Text className={styles.cardTitle}>Daily revision plan</Text>
+                    <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
+                      Built from weak topics, wrong answers, and the selected exam path.
+                    </p>
+                  </div>
+                  <span className={styles.softBadge}>12 min today</span>
+                </div>
+                <div className={styles.planGrid}>
+                  {dailyRevisionPlan.map(item => (
+                    <div key={item.id} className={styles.insightCard}>
+                      <span className={styles.weekLabel}>{item.minutes} min</span>
+                      <Text className={styles.cardTitle}>{item.label}</Text>
+                      <span className={styles.demoHelper}>{item.reason}</span>
+                    </div>
+                  ))}
+                  {revisionPlanAdded && (
+                    <div className={styles.insightCard} data-testid="revision-plan-added">
+                      <span className={styles.weekLabel}>Added from mistake</span>
+                      <Text className={styles.cardTitle}>Ratio table repair</Text>
+                      <span className={styles.demoHelper}>One similar question has been added to tomorrow's retrieval slot.</span>
+                    </div>
+                  )}
+                </div>
+              </article>
+
               <article className={styles.practiceCard} data-testid="plan-practice-exercise">
                 <div className={styles.demoHeader}>
                   <div>
@@ -1387,6 +1825,15 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
                     <Text className={styles.cardTitle}>
                       {practiceAnswer.correct ? 'Correct - the plan is working.' : 'Not quite - scale both parts by 3.'}
                     </Text>
+                    {!practiceAnswer.correct && (
+                      <button
+                        type="button"
+                        className={styles.textAction}
+                        onClick={() => setWrongAnswerExplanation(practiceWrongAnswerExplanation)}
+                      >
+                        Explain my mistake
+                      </button>
+                    )}
                     <p className={styles.demoHelper}>
                       {practiceAnswer.correct
                         ? '2 cups of rice became 6 cups, so 3 cups of water becomes 9 cups.'
@@ -1403,6 +1850,33 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
                     </ul>
                   </div>
                 )}
+              </article>
+
+              <article className={styles.card} data-testid="career-pathway-suggestions">
+                <div className={styles.cardHeader}>
+                  <div>
+                    <Text className={styles.cardTitle}>Pathways linked to strengths</Text>
+                    <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
+                      Guidance stays exploratory: strengths, gaps, and what to work on next.
+                    </p>
+                  </div>
+                  <span className={styles.softBadge}>Exploratory guidance</span>
+                </div>
+                <div className={styles.pathwayGrid}>
+                  {careerPathways.map(pathway => (
+                    <div key={pathway.id} className={styles.pathwayCard}>
+                      <div className={styles.pathIcon} aria-hidden="true">
+                        <BriefcaseIcon style={{ width: 20, height: 20 }} />
+                      </div>
+                      <div className={styles.pathTitle}>
+                        <span className={styles.pathTitleText}>{pathway.title}</span>
+                        <span className={styles.pathMeta}>Strength: {pathway.strength}</span>
+                        <span className={styles.pathMeta}>Gap to close: {pathway.gap}</span>
+                      </div>
+                      <span className={styles.softBadge}>{pathway.fit}% fit</span>
+                    </div>
+                  ))}
+                </div>
               </article>
 
               <article className={styles.practiceCard} data-testid="career-navigation-moment">
@@ -1466,6 +1940,32 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
                   </div>
                 )}
               </article>
+
+        <article className={styles.card} data-testid="parent-share-summary">
+          <div className={styles.cardHeader}>
+            <div>
+              <Text className={styles.cardTitle}>Parent progress summary</Text>
+              <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
+                A short shareable update for parents or guardians, built for WhatsApp.
+              </p>
+            </div>
+            <DocumentTextIcon style={{ width: 26, height: 26, color: t.brand.text }} aria-hidden="true" />
+          </div>
+          <div className={styles.sharePanel}>
+            <p className={styles.demoHelper} style={{ margin: 0 }}>{parentSummaryText}</p>
+            <div className={styles.shareActions}>
+              <button type="button" className={styles.careerAction} onClick={handleParentShare}>
+                <ShareIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+                Prepare parent summary
+              </button>
+              <a className={styles.careerActionSecondary} href={whatsAppHref} target="_blank" rel="noreferrer">
+                <ShareIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+                Invite on WhatsApp
+              </a>
+            </div>
+            {shareStatus && <span className={styles.softBadge}>{shareStatus}</span>}
+          </div>
+        </article>
 
         <article className={styles.card}>
           <div className={styles.cardHeader}>
@@ -1570,6 +2070,70 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
           </p>
         </article>
       </aside>
+
+      {wrongAnswerExplanation && (
+        <div className={styles.modalBackdrop} role="presentation" data-testid="wrong-answer-modal-backdrop">
+          <dialog
+            open
+            className={styles.modal}
+            aria-modal="true"
+            aria-labelledby="wrong-answer-modal-title"
+            data-testid="wrong-answer-explanation-modal"
+          >
+            <div className={styles.modalHeader}>
+              <div>
+                <span className={styles.softBadge}>Wrong answer explanation</span>
+                <h2 id="wrong-answer-modal-title" className={styles.demoTitle} style={{ margin: '8px 0 0' }}>
+                  Explain my mistake
+                </h2>
+              </div>
+              <button
+                type="button"
+                className={styles.modalClose}
+                aria-label="Close explanation"
+                onClick={() => setWrongAnswerExplanation(null)}
+              >
+                <XMarkIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+              </button>
+            </div>
+            <div className={styles.explanationGrid}>
+              <div className={styles.explanationTile}>
+                <span className={styles.weekLabel}>Correct answer</span>
+                <Text className={styles.cardTitle}>{wrongAnswerExplanation.correctAnswer}</Text>
+              </div>
+              <div className={styles.explanationTile}>
+                <span className={styles.weekLabel}>Why your answer was wrong</span>
+                <span className={styles.demoHelper}>{wrongAnswerExplanation.whyWrong}</span>
+              </div>
+              <div className={styles.explanationTile}>
+                <span className={styles.weekLabel}>Concept you missed</span>
+                <span className={styles.demoHelper}>{wrongAnswerExplanation.conceptMissed}</span>
+              </div>
+              <div className={styles.explanationTile}>
+                <span className={styles.weekLabel}>Simpler explanation</span>
+                <span className={styles.demoHelper}>{wrongAnswerExplanation.simplerExplanation}</span>
+              </div>
+              <div className={styles.explanationTile}>
+                <span className={styles.weekLabel}>Try another similar question</span>
+                <span className={styles.demoHelper}>{wrongAnswerExplanation.similarQuestion}</span>
+              </div>
+              <div className={styles.explanationTile}>
+                <span className={styles.weekLabel}>Add this weakness to my revision plan</span>
+                <span className={styles.demoHelper}>{wrongAnswerExplanation.revisionAction}</span>
+              </div>
+            </div>
+            <div className={styles.shareActions}>
+              <button type="button" className={styles.careerAction} onClick={addWeaknessToPlan}>
+                <ChartBarIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+                Add weakness to revision plan
+              </button>
+              <button type="button" className={styles.careerActionSecondary} onClick={() => startCheckIn('ratio-proportion')}>
+                Try similar question
+              </button>
+            </div>
+          </dialog>
+        </div>
+      )}
     </section>
   )
 }

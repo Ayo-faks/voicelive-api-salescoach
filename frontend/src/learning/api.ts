@@ -585,6 +585,60 @@ export async function getPilotKpis(query: {
   return jsonOrThrow<PilotKpiResponse>(response)
 }
 
+// ---------------------------------------------------------------------------
+// W3-B — explanation surface
+// ---------------------------------------------------------------------------
+
+export type ExplainHit = {
+  node_id: string
+  version: string
+  title: string
+  subject: 'maths' | 'english'
+  year_group: 'JSS3' | 'SS3' | null
+  topic: string
+  anchor: string
+  score: number
+  snippet: string
+  status: 'draft' | 'review' | 'approved' | 'frozen' | 'archived'
+}
+
+export type ExplainRefusal = {
+  lang: string
+  provenance: Array<Record<string, unknown>>
+  reason: 'no_grounding' | 'safety_block' | 'out_of_scope' | 'rate_limited'
+  learner_message: string
+  detail?: string | null
+  suggested_action?: string | null
+}
+
+export type ExplainResponse = {
+  lang: string
+  query: string
+  subject: 'maths' | 'english' | null
+  year_group: 'JSS3' | 'SS3' | null
+  hits: ExplainHit[]
+  refusal: ExplainRefusal | null
+  explanation: null  // populated in W4 (generator)
+  similarity_threshold: number
+}
+
+export async function postExplain(payload: {
+  query: string
+  subject?: 'maths' | 'english'
+  year_group?: 'JSS3' | 'SS3'
+  question_id?: string
+  skill_id?: string
+  student_id?: string
+  tenant_id?: string
+  lang?: string
+}): Promise<ExplainResponse> {
+  const response = await fetch(
+    '/api/learning/explain',
+    withDefaults({ method: 'POST', body: JSON.stringify(payload) }),
+  )
+  return jsonOrThrow<ExplainResponse>(response)
+}
+
 export type VoiceConfigResponse = {
   enabled: boolean
   transport: string

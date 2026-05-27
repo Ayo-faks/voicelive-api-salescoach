@@ -34,6 +34,49 @@ afterEach(() => {
 })
 
 describe('StudentLearningHome', () => {
+  it('surfaces the free B2C setup, weak-topic profile, daily plan, pathways, and WhatsApp share loop', async () => {
+    mockVoiceConfig()
+
+    render(<StudentLearningHome studentId="student-001" />)
+
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        '/api/learning/voice/config',
+        expect.objectContaining({ method: 'GET' })
+      )
+    })
+
+    expect(screen.getByTestId('b2c-learner-setup')).toBeTruthy()
+    expect(screen.getByText("Hi, let's keep your streak going.")).toBeTruthy()
+    expect(screen.queryByText(/Tobi/i)).toBeNull()
+    expect(screen.getByText('B2C free launch')).toBeTruthy()
+    expect(screen.getByText('Free for now · no payment step')).toBeTruthy()
+
+    fireEvent.change(screen.getByLabelText('Select exam'), { target: { value: 'NECO' } })
+    fireEvent.change(screen.getByLabelText('Select class or year'), { target: { value: 'SSS3' } })
+    fireEvent.change(screen.getByLabelText('Select subject'), { target: { value: 'English Language' } })
+
+    expect(screen.getByText(/Your NECO English Language path is 42% mastered/i)).toBeTruthy()
+    expect(screen.getByTestId('weak-topic-profile')).toBeTruthy()
+    expect(screen.getByText('Ratio and proportion')).toBeTruthy()
+    expect(screen.getByText('Scaling both parts of a recipe or table')).toBeTruthy()
+    expect(screen.getByTestId('daily-revision-plan')).toBeTruthy()
+    expect(screen.getByText('Explain one mistake')).toBeTruthy()
+    expect(screen.getByTestId('career-pathway-suggestions')).toBeTruthy()
+    expect(screen.getByText('Data and business operations')).toBeTruthy()
+    expect(screen.getByText(/Keep building algebra and English explanation skills/i)).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: /Prepare parent summary/i }))
+
+    expect(screen.getByText('Parent summary ready to share.')).toBeTruthy()
+    expect(screen.getByRole('link', { name: /Invite on WhatsApp/i }).getAttribute('href')).toContain('wa.me')
+
+    const saved = window.localStorage.getItem('pathfinder-parent-summary:last')
+    expect(saved).toContain('NECO')
+    expect(saved).toContain('SSS3')
+    expect(saved).toContain('English Language')
+  })
+
   it('runs a cross-device five-step demo diagnostic and saves it locally', async () => {
     mockVoiceConfig()
 
@@ -111,6 +154,22 @@ describe('StudentLearningHome', () => {
     expect(screen.getByText('Same idea, smaller step')).toBeTruthy()
     expect(screen.getByText(/If 1 cup rice needs 1.5 cups water/i)).toBeTruthy()
     expect(screen.getByTestId('demo-step-count').textContent).toContain('Step 2 of 6')
+
+    const modal = screen.getByTestId('wrong-answer-explanation-modal')
+    expect(within(modal).getByText('Correct answer')).toBeTruthy()
+    expect(within(modal).getByText('6 cups')).toBeTruthy()
+    expect(within(modal).getByText('Why your answer was wrong')).toBeTruthy()
+    expect(within(modal).getByText(/repeats the rice amount/i)).toBeTruthy()
+    expect(within(modal).getByText('Concept you missed')).toBeTruthy()
+    expect(within(modal).getByText('Equivalent ratios: both parts must change together.')).toBeTruthy()
+    expect(within(modal).getByText('Simpler explanation')).toBeTruthy()
+    expect(within(modal).getByText('Try another similar question')).toBeTruthy()
+    expect(within(modal).getByText('Add this weakness to my revision plan')).toBeTruthy()
+
+    fireEvent.click(within(modal).getByRole('button', { name: /Add weakness to revision plan/i }))
+
+    expect(screen.getByTestId('revision-plan-added')).toBeTruthy()
+    expect(window.localStorage.getItem('pathfinder-revision-plan:last-added')).toContain('Equivalent ratios')
   })
 
   it('lets the student complete one generated-plan practice exercise and schedules retrieval', async () => {
