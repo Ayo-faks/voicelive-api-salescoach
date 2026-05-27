@@ -61,6 +61,14 @@ from src.learning.models import (
 from src.learning.observability import LearningObservability
 from src.learning.operations import compute_kpi_report, load_metric_snapshots
 from src.learning.planner import PlannerRequest, StubLearningPlanner
+from src.learning.rag import (
+    DEFAULT_SIMILARITY_THRESHOLD,
+    DEFAULT_TOP_K,
+    RagRetriever,
+    WikiCorpus,
+    load_wiki_corpus,
+    retrieve_or_refuse,
+)
 from src.learning.repository import InMemoryLearningRepository, LearningRepository
 from src.learning.skills import SkillCatalogueError, SkillsCatalogueService
 from src.learning.validator import (
@@ -161,6 +169,12 @@ LEARNING_DATA_DIR = _resolve_learning_data_dir()
 ITEM_BANK_PATH = LEARNING_DATA_DIR / "jss2_maths_diagnostic_phase_2.json"
 DIAGNOSTICS_DIR = LEARNING_DATA_DIR / "diagnostics"
 PILOT_METRICS_PATH = LEARNING_DATA_DIR / "ops" / "phase_4_pilot_metrics.json"
+WIKI_CORPUS_PATH = LEARNING_DATA_DIR / "wiki" / "jss3_maths_wiki_seed.json"
+WIKI_CORPUS_PATHS = (
+    WIKI_CORPUS_PATH,
+    LEARNING_DATA_DIR / "wiki" / "english_jss3_ss3_wiki_seed.json",
+)
+EXPLAIN_SNIPPET_MAX_CHARS = 320
 
 
 class _SessionState:
@@ -221,6 +235,8 @@ class LearningApi:
         lti_state_store: Optional[LTIStateStore] = None,
         lti_session_secret: Optional[str] = None,
         observability: Optional[LearningObservability] = None,
+        wiki_corpus: Optional[WikiCorpus] = None,
+        rag_retriever: Optional[RagRetriever] = None,
     ) -> None:
         self.repository: LearningRepository = repository or InMemoryLearningRepository()
         self.item_bank: DiagnosticItemBank = item_bank or load_item_bank(ITEM_BANK_PATH)
@@ -266,6 +282,24 @@ class LearningApi:
         self.skills_service = SkillsCatalogueService(self.repository)
         self._seed_pilot_pending_plan()
         self._seed_pilot_student_fact_proposals()
+
+        # RAG retriever (W3-B). Lazy seed from the bundled wiki fixture when
+        # the caller doesn't pass a corpus. Missing fixture → empty corpus;
+        # every explain() call then refuses with reason="no_grounding".
+        if rag_retriever is not None:
+            self.rag_retriever: RagRetriever = rag_retriever
+        else:
+            if wiki_corpus is None:
+                merged_nodes: List[Any] = []
+                for path in WIKI_CORPUS_PATHS:
+                    if path.exists():
+                        merged_nodes.extend(load_wiki_corpus(path).nodes())
+                wiki_corpus = WikiCorpus(merged_nodes)
+            self.rag_retriever = RagRetriever(
+                wiki_corpus,
+                similarity_threshold=DEFAULT_SIMILARITY_THRESHOLD,
+                top_k=DEFAULT_TOP_K,
+            )
 
     def _seed_pilot_pending_plan(self) -> None:
         if not isinstance(self.repository, InMemoryLearningRepository):
@@ -1196,6 +1230,65 @@ class LearningApi:
         return {"events": events[-50:]}
 
     # ------------------------------------------------------------------
+    # Explanation surface (W3-B) — exposes the RAG retriever.
+    # The generator (W4) will replace the placeholder `explanation: null`
+    # field with a grounded ExplanationResult composed from these hits.
+    # ------------------------------------------------------------------
+    def explain(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        query = str(payload.get("query") or "").strip()
+        if not query:
+            raise LearningApiError("query is required", status_code=400)
+        lang = str(payload.get("lang") or "en")
+        subject_raw = payload.get("subject")
+        subject = str(subject_raw).strip() if subject_raw else None
+        if subject and subject not in ("maths", "english"):
+            raise LearningApiError(
+                "subject must be 'maths' or 'english'", status_code=400
+            )
+        year_group_raw = payload.get("year_group")
+        year_group = str(year_group_raw).strip() if year_group_raw else None
+        if year_group and year_group not in ("JSS3", "SS3"):
+            raise LearningApiError(
+                "year_group must be 'JSS3' or 'SS3'", status_code=400
+            )
+        hits, refusal = retrieve_or_refuse(
+            self.rag_retriever,
+            query,
+            lang=lang,
+            subject=subject,  # type: ignore[arg-type]
+            year_group=year_group,  # type: ignore[arg-type]
+        )
+        hits_payload: List[Dict[str, Any]] = []
+        for hit in hits:
+            snippet = hit.node.body_markdown
+            if len(snippet) > EXPLAIN_SNIPPET_MAX_CHARS:
+                snippet = snippet[: EXPLAIN_SNIPPET_MAX_CHARS - 1].rstrip() + "…"
+            hits_payload.append(
+                {
+                    "node_id": hit.node.node_id,
+                    "version": hit.node.version,
+                    "title": hit.node.title,
+                    "subject": hit.node.subject,
+                    "year_group": hit.node.year_group,
+                    "topic": hit.node.topic,
+                    "anchor": hit.matched_anchor,
+                    "score": hit.score,
+                    "snippet": snippet,
+                    "status": hit.node.status,
+                }
+            )
+        return {
+            "lang": lang,
+            "query": query,
+            "subject": subject,
+            "year_group": year_group,
+            "hits": hits_payload,
+            "refusal": refusal.model_dump() if refusal is not None else None,
+            "explanation": None,
+            "similarity_threshold": self.rag_retriever.similarity_threshold,
+        }
+
+    # ------------------------------------------------------------------
     # LTI 1.3 launch flow (pilot/offline-first)
     # ------------------------------------------------------------------
     def initiate_lti_login(self, payload: Mapping[str, Any]) -> Dict[str, str]:
@@ -1811,6 +1904,11 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
     @_wrap
     def _intent(payload: Dict[str, Any]) -> Dict[str, Any]:
         return learning_api.submit_intent(payload)
+
+    @app.route("/api/learning/explain", methods=["POST"])
+    @_wrap
+    def _explain(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.explain(payload)
 
     @app.route("/api/learning/audit", methods=["GET"])
     @_wrap
