@@ -1,0 +1,173 @@
+{
+  "version": "1.0.0",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "pathfinder.explanations.seed",
+      "rule_id": "w4_explanation_seed_v1",
+      "confidence": 1.0,
+      "evidence_count": 1,
+      "metadata": {
+        "review_state": "pending_two_reviewer_signoff",
+        "subject_lead_approved": false,
+        "safeguarding_reviewed": false
+      }
+    }
+  ],
+  "explanations": [
+    {
+      "explanation_id": "explain-v1-fraction-part-whole",
+      "explanation_version": "1.0.0",
+      "question_id": "maths-v1-jss3-001",
+      "skill_id": "jss3.maths.fractions.simplify",
+      "misconception_code": "fraction_part_whole",
+      "body_markdown": "When you simplify a fraction, you must divide **both** the top number and the bottom number by the same factor. A common mistake is to subtract from only the numerator or only the denominator — that changes the value of the fraction. Find the greatest common divisor of the two numbers and divide each by it. For example, 6/9 simplifies to 2/3 because GCD(6,9) = 3, and 6÷3 = 2 while 9÷3 = 3.",
+      "wiki_citations": [
+        {"node_id": "wiki.maths.jss3.fractions.simplify", "version": "1.0.0", "anchor": "sec-simplify-fractions"}
+      ]
+    },
+    {
+      "explanation_id": "explain-v1-ratio-inversion",
+      "explanation_version": "1.0.0",
+      "question_id": "maths-v1-jss3-001",
+      "skill_id": "jss3.maths.ratio.equivalent",
+      "misconception_code": "ratio_inversion",
+      "body_markdown": "Equivalent ratios are made by multiplying or dividing **both parts** of the original ratio by the same non-zero number. It is easy to flip the ratio by mistake — but 3:5 is not the same as 5:3. Check by reducing both ratios to simplest form; if they share the same simplest form, they are equivalent.",
+      "wiki_citations": [
+        {"node_id": "wiki.maths.jss3.ratio.equivalent", "version": "1.0.0", "anchor": "sec-equivalent-ratios"}
+      ]
+    },
+    {
+      "explanation_id": "explain-v1-algebra-distribution",
+      "explanation_version": "1.0.0",
+      "question_id": "maths-v1-jss3-001",
+      "skill_id": "jss3.maths.linear.solve",
+      "misconception_code": "algebra_distribution",
+      "body_markdown": "When a coefficient sits outside brackets, it multiplies **every** term inside the brackets, not just the first one. So 3(x + 2) becomes 3x + 6, not 3x + 2. Likewise, when you move a term across the equals sign, change its sign. Whatever operation you perform on one side, perform the same operation on the other side.",
+      "wiki_citations": [
+        {"node_id": "wiki.maths.jss3.linear.solve", "version": "1.0.0", "anchor": "sec-solve-linear"}
+      ]
+    },
+    {
+      "explanation_id": "explain-v1-sign-error",
+      "explanation_version": "1.0.0",
+      "question_id": "maths-v1-jss3-001",
+      "skill_id": "jss3.maths.linear.solve",
+      "misconception_code": "sign_error",
+      "body_markdown": "Sign mistakes usually come from forgetting that moving a term across the equals sign flips its sign. If you have x + 5 = 12, then x = 12 − 5, not 12 + 5. Write each step on a new line and circle every minus sign before you carry it to the next step.",
+      "wiki_citations": [
+        {"node_id": "wiki.maths.jss3.linear.solve", "version": "1.0.0", "anchor": "sec-solve-linear"}
+      ]
+    },
+    {
+      "explanation_id": "explain-v1-language-comprehension",
+      "explanation_version": "1.0.0",
+      "question_id": "english-v1-jss3-011",
+      "skill_id": "jss3.english.vocab.word_meaning",
+      "misconception_code": "language_comprehension",
+      "body_markdown": "When a word has more than one meaning, the surrounding sentence tells you which one is intended. Read the whole sentence before you choose. Ask: what is the word describing — a person, a place, a feeling? Look for clue words nearby. 'Punctual' next to 'always' and 'for class' is describing how a person turns up — it means 'on time', not 'sharp' or 'sudden'.",
+      "wiki_citations": [
+        {"node_id": "wiki.english.jss3.vocab.in_context", "version": "1.0.0", "anchor": "sec-context-clues"}
+      ]
+    },
+    {
+      "explanation_id": "explain-v1-answer-form",
+      "explanation_version": "1.0.0",
+      "question_id": "english-v1-jss3-021",
+      "skill_id": "jss3.english.grammar.tense",
+      "misconception_code": "answer_form",
+      "body_markdown": "When a question asks you to rewrite a sentence in a different tense, change only the verb — keep the rest of the sentence the same. 'She writes a letter' in the past becomes 'She wrote a letter', not 'She has written letters' or 'She is writing'. Match the time signal in the question: 'yesterday' or 'last week' means simple past; 'has just' means present perfect.",
+      "wiki_citations": [
+        {"node_id": "wiki.english.jss3.grammar.tense_agreement", "version": "1.0.0", "anchor": "sec-tense-agreement"}
+      ]
+    },
+    {
+      "explanation_id": "explain-v1-misread-question",
+      "explanation_version": "1.0.0",
+      "question_id": "english-v1-jss3-055",
+      "skill_id": "jss3.english.comprehension.main_idea",
+      "misconception_code": "misread_question",
+      "body_markdown": "The main idea is the one statement that covers **every** sentence in the passage. A common mistake is to pick the most interesting fact or the first sentence by default. Re-read the question: it asks for the main idea, not a supporting detail. Test your answer by asking 'does this cover every sentence?' — if a sentence is not about your chosen answer, your answer is too narrow.",
+      "wiki_citations": [
+        {"node_id": "wiki.english.jss3.comprehension.main_idea", "version": "1.0.0", "anchor": "sec-main-idea"}
+      ]
+    },
+    {
+      "explanation_id": "explain-v1-computation-slip",
+      "explanation_version": "1.0.0",
+      "question_id": "english-v1-jss3-059",
+      "skill_id": "jss3.english.comprehension.detail",
+      "misconception_code": "computation_slip",
+      "body_markdown": "A computation slip is a small arithmetic mistake on a problem you actually understand. Catch it by re-checking the numbers in the question and re-doing the sum in your head before you write the final answer. For totals, add twice — once forwards, once backwards — and confirm both give the same result.",
+      "wiki_citations": [
+        {"node_id": "wiki.maths.jss3.fractions.compare", "version": "1.0.0", "anchor": "sec-compare-fractions"}
+      ]
+    },
+    {
+      "explanation_id": "explain-v1-transcription",
+      "explanation_version": "1.0.0",
+      "question_id": "english-v1-jss3-079",
+      "skill_id": "jss3.english.spelling.common",
+      "misconception_code": "transcription",
+      "body_markdown": "Transcription errors happen when you copy or write a word slightly differently from what you meant. For commonly misspelled words, learn the pattern: 'receive' follows 'i before e except after c'; 'separate' has an 'a' in the middle (think 'a rat in separate'). Always re-read what you wrote — say each word slowly in your head.",
+      "wiki_citations": [
+        {"node_id": "wiki.english.jss3.spelling.common", "version": "1.0.0", "anchor": "sec-i-before-e"}
+      ]
+    },
+    {
+      "explanation_id": "explain-v1-careless",
+      "explanation_version": "1.0.0",
+      "question_id": "english-v1-jss3-079",
+      "skill_id": "jss3.english.spelling.common",
+      "misconception_code": "careless",
+      "body_markdown": "Careless slips happen when you rush. The fix is a single, deliberate proofread at the end: read your answer out loud, point at each word, and ask 'is this the word I meant?'. For spelling, your ear often catches what your eye misses.",
+      "wiki_citations": [
+        {"node_id": "wiki.english.jss3.spelling.common", "version": "1.0.0", "anchor": "sec-proofreading"}
+      ]
+    },
+    {
+      "explanation_id": "explain-v1-unit-conversion",
+      "explanation_version": "1.0.0",
+      "question_id": "maths-v1-jss3-001",
+      "skill_id": "jss3.maths.fractions.simplify",
+      "misconception_code": "unit_conversion",
+      "body_markdown": "Before you compare or combine quantities, put them in the **same unit**. Convert minutes to hours, naira to kobo, or metres to centimetres — whichever keeps the arithmetic simple. Write the conversion on the working line so the marker can see what you did.",
+      "wiki_citations": [
+        {"node_id": "wiki.maths.jss3.fractions.simplify", "version": "1.0.0", "anchor": "sec-simplify-fractions"}
+      ]
+    },
+    {
+      "explanation_id": "explain-v1-geometry-units",
+      "explanation_version": "1.0.0",
+      "question_id": "maths-v1-jss3-001",
+      "skill_id": "jss3.maths.linear.solve",
+      "misconception_code": "geometry_units",
+      "body_markdown": "Length is measured in metres or centimetres; area is in square metres; volume is in cubic metres. Match the unit to what the question asks for, and never mix square units with linear units in the same answer. State the unit next to the numerical answer.",
+      "wiki_citations": [
+        {"node_id": "wiki.maths.jss3.linear.solve", "version": "1.0.0", "anchor": "sec-solve-linear"}
+      ]
+    },
+    {
+      "explanation_id": "explain-v1-probability-complement",
+      "explanation_version": "1.0.0",
+      "question_id": "maths-v1-jss3-001",
+      "skill_id": "jss3.maths.ratio.equivalent",
+      "misconception_code": "probability_complement",
+      "body_markdown": "The probability of an event happening and the probability of it **not** happening always add up to 1. So P(not A) = 1 − P(A). When a question asks for 'the probability that it does not rain', compute P(rain) first, then subtract from 1.",
+      "wiki_citations": [
+        {"node_id": "wiki.maths.jss3.ratio.equivalent", "version": "1.0.0", "anchor": "sec-equivalent-ratios"}
+      ]
+    },
+    {
+      "explanation_id": "explain-v1-calc-error",
+      "explanation_version": "1.0.0",
+      "question_id": "maths-v1-jss3-001",
+      "skill_id": "jss3.maths.fractions.compare",
+      "misconception_code": "calc_error",
+      "body_markdown": "A calculation error is a slip in the working — a wrong digit, a dropped carry, or an off-by-one. Slow down on the lines where you carry numbers across, and check the final answer is in the right order of magnitude. If a quick estimate disagrees with your exact answer, re-do the working.",
+      "wiki_citations": [
+        {"node_id": "wiki.maths.jss3.fractions.compare", "version": "1.0.0", "anchor": "sec-compare-fractions"}
+      ]
+    }
+  ]
+}

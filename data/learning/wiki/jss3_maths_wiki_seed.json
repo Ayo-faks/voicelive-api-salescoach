@@ -1,0 +1,66 @@
+{
+  "version": "1.0.0",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "pathfinder.wiki.seed",
+      "rule_id": "w3b_pilot_seed",
+      "confidence": 1.0,
+      "evidence_count": 1
+    }
+  ],
+  "nodes": [
+    {
+      "node_id": "wiki.maths.jss3.fractions.simplify",
+      "version": "1.0.0",
+      "title": "Simplifying fractions",
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "fractions",
+      "subtopic": "simplification",
+      "misconception_codes": [],
+      "body_markdown": "To simplify a fraction divide both the numerator and the denominator by their greatest common divisor (GCD). A fraction is in its simplest form when the numerator and denominator share no common factor other than 1.",
+      "anchors": ["sec-simplify-fractions"],
+      "status": "approved"
+    },
+    {
+      "node_id": "wiki.maths.jss3.fractions.compare",
+      "version": "1.0.0",
+      "title": "Comparing fractions",
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "fractions",
+      "subtopic": "comparison",
+      "misconception_codes": [],
+      "body_markdown": "To compare two fractions rewrite them with a common denominator, then compare the numerators. Cross-multiplication is a shortcut: a/b versus c/d compares a*d to b*c.",
+      "anchors": ["sec-compare-fractions"],
+      "status": "approved"
+    },
+    {
+      "node_id": "wiki.maths.jss3.ratio.equivalent",
+      "version": "1.0.0",
+      "title": "Equivalent ratios",
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "ratio",
+      "subtopic": "equivalence",
+      "misconception_codes": [],
+      "body_markdown": "Two ratios are equivalent when they reduce to the same simplest form. Multiplying or dividing both parts of a ratio by the same non-zero number produces an equivalent ratio.",
+      "anchors": ["sec-equivalent-ratios"],
+      "status": "approved"
+    },
+    {
+      "node_id": "wiki.maths.jss3.linear.solve",
+      "version": "1.0.0",
+      "title": "Solving linear equations",
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "algebra",
+      "subtopic": "linear-equations",
+      "misconception_codes": [],
+      "body_markdown": "To solve a linear equation move all terms containing the variable to one side and all constants to the other, then divide by the coefficient of the variable. Whatever you do to one side, do to the other.",
+      "anchors": ["sec-solve-linear"],
+      "status": "approved"
+    }
+  ]
+}
