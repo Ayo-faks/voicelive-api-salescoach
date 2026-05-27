@@ -1,0 +1,70 @@
+# Maths v1 — Taxonomy Coverage Eval (W1 soft gate)
+
+# Status: soft gate this sprint. Hard gate by W4 once 200 Maths + 200 English
+# questions are tagged (MVP §4.2, §9 W4).
+#
+# Suite: content / question-bank-shape
+# Subject: maths
+# Year groups: JSS3, SS3
+# Bank: backend/data/question_banks/maths_jss3_ss3_v1.json
+
+suite: maths_v1_taxonomy_coverage
+version: 0.1.0
+status: soft           # soft | hard
+taxonomy_version: "1.0.0"
+bank:
+  path: backend/data/question_banks/maths_jss3_ss3_v1.json
+  loader: src.learning.question_banks:load_maths_v1_bank
+  loader_args:
+    require_flag: false  # eval runs against on-disk artifact, ignores runtime flag
+
+# Hard structural assertions — must hold or the eval fails.
+structure:
+  min_total_items: 100
+  required_year_groups: [JSS3, SS3]
+  per_year_group_min: 45
+  subject_must_equal: maths
+  lang_must_equal: en
+  review_state_must_equal: pending_two_reviewer_signoff
+  difficulty_range: [-3.0, 3.0]
+  unique_item_ids: true
+
+# Per-item assertions — every item must satisfy every rule.
+per_item:
+  - misconception_codes.length >= 1
+  - taxonomy_version == "1.0.0"
+  - provenance[0].metadata.review_state == "pending_two_reviewer_signoff"
+  - subject == "maths"
+  - year_group in [JSS3, SS3]
+  - len(topic) > 0
+  - len(subtopic) > 0
+
+# Coverage targets — minimum number of items tagged with each high-frequency
+# misconception code. Below the threshold the eval surfaces a content gap and
+# the bank is opened for new authoring.
+coverage_min:
+  CALC_ERROR: 3
+  SIGN_ERROR: 3
+  FRACTION_PART_WHOLE: 3
+  ALGEBRA_DISTRIBUTION: 3
+  UNIT_CONVERSION: 3
+  GEOMETRY_UNITS: 3
+  PROBABILITY_COMPLEMENT: 3
+  LANGUAGE_COMPREHENSION: 3
+
+# Promotion gate (R15) — bank cannot leave pending until both reviewer signals
+# are true on every item. The eval reports current readiness without forcing
+# promotion at W1.
+promotion_gate:
+  require_subject_lead_approved: true
+  require_safeguarding_reviewed: true
+  required_two_reviewer_signoff: true
+
+# Wire-up: this stub is consumed by the harness in W4. For W1 the structural
+# checks above are mirrored by:
+#   backend/tests/unit/test_learning_question_bank_v1.py
+# so CI already enforces them as a hard gate at the unit-test layer.
+notes: |
+  W1 ships taxonomy + 100 Maths items + loader + this stub. W4 lifts this to a
+  hard gate, adds the English bank, and wires it into the release harness so
+  every PR touching `learning/` runs it.
