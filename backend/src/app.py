@@ -1204,6 +1204,10 @@ def _enforce_learning_api_policy() -> Optional[Tuple[Any, int]]:
             return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
         if payload_student_id and payload_student_id not in owned_student_ids:
             return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
+        if path.startswith("/api/learning/notifications/"):
+            payload_user_id = str(payload.get("user_id") or "").strip()
+            if payload_user_id and payload_user_id not in owned_student_ids:
+                return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
         return None
     return jsonify({"error": THERAPIST_ROLE_REQUIRED}), HTTP_FORBIDDEN
 

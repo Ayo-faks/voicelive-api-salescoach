@@ -69,6 +69,14 @@ from src.learning.rag import (
     load_wiki_corpus,
     retrieve_or_refuse,
 )
+from src.learning.notifications import (
+    InMemoryNotificationsRepository,
+    NotificationsRepository,
+    PushSubscription,
+    RevisionCard,
+    VapidConfig,
+    load_vapid_config,
+)
 from src.learning.repository import InMemoryLearningRepository, LearningRepository
 from src.learning.skills import SkillCatalogueError, SkillsCatalogueService
 from src.learning.validator import (
@@ -237,6 +245,8 @@ class LearningApi:
         observability: Optional[LearningObservability] = None,
         wiki_corpus: Optional[WikiCorpus] = None,
         rag_retriever: Optional[RagRetriever] = None,
+        notifications_repository: Optional[NotificationsRepository] = None,
+        vapid_config: Optional[VapidConfig] = None,
     ) -> None:
         self.repository: LearningRepository = repository or InMemoryLearningRepository()
         self.item_bank: DiagnosticItemBank = item_bank or load_item_bank(ITEM_BANK_PATH)
@@ -300,6 +310,12 @@ class LearningApi:
                 similarity_threshold=DEFAULT_SIMILARITY_THRESHOLD,
                 top_k=DEFAULT_TOP_K,
             )
+
+        # W8 — Spaced-retrieval Web Push.
+        self.notifications_repository: NotificationsRepository = (
+            notifications_repository or InMemoryNotificationsRepository()
+        )
+        self.vapid_config: VapidConfig = vapid_config or load_vapid_config()
 
     def _seed_pilot_pending_plan(self) -> None:
         if not isinstance(self.repository, InMemoryLearningRepository):
@@ -1700,6 +1716,106 @@ class LearningApi:
         )
 
     # ------------------------------------------------------------------
+    # W8 — Spaced-retrieval Web Push
+    # ------------------------------------------------------------------
+    def get_vapid_public_key(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        return {
+            "publicKey": self.vapid_config.public_key,
+            "configured": self.vapid_config.configured,
+        }
+
+    def register_push_subscription(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        user_id = str(payload.get("user_id") or "").strip()
+        sub_payload = payload.get("subscription") or {}
+        if not isinstance(sub_payload, Mapping):
+            raise LearningApiError("subscription must be an object", status_code=400)
+        endpoint = str(sub_payload.get("endpoint") or "").strip()
+        keys = sub_payload.get("keys") or {}
+        if not isinstance(keys, Mapping):
+            raise LearningApiError("subscription.keys must be an object", status_code=400)
+        p256dh = str(keys.get("p256dh") or "").strip()
+        auth = str(keys.get("auth") or "").strip()
+        if not (user_id and endpoint and p256dh and auth):
+            raise LearningApiError(
+                "user_id and subscription.endpoint/keys.p256dh/keys.auth are required",
+                status_code=400,
+            )
+        subscription = PushSubscription(
+            id=str(uuid4()),
+            tenant_id=tenant_id,
+            user_id=user_id,
+            endpoint=endpoint,
+            p256dh=p256dh,
+            auth=auth,
+            user_agent=(payload.get("user_agent") or _request_user_agent()) or None,
+        )
+        stored = self.notifications_repository.upsert_subscription(subscription)
+        return {
+            "ok": True,
+            "subscription_id": stored.id,
+            "endpoint": stored.endpoint,
+        }
+
+    def schedule_revision_cards(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        user_id = str(payload.get("user_id") or "").strip()
+        cards_in = payload.get("cards") or []
+        if not user_id:
+            raise LearningApiError("user_id is required", status_code=400)
+        if not isinstance(cards_in, list) or not cards_in:
+            raise LearningApiError("cards must be a non-empty array", status_code=400)
+        cards: List[RevisionCard] = []
+        for raw in cards_in:
+            if not isinstance(raw, Mapping):
+                raise LearningApiError("each card must be an object", status_code=400)
+            topic_id = str(raw.get("topic_id") or "").strip()
+            label = str(raw.get("label") or "").strip()
+            due_at = str(raw.get("due_at") or "").strip()
+            if not (topic_id and label and due_at):
+                raise LearningApiError(
+                    "card.topic_id, card.label, card.due_at are required",
+                    status_code=400,
+                )
+            cards.append(
+                RevisionCard(
+                    id=str(uuid4()),
+                    tenant_id=tenant_id,
+                    user_id=user_id,
+                    topic_id=topic_id,
+                    label=label,
+                    due_at=due_at,
+                    payload=raw.get("payload") or {},
+                )
+            )
+        stored = self.notifications_repository.schedule_cards(cards)
+        return {
+            "ok": True,
+            "scheduled": len(stored),
+            "card_ids": [c.id for c in stored],
+        }
+
+    def list_revision_cards(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        user_id = str(payload.get("user_id") or "").strip()
+        if not user_id:
+            raise LearningApiError("user_id is required", status_code=400)
+        rows = self.notifications_repository.list_user_cards(tenant_id, user_id)
+        return {
+            "cards": [
+                {
+                    "id": c.id,
+                    "topic_id": c.topic_id,
+                    "label": c.label,
+                    "due_at": c.due_at,
+                    "status": c.status,
+                    "sent_at": c.sent_at,
+                }
+                for c in rows
+            ]
+        }
+
+    # ------------------------------------------------------------------
     # Test helpers
     # ------------------------------------------------------------------
     def _reset_for_tests(self) -> None:
@@ -1721,6 +1837,13 @@ def _item_to_payload(item: DiagnosticItem) -> Dict[str, Any]:
         "difficulty": item.difficulty,
         "lang": item.lang,
     }
+
+
+def _request_user_agent() -> Optional[str]:
+    try:
+        return request.headers.get("User-Agent")
+    except RuntimeError:
+        return None
 
 
 def _read_payload() -> Dict[str, Any]:
@@ -1966,6 +2089,26 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
     @_wrap
     def _archive_skill(skill_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         return learning_api.archive_skill(skill_id, payload)
+
+    @app.route("/api/learning/notifications/push/vapid-public-key", methods=["GET"])
+    @_wrap
+    def _vapid_public_key(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.get_vapid_public_key(payload)
+
+    @app.route("/api/learning/notifications/push/subscribe", methods=["POST"])
+    @_wrap
+    def _push_subscribe(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.register_push_subscription(payload)
+
+    @app.route("/api/learning/notifications/revision-cards/schedule", methods=["POST"])
+    @_wrap
+    def _schedule_revision_cards(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.schedule_revision_cards(payload)
+
+    @app.route("/api/learning/notifications/revision-cards", methods=["GET"])
+    @_wrap
+    def _list_revision_cards(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.list_revision_cards(payload)
 
     return learning_api
 
