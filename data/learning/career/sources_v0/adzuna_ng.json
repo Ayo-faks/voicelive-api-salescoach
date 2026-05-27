@@ -1,0 +1,170 @@
+[
+  {
+    "pathway_id": "junior-software-developer-ng",
+    "posting_count": 3120,
+    "posting_growth_pct": 0.18,
+    "recency": "2026-Q1",
+    "confidence": 0.78
+  },
+  {
+    "pathway_id": "data-analyst-ng",
+    "posting_count": 2680,
+    "posting_growth_pct": 0.22,
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "qa-tester-ng",
+    "posting_count": 1450,
+    "posting_growth_pct": 0.14,
+    "recency": "2026-Q1",
+    "confidence": 0.72
+  },
+  {
+    "pathway_id": "it-support-technician-ng",
+    "posting_count": 2640,
+    "posting_growth_pct": 0.09,
+    "recency": "2026-Q1",
+    "confidence": 0.74
+  },
+  {
+    "pathway_id": "cybersecurity-analyst-ng",
+    "posting_count": 1780,
+    "posting_growth_pct": 0.31,
+    "recency": "2026-Q1",
+    "confidence": 0.74
+  },
+  {
+    "pathway_id": "civil-technician-ng",
+    "posting_count": 1820,
+    "posting_growth_pct": 0.08,
+    "recency": "2026-Q1",
+    "confidence": 0.7
+  },
+  {
+    "pathway_id": "electrical-installer-ng",
+    "posting_count": 2010,
+    "posting_growth_pct": 0.11,
+    "recency": "2026-Q1",
+    "confidence": 0.72
+  },
+  {
+    "pathway_id": "hvac-technician-ng",
+    "posting_count": 980,
+    "posting_growth_pct": 0.07,
+    "recency": "2026-Q1",
+    "confidence": 0.68
+  },
+  {
+    "pathway_id": "building-surveyor-ng",
+    "posting_count": 640,
+    "posting_growth_pct": 0.05,
+    "recency": "2026-Q1",
+    "confidence": 0.66
+  },
+  {
+    "pathway_id": "health-records-ng",
+    "posting_count": 1120,
+    "posting_growth_pct": 0.13,
+    "recency": "2026-Q1",
+    "confidence": 0.7
+  },
+  {
+    "pathway_id": "community-health-worker-ng",
+    "posting_count": 1860,
+    "posting_growth_pct": 0.12,
+    "recency": "2026-Q1",
+    "confidence": 0.72
+  },
+  {
+    "pathway_id": "pharmacy-technician-ng",
+    "posting_count": 820,
+    "posting_growth_pct": 0.09,
+    "recency": "2026-Q1",
+    "confidence": 0.7
+  },
+  {
+    "pathway_id": "medical-laboratory-assistant-ng",
+    "posting_count": 760,
+    "posting_growth_pct": 0.1,
+    "recency": "2026-Q1",
+    "confidence": 0.68
+  },
+  {
+    "pathway_id": "agri-extension-officer-ng",
+    "posting_count": 1240,
+    "posting_growth_pct": 0.14,
+    "recency": "2026-Q1",
+    "confidence": 0.72
+  },
+  {
+    "pathway_id": "agri-tech-operator-ng",
+    "posting_count": 540,
+    "posting_growth_pct": 0.16,
+    "recency": "2026-Q1",
+    "confidence": 0.68
+  },
+  {
+    "pathway_id": "food-processing-supervisor-ng",
+    "posting_count": 920,
+    "posting_growth_pct": 0.08,
+    "recency": "2026-Q1",
+    "confidence": 0.7
+  },
+  {
+    "pathway_id": "accounts-clerk-ng",
+    "posting_count": 1840,
+    "posting_growth_pct": 0.06,
+    "recency": "2026-Q1",
+    "confidence": 0.72
+  },
+  {
+    "pathway_id": "bank-teller-ng",
+    "posting_count": 1340,
+    "posting_growth_pct": 0.04,
+    "recency": "2026-Q1",
+    "confidence": 0.72
+  },
+  {
+    "pathway_id": "microfinance-officer-ng",
+    "posting_count": 980,
+    "posting_growth_pct": 0.11,
+    "recency": "2026-Q1",
+    "confidence": 0.7
+  },
+  {
+    "pathway_id": "primary-teacher-ng",
+    "posting_count": 2620,
+    "posting_growth_pct": 0.05,
+    "recency": "2026-Q1",
+    "confidence": 0.74
+  },
+  {
+    "pathway_id": "content-creator-ng",
+    "posting_count": 1560,
+    "posting_growth_pct": 0.24,
+    "recency": "2026-Q1",
+    "confidence": 0.68
+  },
+  {
+    "pathway_id": "graphic-designer-ng",
+    "posting_count": 1180,
+    "posting_growth_pct": 0.13,
+    "recency": "2026-Q1",
+    "confidence": 0.7
+  },
+  {
+    "pathway_id": "logistics-coordinator-ng",
+    "posting_count": 1420,
+    "posting_growth_pct": 0.09,
+    "recency": "2026-Q1",
+    "confidence": 0.7
+  },
+  {
+    "pathway_id": "hospitality-supervisor-ng",
+    "posting_count": 920,
+    "posting_growth_pct": 0.06,
+    "recency": "2026-Q1",
+    "confidence": 0.68
+  }
+]

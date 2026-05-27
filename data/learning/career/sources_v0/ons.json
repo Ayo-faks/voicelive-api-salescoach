@@ -1,0 +1,98 @@
+[
+  {
+    "pathway_id": "junior-software-developer-ng",
+    "currency": "GBP",
+    "min_monthly": 2400,
+    "max_monthly": 4200,
+    "recency": "2026-Q1",
+    "confidence": 0.7
+  },
+  {
+    "pathway_id": "data-analyst-ng",
+    "currency": "GBP",
+    "min_monthly": 2300,
+    "max_monthly": 4000,
+    "recency": "2026-Q1",
+    "confidence": 0.72
+  },
+  {
+    "pathway_id": "qa-tester-ng",
+    "currency": "GBP",
+    "min_monthly": 2100,
+    "max_monthly": 3500,
+    "recency": "2026-Q1",
+    "confidence": 0.66
+  },
+  {
+    "pathway_id": "it-support-technician-ng",
+    "currency": "GBP",
+    "min_monthly": 1900,
+    "max_monthly": 2800,
+    "recency": "2026-Q1",
+    "confidence": 0.68
+  },
+  {
+    "pathway_id": "cybersecurity-analyst-ng",
+    "currency": "GBP",
+    "min_monthly": 2800,
+    "max_monthly": 5200,
+    "recency": "2026-Q1",
+    "confidence": 0.7
+  },
+  {
+    "pathway_id": "civil-technician-ng",
+    "currency": "GBP",
+    "min_monthly": 2200,
+    "max_monthly": 3700,
+    "recency": "2026-Q1",
+    "confidence": 0.68
+  },
+  {
+    "pathway_id": "building-surveyor-ng",
+    "currency": "GBP",
+    "min_monthly": 2400,
+    "max_monthly": 4000,
+    "recency": "2026-Q1",
+    "confidence": 0.66
+  },
+  {
+    "pathway_id": "pharmacy-technician-ng",
+    "currency": "GBP",
+    "min_monthly": 2000,
+    "max_monthly": 3000,
+    "recency": "2026-Q1",
+    "confidence": 0.66
+  },
+  {
+    "pathway_id": "accounts-clerk-ng",
+    "currency": "GBP",
+    "min_monthly": 1900,
+    "max_monthly": 2800,
+    "recency": "2026-Q1",
+    "confidence": 0.68
+  },
+  {
+    "pathway_id": "primary-teacher-ng",
+    "currency": "GBP",
+    "min_monthly": 2200,
+    "max_monthly": 3300,
+    "recency": "2026-Q1",
+    "confidence": 0.7
+  },
+  {
+    "pathway_id": "graphic-designer-ng",
+    "currency": "GBP",
+    "min_monthly": 2100,
+    "max_monthly": 3600,
+    "recency": "2026-Q1",
+    "confidence": 0.66
+  },
+  {
+    "pathway_id": "logistics-coordinator-ng",
+    "currency": "GBP",
+    "min_monthly": 2200,
+    "max_monthly": 3400,
+    "recency": "2026-Q1",
+    "confidence": 0.66
+  }
+]
