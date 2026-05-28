@@ -143,18 +143,6 @@ type WrongAnswerExplanation = {
   revisionAction: string
 }
 
-type CareerAnswerPoint = {
-  label: string
-  body: string
-}
-
-type CareerNavigationMoment = {
-  question: string
-  responseLead: string
-  points: CareerAnswerPoint[]
-  sources: string[]
-}
-
 const todaysPath: Activity[] = [
   {
     id: 'ratio-check',
@@ -384,35 +372,6 @@ const generatedPlanPractice: PracticeExercise = {
     { id: 'same-day', label: 'Today', timing: '10 minutes after this exercise', focus: 'Try one similar ratio without the hint.' },
     { id: 'tomorrow', label: 'Tomorrow', timing: 'Before the next maths lesson', focus: 'Answer a fresh recipe-ratio card.' },
     { id: 'weekend', label: 'In 4 days', timing: 'Short weekend retrieval', focus: 'Mix ratio with fraction-bar review.' },
-  ],
-}
-
-const careerNavigationMoment: CareerNavigationMoment = {
-  question: "Can I still become a doctor if I'm weak in chemistry?",
-  responseLead:
-    'It may still be possible, but Pathfinder should not promise an outcome. Medicine usually needs strong chemistry and biology, so the honest answer is: keep the goal open while you work on the chemistry gap and compare nearby health pathways.',
-  points: [
-    {
-      label: 'What is realistic',
-      body: 'A weak chemistry score today does not close the door, but medical entry is competitive and usually expects strong science grades over time.',
-    },
-    {
-      label: 'What needs work',
-      body: 'Focus next on atoms, bonding, acids and bases, and quantitative chemistry. Ask your teacher for a 2-week repair plan and retest one small topic at a time.',
-    },
-    {
-      label: 'What alternatives exist',
-      body: 'You can also explore nursing, pharmacy technology, medical laboratory science, public health, health data, or biomedical engineering while chemistry improves.',
-    },
-    {
-      label: 'Next safe step',
-      body: 'Discuss this with a teacher or counsellor before choosing subjects. Pathfinder can show options and gaps, not guarantee admission or a career outcome.',
-    },
-  ],
-  sources: [
-    'Grounded in science-subject requirements',
-    'Uses current mastery snapshot: chemistry needs support',
-    'Counsellor review recommended for career decisions',
   ],
 }
 
@@ -1499,9 +1458,7 @@ export default function StudentLearningHome({ studentId, pushConsentDeferred }: 
           </span>
           <h1 className={styles.heroTitle}>Hi, let's keep your streak going.</h1>
           <p className={styles.heroSub}>
-            Your {learnerSetup.exam} {learnerSetup.subject} path is 42% mastered. Pathfinder works on desktop web,
-            tablet, and phone, so one short check-in today can happen in class,
-            at home, or offline.
+            Your {learnerSetup.exam} {learnerSetup.subject} path is 42% mastered.
           </p>
           <div className={styles.heroPills}>
             <span className={styles.heroPill}>
