@@ -146,7 +146,7 @@ export function LearnerVoiceCardRenderer({
         <>
           <p className={styles.stem}>{card.stem}</p>
           <div className={styles.options}>
-            {card.options.map((option) => (
+            {card.options.map(option => (
               <button
                 key={option.id}
                 type="button"

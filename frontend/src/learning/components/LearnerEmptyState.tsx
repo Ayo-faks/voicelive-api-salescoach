@@ -44,9 +44,12 @@ export default function LearnerEmptyState() {
     <section className={styles.shell} data-testid="learner-empty-state">
       <div className={styles.content}>
         <UserPlusIcon className={styles.icon} aria-hidden="true" />
-        <Text className={styles.title}>No learners linked to this account yet</Text>
+        <Text className={styles.title}>
+          No learners linked to this account yet
+        </Text>
         <Text className={styles.body}>
-          Once a learner is linked, their diagnostic check-ins and voice practice will appear here.
+          Once a learner is linked, their diagnostic check-ins and voice
+          practice will appear here.
         </Text>
       </div>
     </section>

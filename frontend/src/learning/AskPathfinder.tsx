@@ -8,7 +8,12 @@
  */
 import { useCallback, useState, type FormEvent } from 'react'
 import { makeStyles } from '@fluentui/react-components'
-import { ChatBubbleLeftRightIcon, MicrophoneIcon, PaperAirplaneIcon, XMarkIcon } from '@heroicons/react/24/solid'
+import {
+  ChatBubbleLeftRightIcon,
+  MicrophoneIcon,
+  PaperAirplaneIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/solid'
 import { useLearnerContext } from './contexts/LearnerContext'
 
 type Citation = {
@@ -36,8 +41,10 @@ const useStyles = makeStyles({
     placeItems: 'center',
     color: '#ffffff',
     background: 'linear-gradient(160deg, #3a3a3c 0%, #0a0a0a 100%)',
-    boxShadow: '0 12px 36px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.18)',
-    transition: 'transform .18s cubic-bezier(0.2, 0.8, 0.2, 1), filter .15s ease',
+    boxShadow:
+      '0 12px 36px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.18)',
+    transition:
+      'transform .18s cubic-bezier(0.2, 0.8, 0.2, 1), filter .15s ease',
     ':hover': {
       filter: 'brightness(1.08)',
       transform: 'translateY(-2px) scale(1.04)',
@@ -182,7 +189,9 @@ export interface AskPathfinderProps {
   endpoint?: string
 }
 
-export function AskPathfinder({ endpoint = '/api/learning/assistant/ask' }: AskPathfinderProps) {
+export function AskPathfinder({
+  endpoint = '/api/learning/assistant/ask',
+}: AskPathfinderProps) {
   const styles = useStyles()
   const learner = useLearnerContext()
   const [open, setOpen] = useState(false)
@@ -196,7 +205,10 @@ export function AskPathfinder({ endpoint = '/api/learning/assistant/ask' }: AskP
       const question = draft.trim()
       if (!question || busy) return
       const userId = `u-${Date.now().toString(36)}`
-      setTranscript(prev => [...prev, { role: 'user', text: question, id: userId }])
+      setTranscript(prev => [
+        ...prev,
+        { role: 'user', text: question, id: userId },
+      ])
       setDraft('')
       setBusy(true)
       try {
@@ -206,19 +218,40 @@ export function AskPathfinder({ endpoint = '/api/learning/assistant/ask' }: AskP
           body: JSON.stringify({
             user_id: learner.userId,
             question,
-            weak_topics: learner.weakTopics.map(w => ({ skill_id: w.skillId, label: w.label })),
-            daily_plan: learner.dailyPlan.map(d => ({ id: d.id, title: d.title })),
+            weak_topics: learner.weakTopics.map(w => ({
+              skill_id: w.skillId,
+              label: w.label,
+            })),
+            daily_plan: learner.dailyPlan.map(d => ({
+              id: d.id,
+              title: d.title,
+            })),
             career_fits: learner.careerFits,
             last_wrong_answer: learner.lastWrongAnswer
-              ? { skill_id: learner.lastWrongAnswer.skillId, label: learner.lastWrongAnswer.label }
+              ? {
+                  skill_id: learner.lastWrongAnswer.skillId,
+                  label: learner.lastWrongAnswer.label,
+                }
               : null,
           }),
         })
-        const body = (await resp.json()) as { answer?: string; citations?: Citation[]; error?: string }
-        const text = body.answer ?? body.error ?? "Sorry — Pathfinder could not answer that just now."
+        const body = (await resp.json()) as {
+          answer?: string
+          citations?: Citation[]
+          error?: string
+        }
+        const text =
+          body.answer ??
+          body.error ??
+          'Sorry — Pathfinder could not answer that just now.'
         setTranscript(prev => [
           ...prev,
-          { role: 'assistant', text, citations: body.citations ?? [], id: `a-${Date.now().toString(36)}` },
+          {
+            role: 'assistant',
+            text,
+            citations: body.citations ?? [],
+            id: `a-${Date.now().toString(36)}`,
+          },
         ])
       } catch {
         setTranscript(prev => [
@@ -234,7 +267,7 @@ export function AskPathfinder({ endpoint = '/api/learning/assistant/ask' }: AskP
         setBusy(false)
       }
     },
-    [busy, draft, endpoint, learner],
+    [busy, draft, endpoint, learner]
   )
 
   return (
@@ -247,11 +280,18 @@ export function AskPathfinder({ endpoint = '/api/learning/assistant/ask' }: AskP
           aria-label="Open Ask Pathfinder"
           data-testid="ask-pathfinder-fab"
         >
-          <ChatBubbleLeftRightIcon className={styles.fabGlyph} aria-hidden="true" />
+          <ChatBubbleLeftRightIcon
+            className={styles.fabGlyph}
+            aria-hidden="true"
+          />
         </button>
       )}
       {open && (
-        <aside className={styles.drawer} aria-label="Ask Pathfinder" data-testid="ask-pathfinder-drawer">
+        <aside
+          className={styles.drawer}
+          aria-label="Ask Pathfinder"
+          data-testid="ask-pathfinder-drawer"
+        >
           <header className={styles.header}>
             <span className={styles.title}>Ask Pathfinder</span>
             <button
@@ -263,10 +303,14 @@ export function AskPathfinder({ endpoint = '/api/learning/assistant/ask' }: AskP
               <XMarkIcon className={styles.closeGlyph} aria-hidden="true" />
             </button>
           </header>
-          <div className={styles.transcript} data-testid="ask-pathfinder-transcript">
+          <div
+            className={styles.transcript}
+            data-testid="ask-pathfinder-transcript"
+          >
             {transcript.length === 0 && (
               <span className={styles.empty}>
-                Ask about today's plan, a wrong answer, or a career pathway. Grounded answers, no outcome guarantees.
+                Ask about today's plan, a wrong answer, or a career pathway.
+                Grounded answers, no outcome guarantees.
               </span>
             )}
             {transcript.map(entry =>
@@ -280,14 +324,17 @@ export function AskPathfinder({ endpoint = '/api/learning/assistant/ask' }: AskP
                   {entry.citations.length > 0 && (
                     <div className={styles.citations}>
                       {entry.citations.map((c, idx) => (
-                        <span key={`${entry.id}-${idx}`} className={styles.citation}>
+                        <span
+                          key={`${entry.id}-${idx}`}
+                          className={styles.citation}
+                        >
                           {c.label ?? c.topic_id ?? c.url ?? 'source'}
                         </span>
                       ))}
                     </div>
                   )}
                 </div>
-              ),
+              )
             )}
           </div>
           <form className={styles.composer} onSubmit={send}>
@@ -323,7 +370,10 @@ export function AskPathfinder({ endpoint = '/api/learning/assistant/ask' }: AskP
               aria-label="Send question"
               data-testid="ask-pathfinder-send"
             >
-              <PaperAirplaneIcon className={styles.iconGlyph} aria-hidden="true" />
+              <PaperAirplaneIcon
+                className={styles.iconGlyph}
+                aria-hidden="true"
+              />
             </button>
           </form>
         </aside>

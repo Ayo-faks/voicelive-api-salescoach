@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  cleanup,
+} from '@testing-library/react'
 import PracticeFullscreen from './PracticeFullscreen'
 import * as api from '../api'
 
@@ -48,7 +54,9 @@ describe('PracticeFullscreen', () => {
   beforeEach(() => {
     runTurnSpy = vi.spyOn(api, 'runLearnerVoiceTurn')
     vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined)
-    pauseSpy = vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {})
+    pauseSpy = vi
+      .spyOn(HTMLMediaElement.prototype, 'pause')
+      .mockImplementation(() => {})
     Object.defineProperty(URL, 'createObjectURL', {
       configurable: true,
       value: vi.fn(() => 'blob:practice-audio'),
@@ -69,7 +77,7 @@ describe('PracticeFullscreen', () => {
   it('returns null when closed', () => {
     runTurnSpy.mockResolvedValue({ card: mcqCard, session_complete: false })
     const { container } = render(
-      <PracticeFullscreen open={false} onClose={() => {}} childId="stu-1" />,
+      <PracticeFullscreen open={false} onClose={() => {}} childId="stu-1" />
     )
     expect(container.firstChild).toBeNull()
     expect(runTurnSpy).not.toHaveBeenCalled()
@@ -78,7 +86,7 @@ describe('PracticeFullscreen', () => {
   it('seeds the first turn on open and renders the MCQ card', async () => {
     runTurnSpy.mockResolvedValue({ card: mcqCard, session_complete: false })
     render(
-      <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />,
+      <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />
     )
     await waitFor(() => {
       expect(screen.getByTestId('practice-card')).toBeTruthy()
@@ -99,7 +107,7 @@ describe('PracticeFullscreen', () => {
       .mockResolvedValueOnce({ card: mcqCard, session_complete: false })
       .mockResolvedValueOnce({ card: explanationCard, session_complete: false })
     render(
-      <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />,
+      <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />
     )
     await waitFor(() => screen.getByTestId('practice-option-a'))
     fireEvent.click(screen.getByTestId('practice-option-a'))
@@ -124,9 +132,7 @@ describe('PracticeFullscreen', () => {
   it('calls onClose when the close button is clicked', async () => {
     runTurnSpy.mockResolvedValue({ card: mcqCard, session_complete: false })
     const onClose = vi.fn()
-    render(
-      <PracticeFullscreen open={true} onClose={onClose} childId="stu-1" />,
-    )
+    render(<PracticeFullscreen open={true} onClose={onClose} childId="stu-1" />)
     await waitFor(() => screen.getByTestId('practice-close'))
     fireEvent.click(screen.getByTestId('practice-close'))
     expect(onClose).toHaveBeenCalledTimes(1)
@@ -135,7 +141,7 @@ describe('PracticeFullscreen', () => {
   it('renders an error banner when the turn endpoint rejects', async () => {
     runTurnSpy.mockRejectedValue(new Error('boom'))
     render(
-      <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />,
+      <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />
     )
     await waitFor(() => {
       expect(screen.getByRole('alert')).toBeTruthy()
@@ -145,7 +151,7 @@ describe('PracticeFullscreen', () => {
   it('renders no mic button', async () => {
     runTurnSpy.mockResolvedValue({ card: mcqCard, session_complete: false })
     render(
-      <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />,
+      <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />
     )
     await screen.findByTestId('practice-card')
     expect(screen.queryByTestId('practice-mic')).toBeNull()
@@ -155,10 +161,12 @@ describe('PracticeFullscreen', () => {
   it('fetches /api/learning/tts when 🔊 is clicked', async () => {
     runTurnSpy.mockResolvedValue({ card: mcqCard, session_complete: false })
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(new Blob(['FAKE_MP3'], { type: 'audio/mpeg' }), { status: 200 }),
+      new Response(new Blob(['FAKE_MP3'], { type: 'audio/mpeg' }), {
+        status: 200,
+      })
     )
     render(
-      <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />,
+      <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />
     )
 
     fireEvent.click(await screen.findByTestId('practice-listen'))
@@ -168,14 +176,16 @@ describe('PracticeFullscreen', () => {
     })
     const [url, init] = fetchSpy.mock.calls[0]
     expect(url).toBe('/api/learning/tts')
-    expect(init).toEqual(expect.objectContaining({ method: 'POST', credentials: 'include' }))
+    expect(init).toEqual(
+      expect.objectContaining({ method: 'POST', credentials: 'include' })
+    )
     expect(String((init as RequestInit).body)).toContain(mcqCard.stem)
   })
 
   it('stops audio on close', async () => {
     runTurnSpy.mockResolvedValue({ card: mcqCard, session_complete: false })
     render(
-      <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />,
+      <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />
     )
 
     fireEvent.click(await screen.findByTestId('practice-close'))
@@ -185,9 +195,11 @@ describe('PracticeFullscreen', () => {
 
   it('hides Listen button when backend returns 503', async () => {
     runTurnSpy.mockResolvedValue({ card: mcqCard, session_complete: false })
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('', { status: 503 }))
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response('', { status: 503 })
+    )
     render(
-      <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />,
+      <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />
     )
 
     fireEvent.click(await screen.findByTestId('practice-listen'))
@@ -207,7 +219,7 @@ describe('PracticeFullscreen', () => {
         exam="Junior WAEC"
         classYear="JSS2"
         subject="English Language"
-      />,
+      />
     )
     await waitFor(() => {
       expect(runTurnSpy).toHaveBeenCalledWith({
@@ -220,29 +232,32 @@ describe('PracticeFullscreen', () => {
     })
   })
 
-    it('opens the learner tutor from the Talk button with the same taxonomy', async () => {
-      runTurnSpy.mockResolvedValue({ card: mcqCard, session_complete: false })
-      render(
-        <PracticeFullscreen
-          open={true}
-          onClose={() => {}}
-          childId="stu-1"
-          exam="WAEC"
-          classYear="SSS2"
-          subject="Mathematics"
-        />,
-      )
+  it('opens the learner tutor from the Talk button with the same taxonomy', async () => {
+    runTurnSpy.mockResolvedValue({ card: mcqCard, session_complete: false })
+    render(
+      <PracticeFullscreen
+        open={true}
+        onClose={() => {}}
+        childId="stu-1"
+        exam="WAEC"
+        classYear="SSS2"
+        subject="Mathematics"
+      />
+    )
 
-      fireEvent.click(await screen.findByTestId('practice-talk'))
+    fireEvent.click(await screen.findByTestId('practice-talk'))
 
-      expect(await screen.findByTestId('learner-tutor-mock')).toBeTruthy()
-      const lastProps = learnerTutorMock.mock.calls[learnerTutorMock.mock.calls.length - 1]?.[0]
-      expect(lastProps).toEqual(expect.objectContaining({
+    expect(await screen.findByTestId('learner-tutor-mock')).toBeTruthy()
+    const lastProps =
+      learnerTutorMock.mock.calls[learnerTutorMock.mock.calls.length - 1]?.[0]
+    expect(lastProps).toEqual(
+      expect.objectContaining({
         open: true,
         childId: 'stu-1',
         exam: 'WAEC',
         classYear: 'SSS2',
         subject: 'Mathematics',
-      }))
-    })
+      })
+    )
+  })
 })

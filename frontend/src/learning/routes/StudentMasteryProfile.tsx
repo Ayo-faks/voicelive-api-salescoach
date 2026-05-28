@@ -311,7 +311,9 @@ export default function StudentMasteryProfile() {
             Tobi A.
           </Text>
           <div className={styles.metaBadges}>
-            <span className={styles.softBadgeSolid}>Learner insights profile</span>
+            <span className={styles.softBadgeSolid}>
+              Learner insights profile
+            </span>
             <span className={styles.softBadge}>JSS2</span>
             <span className={styles.softBadge}>English</span>
             <span className={styles.softBadge}>Mastery trajectory</span>
@@ -325,22 +327,37 @@ export default function StudentMasteryProfile() {
         </div>
       </div>
 
-      <Card className={styles.parentSummaryCard} data-testid="parent-ready-summary">
+      <Card
+        className={styles.parentSummaryCard}
+        data-testid="parent-ready-summary"
+      >
         <div className={styles.parentSummaryHeader}>
           <div>
             <Text weight="semibold">One-page parent-ready summary</Text>
-            <p style={{ margin: '6px 0 0', color: t.brand.textSecondary, lineHeight: 1.45 }}>
-              Plain-language update for home: progress, support plan, next practice, and teacher-controlled memory.
+            <p
+              style={{
+                margin: '6px 0 0',
+                color: t.brand.textSecondary,
+                lineHeight: 1.45,
+              }}
+            >
+              Plain-language update for home: progress, support plan, next
+              practice, and teacher-controlled memory.
             </p>
           </div>
           <div className={styles.parentSummaryActions}>
             <span className={styles.softBadgeSolid}>Ready to send home</span>
-            <button type="button" className={styles.sendHomeButton}>Send home summary</button>
+            <button type="button" className={styles.sendHomeButton}>
+              Send home summary
+            </button>
           </div>
         </div>
         <div className={styles.parentSummaryGrid}>
           {parentReadySummary.map(section => (
-            <section key={section.label} className={styles.parentSummarySection}>
+            <section
+              key={section.label}
+              className={styles.parentSummarySection}
+            >
               <Text weight="semibold">{section.label}</Text>
               <ul className={styles.parentSummaryList}>
                 {section.items.map(item => (
@@ -356,9 +373,7 @@ export default function StudentMasteryProfile() {
         <Card className={styles.chartCard}>
           <CardHeader
             header={<Text weight="semibold">Skill radar</Text>}
-            description={
-              <Text size={200}>Mastery vs JSS2 target (75%)</Text>
-            }
+            description={<Text size={200}>Mastery vs JSS2 target (75%)</Text>}
           />
           <div className={styles.chartBox}>
             <ResponsiveContainer width="100%" height="100%">
@@ -396,7 +411,9 @@ export default function StudentMasteryProfile() {
           <Card className={styles.riskCard}>
             <Text className={styles.riskTitle}>Risks & flags</Text>
             <span className={styles.softBadge}>Ratio mastery below 50%</span>
-            <span className={styles.softBadge}>Uncertainty rising on linear eq.</span>
+            <span className={styles.softBadge}>
+              Uncertainty rising on linear eq.
+            </span>
             <Text size={200}>
               Two risks open. Counsellor review scheduled 2026-06-02.
             </Text>
@@ -409,14 +426,22 @@ export default function StudentMasteryProfile() {
         <Card className={styles.trajectoryCard}>
           <CardHeader
             header={<Text weight="semibold">Mastery trajectory</Text>}
-            description={<Text size={200}>Last 6 weeks · ratio vs fractions</Text>}
+            description={
+              <Text size={200}>Last 6 weeks · ratio vs fractions</Text>
+            }
           />
           <div className={styles.chartBox}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={trajectoryData}>
                 <CartesianGrid strokeDasharray="3 3" stroke={t.brand.line} />
-                <XAxis dataKey="week" tick={{ fontSize: 12, fill: t.brand.textTertiary }} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: t.brand.textTertiary }} />
+                <XAxis
+                  dataKey="week"
+                  tick={{ fontSize: 12, fill: t.brand.textTertiary }}
+                />
+                <YAxis
+                  domain={[0, 100]}
+                  tick={{ fontSize: 12, fill: t.brand.textTertiary }}
+                />
                 <Tooltip />
                 <Line
                   type="monotone"
@@ -443,7 +468,9 @@ export default function StudentMasteryProfile() {
             plan={careerPlan}
             decision={advisorDecision}
             onApproveNarration={() => pushEvent('Counsellor guidance approved')}
-            onRejectNarration={() => pushEvent('Counsellor guidance sent back for revision')}
+            onRejectNarration={() =>
+              pushEvent('Counsellor guidance sent back for revision')
+            }
           />
           <VoiceQueueCard voiceQueue={voiceQueue} />
           {auditEvents.length > 0 && (
@@ -452,11 +479,14 @@ export default function StudentMasteryProfile() {
                 header={<Text weight="semibold">Recent actions</Text>}
               />
               <div className={styles.auditEventList}>
-                {auditEvents.slice(-5).reverse().map(e => (
-                  <span key={e} className={styles.auditEventItem}>
-                    {e}
-                  </span>
-                ))}
+                {auditEvents
+                  .slice(-5)
+                  .reverse()
+                  .map(e => (
+                    <span key={e} className={styles.auditEventItem}>
+                      {e}
+                    </span>
+                  ))}
               </div>
             </Card>
           )}

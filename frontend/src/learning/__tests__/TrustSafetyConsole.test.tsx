@@ -36,8 +36,14 @@ describe('TrustSafetyConsole', () => {
     expect(screen.getByText('Intervention impact')).toBeTruthy()
     expect(screen.getByText('+18 pts')).toBeTruthy()
     expect(screen.getByText('Family output')).toBeTruthy()
-    expect(screen.getByText('One-page parent summaries can be sent home')).toBeTruthy()
-    expect(screen.getByText(/whether approved interventions are changing outcomes after 6-8 weeks/i)).toBeTruthy()
+    expect(
+      screen.getByText('One-page parent summaries can be sent home')
+    ).toBeTruthy()
+    expect(
+      screen.getByText(
+        /whether approved interventions are changing outcomes after 6-8 weeks/i
+      )
+    ).toBeTruthy()
 
     await waitFor(() => {
       expect(screen.getByTestId('pilot-kpi-error')).toBeTruthy()

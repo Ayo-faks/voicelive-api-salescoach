@@ -54,13 +54,16 @@ export default function LearnerSelector({
   const styles = useStyles()
   if (learners.length <= 1) return null
 
-  const selectedChild = learners.find(child => child.id === selectedLearnerId) ?? learners[0]
+  const selectedChild =
+    learners.find(child => child.id === selectedLearnerId) ?? learners[0]
 
   return (
     <section className={styles.shell} data-testid="learner-selector-shell">
       <div className={styles.copy}>
         <Text className={styles.label}>Learner</Text>
-        <Text className={styles.hint}>Diagnostic and voice practice are scoped to this learner.</Text>
+        <Text className={styles.hint}>
+          Diagnostic and voice practice are scoped to this learner.
+        </Text>
       </div>
       <Dropdown
         aria-label="Learner"

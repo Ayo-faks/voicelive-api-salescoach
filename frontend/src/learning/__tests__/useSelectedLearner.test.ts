@@ -6,10 +6,7 @@ import {
   storeSelectedLearnerId,
 } from '../hooks/useSelectedLearner'
 
-const children = [
-  { id: 'child-1' },
-  { id: 'child-2' },
-]
+const children = [{ id: 'child-1' }, { id: 'child-2' }]
 
 afterEach(() => {
   window.localStorage.clear()
@@ -33,7 +30,9 @@ describe('selected learner storage helpers', () => {
   it('stores and clears the stable selected learner key', () => {
     storeSelectedLearnerId('child-2')
 
-    expect(window.localStorage.getItem(SELECTED_LEARNER_STORAGE_KEY)).toBe('child-2')
+    expect(window.localStorage.getItem(SELECTED_LEARNER_STORAGE_KEY)).toBe(
+      'child-2'
+    )
     expect(readStoredSelectedLearnerId()).toBe('child-2')
 
     storeSelectedLearnerId(null)

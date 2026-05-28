@@ -139,11 +139,19 @@ export function PracticeFullscreen({
   const [error, setError] = useState<string | null>(null)
   const [sessionComplete, setSessionComplete] = useState(false)
   const [tutorOpen, setTutorOpen] = useState(false)
-  const { supported: ttsSupported, playing: ttsPlaying, play, stop } = useTtsPlayer()
+  const {
+    supported: ttsSupported,
+    playing: ttsPlaying,
+    play,
+    stop,
+  } = useTtsPlayer()
 
   const requestTurn = useCallback(
     async (
-      next: Omit<LearnerVoiceTurnRequest, 'child_id' | 'lang' | 'exam' | 'class_year' | 'subject'>,
+      next: Omit<
+        LearnerVoiceTurnRequest,
+        'child_id' | 'lang' | 'exam' | 'class_year' | 'subject'
+      >
     ) => {
       if (!childId) return
       setLoading(true)
@@ -160,12 +168,16 @@ export function PracticeFullscreen({
         setCard(response.card)
         setSessionComplete(response.session_complete)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Something went wrong. Please try again.'
+        )
       } finally {
         setLoading(false)
       }
     },
-    [childId, lang, exam, classYear, subject],
+    [childId, lang, exam, classYear, subject]
   )
 
   const handleClose = useCallback(() => {
@@ -217,7 +229,7 @@ export function PracticeFullscreen({
         answer_option_id: optionId,
       })
     },
-    [card, requestTurn],
+    [card, requestTurn]
   )
 
   const handleAdvance = useCallback(() => {
@@ -261,12 +273,14 @@ export function PracticeFullscreen({
       </header>
       <div className={styles.body}>
         <div className={styles.statusRow}>
-          <div className={styles.status} aria-live="polite">{statusText}</div>
+          <div className={styles.status} aria-live="polite">
+            {statusText}
+          </div>
           {speakText && ttsSupported ? (
             <button
               type="button"
               className={styles.listenButton}
-              onClick={() => ttsPlaying ? stop() : void play(speakText)}
+              onClick={() => (ttsPlaying ? stop() : void play(speakText))}
               aria-label={ttsPlaying ? 'Stop' : 'Listen'}
               data-testid="practice-listen"
             >
@@ -284,7 +298,9 @@ export function PracticeFullscreen({
           </button>
         </div>
         {error ? (
-          <div className={styles.errorBanner} role="alert">{error}</div>
+          <div className={styles.errorBanner} role="alert">
+            {error}
+          </div>
         ) : null}
         <div className={styles.cardSlot}>
           {card ? (
@@ -300,7 +316,9 @@ export function PracticeFullscreen({
         </div>
       </div>
       <footer className={styles.footer}>
-        <span className={styles.footerHint}>Tap an option to answer · Tap 🔊 to hear it again</span>
+        <span className={styles.footerHint}>
+          Tap an option to answer · Tap 🔊 to hear it again
+        </span>
       </footer>
       {tutorOpen ? (
         <LearnerTutorFullscreen

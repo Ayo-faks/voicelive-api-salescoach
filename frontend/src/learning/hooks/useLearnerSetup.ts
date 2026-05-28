@@ -30,14 +30,22 @@ function readStored(): LearnerSetup {
     const parsed = JSON.parse(raw) as Partial<LearnerSetup> | null
     if (!parsed || typeof parsed !== 'object') return DEFAULT_LEARNER_SETUP
     return {
-      exam: typeof parsed.exam === 'string' && parsed.exam ? parsed.exam : DEFAULT_LEARNER_SETUP.exam,
-      year: typeof parsed.year === 'string' && parsed.year ? parsed.year : DEFAULT_LEARNER_SETUP.year,
+      exam:
+        typeof parsed.exam === 'string' && parsed.exam
+          ? parsed.exam
+          : DEFAULT_LEARNER_SETUP.exam,
+      year:
+        typeof parsed.year === 'string' && parsed.year
+          ? parsed.year
+          : DEFAULT_LEARNER_SETUP.year,
       subject:
         typeof parsed.subject === 'string' && parsed.subject
           ? parsed.subject
           : DEFAULT_LEARNER_SETUP.subject,
       firstName:
-        typeof parsed.firstName === 'string' ? parsed.firstName : DEFAULT_LEARNER_SETUP.firstName,
+        typeof parsed.firstName === 'string'
+          ? parsed.firstName
+          : DEFAULT_LEARNER_SETUP.firstName,
     }
   } catch {
     return DEFAULT_LEARNER_SETUP
@@ -47,16 +55,24 @@ function readStored(): LearnerSetup {
 function writeStored(setup: LearnerSetup): void {
   if (typeof window === 'undefined') return
   try {
-    window.localStorage.setItem(LEARNER_SETUP_STORAGE_KEY, JSON.stringify(setup))
+    window.localStorage.setItem(
+      LEARNER_SETUP_STORAGE_KEY,
+      JSON.stringify(setup)
+    )
     window.dispatchEvent(
-      new CustomEvent<LearnerSetup>('pathfinder-learner-setup-change', { detail: setup }),
+      new CustomEvent<LearnerSetup>('pathfinder-learner-setup-change', {
+        detail: setup,
+      })
     )
   } catch {
     // Swallow quota / private-mode errors — falling back to in-memory state.
   }
 }
 
-export function useLearnerSetup(): [LearnerSetup, (next: Partial<LearnerSetup>) => void] {
+export function useLearnerSetup(): [
+  LearnerSetup,
+  (next: Partial<LearnerSetup>) => void,
+] {
   const [setup, setSetup] = useState<LearnerSetup>(() => readStored())
 
   // Stay in sync if another tab or component writes the same key.
@@ -71,15 +87,21 @@ export function useLearnerSetup(): [LearnerSetup, (next: Partial<LearnerSetup>) 
       if (detail) setSetup(detail)
     }
     window.addEventListener('storage', onStorage)
-    window.addEventListener('pathfinder-learner-setup-change', onCustom as EventListener)
+    window.addEventListener(
+      'pathfinder-learner-setup-change',
+      onCustom as EventListener
+    )
     return () => {
       window.removeEventListener('storage', onStorage)
-      window.removeEventListener('pathfinder-learner-setup-change', onCustom as EventListener)
+      window.removeEventListener(
+        'pathfinder-learner-setup-change',
+        onCustom as EventListener
+      )
     }
   }, [])
 
   const update = useCallback((next: Partial<LearnerSetup>) => {
-    setSetup((prev) => {
+    setSetup(prev => {
       const merged: LearnerSetup = { ...prev, ...next }
       writeStored(merged)
       return merged

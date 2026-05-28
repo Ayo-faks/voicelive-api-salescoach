@@ -368,15 +368,20 @@ function displaySkill(value: string) {
 
 function formatRecord(record: StudentProfileRecord) {
   const skill = record.skill_id ? displaySkill(record.skill_id) : null
-  const response = record.response_text ? `Response: ${record.response_text}` : null
-  const item = record.item_id ? `Practice item ${String(record.item_id).replace(/[-_]/g, ' ')}` : null
-  const parts = [skill, response, item]
-    .filter(Boolean)
-    .map(String)
+  const response = record.response_text
+    ? `Response: ${record.response_text}`
+    : null
+  const item = record.item_id
+    ? `Practice item ${String(record.item_id).replace(/[-_]/g, ' ')}`
+    : null
+  const parts = [skill, response, item].filter(Boolean).map(String)
   return parts.length > 0 ? parts.join(' · ') : 'Learning activity recorded'
 }
 
-function statusClass(styles: ReturnType<typeof useStyles>, status: StudentProfileSkill['status']) {
+function statusClass(
+  styles: ReturnType<typeof useStyles>,
+  status: StudentProfileSkill['status']
+) {
   if (status === 'secure') return styles.statusSecure
   if (status === 'developing') return styles.statusDeveloping
   return styles.statusSupport
@@ -386,7 +391,9 @@ function formatPercent(value: number) {
   return `${Math.round(value * 100)}%`
 }
 
-function fallbackInsightFromSkill(skill: StudentProfileSkill): StudentLearningInsight {
+function fallbackInsightFromSkill(
+  skill: StudentProfileSkill
+): StudentLearningInsight {
   return {
     skill_id: skill.skill_id,
     skill_label: skill.skill_label,
@@ -412,15 +419,24 @@ function finiteNumber(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null
 }
 
-function estimateFromRecord(record: StudentProfileRecord): EstimateSnapshot | null {
-  const probability = finiteNumber(record.estimate?.probability ?? record.probability)
-  const uncertainty = finiteNumber(record.estimate?.uncertainty ?? record.uncertainty)
+function estimateFromRecord(
+  record: StudentProfileRecord
+): EstimateSnapshot | null {
+  const probability = finiteNumber(
+    record.estimate?.probability ?? record.probability
+  )
+  const uncertainty = finiteNumber(
+    record.estimate?.uncertainty ?? record.uncertainty
+  )
   if (probability === null || uncertainty === null) return null
   return { probability, uncertainty }
 }
 
 function isMasteryOverride(record: StudentProfileRecord) {
-  return record.kind === 'mastery_override' || record.event_type === 'mastery_override'
+  return (
+    record.kind === 'mastery_override' ||
+    record.event_type === 'mastery_override'
+  )
 }
 
 function findRevertOption(
@@ -435,7 +451,11 @@ function findRevertOption(
     let prior: EstimateSnapshot | null = null
     for (let priorIndex = index - 1; priorIndex >= 0; priorIndex -= 1) {
       const priorEvent = recentEvents[priorIndex]
-      if (priorEvent.skill_id !== skill.skill_id || isMasteryOverride(priorEvent)) continue
+      if (
+        priorEvent.skill_id !== skill.skill_id ||
+        isMasteryOverride(priorEvent)
+      )
+        continue
       prior = estimateFromRecord(priorEvent)
       if (prior) break
     }
@@ -460,12 +480,16 @@ export function StudentProfileDrawer({
   onClose,
 }: StudentProfileDrawerProps) {
   const styles = useStyles()
-  const { profile, loading, error, overrideMastery } = useStudentProfile(studentId, {
-    tenantId,
-    actorId,
-    enabled: open,
-  })
-  const [selectedSkill, setSelectedSkill] = useState<StudentProfileSkill | null>(null)
+  const { profile, loading, error, overrideMastery } = useStudentProfile(
+    studentId,
+    {
+      tenantId,
+      actorId,
+      enabled: open,
+    }
+  )
+  const [selectedSkill, setSelectedSkill] =
+    useState<StudentProfileSkill | null>(null)
   const [revertTarget, setRevertTarget] = useState<RevertTarget | null>(null)
   const [revertBusy, setRevertBusy] = useState(false)
   const [revertError, setRevertError] = useState<string | null>(null)
@@ -486,10 +510,14 @@ export function StudentProfileDrawer({
   const events = rawEvents.slice().reverse()
   const strengths = profile?.strengths?.length
     ? profile.strengths
-    : skills.filter(item => item.status === 'secure').map(fallbackInsightFromSkill)
+    : skills
+        .filter(item => item.status === 'secure')
+        .map(fallbackInsightFromSkill)
   const gaps = profile?.gaps?.length
     ? profile.gaps
-    : skills.filter(item => item.status !== 'secure').map(fallbackInsightFromSkill)
+    : skills
+        .filter(item => item.status !== 'secure')
+        .map(fallbackInsightFromSkill)
   const proposedFacts = profile?.proposed_student_facts ?? []
   const voiceFluency = profile?.voice_fluency ?? null
 
@@ -526,39 +554,83 @@ export function StudentProfileDrawer({
 
   return (
     <>
-      <Drawer className={styles.drawerSurface} open={open} position="end" size="large" onOpenChange={(_, data) => !data.open && onClose()}>
+      <Drawer
+        className={styles.drawerSurface}
+        open={open}
+        position="end"
+        size="large"
+        onOpenChange={(_, data) => !data.open && onClose()}
+      >
         <DrawerHeader className={styles.drawerHeader}>
           <DrawerHeaderTitle
             className={styles.drawerHeaderTitle}
-            action={<button type="button" className={styles.closeButton} aria-label="Close profile" onClick={onClose}>Close</button>}
+            action={
+              <button
+                type="button"
+                className={styles.closeButton}
+                aria-label="Close profile"
+                onClick={onClose}
+              >
+                Close
+              </button>
+            }
           >
             Student profile
           </DrawerHeaderTitle>
           <div className={styles.headerMeta}>
-            <span className={styles.softPill}>{studentId ? 'Learner selected' : 'No student selected'}</span>
-            {profile?.tenant_id ? <span className={styles.softPill}>School profile</span> : null}
-            {profile?.audit ? <span className={styles.softPill}>Viewed now</span> : null}
+            <span className={styles.softPill}>
+              {studentId ? 'Learner selected' : 'No student selected'}
+            </span>
+            {profile?.tenant_id ? (
+              <span className={styles.softPill}>School profile</span>
+            ) : null}
+            {profile?.audit ? (
+              <span className={styles.softPill}>Viewed now</span>
+            ) : null}
           </div>
         </DrawerHeader>
         <DrawerBody className={styles.body}>
-          {toast ? <div className={styles.toast} aria-live="polite">{toast}</div> : null}
+          {toast ? (
+            <div className={styles.toast} aria-live="polite">
+              {toast}
+            </div>
+          ) : null}
           {loading ? <Text>Loading profile…</Text> : null}
-          {error ? <Text className={styles.error}>Profile could not load right now.</Text> : null}
+          {error ? (
+            <Text className={styles.error}>
+              Profile could not load right now.
+            </Text>
+          ) : null}
 
           <section className={styles.section} aria-label="Strengths">
             <Text className={styles.sectionTitle}>Strengths</Text>
             <div className={styles.insightGrid}>
-              {strengths.length === 0 ? <Text size={200}>No secure strengths recorded yet.</Text> : null}
+              {strengths.length === 0 ? (
+                <Text size={200}>No secure strengths recorded yet.</Text>
+              ) : null}
               {strengths.map(item => (
-                <div className={styles.insightCard} key={`${item.skill_id}-strength`}>
+                <div
+                  className={styles.insightCard}
+                  key={`${item.skill_id}-strength`}
+                >
                   <div className={styles.insightHeader}>
                     <Text weight="semibold">{item.skill_label}</Text>
-                    <span className={`${styles.statusPill} ${statusClass(styles, item.status)}`}>{statusLabel(item.status)}</span>
+                    <span
+                      className={`${styles.statusPill} ${statusClass(styles, item.status)}`}
+                    >
+                      {statusLabel(item.status)}
+                    </span>
                   </div>
-                  <Text size={200}>{formatPercent(item.probability)} mastery, {formatPercent(item.uncertainty)} uncertainty</Text>
+                  <Text size={200}>
+                    {formatPercent(item.probability)} mastery,{' '}
+                    {formatPercent(item.uncertainty)} uncertainty
+                  </Text>
                   <div className={styles.evidenceList}>
                     {item.evidence.slice(0, 2).map((evidence, index) => (
-                      <span className={styles.evidenceItem} key={`${item.skill_id}-strength-evidence-${index}`}>
+                      <span
+                        className={styles.evidenceItem}
+                        key={`${item.skill_id}-strength-evidence-${index}`}
+                      >
                         {evidence.summary}
                       </span>
                     ))}
@@ -571,17 +643,32 @@ export function StudentProfileDrawer({
           <section className={styles.section} aria-label="Gaps and evidence">
             <Text className={styles.sectionTitle}>Gaps and evidence</Text>
             <div className={styles.insightGrid}>
-              {gaps.length === 0 ? <Text size={200}>No current learning gaps recorded.</Text> : null}
+              {gaps.length === 0 ? (
+                <Text size={200}>No current learning gaps recorded.</Text>
+              ) : null}
               {gaps.map(item => (
-                <div className={styles.insightCard} key={`${item.skill_id}-gap`}>
+                <div
+                  className={styles.insightCard}
+                  key={`${item.skill_id}-gap`}
+                >
                   <div className={styles.insightHeader}>
                     <Text weight="semibold">{item.skill_label}</Text>
-                    <span className={`${styles.statusPill} ${statusClass(styles, item.status)}`}>{statusLabel(item.status)}</span>
+                    <span
+                      className={`${styles.statusPill} ${statusClass(styles, item.status)}`}
+                    >
+                      {statusLabel(item.status)}
+                    </span>
                   </div>
-                  <Text size={200}>{formatPercent(item.probability)} mastery, {formatPercent(item.uncertainty)} uncertainty</Text>
+                  <Text size={200}>
+                    {formatPercent(item.probability)} mastery,{' '}
+                    {formatPercent(item.uncertainty)} uncertainty
+                  </Text>
                   <div className={styles.evidenceList}>
                     {item.evidence.map((evidence, index) => (
-                      <span className={styles.evidenceItem} key={`${item.skill_id}-gap-evidence-${index}`}>
+                      <span
+                        className={styles.evidenceItem}
+                        key={`${item.skill_id}-gap-evidence-${index}`}
+                      >
                         {evidence.summary}
                       </span>
                     ))}
@@ -596,31 +683,47 @@ export function StudentProfileDrawer({
             <div className={styles.insightCard}>
               {voiceFluency?.status === 'available' ? (
                 <>
-                  <div className={styles.voiceMetric}>Fluency {Math.round(voiceFluency.score ?? 0)}%</div>
+                  <div className={styles.voiceMetric}>
+                    Fluency {Math.round(voiceFluency.score ?? 0)}%
+                  </div>
                   <Text weight="semibold">{voiceFluency.label}</Text>
-                  <span className={styles.evidenceItem}>{voiceFluency.evidence}</span>
+                  <span className={styles.evidenceItem}>
+                    {voiceFluency.evidence}
+                  </span>
                 </>
               ) : (
                 <>
-                  <Text weight="semibold">No voice fluency sample recorded</Text>
+                  <Text weight="semibold">
+                    No voice fluency sample recorded
+                  </Text>
                   <span className={styles.evidenceItem}>
-                    {voiceFluency?.evidence ?? 'Pathfinder has not received an oral-reading fluency sample for this student yet.'}
+                    {voiceFluency?.evidence ??
+                      'Pathfinder has not received an oral-reading fluency sample for this student yet.'}
                   </span>
                 </>
               )}
             </div>
           </section>
 
-          <section className={styles.section} aria-label="Proposed memory facts">
+          <section
+            className={styles.section}
+            aria-label="Proposed memory facts"
+          >
             <Text className={styles.sectionTitle}>Proposed memory facts</Text>
             <div className={styles.list}>
-              {proposedFacts.length === 0 ? <Text size={200}>No proposed memory facts awaiting approval.</Text> : null}
+              {proposedFacts.length === 0 ? (
+                <Text size={200}>
+                  No proposed memory facts awaiting approval.
+                </Text>
+              ) : null}
               {proposedFacts.map(fact => (
                 <div className={styles.listItem} key={fact.id}>
                   <div className={styles.rowText}>
                     <Text weight="semibold">{factStudentName(fact)}</Text>
                     <Text size={200}>{fact.fact.value}</Text>
-                    <span className={styles.evidenceItem}>{fact.fact.evidence}</span>
+                    <span className={styles.evidenceItem}>
+                      {fact.fact.evidence}
+                    </span>
                   </div>
                   <span className={styles.answerPill}>Awaiting approval</span>
                 </div>
@@ -634,35 +737,70 @@ export function StudentProfileDrawer({
               <table className={styles.masteryTable} aria-label="Skill mastery">
                 <thead>
                   <tr>
-                    <th className={styles.tableHeadCell} scope="col">Skill</th>
-                    <th className={styles.tableHeadCell} scope="col">Probability</th>
-                    <th className={styles.tableHeadCell} scope="col">Uncertainty</th>
-                    <th className={styles.tableHeadCell} scope="col">Status</th>
-                    <th className={styles.tableHeadCell} scope="col">Actions</th>
+                    <th className={styles.tableHeadCell} scope="col">
+                      Skill
+                    </th>
+                    <th className={styles.tableHeadCell} scope="col">
+                      Probability
+                    </th>
+                    <th className={styles.tableHeadCell} scope="col">
+                      Uncertainty
+                    </th>
+                    <th className={styles.tableHeadCell} scope="col">
+                      Status
+                    </th>
+                    <th className={styles.tableHeadCell} scope="col">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {skills.map((item, index) => {
                     const revertOption = revertOptions.get(item.skill_id)
-                    const cellClass = index === skills.length - 1 ? styles.tableCellLast : styles.tableCell
+                    const cellClass =
+                      index === skills.length - 1
+                        ? styles.tableCellLast
+                        : styles.tableCell
                     return (
                       <tr key={item.skill_id}>
-                        <td className={cellClass}><span className={styles.skillName}>{item.skill_label}</span></td>
+                        <td className={cellClass}>
+                          <span className={styles.skillName}>
+                            {item.skill_label}
+                          </span>
+                        </td>
                         <td className={cellClass}>
                           <div className={styles.rowText}>
                             <span>{formatPercent(item.probability)}</span>
-                            <span className={styles.progressTrack} aria-hidden="true">
-                              <span className={styles.progressFill} style={{ width: formatPercent(item.probability) }} />
+                            <span
+                              className={styles.progressTrack}
+                              aria-hidden="true"
+                            >
+                              <span
+                                className={styles.progressFill}
+                                style={{
+                                  width: formatPercent(item.probability),
+                                }}
+                              />
                             </span>
                           </div>
                         </td>
-                        <td className={cellClass}>{formatPercent(item.uncertainty)}</td>
                         <td className={cellClass}>
-                          <span className={`${styles.statusPill} ${statusClass(styles, item.status)}`}>{statusLabel(item.status)}</span>
+                          {formatPercent(item.uncertainty)}
+                        </td>
+                        <td className={cellClass}>
+                          <span
+                            className={`${styles.statusPill} ${statusClass(styles, item.status)}`}
+                          >
+                            {statusLabel(item.status)}
+                          </span>
                         </td>
                         <td className={cellClass}>
                           <div className={styles.actionGroup}>
-                            <button type="button" className={styles.actionButton} onClick={() => setSelectedSkill(item)}>
+                            <button
+                              type="button"
+                              className={styles.actionButton}
+                              onClick={() => setSelectedSkill(item)}
+                            >
                               Adjust mastery
                             </button>
                             {revertOption ? (
@@ -670,8 +808,14 @@ export function StudentProfileDrawer({
                                 type="button"
                                 className={styles.secondaryActionButton}
                                 disabled={!revertOption.prior}
-                                title={revertOption.prior ? undefined : 'No previous estimate available'}
-                                onClick={() => openRestoreDialog(item, revertOption)}
+                                title={
+                                  revertOption.prior
+                                    ? undefined
+                                    : 'No previous estimate available'
+                                }
+                                onClick={() =>
+                                  openRestoreDialog(item, revertOption)
+                                }
                               >
                                 Restore estimate
                               </button>
@@ -689,24 +833,39 @@ export function StudentProfileDrawer({
           <section className={styles.section} aria-label="Recent responses">
             <Text className={styles.sectionTitle}>Recent responses</Text>
             <div className={styles.list}>
-              {responses.length === 0 ? <Text size={200}>No responses yet.</Text> : null}
+              {responses.length === 0 ? (
+                <Text size={200}>No responses yet.</Text>
+              ) : null}
               {responses.slice(0, 20).map((record, index) => (
-                <div className={styles.listItem} key={`${record.id ?? record.item_id ?? index}-response`}>
+                <div
+                  className={styles.listItem}
+                  key={`${record.id ?? record.item_id ?? index}-response`}
+                >
                   <Text>{formatRecord(record)}</Text>
                   {typeof record.correct === 'boolean' ? (
-                    <span className={styles.answerPill}>{record.correct ? 'Correct' : 'Incorrect'}</span>
+                    <span className={styles.answerPill}>
+                      {record.correct ? 'Correct' : 'Incorrect'}
+                    </span>
                   ) : null}
                 </div>
               ))}
             </div>
           </section>
 
-          <section className={styles.section} aria-label="Recent mastery events">
+          <section
+            className={styles.section}
+            aria-label="Recent mastery events"
+          >
             <Text className={styles.sectionTitle}>Recent mastery events</Text>
             <div className={styles.list}>
-              {events.length === 0 ? <Text size={200}>No recent mastery changes yet.</Text> : null}
+              {events.length === 0 ? (
+                <Text size={200}>No recent mastery changes yet.</Text>
+              ) : null}
               {events.slice(0, 20).map((record, index) => (
-                <div className={styles.listItem} key={`${record.id ?? record.skill_id ?? index}-event`}>
+                <div
+                  className={styles.listItem}
+                  key={`${record.id ?? record.skill_id ?? index}-event`}
+                >
                   <Text>{formatRecord(record)}</Text>
                 </div>
               ))}
@@ -726,8 +885,14 @@ export function StudentProfileDrawer({
         }}
       />
 
-      <Dialog open={Boolean(revertTarget)} onOpenChange={(_, data) => !data.open && setRevertTarget(null)}>
-        <DialogSurface aria-label="Restore mastery dialog" className={styles.dialogSurface}>
+      <Dialog
+        open={Boolean(revertTarget)}
+        onOpenChange={(_, data) => !data.open && setRevertTarget(null)}
+      >
+        <DialogSurface
+          aria-label="Restore mastery dialog"
+          className={styles.dialogSurface}
+        >
           <DialogBody className={styles.dialogBody}>
             <DialogTitle>Restore previous estimate</DialogTitle>
             <Text>
@@ -735,13 +900,27 @@ export function StudentProfileDrawer({
                 ? `Restore mastery from ${formatPercent(revertTarget.latest.probability)} to ${formatPercent(revertTarget.prior.probability)}?`
                 : 'Restore this mastery estimate?'}
             </Text>
-            {revertTarget ? <Text size={200}>{revertTarget.skillLabel}</Text> : null}
-            {revertError ? <Text className={styles.error}>{revertError}</Text> : null}
+            {revertTarget ? (
+              <Text size={200}>{revertTarget.skillLabel}</Text>
+            ) : null}
+            {revertError ? (
+              <Text className={styles.error}>{revertError}</Text>
+            ) : null}
             <div className={styles.dialogActions}>
-              <button type="button" className={styles.secondaryActionButton} onClick={() => setRevertTarget(null)} disabled={revertBusy}>
-              Cancel
+              <button
+                type="button"
+                className={styles.secondaryActionButton}
+                onClick={() => setRevertTarget(null)}
+                disabled={revertBusy}
+              >
+                Cancel
               </button>
-              <button type="button" className={styles.actionButton} onClick={() => void handleConfirmRevert()} disabled={revertBusy}>
+              <button
+                type="button"
+                className={styles.actionButton}
+                onClick={() => void handleConfirmRevert()}
+                disabled={revertBusy}
+              >
                 {revertBusy ? 'Restoring…' : 'Confirm restore'}
               </button>
             </div>

@@ -37,13 +37,14 @@ export function storeSelectedLearnerId(studentId: string | null): void {
 }
 
 export function useSelectedLearner(children: ChildProfile[]) {
-  const [selectedLearnerId, setSelectedLearnerIdState] = useState<string | null>(() =>
-    resolveSelectedLearnerId(children, readStoredSelectedLearnerId())
-  )
+  const [selectedLearnerId, setSelectedLearnerIdState] = useState<
+    string | null
+  >(() => resolveSelectedLearnerId(children, readStoredSelectedLearnerId()))
 
   useEffect(() => {
     setSelectedLearnerIdState(current => {
-      if (current && children.some(child => child.id === current)) return current
+      if (current && children.some(child => child.id === current))
+        return current
       return resolveSelectedLearnerId(children, readStoredSelectedLearnerId())
     })
   }, [children])

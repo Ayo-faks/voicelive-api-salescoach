@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { FluentProvider, Text, makeStyles, mergeClasses } from '@fluentui/react-components'
+import {
+  FluentProvider,
+  Text,
+  makeStyles,
+  mergeClasses,
+} from '@fluentui/react-components'
 import {
   AcademicCapIcon,
   ArrowRightStartOnRectangleIcon,
@@ -13,7 +18,11 @@ import {
   UserCircleIcon,
 } from '@heroicons/react/24/outline'
 import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import { ChatBubbleLeftRightIcon, MicrophoneIcon, MinusIcon } from '@heroicons/react/24/solid'
+import {
+  ChatBubbleLeftRightIcon,
+  MicrophoneIcon,
+  MinusIcon,
+} from '@heroicons/react/24/solid'
 import { InsightsRail } from '../components/InsightsRail'
 import { api, type AuthSession } from '../services/api'
 import type { AppConfig, ChildProfile, InsightsScope } from '../types'
@@ -22,18 +31,34 @@ import LearnerSelector from './components/LearnerSelector'
 import VoiceAgentFullscreen from './components/VoiceAgentFullscreen'
 import PracticeFullscreen from './components/PracticeFullscreen'
 import WelcomeRolePicker from './components/WelcomeRolePicker'
-import { storeSelectedLearnerId, useSelectedLearner } from './hooks/useSelectedLearner'
+import {
+  storeSelectedLearnerId,
+  useSelectedLearner,
+} from './hooks/useSelectedLearner'
 import { useLearnerSetup } from './hooks/useLearnerSetup'
+import { useLearnerProfile } from './hooks/useLearnerProfile'
+import LearnerOnboardingWizard from './onboarding/LearnerOnboardingWizard'
 import PathwaysExplorer from './routes/PathwaysExplorer'
 import SkillLibrary from './routes/SkillLibrary'
 import StudentLearningHome from './routes/StudentLearningHome'
 import StudentMasteryProfile from './routes/StudentMasteryProfile'
 import TeacherMasteryDashboard from './routes/TeacherMasteryDashboard'
 import TrustSafetyConsole from './routes/TrustSafetyConsole'
+import {
+  PathfinderAccountHub,
+  PathfinderAiNotice,
+  PathfinderPrivacy,
+  PathfinderSettings,
+  PathfinderTerms,
+} from './routes/AccountPages'
 import { pathfinderFluentTheme } from './theme/pathfinderFluentTheme'
 import { pathfinderTokens as t } from './theme/pathfinder-tokens'
 import AskPathfinder from './AskPathfinder'
-import { LearnerContext, defaultLearnerContext } from './contexts/LearnerContext'
+import {
+  LearnerContext,
+  defaultLearnerContext,
+} from './contexts/LearnerContext'
+import { featureFlags } from '../utils/featureFlags'
 
 export const COOKIE_CONSENT_STORAGE_KEY = 'pathfinder.cookie-consent.v1'
 
@@ -69,25 +94,88 @@ type AccountAction = {
   testId: string
 }
 
-export type LearningRole = AuthSession['role'] | 'learner' | 'kid' | 'student' | 'unassigned'
+export type LearningRole =
+  | AuthSession['role']
+  | 'learner'
+  | 'kid'
+  | 'student'
+  | 'unassigned'
 
 const navItems: NavItem[] = [
-  { to: '/home', label: 'Learner', hint: 'Today', icon: AcademicCapIcon, allowedRoles: ['parent', 'learner', 'kid', 'student'] },
-  { to: '/teacher', label: 'Teacher', hint: 'Class', icon: ChartBarIcon, allowedRoles: ['therapist', 'admin'] },
-  { to: '/library', label: 'Library', hint: 'Skills', icon: BookOpenIcon, allowedRoles: ['admin'] },
-  { to: '/profile', label: 'Profile', hint: 'Insights', icon: UserCircleIcon, allowedRoles: ['parent', 'learner', 'kid', 'student', 'admin'] },
-  { to: '/pathways', label: 'Pathways', hint: 'Explore', icon: MagnifyingGlassIcon, allowedRoles: ['parent', 'learner', 'kid', 'student', 'admin'] },
-  { to: '/safety', label: 'Trust & Safety', hint: 'Console', icon: ShieldCheckIcon, allowedRoles: ['admin'] },
+  {
+    to: '/home',
+    label: 'Learner',
+    hint: 'Today',
+    icon: AcademicCapIcon,
+    allowedRoles: ['parent', 'learner', 'kid', 'student'],
+  },
+  {
+    to: '/teacher',
+    label: 'Teacher',
+    hint: 'Class',
+    icon: ChartBarIcon,
+    allowedRoles: ['therapist', 'admin'],
+  },
+  {
+    to: '/library',
+    label: 'Library',
+    hint: 'Skills',
+    icon: BookOpenIcon,
+    allowedRoles: ['admin'],
+  },
+  {
+    to: '/profile',
+    label: 'Profile',
+    hint: 'Insights',
+    icon: UserCircleIcon,
+    allowedRoles: ['parent', 'learner', 'kid', 'student', 'admin'],
+  },
+  {
+    to: '/pathways',
+    label: 'Pathways',
+    hint: 'Explore',
+    icon: MagnifyingGlassIcon,
+    allowedRoles: ['parent', 'learner', 'kid', 'student', 'admin'],
+  },
+  {
+    to: '/safety',
+    label: 'Trust & Safety',
+    hint: 'Console',
+    icon: ShieldCheckIcon,
+    allowedRoles: ['admin'],
+  },
 ]
 
 const PATHFINDER_CHAT_SCOPE: InsightsScope = { type: 'caseload' }
 
-const accountActions: AccountAction[] = [
-  { href: '/profile', label: 'Learning profile', icon: UserCircleIcon, testId: 'account-action-profile' },
-  { href: '/settings', label: 'Settings', icon: Cog6ToothIcon, testId: 'account-action-settings' },
-  { href: '/privacy', label: 'Privacy', icon: ShieldCheckIcon, testId: 'account-action-privacy' },
-  { href: '/terms', label: 'Terms', icon: DocumentTextIcon, testId: 'account-action-terms' },
-  { href: '/ai-transparency', label: 'AI notice', icon: InformationCircleIcon, testId: 'account-action-ai-notice' },
+// Retained for documentation; the routed account hub now owns these actions
+// (see frontend/src/learning/routes/AccountHub.tsx).
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _accountActions: AccountAction[] = [
+  {
+    href: '/account/settings',
+    label: 'Settings',
+    icon: Cog6ToothIcon,
+    testId: 'account-action-settings',
+  },
+  {
+    href: '/account/privacy',
+    label: 'Privacy',
+    icon: ShieldCheckIcon,
+    testId: 'account-action-privacy',
+  },
+  {
+    href: '/account/terms',
+    label: 'Terms',
+    icon: DocumentTextIcon,
+    testId: 'account-action-terms',
+  },
+  {
+    href: '/account/ai-notice',
+    label: 'AI notice',
+    icon: InformationCircleIcon,
+    testId: 'account-action-ai-notice',
+  },
 ]
 
 function formatRoleLabel(role: LearningRole | 'loading'): string {
@@ -96,8 +184,15 @@ function formatRoleLabel(role: LearningRole | 'loading'): string {
   return role.charAt(0).toUpperCase() + role.slice(1)
 }
 
-export function normalizeLearningRole(role: string | null | undefined): LearningRole {
-  if (role === 'therapist' || role === 'parent' || role === 'admin' || role === 'pending_therapist') {
+export function normalizeLearningRole(
+  role: string | null | undefined
+): LearningRole {
+  if (
+    role === 'therapist' ||
+    role === 'parent' ||
+    role === 'admin' ||
+    role === 'pending_therapist'
+  ) {
     return role
   }
   if (role === 'kid' || role === 'student' || role === 'learner') {
@@ -204,7 +299,8 @@ const useStyles = makeStyles({
     color: t.brand.textSecondary,
     fontSize: '0.88rem',
     fontWeight: 600,
-    transition: 'background-color .12s, border-color .12s, color .12s, box-shadow .12s',
+    transition:
+      'background-color .12s, border-color .12s, color .12s, box-shadow .12s',
     ':hover': {
       backgroundColor: t.brand.surfaceMuted,
       borderTopColor: t.brand.line,
@@ -221,17 +317,8 @@ const useStyles = makeStyles({
     color: 'inherit',
     opacity: 0.7,
   },
-  sidebarFooter: {
-    marginTop: 'auto',
-    padding: '10px',
-    borderTop: t.surface.hairline,
-    display: 'grid',
-    gap: '4px',
-    color: t.brand.textTertiary,
-    fontSize: '0.7rem',
-    lineHeight: 1.35,
-  },
   userCard: {
+    marginTop: 'auto',
     display: 'grid',
     gap: '10px',
     padding: '10px',
@@ -549,7 +636,11 @@ const useStyles = makeStyles({
         transform: 'translateY(-2px) scale(1.01)',
         filter: 'blur(0)',
       },
-      to: { opacity: 1, transform: 'translateY(0) scale(1)', filter: 'blur(0)' },
+      to: {
+        opacity: 1,
+        transform: 'translateY(0) scale(1)',
+        filter: 'blur(0)',
+      },
     },
     animationDuration: '320ms',
     animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
@@ -562,7 +653,11 @@ const useStyles = makeStyles({
   },
   chatPanelClosing: {
     animationName: {
-      from: { opacity: 1, transform: 'translateY(0) scale(1)', filter: 'blur(0)' },
+      from: {
+        opacity: 1,
+        transform: 'translateY(0) scale(1)',
+        filter: 'blur(0)',
+      },
       to: {
         opacity: 0,
         transform: 'translateY(16px) scale(0.86)',
@@ -730,7 +825,9 @@ const useStyles = makeStyles({
 
 export function CookieConsentBanner() {
   const styles = useStyles()
-  const [visible, setVisible] = useState(() => getStoredCookieConsent() === null)
+  const [visible, setVisible] = useState(
+    () => getStoredCookieConsent() === null
+  )
 
   const dismiss = (choice: 'accepted' | 'managed') => {
     storeCookieConsent(choice)
@@ -748,12 +845,16 @@ export function CookieConsentBanner() {
       <div className={styles.cookieBannerCopy}>
         <div className={styles.cookieBannerTitle}>We use cookies</div>
         <Text className={styles.cookieBannerText}>
-          Wulo uses essential cookies for the app to work. Analytics stay off unless
-          you choose to manage preferences later.
+          Wulo uses essential cookies for the app to work. Analytics stay off
+          unless you choose to manage preferences later.
         </Text>
       </div>
       <div className={styles.cookieBannerActions}>
-        <button type="button" className={styles.cookieButton} onClick={() => dismiss('managed')}>
+        <button
+          type="button"
+          className={styles.cookieButton}
+          onClick={() => dismiss('managed')}
+        >
           Manage
         </button>
         <button
@@ -772,9 +873,15 @@ export function CookieConsentBanner() {
 export default function PathfinderLearnApp() {
   const styles = useStyles()
   const location = useLocation()
-  const [authStatus, setAuthStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading')
-  const [learningRole, setLearningRole] = useState<LearningRole | 'loading'>('loading')
-  const [learnerChildren, setLearnerChildren] = useState<ChildProfile[] | null>(null)
+  const [authStatus, setAuthStatus] = useState<
+    'loading' | 'authenticated' | 'unauthenticated'
+  >('loading')
+  const [learningRole, setLearningRole] = useState<LearningRole | 'loading'>(
+    'loading'
+  )
+  const [learnerChildren, setLearnerChildren] = useState<ChildProfile[] | null>(
+    null
+  )
   const [appConfig, setAppConfig] = useState<AppConfig | null>(null)
   const [voiceOpen, setVoiceOpen] = useState(false)
   const [chatOpen, setChatOpen] = useState(false)
@@ -789,9 +896,12 @@ export default function PathfinderLearnApp() {
     }, 220)
   }, [])
   const [authSession, setAuthSession] = useState<AuthSession | null>(null)
-  const { selectedLearnerId, setSelectedLearnerId } = useSelectedLearner(learnerChildren ?? [])
+  const { selectedLearnerId, setSelectedLearnerId } = useSelectedLearner(
+    learnerChildren ?? []
+  )
   const effectiveRole = learningRole === 'loading' ? 'learner' : learningRole
-  const visibleNavItems = learningRole === 'loading' ? [] : navItemsForRole(effectiveRole)
+  const visibleNavItems =
+    learningRole === 'loading' ? [] : navItemsForRole(effectiveRole)
   const voiceLauncherVisible =
     !!appConfig?.voice_agent_fullscreen_enabled &&
     (appConfig?.insights_voice_mode ?? 'off') !== 'off'
@@ -806,15 +916,23 @@ export default function PathfinderLearnApp() {
 
   useEffect(() => {
     let cancelled = false
-    api.getConfig()
-      .then(cfg => { if (!cancelled) setAppConfig(cfg) })
-      .catch(() => { if (!cancelled) setAppConfig(null) })
-    return () => { cancelled = true }
+    api
+      .getConfig()
+      .then(cfg => {
+        if (!cancelled) setAppConfig(cfg)
+      })
+      .catch(() => {
+        if (!cancelled) setAppConfig(null)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {
     let cancelled = false
-    api.getAuthSession()
+    api
+      .getAuthSession()
       .then(async session => {
         if (!session.authenticated) {
           if (!cancelled) {
@@ -857,11 +975,23 @@ export default function PathfinderLearnApp() {
     if (!authSession?.authenticated) return
     if (!['parent', 'learner', 'kid', 'student'].includes(effectiveRole)) return
     let cancelled = false
-    api.getChildren(authSession.current_workspace_id)
-      .then(children => { if (!cancelled) setLearnerChildren(children) })
-      .catch(() => { if (!cancelled) setLearnerChildren([]) })
-    return () => { cancelled = true }
-  }, [authSession?.authenticated, authSession?.current_workspace_id, effectiveRole, learnerChildren])
+    api
+      .getChildren(authSession.current_workspace_id)
+      .then(children => {
+        if (!cancelled) setLearnerChildren(children)
+      })
+      .catch(() => {
+        if (!cancelled) setLearnerChildren([])
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [
+    authSession?.authenticated,
+    authSession?.current_workspace_id,
+    effectiveRole,
+    learnerChildren,
+  ])
 
   // When a self-service learner lands with no children yet, auto-create their
   // self-learner profile so they can start practising immediately.
@@ -871,14 +1001,19 @@ export default function PathfinderLearnApp() {
     if (learnerChildren === null) return
     if (learnerChildren.length > 0) return
     let cancelled = false
-    api.createSelfLearner()
+    api
+      .createSelfLearner()
       .then(child => {
         if (cancelled) return
         storeSelectedLearnerId(child.id)
         setLearnerChildren([child])
       })
-      .catch(() => { /* LearnerEmptyState remains as fallback */ })
-    return () => { cancelled = true }
+      .catch(() => {
+        /* LearnerEmptyState remains as fallback */
+      })
+    return () => {
+      cancelled = true
+    }
   }, [effectiveRole, authSession?.authenticated, learnerChildren])
 
   const handleOnboardingChosen = useCallback((session: AuthSession) => {
@@ -889,11 +1024,16 @@ export default function PathfinderLearnApp() {
     setLearnerChildren(null)
   }, [])
 
-  const routeForRole = (allowedRoles: LearningRole[], element: JSX.Element | null) => {
+  const routeForRole = (
+    allowedRoles: LearningRole[],
+    element: JSX.Element | null
+  ) => {
     if (learningRole === 'loading') return null
-    return allowedRoles.includes(effectiveRole)
-      ? element
-      : <Navigate to={defaultPathForRole(effectiveRole)} replace />
+    return allowedRoles.includes(effectiveRole) ? (
+      element
+    ) : (
+      <Navigate to={defaultPathForRole(effectiveRole)} replace />
+    )
   }
 
   const learnerHomeElement = () => {
@@ -910,10 +1050,45 @@ export default function PathfinderLearnApp() {
         <StudentLearningHome
           key={activeLearnerId ?? 'no-learner'}
           studentId={activeLearnerId}
-          learnerTutorEnabled={['learner', 'kid', 'student'].includes(effectiveRole)}
+          learnerTutorEnabled={['learner', 'kid', 'student'].includes(
+            effectiveRole
+          )}
           pushConsentDeferred={effectiveRole === 'kid'}
         />
       </>
+    )
+  }
+
+  const onboardingFlagEnabled =
+    featureFlags.pathfinder_learner_onboarding_enabled
+  const isLearnerLikeRole = ['learner', 'kid', 'student'].includes(
+    effectiveRole
+  )
+  const learnerProfileGate = useLearnerProfile()
+  const learnerNeedsOnboarding =
+    onboardingFlagEnabled &&
+    isLearnerLikeRole &&
+    learnerProfileGate.needsOnboarding
+
+  const welcomeRouteElement = () => {
+    if (!onboardingFlagEnabled || !isLearnerLikeRole) {
+      return <Navigate to={defaultPathForRole(effectiveRole)} replace />
+    }
+    return (
+      <LearnerOnboardingWizard
+        profile={learnerProfileGate.profile}
+        isLoading={learnerProfileGate.isLoading}
+        patch={learnerProfileGate.patch}
+        recordConsent={learnerProfileGate.recordConsent}
+      />
+    )
+  }
+
+  const homeRouteElement = () => {
+    if (learnerNeedsOnboarding) return <Navigate to="/welcome" replace />
+    return routeForRole(
+      ['parent', 'learner', 'kid', 'student'],
+      learnerHomeElement()
     )
   }
 
@@ -931,7 +1106,9 @@ export default function PathfinderLearnApp() {
                   backgroundColor: t.brand.ink,
                   borderColor: t.brand.ink,
                   color: t.brand.onInk,
-                  boxShadow: extraClass ? 'none' : '0 1px 2px rgba(0, 0, 0, 0.18)',
+                  boxShadow: extraClass
+                    ? 'none'
+                    : '0 1px 2px rgba(0, 0, 0, 0.18)',
                 }
               : undefined
           }
@@ -941,16 +1118,16 @@ export default function PathfinderLearnApp() {
             aria-hidden="true"
           />
           {item.label}
-          {!extraClass && (
-            <span className={styles.navHint}>{item.hint}</span>
-          )}
+          {!extraClass && <span className={styles.navHint}>{item.hint}</span>}
         </NavLink>
       )
     })
 
   const renderAccountCard = () => {
     if (!authSession?.authenticated) return null
-    const accountInitial = (authSession.name || authSession.email || '?').charAt(0).toUpperCase()
+    const accountInitial = (authSession.name || authSession.email || '?')
+      .charAt(0)
+      .toUpperCase()
     return (
       <div className={styles.userCard} data-testid="sidebar-user-card">
         <div className={styles.userHeader}>
@@ -958,37 +1135,39 @@ export default function PathfinderLearnApp() {
             {accountInitial}
           </span>
           <div className={styles.userInfo}>
-            <Text className={styles.userName}>{authSession.name || 'User'}</Text>
+            <Text className={styles.userName}>
+              {authSession.name || 'User'}
+            </Text>
             {authSession.email ? (
               <Text className={styles.userEmail}>{authSession.email}</Text>
             ) : null}
-            <Text className={styles.userRole}>{formatRoleLabel(effectiveRole)}</Text>
+            <Text className={styles.userRole}>
+              {formatRoleLabel(effectiveRole)}
+            </Text>
           </div>
         </div>
-        <nav className={styles.accountActions} aria-label="Account actions">
-          {accountActions.map(action => {
-            const Icon = action.icon
-            return (
-              <a
-                key={action.href}
-                href={action.href}
-                className={styles.accountAction}
-                data-testid={action.testId}
-              >
-                <Icon className={styles.accountActionIcon} aria-hidden="true" />
-                <span>{action.label}</span>
-              </a>
-            )
-          })}
-          <a
-            href="/logout"
-            className={styles.accountAction}
-            data-testid="account-action-sign-out"
-          >
-            <ArrowRightStartOnRectangleIcon className={styles.accountActionIcon} aria-hidden="true" />
-            <span>Sign out</span>
-          </a>
-        </nav>
+        <a
+          href="/account"
+          className={styles.accountAction}
+          data-testid="account-actions-trigger"
+        >
+          <Cog6ToothIcon
+            className={styles.accountActionIcon}
+            aria-hidden="true"
+          />
+          <span>Account & settings</span>
+        </a>
+        <a
+          href="/logout"
+          className={styles.accountAction}
+          data-testid="account-action-sign-out"
+        >
+          <ArrowRightStartOnRectangleIcon
+            className={styles.accountActionIcon}
+            aria-hidden="true"
+          />
+          <span>Sign out</span>
+        </a>
       </div>
     )
   }
@@ -1002,7 +1181,9 @@ export default function PathfinderLearnApp() {
   }
 
   if (authStatus === 'unauthenticated') {
-    return <Navigate to={{ pathname: '/login', search: location.search }} replace />
+    return (
+      <Navigate to={{ pathname: '/login', search: location.search }} replace />
+    )
   }
 
   return (
@@ -1011,16 +1192,18 @@ export default function PathfinderLearnApp() {
         <aside className={styles.sidebar} aria-label="Pathfinder primary">
           <div className={styles.brand}>
             <span className={styles.brandMark} aria-hidden="true">
-              Pf
+              Wa
             </span>
             <div className={styles.brandText}>
-              <Text className={styles.brandTitle}>Pathfinder</Text>
-              <Text className={styles.brandSubtitle}>Wulo Learning · JSS1-SS3</Text>
+              <Text className={styles.brandTitle}>Wulo Academy</Text>
             </div>
           </div>
 
           <div className={styles.navGroupLabel}>Workspaces</div>
-          <nav aria-label="Pathfinder views" style={{ display: 'grid', gap: '2px' }}>
+          <nav
+            aria-label="Pathfinder views"
+            style={{ display: 'grid', gap: '2px' }}
+          >
             {renderNavLinks()}
             {practiceFullscreenEnabled && activeLearnerIdForPractice ? (
               <button
@@ -1029,7 +1212,11 @@ export default function PathfinderLearnApp() {
                 onClick={() => setPracticeOpen(true)}
                 aria-label="Open Pathfinder practice"
                 data-testid="sidebar-practice-link"
-                style={{ fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer' }}
+                style={{
+                  fontFamily: 'inherit',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                }}
               >
                 <BookOpenIcon className={styles.navIcon} aria-hidden="true" />
                 Practice
@@ -1038,11 +1225,6 @@ export default function PathfinderLearnApp() {
             ) : null}
           </nav>
 
-          <div className={styles.sidebarFooter}>
-            <span>English · Yoruba voice ready</span>
-            <span>Counsellor sign-off active</span>
-          </div>
-
           {renderAccountCard()}
         </aside>
 
@@ -1050,24 +1232,26 @@ export default function PathfinderLearnApp() {
           <div className={styles.mobileTopBar}>
             <div className={styles.brand} style={{ padding: 0 }}>
               <span className={styles.brandMark} aria-hidden="true">
-                Pf
+                Wa
               </span>
               <div className={styles.brandText}>
-                <Text className={styles.brandTitle}>Pathfinder</Text>
-                <Text className={styles.brandSubtitle}>Wulo Learning · JSS1-SS3</Text>
+                <Text className={styles.brandTitle}>Wulo Academy</Text>
               </div>
             </div>
             {authSession?.authenticated ? (
               <div className={styles.mobileAccountActions}>
                 <a
-                  href="/settings"
+                  href="/account"
                   className={styles.mobileAccountButton}
-                  aria-label="Open settings"
-                  title="Settings"
+                  aria-label="Open account and settings"
+                  title="Account & settings"
                   data-testid="mobile-account-settings"
                 >
-                  <Cog6ToothIcon className={styles.mobileAccountIcon} aria-hidden="true" />
-                  <span className={styles.srOnly}>Settings</span>
+                  <Cog6ToothIcon
+                    className={styles.mobileAccountIcon}
+                    aria-hidden="true"
+                  />
+                  <span className={styles.srOnly}>Account & settings</span>
                 </a>
                 <a
                   href="/logout"
@@ -1076,7 +1260,10 @@ export default function PathfinderLearnApp() {
                   title="Sign out"
                   data-testid="mobile-account-sign-out"
                 >
-                  <ArrowRightStartOnRectangleIcon className={styles.mobileAccountIcon} aria-hidden="true" />
+                  <ArrowRightStartOnRectangleIcon
+                    className={styles.mobileAccountIcon}
+                    aria-hidden="true"
+                  />
                   <span className={styles.srOnly}>Sign out</span>
                 </a>
               </div>
@@ -1085,22 +1272,77 @@ export default function PathfinderLearnApp() {
 
           <div className={styles.content}>
             <Routes>
-              <Route index element={learningRole === 'loading' ? null : <Navigate to={defaultPathForRole(effectiveRole)} replace />} />
-              <Route path="/logout" element={<Navigate to="/.auth/logout" replace />} />
-              <Route path="/home" element={routeForRole(['parent', 'learner', 'kid', 'student'], learnerHomeElement())} />
-              <Route path="/teacher" element={routeForRole(['therapist', 'admin'], <TeacherMasteryDashboard />)} />
-              <Route path="/library" element={routeForRole(['admin'], <SkillLibrary />)} />
-              <Route path="/profile" element={routeForRole(['parent', 'learner', 'kid', 'student', 'admin'], <StudentMasteryProfile />)} />
-              <Route path="/pathways" element={routeForRole(['parent', 'learner', 'kid', 'student', 'admin'], <PathwaysExplorer />)} />
-              <Route path="/safety" element={routeForRole(['admin'], <TrustSafetyConsole />)} />
-              <Route path="*" element={learningRole === 'loading' ? null : <Navigate to={defaultPathForRole(effectiveRole)} replace />} />
+              <Route
+                index
+                element={
+                  learningRole === 'loading' ? null : (
+                    <Navigate to={defaultPathForRole(effectiveRole)} replace />
+                  )
+                }
+              />
+              <Route
+                path="/logout"
+                element={<Navigate to="/.auth/logout" replace />}
+              />
+              <Route path="/welcome" element={welcomeRouteElement()} />
+              <Route path="/home" element={homeRouteElement()} />
+              <Route
+                path="/teacher"
+                element={routeForRole(
+                  ['therapist', 'admin'],
+                  <TeacherMasteryDashboard />
+                )}
+              />
+              <Route
+                path="/library"
+                element={routeForRole(['admin'], <SkillLibrary />)}
+              />
+              <Route
+                path="/profile"
+                element={routeForRole(
+                  ['parent', 'learner', 'kid', 'student', 'admin'],
+                  <StudentMasteryProfile />
+                )}
+              />
+              <Route
+                path="/pathways"
+                element={routeForRole(
+                  ['parent', 'learner', 'kid', 'student', 'admin'],
+                  <PathwaysExplorer />
+                )}
+              />
+              <Route
+                path="/safety"
+                element={routeForRole(['admin'], <TrustSafetyConsole />)}
+              />
+              <Route path="/account" element={<PathfinderAccountHub />} />
+              <Route
+                path="/account/settings"
+                element={<PathfinderSettings />}
+              />
+              <Route path="/account/privacy" element={<PathfinderPrivacy />} />
+              <Route path="/account/terms" element={<PathfinderTerms />} />
+              <Route
+                path="/account/ai-notice"
+                element={<PathfinderAiNotice />}
+              />
+              <Route
+                path="*"
+                element={
+                  learningRole === 'loading' ? null : (
+                    <Navigate to={defaultPathForRole(effectiveRole)} replace />
+                  )
+                }
+              />
             </Routes>
           </div>
 
           <nav
             className={styles.bottomNav}
             aria-label="Pathfinder bottom nav"
-            style={{ gridTemplateColumns: `repeat(${Math.max(1, visibleNavItems.length)}, 1fr)` }}
+            style={{
+              gridTemplateColumns: `repeat(${Math.max(1, visibleNavItems.length)}, 1fr)`,
+            }}
           >
             {renderNavLinks(styles.bottomNavLink)}
           </nav>
@@ -1110,27 +1352,34 @@ export default function PathfinderLearnApp() {
             <AskPathfinder />
           </LearnerContext.Provider>
         )}
-        {practiceFullscreenEnabled && activeLearnerIdForPractice && !practiceOpen && (
-          <button
-            type="button"
-            className={styles.voiceLauncher}
-            onClick={() => setPracticeOpen(true)}
-            aria-label="Open Pathfinder practice"
-            data-testid="practice-launcher"
-          >
-            <BookOpenIcon className={styles.voiceLauncherGlyph} aria-hidden="true" />
-          </button>
-        )}
-        {practiceFullscreenEnabled && activeLearnerIdForPractice && practiceOpen && (
-          <PracticeFullscreen
-            open={practiceOpen}
-            onClose={() => setPracticeOpen(false)}
-            childId={activeLearnerIdForPractice}
-            exam={learnerSetup.exam}
-            classYear={learnerSetup.year}
-            subject={learnerSetup.subject}
-          />
-        )}
+        {practiceFullscreenEnabled &&
+          activeLearnerIdForPractice &&
+          !practiceOpen && (
+            <button
+              type="button"
+              className={styles.voiceLauncher}
+              onClick={() => setPracticeOpen(true)}
+              aria-label="Open Pathfinder practice"
+              data-testid="practice-launcher"
+            >
+              <BookOpenIcon
+                className={styles.voiceLauncherGlyph}
+                aria-hidden="true"
+              />
+            </button>
+          )}
+        {practiceFullscreenEnabled &&
+          activeLearnerIdForPractice &&
+          practiceOpen && (
+            <PracticeFullscreen
+              open={practiceOpen}
+              onClose={() => setPracticeOpen(false)}
+              childId={activeLearnerIdForPractice}
+              exam={learnerSetup.exam}
+              classYear={learnerSetup.year}
+              subject={learnerSetup.subject}
+            />
+          )}
         {voiceLauncherVisible && !voiceOpen && (
           <button
             type="button"
@@ -1139,7 +1388,10 @@ export default function PathfinderLearnApp() {
             aria-label="Open Pathfinder voice assistant"
             data-testid="voice-agent-launcher"
           >
-            <MicrophoneIcon className={styles.voiceLauncherGlyph} aria-hidden="true" />
+            <MicrophoneIcon
+              className={styles.voiceLauncherGlyph}
+              aria-hidden="true"
+            />
           </button>
         )}
         {chatLauncherVisible && !chatOpen && (
@@ -1150,7 +1402,10 @@ export default function PathfinderLearnApp() {
             aria-label="Open Pathfinder text assistant"
             data-testid="pathfinder-chat-launcher"
           >
-            <ChatBubbleLeftRightIcon className={styles.chatLauncherGlyph} aria-hidden="true" />
+            <ChatBubbleLeftRightIcon
+              className={styles.chatLauncherGlyph}
+              aria-hidden="true"
+            />
           </button>
         )}
         {chatLauncherVisible && chatOpen && (
@@ -1164,7 +1419,9 @@ export default function PathfinderLearnApp() {
             data-testid="pathfinder-chat-panel"
           >
             <header className={styles.chatPanelHeader}>
-              <span className={styles.chatPanelTitle}>Pathfinder Assistant</span>
+              <span className={styles.chatPanelTitle}>
+                Pathfinder Assistant
+              </span>
               <button
                 type="button"
                 className={styles.chatPanelMinimize}
@@ -1172,7 +1429,10 @@ export default function PathfinderLearnApp() {
                 aria-label="Minimize assistant"
                 data-testid="pathfinder-chat-minimize"
               >
-                <MinusIcon className={styles.chatPanelMinimizeGlyph} aria-hidden="true" />
+                <MinusIcon
+                  className={styles.chatPanelMinimizeGlyph}
+                  aria-hidden="true"
+                />
               </button>
             </header>
             <div className={styles.chatPanelBody}>

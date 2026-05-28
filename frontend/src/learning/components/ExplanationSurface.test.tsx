@@ -20,7 +20,8 @@ const refusalResponse: ExplainResponse = {
       },
     ],
     reason: 'no_grounding',
-    learner_message: "I couldn't find a wiki source for that — try a different question.",
+    learner_message:
+      "I couldn't find a wiki source for that — try a different question.",
     suggested_action: 'ask_simpler_question',
   },
   explanation: null,
@@ -42,7 +43,8 @@ const hitResponse: ExplainResponse = {
       topic: 'fractions',
       anchor: 'sec-simplify-fractions',
       score: 1.0,
-      snippet: 'To simplify a fraction divide the numerator and denominator by their GCD.',
+      snippet:
+        'To simplify a fraction divide the numerator and denominator by their GCD.',
       status: 'approved',
     },
   ],
@@ -68,8 +70,12 @@ describe('ExplanationSurface', () => {
     await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1))
     const card = await screen.findByTestId('refusal-card')
     expect(card).toBeTruthy()
-    expect(screen.getByTestId('refusal-reason').textContent).toContain('No matching wiki source.')
-    expect(screen.getByTestId('refusal-suggestion').textContent).toContain('ask simpler question')
+    expect(screen.getByTestId('refusal-reason').textContent).toContain(
+      'No matching wiki source.'
+    )
+    expect(screen.getByTestId('refusal-suggestion').textContent).toContain(
+      'ask simpler question'
+    )
     expect(screen.queryByTestId('hit-card')).toBeNull()
   })
 
@@ -83,7 +89,9 @@ describe('ExplanationSurface', () => {
     await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1))
     const cards = await screen.findAllByTestId('hit-card')
     expect(cards).toHaveLength(1)
-    expect(cards[0].getAttribute('data-node-id')).toBe('wiki.maths.jss3.fractions.simplify')
+    expect(cards[0].getAttribute('data-node-id')).toBe(
+      'wiki.maths.jss3.fractions.simplify'
+    )
     expect(cards[0].textContent).toContain('Simplifying fractions')
     expect(cards[0].textContent).toContain('To simplify a fraction')
     expect(screen.queryByTestId('refusal-card')).toBeNull()
@@ -98,7 +106,7 @@ describe('ExplanationSurface', () => {
         skillId="jss3.number.fractions"
         defaultSubject="maths"
         defaultYearGroup="JSS3"
-      />,
+      />
     )
     fireEvent.change(screen.getByTestId('explanation-input'), {
       target: { value: '  how do I simplify a fraction  ' },

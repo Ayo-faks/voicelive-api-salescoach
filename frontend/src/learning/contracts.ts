@@ -13,22 +13,22 @@
  * if `wiki_citations` is missing or empty, with that exact phrase in the error.
  */
 
-import { z, ZodError } from "zod";
+import { z, ZodError } from 'zod'
 
-export const TAXONOMY_VERSION = "1.0.0" as const;
+export const TAXONOMY_VERSION = '1.0.0' as const
 
 export const REFUSAL_REASONS = [
-  "no_grounding",
-  "safety_block",
-  "out_of_scope",
-  "rate_limited",
-] as const;
-export type RefusalReason = (typeof REFUSAL_REASONS)[number];
+  'no_grounding',
+  'safety_block',
+  'out_of_scope',
+  'rate_limited',
+] as const
+export type RefusalReason = (typeof REFUSAL_REASONS)[number]
 
 export class ContractError extends Error {
   constructor(message: string) {
-    super(message);
-    this.name = "ContractError";
+    super(message)
+    this.name = 'ContractError'
   }
 }
 
@@ -42,9 +42,9 @@ const ProvenanceSchema = z
     evidence_count: z.number().default(1),
     metadata: z.record(z.string(), z.unknown()).optional(),
   })
-  .strict();
+  .strict()
 
-const ProvenanceArraySchema = z.array(ProvenanceSchema).min(1);
+const ProvenanceArraySchema = z.array(ProvenanceSchema).min(1)
 
 export const WikiAnchorSchema = z
   .object({
@@ -52,7 +52,7 @@ export const WikiAnchorSchema = z
     version: z.string().min(1),
     anchor: z.string().min(1),
   })
-  .strict();
+  .strict()
 
 export const WikiNodeSchema = z
   .object({
@@ -61,16 +61,16 @@ export const WikiNodeSchema = z
     node_id: z.string().min(1),
     version: z.string().min(1),
     title: z.string().min(1),
-    subject: z.enum(["maths", "english"]),
-    year_group: z.enum(["JSS3", "SS3"]).optional(),
+    subject: z.enum(['maths', 'english']),
+    year_group: z.enum(['JSS3', 'SS3']).optional(),
     topic: z.string().min(1),
     subtopic: z.string().optional(),
     misconception_codes: z.array(z.string()),
     body_markdown: z.string().min(1),
     anchors: z.array(z.string().min(1)),
-    status: z.enum(["draft", "review", "approved", "frozen", "archived"]),
+    status: z.enum(['draft', 'review', 'approved', 'frozen', 'archived']),
   })
-  .strict();
+  .strict()
 
 export const ExplanationResultSchema = z
   .object({
@@ -84,7 +84,7 @@ export const ExplanationResultSchema = z
     body_markdown: z.string().min(1),
     wiki_citations: z.array(WikiAnchorSchema),
   })
-  .strict();
+  .strict()
 
 export const RefusalCardSchema = z
   .object({
@@ -95,57 +95,68 @@ export const RefusalCardSchema = z
     detail: z.string().optional(),
     suggested_action: z.string().optional(),
   })
-  .strict();
+  .strict()
 
-export type Provenance = z.infer<typeof ProvenanceSchema>;
-export type WikiAnchor = z.infer<typeof WikiAnchorSchema>;
-export type WikiNode = z.infer<typeof WikiNodeSchema>;
-export type ExplanationResult = z.infer<typeof ExplanationResultSchema>;
-export type RefusalCard = z.infer<typeof RefusalCardSchema>;
+export type Provenance = z.infer<typeof ProvenanceSchema>
+export type WikiAnchor = z.infer<typeof WikiAnchorSchema>
+export type WikiNode = z.infer<typeof WikiNodeSchema>
+export type ExplanationResult = z.infer<typeof ExplanationResultSchema>
+export type RefusalCard = z.infer<typeof RefusalCardSchema>
 
-function lift<S extends z.ZodTypeAny>(schema: S, label: string, raw: unknown): z.output<S> {
+function lift<S extends z.ZodTypeAny>(
+  schema: S,
+  label: string,
+  raw: unknown
+): z.output<S> {
   try {
-    return schema.parse(raw) as z.output<S>;
+    return schema.parse(raw) as z.output<S>
   } catch (err) {
     if (err instanceof ZodError) {
       const summary = err.issues
-        .map((i) => `${label}${i.path.length ? "." + i.path.join(".") : ""}: ${i.message}`)
-        .join("; ");
-      throw new ContractError(summary);
+        .map(
+          i =>
+            `${label}${i.path.length ? '.' + i.path.join('.') : ''}: ${i.message}`
+        )
+        .join('; ')
+      throw new ContractError(summary)
     }
-    throw err;
+    throw err
   }
 }
 
 export function parseWikiAnchor(raw: unknown): WikiAnchor {
-  return lift(WikiAnchorSchema, "wiki_anchor", raw);
+  return lift(WikiAnchorSchema, 'wiki_anchor', raw)
 }
 
 export function parseWikiNode(raw: unknown): WikiNode {
-  return lift(WikiNodeSchema, "wiki_node", raw);
+  return lift(WikiNodeSchema, 'wiki_node', raw)
 }
 
 export function parseExplanationResult(raw: unknown): ExplanationResult {
   // Belt-and-braces: render MVP §4.1's exact phrase before Zod produces a
   // generic "Array must contain at least 1 element(s)" message.
-  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
-    throw new ContractError("explanation_result must be an object");
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+    throw new ContractError('explanation_result must be an object')
   }
-  const citations = (raw as { wiki_citations?: unknown }).wiki_citations;
+  const citations = (raw as { wiki_citations?: unknown }).wiki_citations
   if (!Array.isArray(citations) || citations.length === 0) {
     throw new ContractError(
-      "no citation, no answer: wiki_citations must be a non-empty array (MVP §4.1)",
-    );
+      'no citation, no answer: wiki_citations must be a non-empty array (MVP §4.1)'
+    )
   }
-  return lift(ExplanationResultSchema, "explanation_result", raw);
+  return lift(ExplanationResultSchema, 'explanation_result', raw)
 }
 
 export function parseRefusalCard(raw: unknown): RefusalCard {
-  return lift(RefusalCardSchema, "refusal_card", raw);
+  return lift(RefusalCardSchema, 'refusal_card', raw)
 }
 
 export function isRefusalCard(raw: unknown): raw is RefusalCard {
-  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return false;
-  const reason = (raw as { reason?: unknown }).reason;
-  return typeof reason === "string" && (REFUSAL_REASONS as ReadonlyArray<string>).includes(reason);
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw))
+    return false
+  const reason = (raw as { reason?: unknown }).reason
+  return (
+    typeof reason === 'string' &&
+    (REFUSAL_REASONS as ReadonlyArray<string>).includes(reason)
+  )
 }

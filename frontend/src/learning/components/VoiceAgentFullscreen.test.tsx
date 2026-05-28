@@ -23,7 +23,9 @@ vi.mock('../../hooks/useInsightsVoice', () => ({
 }))
 
 vi.mock('./VoiceAgentDynamicSurface', () => ({
-  VoiceAgentDynamicSurface: () => <div data-testid="voice-agent-dynamic-surface" />,
+  VoiceAgentDynamicSurface: () => (
+    <div data-testid="voice-agent-dynamic-surface" />
+  ),
 }))
 
 afterEach(() => {
@@ -37,9 +39,11 @@ describe('VoiceAgentFullscreen', () => {
 
     expect(screen.getByTestId('voice-agent-fullscreen')).toBeTruthy()
     expect(screen.getByTestId('voice-agent-dynamic-surface')).toBeTruthy()
-    expect(useInsightsVoiceMock).toHaveBeenCalledWith(expect.objectContaining({
-      scope: { type: 'caseload' },
-      mode: 'full_duplex',
-    }))
+    expect(useInsightsVoiceMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scope: { type: 'caseload' },
+        mode: 'full_duplex',
+      })
+    )
   })
 })

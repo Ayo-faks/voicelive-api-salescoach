@@ -119,9 +119,13 @@ export default function DiagnosticPanel({
 }: DiagnosticPanelProps) {
   const styles = useStyles()
   const [session, setSession] = useState<StartDiagnosticResponse | null>(null)
-  const [currentItem, setCurrentItem] = useState<DiagnosticItemPayload | null>(null)
+  const [currentItem, setCurrentItem] = useState<DiagnosticItemPayload | null>(
+    null
+  )
   const [answer, setAnswer] = useState('')
-  const [lastResult, setLastResult] = useState<AnswerDiagnosticResponse | null>(null)
+  const [lastResult, setLastResult] = useState<AnswerDiagnosticResponse | null>(
+    null
+  )
   const [completed, setCompleted] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -211,16 +215,22 @@ export default function DiagnosticPanel({
               {currentItem.prompt}
             </p>
             <div className={styles.meta}>
-              <span data-testid="diagnostic-skill">{displaySkill(currentItem.skill_id)}</span>
+              <span data-testid="diagnostic-skill">
+                {displaySkill(currentItem.skill_id)}
+              </span>
               <span>{languageLabel(currentItem.lang)}</span>
               {session && (
                 <span data-testid="diagnostic-remaining">
-                  {session.items_total - (lastResult ? lastResult.items_remaining + 0 : session.items_remaining + 1)
-                    < 0
+                  {session.items_total -
+                    (lastResult
+                      ? lastResult.items_remaining + 0
+                      : session.items_remaining + 1) <
+                  0
                     ? 1
                     : Math.max(
                         1,
-                        (lastResult?.items_remaining ?? session.items_remaining) + 1
+                        (lastResult?.items_remaining ??
+                          session.items_remaining) + 1
                       )}{' '}
                   of {session.items_total} remaining
                 </span>
@@ -248,7 +258,9 @@ export default function DiagnosticPanel({
 
       {lastResult && (
         <Text
-          className={lastResult.correct ? styles.feedbackCorrect : styles.feedbackWrong}
+          className={
+            lastResult.correct ? styles.feedbackCorrect : styles.feedbackWrong
+          }
           data-testid="diagnostic-feedback"
         >
           {lastResult.correct

@@ -61,7 +61,15 @@ export interface AuthSession {
   name: string
   email: string
   provider: string
-  role: 'therapist' | 'parent' | 'admin' | 'pending_therapist' | 'learner' | 'kid' | 'student' | 'unassigned'
+  role:
+    | 'therapist'
+    | 'parent'
+    | 'admin'
+    | 'pending_therapist'
+    | 'learner'
+    | 'kid'
+    | 'student'
+    | 'unassigned'
   current_workspace_id?: string | null
   user_workspaces?: WorkspaceSummary[]
   needs_onboarding?: boolean
@@ -69,6 +77,41 @@ export interface AuthSession {
 }
 
 export type OnboardingIntent = 'learner' | 'parent' | 'teacher'
+
+export interface LearnerProfile {
+  display_name?: string
+  exam?: string
+  year_group?: string
+  age_band?: string
+  locale?: string
+  country?: string
+  subjects?: string[]
+  interests?: string[]
+  guardian_email?: string
+  guardian_relationship?: string
+  [key: string]: unknown
+}
+
+export interface ConsentRecord {
+  kind: string
+  version: string
+  granted: boolean
+  recorded_at?: string
+}
+
+export interface LearnerProfileResponse {
+  profile: LearnerProfile
+  consents: ConsentRecord[]
+  needs_onboarding: boolean
+}
+
+export type LearnerProfilePatch = Partial<LearnerProfile>
+
+export interface ConsentInput {
+  kind: string
+  version: string
+  granted: boolean
+}
 
 export function getImageAssetUrl(imagePath: string): string {
   const normalizedPath = imagePath.replace(/^\/+/, '')
@@ -342,6 +385,45 @@ export const api = {
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
       throw new Error(data.error || 'Could not create learner profile')
+    }
+    return res.json()
+  },
+
+  async getLearnerProfile(): Promise<LearnerProfileResponse | null> {
+    const res = await fetchWithAuth('/api/learners/me/profile')
+    if (res.status === 404) return null
+    if (res.status === 401) throw new Error('UNAUTHORIZED')
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.error || 'Failed to load learner profile')
+    }
+    return res.json()
+  },
+
+  async patchLearnerProfile(
+    patch: LearnerProfilePatch
+  ): Promise<LearnerProfileResponse> {
+    const res = await fetchWithAuth('/api/learners/me/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.error || 'Could not update learner profile')
+    }
+    return res.json()
+  },
+
+  async recordConsent(input: ConsentInput): Promise<LearnerProfileResponse> {
+    const res = await fetchWithAuth('/api/learners/me/consent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.error || 'Could not record consent')
     }
     return res.json()
   },

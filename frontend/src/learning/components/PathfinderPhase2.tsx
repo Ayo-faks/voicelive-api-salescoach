@@ -370,7 +370,10 @@ const useStyles = makeStyles({
   },
 })
 
-function statusClass(styles: ReturnType<typeof useStyles>, status: HeatmapCellView['status']) {
+function statusClass(
+  styles: ReturnType<typeof useStyles>,
+  status: HeatmapCellView['status']
+) {
   if (status === 'secure') return styles.statusSecure
   if (status === 'developing') return styles.statusDeveloping
   return styles.statusSupport
@@ -495,7 +498,9 @@ export function TeacherHeatmap({ cells }: TeacherHeatmapProps) {
                   {Math.round(cell.uncertainty * 100)}%
                 </td>
                 <td className={styles.gridCell}>
-                  <span className={`${styles.statusPill} ${statusClass(styles, cell.status)}`}>
+                  <span
+                    className={`${styles.statusPill} ${statusClass(styles, cell.status)}`}
+                  >
                     {statusLabels[cell.status]}
                   </span>
                 </td>
@@ -526,7 +531,8 @@ export function ProvenanceFooter({
           key={`${entry.source}:${entry.ruleId ?? index}`}
           className={styles.provenanceChip}
         >
-          Review signal {index + 1} · {entry.evidenceCount} evidence point{entry.evidenceCount === 1 ? '' : 's'}
+          Review signal {index + 1} · {entry.evidenceCount} evidence point
+          {entry.evidenceCount === 1 ? '' : 's'}
         </span>
       ))}
     </footer>
@@ -566,7 +572,10 @@ export function PendingApprovalCard({
     parsedEdits.rationale.length > 0
   const practicePlanSummary = [
     { label: 'Duration', value: '1-2 weeks' },
-    { label: 'Learners', value: learnerCountLabel(plan.targetStudentIds.length) },
+    {
+      label: 'Learners',
+      value: learnerCountLabel(plan.targetStudentIds.length),
+    },
     { label: 'Focus', value: listToText(plan.targetSkillIds) },
     { label: 'Practice mix', value: listToText(plan.itemTypes) },
   ]
@@ -584,18 +593,34 @@ export function PendingApprovalCard({
   }
 
   return (
-    <Card className={styles.approvalCard} data-testid="phase2-pending-approval-card">
+    <Card
+      className={styles.approvalCard}
+      data-testid="phase2-pending-approval-card"
+    >
       <CardHeader
-        header={<Text weight="semibold">1-2 week practice plan awaiting teacher approval</Text>}
-        description={<Text size={200}>Pathfinder proposes; the teacher stays in charge.</Text>}
+        header={
+          <Text weight="semibold">
+            1-2 week practice plan awaiting teacher approval
+          </Text>
+        }
+        description={
+          <Text size={200}>
+            Pathfinder proposes; the teacher stays in charge.
+          </Text>
+        }
       />
       <div className={styles.planMeta}>
         <span className={styles.metaBadge}>Pathfinder proposal</span>
-        <span className={styles.metaBadge}>{languageLabel(plan.lang)} review</span>
+        <span className={styles.metaBadge}>
+          {languageLabel(plan.lang)} review
+        </span>
         <span className={styles.metaBadge}>Teacher approval required</span>
       </div>
       <Text>{plan.rationale}</Text>
-      <div className={styles.planSummaryGrid} data-testid="practice-plan-proposal">
+      <div
+        className={styles.planSummaryGrid}
+        data-testid="practice-plan-proposal"
+      >
         {practicePlanSummary.map(item => (
           <div key={item.label} className={styles.planSummaryItem}>
             <span className={styles.planReviewLabel}>{item.label}</span>
@@ -604,7 +629,9 @@ export function PendingApprovalCard({
         ))}
         <div className={styles.planSummaryItem}>
           <span className={styles.planReviewLabel}>Resources</span>
-          <span className={styles.planSummaryValue}>{listToText(plan.suggestedResources)}</span>
+          <span className={styles.planSummaryValue}>
+            {listToText(plan.suggestedResources)}
+          </span>
         </div>
       </div>
       <div className={styles.planActions}>
@@ -612,7 +639,9 @@ export function PendingApprovalCard({
           <Button
             appearance="primary"
             className={styles.primaryButton}
-            icon={<DocumentTextIcon className={styles.icon} aria-hidden="true" />}
+            icon={
+              <DocumentTextIcon className={styles.icon} aria-hidden="true" />
+            }
             onClick={() => setReviewing(true)}
           >
             Review plan
@@ -625,19 +654,27 @@ export function PendingApprovalCard({
           <div className={styles.planReviewGrid}>
             <div className={styles.planReviewRow}>
               <span className={styles.planReviewLabel}>Learners</span>
-              <span className={styles.planReviewValue}>{listToText(plan.targetStudentIds)}</span>
+              <span className={styles.planReviewValue}>
+                {listToText(plan.targetStudentIds)}
+              </span>
             </div>
             <div className={styles.planReviewRow}>
               <span className={styles.planReviewLabel}>Skills</span>
-              <span className={styles.planReviewValue}>{listToText(plan.targetSkillIds)}</span>
+              <span className={styles.planReviewValue}>
+                {listToText(plan.targetSkillIds)}
+              </span>
             </div>
             <div className={styles.planReviewRow}>
               <span className={styles.planReviewLabel}>Activity types</span>
-              <span className={styles.planReviewValue}>{listToText(plan.itemTypes)}</span>
+              <span className={styles.planReviewValue}>
+                {listToText(plan.itemTypes)}
+              </span>
             </div>
             <div className={styles.planReviewRow}>
               <span className={styles.planReviewLabel}>Resources</span>
-              <span className={styles.planReviewValue}>{listToText(plan.suggestedResources)}</span>
+              <span className={styles.planReviewValue}>
+                {listToText(plan.suggestedResources)}
+              </span>
             </div>
             <div className={styles.planReviewRow}>
               <span className={styles.planReviewLabel}>Rationale</span>
@@ -648,7 +685,9 @@ export function PendingApprovalCard({
             <Button
               appearance="primary"
               className={styles.primaryButton}
-              icon={<CheckCircleIcon className={styles.icon} aria-hidden="true" />}
+              icon={
+                <CheckCircleIcon className={styles.icon} aria-hidden="true" />
+              }
               onClick={() => onApprove?.(plan.planId)}
             >
               Approve
@@ -665,7 +704,12 @@ export function PendingApprovalCard({
               <Button
                 appearance="secondary"
                 className={styles.secondaryButton}
-                icon={<PencilSquareIcon className={styles.icon} aria-hidden="true" />}
+                icon={
+                  <PencilSquareIcon
+                    className={styles.icon}
+                    aria-hidden="true"
+                  />
+                }
                 onClick={() => setEditing(value => !value)}
               >
                 {editing ? 'Cancel edit' : 'Edit plan'}
@@ -676,30 +720,51 @@ export function PendingApprovalCard({
       ) : null}
       {reviewing && editing ? (
         <form className={styles.editForm} onSubmit={handleSubmitEdit}>
-          <label className={styles.editLabel} htmlFor={`${editIdPrefix}-target-skills`}>
-            <Text size={200} weight="semibold">Target skills</Text>
+          <label
+            className={styles.editLabel}
+            htmlFor={`${editIdPrefix}-target-skills`}
+          >
+            <Text size={200} weight="semibold">
+              Target skills
+            </Text>
             <Input
               id={`${editIdPrefix}-target-skills`}
               aria-label="Edited target skills"
               value={draft.targetSkillIds}
               onChange={(_, data) =>
-                setDraft(current => ({ ...current, targetSkillIds: data.value }))
+                setDraft(current => ({
+                  ...current,
+                  targetSkillIds: data.value,
+                }))
               }
             />
           </label>
-          <label className={styles.editLabel} htmlFor={`${editIdPrefix}-target-students`}>
-            <Text size={200} weight="semibold">Target students</Text>
+          <label
+            className={styles.editLabel}
+            htmlFor={`${editIdPrefix}-target-students`}
+          >
+            <Text size={200} weight="semibold">
+              Target students
+            </Text>
             <Input
               id={`${editIdPrefix}-target-students`}
               aria-label="Edited target students"
               value={draft.targetStudentIds}
               onChange={(_, data) =>
-                setDraft(current => ({ ...current, targetStudentIds: data.value }))
+                setDraft(current => ({
+                  ...current,
+                  targetStudentIds: data.value,
+                }))
               }
             />
           </label>
-          <label className={styles.editLabel} htmlFor={`${editIdPrefix}-item-types`}>
-            <Text size={200} weight="semibold">Item types</Text>
+          <label
+            className={styles.editLabel}
+            htmlFor={`${editIdPrefix}-item-types`}
+          >
+            <Text size={200} weight="semibold">
+              Item types
+            </Text>
             <Input
               id={`${editIdPrefix}-item-types`}
               aria-label="Edited item types"
@@ -709,19 +774,32 @@ export function PendingApprovalCard({
               }
             />
           </label>
-          <label className={styles.editLabel} htmlFor={`${editIdPrefix}-resources`}>
-            <Text size={200} weight="semibold">Resources</Text>
+          <label
+            className={styles.editLabel}
+            htmlFor={`${editIdPrefix}-resources`}
+          >
+            <Text size={200} weight="semibold">
+              Resources
+            </Text>
             <Input
               id={`${editIdPrefix}-resources`}
               aria-label="Edited resources"
               value={draft.suggestedResources}
               onChange={(_, data) =>
-                setDraft(current => ({ ...current, suggestedResources: data.value }))
+                setDraft(current => ({
+                  ...current,
+                  suggestedResources: data.value,
+                }))
               }
             />
           </label>
-          <label className={styles.editLabel} htmlFor={`${editIdPrefix}-rationale`}>
-            <Text size={200} weight="semibold">Rationale</Text>
+          <label
+            className={styles.editLabel}
+            htmlFor={`${editIdPrefix}-rationale`}
+          >
+            <Text size={200} weight="semibold">
+              Rationale
+            </Text>
             <Textarea
               id={`${editIdPrefix}-rationale`}
               aria-label="Edited rationale"
@@ -732,8 +810,13 @@ export function PendingApprovalCard({
               }
             />
           </label>
-          <label className={styles.editLabel} htmlFor={`${editIdPrefix}-reason`}>
-            <Text size={200} weight="semibold">Approval reason</Text>
+          <label
+            className={styles.editLabel}
+            htmlFor={`${editIdPrefix}-reason`}
+          >
+            <Text size={200} weight="semibold">
+              Approval reason
+            </Text>
             <Input
               id={`${editIdPrefix}-reason`}
               aria-label="Edit approval reason"
@@ -751,7 +834,9 @@ export function PendingApprovalCard({
             appearance="primary"
             className={styles.primaryButton}
             disabled={!canSubmitEdits || submittingEdit}
-            icon={<CheckCircleIcon className={styles.icon} aria-hidden="true" />}
+            icon={
+              <CheckCircleIcon className={styles.icon} aria-hidden="true" />
+            }
           >
             Save edits and approve
           </Button>

@@ -18,7 +18,8 @@ const ORB_DEEP = '#1c1c1e'
 const RING_STROKE = 'rgba(255,255,255,0.28)'
 const RING_GLOW = 'rgba(255,255,255,0.18)'
 const MIC_GRADIENT = 'linear-gradient(160deg, #3a3a3c 0%, #0a0a0a 100%)'
-const MIC_SHADOW = '0 12px 36px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.18)'
+const MIC_SHADOW =
+  '0 12px 36px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.18)'
 
 interface VoiceAgentFullscreenProps {
   open: boolean
@@ -28,15 +29,22 @@ interface VoiceAgentFullscreenProps {
   onOpenStudentProfile?: (studentId: string) => void
 }
 
-const STATE_COPY: Record<InsightsVoiceState, { title: string; hint: string }> = {
-  idle: { title: 'Ready', hint: 'Tap the mic to start — say “end call” to finish' },
-  connecting: { title: 'Connecting…', hint: 'Securing voice channel' },
-  listening: { title: 'Listening', hint: 'Speak naturally — say “end call” to finish' },
-  thinking: { title: 'Thinking', hint: 'Reviewing your caseload' },
-  speaking: { title: 'Responding', hint: 'Just start talking to interrupt' },
-  interrupted: { title: 'Paused', hint: 'Continue when you’re ready' },
-  error: { title: 'Trouble connecting', hint: 'Try again or close' },
-}
+const STATE_COPY: Record<InsightsVoiceState, { title: string; hint: string }> =
+  {
+    idle: {
+      title: 'Ready',
+      hint: 'Tap the mic to start — say “end call” to finish',
+    },
+    connecting: { title: 'Connecting…', hint: 'Securing voice channel' },
+    listening: {
+      title: 'Listening',
+      hint: 'Speak naturally — say “end call” to finish',
+    },
+    thinking: { title: 'Thinking', hint: 'Reviewing your caseload' },
+    speaking: { title: 'Responding', hint: 'Just start talking to interrupt' },
+    interrupted: { title: 'Paused', hint: 'Continue when you’re ready' },
+    error: { title: 'Trouble connecting', hint: 'Try again or close' },
+  }
 
 const useStyles = makeStyles({
   scrim: {
@@ -146,7 +154,8 @@ const useStyles = makeStyles({
     height: '60%',
     borderRadius: '999px',
     background: `radial-gradient(circle at 30% 30%, ${ORB_HIGHLIGHT} 0%, ${ORB_MID} 55%, ${ORB_DEEP} 100%)`,
-    boxShadow: '0 0 40px rgba(255,255,255,0.18), inset 0 0 40px rgba(255,255,255,0.18)',
+    boxShadow:
+      '0 0 40px rgba(255,255,255,0.18), inset 0 0 40px rgba(255,255,255,0.18)',
     transition: 'transform .4s cubic-bezier(0.22, 0.61, 0.36, 1)',
   },
   orbBreathing: {
@@ -359,13 +368,20 @@ export function VoiceAgentFullscreen({
     }
   }, [open])
 
-  const copy = useMemo(() => STATE_COPY[voiceState] ?? STATE_COPY.idle, [voiceState])
+  const copy = useMemo(
+    () => STATE_COPY[voiceState] ?? STATE_COPY.idle,
+    [voiceState]
+  )
   const isActive = voiceState === 'listening' || voiceState === 'speaking'
   const isThinking = voiceState === 'thinking' || voiceState === 'connecting'
   const isBusy = voiceState === 'connecting'
 
   const handleMic = () => {
-    if (voiceState === 'idle' || voiceState === 'error' || voiceState === 'interrupted') {
+    if (
+      voiceState === 'idle' ||
+      voiceState === 'error' ||
+      voiceState === 'interrupted'
+    ) {
       void start()
       return
     }
@@ -415,13 +431,24 @@ export function VoiceAgentFullscreen({
         <div className={styles.orbWrap}>
           {isActive && (
             <>
-              <span className={mergeClasses(styles.ring, styles.ringPulse)} aria-hidden="true" />
               <span
-                className={mergeClasses(styles.ring, styles.ringPulse, styles.ringPulse2)}
+                className={mergeClasses(styles.ring, styles.ringPulse)}
                 aria-hidden="true"
               />
               <span
-                className={mergeClasses(styles.ring, styles.ringPulse, styles.ringPulse3)}
+                className={mergeClasses(
+                  styles.ring,
+                  styles.ringPulse,
+                  styles.ringPulse2
+                )}
+                aria-hidden="true"
+              />
+              <span
+                className={mergeClasses(
+                  styles.ring,
+                  styles.ringPulse,
+                  styles.ringPulse3
+                )}
                 aria-hidden="true"
               />
             </>
@@ -441,7 +468,10 @@ export function VoiceAgentFullscreen({
         </div>
 
         {(lastTranscript || lastAnswer) && (
-          <div className={styles.transcript} data-testid="voice-agent-transcript">
+          <div
+            className={styles.transcript}
+            data-testid="voice-agent-transcript"
+          >
             {lastAnswer ? (
               <>
                 <div className={styles.transcriptLabel}>Pathfinder</div>
@@ -482,7 +512,10 @@ export function VoiceAgentFullscreen({
 
         <button
           type="button"
-          className={mergeClasses(styles.micButton, isActive && styles.micButtonActive)}
+          className={mergeClasses(
+            styles.micButton,
+            isActive && styles.micButtonActive
+          )}
           onClick={handleMic}
           disabled={isBusy}
           aria-label={isActive ? 'Stop listening' : 'Start listening'}

@@ -3,6 +3,7 @@ export const APP_ROUTES = {
   login: '/login',
   logout: '/logout',
   onboarding: '/onboarding',
+  welcome: '/welcome',
   mode: '/mode',
   home: '/home',
   dashboard: '/dashboard',
@@ -26,7 +27,16 @@ export type AppRoute = (typeof APP_ROUTES)[keyof typeof APP_ROUTES]
 
 type DefaultRouteArgs = {
   onboardingComplete: boolean
-  role: 'therapist' | 'parent' | 'admin' | 'pending_therapist' | 'learner' | 'kid' | 'student' | 'unassigned' | null
+  role:
+    | 'therapist'
+    | 'parent'
+    | 'admin'
+    | 'pending_therapist'
+    | 'learner'
+    | 'kid'
+    | 'student'
+    | 'unassigned'
+    | null
 }
 
 const KNOWN_ROUTES = new Set<AppRoute>(Object.values(APP_ROUTES))

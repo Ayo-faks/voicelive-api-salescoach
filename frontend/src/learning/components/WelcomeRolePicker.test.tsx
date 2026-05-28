@@ -5,7 +5,10 @@ import WelcomeRolePicker from './WelcomeRolePicker'
 import { api, type AuthSession } from '../../services/api'
 
 vi.mock('../../services/api', async () => {
-  const actual = await vi.importActual<typeof import('../../services/api')>('../../services/api')
+  const actual =
+    await vi.importActual<typeof import('../../services/api')>(
+      '../../services/api'
+    )
   return {
     ...actual,
     api: {
@@ -36,7 +39,7 @@ function renderPicker(onChosen = vi.fn()) {
     ...render(
       <FluentProvider theme={teamsLightTheme}>
         <WelcomeRolePicker onChosen={onChosen} />
-      </FluentProvider>,
+      </FluentProvider>
     ),
   }
 }
@@ -62,8 +65,12 @@ describe('WelcomeRolePicker', () => {
 
     fireEvent.click(screen.getByTestId('welcome-tile-learner'))
 
-    await waitFor(() => expect(mockedChooseRole).toHaveBeenCalledWith('learner'))
-    await waitFor(() => expect(onChosen).toHaveBeenCalledWith(sessionStub, 'learner'))
+    await waitFor(() =>
+      expect(mockedChooseRole).toHaveBeenCalledWith('learner')
+    )
+    await waitFor(() =>
+      expect(onChosen).toHaveBeenCalledWith(sessionStub, 'learner')
+    )
   })
 
   it('shows an error and does not call onChosen when chooseRole rejects', async () => {
@@ -72,7 +79,9 @@ describe('WelcomeRolePicker', () => {
 
     fireEvent.click(screen.getByTestId('welcome-tile-parent'))
 
-    await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('boom'))
+    await waitFor(() =>
+      expect(screen.getByRole('alert').textContent).toContain('boom')
+    )
     expect(onChosen).not.toHaveBeenCalled()
   })
 })

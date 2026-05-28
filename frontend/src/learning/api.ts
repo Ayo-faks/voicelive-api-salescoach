@@ -344,7 +344,9 @@ async function jsonOrThrow<T>(response: Response): Promise<T> {
     } catch {
       body = ''
     }
-    throw new Error(`Learning API ${response.status}: ${body || response.statusText}`)
+    throw new Error(
+      `Learning API ${response.status}: ${body || response.statusText}`
+    )
   }
   return (await response.json()) as T
 }
@@ -361,18 +363,22 @@ function withDefaults(init?: RequestInit): RequestInit {
 }
 
 function toSearchParams(query: Record<string, string | undefined>): string {
-  const pairs = Object.entries(query).filter(([, value]) => value !== undefined && value !== '')
+  const pairs = Object.entries(query).filter(
+    ([, value]) => value !== undefined && value !== ''
+  )
   return new URLSearchParams(pairs as [string, string][]).toString()
 }
 
-export async function startDiagnostic(payload: {
-  tenant_id?: string
-  class_id?: string
-  student_id?: string
-  teacher_id?: string
-  skill_id?: string
-  item_count?: number
-} = {}): Promise<StartDiagnosticResponse> {
+export async function startDiagnostic(
+  payload: {
+    tenant_id?: string
+    class_id?: string
+    student_id?: string
+    teacher_id?: string
+    skill_id?: string
+    item_count?: number
+  } = {}
+): Promise<StartDiagnosticResponse> {
   const response = await fetch(
     '/api/learning/diagnostic/start',
     withDefaults({ method: 'POST', body: JSON.stringify(payload) })
@@ -392,10 +398,12 @@ export async function answerDiagnostic(payload: {
   return jsonOrThrow<AnswerDiagnosticResponse>(response)
 }
 
-export async function getClassMastery(query: {
-  tenant_id?: string
-  class_id?: string
-} = {}): Promise<ClassMasteryResponse> {
+export async function getClassMastery(
+  query: {
+    tenant_id?: string
+    class_id?: string
+  } = {}
+): Promise<ClassMasteryResponse> {
   const search = toSearchParams(query)
   const url = search
     ? `/api/learning/class/mastery?${search}`
@@ -416,17 +424,22 @@ export async function getStudentProfile(
   return jsonOrThrow<StudentProfileResponse>(response)
 }
 
-export async function listSkills(query: {
-  tenant_id?: string
-  query?: string
-  subject?: string
-  status?: string
-  limit?: number
-  offset?: number
-} = {}): Promise<SkillSearchResponse> {
+export async function listSkills(
+  query: {
+    tenant_id?: string
+    query?: string
+    subject?: string
+    status?: string
+    limit?: number
+    offset?: number
+  } = {}
+): Promise<SkillSearchResponse> {
   const search = toSearchParams(
     Object.fromEntries(
-      Object.entries(query).map(([key, value]) => [key, value === undefined ? undefined : String(value)])
+      Object.entries(query).map(([key, value]) => [
+        key,
+        value === undefined ? undefined : String(value),
+      ])
     )
   )
   const url = search ? `/api/learning/skills?${search}` : '/api/learning/skills'
@@ -452,10 +465,12 @@ export async function overrideStudentMastery(
   return jsonOrThrow<OverrideMasteryResponse>(response)
 }
 
-export async function listPendingApprovals(query: {
-  tenant_id?: string
-  class_id?: string
-} = {}): Promise<ApprovalsResponse> {
+export async function listPendingApprovals(
+  query: {
+    tenant_id?: string
+    class_id?: string
+  } = {}
+): Promise<ApprovalsResponse> {
   const search = toSearchParams(query)
   const url = search
     ? `/api/learning/approvals/pending?${search}`
@@ -502,11 +517,13 @@ export async function editAndApproveLearningPlan(
   return jsonOrThrow<DecisionResponse>(response)
 }
 
-export async function listPendingStudentFacts(query: {
-  tenant_id?: string
-  class_id?: string
-  student_id?: string
-} = {}): Promise<StudentFactsResponse> {
+export async function listPendingStudentFacts(
+  query: {
+    tenant_id?: string
+    class_id?: string
+    student_id?: string
+  } = {}
+): Promise<StudentFactsResponse> {
   const search = toSearchParams(query)
   const url = search
     ? `/api/learning/student-facts/pending?${search}`
@@ -567,18 +584,22 @@ export async function submitIntent(payload: {
   return jsonOrThrow<IntentResponse>(response)
 }
 
-export async function listAudit(query: {
-  tenant_id?: string
-} = {}): Promise<AuditResponse> {
+export async function listAudit(
+  query: {
+    tenant_id?: string
+  } = {}
+): Promise<AuditResponse> {
   const search = toSearchParams(query)
   const url = search ? `/api/learning/audit?${search}` : '/api/learning/audit'
   const response = await fetch(url, withDefaults({ method: 'GET' }))
   return jsonOrThrow<AuditResponse>(response)
 }
 
-export async function getPilotKpis(query: {
-  tenant_id?: string
-} = {}): Promise<PilotKpiResponse> {
+export async function getPilotKpis(
+  query: {
+    tenant_id?: string
+  } = {}
+): Promise<PilotKpiResponse> {
   const search = toSearchParams(query)
   const url = search ? `/api/learning/kpis?${search}` : '/api/learning/kpis'
   const response = await fetch(url, withDefaults({ method: 'GET' }))
@@ -618,7 +639,7 @@ export type ExplainResponse = {
   year_group: 'JSS3' | 'SS3' | null
   hits: ExplainHit[]
   refusal: ExplainRefusal | null
-  explanation: null  // populated in W4 (generator)
+  explanation: null // populated in W4 (generator)
   similarity_threshold: number
 }
 
@@ -634,7 +655,7 @@ export async function postExplain(payload: {
 }): Promise<ExplainResponse> {
   const response = await fetch(
     '/api/learning/explain',
-    withDefaults({ method: 'POST', body: JSON.stringify(payload) }),
+    withDefaults({ method: 'POST', body: JSON.stringify(payload) })
   )
   return jsonOrThrow<ExplainResponse>(response)
 }
@@ -658,7 +679,10 @@ export type VoiceFrameResponse = {
 }
 
 export async function getVoiceConfig(): Promise<VoiceConfigResponse> {
-  const response = await fetch('/api/learning/voice/config', withDefaults({ method: 'GET' }))
+  const response = await fetch(
+    '/api/learning/voice/config',
+    withDefaults({ method: 'GET' })
+  )
   return jsonOrThrow<VoiceConfigResponse>(response)
 }
 
@@ -754,15 +778,14 @@ export interface LearnerVoiceTurnResponse {
 }
 
 export async function runLearnerVoiceTurn(
-  payload: LearnerVoiceTurnRequest,
+  payload: LearnerVoiceTurnRequest
 ): Promise<LearnerVoiceTurnResponse> {
   const response = await fetch(
     '/api/learning/voice/turn',
-    withDefaults({ method: 'POST', body: JSON.stringify(payload) }),
+    withDefaults({ method: 'POST', body: JSON.stringify(payload) })
   )
   return jsonOrThrow<LearnerVoiceTurnResponse>(response)
 }
-
 
 // --- Voice-agent action API -------------------------------------------------
 
