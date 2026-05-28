@@ -88,7 +88,12 @@ const selfLearnerChild: ChildProfile = {
 
 function LocationProbe() {
   const location = useLocation()
-  return <div data-testid="location">{location.pathname}{location.search}</div>
+  return (
+    <div data-testid="location">
+      {location.pathname}
+      {location.search}
+    </div>
+  )
 }
 
 function renderLearningApp() {
@@ -96,7 +101,7 @@ function renderLearningApp() {
     <MemoryRouter initialEntries={['/home']}>
       <PathfinderLearnApp />
       <LocationProbe />
-    </MemoryRouter>,
+    </MemoryRouter>
   )
 }
 
@@ -163,7 +168,13 @@ describe('Pathfinder role routing helpers', () => {
     expect(defaultPathForRole('therapist')).toBe('/teacher')
     expect(defaultPathForRole('parent')).toBe('/profile')
     expect(teacherLabels).toEqual(['Teacher'])
-    expect(adminLabels).toEqual(['Teacher', 'Library', 'Profile', 'Pathways', 'Trust & Safety'])
+    expect(adminLabels).toEqual([
+      'Teacher',
+      'Library',
+      'Profile',
+      'Pathways',
+      'Trust & Safety',
+    ])
   })
 })
 
@@ -173,9 +184,13 @@ describe('PathfinderLearnApp learner bootstrapping', () => {
 
     renderLearningApp()
 
-    await waitFor(() => expect(screen.getByTestId('location').textContent).toBe('/login'))
+    await waitFor(() =>
+      expect(screen.getByTestId('location').textContent).toBe('/login')
+    )
 
-    expect(screen.queryByText('No learners linked to this account yet')).toBeNull()
+    expect(
+      screen.queryByText('No learners linked to this account yet')
+    ).toBeNull()
     expect(apiMocks.getChildren).not.toHaveBeenCalled()
     expect(apiMocks.createSelfLearner).not.toHaveBeenCalled()
   })
@@ -188,16 +203,26 @@ describe('PathfinderLearnApp learner bootstrapping', () => {
     expect(screen.getByText('Legacy Learner')).toBeTruthy()
     expect(screen.getByText('legacy@example.com')).toBeTruthy()
 
-    expect(screen.getByTestId('account-actions-trigger').getAttribute('href')).toBe('/account')
-    expect(screen.getByTestId('account-action-sign-out').getAttribute('href')).toBe('/logout')
-    expect(screen.getByTestId('mobile-account-settings').getAttribute('href')).toBe('/account')
-    expect(screen.getByTestId('mobile-account-sign-out').getAttribute('href')).toBe('/logout')
+    expect(
+      screen.getByTestId('account-actions-trigger').getAttribute('href')
+    ).toBe('/account')
+    expect(
+      screen.getByTestId('account-action-sign-out').getAttribute('href')
+    ).toBe('/logout')
+    expect(
+      screen.getByTestId('mobile-account-settings').getAttribute('href')
+    ).toBe('/account')
+    expect(
+      screen.getByTestId('mobile-account-sign-out').getAttribute('href')
+    ).toBe('/logout')
   })
 
   it('creates and selects a self-learner for a legacy learner with no children', async () => {
     renderLearningApp()
 
-    await waitFor(() => expect(apiMocks.createSelfLearner).toHaveBeenCalledTimes(1))
+    await waitFor(() =>
+      expect(apiMocks.createSelfLearner).toHaveBeenCalledTimes(1)
+    )
     const dashboard = await screen.findByTestId('student-learning-home')
 
     expect(apiMocks.getAuthSession).toHaveBeenCalledTimes(1)

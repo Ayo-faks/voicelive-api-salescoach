@@ -6,7 +6,8 @@ import { useRecorder } from '../../hooks/useRecorder'
 import type { LearnerVoiceCard } from '../api'
 import { LearnerVoiceCardRenderer } from './LearnerVoiceCard'
 
-const MIC_DENIED_COPY = 'Tutor needs your microphone to listen. Tap 🔊 Listen on cards instead.'
+const MIC_DENIED_COPY =
+  'Tutor needs your microphone to listen. Tap 🔊 Listen on cards instead.'
 
 type TutorState = 'connecting' | 'listening' | 'thinking' | 'speaking' | 'error'
 
@@ -72,8 +73,10 @@ const useStyles = makeStyles({
     width: 'min(220px, 48vw)',
     aspectRatio: '1',
     borderRadius: '999px',
-    background: 'radial-gradient(circle at 32% 26%, #ffffff 0%, #d8d8dd 34%, #53535a 68%, #101012 100%)',
-    boxShadow: '0 0 60px rgba(255,255,255,0.18), inset 0 0 32px rgba(255,255,255,0.2)',
+    background:
+      'radial-gradient(circle at 32% 26%, #ffffff 0%, #d8d8dd 34%, #53535a 68%, #101012 100%)',
+    boxShadow:
+      '0 0 60px rgba(255,255,255,0.18), inset 0 0 32px rgba(255,255,255,0.2)',
   },
   orbActive: {
     animationName: {
@@ -167,7 +170,15 @@ type IncomingEvent = Record<string, unknown> & {
   }
 }
 
-function buildLearnerVoiceUrl({ childId, exam, classYear, subject }: Pick<LearnerTutorFullscreenProps, 'childId' | 'exam' | 'classYear' | 'subject'>): string {
+function buildLearnerVoiceUrl({
+  childId,
+  exam,
+  classYear,
+  subject,
+}: Pick<
+  LearnerTutorFullscreenProps,
+  'childId' | 'exam' | 'classYear' | 'subject'
+>): string {
   const endpoint = '/ws/voice'
   const isLocalDevServer = location.port !== '' && location.port !== '8000'
   const origin = isLocalDevServer
@@ -184,12 +195,22 @@ function buildLearnerVoiceUrl({ childId, exam, classYear, subject }: Pick<Learne
 }
 
 function stateCopy(state: TutorState, recording: boolean) {
-  if (state === 'connecting') return { title: 'Connecting', hint: 'Opening your tutor session' }
-  if (state === 'thinking') return { title: 'Thinking', hint: 'Choosing the next card' }
-  if (state === 'speaking') return { title: 'Tutor speaking', hint: 'You can answer when ready' }
-  if (state === 'error') return { title: 'Trouble connecting', hint: 'Use Listen on cards and try again later' }
+  if (state === 'connecting')
+    return { title: 'Connecting', hint: 'Opening your tutor session' }
+  if (state === 'thinking')
+    return { title: 'Thinking', hint: 'Choosing the next card' }
+  if (state === 'speaking')
+    return { title: 'Tutor speaking', hint: 'You can answer when ready' }
+  if (state === 'error')
+    return {
+      title: 'Trouble connecting',
+      hint: 'Use Listen on cards and try again later',
+    }
   return recording
-    ? { title: 'Listening', hint: 'Answer naturally, or tap an option on the card' }
+    ? {
+        title: 'Listening',
+        hint: 'Answer naturally, or tap an option on the card',
+      }
     : { title: 'Ready', hint: 'Tap the mic to talk to your tutor' }
 }
 
@@ -230,15 +251,18 @@ export function LearnerTutorFullscreen({
     toggleRecordingRef.current = toggleRecording
   }, [recording, toggleRecording])
 
-  useEffect(() => () => {
-    if (recordingRef.current) {
-      void toggleRecordingRef.current?.()
-    }
-  }, [])
+  useEffect(
+    () => () => {
+      if (recordingRef.current) {
+        void toggleRecordingRef.current?.()
+      }
+    },
+    []
+  )
 
   const wsUrl = useMemo(
     () => buildLearnerVoiceUrl({ childId, exam, classYear, subject }),
-    [childId, exam, classYear, subject],
+    [childId, exam, classYear, subject]
   )
 
   useEffect(() => {
@@ -254,14 +278,18 @@ export function LearnerTutorFullscreen({
     ws.onopen = () => {
       setState('listening')
       ws.send(JSON.stringify({ type: 'session.update', session: {} }))
-      ws.send(JSON.stringify({
-        type: 'conversation.item.create',
-        item: {
-          type: 'message',
-          role: 'user',
-          content: [{ type: 'input_text', text: 'Start my tutoring session.' }],
-        },
-      }))
+      ws.send(
+        JSON.stringify({
+          type: 'conversation.item.create',
+          item: {
+            type: 'message',
+            role: 'user',
+            content: [
+              { type: 'input_text', text: 'Start my tutoring session.' },
+            ],
+          },
+        })
+      )
       ws.send(JSON.stringify({ type: 'response.create' }))
     }
     ws.onmessage = event => {
@@ -272,12 +300,18 @@ export function LearnerTutorFullscreen({
         setState('listening')
         return
       }
-      if (parsed.type === 'response.audio.delta' && typeof parsed.delta === 'string') {
+      if (
+        parsed.type === 'response.audio.delta' &&
+        typeof parsed.delta === 'string'
+      ) {
         setState('speaking')
         playAudio(parsed.delta)
         return
       }
-      if (parsed.type === 'response.created' || parsed.type === 'response.output_item.added') {
+      if (
+        parsed.type === 'response.created' ||
+        parsed.type === 'response.output_item.added'
+      ) {
         setState('thinking')
         return
       }
@@ -316,18 +350,21 @@ export function LearnerTutorFullscreen({
     onClose()
   }, [onClose, recording, stopAudio, toggleRecording])
 
-  const sendLearnerReply = useCallback((text: string) => {
-    setState('thinking')
-    send({
-      type: 'conversation.item.create',
-      item: {
-        type: 'message',
-        role: 'user',
-        content: [{ type: 'input_text', text }],
-      },
-    })
-    send({ type: 'response.create' })
-  }, [send])
+  const sendLearnerReply = useCallback(
+    (text: string) => {
+      setState('thinking')
+      send({
+        type: 'conversation.item.create',
+        item: {
+          type: 'message',
+          role: 'user',
+          content: [{ type: 'input_text', text }],
+        },
+      })
+      send({ type: 'response.create' })
+    },
+    [send]
+  )
 
   const copy = stateCopy(state, recording)
 
@@ -341,26 +378,49 @@ export function LearnerTutorFullscreen({
       data-testid="learner-tutor"
     >
       <header className={styles.header}>
-        <span className={styles.brand}><span className={styles.brandDot} />Pathfinder tutor</span>
-        <button type="button" className={styles.iconButton} onClick={handleClose} aria-label="Close tutor">
+        <span className={styles.brand}>
+          <span className={styles.brandDot} />
+          Pathfinder tutor
+        </span>
+        <button
+          type="button"
+          className={styles.iconButton}
+          onClick={handleClose}
+          aria-label="Close tutor"
+        >
           <XMarkIcon className={styles.icon} aria-hidden="true" />
         </button>
       </header>
       <main className={styles.body}>
-        <div className={`${styles.orb} ${recording || state === 'speaking' ? styles.orbActive : ''}`} aria-hidden="true" />
+        <div
+          className={`${styles.orb} ${recording || state === 'speaking' ? styles.orbActive : ''}`}
+          aria-hidden="true"
+        />
         <div className={styles.status} aria-live="polite">
           <span className={styles.stateTitle}>{copy.title}</span>
           <span className={styles.stateHint}>{copy.hint}</span>
         </div>
-        {fallback ? <div className={styles.fallback} role="alert">{fallback}</div> : null}
+        {fallback ? (
+          <div className={styles.fallback} role="alert">
+            {fallback}
+          </div>
+        ) : null}
         {card ? (
           <div className={styles.cardSlot}>
             <LearnerVoiceCardRenderer
               card={card}
               disabled={state === 'thinking'}
               sessionComplete={sessionComplete}
-              onMcqAnswer={optionId => sendLearnerReply(`I choose option ${optionId}. Previous card: ${card.card_id}.`)}
-              onAdvance={() => sendLearnerReply(`Next card please. Previous card: ${card.card_id}.`)}
+              onMcqAnswer={optionId =>
+                sendLearnerReply(
+                  `I choose option ${optionId}. Previous card: ${card.card_id}.`
+                )
+              }
+              onAdvance={() =>
+                sendLearnerReply(
+                  `Next card please. Previous card: ${card.card_id}.`
+                )
+              }
               onFinish={handleClose}
             />
           </div>
@@ -377,7 +437,10 @@ export function LearnerTutorFullscreen({
           <MicrophoneIcon className={styles.micGlyph} aria-hidden="true" />
         </button>
         <span className={styles.level} aria-hidden="true">
-          <span className={styles.levelFill} style={{ width: `${Math.round(inputLevel * 100)}%` }} />
+          <span
+            className={styles.levelFill}
+            style={{ width: `${Math.round(inputLevel * 100)}%` }}
+          />
         </span>
       </footer>
     </dialog>

@@ -166,7 +166,11 @@ export function ExplanationSurface(props: ExplanationSurfaceProps) {
       )}
 
       {error && (
-        <div className={styles.errorBox} role="alert" data-testid="explanation-error">
+        <div
+          className={styles.errorBox}
+          role="alert"
+          data-testid="explanation-error"
+        >
           {error}
         </div>
       )}
@@ -208,7 +212,7 @@ function HitsBlock(props: { hits: ExplainHit[] }) {
         {props.hits.length === 1 ? '' : 's'}. A learner-facing explanation will
         be generated from these in the next release.
       </Text>
-      {props.hits.map((hit) => (
+      {props.hits.map(hit => (
         <article
           key={`${hit.node_id}#${hit.anchor}`}
           className={styles.hit}

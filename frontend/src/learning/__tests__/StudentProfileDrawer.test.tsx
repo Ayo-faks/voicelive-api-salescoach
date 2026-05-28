@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { OverrideMasteryDialog } from '../OverrideMasteryDialog'
 import { StudentProfileDrawer } from '../StudentProfileDrawer'
@@ -66,7 +72,8 @@ const profile: StudentProfileResponse = {
     status: 'available',
     score: 72,
     label: 'Developing oral reading fluency',
-    evidence: 'Latest oral-reading check: 72/100 fluency, hesitations around ratio vocabulary.',
+    evidence:
+      'Latest oral-reading check: 72/100 fluency, hesitations around ratio vocabulary.',
     captured_at: '2026-05-24T09:15:00+00:00',
     lang: 'en-NG',
     provenance: [
@@ -130,13 +137,21 @@ const profile: StudentProfileResponse = {
 
 const overriddenProfile: StudentProfileResponse = {
   ...profile,
-  skills: [{ ...skill, probability: 0.65, uncertainty: 0.09, status: 'developing' }],
+  skills: [
+    { ...skill, probability: 0.65, uncertainty: 0.09, status: 'developing' },
+  ],
   recent_mastery_events: [
     {
       id: 'mastery-model-1',
       kind: 'mastery_event',
       skill_id: 'ratio-proportion',
-      estimate: { kind: 'beta', probability: 0.42, uncertainty: 0.18, a: 21, b: 29 },
+      estimate: {
+        kind: 'beta',
+        probability: 0.42,
+        uncertainty: 0.18,
+        a: 21,
+        b: 29,
+      },
     },
     {
       id: 'mastery-override-1',
@@ -179,30 +194,52 @@ describe('StudentProfileDrawer', () => {
   it('renders skills from the profile response', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(profile))
 
-    render(<StudentProfileDrawer open studentId="student-001" onClose={() => {}} />)
+    render(
+      <StudentProfileDrawer open studentId="student-001" onClose={() => {}} />
+    )
 
-    expect((await screen.findAllByText('Ratio and proportion')).length).toBeGreaterThan(0)
+    expect(
+      (await screen.findAllByText('Ratio and proportion')).length
+    ).toBeGreaterThan(0)
     expect(screen.getAllByText('Plane geometry').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Needs support').length).toBeGreaterThan(0)
     expect(screen.getByText('Strengths')).toBeTruthy()
     expect(screen.getByText('Gaps and evidence')).toBeTruthy()
-    expect(screen.getByText("Incorrect diagnostic response '3:4' on item-ratio-1")).toBeTruthy()
+    expect(
+      screen.getByText("Incorrect diagnostic response '3:4' on item-ratio-1")
+    ).toBeTruthy()
     expect(screen.getByText('Fluency 72%')).toBeTruthy()
-    expect(screen.getByText('Needs worked examples before independent ratio practice')).toBeTruthy()
-    expect(screen.getByText('Ratio Proportion · Response: 3:4 · Practice item item ratio 1')).toBeTruthy()
+    expect(
+      screen.getByText(
+        'Needs worked examples before independent ratio practice'
+      )
+    ).toBeTruthy()
+    expect(
+      screen.getByText(
+        'Ratio Proportion · Response: 3:4 · Practice item item ratio 1'
+      )
+    ).toBeTruthy()
   })
 
   it('does not serialize missing optional query params as undefined strings', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(profile))
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(jsonResponse(profile))
 
-    render(<StudentProfileDrawer open studentId="student-001" onClose={() => {}} />)
+    render(
+      <StudentProfileDrawer open studentId="student-001" onClose={() => {}} />
+    )
 
     await screen.findAllByText('Ratio and proportion')
-    expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/learning/students/student-001/profile')
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      '/api/learning/students/student-001/profile'
+    )
   })
 
   it('uses fallback heatmap skills when the live profile is not hydrated yet', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ ...profile, skills: [] }))
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      jsonResponse({ ...profile, skills: [] })
+    )
 
     render(
       <StudentProfileDrawer
@@ -213,19 +250,27 @@ describe('StudentProfileDrawer', () => {
       />
     )
 
-    expect((await screen.findAllByText('Ratio and proportion')).length).toBeGreaterThan(0)
+    expect(
+      (await screen.findAllByText('Ratio and proportion')).length
+    ).toBeGreaterThan(0)
     expect(screen.getAllByText('Needs support').length).toBeGreaterThan(0)
   })
 
   it('opens adjustment dialog with the selected skill', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(profile))
-    render(<StudentProfileDrawer open studentId="student-001" onClose={() => {}} />)
+    render(
+      <StudentProfileDrawer open studentId="student-001" onClose={() => {}} />
+    )
 
     await screen.findAllByText('Ratio and proportion')
-    fireEvent.click(screen.getAllByRole('button', { name: /adjust mastery/i })[0])
+    fireEvent.click(
+      screen.getAllByRole('button', { name: /adjust mastery/i })[0]
+    )
 
     const dialog = screen.getByLabelText('Adjust mastery dialog')
-    expect(within(dialog).getByText('Learner profile · Ratio and proportion')).toBeTruthy()
+    expect(
+      within(dialog).getByText('Learner profile · Ratio and proportion')
+    ).toBeTruthy()
   })
 
   it('submits a valid mastery adjustment to the endpoint', async () => {
@@ -237,26 +282,44 @@ describe('StudentProfileDrawer', () => {
           ok: true,
           student_id: 'student-001',
           skill_id: 'ratio-proportion',
-          estimate: { kind: 'beta', probability: 0.9, uncertainty: 0.05, a: 45, b: 5 },
+          estimate: {
+            kind: 'beta',
+            probability: 0.9,
+            uncertainty: 0.05,
+            a: 45,
+            b: 5,
+          },
           status: 'secure',
           xapi_id: 'override-1',
           audit: profile.audit,
         })
       )
-      .mockResolvedValueOnce(jsonResponse({ ...profile, skills: [{ ...skill, probability: 0.9 }] }))
-    render(<StudentProfileDrawer open studentId="student-001" onClose={() => {}} />)
+      .mockResolvedValueOnce(
+        jsonResponse({ ...profile, skills: [{ ...skill, probability: 0.9 }] })
+      )
+    render(
+      <StudentProfileDrawer open studentId="student-001" onClose={() => {}} />
+    )
 
     await screen.findAllByText('Ratio and proportion')
-    fireEvent.click(screen.getAllByRole('button', { name: /adjust mastery/i })[0])
-    fireEvent.change(screen.getByLabelText('Probability value'), { target: { value: '0.9' } })
-    fireEvent.change(screen.getByLabelText('Uncertainty value'), { target: { value: '0.05' } })
+    fireEvent.click(
+      screen.getAllByRole('button', { name: /adjust mastery/i })[0]
+    )
+    fireEvent.change(screen.getByLabelText('Probability value'), {
+      target: { value: '0.9' },
+    })
+    fireEvent.change(screen.getByLabelText('Uncertainty value'), {
+      target: { value: '0.05' },
+    })
     fireEvent.change(screen.getByLabelText('Adjustment reason'), {
       target: { value: 'Teacher observed a secure explanation.' },
     })
     fireEvent.click(screen.getByRole('button', { name: /save adjustment/i }))
 
     await waitFor(() => {
-      expect(fetchMock.mock.calls[1]?.[0]).toBe('/api/learning/students/student-001/override')
+      expect(fetchMock.mock.calls[1]?.[0]).toBe(
+        '/api/learning/students/student-001/override'
+      )
     })
     const payload = JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))
     expect(payload).toMatchObject({
@@ -269,17 +332,25 @@ describe('StudentProfileDrawer', () => {
   })
 
   it('enables restore for latest teacher adjustments and shows the estimate diff', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(overriddenProfile))
-    render(<StudentProfileDrawer open studentId="student-001" onClose={() => {}} />)
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      jsonResponse(overriddenProfile)
+    )
+    render(
+      <StudentProfileDrawer open studentId="student-001" onClose={() => {}} />
+    )
 
     await screen.findAllByText('Ratio and proportion')
-    const revertButton = screen.getAllByRole('button', { name: /restore estimate/i })[0]
+    const revertButton = screen.getAllByRole('button', {
+      name: /restore estimate/i,
+    })[0]
     expect(revertButton.getAttribute('disabled')).toBeNull()
 
     fireEvent.click(revertButton)
 
     const dialog = screen.getByLabelText('Restore mastery dialog')
-    expect(within(dialog).getByText('Restore mastery from 65% to 42%?')).toBeTruthy()
+    expect(
+      within(dialog).getByText('Restore mastery from 65% to 42%?')
+    ).toBeTruthy()
   })
 
   it('submits a restore using the prior estimate', async () => {
@@ -291,21 +362,33 @@ describe('StudentProfileDrawer', () => {
           ok: true,
           student_id: 'student-001',
           skill_id: 'ratio-proportion',
-          estimate: { kind: 'beta', probability: 0.42, uncertainty: 0.18, a: 21, b: 29 },
+          estimate: {
+            kind: 'beta',
+            probability: 0.42,
+            uncertainty: 0.18,
+            a: 21,
+            b: 29,
+          },
           status: 'needs_support',
           xapi_id: 'override-revert-1',
           audit: profile.audit,
         })
       )
       .mockResolvedValueOnce(jsonResponse(profile))
-    render(<StudentProfileDrawer open studentId="student-001" onClose={() => {}} />)
+    render(
+      <StudentProfileDrawer open studentId="student-001" onClose={() => {}} />
+    )
 
     await screen.findAllByText('Ratio and proportion')
-    fireEvent.click(screen.getAllByRole('button', { name: /restore estimate/i })[0])
+    fireEvent.click(
+      screen.getAllByRole('button', { name: /restore estimate/i })[0]
+    )
     fireEvent.click(screen.getByRole('button', { name: /confirm restore/i }))
 
     await waitFor(() => {
-      expect(fetchMock.mock.calls[1]?.[0]).toBe('/api/learning/students/student-001/override')
+      expect(fetchMock.mock.calls[1]?.[0]).toBe(
+        '/api/learning/students/student-001/override'
+      )
     })
     const payload = JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))
     expect(payload).toMatchObject({
@@ -314,17 +397,27 @@ describe('StudentProfileDrawer', () => {
       uncertainty: 0.18,
       reason: 'Restored previous teacher-reviewed estimate',
     })
-    expect(await screen.findByText('Mastery restored to the previous estimate')).toBeTruthy()
+    expect(
+      await screen.findByText('Mastery restored to the previous estimate')
+    ).toBeTruthy()
   })
 
   it('disables restore when no previous estimate is available', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(overrideWithoutPriorProfile))
-    render(<StudentProfileDrawer open studentId="student-001" onClose={() => {}} />)
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      jsonResponse(overrideWithoutPriorProfile)
+    )
+    render(
+      <StudentProfileDrawer open studentId="student-001" onClose={() => {}} />
+    )
 
     await screen.findAllByText('Ratio and proportion')
-    const revertButton = screen.getAllByRole('button', { name: /restore estimate/i })[0]
+    const revertButton = screen.getAllByRole('button', {
+      name: /restore estimate/i,
+    })[0]
     expect(revertButton.getAttribute('disabled')).not.toBeNull()
-    expect(revertButton.getAttribute('title')).toBe('No previous estimate available')
+    expect(revertButton.getAttribute('title')).toBe(
+      'No previous estimate available'
+    )
   })
 })
 
@@ -340,10 +433,18 @@ describe('OverrideMasteryDialog', () => {
       />
     )
 
-    fireEvent.change(screen.getByLabelText('Probability value'), { target: { value: '1.2' } })
-    fireEvent.change(screen.getByLabelText('Adjustment reason'), { target: { value: 'Valid reason' } })
+    fireEvent.change(screen.getByLabelText('Probability value'), {
+      target: { value: '1.2' },
+    })
+    fireEvent.change(screen.getByLabelText('Adjustment reason'), {
+      target: { value: 'Valid reason' },
+    })
 
-    expect(screen.getByRole('button', { name: /save adjustment/i }).getAttribute('disabled')).not.toBeNull()
+    expect(
+      screen
+        .getByRole('button', { name: /save adjustment/i })
+        .getAttribute('disabled')
+    ).not.toBeNull()
   })
 
   it('surfaces a server error message inline', async () => {
@@ -354,14 +455,20 @@ describe('OverrideMasteryDialog', () => {
         skill={skill}
         onClose={() => {}}
         onSubmit={async () => {
-          throw new Error('Learning API 400: probability must be between 0 and 1')
+          throw new Error(
+            'Learning API 400: probability must be between 0 and 1'
+          )
         }}
       />
     )
 
-    fireEvent.change(screen.getByLabelText('Adjustment reason'), { target: { value: 'Valid reason' } })
+    fireEvent.change(screen.getByLabelText('Adjustment reason'), {
+      target: { value: 'Valid reason' },
+    })
     fireEvent.click(screen.getByRole('button', { name: /save adjustment/i }))
 
-    expect(await screen.findByText(/probability must be between 0 and 1/)).toBeTruthy()
+    expect(
+      await screen.findByText(/probability must be between 0 and 1/)
+    ).toBeTruthy()
   })
 })

@@ -7,7 +7,10 @@ import {
   readLegacySetup,
   setupToProfilePatch,
 } from './useLearnerProfile'
-import { LEARNER_SETUP_STORAGE_KEY, DEFAULT_LEARNER_SETUP } from './useLearnerSetup'
+import {
+  LEARNER_SETUP_STORAGE_KEY,
+  DEFAULT_LEARNER_SETUP,
+} from './useLearnerSetup'
 
 function makeStorage(initial: Record<string, string> = {}) {
   const data = { ...initial }
@@ -56,7 +59,12 @@ describe('useLearnerProfile helpers', () => {
   describe('setupToProfilePatch', () => {
     it('emits a patch with only the populated fields', () => {
       expect(
-        setupToProfilePatch({ exam: 'WAEC', year: 'SS2', subject: 'Maths', firstName: '' }),
+        setupToProfilePatch({
+          exam: 'WAEC',
+          year: 'SS2',
+          subject: 'Maths',
+          firstName: '',
+        })
       ).toEqual({
         exam: 'WAEC',
         year_group: 'SS2',
@@ -66,13 +74,18 @@ describe('useLearnerProfile helpers', () => {
 
     it('includes the display name when firstName is set', () => {
       expect(
-        setupToProfilePatch({ exam: '', year: '', subject: '', firstName: 'Tomi' }),
+        setupToProfilePatch({
+          exam: '',
+          year: '',
+          subject: '',
+          firstName: 'Tomi',
+        })
       ).toEqual({ display_name: 'Tomi' })
     })
 
     it('produces an empty patch for a blank setup', () => {
       expect(
-        setupToProfilePatch({ exam: '', year: '', subject: '', firstName: '' }),
+        setupToProfilePatch({ exam: '', year: '', subject: '', firstName: '' })
       ).toEqual({})
     })
   })
@@ -89,7 +102,7 @@ describe('useLearnerProfile helpers', () => {
           exam: 'JAMB',
           year_group: 'SS3',
           subjects: ['Physics', 'Maths'],
-        }),
+        })
       ).toEqual({
         exam: 'JAMB',
         year: 'SS3',
@@ -130,7 +143,11 @@ describe('useLearnerProfile helpers', () => {
       const result = await migrateLegacySetup(storage, patch)
 
       expect(patch).toHaveBeenCalledTimes(1)
-      expect(result).toEqual({ profile: {}, consents: [], needs_onboarding: true })
+      expect(result).toEqual({
+        profile: {},
+        consents: [],
+        needs_onboarding: true,
+      })
       expect(events[0]).toMatch(/^patch:/)
       expect(events[1]).toBe('remove')
     })

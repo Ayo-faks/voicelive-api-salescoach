@@ -61,7 +61,15 @@ export interface AuthSession {
   name: string
   email: string
   provider: string
-  role: 'therapist' | 'parent' | 'admin' | 'pending_therapist' | 'learner' | 'kid' | 'student' | 'unassigned'
+  role:
+    | 'therapist'
+    | 'parent'
+    | 'admin'
+    | 'pending_therapist'
+    | 'learner'
+    | 'kid'
+    | 'student'
+    | 'unassigned'
   current_workspace_id?: string | null
   user_workspaces?: WorkspaceSummary[]
   needs_onboarding?: boolean
@@ -392,7 +400,9 @@ export const api = {
     return res.json()
   },
 
-  async patchLearnerProfile(patch: LearnerProfilePatch): Promise<LearnerProfileResponse> {
+  async patchLearnerProfile(
+    patch: LearnerProfilePatch
+  ): Promise<LearnerProfileResponse> {
     const res = await fetchWithAuth('/api/learners/me/profile', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },

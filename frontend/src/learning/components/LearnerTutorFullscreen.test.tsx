@@ -1,4 +1,11 @@
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import LearnerTutorFullscreen from './LearnerTutorFullscreen'
 
@@ -72,7 +79,7 @@ describe('LearnerTutorFullscreen', () => {
         exam="WAEC"
         classYear="SSS2"
         subject="Mathematics"
-      />,
+      />
     )
 
     await waitFor(() => expect(FakeWebSocket.instances).toHaveLength(1))
@@ -85,12 +92,16 @@ describe('LearnerTutorFullscreen', () => {
     expect(ws.url).toContain('subject=Mathematics')
 
     await waitFor(() => expect(ws.send).toHaveBeenCalled())
-    expect(ws.send.mock.calls.map(call => JSON.parse(String(call[0])).type)).toContain('session.update')
+    expect(
+      ws.send.mock.calls.map(call => JSON.parse(String(call[0])).type)
+    ).toContain('session.update')
     expect(recorderMock.toggleRecording).toHaveBeenCalledTimes(1)
   })
 
   it('renders learner cards emitted by the backend tool bridge', async () => {
-    render(<LearnerTutorFullscreen open={true} onClose={() => {}} childId="stu-1" />)
+    render(
+      <LearnerTutorFullscreen open={true} onClose={() => {}} childId="stu-1" />
+    )
     await waitFor(() => expect(FakeWebSocket.instances).toHaveLength(1))
 
     act(() => {
@@ -110,20 +121,28 @@ describe('LearnerTutorFullscreen', () => {
     })
 
     expect(await screen.findByTestId('practice-card')).toBeTruthy()
-    expect(screen.getAllByText('Do you already know differentiation?').length).toBeGreaterThan(0)
+    expect(
+      screen.getAllByText('Do you already know differentiation?').length
+    ).toBeGreaterThan(0)
   })
 
   it('falls back and closes after microphone permission is denied', async () => {
     vi.useFakeTimers()
     recorderMock.toggleRecording.mockRejectedValue(new Error('denied'))
     const onClose = vi.fn()
-    render(<LearnerTutorFullscreen open={true} onClose={onClose} childId="stu-1" />)
+    render(
+      <LearnerTutorFullscreen open={true} onClose={onClose} childId="stu-1" />
+    )
 
     await act(async () => {
       await Promise.resolve()
     })
 
-    expect(screen.getByText('Tutor needs your microphone to listen. Tap 🔊 Listen on cards instead.')).toBeTruthy()
+    expect(
+      screen.getByText(
+        'Tutor needs your microphone to listen. Tap 🔊 Listen on cards instead.'
+      )
+    ).toBeTruthy()
 
     act(() => {
       vi.advanceTimersByTime(4000)
@@ -133,7 +152,9 @@ describe('LearnerTutorFullscreen', () => {
   })
 
   it('sends a text response when the learner taps a rendered option', async () => {
-    render(<LearnerTutorFullscreen open={true} onClose={() => {}} childId="stu-1" />)
+    render(
+      <LearnerTutorFullscreen open={true} onClose={() => {}} childId="stu-1" />
+    )
     await waitFor(() => expect(FakeWebSocket.instances).toHaveLength(1))
     const ws = FakeWebSocket.instances[0]
 
@@ -159,8 +180,12 @@ describe('LearnerTutorFullscreen', () => {
 
     fireEvent.click(await screen.findByTestId('practice-option-b'))
 
-    const sentBodies = ws.send.mock.calls.map(call => JSON.parse(String(call[0])))
-    expect(sentBodies.some(body => body.type === 'conversation.item.create')).toBe(true)
+    const sentBodies = ws.send.mock.calls.map(call =>
+      JSON.parse(String(call[0]))
+    )
+    expect(
+      sentBodies.some(body => body.type === 'conversation.item.create')
+    ).toBe(true)
     expect(sentBodies.some(body => body.type === 'response.create')).toBe(true)
   })
 })

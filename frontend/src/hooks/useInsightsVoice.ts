@@ -913,7 +913,10 @@ export function useInsightsVoice({
             intentionalCloseSocketRef.current = null
           }
           if (!intentionalClose) {
-            lastCloseInfoRef.current = { code: event.code, reason: event.reason || '' }
+            lastCloseInfoRef.current = {
+              code: event.code,
+              reason: event.reason || '',
+            }
           }
           if (wsRef.current === socket) {
             wsRef.current = null
@@ -987,7 +990,10 @@ export function useInsightsVoice({
 
     const socket = await connectSocket()
     if (!socket) {
-      const info = lastCloseInfoRef.current as { code: number; reason: string } | null
+      const info = lastCloseInfoRef.current as {
+        code: number
+        reason: string
+      } | null
       const detail = info
         ? ` (${info.code}${info.reason ? ` ${info.reason}` : ''})`
         : ''

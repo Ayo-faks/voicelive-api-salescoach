@@ -15,7 +15,11 @@ import {
   type PendingApprovalPlanEdits,
   type PendingApprovalPlanView,
 } from '../components/PathfinderPhase2'
-import { heatmapCells, pendingPlan as fixturePendingPlan, provenance } from '../fixtures'
+import {
+  heatmapCells,
+  pendingPlan as fixturePendingPlan,
+  provenance,
+} from '../fixtures'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 import {
   approveLearningPlan,
@@ -66,12 +70,54 @@ type ClassOption = {
 }
 
 const classOptions: ClassOption[] = [
-  { classId: 'class-jss1-a', label: 'JSS1 A', subject: 'Mathematics', learnerCount: 34, supportCount: 5, medianMastery: 64 },
-  { classId: 'class-jss2-a', label: 'JSS2 A', subject: 'Mathematics', learnerCount: 58, supportCount: 7, medianMastery: 68 },
-  { classId: 'class-jss3-a', label: 'JSS3 A', subject: 'Mathematics', learnerCount: 31, supportCount: 6, medianMastery: 66 },
-  { classId: 'class-ss1-a', label: 'SS1 A', subject: 'Mathematics', learnerCount: 29, supportCount: 4, medianMastery: 71 },
-  { classId: 'class-ss2-a', label: 'SS2 A', subject: 'Mathematics', learnerCount: 27, supportCount: 3, medianMastery: 74 },
-  { classId: 'class-ss3-a', label: 'SS3 A', subject: 'Mathematics', learnerCount: 24, supportCount: 2, medianMastery: 78 },
+  {
+    classId: 'class-jss1-a',
+    label: 'JSS1 A',
+    subject: 'Mathematics',
+    learnerCount: 34,
+    supportCount: 5,
+    medianMastery: 64,
+  },
+  {
+    classId: 'class-jss2-a',
+    label: 'JSS2 A',
+    subject: 'Mathematics',
+    learnerCount: 58,
+    supportCount: 7,
+    medianMastery: 68,
+  },
+  {
+    classId: 'class-jss3-a',
+    label: 'JSS3 A',
+    subject: 'Mathematics',
+    learnerCount: 31,
+    supportCount: 6,
+    medianMastery: 66,
+  },
+  {
+    classId: 'class-ss1-a',
+    label: 'SS1 A',
+    subject: 'Mathematics',
+    learnerCount: 29,
+    supportCount: 4,
+    medianMastery: 71,
+  },
+  {
+    classId: 'class-ss2-a',
+    label: 'SS2 A',
+    subject: 'Mathematics',
+    learnerCount: 27,
+    supportCount: 3,
+    medianMastery: 74,
+  },
+  {
+    classId: 'class-ss3-a',
+    label: 'SS3 A',
+    subject: 'Mathematics',
+    learnerCount: 24,
+    supportCount: 2,
+    medianMastery: 78,
+  },
 ]
 
 const statusFilters = ['All learners', 'Needs support', 'Developing', 'Secure']
@@ -79,7 +125,10 @@ const statusFilters = ['All learners', 'Needs support', 'Developing', 'Secure']
 type Row = {
   studentId: string
   name: string
-  cells: Record<string, { p: number; u: number; status: HeatmapCellView['status'] }>
+  cells: Record<
+    string,
+    { p: number; u: number; status: HeatmapCellView['status'] }
+  >
 }
 
 type StudentFactEditDraft = {
@@ -844,9 +893,8 @@ function statusForMastery(probability: number): HeatmapCellView['status'] {
 }
 
 function pilotCellsForIndex(index: number, sourceRow: Row): Row['cells'] {
-  const ratioMastery = index < 7
-    ? 0.38 + (index % 4) * 0.025
-    : 0.58 + (index % 7) * 0.035
+  const ratioMastery =
+    index < 7 ? 0.38 + (index % 4) * 0.025 : 0.58 + (index % 7) * 0.035
   const fractionMastery = 0.54 + (index % 6) * 0.025
   const linearMastery = 0.66 + (index % 8) * 0.025
   const geometryMastery = Math.min(0.91, 0.78 + (index % 6) * 0.025)
@@ -884,13 +932,15 @@ function rowMatchesFilter(row: Row, filter: string): boolean {
   const statuses = Object.values(row.cells).map(cell => cell.status)
   if (filter === 'Needs support') return statuses.includes('needs_support')
   if (filter === 'Developing') return statuses.includes('developing')
-  if (filter === 'Secure') return statuses.length > 0 && statuses.every(status => status === 'secure')
+  if (filter === 'Secure')
+    return statuses.length > 0 && statuses.every(status => status === 'secure')
   return true
 }
 
 function classRowsForOption(option: ClassOption): Row[] {
   const isPilotClass = option.classId === 'class-jss2-a'
-  const rosterNames = classRosterNames[option.classId] ?? classRosterNames['class-jss2-a']
+  const rosterNames =
+    classRosterNames[option.classId] ?? classRosterNames['class-jss2-a']
 
   if (isPilotClass) {
     return rosterNames.slice(0, option.learnerCount).map((name, index) => {
@@ -909,7 +959,10 @@ function classRowsForOption(option: ClassOption): Row[] {
       studentId: `${option.classId}-student-${String(index + 1).padStart(3, '0')}`,
       name,
       cells: Object.fromEntries(
-        Object.entries(sourceRow.cells).map(([skillId, cell]) => [skillId, { ...cell }])
+        Object.entries(sourceRow.cells).map(([skillId, cell]) => [
+          skillId,
+          { ...cell },
+        ])
       ) as Row['cells'],
     }
   })
@@ -922,15 +975,19 @@ function isFlaggedForIntervention(row: Row): boolean {
 function weakestSkillSummaries(rows: Row[]): WeakSkillSummary[] {
   return skillIds
     .map(skillId => {
-      const cells = rows.flatMap(row => row.cells[skillId] ? [row.cells[skillId]] : [])
-      const averageMastery = cells.length > 0
-        ? cells.reduce((total, cell) => total + cell.p, 0) / cells.length
-        : 0
+      const cells = rows.flatMap(row =>
+        row.cells[skillId] ? [row.cells[skillId]] : []
+      )
+      const averageMastery =
+        cells.length > 0
+          ? cells.reduce((total, cell) => total + cell.p, 0) / cells.length
+          : 0
       return {
         skillId,
         label: skillLabels[skillId],
         averageMastery,
-        needsSupportCount: cells.filter(cell => cell.status === 'needs_support').length,
+        needsSupportCount: cells.filter(cell => cell.status === 'needs_support')
+          .length,
       }
     })
     .sort((left, right) => left.averageMastery - right.averageMastery)
@@ -956,7 +1013,10 @@ function planRecordToView(record: PendingPlanRecord): PendingApprovalPlanView {
   }
 }
 
-function mergeLiveCellsWithFixture(live: ClassMasteryCell[], selectedClass: ClassOption): Row[] {
+function mergeLiveCellsWithFixture(
+  live: ClassMasteryCell[],
+  selectedClass: ClassOption
+): Row[] {
   const merged = classRowsForOption(selectedClass)
   if (live.length === 0) return merged
   for (const cell of live) {
@@ -1020,35 +1080,49 @@ export default function TeacherMasteryDashboard() {
   ])
   const [liveCells, setLiveCells] = useState<ClassMasteryCell[]>([])
   const [pendingPlans, setPendingPlans] = useState<PendingPlanRecord[]>([])
-  const [pendingStudentFacts, setPendingStudentFacts] = useState<StudentFactRecord[]>(fallbackStudentFacts)
-  const [approvalQueueState, setApprovalQueueState] = useState<'loading' | 'live' | 'offline'>(
-    'loading'
-  )
-  const [studentFactQueueState, setStudentFactQueueState] = useState<'loading' | 'live' | 'offline'>(
-    'loading'
-  )
-  const [editingStudentFactId, setEditingStudentFactId] = useState<string | null>(null)
-  const [studentFactDraft, setStudentFactDraft] = useState<StudentFactEditDraft>(emptyStudentFactDraft)
+  const [pendingStudentFacts, setPendingStudentFacts] =
+    useState<StudentFactRecord[]>(fallbackStudentFacts)
+  const [approvalQueueState, setApprovalQueueState] = useState<
+    'loading' | 'live' | 'offline'
+  >('loading')
+  const [studentFactQueueState, setStudentFactQueueState] = useState<
+    'loading' | 'live' | 'offline'
+  >('loading')
+  const [editingStudentFactId, setEditingStudentFactId] = useState<
+    string | null
+  >(null)
+  const [studentFactDraft, setStudentFactDraft] =
+    useState<StudentFactEditDraft>(emptyStudentFactDraft)
   const [intentBusy, setIntentBusy] = useState(false)
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null)
-  const selectedClass = classOptions.find(option => option.classId === selectedClassId) ?? classOptions[1]
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
+    null
+  )
+  const selectedClass =
+    classOptions.find(option => option.classId === selectedClassId) ??
+    classOptions[1]
 
   const refresh = useCallback(async () => {
     try {
       const mastery = await getClassMastery({ class_id: selectedClassId })
       setLiveCells(mastery.cells)
       try {
-        const approvals = await listPendingApprovals({ class_id: selectedClassId })
+        const approvals = await listPendingApprovals({
+          class_id: selectedClassId,
+        })
         setPendingPlans(approvals.plans)
       } catch {
         setPendingPlans([])
       }
       try {
-        const facts = await listPendingStudentFacts({ class_id: selectedClassId })
+        const facts = await listPendingStudentFacts({
+          class_id: selectedClassId,
+        })
         setPendingStudentFacts(facts.facts)
         setStudentFactQueueState('live')
       } catch {
-        setPendingStudentFacts(selectedClassId === 'class-jss2-a' ? fallbackStudentFacts : [])
+        setPendingStudentFacts(
+          selectedClassId === 'class-jss2-a' ? fallbackStudentFacts : []
+        )
         setStudentFactQueueState('offline')
       }
       setApprovalQueueState('live')
@@ -1056,9 +1130,7 @@ export default function TeacherMasteryDashboard() {
         const audit = await listAudit()
         if (audit.events.length > 0) {
           setAuditEvents(cur => {
-            const baseline = cur.filter(
-              value => !value.startsWith('[live]')
-            )
+            const baseline = cur.filter(value => !value.startsWith('[live]'))
             return [
               ...baseline,
               ...audit.events.map(event => `[live] ${event.label}`),
@@ -1071,7 +1143,9 @@ export default function TeacherMasteryDashboard() {
     } catch {
       setApprovalQueueState('offline')
       setStudentFactQueueState('offline')
-      setPendingStudentFacts(selectedClassId === 'class-jss2-a' ? fallbackStudentFacts : [])
+      setPendingStudentFacts(
+        selectedClassId === 'class-jss2-a' ? fallbackStudentFacts : []
+      )
       // Backend unavailable in pure-frontend dev — fall back silently.
     }
   }, [selectedClassId])
@@ -1086,7 +1160,9 @@ export default function TeacherMasteryDashboard() {
 
   const allRows = mergeLiveCellsWithFixture(liveCells, selectedClass)
   const visibleRows = allRows.filter(row => rowMatchesFilter(row, activeFilter))
-  const flaggedForInterventionCount = allRows.filter(isFlaggedForIntervention).length
+  const flaggedForInterventionCount = allRows.filter(
+    isFlaggedForIntervention
+  ).length
   const weakestSkills = weakestSkillSummaries(allRows)
   const proposedStudentFactCount = pendingStudentFacts.length
   const selectedFallbackSkills = rowToProfileSkills(
@@ -1095,16 +1171,19 @@ export default function TeacherMasteryDashboard() {
   const visiblePlan: PendingApprovalPlanView | null =
     pendingPlans.length > 0
       ? planRecordToView(pendingPlans[0])
-      : approvalQueueState === 'offline' && selectedClass.classId === 'class-jss2-a'
+      : approvalQueueState === 'offline' &&
+          selectedClass.classId === 'class-jss2-a'
         ? fixturePendingPlan
         : null
   const profileEntryStudent = visibleRows[0]
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _pendingApprovalCount = pendingPlans.length > 0
-    ? pendingPlans.length
-    : approvalQueueState === 'offline' && selectedClass.classId === 'class-jss2-a'
-      ? 1
-      : 0
+  const _pendingApprovalCount =
+    pendingPlans.length > 0
+      ? pendingPlans.length
+      : approvalQueueState === 'offline' &&
+          selectedClass.classId === 'class-jss2-a'
+        ? 1
+        : 0
 
   function pushEvent(e: string) {
     setAuditEvents(cur => [...cur, e])
@@ -1117,14 +1196,20 @@ export default function TeacherMasteryDashboard() {
     setEditingStudentFactId(null)
     setStudentFactDraft(emptyStudentFactDraft)
     setLiveCells([])
-    setPendingStudentFacts(classId === 'class-jss2-a' ? fallbackStudentFacts : [])
+    setPendingStudentFacts(
+      classId === 'class-jss2-a' ? fallbackStudentFacts : []
+    )
   }
 
   async function handleSubmitIntent(value: string) {
     pushEvent(`Teacher request: ${value}`)
     setIntentBusy(true)
     try {
-      const result = await submitIntent({ prompt: value, role: 'teacher', class_id: selectedClass.classId })
+      const result = await submitIntent({
+        prompt: value,
+        role: 'teacher',
+        class_id: selectedClass.classId,
+      })
       pushEvent(
         `${selectedClass.label} intent plan ${result.plan.plan_id} ready (${result.plan.target_skill_ids.join(', ')})`
       )
@@ -1139,7 +1224,10 @@ export default function TeacherMasteryDashboard() {
   async function handleApprove(planId: string) {
     pushEvent(`Approving plan ${planId}…`)
     try {
-      await approveLearningPlan(planId, { class_id: selectedClass.classId, reason: 'Teacher dashboard approval' })
+      await approveLearningPlan(planId, {
+        class_id: selectedClass.classId,
+        reason: 'Teacher dashboard approval',
+      })
       pushEvent(`Approved plan ${planId}`)
       await refresh()
     } catch (err) {
@@ -1150,7 +1238,10 @@ export default function TeacherMasteryDashboard() {
   async function handleReject(planId: string) {
     pushEvent(`Rejecting plan ${planId}…`)
     try {
-      await rejectLearningPlan(planId, { class_id: selectedClass.classId, reason: 'Teacher dashboard rejection' })
+      await rejectLearningPlan(planId, {
+        class_id: selectedClass.classId,
+        reason: 'Teacher dashboard rejection',
+      })
       pushEvent(`Rejected plan ${planId}`)
       await refresh()
     } catch (err) {
@@ -1176,7 +1267,9 @@ export default function TeacherMasteryDashboard() {
           rationale: edits.rationale,
         },
       })
-      pushEvent(`Edited and approved plan ${planId} as ${result.edited_plan_id ?? result.plan_id}`)
+      pushEvent(
+        `Edited and approved plan ${planId} as ${result.edited_plan_id ?? result.plan_id}`
+      )
       await refresh()
     } catch (err) {
       pushEvent(`Edit approval failed: ${(err as Error).message}`)
@@ -1187,7 +1280,10 @@ export default function TeacherMasteryDashboard() {
   async function handleApproveFact(factId: string) {
     pushEvent(`Approving student fact ${factId}…`)
     try {
-      await approveStudentFact(factId, { class_id: selectedClass.classId, reason: 'Teacher dashboard approval' })
+      await approveStudentFact(factId, {
+        class_id: selectedClass.classId,
+        reason: 'Teacher dashboard approval',
+      })
       pushEvent(`Approved student fact ${factId}`)
       await refresh()
     } catch (err) {
@@ -1198,7 +1294,10 @@ export default function TeacherMasteryDashboard() {
   async function handleRejectFact(factId: string) {
     pushEvent(`Rejecting student fact ${factId}…`)
     try {
-      await rejectStudentFact(factId, { class_id: selectedClass.classId, reason: 'Teacher dashboard rejection' })
+      await rejectStudentFact(factId, {
+        class_id: selectedClass.classId,
+        reason: 'Teacher dashboard rejection',
+      })
       pushEvent(`Rejected student fact ${factId}`)
       await refresh()
     } catch (err) {
@@ -1246,23 +1345,37 @@ export default function TeacherMasteryDashboard() {
           </Text>
           <div className={styles.headerMeta} aria-label="Class context">
             <span className={styles.headerMetaChip}>{selectedClass.label}</span>
-            <span className={styles.headerMetaChip}>{selectedClass.subject}</span>
-            <span className={styles.headerMetaChip}>{selectedClass.learnerCount} students</span>
+            <span className={styles.headerMetaChip}>
+              {selectedClass.subject}
+            </span>
+            <span className={styles.headerMetaChip}>
+              {selectedClass.learnerCount} students
+            </span>
             <span className={styles.headerMetaChip}>Mastery + uncertainty</span>
-            <span className={styles.headerMetaChip}>Wulo Academy workspace</span>
+            <span className={styles.headerMetaChip}>
+              Wulo Academy workspace
+            </span>
           </div>
         </div>
         <span className={styles.softBadge}>JSS1-SS3 teacher review</span>
       </div>
 
-      <div className={styles.filterBar} role="tablist" aria-label="Class selector">
+      <div
+        className={styles.filterBar}
+        role="tablist"
+        aria-label="Class selector"
+      >
         {classOptions.map(option => (
           <button
             key={option.classId}
             type="button"
             role="tab"
             aria-selected={selectedClassId === option.classId}
-            className={selectedClassId === option.classId ? styles.filterBadgeActive : styles.filterBadge}
+            className={
+              selectedClassId === option.classId
+                ? styles.filterBadgeActive
+                : styles.filterBadge
+            }
             onClick={() => handleSelectClass(option.classId)}
           >
             {option.label}
@@ -1270,14 +1383,20 @@ export default function TeacherMasteryDashboard() {
         ))}
       </div>
 
-      <div className={styles.filterBar} role="tablist" aria-label="Mastery filter">
+      <div
+        className={styles.filterBar}
+        role="tablist"
+        aria-label="Mastery filter"
+      >
         {statusFilters.map(f => (
           <button
             key={f}
             type="button"
             role="tab"
             aria-selected={activeFilter === f}
-            className={activeFilter === f ? styles.filterBadgeActive : styles.filterBadge}
+            className={
+              activeFilter === f ? styles.filterBadgeActive : styles.filterBadge
+            }
             onClick={() => setActiveFilter(f)}
           >
             {f}
@@ -1291,22 +1410,31 @@ export default function TeacherMasteryDashboard() {
             header={<Text weight="semibold">Class heatmap</Text>}
             description={
               <Text size={200}>
-                {selectedClass.learnerCount} students across {skillIds.length} maths sub-skills. Each cell shows mastery % (large) and uncertainty % (small).
+                {selectedClass.learnerCount} students across {skillIds.length}{' '}
+                maths sub-skills. Each cell shows mastery % (large) and
+                uncertainty % (small).
               </Text>
             }
           />
-          <div className={styles.profilePrompt} data-testid="transparent-profile-entry">
+          <div
+            className={styles.profilePrompt}
+            data-testid="transparent-profile-entry"
+          >
             <div className={styles.profilePromptCopy}>
               <Text weight="semibold">Transparent student profile</Text>
               <Text size={200}>
-                Open one learner to inspect strengths, gaps, evidence, recent responses, voice fluency, and proposed memory facts.
+                Open one learner to inspect strengths, gaps, evidence, recent
+                responses, voice fluency, and proposed memory facts.
               </Text>
             </div>
             <button
               type="button"
               className={styles.filterBadgeActive}
               disabled={!profileEntryStudent}
-              onClick={() => profileEntryStudent && setSelectedStudentId(profileEntryStudent.studentId)}
+              onClick={() =>
+                profileEntryStudent &&
+                setSelectedStudentId(profileEntryStudent.studentId)
+              }
             >
               Open student profile
             </button>
@@ -1336,7 +1464,13 @@ export default function TeacherMasteryDashboard() {
                       const c = row.cells[s]
                       if (!c) {
                         return (
-                          <td key={s} className={styles.cell} style={{ backgroundColor: masteryRamp.needsSupport }}>
+                          <td
+                            key={s}
+                            className={styles.cell}
+                            style={{
+                              backgroundColor: masteryRamp.needsSupport,
+                            }}
+                          >
                             —
                           </td>
                         )
@@ -1412,41 +1546,68 @@ export default function TeacherMasteryDashboard() {
             <div className={styles.summaryGrid}>
               <div className={styles.summaryTile}>
                 <div className={styles.summaryLabel}>Students</div>
-                <div className={styles.summaryValue}>{selectedClass.learnerCount}</div>
+                <div className={styles.summaryValue}>
+                  {selectedClass.learnerCount}
+                </div>
                 <Text size={200}>{selectedClass.learnerCount} students</Text>
               </div>
               <div className={styles.summaryTile}>
                 <div className={styles.summaryLabel}>Intervention</div>
-                <div className={styles.summaryValue}>{flaggedForInterventionCount}</div>
-                <Text size={200}>{flaggedForInterventionCount} students flagged for intervention</Text>
+                <div className={styles.summaryValue}>
+                  {flaggedForInterventionCount}
+                </div>
+                <Text size={200}>
+                  {flaggedForInterventionCount} students flagged for
+                  intervention
+                </Text>
               </div>
               <div className={styles.summaryTile}>
                 <div className={styles.summaryLabel}>Weakest</div>
-                <div className={styles.summaryValue}>{weakestSkills.length}</div>
+                <div className={styles.summaryValue}>
+                  {weakestSkills.length}
+                </div>
                 <Text size={200}>weakest sub-skills this week</Text>
               </div>
               <div className={styles.summaryTile}>
                 <div className={styles.summaryLabel}>Facts</div>
-                <div className={styles.summaryValue}>{proposedStudentFactCount}</div>
-                <Text size={200}>{proposedStudentFactCount} proposed student facts awaiting approval</Text>
+                <div className={styles.summaryValue}>
+                  {proposedStudentFactCount}
+                </div>
+                <Text size={200}>
+                  {proposedStudentFactCount} proposed student facts awaiting
+                  approval
+                </Text>
               </div>
             </div>
           </div>
 
           <Card className={styles.auditCard}>
             <CardHeader
-              header={<Text weight="semibold">Weakest sub-skills this week</Text>}
-              description={<Text size={200}>Sorted by class-average mastery for {selectedClass.label}</Text>}
+              header={
+                <Text weight="semibold">Weakest sub-skills this week</Text>
+              }
+              description={
+                <Text size={200}>
+                  Sorted by class-average mastery for {selectedClass.label}
+                </Text>
+              }
             />
-            <div className={styles.insightList} data-testid="weakest-subskills-list">
+            <div
+              className={styles.insightList}
+              data-testid="weakest-subskills-list"
+            >
               {weakestSkills.map(skill => (
                 <div key={skill.skillId} className={styles.insightItem}>
                   <div className={styles.insightRow}>
                     <Text weight="semibold">{skill.label}</Text>
-                    <Text size={200}>{Math.round(skill.averageMastery * 100)}%</Text>
+                    <Text size={200}>
+                      {Math.round(skill.averageMastery * 100)}%
+                    </Text>
                   </div>
                   <div className={styles.insightMeta}>
-                    {skill.needsSupportCount} student{skill.needsSupportCount === 1 ? '' : 's'} below support threshold
+                    {skill.needsSupportCount} student
+                    {skill.needsSupportCount === 1 ? '' : 's'} below support
+                    threshold
                   </div>
                 </div>
               ))}
@@ -1456,19 +1617,32 @@ export default function TeacherMasteryDashboard() {
           <Card className={styles.auditCard}>
             <CardHeader
               header={<Text weight="semibold">Teacher-controlled memory</Text>}
-              description={<Text size={200}>{proposedStudentFactCount} proposed student facts awaiting approval</Text>}
+              description={
+                <Text size={200}>
+                  {proposedStudentFactCount} proposed student facts awaiting
+                  approval
+                </Text>
+              }
             />
             <p className={styles.memoryTrustCopy}>
-              Proposed facts stay pending until a teacher approves, edits, or rejects them; personalization does not happen invisibly.
+              Proposed facts stay pending until a teacher approves, edits, or
+              rejects them; personalization does not happen invisibly.
             </p>
-            <div className={styles.insightList} data-testid="student-fact-approval-list">
+            <div
+              className={styles.insightList}
+              data-testid="student-fact-approval-list"
+            >
               {pendingStudentFacts.map(fact => (
                 <div key={fact.id} className={styles.insightItem}>
                   <div className={styles.insightRow}>
-                    <Text weight="semibold">{fact.fact.student_name ?? fact.student_id}</Text>
+                    <Text weight="semibold">
+                      {fact.fact.student_name ?? fact.student_id}
+                    </Text>
                     <span className={styles.softBadge}>Awaiting approval</span>
                   </div>
-                  <div className={styles.insightMeta}>Memory type · {fact.fact.key}</div>
+                  <div className={styles.insightMeta}>
+                    Memory type · {fact.fact.key}
+                  </div>
                   <Text size={200}>{fact.fact.value}</Text>
                   <div className={styles.insightMeta}>{fact.fact.evidence}</div>
                   {editingStudentFactId === fact.id ? (
@@ -1488,7 +1662,10 @@ export default function TeacherMasteryDashboard() {
                           value={studentFactDraft.studentName}
                           onChange={event => {
                             const studentName = event.currentTarget.value
-                            setStudentFactDraft(current => ({ ...current, studentName }))
+                            setStudentFactDraft(current => ({
+                              ...current,
+                              studentName,
+                            }))
                           }}
                         />
                       </label>
@@ -1500,7 +1677,10 @@ export default function TeacherMasteryDashboard() {
                           value={studentFactDraft.value}
                           onChange={event => {
                             const value = event.currentTarget.value
-                            setStudentFactDraft(current => ({ ...current, value }))
+                            setStudentFactDraft(current => ({
+                              ...current,
+                              value,
+                            }))
                           }}
                         />
                       </label>
@@ -1512,7 +1692,10 @@ export default function TeacherMasteryDashboard() {
                           value={studentFactDraft.evidence}
                           onChange={event => {
                             const evidence = event.currentTarget.value
-                            setStudentFactDraft(current => ({ ...current, evidence }))
+                            setStudentFactDraft(current => ({
+                              ...current,
+                              evidence,
+                            }))
                           }}
                         />
                       </label>
@@ -1520,7 +1703,11 @@ export default function TeacherMasteryDashboard() {
                         <button
                           type="submit"
                           className={styles.filterBadgeActive}
-                          disabled={studentFactQueueState !== 'live' || !studentFactDraft.value.trim() || !studentFactDraft.evidence.trim()}
+                          disabled={
+                            studentFactQueueState !== 'live' ||
+                            !studentFactDraft.value.trim() ||
+                            !studentFactDraft.evidence.trim()
+                          }
                         >
                           Save edited fact
                         </button>
@@ -1587,10 +1774,13 @@ export default function TeacherMasteryDashboard() {
           ) : (
             <Card className={styles.auditCard}>
               <CardHeader
-                header={<Text weight="semibold">No pending plans to review</Text>}
+                header={
+                  <Text weight="semibold">No pending plans to review</Text>
+                }
                 description={
                   <Text size={200}>
-                    New plans appear here after diagnostics or teacher planning requests.
+                    New plans appear here after diagnostics or teacher planning
+                    requests.
                   </Text>
                 }
               />
@@ -1600,7 +1790,9 @@ export default function TeacherMasteryDashboard() {
           <Card className={styles.auditCard}>
             <CardHeader
               header={<Text weight="semibold">Audit events</Text>}
-              description={<Text size={200}>Recent classroom and approval activity</Text>}
+              description={
+                <Text size={200}>Recent classroom and approval activity</Text>
+              }
             />
             <div className={styles.auditEventList} data-testid="audit-events">
               {auditEvents

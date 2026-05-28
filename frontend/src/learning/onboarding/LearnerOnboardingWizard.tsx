@@ -57,11 +57,37 @@ const SUBJECTS_BY_EXAM: Record<string, string[]> = {
     'Economics',
     'Literature',
   ],
-  NECO: ['Mathematics', 'English Language', 'Biology', 'Chemistry', 'Physics', 'Economics'],
-  JAMB: ['Mathematics', 'English Language', 'Biology', 'Chemistry', 'Physics', 'Economics'],
-  'Junior WAEC': ['Mathematics', 'English Language', 'Basic Science', 'Social Studies'],
+  NECO: [
+    'Mathematics',
+    'English Language',
+    'Biology',
+    'Chemistry',
+    'Physics',
+    'Economics',
+  ],
+  JAMB: [
+    'Mathematics',
+    'English Language',
+    'Biology',
+    'Chemistry',
+    'Physics',
+    'Economics',
+  ],
+  'Junior WAEC': [
+    'Mathematics',
+    'English Language',
+    'Basic Science',
+    'Social Studies',
+  ],
   IGCSE: ['Mathematics', 'English Language', 'Biology', 'Chemistry', 'Physics'],
-  'A-Level': ['Mathematics', 'Further Maths', 'Biology', 'Chemistry', 'Physics', 'Economics'],
+  'A-Level': [
+    'Mathematics',
+    'Further Maths',
+    'Biology',
+    'Chemistry',
+    'Physics',
+    'Economics',
+  ],
 }
 const INTEREST_OPTIONS = [
   'Engineering',
@@ -149,7 +175,8 @@ interface Step3State {
 
 function initialStep1(profile: LearnerProfile | null): Step1State {
   return {
-    display_name: typeof profile?.display_name === 'string' ? profile.display_name : '',
+    display_name:
+      typeof profile?.display_name === 'string' ? profile.display_name : '',
     age_band: typeof profile?.age_band === 'string' ? profile.age_band : '',
     locale: typeof profile?.locale === 'string' ? profile.locale : 'en-NG',
     country: typeof profile?.country === 'string' ? profile.country : 'NG',
@@ -161,16 +188,21 @@ function initialStep1(profile: LearnerProfile | null): Step1State {
 }
 
 function initialStep2(profile: LearnerProfile | null): Step2State {
-  const subjects = Array.isArray(profile?.subjects) ? (profile?.subjects as string[]) : []
+  const subjects = Array.isArray(profile?.subjects)
+    ? (profile?.subjects as string[])
+    : []
   return {
     exam: typeof profile?.exam === 'string' ? profile.exam : 'WAEC',
-    year_group: typeof profile?.year_group === 'string' ? profile.year_group : 'SS2',
+    year_group:
+      typeof profile?.year_group === 'string' ? profile.year_group : 'SS2',
     subjects: subjects.slice(0, MAX_SUBJECTS),
   }
 }
 
 function initialStep3(profile: LearnerProfile | null): Step3State {
-  const interests = Array.isArray(profile?.interests) ? (profile?.interests as string[]) : []
+  const interests = Array.isArray(profile?.interests)
+    ? (profile?.interests as string[])
+    : []
   return {
     interests: interests.slice(0, MAX_INTERESTS),
     career_consent: false,
@@ -201,7 +233,7 @@ export function LearnerOnboardingWizard({
 
   const availableSubjects = useMemo(
     () => SUBJECTS_BY_EXAM[s2.exam] ?? SUBJECTS_BY_EXAM.WAEC,
-    [s2.exam],
+    [s2.exam]
   )
 
   const goNext = useCallback(async () => {
@@ -216,14 +248,28 @@ export function LearnerOnboardingWizard({
         return
       }
       if (!s1.terms || !s1.privacy || !s1.ai_notice) {
-        setError('Please confirm the terms, privacy notice, and AI notice to continue.')
+        setError(
+          'Please confirm the terms, privacy notice, and AI notice to continue.'
+        )
         return
       }
       setSubmitting(true)
       try {
-        await recordConsent({ kind: 'terms', version: CURRENT_CONSENT_VERSION, granted: true })
-        await recordConsent({ kind: 'privacy', version: CURRENT_CONSENT_VERSION, granted: true })
-        await recordConsent({ kind: 'ai_notice', version: CURRENT_CONSENT_VERSION, granted: true })
+        await recordConsent({
+          kind: 'terms',
+          version: CURRENT_CONSENT_VERSION,
+          granted: true,
+        })
+        await recordConsent({
+          kind: 'privacy',
+          version: CURRENT_CONSENT_VERSION,
+          granted: true,
+        })
+        await recordConsent({
+          kind: 'ai_notice',
+          version: CURRENT_CONSENT_VERSION,
+          granted: true,
+        })
         if (s1.analytics_consent) {
           await recordConsent({
             kind: 'analytics',
@@ -256,7 +302,11 @@ export function LearnerOnboardingWizard({
       }
       setSubmitting(true)
       try {
-        await patch({ exam: s2.exam, year_group: s2.year_group, subjects: s2.subjects })
+        await patch({
+          exam: s2.exam,
+          year_group: s2.year_group,
+          subjects: s2.subjects,
+        })
         setStep(3)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Could not save step 2.')
@@ -281,14 +331,17 @@ export function LearnerOnboardingWizard({
       const finalPatch: LearnerProfilePatch = {
         interests: s3.interests,
       }
-      if (s3.guardian_email.trim()) finalPatch.guardian_email = s3.guardian_email.trim()
+      if (s3.guardian_email.trim())
+        finalPatch.guardian_email = s3.guardian_email.trim()
       if (s3.guardian_relationship.trim())
         finalPatch.guardian_relationship = s3.guardian_relationship.trim()
       await patch(finalPatch)
       if (onComplete) onComplete()
       else navigate('/home')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not finish onboarding.')
+      setError(
+        err instanceof Error ? err.message : 'Could not finish onboarding.'
+      )
     } finally {
       setSubmitting(false)
     }
@@ -300,18 +353,23 @@ export function LearnerOnboardingWizard({
   }, [step])
 
   const toggleSubject = (subject: string) => {
-    setS2((prev) => {
+    setS2(prev => {
       const has = prev.subjects.includes(subject)
-      if (has) return { ...prev, subjects: prev.subjects.filter((s) => s !== subject) }
+      if (has)
+        return { ...prev, subjects: prev.subjects.filter(s => s !== subject) }
       if (prev.subjects.length >= MAX_SUBJECTS) return prev
       return { ...prev, subjects: [...prev.subjects, subject] }
     })
   }
 
   const toggleInterest = (interest: string) => {
-    setS3((prev) => {
+    setS3(prev => {
       const has = prev.interests.includes(interest)
-      if (has) return { ...prev, interests: prev.interests.filter((s) => s !== interest) }
+      if (has)
+        return {
+          ...prev,
+          interests: prev.interests.filter(s => s !== interest),
+        }
       if (prev.interests.length >= MAX_INTERESTS) return prev
       return { ...prev, interests: [...prev.interests, interest] }
     })
@@ -328,7 +386,9 @@ export function LearnerOnboardingWizard({
           <Text weight="semibold" size={500}>
             Welcome to Pathfinder
           </Text>
-          <Text size={300}>Tell us who you are so we can set up your learning plan.</Text>
+          <Text size={300}>
+            Tell us who you are so we can set up your learning plan.
+          </Text>
 
           <div className={styles.field}>
             <label htmlFor="onboarding-display-name">Your name</label>
@@ -336,7 +396,9 @@ export function LearnerOnboardingWizard({
               id="onboarding-display-name"
               data-testid="onboarding-display-name"
               value={s1.display_name}
-              onChange={(_e, data) => setS1({ ...s1, display_name: data.value })}
+              onChange={(_e, data) =>
+                setS1({ ...s1, display_name: data.value })
+              }
               maxLength={80}
             />
           </div>
@@ -346,10 +408,10 @@ export function LearnerOnboardingWizard({
             <select
               data-testid="onboarding-age-band"
               value={s1.age_band}
-              onChange={(e) => setS1({ ...s1, age_band: e.currentTarget.value })}
+              onChange={e => setS1({ ...s1, age_band: e.currentTarget.value })}
             >
               <option value="">— pick one —</option>
-              {AGE_BAND_OPTIONS.map((opt) => (
+              {AGE_BAND_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
@@ -358,7 +420,9 @@ export function LearnerOnboardingWizard({
           </label>
 
           <div className={styles.field}>
-            <label htmlFor="onboarding-locale">Locale (BCP-47, e.g. en-NG)</label>
+            <label htmlFor="onboarding-locale">
+              Locale (BCP-47, e.g. en-NG)
+            </label>
             <Input
               id="onboarding-locale"
               data-testid="onboarding-locale"
@@ -383,19 +447,25 @@ export function LearnerOnboardingWizard({
             data-testid="consent-checkbox-terms"
             label="I agree to the Wulo terms of service."
             checked={s1.terms}
-            onChange={(_e, data) => setS1({ ...s1, terms: Boolean(data.checked) })}
+            onChange={(_e, data) =>
+              setS1({ ...s1, terms: Boolean(data.checked) })
+            }
           />
           <Checkbox
             data-testid="consent-checkbox-privacy"
             label="I have read the privacy notice."
             checked={s1.privacy}
-            onChange={(_e, data) => setS1({ ...s1, privacy: Boolean(data.checked) })}
+            onChange={(_e, data) =>
+              setS1({ ...s1, privacy: Boolean(data.checked) })
+            }
           />
           <Checkbox
             data-testid="consent-checkbox-ai_notice"
             label="I understand Pathfinder uses AI to suggest activities and pathways."
             checked={s1.ai_notice}
-            onChange={(_e, data) => setS1({ ...s1, ai_notice: Boolean(data.checked) })}
+            onChange={(_e, data) =>
+              setS1({ ...s1, ai_notice: Boolean(data.checked) })
+            }
           />
           <Checkbox
             data-testid="consent-checkbox-analytics"
@@ -430,18 +500,20 @@ export function LearnerOnboardingWizard({
           <Text weight="semibold" size={500}>
             Your exam path
           </Text>
-          <Text size={300}>Pick the exam, year, and the subjects you’re working on.</Text>
+          <Text size={300}>
+            Pick the exam, year, and the subjects you’re working on.
+          </Text>
 
           <label className={styles.field}>
             <span>Exam</span>
             <select
               data-testid="onboarding-exam"
               value={s2.exam}
-              onChange={(e) =>
+              onChange={e =>
                 setS2({ ...s2, exam: e.currentTarget.value, subjects: [] })
               }
             >
-              {EXAM_OPTIONS.map((opt) => (
+              {EXAM_OPTIONS.map(opt => (
                 <option key={opt} value={opt}>
                   {opt}
                 </option>
@@ -454,9 +526,11 @@ export function LearnerOnboardingWizard({
             <select
               data-testid="onboarding-year-group"
               value={s2.year_group}
-              onChange={(e) => setS2({ ...s2, year_group: e.currentTarget.value })}
+              onChange={e =>
+                setS2({ ...s2, year_group: e.currentTarget.value })
+              }
             >
-              {YEAR_OPTIONS.map((opt) => (
+              {YEAR_OPTIONS.map(opt => (
                 <option key={opt} value={opt}>
                   {opt}
                 </option>
@@ -467,7 +541,7 @@ export function LearnerOnboardingWizard({
           <div className={styles.field}>
             <span>Subjects (up to {MAX_SUBJECTS})</span>
             <div className={styles.chipRow} data-testid="onboarding-subjects">
-              {availableSubjects.map((subject) => {
+              {availableSubjects.map(subject => {
                 const selected = s2.subjects.includes(subject)
                 return (
                   <button
@@ -518,7 +592,7 @@ export function LearnerOnboardingWizard({
           <div className={styles.field}>
             <span>Interests (up to {MAX_INTERESTS})</span>
             <div className={styles.chipRow} data-testid="onboarding-interests">
-              {INTEREST_OPTIONS.map((interest) => {
+              {INTEREST_OPTIONS.map(interest => {
                 const selected = s3.interests.includes(interest)
                 return (
                   <button
@@ -546,18 +620,24 @@ export function LearnerOnboardingWizard({
           />
 
           <div className={styles.field}>
-            <label htmlFor="onboarding-guardian-email">Guardian email (optional)</label>
+            <label htmlFor="onboarding-guardian-email">
+              Guardian email (optional)
+            </label>
             <Input
               id="onboarding-guardian-email"
               data-testid="onboarding-guardian-email"
               value={s3.guardian_email}
-              onChange={(_e, data) => setS3({ ...s3, guardian_email: data.value })}
+              onChange={(_e, data) =>
+                setS3({ ...s3, guardian_email: data.value })
+              }
               type="email"
             />
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="onboarding-guardian-relationship">Guardian relationship (optional)</label>
+            <label htmlFor="onboarding-guardian-relationship">
+              Guardian relationship (optional)
+            </label>
             <Input
               id="onboarding-guardian-relationship"
               data-testid="onboarding-guardian-relationship"

@@ -55,9 +55,7 @@ vi.mock('../services/api', () => ({
  * this to assert UI behaviour over the new wire protocol without rewriting
  * fixtures: the helper emits meta → token → artifacts → done in order.
  */
-function streamFromAskResponse(
-  res: ChatAskResponse
-): AsyncIterable<unknown> {
+function streamFromAskResponse(res: ChatAskResponse): AsyncIterable<unknown> {
   return (async function* () {
     yield {
       type: 'meta',

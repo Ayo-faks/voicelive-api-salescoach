@@ -193,7 +193,8 @@ const weakTopicProfile: WeakTopic[] = [
     label: 'Fraction operations',
     mastery: 61,
     gap: 'Choosing a common denominator under time pressure',
-    nextAction: 'Review one visual fraction bar, then answer three short questions.',
+    nextAction:
+      'Review one visual fraction bar, then answer three short questions.',
   },
   {
     skillId: 'reading-inference',
@@ -221,7 +222,8 @@ const dailyRevisionPlan: DailyPlanItem[] = [
     id: 'career-link',
     label: 'Career fit check',
     minutes: 3,
-    reason: 'Links today\'s strengths to future pathways without making promises.',
+    reason:
+      "Links today's strengths to future pathways without making promises.",
   },
 ]
 
@@ -251,28 +253,36 @@ const careerPathways: CareerPathway[] = [
 
 const diagnosticWrongAnswerExplanation: WrongAnswerExplanation = {
   correctAnswer: '6 cups',
-  whyWrong: '4 cups repeats the rice amount instead of scaling the water by the same factor.',
+  whyWrong:
+    '4 cups repeats the rice amount instead of scaling the water by the same factor.',
   conceptMissed: 'Equivalent ratios: both parts must change together.',
-  simplerExplanation: 'The rice doubled from 2 cups to 4 cups, so the water also doubles from 3 cups to 6 cups.',
-  similarQuestion: 'Try this: 1 cup rice needs 1.5 cups water. What do 2 cups rice need?',
-  revisionAction: 'Add ratio scaling to today\'s revision plan.',
+  simplerExplanation:
+    'The rice doubled from 2 cups to 4 cups, so the water also doubles from 3 cups to 6 cups.',
+  similarQuestion:
+    'Try this: 1 cup rice needs 1.5 cups water. What do 2 cups rice need?',
+  revisionAction: "Add ratio scaling to today's revision plan.",
 }
 
 const practiceWrongAnswerExplanation: WrongAnswerExplanation = {
   correctAnswer: '9 cups',
-  whyWrong: 'The rice changed from 2 cups to 6 cups, which is three times larger. The water must also be three times larger.',
+  whyWrong:
+    'The rice changed from 2 cups to 6 cups, which is three times larger. The water must also be three times larger.',
   conceptMissed: 'Scale factor in a ratio table.',
-  simplerExplanation: 'Find the multiplier first: 2 x 3 = 6. Then use the same multiplier for water: 3 x 3 = 9.',
-  similarQuestion: 'A recipe uses 4 cups water for 3 cups rice. How much water for 9 cups rice?',
-  revisionAction: 'Put one ratio-table card into tomorrow\'s spaced retrieval.',
+  simplerExplanation:
+    'Find the multiplier first: 2 x 3 = 6. Then use the same multiplier for water: 3 x 3 = 9.',
+  similarQuestion:
+    'A recipe uses 4 cups water for 3 cups rice. How much water for 9 cups rice?',
+  revisionAction: "Put one ratio-table card into tomorrow's spaced retrieval.",
 }
 
 const ratioScaffoldStep: DemoStep = {
   id: 'adaptive-ratio-scaffold',
   label: 'Adaptive',
   title: 'Same idea, smaller step',
-  prompt: 'Pathfinder noticed the ratio slip. If 1 cup rice needs 1.5 cups water, what do 2 cups rice need?',
-  helper: 'The next item changed from a new skill to a scaffolded ratio check so you can recover quickly.',
+  prompt:
+    'Pathfinder noticed the ratio slip. If 1 cup rice needs 1.5 cups water, what do 2 cups rice need?',
+  helper:
+    'The next item changed from a new skill to a scaffolded ratio check so you can recover quickly.',
   icon: CalculatorIcon,
   options: [
     { id: '2', label: '2 cups' },
@@ -286,7 +296,8 @@ const demoDiagnosticSteps: DemoStep[] = [
     id: 'numeracy-ratio',
     label: 'Numeracy',
     title: 'Quick ratio check',
-    prompt: '2 cups rice need 3 cups water. If you use 4 cups rice, how many cups water?',
+    prompt:
+      '2 cups rice need 3 cups water. If you use 4 cups rice, how many cups water?',
     helper: 'Choose the answer that keeps the same recipe balance.',
     icon: CalculatorIcon,
     options: [
@@ -305,7 +316,8 @@ const demoDiagnosticSteps: DemoStep[] = [
     id: 'reading-lamp',
     label: 'Reading',
     title: 'One short passage',
-    prompt: 'Amina charged the solar lamp before sunset so she could study after dinner. Why did she charge it early?',
+    prompt:
+      'Amina charged the solar lamp before sunset so she could study after dinner. Why did she charge it early?',
     helper: 'Read once, then choose the best reason.',
     icon: BookOpenIcon,
     options: [
@@ -318,12 +330,18 @@ const demoDiagnosticSteps: DemoStep[] = [
     id: 'voice-read-aloud',
     label: 'Voice',
     title: 'Read aloud',
-    prompt: 'Read aloud: The small solar lamp helped Amina finish her homework.',
-    helper: 'No marks here. Pathfinder queues the sample offline when voice is unavailable.',
+    prompt:
+      'Read aloud: The small solar lamp helped Amina finish her homework.',
+    helper:
+      'No marks here. Pathfinder queues the sample offline when voice is unavailable.',
     icon: MicrophoneIcon,
     voiceText: 'The small solar lamp helped Amina finish her homework.',
     options: [
-      { id: 'read-aloud', label: 'I read it aloud', meta: 'Save or queue sample' },
+      {
+        id: 'read-aloud',
+        label: 'I read it aloud',
+        meta: 'Save or queue sample',
+      },
     ],
   },
   {
@@ -360,7 +378,8 @@ const generatedPlanPractice: PracticeExercise = {
   planId: 'plan-jss2-ratio-recovery',
   planTitle: 'Teacher-approved ratio recovery plan',
   title: 'Bite-sized practice exercise',
-  prompt: 'A recipe uses 3 cups of water for 2 cups of rice. How many cups of water are needed for 6 cups of rice?',
+  prompt:
+    'A recipe uses 3 cups of water for 2 cups of rice. How many cups of water are needed for 6 cups of rice?',
   hint: 'This is the worked-example step from the approved 1-2 week plan: scale both parts by the same amount.',
   options: [
     { id: '6', label: '6 cups', meta: 'Same as rice' },
@@ -369,9 +388,24 @@ const generatedPlanPractice: PracticeExercise = {
     { id: '12', label: '12 cups', meta: 'Double again' },
   ],
   schedule: [
-    { id: 'same-day', label: 'Today', timing: '10 minutes after this exercise', focus: 'Try one similar ratio without the hint.' },
-    { id: 'tomorrow', label: 'Tomorrow', timing: 'Before the next maths lesson', focus: 'Answer a fresh recipe-ratio card.' },
-    { id: 'weekend', label: 'In 4 days', timing: 'Short weekend retrieval', focus: 'Mix ratio with fraction-bar review.' },
+    {
+      id: 'same-day',
+      label: 'Today',
+      timing: '10 minutes after this exercise',
+      focus: 'Try one similar ratio without the hint.',
+    },
+    {
+      id: 'tomorrow',
+      label: 'Tomorrow',
+      timing: 'Before the next maths lesson',
+      focus: 'Answer a fresh recipe-ratio card.',
+    },
+    {
+      id: 'weekend',
+      label: 'In 4 days',
+      timing: 'Short weekend retrieval',
+      focus: 'Mix ratio with fraction-bar review.',
+    },
   ],
 }
 
@@ -619,7 +653,8 @@ const useStyles = makeStyles({
     paddingLeft: '12px',
     paddingRight: '20px',
     borderRadius: t.radius.pill,
-    background: 'linear-gradient(140deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%)',
+    background:
+      'linear-gradient(140deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%)',
     color: t.brand.onInk,
     fontWeight: 700,
     fontSize: '0.92rem',
@@ -633,14 +668,16 @@ const useStyles = makeStyles({
     transitionProperty: 'transform, box-shadow, background-color, border-color',
     transitionDuration: '180ms',
     transitionTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
-    boxShadow: '0 6px 20px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.12)',
+    boxShadow:
+      '0 6px 20px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.12)',
     ':hover': {
       transform: 'translateY(-1px)',
       borderTopColor: 'rgba(255,255,255,0.4)',
       borderRightColor: 'rgba(255,255,255,0.4)',
       borderBottomColor: 'rgba(255,255,255,0.4)',
       borderLeftColor: 'rgba(255,255,255,0.4)',
-      boxShadow: '0 12px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
+      boxShadow:
+        '0 12px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
     },
     ':focus-visible': {
       outlineStyle: 'solid',
@@ -1473,17 +1510,23 @@ export default function StudentLearningHome({
   const [checkInActive, setCheckInActive] = useState(false)
   const [demoActive, setDemoActive] = useState(false)
   const [demoCompleted, setDemoCompleted] = useState(false)
-  const [demoStepQueue, setDemoStepQueue] = useState<DemoStep[]>(demoDiagnosticSteps)
+  const [demoStepQueue, setDemoStepQueue] =
+    useState<DemoStep[]>(demoDiagnosticSteps)
   const [demoStepIndex, setDemoStepIndex] = useState(0)
   const [demoAnswers, setDemoAnswers] = useState<DemoAnswer[]>([])
   const [demoSyncNote, setDemoSyncNote] = useState<string | null>(null)
-  const [adaptiveMoment, setAdaptiveMoment] = useState<AdaptiveMoment | null>(null)
+  const [adaptiveMoment, setAdaptiveMoment] = useState<AdaptiveMoment | null>(
+    null
+  )
   const [demoVoiceBusy, setDemoVoiceBusy] = useState(false)
-  const [practiceAnswer, setPracticeAnswer] = useState<PracticeAnswer | null>(null)
+  const [practiceAnswer, setPracticeAnswer] = useState<PracticeAnswer | null>(
+    null
+  )
   const [practiceOpen, setPracticeOpen] = useState(false)
   const [tutorOpen, setTutorOpen] = useState(false)
   const [expandedStepId, setExpandedStepId] = useState<string | null>(null)
-  const [wrongAnswerExplanation, setWrongAnswerExplanation] = useState<WrongAnswerExplanation | null>(null)
+  const [wrongAnswerExplanation, setWrongAnswerExplanation] =
+    useState<WrongAnswerExplanation | null>(null)
   const [revisionPlanAdded, setRevisionPlanAdded] = useState(false)
   const pushSubscription = usePushSubscription({
     userId: studentId ?? 'demo-student',
@@ -1491,11 +1534,18 @@ export default function StudentLearningHome({
   })
   const [shareStatus, setShareStatus] = useState<string | null>(null)
   const [completed, setCompleted] = useState(false)
-  const [voiceConfig, setVoiceConfig] = useState<VoiceConfigResponse | null>(null)
-  const [voiceResult, setVoiceResult] = useState<VoiceFrameResponse | null>(null)
+  const [voiceConfig, setVoiceConfig] = useState<VoiceConfigResponse | null>(
+    null
+  )
+  const [voiceResult, setVoiceResult] = useState<VoiceFrameResponse | null>(
+    null
+  )
   const [voiceError, setVoiceError] = useState<string | null>(null)
   const [voiceBusy, setVoiceBusy] = useState(false)
-  const [lastSession, setLastSession] = useState<{ topicLabel: string; correct: boolean } | null>(null)
+  const [lastSession, setLastSession] = useState<{
+    topicLabel: string
+    correct: boolean
+  } | null>(null)
   const today = new Date('2026-05-21')
   const formatted = today.toLocaleDateString('en-GB', {
     weekday: 'long',
@@ -1510,7 +1560,12 @@ export default function StudentLearningHome({
         if (!cancelled) setVoiceConfig(cfg)
       })
       .catch(() => {
-        if (!cancelled) setVoiceConfig({ enabled: false, transport: 'flask-sock', offline_fallback: 'queued_multilingual_voice_frame' })
+        if (!cancelled)
+          setVoiceConfig({
+            enabled: false,
+            transport: 'flask-sock',
+            offline_fallback: 'queued_multilingual_voice_frame',
+          })
       })
     return () => {
       cancelled = true
@@ -1519,15 +1574,26 @@ export default function StudentLearningHome({
 
   useEffect(() => {
     try {
-      const demoRaw = window.localStorage.getItem('pathfinder-demo-diagnostic:last')
+      const demoRaw = window.localStorage.getItem(
+        'pathfinder-demo-diagnostic:last'
+      )
       if (demoRaw) {
-        const parsed = JSON.parse(demoRaw) as { answers?: Array<{ stepId?: string; correct?: boolean }> }
+        const parsed = JSON.parse(demoRaw) as {
+          answers?: Array<{ stepId?: string; correct?: boolean }>
+        }
         const answers = Array.isArray(parsed.answers) ? parsed.answers : []
-        const lastAnswered = [...answers].reverse().find(a => a && typeof a.stepId === 'string')
+        const lastAnswered = [...answers]
+          .reverse()
+          .find(a => a && typeof a.stepId === 'string')
         if (lastAnswered) {
-          const step = demoDiagnosticSteps.find(s => s.id === lastAnswered.stepId)
+          const step = demoDiagnosticSteps.find(
+            s => s.id === lastAnswered.stepId
+          )
           if (step) {
-            setLastSession({ topicLabel: step.title, correct: Boolean(lastAnswered.correct) })
+            setLastSession({
+              topicLabel: step.title,
+              correct: Boolean(lastAnswered.correct),
+            })
           }
         }
       }
@@ -1576,12 +1642,17 @@ export default function StudentLearningHome({
     }
   }
 
-  async function handleDemoAnswer(step: DemoStep, option: DemoStep['options'][number]) {
+  async function handleDemoAnswer(
+    step: DemoStep,
+    option: DemoStep['options'][number]
+  ) {
     const canScoreStep = step.options.some(candidate => candidate.correct)
-    const shouldAdapt = canScoreStep && !option.correct && Boolean(step.adaptation)
+    const shouldAdapt =
+      canScoreStep && !option.correct && Boolean(step.adaptation)
     let nextQueue = demoStepQueue
     if (shouldAdapt && step.adaptation) {
-      const nextStepAlreadyInserted = demoStepQueue[demoStepIndex + 1]?.id === step.adaptation.nextStep.id
+      const nextStepAlreadyInserted =
+        demoStepQueue[demoStepIndex + 1]?.id === step.adaptation.nextStep.id
       nextQueue = nextStepAlreadyInserted
         ? demoStepQueue
         : [
@@ -1590,7 +1661,10 @@ export default function StudentLearningHome({
             ...demoStepQueue.slice(demoStepIndex + 1),
           ]
       setDemoStepQueue(nextQueue)
-      setAdaptiveMoment({ title: step.adaptation.title, body: step.adaptation.body })
+      setAdaptiveMoment({
+        title: step.adaptation.title,
+        body: step.adaptation.body,
+      })
       setWrongAnswerExplanation(diagnosticWrongAnswerExplanation)
     } else {
       setAdaptiveMoment(null)
@@ -1620,10 +1694,14 @@ export default function StudentLearningHome({
           answerRecord.syncStatus = 'sent'
           setDemoSyncNote('Voice sample saved for teacher review.')
         } else {
-          setDemoSyncNote('Voice sample queued locally and will sync when voice is available.')
+          setDemoSyncNote(
+            'Voice sample queued locally and will sync when voice is available.'
+          )
         }
       } catch {
-        setDemoSyncNote('Voice sample queued locally and will sync when connection returns.')
+        setDemoSyncNote(
+          'Voice sample queued locally and will sync when connection returns.'
+        )
       } finally {
         setDemoVoiceBusy(false)
       }
@@ -1645,7 +1723,7 @@ export default function StudentLearningHome({
       const result = await submitVoiceFrame({
         actor_id: studentId ?? undefined,
         mode: 'text',
-        payload: "Bawo ni teacher, I want to practise ratio.",
+        payload: 'Bawo ni teacher, I want to practise ratio.',
         lang: 'en-NG',
       })
       setVoiceResult(result)
@@ -1697,7 +1775,9 @@ export default function StudentLearningHome({
           addedAt: new Date().toISOString(),
           setup: learnerSetup,
           weakness: wrongAnswerExplanation?.conceptMissed ?? 'Ratio scaling',
-          action: wrongAnswerExplanation?.revisionAction ?? 'Add to daily revision plan.',
+          action:
+            wrongAnswerExplanation?.revisionAction ??
+            'Add to daily revision plan.',
         })
       )
     } catch {
@@ -1708,7 +1788,8 @@ export default function StudentLearningHome({
     const topicId = generatedPlanPractice.planId
     const now = Date.now()
     const minutes = (m: number) => new Date(now + m * 60_000).toISOString()
-    const days = (d: number) => new Date(now + d * 24 * 60 * 60_000).toISOString()
+    const days = (d: number) =>
+      new Date(now + d * 24 * 60 * 60_000).toISOString()
     const dueByLabel: Record<string, string> = {
       Today: minutes(10),
       Tomorrow: days(1),
@@ -1763,78 +1844,114 @@ export default function StudentLearningHome({
         <article className={styles.hero}>
           <div className={styles.heroLayout}>
             <div className={styles.heroLeft}>
-          <span className={styles.heroEyebrow}>
-            <SparklesIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
-            Pathfinder · ready when you are · {formatted}
-          </span>
-          <h1 className={styles.heroTitle} data-testid="learner-hero-title">
-            {learnerSetup.firstName.trim()
-              ? `Hey ${learnerSetup.firstName.trim()} 👋 — back for another go?`
-              : 'Hey there 👋 — ready when you are.'}
-          </h1>
-          <p className={styles.heroSub} data-testid="learner-hero-sub">
-            {(() => {
-              const name = learnerSetup.firstName.trim()
-              if (name && lastSession) {
-                const verb = lastSession.correct ? 'nailed' : 'wrestled with'
-                const tail = lastSession.correct
-                  ? 'Want to push a level up, or warm up first?'
-                  : 'Want 3 quick minutes on that, or shall I pick something fresh?'
-                return `Last time we ${verb} ${lastSession.topicLabel.toLowerCase()}. ${tail} 😉`
-              }
-              if (name) {
-                return `Last time we wrestled with ${weakTopicProfile[0].label.toLowerCase()} and almost cracked it. Want 3 quick minutes on that, or shall I pick something fresh? 😉`
-              }
-              return `Tell me your name and I’ll remember where we left off. For now — want to crack a super-mathy ${learnerSetup.subject.toLowerCase()} goal together? 😉`
-            })()}
-            {' '}Your {learnerSetup.exam} {learnerSetup.subject} path is 42% mastered.
-          </p>
-          <div className={styles.heroPills}>
-            <span className={styles.heroPill}>
-              <BoltIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
-              7-day streak
-            </span>
-            <span className={styles.heroPill} data-testid="offline-ready-pill">
-              <WifiIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
-              Works offline
-            </span>
-            <span className={styles.heroPill}>{learnerSetup.year} · {learnerSetup.subject}</span>
-          </div>
-          <div className={styles.heroActions}>
-            <button
-              type="button"
-              className={styles.heroCta}
-              onClick={startDemoDiagnostic}
-              data-testid="start-checkin"
-            >
-              <PlayCircleIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
-              Pick up where we left off
-              <ArrowRightIcon style={{ width: 16, height: 16 }} aria-hidden="true" />
-            </button>
-          </div>
-          {voiceConfig?.enabled && (
-            <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <button
-                type="button"
-                className={styles.voiceButton}
-                onClick={startVoiceCheckIn}
-                disabled={voiceBusy}
-                data-testid="start-voice-checkin"
-              >
-                {voiceBusy ? 'Preparing voice check-in…' : 'Voice check-in'}
-              </button>
-              {voiceResult && (
-                <div data-testid="voice-frame-result" style={{ fontSize: '0.8rem', opacity: 0.85 }}>
-                  Voice response saved for sync.
+              <span className={styles.heroEyebrow}>
+                <SparklesIcon
+                  style={{ width: 14, height: 14 }}
+                  aria-hidden="true"
+                />
+                Pathfinder · ready when you are · {formatted}
+              </span>
+              <h1 className={styles.heroTitle} data-testid="learner-hero-title">
+                {learnerSetup.firstName.trim()
+                  ? `Hey ${learnerSetup.firstName.trim()} 👋 — back for another go?`
+                  : 'Hey there 👋 — ready when you are.'}
+              </h1>
+              <p className={styles.heroSub} data-testid="learner-hero-sub">
+                {(() => {
+                  const name = learnerSetup.firstName.trim()
+                  if (name && lastSession) {
+                    const verb = lastSession.correct
+                      ? 'nailed'
+                      : 'wrestled with'
+                    const tail = lastSession.correct
+                      ? 'Want to push a level up, or warm up first?'
+                      : 'Want 3 quick minutes on that, or shall I pick something fresh?'
+                    return `Last time we ${verb} ${lastSession.topicLabel.toLowerCase()}. ${tail} 😉`
+                  }
+                  if (name) {
+                    return `Last time we wrestled with ${weakTopicProfile[0].label.toLowerCase()} and almost cracked it. Want 3 quick minutes on that, or shall I pick something fresh? 😉`
+                  }
+                  return `Tell me your name and I’ll remember where we left off. For now — want to crack a super-mathy ${learnerSetup.subject.toLowerCase()} goal together? 😉`
+                })()}{' '}
+                Your {learnerSetup.exam} {learnerSetup.subject} path is 42%
+                mastered.
+              </p>
+              <div className={styles.heroPills}>
+                <span className={styles.heroPill}>
+                  <BoltIcon
+                    style={{ width: 14, height: 14 }}
+                    aria-hidden="true"
+                  />
+                  7-day streak
+                </span>
+                <span
+                  className={styles.heroPill}
+                  data-testid="offline-ready-pill"
+                >
+                  <WifiIcon
+                    style={{ width: 14, height: 14 }}
+                    aria-hidden="true"
+                  />
+                  Works offline
+                </span>
+                <span className={styles.heroPill}>
+                  {learnerSetup.year} · {learnerSetup.subject}
+                </span>
+              </div>
+              <div className={styles.heroActions}>
+                <button
+                  type="button"
+                  className={styles.heroCta}
+                  onClick={startDemoDiagnostic}
+                  data-testid="start-checkin"
+                >
+                  <PlayCircleIcon
+                    style={{ width: 18, height: 18 }}
+                    aria-hidden="true"
+                  />
+                  Pick up where we left off
+                  <ArrowRightIcon
+                    style={{ width: 16, height: 16 }}
+                    aria-hidden="true"
+                  />
+                </button>
+              </div>
+              {voiceConfig?.enabled && (
+                <div
+                  style={{
+                    marginTop: 12,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8,
+                  }}
+                >
+                  <button
+                    type="button"
+                    className={styles.voiceButton}
+                    onClick={startVoiceCheckIn}
+                    disabled={voiceBusy}
+                    data-testid="start-voice-checkin"
+                  >
+                    {voiceBusy ? 'Preparing voice check-in…' : 'Voice check-in'}
+                  </button>
+                  {voiceResult && (
+                    <div
+                      data-testid="voice-frame-result"
+                      style={{ fontSize: '0.8rem', opacity: 0.85 }}
+                    >
+                      Voice response saved for sync.
+                    </div>
+                  )}
+                  {voiceError && (
+                    <div
+                      data-testid="voice-frame-error"
+                      style={{ fontSize: '0.8rem', color: '#ffb4b4' }}
+                    >
+                      Voice unavailable: {voiceError}
+                    </div>
+                  )}
                 </div>
               )}
-              {voiceError && (
-                <div data-testid="voice-frame-error" style={{ fontSize: '0.8rem', color: '#ffb4b4' }}>
-                  Voice unavailable: {voiceError}
-                </div>
-              )}
-            </div>
-          )}
             </div>
             {learnerTutorEnabled ? (
               <button
@@ -1847,8 +1964,12 @@ export default function StudentLearningHome({
                 <span className={styles.heroOrbBigHalo} aria-hidden="true" />
                 <span className={styles.heroOrbBig} aria-hidden="true" />
                 <span className={styles.heroOrbCaption}>
-                  <span className={styles.heroOrbCaptionTitle}>Talk to your tutor</span>
-                  <span className={styles.heroOrbCaptionHint}>Live voice · tap to start</span>
+                  <span className={styles.heroOrbCaptionTitle}>
+                    Talk to your tutor
+                  </span>
+                  <span className={styles.heroOrbCaptionHint}>
+                    Live voice · tap to start
+                  </span>
                 </span>
               </button>
             ) : null}
@@ -1860,7 +1981,8 @@ export default function StudentLearningHome({
             <div>
               <Text className={styles.cardTitle}>Choose your exam path</Text>
               <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
-                Select exam, class/year, and subject before the short diagnostic starts.
+                Select exam, class/year, and subject before the short diagnostic
+                starts.
               </p>
             </div>
           </div>
@@ -1877,270 +1999,390 @@ export default function StudentLearningHome({
             </div>
           ) : (
             <div className={styles.setupGrid}>
-            <label className={styles.selectField}>
-              <span className={styles.selectLabel}>Your name (optional)</span>
-              <input
-                className={styles.select}
-                type="text"
-                value={learnerSetup.firstName}
-                onChange={event => updateLearnerSetup('firstName', event.currentTarget.value)}
-                placeholder="e.g. Tomi"
-                aria-label="Your first name"
-                maxLength={40}
-                data-testid="learner-first-name"
-              />
-            </label>
-            <label className={styles.selectField}>
-              <span className={styles.selectLabel}>Exam</span>
-              <select
-                className={styles.select}
-                value={learnerSetup.exam}
-                onChange={event => updateLearnerSetup('exam', event.currentTarget.value)}
-                aria-label="Select exam"
-              >
-                {examOptions.map(option => <option key={option} value={option}>{option}</option>)}
-              </select>
-            </label>
-            <label className={styles.selectField}>
-              <span className={styles.selectLabel}>Class / year</span>
-              <select
-                className={styles.select}
-                value={learnerSetup.year}
-                onChange={event => updateLearnerSetup('year', event.currentTarget.value)}
-                aria-label="Select class or year"
-              >
-                {yearOptions.map(option => <option key={option} value={option}>{option}</option>)}
-              </select>
-            </label>
-            <label className={styles.selectField}>
-              <span className={styles.selectLabel}>Subject area</span>
-              <select
-                className={styles.select}
-                value={learnerSetup.subject}
-                onChange={event => updateLearnerSetup('subject', event.currentTarget.value)}
-                aria-label="Select subject"
-              >
-                {subjectOptions.map(option => <option key={option} value={option}>{option}</option>)}
-              </select>
-            </label>
-          </div>
+              <label className={styles.selectField}>
+                <span className={styles.selectLabel}>Your name (optional)</span>
+                <input
+                  className={styles.select}
+                  type="text"
+                  value={learnerSetup.firstName}
+                  onChange={event =>
+                    updateLearnerSetup('firstName', event.currentTarget.value)
+                  }
+                  placeholder="e.g. Tomi"
+                  aria-label="Your first name"
+                  maxLength={40}
+                  data-testid="learner-first-name"
+                />
+              </label>
+              <label className={styles.selectField}>
+                <span className={styles.selectLabel}>Exam</span>
+                <select
+                  className={styles.select}
+                  value={learnerSetup.exam}
+                  onChange={event =>
+                    updateLearnerSetup('exam', event.currentTarget.value)
+                  }
+                  aria-label="Select exam"
+                >
+                  {examOptions.map(option => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className={styles.selectField}>
+                <span className={styles.selectLabel}>Class / year</span>
+                <select
+                  className={styles.select}
+                  value={learnerSetup.year}
+                  onChange={event =>
+                    updateLearnerSetup('year', event.currentTarget.value)
+                  }
+                  aria-label="Select class or year"
+                >
+                  {yearOptions.map(option => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className={styles.selectField}>
+                <span className={styles.selectLabel}>Subject area</span>
+                <select
+                  className={styles.select}
+                  value={learnerSetup.subject}
+                  onChange={event =>
+                    updateLearnerSetup('subject', event.currentTarget.value)
+                  }
+                  aria-label="Select subject"
+                >
+                  {subjectOptions.map(option => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
           )}
         </article>
 
-        {demoActive && (() => {
-          const step = demoStepQueue[demoStepIndex] ?? demoDiagnosticSteps[0]
-          const StepIcon = step.icon
-          return (
-            <article className={styles.demoCard} data-testid="short-demo-diagnostic">
-              <div className={styles.demoHeader}>
-                <div>
-                  <Text className={styles.demoTitle}>3-5 minute demo diagnostic</Text>
-                  <p className={styles.demoHelper}>Five short signals. Keyboard, mouse, or touch. Works offline.</p>
-                </div>
-                <div className={styles.demoProgress} aria-label="Demo diagnostic progress">
-                  {demoStepQueue.map((item, index) => (
-                    <span
-                      key={item.id}
-                      className={index <= demoStepIndex ? styles.demoDotActive : styles.demoDot}
-                      data-testid={`demo-progress-${index + 1}`}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div className={styles.demoInteractionGrid}>
-                <div className={styles.demoPromptStack}>
-                  <div className={styles.demoPromptCard}>
-                    <div className={styles.demoPromptHeader}>
-                      <div className={styles.demoPromptIcon} aria-hidden="true">
-                        <StepIcon style={{ width: 24, height: 24 }} />
-                      </div>
-                      <div>
-                        <span className={styles.softBadge}>{step.label}</span>
-                        <Text className={styles.cardTitle}>{step.title}</Text>
-                      </div>
-                    </div>
-                    <p className={styles.demoPrompt}>{step.prompt}</p>
-                    <p className={styles.demoHelper}>{step.helper}</p>
-                  </div>
-
-                  {adaptiveMoment && (
-                    <div className={styles.adaptiveMoment} data-testid="adaptive-moment">
-                      <span className={styles.softBadge}>Adaptive moment</span>
-                      <Text className={styles.cardTitle}>{adaptiveMoment.title}</Text>
-                      <p className={styles.adaptiveMomentBody}>{adaptiveMoment.body}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className={styles.demoOptions}>
-                  {step.options.map(option => (
-                    <button
-                      key={option.id}
-                      type="button"
-                      className={styles.demoOption}
-                      onClick={() => void handleDemoAnswer(step, option)}
-                      disabled={demoVoiceBusy}
-                    >
-                      <span>{option.label}</span>
-                      <span className={styles.demoOptionMeta}>{option.meta ?? 'Select'}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className={styles.demoFooter}>
-                <span data-testid="demo-step-count">Step {demoStepIndex + 1} of {demoStepQueue.length}</span>
-                <span>{demoSyncNote ?? 'Saved locally first, synced when online.'}</span>
-              </div>
-            </article>
-          )
-        })()}
-
-              {demoCompleted && (
-                <article className={styles.demoCard} data-testid="short-demo-complete">
-                  <div className={styles.demoCompleteGrid}>
-                    <Text className={styles.demoTitle}>Demo diagnostic complete</Text>
+        {demoActive &&
+          (() => {
+            const step = demoStepQueue[demoStepIndex] ?? demoDiagnosticSteps[0]
+            const StepIcon = step.icon
+            return (
+              <article
+                className={styles.demoCard}
+                data-testid="short-demo-diagnostic"
+              >
+                <div className={styles.demoHeader}>
+                  <div>
+                    <Text className={styles.demoTitle}>
+                      3-5 minute demo diagnostic
+                    </Text>
                     <p className={styles.demoHelper}>
-                      Numeracy, reading, voice, subject knowledge, and career interest signals are saved locally for teacher review.
+                      Five short signals. Keyboard, mouse, or touch. Works
+                      offline.
                     </p>
-                    <div className={styles.demoProgress}>
-                      {demoAnswers.map(answer => (
-                        <span key={`${answer.stepId}-${answer.optionId}`} className={styles.softBadge}>
-                          {answer.label}
+                  </div>
+                  <div
+                    className={styles.demoProgress}
+                    aria-label="Demo diagnostic progress"
+                  >
+                    {demoStepQueue.map((item, index) => (
+                      <span
+                        key={item.id}
+                        className={
+                          index <= demoStepIndex
+                            ? styles.demoDotActive
+                            : styles.demoDot
+                        }
+                        data-testid={`demo-progress-${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className={styles.demoInteractionGrid}>
+                  <div className={styles.demoPromptStack}>
+                    <div className={styles.demoPromptCard}>
+                      <div className={styles.demoPromptHeader}>
+                        <div
+                          className={styles.demoPromptIcon}
+                          aria-hidden="true"
+                        >
+                          <StepIcon style={{ width: 24, height: 24 }} />
+                        </div>
+                        <div>
+                          <span className={styles.softBadge}>{step.label}</span>
+                          <Text className={styles.cardTitle}>{step.title}</Text>
+                        </div>
+                      </div>
+                      <p className={styles.demoPrompt}>{step.prompt}</p>
+                      <p className={styles.demoHelper}>{step.helper}</p>
+                    </div>
+
+                    {adaptiveMoment && (
+                      <div
+                        className={styles.adaptiveMoment}
+                        data-testid="adaptive-moment"
+                      >
+                        <span className={styles.softBadge}>
+                          Adaptive moment
                         </span>
-                      ))}
-                    </div>
-                  </div>
-                </article>
-              )}
-
-              {checkInActive && (activeSkill !== null || panelKey > 0) && (
-                <DiagnosticPanel
-                  key={panelKey}
-                  skillId={activeSkill ?? undefined}
-                  studentId={studentId}
-                  onCompleted={() => setCompleted(true)}
-                />
-              )}
-
-              {completed && (
-                <div className={styles.banner} data-testid="diagnostic-pending-banner">
-                  <SparklesIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
-                  Plan suggestion sent to your teacher for approval.
-                </div>
-              )}
-
-              <div className={styles.banner}>
-                <WifiIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
-                Yoruba voice practice is ready and will sync when connection returns.
-              </div>
-
-              <article className={styles.card} data-testid="weak-topic-profile">
-                <div className={styles.cardHeader}>
-                  <div>
-                    <Text className={styles.cardTitle}>Weak-topic profile</Text>
-                    <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
-                      Pathfinder turns the diagnostic into the next best topics to repair.
-                    </p>
-                  </div>
-                  <span className={styles.softBadge}>After diagnostic</span>
-                </div>
-                <div className={styles.insightGrid}>
-                  {weakTopicProfile.map(topic => (
-                    <div key={topic.skillId} className={styles.insightCard}>
-                      <span className={styles.weekLabel}>{topic.mastery}% mastered</span>
-                      <Text className={styles.cardTitle}>{topic.label}</Text>
-                      <div className={styles.meterTrack} aria-label={`${topic.label} mastery`}>
-                        <span className={styles.meterFill} style={{ width: `${topic.mastery}%` }} />
+                        <Text className={styles.cardTitle}>
+                          {adaptiveMoment.title}
+                        </Text>
+                        <p className={styles.adaptiveMomentBody}>
+                          {adaptiveMoment.body}
+                        </p>
                       </div>
-                      <span className={styles.demoHelper}>{topic.gap}</span>
-                      <button type="button" className={styles.textAction} onClick={() => startCheckIn(topic.skillId)}>
-                        Practise this topic
+                    )}
+                  </div>
+
+                  <div className={styles.demoOptions}>
+                    {step.options.map(option => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        className={styles.demoOption}
+                        onClick={() => void handleDemoAnswer(step, option)}
+                        disabled={demoVoiceBusy}
+                      >
+                        <span>{option.label}</span>
+                        <span className={styles.demoOptionMeta}>
+                          {option.meta ?? 'Select'}
+                        </span>
                       </button>
-                    </div>
-                  ))}
-                </div>
-              </article>
-
-              <article className={styles.card} data-testid="daily-revision-plan">
-                <div className={styles.cardHeader}>
-                  <div>
-                    <Text className={styles.cardTitle}>Daily revision plan</Text>
-                    <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
-                      Built from weak topics, wrong answers, and the selected exam path.
-                    </p>
+                    ))}
                   </div>
-                  <span className={styles.softBadge}>12 min today</span>
                 </div>
-                <div className={styles.planGrid}>
-                  {dailyRevisionPlan.map(item => (
-                    <div key={item.id} className={styles.insightCard}>
-                      <span className={styles.weekLabel}>{item.minutes} min</span>
-                      <Text className={styles.cardTitle}>{item.label}</Text>
-                      <span className={styles.demoHelper}>{item.reason}</span>
-                    </div>
-                  ))}
-                  {revisionPlanAdded && (
-                    <div className={styles.insightCard} data-testid="revision-plan-added">
-                      <span className={styles.weekLabel}>Added from mistake</span>
-                      <Text className={styles.cardTitle}>Ratio table repair</Text>
-                      <span className={styles.demoHelper}>One similar question has been added to tomorrow's retrieval slot.</span>
-                    </div>
-                  )}
-                </div>
-              </article>
 
-              <article className={styles.card} data-testid="career-pathway-suggestions">
-                <div className={styles.cardHeader}>
-                  <div>
-                    <Text className={styles.cardTitle}>Pathways linked to strengths</Text>
-                    <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
-                      Guidance stays exploratory: strengths, gaps, and what to work on next.
-                    </p>
-                  </div>
-                  <span className={styles.softBadge}>Exploratory guidance</span>
-                </div>
-                <div className={styles.pathwayGrid}>
-                  {careerPathways.map(pathway => (
-                    <div key={pathway.id} className={styles.pathwayCard}>
-                      <div className={styles.pathIcon} aria-hidden="true">
-                        <BriefcaseIcon style={{ width: 20, height: 20 }} />
-                      </div>
-                      <div className={styles.pathTitle}>
-                        <span className={styles.pathTitleText}>{pathway.title}</span>
-                        <span className={styles.pathMeta}>Strength: {pathway.strength}</span>
-                        <span className={styles.pathMeta}>Gap to close: {pathway.gap}</span>
-                      </div>
-                      <span className={styles.softBadge}>{pathway.fit}% fit</span>
-                    </div>
-                  ))}
+                <div className={styles.demoFooter}>
+                  <span data-testid="demo-step-count">
+                    Step {demoStepIndex + 1} of {demoStepQueue.length}
+                  </span>
+                  <span>
+                    {demoSyncNote ?? 'Saved locally first, synced when online.'}
+                  </span>
                 </div>
               </article>
+            )
+          })()}
+
+        {demoCompleted && (
+          <article
+            className={styles.demoCard}
+            data-testid="short-demo-complete"
+          >
+            <div className={styles.demoCompleteGrid}>
+              <Text className={styles.demoTitle}>Demo diagnostic complete</Text>
+              <p className={styles.demoHelper}>
+                Numeracy, reading, voice, subject knowledge, and career interest
+                signals are saved locally for teacher review.
+              </p>
+              <div className={styles.demoProgress}>
+                {demoAnswers.map(answer => (
+                  <span
+                    key={`${answer.stepId}-${answer.optionId}`}
+                    className={styles.softBadge}
+                  >
+                    {answer.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </article>
+        )}
+
+        {checkInActive && (activeSkill !== null || panelKey > 0) && (
+          <DiagnosticPanel
+            key={panelKey}
+            skillId={activeSkill ?? undefined}
+            studentId={studentId}
+            onCompleted={() => setCompleted(true)}
+          />
+        )}
+
+        {completed && (
+          <div
+            className={styles.banner}
+            data-testid="diagnostic-pending-banner"
+          >
+            <SparklesIcon
+              style={{ width: 18, height: 18 }}
+              aria-hidden="true"
+            />
+            Plan suggestion sent to your teacher for approval.
+          </div>
+        )}
+
+        <div className={styles.banner}>
+          <WifiIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+          Yoruba voice practice is ready and will sync when connection returns.
+        </div>
+
+        <article className={styles.card} data-testid="weak-topic-profile">
+          <div className={styles.cardHeader}>
+            <div>
+              <Text className={styles.cardTitle}>Weak-topic profile</Text>
+              <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
+                Pathfinder turns the diagnostic into the next best topics to
+                repair.
+              </p>
+            </div>
+            <span className={styles.softBadge}>After diagnostic</span>
+          </div>
+          <div className={styles.insightGrid}>
+            {weakTopicProfile.map(topic => (
+              <div key={topic.skillId} className={styles.insightCard}>
+                <span className={styles.weekLabel}>
+                  {topic.mastery}% mastered
+                </span>
+                <Text className={styles.cardTitle}>{topic.label}</Text>
+                <div
+                  className={styles.meterTrack}
+                  aria-label={`${topic.label} mastery`}
+                >
+                  <span
+                    className={styles.meterFill}
+                    style={{ width: `${topic.mastery}%` }}
+                  />
+                </div>
+                <span className={styles.demoHelper}>{topic.gap}</span>
+                <button
+                  type="button"
+                  className={styles.textAction}
+                  onClick={() => startCheckIn(topic.skillId)}
+                >
+                  Practise this topic
+                </button>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className={styles.card} data-testid="daily-revision-plan">
+          <div className={styles.cardHeader}>
+            <div>
+              <Text className={styles.cardTitle}>Daily revision plan</Text>
+              <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
+                Built from weak topics, wrong answers, and the selected exam
+                path.
+              </p>
+            </div>
+            <span className={styles.softBadge}>12 min today</span>
+          </div>
+          <div className={styles.planGrid}>
+            {dailyRevisionPlan.map(item => (
+              <div key={item.id} className={styles.insightCard}>
+                <span className={styles.weekLabel}>{item.minutes} min</span>
+                <Text className={styles.cardTitle}>{item.label}</Text>
+                <span className={styles.demoHelper}>{item.reason}</span>
+              </div>
+            ))}
+            {revisionPlanAdded && (
+              <div
+                className={styles.insightCard}
+                data-testid="revision-plan-added"
+              >
+                <span className={styles.weekLabel}>Added from mistake</span>
+                <Text className={styles.cardTitle}>Ratio table repair</Text>
+                <span className={styles.demoHelper}>
+                  One similar question has been added to tomorrow's retrieval
+                  slot.
+                </span>
+              </div>
+            )}
+          </div>
+        </article>
+
+        <article
+          className={styles.card}
+          data-testid="career-pathway-suggestions"
+        >
+          <div className={styles.cardHeader}>
+            <div>
+              <Text className={styles.cardTitle}>
+                Pathways linked to strengths
+              </Text>
+              <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
+                Guidance stays exploratory: strengths, gaps, and what to work on
+                next.
+              </p>
+            </div>
+            <span className={styles.softBadge}>Exploratory guidance</span>
+          </div>
+          <div className={styles.pathwayGrid}>
+            {careerPathways.map(pathway => (
+              <div key={pathway.id} className={styles.pathwayCard}>
+                <div className={styles.pathIcon} aria-hidden="true">
+                  <BriefcaseIcon style={{ width: 20, height: 20 }} />
+                </div>
+                <div className={styles.pathTitle}>
+                  <span className={styles.pathTitleText}>{pathway.title}</span>
+                  <span className={styles.pathMeta}>
+                    Strength: {pathway.strength}
+                  </span>
+                  <span className={styles.pathMeta}>
+                    Gap to close: {pathway.gap}
+                  </span>
+                </div>
+                <span className={styles.softBadge}>{pathway.fit}% fit</span>
+              </div>
+            ))}
+          </div>
+        </article>
 
         <article className={styles.card} data-testid="parent-share-summary">
           <div className={styles.cardHeader}>
             <div>
               <Text className={styles.cardTitle}>Parent progress summary</Text>
               <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
-                A short shareable update for parents or guardians, built for WhatsApp.
+                A short shareable update for parents or guardians, built for
+                WhatsApp.
               </p>
             </div>
-            <DocumentTextIcon style={{ width: 26, height: 26, color: t.brand.text }} aria-hidden="true" />
+            <DocumentTextIcon
+              style={{ width: 26, height: 26, color: t.brand.text }}
+              aria-hidden="true"
+            />
           </div>
           <div className={styles.sharePanel}>
-            <p className={styles.demoHelper} style={{ margin: 0 }}>{parentSummaryText}</p>
+            <p className={styles.demoHelper} style={{ margin: 0 }}>
+              {parentSummaryText}
+            </p>
             <div className={styles.shareActions}>
-              <button type="button" className={styles.careerAction} onClick={handleParentShare}>
-                <ShareIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+              <button
+                type="button"
+                className={styles.careerAction}
+                onClick={handleParentShare}
+              >
+                <ShareIcon
+                  style={{ width: 18, height: 18 }}
+                  aria-hidden="true"
+                />
                 Prepare parent summary
               </button>
-              <a className={styles.careerActionSecondary} href={whatsAppHref} target="_blank" rel="noreferrer">
-                <ShareIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+              <a
+                className={styles.careerActionSecondary}
+                href={whatsAppHref}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <ShareIcon
+                  style={{ width: 18, height: 18 }}
+                  aria-hidden="true"
+                />
                 Invite on WhatsApp
               </a>
             </div>
-            {shareStatus && <span className={styles.softBadge}>{shareStatus}</span>}
+            {shareStatus && (
+              <span className={styles.softBadge}>{shareStatus}</span>
+            )}
           </div>
         </article>
 
@@ -2160,7 +2402,9 @@ export default function StudentLearningHome({
                       className={styles.pathRow}
                       style={{ textAlign: 'left', font: 'inherit' }}
                       onClick={() => {
-                        setExpandedStepId(prev => (prev === item.id ? null : item.id))
+                        setExpandedStepId(prev =>
+                          prev === item.id ? null : item.id
+                        )
                         startCheckIn(item.skillId)
                       }}
                       data-testid={`path-row-${item.id}`}
@@ -2170,15 +2414,24 @@ export default function StudentLearningHome({
                         <PlayCircleIcon style={{ width: 20, height: 20 }} />
                       </div>
                       <div className={styles.pathTitle}>
-                        <span className={styles.pathTitleText}>{item.title}</span>
+                        <span className={styles.pathTitleText}>
+                          {item.title}
+                        </span>
                         <span className={styles.pathMeta}>{item.meta}</span>
                       </div>
                       <span className={styles.minutes}>
-                        <ClockIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
+                        <ClockIcon
+                          style={{ width: 14, height: 14 }}
+                          aria-hidden="true"
+                        />
                         {item.minutes} min
                       </span>
                       <ChevronRightIcon
-                        style={{ width: 18, height: 18, color: t.brand.textTertiary }}
+                        style={{
+                          width: 18,
+                          height: 18,
+                          color: t.brand.textTertiary,
+                        }}
                         aria-hidden="true"
                       />
                     </button>
@@ -2189,25 +2442,41 @@ export default function StudentLearningHome({
                       aria-label={`Open practice: ${item.title}`}
                       data-testid={`open-practice-${item.id}`}
                     >
-                      <PlayCircleIcon className={styles.openPracticeIcon} aria-hidden="true" />
+                      <PlayCircleIcon
+                        className={styles.openPracticeIcon}
+                        aria-hidden="true"
+                      />
                       <span>Open practice</span>
                     </button>
                   </div>
                   {isExpanded && (
-                    <div className={styles.practiceCard} data-testid="today-step-mcq">
+                    <div
+                      className={styles.practiceCard}
+                      data-testid="today-step-mcq"
+                    >
                       <div className={styles.demoHeader}>
                         <div>
-                          <span className={styles.softBadge}>From generated plan</span>
-                          <Text className={styles.demoTitle}>{generatedPlanPractice.title}</Text>
-                          <p className={styles.demoHelper}>{generatedPlanPractice.planTitle}</p>
+                          <span className={styles.softBadge}>
+                            From generated plan
+                          </span>
+                          <Text className={styles.demoTitle}>
+                            {generatedPlanPractice.title}
+                          </Text>
+                          <p className={styles.demoHelper}>
+                            {generatedPlanPractice.planTitle}
+                          </p>
                         </div>
                         <span className={styles.softBadge}>2 min</span>
                       </div>
 
                       <div className={styles.practiceInteractionGrid}>
                         <div className={styles.practicePromptCard}>
-                          <p className={styles.practicePrompt}>{generatedPlanPractice.prompt}</p>
-                          <p className={styles.demoHelper}>{generatedPlanPractice.hint}</p>
+                          <p className={styles.practicePrompt}>
+                            {generatedPlanPractice.prompt}
+                          </p>
+                          <p className={styles.demoHelper}>
+                            {generatedPlanPractice.hint}
+                          </p>
                         </div>
 
                         <div className={styles.practiceOptions}>
@@ -2215,28 +2484,47 @@ export default function StudentLearningHome({
                             <button
                               key={option.id}
                               type="button"
-                              className={practiceAnswer?.optionId === option.id ? styles.practiceOptionSelected : styles.practiceOption}
+                              className={
+                                practiceAnswer?.optionId === option.id
+                                  ? styles.practiceOptionSelected
+                                  : styles.practiceOption
+                              }
                               onClick={() => handlePracticeAnswer(option)}
                               disabled={Boolean(practiceAnswer)}
                             >
-                              <span className={styles.practiceOptionLabel}>{option.label}</span>
-                              <span className={styles.practiceOptionMeta}>{option.meta ?? 'Choose answer'}</span>
+                              <span className={styles.practiceOptionLabel}>
+                                {option.label}
+                              </span>
+                              <span className={styles.practiceOptionMeta}>
+                                {option.meta ?? 'Choose answer'}
+                              </span>
                             </button>
                           ))}
                         </div>
                       </div>
 
                       {practiceAnswer && (
-                        <div className={styles.feedbackCard} data-testid="practice-feedback">
-                          <span className={styles.softBadge}>Immediate feedback</span>
+                        <div
+                          className={styles.feedbackCard}
+                          data-testid="practice-feedback"
+                        >
+                          <span className={styles.softBadge}>
+                            Immediate feedback
+                          </span>
                           <Text className={styles.cardTitle}>
-                            {practiceAnswer.correct ? 'Correct - the plan is working.' : 'Not quite - scale both parts by 3.'}
+                            {practiceAnswer.correct
+                              ? 'Correct - the plan is working.'
+                              : 'Not quite - scale both parts by 3.'}
                           </Text>
                           {!practiceAnswer.correct && (
                             <button
                               type="button"
                               className={styles.textAction}
-                              onClick={() => setWrongAnswerExplanation(practiceWrongAnswerExplanation)}
+                              onClick={() =>
+                                setWrongAnswerExplanation(
+                                  practiceWrongAnswerExplanation
+                                )
+                              }
                             >
                               Explain my mistake
                             </button>
@@ -2246,12 +2534,24 @@ export default function StudentLearningHome({
                               ? '2 cups of rice became 6 cups, so 3 cups of water becomes 9 cups.'
                               : 'The worked example says keep the rice-water ratio: 2 -> 6 is x3, so 3 -> 9.'}
                           </p>
-                          <span className={styles.softBadge}>Spaced retrieval scheduled</span>
-                          <ul className={styles.retrievalList} data-testid="spaced-retrieval-schedule">
+                          <span className={styles.softBadge}>
+                            Spaced retrieval scheduled
+                          </span>
+                          <ul
+                            className={styles.retrievalList}
+                            data-testid="spaced-retrieval-schedule"
+                          >
                             {generatedPlanPractice.schedule.map(slot => (
-                              <li key={slot.id} className={styles.retrievalItem}>
-                                <Text weight="semibold">{slot.label} · {slot.timing}</Text>
-                                <span className={styles.demoHelper}>{slot.focus}</span>
+                              <li
+                                key={slot.id}
+                                className={styles.retrievalItem}
+                              >
+                                <Text weight="semibold">
+                                  {slot.label} · {slot.timing}
+                                </Text>
+                                <span className={styles.demoHelper}>
+                                  {slot.focus}
+                                </span>
                               </li>
                             ))}
                           </ul>
@@ -2268,7 +2568,9 @@ export default function StudentLearningHome({
         <article className={styles.card}>
           <div className={styles.cardHeader}>
             <Text className={styles.cardTitle}>This week</Text>
-            <Text className={styles.cardCaption}>Mon — Sun · progress updated daily</Text>
+            <Text className={styles.cardCaption}>
+              Mon — Sun · progress updated daily
+            </Text>
           </div>
           <div className={styles.weekGrid}>
             {weeklyTiles.map(tile => (
@@ -2288,7 +2590,14 @@ export default function StudentLearningHome({
             <Text className={styles.cardTitle}>Up next</Text>
             <span className={styles.softBadge}>Adaptive</span>
           </div>
-          <p style={{ fontSize: '0.88rem', color: t.brand.textSecondary, lineHeight: 1.5, margin: 0 }}>
+          <p
+            style={{
+              fontSize: '0.88rem',
+              color: t.brand.textSecondary,
+              lineHeight: 1.5,
+              margin: 0,
+            }}
+          >
             Linear equations · introduce slope using ratios you've practiced.
           </p>
           <button
@@ -2309,15 +2618,23 @@ export default function StudentLearningHome({
           <div className={styles.sideRow}>
             <CheckBadgeIcon className={styles.sideRowIcon} aria-hidden="true" />
             <div>
-              <div className={styles.sideRowText}>"Strong work on fraction bars."</div>
-              <div className={styles.sideRowMeta}>Mrs. Adebayo · 2 days ago</div>
+              <div className={styles.sideRowText}>
+                "Strong work on fraction bars."
+              </div>
+              <div className={styles.sideRowMeta}>
+                Mrs. Adebayo · 2 days ago
+              </div>
             </div>
           </div>
           <div className={styles.sideRow}>
             <SparklesIcon className={styles.sideRowIcon} aria-hidden="true" />
             <div>
-              <div className={styles.sideRowText}>Approved for ratio recovery group</div>
-              <div className={styles.sideRowMeta}>Counsellor sign-off · last week</div>
+              <div className={styles.sideRowText}>
+                Approved for ratio recovery group
+              </div>
+              <div className={styles.sideRowMeta}>
+                Counsellor sign-off · last week
+              </div>
             </div>
           </div>
         </article>
@@ -2327,7 +2644,14 @@ export default function StudentLearningHome({
             <Text className={styles.cardTitle}>Trust</Text>
             <span className={styles.softBadge}>All gates green</span>
           </div>
-          <p style={{ fontSize: '0.82rem', color: t.brand.textSecondary, lineHeight: 1.5, margin: 0 }}>
+          <p
+            style={{
+              fontSize: '0.82rem',
+              color: t.brand.textSecondary,
+              lineHeight: 1.5,
+              margin: 0,
+            }}
+          >
             Every recommendation is teacher-reviewed. Evidence and activity log
             available in Trust & Safety.
           </p>
@@ -2357,7 +2681,11 @@ export default function StudentLearningHome({
       )}
 
       {wrongAnswerExplanation && (
-        <div className={styles.modalBackdrop} role="presentation" data-testid="wrong-answer-modal-backdrop">
+        <div
+          className={styles.modalBackdrop}
+          role="presentation"
+          data-testid="wrong-answer-modal-backdrop"
+        >
           <dialog
             open
             className={styles.modal}
@@ -2367,8 +2695,14 @@ export default function StudentLearningHome({
           >
             <div className={styles.modalHeader}>
               <div>
-                <span className={styles.softBadge}>Wrong answer explanation</span>
-                <h2 id="wrong-answer-modal-title" className={styles.demoTitle} style={{ margin: '8px 0 0' }}>
+                <span className={styles.softBadge}>
+                  Wrong answer explanation
+                </span>
+                <h2
+                  id="wrong-answer-modal-title"
+                  className={styles.demoTitle}
+                  style={{ margin: '8px 0 0' }}
+                >
                   Explain my mistake
                 </h2>
               </div>
@@ -2378,41 +2712,73 @@ export default function StudentLearningHome({
                 aria-label="Close explanation"
                 onClick={() => setWrongAnswerExplanation(null)}
               >
-                <XMarkIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+                <XMarkIcon
+                  style={{ width: 18, height: 18 }}
+                  aria-hidden="true"
+                />
               </button>
             </div>
             <div className={styles.explanationGrid}>
               <div className={styles.explanationTile}>
                 <span className={styles.weekLabel}>Correct answer</span>
-                <Text className={styles.cardTitle}>{wrongAnswerExplanation.correctAnswer}</Text>
+                <Text className={styles.cardTitle}>
+                  {wrongAnswerExplanation.correctAnswer}
+                </Text>
               </div>
               <div className={styles.explanationTile}>
-                <span className={styles.weekLabel}>Why your answer was wrong</span>
-                <span className={styles.demoHelper}>{wrongAnswerExplanation.whyWrong}</span>
+                <span className={styles.weekLabel}>
+                  Why your answer was wrong
+                </span>
+                <span className={styles.demoHelper}>
+                  {wrongAnswerExplanation.whyWrong}
+                </span>
               </div>
               <div className={styles.explanationTile}>
                 <span className={styles.weekLabel}>Concept you missed</span>
-                <span className={styles.demoHelper}>{wrongAnswerExplanation.conceptMissed}</span>
+                <span className={styles.demoHelper}>
+                  {wrongAnswerExplanation.conceptMissed}
+                </span>
               </div>
               <div className={styles.explanationTile}>
                 <span className={styles.weekLabel}>Simpler explanation</span>
-                <span className={styles.demoHelper}>{wrongAnswerExplanation.simplerExplanation}</span>
+                <span className={styles.demoHelper}>
+                  {wrongAnswerExplanation.simplerExplanation}
+                </span>
               </div>
               <div className={styles.explanationTile}>
-                <span className={styles.weekLabel}>Try another similar question</span>
-                <span className={styles.demoHelper}>{wrongAnswerExplanation.similarQuestion}</span>
+                <span className={styles.weekLabel}>
+                  Try another similar question
+                </span>
+                <span className={styles.demoHelper}>
+                  {wrongAnswerExplanation.similarQuestion}
+                </span>
               </div>
               <div className={styles.explanationTile}>
-                <span className={styles.weekLabel}>Add this weakness to my revision plan</span>
-                <span className={styles.demoHelper}>{wrongAnswerExplanation.revisionAction}</span>
+                <span className={styles.weekLabel}>
+                  Add this weakness to my revision plan
+                </span>
+                <span className={styles.demoHelper}>
+                  {wrongAnswerExplanation.revisionAction}
+                </span>
               </div>
             </div>
             <div className={styles.shareActions}>
-              <button type="button" className={styles.careerAction} onClick={addWeaknessToPlan}>
-                <ChartBarIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+              <button
+                type="button"
+                className={styles.careerAction}
+                onClick={addWeaknessToPlan}
+              >
+                <ChartBarIcon
+                  style={{ width: 18, height: 18 }}
+                  aria-hidden="true"
+                />
                 Add weakness to revision plan
               </button>
-              <button type="button" className={styles.careerActionSecondary} onClick={() => startCheckIn('ratio-proportion')}>
+              <button
+                type="button"
+                className={styles.careerActionSecondary}
+                onClick={() => startCheckIn('ratio-proportion')}
+              >
                 Try similar question
               </button>
             </div>

@@ -1,9 +1,4 @@
-import {
-  Card,
-  CardHeader,
-  Text,
-  makeStyles,
-} from '@fluentui/react-components'
+import { Card, CardHeader, Text, makeStyles } from '@fluentui/react-components'
 import {
   CheckCircleIcon,
   ShieldCheckIcon,
@@ -260,7 +255,8 @@ export function Phase3ProvenanceFooter({
           key={`${entry.source}:${entry.ruleId ?? index}`}
           className={styles.provenanceChip}
         >
-          {signalLabel(entry.source)} · {entry.evidenceCount} evidence point{entry.evidenceCount === 1 ? '' : 's'}
+          {signalLabel(entry.source)} · {entry.evidenceCount} evidence point
+          {entry.evidenceCount === 1 ? '' : 's'}
         </span>
       ))}
     </footer>
@@ -274,7 +270,9 @@ export function CareerNavigatorCard({ plan }: CareerNavigatorCardProps) {
     <Card className={styles.surfaceCard} data-testid="phase3-career-card">
       <CardHeader
         header={<Text weight="semibold">Career Navigator shortlist</Text>}
-        description={<Text size={200}>{languageLabel(plan.lang)} guidance</Text>}
+        description={
+          <Text size={200}>{languageLabel(plan.lang)} guidance</Text>
+        }
       />
       <div className={styles.scroller}>
         <table
@@ -309,11 +307,15 @@ export function CareerNavigatorCard({ plan }: CareerNavigatorCardProps) {
                 </td>
                 <td className={styles.cell}>
                   <div>Wage outlook · {pathway.wageBand.recency}</div>
-                  <span className={styles.metadataBadge}>{pathway.wageBand.source}</span>
+                  <span className={styles.metadataBadge}>
+                    {pathway.wageBand.source}
+                  </span>
                 </td>
                 <td className={styles.cell}>
                   <div>{String(pathway.demandTrend.value.trend)}</div>
-                  <span className={styles.metadataBadge}>{pathway.demandTrend.source}</span>
+                  <span className={styles.metadataBadge}>
+                    {pathway.demandTrend.source}
+                  </span>
                 </td>
               </tr>
             ))}
@@ -384,10 +386,15 @@ export function ParentProgressCard({
   const styles = useStyles()
 
   return (
-    <Card className={styles.surfaceCard} data-testid="phase3-parent-progress-card">
+    <Card
+      className={styles.surfaceCard}
+      data-testid="phase3-parent-progress-card"
+    >
       <CardHeader
         header={<Text weight="semibold">Parent progress</Text>}
-        description={<Text size={200}>{languageLabel(progress.lang)} family summary</Text>}
+        description={
+          <Text size={200}>{languageLabel(progress.lang)} family summary</Text>
+        }
       />
       <Text>{progress.masterySummary}</Text>
       <span className={styles.metadataBadge}>
@@ -409,7 +416,9 @@ export function VoiceQueueCard({ voiceQueue }: { voiceQueue: VoiceQueueView }) {
     >
       <CardHeader
         header={<Text weight="semibold">Yoruba voice path</Text>}
-        description={<Text size={200}>{languageLabel(voiceQueue.lang)} practice</Text>}
+        description={
+          <Text size={200}>{languageLabel(voiceQueue.lang)} practice</Text>
+        }
         image={<SpeakerWaveIcon className={styles.icon} aria-hidden="true" />}
       />
       <Text>

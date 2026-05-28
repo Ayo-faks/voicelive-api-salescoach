@@ -45,7 +45,11 @@ export const defaultLearnerContext: LearnerContextValue = {
   userId: null,
   weakTopics: [
     { skillId: 'ratio-proportion', label: 'Ratio and proportion', mastery: 42 },
-    { skillId: 'fraction-operations', label: 'Fraction operations', mastery: 61 },
+    {
+      skillId: 'fraction-operations',
+      label: 'Fraction operations',
+      mastery: 61,
+    },
     { skillId: 'reading-inference', label: 'Reading inference', mastery: 68 },
   ],
   dailyPlan: [
@@ -61,7 +65,9 @@ export const defaultLearnerContext: LearnerContextValue = {
   lastWrongAnswer: null,
 }
 
-export const LearnerContext = createContext<LearnerContextValue>(defaultLearnerContext)
+export const LearnerContext = createContext<LearnerContextValue>(
+  defaultLearnerContext
+)
 
 export function useLearnerContext(): LearnerContextValue {
   return useContext(LearnerContext)

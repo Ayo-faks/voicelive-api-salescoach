@@ -7,7 +7,11 @@ import {
   BuildingLibraryIcon,
 } from '@heroicons/react/24/outline'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
-import { api, type AuthSession, type OnboardingIntent } from '../../services/api'
+import {
+  api,
+  type AuthSession,
+  type OnboardingIntent,
+} from '../../services/api'
 
 const useStyles = makeStyles({
   shell: {
@@ -127,7 +131,9 @@ export type WelcomeRolePickerProps = {
   onChosen: (session: AuthSession, intent: OnboardingIntent) => void
 }
 
-export default function WelcomeRolePicker({ onChosen }: WelcomeRolePickerProps) {
+export default function WelcomeRolePicker({
+  onChosen,
+}: WelcomeRolePickerProps) {
   const styles = useStyles()
   const [pending, setPending] = useState<OnboardingIntent | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -140,7 +146,9 @@ export default function WelcomeRolePicker({ onChosen }: WelcomeRolePickerProps) 
       const session = await api.chooseRole(intent)
       onChosen(session, intent)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not save your choice')
+      setError(
+        err instanceof Error ? err.message : 'Could not save your choice'
+      )
       setPending(null)
     }
   }
@@ -148,9 +156,12 @@ export default function WelcomeRolePicker({ onChosen }: WelcomeRolePickerProps) 
   return (
     <main className={styles.shell} data-testid="welcome-role-picker">
       <div className={styles.inner}>
-        <Text as="h1" className={styles.title}>Welcome to Pathfinder</Text>
+        <Text as="h1" className={styles.title}>
+          Welcome to Pathfinder
+        </Text>
         <Text className={styles.subtitle}>
-          To set things up, tell us how you&apos;ll use Pathfinder. You can change this later from your profile.
+          To set things up, tell us how you&apos;ll use Pathfinder. You can
+          change this later from your profile.
         </Text>
         <div className={styles.tiles}>
           {TILES.map(tile => {
@@ -172,11 +183,26 @@ export default function WelcomeRolePicker({ onChosen }: WelcomeRolePickerProps) 
             )
           })}
         </div>
-        {error && <Text className={styles.error} role="alert">{error}</Text>}
+        {error && (
+          <Text className={styles.error} role="alert">
+            {error}
+          </Text>
+        )}
         <Text className={styles.school}>
-          <BuildingLibraryIcon style={{ width: 18, height: 18, verticalAlign: 'middle', marginRight: 6 }} aria-hidden="true" />
+          <BuildingLibraryIcon
+            style={{
+              width: 18,
+              height: 18,
+              verticalAlign: 'middle',
+              marginRight: 6,
+            }}
+            aria-hidden="true"
+          />
           Rolling Pathfinder out across a school?{' '}
-          <a className={styles.schoolLink} href="mailto:schools@wulo.ai?subject=Pathfinder%20for%20schools">
+          <a
+            className={styles.schoolLink}
+            href="mailto:schools@wulo.ai?subject=Pathfinder%20for%20schools"
+          >
             Email schools@wulo.ai
           </a>
         </Text>

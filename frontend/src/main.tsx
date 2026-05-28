@@ -30,7 +30,7 @@ const LEGACY_PATH_PREFIXES = [
 function RootSwitch() {
   const { pathname } = useLocation()
   const isLegacy = LEGACY_PATH_PREFIXES.some(
-    p => pathname === p || pathname.startsWith(p + '/'),
+    p => pathname === p || pathname.startsWith(p + '/')
   )
   return isLegacy ? <App /> : <PathfinderLearnApp />
 }

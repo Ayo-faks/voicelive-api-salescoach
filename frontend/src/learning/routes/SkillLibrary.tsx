@@ -29,7 +29,11 @@ const fallbackSkills: CatalogueSkill[] = [
     status: 'active',
     lang: 'en-NG',
     provenance: [
-      { source: 'pathfinder_phase_2_fixture', confidence: 1, evidence_count: 12 },
+      {
+        source: 'pathfinder_phase_2_fixture',
+        confidence: 1,
+        evidence_count: 12,
+      },
     ],
   },
   {
@@ -47,7 +51,11 @@ const fallbackSkills: CatalogueSkill[] = [
     status: 'active',
     lang: 'en-NG',
     provenance: [
-      { source: 'pathfinder_phase_2_fixture', confidence: 1, evidence_count: 10 },
+      {
+        source: 'pathfinder_phase_2_fixture',
+        confidence: 1,
+        evidence_count: 10,
+      },
     ],
   },
   {
@@ -65,7 +73,11 @@ const fallbackSkills: CatalogueSkill[] = [
     status: 'active',
     lang: 'en-NG',
     provenance: [
-      { source: 'pathfinder_phase_2_fixture', confidence: 1, evidence_count: 8 },
+      {
+        source: 'pathfinder_phase_2_fixture',
+        confidence: 1,
+        evidence_count: 8,
+      },
     ],
   },
   {
@@ -83,7 +95,11 @@ const fallbackSkills: CatalogueSkill[] = [
     status: 'active',
     lang: 'en-NG',
     provenance: [
-      { source: 'pathfinder_phase_2_fixture', confidence: 1, evidence_count: 9 },
+      {
+        source: 'pathfinder_phase_2_fixture',
+        confidence: 1,
+        evidence_count: 9,
+      },
     ],
   },
 ]
@@ -292,7 +308,12 @@ export default function SkillLibrary() {
   }, [])
 
   const subjects = useMemo(
-    () => ['All', ...Array.from(new Set(skills.map(skill => skill.subject).filter(isSubject)))],
+    () => [
+      'All',
+      ...Array.from(
+        new Set(skills.map(skill => skill.subject).filter(isSubject))
+      ),
+    ],
     [skills]
   )
 
@@ -329,7 +350,9 @@ export default function SkillLibrary() {
             <span className={styles.pill}>Review evidence</span>
           </div>
         </div>
-        <span className={styles.pill}>{source === 'live' ? 'Updated catalogue' : 'Ready catalogue'}</span>
+        <span className={styles.pill}>
+          {source === 'live' ? 'Updated catalogue' : 'Ready catalogue'}
+        </span>
       </div>
 
       <div className={styles.toolbar}>
@@ -338,7 +361,12 @@ export default function SkillLibrary() {
             placeholder="Search skills"
             value={query}
             onChange={(_, data) => setQuery(data.value)}
-            contentBefore={<MagnifyingGlassIcon style={{ width: 16, height: 16 }} aria-hidden="true" />}
+            contentBefore={
+              <MagnifyingGlassIcon
+                style={{ width: 16, height: 16 }}
+                aria-hidden="true"
+              />
+            }
           />
         </div>
         <div className={styles.filters}>
@@ -347,7 +375,9 @@ export default function SkillLibrary() {
               key={item}
               type="button"
               aria-pressed={subject === item}
-              className={subject === item ? styles.pillButtonActive : styles.pillButton}
+              className={
+                subject === item ? styles.pillButtonActive : styles.pillButton
+              }
               onClick={() => setSubject(item)}
             >
               {item}
@@ -364,25 +394,33 @@ export default function SkillLibrary() {
             <Card key={skill.skill_id} className={styles.card}>
               <div className={styles.cardHead}>
                 <div className={styles.cardTitleBlock}>
-                  <Text className={styles.cardTitle}>{skill.name}</Text>
-                  {' '}
-                  <Text className={styles.cardSkillId}>Focus: {displayCode(skill.skill_id)}</Text>
+                  <Text className={styles.cardTitle}>{skill.name}</Text>{' '}
+                  <Text className={styles.cardSkillId}>
+                    Focus: {displayCode(skill.skill_id)}
+                  </Text>
                 </div>
                 <span className={styles.pill}>{statusLabel(skill.status)}</span>
               </div>
 
-              <Text size={200}>{skill.description ?? 'Description coming soon.'}</Text>
+              <Text size={200}>
+                {skill.description ?? 'Description coming soon.'}
+              </Text>
 
               <div className={styles.meta}>
-                <span className={styles.pill}>{skill.subject ?? 'Subject unset'}</span>
+                <span className={styles.pill}>
+                  {skill.subject ?? 'Subject unset'}
+                </span>
                 <span className={styles.pill}>{yearBand(skill)}</span>
-                <span className={styles.pill}>{displayCode(skill.standard_id)}</span>
+                <span className={styles.pill}>
+                  {displayCode(skill.standard_id)}
+                </span>
               </div>
 
               <div className={styles.tags}>
                 <span className={styles.pill}>
                   <Squares2X2Icon width={14} height={14} aria-hidden="true" />
-                  {skill.prerequisites.length} prerequisite{skill.prerequisites.length === 1 ? '' : 's'}
+                  {skill.prerequisites.length} prerequisite
+                  {skill.prerequisites.length === 1 ? '' : 's'}
                 </span>
                 {skill.kc_tags.slice(0, 4).map(tag => (
                   <span key={tag} className={styles.pill}>

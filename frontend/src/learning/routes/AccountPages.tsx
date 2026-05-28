@@ -84,7 +84,11 @@ const useStyles = makeStyles({
   rowText: { display: 'grid', gap: '2px', minWidth: 0 },
   rowTitle: { fontWeight: 600, fontSize: '0.95rem' },
   rowHint: { fontSize: '0.8rem', color: tokens.colorNeutralForeground3 },
-  chevron: { width: '18px', height: '18px', color: tokens.colorNeutralForeground3 },
+  chevron: {
+    width: '18px',
+    height: '18px',
+    color: tokens.colorNeutralForeground3,
+  },
   section: { display: 'grid', gap: '10px' },
   sectionTitle: { fontWeight: 700, fontSize: '1.05rem' },
   para: { color: tokens.colorNeutralForeground2, lineHeight: 1.55 },
@@ -228,8 +232,8 @@ export function PathfinderSettings() {
       <article className={styles.card}>
         <Text className={styles.sectionTitle}>Accessibility</Text>
         <Text className={styles.para}>
-          Large-text mode, reduced motion, and high-contrast colours follow
-          your system preferences. Captions are always on for tutor voice.
+          Large-text mode, reduced motion, and high-contrast colours follow your
+          system preferences. Captions are always on for tutor voice.
         </Text>
       </article>
       <article className={styles.card}>
@@ -261,7 +265,9 @@ export function PathfinderPrivacy() {
         <Text className={styles.sectionTitle}>What we collect</Text>
         <ul className={styles.bullets}>
           <li>Your exam path, year group, and subject choices.</li>
-          <li>Practice answers and progress signals used to plan the next topic.</li>
+          <li>
+            Practice answers and progress signals used to plan the next topic.
+          </li>
           <li>Optional guardian contact details, only if you provide them.</li>
         </ul>
       </article>
@@ -302,16 +308,20 @@ export function PathfinderTerms() {
         <Text className={styles.sectionTitle}>Who Pathfinder is for</Text>
         <Text className={styles.para}>
           Pathfinder is a study companion for JSS1–SS3 learners preparing for
-          WAEC, NECO, JAMB, and equivalent exams. Learners under 13 use it
-          with a guardian-acknowledged account.
+          WAEC, NECO, JAMB, and equivalent exams. Learners under 13 use it with
+          a guardian-acknowledged account.
         </Text>
       </article>
       <article className={styles.card}>
         <Text className={styles.sectionTitle}>Using the service fairly</Text>
         <ul className={styles.bullets}>
-          <li>Use Pathfinder for your own learning — don't share your login.</li>
+          <li>
+            Use Pathfinder for your own learning — don't share your login.
+          </li>
           <li>Don't try to extract or copy the question bank.</li>
-          <li>Be respectful when you talk to the tutor; abuse may pause access.</li>
+          <li>
+            Be respectful when you talk to the tutor; abuse may pause access.
+          </li>
         </ul>
       </article>
       <article className={styles.card}>
@@ -345,9 +355,8 @@ export function PathfinderAiNotice() {
         <Text className={styles.sectionTitle}>What the AI tutor does</Text>
         <Text className={styles.para}>
           The tutor explains concepts, generates short practice questions, and
-          turns wrong answers into a step-by-step concept fix. It is grounded
-          in the WAEC / NECO / JAMB syllabus and Pathfinder's vetted skill
-          library.
+          turns wrong answers into a step-by-step concept fix. It is grounded in
+          the WAEC / NECO / JAMB syllabus and Pathfinder's vetted skill library.
         </Text>
       </article>
       <article className={styles.card}>
@@ -361,9 +370,9 @@ export function PathfinderAiNotice() {
       <article className={styles.card}>
         <Text className={styles.sectionTitle}>The safety net</Text>
         <Text className={styles.para}>
-          A counsellor signs off on the practice plans for sensitive topics
-          and reviews flagged conversations. Pathways guidance stays
-          exploratory and never makes promises about future earnings.
+          A counsellor signs off on the practice plans for sensitive topics and
+          reviews flagged conversations. Pathways guidance stays exploratory and
+          never makes promises about future earnings.
         </Text>
       </article>
     </div>

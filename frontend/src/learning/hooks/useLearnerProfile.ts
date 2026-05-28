@@ -41,19 +41,24 @@ export interface UseLearnerProfileResult {
  * learner home cards (hero pill, weak topic, career summary). */
 export function profileToSetup(
   profile: LearnerProfile | null,
-  fallback: LearnerSetup = DEFAULT_LEARNER_SETUP,
+  fallback: LearnerSetup = DEFAULT_LEARNER_SETUP
 ): LearnerSetup {
   if (!profile) return fallback
-  const firstName = typeof profile.display_name === 'string' ? profile.display_name : ''
+  const firstName =
+    typeof profile.display_name === 'string' ? profile.display_name : ''
   const exam =
-    typeof profile.exam === 'string' && profile.exam ? profile.exam : fallback.exam
+    typeof profile.exam === 'string' && profile.exam
+      ? profile.exam
+      : fallback.exam
   const year =
     typeof profile.year_group === 'string' && profile.year_group
       ? profile.year_group
       : fallback.year
   const subjects = Array.isArray(profile.subjects) ? profile.subjects : []
   const subject =
-    typeof subjects[0] === 'string' && subjects[0] ? subjects[0] : fallback.subject
+    typeof subjects[0] === 'string' && subjects[0]
+      ? subjects[0]
+      : fallback.subject
   return { exam, year, subject, firstName }
 }
 
@@ -71,7 +76,9 @@ export function setupToProfilePatch(setup: LearnerSetup): LearnerProfilePatch {
 /** Read the legacy `pathfinder-learner-setup-v1` localStorage key and return
  * the parsed setup, or `null` if missing/invalid. Pure helper — unit-testable
  * without React. */
-export function readLegacySetup(storage: Pick<Storage, 'getItem'>): LearnerSetup | null {
+export function readLegacySetup(
+  storage: Pick<Storage, 'getItem'>
+): LearnerSetup | null {
   try {
     const raw = storage.getItem(LEARNER_SETUP_STORAGE_KEY)
     if (!raw) return null
@@ -81,7 +88,9 @@ export function readLegacySetup(storage: Pick<Storage, 'getItem'>): LearnerSetup
       exam: typeof parsed.exam === 'string' && parsed.exam ? parsed.exam : '',
       year: typeof parsed.year === 'string' && parsed.year ? parsed.year : '',
       subject:
-        typeof parsed.subject === 'string' && parsed.subject ? parsed.subject : '',
+        typeof parsed.subject === 'string' && parsed.subject
+          ? parsed.subject
+          : '',
       firstName: typeof parsed.firstName === 'string' ? parsed.firstName : '',
     }
   } catch {
@@ -104,7 +113,7 @@ export function clearLegacySetup(storage: Pick<Storage, 'removeItem'>): void {
  * resolves so a failed migration can retry on next mount. */
 export async function migrateLegacySetup(
   storage: Pick<Storage, 'getItem' | 'removeItem'>,
-  patchFn: (patch: LearnerProfilePatch) => Promise<LearnerProfileResponse>,
+  patchFn: (patch: LearnerProfilePatch) => Promise<LearnerProfileResponse>
 ): Promise<LearnerProfileResponse | null> {
   const legacy = readLegacySetup(storage)
   if (!legacy) return null
@@ -150,7 +159,8 @@ export function useLearnerProfile(): UseLearnerProfileResult {
         setNeedsOnboarding(false)
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to load profile'
+      const message =
+        err instanceof Error ? err.message : 'Failed to load profile'
       if (message !== 'UNAUTHORIZED') setError(message)
     } finally {
       setIsLoading(false)
@@ -163,7 +173,7 @@ export function useLearnerProfile(): UseLearnerProfileResult {
       applyResponse(response)
       return response
     },
-    [applyResponse],
+    [applyResponse]
   )
 
   const recordConsent = useCallback(
@@ -172,7 +182,7 @@ export function useLearnerProfile(): UseLearnerProfileResult {
       applyResponse(response)
       return response
     },
-    [applyResponse],
+    [applyResponse]
   )
 
   // Initial load + legacy migration.
@@ -198,9 +208,8 @@ export function useLearnerProfile(): UseLearnerProfileResult {
     }
   }, [flagEnabled, refresh])
 
-  const setup: LearnerSetup = flagEnabled && profile
-    ? profileToSetup(profile, legacySetup)
-    : legacySetup
+  const setup: LearnerSetup =
+    flagEnabled && profile ? profileToSetup(profile, legacySetup) : legacySetup
 
   const updateSetup = useCallback(
     (next: Partial<LearnerSetup>) => {
@@ -216,7 +225,7 @@ export function useLearnerProfile(): UseLearnerProfileResult {
         }
       }
     },
-    [consentsLoaded, flagEnabled, legacyUpdate, patch, setup],
+    [consentsLoaded, flagEnabled, legacyUpdate, patch, setup]
   )
 
   return {

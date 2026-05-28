@@ -15,7 +15,8 @@ type RecordConsentFn = (input: ConsentInput) => Promise<LearnerProfileResponse>
 
 const navigateMock = vi.fn()
 vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
+  const actual =
+    await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
   return {
     ...actual,
     useNavigate: () => navigateMock,
@@ -26,13 +27,17 @@ function emptyResponse(needsOnboarding = false): LearnerProfileResponse {
   return { profile: {}, consents: [], needs_onboarding: needsOnboarding }
 }
 
-function renderWizard(overrides: Partial<{
-  patch: PatchFn
-  recordConsent: RecordConsentFn
-}> = {}) {
-  const patch = vi.fn<PatchFn>(overrides.patch ?? (async () => emptyResponse(false)))
+function renderWizard(
+  overrides: Partial<{
+    patch: PatchFn
+    recordConsent: RecordConsentFn
+  }> = {}
+) {
+  const patch = vi.fn<PatchFn>(
+    overrides.patch ?? (async () => emptyResponse(false))
+  )
   const recordConsent = vi.fn<RecordConsentFn>(
-    overrides.recordConsent ?? (async () => emptyResponse(true)),
+    overrides.recordConsent ?? (async () => emptyResponse(true))
   )
   const utils = render(
     <MemoryRouter>
@@ -44,7 +49,7 @@ function renderWizard(overrides: Partial<{
           recordConsent={recordConsent}
         />
       </FluentProvider>
-    </MemoryRouter>,
+    </MemoryRouter>
   )
   return { ...utils, patch, recordConsent }
 }
@@ -76,7 +81,9 @@ describe('LearnerOnboardingWizard', () => {
       target: { value: '13-15' },
     })
     fireEvent.click(screen.getByTestId('learner-onboarding-next'))
-    await waitFor(() => expect(screen.getByRole('alert').textContent).toMatch(/terms/i))
+    await waitFor(() =>
+      expect(screen.getByRole('alert').textContent).toMatch(/terms/i)
+    )
   })
 
   it('walks through the 3-step happy path and finishes with the expected payload', async () => {
@@ -85,7 +92,9 @@ describe('LearnerOnboardingWizard', () => {
     // Step 1
     await fillStep1()
     fireEvent.click(screen.getByTestId('learner-onboarding-next'))
-    await waitFor(() => expect(screen.queryByTestId('learner-onboarding-step-2')).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.queryByTestId('learner-onboarding-step-2')).toBeTruthy()
+    )
     expect(recordConsent).toHaveBeenCalledWith({
       kind: 'terms',
       version: expect.any(String),
@@ -107,7 +116,9 @@ describe('LearnerOnboardingWizard', () => {
     fireEvent.click(screen.getByTestId('onboarding-subject-Biology'))
     fireEvent.click(screen.getByTestId('learner-onboarding-next'))
 
-    await waitFor(() => expect(screen.queryByTestId('learner-onboarding-step-3')).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.queryByTestId('learner-onboarding-step-3')).toBeTruthy()
+    )
     expect(patch).toHaveBeenCalledWith({
       exam: 'WAEC',
       year_group: 'SS2',
@@ -143,6 +154,8 @@ describe('LearnerOnboardingWizard', () => {
     fireEvent.click(screen.getByTestId('learner-onboarding-next'))
     await waitFor(() => screen.getByTestId('learner-onboarding-step-2'))
     fireEvent.click(screen.getByTestId('learner-onboarding-next'))
-    await waitFor(() => expect(screen.getByRole('alert').textContent).toMatch(/subject/i))
+    await waitFor(() =>
+      expect(screen.getByRole('alert').textContent).toMatch(/subject/i)
+    )
   })
 })

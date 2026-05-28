@@ -38,8 +38,7 @@ const pathways: Pathway[] = [
     demand: 'growing',
     region: 'Lagos · Abuja',
     duration: '18 months',
-    rationale:
-      'Strong fit with algebra progress and spreadsheet practice.',
+    rationale: 'Strong fit with algebra progress and spreadsheet practice.',
     gaps: ['ratio-proportion', 'fraction-operations'],
     source: 'Labour market outlook · 2026 Q2',
   },
@@ -365,7 +364,11 @@ export default function PathwaysExplorer() {
 
   function toggleCompare(id: string) {
     setCompare(cur =>
-      cur.includes(id) ? cur.filter(x => x !== id) : cur.length < 3 ? [...cur, id] : cur
+      cur.includes(id)
+        ? cur.filter(x => x !== id)
+        : cur.length < 3
+          ? [...cur, id]
+          : cur
     )
   }
 
@@ -405,7 +408,9 @@ export default function PathwaysExplorer() {
               key={c}
               type="button"
               aria-pressed={category === c}
-              className={category === c ? styles.pillButtonActive : styles.pillButton}
+              className={
+                category === c ? styles.pillButtonActive : styles.pillButton
+              }
               onClick={() => setCategory(c)}
             >
               {c}
@@ -481,7 +486,11 @@ export default function PathwaysExplorer() {
               <div className={styles.cardActions}>
                 <button
                   type="button"
-                  className={compare.includes(p.id) ? styles.cardButtonActive : styles.cardButton}
+                  className={
+                    compare.includes(p.id)
+                      ? styles.cardButtonActive
+                      : styles.cardButton
+                  }
                   onClick={() => toggleCompare(p.id)}
                 >
                   {compare.includes(p.id) ? 'Comparing' : 'Compare'}

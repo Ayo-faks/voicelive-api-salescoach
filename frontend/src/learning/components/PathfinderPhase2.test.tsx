@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import {
   PathfinderPhase2Demo,
@@ -94,7 +100,9 @@ describe('PathfinderPhase2Demo', () => {
 
     const provenanceFooter = screen.getByTestId('phase2-provenance-footer')
     expect(provenanceFooter.getAttribute('data-provenance-count')).toBe('1')
-    expect(provenanceFooter.textContent).toContain('Review signal 1 · 50 evidence points')
+    expect(provenanceFooter.textContent).toContain(
+      'Review signal 1 · 50 evidence points'
+    )
   })
 
   it('submits text-path teacher intent without applying a plan', () => {
@@ -134,11 +142,17 @@ describe('PathfinderPhase2Demo', () => {
     const card = screen.getByTestId('phase2-pending-approval-card')
     expect(within(card).queryByRole('button', { name: /approve/i })).toBeNull()
     expect(within(card).queryByRole('button', { name: /reject/i })).toBeNull()
-    expect(within(card).queryByRole('button', { name: /edit plan/i })).toBeNull()
+    expect(
+      within(card).queryByRole('button', { name: /edit plan/i })
+    ).toBeNull()
 
     fireEvent.click(within(card).getByRole('button', { name: /review plan/i }))
-    expect(screen.getByTestId('phase2-plan-review').textContent).toContain('Read plan before decision')
-    expect(within(card).getByRole('button', { name: /edit plan/i })).toBeTruthy()
+    expect(screen.getByTestId('phase2-plan-review').textContent).toContain(
+      'Read plan before decision'
+    )
+    expect(
+      within(card).getByRole('button', { name: /edit plan/i })
+    ).toBeTruthy()
 
     fireEvent.click(within(card).getByRole('button', { name: /approve/i }))
     fireEvent.click(within(card).getByRole('button', { name: /reject/i }))
@@ -166,7 +180,7 @@ describe('PathfinderPhase2Demo', () => {
       target: { value: 'ratio-mini-lesson, fraction-exit-ticket' },
     })
     fireEvent.change(screen.getByLabelText('Edit approval reason'), {
-      target: { value: 'Adjusted for today\'s group' },
+      target: { value: "Adjusted for today's group" },
     })
     fireEvent.click(
       screen.getByRole('button', { name: /save edits and approve/i })

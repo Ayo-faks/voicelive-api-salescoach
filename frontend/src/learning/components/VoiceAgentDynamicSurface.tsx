@@ -302,7 +302,7 @@ function FormBlock({ spec }: { spec: VoiceAgentFormSpec }) {
     <div className={styles.card}>
       {spec.title && <div className={styles.cardTitle}>{spec.title}</div>}
       <div className={styles.formGrid}>
-        {spec.fields.map((field) => {
+        {spec.fields.map(field => {
           const inputId = `vaf-${spec.id ?? 'form'}-${field.name}`
           return (
             <div key={field.name} className={styles.field}>
@@ -316,8 +316,11 @@ function FormBlock({ spec }: { spec: VoiceAgentFormSpec }) {
                   className={styles.input}
                   value={String(values[field.name] ?? '')}
                   placeholder={field.placeholder}
-                  onChange={(e) =>
-                    setValues((prev) => ({ ...prev, [field.name]: e.target.value }))
+                  onChange={e =>
+                    setValues(prev => ({
+                      ...prev,
+                      [field.name]: e.target.value,
+                    }))
                   }
                 />
               ) : field.kind === 'select' ? (
@@ -325,12 +328,15 @@ function FormBlock({ spec }: { spec: VoiceAgentFormSpec }) {
                   id={inputId}
                   className={styles.input}
                   value={String(values[field.name] ?? '')}
-                  onChange={(e) =>
-                    setValues((prev) => ({ ...prev, [field.name]: e.target.value }))
+                  onChange={e =>
+                    setValues(prev => ({
+                      ...prev,
+                      [field.name]: e.target.value,
+                    }))
                   }
                 >
                   <option value="">—</option>
-                  {(field.options ?? []).map((opt) => (
+                  {(field.options ?? []).map(opt => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
                     </option>
@@ -349,13 +355,18 @@ function FormBlock({ spec }: { spec: VoiceAgentFormSpec }) {
                   }
                   value={String(values[field.name] ?? '')}
                   placeholder={field.placeholder}
-                  onChange={(e) =>
-                    setValues((prev) => ({ ...prev, [field.name]: e.target.value }))
+                  onChange={e =>
+                    setValues(prev => ({
+                      ...prev,
+                      [field.name]: e.target.value,
+                    }))
                   }
                 />
               )}
               {field.help && (
-                <span style={{ opacity: 0.7, fontSize: '0.75rem' }}>{field.help}</span>
+                <span style={{ opacity: 0.7, fontSize: '0.75rem' }}>
+                  {field.help}
+                </span>
               )}
             </div>
           )
@@ -382,7 +393,9 @@ function ActionSuggestionCard({
 }) {
   const styles = useStyles()
   const [pending, setPending] = useState<VoiceAgentActionRecord | null>(null)
-  const [result, setResult] = useState<VoiceAgentActionExecutionResult | null>(null)
+  const [result, setResult] = useState<VoiceAgentActionExecutionResult | null>(
+    null
+  )
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -523,7 +536,9 @@ export function VoiceAgentDynamicSurface({
                 <div className={styles.cardTitle}>Result</div>
                 <div
                   className={`${styles.bodyText} ${
-                    spec.status === 'success' ? styles.statusOk : styles.statusErr
+                    spec.status === 'success'
+                      ? styles.statusOk
+                      : styles.statusErr
                   }`}
                 >
                   {spec.message}
@@ -534,7 +549,7 @@ export function VoiceAgentDynamicSurface({
             return null
         }
       })}
-      {actionSuggestions.map((suggestion) => (
+      {actionSuggestions.map(suggestion => (
         <ActionSuggestionCard
           key={suggestion.action_id}
           suggestion={suggestion}

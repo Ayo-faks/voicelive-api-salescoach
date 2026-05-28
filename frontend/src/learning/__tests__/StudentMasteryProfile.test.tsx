@@ -13,8 +13,14 @@ describe('StudentMasteryProfile', () => {
     expect(screen.getByText('What Pathfinder did')).toBeTruthy()
     expect(screen.getByText('What to do at home')).toBeTruthy()
     expect(screen.getByText('Next school action')).toBeTruthy()
-    expect(screen.getByText(/Ran a short diagnostic and adapted the next item/i)).toBeTruthy()
-    expect(screen.getByText(/Personalisation facts only apply after teacher approval/i)).toBeTruthy()
+    expect(
+      screen.getByText(/Ran a short diagnostic and adapted the next item/i)
+    ).toBeTruthy()
+    expect(
+      screen.getByText(
+        /Personalisation facts only apply after teacher approval/i
+      )
+    ).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: 'Send home summary' }))
   })

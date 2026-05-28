@@ -153,7 +153,8 @@ export function OverrideMasteryDialog({
   const styles = useStyles()
   const [probability, setProbability] = useState(skill?.probability ?? 0.5)
   const [uncertainty, setUncertainty] = useState(skill?.uncertainty ?? 0.1)
-  const [originalEstimate, setOriginalEstimate] = useState<OriginalEstimate | null>(null)
+  const [originalEstimate, setOriginalEstimate] =
+    useState<OriginalEstimate | null>(null)
   const [reason, setReason] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -182,7 +183,12 @@ export function OverrideMasteryDialog({
   const probabilityValid = probability >= 0 && probability <= 1
   const uncertaintyValid = uncertainty >= 0 && uncertainty <= 1
   const reasonValid = reason.trim().length >= 5
-  const canSubmit = Boolean(skill) && probabilityValid && uncertaintyValid && reasonValid && !busy
+  const canSubmit =
+    Boolean(skill) &&
+    probabilityValid &&
+    uncertaintyValid &&
+    reasonValid &&
+    !busy
   const originalProbability = originalEstimate?.probability ?? probability
   const originalUncertainty = originalEstimate?.uncertainty ?? uncertainty
 
@@ -207,103 +213,126 @@ export function OverrideMasteryDialog({
 
   return (
     <Dialog open={open} onOpenChange={(_, data) => !data.open && onClose()}>
-      <DialogSurface aria-label="Adjust mastery dialog" className={styles.surface}>
+      <DialogSurface
+        aria-label="Adjust mastery dialog"
+        className={styles.surface}
+      >
         <DialogBody>
           <DialogTitle className={styles.title}>Adjust mastery</DialogTitle>
           <DialogContent className={styles.body}>
-          <Text size={200}>
-            {skill
-              ? `Learner profile · ${skill.skill_label}`
-              : 'Select a skill to adjust'}
-          </Text>
+            <Text size={200}>
+              {skill
+                ? `Learner profile · ${skill.skill_label}`
+                : 'Select a skill to adjust'}
+            </Text>
 
-          <Text size={200} className={styles.intro}>
-            Adjust the current estimate using your professional judgement. The sliders
-            start at the latest values. Move them only when you have classroom evidence,
-            then record why the adjustment is needed.
-          </Text>
+            <Text size={200} className={styles.intro}>
+              Adjust the current estimate using your professional judgement. The
+              sliders start at the latest values. Move them only when you have
+              classroom evidence, then record why the adjustment is needed.
+            </Text>
 
-          <Caption1 className={styles.metricCaption}>
-            {estimateCaption(originalProbability, probability, 'estimate')}
-          </Caption1>
-          <Field
-            label={`Mastery (${Math.round(probability * 100)}%)`}
-            hint="How likely the student has mastered this skill. 0% = not yet, 100% = secure."
-            validationState={probabilityValid ? 'none' : 'error'}
-          >
-            <div className={styles.metricRow}>
-              <input
-                className={styles.rangeInput}
-                type="range"
-                min={0}
-                max={1}
-                step={0.01}
-                value={probability}
-                aria-label="Probability"
-                onChange={event => setProbability(Number(event.currentTarget.value))}
+            <Caption1 className={styles.metricCaption}>
+              {estimateCaption(originalProbability, probability, 'estimate')}
+            </Caption1>
+            <Field
+              label={`Mastery (${Math.round(probability * 100)}%)`}
+              hint="How likely the student has mastered this skill. 0% = not yet, 100% = secure."
+              validationState={probabilityValid ? 'none' : 'error'}
+            >
+              <div className={styles.metricRow}>
+                <input
+                  className={styles.rangeInput}
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={probability}
+                  aria-label="Probability"
+                  onChange={event =>
+                    setProbability(Number(event.currentTarget.value))
+                  }
+                />
+                <Input
+                  aria-label="Probability value"
+                  type="number"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={String(probability)}
+                  onChange={(_, data) => setProbability(Number(data.value))}
+                />
+              </div>
+            </Field>
+
+            <Caption1 className={styles.metricCaption}>
+              {estimateCaption(originalUncertainty, uncertainty, 'uncertainty')}
+            </Caption1>
+            <Field
+              label={`Uncertainty (${Math.round(uncertainty * 100)}%)`}
+              hint="How unsure you are. Lower = more confident. Raise this if you want Pathfinder to keep checking."
+              validationState={uncertaintyValid ? 'none' : 'error'}
+            >
+              <div className={styles.metricRow}>
+                <input
+                  className={styles.rangeInput}
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={uncertainty}
+                  aria-label="Uncertainty"
+                  onChange={event =>
+                    setUncertainty(Number(event.currentTarget.value))
+                  }
+                />
+                <Input
+                  aria-label="Uncertainty value"
+                  type="number"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={String(uncertainty)}
+                  onChange={(_, data) => setUncertainty(Number(data.value))}
+                />
+              </div>
+            </Field>
+
+            <Field
+              label="Reason"
+              required
+              validationState={
+                reasonValid || reason.length === 0 ? 'none' : 'error'
+              }
+            >
+              <Textarea
+                aria-label="Adjustment reason"
+                value={reason}
+                onChange={(_, data) => setReason(data.value)}
+                placeholder="Why this adjustment is needed"
               />
-              <Input
-                aria-label="Probability value"
-                type="number"
-                min={0}
-                max={1}
-                step={0.01}
-                value={String(probability)}
-                onChange={(_, data) => setProbability(Number(data.value))}
-              />
-            </div>
-          </Field>
+            </Field>
 
-          <Caption1 className={styles.metricCaption}>
-            {estimateCaption(originalUncertainty, uncertainty, 'uncertainty')}
-          </Caption1>
-          <Field
-            label={`Uncertainty (${Math.round(uncertainty * 100)}%)`}
-            hint="How unsure you are. Lower = more confident. Raise this if you want Pathfinder to keep checking."
-            validationState={uncertaintyValid ? 'none' : 'error'}
-          >
-            <div className={styles.metricRow}>
-              <input
-                className={styles.rangeInput}
-                type="range"
-                min={0}
-                max={1}
-                step={0.01}
-                value={uncertainty}
-                aria-label="Uncertainty"
-                onChange={event => setUncertainty(Number(event.currentTarget.value))}
-              />
-              <Input
-                aria-label="Uncertainty value"
-                type="number"
-                min={0}
-                max={1}
-                step={0.01}
-                value={String(uncertainty)}
-                onChange={(_, data) => setUncertainty(Number(data.value))}
-              />
-            </div>
-          </Field>
-
-          <Field label="Reason" required validationState={reasonValid || reason.length === 0 ? 'none' : 'error'}>
-            <Textarea
-              aria-label="Adjustment reason"
-              value={reason}
-              onChange={(_, data) => setReason(data.value)}
-              placeholder="Why this adjustment is needed"
-            />
-          </Field>
-
-          {error ? <Text className={styles.error}>{error}</Text> : null}
-        </DialogContent>
-        <div className={styles.dialogActions}>
-          <button type="button" className={styles.secondaryButton} onClick={onClose} disabled={busy}>
-            Cancel
-          </button>
-          <button type="button" className={styles.primaryButton} onClick={() => void handleSubmit()} disabled={!canSubmit}>
-            {busy ? 'Saving…' : 'Save adjustment'}
-          </button>
-        </div>
+            {error ? <Text className={styles.error}>{error}</Text> : null}
+          </DialogContent>
+          <div className={styles.dialogActions}>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={onClose}
+              disabled={busy}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className={styles.primaryButton}
+              onClick={() => void handleSubmit()}
+              disabled={!canSubmit}
+            >
+              {busy ? 'Saving…' : 'Save adjustment'}
+            </button>
+          </div>
         </DialogBody>
       </DialogSurface>
     </Dialog>

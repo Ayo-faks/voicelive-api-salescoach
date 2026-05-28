@@ -49,35 +49,38 @@ export function useTtsPlayer(): {
     }
   }, [revokeObjectUrl])
 
-  const play = useCallback(async (text: string) => {
-    const trimmed = text.trim()
-    if (!trimmed || !supported) return
-    const audio = audioRef.current
-    if (!audio) return
-    stop()
-    const response = await fetch('/api/learning/tts', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: trimmed }),
-    })
-    if (response.status === 503) {
-      setSupported(false)
-      return
-    }
-    if (!response.ok) return
-    const blob = await response.blob()
-    const objectUrl = URL.createObjectURL(blob)
-    objectUrlRef.current = objectUrl
-    audio.src = objectUrl
-    try {
-      setPlaying(true)
-      await audio.play()
-    } catch {
-      revokeObjectUrl()
-      setPlaying(false)
-    }
-  }, [revokeObjectUrl, stop, supported])
+  const play = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim()
+      if (!trimmed || !supported) return
+      const audio = audioRef.current
+      if (!audio) return
+      stop()
+      const response = await fetch('/api/learning/tts', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: trimmed }),
+      })
+      if (response.status === 503) {
+        setSupported(false)
+        return
+      }
+      if (!response.ok) return
+      const blob = await response.blob()
+      const objectUrl = URL.createObjectURL(blob)
+      objectUrlRef.current = objectUrl
+      audio.src = objectUrl
+      try {
+        setPlaying(true)
+        await audio.play()
+      } catch {
+        revokeObjectUrl()
+        setPlaying(false)
+      }
+    },
+    [revokeObjectUrl, stop, supported]
+  )
 
   return { supported, playing, play, stop }
 }

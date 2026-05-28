@@ -78,7 +78,8 @@ export function usePushSubscription(
         if (!cancelled) registrationRef.current = reg
       })
       .catch(err => {
-        if (!cancelled) setError(`sw_register_failed: ${(err as Error).message}`)
+        if (!cancelled)
+          setError(`sw_register_failed: ${(err as Error).message}`)
       })
     return () => {
       cancelled = true
@@ -112,9 +113,14 @@ export function usePushSubscription(
       }
 
       // 2) Server VAPID public key.
-      const keyResp = await fetch('/api/learning/notifications/push/vapid-public-key')
+      const keyResp = await fetch(
+        '/api/learning/notifications/push/vapid-public-key'
+      )
       if (!keyResp.ok) throw new Error(`vapid_key_http_${keyResp.status}`)
-      const keyBody = (await keyResp.json()) as { publicKey?: string; configured?: boolean }
+      const keyBody = (await keyResp.json()) as {
+        publicKey?: string
+        configured?: boolean
+      }
       if (!keyBody.configured || !keyBody.publicKey) {
         throw new Error('vapid_not_configured')
       }
@@ -138,11 +144,14 @@ export function usePushSubscription(
         subscription: subscription.toJSON(),
         user_agent: navigator.userAgent,
       }
-      const persist = await fetch('/api/learning/notifications/push/subscribe', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
+      const persist = await fetch(
+        '/api/learning/notifications/push/subscribe',
+        {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(payload),
+        }
+      )
       if (!persist.ok) throw new Error(`subscribe_http_${persist.status}`)
 
       setStatus('subscribed')
@@ -189,11 +198,14 @@ export async function scheduleRevisionCards(
       payload: c.payload ?? {},
     })),
   }
-  const resp = await fetch('/api/learning/notifications/revision-cards/schedule', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(body),
-  })
+  const resp = await fetch(
+    '/api/learning/notifications/revision-cards/schedule',
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    }
+  )
   if (!resp.ok) throw new Error(`schedule_http_${resp.status}`)
   const json = (await resp.json()) as { scheduled: number; card_ids: string[] }
   return { scheduled: json.scheduled, cardIds: json.card_ids ?? [] }

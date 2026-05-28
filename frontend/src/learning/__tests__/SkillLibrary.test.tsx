@@ -66,14 +66,18 @@ describe('SkillLibrary', () => {
             year_group_max: 8,
             status: 'active',
             lang: 'en-NG',
-            provenance: [{ source: 'seed_skills', confidence: 1, evidence_count: 1 }],
+            provenance: [
+              { source: 'seed_skills', confidence: 1, evidence_count: 1 },
+            ],
           },
         ],
         total: 1,
         limit: 100,
         offset: 0,
         lang: 'en-NG',
-        provenance: [{ source: 'seed_skills', confidence: 1, evidence_count: 1 }],
+        provenance: [
+          { source: 'seed_skills', confidence: 1, evidence_count: 1 },
+        ],
       })
     )
 

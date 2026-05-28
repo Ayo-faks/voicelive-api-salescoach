@@ -1084,7 +1084,8 @@ export function InsightsRail({
   const scopeKey = useMemo(() => {
     const parts: string[] = [currentScope.type]
     if (currentScope.child_id) parts.push(`child:${currentScope.child_id}`)
-    if (currentScope.session_id) parts.push(`session:${currentScope.session_id}`)
+    if (currentScope.session_id)
+      parts.push(`session:${currentScope.session_id}`)
     if (currentScope.report_id) parts.push(`report:${currentScope.report_id}`)
     return parts.join('|')
   }, [
@@ -1216,8 +1217,7 @@ export function InsightsRail({
 
       setLoading(true)
       setError(null)
-      const optimisticConversationId =
-        conversationId || createClientMessageId()
+      const optimisticConversationId = conversationId || createClientMessageId()
       const optimisticUser: InsightsMessage = {
         id: createClientMessageId(),
         conversation_id: optimisticConversationId,
@@ -1313,7 +1313,9 @@ export function InsightsRail({
                 answerText += ev.data.delta || ''
                 setMessages(prev =>
                   prev.map(m =>
-                    m.id === assistantId ? { ...m, content_text: answerText } : m
+                    m.id === assistantId
+                      ? { ...m, content_text: answerText }
+                      : m
                   )
                 )
                 scrollTranscriptToBottom()
@@ -1426,32 +1428,42 @@ export function InsightsRail({
         setLoading(false)
       }
     },
-    [message, loading, currentScope, conversationId, loadHistory, scrollTranscriptToBottom]
+    [
+      message,
+      loading,
+      currentScope,
+      conversationId,
+      loadHistory,
+      scrollTranscriptToBottom,
+    ]
   )
 
-  const handleOpenConversation = useCallback(async (id: string) => {
-    // Cancel any in-flight stream — the user's switching to a historical
-    // conversation and the streaming bubble is no longer relevant.
-    if (abortRef.current) {
-      abortRef.current.abort()
-      abortRef.current = null
-    }
-    setLoading(true)
-    setError(null)
-    setStreamingMessageId(null)
-    try {
-      const res = await api.getInsightsConversation(id)
-      setConversationId(res.conversation.id)
-      setMessages(res.messages)
-      scrollTranscriptToBottom()
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to load conversation'
-      )
-    } finally {
-      setLoading(false)
-    }
-  }, [scrollTranscriptToBottom])
+  const handleOpenConversation = useCallback(
+    async (id: string) => {
+      // Cancel any in-flight stream — the user's switching to a historical
+      // conversation and the streaming bubble is no longer relevant.
+      if (abortRef.current) {
+        abortRef.current.abort()
+        abortRef.current = null
+      }
+      setLoading(true)
+      setError(null)
+      setStreamingMessageId(null)
+      try {
+        const res = await api.getInsightsConversation(id)
+        setConversationId(res.conversation.id)
+        setMessages(res.messages)
+        scrollTranscriptToBottom()
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to load conversation'
+        )
+      } finally {
+        setLoading(false)
+      }
+    },
+    [scrollTranscriptToBottom]
+  )
 
   const handleScopeClick = (type: InsightsScopeType) => {
     if (!onScopeChange) return
@@ -2135,57 +2147,59 @@ export function InsightsRail({
           </div>
         </div>
       </div>
-      {historyOpen && typeof document !== 'undefined' && createPortal(
-        <>
-          <button
-            type="button"
-            className={styles.historyBackdrop}
-            aria-label="Close conversation history"
-            onClick={() => setHistoryOpen(false)}
-          />
-          <section
-            className={styles.historyDrawer}
-            aria-label="Recent conversations"
-            data-testid="insights-rail-history-drawer"
-          >
-            <div className={styles.historyHeader}>
-              <span className={styles.historyTitle}>Recent</span>
-              <button
-                type="button"
-                className={styles.iconButton}
-                onClick={() => setHistoryOpen(false)}
-                aria-label="Close conversation history"
-              >
-                ✕
-              </button>
-            </div>
-            {recentConversations.length === 0 ? (
-              <div className={styles.historyEmpty}>No conversations yet.</div>
-            ) : (
-              <div className={styles.historyList}>
-                {recentConversations.map(c => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    className={mergeClasses(
-                      styles.historyItem,
-                      c.id === conversationId && styles.historyItemActive
-                    )}
-                    onClick={() => {
-                      setHistoryOpen(false)
-                      void handleOpenConversation(c.id)
-                    }}
-                    data-testid="insights-rail-history-item"
-                  >
-                    {historyLabel(c)}
-                  </button>
-                ))}
+      {historyOpen &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <>
+            <button
+              type="button"
+              className={styles.historyBackdrop}
+              aria-label="Close conversation history"
+              onClick={() => setHistoryOpen(false)}
+            />
+            <section
+              className={styles.historyDrawer}
+              aria-label="Recent conversations"
+              data-testid="insights-rail-history-drawer"
+            >
+              <div className={styles.historyHeader}>
+                <span className={styles.historyTitle}>Recent</span>
+                <button
+                  type="button"
+                  className={styles.iconButton}
+                  onClick={() => setHistoryOpen(false)}
+                  aria-label="Close conversation history"
+                >
+                  ✕
+                </button>
               </div>
-            )}
-          </section>
-        </>,
-        document.body
-      )}
+              {recentConversations.length === 0 ? (
+                <div className={styles.historyEmpty}>No conversations yet.</div>
+              ) : (
+                <div className={styles.historyList}>
+                  {recentConversations.map(c => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className={mergeClasses(
+                        styles.historyItem,
+                        c.id === conversationId && styles.historyItemActive
+                      )}
+                      onClick={() => {
+                        setHistoryOpen(false)
+                        void handleOpenConversation(c.id)
+                      }}
+                      data-testid="insights-rail-history-item"
+                    >
+                      {historyLabel(c)}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </section>
+          </>,
+          document.body
+        )}
     </aside>
   )
 }

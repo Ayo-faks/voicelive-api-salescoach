@@ -25,11 +25,13 @@ import { getPilotKpis, type PilotKpiCard, type PilotKpiResponse } from '../api'
 import { pilotMetrics } from '../fixtures'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 
-const fixtureCards: PilotKpiCard[] = pilotMetrics.map(([label, value, detail]) => ({
-  label,
-  value,
-  detail,
-}))
+const fixtureCards: PilotKpiCard[] = pilotMetrics.map(
+  ([label, value, detail]) => ({
+    label,
+    value,
+    detail,
+  })
+)
 
 const safetyTrend = [
   { week: 'W1', safety: 97.8, dsr: 100, provenance: 98 },
@@ -381,7 +383,10 @@ const useStyles = makeStyles({
     alignItems: 'center',
     '@media (max-width: 700px)': { gridTemplateColumns: '1fr' },
   },
-  auditTs: { color: tokens.colorNeutralForeground3, fontVariantNumeric: 'tabular-nums' },
+  auditTs: {
+    color: tokens.colorNeutralForeground3,
+    fontVariantNumeric: 'tabular-nums',
+  },
   auditActor: { fontWeight: 700 },
   riskBadgeLow: {
     backgroundColor: t.risk.low.bg,
@@ -430,10 +435,7 @@ const useStyles = makeStyles({
   },
 })
 
-function riskClass(
-  styles: ReturnType<typeof useStyles>,
-  r: string
-): string {
+function riskClass(styles: ReturnType<typeof useStyles>, r: string): string {
   if (r === 'high') return styles.riskBadgeHigh
   if (r === 'review') return styles.riskBadgeReview
   return styles.riskBadgeLow
@@ -490,16 +492,24 @@ export default function TrustSafetyConsole() {
             <span className={styles.pill}>Privacy response</span>
             <span className={styles.pill}>Release readiness</span>
             <span className={styles.pill}>{sourceLabel} evidence</span>
-            <span className={styles.pill}>{provenanceCount} provenance signals</span>
+            <span className={styles.pill}>
+              {provenanceCount} provenance signals
+            </span>
           </div>
         </div>
         <div className={styles.actions}>
           <button type="button" className={styles.actionButton}>
-            <ArrowDownTrayIcon style={{ width: 16, height: 16 }} aria-hidden="true" />
+            <ArrowDownTrayIcon
+              style={{ width: 16, height: 16 }}
+              aria-hidden="true"
+            />
             Export report
           </button>
           <button type="button" className={styles.primaryActionButton}>
-            <ShieldCheckIcon style={{ width: 16, height: 16 }} aria-hidden="true" />
+            <ShieldCheckIcon
+              style={{ width: 16, height: 16 }}
+              aria-hidden="true"
+            />
             Run safety review
           </button>
         </div>
@@ -519,7 +529,8 @@ export default function TrustSafetyConsole() {
           header={<Text weight="semibold">Admin / School Leader View</Text>}
           description={
             <Text size={200}>
-              A concrete leadership snapshot: outcomes, risk, skill gaps, usage, unit cost, pending approvals, impact, and family-ready outputs.
+              A concrete leadership snapshot: outcomes, risk, skill gaps, usage,
+              unit cost, pending approvals, impact, and family-ready outputs.
             </Text>
           }
         />
@@ -535,14 +546,22 @@ export default function TrustSafetyConsole() {
         <div className={styles.leaderNarrative}>
           <Text weight="semibold">Decision view</Text>
           <Text size={200}>
-            Leaders can connect the demo to buying logic: Pathfinder shows where the cohort is moving, which students need support, which gaps repeat, whether practice is happening, what the weekly unit cost looks like, and whether approved interventions are changing outcomes after 6-8 weeks.
+            Leaders can connect the demo to buying logic: Pathfinder shows where
+            the cohort is moving, which students need support, which gaps
+            repeat, whether practice is happening, what the weekly unit cost
+            looks like, and whether approved interventions are changing outcomes
+            after 6-8 weeks.
           </Text>
         </div>
       </Card>
 
       <div className={styles.metricStrip} data-testid="pilot-kpi-strip">
         {cards.map(card => (
-          <Card key={card.label} className={styles.metricCard} data-testid="pilot-kpi-card">
+          <Card
+            key={card.label}
+            className={styles.metricCard}
+            data-testid="pilot-kpi-card"
+          >
             <div
               style={{
                 display: 'flex',
@@ -553,7 +572,9 @@ export default function TrustSafetyConsole() {
             >
               <Text className={styles.metricLabel}>{card.label}</Text>
               <span
-                className={source === 'fixture' ? styles.pill : styles.pillSolid}
+                className={
+                  source === 'fixture' ? styles.pill : styles.pillSolid
+                }
                 data-testid="pilot-kpi-source-badge"
               >
                 {sourceLabel}
@@ -575,7 +596,8 @@ export default function TrustSafetyConsole() {
       )}
       {provenanceCount > 0 && (
         <Text size={200} data-testid="pilot-kpi-provenance">
-          Evidence coverage: {provenanceCount} source{provenanceCount === 1 ? '' : 's'}
+          Evidence coverage: {provenanceCount} source
+          {provenanceCount === 1 ? '' : 's'}
           {kpis?.report.meets_pilot_thresholds === false &&
             ' · review thresholds not yet met'}
         </Text>
@@ -584,17 +606,27 @@ export default function TrustSafetyConsole() {
       <div className={styles.twoCol}>
         <Card className={styles.chartCard}>
           <CardHeader
-            header={<Text weight="semibold">Governance trends · last 6 weeks</Text>}
+            header={
+              <Text weight="semibold">Governance trends · last 6 weeks</Text>
+            }
             description={
-              <Text size={200}>Safety pass rate · data request SLA · evidence coverage</Text>
+              <Text size={200}>
+                Safety pass rate · data request SLA · evidence coverage
+              </Text>
             }
           />
           <div className={styles.chartBox}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={safetyTrend}>
                 <CartesianGrid strokeDasharray="3 3" stroke={t.brand.line} />
-                <XAxis dataKey="week" tick={{ fontSize: 12, fill: t.brand.textTertiary }} />
-                <YAxis domain={[95, 100]} tick={{ fontSize: 12, fill: t.brand.textTertiary }} />
+                <XAxis
+                  dataKey="week"
+                  tick={{ fontSize: 12, fill: t.brand.textTertiary }}
+                />
+                <YAxis
+                  domain={[95, 100]}
+                  tick={{ fontSize: 12, fill: t.brand.textTertiary }}
+                />
                 <Tooltip />
                 <Legend wrapperStyle={{ fontSize: '0.78rem' }} />
                 <Line
@@ -628,7 +660,8 @@ export default function TrustSafetyConsole() {
         <Card className={styles.canaryCard}>
           <Text className={styles.canaryTitle}>Release rollout</Text>
           <Text size={200}>
-            Private review → 5% → 25% → wider release. Rollback is armed for any safety regression.
+            Private review → 5% → 25% → wider release. Rollback is armed for any
+            safety regression.
           </Text>
           <div className={styles.canaryStages}>
             <span className={styles.canaryStageComplete}>Private review ✓</span>
@@ -638,8 +671,8 @@ export default function TrustSafetyConsole() {
             <span className={styles.canaryStage}>100%</span>
           </div>
           <Text size={200}>
-            <strong>Rollback triggers:</strong> safety {'<'} 98%, data request SLA
-            breach, evidence gap.
+            <strong>Rollback triggers:</strong> safety {'<'} 98%, data request
+            SLA breach, evidence gap.
           </Text>
           <button type="button" className={styles.rollbackBtn}>
             <ExclamationTriangleIcon
@@ -655,9 +688,7 @@ export default function TrustSafetyConsole() {
         <CardHeader
           header={<Text weight="semibold">Audit action log</Text>}
           description={
-            <Text size={200}>
-              Signed history kept for compliance review.
-            </Text>
+            <Text size={200}>Signed history kept for compliance review.</Text>
           }
         />
         <div className={styles.auditRow} style={{ fontWeight: 700 }}>

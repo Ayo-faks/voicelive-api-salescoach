@@ -8,7 +8,8 @@ const mistPressed = '#d1d1d6'
 export const pathfinderFluentTheme: Theme = {
   ...webLightTheme,
   fontFamilyBase: t.font.text,
-  fontFamilyMonospace: '"SF Mono", "IBM Plex Mono", "JetBrains Mono", monospace',
+  fontFamilyMonospace:
+    '"SF Mono", "IBM Plex Mono", "JetBrains Mono", monospace',
   colorNeutralForeground1: t.brand.text,
   colorNeutralForeground2: t.brand.textSecondary,
   colorNeutralForeground3: t.brand.textTertiary,
