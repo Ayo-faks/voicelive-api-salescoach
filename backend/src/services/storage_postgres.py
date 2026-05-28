@@ -63,6 +63,8 @@ THERAPY_RLS_PROTECTED_TABLES = (
     "institutional_memory_insights",
     "audit_log",
     "child_invitations",
+    "family_intake_invitations",
+    "progress_reports",
     "ui_state_audit",
     "child_ui_state",
 )
@@ -87,6 +89,68 @@ LEARNING_RLS_PROTECTED_TABLES = (
     "learning_student_fact_decisions",
 )
 RLS_PROTECTED_TABLES = THERAPY_RLS_PROTECTED_TABLES + LEARNING_RLS_PROTECTED_TABLES
+
+
+class PostgresRlsGateError(RuntimeError):
+    """Raised when the Postgres RLS startup gate detects a misconfigured table."""
+
+
+_RLS_GATE_QUERY = """
+    SELECT
+        c.relname,
+        c.relrowsecurity,
+        c.relforcerowsecurity
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = current_schema()
+      AND c.relkind = 'r'
+      AND c.relname = ANY(%s::text[])
+"""
+
+
+def _coerce_rls_row(row: Any) -> tuple[str, bool, bool]:
+    if isinstance(row, dict):
+        return (
+            str(row["relname"]),
+            bool(row["relrowsecurity"]),
+            bool(row["relforcerowsecurity"]),
+        )
+    name, enabled, forced = row
+    return str(name), bool(enabled), bool(forced)
+
+
+def assert_postgres_rls_active(connection: Any) -> None:
+    """Verify every RLS-protected table has ROW LEVEL SECURITY enabled and forced.
+
+    Raises :class:`PostgresRlsGateError` aggregating every failing table so the
+    startup gate surfaces all problems at once.
+    """
+
+    rows = connection.execute(
+        _RLS_GATE_QUERY, (list(RLS_PROTECTED_TABLES),)
+    ).fetchall()
+    by_table: Dict[str, tuple[bool, bool]] = {}
+    for row in rows:
+        name, enabled, forced = _coerce_rls_row(row)
+        by_table[name] = (enabled, forced)
+
+    failures: List[str] = []
+    for name in RLS_PROTECTED_TABLES:
+        state = by_table.get(name)
+        if state is None:
+            failures.append(f"{name}: table missing")
+            continue
+        enabled, forced = state
+        if not enabled:
+            failures.append(f"{name}: ROW LEVEL SECURITY not ENABLED")
+        if not forced:
+            failures.append(f"{name}: ROW LEVEL SECURITY not FORCED")
+
+    if failures:
+        raise PostgresRlsGateError(
+            f"Postgres RLS gate failed for {len(failures)} table(s): "
+            + "; ".join(failures)
+        )
 
 
 class PostgresStorageService:
