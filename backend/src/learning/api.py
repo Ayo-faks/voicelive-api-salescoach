@@ -19,7 +19,7 @@ import json
 import os
 import threading
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Optional, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Protocol, Tuple
 from urllib.parse import urlencode
 from uuid import uuid4
 
@@ -185,6 +185,110 @@ WIKI_CORPUS_PATHS = (
 EXPLAIN_SNIPPET_MAX_CHARS = 320
 
 
+class AssistantReply(dict):
+    """Lightweight dict-typed reply returned by an ``AssistantProvider``.
+
+    Carries the assistant's free-text answer and an optional list of citation
+    cards ``[{"label": str, "topic_id"|"url": str}]``. Kept as a ``dict``
+    subclass so it serialises cleanly via ``jsonify`` without an extra adapter.
+    """
+
+
+class AssistantProvider(Protocol):
+    """Pluggable backend for the unified Ask Pathfinder drawer.
+
+    Phase 1 ships a deterministic implementation that quotes the learner's own
+    weak topics, daily plan, and career fits back to them; phase 2 will swap in
+    a model-backed provider (see ``/memories/repo/pathfinder-ask-assistant-phase2.md``).
+    """
+
+    def ask(self, question: str, context: Mapping[str, Any]) -> AssistantReply: ...
+
+
+class DeterministicAssistantProvider:
+    """Phase-1 provider — branches on keywords in the learner's question.
+
+    Pulls signals directly from ``context`` so the same data the learner sees
+    on the home screen (weak topics, daily plan, career fits, last wrong
+    answer) appears in the answer. No outcome guarantees.
+    """
+
+    def ask(self, question: str, context: Mapping[str, Any]) -> AssistantReply:
+        q = (question or "").strip()
+        ql = q.lower()
+        weak_topics = list(context.get("weak_topics") or [])
+        career_fits = list(context.get("career_fits") or [])
+        daily_plan = list(context.get("daily_plan") or [])
+        last_wrong = context.get("last_wrong_answer") or {}
+
+        def _topic_label(t: Any) -> str:
+            if isinstance(t, Mapping):
+                return str(t.get("label") or t.get("skill_id") or t.get("topic_id") or "")
+            return str(t or "")
+
+        def _topic_id(t: Any) -> str:
+            if isinstance(t, Mapping):
+                return str(t.get("skill_id") or t.get("topic_id") or t.get("label") or "")
+            return str(t or "")
+
+        weak_labels = [_topic_label(t) for t in weak_topics if _topic_label(t)]
+        citations: List[Dict[str, str]] = []
+
+        # 1) Wrong-answer follow-up
+        if last_wrong and any(k in ql for k in ("why", "wrong", "mistake", "explain")):
+            topic = _topic_label(last_wrong) or "this topic"
+            answer = (
+                f"Looking at your last answer on {topic}, the worked example "
+                "shows what to keep constant; try the next short retrieval "
+                "card to practise the same step in a new wording. No outcome "
+                "guarantee — what is realistic is one focused retry today."
+            )
+            tid = _topic_id(last_wrong)
+            if tid:
+                citations.append({"label": topic, "topic_id": tid})
+            return AssistantReply(answer=answer, citations=citations)
+
+        # 2) Career / pathway question
+        if any(k in ql for k in ("career", "pathway", "doctor", "engineer", "become", "job", "future")):
+            fit_labels = [str((f or {}).get("label") or f) for f in career_fits if f]
+            if fit_labels:
+                fits_text = ", ".join(fit_labels[:3])
+                answer = (
+                    f"Pathways that fit your current strengths include {fits_text}. "
+                    "Guidance stays exploratory — no outcome guarantee. What is "
+                    "realistic next: keep building "
+                    + (weak_labels[0] if weak_labels else "your current focus topic")
+                    + " before timed practice."
+                )
+            else:
+                answer = (
+                    "Pathways stay exploratory — no outcome guarantee. What is "
+                    "realistic next: name the subject you most enjoy and we can "
+                    "map two adjacent roles to try."
+                )
+            for f in career_fits[:3]:
+                if isinstance(f, Mapping) and f.get("label"):
+                    citations.append({"label": str(f["label"]), "url": str(f.get("url") or "#")})
+            return AssistantReply(answer=answer, citations=citations)
+
+        # 3) Weak-topic / what-to-study question (default branch)
+        focus = weak_labels[0] if weak_labels else "your current focus topic"
+        plan_titles = [str((p or {}).get("title") or p) for p in daily_plan if p]
+        plan_text = ("; ".join(plan_titles[:2])) if plan_titles else "today's path"
+        answer = (
+            f"Start with {focus} — that is the weakest signal on your profile "
+            f"right now. Today's path covers: {plan_text}. Aim for one short "
+            "retrieval card after each step; no outcome guarantee, just "
+            "steady practice."
+        )
+        for t in weak_topics[:2]:
+            label = _topic_label(t)
+            tid = _topic_id(t)
+            if label and tid:
+                citations.append({"label": label, "topic_id": tid})
+        return AssistantReply(answer=answer, citations=citations)
+
+
 class _SessionState:
     """Per-session diagnostic transcript held in memory for the pilot demo."""
 
@@ -247,6 +351,7 @@ class LearningApi:
         rag_retriever: Optional[RagRetriever] = None,
         notifications_repository: Optional[NotificationsRepository] = None,
         vapid_config: Optional[VapidConfig] = None,
+        assistant_provider: Optional[AssistantProvider] = None,
     ) -> None:
         self.repository: LearningRepository = repository or InMemoryLearningRepository()
         self.item_bank: DiagnosticItemBank = item_bank or load_item_bank(ITEM_BANK_PATH)
@@ -258,6 +363,9 @@ class LearningApi:
         self.observability = observability or LearningObservability()
         self.selector = DeterministicItemSelector()
         self.voice_adapter = FlaskSockVoiceTransportAdapter()
+        self.assistant_provider: AssistantProvider = (
+            assistant_provider or DeterministicAssistantProvider()
+        )
         self._sessions: Dict[str, _SessionState] = {}
         self._student_estimates: Dict[Tuple[str, str], Dict[str, MasteryEstimate]] = {}
         self._student_classes: Dict[Tuple[str, str], str] = {}
@@ -1581,6 +1689,31 @@ class LearningApi:
             "offline_fallback": self.voice_adapter.offline_fallback,
         }
 
+    def ask_assistant(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        """Unified Ask Pathfinder entrypoint — text in, deterministic answer out.
+
+        Accepts the learner's local context (weak_topics, daily_plan,
+        career_fits, last_wrong_answer) so phase 1 can quote it back without
+        round-tripping to storage. Phase 2 will switch the provider to a
+        model-backed one (see ``/memories/repo/pathfinder-ask-assistant-phase2.md``).
+        """
+        question = str(payload.get("question") or "").strip()
+        if not question:
+            raise LearningApiError("question is required", status_code=400)
+        context: Dict[str, Any] = {
+            "user_id": payload.get("user_id"),
+            "weak_topics": payload.get("weak_topics") or [],
+            "daily_plan": payload.get("daily_plan") or [],
+            "career_fits": payload.get("career_fits") or [],
+            "last_wrong_answer": payload.get("last_wrong_answer") or {},
+            "learner_setup": payload.get("learner_setup") or {},
+        }
+        reply = self.assistant_provider.ask(question, context)
+        return {
+            "answer": str(reply.get("answer", "")),
+            "citations": list(reply.get("citations") or []),
+        }
+
     def submit_voice_frame(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
         if not self.voice_enabled():
             raise LearningApiError("voice feature disabled", status_code=403)
@@ -2064,6 +2197,11 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
     @_wrap
     def _voice_frame(payload: Dict[str, Any]) -> Dict[str, Any]:
         return learning_api.submit_voice_frame(payload)
+
+    @app.route("/api/learning/assistant/ask", methods=["POST"])
+    @_wrap
+    def _ask_assistant(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.ask_assistant(payload)
 
     @app.route("/api/learning/subjects", methods=["GET"])
     @_wrap
