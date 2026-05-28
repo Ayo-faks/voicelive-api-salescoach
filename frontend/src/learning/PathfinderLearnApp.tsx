@@ -20,8 +20,10 @@ import type { AppConfig, ChildProfile, InsightsScope } from '../types'
 import LearnerEmptyState from './components/LearnerEmptyState'
 import LearnerSelector from './components/LearnerSelector'
 import VoiceAgentFullscreen from './components/VoiceAgentFullscreen'
+import PracticeFullscreen from './components/PracticeFullscreen'
 import WelcomeRolePicker from './components/WelcomeRolePicker'
 import { storeSelectedLearnerId, useSelectedLearner } from './hooks/useSelectedLearner'
+import { useLearnerSetup } from './hooks/useLearnerSetup'
 import PathwaysExplorer from './routes/PathwaysExplorer'
 import SkillLibrary from './routes/SkillLibrary'
 import StudentLearningHome from './routes/StudentLearningHome'
@@ -30,6 +32,8 @@ import TeacherMasteryDashboard from './routes/TeacherMasteryDashboard'
 import TrustSafetyConsole from './routes/TrustSafetyConsole'
 import { pathfinderFluentTheme } from './theme/pathfinderFluentTheme'
 import { pathfinderTokens as t } from './theme/pathfinder-tokens'
+import AskPathfinder from './AskPathfinder'
+import { LearnerContext, defaultLearnerContext } from './contexts/LearnerContext'
 
 export const COOKIE_CONSENT_STORAGE_KEY = 'pathfinder.cookie-consent.v1'
 
@@ -792,6 +796,13 @@ export default function PathfinderLearnApp() {
     !!appConfig?.voice_agent_fullscreen_enabled &&
     (appConfig?.insights_voice_mode ?? 'off') !== 'off'
   const chatLauncherVisible = !!appConfig?.insights_rail_enabled
+  const practiceFullscreenEnabled =
+    !!appConfig?.learner_voice_fullscreen_enabled &&
+    ['learner', 'kid', 'student'].includes(effectiveRole)
+  const [practiceOpen, setPracticeOpen] = useState(false)
+  const activeLearnerIdForPractice =
+    selectedLearnerId ?? learnerChildren?.[0]?.id ?? null
+  const [learnerSetup] = useLearnerSetup()
 
   useEffect(() => {
     let cancelled = false
@@ -896,7 +907,12 @@ export default function PathfinderLearnApp() {
           selectedLearnerId={activeLearnerId}
           onChange={setSelectedLearnerId}
         />
-        <StudentLearningHome key={activeLearnerId ?? 'no-learner'} studentId={activeLearnerId} />
+        <StudentLearningHome
+          key={activeLearnerId ?? 'no-learner'}
+          studentId={activeLearnerId}
+          learnerTutorEnabled={['learner', 'kid', 'student'].includes(effectiveRole)}
+          pushConsentDeferred={effectiveRole === 'kid'}
+        />
       </>
     )
   }
@@ -1006,6 +1022,20 @@ export default function PathfinderLearnApp() {
           <div className={styles.navGroupLabel}>Workspaces</div>
           <nav aria-label="Pathfinder views" style={{ display: 'grid', gap: '2px' }}>
             {renderNavLinks()}
+            {practiceFullscreenEnabled && activeLearnerIdForPractice ? (
+              <button
+                type="button"
+                className={styles.navLink}
+                onClick={() => setPracticeOpen(true)}
+                aria-label="Open Pathfinder practice"
+                data-testid="sidebar-practice-link"
+                style={{ fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer' }}
+              >
+                <BookOpenIcon className={styles.navIcon} aria-hidden="true" />
+                Practice
+                <span className={styles.navHint}>Cards</span>
+              </button>
+            ) : null}
           </nav>
 
           <div className={styles.sidebarFooter}>
@@ -1029,17 +1059,6 @@ export default function PathfinderLearnApp() {
             </div>
             {authSession?.authenticated ? (
               <div className={styles.mobileAccountActions}>
-                <a
-                  href="/profile"
-                  className={styles.mobileUserPill}
-                  aria-label="Open learning profile"
-                  data-testid="mobile-account-profile"
-                >
-                  <span className={styles.userAvatar} aria-hidden="true">
-                    {(authSession.name || authSession.email || '?').charAt(0).toUpperCase()}
-                  </span>
-                  <span className={styles.srOnly}>Learning profile</span>
-                </a>
                 <a
                   href="/settings"
                   className={styles.mobileAccountButton}
@@ -1086,6 +1105,32 @@ export default function PathfinderLearnApp() {
             {renderNavLinks(styles.bottomNavLink)}
           </nav>
         </main>
+        {['learner', 'kid', 'student'].includes(effectiveRole) && (
+          <LearnerContext.Provider value={defaultLearnerContext}>
+            <AskPathfinder />
+          </LearnerContext.Provider>
+        )}
+        {practiceFullscreenEnabled && activeLearnerIdForPractice && !practiceOpen && (
+          <button
+            type="button"
+            className={styles.voiceLauncher}
+            onClick={() => setPracticeOpen(true)}
+            aria-label="Open Pathfinder practice"
+            data-testid="practice-launcher"
+          >
+            <BookOpenIcon className={styles.voiceLauncherGlyph} aria-hidden="true" />
+          </button>
+        )}
+        {practiceFullscreenEnabled && activeLearnerIdForPractice && practiceOpen && (
+          <PracticeFullscreen
+            open={practiceOpen}
+            onClose={() => setPracticeOpen(false)}
+            childId={activeLearnerIdForPractice}
+            exam={learnerSetup.exam}
+            classYear={learnerSetup.year}
+            subject={learnerSetup.subject}
+          />
+        )}
         {voiceLauncherVisible && !voiceOpen && (
           <button
             type="button"

@@ -9,6 +9,7 @@ import asyncio
 import json
 import logging
 import os
+from urllib.parse import parse_qs
 from typing import Any, Dict, List, Optional
 
 import simple_websocket.ws  # pyright: ignore[reportMissingTypeStubs]
@@ -26,7 +27,9 @@ from azure.ai.voicelive.models import (
     AzureSemanticVad,
     AzureSemanticVadEn,
     AzureStandardVoice,
+    InputAudioFormat,
     Modality,
+    OutputAudioFormat,
     RequestSession,
     ServerEventType,
 )
@@ -37,6 +40,7 @@ from src.services.managers import AgentManager, FINISH_SESSION_TOOL
 from src.services.prompt_rules import append_phoneme_rule
 from src.services.scoring import ScoredTurnDispatcher, TargetTokenTally
 from src.services.tts_normalizer import normalize_for_tts
+from src.services.voice_agent_profiles import AgentProfile, AgentProfileContext, get_profile
 
 logger = logging.getLogger(__name__)
 
@@ -181,6 +185,8 @@ class VoiceProxyHandler:
                 )
                 return
 
+            profile_context = self._get_profile_context(client_ws)
+            profile = get_profile(profile_context.scope)
             current_agent_id = await self._get_agent_id_from_client(client_ws)
             agent_config = self.agent_manager.get_agent(current_agent_id) if current_agent_id else None
 
@@ -207,8 +213,8 @@ class VoiceProxyHandler:
                     {"type": PROXY_CONNECTED_TYPE, "message": "Connected to Azure Voice API"},
                 )
 
-                await self._send_initial_config(azure_conn, agent_config)
-                await self._handle_message_forwarding(client_ws, azure_conn)
+                await self._send_initial_config(azure_conn, agent_config, profile, profile_context)
+                await self._handle_message_forwarding(client_ws, azure_conn, profile, profile_context)
 
         except ConnectionClosed as e:
             logger.info("VoiceLive connection closed: code=%s, reason=%s", e.code, e.reason)
@@ -227,6 +233,23 @@ class VoiceProxyHandler:
         environ = getattr(client_ws, "environ", {}) or {}
         principal_id = str(environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_ID") or "").strip()
         return bool(principal_id)
+
+    def _get_profile_context(self, client_ws: simple_websocket.ws.Server) -> AgentProfileContext:
+        environ = getattr(client_ws, "environ", {}) or {}
+        query = parse_qs(str(environ.get("QUERY_STRING") or ""), keep_blank_values=False)
+
+        def first(name: str, default: str | None = None) -> str | None:
+            value = str((query.get(name) or [default or ""])[0] or "").strip()
+            return value or default
+
+        scope = first("scope", "practice") or "practice"
+        return AgentProfileContext(
+            scope=scope,
+            child_id=first("child_id"),
+            exam=first("exam"),
+            class_year=first("class_year"),
+            subject=first("subject"),
+        )
 
     async def _get_agent_id_from_client(self, client_ws: simple_websocket.ws.Server) -> Optional[str]:
         """Get agent ID from initial client message."""
@@ -281,14 +304,23 @@ class VoiceProxyHandler:
         self,
         azure_conn: VoiceLiveConnection,
         agent_config: Optional[Dict[str, Any]],
+        profile: AgentProfile | None = None,
+        profile_context: AgentProfileContext | None = None,
     ) -> None:
         """Send initial configuration to Azure using SDK typed models."""
-        session_config = self._build_session_config(agent_config)
+        session_config = self._build_session_config(agent_config, profile, profile_context)
         await azure_conn.session.update(session=session_config)
         logger.debug("Sent initial session configuration via SDK")
 
-    def _build_session_config(self, agent_config: Optional[Dict[str, Any]]) -> RequestSession:
+    def _build_session_config(
+        self,
+        agent_config: Optional[Dict[str, Any]],
+        profile: AgentProfile | None = None,
+        profile_context: AgentProfileContext | None = None,
+    ) -> RequestSession:
         """Build the session configuration using SDK typed models."""
+        profile = profile or get_profile("practice")
+        profile_context = profile_context or AgentProfileContext(scope=profile.id)
         voice_name = config.get("azure_voice_name")
         voice_type = config.get("azure_voice_type")
 
@@ -303,6 +335,9 @@ class VoiceProxyHandler:
             is_photo_avatar = custom_avatar.get("is_photo_avatar", False)
             voice_name = custom_avatar.get("voice_name") or voice_name
 
+        if profile.id == "learner":
+            voice_name = profile.voice
+
         avatar_config_value = self._build_avatar_config(avatar_character, avatar_style, is_photo_avatar)
 
         logger.info(
@@ -312,7 +347,7 @@ class VoiceProxyHandler:
             bool(agent_config and agent_config.get("avatar_config", {}).get("voice_name")),
         )
 
-        return self._create_request_session(voice_name, voice_type, avatar_config_value, agent_config)
+        return self._create_request_session(voice_name, voice_type, avatar_config_value, agent_config, profile, profile_context)
 
     def _build_avatar_config(self, character: str, style: str, is_photo: bool) -> Any:
         """Build avatar configuration for photo or video avatars."""
@@ -336,8 +371,12 @@ class VoiceProxyHandler:
         voice_type: str,
         avatar_config_value: Any,
         agent_config: Optional[Dict[str, Any]],
+        profile: AgentProfile | None = None,
+        profile_context: AgentProfileContext | None = None,
     ) -> RequestSession:
         """Create the RequestSession with all configuration."""
+        profile = profile or get_profile("practice")
+        profile_context = profile_context or AgentProfileContext(scope=profile.id)
         custom_lexicon_url = str(config.get("azure_custom_lexicon_url") or "").strip() or None
 
         if _is_conversational_mic_enabled():
@@ -345,13 +384,29 @@ class VoiceProxyHandler:
         else:
             turn_detection = AzureSemanticVad(type=DEFAULT_TURN_DETECTION_TYPE)
 
+        # Learner tutor is audio-only (no on-screen avatar). When the AVATAR
+        # modality + avatar config are included, Azure routes synthesized speech
+        # through the avatar/WebRTC stream and does not emit
+        # `response.audio.delta` frames over the realtime websocket, so the
+        # browser never hears the tutor. Practice/teacher flows keep the avatar.
+        is_audio_only_profile = profile.id == "learner"
+        if is_audio_only_profile:
+            modalities: list[Modality] = [Modality.TEXT, Modality.AUDIO]
+            avatar_for_session: Any = None
+        else:
+            modalities = [Modality.TEXT, Modality.AUDIO, Modality.AVATAR]
+            avatar_for_session = avatar_config_value
+
         session = RequestSession(
-            modalities=[Modality.TEXT, Modality.AUDIO, Modality.AVATAR],
+            modalities=modalities,
             turn_detection=turn_detection,
             input_audio_transcription=AudioInputTranscriptionOptions(
                 model=config.get("azure_input_transcription_model", "azure-speech"),
                 language=config.get("azure_input_transcription_language", "en-US"),
             ),
+            input_audio_sampling_rate=24000,
+            input_audio_format=InputAudioFormat.PCM16,
+            output_audio_format=OutputAudioFormat.PCM16,
             input_audio_noise_reduction=AudioNoiseReduction(type=DEFAULT_NOISE_REDUCTION_TYPE),
             input_audio_echo_cancellation=AudioEchoCancellation(type=DEFAULT_ECHO_CANCELLATION_TYPE),
             voice=AzureStandardVoice(
@@ -359,13 +414,19 @@ class VoiceProxyHandler:
                 type=voice_type,
                 custom_lexicon_url=custom_lexicon_url,
             ),
-            avatar=avatar_config_value,
-            tools=[FINISH_SESSION_TOOL],
+            avatar=avatar_for_session,
+            tools=list(profile.tools or [FINISH_SESSION_TOOL]),
         )
 
         personalization_block = self._build_personalization_instruction_block(agent_config)
 
-        if agent_config and not agent_config.get("is_azure_agent"):
+        if profile.id == "learner":
+            session["instructions"] = append_phoneme_rule(
+                self._build_profile_instruction_block(profile, profile_context)
+            )
+            session["temperature"] = profile.temperature
+            session["max_response_output_tokens"] = profile.max_response_output_tokens
+        elif agent_config and not agent_config.get("is_azure_agent"):
             session["instructions"] = self._combine_instructions(
                 agent_config.get("instructions"),
                 personalization_block,
@@ -376,6 +437,20 @@ class VoiceProxyHandler:
             session["instructions"] = personalization_block
 
         return session
+
+    def _build_profile_instruction_block(
+        self,
+        profile: AgentProfile,
+        profile_context: AgentProfileContext,
+    ) -> str:
+        context_lines = [
+            "SESSION CONTEXT:",
+            f"- child_id: {profile_context.child_id or 'unknown'}",
+            f"- exam: {profile_context.exam or 'default'}",
+            f"- class_year: {profile_context.class_year or 'default'}",
+            f"- subject: {profile_context.subject or 'default'}",
+        ]
+        return f"{profile.system_prompt.strip()}\n\n" + "\n".join(context_lines)
 
     def _combine_instructions(self, base_instructions: Any, personalization_block: Optional[str]) -> Optional[str]:
         base_text = str(base_instructions or "").strip()
@@ -457,15 +532,21 @@ class VoiceProxyHandler:
         self,
         client_ws: simple_websocket.ws.Server,
         azure_conn: VoiceLiveConnection,
+        profile: AgentProfile | None = None,
+        profile_context: AgentProfileContext | None = None,
     ) -> None:
         """Handle bidirectional message forwarding."""
+        profile = profile or get_profile("practice")
+        profile_context = profile_context or AgentProfileContext(scope=profile.id)
         tally: Optional[TargetTokenTally] = TargetTokenTally() if _is_structured_conversation_enabled() else None
         scored_turn: Optional[ScoredTurnDispatcher] = (
             ScoredTurnDispatcher() if _is_conversational_mic_enabled() else None
         )
         tasks = [
-            asyncio.create_task(self._forward_client_to_azure(client_ws, azure_conn, tally, scored_turn)),
-            asyncio.create_task(self._forward_azure_to_client(azure_conn, client_ws, tally, scored_turn)),
+            asyncio.create_task(self._forward_client_to_azure(client_ws, azure_conn, tally, scored_turn, profile)),
+            asyncio.create_task(
+                self._forward_azure_to_client(azure_conn, client_ws, tally, scored_turn, profile, profile_context)
+            ),
         ]
 
         _, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
@@ -479,6 +560,7 @@ class VoiceProxyHandler:
         azure_conn: VoiceLiveConnection,
         tally: Optional[TargetTokenTally] = None,
         scored_turn: Optional[ScoredTurnDispatcher] = None,
+        profile: AgentProfile | None = None,
     ) -> None:
         """Forward messages from client to Azure using SDK.
 
@@ -505,6 +587,7 @@ class VoiceProxyHandler:
                     ):
                         continue
                     self._normalize_outbound_text_fields(parsed)
+                    self._apply_profile_response_tool_choice(parsed, profile)
                     await azure_conn.send(parsed)
                 else:
                     await azure_conn.send(message)
@@ -632,6 +715,8 @@ class VoiceProxyHandler:
         client_ws: simple_websocket.ws.Server,
         tally: Optional[TargetTokenTally] = None,
         scored_turn: Optional[ScoredTurnDispatcher] = None,
+        profile: AgentProfile | None = None,
+        profile_context: AgentProfileContext | None = None,
     ) -> None:
         """Forward messages from Azure to client using SDK typed events.
 
@@ -640,9 +725,22 @@ class VoiceProxyHandler:
         """
         avatar_retry_attempts = 0
         avatar_surrendered = False
+        profile_tool_response_pending = False
+        handled_profile_tool_call_ids: set[str] = set()
         try:
             async for event in azure_conn:
                 event_dict = event.as_dict() if hasattr(event, "as_dict") else dict(event)
+                if profile is not None and profile_context is not None:
+                    if await self._maybe_handle_profile_tool_call(
+                        event_dict,
+                        azure_conn,
+                        client_ws,
+                        profile,
+                        profile_context,
+                        handled_profile_tool_call_ids,
+                    ):
+                        profile_tool_response_pending = True
+                        continue
                 message = json.dumps(event_dict)
                 logger.debug("Azure->Client: %s", message[:LOG_MESSAGE_MAX_LENGTH])
 
@@ -713,10 +811,95 @@ class VoiceProxyHandler:
                             {"type": WULO_SCORED_TURN_RESULT_TYPE, "payload": result.to_dict()},
                         )
 
+                if event_type_str == "response.done" and profile_tool_response_pending:
+                    profile_tool_response_pending = False
+                    await azure_conn.send({"type": "response.create"})
+
         except ConnectionClosed as e:
             logger.debug("Azure connection closed: code=%s, reason=%s", e.code, e.reason)
         except Exception as e:
             logger.debug("Error forwarding Azure messages: %s", e)
+
+    async def _maybe_handle_profile_tool_call(
+        self,
+        event_dict: Dict[str, Any],
+        azure_conn: VoiceLiveConnection,
+        client_ws: simple_websocket.ws.Server,
+        profile: AgentProfile,
+        profile_context: AgentProfileContext,
+        handled_tool_call_ids: set[str] | None = None,
+    ) -> bool:
+        tool_call = self._extract_profile_tool_call(event_dict)
+        if tool_call is None:
+            return False
+        name, call_id, arguments = tool_call
+        if name not in profile.tool_handlers:
+            return False
+        if handled_tool_call_ids is not None:
+            if call_id in handled_tool_call_ids:
+                return True
+            handled_tool_call_ids.add(call_id)
+
+        try:
+            result = dict(profile.handle_tool_call(name, arguments, profile_context))
+        except Exception as exc:
+            logger.exception("Voice profile tool call failed: %s", name)
+            result = {"error": str(exc) or "Tool call failed"}
+
+        output = json.dumps(result, separators=(",", ":"))
+        await azure_conn.send(
+            {
+                "type": "conversation.item.create",
+                "item": {
+                    "type": "function_call_output",
+                    "call_id": call_id,
+                    "output": output,
+                },
+            }
+        )
+        card = result.get("card")
+        if profile.id == "learner" and isinstance(card, dict):
+            await self._send_message(
+                client_ws,
+                {
+                    "type": "wulo.learner_card",
+                    "payload": {
+                        "card": card,
+                        "session_complete": bool(result.get("session_complete", False)),
+                    },
+                },
+            )
+        return True
+
+    def _extract_profile_tool_call(self, event_dict: Dict[str, Any]) -> tuple[str, str, Dict[str, Any]] | None:
+        event_type = str(event_dict.get("type") or "")
+        if event_type == "response.function_call_arguments.done":
+            name = str(event_dict.get("name") or "").strip()
+            call_id = str(event_dict.get("call_id") or event_dict.get("item_id") or "").strip()
+            arguments = self._coerce_tool_arguments(event_dict.get("arguments"))
+            if name and call_id:
+                return name, call_id, arguments
+
+        if event_type == "conversation.item.created":
+            item = event_dict.get("item")
+            if isinstance(item, dict) and str(item.get("type") or "") == "function_call":
+                name = str(item.get("name") or "").strip()
+                call_id = str(item.get("call_id") or item.get("id") or "").strip()
+                arguments = self._coerce_tool_arguments(item.get("arguments"))
+                if name and call_id:
+                    return name, call_id, arguments
+        return None
+
+    def _coerce_tool_arguments(self, raw: Any) -> Dict[str, Any]:
+        if isinstance(raw, dict):
+            return dict(raw)
+        if isinstance(raw, str) and raw.strip():
+            try:
+                parsed = json.loads(raw)
+            except json.JSONDecodeError:
+                return {}
+            return dict(parsed) if isinstance(parsed, dict) else {}
+        return {}
 
     def _normalize_outbound_text_fields(self, parsed: Any) -> None:
         """Rewrite graphemic phoneme citations in text fields forwarded to Azure.
@@ -759,7 +942,20 @@ class VoiceProxyHandler:
                 if isinstance(instructions, str) and instructions:
                     response["instructions"] = normalize_for_tts(instructions)
 
-    async def _send_message(self, ws: simple_websocket.ws.Server, message: Dict[str, str | Dict[str, str]]) -> None:
+    def _apply_profile_response_tool_choice(self, parsed: Any, profile: AgentProfile | None) -> None:
+        if not isinstance(parsed, dict) or profile is None or not profile.forced_response_tool_name:
+            return
+        if str(parsed.get("type") or "") != "response.create":
+            return
+        response = parsed.setdefault("response", {})
+        if not isinstance(response, dict) or response.get("tool_choice"):
+            return
+        response["tool_choice"] = {
+            "type": "function",
+            "name": profile.forced_response_tool_name,
+        }
+
+    async def _send_message(self, ws: simple_websocket.ws.Server, message: Dict[str, Any]) -> None:
         """Send a JSON message to a WebSocket."""
         try:
             await asyncio.get_event_loop().run_in_executor(

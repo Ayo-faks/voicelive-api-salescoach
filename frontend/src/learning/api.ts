@@ -585,6 +585,60 @@ export async function getPilotKpis(query: {
   return jsonOrThrow<PilotKpiResponse>(response)
 }
 
+// ---------------------------------------------------------------------------
+// W3-B — explanation surface
+// ---------------------------------------------------------------------------
+
+export type ExplainHit = {
+  node_id: string
+  version: string
+  title: string
+  subject: 'maths' | 'english'
+  year_group: 'JSS3' | 'SS3' | null
+  topic: string
+  anchor: string
+  score: number
+  snippet: string
+  status: 'draft' | 'review' | 'approved' | 'frozen' | 'archived'
+}
+
+export type ExplainRefusal = {
+  lang: string
+  provenance: Array<Record<string, unknown>>
+  reason: 'no_grounding' | 'safety_block' | 'out_of_scope' | 'rate_limited'
+  learner_message: string
+  detail?: string | null
+  suggested_action?: string | null
+}
+
+export type ExplainResponse = {
+  lang: string
+  query: string
+  subject: 'maths' | 'english' | null
+  year_group: 'JSS3' | 'SS3' | null
+  hits: ExplainHit[]
+  refusal: ExplainRefusal | null
+  explanation: null  // populated in W4 (generator)
+  similarity_threshold: number
+}
+
+export async function postExplain(payload: {
+  query: string
+  subject?: 'maths' | 'english'
+  year_group?: 'JSS3' | 'SS3'
+  question_id?: string
+  skill_id?: string
+  student_id?: string
+  tenant_id?: string
+  lang?: string
+}): Promise<ExplainResponse> {
+  const response = await fetch(
+    '/api/learning/explain',
+    withDefaults({ method: 'POST', body: JSON.stringify(payload) }),
+  )
+  return jsonOrThrow<ExplainResponse>(response)
+}
+
 export type VoiceConfigResponse = {
   enabled: boolean
   transport: string
@@ -621,6 +675,94 @@ export async function submitVoiceFrame(payload: {
   )
   return jsonOrThrow<VoiceFrameResponse>(response)
 }
+
+// --- Learner voice + gen-UI fullscreen surface -----------------------------
+
+export type LearnerVoiceCardKind =
+  | 'greeting'
+  | 'mcq-tap'
+  | 'explanation'
+  | 'progress'
+  | 'mark-known'
+
+export interface LearnerVoiceCardBase {
+  card_id: string
+  kind: LearnerVoiceCardKind
+  speak: string
+}
+
+export interface LearnerVoiceMcqOption {
+  id: string
+  label: string
+  text: string
+}
+
+export interface LearnerVoiceGreetingCard extends LearnerVoiceCardBase {
+  kind: 'greeting'
+  headline: string
+  sub: string
+}
+
+export interface LearnerVoiceMcqCard extends LearnerVoiceCardBase {
+  kind: 'mcq-tap'
+  stem: string
+  options: LearnerVoiceMcqOption[]
+  skill_id?: string | null
+}
+
+export interface LearnerVoiceExplanationCard extends LearnerVoiceCardBase {
+  kind: 'explanation'
+  title: string
+  steps: string[]
+  next_action_label: string
+}
+
+export interface LearnerVoiceProgressCard extends LearnerVoiceCardBase {
+  kind: 'progress'
+  completed: number
+  total: number
+}
+
+export interface LearnerVoiceMarkKnownCard extends LearnerVoiceCardBase {
+  kind: 'mark-known'
+  prompt: string
+  confirm_label: string
+}
+
+export type LearnerVoiceCard =
+  | LearnerVoiceGreetingCard
+  | LearnerVoiceMcqCard
+  | LearnerVoiceExplanationCard
+  | LearnerVoiceProgressCard
+  | LearnerVoiceMarkKnownCard
+
+export interface LearnerVoiceTurnRequest {
+  child_id: string
+  lang?: string
+  last_card_id?: string | null
+  last_kind?: LearnerVoiceCardKind | null
+  answer_option_id?: string | null
+  advance?: boolean
+  exam?: string | null
+  class_year?: string | null
+  subject?: string | null
+}
+
+export interface LearnerVoiceTurnResponse {
+  card: LearnerVoiceCard
+  session_complete: boolean
+}
+
+export async function runLearnerVoiceTurn(
+  payload: LearnerVoiceTurnRequest,
+): Promise<LearnerVoiceTurnResponse> {
+  const response = await fetch(
+    '/api/learning/voice/turn',
+    withDefaults({ method: 'POST', body: JSON.stringify(payload) }),
+  )
+  return jsonOrThrow<LearnerVoiceTurnResponse>(response)
+}
+
 
 // --- Voice-agent action API -------------------------------------------------
 

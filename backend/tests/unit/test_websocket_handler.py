@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from src.services.websocket_handler import VoiceProxyHandler
+from src.services.voice_agent_profiles import AgentProfileContext, get_profile
 
 
 class TestVoiceProxyHandler:
@@ -181,6 +182,9 @@ class TestVoiceProxyHandler:
         assert "modalities" in session
         assert "turn_detection" in session
         assert "voice" in session
+        assert session["input_audio_format"] == "pcm16"
+        assert session["input_audio_sampling_rate"] == 24000
+        assert session["output_audio_format"] == "pcm16"
 
     @patch("src.services.websocket_handler.config")
     def test_build_session_config_includes_custom_lexicon_url_when_configured(self, mock_config):
@@ -283,6 +287,68 @@ class TestVoiceProxyHandler:
         session = handler._build_session_config(agent_config)
 
         assert session["voice"]["name"] == "en-GB-AbbiNeural"
+
+    def test_learner_response_create_forces_get_next_card_tool(self):
+        """Learner VoiceLive turns must start by calling the card planner tool."""
+        handler = VoiceProxyHandler(Mock())
+        message = {"type": "response.create"}
+
+        handler._apply_profile_response_tool_choice(message, get_profile("learner"))
+
+        assert message["response"]["tool_choice"] == {
+            "type": "function",
+            "name": "get_next_card",
+        }
+
+    def test_practice_response_create_keeps_existing_tool_choice_behavior(self):
+        """Practice VoiceLive sessions keep the existing auto tool behavior."""
+        handler = VoiceProxyHandler(Mock())
+        message = {"type": "response.create"}
+
+        handler._apply_profile_response_tool_choice(message, get_profile("practice"))
+
+        assert "response" not in message
+
+    @pytest.mark.asyncio
+    async def test_profile_tool_call_sends_output_without_starting_active_response(self):
+        """Tool output is sent first; the follow-up response is queued after response.done."""
+        handler = VoiceProxyHandler(Mock())
+        handler._send_message = AsyncMock()
+        azure_conn = Mock()
+        azure_conn.send = AsyncMock()
+        handled_call_ids: set[str] = set()
+        event = {
+            "type": "response.function_call_arguments.done",
+            "name": "get_next_card",
+            "call_id": "call-123",
+            "arguments": '{"child_id":"child-1","exam":"WAEC","class_year":"SSS2","subject":"Mathematics"}',
+        }
+
+        handled = await handler._maybe_handle_profile_tool_call(
+            event,
+            azure_conn,
+            Mock(),
+            get_profile("learner"),
+            AgentProfileContext(scope="learner"),
+            handled_call_ids,
+        )
+
+        assert handled is True
+        azure_conn.send.assert_awaited_once()
+        assert azure_conn.send.await_args.args[0]["item"]["type"] == "function_call_output"
+        handler._send_message.assert_awaited_once()
+
+        handled_again = await handler._maybe_handle_profile_tool_call(
+            event,
+            azure_conn,
+            Mock(),
+            get_profile("learner"),
+            AgentProfileContext(scope="learner"),
+            handled_call_ids,
+        )
+
+        assert handled_again is True
+        azure_conn.send.assert_awaited_once()
 
     @patch("src.services.websocket_handler.config")
     def test_build_session_config_uses_legacy_vad_by_default(self, mock_config):

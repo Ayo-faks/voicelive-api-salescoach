@@ -1,5 +1,43 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+
+const practiceFullscreenMock = vi.hoisted(() => vi.fn())
+const learnerTutorMock = vi.hoisted(() => vi.fn())
+
+vi.mock('../components/PracticeFullscreen', () => ({
+  default: (props: {
+    open: boolean
+    childId: string
+    exam?: string
+    classYear?: string
+    subject?: string
+  }) => {
+    practiceFullscreenMock(props)
+    return props.open ? (
+      <div data-testid="practice-fullscreen-mock">
+        {props.childId} · {props.exam} · {props.classYear} · {props.subject}
+      </div>
+    ) : null
+  },
+}))
+
+vi.mock('../components/LearnerTutorFullscreen', () => ({
+  default: (props: {
+    open: boolean
+    childId: string
+    exam?: string
+    classYear?: string
+    subject?: string
+  }) => {
+    learnerTutorMock(props)
+    return props.open ? (
+      <div data-testid="learner-tutor-mock">
+        {props.childId} · {props.exam} · {props.classYear} · {props.subject}
+      </div>
+    ) : null
+  },
+}))
+
 import StudentLearningHome from '../routes/StudentLearningHome'
 
 function jsonResponse(body: unknown): Response {
@@ -30,10 +68,57 @@ function mockVoiceConfig() {
 
 afterEach(() => {
   window.localStorage.clear()
+  practiceFullscreenMock.mockClear()
+  learnerTutorMock.mockClear()
   vi.restoreAllMocks()
 })
 
 describe('StudentLearningHome', () => {
+  it('surfaces the free B2C setup, weak-topic profile, daily plan, pathways, and WhatsApp share loop', async () => {
+    mockVoiceConfig()
+
+    render(<StudentLearningHome studentId="student-001" />)
+
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        '/api/learning/voice/config',
+        expect.objectContaining({ method: 'GET' })
+      )
+    })
+
+    expect(screen.getByTestId('b2c-learner-setup')).toBeTruthy()
+    expect(screen.getByText('Hey there 👋 — ready when you are.')).toBeTruthy()
+    expect(screen.queryByText(/Tobi/i)).toBeNull()
+
+    fireEvent.change(screen.getByLabelText('Your first name'), { target: { value: 'Tomi' } })
+    expect(screen.getByText(/Hey Tomi/)).toBeTruthy()
+    expect(screen.getByText(/Last time we wrestled with ratio and proportion/i)).toBeTruthy()
+
+    fireEvent.change(screen.getByLabelText('Select exam'), { target: { value: 'NECO' } })
+    fireEvent.change(screen.getByLabelText('Select class or year'), { target: { value: 'SSS3' } })
+    fireEvent.change(screen.getByLabelText('Select subject'), { target: { value: 'English Language' } })
+
+    expect(screen.getByText(/Your NECO English Language path is 42% mastered/i)).toBeTruthy()
+    expect(screen.getByTestId('weak-topic-profile')).toBeTruthy()
+    expect(screen.getByText('Ratio and proportion')).toBeTruthy()
+    expect(screen.getByText('Scaling both parts of a recipe or table')).toBeTruthy()
+    expect(screen.getByTestId('daily-revision-plan')).toBeTruthy()
+    expect(screen.getByText('Explain one mistake')).toBeTruthy()
+    expect(screen.getByTestId('career-pathway-suggestions')).toBeTruthy()
+    expect(screen.getByText('Data and business operations')).toBeTruthy()
+    expect(screen.getByText(/Keep building algebra and English explanation skills/i)).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: /Prepare parent summary/i }))
+
+    expect(screen.getByText('Parent summary ready to share.')).toBeTruthy()
+    expect(screen.getByRole('link', { name: /Invite on WhatsApp/i }).getAttribute('href')).toContain('wa.me')
+
+    const saved = window.localStorage.getItem('pathfinder-parent-summary:last')
+    expect(saved).toContain('NECO')
+    expect(saved).toContain('SSS3')
+    expect(saved).toContain('English Language')
+  })
+
   it('runs a cross-device five-step demo diagnostic and saves it locally', async () => {
     mockVoiceConfig()
 
@@ -46,13 +131,10 @@ describe('StudentLearningHome', () => {
       )
     })
 
-    expect(screen.getByTestId('cross-device-learner-workspace')).toBeTruthy()
-    expect(screen.getByText('Web, desktop, tablet, and phone')).toBeTruthy()
-    expect(screen.getByText('Desktop web')).toBeTruthy()
-    expect(screen.getByText('Tablet / shared device')).toBeTruthy()
-    expect(screen.getByText('Phone / offline')).toBeTruthy()
+    expect(screen.getByTestId('offline-ready-pill')).toBeTruthy()
+    expect(screen.getByText('Works offline')).toBeTruthy()
 
-    fireEvent.click(screen.getByRole('button', { name: /Start 5-step demo/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Pick up where we left off/i }))
 
     expect(screen.getByTestId('short-demo-diagnostic')).toBeTruthy()
     expect(screen.getByText('3-5 minute demo diagnostic')).toBeTruthy()
@@ -102,7 +184,7 @@ describe('StudentLearningHome', () => {
       )
     })
 
-    fireEvent.click(screen.getByRole('button', { name: /Start 5-step demo/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Pick up where we left off/i }))
     fireEvent.click(screen.getByRole('button', { name: /^4 cups/i }))
 
     expect(screen.getByTestId('adaptive-moment')).toBeTruthy()
@@ -111,6 +193,22 @@ describe('StudentLearningHome', () => {
     expect(screen.getByText('Same idea, smaller step')).toBeTruthy()
     expect(screen.getByText(/If 1 cup rice needs 1.5 cups water/i)).toBeTruthy()
     expect(screen.getByTestId('demo-step-count').textContent).toContain('Step 2 of 6')
+
+    const modal = screen.getByTestId('wrong-answer-explanation-modal')
+    expect(within(modal).getByText('Correct answer')).toBeTruthy()
+    expect(within(modal).getByText('6 cups')).toBeTruthy()
+    expect(within(modal).getByText('Why your answer was wrong')).toBeTruthy()
+    expect(within(modal).getByText(/repeats the rice amount/i)).toBeTruthy()
+    expect(within(modal).getByText('Concept you missed')).toBeTruthy()
+    expect(within(modal).getByText('Equivalent ratios: both parts must change together.')).toBeTruthy()
+    expect(within(modal).getByText('Simpler explanation')).toBeTruthy()
+    expect(within(modal).getByText('Try another similar question')).toBeTruthy()
+    expect(within(modal).getByText('Add this weakness to my revision plan')).toBeTruthy()
+
+    fireEvent.click(within(modal).getByRole('button', { name: /Add weakness to revision plan/i }))
+
+    expect(screen.getByTestId('revision-plan-added')).toBeTruthy()
+    expect(window.localStorage.getItem('pathfinder-revision-plan:last-added')).toContain('Equivalent ratios')
   })
 
   it('lets the student complete one generated-plan practice exercise and schedules retrieval', async () => {
@@ -125,12 +223,14 @@ describe('StudentLearningHome', () => {
       )
     })
 
-    expect(screen.getByTestId('plan-practice-exercise')).toBeTruthy()
+    fireEvent.click(screen.getByTestId('path-row-ratio-check'))
+
+    expect(screen.getByTestId('today-step-mcq')).toBeTruthy()
     expect(screen.getByText('From generated plan')).toBeTruthy()
     expect(screen.getByText('Teacher-approved ratio recovery plan')).toBeTruthy()
     expect(screen.getByText(/A recipe uses 3 cups of water for 2 cups of rice/i)).toBeTruthy()
 
-    fireEvent.click(within(screen.getByTestId('plan-practice-exercise')).getByRole('button', { name: /9 cups/i }))
+    fireEvent.click(within(screen.getByTestId('today-step-mcq')).getByRole('button', { name: /9 cups/i }))
 
     expect(screen.getByTestId('practice-feedback')).toBeTruthy()
     expect(screen.getByText('Immediate feedback')).toBeTruthy()
@@ -146,7 +246,7 @@ describe('StudentLearningHome', () => {
     expect(saved).toContain('spacedRetrieval')
   })
 
-  it('answers a doctor and chemistry career question without promising outcomes', async () => {
+  it("opens PracticeFullscreen from a Today's-path card", async () => {
     mockVoiceConfig()
 
     render(<StudentLearningHome studentId="student-001" />)
@@ -158,28 +258,54 @@ describe('StudentLearningHome', () => {
       )
     })
 
-    expect(screen.getByTestId('career-navigation-moment')).toBeTruthy()
-    expect(screen.getByLabelText('Career question')).toHaveProperty(
-      'value',
-      "Can I still become a doctor if I'm weak in chemistry?"
-    )
-    expect(screen.getByRole('button', { name: /Ask by voice/i })).toBeTruthy()
+    fireEvent.change(screen.getByLabelText('Select exam'), { target: { value: 'JAMB' } })
+    fireEvent.change(screen.getByLabelText('Select class or year'), { target: { value: 'JSS2' } })
+    fireEvent.change(screen.getByLabelText('Select subject'), { target: { value: 'Mathematics' } })
+    fireEvent.click(screen.getByRole('button', { name: /Open practice: Ratio mini check-in/i }))
 
-    fireEvent.click(screen.getByRole('button', { name: /Ask by text/i }))
+    expect(await screen.findByTestId('practice-fullscreen-mock')).toBeTruthy()
+    const lastProps = practiceFullscreenMock.mock.calls[practiceFullscreenMock.mock.calls.length - 1]?.[0]
+    expect(lastProps).toEqual(expect.objectContaining({
+      open: true,
+      childId: 'student-001',
+      exam: 'JAMB',
+      classYear: 'JSS2',
+      subject: 'Mathematics',
+    }))
+  })
 
-    expect(screen.getByTestId('career-navigation-answer')).toBeTruthy()
-    expect(screen.getByText('No outcome guarantee')).toBeTruthy()
-    expect(screen.getByText('Can I still become a doctor?')).toBeTruthy()
-    expect(screen.getByText(/should not promise an outcome/i)).toBeTruthy()
-    expect(screen.getByText('What is realistic')).toBeTruthy()
-    expect(screen.getByText('What needs work')).toBeTruthy()
-    expect(screen.getByText('What alternatives exist')).toBeTruthy()
-    expect(screen.getByText(/nursing, pharmacy technology, medical laboratory science/i)).toBeTruthy()
-    expect(screen.getByText('Grounded in science-subject requirements')).toBeTruthy()
-    expect(screen.getByText('Counsellor review recommended for career decisions')).toBeTruthy()
+  it('opens the learner tutor from the hero CTA with the selected taxonomy', async () => {
+    mockVoiceConfig()
 
-    const saved = window.localStorage.getItem('pathfinder-career-navigation:last')
-    expect(saved).toContain('doctor')
-    expect(saved).toContain('chemistry')
+    render(<StudentLearningHome studentId="student-001" />)
+
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        '/api/learning/voice/config',
+        expect.objectContaining({ method: 'GET' })
+      )
+    })
+
+    fireEvent.change(screen.getByLabelText('Select exam'), { target: { value: 'WAEC' } })
+    fireEvent.change(screen.getByLabelText('Select class or year'), { target: { value: 'SSS2' } })
+    fireEvent.change(screen.getByLabelText('Select subject'), { target: { value: 'Mathematics' } })
+    fireEvent.click(screen.getByRole('button', { name: /Talk to your tutor/i }))
+
+    expect(await screen.findByTestId('learner-tutor-mock')).toBeTruthy()
+    const lastProps = learnerTutorMock.mock.calls[learnerTutorMock.mock.calls.length - 1]?.[0]
+    expect(lastProps).toEqual(expect.objectContaining({
+      open: true,
+      childId: 'student-001',
+      exam: 'WAEC',
+      classYear: 'SSS2',
+      subject: 'Mathematics',
+    }))
+  })
+
+  it('no longer renders the standalone Career Navigator card', () => {
+    mockVoiceConfig()
+    render(<StudentLearningHome studentId="student-001" />)
+    expect(screen.queryByTestId('career-navigation-moment')).toBeNull()
+    expect(screen.queryByTestId('career-navigation-answer')).toBeNull()
   })
 })

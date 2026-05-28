@@ -6,16 +6,26 @@ import {
   BookOpenIcon,
   BriefcaseIcon,
   CalculatorIcon,
+  ChartBarIcon,
   CheckBadgeIcon,
   ChevronRightIcon,
   ClockIcon,
+  DocumentTextIcon,
   MicrophoneIcon,
   PlayCircleIcon,
+  ShareIcon,
   SparklesIcon,
   WifiIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 import DiagnosticPanel from '../components/DiagnosticPanel'
+import LearnerTutorFullscreen from '../components/LearnerTutorFullscreen'
+import PracticeFullscreen from '../components/PracticeFullscreen'
+import {
+  scheduleRevisionCards,
+  usePushSubscription,
+} from '../notifications/usePushSubscription'
 import {
   getVoiceConfig,
   submitVoiceFrame,
@@ -23,6 +33,7 @@ import {
   type VoiceFrameResponse,
 } from '../api'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
+import { useLearnerSetup, type LearnerSetup } from '../hooks/useLearnerSetup'
 
 type Activity = {
   id: string
@@ -97,16 +108,36 @@ type PracticeAnswer = {
   correct: boolean
 }
 
-type CareerAnswerPoint = {
+type WeakTopic = {
+  skillId: string
   label: string
-  body: string
+  mastery: number
+  gap: string
+  nextAction: string
 }
 
-type CareerNavigationMoment = {
-  question: string
-  responseLead: string
-  points: CareerAnswerPoint[]
-  sources: string[]
+type DailyPlanItem = {
+  id: string
+  label: string
+  minutes: number
+  reason: string
+}
+
+type CareerPathway = {
+  id: string
+  title: string
+  fit: number
+  strength: string
+  gap: string
+}
+
+type WrongAnswerExplanation = {
+  correctAnswer: string
+  whyWrong: string
+  conceptMissed: string
+  simplerExplanation: string
+  similarQuestion: string
+  revisionAction: string
 }
 
 const todaysPath: Activity[] = [
@@ -142,23 +173,96 @@ const weeklyTiles: Array<{ label: string; value: string; delta: string }> = [
   { label: 'Mastery', value: '+12%', delta: 'Ratio focus' },
 ]
 
-const deviceModes = [
+const examOptions = ['WAEC', 'NECO', 'JAMB', 'Junior WAEC']
+const yearOptions = ['JSS2', 'JSS3', 'SSS1', 'SSS2', 'SSS3']
+const subjectOptions = ['Mathematics', 'English Language', 'Basic Science']
+
+const weakTopicProfile: WeakTopic[] = [
   {
-    label: 'Desktop web',
-    value: 'Full learning workspace',
-    detail: 'Diagnostic, practice, career guidance, and teacher status stay visible for classroom or lab use.',
+    skillId: 'ratio-proportion',
+    label: 'Ratio and proportion',
+    mastery: 42,
+    gap: 'Scaling both parts of a recipe or table',
+    nextAction: 'Practise two worked examples before a timed card.',
   },
   {
-    label: 'Tablet / shared device',
-    value: 'Touch or keyboard',
-    detail: 'Same flow works with mouse, keyboard, or touch for school device carts and family devices.',
+    skillId: 'fraction-operations',
+    label: 'Fraction operations',
+    mastery: 61,
+    gap: 'Choosing a common denominator under time pressure',
+    nextAction: 'Review one visual fraction bar, then answer three short questions.',
   },
   {
-    label: 'Phone / offline',
-    value: 'Condensed journey',
-    detail: 'The layout collapses for smaller screens and saves answers locally when connectivity drops.',
+    skillId: 'reading-inference',
+    label: 'Reading inference',
+    mastery: 68,
+    gap: 'Explaining the reason behind a sentence',
+    nextAction: 'Read one short passage and underline the clue words.',
   },
 ]
+
+const dailyRevisionPlan: DailyPlanItem[] = [
+  {
+    id: 'diagnostic-refresh',
+    label: 'Ratio mini diagnostic',
+    minutes: 5,
+    reason: 'Confirms whether the first weak topic is improving.',
+  },
+  {
+    id: 'mistake-review',
+    label: 'Explain one mistake',
+    minutes: 4,
+    reason: 'Turns a wrong answer into a concept fix.',
+  },
+  {
+    id: 'career-link',
+    label: 'Career fit check',
+    minutes: 3,
+    reason: 'Links today\'s strengths to future pathways without making promises.',
+  },
+]
+
+const careerPathways: CareerPathway[] = [
+  {
+    id: 'health-sciences',
+    title: 'Health sciences',
+    fit: 76,
+    strength: 'Careful reading and steady practice habits',
+    gap: 'Chemistry and quantitative science need stronger mastery.',
+  },
+  {
+    id: 'data-business',
+    title: 'Data and business operations',
+    fit: 82,
+    strength: 'Ratio, pattern spotting, and spreadsheet-style thinking',
+    gap: 'Keep building algebra and English explanation skills.',
+  },
+  {
+    id: 'renewable-energy',
+    title: 'Renewable energy technician',
+    fit: 74,
+    strength: 'Measurement, geometry, and practical problem solving',
+    gap: 'Electricity basics and safety vocabulary need review.',
+  },
+]
+
+const diagnosticWrongAnswerExplanation: WrongAnswerExplanation = {
+  correctAnswer: '6 cups',
+  whyWrong: '4 cups repeats the rice amount instead of scaling the water by the same factor.',
+  conceptMissed: 'Equivalent ratios: both parts must change together.',
+  simplerExplanation: 'The rice doubled from 2 cups to 4 cups, so the water also doubles from 3 cups to 6 cups.',
+  similarQuestion: 'Try this: 1 cup rice needs 1.5 cups water. What do 2 cups rice need?',
+  revisionAction: 'Add ratio scaling to today\'s revision plan.',
+}
+
+const practiceWrongAnswerExplanation: WrongAnswerExplanation = {
+  correctAnswer: '9 cups',
+  whyWrong: 'The rice changed from 2 cups to 6 cups, which is three times larger. The water must also be three times larger.',
+  conceptMissed: 'Scale factor in a ratio table.',
+  simplerExplanation: 'Find the multiplier first: 2 x 3 = 6. Then use the same multiplier for water: 3 x 3 = 9.',
+  similarQuestion: 'A recipe uses 4 cups water for 3 cups rice. How much water for 9 cups rice?',
+  revisionAction: 'Put one ratio-table card into tomorrow\'s spaced retrieval.',
+}
 
 const ratioScaffoldStep: DemoStep = {
   id: 'adaptive-ratio-scaffold',
@@ -268,35 +372,6 @@ const generatedPlanPractice: PracticeExercise = {
   ],
 }
 
-const careerNavigationMoment: CareerNavigationMoment = {
-  question: "Can I still become a doctor if I'm weak in chemistry?",
-  responseLead:
-    'It may still be possible, but Pathfinder should not promise an outcome. Medicine usually needs strong chemistry and biology, so the honest answer is: keep the goal open while you work on the chemistry gap and compare nearby health pathways.',
-  points: [
-    {
-      label: 'What is realistic',
-      body: 'A weak chemistry score today does not close the door, but medical entry is competitive and usually expects strong science grades over time.',
-    },
-    {
-      label: 'What needs work',
-      body: 'Focus next on atoms, bonding, acids and bases, and quantitative chemistry. Ask your teacher for a 2-week repair plan and retest one small topic at a time.',
-    },
-    {
-      label: 'What alternatives exist',
-      body: 'You can also explore nursing, pharmacy technology, medical laboratory science, public health, health data, or biomedical engineering while chemistry improves.',
-    },
-    {
-      label: 'Next safe step',
-      body: 'Discuss this with a teacher or counsellor before choosing subjects. Pathfinder can show options and gaps, not guarantee admission or a career outcome.',
-    },
-  ],
-  sources: [
-    'Grounded in science-subject requirements',
-    'Uses current mastery snapshot: chemistry needs support',
-    'Counsellor review recommended for career decisions',
-  ],
-}
-
 const useStyles = makeStyles({
   root: {
     display: 'grid',
@@ -322,6 +397,123 @@ const useStyles = makeStyles({
     boxShadow: t.surface.raisedShadow,
     overflow: 'hidden',
     '@media (max-width: 720px)': { padding: '24px' },
+  },
+  heroLayout: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1fr) auto',
+    gap: '32px',
+    alignItems: 'center',
+    '@media (max-width: 900px)': {
+      gridTemplateColumns: '1fr',
+      gap: '20px',
+    },
+  },
+  heroLeft: {
+    minWidth: 0,
+  },
+  heroOrbStage: {
+    position: 'relative',
+    width: '260px',
+    height: '260px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    appearance: 'none',
+    backgroundColor: 'transparent',
+    borderTop: 'none',
+    borderRight: 'none',
+    borderBottom: 'none',
+    borderLeft: 'none',
+    padding: 0,
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    color: 'inherit',
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'rgba(255,255,255,0.7)',
+      outlineOffset: '8px',
+      borderRadius: '999px',
+    },
+    '@media (max-width: 900px)': {
+      width: '200px',
+      height: '200px',
+      justifySelf: 'center',
+    },
+    '@media (max-width: 480px)': {
+      width: '170px',
+      height: '170px',
+    },
+  },
+  heroOrbBig: {
+    position: 'relative',
+    width: '180px',
+    height: '180px',
+    borderRadius: '999px',
+    background:
+      'radial-gradient(circle at 30% 26%, #ffffff 0%, #e9ebf3 22%, #7d8aa3 55%, #1a1f2e 100%)',
+    boxShadow:
+      '0 0 40px rgba(180,200,255,0.45), 0 0 80px rgba(120,150,220,0.3), inset 0 0 24px rgba(255,255,255,0.4), inset 0 -10px 24px rgba(0,0,0,0.55)',
+    animationName: {
+      '0%, 100%': {
+        transform: 'scale(1)',
+        boxShadow:
+          '0 0 40px rgba(180,200,255,0.45), 0 0 80px rgba(120,150,220,0.3), inset 0 0 24px rgba(255,255,255,0.4), inset 0 -10px 24px rgba(0,0,0,0.55)',
+      },
+      '50%': {
+        transform: 'scale(1.05)',
+        boxShadow:
+          '0 0 60px rgba(200,220,255,0.7), 0 0 120px rgba(140,170,240,0.5), inset 0 0 30px rgba(255,255,255,0.55), inset 0 -10px 24px rgba(0,0,0,0.55)',
+      },
+    },
+    animationDuration: '3200ms',
+    animationIterationCount: 'infinite',
+    animationTimingFunction: 'ease-in-out',
+    '@media (max-width: 900px)': { width: '140px', height: '140px' },
+    '@media (max-width: 480px)': { width: '120px', height: '120px' },
+    '@media (prefers-reduced-motion: reduce)': { animationName: 'none' },
+  },
+  heroOrbBigHalo: {
+    position: 'absolute',
+    inset: '-40px',
+    borderRadius: '999px',
+    pointerEvents: 'none',
+    background:
+      'radial-gradient(circle, rgba(170,200,255,0.35) 0%, rgba(170,200,255,0.12) 45%, rgba(170,200,255,0) 70%)',
+    animationName: {
+      '0%, 100%': { opacity: 0.6, transform: 'scale(1)' },
+      '50%': { opacity: 1, transform: 'scale(1.18)' },
+    },
+    animationDuration: '3200ms',
+    animationIterationCount: 'infinite',
+    animationTimingFunction: 'ease-in-out',
+    '@media (prefers-reduced-motion: reduce)': { animationName: 'none' },
+  },
+  heroOrbCaption: {
+    position: 'absolute',
+    left: '50%',
+    bottom: '-2px',
+    transform: 'translateX(-50%)',
+    display: 'inline-flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '2px',
+    whiteSpace: 'nowrap',
+    pointerEvents: 'none',
+  },
+  heroOrbCaptionTitle: {
+    fontSize: '0.86rem',
+    fontWeight: 700,
+    letterSpacing: '-0.005em',
+    color: t.brand.onInk,
+    textShadow: '0 1px 8px rgba(0,0,0,0.6)',
+  },
+  heroOrbCaptionHint: {
+    fontSize: '0.7rem',
+    fontWeight: 500,
+    color: 'rgba(255,255,255,0.78)',
+    letterSpacing: '0.02em',
+    textShadow: '0 1px 6px rgba(0,0,0,0.55)',
   },
   heroEyebrow: {
     fontSize: '0.72rem',
@@ -366,8 +558,15 @@ const useStyles = makeStyles({
     fontWeight: 500,
     letterSpacing: '-0.01em',
   },
-  heroCta: {
+  heroActions: {
     marginTop: '24px',
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '10px',
+    alignItems: 'center',
+  },
+  heroCta: {
+    marginTop: 0,
     display: 'inline-flex',
     alignItems: 'center',
     gap: '10px',
@@ -385,6 +584,134 @@ const useStyles = makeStyles({
       transform: 'translateY(-1px)',
       boxShadow: '0 10px 24px rgba(0,0,0,0.18)',
     },
+  },
+  heroSecondaryCta: {
+    marginTop: 0,
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '12px 18px',
+    borderRadius: t.radius.pill,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    color: t.brand.onInk,
+    fontWeight: 700,
+    fontSize: '0.92rem',
+    cursor: 'pointer',
+    border: '1px solid rgba(255,255,255,0.18)',
+    fontFamily: 'inherit',
+    transition: 'transform .15s ease, background-color .15s ease',
+    ':hover': {
+      transform: 'translateY(-1px)',
+      backgroundColor: 'rgba(255,255,255,0.13)',
+    },
+  },
+  tutorOrbCta: {
+    position: 'relative',
+    marginTop: 0,
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '12px',
+    paddingTop: '8px',
+    paddingBottom: '8px',
+    paddingLeft: '12px',
+    paddingRight: '20px',
+    borderRadius: t.radius.pill,
+    background: 'linear-gradient(140deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%)',
+    color: t.brand.onInk,
+    fontWeight: 700,
+    fontSize: '0.92rem',
+    cursor: 'pointer',
+    borderTop: '1px solid rgba(255,255,255,0.22)',
+    borderRight: '1px solid rgba(255,255,255,0.22)',
+    borderBottom: '1px solid rgba(255,255,255,0.22)',
+    borderLeft: '1px solid rgba(255,255,255,0.22)',
+    fontFamily: 'inherit',
+    backdropFilter: 'blur(6px)',
+    transitionProperty: 'transform, box-shadow, background-color, border-color',
+    transitionDuration: '180ms',
+    transitionTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+    boxShadow: '0 6px 20px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.12)',
+    ':hover': {
+      transform: 'translateY(-1px)',
+      borderTopColor: 'rgba(255,255,255,0.4)',
+      borderRightColor: 'rgba(255,255,255,0.4)',
+      borderBottomColor: 'rgba(255,255,255,0.4)',
+      borderLeftColor: 'rgba(255,255,255,0.4)',
+      boxShadow: '0 12px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
+    },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'rgba(255,255,255,0.65)',
+      outlineOffset: '3px',
+    },
+    '@media (prefers-reduced-motion: reduce)': {
+      transitionDuration: '0ms',
+    },
+  },
+  tutorOrb: {
+    position: 'relative',
+    width: '34px',
+    height: '34px',
+    borderRadius: '999px',
+    background:
+      'radial-gradient(circle at 32% 28%, #ffffff 0%, #e7e8ef 28%, #8d8f9a 60%, #1a1b22 100%)',
+    boxShadow:
+      '0 0 14px rgba(255,255,255,0.42), inset 0 0 10px rgba(255,255,255,0.35), inset 0 -4px 10px rgba(0,0,0,0.55)',
+    flexShrink: 0,
+    animationName: {
+      '0%, 100%': {
+        transform: 'scale(1)',
+        boxShadow:
+          '0 0 14px rgba(255,255,255,0.42), inset 0 0 10px rgba(255,255,255,0.35), inset 0 -4px 10px rgba(0,0,0,0.55)',
+      },
+      '50%': {
+        transform: 'scale(1.06)',
+        boxShadow:
+          '0 0 22px rgba(255,255,255,0.62), inset 0 0 12px rgba(255,255,255,0.5), inset 0 -4px 10px rgba(0,0,0,0.55)',
+      },
+    },
+    animationDuration: '2400ms',
+    animationIterationCount: 'infinite',
+    animationTimingFunction: 'ease-in-out',
+    '@media (prefers-reduced-motion: reduce)': {
+      animationName: 'none',
+    },
+  },
+  tutorOrbHalo: {
+    position: 'absolute',
+    inset: '-7px',
+    borderRadius: '999px',
+    pointerEvents: 'none',
+    background:
+      'radial-gradient(circle, rgba(180,200,255,0.32) 0%, rgba(180,200,255,0) 70%)',
+    animationName: {
+      '0%, 100%': { opacity: 0.55, transform: 'scale(1)' },
+      '50%': { opacity: 0.95, transform: 'scale(1.12)' },
+    },
+    animationDuration: '2400ms',
+    animationIterationCount: 'infinite',
+    animationTimingFunction: 'ease-in-out',
+    '@media (prefers-reduced-motion: reduce)': {
+      animationName: 'none',
+    },
+  },
+  tutorOrbLabel: {
+    display: 'inline-flex',
+    flexDirection: 'column',
+    lineHeight: 1.1,
+    textAlign: 'left',
+  },
+  tutorOrbTitle: {
+    fontSize: '0.92rem',
+    fontWeight: 800,
+    letterSpacing: '-0.005em',
+  },
+  tutorOrbHint: {
+    fontSize: '0.72rem',
+    fontWeight: 500,
+    color: 'rgba(255,255,255,0.7)',
+    letterSpacing: '0.01em',
   },
   voiceButton: {
     appearance: 'none',
@@ -479,6 +806,38 @@ const useStyles = makeStyles({
       backgroundColor: t.brand.lineSoft,
     },
   },
+  pathRowShell: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1fr) auto',
+    gap: '10px',
+    alignItems: 'stretch',
+    '@media (max-width: 640px)': { gridTemplateColumns: '1fr' },
+  },
+  openPracticeButton: {
+    appearance: 'none',
+    minWidth: '138px',
+    minHeight: '68px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    paddingRight: '14px',
+    paddingLeft: '14px',
+    borderRadius: t.radius.md,
+    border: `1px solid ${t.brand.ink}`,
+    backgroundColor: t.brand.ink,
+    color: t.brand.onInk,
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.82rem',
+    fontWeight: 850,
+    ':hover': { filter: 'brightness(1.06)' },
+  },
+  openPracticeIcon: {
+    width: '28px',
+    height: '28px',
+    flexShrink: 0,
+  },
   pathIcon: {
     width: '40px',
     height: '40px',
@@ -515,6 +874,150 @@ const useStyles = makeStyles({
     font: 'inherit',
     fontSize: '0.78rem',
     fontWeight: 800,
+  },
+  setupGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: '12px',
+    '@media (max-width: 720px)': { gridTemplateColumns: '1fr' },
+  },
+  selectField: {
+    display: 'grid',
+    gap: '7px',
+  },
+  selectLabel: {
+    fontSize: '0.72rem',
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
+    color: t.brand.textTertiary,
+    fontWeight: 700,
+  },
+  select: {
+    width: '100%',
+    minHeight: '46px',
+    borderRadius: t.radius.lg,
+    border: `1px solid ${t.brand.line}`,
+    backgroundColor: t.brand.surface,
+    color: t.brand.text,
+    paddingRight: '14px',
+    paddingLeft: '14px',
+    font: 'inherit',
+    fontSize: '0.92rem',
+    fontWeight: 800,
+  },
+  insightGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: '12px',
+    '@media (max-width: 960px)': { gridTemplateColumns: '1fr' },
+  },
+  insightCard: {
+    display: 'grid',
+    gap: '10px',
+    padding: '16px',
+    borderRadius: t.radius.xl,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+    boxShadow: t.surface.raisedShadow,
+  },
+  meterTrack: {
+    width: '100%',
+    height: '8px',
+    borderRadius: t.radius.pill,
+    backgroundColor: t.brand.lineSoft,
+    overflow: 'hidden',
+  },
+  meterFill: {
+    height: '100%',
+    borderRadius: t.radius.pill,
+    backgroundColor: t.brand.ink,
+  },
+  planGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: '10px',
+    '@media (max-width: 720px)': { gridTemplateColumns: '1fr' },
+  },
+  pathwayGrid: {
+    display: 'grid',
+    gap: '10px',
+  },
+  pathwayCard: {
+    display: 'grid',
+    gridTemplateColumns: 'auto 1fr auto',
+    gap: '12px',
+    alignItems: 'start',
+    padding: '14px 16px',
+    borderRadius: t.radius.lg,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+    '@media (max-width: 560px)': { gridTemplateColumns: '1fr' },
+  },
+  sharePanel: {
+    display: 'grid',
+    gap: '12px',
+    padding: '16px',
+    borderRadius: t.radius.xl,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+  },
+  shareActions: {
+    display: 'flex',
+    gap: '10px',
+    flexWrap: 'wrap',
+  },
+  modalBackdrop: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 50,
+    display: 'grid',
+    placeItems: 'center',
+    padding: '20px',
+    backgroundColor: 'rgba(10,10,10,0.42)',
+  },
+  modal: {
+    width: 'min(720px, 100%)',
+    maxHeight: 'calc(100vh - 40px)',
+    overflowY: 'auto',
+    display: 'grid',
+    gap: '14px',
+    padding: '22px',
+    borderRadius: t.radius.xxl,
+    border: '1px solid rgba(255,255,255,0.68)',
+    backgroundColor: t.brand.surface,
+    boxShadow: '0 24px 70px rgba(0,0,0,0.28)',
+  },
+  modalHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '12px',
+    alignItems: 'flex-start',
+  },
+  modalClose: {
+    appearance: 'none',
+    width: '36px',
+    height: '36px',
+    borderRadius: t.radius.pill,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
+    color: t.brand.text,
+    display: 'grid',
+    placeItems: 'center',
+    cursor: 'pointer',
+  },
+  explanationGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: '10px',
+    '@media (max-width: 640px)': { gridTemplateColumns: '1fr' },
+  },
+  explanationTile: {
+    display: 'grid',
+    gap: '5px',
+    padding: '13px 14px',
+    borderRadius: t.radius.lg,
+    border: t.surface.hairline,
+    backgroundColor: t.surface.cardMuted,
   },
   pathMeta: {
     fontSize: '0.78rem',
@@ -948,10 +1451,18 @@ const useStyles = makeStyles({
 
 type StudentLearningHomeProps = {
   studentId?: string | null
+  learnerTutorEnabled?: boolean
+  /** When true, skip the Web Push permission prompt (kid role — needs parental consent). */
+  pushConsentDeferred?: boolean
 }
 
-export default function StudentLearningHome({ studentId }: StudentLearningHomeProps) {
+export default function StudentLearningHome({
+  studentId,
+  learnerTutorEnabled = true,
+  pushConsentDeferred,
+}: StudentLearningHomeProps) {
   const styles = useStyles()
+  const [learnerSetup, setLearnerSetup] = useLearnerSetup()
   const [activeSkill, setActiveSkill] = useState<string | null>(null)
   const [panelKey, setPanelKey] = useState(0)
   const [checkInActive, setCheckInActive] = useState(false)
@@ -964,14 +1475,22 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
   const [adaptiveMoment, setAdaptiveMoment] = useState<AdaptiveMoment | null>(null)
   const [demoVoiceBusy, setDemoVoiceBusy] = useState(false)
   const [practiceAnswer, setPracticeAnswer] = useState<PracticeAnswer | null>(null)
-  const [careerQuestion, setCareerQuestion] = useState(careerNavigationMoment.question)
-  const [careerAnswerVisible, setCareerAnswerVisible] = useState(false)
-  const [careerAskMode, setCareerAskMode] = useState<'text' | 'voice' | null>(null)
+  const [practiceOpen, setPracticeOpen] = useState(false)
+  const [tutorOpen, setTutorOpen] = useState(false)
+  const [expandedStepId, setExpandedStepId] = useState<string | null>(null)
+  const [wrongAnswerExplanation, setWrongAnswerExplanation] = useState<WrongAnswerExplanation | null>(null)
+  const [revisionPlanAdded, setRevisionPlanAdded] = useState(false)
+  const pushSubscription = usePushSubscription({
+    userId: studentId ?? 'demo-student',
+    consentDeferred: Boolean(pushConsentDeferred),
+  })
+  const [shareStatus, setShareStatus] = useState<string | null>(null)
   const [completed, setCompleted] = useState(false)
   const [voiceConfig, setVoiceConfig] = useState<VoiceConfigResponse | null>(null)
   const [voiceResult, setVoiceResult] = useState<VoiceFrameResponse | null>(null)
   const [voiceError, setVoiceError] = useState<string | null>(null)
   const [voiceBusy, setVoiceBusy] = useState(false)
+  const [lastSession, setLastSession] = useState<{ topicLabel: string; correct: boolean } | null>(null)
   const today = new Date('2026-05-21')
   const formatted = today.toLocaleDateString('en-GB', {
     weekday: 'long',
@@ -990,6 +1509,25 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
       })
     return () => {
       cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    try {
+      const demoRaw = window.localStorage.getItem('pathfinder-demo-diagnostic:last')
+      if (demoRaw) {
+        const parsed = JSON.parse(demoRaw) as { answers?: Array<{ stepId?: string; correct?: boolean }> }
+        const answers = Array.isArray(parsed.answers) ? parsed.answers : []
+        const lastAnswered = [...answers].reverse().find(a => a && typeof a.stepId === 'string')
+        if (lastAnswered) {
+          const step = demoDiagnosticSteps.find(s => s.id === lastAnswered.stepId)
+          if (step) {
+            setLastSession({ topicLabel: step.title, correct: Boolean(lastAnswered.correct) })
+          }
+        }
+      }
+    } catch {
+      // Hydration is best-effort; fall back to default first-time copy.
     }
   }, [])
 
@@ -1012,6 +1550,7 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
     setDemoAnswers([])
     setDemoSyncNote(null)
     setAdaptiveMoment(null)
+    setWrongAnswerExplanation(null)
     setDemoActive(true)
   }
 
@@ -1023,6 +1562,7 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
           studentId: studentId ?? 'demo-student',
           completedAt: new Date().toISOString(),
           stepCount,
+          setup: learnerSetup,
           answers,
         })
       )
@@ -1046,6 +1586,7 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
           ]
       setDemoStepQueue(nextQueue)
       setAdaptiveMoment({ title: step.adaptation.title, body: step.adaptation.body })
+      setWrongAnswerExplanation(diagnosticWrongAnswerExplanation)
     } else {
       setAdaptiveMoment(null)
     }
@@ -1117,12 +1658,16 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
       correct: Boolean(option.correct),
     }
     setPracticeAnswer(answerRecord)
+    if (!answerRecord.correct) {
+      setWrongAnswerExplanation(practiceWrongAnswerExplanation)
+    }
     try {
       window.localStorage.setItem(
         'pathfinder-practice-loop:last',
         JSON.stringify({
           studentId: studentId ?? 'demo-student',
           planId: generatedPlanPractice.planId,
+          setup: learnerSetup,
           answeredAt: new Date().toISOString(),
           answer: answerRecord,
           spacedRetrieval: generatedPlanPractice.schedule,
@@ -1133,67 +1678,135 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
     }
   }
 
-  async function handleCareerAsk(mode: 'text' | 'voice') {
-    const question = careerQuestion.trim() || careerNavigationMoment.question
-    setCareerQuestion(question)
-    setCareerAskMode(mode)
-    setCareerAnswerVisible(true)
+  function updateLearnerSetup(field: keyof LearnerSetup, value: string) {
+    setLearnerSetup({ [field]: value })
+  }
+
+  async function addWeaknessToPlan() {
+    setRevisionPlanAdded(true)
     try {
-      if (mode === 'voice' && voiceConfig?.enabled) {
-        await submitVoiceFrame({
-          actor_id: studentId ?? undefined,
-          mode: 'text',
-          payload: question,
-          lang: 'en-NG',
-        })
-      }
       window.localStorage.setItem(
-        'pathfinder-career-navigation:last',
+        'pathfinder-revision-plan:last-added',
         JSON.stringify({
           studentId: studentId ?? 'demo-student',
-          askedAt: new Date().toISOString(),
-          mode,
-          question,
-          response: careerNavigationMoment,
+          addedAt: new Date().toISOString(),
+          setup: learnerSetup,
+          weakness: wrongAnswerExplanation?.conceptMissed ?? 'Ratio scaling',
+          action: wrongAnswerExplanation?.revisionAction ?? 'Add to daily revision plan.',
         })
       )
     } catch {
-      // Career navigation remains available offline; voice/text sync can retry later.
+      // Revision-plan edits remain visible even if local storage is unavailable.
+    }
+
+    // W8 — persist the 3-card spaced-retrieval schedule and request push permission.
+    const topicId = generatedPlanPractice.planId
+    const now = Date.now()
+    const minutes = (m: number) => new Date(now + m * 60_000).toISOString()
+    const days = (d: number) => new Date(now + d * 24 * 60 * 60_000).toISOString()
+    const dueByLabel: Record<string, string> = {
+      Today: minutes(10),
+      Tomorrow: days(1),
+      'In 4 days': days(4),
+    }
+    try {
+      await scheduleRevisionCards({
+        userId: studentId ?? 'demo-student',
+        cards: generatedPlanPractice.schedule.map(s => ({
+          topicId,
+          label: `${s.label} \u00b7 ${s.timing}`,
+          dueAt: dueByLabel[s.label] ?? minutes(10),
+          payload: { focus: s.focus },
+        })),
+      })
+    } catch {
+      // Best-effort; the local snapshot above keeps the UI honest.
+    }
+    if (!pushConsentDeferred) {
+      try {
+        await pushSubscription.enable()
+      } catch {
+        // Permission denial / unsupported browser is silent here.
+      }
     }
   }
+
+  const parentSummaryText = `Your Pathfinder update: ${learnerSetup.exam} ${learnerSetup.year} ${learnerSetup.subject}. Current focus: Ratio and proportion at 42% mastery. Today: 5 min diagnostic, explain one mistake, practise one similar question. Career signals: data/business and health sciences are worth exploring while chemistry and algebra improve.`
+
+  function handleParentShare() {
+    setShareStatus('Parent summary ready to share.')
+    try {
+      window.localStorage.setItem(
+        'pathfinder-parent-summary:last',
+        JSON.stringify({
+          studentId: studentId ?? 'demo-student',
+          generatedAt: new Date().toISOString(),
+          setup: learnerSetup,
+          summary: parentSummaryText,
+        })
+      )
+    } catch {
+      // Share summary still renders for the user even if local persistence fails.
+    }
+  }
+
+  const whatsAppHref = `https://wa.me/?text=${encodeURIComponent(parentSummaryText)}`
 
   return (
     <section className={styles.root} data-testid="route-student-home">
       <div className={styles.main}>
         <article className={styles.hero}>
+          <div className={styles.heroLayout}>
+            <div className={styles.heroLeft}>
           <span className={styles.heroEyebrow}>
             <SparklesIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
-            {formatted}
+            Pathfinder · ready when you are · {formatted}
           </span>
-          <h1 className={styles.heroTitle}>Hi Tobi — let's keep the streak.</h1>
-          <p className={styles.heroSub}>
-            Your ratio path is 42% mastered. Pathfinder works on desktop web,
-            tablet, and phone, so one short check-in today can happen in class,
-            at home, or offline.
+          <h1 className={styles.heroTitle} data-testid="learner-hero-title">
+            {learnerSetup.firstName.trim()
+              ? `Hey ${learnerSetup.firstName.trim()} 👋 — back for another go?`
+              : 'Hey there 👋 — ready when you are.'}
+          </h1>
+          <p className={styles.heroSub} data-testid="learner-hero-sub">
+            {(() => {
+              const name = learnerSetup.firstName.trim()
+              if (name && lastSession) {
+                const verb = lastSession.correct ? 'nailed' : 'wrestled with'
+                const tail = lastSession.correct
+                  ? 'Want to push a level up, or warm up first?'
+                  : 'Want 3 quick minutes on that, or shall I pick something fresh?'
+                return `Last time we ${verb} ${lastSession.topicLabel.toLowerCase()}. ${tail} 😉`
+              }
+              if (name) {
+                return `Last time we wrestled with ${weakTopicProfile[0].label.toLowerCase()} and almost cracked it. Want 3 quick minutes on that, or shall I pick something fresh? 😉`
+              }
+              return `Tell me your name and I’ll remember where we left off. For now — want to crack a super-mathy ${learnerSetup.subject.toLowerCase()} goal together? 😉`
+            })()}
+            {' '}Your {learnerSetup.exam} {learnerSetup.subject} path is 42% mastered.
           </p>
           <div className={styles.heroPills}>
             <span className={styles.heroPill}>
               <BoltIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
               7-day streak
             </span>
-            <span className={styles.heroPill}>English · Yoruba voice</span>
-            <span className={styles.heroPill}>JSS2 · Maths</span>
+            <span className={styles.heroPill} data-testid="offline-ready-pill">
+              <WifiIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
+              Works offline
+            </span>
+            <span className={styles.heroPill}>{learnerSetup.year} · {learnerSetup.subject}</span>
           </div>
-          <button
-            type="button"
-            className={styles.heroCta}
-            onClick={startDemoDiagnostic}
-            data-testid="start-checkin"
-          >
-            <PlayCircleIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
-            Start 5-step demo
-            <ArrowRightIcon style={{ width: 16, height: 16 }} aria-hidden="true" />
-          </button>
+          <div className={styles.heroActions}>
+            <button
+              type="button"
+              className={styles.heroCta}
+              onClick={startDemoDiagnostic}
+              data-testid="start-checkin"
+            >
+              <PlayCircleIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+              Pick up where we left off
+              <ArrowRightIcon style={{ width: 16, height: 16 }} aria-hidden="true" />
+            </button>
+          </div>
           {voiceConfig?.enabled && (
             <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
               <button
@@ -1217,26 +1830,82 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
               )}
             </div>
           )}
+            </div>
+            {learnerTutorEnabled ? (
+              <button
+                type="button"
+                className={styles.heroOrbStage}
+                onClick={() => setTutorOpen(true)}
+                data-testid="start-learner-tutor"
+                aria-label="Talk to your tutor"
+              >
+                <span className={styles.heroOrbBigHalo} aria-hidden="true" />
+                <span className={styles.heroOrbBig} aria-hidden="true" />
+                <span className={styles.heroOrbCaption}>
+                  <span className={styles.heroOrbCaptionTitle}>Talk to your tutor</span>
+                  <span className={styles.heroOrbCaptionHint}>Live voice · tap to start</span>
+                </span>
+              </button>
+            ) : null}
+          </div>
         </article>
 
-        <article className={styles.deviceOverviewCard} data-testid="cross-device-learner-workspace">
+        <article className={styles.card} data-testid="b2c-learner-setup">
           <div className={styles.cardHeader}>
             <div>
-              <Text className={styles.cardTitle}>Web, desktop, tablet, and phone</Text>
+              <Text className={styles.cardTitle}>Choose your exam path</Text>
               <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
-                Same learner workflow; the layout widens on desktop and condenses on smaller screens.
+                Select exam, class/year, and subject before the short diagnostic starts.
               </p>
             </div>
-            <span className={styles.softBadge}>Responsive web app</span>
           </div>
-          <div className={styles.deviceOverviewGrid}>
-            {deviceModes.map(mode => (
-              <div key={mode.label} className={styles.deviceModeTile}>
-                <span className={styles.weekLabel}>{mode.label}</span>
-                <span className={styles.deviceModeValue}>{mode.value}</span>
-                <span className={styles.deviceModeDetail}>{mode.detail}</span>
-              </div>
-            ))}
+          <div className={styles.setupGrid}>
+            <label className={styles.selectField}>
+              <span className={styles.selectLabel}>Your name (optional)</span>
+              <input
+                className={styles.select}
+                type="text"
+                value={learnerSetup.firstName}
+                onChange={event => updateLearnerSetup('firstName', event.currentTarget.value)}
+                placeholder="e.g. Tomi"
+                aria-label="Your first name"
+                maxLength={40}
+                data-testid="learner-first-name"
+              />
+            </label>
+            <label className={styles.selectField}>
+              <span className={styles.selectLabel}>Exam</span>
+              <select
+                className={styles.select}
+                value={learnerSetup.exam}
+                onChange={event => updateLearnerSetup('exam', event.currentTarget.value)}
+                aria-label="Select exam"
+              >
+                {examOptions.map(option => <option key={option} value={option}>{option}</option>)}
+              </select>
+            </label>
+            <label className={styles.selectField}>
+              <span className={styles.selectLabel}>Class / year</span>
+              <select
+                className={styles.select}
+                value={learnerSetup.year}
+                onChange={event => updateLearnerSetup('year', event.currentTarget.value)}
+                aria-label="Select class or year"
+              >
+                {yearOptions.map(option => <option key={option} value={option}>{option}</option>)}
+              </select>
+            </label>
+            <label className={styles.selectField}>
+              <span className={styles.selectLabel}>Subject area</span>
+              <select
+                className={styles.select}
+                value={learnerSetup.subject}
+                onChange={event => updateLearnerSetup('subject', event.currentTarget.value)}
+                aria-label="Select subject"
+              >
+                {subjectOptions.map(option => <option key={option} value={option}>{option}</option>)}
+              </select>
+            </label>
           </div>
         </article>
 
@@ -1349,123 +2018,113 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
                 Yoruba voice practice is ready and will sync when connection returns.
               </div>
 
-              <article className={styles.practiceCard} data-testid="plan-practice-exercise">
-                <div className={styles.demoHeader}>
+              <article className={styles.card} data-testid="weak-topic-profile">
+                <div className={styles.cardHeader}>
                   <div>
-                    <span className={styles.softBadge}>From generated plan</span>
-                    <Text className={styles.demoTitle}>{generatedPlanPractice.title}</Text>
-                    <p className={styles.demoHelper}>{generatedPlanPractice.planTitle}</p>
-                  </div>
-                  <span className={styles.softBadge}>2 min</span>
-                </div>
-
-                <div className={styles.practiceInteractionGrid}>
-                  <div className={styles.practicePromptCard}>
-                    <p className={styles.practicePrompt}>{generatedPlanPractice.prompt}</p>
-                    <p className={styles.demoHelper}>{generatedPlanPractice.hint}</p>
-                  </div>
-
-                  <div className={styles.practiceOptions}>
-                    {generatedPlanPractice.options.map(option => (
-                      <button
-                        key={option.id}
-                        type="button"
-                        className={practiceAnswer?.optionId === option.id ? styles.practiceOptionSelected : styles.practiceOption}
-                        onClick={() => handlePracticeAnswer(option)}
-                        disabled={Boolean(practiceAnswer)}
-                      >
-                        <span className={styles.practiceOptionLabel}>{option.label}</span>
-                        <span className={styles.practiceOptionMeta}>{option.meta ?? 'Choose answer'}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {practiceAnswer && (
-                  <div className={styles.feedbackCard} data-testid="practice-feedback">
-                    <span className={styles.softBadge}>Immediate feedback</span>
-                    <Text className={styles.cardTitle}>
-                      {practiceAnswer.correct ? 'Correct - the plan is working.' : 'Not quite - scale both parts by 3.'}
-                    </Text>
-                    <p className={styles.demoHelper}>
-                      {practiceAnswer.correct
-                        ? '2 cups of rice became 6 cups, so 3 cups of water becomes 9 cups.'
-                        : 'The worked example says keep the rice-water ratio: 2 -> 6 is x3, so 3 -> 9.'}
+                    <Text className={styles.cardTitle}>Weak-topic profile</Text>
+                    <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
+                      Pathfinder turns the diagnostic into the next best topics to repair.
                     </p>
-                    <span className={styles.softBadge}>Spaced retrieval scheduled</span>
-                    <ul className={styles.retrievalList} data-testid="spaced-retrieval-schedule">
-                      {generatedPlanPractice.schedule.map(slot => (
-                        <li key={slot.id} className={styles.retrievalItem}>
-                          <Text weight="semibold">{slot.label} · {slot.timing}</Text>
-                          <span className={styles.demoHelper}>{slot.focus}</span>
-                        </li>
-                      ))}
-                    </ul>
                   </div>
-                )}
+                  <span className={styles.softBadge}>After diagnostic</span>
+                </div>
+                <div className={styles.insightGrid}>
+                  {weakTopicProfile.map(topic => (
+                    <div key={topic.skillId} className={styles.insightCard}>
+                      <span className={styles.weekLabel}>{topic.mastery}% mastered</span>
+                      <Text className={styles.cardTitle}>{topic.label}</Text>
+                      <div className={styles.meterTrack} aria-label={`${topic.label} mastery`}>
+                        <span className={styles.meterFill} style={{ width: `${topic.mastery}%` }} />
+                      </div>
+                      <span className={styles.demoHelper}>{topic.gap}</span>
+                      <button type="button" className={styles.textAction} onClick={() => startCheckIn(topic.skillId)}>
+                        Practise this topic
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </article>
 
-              <article className={styles.practiceCard} data-testid="career-navigation-moment">
-                <div className={styles.demoHeader}>
+              <article className={styles.card} data-testid="daily-revision-plan">
+                <div className={styles.cardHeader}>
                   <div>
-                    <span className={styles.softBadge}>Career Navigator</span>
-                    <Text className={styles.demoTitle}>Ask about a pathway</Text>
-                    <p className={styles.demoHelper}>Voice or text. Grounded guidance, not a promise.</p>
+                    <Text className={styles.cardTitle}>Daily revision plan</Text>
+                    <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
+                      Built from weak topics, wrong answers, and the selected exam path.
+                    </p>
                   </div>
-                  <BriefcaseIcon style={{ width: 28, height: 28, color: t.brand.text }} aria-hidden="true" />
+                  <span className={styles.softBadge}>12 min today</span>
                 </div>
-
-                <div className={styles.careerAskGrid}>
-                  <input
-                    className={styles.careerInput}
-                    aria-label="Career question"
-                    value={careerQuestion}
-                    onChange={event => setCareerQuestion(event.currentTarget.value)}
-                  />
-                  <div className={styles.careerActions}>
-                    <button
-                      type="button"
-                      className={styles.careerAction}
-                      onClick={() => void handleCareerAsk('text')}
-                    >
-                      <BriefcaseIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
-                      Ask by text
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.careerActionSecondary}
-                      onClick={() => void handleCareerAsk('voice')}
-                    >
-                      <MicrophoneIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
-                      Ask by voice
-                    </button>
-                  </div>
+                <div className={styles.planGrid}>
+                  {dailyRevisionPlan.map(item => (
+                    <div key={item.id} className={styles.insightCard}>
+                      <span className={styles.weekLabel}>{item.minutes} min</span>
+                      <Text className={styles.cardTitle}>{item.label}</Text>
+                      <span className={styles.demoHelper}>{item.reason}</span>
+                    </div>
+                  ))}
+                  {revisionPlanAdded && (
+                    <div className={styles.insightCard} data-testid="revision-plan-added">
+                      <span className={styles.weekLabel}>Added from mistake</span>
+                      <Text className={styles.cardTitle}>Ratio table repair</Text>
+                      <span className={styles.demoHelper}>One similar question has been added to tomorrow's retrieval slot.</span>
+                    </div>
+                  )}
                 </div>
-
-                {careerAnswerVisible && (
-                  <div className={styles.feedbackCard} data-testid="career-navigation-answer">
-                    <div className={styles.demoHeader}>
-                      <span className={styles.softBadge}>{careerAskMode === 'voice' ? 'Voice question queued' : 'Text question answered'}</span>
-                      <span className={styles.softBadge}>No outcome guarantee</span>
-                    </div>
-                    <Text className={styles.cardTitle}>Can I still become a doctor?</Text>
-                    <p className={styles.demoHelper}>{careerNavigationMoment.responseLead}</p>
-                    <ul className={styles.careerPointList}>
-                      {careerNavigationMoment.points.map(point => (
-                        <li key={point.label} className={styles.retrievalItem}>
-                          <Text weight="semibold">{point.label}</Text>
-                          <span className={styles.demoHelper}>{point.body}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <div className={styles.careerSourceRow} aria-label="Career answer grounding">
-                      {careerNavigationMoment.sources.map(source => (
-                        <span key={source} className={styles.softBadge}>{source}</span>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </article>
+
+              <article className={styles.card} data-testid="career-pathway-suggestions">
+                <div className={styles.cardHeader}>
+                  <div>
+                    <Text className={styles.cardTitle}>Pathways linked to strengths</Text>
+                    <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
+                      Guidance stays exploratory: strengths, gaps, and what to work on next.
+                    </p>
+                  </div>
+                  <span className={styles.softBadge}>Exploratory guidance</span>
+                </div>
+                <div className={styles.pathwayGrid}>
+                  {careerPathways.map(pathway => (
+                    <div key={pathway.id} className={styles.pathwayCard}>
+                      <div className={styles.pathIcon} aria-hidden="true">
+                        <BriefcaseIcon style={{ width: 20, height: 20 }} />
+                      </div>
+                      <div className={styles.pathTitle}>
+                        <span className={styles.pathTitleText}>{pathway.title}</span>
+                        <span className={styles.pathMeta}>Strength: {pathway.strength}</span>
+                        <span className={styles.pathMeta}>Gap to close: {pathway.gap}</span>
+                      </div>
+                      <span className={styles.softBadge}>{pathway.fit}% fit</span>
+                    </div>
+                  ))}
+                </div>
+              </article>
+
+        <article className={styles.card} data-testid="parent-share-summary">
+          <div className={styles.cardHeader}>
+            <div>
+              <Text className={styles.cardTitle}>Parent progress summary</Text>
+              <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
+                A short shareable update for parents or guardians, built for WhatsApp.
+              </p>
+            </div>
+            <DocumentTextIcon style={{ width: 26, height: 26, color: t.brand.text }} aria-hidden="true" />
+          </div>
+          <div className={styles.sharePanel}>
+            <p className={styles.demoHelper} style={{ margin: 0 }}>{parentSummaryText}</p>
+            <div className={styles.shareActions}>
+              <button type="button" className={styles.careerAction} onClick={handleParentShare}>
+                <ShareIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+                Prepare parent summary
+              </button>
+              <a className={styles.careerActionSecondary} href={whatsAppHref} target="_blank" rel="noreferrer">
+                <ShareIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+                Invite on WhatsApp
+              </a>
+            </div>
+            {shareStatus && <span className={styles.softBadge}>{shareStatus}</span>}
+          </div>
+        </article>
 
         <article className={styles.card}>
           <div className={styles.cardHeader}>
@@ -1473,32 +2132,118 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
             <Text className={styles.cardCaption}>~16 min total · 3 steps</Text>
           </div>
           <div className={styles.pathList}>
-            {todaysPath.map(item => (
-              <button
-                key={item.id}
-                type="button"
-                className={styles.pathRow}
-                style={{ textAlign: 'left', font: 'inherit' }}
-                onClick={() => startCheckIn(item.skillId)}
-                data-testid={`path-row-${item.id}`}
-              >
-                <div className={styles.pathIcon} aria-hidden="true">
-                  <PlayCircleIcon style={{ width: 20, height: 20 }} />
+            {todaysPath.map(item => {
+              const isExpanded = expandedStepId === item.id
+              return (
+                <div key={item.id}>
+                  <div className={styles.pathRowShell}>
+                    <button
+                      type="button"
+                      className={styles.pathRow}
+                      style={{ textAlign: 'left', font: 'inherit' }}
+                      onClick={() => {
+                        setExpandedStepId(prev => (prev === item.id ? null : item.id))
+                        startCheckIn(item.skillId)
+                      }}
+                      data-testid={`path-row-${item.id}`}
+                      aria-expanded={isExpanded}
+                    >
+                      <div className={styles.pathIcon} aria-hidden="true">
+                        <PlayCircleIcon style={{ width: 20, height: 20 }} />
+                      </div>
+                      <div className={styles.pathTitle}>
+                        <span className={styles.pathTitleText}>{item.title}</span>
+                        <span className={styles.pathMeta}>{item.meta}</span>
+                      </div>
+                      <span className={styles.minutes}>
+                        <ClockIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
+                        {item.minutes} min
+                      </span>
+                      <ChevronRightIcon
+                        style={{ width: 18, height: 18, color: t.brand.textTertiary }}
+                        aria-hidden="true"
+                      />
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.openPracticeButton}
+                      onClick={() => setPracticeOpen(true)}
+                      aria-label={`Open practice: ${item.title}`}
+                      data-testid={`open-practice-${item.id}`}
+                    >
+                      <PlayCircleIcon className={styles.openPracticeIcon} aria-hidden="true" />
+                      <span>Open practice</span>
+                    </button>
+                  </div>
+                  {isExpanded && (
+                    <div className={styles.practiceCard} data-testid="today-step-mcq">
+                      <div className={styles.demoHeader}>
+                        <div>
+                          <span className={styles.softBadge}>From generated plan</span>
+                          <Text className={styles.demoTitle}>{generatedPlanPractice.title}</Text>
+                          <p className={styles.demoHelper}>{generatedPlanPractice.planTitle}</p>
+                        </div>
+                        <span className={styles.softBadge}>2 min</span>
+                      </div>
+
+                      <div className={styles.practiceInteractionGrid}>
+                        <div className={styles.practicePromptCard}>
+                          <p className={styles.practicePrompt}>{generatedPlanPractice.prompt}</p>
+                          <p className={styles.demoHelper}>{generatedPlanPractice.hint}</p>
+                        </div>
+
+                        <div className={styles.practiceOptions}>
+                          {generatedPlanPractice.options.map(option => (
+                            <button
+                              key={option.id}
+                              type="button"
+                              className={practiceAnswer?.optionId === option.id ? styles.practiceOptionSelected : styles.practiceOption}
+                              onClick={() => handlePracticeAnswer(option)}
+                              disabled={Boolean(practiceAnswer)}
+                            >
+                              <span className={styles.practiceOptionLabel}>{option.label}</span>
+                              <span className={styles.practiceOptionMeta}>{option.meta ?? 'Choose answer'}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {practiceAnswer && (
+                        <div className={styles.feedbackCard} data-testid="practice-feedback">
+                          <span className={styles.softBadge}>Immediate feedback</span>
+                          <Text className={styles.cardTitle}>
+                            {practiceAnswer.correct ? 'Correct - the plan is working.' : 'Not quite - scale both parts by 3.'}
+                          </Text>
+                          {!practiceAnswer.correct && (
+                            <button
+                              type="button"
+                              className={styles.textAction}
+                              onClick={() => setWrongAnswerExplanation(practiceWrongAnswerExplanation)}
+                            >
+                              Explain my mistake
+                            </button>
+                          )}
+                          <p className={styles.demoHelper}>
+                            {practiceAnswer.correct
+                              ? '2 cups of rice became 6 cups, so 3 cups of water becomes 9 cups.'
+                              : 'The worked example says keep the rice-water ratio: 2 -> 6 is x3, so 3 -> 9.'}
+                          </p>
+                          <span className={styles.softBadge}>Spaced retrieval scheduled</span>
+                          <ul className={styles.retrievalList} data-testid="spaced-retrieval-schedule">
+                            {generatedPlanPractice.schedule.map(slot => (
+                              <li key={slot.id} className={styles.retrievalItem}>
+                                <Text weight="semibold">{slot.label} · {slot.timing}</Text>
+                                <span className={styles.demoHelper}>{slot.focus}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <div className={styles.pathTitle}>
-                  <span className={styles.pathTitleText}>{item.title}</span>
-                  <span className={styles.pathMeta}>{item.meta}</span>
-                </div>
-                <span className={styles.minutes}>
-                  <ClockIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
-                  {item.minutes} min
-                </span>
-                <ChevronRightIcon
-                  style={{ width: 18, height: 18, color: t.brand.textTertiary }}
-                  aria-hidden="true"
-                />
-              </button>
-            ))}
+              )
+            })}
           </div>
         </article>
 
@@ -1570,6 +2315,92 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
           </p>
         </article>
       </aside>
+
+      {practiceOpen && (
+        <PracticeFullscreen
+          open={practiceOpen}
+          onClose={() => setPracticeOpen(false)}
+          childId={studentId ?? 'demo-student'}
+          exam={learnerSetup.exam}
+          classYear={learnerSetup.year}
+          subject={learnerSetup.subject}
+        />
+      )}
+
+      {learnerTutorEnabled && tutorOpen && (
+        <LearnerTutorFullscreen
+          open={tutorOpen}
+          onClose={() => setTutorOpen(false)}
+          childId={studentId ?? 'demo-student'}
+          exam={learnerSetup.exam}
+          classYear={learnerSetup.year}
+          subject={learnerSetup.subject}
+        />
+      )}
+
+      {wrongAnswerExplanation && (
+        <div className={styles.modalBackdrop} role="presentation" data-testid="wrong-answer-modal-backdrop">
+          <dialog
+            open
+            className={styles.modal}
+            aria-modal="true"
+            aria-labelledby="wrong-answer-modal-title"
+            data-testid="wrong-answer-explanation-modal"
+          >
+            <div className={styles.modalHeader}>
+              <div>
+                <span className={styles.softBadge}>Wrong answer explanation</span>
+                <h2 id="wrong-answer-modal-title" className={styles.demoTitle} style={{ margin: '8px 0 0' }}>
+                  Explain my mistake
+                </h2>
+              </div>
+              <button
+                type="button"
+                className={styles.modalClose}
+                aria-label="Close explanation"
+                onClick={() => setWrongAnswerExplanation(null)}
+              >
+                <XMarkIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+              </button>
+            </div>
+            <div className={styles.explanationGrid}>
+              <div className={styles.explanationTile}>
+                <span className={styles.weekLabel}>Correct answer</span>
+                <Text className={styles.cardTitle}>{wrongAnswerExplanation.correctAnswer}</Text>
+              </div>
+              <div className={styles.explanationTile}>
+                <span className={styles.weekLabel}>Why your answer was wrong</span>
+                <span className={styles.demoHelper}>{wrongAnswerExplanation.whyWrong}</span>
+              </div>
+              <div className={styles.explanationTile}>
+                <span className={styles.weekLabel}>Concept you missed</span>
+                <span className={styles.demoHelper}>{wrongAnswerExplanation.conceptMissed}</span>
+              </div>
+              <div className={styles.explanationTile}>
+                <span className={styles.weekLabel}>Simpler explanation</span>
+                <span className={styles.demoHelper}>{wrongAnswerExplanation.simplerExplanation}</span>
+              </div>
+              <div className={styles.explanationTile}>
+                <span className={styles.weekLabel}>Try another similar question</span>
+                <span className={styles.demoHelper}>{wrongAnswerExplanation.similarQuestion}</span>
+              </div>
+              <div className={styles.explanationTile}>
+                <span className={styles.weekLabel}>Add this weakness to my revision plan</span>
+                <span className={styles.demoHelper}>{wrongAnswerExplanation.revisionAction}</span>
+              </div>
+            </div>
+            <div className={styles.shareActions}>
+              <button type="button" className={styles.careerAction} onClick={addWeaknessToPlan}>
+                <ChartBarIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+                Add weakness to revision plan
+              </button>
+              <button type="button" className={styles.careerActionSecondary} onClick={() => startCheckIn('ratio-proportion')}>
+                Try similar question
+              </button>
+            </div>
+          </dialog>
+        </div>
+      )}
     </section>
   )
 }

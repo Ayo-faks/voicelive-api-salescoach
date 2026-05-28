@@ -1,0 +1,118 @@
+{
+  "version": "1.0.0",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "pathfinder.wiki.seed",
+      "rule_id": "w4_english_pilot_seed",
+      "confidence": 1.0,
+      "evidence_count": 1
+    }
+  ],
+  "nodes": [
+    {
+      "node_id": "wiki.english.jss3.grammar.tense_agreement",
+      "version": "1.0.0",
+      "title": "Tense agreement",
+      "subject": "english",
+      "year_group": "JSS3",
+      "topic": "grammar",
+      "subtopic": "tense-agreement",
+      "misconception_codes": ["answer_form", "language_comprehension"],
+      "body_markdown": "Verbs must agree with their subject in person and number, and tense must match the time of the action. Words like 'yesterday', 'last week' and 'ago' signal the past tense; 'tomorrow', 'next week' and 'soon' signal the future. When rewriting a sentence into a different tense, change the main verb but keep the meaning the same: 'She writes a letter' (present) → 'She wrote a letter' (past).",
+      "anchors": ["sec-tense-agreement", "sec-time-signals"],
+      "status": "approved"
+    },
+    {
+      "node_id": "wiki.english.jss3.grammar.articles",
+      "version": "1.0.0",
+      "title": "Articles: a, an, the",
+      "subject": "english",
+      "year_group": "JSS3",
+      "topic": "grammar",
+      "subtopic": "articles",
+      "misconception_codes": ["language_comprehension", "answer_form"],
+      "body_markdown": "Use 'a' before a consonant sound and 'an' before a vowel sound. The rule is about the sound, not the spelling: it is 'an honest girl' because 'honest' begins with a vowel sound, but 'a university' because 'university' begins with a 'y' (consonant) sound. Use 'the' when the listener already knows which specific thing is meant.",
+      "anchors": ["sec-articles-a-an", "sec-articles-the"],
+      "status": "approved"
+    },
+    {
+      "node_id": "wiki.english.jss3.comprehension.main_idea",
+      "version": "1.0.0",
+      "title": "Finding the main idea",
+      "subject": "english",
+      "year_group": "JSS3",
+      "topic": "comprehension",
+      "subtopic": "main-idea",
+      "misconception_codes": ["misread_question", "language_comprehension"],
+      "body_markdown": "The main idea of a passage is the single point the writer wants you to take away. Look for a sentence that summarises the whole passage rather than naming one supporting detail. When a question asks for the main idea, do not pick the most interesting detail or the first sentence by default — pick the statement that covers every other sentence in the passage.",
+      "anchors": ["sec-main-idea", "sec-detail-vs-main-idea"],
+      "status": "approved"
+    },
+    {
+      "node_id": "wiki.english.jss3.vocab.in_context",
+      "version": "1.0.0",
+      "title": "Vocabulary in context",
+      "subject": "english",
+      "year_group": "JSS3",
+      "topic": "vocabulary",
+      "subtopic": "word-in-context",
+      "misconception_codes": ["language_comprehension"],
+      "body_markdown": "Many words have more than one meaning. To work out which meaning is used, read the whole sentence and look for clues — the surrounding nouns, the verb the word qualifies, and whether the tone is positive or negative. 'Ripe' means 'ready to eat' when used with a fruit, but 'ready to happen' when used with 'the time was ripe'.",
+      "anchors": ["sec-context-clues", "sec-multiple-meanings"],
+      "status": "approved"
+    },
+    {
+      "node_id": "wiki.english.jss3.punctuation.basic",
+      "version": "1.0.0",
+      "title": "Basic punctuation",
+      "subject": "english",
+      "year_group": "JSS3",
+      "topic": "punctuation",
+      "subtopic": "basics",
+      "misconception_codes": ["answer_form"],
+      "body_markdown": "End every statement with a full stop, every question with a question mark, and every exclamation with an exclamation mark. Capitalise the first word of a sentence, proper nouns (names of people, places, months, days), and the pronoun 'I'. Use commas to separate items in a list and to separate a dependent clause that comes before the main clause.",
+      "anchors": ["sec-end-punctuation", "sec-capitalisation", "sec-commas"],
+      "status": "approved"
+    },
+    {
+      "node_id": "wiki.english.jss3.spelling.common",
+      "version": "1.0.0",
+      "title": "Commonly misspelled words",
+      "subject": "english",
+      "year_group": "JSS3",
+      "topic": "spelling",
+      "subtopic": "common-errors",
+      "misconception_codes": ["transcription", "careless"],
+      "body_markdown": "Many spelling mistakes come from writing what a word sounds like rather than how it is actually spelled. 'Receive' follows the 'i before e except after c' pattern. 'Separate' has an 'a' in the middle (think 'a rat in separate'). 'Government' contains the word 'govern' plus '-ment'. Proofread by reading your work aloud — your ear will catch slips your eye misses.",
+      "anchors": ["sec-i-before-e", "sec-root-words", "sec-proofreading"],
+      "status": "approved"
+    },
+    {
+      "node_id": "wiki.english.ss3.figurative.devices",
+      "version": "1.0.0",
+      "title": "Figures of speech",
+      "subject": "english",
+      "year_group": "SS3",
+      "topic": "figurative",
+      "subtopic": "devices",
+      "misconception_codes": ["language_comprehension"],
+      "body_markdown": "A simile compares two things using 'like' or 'as' ('as brave as a lion'). A metaphor compares without 'like' or 'as' ('Time is money'). Personification gives human qualities to non-human things ('The wind whispered'). Hyperbole is exaggeration for effect ('a million times'). Irony is a contrast between what is said and what is meant, or between expectation and reality.",
+      "anchors": ["sec-simile-metaphor", "sec-personification", "sec-hyperbole", "sec-irony"],
+      "status": "approved"
+    },
+    {
+      "node_id": "wiki.english.ss3.summary.paraphrase",
+      "version": "1.0.0",
+      "title": "Summary and paraphrase",
+      "subject": "english",
+      "year_group": "SS3",
+      "topic": "summary",
+      "subtopic": "paraphrase",
+      "misconception_codes": ["misread_question", "answer_form", "language_comprehension"],
+      "body_markdown": "A summary keeps the main idea but cuts the supporting detail. A paraphrase keeps all the meaning but changes the wording. To paraphrase, replace key words with synonyms and rearrange the sentence structure — but do not change the meaning. A good summary or paraphrase passes the test: someone who has not read the original can understand the same idea from your version.",
+      "anchors": ["sec-summary", "sec-paraphrase", "sec-meaning-preserved"],
+      "status": "approved"
+    }
+  ]
+}

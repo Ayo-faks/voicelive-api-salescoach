@@ -262,6 +262,117 @@ def career_plan_event_to_xapi(event: CareerPlanEvent) -> XAPIStatement:
     )
 
 
+# ---------------------------------------------------------------------------
+# W3-A: retry-after-explanation events (north-star metric, MVP §4.3)
+# ---------------------------------------------------------------------------
+
+
+class ExplanationViewedEvent(LanguageAndProvenanceModel):
+    event_id: str = Field(default_factory=lambda: f"explanation-viewed-{uuid4().hex[:12]}")
+    event_type: Literal["explanation_viewed"] = "explanation_viewed"
+    tenant_id: str = Field(min_length=1)
+    student_id: str = Field(min_length=1)
+    question_id: str = Field(min_length=1)
+    skill_id: str = Field(min_length=1)
+    explanation_id: str = Field(min_length=1)
+    explanation_version: str = Field(min_length=1)
+
+
+class QuestionRetriedEvent(LanguageAndProvenanceModel):
+    event_id: str = Field(default_factory=lambda: f"question-retried-{uuid4().hex[:12]}")
+    event_type: Literal["question_retried"] = "question_retried"
+    tenant_id: str = Field(min_length=1)
+    student_id: str = Field(min_length=1)
+    question_id: str = Field(min_length=1)
+    skill_id: str = Field(min_length=1)
+    explanation_version: str = Field(min_length=1)
+    attempt_number: int = Field(ge=2)
+
+
+class RetryOutcomeEvent(LanguageAndProvenanceModel):
+    event_id: str = Field(default_factory=lambda: f"retry-outcome-{uuid4().hex[:12]}")
+    event_type: Literal["retry_outcome"] = "retry_outcome"
+    tenant_id: str = Field(min_length=1)
+    student_id: str = Field(min_length=1)
+    question_id: str = Field(min_length=1)
+    skill_id: str = Field(min_length=1)
+    explanation_version: str = Field(min_length=1)
+    succeeded: bool
+
+
+def explanation_viewed_event_to_xapi(event: ExplanationViewedEvent) -> XAPIStatement:
+    return XAPIStatement(
+        id=event.event_id,
+        actor=_actor(event.student_id),
+        verb={
+            "id": "http://adlnet.gov/expapi/verbs/experienced",
+            "display": {"en": "experienced"},
+        },
+        object={
+            "id": f"https://pathfinder.learn/explanations/{event.explanation_id}",
+            "definition": {"type": "Explanation"},
+        },
+        result={
+            "extensions": {
+                "https://pathfinder.learn/extensions/question_id": event.question_id,
+                "https://pathfinder.learn/extensions/skill_id": event.skill_id,
+                "https://pathfinder.learn/extensions/explanation_version": event.explanation_version,
+            }
+        },
+        context=_context(event.tenant_id, event.lang, event.provenance),
+    )
+
+
+def question_retried_event_to_xapi(event: QuestionRetriedEvent) -> XAPIStatement:
+    return XAPIStatement(
+        id=event.event_id,
+        actor=_actor(event.student_id),
+        verb={
+            "id": "https://pathfinder.learn/xapi/verbs/retried-question",
+            "display": {"en": "retried question"},
+        },
+        object={
+            "id": f"https://pathfinder.learn/questions/{event.question_id}",
+            "definition": {"type": "Question"},
+        },
+        result={
+            "extensions": {
+                "https://pathfinder.learn/extensions/attempt_number": event.attempt_number,
+                "https://pathfinder.learn/extensions/explanation_version": event.explanation_version,
+                "https://pathfinder.learn/extensions/skill_id": event.skill_id,
+            }
+        },
+        context=_context(event.tenant_id, event.lang, event.provenance),
+    )
+
+
+def retry_outcome_event_to_xapi(event: RetryOutcomeEvent) -> XAPIStatement:
+    return XAPIStatement(
+        id=event.event_id,
+        actor=_actor(event.student_id),
+        verb={
+            "id": (
+                "http://adlnet.gov/expapi/verbs/passed"
+                if event.succeeded
+                else "http://adlnet.gov/expapi/verbs/failed"
+            ),
+            "display": {"en": "passed" if event.succeeded else "failed"},
+        },
+        object={
+            "id": f"https://pathfinder.learn/questions/{event.question_id}/retry",
+            "definition": {"type": "QuestionRetry"},
+        },
+        result={
+            "success": event.succeeded,
+            "extensions": {
+                "https://pathfinder.learn/extensions/explanation_version": event.explanation_version,
+                "https://pathfinder.learn/extensions/skill_id": event.skill_id,
+            },
+        },
+        context=_context(event.tenant_id, event.lang, event.provenance),
+    )
+
+
 class AuditLedgerXAPISink:
     """Offline-capable xAPI sink backed by the audit ledger when available."""
 

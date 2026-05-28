@@ -1,6 +1,15 @@
 PYTHON ?= python
 
-.PHONY: verify-phase-1 verify-phase-2 verify-phase-3 verify-phase-4
+.PHONY: lint lint-explanations verify-phase-1 verify-phase-2 verify-phase-3 verify-phase-4
+
+# Pathfinder Learn — W2 contract guard.
+# Fails CI if any ExplanationResult(...) construction site omits or empties
+# wiki_citations. See MVP §4.1, "no citation, no answer."
+lint-explanations:
+	$(PYTHON) scripts/lint_explanations_have_provenance.py
+
+lint: lint-explanations
+
 verify-phase-1:
 	cd backend && $(PYTHON) -m pytest -k "phase_1 or learning or xapi" -v
 	$(PYTHON) scripts/trace_evidence_phase_1.py --offline

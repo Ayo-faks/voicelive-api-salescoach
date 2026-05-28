@@ -1,0 +1,194 @@
+[
+  {
+    "pathway_id": "junior-software-developer-ng",
+    "currency": "NGN",
+    "min_monthly": 260000,
+    "max_monthly": 720000,
+    "recency": "2026-Q1",
+    "confidence": 0.74
+  },
+  {
+    "pathway_id": "data-analyst-ng",
+    "currency": "NGN",
+    "min_monthly": 250000,
+    "max_monthly": 650000,
+    "recency": "2026-Q1",
+    "confidence": 0.78
+  },
+  {
+    "pathway_id": "qa-tester-ng",
+    "currency": "NGN",
+    "min_monthly": 180000,
+    "max_monthly": 480000,
+    "recency": "2026-Q1",
+    "confidence": 0.7
+  },
+  {
+    "pathway_id": "it-support-technician-ng",
+    "currency": "NGN",
+    "min_monthly": 140000,
+    "max_monthly": 360000,
+    "recency": "2026-Q1",
+    "confidence": 0.72
+  },
+  {
+    "pathway_id": "cybersecurity-analyst-ng",
+    "currency": "NGN",
+    "min_monthly": 320000,
+    "max_monthly": 880000,
+    "recency": "2026-Q1",
+    "confidence": 0.7
+  },
+  {
+    "pathway_id": "civil-technician-ng",
+    "currency": "NGN",
+    "min_monthly": 220000,
+    "max_monthly": 540000,
+    "recency": "2026-Q1",
+    "confidence": 0.74
+  },
+  {
+    "pathway_id": "electrical-installer-ng",
+    "currency": "NGN",
+    "min_monthly": 180000,
+    "max_monthly": 480000,
+    "recency": "2026-Q1",
+    "confidence": 0.72
+  },
+  {
+    "pathway_id": "hvac-technician-ng",
+    "currency": "NGN",
+    "min_monthly": 160000,
+    "max_monthly": 420000,
+    "recency": "2026-Q1",
+    "confidence": 0.7
+  },
+  {
+    "pathway_id": "building-surveyor-ng",
+    "currency": "NGN",
+    "min_monthly": 240000,
+    "max_monthly": 620000,
+    "recency": "2026-Q1",
+    "confidence": 0.7
+  },
+  {
+    "pathway_id": "health-records-ng",
+    "currency": "NGN",
+    "min_monthly": 180000,
+    "max_monthly": 420000,
+    "recency": "2026-Q1",
+    "confidence": 0.72
+  },
+  {
+    "pathway_id": "community-health-worker-ng",
+    "currency": "NGN",
+    "min_monthly": 140000,
+    "max_monthly": 320000,
+    "recency": "2026-Q1",
+    "confidence": 0.74
+  },
+  {
+    "pathway_id": "pharmacy-technician-ng",
+    "currency": "NGN",
+    "min_monthly": 200000,
+    "max_monthly": 460000,
+    "recency": "2026-Q1",
+    "confidence": 0.72
+  },
+  {
+    "pathway_id": "medical-laboratory-assistant-ng",
+    "currency": "NGN",
+    "min_monthly": 210000,
+    "max_monthly": 500000,
+    "recency": "2026-Q1",
+    "confidence": 0.72
+  },
+  {
+    "pathway_id": "agri-extension-officer-ng",
+    "currency": "NGN",
+    "min_monthly": 160000,
+    "max_monthly": 380000,
+    "recency": "2026-Q1",
+    "confidence": 0.74
+  },
+  {
+    "pathway_id": "agri-tech-operator-ng",
+    "currency": "NGN",
+    "min_monthly": 170000,
+    "max_monthly": 420000,
+    "recency": "2026-Q1",
+    "confidence": 0.7
+  },
+  {
+    "pathway_id": "food-processing-supervisor-ng",
+    "currency": "NGN",
+    "min_monthly": 180000,
+    "max_monthly": 460000,
+    "recency": "2026-Q1",
+    "confidence": 0.72
+  },
+  {
+    "pathway_id": "accounts-clerk-ng",
+    "currency": "NGN",
+    "min_monthly": 170000,
+    "max_monthly": 420000,
+    "recency": "2026-Q1",
+    "confidence": 0.74
+  },
+  {
+    "pathway_id": "bank-teller-ng",
+    "currency": "NGN",
+    "min_monthly": 160000,
+    "max_monthly": 380000,
+    "recency": "2026-Q1",
+    "confidence": 0.74
+  },
+  {
+    "pathway_id": "microfinance-officer-ng",
+    "currency": "NGN",
+    "min_monthly": 200000,
+    "max_monthly": 520000,
+    "recency": "2026-Q1",
+    "confidence": 0.72
+  },
+  {
+    "pathway_id": "primary-teacher-ng",
+    "currency": "NGN",
+    "min_monthly": 120000,
+    "max_monthly": 340000,
+    "recency": "2026-Q1",
+    "confidence": 0.78
+  },
+  {
+    "pathway_id": "content-creator-ng",
+    "currency": "NGN",
+    "min_monthly": 120000,
+    "max_monthly": 480000,
+    "recency": "2026-Q1",
+    "confidence": 0.66
+  },
+  {
+    "pathway_id": "graphic-designer-ng",
+    "currency": "NGN",
+    "min_monthly": 160000,
+    "max_monthly": 460000,
+    "recency": "2026-Q1",
+    "confidence": 0.7
+  },
+  {
+    "pathway_id": "logistics-coordinator-ng",
+    "currency": "NGN",
+    "min_monthly": 190000,
+    "max_monthly": 500000,
+    "recency": "2026-Q1",
+    "confidence": 0.72
+  },
+  {
+    "pathway_id": "hospitality-supervisor-ng",
+    "currency": "NGN",
+    "min_monthly": 150000,
+    "max_monthly": 380000,
+    "recency": "2026-Q1",
+    "confidence": 0.72
+  }
+]

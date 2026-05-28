@@ -1,0 +1,304 @@
+[
+  {
+    "pathway_id": "junior-software-developer-ng",
+    "title": "Junior software developer",
+    "skill_weights": {
+      "algorithms": 0.3,
+      "computer-basics": 0.2,
+      "linear-equations": 0.25,
+      "data-handling": 0.15,
+      "scientific-method": 0.1
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "data-analyst-ng",
+    "title": "Data analyst",
+    "skill_weights": {
+      "ratio-proportion": 0.2,
+      "fraction-operations": 0.15,
+      "linear-equations": 0.4,
+      "data-handling": 0.2,
+      "plane-geometry": 0.05
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "qa-tester-ng",
+    "title": "Software QA tester",
+    "skill_weights": {
+      "algorithms": 0.25,
+      "computer-basics": 0.3,
+      "reading-comprehension": 0.25,
+      "data-handling": 0.2
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "it-support-technician-ng",
+    "title": "IT support technician",
+    "skill_weights": {
+      "computer-basics": 0.45,
+      "online-safety": 0.2,
+      "reading-comprehension": 0.2,
+      "data-handling": 0.15
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "cybersecurity-analyst-ng",
+    "title": "Cybersecurity analyst",
+    "skill_weights": {
+      "online-safety": 0.35,
+      "computer-basics": 0.2,
+      "algorithms": 0.2,
+      "data-handling": 0.15,
+      "scientific-method": 0.1
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "civil-technician-ng",
+    "title": "Civil engineering technician",
+    "skill_weights": {
+      "ratio-proportion": 0.25,
+      "fraction-operations": 0.15,
+      "linear-equations": 0.25,
+      "plane-geometry": 0.35
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "electrical-installer-ng",
+    "title": "Electrical installer",
+    "skill_weights": {
+      "plane-geometry": 0.3,
+      "ratio-proportion": 0.25,
+      "scientific-method": 0.25,
+      "fraction-operations": 0.2
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "hvac-technician-ng",
+    "title": "HVAC technician",
+    "skill_weights": {
+      "plane-geometry": 0.35,
+      "scientific-method": 0.25,
+      "ratio-proportion": 0.25,
+      "fraction-operations": 0.15
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "building-surveyor-ng",
+    "title": "Building surveyor",
+    "skill_weights": {
+      "plane-geometry": 0.3,
+      "linear-equations": 0.25,
+      "ratio-proportion": 0.2,
+      "reading-comprehension": 0.15,
+      "data-handling": 0.1
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "health-records-ng",
+    "title": "Health records assistant",
+    "skill_weights": {
+      "ratio-proportion": 0.3,
+      "fraction-operations": 0.2,
+      "data-handling": 0.3,
+      "reading-comprehension": 0.2
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "community-health-worker-ng",
+    "title": "Community health worker",
+    "skill_weights": {
+      "reading-comprehension": 0.3,
+      "vocabulary": 0.2,
+      "scientific-method": 0.3,
+      "fraction-operations": 0.2
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "pharmacy-technician-ng",
+    "title": "Pharmacy technician",
+    "skill_weights": {
+      "fraction-operations": 0.3,
+      "ratio-proportion": 0.25,
+      "scientific-method": 0.25,
+      "reading-comprehension": 0.2
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "medical-laboratory-assistant-ng",
+    "title": "Medical laboratory assistant",
+    "skill_weights": {
+      "scientific-method": 0.35,
+      "fraction-operations": 0.25,
+      "ratio-proportion": 0.2,
+      "data-handling": 0.2
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "agri-extension-officer-ng",
+    "title": "Agricultural extension officer",
+    "skill_weights": {
+      "scientific-method": 0.3,
+      "reading-comprehension": 0.2,
+      "ratio-proportion": 0.2,
+      "data-handling": 0.2,
+      "vocabulary": 0.1
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "agri-tech-operator-ng",
+    "title": "Agri-tech equipment operator",
+    "skill_weights": {
+      "computer-basics": 0.25,
+      "scientific-method": 0.25,
+      "plane-geometry": 0.2,
+      "data-handling": 0.15,
+      "fraction-operations": 0.15
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "food-processing-supervisor-ng",
+    "title": "Food processing supervisor",
+    "skill_weights": {
+      "ratio-proportion": 0.25,
+      "fraction-operations": 0.25,
+      "scientific-method": 0.2,
+      "reading-comprehension": 0.15,
+      "data-handling": 0.15
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "accounts-clerk-ng",
+    "title": "Accounts clerk",
+    "skill_weights": {
+      "fraction-operations": 0.3,
+      "ratio-proportion": 0.3,
+      "data-handling": 0.25,
+      "computer-basics": 0.15
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "bank-teller-ng",
+    "title": "Bank teller",
+    "skill_weights": {
+      "fraction-operations": 0.3,
+      "ratio-proportion": 0.3,
+      "reading-comprehension": 0.2,
+      "vocabulary": 0.2
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "microfinance-officer-ng",
+    "title": "Microfinance loan officer",
+    "skill_weights": {
+      "ratio-proportion": 0.3,
+      "fraction-operations": 0.25,
+      "reading-comprehension": 0.2,
+      "vocabulary": 0.15,
+      "data-handling": 0.1
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "primary-teacher-ng",
+    "title": "Primary school teacher",
+    "skill_weights": {
+      "reading-comprehension": 0.3,
+      "grammar-syntax": 0.25,
+      "vocabulary": 0.2,
+      "composition": 0.15,
+      "fraction-operations": 0.1
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "content-creator-ng",
+    "title": "Digital content creator",
+    "skill_weights": {
+      "composition": 0.3,
+      "grammar-syntax": 0.2,
+      "vocabulary": 0.15,
+      "online-safety": 0.15,
+      "computer-basics": 0.1,
+      "reading-comprehension": 0.1
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "graphic-designer-ng",
+    "title": "Graphic designer",
+    "skill_weights": {
+      "composition": 0.3,
+      "plane-geometry": 0.25,
+      "computer-basics": 0.2,
+      "reading-comprehension": 0.15,
+      "vocabulary": 0.1
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "logistics-coordinator-ng",
+    "title": "Logistics coordinator",
+    "skill_weights": {
+      "ratio-proportion": 0.3,
+      "data-handling": 0.25,
+      "reading-comprehension": 0.2,
+      "fraction-operations": 0.15,
+      "computer-basics": 0.1
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  },
+  {
+    "pathway_id": "hospitality-supervisor-ng",
+    "title": "Hospitality supervisor",
+    "skill_weights": {
+      "reading-comprehension": 0.25,
+      "vocabulary": 0.2,
+      "grammar-syntax": 0.2,
+      "ratio-proportion": 0.2,
+      "data-handling": 0.15
+    },
+    "recency": "2026-Q1",
+    "confidence": 0.8
+  }
+]

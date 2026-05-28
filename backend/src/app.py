@@ -41,6 +41,12 @@ from src.learning.api import (
     register_learning_api,
 )
 from src.learning.repository_factory import make_repository as make_learning_repository
+from src.learning.profile_config import (
+    ALLOWED_CONSENT_KINDS,
+    PROFILE_CONSENT_MIRRORS,
+    profile_needs_onboarding,
+    validate_patch as validate_learner_profile_patch,
+)
 from src.services.insights_copilot_planner import build_insights_planner_from_env
 from src.services.insights_service import (
     InsightsAuthorizationError,
@@ -121,6 +127,8 @@ API_AUTH_SESSION_ENDPOINT = "/api/auth/session"
 API_AUTH_CLAIM_INVITE_CODE_ENDPOINT = "/api/auth/claim-invite-code"
 API_AUTH_CHOOSE_ROLE_ENDPOINT = "/api/auth/choose-role"
 API_LEARNERS_SELF_ENDPOINT = "/api/learners/me"
+API_LEARNERS_ME_PROFILE_ENDPOINT = "/api/learners/me/profile"
+API_LEARNERS_ME_CONSENT_ENDPOINT = "/api/learners/me/consent"
 API_ADMIN_INVITE_CODES_ENDPOINT = "/api/admin/invite-codes"
 API_WORKSPACES_ENDPOINT = "/api/workspaces"
 API_PILOT_STATE_ENDPOINT = "/api/pilot/state"
@@ -213,6 +221,7 @@ ROLE_KID = "kid"
 ROLE_STUDENT = "student"
 ROLE_UNASSIGNED = "unassigned"
 B2C_ONBOARDING_FLAG = "PATHFINDER_B2C_ONBOARDING_ENABLED"
+LEARNER_ONBOARDING_FLAG = "PATHFINDER_LEARNER_ONBOARDING_ENABLED"
 UNSAFE_HTTP_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 PATHFINDER_LEARN_TEACHER_CLASS_IDS_ENV = "PATHFINDER_LEARN_TEACHER_CLASS_IDS"
 PATHFINDER_LEARN_LEARNER_STUDENT_IDS_ENV = "PATHFINDER_LEARN_LEARNER_STUDENT_IDS"
@@ -226,9 +235,17 @@ PATHFINDER_LEARN_CLASS_IDS = {
     "class-ss3-a",
 }
 LEARNING_LEARNER_ROLES = {ROLE_PARENT, ROLE_LEARNER, ROLE_KID, ROLE_STUDENT}
+LEARNER_VOICE_SCOPE_ROLES = {ROLE_LEARNER, ROLE_KID, ROLE_STUDENT, ROLE_THERAPIST, ROLE_ADMIN}
 _RATE_LIMIT_STATE: dict[tuple[str, str], list[float]] = defaultdict(list)
 _RATE_LIMIT_LOCK = threading.Lock()
 _LEARNING_TEACHER_SCOPE_EMPTY_WARNED: set[tuple[str, str]] = set()
+
+
+def _is_voice_scope_allowed_for_role(scope: str, role: str) -> bool:
+    normalized_scope = (scope or "practice").strip().lower() or "practice"
+    if normalized_scope != "learner":
+        return True
+    return role in LEARNER_VOICE_SCOPE_ROLES
 
 
 def _normalize_origin(value: str) -> str:
@@ -1200,10 +1217,18 @@ def _enforce_learning_api_policy() -> Optional[Tuple[Any, int]]:
         owned_student_ids = _learning_student_ids_for_user(user)
         if path in {"/api/learning/diagnostic/start", "/api/learning/voice/frame"} and not payload_student_id:
             return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
+        if path == "/api/learning/voice/turn":
+            child_id = str(payload.get("child_id") or "").strip()
+            if not child_id or child_id not in owned_student_ids:
+                return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
         if path == "/api/learning/diagnostic/answer" and session_student_id and session_student_id not in owned_student_ids:
             return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
         if payload_student_id and payload_student_id not in owned_student_ids:
             return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
+        if path.startswith("/api/learning/notifications/"):
+            payload_user_id = str(payload.get("user_id") or "").strip()
+            if payload_user_id and payload_user_id not in owned_student_ids:
+                return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
         return None
     return jsonify({"error": THERAPIST_ROLE_REQUIRED}), HTTP_FORBIDDEN
 
@@ -1267,6 +1292,23 @@ def _voice_agent_actions_enabled(user: Optional[Dict[str, Any]]) -> bool:
     if not _voice_agent_dynamic_ui_enabled(user):
         return False
     raw = os.getenv("VOICE_AGENT_ACTIONS_ENABLED", "false")
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _learner_voice_fullscreen_enabled(user: Optional[Dict[str, Any]]) -> bool:
+    """Whether the learner fullscreen voice + gen-UI surface is shown.
+
+    Distinct from VOICE_AGENT_FULLSCREEN_ENABLED, which gates the
+    therapist-side caseload voice agent. The learner surface has its
+    own card contract (mcq-tap, explanation, progress) and its own
+    backend turn endpoint.
+    """
+    if user is None:
+        return False
+    role = str(user.get("role") or "")
+    if role not in LEARNING_LEARNER_ROLES:
+        return False
+    raw = os.getenv("LEARNER_VOICE_FULLSCREEN_ENABLED", "false")
     return str(raw).strip().lower() in {"1", "true", "yes", "on"}
 
 
@@ -1464,6 +1506,7 @@ def get_config():
             "voice_agent_fullscreen_enabled": _voice_agent_fullscreen_enabled(cast(Dict[str, Any], user) if user else None),
             "voice_agent_dynamic_ui_enabled": _voice_agent_dynamic_ui_enabled(cast(Dict[str, Any], user) if user else None),
             "voice_agent_actions_enabled": _voice_agent_actions_enabled(cast(Dict[str, Any], user) if user else None),
+            "learner_voice_fullscreen_enabled": _learner_voice_fullscreen_enabled(cast(Dict[str, Any], user) if user else None),
             "onboarding": {
                 # Kill switch for the v2 onboarding/guidance system
                 # (docs/onboarding/onboarding-plan-v2.md). Setting
@@ -1638,6 +1681,101 @@ def create_self_learner():
         child_id=str(child.get("id") or ""),
     )
     return jsonify(child)
+
+
+def _pathfinder_learner_onboarding_enabled() -> bool:
+    return os.environ.get(LEARNER_ONBOARDING_FLAG, "false").strip().lower() in {
+        "true",
+        "1",
+        "yes",
+    }
+
+
+def _learner_profile_response(user_id: str) -> Dict[str, Any]:
+    profile = storage_service.get_learner_profile(user_id) or {}
+    consents = storage_service.latest_consents(user_id)
+    return {
+        "profile": profile,
+        "consents": consents,
+        "needs_onboarding": profile_needs_onboarding(profile, consents),
+    }
+
+
+@app.route(API_LEARNERS_ME_PROFILE_ENDPOINT, methods=["GET", "PATCH"])
+def learner_self_profile():
+    """Return or update the calling learner's profile."""
+    if not _pathfinder_learner_onboarding_enabled():
+        return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
+
+    user, guard_response = _require_role(ROLE_LEARNER)
+    if guard_response is not None:
+        return guard_response
+
+    user_id = str(cast(Dict[str, Any], user).get("id") or "")
+
+    if request.method == "GET":
+        return jsonify(_learner_profile_response(user_id))
+
+    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+    cleaned, error = validate_learner_profile_patch(data)
+    if error is not None:
+        return jsonify({"error": error}), HTTP_BAD_REQUEST
+
+    storage_service.upsert_learner_profile(user_id, cleaned)
+    _log_audit_event(
+        user_id=user_id,
+        action="learner.profile_update",
+        resource_type="learner_profile",
+        resource_id=user_id,
+        metadata={"fields": sorted(cleaned.keys())},
+    )
+    return jsonify(_learner_profile_response(user_id))
+
+
+@app.route(API_LEARNERS_ME_CONSENT_ENDPOINT, methods=["POST"])
+def learner_self_consent():
+    """Record a consent grant/revoke for the calling learner."""
+    if not _pathfinder_learner_onboarding_enabled():
+        return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
+
+    user, guard_response = _require_role(ROLE_LEARNER)
+    if guard_response is not None:
+        return guard_response
+
+    user_id = str(cast(Dict[str, Any], user).get("id") or "")
+    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+    kind = str(data.get("kind") or "").strip().lower()
+    version = str(data.get("version") or "").strip()
+    granted_raw = data.get("granted")
+
+    if kind not in ALLOWED_CONSENT_KINDS:
+        return jsonify({"error": "Unsupported consent kind"}), HTTP_BAD_REQUEST
+    if not version:
+        return jsonify({"error": "version is required"}), HTTP_BAD_REQUEST
+    if not isinstance(granted_raw, bool):
+        return jsonify({"error": "granted must be a boolean"}), HTTP_BAD_REQUEST
+
+    user_agent = request.headers.get("User-Agent")
+    storage_service.record_consent(
+        user_id,
+        kind,
+        version,
+        granted_raw,
+        user_agent=user_agent[:255] if user_agent else None,
+    )
+
+    mirror_field = PROFILE_CONSENT_MIRRORS.get(kind)
+    if mirror_field is not None:
+        storage_service.upsert_learner_profile(user_id, {mirror_field: bool(granted_raw)})
+
+    _log_audit_event(
+        user_id=user_id,
+        action="learner.consent_record",
+        resource_type="user_consent",
+        resource_id=user_id,
+        metadata={"kind": kind, "version": version, "granted": bool(granted_raw)},
+    )
+    return jsonify(_learner_profile_response(user_id))
 
 
 @app.route(API_ADMIN_INVITE_CODES_ENDPOINT, methods=["GET", "POST"])
@@ -4547,9 +4685,17 @@ def voice_proxy(ws: simple_websocket.ws.Server):
         "X-MS-CLIENT-PRINCIPAL-EMAIL": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_EMAIL", ""),
     }
 
-    if _get_authenticated_user_from_headers(ws_headers) is None:
+    user = _get_authenticated_user_from_headers(ws_headers)
+    if user is None:
         logger.warning("Rejected unauthenticated WebSocket connection")
         ws.close()
+        return
+
+    query = parse_qs(str(environ.get("QUERY_STRING") or ""), keep_blank_values=False)
+    scope = str((query.get("scope") or ["practice"])[0] or "practice").strip().lower() or "practice"
+    if not _is_voice_scope_allowed_for_role(scope, str(user.get("role") or "")):
+        logger.warning("Rejected learner VoiceLive WebSocket connection for role %s", user.get("role"))
+        ws.close(4403, "voice_learner_forbidden")
         return
 
     try:

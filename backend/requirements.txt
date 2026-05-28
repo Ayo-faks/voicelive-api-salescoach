@@ -16,6 +16,7 @@ pydantic>=2.7,<3  # PRD §7.5/§9.4 structured planner contracts and fail-closed
 reportlab>=4.2.0
 psycopg[binary]>=3.2.0
 pyjwt[crypto]>=2.8,<3
+pywebpush>=2.0.0  # Pathfinder W8 — VAPID Web Push for spaced-retrieval reminders
 prometheus-client>=0.20.0
 python-dotenv==1.2.1
 pyyaml==6.0.3

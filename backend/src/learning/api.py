@@ -19,7 +19,7 @@ import json
 import os
 import threading
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Optional, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Protocol, Tuple
 from urllib.parse import urlencode
 from uuid import uuid4
 
@@ -61,14 +61,35 @@ from src.learning.models import (
 from src.learning.observability import LearningObservability
 from src.learning.operations import compute_kpi_report, load_metric_snapshots
 from src.learning.planner import PlannerRequest, StubLearningPlanner
+from src.learning.rag import (
+    DEFAULT_SIMILARITY_THRESHOLD,
+    DEFAULT_TOP_K,
+    RagRetriever,
+    WikiCorpus,
+    load_wiki_corpus,
+    retrieve_or_refuse,
+)
+from src.learning.notifications import (
+    InMemoryNotificationsRepository,
+    NotificationsRepository,
+    PushSubscription,
+    RevisionCard,
+    VapidConfig,
+    load_vapid_config,
+)
 from src.learning.repository import InMemoryLearningRepository, LearningRepository
 from src.learning.skills import SkillCatalogueError, SkillsCatalogueService
+from src.learning.tts.routes import create_learning_tts_blueprint
 from src.learning.validator import (
     PlanValidator,
     catalogue_grounding_rule,
     catalogue_skill_existence_rule,
 )
 from src.learning.voice import FlaskSockVoiceTransportAdapter, VoiceFrame
+from src.learning.learner_voice import (
+    LearnerVoiceTurnPlanner,
+    LearnerVoiceTurnRequest,
+)
 from src.learning.xapi import (
     ApprovalEvent,
     DiagnosticCompletionEvent,
@@ -161,6 +182,116 @@ LEARNING_DATA_DIR = _resolve_learning_data_dir()
 ITEM_BANK_PATH = LEARNING_DATA_DIR / "jss2_maths_diagnostic_phase_2.json"
 DIAGNOSTICS_DIR = LEARNING_DATA_DIR / "diagnostics"
 PILOT_METRICS_PATH = LEARNING_DATA_DIR / "ops" / "phase_4_pilot_metrics.json"
+WIKI_CORPUS_PATH = LEARNING_DATA_DIR / "wiki" / "jss3_maths_wiki_seed.json"
+WIKI_CORPUS_PATHS = (
+    WIKI_CORPUS_PATH,
+    LEARNING_DATA_DIR / "wiki" / "english_jss3_ss3_wiki_seed.json",
+)
+EXPLAIN_SNIPPET_MAX_CHARS = 320
+
+
+class AssistantReply(dict):
+    """Lightweight dict-typed reply returned by an ``AssistantProvider``.
+
+    Carries the assistant's free-text answer and an optional list of citation
+    cards ``[{"label": str, "topic_id"|"url": str}]``. Kept as a ``dict``
+    subclass so it serialises cleanly via ``jsonify`` without an extra adapter.
+    """
+
+
+class AssistantProvider(Protocol):
+    """Pluggable backend for the unified Ask Pathfinder drawer.
+
+    Phase 1 ships a deterministic implementation that quotes the learner's own
+    weak topics, daily plan, and career fits back to them; phase 2 will swap in
+    a model-backed provider (see ``/memories/repo/pathfinder-ask-assistant-phase2.md``).
+    """
+
+    def ask(self, question: str, context: Mapping[str, Any]) -> AssistantReply: ...
+
+
+class DeterministicAssistantProvider:
+    """Phase-1 provider — branches on keywords in the learner's question.
+
+    Pulls signals directly from ``context`` so the same data the learner sees
+    on the home screen (weak topics, daily plan, career fits, last wrong
+    answer) appears in the answer. No outcome guarantees.
+    """
+
+    def ask(self, question: str, context: Mapping[str, Any]) -> AssistantReply:
+        q = (question or "").strip()
+        ql = q.lower()
+        weak_topics = list(context.get("weak_topics") or [])
+        career_fits = list(context.get("career_fits") or [])
+        daily_plan = list(context.get("daily_plan") or [])
+        last_wrong = context.get("last_wrong_answer") or {}
+
+        def _topic_label(t: Any) -> str:
+            if isinstance(t, Mapping):
+                return str(t.get("label") or t.get("skill_id") or t.get("topic_id") or "")
+            return str(t or "")
+
+        def _topic_id(t: Any) -> str:
+            if isinstance(t, Mapping):
+                return str(t.get("skill_id") or t.get("topic_id") or t.get("label") or "")
+            return str(t or "")
+
+        weak_labels = [_topic_label(t) for t in weak_topics if _topic_label(t)]
+        citations: List[Dict[str, str]] = []
+
+        # 1) Wrong-answer follow-up
+        if last_wrong and any(k in ql for k in ("why", "wrong", "mistake", "explain")):
+            topic = _topic_label(last_wrong) or "this topic"
+            answer = (
+                f"Looking at your last answer on {topic}, the worked example "
+                "shows what to keep constant; try the next short retrieval "
+                "card to practise the same step in a new wording. No outcome "
+                "guarantee — what is realistic is one focused retry today."
+            )
+            tid = _topic_id(last_wrong)
+            if tid:
+                citations.append({"label": topic, "topic_id": tid})
+            return AssistantReply(answer=answer, citations=citations)
+
+        # 2) Career / pathway question
+        if any(k in ql for k in ("career", "pathway", "doctor", "engineer", "become", "job", "future")):
+            fit_labels = [str((f or {}).get("label") or f) for f in career_fits if f]
+            if fit_labels:
+                fits_text = ", ".join(fit_labels[:3])
+                answer = (
+                    f"Pathways that fit your current strengths include {fits_text}. "
+                    "Guidance stays exploratory — no outcome guarantee. What is "
+                    "realistic next: keep building "
+                    + (weak_labels[0] if weak_labels else "your current focus topic")
+                    + " before timed practice."
+                )
+            else:
+                answer = (
+                    "Pathways stay exploratory — no outcome guarantee. What is "
+                    "realistic next: name the subject you most enjoy and we can "
+                    "map two adjacent roles to try."
+                )
+            for f in career_fits[:3]:
+                if isinstance(f, Mapping) and f.get("label"):
+                    citations.append({"label": str(f["label"]), "url": str(f.get("url") or "#")})
+            return AssistantReply(answer=answer, citations=citations)
+
+        # 3) Weak-topic / what-to-study question (default branch)
+        focus = weak_labels[0] if weak_labels else "your current focus topic"
+        plan_titles = [str((p or {}).get("title") or p) for p in daily_plan if p]
+        plan_text = ("; ".join(plan_titles[:2])) if plan_titles else "today's path"
+        answer = (
+            f"Start with {focus} — that is the weakest signal on your profile "
+            f"right now. Today's path covers: {plan_text}. Aim for one short "
+            "retrieval card after each step; no outcome guarantee, just "
+            "steady practice."
+        )
+        for t in weak_topics[:2]:
+            label = _topic_label(t)
+            tid = _topic_id(t)
+            if label and tid:
+                citations.append({"label": label, "topic_id": tid})
+        return AssistantReply(answer=answer, citations=citations)
 
 
 class _SessionState:
@@ -221,6 +352,11 @@ class LearningApi:
         lti_state_store: Optional[LTIStateStore] = None,
         lti_session_secret: Optional[str] = None,
         observability: Optional[LearningObservability] = None,
+        wiki_corpus: Optional[WikiCorpus] = None,
+        rag_retriever: Optional[RagRetriever] = None,
+        notifications_repository: Optional[NotificationsRepository] = None,
+        vapid_config: Optional[VapidConfig] = None,
+        assistant_provider: Optional[AssistantProvider] = None,
     ) -> None:
         self.repository: LearningRepository = repository or InMemoryLearningRepository()
         self.item_bank: DiagnosticItemBank = item_bank or load_item_bank(ITEM_BANK_PATH)
@@ -232,6 +368,10 @@ class LearningApi:
         self.observability = observability or LearningObservability()
         self.selector = DeterministicItemSelector()
         self.voice_adapter = FlaskSockVoiceTransportAdapter()
+        self.learner_voice_planner = LearnerVoiceTurnPlanner()
+        self.assistant_provider: AssistantProvider = (
+            assistant_provider or DeterministicAssistantProvider()
+        )
         self._sessions: Dict[str, _SessionState] = {}
         self._student_estimates: Dict[Tuple[str, str], Dict[str, MasteryEstimate]] = {}
         self._student_classes: Dict[Tuple[str, str], str] = {}
@@ -266,6 +406,30 @@ class LearningApi:
         self.skills_service = SkillsCatalogueService(self.repository)
         self._seed_pilot_pending_plan()
         self._seed_pilot_student_fact_proposals()
+
+        # RAG retriever (W3-B). Lazy seed from the bundled wiki fixture when
+        # the caller doesn't pass a corpus. Missing fixture → empty corpus;
+        # every explain() call then refuses with reason="no_grounding".
+        if rag_retriever is not None:
+            self.rag_retriever: RagRetriever = rag_retriever
+        else:
+            if wiki_corpus is None:
+                merged_nodes: List[Any] = []
+                for path in WIKI_CORPUS_PATHS:
+                    if path.exists():
+                        merged_nodes.extend(load_wiki_corpus(path).nodes())
+                wiki_corpus = WikiCorpus(merged_nodes)
+            self.rag_retriever = RagRetriever(
+                wiki_corpus,
+                similarity_threshold=DEFAULT_SIMILARITY_THRESHOLD,
+                top_k=DEFAULT_TOP_K,
+            )
+
+        # W8 — Spaced-retrieval Web Push.
+        self.notifications_repository: NotificationsRepository = (
+            notifications_repository or InMemoryNotificationsRepository()
+        )
+        self.vapid_config: VapidConfig = vapid_config or load_vapid_config()
 
     def _seed_pilot_pending_plan(self) -> None:
         if not isinstance(self.repository, InMemoryLearningRepository):
@@ -1196,6 +1360,65 @@ class LearningApi:
         return {"events": events[-50:]}
 
     # ------------------------------------------------------------------
+    # Explanation surface (W3-B) — exposes the RAG retriever.
+    # The generator (W4) will replace the placeholder `explanation: null`
+    # field with a grounded ExplanationResult composed from these hits.
+    # ------------------------------------------------------------------
+    def explain(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        query = str(payload.get("query") or "").strip()
+        if not query:
+            raise LearningApiError("query is required", status_code=400)
+        lang = str(payload.get("lang") or "en")
+        subject_raw = payload.get("subject")
+        subject = str(subject_raw).strip() if subject_raw else None
+        if subject and subject not in ("maths", "english"):
+            raise LearningApiError(
+                "subject must be 'maths' or 'english'", status_code=400
+            )
+        year_group_raw = payload.get("year_group")
+        year_group = str(year_group_raw).strip() if year_group_raw else None
+        if year_group and year_group not in ("JSS3", "SS3"):
+            raise LearningApiError(
+                "year_group must be 'JSS3' or 'SS3'", status_code=400
+            )
+        hits, refusal = retrieve_or_refuse(
+            self.rag_retriever,
+            query,
+            lang=lang,
+            subject=subject,  # type: ignore[arg-type]
+            year_group=year_group,  # type: ignore[arg-type]
+        )
+        hits_payload: List[Dict[str, Any]] = []
+        for hit in hits:
+            snippet = hit.node.body_markdown
+            if len(snippet) > EXPLAIN_SNIPPET_MAX_CHARS:
+                snippet = snippet[: EXPLAIN_SNIPPET_MAX_CHARS - 1].rstrip() + "…"
+            hits_payload.append(
+                {
+                    "node_id": hit.node.node_id,
+                    "version": hit.node.version,
+                    "title": hit.node.title,
+                    "subject": hit.node.subject,
+                    "year_group": hit.node.year_group,
+                    "topic": hit.node.topic,
+                    "anchor": hit.matched_anchor,
+                    "score": hit.score,
+                    "snippet": snippet,
+                    "status": hit.node.status,
+                }
+            )
+        return {
+            "lang": lang,
+            "query": query,
+            "subject": subject,
+            "year_group": year_group,
+            "hits": hits_payload,
+            "refusal": refusal.model_dump() if refusal is not None else None,
+            "explanation": None,
+            "similarity_threshold": self.rag_retriever.similarity_threshold,
+        }
+
+    # ------------------------------------------------------------------
     # LTI 1.3 launch flow (pilot/offline-first)
     # ------------------------------------------------------------------
     def initiate_lti_login(self, payload: Mapping[str, Any]) -> Dict[str, str]:
@@ -1472,6 +1695,31 @@ class LearningApi:
             "offline_fallback": self.voice_adapter.offline_fallback,
         }
 
+    def ask_assistant(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        """Unified Ask Pathfinder entrypoint — text in, deterministic answer out.
+
+        Accepts the learner's local context (weak_topics, daily_plan,
+        career_fits, last_wrong_answer) so phase 1 can quote it back without
+        round-tripping to storage. Phase 2 will switch the provider to a
+        model-backed one (see ``/memories/repo/pathfinder-ask-assistant-phase2.md``).
+        """
+        question = str(payload.get("question") or "").strip()
+        if not question:
+            raise LearningApiError("question is required", status_code=400)
+        context: Dict[str, Any] = {
+            "user_id": payload.get("user_id"),
+            "weak_topics": payload.get("weak_topics") or [],
+            "daily_plan": payload.get("daily_plan") or [],
+            "career_fits": payload.get("career_fits") or [],
+            "last_wrong_answer": payload.get("last_wrong_answer") or {},
+            "learner_setup": payload.get("learner_setup") or {},
+        }
+        reply = self.assistant_provider.ask(question, context)
+        return {
+            "answer": str(reply.get("answer", "")),
+            "citations": list(reply.get("citations") or []),
+        }
+
     def submit_voice_frame(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
         if not self.voice_enabled():
             raise LearningApiError("voice feature disabled", status_code=403)
@@ -1508,6 +1756,30 @@ class LearningApi:
             kind="voice_frame_queued",
         )
         return result.model_dump()
+
+    def run_learner_voice_turn(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        """Drive the learner fullscreen voice + gen-UI surface.
+
+        Stateless: client sends the prior card id/kind plus any answer,
+        the planner returns the next card. ``child_id`` is required so
+        the realtime transport can RLS-scope reads in phase 2.1.
+        """
+        try:
+            request_model = LearnerVoiceTurnRequest(
+                child_id=str(payload.get("child_id") or "").strip(),
+                lang=str(payload.get("lang") or "en-NG"),
+                last_card_id=payload.get("last_card_id"),
+                last_kind=payload.get("last_kind"),
+                answer_option_id=payload.get("answer_option_id"),
+                advance=bool(payload.get("advance") or False),
+                exam=payload.get("exam"),
+                class_year=payload.get("class_year"),
+                subject=payload.get("subject"),
+            )
+        except Exception as exc:  # pydantic validation
+            raise LearningApiError(f"invalid voice turn: {exc}", status_code=400) from exc
+        response = self.learner_voice_planner.next_turn(request_model)
+        return response.model_dump()
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -1607,6 +1879,106 @@ class LearningApi:
         )
 
     # ------------------------------------------------------------------
+    # W8 — Spaced-retrieval Web Push
+    # ------------------------------------------------------------------
+    def get_vapid_public_key(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        return {
+            "publicKey": self.vapid_config.public_key,
+            "configured": self.vapid_config.configured,
+        }
+
+    def register_push_subscription(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        user_id = str(payload.get("user_id") or "").strip()
+        sub_payload = payload.get("subscription") or {}
+        if not isinstance(sub_payload, Mapping):
+            raise LearningApiError("subscription must be an object", status_code=400)
+        endpoint = str(sub_payload.get("endpoint") or "").strip()
+        keys = sub_payload.get("keys") or {}
+        if not isinstance(keys, Mapping):
+            raise LearningApiError("subscription.keys must be an object", status_code=400)
+        p256dh = str(keys.get("p256dh") or "").strip()
+        auth = str(keys.get("auth") or "").strip()
+        if not (user_id and endpoint and p256dh and auth):
+            raise LearningApiError(
+                "user_id and subscription.endpoint/keys.p256dh/keys.auth are required",
+                status_code=400,
+            )
+        subscription = PushSubscription(
+            id=str(uuid4()),
+            tenant_id=tenant_id,
+            user_id=user_id,
+            endpoint=endpoint,
+            p256dh=p256dh,
+            auth=auth,
+            user_agent=(payload.get("user_agent") or _request_user_agent()) or None,
+        )
+        stored = self.notifications_repository.upsert_subscription(subscription)
+        return {
+            "ok": True,
+            "subscription_id": stored.id,
+            "endpoint": stored.endpoint,
+        }
+
+    def schedule_revision_cards(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        user_id = str(payload.get("user_id") or "").strip()
+        cards_in = payload.get("cards") or []
+        if not user_id:
+            raise LearningApiError("user_id is required", status_code=400)
+        if not isinstance(cards_in, list) or not cards_in:
+            raise LearningApiError("cards must be a non-empty array", status_code=400)
+        cards: List[RevisionCard] = []
+        for raw in cards_in:
+            if not isinstance(raw, Mapping):
+                raise LearningApiError("each card must be an object", status_code=400)
+            topic_id = str(raw.get("topic_id") or "").strip()
+            label = str(raw.get("label") or "").strip()
+            due_at = str(raw.get("due_at") or "").strip()
+            if not (topic_id and label and due_at):
+                raise LearningApiError(
+                    "card.topic_id, card.label, card.due_at are required",
+                    status_code=400,
+                )
+            cards.append(
+                RevisionCard(
+                    id=str(uuid4()),
+                    tenant_id=tenant_id,
+                    user_id=user_id,
+                    topic_id=topic_id,
+                    label=label,
+                    due_at=due_at,
+                    payload=raw.get("payload") or {},
+                )
+            )
+        stored = self.notifications_repository.schedule_cards(cards)
+        return {
+            "ok": True,
+            "scheduled": len(stored),
+            "card_ids": [c.id for c in stored],
+        }
+
+    def list_revision_cards(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        user_id = str(payload.get("user_id") or "").strip()
+        if not user_id:
+            raise LearningApiError("user_id is required", status_code=400)
+        rows = self.notifications_repository.list_user_cards(tenant_id, user_id)
+        return {
+            "cards": [
+                {
+                    "id": c.id,
+                    "topic_id": c.topic_id,
+                    "label": c.label,
+                    "due_at": c.due_at,
+                    "status": c.status,
+                    "sent_at": c.sent_at,
+                }
+                for c in rows
+            ]
+        }
+
+    # ------------------------------------------------------------------
     # Test helpers
     # ------------------------------------------------------------------
     def _reset_for_tests(self) -> None:
@@ -1630,6 +2002,13 @@ def _item_to_payload(item: DiagnosticItem) -> Dict[str, Any]:
     }
 
 
+def _request_user_agent() -> Optional[str]:
+    try:
+        return request.headers.get("User-Agent")
+    except RuntimeError:
+        return None
+
+
 def _read_payload() -> Dict[str, Any]:
     if request.method == "GET":
         return {k: v for k, v in request.args.items()}
@@ -1650,6 +2029,8 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
     """Register `/api/learning/*` routes on the given Flask app and return the API singleton."""
 
     learning_api = api or LearningApi()
+    if "learning_tts" not in app.blueprints:
+        app.register_blueprint(create_learning_tts_blueprint())
 
     decision_actions = {
         "approve_plan": "approved",
@@ -1812,6 +2193,11 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
     def _intent(payload: Dict[str, Any]) -> Dict[str, Any]:
         return learning_api.submit_intent(payload)
 
+    @app.route("/api/learning/explain", methods=["POST"])
+    @_wrap
+    def _explain(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.explain(payload)
+
     @app.route("/api/learning/audit", methods=["GET"])
     @_wrap
     def _audit(payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -1844,6 +2230,16 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
     def _voice_frame(payload: Dict[str, Any]) -> Dict[str, Any]:
         return learning_api.submit_voice_frame(payload)
 
+    @app.route("/api/learning/voice/turn", methods=["POST"])
+    @_wrap
+    def _voice_turn(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.run_learner_voice_turn(payload)
+
+    @app.route("/api/learning/assistant/ask", methods=["POST"])
+    @_wrap
+    def _ask_assistant(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.ask_assistant(payload)
+
     @app.route("/api/learning/subjects", methods=["GET"])
     @_wrap
     def _subjects(payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -1868,6 +2264,26 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
     @_wrap
     def _archive_skill(skill_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         return learning_api.archive_skill(skill_id, payload)
+
+    @app.route("/api/learning/notifications/push/vapid-public-key", methods=["GET"])
+    @_wrap
+    def _vapid_public_key(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.get_vapid_public_key(payload)
+
+    @app.route("/api/learning/notifications/push/subscribe", methods=["POST"])
+    @_wrap
+    def _push_subscribe(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.register_push_subscription(payload)
+
+    @app.route("/api/learning/notifications/revision-cards/schedule", methods=["POST"])
+    @_wrap
+    def _schedule_revision_cards(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.schedule_revision_cards(payload)
+
+    @app.route("/api/learning/notifications/revision-cards", methods=["GET"])
+    @_wrap
+    def _list_revision_cards(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.list_revision_cards(payload)
 
     return learning_api
 

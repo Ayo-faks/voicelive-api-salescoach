@@ -87,6 +87,52 @@ class DiagnosticItem(LanguageAndProvenanceModel):
     item_type: str = Field(min_length=1)
     difficulty: float = Field(default=0.0, ge=-5.0, le=5.0)
     correct_answer: Optional[str] = None
+    # MVP §4.2 — misconception taxonomy + question schema extension (W1).
+    # All new fields are optional to keep wire compatibility with existing
+    # fixtures; cross-field rules below enforce the taxonomy contract when
+    # any of them are populated.
+    subject: Optional[Literal["maths", "english"]] = None
+    year_group: Optional[Literal["JSS3", "SS3"]] = None
+    topic: Optional[str] = None
+    subtopic: Optional[str] = None
+    misconception_codes: List[str] = Field(default_factory=list)
+    taxonomy_version: Optional[str] = None
+
+    @field_validator("misconception_codes")
+    @classmethod
+    def _validate_misconception_codes(cls, codes: List[str]) -> List[str]:
+        # Imported lazily to avoid an import cycle (misconceptions imports
+        # ContractModel from this module).
+        from src.learning.misconceptions import MisconceptionCode
+
+        allowed = {member.value for member in MisconceptionCode}
+        seen: set[str] = set()
+        for code in codes:
+            if code not in allowed:
+                raise ValueError(f"unknown misconception code: {code}")
+            if code in seen:
+                raise ValueError(f"duplicate misconception code: {code}")
+            seen.add(code)
+        return codes
+
+    @model_validator(mode="after")
+    def _require_taxonomy_version_when_tagged(self) -> "DiagnosticItem":
+        from src.learning.misconceptions import TAXONOMY_VERSION
+
+        if self.misconception_codes and not self.taxonomy_version:
+            raise ValueError(
+                "taxonomy_version is required when misconception_codes is non-empty"
+            )
+        if self.taxonomy_version and self.taxonomy_version != TAXONOMY_VERSION:
+            raise ValueError(
+                f"taxonomy_version {self.taxonomy_version!r} does not match "
+                f"current {TAXONOMY_VERSION!r}"
+            )
+        if self.topic is not None and not self.topic.strip():
+            raise ValueError("topic must be non-blank when present")
+        if self.subtopic is not None and not self.subtopic.strip():
+            raise ValueError("subtopic must be non-blank when present")
+        return self
 
 
 class StudentResponse(LanguageAndProvenanceModel):
@@ -264,3 +310,120 @@ class SkillSearchResult(LanguageAndProvenanceModel):
     total: int = Field(ge=0)
     limit: int = Field(ge=1, le=200)
     offset: int = Field(ge=0)
+
+
+# ---------------------------------------------------------------------------
+# W2 — RAG grounding contract for the Explanation surface
+#
+# MVP §4.1: "no citation, no answer."
+# Every ExplanationResult carries provenance[] = [{wiki_node_id, version,
+# anchor}] with min_length=1. If retrieval cannot ground the response the
+# agent emits a RefusalCard("no_grounding") instead. CI lint and a runtime
+# fail-closed validator both enforce this so that an explanation surface
+# cannot ship without a citation.
+# ---------------------------------------------------------------------------
+
+
+class WikiAnchor(ContractModel):
+    """Stable pointer into a wiki node (section/heading/paragraph id)."""
+
+    node_id: str = Field(min_length=1)
+    version: str = Field(min_length=1)
+    anchor: str = Field(min_length=1)
+
+
+class WikiNode(LanguageAndProvenanceModel):
+    """A versioned, retrievable node in the Pathfinder explanation wiki."""
+
+    node_id: str = Field(min_length=1)
+    version: str = Field(min_length=1)
+    title: str = Field(min_length=1)
+    subject: Literal["maths", "english"]
+    year_group: Optional[Literal["JSS3", "SS3"]] = None
+    topic: str = Field(min_length=1)
+    subtopic: Optional[str] = None
+    misconception_codes: List[str] = Field(default_factory=list)
+    body_markdown: str = Field(min_length=1)
+    anchors: List[str] = Field(default_factory=list)
+    status: Literal["draft", "review", "approved", "frozen", "archived"] = "draft"
+
+    @field_validator("misconception_codes")
+    @classmethod
+    def _validate_codes(cls, codes: List[str]) -> List[str]:
+        from src.learning.misconceptions import MisconceptionCode
+
+        allowed = {m.value for m in MisconceptionCode}
+        seen: set[str] = set()
+        for code in codes:
+            if code not in allowed:
+                raise ValueError(f"unknown misconception code: {code}")
+            if code in seen:
+                raise ValueError(f"duplicate misconception code: {code}")
+            seen.add(code)
+        return codes
+
+    @field_validator("anchors")
+    @classmethod
+    def _anchors_non_blank_unique(cls, anchors: List[str]) -> List[str]:
+        seen: set[str] = set()
+        for anchor in anchors:
+            if not anchor or not anchor.strip():
+                raise ValueError("anchors must be non-blank")
+            if anchor in seen:
+                raise ValueError(f"duplicate anchor: {anchor}")
+            seen.add(anchor)
+        return anchors
+
+
+REFUSAL_REASONS = ("no_grounding", "safety_block", "out_of_scope", "rate_limited")
+
+
+class RefusalCard(LanguageAndProvenanceModel):
+    """Returned when the explanation agent cannot ground or proceed.
+
+    The provenance still carries the *reason* source (e.g. retriever id,
+    safety classifier id) so the audit ledger can reconstruct why no
+    explanation was produced.
+    """
+
+    reason: Literal["no_grounding", "safety_block", "out_of_scope", "rate_limited"]
+    learner_message: str = Field(min_length=1)
+    detail: Optional[str] = None
+    suggested_action: Optional[str] = None
+
+
+class ExplanationResult(LanguageAndProvenanceModel):
+    """Output of the explanation agent. Fail-closed on missing grounding.
+
+    `provenance` is inherited from LanguageAndProvenanceModel and is already
+    min_length=1; the additional `wiki_citations` list enforces the stronger
+    contract that at least one citation points to a WikiAnchor.
+    """
+
+    explanation_id: str = Field(default_factory=lambda: f"explanation-{uuid4().hex[:12]}")
+    explanation_version: str = Field(min_length=1)
+    question_id: str = Field(min_length=1)
+    skill_id: str = Field(min_length=1)
+    misconception_code: Optional[str] = None
+    body_markdown: str = Field(min_length=1)
+    wiki_citations: List[WikiAnchor] = Field(min_length=1)
+
+    @field_validator("misconception_code")
+    @classmethod
+    def _validate_code(cls, code: Optional[str]) -> Optional[str]:
+        if code is None:
+            return code
+        from src.learning.misconceptions import MisconceptionCode
+
+        if code not in {m.value for m in MisconceptionCode}:
+            raise ValueError(f"unknown misconception code: {code}")
+        return code
+
+    @model_validator(mode="after")
+    def _require_grounding(self) -> "ExplanationResult":
+        # Belt-and-braces: Pydantic already enforces min_length=1 on the
+        # field, but we restate the contract here so the error message
+        # matches the MVP rule verbatim ("no citation, no answer").
+        if not self.wiki_citations:
+            raise ValueError("no citation, no answer: wiki_citations must be non-empty")
+        return self

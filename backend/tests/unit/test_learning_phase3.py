@@ -76,6 +76,29 @@ def test_phase_3_career_planner_renders_deterministic_sourced_pathways():
     assert result.provenance[-1].rule_id == "phase_3_weighted_mastery_labour_market_ranker"
 
 
+def test_phase_3_career_planner_consent_multiplier_dampens_fit_score():
+    """Without career_consent the planner must apply a 0.75 dampening multiplier."""
+    dataset = LabourMarketLoader().load(LABOUR_MARKET_PATH)
+
+    consented = _request()
+    request_without_consent = _request()
+    request_without_consent.scope["career_consent"] = False
+
+    with_consent = DeterministicCareerPlanner(dataset.records).run_turn(consented)
+    without_consent = DeterministicCareerPlanner(dataset.records).run_turn(request_without_consent)
+
+    fit_with = with_consent.plan.pathways[0].fit_score
+    fit_without = without_consent.plan.pathways[0].fit_score
+
+    assert fit_with > fit_without
+    # Multiplier is 0.75/1.0; allow tiny rounding slack from the planner's 4dp rounding.
+    assert abs(fit_without - fit_with * 0.75) < 0.001
+    consent_provenance = next(
+        p for p in without_consent.plan.provenance if p.source == "DeterministicCareerPlanner"
+    )
+    assert consent_provenance.metadata == {"career_consent": False}
+
+
 def test_phase_3_orchestrator_advisor_refuses_under_16_student_narration_but_allows_counsellor_view():
     dataset = LabourMarketLoader().load(LABOUR_MARKET_PATH)
     plan = DeterministicCareerPlanner(dataset.records).run_turn(_request()).plan
