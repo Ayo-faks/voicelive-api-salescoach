@@ -21,6 +21,10 @@ import {
 import { useEffect, useState } from 'react'
 import DiagnosticPanel from '../components/DiagnosticPanel'
 import {
+  scheduleRevisionCards,
+  usePushSubscription,
+} from '../notifications/usePushSubscription'
+import {
   getVoiceConfig,
   submitVoiceFrame,
   type VoiceConfigResponse,
@@ -1225,9 +1229,11 @@ const useStyles = makeStyles({
 
 type StudentLearningHomeProps = {
   studentId?: string | null
+  /** When true, skip the Web Push permission prompt (kid role — needs parental consent). */
+  pushConsentDeferred?: boolean
 }
 
-export default function StudentLearningHome({ studentId }: StudentLearningHomeProps) {
+export default function StudentLearningHome({ studentId, pushConsentDeferred }: StudentLearningHomeProps) {
   const styles = useStyles()
   const [learnerSetup, setLearnerSetup] = useState<LearnerSetup>({
     exam: examOptions[0],
@@ -1248,6 +1254,10 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
   const [practiceAnswer, setPracticeAnswer] = useState<PracticeAnswer | null>(null)
   const [wrongAnswerExplanation, setWrongAnswerExplanation] = useState<WrongAnswerExplanation | null>(null)
   const [revisionPlanAdded, setRevisionPlanAdded] = useState(false)
+  const pushSubscription = usePushSubscription({
+    userId: studentId ?? 'demo-student',
+    consentDeferred: Boolean(pushConsentDeferred),
+  })
   const [shareStatus, setShareStatus] = useState<string | null>(null)
   const [careerQuestion, setCareerQuestion] = useState(careerNavigationMoment.question)
   const [careerAnswerVisible, setCareerAnswerVisible] = useState(false)
@@ -1429,7 +1439,7 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
     setLearnerSetup(current => ({ ...current, [field]: value }))
   }
 
-  function addWeaknessToPlan() {
+  async function addWeaknessToPlan() {
     setRevisionPlanAdded(true)
     try {
       window.localStorage.setItem(
@@ -1444,6 +1454,37 @@ export default function StudentLearningHome({ studentId }: StudentLearningHomePr
       )
     } catch {
       // Revision-plan edits remain visible even if local storage is unavailable.
+    }
+
+    // W8 — persist the 3-card spaced-retrieval schedule and request push permission.
+    const topicId = generatedPlanPractice.planId
+    const now = Date.now()
+    const minutes = (m: number) => new Date(now + m * 60_000).toISOString()
+    const days = (d: number) => new Date(now + d * 24 * 60 * 60_000).toISOString()
+    const dueByLabel: Record<string, string> = {
+      Today: minutes(10),
+      Tomorrow: days(1),
+      'In 4 days': days(4),
+    }
+    try {
+      await scheduleRevisionCards({
+        userId: studentId ?? 'demo-student',
+        cards: generatedPlanPractice.schedule.map(s => ({
+          topicId,
+          label: `${s.label} \u00b7 ${s.timing}`,
+          dueAt: dueByLabel[s.label] ?? minutes(10),
+          payload: { focus: s.focus },
+        })),
+      })
+    } catch {
+      // Best-effort; the local snapshot above keeps the UI honest.
+    }
+    if (!pushConsentDeferred) {
+      try {
+        await pushSubscription.enable()
+      } catch {
+        // Permission denial / unsupported browser is silent here.
+      }
     }
   }
 

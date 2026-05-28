@@ -128,6 +128,20 @@ param azureCommunicationServicesSenderAddress string = ''
 @description('Optional sender display name for Azure Communication Services Email invitation delivery.')
 param azureCommunicationServicesSenderDisplayName string = 'Wulo'
 
+@description('VAPID public key for Pathfinder W8 Web Push spaced-retrieval reminders. Leave empty to skip provisioning the notifications dispatcher job.')
+@secure()
+param vapidPublicKey string = ''
+
+@description('VAPID private key (X.509-EC) for Pathfinder W8 Web Push spaced-retrieval reminders.')
+@secure()
+param vapidPrivateKey string = ''
+
+@description('VAPID subject (mailto: address) advertised in JWT claims to the push service.')
+param vapidSubject string = 'mailto:notify@wulo.ai'
+
+@description('Cron expression for the notifications dispatcher Container Apps Job. Default: every 5 minutes.')
+param notificationsDispatcherCron string = '*/5 * * * *'
+
 @description('Public application URL used in invitation emails. Defaults to the active custom domain or Container App host.')
 param publicAppUrl string = ''
 
@@ -732,6 +746,98 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
     containerAppsManagedEnvironmentStorage
   ]
 }
+
+// Pathfinder W8 — Web Push spaced-retrieval dispatcher.
+// Runs `python -m src.learning.notifications_dispatcher` once on a cron
+// schedule, reusing the voicelab container image so we ship the same code
+// path that the API uses. Only provisioned when VAPID keys are supplied.
+var voicelabIdentityName = '${abbrs.managedIdentityUserAssignedIdentities}voicelab-${resourceToken}'
+var voicelabIdentityResourceId = resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', voicelabIdentityName)
+
+resource notificationsDispatcherJob 'Microsoft.App/jobs@2024-03-01' = if (enablePostgresPersistence && !empty(vapidPublicKey) && !empty(vapidPrivateKey)) {
+  name: 'voicelab-notifications-dispatcher'
+  location: location
+  tags: union(tags, { 'azd-service-name': 'voicelab-notifications-dispatcher' })
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${voicelabIdentityResourceId}': {}
+    }
+  }
+  properties: {
+    environmentId: containerAppsEnvironment.outputs.resourceId
+    configuration: {
+      triggerType: 'Schedule'
+      replicaTimeout: 300
+      replicaRetryLimit: 1
+      scheduleTriggerConfig: {
+        cronExpression: notificationsDispatcherCron
+        parallelism: 1
+        replicaCompletionCount: 1
+      }
+      registries: [
+        {
+          server: containerRegistry.outputs.loginServer
+          identity: voicelabIdentityResourceId
+        }
+      ]
+      secrets: [
+        {
+          name: 'postgres-database-url'
+          value: postgresRuntimeConnectionString
+        }
+        {
+          name: 'vapid-public-key'
+          value: vapidPublicKey
+        }
+        {
+          name: 'vapid-private-key'
+          value: vapidPrivateKey
+        }
+      ]
+    }
+    template: {
+      containers: [
+        {
+          name: 'dispatcher'
+          image: voicelabFetchLatestImage.outputs.?containers[?0].?image ?? 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+          command: [
+            'python'
+            '-m'
+            'src.learning.notifications_dispatcher'
+          ]
+          resources: {
+            cpu: json('0.25')
+            memory: '0.5Gi'
+          }
+          env: [
+            {
+              name: 'DATABASE_URL'
+              secretRef: 'postgres-database-url'
+            }
+            {
+              name: 'VAPID_PUBLIC_KEY'
+              secretRef: 'vapid-public-key'
+            }
+            {
+              name: 'VAPID_PRIVATE_KEY'
+              secretRef: 'vapid-private-key'
+            }
+            {
+              name: 'VAPID_SUBJECT'
+              value: vapidSubject
+            }
+            {
+              name: 'AZURE_CLIENT_ID'
+              value: voicelabIdentity.outputs.clientId
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
 
 module ralphLrs 'br/public:avm/res/app/container-app:0.8.0' = if (enableRalphLrs && !empty(ralphLrsImage)) {
   name: 'ralph-lrs'

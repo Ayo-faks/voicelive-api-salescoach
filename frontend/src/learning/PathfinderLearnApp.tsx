@@ -896,7 +896,11 @@ export default function PathfinderLearnApp() {
           selectedLearnerId={activeLearnerId}
           onChange={setSelectedLearnerId}
         />
-        <StudentLearningHome key={activeLearnerId ?? 'no-learner'} studentId={activeLearnerId} />
+        <StudentLearningHome
+          key={activeLearnerId ?? 'no-learner'}
+          studentId={activeLearnerId}
+          pushConsentDeferred={effectiveRole === 'kid'}
+        />
       </>
     )
   }
