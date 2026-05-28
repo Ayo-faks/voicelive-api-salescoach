@@ -30,6 +30,8 @@ import TeacherMasteryDashboard from './routes/TeacherMasteryDashboard'
 import TrustSafetyConsole from './routes/TrustSafetyConsole'
 import { pathfinderFluentTheme } from './theme/pathfinderFluentTheme'
 import { pathfinderTokens as t } from './theme/pathfinder-tokens'
+import AskPathfinder from './AskPathfinder'
+import { LearnerContext, defaultLearnerContext } from './contexts/LearnerContext'
 
 export const COOKIE_CONSENT_STORAGE_KEY = 'pathfinder.cookie-consent.v1'
 
@@ -1079,6 +1081,11 @@ export default function PathfinderLearnApp() {
             {renderNavLinks(styles.bottomNavLink)}
           </nav>
         </main>
+        {['learner', 'kid', 'student'].includes(effectiveRole) && (
+          <LearnerContext.Provider value={defaultLearnerContext}>
+            <AskPathfinder />
+          </LearnerContext.Provider>
+        )}
         {voiceLauncherVisible && !voiceOpen && (
           <button
             type="button"
