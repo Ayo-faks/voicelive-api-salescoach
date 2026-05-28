@@ -41,6 +41,12 @@ from src.learning.api import (
     register_learning_api,
 )
 from src.learning.repository_factory import make_repository as make_learning_repository
+from src.learning.profile_config import (
+    ALLOWED_CONSENT_KINDS,
+    PROFILE_CONSENT_MIRRORS,
+    profile_needs_onboarding,
+    validate_patch as validate_learner_profile_patch,
+)
 from src.services.insights_copilot_planner import build_insights_planner_from_env
 from src.services.insights_service import (
     InsightsAuthorizationError,
@@ -121,6 +127,8 @@ API_AUTH_SESSION_ENDPOINT = "/api/auth/session"
 API_AUTH_CLAIM_INVITE_CODE_ENDPOINT = "/api/auth/claim-invite-code"
 API_AUTH_CHOOSE_ROLE_ENDPOINT = "/api/auth/choose-role"
 API_LEARNERS_SELF_ENDPOINT = "/api/learners/me"
+API_LEARNERS_ME_PROFILE_ENDPOINT = "/api/learners/me/profile"
+API_LEARNERS_ME_CONSENT_ENDPOINT = "/api/learners/me/consent"
 API_ADMIN_INVITE_CODES_ENDPOINT = "/api/admin/invite-codes"
 API_WORKSPACES_ENDPOINT = "/api/workspaces"
 API_PILOT_STATE_ENDPOINT = "/api/pilot/state"
@@ -213,6 +221,7 @@ ROLE_KID = "kid"
 ROLE_STUDENT = "student"
 ROLE_UNASSIGNED = "unassigned"
 B2C_ONBOARDING_FLAG = "PATHFINDER_B2C_ONBOARDING_ENABLED"
+LEARNER_ONBOARDING_FLAG = "PATHFINDER_LEARNER_ONBOARDING_ENABLED"
 UNSAFE_HTTP_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 PATHFINDER_LEARN_TEACHER_CLASS_IDS_ENV = "PATHFINDER_LEARN_TEACHER_CLASS_IDS"
 PATHFINDER_LEARN_LEARNER_STUDENT_IDS_ENV = "PATHFINDER_LEARN_LEARNER_STUDENT_IDS"
@@ -1672,6 +1681,101 @@ def create_self_learner():
         child_id=str(child.get("id") or ""),
     )
     return jsonify(child)
+
+
+def _pathfinder_learner_onboarding_enabled() -> bool:
+    return os.environ.get(LEARNER_ONBOARDING_FLAG, "false").strip().lower() in {
+        "true",
+        "1",
+        "yes",
+    }
+
+
+def _learner_profile_response(user_id: str) -> Dict[str, Any]:
+    profile = storage_service.get_learner_profile(user_id) or {}
+    consents = storage_service.latest_consents(user_id)
+    return {
+        "profile": profile,
+        "consents": consents,
+        "needs_onboarding": profile_needs_onboarding(profile, consents),
+    }
+
+
+@app.route(API_LEARNERS_ME_PROFILE_ENDPOINT, methods=["GET", "PATCH"])
+def learner_self_profile():
+    """Return or update the calling learner's profile."""
+    if not _pathfinder_learner_onboarding_enabled():
+        return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
+
+    user, guard_response = _require_role(ROLE_LEARNER)
+    if guard_response is not None:
+        return guard_response
+
+    user_id = str(cast(Dict[str, Any], user).get("id") or "")
+
+    if request.method == "GET":
+        return jsonify(_learner_profile_response(user_id))
+
+    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+    cleaned, error = validate_learner_profile_patch(data)
+    if error is not None:
+        return jsonify({"error": error}), HTTP_BAD_REQUEST
+
+    storage_service.upsert_learner_profile(user_id, cleaned)
+    _log_audit_event(
+        user_id=user_id,
+        action="learner.profile_update",
+        resource_type="learner_profile",
+        resource_id=user_id,
+        metadata={"fields": sorted(cleaned.keys())},
+    )
+    return jsonify(_learner_profile_response(user_id))
+
+
+@app.route(API_LEARNERS_ME_CONSENT_ENDPOINT, methods=["POST"])
+def learner_self_consent():
+    """Record a consent grant/revoke for the calling learner."""
+    if not _pathfinder_learner_onboarding_enabled():
+        return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
+
+    user, guard_response = _require_role(ROLE_LEARNER)
+    if guard_response is not None:
+        return guard_response
+
+    user_id = str(cast(Dict[str, Any], user).get("id") or "")
+    data = cast(Dict[str, Any], request.get_json(silent=True) or {})
+    kind = str(data.get("kind") or "").strip().lower()
+    version = str(data.get("version") or "").strip()
+    granted_raw = data.get("granted")
+
+    if kind not in ALLOWED_CONSENT_KINDS:
+        return jsonify({"error": "Unsupported consent kind"}), HTTP_BAD_REQUEST
+    if not version:
+        return jsonify({"error": "version is required"}), HTTP_BAD_REQUEST
+    if not isinstance(granted_raw, bool):
+        return jsonify({"error": "granted must be a boolean"}), HTTP_BAD_REQUEST
+
+    user_agent = request.headers.get("User-Agent")
+    storage_service.record_consent(
+        user_id,
+        kind,
+        version,
+        granted_raw,
+        user_agent=user_agent[:255] if user_agent else None,
+    )
+
+    mirror_field = PROFILE_CONSENT_MIRRORS.get(kind)
+    if mirror_field is not None:
+        storage_service.upsert_learner_profile(user_id, {mirror_field: bool(granted_raw)})
+
+    _log_audit_event(
+        user_id=user_id,
+        action="learner.consent_record",
+        resource_type="user_consent",
+        resource_id=user_id,
+        metadata={"kind": kind, "version": version, "granted": bool(granted_raw)},
+    )
+    return jsonify(_learner_profile_response(user_id))
 
 
 @app.route(API_ADMIN_INVITE_CODES_ENDPOINT, methods=["GET", "POST"])

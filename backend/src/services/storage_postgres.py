@@ -3779,3 +3779,158 @@ class PostgresStorageService:
                     (title, self._utc_now(), conversation_id),
                 )
         return True
+
+    # ------------------------------------------------------------------
+    # Learner profile + consent audit (Pathfinder learner onboarding).
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _row_to_learner_profile(row: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        if row is None:
+            return None
+        subjects = row.get("subjects") or []
+        if not isinstance(subjects, list):
+            subjects = []
+        interests = row.get("interests") or []
+        if not isinstance(interests, list):
+            interests = []
+        tour_seen_at = row.get("tour_seen_at")
+        created_at = row.get("created_at")
+        updated_at = row.get("updated_at")
+        return {
+            "user_id": row.get("user_id"),
+            "display_name": row.get("display_name"),
+            "exam": row.get("exam"),
+            "year_group": row.get("year_group"),
+            "subjects": list(subjects),
+            "interests": list(interests),
+            "locale": row.get("locale"),
+            "country": row.get("country"),
+            "age_band": row.get("age_band"),
+            "guardian_email": row.get("guardian_email"),
+            "guardian_relationship": row.get("guardian_relationship"),
+            "career_consent": bool(row.get("career_consent")),
+            "analytics_consent": bool(row.get("analytics_consent")),
+            "tour_seen_at": tour_seen_at.isoformat() if hasattr(tour_seen_at, "isoformat") else tour_seen_at,
+            "created_at": created_at.isoformat() if hasattr(created_at, "isoformat") else created_at,
+            "updated_at": updated_at.isoformat() if hasattr(updated_at, "isoformat") else updated_at,
+        }
+
+    def get_learner_profile(self, user_id: str) -> Optional[Dict[str, Any]]:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM learner_profiles WHERE user_id = %s",
+                (user_id,),
+            ).fetchone()
+        return self._row_to_learner_profile(row)
+
+    def upsert_learner_profile(self, user_id: str, patch: Dict[str, Any]) -> Dict[str, Any]:
+        column_updates: Dict[str, Any] = {}
+        for key, value in patch.items():
+            if key == "subjects":
+                column_updates["subjects"] = self._dumps_json(list(value or []))
+            elif key == "interests":
+                column_updates["interests"] = self._dumps_json(list(value or []))
+            elif key in {
+                "display_name", "exam", "year_group", "locale", "country",
+                "age_band", "guardian_email", "guardian_relationship",
+                "tour_seen_at", "career_consent", "analytics_consent",
+            }:
+                column_updates[key] = value
+
+        def persist(connection: psycopg.Connection[Any]) -> None:
+            existing = connection.execute(
+                "SELECT user_id FROM learner_profiles WHERE user_id = %s",
+                (user_id,),
+            ).fetchone()
+            if existing is None:
+                row_data: Dict[str, Any] = {
+                    "user_id": user_id,
+                    "display_name": None,
+                    "exam": None,
+                    "year_group": None,
+                    "subjects": self._dumps_json([]),
+                    "interests": self._dumps_json([]),
+                    "locale": None,
+                    "country": None,
+                    "age_band": None,
+                    "guardian_email": None,
+                    "guardian_relationship": None,
+                    "career_consent": False,
+                    "analytics_consent": False,
+                    "tour_seen_at": None,
+                }
+                row_data.update(column_updates)
+                cols = ", ".join(row_data.keys())
+                placeholders = ", ".join("%s" for _ in row_data)
+                connection.execute(
+                    f"INSERT INTO learner_profiles ({cols}) VALUES ({placeholders})",
+                    tuple(row_data.values()),
+                )
+            elif column_updates:
+                set_clause = ", ".join(f"{k} = %s" for k in column_updates)
+                params = list(column_updates.values()) + [user_id]
+                connection.execute(
+                    f"UPDATE learner_profiles SET {set_clause}, updated_at = now() WHERE user_id = %s",
+                    params,
+                )
+
+        self._execute_write(persist)
+        profile = self.get_learner_profile(user_id)
+        assert profile is not None
+        return profile
+
+    def record_consent(
+        self,
+        user_id: str,
+        kind: str,
+        version: str,
+        granted: bool,
+        *,
+        ip_hash: Optional[str] = None,
+        user_agent: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        consent_id = str(uuid4())
+
+        def persist(connection: psycopg.Connection[Any]) -> Dict[str, Any]:
+            row = connection.execute(
+                """INSERT INTO user_consents
+                       (id, user_id, kind, version, granted, ip_hash, user_agent)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s)
+                   RETURNING id, user_id, kind, version, granted, ip_hash, user_agent, created_at""",
+                (consent_id, user_id, kind, version, granted, ip_hash, user_agent),
+            ).fetchone()
+            assert row is not None
+            created_at = row.get("created_at")
+            return {
+                "id": str(row.get("id")),
+                "user_id": row.get("user_id"),
+                "kind": row.get("kind"),
+                "version": row.get("version"),
+                "granted": bool(row.get("granted")),
+                "ip_hash": row.get("ip_hash"),
+                "user_agent": row.get("user_agent"),
+                "created_at": created_at.isoformat() if hasattr(created_at, "isoformat") else created_at,
+            }
+
+        return self._execute_write(persist)
+
+    def latest_consents(self, user_id: str) -> Dict[str, Dict[str, Any]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                """SELECT DISTINCT ON (kind) kind, version, granted, created_at
+                       FROM user_consents
+                      WHERE user_id = %s
+                      ORDER BY kind, created_at DESC""",
+                (user_id,),
+            ).fetchall()
+        latest: Dict[str, Dict[str, Any]] = {}
+        for row in rows:
+            created_at = row.get("created_at")
+            latest[str(row.get("kind"))] = {
+                "kind": row.get("kind"),
+                "version": row.get("version"),
+                "granted": bool(row.get("granted")),
+                "created_at": created_at.isoformat() if hasattr(created_at, "isoformat") else created_at,
+            }
+        return latest

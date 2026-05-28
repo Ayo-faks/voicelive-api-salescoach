@@ -138,6 +138,7 @@ class StorageService:
                         self._ensure_family_intake_invitations_table(connection)
                         self._ensure_child_intake_proposals_table(connection)
                         self._ensure_therapist_invite_codes_table(connection)
+                        self._ensure_learner_profile_tables(connection)
                         connection.execute(
                             """CREATE TABLE IF NOT EXISTS exercises (
                                 id TEXT PRIMARY KEY,
@@ -636,6 +637,46 @@ class StorageService:
                 FOREIGN KEY (created_by) REFERENCES users(id),
                 FOREIGN KEY (used_by) REFERENCES users(id)
             )"""
+        )
+
+    def _ensure_learner_profile_tables(self, connection: sqlite3.Connection) -> None:
+        connection.execute(
+            """CREATE TABLE IF NOT EXISTS learner_profiles (
+                user_id TEXT PRIMARY KEY,
+                display_name TEXT,
+                exam TEXT,
+                year_group TEXT,
+                subjects_json TEXT NOT NULL DEFAULT '[]',
+                interests_json TEXT NOT NULL DEFAULT '[]',
+                locale TEXT,
+                country TEXT,
+                age_band TEXT,
+                guardian_email TEXT,
+                guardian_relationship TEXT,
+                career_consent INTEGER NOT NULL DEFAULT 0,
+                analytics_consent INTEGER NOT NULL DEFAULT 0,
+                tour_seen_at TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )"""
+        )
+        connection.execute(
+            """CREATE TABLE IF NOT EXISTS user_consents (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                kind TEXT NOT NULL,
+                version TEXT NOT NULL,
+                granted INTEGER NOT NULL,
+                ip_hash TEXT,
+                user_agent TEXT,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )"""
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_user_consents_user_kind "
+            "ON user_consents (user_id, kind, created_at DESC)"
         )
 
     def set_request_actor(self, user_id: Optional[str], role: Optional[str], email: Optional[str]) -> None:
@@ -5128,3 +5169,194 @@ class StorageService:
                 (title, self._utc_now(), conversation_id),
             )
         return True
+
+    # ------------------------------------------------------------------
+    # Learner profile + consent audit (Pathfinder learner onboarding).
+    # ------------------------------------------------------------------
+
+    _LEARNER_PROFILE_COLUMNS = (
+        "user_id",
+        "display_name",
+        "exam",
+        "year_group",
+        "subjects_json",
+        "interests_json",
+        "locale",
+        "country",
+        "age_band",
+        "guardian_email",
+        "guardian_relationship",
+        "career_consent",
+        "analytics_consent",
+        "tour_seen_at",
+        "created_at",
+        "updated_at",
+    )
+
+    @staticmethod
+    def _row_to_learner_profile(row: sqlite3.Row | None) -> Optional[Dict[str, Any]]:
+        if row is None:
+            return None
+        try:
+            subjects = json.loads(row["subjects_json"] or "[]")
+        except (TypeError, json.JSONDecodeError):
+            subjects = []
+        try:
+            interests = json.loads(row["interests_json"] or "[]")
+        except (TypeError, json.JSONDecodeError):
+            interests = []
+        return {
+            "user_id": row["user_id"],
+            "display_name": row["display_name"],
+            "exam": row["exam"],
+            "year_group": row["year_group"],
+            "subjects": subjects,
+            "interests": interests,
+            "locale": row["locale"],
+            "country": row["country"],
+            "age_band": row["age_band"],
+            "guardian_email": row["guardian_email"],
+            "guardian_relationship": row["guardian_relationship"],
+            "career_consent": bool(row["career_consent"]),
+            "analytics_consent": bool(row["analytics_consent"]),
+            "tour_seen_at": row["tour_seen_at"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+        }
+
+    def get_learner_profile(self, user_id: str) -> Optional[Dict[str, Any]]:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM learner_profiles WHERE user_id = ?",
+                (user_id,),
+            ).fetchone()
+        return self._row_to_learner_profile(row)
+
+    def upsert_learner_profile(self, user_id: str, patch: Dict[str, Any]) -> Dict[str, Any]:
+        """Insert or update the caller's learner profile. ``patch`` is assumed
+        to be already-validated (see ``learning.profile_config.validate_patch``).
+        """
+        now = self._utc_now()
+
+        # Translate API field names → column names + JSON-encode lists.
+        column_updates: Dict[str, Any] = {}
+        for key, value in patch.items():
+            if key == "subjects":
+                column_updates["subjects_json"] = json.dumps(list(value or []))
+            elif key == "interests":
+                column_updates["interests_json"] = json.dumps(list(value or []))
+            elif key == "career_consent":
+                column_updates["career_consent"] = 1 if value else 0
+            elif key == "analytics_consent":
+                column_updates["analytics_consent"] = 1 if value else 0
+            elif key in {
+                "display_name", "exam", "year_group", "locale", "country",
+                "age_band", "guardian_email", "guardian_relationship",
+                "tour_seen_at",
+            }:
+                column_updates[key] = value
+
+        def persist(connection: sqlite3.Connection) -> None:
+            existing = connection.execute(
+                "SELECT user_id FROM learner_profiles WHERE user_id = ?",
+                (user_id,),
+            ).fetchone()
+            if existing is None:
+                row_data: Dict[str, Any] = {
+                    "user_id": user_id,
+                    "display_name": None,
+                    "exam": None,
+                    "year_group": None,
+                    "subjects_json": "[]",
+                    "interests_json": "[]",
+                    "locale": None,
+                    "country": None,
+                    "age_band": None,
+                    "guardian_email": None,
+                    "guardian_relationship": None,
+                    "career_consent": 0,
+                    "analytics_consent": 0,
+                    "tour_seen_at": None,
+                    "created_at": now,
+                    "updated_at": now,
+                }
+                row_data.update(column_updates)
+                cols = ",".join(row_data.keys())
+                placeholders = ",".join("?" for _ in row_data)
+                connection.execute(
+                    f"INSERT INTO learner_profiles ({cols}) VALUES ({placeholders})",
+                    tuple(row_data.values()),
+                )
+            elif column_updates:
+                set_clause = ",".join(f"{k} = ?" for k in column_updates)
+                params = list(column_updates.values()) + [now, user_id]
+                connection.execute(
+                    f"UPDATE learner_profiles SET {set_clause}, updated_at = ? WHERE user_id = ?",
+                    params,
+                )
+            else:
+                connection.execute(
+                    "UPDATE learner_profiles SET updated_at = ? WHERE user_id = ?",
+                    (now, user_id),
+                )
+
+        self._execute_write(persist)
+        profile = self.get_learner_profile(user_id)
+        assert profile is not None  # just inserted/updated
+        return profile
+
+    def record_consent(
+        self,
+        user_id: str,
+        kind: str,
+        version: str,
+        granted: bool,
+        *,
+        ip_hash: Optional[str] = None,
+        user_agent: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        consent_id = str(uuid4())
+        now = self._utc_now()
+
+        def persist(connection: sqlite3.Connection) -> None:
+            connection.execute(
+                """INSERT INTO user_consents
+                       (id, user_id, kind, version, granted, ip_hash, user_agent, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (consent_id, user_id, kind, version, 1 if granted else 0, ip_hash, user_agent, now),
+            )
+
+        self._execute_write(persist)
+        return {
+            "id": consent_id,
+            "user_id": user_id,
+            "kind": kind,
+            "version": version,
+            "granted": granted,
+            "ip_hash": ip_hash,
+            "user_agent": user_agent,
+            "created_at": now,
+        }
+
+    def latest_consents(self, user_id: str) -> Dict[str, Dict[str, Any]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                """SELECT kind, version, granted, created_at
+                     FROM user_consents
+                    WHERE user_id = ?
+                    ORDER BY created_at DESC""",
+                (user_id,),
+            ).fetchall()
+        latest: Dict[str, Dict[str, Any]] = {}
+        for row in rows:
+            kind = str(row["kind"])
+            if kind in latest:
+                continue
+            latest[kind] = {
+                "kind": kind,
+                "version": row["version"],
+                "granted": bool(row["granted"]),
+                "created_at": row["created_at"],
+            }
+        return latest
+
