@@ -1033,11 +1033,10 @@ export default function PathfinderLearnApp() {
         <aside className={styles.sidebar} aria-label="Pathfinder primary">
           <div className={styles.brand}>
             <span className={styles.brandMark} aria-hidden="true">
-              Pf
+              Wa
             </span>
             <div className={styles.brandText}>
-              <Text className={styles.brandTitle}>Pathfinder</Text>
-              <Text className={styles.brandSubtitle}>Wulo Learning · JSS1-SS3</Text>
+              <Text className={styles.brandTitle}>Wulo Academy</Text>
             </div>
           </div>
 
@@ -1067,11 +1066,10 @@ export default function PathfinderLearnApp() {
           <div className={styles.mobileTopBar}>
             <div className={styles.brand} style={{ padding: 0 }}>
               <span className={styles.brandMark} aria-hidden="true">
-                Pf
+                Wa
               </span>
               <div className={styles.brandText}>
-                <Text className={styles.brandTitle}>Pathfinder</Text>
-                <Text className={styles.brandSubtitle}>Wulo Learning · JSS1-SS3</Text>
+                <Text className={styles.brandTitle}>Wulo Academy</Text>
               </div>
             </div>
             {authSession?.authenticated ? (

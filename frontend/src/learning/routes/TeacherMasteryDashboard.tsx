@@ -1248,7 +1248,7 @@ export default function TeacherMasteryDashboard() {
             <span className={styles.headerMetaChip}>{selectedClass.subject}</span>
             <span className={styles.headerMetaChip}>{selectedClass.learnerCount} students</span>
             <span className={styles.headerMetaChip}>Mastery + uncertainty</span>
-            <span className={styles.headerMetaChip}>Wulo Learning workspace</span>
+            <span className={styles.headerMetaChip}>Wulo Academy workspace</span>
           </div>
         </div>
         <span className={styles.softBadge}>JSS1-SS3 teacher review</span>

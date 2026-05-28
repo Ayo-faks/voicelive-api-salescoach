@@ -295,7 +295,7 @@ export function PathfinderTerms() {
           Terms of use
         </Text>
         <Text className={styles.subtitle}>
-          The agreement between you and Wulo Learning for using Pathfinder.
+          The agreement between you and Wulo Academy for using Pathfinder.
         </Text>
       </header>
       <article className={styles.card}>
