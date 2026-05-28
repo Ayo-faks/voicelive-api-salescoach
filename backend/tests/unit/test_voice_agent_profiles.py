@@ -84,3 +84,62 @@ def test_learner_get_next_card_ignores_untracked_prev_card_id():
     )
 
     assert result["card"]["kind"] == "mcq-tap"
+
+def test_learner_profile_session_is_audio_only_no_avatar(monkeypatch):
+    """Learner sessions must drop the AVATAR modality + avatar config so Azure
+    streams audio over the realtime websocket via response.audio.delta.
+
+    With AVATAR included, Azure routes synthesized speech through the avatar
+    WebRTC track and only emits response.audio.done / transcript.done on the
+    websocket, which leaves the learner UI silent.
+    """
+    from src.services import websocket_handler as wh
+
+    monkeypatch.setattr(
+        wh.config,
+        "get",
+        lambda key, default=None: {
+            "azure_voice_name": "en-US-TestVoice",
+            "azure_voice_type": "azure-standard",
+            "azure_custom_lexicon_url": "",
+            "azure_avatar_character": "meg",
+            "azure_avatar_style": "casual",
+        }.get(key, default),
+    )
+
+    profile = get_profile("learner")
+    session = wh.VoiceProxyHandler(agent_manager=None)._build_session_config(
+        None, profile, AgentProfileContext(scope="learner", child_id="kid-1")
+    )
+
+    modalities = [str(m) for m in session["modalities"]]
+    assert "audio" in modalities
+    assert "avatar" not in modalities
+    assert session.get("avatar") is None
+    assert session["output_audio_format"] == "pcm16"
+
+
+def test_practice_profile_session_keeps_avatar(monkeypatch):
+    """Regression: practice/teacher flow must keep AVATAR modality + config."""
+    from src.services import websocket_handler as wh
+
+    monkeypatch.setattr(
+        wh.config,
+        "get",
+        lambda key, default=None: {
+            "azure_voice_name": "en-US-TestVoice",
+            "azure_voice_type": "azure-standard",
+            "azure_custom_lexicon_url": "",
+            "azure_avatar_character": "meg",
+            "azure_avatar_style": "casual",
+        }.get(key, default),
+    )
+
+    profile = get_profile("practice")
+    session = wh.VoiceProxyHandler(agent_manager=None)._build_session_config(
+        None, profile, AgentProfileContext(scope="practice")
+    )
+
+    modalities = [str(m) for m in session["modalities"]]
+    assert "avatar" in modalities
+    assert session.get("avatar") is not None

@@ -398,6 +398,123 @@ const useStyles = makeStyles({
     overflow: 'hidden',
     '@media (max-width: 720px)': { padding: '24px' },
   },
+  heroLayout: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1fr) auto',
+    gap: '32px',
+    alignItems: 'center',
+    '@media (max-width: 900px)': {
+      gridTemplateColumns: '1fr',
+      gap: '20px',
+    },
+  },
+  heroLeft: {
+    minWidth: 0,
+  },
+  heroOrbStage: {
+    position: 'relative',
+    width: '260px',
+    height: '260px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    appearance: 'none',
+    backgroundColor: 'transparent',
+    borderTop: 'none',
+    borderRight: 'none',
+    borderBottom: 'none',
+    borderLeft: 'none',
+    padding: 0,
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    color: 'inherit',
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'rgba(255,255,255,0.7)',
+      outlineOffset: '8px',
+      borderRadius: '999px',
+    },
+    '@media (max-width: 900px)': {
+      width: '200px',
+      height: '200px',
+      justifySelf: 'center',
+    },
+    '@media (max-width: 480px)': {
+      width: '170px',
+      height: '170px',
+    },
+  },
+  heroOrbBig: {
+    position: 'relative',
+    width: '180px',
+    height: '180px',
+    borderRadius: '999px',
+    background:
+      'radial-gradient(circle at 30% 26%, #ffffff 0%, #e9ebf3 22%, #7d8aa3 55%, #1a1f2e 100%)',
+    boxShadow:
+      '0 0 40px rgba(180,200,255,0.45), 0 0 80px rgba(120,150,220,0.3), inset 0 0 24px rgba(255,255,255,0.4), inset 0 -10px 24px rgba(0,0,0,0.55)',
+    animationName: {
+      '0%, 100%': {
+        transform: 'scale(1)',
+        boxShadow:
+          '0 0 40px rgba(180,200,255,0.45), 0 0 80px rgba(120,150,220,0.3), inset 0 0 24px rgba(255,255,255,0.4), inset 0 -10px 24px rgba(0,0,0,0.55)',
+      },
+      '50%': {
+        transform: 'scale(1.05)',
+        boxShadow:
+          '0 0 60px rgba(200,220,255,0.7), 0 0 120px rgba(140,170,240,0.5), inset 0 0 30px rgba(255,255,255,0.55), inset 0 -10px 24px rgba(0,0,0,0.55)',
+      },
+    },
+    animationDuration: '3200ms',
+    animationIterationCount: 'infinite',
+    animationTimingFunction: 'ease-in-out',
+    '@media (max-width: 900px)': { width: '140px', height: '140px' },
+    '@media (max-width: 480px)': { width: '120px', height: '120px' },
+    '@media (prefers-reduced-motion: reduce)': { animationName: 'none' },
+  },
+  heroOrbBigHalo: {
+    position: 'absolute',
+    inset: '-40px',
+    borderRadius: '999px',
+    pointerEvents: 'none',
+    background:
+      'radial-gradient(circle, rgba(170,200,255,0.35) 0%, rgba(170,200,255,0.12) 45%, rgba(170,200,255,0) 70%)',
+    animationName: {
+      '0%, 100%': { opacity: 0.6, transform: 'scale(1)' },
+      '50%': { opacity: 1, transform: 'scale(1.18)' },
+    },
+    animationDuration: '3200ms',
+    animationIterationCount: 'infinite',
+    animationTimingFunction: 'ease-in-out',
+    '@media (prefers-reduced-motion: reduce)': { animationName: 'none' },
+  },
+  heroOrbCaption: {
+    position: 'absolute',
+    left: '50%',
+    bottom: '-2px',
+    transform: 'translateX(-50%)',
+    display: 'inline-flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '2px',
+    whiteSpace: 'nowrap',
+    pointerEvents: 'none',
+  },
+  heroOrbCaptionTitle: {
+    fontSize: '0.86rem',
+    fontWeight: 700,
+    letterSpacing: '-0.005em',
+    color: t.brand.onInk,
+    textShadow: '0 1px 8px rgba(0,0,0,0.6)',
+  },
+  heroOrbCaptionHint: {
+    fontSize: '0.7rem',
+    fontWeight: 500,
+    color: 'rgba(255,255,255,0.78)',
+    letterSpacing: '0.02em',
+    textShadow: '0 1px 6px rgba(0,0,0,0.55)',
+  },
   heroEyebrow: {
     fontSize: '0.72rem',
     letterSpacing: '0.12em',
@@ -487,6 +604,114 @@ const useStyles = makeStyles({
       transform: 'translateY(-1px)',
       backgroundColor: 'rgba(255,255,255,0.13)',
     },
+  },
+  tutorOrbCta: {
+    position: 'relative',
+    marginTop: 0,
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '12px',
+    paddingTop: '8px',
+    paddingBottom: '8px',
+    paddingLeft: '12px',
+    paddingRight: '20px',
+    borderRadius: t.radius.pill,
+    background: 'linear-gradient(140deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%)',
+    color: t.brand.onInk,
+    fontWeight: 700,
+    fontSize: '0.92rem',
+    cursor: 'pointer',
+    borderTop: '1px solid rgba(255,255,255,0.22)',
+    borderRight: '1px solid rgba(255,255,255,0.22)',
+    borderBottom: '1px solid rgba(255,255,255,0.22)',
+    borderLeft: '1px solid rgba(255,255,255,0.22)',
+    fontFamily: 'inherit',
+    backdropFilter: 'blur(6px)',
+    transitionProperty: 'transform, box-shadow, background-color, border-color',
+    transitionDuration: '180ms',
+    transitionTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+    boxShadow: '0 6px 20px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.12)',
+    ':hover': {
+      transform: 'translateY(-1px)',
+      borderTopColor: 'rgba(255,255,255,0.4)',
+      borderRightColor: 'rgba(255,255,255,0.4)',
+      borderBottomColor: 'rgba(255,255,255,0.4)',
+      borderLeftColor: 'rgba(255,255,255,0.4)',
+      boxShadow: '0 12px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
+    },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'rgba(255,255,255,0.65)',
+      outlineOffset: '3px',
+    },
+    '@media (prefers-reduced-motion: reduce)': {
+      transitionDuration: '0ms',
+    },
+  },
+  tutorOrb: {
+    position: 'relative',
+    width: '34px',
+    height: '34px',
+    borderRadius: '999px',
+    background:
+      'radial-gradient(circle at 32% 28%, #ffffff 0%, #e7e8ef 28%, #8d8f9a 60%, #1a1b22 100%)',
+    boxShadow:
+      '0 0 14px rgba(255,255,255,0.42), inset 0 0 10px rgba(255,255,255,0.35), inset 0 -4px 10px rgba(0,0,0,0.55)',
+    flexShrink: 0,
+    animationName: {
+      '0%, 100%': {
+        transform: 'scale(1)',
+        boxShadow:
+          '0 0 14px rgba(255,255,255,0.42), inset 0 0 10px rgba(255,255,255,0.35), inset 0 -4px 10px rgba(0,0,0,0.55)',
+      },
+      '50%': {
+        transform: 'scale(1.06)',
+        boxShadow:
+          '0 0 22px rgba(255,255,255,0.62), inset 0 0 12px rgba(255,255,255,0.5), inset 0 -4px 10px rgba(0,0,0,0.55)',
+      },
+    },
+    animationDuration: '2400ms',
+    animationIterationCount: 'infinite',
+    animationTimingFunction: 'ease-in-out',
+    '@media (prefers-reduced-motion: reduce)': {
+      animationName: 'none',
+    },
+  },
+  tutorOrbHalo: {
+    position: 'absolute',
+    inset: '-7px',
+    borderRadius: '999px',
+    pointerEvents: 'none',
+    background:
+      'radial-gradient(circle, rgba(180,200,255,0.32) 0%, rgba(180,200,255,0) 70%)',
+    animationName: {
+      '0%, 100%': { opacity: 0.55, transform: 'scale(1)' },
+      '50%': { opacity: 0.95, transform: 'scale(1.12)' },
+    },
+    animationDuration: '2400ms',
+    animationIterationCount: 'infinite',
+    animationTimingFunction: 'ease-in-out',
+    '@media (prefers-reduced-motion: reduce)': {
+      animationName: 'none',
+    },
+  },
+  tutorOrbLabel: {
+    display: 'inline-flex',
+    flexDirection: 'column',
+    lineHeight: 1.1,
+    textAlign: 'left',
+  },
+  tutorOrbTitle: {
+    fontSize: '0.92rem',
+    fontWeight: 800,
+    letterSpacing: '-0.005em',
+  },
+  tutorOrbHint: {
+    fontSize: '0.72rem',
+    fontWeight: 500,
+    color: 'rgba(255,255,255,0.7)',
+    letterSpacing: '0.01em',
   },
   voiceButton: {
     appearance: 'none',
@@ -1531,6 +1756,8 @@ export default function StudentLearningHome({
     <section className={styles.root} data-testid="route-student-home">
       <div className={styles.main}>
         <article className={styles.hero}>
+          <div className={styles.heroLayout}>
+            <div className={styles.heroLeft}>
           <span className={styles.heroEyebrow}>
             <SparklesIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
             Pathfinder · ready when you are · {formatted}
@@ -1579,17 +1806,6 @@ export default function StudentLearningHome({
               Pick up where we left off
               <ArrowRightIcon style={{ width: 16, height: 16 }} aria-hidden="true" />
             </button>
-            {learnerTutorEnabled ? (
-              <button
-                type="button"
-                className={styles.heroSecondaryCta}
-                onClick={() => setTutorOpen(true)}
-                data-testid="start-learner-tutor"
-              >
-                <MicrophoneIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
-                Talk to your tutor
-              </button>
-            ) : null}
           </div>
           {voiceConfig?.enabled && (
             <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -1614,6 +1830,24 @@ export default function StudentLearningHome({
               )}
             </div>
           )}
+            </div>
+            {learnerTutorEnabled ? (
+              <button
+                type="button"
+                className={styles.heroOrbStage}
+                onClick={() => setTutorOpen(true)}
+                data-testid="start-learner-tutor"
+                aria-label="Talk to your tutor"
+              >
+                <span className={styles.heroOrbBigHalo} aria-hidden="true" />
+                <span className={styles.heroOrbBig} aria-hidden="true" />
+                <span className={styles.heroOrbCaption}>
+                  <span className={styles.heroOrbCaptionTitle}>Talk to your tutor</span>
+                  <span className={styles.heroOrbCaptionHint}>Live voice · tap to start</span>
+                </span>
+              </button>
+            ) : null}
+          </div>
         </article>
 
         <article className={styles.card} data-testid="b2c-learner-setup">

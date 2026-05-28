@@ -1022,6 +1022,20 @@ export default function PathfinderLearnApp() {
           <div className={styles.navGroupLabel}>Workspaces</div>
           <nav aria-label="Pathfinder views" style={{ display: 'grid', gap: '2px' }}>
             {renderNavLinks()}
+            {practiceFullscreenEnabled && activeLearnerIdForPractice ? (
+              <button
+                type="button"
+                className={styles.navLink}
+                onClick={() => setPracticeOpen(true)}
+                aria-label="Open Pathfinder practice"
+                data-testid="sidebar-practice-link"
+                style={{ fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer' }}
+              >
+                <BookOpenIcon className={styles.navIcon} aria-hidden="true" />
+                Practice
+                <span className={styles.navHint}>Cards</span>
+              </button>
+            ) : null}
           </nav>
 
           <div className={styles.sidebarFooter}>

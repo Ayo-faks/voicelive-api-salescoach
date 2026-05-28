@@ -384,8 +384,21 @@ class VoiceProxyHandler:
         else:
             turn_detection = AzureSemanticVad(type=DEFAULT_TURN_DETECTION_TYPE)
 
+        # Learner tutor is audio-only (no on-screen avatar). When the AVATAR
+        # modality + avatar config are included, Azure routes synthesized speech
+        # through the avatar/WebRTC stream and does not emit
+        # `response.audio.delta` frames over the realtime websocket, so the
+        # browser never hears the tutor. Practice/teacher flows keep the avatar.
+        is_audio_only_profile = profile.id == "learner"
+        if is_audio_only_profile:
+            modalities: list[Modality] = [Modality.TEXT, Modality.AUDIO]
+            avatar_for_session: Any = None
+        else:
+            modalities = [Modality.TEXT, Modality.AUDIO, Modality.AVATAR]
+            avatar_for_session = avatar_config_value
+
         session = RequestSession(
-            modalities=[Modality.TEXT, Modality.AUDIO, Modality.AVATAR],
+            modalities=modalities,
             turn_detection=turn_detection,
             input_audio_transcription=AudioInputTranscriptionOptions(
                 model=config.get("azure_input_transcription_model", "azure-speech"),
@@ -401,7 +414,7 @@ class VoiceProxyHandler:
                 type=voice_type,
                 custom_lexicon_url=custom_lexicon_url,
             ),
-            avatar=avatar_config_value,
+            avatar=avatar_for_session,
             tools=list(profile.tools or [FINISH_SESSION_TOOL]),
         )
 
