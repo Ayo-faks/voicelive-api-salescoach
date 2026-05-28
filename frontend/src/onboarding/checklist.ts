@@ -33,7 +33,7 @@ export interface ChecklistItem {
   /** Optional CTA — route the user to the right surface. */
   cta?: { label: string; href: string }
   /** Role gate. */
-  role?: Array<'therapist' | 'admin' | 'parent'>
+  role?: Array<'therapist' | 'admin' | 'parent' | 'learner'>
 }
 
 export const CHECKLIST_ITEMS: ChecklistItem[] = [
@@ -91,6 +91,50 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     cta: { label: 'Open Settings', href: '/settings' },
     role: ['therapist', 'admin'],
   },
+  // ---- Learner-role items (Pathfinder Slice 3) ---------------------
+  {
+    id: 'learner-welcome-tour',
+    title: t('checklist.learner_welcome_tour.title', 'Take the Pathfinder tour'),
+    body: t(
+      'checklist.learner_welcome_tour.body',
+      'A one-minute walkthrough of check-in, today\u2019s plan, and the voice tutor.'
+    ),
+    predicate: snap => snap.onboardingTourSeen,
+    role: ['learner'],
+  },
+  {
+    id: 'learner-first-checkin',
+    title: t('checklist.learner_first_checkin.title', 'Complete your daily check-in'),
+    body: t(
+      'checklist.learner_first_checkin.body',
+      'A 60-second check-in calibrates today\u2019s revision plan.'
+    ),
+    predicate: () => false,
+    cta: { label: 'Start check-in', href: '/home' },
+    role: ['learner'],
+  },
+  {
+    id: 'learner-try-revision',
+    title: t('checklist.learner_try_revision.title', 'Try a revision item'),
+    body: t(
+      'checklist.learner_try_revision.body',
+      'Tick off the first item in today\u2019s plan to see how Pathfinder adapts.'
+    ),
+    predicate: () => false,
+    cta: { label: 'Open today\u2019s plan', href: '/home' },
+    role: ['learner'],
+  },
+  {
+    id: 'learner-try-voice-tutor',
+    title: t('checklist.learner_try_voice_tutor.title', 'Try the voice tutor'),
+    body: t(
+      'checklist.learner_try_voice_tutor.body',
+      'Talk through a tricky question hands-free with the voice tutor.'
+    ),
+    predicate: () => false,
+    cta: { label: 'Open voice tutor', href: '/home' },
+    role: ['learner'],
+  },
 ]
 
 export function evaluateChecklist(
@@ -101,7 +145,7 @@ export function evaluateChecklist(
   const stateMap = userState ?? {}
   return CHECKLIST_ITEMS.filter(item => {
     if (!item.role) return true
-    return item.role.includes(role as 'therapist' | 'admin' | 'parent')
+    return item.role.includes(role as 'therapist' | 'admin' | 'parent' | 'learner')
   }).map(item => ({
     item,
     completed: Boolean(item.predicate(snapshot) || stateMap[item.id]),

@@ -33,7 +33,12 @@ export interface TourStep {
   placement?: 'top' | 'bottom' | 'left' | 'right' | 'auto' | 'center'
 }
 
-export type TourRole = 'therapist' | 'admin' | 'parent' | 'pending_therapist'
+export type TourRole =
+  | 'therapist'
+  | 'admin'
+  | 'parent'
+  | 'pending_therapist'
+  | 'learner'
 
 export interface TourDefinition {
   id: string
@@ -238,6 +243,91 @@ export const welcomeParentTour: TourDefinition = {
         'Open the Take a tour menu to replay this tour or revisit privacy details any time.'
       ),
       placement: 'left',
+    },
+  ],
+}
+
+/**
+ * Welcome-learner tour — Pathfinder Slice 3. Seven steps across the
+ * `/home` learner shell. Auto-triggers on first `/home` visit for the
+ * `learner` role and on completion the page mirrors the seen state into
+ * `learner_profile.tour_seen_at` so it persists across devices.
+ */
+export const welcomeLearnerTour: TourDefinition = {
+  id: 'welcome-learner',
+  role: 'learner',
+  autoTrigger: { routePrefix: '/home' },
+  replayPath: '/home',
+  steps: [
+    {
+      selector: '[data-testid="learner-hero-title"]',
+      testId: 'learner-hero-title',
+      title: t('tour.welcome_learner.step1.title', 'Welcome to Pathfinder'),
+      body: t(
+        'tour.welcome_learner.step1.body',
+        'Pathfinder learns how you study and turns it into a daily plan. This quick tour shows where everything lives.'
+      ),
+      placement: 'bottom',
+    },
+    {
+      selector: '[data-testid="start-checkin"]',
+      testId: 'start-checkin',
+      title: t('tour.welcome_learner.step2.title', 'Daily check-in'),
+      body: t(
+        'tour.welcome_learner.step2.body',
+        'Start each day here with a one-minute check-in. It calibrates the plan and unlocks today\u2019s practice.'
+      ),
+      placement: 'bottom',
+    },
+    {
+      selector: '[data-testid="weak-topic-profile"]',
+      testId: 'weak-topic-profile',
+      title: t('tour.welcome_learner.step3.title', 'What we learned about you'),
+      body: t(
+        'tour.welcome_learner.step3.body',
+        'Your weakest topics surface here so revision targets the gaps. Updates after every check-in or practice set.'
+      ),
+      placement: 'top',
+    },
+    {
+      selector: '[data-testid="daily-revision-plan"]',
+      testId: 'daily-revision-plan',
+      title: t('tour.welcome_learner.step4.title', 'Today\u2019s plan'),
+      body: t(
+        'tour.welcome_learner.step4.body',
+        'A short revision plan, picked to fit a single sitting. Tick items off as you go.'
+      ),
+      placement: 'top',
+    },
+    {
+      selector: '[data-testid="start-learner-tutor"]',
+      testId: 'start-learner-tutor',
+      title: t('tour.welcome_learner.step5.title', 'Voice tutor'),
+      body: t(
+        'tour.welcome_learner.step5.body',
+        'Stuck on a question? Open the voice tutor to talk it through hands-free.'
+      ),
+      placement: 'bottom',
+    },
+    {
+      selector: '[data-testid="career-pathway-suggestions"]',
+      testId: 'career-pathway-suggestions',
+      title: t('tour.welcome_learner.step6.title', 'Career pathways'),
+      body: t(
+        'tour.welcome_learner.step6.body',
+        'Subject choices map to careers here. Turn on the career consent toggle in Account to make these picks personal.'
+      ),
+      placement: 'top',
+    },
+    {
+      selector: '[data-testid="parent-share-summary"]',
+      testId: 'parent-share-summary',
+      title: t('tour.welcome_learner.step7.title', 'Sharing with adults'),
+      body: t(
+        'tour.welcome_learner.step7.body',
+        'Send a weekly snapshot to a parent or tutor. You control what they see and when.'
+      ),
+      placement: 'top',
     },
   ],
 }
@@ -690,6 +780,7 @@ export const ALL_TOURS: TourDefinition[] = [
   welcomeTherapistTour,
   welcomeAdminTour,
   welcomeParentTour,
+  welcomeLearnerTour,
   insightsRailTour,
   dashboardTour,
   // --------------------------------------------------------------------

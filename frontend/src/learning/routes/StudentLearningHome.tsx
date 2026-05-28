@@ -18,7 +18,7 @@ import {
   WifiIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import DiagnosticPanel from '../components/DiagnosticPanel'
 import LearnerTutorFullscreen from '../components/LearnerTutorFullscreen'
 import PracticeFullscreen from '../components/PracticeFullscreen'
@@ -36,6 +36,8 @@ import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 import type { LearnerSetup } from '../hooks/useLearnerSetup'
 import { useLearnerProfile } from '../hooks/useLearnerProfile'
 import { featureFlags } from '../../utils/featureFlags'
+import { useOnboarding } from '../../onboarding/context'
+import { requestReplayTour } from '../../onboarding/bus'
 import { Link } from 'react-router-dom'
 
 type Activity = {
@@ -1601,6 +1603,38 @@ export default function StudentLearningHome({
       // Hydration is best-effort; fall back to default first-time copy.
     }
   }, [])
+
+  // -- Slice 3: welcome-learner tour kickoff + completion mirror -------
+  // A non-null `learnerProfile.profile` implies the /api/learners/me/profile
+  // endpoint accepted the caller (RBAC: learner role + flag on), so we use it
+  // as the role signal without a second auth round-trip.
+  const onboarding = useOnboarding()
+  const tourKickedRef = useRef(false)
+  const tourSeen = (onboarding.state.tours_seen ?? []).includes('welcome-learner')
+  const learnerProfileData = learnerProfile.profile
+  const tourSeenAt = learnerProfileData?.tour_seen_at ?? null
+  const patchLearnerProfile = learnerProfile.patch
+
+  useEffect(() => {
+    if (!featureFlags.pathfinder_learner_onboarding_enabled) return
+    if (tourKickedRef.current) return
+    if (!learnerProfileData) return
+    if (tourSeenAt) return
+    if (tourSeen) return
+    tourKickedRef.current = true
+    requestReplayTour('welcome-learner')
+  }, [learnerProfileData, tourSeen, tourSeenAt])
+
+  useEffect(() => {
+    if (!featureFlags.pathfinder_learner_onboarding_enabled) return
+    if (!learnerProfileData) return
+    if (tourSeenAt) return
+    if (!tourSeen) return
+    void patchLearnerProfile({ tour_seen_at: new Date().toISOString() }).catch(() => {
+      // Mirror is best-effort: tours_seen on the server is the local source of
+      // truth, tour_seen_at is the cross-device cache. Retry on next mount.
+    })
+  }, [learnerProfileData, patchLearnerProfile, tourSeen, tourSeenAt])
 
   function startCheckIn(skillId?: string) {
     setDemoActive(false)

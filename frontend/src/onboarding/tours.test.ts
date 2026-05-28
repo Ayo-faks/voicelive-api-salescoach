@@ -35,6 +35,7 @@ import {
   welcomeAdminTour,
   welcomeParentTour,
   welcomeTherapistTour,
+  welcomeLearnerTour,
   type TourDefinition,
 } from './tours'
 
@@ -46,6 +47,7 @@ const EXPORTED_TOURS: TourDefinition[] = [
   welcomeTherapistTour,
   welcomeAdminTour,
   welcomeParentTour,
+  welcomeLearnerTour,
   insightsRailTour,
   dashboardTour,
   sessionReviewTour,
@@ -71,7 +73,10 @@ describe('tour registry contract', () => {
         const roles = Array.isArray(tour.role) ? tour.role : [tour.role]
         expect(roles.length).toBeGreaterThan(0)
         for (const role of roles) {
-          // Child persona must never be a tour role (Children's Code).
+          // Child persona must never be a tour role (Children's Code). The
+          // authenticated `learner` persona is an over-13 self-registering
+          // student and is allowed here; the `child` block is about the
+          // supervised under-13 mode only.
           expect(role).not.toBe('child')
         }
       })
@@ -119,6 +124,7 @@ describe('tour registry contract', () => {
     expect(getTourById('welcome-therapist')?.id).toBe('welcome-therapist')
     expect(getTourById('welcome-admin')?.id).toBe('welcome-admin')
     expect(getTourById('welcome-parent')?.id).toBe('welcome-parent')
+    expect(getTourById('welcome-learner')?.id).toBe('welcome-learner')
     expect(getTourById('does-not-exist')).toBeUndefined()
     // Parked tours must be unreachable via the lookup helper — they are
     // deliberately absent from `ALL_TOURS` until their anchors land.
@@ -185,6 +191,16 @@ describe('tour registry contract', () => {
         toursEnabled: true,
       })?.id
     ).toBe('welcome-parent')
+
+    // Learner on /home → welcome-learner.
+    expect(
+      pickAutoTour({
+        pathname: '/home',
+        role: 'learner',
+        seenTourIds: [],
+        toursEnabled: true,
+      })?.id
+    ).toBe('welcome-learner')
 
     // Therapist on /dashboard → dashboard-tour.
     expect(
