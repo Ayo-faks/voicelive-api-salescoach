@@ -90,6 +90,10 @@ alembic upgrade head && alembic downgrade -1 && alembic upgrade head
 - Edit: `backend/src/app.py` (insert near `/api/auth/choose-role` ~L1593), `backend/src/services/storage.py`, `backend/src/services/storage_postgres.py`.
 - Edit (test only): `backend/tests/learning/test_career_planner.py`.
 
+### Playwright coverage (Slice 1)
+
+No new spec file — Slice 1 is server-only. But add one smoke assertion to the new pytest module that hits the routes via Flask's test client; do not stand up Playwright for backend-only changes.
+
 ---
 
 ## Slice 2 — Frontend: onboarding wizard + replace `useLearnerSetup`
@@ -133,6 +137,41 @@ Manual: stop backend, set flag, restart; reload `127.0.0.1:5173`; role pick → 
 - Edit: `frontend/src/services/api.ts`, `frontend/src/learning/PathfinderLearnApp.tsx`, `frontend/src/app/routes.ts`, `frontend/src/learning/routes/StudentLearningHome.tsx`.
 - Defer-delete: `frontend/src/learning/hooks/useLearnerSetup.ts` (remove in a follow-up cleanup PR after one release).
 
+### Playwright coverage (Slice 2)
+
+The existing `playwright.config.ts` launches the backend with `LOCAL_DEV_USER_ROLE=admin` and the built frontend on port `8001` via `scripts/start-local.sh`. That role default is for legacy admin-facing specs; per-spec role overrides are done in-test (see `pathfinder-account.spec.ts`, `onboarding-tours.spec.ts`). Follow the same pattern — do **not** change the global default.
+
+New file: `frontend/e2e/learner-onboarding-wizard.spec.ts`
+
+- `test.use({ extraHTTPHeaders: { 'X-Test-Flag-Learner-Onboarding': '1' } })` only if you wire a header→flag shim; otherwise rely on env in the webServer.
+- For each test, before `page.goto('/')`:
+  - `page.route('**/api/auth/session', route => route.fulfill({ json: { id: 'dev-learner-001', role: 'unassigned', email: 'learner@localhost', needs_onboarding: true } }))` to land on `WelcomeRolePicker`.
+  - `page.route('**/api/auth/choose-role', route => route.fulfill({ json: { id: 'dev-learner-001', role: 'learner', needs_onboarding: true } }))`.
+  - `page.route('**/api/learners/me/profile', ...)` for `GET` (returns empty profile, `needs_onboarding: true`) and `PATCH` (records body, returns updated).
+  - `page.route('**/api/learners/me/consent', ...)` recording each POST.
+- Specs to author:
+  1. **Happy path:** click `[data-testid=welcome-tile-learner]` → land on `/welcome` → walk steps 1→2→3 → assert each PATCH body shape and each consent POST → finish → land on `/home` with `[data-testid=route-student-home]` visible.
+  2. **Consent required:** step 1 without checking required boxes → `learner-onboarding-next` disabled.
+  3. **Validation:** step 2 with 7 subjects selected → PATCH not fired, inline error visible.
+  4. **Returning learner skip:** mock `GET /api/learners/me/profile` with `needs_onboarding: false` → goto `/home` → wizard never mounts (`learner-onboarding-wizard` absent).
+  5. **Flag off:** drop the wizard route stub, set webServer env `PATHFINDER_LEARNER_ONBOARDING_ENABLED=false` (via per-project config or a separate spec file) → role pick → goes straight to `/home`, legacy `b2c-learner-setup` card present.
+
+Run:
+
+```bash
+cd /home/ayoola/sen/voicelive-api-salescoach/frontend
+npx playwright test e2e/learner-onboarding-wizard.spec.ts
+```
+
+To test against the live dev stack on port `5173` instead of the built `8001` server:
+
+```bash
+PLAYWRIGHT_SKIP_WEBSERVER=true PLAYWRIGHT_BASE_URL=http://127.0.0.1:5173 \
+  npx playwright test e2e/learner-onboarding-wizard.spec.ts
+```
+
+(Requires Vite on `5173` already proxying `/api/*` to Flask on `8000`, and Flask started with `LOCAL_DEV_USER_ROLE=unassigned` + `PATHFINDER_LEARNER_ONBOARDING_ENABLED=true`.)
+
 ---
 
 ## Slice 3 — Learner guided tour on `/home`
@@ -170,6 +209,21 @@ Manual: clear `tour_seen_at` via `PATCH`; reload `/home`; walk the 7 steps; conf
 ### Files
 
 - Edit: `frontend/src/onboarding/tours.ts`, `frontend/src/onboarding/tours.test.ts`, `frontend/src/onboarding/checklist.ts`, `frontend/src/onboarding/helpContent.ts`, `frontend/src/learning/routes/StudentLearningHome.tsx` (wire kickoff).
+
+### Playwright coverage (Slice 3)
+
+Follow the same role-override pattern as Slice 2 (mock `/api/auth/session` to `role: 'learner', needs_onboarding: false`). Extend the existing `frontend/e2e/onboarding-tours.spec.ts` rather than creating a new file — it already exercises welcome tours for therapist/admin/parent roles. Add tests:
+
+1. **Tour runs on first visit:** mock profile with `tour_seen_at: null` → goto `/home` → assert joyride beacon visible → walk all 7 steps via `Next` → on finish, assert `PATCH /api/learners/me/profile` body includes `tour_seen_at`.
+2. **Tour does not re-run:** mock profile with `tour_seen_at` set to an ISO timestamp → goto `/home` → assert no joyride DOM (`.react-joyride__beacon` absent).
+3. **Anchor existence:** for each of the 7 testids declared in `welcomeLearnerTour`, assert `await page.getByTestId(id).count() > 0`. This is the runtime mirror of the Vitest anchor-rot check.
+
+Run:
+
+```bash
+cd /home/ayoola/sen/voicelive-api-salescoach/frontend
+npx playwright test e2e/onboarding-tours.spec.ts
+```
 
 ---
 
