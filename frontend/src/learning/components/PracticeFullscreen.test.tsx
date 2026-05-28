@@ -160,13 +160,11 @@ describe('PracticeFullscreen', () => {
 
   it('fetches /api/learning/tts when 🔊 is clicked', async () => {
     runTurnSpy.mockResolvedValue({ card: mcqCard, session_complete: false })
-    const fetchSpy = vi
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValue(
-        new Response(new Blob(['FAKE_MP3'], { type: 'audio/mpeg' }), {
-          status: 200,
-        })
-      )
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(new Blob(['FAKE_MP3'], { type: 'audio/mpeg' }), {
+        status: 200,
+      })
+    )
     render(
       <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />
     )
