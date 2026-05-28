@@ -676,6 +676,91 @@ export async function submitVoiceFrame(payload: {
   return jsonOrThrow<VoiceFrameResponse>(response)
 }
 
+// --- Learner voice + gen-UI fullscreen surface -----------------------------
+
+export type LearnerVoiceCardKind =
+  | 'greeting'
+  | 'mcq-tap'
+  | 'explanation'
+  | 'progress'
+  | 'mark-known'
+
+export interface LearnerVoiceCardBase {
+  card_id: string
+  kind: LearnerVoiceCardKind
+  speak: string
+}
+
+export interface LearnerVoiceMcqOption {
+  id: string
+  label: string
+  text: string
+}
+
+export interface LearnerVoiceGreetingCard extends LearnerVoiceCardBase {
+  kind: 'greeting'
+  headline: string
+  sub: string
+}
+
+export interface LearnerVoiceMcqCard extends LearnerVoiceCardBase {
+  kind: 'mcq-tap'
+  stem: string
+  options: LearnerVoiceMcqOption[]
+  skill_id?: string | null
+}
+
+export interface LearnerVoiceExplanationCard extends LearnerVoiceCardBase {
+  kind: 'explanation'
+  title: string
+  steps: string[]
+  next_action_label: string
+}
+
+export interface LearnerVoiceProgressCard extends LearnerVoiceCardBase {
+  kind: 'progress'
+  completed: number
+  total: number
+}
+
+export interface LearnerVoiceMarkKnownCard extends LearnerVoiceCardBase {
+  kind: 'mark-known'
+  prompt: string
+  confirm_label: string
+}
+
+export type LearnerVoiceCard =
+  | LearnerVoiceGreetingCard
+  | LearnerVoiceMcqCard
+  | LearnerVoiceExplanationCard
+  | LearnerVoiceProgressCard
+  | LearnerVoiceMarkKnownCard
+
+export interface LearnerVoiceTurnRequest {
+  child_id: string
+  lang?: string
+  last_card_id?: string | null
+  last_kind?: LearnerVoiceCardKind | null
+  answer_option_id?: string | null
+  advance?: boolean
+}
+
+export interface LearnerVoiceTurnResponse {
+  card: LearnerVoiceCard
+  session_complete: boolean
+}
+
+export async function runLearnerVoiceTurn(
+  payload: LearnerVoiceTurnRequest,
+): Promise<LearnerVoiceTurnResponse> {
+  const response = await fetch(
+    '/api/learning/voice/turn',
+    withDefaults({ method: 'POST', body: JSON.stringify(payload) }),
+  )
+  return jsonOrThrow<LearnerVoiceTurnResponse>(response)
+}
+
+
 // --- Voice-agent action API -------------------------------------------------
 
 export interface VoiceAgentActionRecord {

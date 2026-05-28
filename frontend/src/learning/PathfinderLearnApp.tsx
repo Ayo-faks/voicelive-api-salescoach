@@ -20,6 +20,7 @@ import type { AppConfig, ChildProfile, InsightsScope } from '../types'
 import LearnerEmptyState from './components/LearnerEmptyState'
 import LearnerSelector from './components/LearnerSelector'
 import VoiceAgentFullscreen from './components/VoiceAgentFullscreen'
+import LearnerVoiceFullscreen from './components/LearnerVoiceFullscreen'
 import WelcomeRolePicker from './components/WelcomeRolePicker'
 import { storeSelectedLearnerId, useSelectedLearner } from './hooks/useSelectedLearner'
 import PathwaysExplorer from './routes/PathwaysExplorer'
@@ -794,6 +795,12 @@ export default function PathfinderLearnApp() {
     !!appConfig?.voice_agent_fullscreen_enabled &&
     (appConfig?.insights_voice_mode ?? 'off') !== 'off'
   const chatLauncherVisible = !!appConfig?.insights_rail_enabled
+  const learnerVoiceFullscreenEnabled =
+    !!appConfig?.learner_voice_fullscreen_enabled &&
+    ['learner', 'kid', 'student'].includes(effectiveRole)
+  const [learnerVoiceOpen, setLearnerVoiceOpen] = useState(false)
+  const activeLearnerIdForVoice =
+    selectedLearnerId ?? learnerChildren?.[0]?.id ?? null
 
   useEffect(() => {
     let cancelled = false
@@ -1085,6 +1092,24 @@ export default function PathfinderLearnApp() {
           <LearnerContext.Provider value={defaultLearnerContext}>
             <AskPathfinder />
           </LearnerContext.Provider>
+        )}
+        {learnerVoiceFullscreenEnabled && activeLearnerIdForVoice && !learnerVoiceOpen && (
+          <button
+            type="button"
+            className={styles.voiceLauncher}
+            onClick={() => setLearnerVoiceOpen(true)}
+            aria-label="Open Pathfinder voice tutor"
+            data-testid="learner-voice-launcher"
+          >
+            <MicrophoneIcon className={styles.voiceLauncherGlyph} aria-hidden="true" />
+          </button>
+        )}
+        {learnerVoiceFullscreenEnabled && activeLearnerIdForVoice && (
+          <LearnerVoiceFullscreen
+            open={learnerVoiceOpen}
+            onClose={() => setLearnerVoiceOpen(false)}
+            childId={activeLearnerIdForVoice}
+          />
         )}
         {voiceLauncherVisible && !voiceOpen && (
           <button

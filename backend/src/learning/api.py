@@ -85,6 +85,10 @@ from src.learning.validator import (
     catalogue_skill_existence_rule,
 )
 from src.learning.voice import FlaskSockVoiceTransportAdapter, VoiceFrame
+from src.learning.learner_voice import (
+    LearnerVoiceTurnPlanner,
+    LearnerVoiceTurnRequest,
+)
 from src.learning.xapi import (
     ApprovalEvent,
     DiagnosticCompletionEvent,
@@ -363,6 +367,7 @@ class LearningApi:
         self.observability = observability or LearningObservability()
         self.selector = DeterministicItemSelector()
         self.voice_adapter = FlaskSockVoiceTransportAdapter()
+        self.learner_voice_planner = LearnerVoiceTurnPlanner()
         self.assistant_provider: AssistantProvider = (
             assistant_provider or DeterministicAssistantProvider()
         )
@@ -1751,6 +1756,27 @@ class LearningApi:
         )
         return result.model_dump()
 
+    def run_learner_voice_turn(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        """Drive the learner fullscreen voice + gen-UI surface.
+
+        Stateless: client sends the prior card id/kind plus any answer,
+        the planner returns the next card. ``child_id`` is required so
+        the realtime transport can RLS-scope reads in phase 2.1.
+        """
+        try:
+            request_model = LearnerVoiceTurnRequest(
+                child_id=str(payload.get("child_id") or "").strip(),
+                lang=str(payload.get("lang") or "en-NG"),
+                last_card_id=payload.get("last_card_id"),
+                last_kind=payload.get("last_kind"),
+                answer_option_id=payload.get("answer_option_id"),
+                advance=bool(payload.get("advance") or False),
+            )
+        except Exception as exc:  # pydantic validation
+            raise LearningApiError(f"invalid voice turn: {exc}", status_code=400) from exc
+        response = self.learner_voice_planner.next_turn(request_model)
+        return response.model_dump()
+
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
@@ -2197,6 +2223,11 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
     @_wrap
     def _voice_frame(payload: Dict[str, Any]) -> Dict[str, Any]:
         return learning_api.submit_voice_frame(payload)
+
+    @app.route("/api/learning/voice/turn", methods=["POST"])
+    @_wrap
+    def _voice_turn(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.run_learner_voice_turn(payload)
 
     @app.route("/api/learning/assistant/ask", methods=["POST"])
     @_wrap

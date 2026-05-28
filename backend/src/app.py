@@ -1200,6 +1200,10 @@ def _enforce_learning_api_policy() -> Optional[Tuple[Any, int]]:
         owned_student_ids = _learning_student_ids_for_user(user)
         if path in {"/api/learning/diagnostic/start", "/api/learning/voice/frame"} and not payload_student_id:
             return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
+        if path == "/api/learning/voice/turn":
+            child_id = str(payload.get("child_id") or "").strip()
+            if not child_id or child_id not in owned_student_ids:
+                return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
         if path == "/api/learning/diagnostic/answer" and session_student_id and session_student_id not in owned_student_ids:
             return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
         if payload_student_id and payload_student_id not in owned_student_ids:
@@ -1271,6 +1275,23 @@ def _voice_agent_actions_enabled(user: Optional[Dict[str, Any]]) -> bool:
     if not _voice_agent_dynamic_ui_enabled(user):
         return False
     raw = os.getenv("VOICE_AGENT_ACTIONS_ENABLED", "false")
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _learner_voice_fullscreen_enabled(user: Optional[Dict[str, Any]]) -> bool:
+    """Whether the learner fullscreen voice + gen-UI surface is shown.
+
+    Distinct from VOICE_AGENT_FULLSCREEN_ENABLED, which gates the
+    therapist-side caseload voice agent. The learner surface has its
+    own card contract (mcq-tap, explanation, progress) and its own
+    backend turn endpoint.
+    """
+    if user is None:
+        return False
+    role = str(user.get("role") or "")
+    if role not in LEARNING_LEARNER_ROLES:
+        return False
+    raw = os.getenv("LEARNER_VOICE_FULLSCREEN_ENABLED", "false")
     return str(raw).strip().lower() in {"1", "true", "yes", "on"}
 
 
@@ -1468,6 +1489,7 @@ def get_config():
             "voice_agent_fullscreen_enabled": _voice_agent_fullscreen_enabled(cast(Dict[str, Any], user) if user else None),
             "voice_agent_dynamic_ui_enabled": _voice_agent_dynamic_ui_enabled(cast(Dict[str, Any], user) if user else None),
             "voice_agent_actions_enabled": _voice_agent_actions_enabled(cast(Dict[str, Any], user) if user else None),
+            "learner_voice_fullscreen_enabled": _learner_voice_fullscreen_enabled(cast(Dict[str, Any], user) if user else None),
             "onboarding": {
                 # Kill switch for the v2 onboarding/guidance system
                 # (docs/onboarding/onboarding-plan-v2.md). Setting
