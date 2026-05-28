@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { FluentProvider, Text, makeStyles, mergeClasses } from '@fluentui/react-components'
+import {
+  FluentProvider,
+  Text,
+  makeStyles,
+  mergeClasses,
+} from '@fluentui/react-components'
 import {
   AcademicCapIcon,
   ArrowRightStartOnRectangleIcon,
@@ -32,6 +37,13 @@ import StudentLearningHome from './routes/StudentLearningHome'
 import StudentMasteryProfile from './routes/StudentMasteryProfile'
 import TeacherMasteryDashboard from './routes/TeacherMasteryDashboard'
 import TrustSafetyConsole from './routes/TrustSafetyConsole'
+import {
+  PathfinderAccountHub,
+  PathfinderAiNotice,
+  PathfinderPrivacy,
+  PathfinderSettings,
+  PathfinderTerms,
+} from './routes/AccountPages'
 import { pathfinderFluentTheme } from './theme/pathfinderFluentTheme'
 import { pathfinderTokens as t } from './theme/pathfinder-tokens'
 import AskPathfinder from './AskPathfinder'
@@ -86,11 +98,10 @@ const navItems: NavItem[] = [
 const PATHFINDER_CHAT_SCOPE: InsightsScope = { type: 'caseload' }
 
 const accountActions: AccountAction[] = [
-  { href: '/profile', label: 'Learning profile', icon: UserCircleIcon, testId: 'account-action-profile' },
-  { href: '/settings', label: 'Settings', icon: Cog6ToothIcon, testId: 'account-action-settings' },
-  { href: '/privacy', label: 'Privacy', icon: ShieldCheckIcon, testId: 'account-action-privacy' },
-  { href: '/terms', label: 'Terms', icon: DocumentTextIcon, testId: 'account-action-terms' },
-  { href: '/ai-transparency', label: 'AI notice', icon: InformationCircleIcon, testId: 'account-action-ai-notice' },
+  { href: '/account/settings', label: 'Settings', icon: Cog6ToothIcon, testId: 'account-action-settings' },
+  { href: '/account/privacy', label: 'Privacy', icon: ShieldCheckIcon, testId: 'account-action-privacy' },
+  { href: '/account/terms', label: 'Terms', icon: DocumentTextIcon, testId: 'account-action-terms' },
+  { href: '/account/ai-notice', label: 'AI notice', icon: InformationCircleIcon, testId: 'account-action-ai-notice' },
 ]
 
 function formatRoleLabel(role: LearningRole | 'loading'): string {
@@ -224,17 +235,8 @@ const useStyles = makeStyles({
     color: 'inherit',
     opacity: 0.7,
   },
-  sidebarFooter: {
-    marginTop: 'auto',
-    padding: '10px',
-    borderTop: t.surface.hairline,
-    display: 'grid',
-    gap: '4px',
-    color: t.brand.textTertiary,
-    fontSize: '0.7rem',
-    lineHeight: 1.35,
-  },
   userCard: {
+    marginTop: 'auto',
     display: 'grid',
     gap: '10px',
     padding: '10px',
@@ -993,30 +995,22 @@ export default function PathfinderLearnApp() {
             <Text className={styles.userRole}>{formatRoleLabel(effectiveRole)}</Text>
           </div>
         </div>
-        <nav className={styles.accountActions} aria-label="Account actions">
-          {accountActions.map(action => {
-            const Icon = action.icon
-            return (
-              <a
-                key={action.href}
-                href={action.href}
-                className={styles.accountAction}
-                data-testid={action.testId}
-              >
-                <Icon className={styles.accountActionIcon} aria-hidden="true" />
-                <span>{action.label}</span>
-              </a>
-            )
-          })}
-          <a
-            href="/logout"
-            className={styles.accountAction}
-            data-testid="account-action-sign-out"
-          >
-            <ArrowRightStartOnRectangleIcon className={styles.accountActionIcon} aria-hidden="true" />
-            <span>Sign out</span>
-          </a>
-        </nav>
+        <a
+          href="/account"
+          className={styles.accountAction}
+          data-testid="account-actions-trigger"
+        >
+          <Cog6ToothIcon className={styles.accountActionIcon} aria-hidden="true" />
+          <span>Account & settings</span>
+        </a>
+        <a
+          href="/logout"
+          className={styles.accountAction}
+          data-testid="account-action-sign-out"
+        >
+          <ArrowRightStartOnRectangleIcon className={styles.accountActionIcon} aria-hidden="true" />
+          <span>Sign out</span>
+        </a>
       </div>
     )
   }
@@ -1066,11 +1060,6 @@ export default function PathfinderLearnApp() {
             ) : null}
           </nav>
 
-          <div className={styles.sidebarFooter}>
-            <span>English · Yoruba voice ready</span>
-            <span>Counsellor sign-off active</span>
-          </div>
-
           {renderAccountCard()}
         </aside>
 
@@ -1088,14 +1077,14 @@ export default function PathfinderLearnApp() {
             {authSession?.authenticated ? (
               <div className={styles.mobileAccountActions}>
                 <a
-                  href="/settings"
+                  href="/account"
                   className={styles.mobileAccountButton}
-                  aria-label="Open settings"
-                  title="Settings"
+                  aria-label="Open account and settings"
+                  title="Account & settings"
                   data-testid="mobile-account-settings"
                 >
                   <Cog6ToothIcon className={styles.mobileAccountIcon} aria-hidden="true" />
-                  <span className={styles.srOnly}>Settings</span>
+                  <span className={styles.srOnly}>Account & settings</span>
                 </a>
                 <a
                   href="/logout"
@@ -1122,6 +1111,11 @@ export default function PathfinderLearnApp() {
               <Route path="/profile" element={routeForRole(['parent', 'learner', 'kid', 'student', 'admin'], <StudentMasteryProfile />)} />
               <Route path="/pathways" element={routeForRole(['parent', 'learner', 'kid', 'student', 'admin'], <PathwaysExplorer />)} />
               <Route path="/safety" element={routeForRole(['admin'], <TrustSafetyConsole />)} />
+              <Route path="/account" element={<PathfinderAccountHub />} />
+              <Route path="/account/settings" element={<PathfinderSettings />} />
+              <Route path="/account/privacy" element={<PathfinderPrivacy />} />
+              <Route path="/account/terms" element={<PathfinderTerms />} />
+              <Route path="/account/ai-notice" element={<PathfinderAiNotice />} />
               <Route path="*" element={learningRole === 'loading' ? null : <Navigate to={defaultPathForRole(effectiveRole)} replace />} />
             </Routes>
           </div>
