@@ -188,24 +188,6 @@ const weeklyTiles: Array<{ label: string; value: string; delta: string }> = [
   { label: 'Mastery', value: '+12%', delta: 'Ratio focus' },
 ]
 
-const deviceModes = [
-  {
-    label: 'Desktop web',
-    value: 'Full learning workspace',
-    detail: 'Diagnostic, practice, career guidance, and teacher status stay visible for classroom or lab use.',
-  },
-  {
-    label: 'Tablet / shared device',
-    value: 'Touch or keyboard',
-    detail: 'Same flow works with mouse, keyboard, or touch for school device carts and family devices.',
-  },
-  {
-    label: 'Phone / offline',
-    value: 'Condensed journey',
-    detail: 'The layout collapses for smaller screens and saves answers locally when connectivity drops.',
-  },
-]
-
 const examOptions = ['WAEC', 'NECO', 'JAMB', 'Junior WAEC']
 const yearOptions = ['JSS2', 'JSS3', 'SSS1', 'SSS2', 'SSS3']
 const subjectOptions = ['Mathematics', 'English Language', 'Basic Science']
@@ -1557,6 +1539,10 @@ export default function StudentLearningHome({ studentId, pushConsentDeferred }: 
               <BoltIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
               7-day streak
             </span>
+            <span className={styles.heroPill} data-testid="offline-ready-pill">
+              <WifiIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
+              Works offline
+            </span>
             <span className={styles.heroPill}>English · Yoruba voice</span>
             <span className={styles.heroPill}>{learnerSetup.year} · {learnerSetup.subject}</span>
             <span className={styles.heroPill}>Free for now · no payment step</span>
@@ -1640,27 +1626,6 @@ export default function StudentLearningHome({ studentId, pushConsentDeferred }: 
                 {subjectOptions.map(option => <option key={option} value={option}>{option}</option>)}
               </select>
             </label>
-          </div>
-        </article>
-
-        <article className={styles.deviceOverviewCard} data-testid="cross-device-learner-workspace">
-          <div className={styles.cardHeader}>
-            <div>
-              <Text className={styles.cardTitle}>Web, desktop, tablet, and phone</Text>
-              <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
-                Same learner workflow; the layout widens on desktop and condenses on smaller screens.
-              </p>
-            </div>
-            <span className={styles.softBadge}>Responsive web app</span>
-          </div>
-          <div className={styles.deviceOverviewGrid}>
-            {deviceModes.map(mode => (
-              <div key={mode.label} className={styles.deviceModeTile}>
-                <span className={styles.weekLabel}>{mode.label}</span>
-                <span className={styles.deviceModeValue}>{mode.value}</span>
-                <span className={styles.deviceModeDetail}>{mode.detail}</span>
-              </div>
-            ))}
           </div>
         </article>
 

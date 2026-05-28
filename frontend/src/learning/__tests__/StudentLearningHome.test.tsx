@@ -89,11 +89,8 @@ describe('StudentLearningHome', () => {
       )
     })
 
-    expect(screen.getByTestId('cross-device-learner-workspace')).toBeTruthy()
-    expect(screen.getByText('Web, desktop, tablet, and phone')).toBeTruthy()
-    expect(screen.getByText('Desktop web')).toBeTruthy()
-    expect(screen.getByText('Tablet / shared device')).toBeTruthy()
-    expect(screen.getByText('Phone / offline')).toBeTruthy()
+    expect(screen.getByTestId('offline-ready-pill')).toBeTruthy()
+    expect(screen.getByText('Works offline')).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: /Start 5-step demo/i }))
 
