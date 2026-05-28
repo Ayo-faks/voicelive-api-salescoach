@@ -94,7 +94,10 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
   // ---- Learner-role items (Pathfinder Slice 3) ---------------------
   {
     id: 'learner-welcome-tour',
-    title: t('checklist.learner_welcome_tour.title', 'Take the Pathfinder tour'),
+    title: t(
+      'checklist.learner_welcome_tour.title',
+      'Take the Pathfinder tour'
+    ),
     body: t(
       'checklist.learner_welcome_tour.body',
       'A one-minute walkthrough of check-in, today\u2019s plan, and the voice tutor.'
@@ -104,7 +107,10 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
   },
   {
     id: 'learner-first-checkin',
-    title: t('checklist.learner_first_checkin.title', 'Complete your daily check-in'),
+    title: t(
+      'checklist.learner_first_checkin.title',
+      'Complete your daily check-in'
+    ),
     body: t(
       'checklist.learner_first_checkin.body',
       'A 60-second check-in calibrates today\u2019s revision plan.'
@@ -145,7 +151,9 @@ export function evaluateChecklist(
   const stateMap = userState ?? {}
   return CHECKLIST_ITEMS.filter(item => {
     if (!item.role) return true
-    return item.role.includes(role as 'therapist' | 'admin' | 'parent' | 'learner')
+    return item.role.includes(
+      role as 'therapist' | 'admin' | 'parent' | 'learner'
+    )
   }).map(item => ({
     item,
     completed: Boolean(item.predicate(snapshot) || stateMap[item.id]),

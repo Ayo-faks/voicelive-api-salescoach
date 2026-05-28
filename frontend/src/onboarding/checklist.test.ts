@@ -5,10 +5,7 @@
 
 import { describe, it, expect } from 'vitest'
 
-import {
-  evaluateChecklist,
-  type AppSnapshot,
-} from './checklist'
+import { evaluateChecklist, type AppSnapshot } from './checklist'
 
 const emptySnapshot: AppSnapshot = {
   hasChildren: false,
@@ -31,7 +28,9 @@ describe('evaluateChecklist', () => {
     )
     // Therapist sees the legacy 5 items, none of the learner ones.
     expect(therapistRows.length).toBe(5)
-    expect(therapistRows.every(r => r.item.id.startsWith('learner-') === false)).toBe(true)
+    expect(
+      therapistRows.every(r => r.item.id.startsWith('learner-') === false)
+    ).toBe(true)
   })
 
   it('shows the learner-role items to learners only', () => {

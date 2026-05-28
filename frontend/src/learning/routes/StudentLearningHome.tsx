@@ -1610,7 +1610,9 @@ export default function StudentLearningHome({
   // as the role signal without a second auth round-trip.
   const onboarding = useOnboarding()
   const tourKickedRef = useRef(false)
-  const tourSeen = (onboarding.state.tours_seen ?? []).includes('welcome-learner')
+  const tourSeen = (onboarding.state.tours_seen ?? []).includes(
+    'welcome-learner'
+  )
   const learnerProfileData = learnerProfile.profile
   const tourSeenAt = learnerProfileData?.tour_seen_at ?? null
   const patchLearnerProfile = learnerProfile.patch
@@ -1630,10 +1632,12 @@ export default function StudentLearningHome({
     if (!learnerProfileData) return
     if (tourSeenAt) return
     if (!tourSeen) return
-    void patchLearnerProfile({ tour_seen_at: new Date().toISOString() }).catch(() => {
-      // Mirror is best-effort: tours_seen on the server is the local source of
-      // truth, tour_seen_at is the cross-device cache. Retry on next mount.
-    })
+    void patchLearnerProfile({ tour_seen_at: new Date().toISOString() }).catch(
+      () => {
+        // Mirror is best-effort: tours_seen on the server is the local source of
+        // truth, tour_seen_at is the cross-device cache. Retry on next mount.
+      }
+    )
   }, [learnerProfileData, patchLearnerProfile, tourSeen, tourSeenAt])
 
   function startCheckIn(skillId?: string) {
