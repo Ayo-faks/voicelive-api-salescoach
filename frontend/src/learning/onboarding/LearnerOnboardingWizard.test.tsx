@@ -4,7 +4,14 @@ import { FluentProvider, teamsLightTheme } from '@fluentui/react-components'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import LearnerOnboardingWizard from './LearnerOnboardingWizard'
-import type { LearnerProfileResponse } from '../../services/api'
+import type {
+  ConsentInput,
+  LearnerProfilePatch,
+  LearnerProfileResponse,
+} from '../../services/api'
+
+type PatchFn = (patch: LearnerProfilePatch) => Promise<LearnerProfileResponse>
+type RecordConsentFn = (input: ConsentInput) => Promise<LearnerProfileResponse>
 
 const navigateMock = vi.fn()
 vi.mock('react-router-dom', async () => {
@@ -20,11 +27,13 @@ function emptyResponse(needsOnboarding = false): LearnerProfileResponse {
 }
 
 function renderWizard(overrides: Partial<{
-  patch: ReturnType<typeof vi.fn>
-  recordConsent: ReturnType<typeof vi.fn>
+  patch: PatchFn
+  recordConsent: RecordConsentFn
 }> = {}) {
-  const patch = overrides.patch ?? vi.fn(async () => emptyResponse(false))
-  const recordConsent = overrides.recordConsent ?? vi.fn(async () => emptyResponse(true))
+  const patch = vi.fn<PatchFn>(overrides.patch ?? (async () => emptyResponse(false)))
+  const recordConsent = vi.fn<RecordConsentFn>(
+    overrides.recordConsent ?? (async () => emptyResponse(true)),
+  )
   const utils = render(
     <MemoryRouter>
       <FluentProvider theme={teamsLightTheme}>
