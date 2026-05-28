@@ -181,12 +181,14 @@ describe('StudentLearningHome', () => {
       )
     })
 
-    expect(screen.getByTestId('plan-practice-exercise')).toBeTruthy()
+    fireEvent.click(screen.getByTestId('path-row-ratio-check'))
+
+    expect(screen.getByTestId('today-step-mcq')).toBeTruthy()
     expect(screen.getByText('From generated plan')).toBeTruthy()
     expect(screen.getByText('Teacher-approved ratio recovery plan')).toBeTruthy()
     expect(screen.getByText(/A recipe uses 3 cups of water for 2 cups of rice/i)).toBeTruthy()
 
-    fireEvent.click(within(screen.getByTestId('plan-practice-exercise')).getByRole('button', { name: /9 cups/i }))
+    fireEvent.click(within(screen.getByTestId('today-step-mcq')).getByRole('button', { name: /9 cups/i }))
 
     expect(screen.getByTestId('practice-feedback')).toBeTruthy()
     expect(screen.getByText('Immediate feedback')).toBeTruthy()

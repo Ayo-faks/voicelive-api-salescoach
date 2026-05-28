@@ -1234,6 +1234,7 @@ export default function StudentLearningHome({ studentId, pushConsentDeferred }: 
   const [adaptiveMoment, setAdaptiveMoment] = useState<AdaptiveMoment | null>(null)
   const [demoVoiceBusy, setDemoVoiceBusy] = useState(false)
   const [practiceAnswer, setPracticeAnswer] = useState<PracticeAnswer | null>(null)
+  const [expandedStepId, setExpandedStepId] = useState<string | null>(null)
   const [wrongAnswerExplanation, setWrongAnswerExplanation] = useState<WrongAnswerExplanation | null>(null)
   const [revisionPlanAdded, setRevisionPlanAdded] = useState(false)
   const pushSubscription = usePushSubscription({
@@ -1793,71 +1794,6 @@ export default function StudentLearningHome({ studentId, pushConsentDeferred }: 
                 </div>
               </article>
 
-              <article className={styles.practiceCard} data-testid="plan-practice-exercise">
-                <div className={styles.demoHeader}>
-                  <div>
-                    <span className={styles.softBadge}>From generated plan</span>
-                    <Text className={styles.demoTitle}>{generatedPlanPractice.title}</Text>
-                    <p className={styles.demoHelper}>{generatedPlanPractice.planTitle}</p>
-                  </div>
-                  <span className={styles.softBadge}>2 min</span>
-                </div>
-
-                <div className={styles.practiceInteractionGrid}>
-                  <div className={styles.practicePromptCard}>
-                    <p className={styles.practicePrompt}>{generatedPlanPractice.prompt}</p>
-                    <p className={styles.demoHelper}>{generatedPlanPractice.hint}</p>
-                  </div>
-
-                  <div className={styles.practiceOptions}>
-                    {generatedPlanPractice.options.map(option => (
-                      <button
-                        key={option.id}
-                        type="button"
-                        className={practiceAnswer?.optionId === option.id ? styles.practiceOptionSelected : styles.practiceOption}
-                        onClick={() => handlePracticeAnswer(option)}
-                        disabled={Boolean(practiceAnswer)}
-                      >
-                        <span className={styles.practiceOptionLabel}>{option.label}</span>
-                        <span className={styles.practiceOptionMeta}>{option.meta ?? 'Choose answer'}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {practiceAnswer && (
-                  <div className={styles.feedbackCard} data-testid="practice-feedback">
-                    <span className={styles.softBadge}>Immediate feedback</span>
-                    <Text className={styles.cardTitle}>
-                      {practiceAnswer.correct ? 'Correct - the plan is working.' : 'Not quite - scale both parts by 3.'}
-                    </Text>
-                    {!practiceAnswer.correct && (
-                      <button
-                        type="button"
-                        className={styles.textAction}
-                        onClick={() => setWrongAnswerExplanation(practiceWrongAnswerExplanation)}
-                      >
-                        Explain my mistake
-                      </button>
-                    )}
-                    <p className={styles.demoHelper}>
-                      {practiceAnswer.correct
-                        ? '2 cups of rice became 6 cups, so 3 cups of water becomes 9 cups.'
-                        : 'The worked example says keep the rice-water ratio: 2 -> 6 is x3, so 3 -> 9.'}
-                    </p>
-                    <span className={styles.softBadge}>Spaced retrieval scheduled</span>
-                    <ul className={styles.retrievalList} data-testid="spaced-retrieval-schedule">
-                      {generatedPlanPractice.schedule.map(slot => (
-                        <li key={slot.id} className={styles.retrievalItem}>
-                          <Text weight="semibold">{slot.label} · {slot.timing}</Text>
-                          <span className={styles.demoHelper}>{slot.focus}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </article>
-
               <article className={styles.card} data-testid="career-pathway-suggestions">
                 <div className={styles.cardHeader}>
                   <div>
@@ -1979,32 +1915,106 @@ export default function StudentLearningHome({ studentId, pushConsentDeferred }: 
             <Text className={styles.cardCaption}>~16 min total · 3 steps</Text>
           </div>
           <div className={styles.pathList}>
-            {todaysPath.map(item => (
-              <button
-                key={item.id}
-                type="button"
-                className={styles.pathRow}
-                style={{ textAlign: 'left', font: 'inherit' }}
-                onClick={() => startCheckIn(item.skillId)}
-                data-testid={`path-row-${item.id}`}
-              >
-                <div className={styles.pathIcon} aria-hidden="true">
-                  <PlayCircleIcon style={{ width: 20, height: 20 }} />
+            {todaysPath.map(item => {
+              const isExpanded = expandedStepId === item.id
+              return (
+                <div key={item.id}>
+                  <button
+                    type="button"
+                    className={styles.pathRow}
+                    style={{ textAlign: 'left', font: 'inherit' }}
+                    onClick={() => {
+                      setExpandedStepId(prev => (prev === item.id ? null : item.id))
+                      startCheckIn(item.skillId)
+                    }}
+                    data-testid={`path-row-${item.id}`}
+                    aria-expanded={isExpanded}
+                  >
+                    <div className={styles.pathIcon} aria-hidden="true">
+                      <PlayCircleIcon style={{ width: 20, height: 20 }} />
+                    </div>
+                    <div className={styles.pathTitle}>
+                      <span className={styles.pathTitleText}>{item.title}</span>
+                      <span className={styles.pathMeta}>{item.meta}</span>
+                    </div>
+                    <span className={styles.minutes}>
+                      <ClockIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
+                      {item.minutes} min
+                    </span>
+                    <ChevronRightIcon
+                      style={{ width: 18, height: 18, color: t.brand.textTertiary }}
+                      aria-hidden="true"
+                    />
+                  </button>
+                  {isExpanded && (
+                    <div className={styles.practiceCard} data-testid="today-step-mcq">
+                      <div className={styles.demoHeader}>
+                        <div>
+                          <span className={styles.softBadge}>From generated plan</span>
+                          <Text className={styles.demoTitle}>{generatedPlanPractice.title}</Text>
+                          <p className={styles.demoHelper}>{generatedPlanPractice.planTitle}</p>
+                        </div>
+                        <span className={styles.softBadge}>2 min</span>
+                      </div>
+
+                      <div className={styles.practiceInteractionGrid}>
+                        <div className={styles.practicePromptCard}>
+                          <p className={styles.practicePrompt}>{generatedPlanPractice.prompt}</p>
+                          <p className={styles.demoHelper}>{generatedPlanPractice.hint}</p>
+                        </div>
+
+                        <div className={styles.practiceOptions}>
+                          {generatedPlanPractice.options.map(option => (
+                            <button
+                              key={option.id}
+                              type="button"
+                              className={practiceAnswer?.optionId === option.id ? styles.practiceOptionSelected : styles.practiceOption}
+                              onClick={() => handlePracticeAnswer(option)}
+                              disabled={Boolean(practiceAnswer)}
+                            >
+                              <span className={styles.practiceOptionLabel}>{option.label}</span>
+                              <span className={styles.practiceOptionMeta}>{option.meta ?? 'Choose answer'}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {practiceAnswer && (
+                        <div className={styles.feedbackCard} data-testid="practice-feedback">
+                          <span className={styles.softBadge}>Immediate feedback</span>
+                          <Text className={styles.cardTitle}>
+                            {practiceAnswer.correct ? 'Correct - the plan is working.' : 'Not quite - scale both parts by 3.'}
+                          </Text>
+                          {!practiceAnswer.correct && (
+                            <button
+                              type="button"
+                              className={styles.textAction}
+                              onClick={() => setWrongAnswerExplanation(practiceWrongAnswerExplanation)}
+                            >
+                              Explain my mistake
+                            </button>
+                          )}
+                          <p className={styles.demoHelper}>
+                            {practiceAnswer.correct
+                              ? '2 cups of rice became 6 cups, so 3 cups of water becomes 9 cups.'
+                              : 'The worked example says keep the rice-water ratio: 2 -> 6 is x3, so 3 -> 9.'}
+                          </p>
+                          <span className={styles.softBadge}>Spaced retrieval scheduled</span>
+                          <ul className={styles.retrievalList} data-testid="spaced-retrieval-schedule">
+                            {generatedPlanPractice.schedule.map(slot => (
+                              <li key={slot.id} className={styles.retrievalItem}>
+                                <Text weight="semibold">{slot.label} · {slot.timing}</Text>
+                                <span className={styles.demoHelper}>{slot.focus}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <div className={styles.pathTitle}>
-                  <span className={styles.pathTitleText}>{item.title}</span>
-                  <span className={styles.pathMeta}>{item.meta}</span>
-                </div>
-                <span className={styles.minutes}>
-                  <ClockIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
-                  {item.minutes} min
-                </span>
-                <ChevronRightIcon
-                  style={{ width: 18, height: 18, color: t.brand.textTertiary }}
-                  aria-hidden="true"
-                />
-              </button>
-            ))}
+              )
+            })}
           </div>
         </article>
 
