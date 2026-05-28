@@ -24,6 +24,8 @@ import PracticeFullscreen from './components/PracticeFullscreen'
 import WelcomeRolePicker from './components/WelcomeRolePicker'
 import { storeSelectedLearnerId, useSelectedLearner } from './hooks/useSelectedLearner'
 import { useLearnerSetup } from './hooks/useLearnerSetup'
+import { useLearnerProfile } from './hooks/useLearnerProfile'
+import LearnerOnboardingWizard from './onboarding/LearnerOnboardingWizard'
 import PathwaysExplorer from './routes/PathwaysExplorer'
 import SkillLibrary from './routes/SkillLibrary'
 import StudentLearningHome from './routes/StudentLearningHome'
@@ -34,6 +36,7 @@ import { pathfinderFluentTheme } from './theme/pathfinderFluentTheme'
 import { pathfinderTokens as t } from './theme/pathfinder-tokens'
 import AskPathfinder from './AskPathfinder'
 import { LearnerContext, defaultLearnerContext } from './contexts/LearnerContext'
+import { featureFlags } from '../utils/featureFlags'
 
 export const COOKIE_CONSENT_STORAGE_KEY = 'pathfinder.cookie-consent.v1'
 
@@ -917,6 +920,31 @@ export default function PathfinderLearnApp() {
     )
   }
 
+  const onboardingFlagEnabled = featureFlags.pathfinder_learner_onboarding_enabled
+  const isLearnerLikeRole = ['learner', 'kid', 'student'].includes(effectiveRole)
+  const learnerProfileGate = useLearnerProfile()
+  const learnerNeedsOnboarding =
+    onboardingFlagEnabled && isLearnerLikeRole && learnerProfileGate.needsOnboarding
+
+  const welcomeRouteElement = () => {
+    if (!onboardingFlagEnabled || !isLearnerLikeRole) {
+      return <Navigate to={defaultPathForRole(effectiveRole)} replace />
+    }
+    return (
+      <LearnerOnboardingWizard
+        profile={learnerProfileGate.profile}
+        isLoading={learnerProfileGate.isLoading}
+        patch={learnerProfileGate.patch}
+        recordConsent={learnerProfileGate.recordConsent}
+      />
+    )
+  }
+
+  const homeRouteElement = () => {
+    if (learnerNeedsOnboarding) return <Navigate to="/welcome" replace />
+    return routeForRole(['parent', 'learner', 'kid', 'student'], learnerHomeElement())
+  }
+
   const renderNavLinks = (extraClass?: string) =>
     visibleNavItems.map(item => {
       const Icon = item.icon
@@ -1087,7 +1115,8 @@ export default function PathfinderLearnApp() {
             <Routes>
               <Route index element={learningRole === 'loading' ? null : <Navigate to={defaultPathForRole(effectiveRole)} replace />} />
               <Route path="/logout" element={<Navigate to="/.auth/logout" replace />} />
-              <Route path="/home" element={routeForRole(['parent', 'learner', 'kid', 'student'], learnerHomeElement())} />
+              <Route path="/welcome" element={welcomeRouteElement()} />
+              <Route path="/home" element={homeRouteElement()} />
               <Route path="/teacher" element={routeForRole(['therapist', 'admin'], <TeacherMasteryDashboard />)} />
               <Route path="/library" element={routeForRole(['admin'], <SkillLibrary />)} />
               <Route path="/profile" element={routeForRole(['parent', 'learner', 'kid', 'student', 'admin'], <StudentMasteryProfile />)} />

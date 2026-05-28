@@ -3,6 +3,7 @@ export const APP_ROUTES = {
   login: '/login',
   logout: '/logout',
   onboarding: '/onboarding',
+  welcome: '/welcome',
   mode: '/mode',
   home: '/home',
   dashboard: '/dashboard',

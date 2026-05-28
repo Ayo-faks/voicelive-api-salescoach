@@ -21,11 +21,22 @@ export interface FeatureFlags {
    * everywhere — staff can still unlock the strategies to compare.
    */
   tts_preview_strategies_unlocked: boolean
+  /**
+   * When true, learners with `needs_onboarding=true` are routed through the
+   * 3-step onboarding wizard at `/welcome` (Pathfinder learner profile
+   * onboarding, slice 2). Default false — clients fall back to the legacy
+   * in-page `useLearnerSetup` exam picker.
+   */
+  pathfinder_learner_onboarding_enabled: boolean
 }
 
 export const featureFlags: FeatureFlags = Object.freeze({
   tts_preview_strategies_unlocked: _readBool(
     import.meta.env.VITE_TTS_PREVIEW_STRATEGIES_UNLOCKED,
+    false
+  ),
+  pathfinder_learner_onboarding_enabled: _readBool(
+    import.meta.env.VITE_PATHFINDER_LEARNER_ONBOARDING_ENABLED,
     false
   ),
 })

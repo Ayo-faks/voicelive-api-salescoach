@@ -33,7 +33,10 @@ import {
   type VoiceFrameResponse,
 } from '../api'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
-import { useLearnerSetup, type LearnerSetup } from '../hooks/useLearnerSetup'
+import type { LearnerSetup } from '../hooks/useLearnerSetup'
+import { useLearnerProfile } from '../hooks/useLearnerProfile'
+import { featureFlags } from '../../utils/featureFlags'
+import { Link } from 'react-router-dom'
 
 type Activity = {
   id: string
@@ -1462,7 +1465,9 @@ export default function StudentLearningHome({
   pushConsentDeferred,
 }: StudentLearningHomeProps) {
   const styles = useStyles()
-  const [learnerSetup, setLearnerSetup] = useLearnerSetup()
+  const learnerProfile = useLearnerProfile()
+  const learnerSetup = learnerProfile.setup
+  const setLearnerSetup = learnerProfile.updateSetup
   const [activeSkill, setActiveSkill] = useState<string | null>(null)
   const [panelKey, setPanelKey] = useState(0)
   const [checkInActive, setCheckInActive] = useState(false)
@@ -1859,7 +1864,19 @@ export default function StudentLearningHome({
               </p>
             </div>
           </div>
-          <div className={styles.setupGrid}>
+          {featureFlags.pathfinder_learner_onboarding_enabled ? (
+            <div style={{ display: 'grid', gap: 8 }}>
+              <Text>
+                Exam: <strong>{learnerSetup.exam}</strong> · Class:{' '}
+                <strong>{learnerSetup.year}</strong> · Subject:{' '}
+                <strong>{learnerSetup.subject}</strong>
+              </Text>
+              <Link to="/welcome" data-testid="b2c-learner-setup-edit">
+                Edit your profile
+              </Link>
+            </div>
+          ) : (
+            <div className={styles.setupGrid}>
             <label className={styles.selectField}>
               <span className={styles.selectLabel}>Your name (optional)</span>
               <input
@@ -1907,6 +1924,7 @@ export default function StudentLearningHome({
               </select>
             </label>
           </div>
+          )}
         </article>
 
         {demoActive && (() => {
