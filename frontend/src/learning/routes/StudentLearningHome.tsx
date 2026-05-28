@@ -20,6 +20,8 @@ import {
 } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 import DiagnosticPanel from '../components/DiagnosticPanel'
+import LearnerTutorFullscreen from '../components/LearnerTutorFullscreen'
+import PracticeFullscreen from '../components/PracticeFullscreen'
 import {
   scheduleRevisionCards,
   usePushSubscription,
@@ -31,6 +33,7 @@ import {
   type VoiceFrameResponse,
 } from '../api'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
+import { useLearnerSetup, type LearnerSetup } from '../hooks/useLearnerSetup'
 
 type Activity = {
   id: string
@@ -103,12 +106,6 @@ type PracticeAnswer = {
   optionId: string
   label: string
   correct: boolean
-}
-
-type LearnerSetup = {
-  exam: string
-  year: string
-  subject: string
 }
 
 type WeakTopic = {
@@ -444,8 +441,15 @@ const useStyles = makeStyles({
     fontWeight: 500,
     letterSpacing: '-0.01em',
   },
-  heroCta: {
+  heroActions: {
     marginTop: '24px',
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '10px',
+    alignItems: 'center',
+  },
+  heroCta: {
+    marginTop: 0,
     display: 'inline-flex',
     alignItems: 'center',
     gap: '10px',
@@ -462,6 +466,26 @@ const useStyles = makeStyles({
     ':hover': {
       transform: 'translateY(-1px)',
       boxShadow: '0 10px 24px rgba(0,0,0,0.18)',
+    },
+  },
+  heroSecondaryCta: {
+    marginTop: 0,
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '12px 18px',
+    borderRadius: t.radius.pill,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    color: t.brand.onInk,
+    fontWeight: 700,
+    fontSize: '0.92rem',
+    cursor: 'pointer',
+    border: '1px solid rgba(255,255,255,0.18)',
+    fontFamily: 'inherit',
+    transition: 'transform .15s ease, background-color .15s ease',
+    ':hover': {
+      transform: 'translateY(-1px)',
+      backgroundColor: 'rgba(255,255,255,0.13)',
     },
   },
   voiceButton: {
@@ -556,6 +580,38 @@ const useStyles = makeStyles({
     ':hover': {
       backgroundColor: t.brand.lineSoft,
     },
+  },
+  pathRowShell: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1fr) auto',
+    gap: '10px',
+    alignItems: 'stretch',
+    '@media (max-width: 640px)': { gridTemplateColumns: '1fr' },
+  },
+  openPracticeButton: {
+    appearance: 'none',
+    minWidth: '138px',
+    minHeight: '68px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    paddingRight: '14px',
+    paddingLeft: '14px',
+    borderRadius: t.radius.md,
+    border: `1px solid ${t.brand.ink}`,
+    backgroundColor: t.brand.ink,
+    color: t.brand.onInk,
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.82rem',
+    fontWeight: 850,
+    ':hover': { filter: 'brightness(1.06)' },
+  },
+  openPracticeIcon: {
+    width: '28px',
+    height: '28px',
+    flexShrink: 0,
   },
   pathIcon: {
     width: '40px',
@@ -1170,17 +1226,18 @@ const useStyles = makeStyles({
 
 type StudentLearningHomeProps = {
   studentId?: string | null
+  learnerTutorEnabled?: boolean
   /** When true, skip the Web Push permission prompt (kid role — needs parental consent). */
   pushConsentDeferred?: boolean
 }
 
-export default function StudentLearningHome({ studentId, pushConsentDeferred }: StudentLearningHomeProps) {
+export default function StudentLearningHome({
+  studentId,
+  learnerTutorEnabled = true,
+  pushConsentDeferred,
+}: StudentLearningHomeProps) {
   const styles = useStyles()
-  const [learnerSetup, setLearnerSetup] = useState<LearnerSetup>({
-    exam: examOptions[0],
-    year: yearOptions[0],
-    subject: subjectOptions[0],
-  })
+  const [learnerSetup, setLearnerSetup] = useLearnerSetup()
   const [activeSkill, setActiveSkill] = useState<string | null>(null)
   const [panelKey, setPanelKey] = useState(0)
   const [checkInActive, setCheckInActive] = useState(false)
@@ -1193,6 +1250,8 @@ export default function StudentLearningHome({ studentId, pushConsentDeferred }: 
   const [adaptiveMoment, setAdaptiveMoment] = useState<AdaptiveMoment | null>(null)
   const [demoVoiceBusy, setDemoVoiceBusy] = useState(false)
   const [practiceAnswer, setPracticeAnswer] = useState<PracticeAnswer | null>(null)
+  const [practiceOpen, setPracticeOpen] = useState(false)
+  const [tutorOpen, setTutorOpen] = useState(false)
   const [expandedStepId, setExpandedStepId] = useState<string | null>(null)
   const [wrongAnswerExplanation, setWrongAnswerExplanation] = useState<WrongAnswerExplanation | null>(null)
   const [revisionPlanAdded, setRevisionPlanAdded] = useState(false)
@@ -1206,6 +1265,7 @@ export default function StudentLearningHome({ studentId, pushConsentDeferred }: 
   const [voiceResult, setVoiceResult] = useState<VoiceFrameResponse | null>(null)
   const [voiceError, setVoiceError] = useState<string | null>(null)
   const [voiceBusy, setVoiceBusy] = useState(false)
+  const [lastSession, setLastSession] = useState<{ topicLabel: string; correct: boolean } | null>(null)
   const today = new Date('2026-05-21')
   const formatted = today.toLocaleDateString('en-GB', {
     weekday: 'long',
@@ -1224,6 +1284,25 @@ export default function StudentLearningHome({ studentId, pushConsentDeferred }: 
       })
     return () => {
       cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    try {
+      const demoRaw = window.localStorage.getItem('pathfinder-demo-diagnostic:last')
+      if (demoRaw) {
+        const parsed = JSON.parse(demoRaw) as { answers?: Array<{ stepId?: string; correct?: boolean }> }
+        const answers = Array.isArray(parsed.answers) ? parsed.answers : []
+        const lastAnswered = [...answers].reverse().find(a => a && typeof a.stepId === 'string')
+        if (lastAnswered) {
+          const step = demoDiagnosticSteps.find(s => s.id === lastAnswered.stepId)
+          if (step) {
+            setLastSession({ topicLabel: step.title, correct: Boolean(lastAnswered.correct) })
+          }
+        }
+      }
+    } catch {
+      // Hydration is best-effort; fall back to default first-time copy.
     }
   }, [])
 
@@ -1375,7 +1454,7 @@ export default function StudentLearningHome({ studentId, pushConsentDeferred }: 
   }
 
   function updateLearnerSetup(field: keyof LearnerSetup, value: string) {
-    setLearnerSetup(current => ({ ...current, [field]: value }))
+    setLearnerSetup({ [field]: value })
   }
 
   async function addWeaknessToPlan() {
@@ -1454,11 +1533,29 @@ export default function StudentLearningHome({ studentId, pushConsentDeferred }: 
         <article className={styles.hero}>
           <span className={styles.heroEyebrow}>
             <SparklesIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
-            {formatted}
+            Pathfinder · ready when you are · {formatted}
           </span>
-          <h1 className={styles.heroTitle}>Hi, let's keep your streak going.</h1>
-          <p className={styles.heroSub}>
-            Your {learnerSetup.exam} {learnerSetup.subject} path is 42% mastered.
+          <h1 className={styles.heroTitle} data-testid="learner-hero-title">
+            {learnerSetup.firstName.trim()
+              ? `Hey ${learnerSetup.firstName.trim()} 👋 — back for another go?`
+              : 'Hey there 👋 — ready when you are.'}
+          </h1>
+          <p className={styles.heroSub} data-testid="learner-hero-sub">
+            {(() => {
+              const name = learnerSetup.firstName.trim()
+              if (name && lastSession) {
+                const verb = lastSession.correct ? 'nailed' : 'wrestled with'
+                const tail = lastSession.correct
+                  ? 'Want to push a level up, or warm up first?'
+                  : 'Want 3 quick minutes on that, or shall I pick something fresh?'
+                return `Last time we ${verb} ${lastSession.topicLabel.toLowerCase()}. ${tail} 😉`
+              }
+              if (name) {
+                return `Last time we wrestled with ${weakTopicProfile[0].label.toLowerCase()} and almost cracked it. Want 3 quick minutes on that, or shall I pick something fresh? 😉`
+              }
+              return `Tell me your name and I’ll remember where we left off. For now — want to crack a super-mathy ${learnerSetup.subject.toLowerCase()} goal together? 😉`
+            })()}
+            {' '}Your {learnerSetup.exam} {learnerSetup.subject} path is 42% mastered.
           </p>
           <div className={styles.heroPills}>
             <span className={styles.heroPill}>
@@ -1469,20 +1566,31 @@ export default function StudentLearningHome({ studentId, pushConsentDeferred }: 
               <WifiIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
               Works offline
             </span>
-            <span className={styles.heroPill}>English · Yoruba voice</span>
             <span className={styles.heroPill}>{learnerSetup.year} · {learnerSetup.subject}</span>
-            <span className={styles.heroPill}>Free for now · no payment step</span>
           </div>
-          <button
-            type="button"
-            className={styles.heroCta}
-            onClick={startDemoDiagnostic}
-            data-testid="start-checkin"
-          >
-            <PlayCircleIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
-            Start 5-step demo
-            <ArrowRightIcon style={{ width: 16, height: 16 }} aria-hidden="true" />
-          </button>
+          <div className={styles.heroActions}>
+            <button
+              type="button"
+              className={styles.heroCta}
+              onClick={startDemoDiagnostic}
+              data-testid="start-checkin"
+            >
+              <PlayCircleIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+              Pick up where we left off
+              <ArrowRightIcon style={{ width: 16, height: 16 }} aria-hidden="true" />
+            </button>
+            {learnerTutorEnabled ? (
+              <button
+                type="button"
+                className={styles.heroSecondaryCta}
+                onClick={() => setTutorOpen(true)}
+                data-testid="start-learner-tutor"
+              >
+                <MicrophoneIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+                Talk to your tutor
+              </button>
+            ) : null}
+          </div>
           {voiceConfig?.enabled && (
             <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
               <button
@@ -1516,9 +1624,21 @@ export default function StudentLearningHome({ studentId, pushConsentDeferred }: 
                 Select exam, class/year, and subject before the short diagnostic starts.
               </p>
             </div>
-            <span className={styles.softBadge}>B2C free launch</span>
           </div>
           <div className={styles.setupGrid}>
+            <label className={styles.selectField}>
+              <span className={styles.selectLabel}>Your name (optional)</span>
+              <input
+                className={styles.select}
+                type="text"
+                value={learnerSetup.firstName}
+                onChange={event => updateLearnerSetup('firstName', event.currentTarget.value)}
+                placeholder="e.g. Tomi"
+                aria-label="Your first name"
+                maxLength={40}
+                data-testid="learner-first-name"
+              />
+            </label>
             <label className={styles.selectField}>
               <span className={styles.selectLabel}>Exam</span>
               <select
@@ -1782,33 +1902,45 @@ export default function StudentLearningHome({ studentId, pushConsentDeferred }: 
               const isExpanded = expandedStepId === item.id
               return (
                 <div key={item.id}>
-                  <button
-                    type="button"
-                    className={styles.pathRow}
-                    style={{ textAlign: 'left', font: 'inherit' }}
-                    onClick={() => {
-                      setExpandedStepId(prev => (prev === item.id ? null : item.id))
-                      startCheckIn(item.skillId)
-                    }}
-                    data-testid={`path-row-${item.id}`}
-                    aria-expanded={isExpanded}
-                  >
-                    <div className={styles.pathIcon} aria-hidden="true">
-                      <PlayCircleIcon style={{ width: 20, height: 20 }} />
-                    </div>
-                    <div className={styles.pathTitle}>
-                      <span className={styles.pathTitleText}>{item.title}</span>
-                      <span className={styles.pathMeta}>{item.meta}</span>
-                    </div>
-                    <span className={styles.minutes}>
-                      <ClockIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
-                      {item.minutes} min
-                    </span>
-                    <ChevronRightIcon
-                      style={{ width: 18, height: 18, color: t.brand.textTertiary }}
-                      aria-hidden="true"
-                    />
-                  </button>
+                  <div className={styles.pathRowShell}>
+                    <button
+                      type="button"
+                      className={styles.pathRow}
+                      style={{ textAlign: 'left', font: 'inherit' }}
+                      onClick={() => {
+                        setExpandedStepId(prev => (prev === item.id ? null : item.id))
+                        startCheckIn(item.skillId)
+                      }}
+                      data-testid={`path-row-${item.id}`}
+                      aria-expanded={isExpanded}
+                    >
+                      <div className={styles.pathIcon} aria-hidden="true">
+                        <PlayCircleIcon style={{ width: 20, height: 20 }} />
+                      </div>
+                      <div className={styles.pathTitle}>
+                        <span className={styles.pathTitleText}>{item.title}</span>
+                        <span className={styles.pathMeta}>{item.meta}</span>
+                      </div>
+                      <span className={styles.minutes}>
+                        <ClockIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
+                        {item.minutes} min
+                      </span>
+                      <ChevronRightIcon
+                        style={{ width: 18, height: 18, color: t.brand.textTertiary }}
+                        aria-hidden="true"
+                      />
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.openPracticeButton}
+                      onClick={() => setPracticeOpen(true)}
+                      aria-label={`Open practice: ${item.title}`}
+                      data-testid={`open-practice-${item.id}`}
+                    >
+                      <PlayCircleIcon className={styles.openPracticeIcon} aria-hidden="true" />
+                      <span>Open practice</span>
+                    </button>
+                  </div>
                   {isExpanded && (
                     <div className={styles.practiceCard} data-testid="today-step-mcq">
                       <div className={styles.demoHeader}>
@@ -1949,6 +2081,28 @@ export default function StudentLearningHome({ studentId, pushConsentDeferred }: 
           </p>
         </article>
       </aside>
+
+      {practiceOpen && (
+        <PracticeFullscreen
+          open={practiceOpen}
+          onClose={() => setPracticeOpen(false)}
+          childId={studentId ?? 'demo-student'}
+          exam={learnerSetup.exam}
+          classYear={learnerSetup.year}
+          subject={learnerSetup.subject}
+        />
+      )}
+
+      {learnerTutorEnabled && tutorOpen && (
+        <LearnerTutorFullscreen
+          open={tutorOpen}
+          onClose={() => setTutorOpen(false)}
+          childId={studentId ?? 'demo-student'}
+          exam={learnerSetup.exam}
+          classYear={learnerSetup.year}
+          subject={learnerSetup.subject}
+        />
+      )}
 
       {wrongAnswerExplanation && (
         <div className={styles.modalBackdrop} role="presentation" data-testid="wrong-answer-modal-backdrop">

@@ -743,6 +743,9 @@ export interface LearnerVoiceTurnRequest {
   last_kind?: LearnerVoiceCardKind | null
   answer_option_id?: string | null
   advance?: boolean
+  exam?: string | null
+  class_year?: string | null
+  subject?: string | null
 }
 
 export interface LearnerVoiceTurnResponse {

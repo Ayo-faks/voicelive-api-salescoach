@@ -79,6 +79,7 @@ from src.learning.notifications import (
 )
 from src.learning.repository import InMemoryLearningRepository, LearningRepository
 from src.learning.skills import SkillCatalogueError, SkillsCatalogueService
+from src.learning.tts.routes import create_learning_tts_blueprint
 from src.learning.validator import (
     PlanValidator,
     catalogue_grounding_rule,
@@ -1771,6 +1772,9 @@ class LearningApi:
                 last_kind=payload.get("last_kind"),
                 answer_option_id=payload.get("answer_option_id"),
                 advance=bool(payload.get("advance") or False),
+                exam=payload.get("exam"),
+                class_year=payload.get("class_year"),
+                subject=payload.get("subject"),
             )
         except Exception as exc:  # pydantic validation
             raise LearningApiError(f"invalid voice turn: {exc}", status_code=400) from exc
@@ -2025,6 +2029,8 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
     """Register `/api/learning/*` routes on the given Flask app and return the API singleton."""
 
     learning_api = api or LearningApi()
+    if "learning_tts" not in app.blueprints:
+        app.register_blueprint(create_learning_tts_blueprint())
 
     decision_actions = {
         "approve_plan": "approved",

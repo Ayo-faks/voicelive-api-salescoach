@@ -20,9 +20,10 @@ import type { AppConfig, ChildProfile, InsightsScope } from '../types'
 import LearnerEmptyState from './components/LearnerEmptyState'
 import LearnerSelector from './components/LearnerSelector'
 import VoiceAgentFullscreen from './components/VoiceAgentFullscreen'
-import LearnerVoiceFullscreen from './components/LearnerVoiceFullscreen'
+import PracticeFullscreen from './components/PracticeFullscreen'
 import WelcomeRolePicker from './components/WelcomeRolePicker'
 import { storeSelectedLearnerId, useSelectedLearner } from './hooks/useSelectedLearner'
+import { useLearnerSetup } from './hooks/useLearnerSetup'
 import PathwaysExplorer from './routes/PathwaysExplorer'
 import SkillLibrary from './routes/SkillLibrary'
 import StudentLearningHome from './routes/StudentLearningHome'
@@ -795,12 +796,13 @@ export default function PathfinderLearnApp() {
     !!appConfig?.voice_agent_fullscreen_enabled &&
     (appConfig?.insights_voice_mode ?? 'off') !== 'off'
   const chatLauncherVisible = !!appConfig?.insights_rail_enabled
-  const learnerVoiceFullscreenEnabled =
+  const practiceFullscreenEnabled =
     !!appConfig?.learner_voice_fullscreen_enabled &&
     ['learner', 'kid', 'student'].includes(effectiveRole)
-  const [learnerVoiceOpen, setLearnerVoiceOpen] = useState(false)
-  const activeLearnerIdForVoice =
+  const [practiceOpen, setPracticeOpen] = useState(false)
+  const activeLearnerIdForPractice =
     selectedLearnerId ?? learnerChildren?.[0]?.id ?? null
+  const [learnerSetup] = useLearnerSetup()
 
   useEffect(() => {
     let cancelled = false
@@ -908,6 +910,7 @@ export default function PathfinderLearnApp() {
         <StudentLearningHome
           key={activeLearnerId ?? 'no-learner'}
           studentId={activeLearnerId}
+          learnerTutorEnabled={['learner', 'kid', 'student'].includes(effectiveRole)}
           pushConsentDeferred={effectiveRole === 'kid'}
         />
       </>
@@ -1093,22 +1096,25 @@ export default function PathfinderLearnApp() {
             <AskPathfinder />
           </LearnerContext.Provider>
         )}
-        {learnerVoiceFullscreenEnabled && activeLearnerIdForVoice && !learnerVoiceOpen && (
+        {practiceFullscreenEnabled && activeLearnerIdForPractice && !practiceOpen && (
           <button
             type="button"
             className={styles.voiceLauncher}
-            onClick={() => setLearnerVoiceOpen(true)}
-            aria-label="Open Pathfinder voice tutor"
-            data-testid="learner-voice-launcher"
+            onClick={() => setPracticeOpen(true)}
+            aria-label="Open Pathfinder practice"
+            data-testid="practice-launcher"
           >
-            <MicrophoneIcon className={styles.voiceLauncherGlyph} aria-hidden="true" />
+            <BookOpenIcon className={styles.voiceLauncherGlyph} aria-hidden="true" />
           </button>
         )}
-        {learnerVoiceFullscreenEnabled && activeLearnerIdForVoice && (
-          <LearnerVoiceFullscreen
-            open={learnerVoiceOpen}
-            onClose={() => setLearnerVoiceOpen(false)}
-            childId={activeLearnerIdForVoice}
+        {practiceFullscreenEnabled && activeLearnerIdForPractice && practiceOpen && (
+          <PracticeFullscreen
+            open={practiceOpen}
+            onClose={() => setPracticeOpen(false)}
+            childId={activeLearnerIdForPractice}
+            exam={learnerSetup.exam}
+            classYear={learnerSetup.year}
+            subject={learnerSetup.subject}
           />
         )}
         {voiceLauncherVisible && !voiceOpen && (

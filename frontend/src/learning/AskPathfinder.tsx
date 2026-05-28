@@ -155,7 +155,12 @@ const useStyles = makeStyles({
     minHeight: '36px',
     maxHeight: '120px',
     outline: 'none',
-    ':focus': { borderColor: 'rgba(255,255,255,0.18)' },
+    ':focus': {
+      borderTopColor: 'rgba(255,255,255,0.18)',
+      borderRightColor: 'rgba(255,255,255,0.18)',
+      borderBottomColor: 'rgba(255,255,255,0.18)',
+      borderLeftColor: 'rgba(255,255,255,0.18)',
+    },
   },
   iconBtn: {
     width: '36px',

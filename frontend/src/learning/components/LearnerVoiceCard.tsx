@@ -1,8 +1,3 @@
-/**
- * Card renderer for the learner fullscreen voice surface. Switches on
- * the `kind` discriminator and draws each variant with tap targets that
- * also work without voice.
- */
 import { makeStyles } from '@fluentui/react-components'
 import type { LearnerVoiceCard } from '../api'
 
@@ -127,7 +122,7 @@ export function LearnerVoiceCardRenderer({
   return (
     <article
       className={styles.card}
-      data-testid="learner-voice-card"
+      data-testid="practice-card"
       data-card-kind={card.kind}
       data-card-id={card.card_id}
     >
@@ -141,7 +136,7 @@ export function LearnerVoiceCardRenderer({
             className={styles.primaryAction}
             onClick={onAdvance}
             disabled={disabled}
-            data-testid="learner-voice-advance"
+            data-testid="practice-advance"
           >
             Start
           </button>
@@ -158,7 +153,7 @@ export function LearnerVoiceCardRenderer({
                 className={styles.option}
                 disabled={disabled}
                 onClick={() => onMcqAnswer(option.id)}
-                data-testid={`learner-voice-option-${option.id}`}
+                data-testid={`practice-option-${option.id}`}
               >
                 <span className={styles.optionLabel}>{option.label}</span>
                 <span>{option.text}</span>
@@ -180,7 +175,7 @@ export function LearnerVoiceCardRenderer({
             className={styles.primaryAction}
             onClick={onAdvance}
             disabled={disabled}
-            data-testid="learner-voice-advance"
+            data-testid="practice-advance"
           >
             {card.next_action_label}
           </button>
@@ -196,7 +191,7 @@ export function LearnerVoiceCardRenderer({
             className={styles.primaryAction}
             onClick={sessionComplete ? onFinish : onAdvance}
             disabled={disabled}
-            data-testid="learner-voice-advance"
+            data-testid="practice-advance"
           >
             {sessionComplete ? 'Done' : 'Keep going'}
           </button>
@@ -210,7 +205,7 @@ export function LearnerVoiceCardRenderer({
             className={styles.primaryAction}
             onClick={onAdvance}
             disabled={disabled}
-            data-testid="learner-voice-advance"
+            data-testid="practice-advance"
           >
             {card.confirm_label}
           </button>

@@ -1,27 +1,26 @@
-/**
- * LearnerVoiceFullscreen — fullscreen voice + gen-UI surface for learners.
- *
- * Distinct from the therapist `VoiceAgentFullscreen`, which is role-locked
- * to clinicians and talks to the caseload-scoped insights websocket. This
- * surface renders the learner card vocabulary (`mcq-tap`, `explanation`,
- * `progress`, `mark-known`) returned by `/api/learning/voice/turn`. Phase
- * 2.0 ships the tap path with a disabled mic; the realtime transport
- * lands in phase 2.1 behind the same feature flag.
- */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { makeStyles, mergeClasses } from '@fluentui/react-components'
-import { MicrophoneIcon, XMarkIcon } from '@heroicons/react/24/solid'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { makeStyles } from '@fluentui/react-components'
+import { XMarkIcon } from '@heroicons/react/24/solid'
 import {
   runLearnerVoiceTurn,
   type LearnerVoiceCard,
   type LearnerVoiceTurnRequest,
 } from '../api'
+import { useTtsPlayer } from '../hooks/useTtsPlayer'
+import LearnerTutorFullscreen from './LearnerTutorFullscreen'
 import { LearnerVoiceCardRenderer } from './LearnerVoiceCard'
 
 const useStyles = makeStyles({
   scrim: {
     position: 'fixed',
     inset: 0,
+    width: '100%',
+    maxWidth: 'none',
+    height: '100%',
+    maxHeight: 'none',
+    margin: 0,
+    padding: 0,
+    border: 0,
     zIndex: 80,
     background: 'radial-gradient(ellipse at top, #1a1a1d 0%, #050507 70%)',
     color: '#f4f4f6',
@@ -69,6 +68,25 @@ const useStyles = makeStyles({
     color: 'rgba(255,255,255,0.55)',
     minHeight: '18px',
   },
+  statusRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '12px',
+    flexWrap: 'wrap',
+  },
+  listenButton: {
+    minHeight: '36px',
+    padding: '0 14px',
+    borderRadius: '999px',
+    border: '1px solid rgba(255,255,255,0.16)',
+    background: 'rgba(255,255,255,0.08)',
+    color: '#f4f4f6',
+    cursor: 'pointer',
+    fontSize: '13px',
+    fontWeight: 700,
+    ':hover': { background: 'rgba(255,255,255,0.13)' },
+  },
   cardSlot: {
     width: 'min(640px, 100%)',
   },
@@ -79,21 +97,7 @@ const useStyles = makeStyles({
     gap: '12px',
     padding: '24px 24px 36px',
   },
-  micButton: {
-    width: '88px',
-    height: '88px',
-    borderRadius: '999px',
-    border: 'none',
-    color: '#ffffff',
-    cursor: 'not-allowed',
-    display: 'grid',
-    placeItems: 'center',
-    background: 'linear-gradient(160deg, #4a4a4d 0%, #0a0a0a 100%)',
-    boxShadow: '0 16px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.18)',
-    opacity: 0.55,
-  },
-  micGlyph: { width: '36px', height: '36px' },
-  micHint: {
+  footerHint: {
     fontSize: '12px',
     letterSpacing: '0.06em',
     textTransform: 'uppercase',
@@ -110,35 +114,49 @@ const useStyles = makeStyles({
   },
 })
 
-export interface LearnerVoiceFullscreenProps {
+export interface PracticeFullscreenProps {
   open: boolean
   onClose: () => void
   childId: string
   lang?: string
+  exam?: string
+  classYear?: string
+  subject?: string
 }
 
-export function LearnerVoiceFullscreen({
+export function PracticeFullscreen({
   open,
   onClose,
   childId,
   lang,
-}: LearnerVoiceFullscreenProps): JSX.Element | null {
+  exam,
+  classYear,
+  subject,
+}: PracticeFullscreenProps): JSX.Element | null {
   const styles = useStyles()
   const [card, setCard] = useState<LearnerVoiceCard | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sessionComplete, setSessionComplete] = useState(false)
-  const initializedRef = useRef(false)
+  const [tutorOpen, setTutorOpen] = useState(false)
+  const { supported: ttsSupported, playing: ttsPlaying, play, stop } = useTtsPlayer()
 
   const requestTurn = useCallback(
     async (
-      next: Omit<LearnerVoiceTurnRequest, 'child_id' | 'lang'>,
+      next: Omit<LearnerVoiceTurnRequest, 'child_id' | 'lang' | 'exam' | 'class_year' | 'subject'>,
     ) => {
       if (!childId) return
       setLoading(true)
       setError(null)
       try {
-        const response = await runLearnerVoiceTurn({ child_id: childId, lang, ...next })
+        const response = await runLearnerVoiceTurn({
+          child_id: childId,
+          lang,
+          exam: exam ?? null,
+          class_year: classYear ?? null,
+          subject: subject ?? null,
+          ...next,
+        })
         setCard(response.card)
         setSessionComplete(response.session_complete)
       } catch (err) {
@@ -147,32 +165,48 @@ export function LearnerVoiceFullscreen({
         setLoading(false)
       }
     },
-    [childId, lang],
+    [childId, lang, exam, classYear, subject],
   )
 
-  // Reset state when the surface opens; seed the first turn.
+  const handleClose = useCallback(() => {
+    stop()
+    setTutorOpen(false)
+    onClose()
+  }, [onClose, stop])
+
+  useEffect(() => {
+    if (!card?.card_id) return
+    stop()
+  }, [card?.card_id, stop])
+
+  // Reset state when the surface opens OR when the chosen taxonomy changes
+  // (taxonomy changes flow through `requestTurn`'s identity), so a new
+  // exam/class/subject pick starts a fresh walkthrough.
   useEffect(() => {
     if (!open) {
-      initializedRef.current = false
+      stop()
       setCard(null)
       setSessionComplete(false)
       setError(null)
+      setTutorOpen(false)
       return
     }
-    if (initializedRef.current) return
-    initializedRef.current = true
+    setCard(null)
+    setSessionComplete(false)
+    setError(null)
     void requestTurn({})
-  }, [open, requestTurn])
+  }, [open, requestTurn, stop])
 
-  // Close on Escape.
+  useEffect(() => () => stop(), [stop])
+
   useEffect(() => {
     if (!open) return
     const handler = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
+      if (event.key === 'Escape') handleClose()
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [open, onClose])
+  }, [open, handleClose])
 
   const handleMcqAnswer = useCallback(
     (optionId: string) => {
@@ -198,34 +232,57 @@ export function LearnerVoiceFullscreen({
   const statusText = useMemo(() => {
     if (loading) return 'Thinking…'
     if (sessionComplete) return 'All done for today.'
-    if (card) return 'Tap an answer or use the mic when it lights up.'
+    if (card) return 'Tap an answer to continue.'
     return ''
   }, [loading, sessionComplete, card])
+
+  const speakText = card?.speak?.trim() ?? ''
 
   if (!open) return null
 
   return (
-    <div
+    <dialog
+      open
       className={styles.scrim}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Pathfinder voice tutor"
-      data-testid="learner-voice-fullscreen"
+      aria-label="Pathfinder practice"
+      data-testid="practice-fullscreen"
     >
       <header className={styles.header}>
-        <span className={styles.headerTitle}>Pathfinder · voice tutor</span>
+        <span className={styles.headerTitle}>Pathfinder · practice</span>
         <button
           type="button"
           className={styles.closeBtn}
-          onClick={onClose}
-          aria-label="Close voice tutor"
-          data-testid="learner-voice-close"
+          onClick={handleClose}
+          aria-label="Close practice"
+          data-testid="practice-close"
         >
           <XMarkIcon className={styles.closeGlyph} aria-hidden="true" />
         </button>
       </header>
       <div className={styles.body}>
-        <div className={styles.status} aria-live="polite">{statusText}</div>
+        <div className={styles.statusRow}>
+          <div className={styles.status} aria-live="polite">{statusText}</div>
+          {speakText && ttsSupported ? (
+            <button
+              type="button"
+              className={styles.listenButton}
+              onClick={() => ttsPlaying ? stop() : void play(speakText)}
+              aria-label={ttsPlaying ? 'Stop' : 'Listen'}
+              data-testid="practice-listen"
+            >
+              {ttsPlaying ? 'Stop' : 'Listen 🔊'}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className={styles.listenButton}
+            onClick={() => setTutorOpen(true)}
+            aria-label="Talk to tutor"
+            data-testid="practice-talk"
+          >
+            🎙️ Talk to tutor
+          </button>
+        </div>
         {error ? (
           <div className={styles.errorBanner} role="alert">{error}</div>
         ) : null}
@@ -237,26 +294,26 @@ export function LearnerVoiceFullscreen({
               sessionComplete={sessionComplete}
               onMcqAnswer={handleMcqAnswer}
               onAdvance={handleAdvance}
-              onFinish={onClose}
+              onFinish={handleClose}
             />
           ) : null}
         </div>
       </div>
       <footer className={styles.footer}>
-        <button
-          type="button"
-          className={mergeClasses(styles.micButton)}
-          disabled
-          aria-disabled="true"
-          title="Voice input lands in phase 2.1"
-          data-testid="learner-voice-mic"
-        >
-          <MicrophoneIcon className={styles.micGlyph} aria-hidden="true" />
-        </button>
-        <span className={styles.micHint}>Voice coming next · tap to answer</span>
+        <span className={styles.footerHint}>Tap an option to answer · Tap 🔊 to hear it again</span>
       </footer>
-    </div>
+      {tutorOpen ? (
+        <LearnerTutorFullscreen
+          open={tutorOpen}
+          onClose={() => setTutorOpen(false)}
+          childId={childId}
+          exam={exam}
+          classYear={classYear}
+          subject={subject}
+        />
+      ) : null}
+    </dialog>
   )
 }
 
-export default LearnerVoiceFullscreen
+export default PracticeFullscreen

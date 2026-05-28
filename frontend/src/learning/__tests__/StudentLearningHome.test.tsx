@@ -1,5 +1,43 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+
+const practiceFullscreenMock = vi.hoisted(() => vi.fn())
+const learnerTutorMock = vi.hoisted(() => vi.fn())
+
+vi.mock('../components/PracticeFullscreen', () => ({
+  default: (props: {
+    open: boolean
+    childId: string
+    exam?: string
+    classYear?: string
+    subject?: string
+  }) => {
+    practiceFullscreenMock(props)
+    return props.open ? (
+      <div data-testid="practice-fullscreen-mock">
+        {props.childId} · {props.exam} · {props.classYear} · {props.subject}
+      </div>
+    ) : null
+  },
+}))
+
+vi.mock('../components/LearnerTutorFullscreen', () => ({
+  default: (props: {
+    open: boolean
+    childId: string
+    exam?: string
+    classYear?: string
+    subject?: string
+  }) => {
+    learnerTutorMock(props)
+    return props.open ? (
+      <div data-testid="learner-tutor-mock">
+        {props.childId} · {props.exam} · {props.classYear} · {props.subject}
+      </div>
+    ) : null
+  },
+}))
+
 import StudentLearningHome from '../routes/StudentLearningHome'
 
 function jsonResponse(body: unknown): Response {
@@ -30,6 +68,8 @@ function mockVoiceConfig() {
 
 afterEach(() => {
   window.localStorage.clear()
+  practiceFullscreenMock.mockClear()
+  learnerTutorMock.mockClear()
   vi.restoreAllMocks()
 })
 
@@ -47,10 +87,12 @@ describe('StudentLearningHome', () => {
     })
 
     expect(screen.getByTestId('b2c-learner-setup')).toBeTruthy()
-    expect(screen.getByText("Hi, let's keep your streak going.")).toBeTruthy()
+    expect(screen.getByText('Hey there 👋 — ready when you are.')).toBeTruthy()
     expect(screen.queryByText(/Tobi/i)).toBeNull()
-    expect(screen.getByText('B2C free launch')).toBeTruthy()
-    expect(screen.getByText('Free for now · no payment step')).toBeTruthy()
+
+    fireEvent.change(screen.getByLabelText('Your first name'), { target: { value: 'Tomi' } })
+    expect(screen.getByText(/Hey Tomi/)).toBeTruthy()
+    expect(screen.getByText(/Last time we wrestled with ratio and proportion/i)).toBeTruthy()
 
     fireEvent.change(screen.getByLabelText('Select exam'), { target: { value: 'NECO' } })
     fireEvent.change(screen.getByLabelText('Select class or year'), { target: { value: 'SSS3' } })
@@ -92,7 +134,7 @@ describe('StudentLearningHome', () => {
     expect(screen.getByTestId('offline-ready-pill')).toBeTruthy()
     expect(screen.getByText('Works offline')).toBeTruthy()
 
-    fireEvent.click(screen.getByRole('button', { name: /Start 5-step demo/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Pick up where we left off/i }))
 
     expect(screen.getByTestId('short-demo-diagnostic')).toBeTruthy()
     expect(screen.getByText('3-5 minute demo diagnostic')).toBeTruthy()
@@ -142,7 +184,7 @@ describe('StudentLearningHome', () => {
       )
     })
 
-    fireEvent.click(screen.getByRole('button', { name: /Start 5-step demo/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Pick up where we left off/i }))
     fireEvent.click(screen.getByRole('button', { name: /^4 cups/i }))
 
     expect(screen.getByTestId('adaptive-moment')).toBeTruthy()
@@ -202,6 +244,62 @@ describe('StudentLearningHome', () => {
     const saved = window.localStorage.getItem('pathfinder-practice-loop:last')
     expect(saved).toContain('plan-jss2-ratio-recovery')
     expect(saved).toContain('spacedRetrieval')
+  })
+
+  it("opens PracticeFullscreen from a Today's-path card", async () => {
+    mockVoiceConfig()
+
+    render(<StudentLearningHome studentId="student-001" />)
+
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        '/api/learning/voice/config',
+        expect.objectContaining({ method: 'GET' })
+      )
+    })
+
+    fireEvent.change(screen.getByLabelText('Select exam'), { target: { value: 'JAMB' } })
+    fireEvent.change(screen.getByLabelText('Select class or year'), { target: { value: 'JSS2' } })
+    fireEvent.change(screen.getByLabelText('Select subject'), { target: { value: 'Mathematics' } })
+    fireEvent.click(screen.getByRole('button', { name: /Open practice: Ratio mini check-in/i }))
+
+    expect(await screen.findByTestId('practice-fullscreen-mock')).toBeTruthy()
+    const lastProps = practiceFullscreenMock.mock.calls[practiceFullscreenMock.mock.calls.length - 1]?.[0]
+    expect(lastProps).toEqual(expect.objectContaining({
+      open: true,
+      childId: 'student-001',
+      exam: 'JAMB',
+      classYear: 'JSS2',
+      subject: 'Mathematics',
+    }))
+  })
+
+  it('opens the learner tutor from the hero CTA with the selected taxonomy', async () => {
+    mockVoiceConfig()
+
+    render(<StudentLearningHome studentId="student-001" />)
+
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        '/api/learning/voice/config',
+        expect.objectContaining({ method: 'GET' })
+      )
+    })
+
+    fireEvent.change(screen.getByLabelText('Select exam'), { target: { value: 'WAEC' } })
+    fireEvent.change(screen.getByLabelText('Select class or year'), { target: { value: 'SSS2' } })
+    fireEvent.change(screen.getByLabelText('Select subject'), { target: { value: 'Mathematics' } })
+    fireEvent.click(screen.getByRole('button', { name: /Talk to your tutor/i }))
+
+    expect(await screen.findByTestId('learner-tutor-mock')).toBeTruthy()
+    const lastProps = learnerTutorMock.mock.calls[learnerTutorMock.mock.calls.length - 1]?.[0]
+    expect(lastProps).toEqual(expect.objectContaining({
+      open: true,
+      childId: 'student-001',
+      exam: 'WAEC',
+      classYear: 'SSS2',
+      subject: 'Mathematics',
+    }))
   })
 
   it('no longer renders the standalone Career Navigator card', () => {

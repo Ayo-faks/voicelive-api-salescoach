@@ -226,9 +226,17 @@ PATHFINDER_LEARN_CLASS_IDS = {
     "class-ss3-a",
 }
 LEARNING_LEARNER_ROLES = {ROLE_PARENT, ROLE_LEARNER, ROLE_KID, ROLE_STUDENT}
+LEARNER_VOICE_SCOPE_ROLES = {ROLE_LEARNER, ROLE_KID, ROLE_STUDENT, ROLE_THERAPIST, ROLE_ADMIN}
 _RATE_LIMIT_STATE: dict[tuple[str, str], list[float]] = defaultdict(list)
 _RATE_LIMIT_LOCK = threading.Lock()
 _LEARNING_TEACHER_SCOPE_EMPTY_WARNED: set[tuple[str, str]] = set()
+
+
+def _is_voice_scope_allowed_for_role(scope: str, role: str) -> bool:
+    normalized_scope = (scope or "practice").strip().lower() or "practice"
+    if normalized_scope != "learner":
+        return True
+    return role in LEARNER_VOICE_SCOPE_ROLES
 
 
 def _normalize_origin(value: str) -> str:
@@ -4573,9 +4581,17 @@ def voice_proxy(ws: simple_websocket.ws.Server):
         "X-MS-CLIENT-PRINCIPAL-EMAIL": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_EMAIL", ""),
     }
 
-    if _get_authenticated_user_from_headers(ws_headers) is None:
+    user = _get_authenticated_user_from_headers(ws_headers)
+    if user is None:
         logger.warning("Rejected unauthenticated WebSocket connection")
         ws.close()
+        return
+
+    query = parse_qs(str(environ.get("QUERY_STRING") or ""), keep_blank_values=False)
+    scope = str((query.get("scope") or ["practice"])[0] or "practice").strip().lower() or "practice"
+    if not _is_voice_scope_allowed_for_role(scope, str(user.get("role") or "")):
+        logger.warning("Rejected learner VoiceLive WebSocket connection for role %s", user.get("role"))
+        ws.close(4403, "voice_learner_forbidden")
         return
 
     try:
