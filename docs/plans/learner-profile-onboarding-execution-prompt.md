@@ -21,7 +21,8 @@ You are continuing implementation work on the Pathfinder Learn platform. The ful
 2. **Branch:** create `feat/pathfinder-learner-profile-onboarding` off `feat/pathfinder-learner-voicelive` before any edit.
 3. **Flag-gated:** all behavior change sits behind `PATHFINDER_LEARNER_ONBOARDING_ENABLED` (backend) / `VITE_PATHFINDER_LEARNER_ONBOARDING_ENABLED` (frontend). Default **off**. Backend endpoints return 404 when off. Frontend falls through to existing `useLearnerSetup` behavior when off.
 4. **No new npm packages.** Do not add `vanilla-cookieconsent` or any other dependency.
-5. **Tests must pass before each PR.** Verification commands are in the plan per slice. Run them and paste the green output in the PR description.
+5. **Tests must pass before each PR.** Verification commands are in the plan per slice. Run Vitest + Pytest for the slice, and the new Playwright spec(s) added in Slices 2–3. Paste the green output in the PR description.
+6. **Playwright role override.** The global `playwright.config.ts` launches Flask with `LOCAL_DEV_USER_ROLE=admin`. Do **not** change the global default. New learner specs override the role per-test via `page.route('**/api/auth/session', ...)`, matching the pattern in `pathfinder-account.spec.ts` and `onboarding-tours.spec.ts`.
 6. **Do not touch:** `parental_consents` table, therapist flow, parent/teacher profile shape, the existing role-picker behavior (the new gate runs *after* `WelcomeRolePicker`).
 7. **Code style:** follow existing patterns in `app.py` for routes (CSRF + auth decorators), existing patterns in `storage_postgres.py` for SQL, existing patterns in `frontend/src/onboarding/tours.ts` for tour definitions.
 8. **Do not write new markdown docs** unless explicitly requested. The plan markdown already exists.

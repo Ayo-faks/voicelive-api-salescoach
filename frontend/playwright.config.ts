@@ -13,6 +13,7 @@ const webServerCommand =
   `LOCAL_DEV_USER_EMAIL=dev-admin@localhost ` +
   `INSIGHTS_RAIL_ENABLED=true ` +
   `INSIGHTS_VOICE_MODE=push_to_talk ` +
+  `VITE_PATHFINDER_LEARNER_ONBOARDING_ENABLED=true ` +
   `../scripts/start-local.sh`
 
 export default defineConfig({

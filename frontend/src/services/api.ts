@@ -89,6 +89,9 @@ export interface LearnerProfile {
   interests?: string[]
   guardian_email?: string
   guardian_relationship?: string
+  career_consent?: boolean
+  analytics_consent?: boolean
+  tour_seen_at?: string | null
   [key: string]: unknown
 }
 

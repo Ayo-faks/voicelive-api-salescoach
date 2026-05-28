@@ -5,11 +5,7 @@
 
 import { describe, it, expect } from 'vitest'
 
-import {
-  evaluateChecklist,
-  CHECKLIST_ITEMS,
-  type AppSnapshot,
-} from './checklist'
+import { evaluateChecklist, type AppSnapshot } from './checklist'
 
 const emptySnapshot: AppSnapshot = {
   hasChildren: false,
@@ -22,7 +18,7 @@ const emptySnapshot: AppSnapshot = {
 describe('evaluateChecklist', () => {
   it('filters items by role when role gate is set', () => {
     const parentRows = evaluateChecklist(emptySnapshot, 'parent', undefined)
-    // All items are gated to therapist|admin currently, so parent sees none.
+    // No items are gated to parent currently, so parent sees none.
     expect(parentRows).toHaveLength(0)
 
     const therapistRows = evaluateChecklist(
@@ -30,7 +26,22 @@ describe('evaluateChecklist', () => {
       'therapist',
       undefined
     )
-    expect(therapistRows.length).toBe(CHECKLIST_ITEMS.length)
+    // Therapist sees the legacy 5 items, none of the learner ones.
+    expect(therapistRows.length).toBe(5)
+    expect(
+      therapistRows.every(r => r.item.id.startsWith('learner-') === false)
+    ).toBe(true)
+  })
+
+  it('shows the learner-role items to learners only', () => {
+    const learnerRows = evaluateChecklist(emptySnapshot, 'learner', undefined)
+    const ids = learnerRows.map(r => r.item.id)
+    expect(ids).toEqual([
+      'learner-welcome-tour',
+      'learner-first-checkin',
+      'learner-try-revision',
+      'learner-try-voice-tutor',
+    ])
   })
 
   it('marks items completed when predicate returns true', () => {
