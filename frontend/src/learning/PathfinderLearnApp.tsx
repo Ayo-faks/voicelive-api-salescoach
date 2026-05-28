@@ -76,8 +76,7 @@ const navItems: NavItem[] = [
   { to: '/safety', label: 'Trust & Safety', hint: 'Console', icon: ShieldCheckIcon, allowedRoles: ['admin'] },
 ]
 
-const PATHFINDER_CHAT_SCOPE_FALLBACK: InsightsScope = { type: 'caseload' }
-const LEARNER_ROLES = ['learner', 'kid', 'student']
+const PATHFINDER_CHAT_SCOPE: InsightsScope = { type: 'caseload' }
 
 const accountActions: AccountAction[] = [
   { href: '/profile', label: 'Learning profile', icon: UserCircleIcon, testId: 'account-action-profile' },
@@ -788,20 +787,11 @@ export default function PathfinderLearnApp() {
   const [authSession, setAuthSession] = useState<AuthSession | null>(null)
   const { selectedLearnerId, setSelectedLearnerId } = useSelectedLearner(learnerChildren ?? [])
   const effectiveRole = learningRole === 'loading' ? 'learner' : learningRole
-  const isLearnerRole = LEARNER_ROLES.includes(effectiveRole)
-  const activeLearnerIdForScope = selectedLearnerId ?? learnerChildren?.[0]?.id ?? null
-  // For learner/kid/student sessions, scope the assistant rail to the learner's
-  // own child id so the backend RLS path returns only their data. Admin /
-  // parent / teacher sessions fall back to the caseload scope they already use.
-  const pathfinderChatScope: InsightsScope = isLearnerRole && activeLearnerIdForScope
-    ? { type: 'child', child_id: activeLearnerIdForScope }
-    : PATHFINDER_CHAT_SCOPE_FALLBACK
   const visibleNavItems = learningRole === 'loading' ? [] : navItemsForRole(effectiveRole)
   const voiceLauncherVisible =
-    isLearnerRole ||
-    (!!appConfig?.voice_agent_fullscreen_enabled &&
-      (appConfig?.insights_voice_mode ?? 'off') !== 'off')
-  const chatLauncherVisible = isLearnerRole || !!appConfig?.insights_rail_enabled
+    !!appConfig?.voice_agent_fullscreen_enabled &&
+    (appConfig?.insights_voice_mode ?? 'off') !== 'off'
+  const chatLauncherVisible = !!appConfig?.insights_rail_enabled
 
   useEffect(() => {
     let cancelled = false
@@ -1135,7 +1125,7 @@ export default function PathfinderLearnApp() {
             </header>
             <div className={styles.chatPanelBody}>
               <InsightsRail
-                currentScope={pathfinderChatScope}
+                currentScope={PATHFINDER_CHAT_SCOPE}
                 mode={chatExpanded ? 'full' : 'normal'}
                 onModeChange={next => {
                   if (next === 'collapsed') closeChatPanel()

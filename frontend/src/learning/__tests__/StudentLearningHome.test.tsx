@@ -204,10 +204,40 @@ describe('StudentLearningHome', () => {
     expect(saved).toContain('spacedRetrieval')
   })
 
-  it('no longer renders the standalone Career Navigator card', () => {
+  it('answers a doctor and chemistry career question without promising outcomes', async () => {
     mockVoiceConfig()
+
     render(<StudentLearningHome studentId="student-001" />)
-    expect(screen.queryByTestId('career-navigation-moment')).toBeNull()
-    expect(screen.queryByTestId('career-navigation-answer')).toBeNull()
+
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        '/api/learning/voice/config',
+        expect.objectContaining({ method: 'GET' })
+      )
+    })
+
+    expect(screen.getByTestId('career-navigation-moment')).toBeTruthy()
+    expect(screen.getByLabelText('Career question')).toHaveProperty(
+      'value',
+      "Can I still become a doctor if I'm weak in chemistry?"
+    )
+    expect(screen.getByRole('button', { name: /Ask by voice/i })).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: /Ask by text/i }))
+
+    expect(screen.getByTestId('career-navigation-answer')).toBeTruthy()
+    expect(screen.getByText('No outcome guarantee')).toBeTruthy()
+    expect(screen.getByText('Can I still become a doctor?')).toBeTruthy()
+    expect(screen.getByText(/should not promise an outcome/i)).toBeTruthy()
+    expect(screen.getByText('What is realistic')).toBeTruthy()
+    expect(screen.getByText('What needs work')).toBeTruthy()
+    expect(screen.getByText('What alternatives exist')).toBeTruthy()
+    expect(screen.getByText(/nursing, pharmacy technology, medical laboratory science/i)).toBeTruthy()
+    expect(screen.getByText('Grounded in science-subject requirements')).toBeTruthy()
+    expect(screen.getByText('Counsellor review recommended for career decisions')).toBeTruthy()
+
+    const saved = window.localStorage.getItem('pathfinder-career-navigation:last')
+    expect(saved).toContain('doctor')
+    expect(saved).toContain('chemistry')
   })
 })
