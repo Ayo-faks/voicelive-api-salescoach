@@ -56,6 +56,7 @@ describe("W2 grounding contract — frontend mirror", () => {
   });
 
   it("rejects an explanation missing wiki_citations entirely", () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { wiki_citations: _drop, ...partial } = validExplanation;
     expect(() => parseExplanationResult(partial)).toThrow(ContractError);
   });

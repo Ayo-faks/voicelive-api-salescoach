@@ -1099,7 +1099,8 @@ export default function TeacherMasteryDashboard() {
         ? fixturePendingPlan
         : null
   const profileEntryStudent = visibleRows[0]
-  const pendingApprovalCount = pendingPlans.length > 0
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _pendingApprovalCount = pendingPlans.length > 0
     ? pendingPlans.length
     : approvalQueueState === 'offline' && selectedClass.classId === 'class-jss2-a'
       ? 1

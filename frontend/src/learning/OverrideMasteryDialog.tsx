@@ -145,7 +145,7 @@ export type OverrideMasteryDialogProps = {
 
 export function OverrideMasteryDialog({
   open,
-  studentId,
+  studentId: _studentId,
   skill,
   onClose,
   onSubmit,

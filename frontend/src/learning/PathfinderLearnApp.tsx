@@ -97,7 +97,10 @@ const navItems: NavItem[] = [
 
 const PATHFINDER_CHAT_SCOPE: InsightsScope = { type: 'caseload' }
 
-const accountActions: AccountAction[] = [
+// Retained for documentation; the routed account hub now owns these actions
+// (see frontend/src/learning/routes/AccountHub.tsx).
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _accountActions: AccountAction[] = [
   { href: '/account/settings', label: 'Settings', icon: Cog6ToothIcon, testId: 'account-action-settings' },
   { href: '/account/privacy', label: 'Privacy', icon: ShieldCheckIcon, testId: 'account-action-privacy' },
   { href: '/account/terms', label: 'Terms', icon: DocumentTextIcon, testId: 'account-action-terms' },
