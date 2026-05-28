@@ -1242,9 +1242,6 @@ export default function StudentLearningHome({ studentId, pushConsentDeferred }: 
     consentDeferred: Boolean(pushConsentDeferred),
   })
   const [shareStatus, setShareStatus] = useState<string | null>(null)
-  const [careerQuestion, setCareerQuestion] = useState(careerNavigationMoment.question)
-  const [careerAnswerVisible, setCareerAnswerVisible] = useState(false)
-  const [careerAskMode, setCareerAskMode] = useState<'text' | 'voice' | null>(null)
   const [completed, setCompleted] = useState(false)
   const [voiceConfig, setVoiceConfig] = useState<VoiceConfigResponse | null>(null)
   const [voiceResult, setVoiceResult] = useState<VoiceFrameResponse | null>(null)
@@ -1492,35 +1489,6 @@ export default function StudentLearningHome({ studentId, pushConsentDeferred }: 
 
   const whatsAppHref = `https://wa.me/?text=${encodeURIComponent(parentSummaryText)}`
 
-  async function handleCareerAsk(mode: 'text' | 'voice') {
-    const question = careerQuestion.trim() || careerNavigationMoment.question
-    setCareerQuestion(question)
-    setCareerAskMode(mode)
-    setCareerAnswerVisible(true)
-    try {
-      if (mode === 'voice' && voiceConfig?.enabled) {
-        await submitVoiceFrame({
-          actor_id: studentId ?? undefined,
-          mode: 'text',
-          payload: question,
-          lang: 'en-NG',
-        })
-      }
-      window.localStorage.setItem(
-        'pathfinder-career-navigation:last',
-        JSON.stringify({
-          studentId: studentId ?? 'demo-student',
-          askedAt: new Date().toISOString(),
-          mode,
-          question,
-          response: careerNavigationMoment,
-        })
-      )
-    } catch {
-      // Career navigation remains available offline; voice/text sync can retry later.
-    }
-  }
-
   return (
     <section className={styles.root} data-testid="route-student-home">
       <div className={styles.main}>
@@ -1531,9 +1499,7 @@ export default function StudentLearningHome({ studentId, pushConsentDeferred }: 
           </span>
           <h1 className={styles.heroTitle}>Hi, let's keep your streak going.</h1>
           <p className={styles.heroSub}>
-            Your {learnerSetup.exam} {learnerSetup.subject} path is 42% mastered. Pathfinder works on desktop web,
-            tablet, and phone, so one short check-in today can happen in class,
-            at home, or offline.
+            Your {learnerSetup.exam} {learnerSetup.subject} path is 42% mastered.
           </p>
           <div className={styles.heroPills}>
             <span className={styles.heroPill}>
@@ -1819,68 +1785,6 @@ export default function StudentLearningHome({ studentId, pushConsentDeferred }: 
                     </div>
                   ))}
                 </div>
-              </article>
-
-              <article className={styles.practiceCard} data-testid="career-navigation-moment">
-                <div className={styles.demoHeader}>
-                  <div>
-                    <span className={styles.softBadge}>Career Navigator</span>
-                    <Text className={styles.demoTitle}>Ask about a pathway</Text>
-                    <p className={styles.demoHelper}>Voice or text. Grounded guidance, not a promise.</p>
-                  </div>
-                  <BriefcaseIcon style={{ width: 28, height: 28, color: t.brand.text }} aria-hidden="true" />
-                </div>
-
-                <div className={styles.careerAskGrid}>
-                  <input
-                    className={styles.careerInput}
-                    aria-label="Career question"
-                    value={careerQuestion}
-                    onChange={event => setCareerQuestion(event.currentTarget.value)}
-                  />
-                  <div className={styles.careerActions}>
-                    <button
-                      type="button"
-                      className={styles.careerAction}
-                      onClick={() => void handleCareerAsk('text')}
-                    >
-                      <BriefcaseIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
-                      Ask by text
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.careerActionSecondary}
-                      onClick={() => void handleCareerAsk('voice')}
-                    >
-                      <MicrophoneIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
-                      Ask by voice
-                    </button>
-                  </div>
-                </div>
-
-                {careerAnswerVisible && (
-                  <div className={styles.feedbackCard} data-testid="career-navigation-answer">
-                    <div className={styles.demoHeader}>
-                      <span className={styles.softBadge}>{careerAskMode === 'voice' ? 'Voice question queued' : 'Text question answered'}</span>
-                      <span className={styles.softBadge}>No outcome guarantee</span>
-                    </div>
-                    <Text className={styles.cardTitle}>Can I still become a doctor?</Text>
-                    <p className={styles.demoHelper}>{careerNavigationMoment.responseLead}</p>
-                    <ul className={styles.careerPointList}>
-                      {careerNavigationMoment.points.map(point => (
-                        <li key={point.label} className={styles.retrievalItem}>
-                          <Text weight="semibold">{point.label}</Text>
-                          <span className={styles.demoHelper}>{point.body}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <div className={styles.careerSourceRow} aria-label="Career answer grounding">
-                      {careerNavigationMoment.sources.map(source => (
-                        <span key={source} className={styles.softBadge}>{source}</span>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </article>
 
         <article className={styles.card} data-testid="parent-share-summary">
