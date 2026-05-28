@@ -1034,17 +1034,6 @@ export default function PathfinderLearnApp() {
             {authSession?.authenticated ? (
               <div className={styles.mobileAccountActions}>
                 <a
-                  href="/profile"
-                  className={styles.mobileUserPill}
-                  aria-label="Open learning profile"
-                  data-testid="mobile-account-profile"
-                >
-                  <span className={styles.userAvatar} aria-hidden="true">
-                    {(authSession.name || authSession.email || '?').charAt(0).toUpperCase()}
-                  </span>
-                  <span className={styles.srOnly}>Learning profile</span>
-                </a>
-                <a
                   href="/settings"
                   className={styles.mobileAccountButton}
                   aria-label="Open settings"
