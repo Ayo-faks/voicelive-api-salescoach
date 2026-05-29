@@ -119,16 +119,14 @@ describe('StudentLearningHome', () => {
     })
 
     expect(screen.getByTestId('b2c-learner-setup')).toBeTruthy()
-    expect(screen.getByText('Hey there 👋 — ready when you are.')).toBeTruthy()
+    expect(screen.getByText('Welcome 👋')).toBeTruthy()
     expect(screen.queryByText(/Tobi/i)).toBeNull()
 
     fireEvent.change(screen.getByLabelText('Your first name'), {
       target: { value: 'Tomi' },
     })
-    expect(screen.getByText(/Hey Tomi/)).toBeTruthy()
-    expect(
-      screen.getByText(/Last time we wrestled with ratio and proportion/i)
-    ).toBeTruthy()
+    expect(screen.getByText(/Welcome back, Tomi/)).toBeTruthy()
+    expect(screen.getByTestId('hero-orb-mic-badge')).toBeTruthy()
 
     fireEvent.change(screen.getByLabelText('Select exam'), {
       target: { value: 'NECO' },

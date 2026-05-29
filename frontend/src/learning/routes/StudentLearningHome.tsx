@@ -566,6 +566,33 @@ const useStyles = makeStyles({
     letterSpacing: '0.02em',
     textShadow: '0 1px 6px rgba(0,0,0,0.55)',
   },
+  heroOrbMicBadge: {
+    position: 'absolute',
+    right: '28px',
+    bottom: '34px',
+    width: '44px',
+    height: '44px',
+    borderRadius: '999px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffffff',
+    color: t.brand.ink,
+    boxShadow: '0 6px 18px rgba(0,0,0,0.32), 0 0 0 4px rgba(255,255,255,0.18)',
+    pointerEvents: 'none',
+    '@media (max-width: 900px)': {
+      width: '38px',
+      height: '38px',
+      right: '20px',
+      bottom: '24px',
+    },
+    '@media (max-width: 480px)': {
+      width: '34px',
+      height: '34px',
+      right: '14px',
+      bottom: '20px',
+    },
+  },
   heroEyebrow: {
     fontSize: '0.72rem',
     letterSpacing: '0.12em',
@@ -1812,12 +1839,6 @@ export default function StudentLearningHome({
     topicLabel: string
     correct: boolean
   } | null>(null)
-  const today = new Date('2026-05-21')
-  const formatted = today.toLocaleDateString('en-GB', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  })
 
   useEffect(() => {
     let cancelled = false
@@ -2199,32 +2220,16 @@ export default function StudentLearningHome({
                   style={{ width: 14, height: 14 }}
                   aria-hidden="true"
                 />
-                Pathfinder · ready when you are · {formatted}
+                Pathfinder
               </span>
               <h1 className={styles.heroTitle} data-testid="learner-hero-title">
                 {learnerSetup.firstName.trim()
-                  ? `Hey ${learnerSetup.firstName.trim()} 👋 — back for another go?`
-                  : 'Hey there 👋 — ready when you are.'}
+                  ? `Welcome back, ${learnerSetup.firstName.trim()} 👋`
+                  : 'Welcome 👋'}
               </h1>
               <p className={styles.heroSub} data-testid="learner-hero-sub">
-                {(() => {
-                  const name = learnerSetup.firstName.trim()
-                  if (name && lastSession) {
-                    const verb = lastSession.correct
-                      ? 'nailed'
-                      : 'wrestled with'
-                    const tail = lastSession.correct
-                      ? 'Want to push a level up, or warm up first?'
-                      : 'Want 3 quick minutes on that, or shall I pick something fresh?'
-                    return `Last time we ${verb} ${lastSession.topicLabel.toLowerCase()}. ${tail} 😉`
-                  }
-                  if (name) {
-                    return `Last time we wrestled with ${weakTopicProfile[0].label.toLowerCase()} and almost cracked it. Want 3 quick minutes on that, or shall I pick something fresh? 😉`
-                  }
-                  return `Tell me your name and I’ll remember where we left off. For now — want to crack a super-mathy ${learnerSetup.subject.toLowerCase()} goal together? 😉`
-                })()}{' '}
                 Your {learnerSetup.exam} {learnerSetup.subject} path is 42%
-                mastered.
+                mastered. Let’s hit your next goal.
               </p>
               <div className={styles.heroPills}>
                 <span className={styles.heroPill}>
@@ -2243,9 +2248,6 @@ export default function StudentLearningHome({
                     aria-hidden="true"
                   />
                   Works offline
-                </span>
-                <span className={styles.heroPill}>
-                  {learnerSetup.year} · {learnerSetup.subject}
                 </span>
               </div>
               <div className={styles.heroActions}>
@@ -2284,15 +2286,19 @@ export default function StudentLearningHome({
                     gap: 8,
                   }}
                 >
-                  <button
-                    type="button"
-                    className={styles.voiceButton}
-                    onClick={startVoiceCheckIn}
-                    disabled={voiceBusy}
-                    data-testid="start-voice-checkin"
-                  >
-                    {voiceBusy ? 'Preparing voice check-in…' : 'Voice check-in'}
-                  </button>
+                  {!learnerTutorEnabled && (
+                    <button
+                      type="button"
+                      className={styles.voiceButton}
+                      onClick={startVoiceCheckIn}
+                      disabled={voiceBusy}
+                      data-testid="start-voice-checkin"
+                    >
+                      {voiceBusy
+                        ? 'Preparing voice check-in…'
+                        : 'Voice check-in'}
+                    </button>
+                  )}
                   {voiceResult && (
                     <div
                       data-testid="voice-frame-result"
@@ -2324,12 +2330,22 @@ export default function StudentLearningHome({
                 >
                   <span className={styles.heroOrbBigHalo} aria-hidden="true" />
                   <span className={styles.heroOrbBig} aria-hidden="true" />
+                  <span
+                    className={styles.heroOrbMicBadge}
+                    data-testid="hero-orb-mic-badge"
+                    aria-hidden="true"
+                  >
+                    <MicrophoneIcon
+                      style={{ width: 20, height: 20 }}
+                      aria-hidden="true"
+                    />
+                  </span>
                   <span className={styles.heroOrbCaption}>
                     <span className={styles.heroOrbCaptionTitle}>
                       Talk to your tutor
                     </span>
                     <span className={styles.heroOrbCaptionHint}>
-                      Live voice
+                      Tap to talk
                     </span>
                   </span>
                 </button>
