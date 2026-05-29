@@ -33,8 +33,9 @@ export type WuloTourTooltipProps = TooltipRenderProps
 
 const useStyles = makeStyles({
   root: {
+    width: 'min(380px, calc(100vw - 32px))',
     maxWidth: '380px',
-    minWidth: '300px',
+    minWidth: '0',
     color: pathfinder.brand.text,
     paddingTop: '18px',
     paddingRight: '20px',

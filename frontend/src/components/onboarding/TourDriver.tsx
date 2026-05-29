@@ -58,6 +58,7 @@ export interface TourDriverProps {
 const JOYRIDE_STATUS_FINISHED = 'finished'
 const JOYRIDE_STATUS_SKIPPED = 'skipped'
 const JOYRIDE_TYPE_STEP_AFTER = 'step:after'
+const JOYRIDE_LIFECYCLE_TOOLTIP = 'tooltip'
 
 export function TourDriver(props: TourDriverProps): JSX.Element | null {
   const { tour, onComplete } = props
@@ -152,6 +153,30 @@ export function TourDriver(props: TourDriverProps): JSX.Element | null {
     (data: EventData) => {
       if (!tour) return
 
+      // Scroll the step's anchor into view before Joyride paints the
+      // tooltip. Joyride's built-in scroll only fires when the target is
+      // fully off-screen, which leaves partially-visible cards stranded
+      // at the viewport edge with the tooltip floating in empty space.
+      if (data.lifecycle === JOYRIDE_LIFECYCLE_TOOLTIP) {
+        const step = tour.steps[data.index]
+        if (step?.selector && typeof document !== 'undefined') {
+          const el = document.querySelector(step.selector)
+          if (el) {
+            const behavior: ScrollBehavior = reduceBackdropMotion
+              ? 'auto'
+              : 'smooth'
+            if (data.index === 0) {
+              window.scrollTo({ top: 0, behavior })
+            } else {
+              ;(el as HTMLElement).scrollIntoView({
+                behavior,
+                block: 'center',
+              })
+            }
+          }
+        }
+      }
+
       if (data.type === JOYRIDE_TYPE_STEP_AFTER) {
         telemetry.trackEvent(ONBOARDING_EVENTS.TOUR_STEP, {
           tour_id: tour.id,
@@ -171,7 +196,7 @@ export function TourDriver(props: TourDriverProps): JSX.Element | null {
         onComplete(tour.id, 'dismissed')
       }
     },
-    [tour, onComplete]
+    [tour, onComplete, reduceBackdropMotion]
   )
 
   if (!tour || joyrideSteps.length === 0) return null
@@ -187,6 +212,7 @@ export function TourDriver(props: TourDriverProps): JSX.Element | null {
         steps={joyrideSteps}
         run={run}
         continuous
+        scrollToFirstStep
         tooltipComponent={WuloTourTooltip}
         onEvent={handleEvent}
         options={{

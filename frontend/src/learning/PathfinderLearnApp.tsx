@@ -44,7 +44,6 @@ import StudentLearningHome from './routes/StudentLearningHome'
 import StudentMasteryProfile from './routes/StudentMasteryProfile'
 import TeacherMasteryDashboard from './routes/TeacherMasteryDashboard'
 import TrustSafetyConsole from './routes/TrustSafetyConsole'
-import LearnerTrustPage from './routes/LearnerTrustPage'
 import {
   PathfinderAccountHub,
   PathfinderAiNotice,
@@ -1114,12 +1113,6 @@ export default function PathfinderLearnApp() {
     )
   }
 
-  const directReplayTourId =
-    location.pathname === '/home' &&
-    ['learner', 'kid', 'student'].includes(effectiveRole)
-      ? 'welcome-learner'
-      : undefined
-
   const renderNavLinks = (extraClass?: string) =>
     visibleNavItems.map(item => {
       const Icon = item.icon
@@ -1263,7 +1256,12 @@ export default function PathfinderLearnApp() {
           {authSession?.authenticated ? (
             <HelpMenu
               currentRole={authSession.role ?? null}
-              directReplayTourId={directReplayTourId}
+              directReplayTourId={
+                location.pathname === '/home' &&
+                ['learner', 'kid', 'student'].includes(effectiveRole)
+                  ? 'welcome-learner'
+                  : undefined
+              }
               onReplayTour={tourId => requestReplayTour(tourId)}
             />
           ) : null}
@@ -1358,7 +1356,6 @@ export default function PathfinderLearnApp() {
                 path="/safety"
                 element={routeForRole(['admin'], <TrustSafetyConsole />)}
               />
-              <Route path="/trust" element={<LearnerTrustPage />} />
               <Route path="/account" element={<PathfinderAccountHub />} />
               <Route
                 path="/account/settings"

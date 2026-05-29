@@ -273,7 +273,7 @@ export const welcomeLearnerTour: TourDefinition = {
         'tour.welcome_learner.step1.body',
         'Pathfinder learns how you study and turns it into a daily plan. This quick tour shows where everything lives.'
       ),
-      placement: 'bottom',
+      placement: 'auto',
     },
     {
       selector: '[data-testid="start-checkin"]',
