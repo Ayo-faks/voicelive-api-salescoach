@@ -60,7 +60,23 @@ pids
 *.pid
 *.seed
 *.pid.lock
-data/wulo.db
+data/*
+!data/exercises/
+!data/exercises/**
+!data/learning/
+!data/learning/**
+!data/images/
+!data/images/**
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# azd / local state
+.azure/
+$TMPDIR/
+frontend/$TMPDIR/
+**/$TMPDIR/
 
 # Coverage directory used by tools like istanbul
 coverage/
@@ -82,6 +98,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.venv/
+**/.venv/
+backend/.venv/
 .mypy_cache/
 
 # Temporary files
