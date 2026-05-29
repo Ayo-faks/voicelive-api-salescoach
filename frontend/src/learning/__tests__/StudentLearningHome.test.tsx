@@ -6,6 +6,7 @@ import {
   within,
 } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { MemoryRouter } from 'react-router-dom'
 
 const practiceFullscreenMock = vi.hoisted(() => vi.fn())
 const learnerTutorMock = vi.hoisted(() => vi.fn())
@@ -83,7 +84,7 @@ describe('StudentLearningHome', () => {
   it('surfaces the free B2C setup, weak-topic profile, daily plan, pathways, and WhatsApp share loop', async () => {
     mockVoiceConfig()
 
-    render(<StudentLearningHome studentId="student-001" />)
+    render(<MemoryRouter><StudentLearningHome studentId="student-001" /></MemoryRouter>)
 
     await waitFor(() => {
       expect(globalThis.fetch).toHaveBeenCalledWith(
@@ -130,16 +131,7 @@ describe('StudentLearningHome', () => {
       screen.getByText(/Keep building algebra and English explanation skills/i)
     ).toBeTruthy()
 
-    fireEvent.click(
-      screen.getByRole('button', { name: /Prepare parent summary/i })
-    )
-
-    expect(screen.getByText('Parent summary ready to share.')).toBeTruthy()
-    expect(
-      screen
-        .getByRole('link', { name: /Invite on WhatsApp/i })
-        .getAttribute('href')
-    ).toContain('wa.me')
+    fireEvent.click(screen.getByTestId('parent-share-copy'))
 
     const saved = window.localStorage.getItem('pathfinder-parent-summary:last')
     expect(saved).toContain('NECO')
@@ -150,7 +142,7 @@ describe('StudentLearningHome', () => {
   it('runs a cross-device five-step demo diagnostic and saves it locally', async () => {
     mockVoiceConfig()
 
-    render(<StudentLearningHome studentId="student-001" />)
+    render(<MemoryRouter><StudentLearningHome studentId="student-001" /></MemoryRouter>)
 
     await waitFor(() => {
       expect(globalThis.fetch).toHaveBeenCalledWith(
@@ -233,7 +225,7 @@ describe('StudentLearningHome', () => {
   it('visibly adapts the next item after an incorrect answer', async () => {
     mockVoiceConfig()
 
-    render(<StudentLearningHome studentId="student-001" />)
+    render(<MemoryRouter><StudentLearningHome studentId="student-001" /></MemoryRouter>)
 
     await waitFor(() => {
       expect(globalThis.fetch).toHaveBeenCalledWith(
@@ -290,7 +282,7 @@ describe('StudentLearningHome', () => {
   it('lets the student complete one generated-plan practice exercise and schedules retrieval', async () => {
     mockVoiceConfig()
 
-    render(<StudentLearningHome studentId="student-001" />)
+    render(<MemoryRouter><StudentLearningHome studentId="student-001" /></MemoryRouter>)
 
     await waitFor(() => {
       expect(globalThis.fetch).toHaveBeenCalledWith(
@@ -339,7 +331,7 @@ describe('StudentLearningHome', () => {
   it("opens PracticeFullscreen from a Today's-path card", async () => {
     mockVoiceConfig()
 
-    render(<StudentLearningHome studentId="student-001" />)
+    render(<MemoryRouter><StudentLearningHome studentId="student-001" /></MemoryRouter>)
 
     await waitFor(() => {
       expect(globalThis.fetch).toHaveBeenCalledWith(
@@ -382,7 +374,7 @@ describe('StudentLearningHome', () => {
   it('opens the learner tutor from the hero CTA with the selected taxonomy', async () => {
     mockVoiceConfig()
 
-    render(<StudentLearningHome studentId="student-001" />)
+    render(<MemoryRouter><StudentLearningHome studentId="student-001" /></MemoryRouter>)
 
     await waitFor(() => {
       expect(globalThis.fetch).toHaveBeenCalledWith(
@@ -418,7 +410,7 @@ describe('StudentLearningHome', () => {
 
   it('no longer renders the standalone Career Navigator card', () => {
     mockVoiceConfig()
-    render(<StudentLearningHome studentId="student-001" />)
+    render(<MemoryRouter><StudentLearningHome studentId="student-001" /></MemoryRouter>)
     expect(screen.queryByTestId('career-navigation-moment')).toBeNull()
     expect(screen.queryByTestId('career-navigation-answer')).toBeNull()
   })

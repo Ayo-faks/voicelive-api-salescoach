@@ -172,20 +172,20 @@ describe('tour registry contract', () => {
       })?.id
     ).toBe('welcome-therapist')
 
-    // Admin on /home → welcome-admin (not welcome-therapist).
+    // Admin on /teacher → welcome-admin (Pathfinder role-gated landing).
     expect(
       pickAutoTour({
-        pathname: '/home',
+        pathname: '/teacher',
         role: 'admin',
         seenTourIds: [],
         toursEnabled: true,
       })?.id
     ).toBe('welcome-admin')
 
-    // Parent on /home → welcome-parent.
+    // Parent on /profile → welcome-parent (Pathfinder role-gated landing).
     expect(
       pickAutoTour({
-        pathname: '/home',
+        pathname: '/profile',
         role: 'parent',
         seenTourIds: [],
         toursEnabled: true,
@@ -202,10 +202,11 @@ describe('tour registry contract', () => {
       })?.id
     ).toBe('welcome-learner')
 
-    // Therapist on /dashboard → dashboard-tour.
+    // Therapist on /teacher → dashboard-tour (Pathfinder retargeted the
+    // legacy /dashboard route to the teacher mastery shell at /teacher).
     expect(
       pickAutoTour({
-        pathname: '/dashboard',
+        pathname: '/teacher',
         role: 'therapist',
         seenTourIds: [],
         toursEnabled: true,

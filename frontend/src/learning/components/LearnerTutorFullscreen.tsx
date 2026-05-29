@@ -9,7 +9,18 @@ import { LearnerVoiceCardRenderer } from './LearnerVoiceCard'
 const MIC_DENIED_COPY =
   'Tutor needs your microphone to listen. Tap 🔊 Listen on cards instead.'
 
-type TutorState = 'connecting' | 'listening' | 'thinking' | 'speaking' | 'error'
+export type TutorState =
+  | 'connecting'
+  | 'listening'
+  | 'thinking'
+  | 'speaking'
+  | 'error'
+
+export type TutorVoiceSnapshot = {
+  state: TutorState | 'idle'
+  inputLevel: number
+  recording: boolean
+}
 
 const useStyles = makeStyles({
   scrim: {
@@ -159,6 +170,7 @@ export interface LearnerTutorFullscreenProps {
   exam?: string
   classYear?: string
   subject?: string
+  onVoiceStateChange?: (snapshot: TutorVoiceSnapshot) => void
 }
 
 type IncomingEvent = Record<string, unknown> & {
@@ -221,6 +233,7 @@ export function LearnerTutorFullscreen({
   exam,
   classYear,
   subject,
+  onVoiceStateChange,
 }: LearnerTutorFullscreenProps): JSX.Element | null {
   const styles = useStyles()
   const wsRef = useRef<WebSocket | null>(null)
@@ -250,6 +263,22 @@ export function LearnerTutorFullscreen({
     recordingRef.current = recording
     toggleRecordingRef.current = toggleRecording
   }, [recording, toggleRecording])
+
+  useEffect(() => {
+    if (!onVoiceStateChange) return
+    onVoiceStateChange({
+      state: open ? state : 'idle',
+      inputLevel,
+      recording,
+    })
+  }, [onVoiceStateChange, open, state, inputLevel, recording])
+
+  useEffect(
+    () => () => {
+      onVoiceStateChange?.({ state: 'idle', inputLevel: 0, recording: false })
+    },
+    [onVoiceStateChange]
+  )
 
   useEffect(
     () => () => {

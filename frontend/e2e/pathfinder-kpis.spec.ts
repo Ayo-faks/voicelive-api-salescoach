@@ -18,7 +18,8 @@ test.describe('Pathfinder · pilot KPI strip', () => {
     await expect(cards).toHaveCount(6)
 
     const badges = page.getByTestId('pilot-kpi-source-badge')
-    await expect(badges.first()).toHaveText(/fixture/i)
+    // UI label for non-live KPIs is "Snapshot"; backend `source` is still "fixture".
+    await expect(badges.first()).toHaveText(/snapshot|fixture/i)
 
     await expect(page.getByTestId('pilot-kpi-provenance')).toBeVisible()
 

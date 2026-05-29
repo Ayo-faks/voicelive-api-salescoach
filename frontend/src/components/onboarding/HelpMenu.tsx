@@ -15,7 +15,13 @@
  * testable in Vitest.
  */
 
-import { useId, useMemo, useState, type ReactElement } from 'react'
+import {
+  useId,
+  useMemo,
+  useState,
+  type MouseEvent,
+  type ReactElement,
+} from 'react'
 import {
   Button,
   Menu,
@@ -38,6 +44,8 @@ export interface HelpMenuProps {
   currentRole?: string | null
   /** Replay a tour by id. Wired by the App's tour driver. */
   onReplayTour?: (tourId: string) => void
+  /** Optional tour id to replay immediately when the trigger is clicked. */
+  directReplayTourId?: string
   /** Telemetry hook invoked with the topic id on selection. */
   onTopicSelected?: (topicId: string) => void
   /** Called when the menu is opened. Use for `help_opened` telemetry. */
@@ -96,7 +104,12 @@ export function HelpMenu(props: HelpMenuProps): JSX.Element {
     }
   }
 
-  const handleSelect = (topic: HelpTopic): void => {
+  const handleSelect = (
+    event: MouseEvent<HTMLDivElement>,
+    topic: HelpTopic
+  ): void => {
+    event.preventDefault()
+    event.stopPropagation()
     props.onTopicSelected?.(topic.id)
     if (topic.replayTourId) {
       props.onReplayTour?.(topic.replayTourId)
@@ -104,12 +117,43 @@ export function HelpMenu(props: HelpMenuProps): JSX.Element {
       return
     }
     if (topic.href) {
+      if (topic.href.startsWith('/') && typeof window !== 'undefined') {
+        window.history.pushState(null, '', topic.href)
+        window.dispatchEvent(new Event('popstate'))
+        setOpen(false)
+        return
+      }
       window.location.href = topic.href
     }
   }
 
+  const handleDirectReplay = (event: MouseEvent<HTMLButtonElement>): void => {
+    if (!props.directReplayTourId) return
+    event.preventDefault()
+    event.stopPropagation()
+    props.onTopicSelected?.(`direct-${props.directReplayTourId}`)
+    props.onReplayTour?.(props.directReplayTourId)
+    setOpen(false)
+  }
+
   const label = props.triggerLabel ?? 'Take a tour'
   const icon = props.triggerIcon ?? <MapIcon className="w-5 h-5" />
+
+  if (props.directReplayTourId) {
+    return (
+      <Button
+        type="button"
+        appearance="subtle"
+        aria-label="Take a tour"
+        icon={icon}
+        className={mergeClasses(styles.triggerButton, props.triggerClassName)}
+        data-testid="help-menu-trigger"
+        onClick={handleDirectReplay}
+      >
+        {label}
+      </Button>
+    )
+  }
 
   return (
     <Menu
@@ -119,6 +163,7 @@ export function HelpMenu(props: HelpMenuProps): JSX.Element {
     >
       <MenuTrigger disableButtonEnhancement>
         <Button
+          type="button"
           id={menuId}
           appearance="subtle"
           aria-label="Take a tour"
@@ -135,7 +180,7 @@ export function HelpMenu(props: HelpMenuProps): JSX.Element {
           {visibleTopics.map(topic => (
             <MenuItem
               key={topic.id}
-              onClick={() => handleSelect(topic)}
+              onClick={(event) => handleSelect(event, topic)}
               data-testid={`help-menu-item-${topic.id}`}
             >
               <div>

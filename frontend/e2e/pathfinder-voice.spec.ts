@@ -17,6 +17,34 @@ test.describe('Pathfinder · voice entry point (F3)', () => {
     page,
     baseURL,
   }) => {
+    // Default web-server role is `admin`, which redirects /home → /teacher.
+    // Override the session + children list so the learner Home actually mounts.
+    await page.route('**/api/auth/session', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          authenticated: true,
+          user_id: 'voice-spec-learner',
+          name: 'Voice Spec Learner',
+          email: 'voice-spec@localhost',
+          provider: 'local-dev',
+          role: 'learner',
+          needs_onboarding: false,
+          is_self_learner: true,
+        }),
+      })
+    )
+    await page.route('**/api/children**', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          { id: 'voice-spec-learner', name: 'Voice Spec Learner' },
+        ]),
+      })
+    )
+
     await page.goto('/home')
     await expect(page.getByTestId('start-checkin')).toBeVisible()
     await expect(page.getByTestId('start-voice-checkin')).toHaveCount(0)

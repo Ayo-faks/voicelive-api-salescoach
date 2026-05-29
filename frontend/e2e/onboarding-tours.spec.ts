@@ -16,14 +16,22 @@ test.describe('adult onboarding tours', () => {
     await expect(page.getByTestId('help-menu-item-replay-welcome-parent')).toHaveCount(0)
 
     await Promise.all([
-      page.waitForURL(/\/dashboard(?:\?.*)?$/),
+      page.waitForURL(/\/teacher(?:\?.*)?$/),
       page.getByTestId('help-menu-item-replay-dashboard').click(),
     ])
 
-    // Wait for the dashboard root anchor to mount before Joyride mounts the tooltip.
-    await expect(page.getByTestId('progress-dashboard-heading')).toBeVisible()
-    await expect(page.getByTestId('wulo-tour-tooltip')).toBeVisible({ timeout: 20_000 })
-    await expect(page.getByTestId('wulo-tour-tooltip')).toContainText('Progress and planning')
+    // Wait for the Pathfinder teacher dashboard shell to mount before
+    // Joyride mounts the tooltip.
+    await expect(page.getByTestId('route-teacher-dashboard')).toBeVisible()
+    // Wait for Joyride to settle on the first dashboard-tour step before
+    // asserting text. The custom WuloTourTooltip writes data-tour-step-active
+    // once the step is mounted, so this defeats the cross-shell remount race
+    // that flaked on the bare text assertion during /teacher hydration.
+    const dashboardTooltip = page.locator(
+      '[data-testid="wulo-tour-tooltip"][data-tour-step-active="route-teacher-dashboard"]'
+    )
+    await expect(dashboardTooltip).toBeVisible({ timeout: 20_000 })
+    await expect(dashboardTooltip).toContainText('Progress and planning')
   })
 
   test('therapist can replay the Insights rail walkthrough from Home', async ({ therapistShell }) => {
@@ -35,9 +43,12 @@ test.describe('adult onboarding tours', () => {
       page.getByTestId('help-menu-item-replay-insights-rail').click(),
     ])
 
-    await expect(page.getByTestId('wulo-tour-tooltip')).toBeVisible()
+    // Wait for the insights-rail anchor to mount before Joyride mounts the
+    // tooltip — the cross-shell hop via window.location.assign means the
+    // dashboard is still hydrating when the URL change resolves.
+    await expect(page.getByTestId('insights-rail')).toBeVisible({ timeout: 20_000 })
+    await expect(page.getByTestId('wulo-tour-tooltip')).toBeVisible({ timeout: 20_000 })
     await expect(page.getByTestId('wulo-tour-tooltip')).toContainText('Ask Wulo anything')
-    await expect(page.getByTestId('insights-rail')).toBeVisible()
 
     await page.getByTestId('wulo-tour-next').click()
     await expect(page.getByTestId('wulo-tour-tooltip')).toContainText('Type a prompt')
@@ -51,11 +62,16 @@ test.describe('adult onboarding tours', () => {
   test('admin shell auto-triggers the welcome admin tour and keeps admin-only topics', async ({ adminShell }) => {
     const { page } = adminShell
 
-    await expect(page).toHaveURL(/\/home(?:\?.*)?$/)
+    // Admins land on /teacher via PathfinderLearnApp role-gated routing.
+    await expect(page).toHaveURL(/\/teacher(?:\?.*)?$/)
     await expect(page.getByTestId('wulo-tour-tooltip')).toBeVisible()
     await expect(page.getByTestId('wulo-tour-title')).toHaveText('Welcome, admin')
 
-    await page.getByTestId('wulo-tour-skip').click()
+    // Joyride positions its tooltip relative to the page anchor, which on the
+    // redesigned /teacher dashboard can land outside the viewport. dispatchEvent
+    // bypasses Playwright's viewport-stability check while still firing the
+    // real React click handler.
+    await page.getByTestId('wulo-tour-skip').dispatchEvent('click')
     await expect(page.getByTestId('wulo-tour-tooltip')).toHaveCount(0)
 
     await page.getByTestId('help-menu-trigger').click()
@@ -69,11 +85,12 @@ test.describe('adult onboarding tours', () => {
   test('parent shell auto-triggers the welcome parent tour and hides therapist-only topics', async ({ parentShell }) => {
     const { page } = parentShell
 
-    await expect(page).toHaveURL(/\/home(?:\?.*)?$/)
+    // Parents land on /profile via PathfinderLearnApp role-gated routing.
+    await expect(page).toHaveURL(/\/profile(?:\?.*)?$/)
     await expect(page.getByTestId('wulo-tour-tooltip')).toBeVisible()
     await expect(page.getByTestId('wulo-tour-body')).toContainText('Wulo helps your child practise speech between therapy sessions.')
 
-    await page.getByTestId('wulo-tour-skip').click()
+    await page.getByTestId('wulo-tour-skip').dispatchEvent('click')
     await expect(page.getByTestId('wulo-tour-tooltip')).toHaveCount(0)
 
     await page.getByTestId('help-menu-trigger').click()

@@ -44,4 +44,20 @@ describe('HelpMenu', () => {
       screen.queryByTestId('help-menu-item-replay-welcome-admin')
     ).toBeNull()
   })
+
+  it('can launch a default replay directly from the trigger', () => {
+    const onReplayTour = vi.fn()
+    render(
+      <HelpMenu
+        currentRole="learner"
+        directReplayTourId="welcome-learner"
+        onReplayTour={onReplayTour}
+      />
+    )
+
+    fireEvent.click(screen.getByTestId('help-menu-trigger'))
+
+    expect(onReplayTour).toHaveBeenCalledWith('welcome-learner')
+    expect(screen.queryByTestId('help-menu-list')).toBeNull()
+  })
 })

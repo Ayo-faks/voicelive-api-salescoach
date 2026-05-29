@@ -10,6 +10,7 @@
  *  3. The legacy `career-navigation-moment` card is gone from the home.
  */
 import { expect, request, test } from '@playwright/test'
+import { installRouteMocks } from './fixtures/pathfinder-route-mocks'
 
 test.describe('Pathfinder · Ask Pathfinder drawer', () => {
   test('assistant endpoint quotes career fits without promising outcomes', async ({ baseURL }) => {
@@ -39,6 +40,7 @@ test.describe('Pathfinder · Ask Pathfinder drawer', () => {
 
   test('FAB opens drawer and renders assistant reply in transcript', async ({ page, baseURL }) => {
     test.setTimeout(60_000)
+    await installRouteMocks(page, { role: 'learner' })
     await page.goto(`${baseURL}/home`)
 
     const fab = page.getByTestId('ask-pathfinder-fab')
@@ -58,6 +60,7 @@ test.describe('Pathfinder · Ask Pathfinder drawer', () => {
   })
 
   test('legacy Career Navigator card is removed from the Learn home', async ({ page, baseURL }) => {
+    await installRouteMocks(page, { role: 'learner' })
     await page.goto(`${baseURL}/home`)
     await expect(page.getByTestId('route-student-home')).toBeVisible({ timeout: 15_000 })
     await expect(page.getByTestId('career-navigation-moment')).toHaveCount(0)

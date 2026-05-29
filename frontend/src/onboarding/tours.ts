@@ -146,12 +146,15 @@ export const firstSessionTour: TourDefinition = {
 export const welcomeAdminTour: TourDefinition = {
   id: 'welcome-admin',
   role: 'admin',
-  autoTrigger: { routePrefix: '/home' },
-  replayPath: '/home',
+  // Admins land on the Pathfinder Teacher dashboard via role-gated routing
+  // (see PathfinderLearnApp.defaultPathForRole). Anchor the welcome tour to
+  // that surface so it actually fires on the route the user sees.
+  autoTrigger: { routePrefix: '/teacher' },
+  replayPath: '/teacher',
   steps: [
     {
-      selector: '[data-testid="dashboard-home-greeting"]',
-      testId: 'dashboard-home-greeting',
+      selector: '[data-testid="route-teacher-dashboard"]',
+      testId: 'route-teacher-dashboard',
       title: t('tour.welcome_admin.step1.title', 'Welcome, admin'),
       body: t(
         'tour.welcome_admin.step1.body',
@@ -160,8 +163,8 @@ export const welcomeAdminTour: TourDefinition = {
       placement: 'bottom',
     },
     {
-      selector: '[data-testid="sidebar-nav-dashboard"]',
-      testId: 'sidebar-nav-dashboard',
+      selector: '[data-testid="pf-nav-teacher"]',
+      testId: 'pf-nav-teacher',
       title: t('tour.welcome_admin.step2.title', 'Caseload & progress'),
       body: t(
         'tour.welcome_admin.step2.body',
@@ -170,8 +173,8 @@ export const welcomeAdminTour: TourDefinition = {
       placement: 'right',
     },
     {
-      selector: '[data-testid="sidebar-nav-settings"]',
-      testId: 'sidebar-nav-settings',
+      selector: '[data-testid="account-actions-trigger"]',
+      testId: 'account-actions-trigger',
       title: t('tour.welcome_admin.step3.title', 'Team & export'),
       body: t(
         'tour.welcome_admin.step3.body',
@@ -201,12 +204,15 @@ export const welcomeAdminTour: TourDefinition = {
 export const welcomeParentTour: TourDefinition = {
   id: 'welcome-parent',
   role: 'parent',
-  autoTrigger: { routePrefix: '/home' },
-  replayPath: '/home',
+  // Parents land on the Pathfinder Profile surface via role-gated routing
+  // (see PathfinderLearnApp.defaultPathForRole). Anchor the welcome tour to
+  // that surface so it actually fires on the route the user sees.
+  autoTrigger: { routePrefix: '/profile' },
+  replayPath: '/profile',
   steps: [
     {
-      selector: '[data-testid="dashboard-home-greeting"]',
-      testId: 'dashboard-home-greeting',
+      selector: '[data-testid="route-student-profile"]',
+      testId: 'route-student-profile',
       title: t('tour.welcome_parent.step1.title', 'Welcome to Wulo'),
       body: t(
         'tour.welcome_parent.step1.body',
@@ -215,8 +221,8 @@ export const welcomeParentTour: TourDefinition = {
       placement: 'bottom',
     },
     {
-      selector: '[data-testid="sidebar-nav-settings"]',
-      testId: 'sidebar-nav-settings',
+      selector: '[data-testid="account-actions-trigger"]',
+      testId: 'account-actions-trigger',
       title: t('tour.welcome_parent.step2.title', 'Consent & invitations'),
       body: t(
         'tour.welcome_parent.step2.body',
@@ -225,8 +231,8 @@ export const welcomeParentTour: TourDefinition = {
       placement: 'right',
     },
     {
-      selector: '[data-testid="sidebar-nav-home"]',
-      testId: 'sidebar-nav-home',
+      selector: '[data-testid="pf-nav-home"]',
+      testId: 'pf-nav-home',
       title: t('tour.welcome_parent.step3.title', 'Hand over to your child'),
       body: t(
         'tour.welcome_parent.step3.body',
@@ -377,94 +383,55 @@ export const insightsRailTour: TourDefinition = {
 }
 
 /**
- * Dashboard tour — therapist + admin. Route prefix `/dashboard`. Anchors
- * on the greeting, the insights launcher, and the reports launcher. Use
- * existing testids on `DashboardHome` and `ProgressDashboard` so this
- * tour ships without new surface plumbing.
+ * Dashboard tour — therapist + admin. In Pathfinder the legacy
+ * `/dashboard` route redirects to `/teacher` and renders
+ * `TeacherMasteryDashboard`; the legacy `ProgressDashboard` anchors no
+ * longer mount, so the tour is now anchored on the Pathfinder teacher
+ * mastery surfaces.
  */
 export const dashboardTour: TourDefinition = {
   id: 'dashboard-tour',
   role: ['therapist', 'admin'],
-  autoTrigger: { routePrefix: '/dashboard' },
-  replayPath: '/dashboard',
+  autoTrigger: { routePrefix: '/teacher' },
+  replayPath: '/teacher',
   steps: [
     {
-      selector: '[data-testid="progress-dashboard-heading"]',
-      testId: 'progress-dashboard-heading',
+      selector: '[data-testid="route-teacher-dashboard"]',
+      testId: 'route-teacher-dashboard',
       title: t('tour.dashboard.step1.title', 'Progress and planning'),
       body: t(
         'tour.dashboard.step1.body',
-        'This workspace pulls together saved sessions, memory, recommendations, reports, and next-session plans for the selected child.'
+        'The teacher mastery dashboard brings every class, student, and pending plan into one view so you can decide what to teach next.'
       ),
       placement: 'bottom',
     },
     {
-      selector: '[data-testid="insights-header-launcher"]',
-      testId: 'insights-header-launcher',
-      title: t('tour.dashboard.step2.title', 'Ask Wulo from the header'),
+      selector: '[data-testid="weakest-subskills-list"]',
+      testId: 'weakest-subskills-list',
+      title: t('tour.dashboard.step2.title', 'Weakest subskills'),
       body: t(
         'tour.dashboard.step2.body',
-        'Use Ask Wulo to jump straight into the assistant while you review this child. It keeps the dashboard context in view instead of pulling you into another screen.'
+        'Pathfinder ranks the subskills the class is struggling with most. Tap one to see who needs help and what to schedule next.'
       ),
       placement: 'left',
     },
     {
-      selector: '[data-testid="dashboard-review-tabs"]',
-      testId: 'dashboard-review-tabs',
-      title: t('tour.dashboard.step3.title', 'Review workspace tabs'),
+      selector: '[data-testid="student-fact-approval-list"]',
+      testId: 'student-fact-approval-list',
+      title: t('tour.dashboard.step3.title', 'Approve student memory'),
       body: t(
         'tour.dashboard.step3.body',
-        'Switch between session detail, memory, recommendations, reports, and plan without leaving the progress screen.'
-      ),
-      placement: 'bottom',
-    },
-    {
-      selector: '[data-testid="dashboard-tab-session-detail"]',
-      testId: 'dashboard-tab-session-detail',
-      title: t('tour.dashboard.step4.title', 'Session detail'),
-      body: t(
-        'tour.dashboard.step4.body',
-        'Session detail shows the saved session you are reviewing — overall scores, transcript, AI assessment, and the breakdown that fed it.'
-      ),
-      placement: 'bottom',
-    },
-    {
-      selector: '[data-testid="dashboard-tab-memory"]',
-      testId: 'dashboard-tab-memory',
-      title: t('tour.dashboard.step5.title', 'Memory'),
-      body: t(
-        'tour.dashboard.step5.body',
-        'Memory captures what Wulo has learned about this child — active targets, approved facts, and pending proposals you can approve or edit.'
-      ),
-      placement: 'bottom',
-    },
-    {
-      selector: '[data-testid="dashboard-tab-recommendations"]',
-      testId: 'dashboard-tab-recommendations',
-      title: t('tour.dashboard.step6.title', 'Recommendations'),
-      body: t(
-        'tour.dashboard.step6.body',
-        'Recommendations suggest the next exercises to run, with the ranking context Wulo used so you can decide what to schedule next.'
-      ),
-      placement: 'bottom',
-    },
-    {
-      selector: '[data-testid="dashboard-tab-reports"]',
-      testId: 'dashboard-tab-reports',
-      title: t('tour.dashboard.step7.title', 'Reports by audience'),
-      body: t(
-        'tour.dashboard.step7.body',
-        'Open Reports to draft or review updates for parents, schools, or clinical handoff. The wording adjusts to the audience you choose.'
+        'Pending facts about each student wait here for your approval before they shape future plans or reports.'
       ),
       placement: 'top',
     },
     {
-      selector: '[data-testid="dashboard-tab-plan"]',
-      testId: 'dashboard-tab-plan',
-      title: t('tour.dashboard.step8.title', 'Plan'),
+      selector: '[data-testid="audit-events"]',
+      testId: 'audit-events',
+      title: t('tour.dashboard.step4.title', 'Audit trail'),
       body: t(
-        'tour.dashboard.step8.body',
-        'Plan turns the latest sessions, memory, and recommendations into a next-session plan you can review, edit, and hand back to practice.'
+        'tour.dashboard.step4.body',
+        'Every approval, plan, and edit is logged here so you can show parents and leadership exactly how decisions were made.'
       ),
       placement: 'top',
     },
