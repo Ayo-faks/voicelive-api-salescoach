@@ -8,19 +8,26 @@ import {
   CalculatorIcon,
   ChartBarIcon,
   CheckBadgeIcon,
+  ChevronDownIcon,
   ChevronRightIcon,
+  ClipboardDocumentListIcon,
   ClockIcon,
+  DocumentDuplicateIcon,
   DocumentTextIcon,
+  LightBulbIcon,
   MicrophoneIcon,
   PlayCircleIcon,
   ShareIcon,
+  ShieldCheckIcon,
   SparklesIcon,
   WifiIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { useEffect, useRef, useState } from 'react'
 import DiagnosticPanel from '../components/DiagnosticPanel'
-import LearnerTutorFullscreen from '../components/LearnerTutorFullscreen'
+import LearnerTutorFullscreen, {
+  type TutorVoiceSnapshot,
+} from '../components/LearnerTutorFullscreen'
 import PracticeFullscreen from '../components/PracticeFullscreen'
 import {
   scheduleRevisionCards,
@@ -35,6 +42,9 @@ import {
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 import type { LearnerSetup } from '../hooks/useLearnerSetup'
 import { useLearnerProfile } from '../hooks/useLearnerProfile'
+import { useDisclosureState } from '../hooks/useDisclosureState'
+import { logEvent } from '../lib/telemetry'
+import { copyParentSummary, shareParentSummary } from '../lib/parent-share'
 import { featureFlags } from '../../utils/featureFlags'
 import { useOnboarding } from '../../onboarding/context'
 import { requestReplayTour } from '../../onboarding/bus'
@@ -834,6 +844,24 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: '10px',
   },
+  pathRevisionFooter: {
+    marginTop: '14px',
+    paddingTop: '14px',
+    borderTop: `1px solid ${t.brand.line}`,
+    display: 'grid',
+    gap: '10px',
+  },
+  pathRevisionHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '12px',
+  },
+  pathRevisionTitle: {
+    fontSize: '0.9rem',
+    fontWeight: 600,
+    color: t.brand.textSecondary,
+  },
   pathRow: {
     display: 'grid',
     gridTemplateColumns: '40px 1fr auto auto',
@@ -1489,6 +1517,187 @@ const useStyles = makeStyles({
     color: t.brand.textTertiary,
     marginTop: '2px',
   },
+  // Disclosure (item 2)
+  disclosure: {
+    display: 'block',
+    padding: 0,
+  },
+  disclosureSummary: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '12px',
+    cursor: 'pointer',
+    listStyle: 'none',
+    color: t.brand.text,
+    '::-webkit-details-marker': { display: 'none' },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: t.brand.text,
+      outlineOffset: '4px',
+      borderRadius: t.radius.md,
+    },
+  },
+  disclosureChevron: {
+    width: '18px',
+    height: '18px',
+    color: t.brand.textTertiary,
+    transitionProperty: 'transform',
+    transitionDuration: '180ms',
+    '@media (prefers-reduced-motion: reduce)': {
+      transitionDuration: '0ms',
+    },
+  },
+  disclosureChevronOpen: { transform: 'rotate(90deg)' },
+  disclosureBody: { marginTop: '14px' },
+  // Voice CTA pill (item 1)
+  voicePill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    paddingTop: '6px',
+    paddingBottom: '6px',
+    paddingLeft: '12px',
+    paddingRight: '12px',
+    borderRadius: t.radius.pill,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    color: t.brand.text,
+    fontSize: '0.78rem',
+    fontWeight: 700,
+    letterSpacing: '0.01em',
+    boxShadow: '0 2px 10px rgba(0,0,0,0.18)',
+    pointerEvents: 'none',
+  },
+  voicePillDot: {
+    width: '6px',
+    height: '6px',
+    borderRadius: '999px',
+    backgroundColor: t.brand.text,
+  },
+  voiceWave: {
+    display: 'inline-flex',
+    alignItems: 'flex-end',
+    gap: '2px',
+    height: '14px',
+  },
+  voiceWaveBar: {
+    width: '2.5px',
+    borderRadius: '2px',
+    backgroundColor: t.brand.text,
+    animationName: {
+      '0%, 100%': { transform: 'scaleY(0.4)' },
+      '50%': { transform: 'scaleY(1)' },
+    },
+    animationDuration: '900ms',
+    animationIterationCount: 'infinite',
+    animationTimingFunction: 'ease-in-out',
+    transformOrigin: 'bottom',
+    '@media (prefers-reduced-motion: reduce)': {
+      animationName: 'none',
+      transform: 'scaleY(0.6)',
+    },
+  },
+  voicePulse: {
+    width: '8px',
+    height: '8px',
+    borderRadius: '999px',
+    backgroundColor: t.brand.text,
+    animationName: {
+      '0%, 100%': { opacity: 0.4, transform: 'scale(0.85)' },
+      '50%': { opacity: 1, transform: 'scale(1.15)' },
+    },
+    animationDuration: '1200ms',
+    animationIterationCount: 'infinite',
+    animationTimingFunction: 'ease-in-out',
+    '@media (prefers-reduced-motion: reduce)': {
+      animationName: 'none',
+      opacity: 1,
+      transform: 'none',
+    },
+  },
+  voiceStaticDots: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '3px',
+  },
+  voiceStaticDot: {
+    width: '4px',
+    height: '4px',
+    borderRadius: '999px',
+    backgroundColor: t.brand.text,
+  },
+  // Trust badge cluster (item 4)
+  trustBadgeWrap: {
+    marginTop: '12px',
+    minHeight: '44px',
+    alignContent: 'center',
+    display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: '6px',
+    appearance: 'none',
+    backgroundColor: 'transparent',
+    border: 'none',
+    paddingTop: '6px',
+    paddingBottom: '6px',
+    paddingLeft: '0',
+    paddingRight: '0',
+    cursor: 'pointer',
+    color: 'inherit',
+    textDecoration: 'none',
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: t.brand.text,
+      outlineOffset: '4px',
+      borderRadius: t.radius.pill,
+    },
+  },
+  trustBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    paddingTop: '4px',
+    paddingBottom: '4px',
+    paddingLeft: '8px',
+    paddingRight: '10px',
+    borderRadius: t.radius.pill,
+    backgroundColor: t.surface.cardMuted,
+    border: t.surface.hairline,
+    fontSize: '0.7rem',
+    fontWeight: 600,
+    color: t.brand.text,
+  },
+  trustBadgeIcon: { width: '12px', height: '12px' },
+  // Parent share card (item 3)
+  shareBubble: {
+    padding: '14px 16px',
+    borderRadius: t.radius.xl,
+    backgroundColor: '#dcf8c6',
+    color: '#0a0a0a',
+    fontSize: '0.92rem',
+    lineHeight: 1.5,
+    boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
+    position: 'relative',
+  },
+  shareLiveRegion: {
+    position: 'absolute',
+    width: '1px',
+    height: '1px',
+    paddingTop: '0',
+    paddingBottom: '0',
+    paddingLeft: '0',
+    paddingRight: '0',
+    margin: '-1px',
+    overflow: 'hidden',
+    clip: 'rect(0,0,0,0)',
+    whiteSpace: 'nowrap',
+    borderTopWidth: '0',
+    borderRightWidth: '0',
+    borderBottomWidth: '0',
+    borderLeftWidth: '0',
+  },
 })
 
 type StudentLearningHomeProps = {
@@ -1526,6 +1735,58 @@ export default function StudentLearningHome({
   )
   const [practiceOpen, setPracticeOpen] = useState(false)
   const [tutorOpen, setTutorOpen] = useState(false)
+  const [tutorVoice, setTutorVoice] = useState<TutorVoiceSnapshot>({
+    state: 'idle',
+    inputLevel: 0,
+    recording: false,
+  })
+  // Test-only escape hatch so Playwright can drive the voice pill into any
+  // state without spinning up the full WebRTC stack. Reads ?__voiceState=
+  // from the URL on mount and on history changes. Active only when the
+  // build flag VITE_PATHFINDER_E2E_HOOKS=true is set, or in `vite dev`.
+  useEffect(() => {
+    const enabled =
+      import.meta.env.DEV ||
+      import.meta.env.VITE_PATHFINDER_E2E_HOOKS === 'true'
+    if (!enabled) return
+    const valid = new Set<TutorVoiceSnapshot['state']>([
+      'idle',
+      'connecting',
+      'listening',
+      'thinking',
+      'speaking',
+      'error',
+    ])
+    const apply = () => {
+      const raw = new URLSearchParams(window.location.search).get('__voiceState')
+      if (raw && valid.has(raw as TutorVoiceSnapshot['state'])) {
+        setTutorVoice((prev) => ({
+          ...prev,
+          state: raw as TutorVoiceSnapshot['state'],
+        }))
+      }
+    }
+    apply()
+    window.addEventListener('popstate', apply)
+    return () => window.removeEventListener('popstate', apply)
+  }, [])
+  const disclosureUserKey = studentId ?? 'demo-student'
+  const [careerOpen, setCareerOpen] = useDisclosureState(
+    disclosureUserKey,
+    'career',
+    false
+  )
+  const [parentOpen, setParentOpen] = useDisclosureState(
+    disclosureUserKey,
+    'parent',
+    false
+  )
+  const [trustOpen, setTrustOpen] = useDisclosureState(
+    disclosureUserKey,
+    'trust-sidebar',
+    false
+  )
+  const [shareCopied, setShareCopied] = useState(false)
   const [expandedStepId, setExpandedStepId] = useState<string | null>(null)
   const [wrongAnswerExplanation, setWrongAnswerExplanation] =
     useState<WrongAnswerExplanation | null>(null)
@@ -1639,6 +1900,17 @@ export default function StudentLearningHome({
       }
     )
   }, [learnerProfileData, patchLearnerProfile, tourSeen, tourSeenAt])
+
+  // Reverse mirror: if the profile already records tour_seen_at (e.g. a
+  // cross-device return visit) but ui_state.tours_seen has not caught up,
+  // seed it so OnboardingRuntime's auto-picker does not re-run the tour.
+  useEffect(() => {
+    if (!featureFlags.pathfinder_learner_onboarding_enabled) return
+    if (!tourSeenAt) return
+    if (tourSeen) return
+    const next = [...(onboarding.state.tours_seen ?? []), 'welcome-learner']
+    onboarding.patch({ tours_seen: next })
+  }, [tourSeenAt, tourSeen, onboarding])
 
   function startCheckIn(skillId?: string) {
     setDemoActive(false)
@@ -1857,8 +2129,7 @@ export default function StudentLearningHome({
 
   const parentSummaryText = `Your Pathfinder update: ${learnerSetup.exam} ${learnerSetup.year} ${learnerSetup.subject}. Current focus: Ratio and proportion at 42% mastery. Today: 5 min diagnostic, explain one mistake, practise one similar question. Career signals: data/business and health sciences are worth exploring while chemistry and algebra improve.`
 
-  function handleParentShare() {
-    setShareStatus('Parent summary ready to share.')
+  function persistShare() {
     try {
       window.localStorage.setItem(
         'pathfinder-parent-summary:last',
@@ -1874,7 +2145,30 @@ export default function StudentLearningHome({
     }
   }
 
-  const whatsAppHref = `https://wa.me/?text=${encodeURIComponent(parentSummaryText)}`
+  async function handleCopySummary() {
+    persistShare()
+    const result = await copyParentSummary(parentSummaryText)
+    if (result.ok) {
+      setShareCopied(true)
+      setShareStatus('Summary copied to clipboard.')
+      logEvent('parent_summary_shared', { channel: result.channel })
+      window.setTimeout(() => setShareCopied(false), 2200)
+    } else {
+      setShareStatus('Copy unavailable — select the text to copy.')
+    }
+  }
+
+  async function handleShareSummary() {
+    persistShare()
+    const result = await shareParentSummary(parentSummaryText)
+    if (!result.ok) return
+    if (result.channel === 'web_share') {
+      setShareStatus('Shared.')
+    } else {
+      setShareStatus('Opening WhatsApp…')
+    }
+    logEvent('parent_summary_shared', { channel: result.channel })
+  }
 
   return (
     <section className={styles.root} data-testid="route-student-home">
@@ -1992,24 +2286,27 @@ export default function StudentLearningHome({
               )}
             </div>
             {learnerTutorEnabled ? (
-              <button
-                type="button"
-                className={styles.heroOrbStage}
-                onClick={() => setTutorOpen(true)}
-                data-testid="start-learner-tutor"
-                aria-label="Talk to your tutor"
-              >
-                <span className={styles.heroOrbBigHalo} aria-hidden="true" />
-                <span className={styles.heroOrbBig} aria-hidden="true" />
-                <span className={styles.heroOrbCaption}>
-                  <span className={styles.heroOrbCaptionTitle}>
-                    Talk to your tutor
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
+                <button
+                  type="button"
+                  className={styles.heroOrbStage}
+                  onClick={() => setTutorOpen(true)}
+                  data-testid="start-learner-tutor"
+                  aria-label="Talk to your tutor"
+                  style={{ position: 'relative' }}
+                >
+                  <span className={styles.heroOrbBigHalo} aria-hidden="true" />
+                  <span className={styles.heroOrbBig} aria-hidden="true" />
+                  <span className={styles.heroOrbCaption}>
+                    <span className={styles.heroOrbCaptionTitle}>
+                      Talk to your tutor
+                    </span>
+                    <span className={styles.heroOrbCaptionHint}>
+                      Live voice
+                    </span>
                   </span>
-                  <span className={styles.heroOrbCaptionHint}>
-                    Live voice · tap to start
-                  </span>
-                </span>
-              </button>
+                </button>
+              </div>
             ) : null}
           </div>
         </article>
@@ -2294,6 +2591,7 @@ export default function StudentLearningHome({
                 <button
                   type="button"
                   className={styles.textAction}
+                  data-testid={`practise-topic-${topic.skillId}`}
                   onClick={() => startCheckIn(topic.skillId)}
                 >
                   Practise this topic
@@ -2303,125 +2601,137 @@ export default function StudentLearningHome({
           </div>
         </article>
 
-        <article className={styles.card} data-testid="daily-revision-plan">
-          <div className={styles.cardHeader}>
-            <div>
-              <Text className={styles.cardTitle}>Daily revision plan</Text>
-              <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
-                Built from weak topics, wrong answers, and the selected exam
-                path.
-              </p>
-            </div>
-            <span className={styles.softBadge}>12 min today</span>
-          </div>
-          <div className={styles.planGrid}>
-            {dailyRevisionPlan.map(item => (
-              <div key={item.id} className={styles.insightCard}>
-                <span className={styles.weekLabel}>{item.minutes} min</span>
-                <Text className={styles.cardTitle}>{item.label}</Text>
-                <span className={styles.demoHelper}>{item.reason}</span>
-              </div>
-            ))}
-            {revisionPlanAdded && (
-              <div
-                className={styles.insightCard}
-                data-testid="revision-plan-added"
-              >
-                <span className={styles.weekLabel}>Added from mistake</span>
-                <Text className={styles.cardTitle}>Ratio table repair</Text>
-                <span className={styles.demoHelper}>
-                  One similar question has been added to tomorrow's retrieval
-                  slot.
-                </span>
-              </div>
-            )}
-          </div>
-        </article>
-
         <article
           className={styles.card}
           data-testid="career-pathway-suggestions"
         >
-          <div className={styles.cardHeader}>
-            <div>
-              <Text className={styles.cardTitle}>
-                Pathways linked to strengths
-              </Text>
-              <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
-                Guidance stays exploratory: strengths, gaps, and what to work on
-                next.
-              </p>
-            </div>
-            <span className={styles.softBadge}>Exploratory guidance</span>
-          </div>
-          <div className={styles.pathwayGrid}>
-            {careerPathways.map(pathway => (
-              <div key={pathway.id} className={styles.pathwayCard}>
-                <div className={styles.pathIcon} aria-hidden="true">
-                  <BriefcaseIcon style={{ width: 20, height: 20 }} />
-                </div>
-                <div className={styles.pathTitle}>
-                  <span className={styles.pathTitleText}>{pathway.title}</span>
-                  <span className={styles.pathMeta}>
-                    Strength: {pathway.strength}
-                  </span>
-                  <span className={styles.pathMeta}>
-                    Gap to close: {pathway.gap}
-                  </span>
-                </div>
-                <span className={styles.softBadge}>{pathway.fit}% fit</span>
+          <details
+            className={styles.disclosure}
+            open={careerOpen}
+            onToggle={(e) =>
+              setCareerOpen((e.currentTarget as HTMLDetailsElement).open)
+            }
+          >
+            <summary
+              className={styles.disclosureSummary}
+              data-testid="career-disclosure-summary"
+            >
+              <div>
+                <Text className={styles.cardTitle}>
+                  Pathways linked to strengths
+                </Text>
+                <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
+                  Guidance stays exploratory: strengths, gaps, and what to work
+                  on next.
+                </p>
               </div>
-            ))}
-          </div>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <span className={styles.softBadge}>Exploratory</span>
+                <ChevronRightIcon
+                  className={[styles.disclosureChevron, careerOpen && styles.disclosureChevronOpen].filter(Boolean).join(' ')}
+                  aria-hidden="true"
+                />
+              </span>
+            </summary>
+            <div className={`${styles.pathwayGrid} ${styles.disclosureBody}`}>
+              {careerPathways.map(pathway => (
+                <div key={pathway.id} className={styles.pathwayCard}>
+                  <div className={styles.pathIcon} aria-hidden="true">
+                    <BriefcaseIcon style={{ width: 20, height: 20 }} />
+                  </div>
+                  <div className={styles.pathTitle}>
+                    <span className={styles.pathTitleText}>{pathway.title}</span>
+                    <span className={styles.pathMeta}>
+                      Strength: {pathway.strength}
+                    </span>
+                    <span className={styles.pathMeta}>
+                      Gap to close: {pathway.gap}
+                    </span>
+                  </div>
+                  <span className={styles.softBadge}>{pathway.fit}% fit</span>
+                </div>
+              ))}
+            </div>
+          </details>
         </article>
 
         <article className={styles.card} data-testid="parent-share-summary">
-          <div className={styles.cardHeader}>
-            <div>
-              <Text className={styles.cardTitle}>Parent progress summary</Text>
-              <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
-                A short shareable update for parents or guardians, built for
-                WhatsApp.
-              </p>
-            </div>
-            <DocumentTextIcon
-              style={{ width: 26, height: 26, color: t.brand.text }}
-              aria-hidden="true"
-            />
-          </div>
-          <div className={styles.sharePanel}>
-            <p className={styles.demoHelper} style={{ margin: 0 }}>
-              {parentSummaryText}
-            </p>
-            <div className={styles.shareActions}>
-              <button
-                type="button"
-                className={styles.careerAction}
-                onClick={handleParentShare}
-              >
-                <ShareIcon
-                  style={{ width: 18, height: 18 }}
+          <details
+            className={styles.disclosure}
+            open={parentOpen}
+            onToggle={(e) =>
+              setParentOpen((e.currentTarget as HTMLDetailsElement).open)
+            }
+          >
+            <summary
+              className={styles.disclosureSummary}
+              data-testid="parent-disclosure-summary"
+            >
+              <div>
+                <Text className={styles.cardTitle}>Parent progress summary</Text>
+                <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
+                  Preview the message, then copy or share to WhatsApp.
+                </p>
+              </div>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <DocumentTextIcon
+                  style={{ width: 22, height: 22, color: t.brand.text }}
                   aria-hidden="true"
                 />
-                Prepare parent summary
-              </button>
-              <a
-                className={styles.careerActionSecondary}
-                href={whatsAppHref}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <ShareIcon
-                  style={{ width: 18, height: 18 }}
+                <ChevronRightIcon
+                  className={[styles.disclosureChevron, parentOpen && styles.disclosureChevronOpen].filter(Boolean).join(' ')}
                   aria-hidden="true"
                 />
-                Invite on WhatsApp
-              </a>
+              </span>
+            </summary>
+            <div className={`${styles.sharePanel} ${styles.disclosureBody}`}>
+              <div
+                className={styles.shareBubble}
+                data-testid="parent-share-preview"
+                role="region"
+                aria-label="Parent summary preview"
+              >
+                {parentSummaryText}
+              </div>
+              <div className={styles.shareActions}>
+                <button
+                  type="button"
+                  className={styles.careerAction}
+                  onClick={handleCopySummary}
+                  data-testid="parent-share-copy"
+                  aria-label="Copy parent summary"
+                >
+                  <DocumentDuplicateIcon
+                    style={{ width: 18, height: 18 }}
+                    aria-hidden="true"
+                  />
+                  {shareCopied ? 'Copied!' : 'Copy'}
+                </button>
+                <button
+                  type="button"
+                  className={styles.careerActionSecondary}
+                  onClick={handleShareSummary}
+                  data-testid="parent-share-send"
+                  aria-label="Share parent summary"
+                >
+                  <ShareIcon
+                    style={{ width: 18, height: 18 }}
+                    aria-hidden="true"
+                  />
+                  Share
+                </button>
+              </div>
+              <output
+                className={styles.shareLiveRegion}
+                aria-live="polite"
+              >
+                {shareStatus ?? ''}
+              </output>
+              {shareStatus && (
+                <span className={styles.softBadge}>{shareStatus}</span>
+              )}
             </div>
-            {shareStatus && (
-              <span className={styles.softBadge}>{shareStatus}</span>
-            )}
-          </div>
+          </details>
         </article>
 
         <article className={styles.card}>
@@ -2601,6 +2911,37 @@ export default function StudentLearningHome({
               )
             })}
           </div>
+          <div
+            className={styles.pathRevisionFooter}
+            data-testid="daily-revision-plan"
+          >
+            <div className={styles.pathRevisionHeader}>
+              <Text className={styles.pathRevisionTitle}>More to revise</Text>
+              <span className={styles.softBadge}>12 min today</span>
+            </div>
+            <div className={styles.planGrid}>
+              {dailyRevisionPlan.map(item => (
+                <div key={item.id} className={styles.insightCard}>
+                  <span className={styles.weekLabel}>{item.minutes} min</span>
+                  <Text className={styles.cardTitle}>{item.label}</Text>
+                  <span className={styles.demoHelper}>{item.reason}</span>
+                </div>
+              ))}
+              {revisionPlanAdded && (
+                <div
+                  className={styles.insightCard}
+                  data-testid="revision-plan-added"
+                >
+                  <span className={styles.weekLabel}>Added from mistake</span>
+                  <Text className={styles.cardTitle}>Ratio table repair</Text>
+                  <span className={styles.demoHelper}>
+                    One similar question has been added to tomorrow's retrieval
+                    slot.
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
         </article>
 
         <article className={styles.card}>
@@ -2677,22 +3018,40 @@ export default function StudentLearningHome({
           </div>
         </article>
 
-        <article className={styles.card}>
-          <div className={styles.cardHeader}>
-            <Text className={styles.cardTitle}>Trust</Text>
-            <span className={styles.softBadge}>All gates green</span>
-          </div>
-          <p
-            style={{
-              fontSize: '0.82rem',
-              color: t.brand.textSecondary,
-              lineHeight: 1.5,
-              margin: 0,
-            }}
+        <article className={styles.card} data-testid="sidebar-trust">
+          <details
+            className={styles.disclosure}
+            open={trustOpen}
+            onToggle={(e) =>
+              setTrustOpen((e.currentTarget as HTMLDetailsElement).open)
+            }
           >
-            Every recommendation is teacher-reviewed. Evidence and activity log
-            available in Trust & Safety.
-          </p>
+            <summary
+              className={styles.disclosureSummary}
+              data-testid="trust-disclosure-summary"
+            >
+              <Text className={styles.cardTitle}>Trust</Text>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <span className={styles.softBadge}>All gates green</span>
+                <ChevronRightIcon
+                  className={[styles.disclosureChevron, trustOpen && styles.disclosureChevronOpen].filter(Boolean).join(' ')}
+                  aria-hidden="true"
+                />
+              </span>
+            </summary>
+            <p
+              className={styles.disclosureBody}
+              style={{
+                fontSize: '0.82rem',
+                color: t.brand.textSecondary,
+                lineHeight: 1.5,
+                margin: 0,
+              }}
+            >
+              Every recommendation is teacher-reviewed. Evidence and activity log
+              available in <Link to="/trust">Trust &amp; Safety</Link>.
+            </p>
+          </details>
         </article>
       </aside>
 
@@ -2710,11 +3069,15 @@ export default function StudentLearningHome({
       {learnerTutorEnabled && tutorOpen && (
         <LearnerTutorFullscreen
           open={tutorOpen}
-          onClose={() => setTutorOpen(false)}
+          onClose={() => {
+            setTutorOpen(false)
+            setTutorVoice({ state: 'idle', inputLevel: 0, recording: false })
+          }}
           childId={studentId ?? 'demo-student'}
           exam={learnerSetup.exam}
           classYear={learnerSetup.year}
           subject={learnerSetup.subject}
+          onVoiceStateChange={setTutorVoice}
         />
       )}
 

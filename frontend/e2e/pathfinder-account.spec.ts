@@ -19,6 +19,20 @@ const accountLinks = [
 ]
 
 test.describe('Pathfinder · Account & settings', () => {
+  // Admin lands on /teacher where the welcome-admin tour auto-fires; the
+  // Joyride overlay (rendered full-page when the anchor is still mounting)
+  // intercepts pointer events on the account trigger. Disable tours for this
+  // spec — it isn't exercising onboarding.
+  test.beforeEach(async ({ page }) => {
+    await page.route('**/api/config', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ onboarding: { tours_enabled: false } }),
+      })
+    )
+  })
+
   test('account trigger opens the Pathfinder account hub page', async ({ page }) => {
     await page.goto('/home')
     await expect(page.getByTestId('pathfinder-learn-app')).toBeVisible()
@@ -33,10 +47,11 @@ test.describe('Pathfinder · Account & settings', () => {
     await expect(page.getByRole('heading', { name: 'Account & settings' })).toBeVisible()
     await expect(page.getByText('Pathfinder · Account')).toBeVisible()
 
+    const hub = page.getByTestId('route-account-hub')
     for (const link of accountLinks) {
-      await expect(page.getByTestId(link.testId)).toBeVisible()
+      await expect(hub.getByTestId(link.testId)).toBeVisible()
     }
-    await expect(page.getByTestId('account-action-sign-out')).toHaveAttribute('href', '/logout')
+    await expect(hub.getByTestId('account-action-sign-out')).toHaveAttribute('href', '/logout')
   })
 
   for (const link of accountLinks) {

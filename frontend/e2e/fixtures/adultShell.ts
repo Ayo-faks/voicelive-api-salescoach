@@ -42,7 +42,10 @@ const PERSONAS: Record<AdultRole, AdultPersona> = {
     email: 'dev-therapist@localhost',
     uiState: {
       onboarding_complete: true,
-      tours_seen: ['welcome-therapist'],
+      // Pre-seed both auto-trigger tours therapists encounter on first
+      // load (welcome on /home, dashboard on /teacher) so the help-menu
+      // replay path is the only thing the test exercises.
+      tours_seen: ['welcome-therapist', 'dashboard-tour'],
     },
   },
   admin: {
@@ -52,7 +55,10 @@ const PERSONAS: Record<AdultRole, AdultPersona> = {
     email: 'dev-admin@localhost',
     uiState: {
       onboarding_complete: true,
-      tours_seen: [],
+      // welcome-admin still auto-fires (the admin test relies on it).
+      // dashboard-tour also targets /teacher, so seed it as seen to stop
+      // it re-opening once welcome-admin is dismissed.
+      tours_seen: ['dashboard-tour'],
     },
   },
   parent: {
@@ -130,7 +136,7 @@ async function openPersonaHome(browser: Browser, baseURL: string, persona: Adult
   const page = await context.newPage()
 
   await page.goto(toAppUrl(baseURL, '/home'), { waitUntil: 'domcontentloaded' })
-  await page.waitForSelector('[data-testid="sidebar-nav-home"]')
+  await page.waitForSelector('[data-testid="help-menu-trigger"]')
 
   return { context, page }
 }

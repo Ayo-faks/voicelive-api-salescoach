@@ -44,6 +44,7 @@ import StudentLearningHome from './routes/StudentLearningHome'
 import StudentMasteryProfile from './routes/StudentMasteryProfile'
 import TeacherMasteryDashboard from './routes/TeacherMasteryDashboard'
 import TrustSafetyConsole from './routes/TrustSafetyConsole'
+import LearnerTrustPage from './routes/LearnerTrustPage'
 import {
   PathfinderAccountHub,
   PathfinderAiNotice,
@@ -58,6 +59,9 @@ import {
   LearnerContext,
   defaultLearnerContext,
 } from './contexts/LearnerContext'
+import { OnboardingRuntime } from '../components/onboarding/OnboardingRuntime'
+import { HelpMenu } from '../components/onboarding/HelpMenu'
+import { requestReplayTour } from '../onboarding/bus'
 import { featureFlags } from '../utils/featureFlags'
 
 export const COOKIE_CONSENT_STORAGE_KEY = 'pathfinder.cookie-consent.v1'
@@ -85,6 +89,7 @@ type NavItem = {
   hint: string
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
   allowedRoles: LearningRole[]
+  testId: string
 }
 
 type AccountAction = {
@@ -108,6 +113,7 @@ const navItems: NavItem[] = [
     hint: 'Today',
     icon: AcademicCapIcon,
     allowedRoles: ['parent', 'learner', 'kid', 'student'],
+    testId: 'pf-nav-home',
   },
   {
     to: '/teacher',
@@ -115,6 +121,7 @@ const navItems: NavItem[] = [
     hint: 'Class',
     icon: ChartBarIcon,
     allowedRoles: ['therapist', 'admin'],
+    testId: 'pf-nav-teacher',
   },
   {
     to: '/library',
@@ -122,6 +129,7 @@ const navItems: NavItem[] = [
     hint: 'Skills',
     icon: BookOpenIcon,
     allowedRoles: ['admin'],
+    testId: 'pf-nav-library',
   },
   {
     to: '/profile',
@@ -129,6 +137,7 @@ const navItems: NavItem[] = [
     hint: 'Insights',
     icon: UserCircleIcon,
     allowedRoles: ['parent', 'learner', 'kid', 'student', 'admin'],
+    testId: 'pf-nav-profile',
   },
   {
     to: '/pathways',
@@ -136,6 +145,7 @@ const navItems: NavItem[] = [
     hint: 'Explore',
     icon: MagnifyingGlassIcon,
     allowedRoles: ['parent', 'learner', 'kid', 'student', 'admin'],
+    testId: 'pf-nav-pathways',
   },
   {
     to: '/safety',
@@ -143,6 +153,7 @@ const navItems: NavItem[] = [
     hint: 'Console',
     icon: ShieldCheckIcon,
     allowedRoles: ['admin'],
+    testId: 'pf-nav-safety',
   },
 ]
 
@@ -1037,7 +1048,18 @@ export default function PathfinderLearnApp() {
   }
 
   const learnerHomeElement = () => {
-    if (learnerChildren === null) return null
+    if (learnerChildren === null) {
+      return (
+        <StudentLearningHome
+          key="learner-loading"
+          studentId={null}
+          learnerTutorEnabled={['learner', 'kid', 'student'].includes(
+            effectiveRole
+          )}
+          pushConsentDeferred={effectiveRole === 'kid'}
+        />
+      )
+    }
     if (learnerChildren.length === 0) return <LearnerEmptyState />
     const activeLearnerId = selectedLearnerId ?? learnerChildren[0]?.id ?? null
     return (
@@ -1087,10 +1109,16 @@ export default function PathfinderLearnApp() {
   const homeRouteElement = () => {
     if (learnerNeedsOnboarding) return <Navigate to="/welcome" replace />
     return routeForRole(
-      ['parent', 'learner', 'kid', 'student'],
+      ['learner', 'kid', 'student'],
       learnerHomeElement()
     )
   }
+
+  const directReplayTourId =
+    location.pathname === '/home' &&
+    ['learner', 'kid', 'student'].includes(effectiveRole)
+      ? 'welcome-learner'
+      : undefined
 
   const renderNavLinks = (extraClass?: string) =>
     visibleNavItems.map(item => {
@@ -1099,6 +1127,7 @@ export default function PathfinderLearnApp() {
         <NavLink
           key={item.to}
           to={item.to}
+          data-testid={item.testId}
           className={extraClass ?? styles.navLink}
           style={({ isActive }) =>
             isActive
@@ -1188,6 +1217,12 @@ export default function PathfinderLearnApp() {
 
   return (
     <FluentProvider theme={pathfinderFluentTheme} className={styles.provider}>
+      <OnboardingRuntime
+        role={authSession?.role ?? null}
+        userMode="workspace"
+        toursEnabled={appConfig?.onboarding?.tours_enabled ?? true}
+        authenticated={authStatus === 'authenticated'}
+      >
       <div className={styles.page} data-testid="pathfinder-learn-app">
         <aside className={styles.sidebar} aria-label="Pathfinder primary">
           <div className={styles.brand}>
@@ -1224,6 +1259,14 @@ export default function PathfinderLearnApp() {
               </button>
             ) : null}
           </nav>
+
+          {authSession?.authenticated ? (
+            <HelpMenu
+              currentRole={authSession.role ?? null}
+              directReplayTourId={directReplayTourId}
+              onReplayTour={tourId => requestReplayTour(tourId)}
+            />
+          ) : null}
 
           {renderAccountCard()}
         </aside>
@@ -1315,6 +1358,7 @@ export default function PathfinderLearnApp() {
                 path="/safety"
                 element={routeForRole(['admin'], <TrustSafetyConsole />)}
               />
+              <Route path="/trust" element={<LearnerTrustPage />} />
               <Route path="/account" element={<PathfinderAccountHub />} />
               <Route
                 path="/account/settings"
@@ -1458,6 +1502,7 @@ export default function PathfinderLearnApp() {
         )}
         <CookieConsentBanner />
       </div>
+      </OnboardingRuntime>
     </FluentProvider>
   )
 }

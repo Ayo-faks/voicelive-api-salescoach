@@ -29,7 +29,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import {
   useUiState,
@@ -46,6 +46,7 @@ import { ONBOARDING_EVENTS } from '../../onboarding/events'
 import {
   consumePendingReplayTour,
   onReplayTourRequested,
+  type ReplayTourRequest,
 } from '../../onboarding/bus'
 import { OnboardingContext } from '../../onboarding/context'
 import { telemetry } from '../../services/telemetry'
@@ -85,6 +86,7 @@ const OnboardingRuntimeBase = forwardRef<
 >(function OnboardingRuntimeBase(props, ref) {
   const { role, userMode, toursEnabled, authenticated, uiState } = props
   const location = useLocation()
+  const navigate = useNavigate()
 
   const isChildContext = role === 'child' || userMode === 'child'
 
@@ -185,11 +187,16 @@ const OnboardingRuntimeBase = forwardRef<
   // trigger a replay without a prop-drilled ref.
   useEffect(() => {
     if (isChildContext) return undefined
-    return onReplayTourRequested(tourId => {
-      const tour = getTourById(tourId)
-      if (tour) setReplayingTour(tour)
+    return onReplayTourRequested((request: ReplayTourRequest) => {
+      const tour = getTourById(request.tourId)
+      if (!tour) return
+      const replayPath = request.replayPath ?? tour.replayPath
+      setReplayingTour(tour)
+      if (replayPath && !location.pathname.startsWith(replayPath)) {
+        navigate({ pathname: replayPath, search: location.search })
+      }
     })
-  }, [isChildContext])
+  }, [isChildContext, location.pathname, location.search, navigate])
 
   useEffect(() => {
     if (isChildContext || !authenticated) return

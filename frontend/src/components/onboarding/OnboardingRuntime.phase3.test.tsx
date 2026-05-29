@@ -63,10 +63,16 @@ function renderRuntime(opts: {
     toursEnabled: true,
     authenticated: true,
   }
+  const routeSurface =
+    opts.path === '/teacher' ? (
+      <div data-testid="route-teacher-dashboard" />
+    ) : opts.path === '/profile' ? (
+      <div data-testid="route-student-profile" />
+    ) : null
   return render(
     <FluentProvider theme={webLightTheme}>
       <MemoryRouter initialEntries={[opts.path]}>
-        <OnboardingRuntime {...runtimeProps} />
+        <OnboardingRuntime {...runtimeProps}>{routeSurface}</OnboardingRuntime>
       </MemoryRouter>
     </FluentProvider>
   )
@@ -92,23 +98,25 @@ describe('OnboardingRuntime — role-gated auto-trigger (Phase 3)', () => {
     resetTelemetryForTests()
   })
 
-  it('fresh parent on /home sees welcome-parent', async () => {
-    const { container } = renderRuntime({ role: 'parent', path: '/home' })
+  it('fresh parent on /profile sees welcome-parent', async () => {
+    const { container } = renderRuntime({ role: 'parent', path: '/profile' })
     await waitFor(() => {
       const driver = container.querySelector('[data-testid="tour-driver-stub"]')
       expect(driver?.getAttribute('data-tour-id')).toBe('welcome-parent')
     })
-    expect(
-      trackSpy.mock.calls.some(
-        (call: [string, unknown?]) =>
-          call[0] === ONBOARDING_EVENTS.TOUR_STARTED &&
-          (call[1] as { tour_id: string }).tour_id === 'welcome-parent'
-      )
-    ).toBe(true)
+    await waitFor(() => {
+      expect(
+        trackSpy.mock.calls.some(
+          (call: [string, unknown?]) =>
+            call[0] === ONBOARDING_EVENTS.TOUR_STARTED &&
+            (call[1] as { tour_id: string }).tour_id === 'welcome-parent'
+        )
+      ).toBe(true)
+    })
   })
 
-  it('fresh admin on /home sees welcome-admin (not welcome-therapist)', async () => {
-    const { container } = renderRuntime({ role: 'admin', path: '/home' })
+  it('fresh admin on /teacher sees welcome-admin (not welcome-therapist)', async () => {
+    const { container } = renderRuntime({ role: 'admin', path: '/teacher' })
     await waitFor(() => {
       const driver = container.querySelector('[data-testid="tour-driver-stub"]')
       expect(driver?.getAttribute('data-tour-id')).toBe('welcome-admin')

@@ -11,7 +11,6 @@ from flask import Flask
 from src.learning.api import (
     ITEM_BANK_PATH,
     LearningApi,
-    LearningApiError,
     PILOT_STUDENT_ID,
     PILOT_TEACHER_ID,
     PILOT_TENANT_ID,

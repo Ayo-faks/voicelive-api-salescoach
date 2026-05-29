@@ -26,12 +26,14 @@ import {
   useMemo,
   useState,
 } from 'react'
+import { createPortal } from 'react-dom'
 import type { EventData, Step as JoyrideStep } from 'react-joyride'
 
 import type { TourDefinition, TourStep } from '../../onboarding/tours'
 import { ONBOARDING_EVENTS } from '../../onboarding/events'
 import { telemetry } from '../../services/telemetry'
 import { WuloTourTooltip } from './WuloTourTooltip'
+import { pathfinderTokens as pathfinder } from '../../learning/theme/pathfinder-tokens'
 
 /**
  * Keep the Joyride import dynamic so it does not leak into the initial
@@ -60,6 +62,20 @@ const JOYRIDE_TYPE_STEP_AFTER = 'step:after'
 export function TourDriver(props: TourDriverProps): JSX.Element | null {
   const { tour, onComplete } = props
   const [run, setRun] = useState(false)
+  const [reduceBackdropMotion, setReduceBackdropMotion] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return undefined
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const update = (): void => setReduceBackdropMotion(query.matches)
+    update()
+    if (typeof query.addEventListener === 'function') {
+      query.addEventListener('change', update)
+      return () => query.removeEventListener('change', update)
+    }
+    query.addListener(update)
+    return () => query.removeListener(update)
+  }, [])
 
   const joyrideSteps = useMemo<JoyrideStep[]>(() => {
     if (!tour) return []
@@ -160,8 +176,13 @@ export function TourDriver(props: TourDriverProps): JSX.Element | null {
 
   if (!tour || joyrideSteps.length === 0) return null
 
-  return (
-    <Suspense fallback={null}>
+  const driver = (
+    <div
+      data-testid="tour-driver"
+      data-tour-id={tour.id}
+      style={{ display: 'contents' }}
+    >
+      <Suspense fallback={null}>
       <Joyride
         steps={joyrideSteps}
         run={run}
@@ -171,29 +192,35 @@ export function TourDriver(props: TourDriverProps): JSX.Element | null {
         options={{
           buttons: ['skip', 'back', 'primary'],
           overlayClickAction: false,
-          primaryColor: '#0d8a84',
-          arrowColor: 'rgba(248,252,252,0.98)',
-          overlayColor: 'rgba(15, 42, 58, 0.42)',
+          primaryColor: pathfinder.brand.ink,
+          arrowColor: pathfinder.surface.card,
+          overlayColor: 'rgba(15, 23, 42, 0.45)',
           zIndex: 10000,
           spotlightPadding: 6,
           spotlightRadius: 14,
         }}
         styles={{
           overlay: {
-            backdropFilter: 'blur(2px)',
+            backdropFilter: reduceBackdropMotion ? 'none' : 'blur(2px)',
+            WebkitBackdropFilter: reduceBackdropMotion ? 'none' : 'blur(2px)',
           },
           beacon: {
             outline: 'none',
           },
           beaconInner: {
-            backgroundColor: '#0d8a84',
+            backgroundColor: pathfinder.brand.ink,
           },
           beaconOuter: {
-            borderColor: 'rgba(13,138,132,0.55)',
-            backgroundColor: 'rgba(13,138,132,0.2)',
+            borderColor: 'rgba(15,23,42,0.55)',
+            backgroundColor: 'rgba(15,23,42,0.2)',
           },
         }}
       />
-    </Suspense>
+      </Suspense>
+    </div>
   )
+
+  if (typeof document === 'undefined' || !document.body) return driver
+
+  return createPortal(driver, document.body)
 }

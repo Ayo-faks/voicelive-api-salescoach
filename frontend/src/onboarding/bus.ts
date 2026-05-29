@@ -21,6 +21,8 @@ interface PendingReplayPayload {
   tourId: string
 }
 
+export type ReplayTourRequest = PendingReplayPayload
+
 function readPendingReplay(): PendingReplayPayload | null {
   if (typeof window === 'undefined') return null
   const raw = window.sessionStorage.getItem(PENDING_REPLAY_STORAGE_KEY)
@@ -37,16 +39,11 @@ function readPendingReplay(): PendingReplayPayload | null {
 export function requestReplayTour(tourId: string): void {
   if (typeof window === 'undefined') return
   const replayPath = getTourById(tourId)?.replayPath
-  if (replayPath && !window.location.pathname.startsWith(replayPath)) {
-    const payload: PendingReplayPayload = { tourId, replayPath }
-    window.sessionStorage.setItem(
-      PENDING_REPLAY_STORAGE_KEY,
-      JSON.stringify(payload)
-    )
-    window.location.assign(`${replayPath}${window.location.search}`)
-    return
-  }
-  window.dispatchEvent(new CustomEvent(REPLAY_EVENT, { detail: { tourId } }))
+  window.dispatchEvent(
+    new CustomEvent<ReplayTourRequest>(REPLAY_EVENT, {
+      detail: { tourId, replayPath },
+    })
+  )
 }
 
 export function consumePendingReplayTour(): string | null {
@@ -63,12 +60,12 @@ export function consumePendingReplayTour(): string | null {
 }
 
 export function onReplayTourRequested(
-  handler: (tourId: string) => void
+  handler: (request: ReplayTourRequest) => void
 ): () => void {
   if (typeof window === 'undefined') return () => undefined
   const listener = (evt: Event): void => {
-    const detail = (evt as CustomEvent<{ tourId: string }>).detail
-    if (detail?.tourId) handler(detail.tourId)
+    const detail = (evt as CustomEvent<ReplayTourRequest>).detail
+    if (detail?.tourId) handler(detail)
   }
   window.addEventListener(REPLAY_EVENT, listener)
   return () => window.removeEventListener(REPLAY_EVENT, listener)

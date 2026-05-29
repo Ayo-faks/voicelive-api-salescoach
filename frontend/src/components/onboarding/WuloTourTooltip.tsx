@@ -15,16 +15,16 @@
  * See docs/onboarding/onboarding-plan-v2.md — WCAG 2.2 AA section.
  */
 
-import type { CSSProperties } from 'react'
+import { type CSSProperties, type KeyboardEvent, useId } from 'react'
 import {
   Button,
   FluentProvider,
   Text,
   makeStyles,
-  tokens,
 } from '@fluentui/react-components'
 import type { TooltipRenderProps } from 'react-joyride'
-import { wuloTheme } from '../../theme/wuloTheme'
+import { pathfinderTokens as pathfinder } from '../../learning/theme/pathfinder-tokens'
+import { pathfinderFluentTheme } from '../../learning/theme/pathfinderFluentTheme'
 
 /** Subset of the `TooltipRenderProps` shape that Joyride passes in.
  * We keep the dependency shape loose so we don't force callers to import
@@ -35,24 +35,37 @@ const useStyles = makeStyles({
   root: {
     maxWidth: '380px',
     minWidth: '300px',
-    color: 'var(--color-text-primary, #0f2a3a)',
-    padding: '18px 20px 16px',
-    borderRadius: '18px',
-    border: '1px solid rgba(13,138,132,0.2)',
-    background:
-      'radial-gradient(circle at 32% 18%, rgba(13,138,132,0.10), transparent 42%), ' +
-      'radial-gradient(circle at 88% 100%, rgba(13,138,132,0.06), transparent 48%), ' +
-      'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,252,252,0.94))',
-    boxShadow:
-      'inset 0 1px 0 rgba(255,255,255,0.9), ' +
-      '0 1px 2px rgba(15,42,58,0.08), ' +
-      '0 18px 42px rgba(15,42,58,0.18)',
-    backdropFilter: 'blur(18px)',
+    color: pathfinder.brand.text,
+    paddingTop: '18px',
+    paddingRight: '20px',
+    paddingBottom: '16px',
+    paddingLeft: '20px',
+    borderRadius: pathfinder.radius.xl,
+    borderTopWidth: '1px',
+    borderRightWidth: '1px',
+    borderBottomWidth: '1px',
+    borderLeftWidth: '1px',
+    borderTopStyle: 'solid',
+    borderRightStyle: 'solid',
+    borderBottomStyle: 'solid',
+    borderLeftStyle: 'solid',
+    borderTopColor: pathfinder.brand.line,
+    borderRightColor: pathfinder.brand.line,
+    borderBottomColor: pathfinder.brand.line,
+    borderLeftColor: pathfinder.brand.line,
+    backgroundColor: pathfinder.surface.card,
+    boxShadow: pathfinder.surface.cardElevatedShadow,
     display: 'flex',
     flexDirection: 'column',
     gap: '10px',
-    fontFamily: 'var(--font-body, Manrope, system-ui, sans-serif)',
+    fontFamily: pathfinder.font.text,
     animation: 'wulo-tour-pop 180ms cubic-bezier(0.2, 0.8, 0.2, 1)',
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: pathfinder.brand.ink,
+      outlineOffset: '4px',
+    },
     '@media (prefers-reduced-motion: reduce)': {
       animation: 'none',
     },
@@ -61,36 +74,47 @@ const useStyles = makeStyles({
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    gap: tokens.spacingHorizontalS,
+    gap: '12px',
   },
   title: {
-    fontFamily: 'var(--font-display, Manrope, system-ui, sans-serif)',
+    fontFamily: pathfinder.font.display,
     fontWeight: 700,
-    letterSpacing: '-0.02em',
+    letterSpacing: '0',
     fontSize: '1.02rem',
     lineHeight: 1.3,
-    color: 'var(--color-text-primary, #0f2a3a)',
+    color: pathfinder.brand.text,
   },
   stepPill: {
     display: 'inline-flex',
     alignItems: 'center',
     height: '22px',
-    padding: '0 10px',
-    borderRadius: '999px',
-    border: '1px solid rgba(13,138,132,0.18)',
-    background:
-      'linear-gradient(180deg, rgba(255,255,255,0.9), rgba(236,246,246,0.85))',
-    boxShadow:
-      'inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 2px rgba(15,42,58,0.04)',
-    color: '#0d8a84',
+    paddingTop: '0',
+    paddingRight: '10px',
+    paddingBottom: '0',
+    paddingLeft: '10px',
+    borderRadius: pathfinder.radius.pill,
+    borderTopWidth: '1px',
+    borderRightWidth: '1px',
+    borderBottomWidth: '1px',
+    borderLeftWidth: '1px',
+    borderTopStyle: 'solid',
+    borderRightStyle: 'solid',
+    borderBottomStyle: 'solid',
+    borderLeftStyle: 'solid',
+    borderTopColor: pathfinder.brand.line,
+    borderRightColor: pathfinder.brand.line,
+    borderBottomColor: pathfinder.brand.line,
+    borderLeftColor: pathfinder.brand.line,
+    backgroundColor: pathfinder.surface.cardMuted,
+    color: pathfinder.brand.textSecondary,
     fontSize: '0.72rem',
     fontWeight: 700,
-    letterSpacing: '0.04em',
+    letterSpacing: '0',
     whiteSpace: 'nowrap',
     flexShrink: 0,
   },
   body: {
-    color: 'var(--color-text-secondary, #3a4f57)',
+    color: pathfinder.brand.textSecondary,
     fontSize: '0.9375rem',
     lineHeight: 1.55,
     margin: 0,
@@ -102,42 +126,81 @@ const useStyles = makeStyles({
     gap: '8px',
     marginTop: '6px',
     paddingTop: '10px',
-    borderTop: '1px solid rgba(15,42,58,0.06)',
+    borderTopWidth: '1px',
+    borderTopStyle: 'solid',
+    borderTopColor: pathfinder.brand.lineSoft,
   },
   spacer: { flex: 1 },
   skipButton: {
     minHeight: '32px',
-    color: 'var(--color-text-tertiary, #5a6a6f)',
+    color: pathfinder.brand.textSecondary,
     fontWeight: 600,
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: pathfinder.brand.ink,
+      outlineOffset: '3px',
+    },
   },
   backButton: {
     minHeight: '32px',
-    borderRadius: '10px',
-    background:
-      'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(245,251,251,0.9))',
-    border: '1px solid rgba(13,138,132,0.22)',
-    boxShadow:
-      'inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 2px rgba(15,42,58,0.06)',
-    color: 'var(--color-text-primary, #0f2a3a)',
+    borderRadius: pathfinder.radius.sm,
+    backgroundColor: pathfinder.surface.card,
+    borderTopWidth: '1px',
+    borderRightWidth: '1px',
+    borderBottomWidth: '1px',
+    borderLeftWidth: '1px',
+    borderTopStyle: 'solid',
+    borderRightStyle: 'solid',
+    borderBottomStyle: 'solid',
+    borderLeftStyle: 'solid',
+    borderTopColor: pathfinder.brand.line,
+    borderRightColor: pathfinder.brand.line,
+    borderBottomColor: pathfinder.brand.line,
+    borderLeftColor: pathfinder.brand.line,
+    boxShadow: pathfinder.surface.raisedShadow,
+    color: pathfinder.brand.text,
     fontWeight: 600,
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: pathfinder.brand.ink,
+      outlineOffset: '3px',
+    },
   },
   nextButton: {
     minHeight: '32px',
-    borderRadius: '10px',
-    background: 'linear-gradient(180deg, #14a39c, #0d8a84 55%, #0a6f6b 100%)',
-    border: '1px solid rgba(13,138,132,0.55)',
-    boxShadow:
-      'inset 0 1px 0 rgba(255,255,255,0.28), ' +
-      '0 1px 2px rgba(13,138,132,0.28), ' +
-      '0 6px 14px rgba(13,138,132,0.22)',
-    color: '#ffffff',
+    borderRadius: pathfinder.radius.sm,
+    backgroundColor: pathfinder.brand.ink,
+    borderTopWidth: '1px',
+    borderRightWidth: '1px',
+    borderBottomWidth: '1px',
+    borderLeftWidth: '1px',
+    borderTopStyle: 'solid',
+    borderRightStyle: 'solid',
+    borderBottomStyle: 'solid',
+    borderLeftStyle: 'solid',
+    borderTopColor: pathfinder.brand.ink,
+    borderRightColor: pathfinder.brand.ink,
+    borderBottomColor: pathfinder.brand.ink,
+    borderLeftColor: pathfinder.brand.ink,
+    boxShadow: '0 1px 2px rgba(0,0,0,0.18)',
+    color: pathfinder.brand.onInk,
     fontWeight: 700,
-    letterSpacing: '-0.01em',
+    letterSpacing: '0',
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: pathfinder.brand.ink,
+      outlineOffset: '3px',
+    },
   },
 })
 
 export function WuloTourTooltip(props: WuloTourTooltipProps): JSX.Element {
   const styles = useStyles()
+  const titleId = useId()
+  const bodyId = useId()
   const {
     index,
     size,
@@ -150,24 +213,64 @@ export function WuloTourTooltip(props: WuloTourTooltipProps): JSX.Element {
   } = props
 
   const tooltipStyle: CSSProperties = { outline: 'none' }
-  const ariaLabel = `Step ${index + 1} of ${size}: ${step.title ?? ''}`
+  const tooltipEventProps = tooltipProps as typeof tooltipProps & {
+    onKeyDown?: (event: KeyboardEvent<HTMLDivElement>) => void
+  }
+  const invokeButton = (
+    buttonProps: unknown,
+    event: KeyboardEvent<HTMLDivElement>
+  ): void => {
+    const onClick = (buttonProps as { onClick?: (event: unknown) => void })
+      ?.onClick
+    onClick?.(event)
+  }
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+    tooltipEventProps.onKeyDown?.(event)
+    if (event.defaultPrevented) return
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      invokeButton(skipProps, event)
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault()
+      invokeButton(primaryProps, event)
+    } else if (event.key === 'ArrowLeft' && index > 0) {
+      event.preventDefault()
+      invokeButton(backProps, event)
+    }
+  }
+  // Derive a stable identifier for the currently-active step from the
+  // selector Joyride passes back. TourDriver always uses
+  // `[data-testid="..."]` selectors, so the testId is recoverable here
+  // without depending on Joyride preserving custom step.data fields.
+  // Playwright uses `data-tour-step-active` to wait for Joyride to settle
+  // on the intended step and avoid the cross-shell remount race.
+  const rawTarget =
+    typeof (step as { target?: unknown }).target === 'string'
+      ? ((step as { target: string }).target)
+      : ''
+  const testIdMatch = rawTarget.match(/\[data-testid="([^"]+)"\]/)
+  const activeStepAttr = testIdMatch ? testIdMatch[1] : undefined
 
   return (
     <FluentProvider
-      theme={wuloTheme}
+      theme={pathfinderFluentTheme}
       style={{ backgroundColor: 'transparent' }}
     >
       <div
-        {...tooltipProps}
+        {...tooltipEventProps}
         className={styles.root}
         role="dialog"
-        aria-label={ariaLabel}
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={step.content ? bodyId : undefined}
         aria-live="polite"
+        onKeyDown={handleKeyDown}
         style={tooltipStyle}
         data-testid="wulo-tour-tooltip"
+        data-tour-step-active={activeStepAttr}
       >
         <div className={styles.header}>
-          <Text className={styles.title} data-testid="wulo-tour-title">
+          <Text id={titleId} className={styles.title} data-testid="wulo-tour-title">
             {step.title}
           </Text>
           <span className={styles.stepPill} aria-hidden="true">
@@ -175,7 +278,7 @@ export function WuloTourTooltip(props: WuloTourTooltipProps): JSX.Element {
           </span>
         </div>
         {step.content ? (
-          <Text as="p" className={styles.body} data-testid="wulo-tour-body">
+          <Text id={bodyId} as="p" className={styles.body} data-testid="wulo-tour-body">
             {step.content}
           </Text>
         ) : null}

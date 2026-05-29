@@ -123,6 +123,7 @@ WEBSOCKET_ENDPOINT = "/ws/voice"
 API_CONFIG_ENDPOINT = "/api/config"
 API_HEALTH_ENDPOINT = "/api/health"
 API_SCENARIOS_ENDPOINT = "/api/scenarios"
+API_EVENTS_ENDPOINT = "/api/events"
 API_AUTH_SESSION_ENDPOINT = "/api/auth/session"
 API_AUTH_CLAIM_INVITE_CODE_ENDPOINT = "/api/auth/claim-invite-code"
 API_AUTH_CHOOSE_ROLE_ENDPOINT = "/api/auth/choose-role"
@@ -1525,6 +1526,73 @@ def get_config():
 def health():
     """Return a minimal health payload for ingress and auth exclusions."""
     return jsonify({"status": "ok"})
+
+
+# Allow-listed telemetry event names. Keep this list narrow; any unknown
+# name is dropped with a 202 so the client never blocks on telemetry.
+_ALLOWED_TELEMETRY_EVENTS = frozenset(
+    {
+        "parent_summary_shared",
+        "trust_badge_clicked",
+        "voice_pill_state_changed",
+    }
+)
+_TELEMETRY_MAX_PROPS_BYTES = 2048
+# Per-user, in-process rate limit. Process-local only, but enough to stop a
+# single tab from drowning the logger if a state-change loop misbehaves.
+_TELEMETRY_RATE_LIMIT_WINDOW_SECONDS = 60.0
+_TELEMETRY_RATE_LIMIT_MAX_EVENTS = 60
+_telemetry_rate_buckets: Dict[str, Tuple[float, int]] = {}
+_telemetry_rate_lock = threading.Lock()
+telemetry_logger = logging.getLogger("pathfinder.telemetry")
+
+
+def _telemetry_rate_limit_check(user_id: str) -> bool:
+    """Return True when the caller is within budget, False when throttled."""
+    if not user_id:
+        return True
+    now = time.monotonic()
+    with _telemetry_rate_lock:
+        window_start, count = _telemetry_rate_buckets.get(user_id, (now, 0))
+        if now - window_start >= _TELEMETRY_RATE_LIMIT_WINDOW_SECONDS:
+            _telemetry_rate_buckets[user_id] = (now, 1)
+            return True
+        if count >= _TELEMETRY_RATE_LIMIT_MAX_EVENTS:
+            return False
+        _telemetry_rate_buckets[user_id] = (window_start, count + 1)
+        return True
+
+
+@app.route(API_EVENTS_ENDPOINT, methods=["POST"])
+def post_event():
+    """Best-effort telemetry sink. Logs structured events; no DB writes."""
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+    user_id = str((user or {}).get("id") or "")
+    if not _telemetry_rate_limit_check(user_id):
+        return jsonify({"accepted": False, "reason": "rate_limited"}), 429
+    body = request.get_json(silent=True) or {}
+    name = body.get("name")
+    if not isinstance(name, str) or name not in _ALLOWED_TELEMETRY_EVENTS:
+        return jsonify({"accepted": False, "reason": "unknown_event"}), 202
+    props = body.get("props") if isinstance(body.get("props"), dict) else None
+    if props is not None:
+        try:
+            if len(json.dumps(props)) > _TELEMETRY_MAX_PROPS_BYTES:
+                props = {"_truncated": True}
+        except (TypeError, ValueError):
+            props = None
+    telemetry_logger.info(
+        "pathfinder.event",
+        extra={
+            "event_name": name,
+            "event_props": props,
+            "user_id": user_id,
+            "client_ts": body.get("ts"),
+        },
+    )
+    return jsonify({"accepted": True}), 202
 
 
 @app.route(API_AUTH_SESSION_ENDPOINT)
@@ -4580,7 +4648,7 @@ def update_user_role(user_id: str):
 
     data = cast(Dict[str, Any], request.get_json(silent=True) or {})
     role = str(data.get("role") or "").strip().lower()
-    if role not in {ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN}:
+    if role not in {ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN, ROLE_LEARNER}:
         return jsonify({"error": INVALID_ROLE}), HTTP_BAD_REQUEST
 
     acting_role = str(cast(Dict[str, Any], acting_user).get("role") or "")

@@ -27,7 +27,9 @@ vi.mock('../../services/api', async importOriginal => {
 
 vi.mock('../routes/StudentLearningHome', () => ({
   default: ({ studentId }: { studentId: string | null }) => (
-    <div data-testid="student-learning-home">Learner dashboard {studentId}</div>
+    <div data-testid="student-learning-home">
+      Learner dashboard {studentId ?? 'no-student'}
+    </div>
   ),
 }))
 
@@ -228,5 +230,20 @@ describe('PathfinderLearnApp learner bootstrapping', () => {
     expect(apiMocks.getAuthSession).toHaveBeenCalledTimes(1)
     expect(apiMocks.getChildren).toHaveBeenCalledWith(null)
     expect(dashboard.textContent).toContain('child-self')
+  })
+
+  it('keeps /home painted when the homepage tour trigger is clicked', async () => {
+    apiMocks.getChildren.mockReturnValue(new Promise(() => {}))
+
+    renderLearningApp()
+
+    const dashboard = await screen.findByTestId('student-learning-home')
+    expect(dashboard.textContent).toContain('no-student')
+
+    fireEvent.click(await screen.findByTestId('help-menu-trigger'))
+
+    expect(screen.queryByTestId('help-menu-list')).toBeNull()
+    expect(screen.getByTestId('student-learning-home')).toBeTruthy()
+    expect(screen.getByTestId('location').textContent).toBe('/home')
   })
 })

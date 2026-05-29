@@ -84,6 +84,17 @@ async function installLearnerMocks(page: Page, opts: ProfileMockOptions): Promis
   // fetches (sessions, plans, family-intake, etc.).
   await page.route('**/api/**', (route) => fulfillJson(route, {}))
 
+  // Collection endpoints the SPA bootstrap calls `.map`/`.length` on;
+  // returning the catch-all `{}` for these throws inside App.tsx and the
+  // learner home never mounts. Must return arrays.
+  for (const path of [
+    '**/api/children**',
+    '**/api/workspaces**',
+    '**/api/scenarios**',
+  ]) {
+    await page.route(path, (route) => fulfillJson(route, []))
+  }
+
   await page.route('**/api/auth/session', (route) => fulfillJson(route, SESSION))
 
   await page.route('**/api/config', (route) =>

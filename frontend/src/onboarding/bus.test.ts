@@ -32,7 +32,10 @@ describe('onboarding replay bus', () => {
 
     requestReplayTour('welcome-therapist')
 
-    expect(handler).toHaveBeenCalledWith('welcome-therapist')
+    expect(handler).toHaveBeenCalledWith({
+      tourId: 'welcome-therapist',
+      replayPath: '/home',
+    })
     expect(consumePendingReplayTour()).toBeNull()
     dispose()
   })
