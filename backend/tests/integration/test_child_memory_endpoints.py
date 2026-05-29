@@ -43,6 +43,18 @@ def _bootstrap_therapist(client: FlaskClient) -> dict[str, str]:
 
 
 def _create_memory_seed() -> str:
+    app_module.storage_service.save_parental_consent(
+        child_id="child-ayo",
+        guardian_name="Guardian",
+        guardian_email="guardian@example.com",
+        privacy_accepted=True,
+        terms_accepted=True,
+        ai_notice_accepted=True,
+        personal_data_consent_accepted=True,
+        special_category_consent_accepted=True,
+        parental_responsibility_confirmed=True,
+        recorded_by_user_id="therapist-1",
+    )
     session = app_module.storage_service.save_session(
         {
             "id": "session-child-memory-api-1",
@@ -121,6 +133,18 @@ def test_therapist_can_read_and_review_child_memory(client: FlaskClient):
 
 def test_therapist_can_create_manual_child_memory_item(client: FlaskClient):
     headers = _bootstrap_therapist(client)
+    app_module.storage_service.save_parental_consent(
+        child_id="child-ayo",
+        guardian_name="Guardian",
+        guardian_email="guardian@example.com",
+        privacy_accepted=True,
+        terms_accepted=True,
+        ai_notice_accepted=True,
+        personal_data_consent_accepted=True,
+        special_category_consent_accepted=True,
+        parental_responsibility_confirmed=True,
+        recorded_by_user_id="therapist-1",
+    )
 
     response = client.post(
         "/api/children/child-ayo/memory/items",

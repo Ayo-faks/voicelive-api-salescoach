@@ -33,6 +33,21 @@ def _parse_allowed_environments(value: Any) -> set[str]:
     return {item.strip() for item in text.split(",") if item.strip()}
 
 
+def _env_truthy(name: str, default: bool) -> bool:
+    raw = os.environ.get(name)
+    if raw is None or not str(raw).strip():
+        return default
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
+class SqliteInAzureError(RuntimeError):
+    """Raised when SQLite is selected in an Azure-hosted environment without an
+    explicit escape hatch. SQLite is single-node, has no RLS, and cannot host
+    learner data safely in a Container App / App Service. Set
+    ``WULO_ALLOW_SQLITE_IN_AZURE=true`` only for short-lived migration windows
+    in non-production environments."""
+
+
 def should_run_postgres_startup_migrations(app_config: Mapping[str, Any]) -> bool:
     if not bool(app_config.get("database_run_migrations_on_startup", True)):
         return False
@@ -63,7 +78,19 @@ def create_storage_service(app_config: Mapping[str, Any]) -> Any:
 
     if backend == "sqlite":
         if _is_azure_hosted_environment():
-            logger.warning("Using SQLite storage in Azure-hosted environment during migration window.")
+            require_postgres = _env_truthy("REQUIRE_POSTGRES_IN_AZURE", default=True)
+            allow_sqlite_override = _env_truthy("WULO_ALLOW_SQLITE_IN_AZURE", default=False)
+            if require_postgres and not allow_sqlite_override:
+                raise SqliteInAzureError(
+                    "SQLite storage is not permitted in Azure-hosted environments. "
+                    "Set DATABASE_BACKEND=postgres with a managed Postgres DATABASE_URL, "
+                    "or set WULO_ALLOW_SQLITE_IN_AZURE=true for short-lived non-production "
+                    "migration windows only."
+                )
+            logger.warning(
+                "Using SQLite storage in Azure-hosted environment "
+                "(WULO_ALLOW_SQLITE_IN_AZURE override active)."
+            )
         bootstrap_storage(
             str(app_config["storage_path"]),
             str(app_config["bootstrap_storage_seed_path"]),

@@ -65,8 +65,10 @@ from src.services.planning_service import PracticePlanningService
 from src.services.report_pipeline import AzureOpenAIReportSummaryAssistant
 from src.services.report_service import ProgressReportService
 from src.services.recommendation_service import RecommendationService
+from src.services import safety_gates
 from src.services.storage_factory import create_storage_service
 from src.services.telemetry import PilotTelemetryService
+from src.services.transcript_safety import redact_transcript, summarise_for_storage
 from src.services.websocket_handler import VoiceProxyHandler
 
 # Constants
@@ -605,16 +607,34 @@ def _save_completed_session(
     if not child_id:
         raise ValueError("child_id is required")
 
+    name_hints = [child_name] if child_name else []
+    transcript_report = redact_transcript(transcript, name_hints=name_hints)
+    reference_report = redact_transcript(reference_text, name_hints=name_hints)
+    safety_summary = {
+        "transcript": dict(summarise_for_storage(transcript_report)),
+        "reference_text": dict(summarise_for_storage(reference_report)),
+    }
+    if not (transcript_report.is_clean and reference_report.is_clean):
+        logger.info(
+            "transcript_safety: redacted child=%s scenario=%s summary=%s",
+            child_id,
+            scenario_id,
+            safety_summary,
+        )
+
+    merged_metadata = dict(exercise_metadata or {})
+    merged_metadata["_safety_redaction"] = safety_summary
+
     session = storage_service.save_session(
         {
             "child_id": child_id,
             "child_name": child_name,
             "exercise": _normalize_exercise_context(scenario_id, exercise_context, exercise_metadata),
-            "exercise_metadata": exercise_metadata or {},
+            "exercise_metadata": merged_metadata,
             "ai_assessment": analysis_result.get("ai_assessment"),
             "pronunciation_assessment": analysis_result.get("pronunciation_assessment"),
-            "transcript": transcript,
-            "reference_text": reference_text,
+            "transcript": transcript_report.redacted_text,
+            "reference_text": reference_report.redacted_text,
         }
     )
     return cast(str, session.get("id"))
@@ -944,12 +964,101 @@ def _require_role(*roles: str) -> Tuple[Optional[Dict[str, Any]], Optional[Tuple
     return user, None
 
 
+def _enforce_voice_safety_for_child(
+    child_id: str,
+) -> Optional[Tuple[Any, int]]:
+    """Fail-closed gate for child voice sessions.
+
+    Combines the global learner-voice kill switch with parental-consent
+    fields persisted by ``child_parental_consent``. Returns a Flask
+    response tuple when the request must be refused, or ``None`` to
+    allow it through.
+    """
+    kill_decision = safety_gates.check_learner_voice_available()
+    if not kill_decision.allowed:
+        return (
+            jsonify(
+                {
+                    "error": "learner_voice_disabled",
+                    "reason": kill_decision.reason,
+                }
+            ),
+            HTTP_FORBIDDEN,
+        )
+    try:
+        consent = storage_service.get_parental_consent(child_id)
+    except Exception:  # noqa: BLE001 - fail closed on storage errors
+        logger.exception(
+            "safety_gate: failed to load parental consent for child %s", child_id
+        )
+        return (
+            jsonify({"error": "consent_lookup_failed"}),
+            HTTP_FORBIDDEN,
+        )
+    consent_decision = safety_gates.check_voice_session_consent(consent or {})
+    if not consent_decision.allowed:
+        return (
+            jsonify(
+                {
+                    "error": "missing_consent",
+                    "reason": consent_decision.reason,
+                    "missing": (consent_decision.detail or "").split(",")
+                    if consent_decision.detail
+                    else [],
+                }
+            ),
+            HTTP_FORBIDDEN,
+        )
+    return None
+
+
+def _enforce_data_consent_for_child(
+    child_id: str,
+) -> Optional[Tuple[Any, int]]:
+    """Fail-closed gate for routes that read or modify stored child personal data.
+
+    Unlike ``_enforce_voice_safety_for_child`` this gate does not check the
+    learner-voice kill switch (the data already exists and may need to be read
+    for SAR/erasure flows), only that the 4 data-side parental consent fields
+    are still in place. If a parent withdraws consent mid-pilot, downstream
+    reports/sessions/memory routes return 403 ``missing_consent`` until consent
+    is restored or the data is exported/erased.
+    """
+    try:
+        consent = storage_service.get_parental_consent(child_id)
+    except Exception:  # noqa: BLE001 - fail closed on storage errors
+        logger.exception(
+            "data_consent_gate: failed to load parental consent for child %s",
+            child_id,
+        )
+        return (
+            jsonify({"error": "consent_lookup_failed"}),
+            HTTP_FORBIDDEN,
+        )
+    decision = safety_gates.check_child_data_consent(consent or {})
+    if not decision.allowed:
+        return (
+            jsonify(
+                {
+                    "error": "missing_consent",
+                    "reason": decision.reason,
+                    "missing": (decision.detail or "").split(",")
+                    if decision.detail
+                    else [],
+                }
+            ),
+            HTTP_FORBIDDEN,
+        )
+    return None
+
+
 def _require_child_access(
     child_id: str,
     *,
     allowed_roles: Optional[set[str]] = None,
     allowed_relationships: Optional[List[str]] = None,
     include_deleted: bool = False,
+    enforce_data_consent: bool = False,
 ) -> Tuple[Optional[Dict[str, Any]], Optional[Tuple[Any, int]]]:
     user, guard_response = _require_authenticated()
     if guard_response is not None:
@@ -969,6 +1078,11 @@ def _require_child_access(
         include_deleted=include_deleted,
     ):
         return None, (jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN)
+
+    if enforce_data_consent:
+        consent_guard = _enforce_data_consent_for_child(child_id)
+        if consent_guard is not None:
+            return None, consent_guard
 
     return user, None
 
@@ -1508,6 +1622,7 @@ def get_config():
             "voice_agent_dynamic_ui_enabled": _voice_agent_dynamic_ui_enabled(cast(Dict[str, Any], user) if user else None),
             "voice_agent_actions_enabled": _voice_agent_actions_enabled(cast(Dict[str, Any], user) if user else None),
             "learner_voice_fullscreen_enabled": _learner_voice_fullscreen_enabled(cast(Dict[str, Any], user) if user else None),
+            "safety": dict(safety_gates.public_status_payload()),
             "onboarding": {
                 # Kill switch for the v2 onboarding/guidance system
                 # (docs/onboarding/onboarding-plan-v2.md). Setting
@@ -2630,6 +2745,9 @@ def create_agent():
         _, child_guard = _require_child_access(child_id)
         if child_guard is not None:
             return child_guard
+        safety_guard = _enforce_voice_safety_for_child(child_id)
+        if safety_guard is not None:
+            return safety_guard
 
     # Support custom scenarios passed directly from the client
     if custom_scenario:
@@ -2986,7 +3104,7 @@ def synthesize_speech():
 @app.route(API_CHILD_SESSIONS_ENDPOINT)
 def get_child_sessions(child_id: str):
     """Return a therapist-friendly session history for one child."""
-    user, guard_response = _require_child_access(child_id)
+    user, guard_response = _require_child_access(child_id, enforce_data_consent=True)
     if guard_response is not None:
         return guard_response
 
@@ -3005,7 +3123,7 @@ def get_child_sessions(child_id: str):
 @app.route(API_CHILD_PLANS_ENDPOINT)
 def get_child_plans(child_id: str):
     """Return saved practice plans for one child."""
-    user, guard_response = _require_child_access(child_id)
+    user, guard_response = _require_child_access(child_id, enforce_data_consent=True)
     if guard_response is not None:
         return guard_response
 
@@ -3028,6 +3146,7 @@ def get_child_memory_summary(child_id: str):
         child_id,
         allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
         allowed_relationships=["therapist"],
+        enforce_data_consent=True,
     )
     if guard_response is not None:
         return guard_response
@@ -3051,6 +3170,7 @@ def child_memory_items(child_id: str):
             child_id,
             allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
             allowed_relationships=["therapist"],
+            enforce_data_consent=True,
         )
         if therapist_guard is not None:
             return therapist_guard
@@ -3086,6 +3206,7 @@ def child_memory_items(child_id: str):
         child_id,
         allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
         allowed_relationships=["therapist"],
+        enforce_data_consent=True,
     )
     if guard_response is not None:
         return guard_response
@@ -3117,6 +3238,7 @@ def get_child_memory_proposals(child_id: str):
         child_id,
         allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
         allowed_relationships=["therapist"],
+        enforce_data_consent=True,
     )
     if guard_response is not None:
         return guard_response
@@ -3988,6 +4110,7 @@ def child_progress_reports(child_id: str):
             child_id,
             allowed_roles=allowed_roles,
             allowed_relationships=allowed_relationships,
+            enforce_data_consent=True,
         )
         if guard_response is not None:
             return guard_response
@@ -4039,6 +4162,7 @@ def child_progress_reports(child_id: str):
         child_id,
         allowed_roles=allowed_roles,
         allowed_relationships=allowed_relationships,
+        enforce_data_consent=True,
     )
     if guard_response is not None:
         return guard_response
@@ -4587,7 +4711,10 @@ def get_session_detail(session_id: str):
     if session is None:
         return jsonify({"error": SESSION_NOT_FOUND}), HTTP_NOT_FOUND
 
-    _, child_guard = _require_child_access(str(cast(Dict[str, Any], session.get("child") or {}).get("id") or ""))
+    _, child_guard = _require_child_access(
+        str(cast(Dict[str, Any], session.get("child") or {}).get("id") or ""),
+        enforce_data_consent=True,
+    )
     if child_guard is not None:
         return child_guard
 

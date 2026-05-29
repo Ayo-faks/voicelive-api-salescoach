@@ -117,3 +117,67 @@ def test_top_misconceptions_have_minimum_coverage(items: list[DiagnosticItem]) -
     }
     for code in common:
         assert counts[code] >= 3, f"{code} only appears {counts[code]} times"
+
+
+# ----- Production safeguarding-content gate (MVP step 3) -------------------
+
+
+def _clear_safety_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    for var in (
+        "WULO_REQUIRE_REVIEWED_CONTENT",
+        "WULO_ALLOW_UNREVIEWED_CONTENT",
+        "IDENTITY_ENDPOINT",
+        "WEBSITE_SITE_NAME",
+        "CONTAINER_APP_NAME",
+    ):
+        monkeypatch.delenv(var, raising=False)
+
+
+def test_production_safe_items_blocks_pending_bank_in_hosted_env(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from src.learning.question_banks import (
+        QuestionBankUnavailableError,
+        load_maths_v1_bank,
+        reset_cache,
+    )
+
+    _clear_safety_env(monkeypatch)
+    monkeypatch.setenv("CONTAINER_APP_NAME", "voicelab")
+    reset_cache()
+    bank = load_maths_v1_bank(require_flag=False)
+
+    # Bank ships with review_state=pending_two_reviewer_signoff so promotable
+    # is empty. In a hosted env this MUST fail loudly, not silently empty.
+    assert bank.promotable_items() == ()
+    with pytest.raises(QuestionBankUnavailableError):
+        bank.production_safe_items()
+
+
+def test_production_safe_items_allows_when_dev_override_set(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from src.learning.question_banks import load_maths_v1_bank, reset_cache
+
+    _clear_safety_env(monkeypatch)
+    monkeypatch.setenv("CONTAINER_APP_NAME", "voicelab")
+    monkeypatch.setenv("WULO_ALLOW_UNREVIEWED_CONTENT", "1")
+    reset_cache()
+    bank = load_maths_v1_bank(require_flag=False)
+
+    # Escape hatch makes the gate non-required; falls back to promotable_items()
+    # which is still empty for the pending bank but no longer raises.
+    assert bank.production_safe_items() == ()
+
+
+def test_production_safe_items_passthrough_in_non_prod(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from src.learning.question_banks import load_maths_v1_bank, reset_cache
+
+    _clear_safety_env(monkeypatch)
+    reset_cache()
+    bank = load_maths_v1_bank(require_flag=False)
+
+    # No hosted markers, no explicit require flag → gate not required.
+    assert bank.production_safe_items() == bank.promotable_items()

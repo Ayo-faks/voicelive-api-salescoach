@@ -105,6 +105,18 @@ def _bootstrap_therapist(client: FlaskClient) -> dict[str, str]:
 
 
 def _create_session(client: FlaskClient) -> str:
+    app_module.storage_service.save_parental_consent(
+        child_id="child-ayo",
+        guardian_name="Guardian",
+        guardian_email="guardian@example.com",
+        privacy_accepted=True,
+        terms_accepted=True,
+        ai_notice_accepted=True,
+        personal_data_consent_accepted=True,
+        special_category_consent_accepted=True,
+        parental_responsibility_confirmed=True,
+        recorded_by_user_id="therapist-1",
+    )
     session = app_module.storage_service.save_session(
         {
             "child_id": "child-ayo",

@@ -3,8 +3,12 @@ import {
   CheckBadgeIcon,
   ClipboardDocumentListIcon,
   LightBulbIcon,
+  ShieldCheckIcon,
 } from '@heroicons/react/24/outline'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { api } from '../../services/api'
+import type { SafetyConfig } from '../../types'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 
 const useStyles = makeStyles({
@@ -71,6 +75,29 @@ const useStyles = makeStyles({
 
 export default function LearnerTrustPage(): JSX.Element {
   const styles = useStyles()
+  const [safety, setSafety] = useState<SafetyConfig | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    api
+      .getConfig()
+      .then(cfg => {
+        if (!cancelled && cfg.safety) setSafety(cfg.safety)
+      })
+      .catch(() => {
+        // Fail-closed message: assume voice unavailable if config can't load.
+        if (!cancelled)
+          setSafety({
+            learner_voice_disabled: true,
+            session_turn_cap: null,
+            session_token_cap: null,
+            production_content_review_required: false,
+          })
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+  const voiceDisabled = safety?.learner_voice_disabled === true
   return (
     <section className={styles.root} data-testid="route-learner-trust">
       <header className={styles.hero}>
@@ -122,6 +149,23 @@ export default function LearnerTrustPage(): JSX.Element {
               When the tutor gets something wrong, you can ask &ldquo;explain
               my mistake&rdquo;. We show the reasoning step-by-step instead of
               just an answer.
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <article className={styles.card} data-testid="learner-trust-live-status">
+        <div className={styles.row}>
+          <ShieldCheckIcon className={styles.icon} aria-hidden="true" />
+          <div>
+            <div className={styles.rowTitle}>Right now</div>
+            <p
+              className={styles.rowBody}
+              data-testid="learner-trust-voice-status"
+            >
+              {voiceDisabled
+                ? 'Voice practice is temporarily unavailable. Everything else still works.'
+                : 'Voice practice is available. You can use it whenever you are ready.'}
             </p>
           </div>
         </div>

@@ -187,8 +187,9 @@ def test_create_storage_service_allows_sqlite_in_azure_during_migration_window(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ):
-    """SQLite should remain available in Azure until the PostgreSQL cutover completes."""
+    """SQLite remains available in Azure only with the explicit migration override."""
     monkeypatch.setenv("CONTAINER_APP_NAME", "voicelab")
+    monkeypatch.setenv("WULO_ALLOW_SQLITE_IN_AZURE", "true")
 
     service = create_storage_service(
         {
@@ -198,6 +199,44 @@ def test_create_storage_service_allows_sqlite_in_azure_during_migration_window(
         }
     )
 
+    assert isinstance(service, StorageService)
+
+
+def test_create_storage_service_rejects_sqlite_in_azure_by_default(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+):
+    """REQUIRE_POSTGRES_IN_AZURE defaults true: sqlite must be blocked in hosted envs."""
+    monkeypatch.setenv("CONTAINER_APP_NAME", "voicelab")
+    monkeypatch.delenv("WULO_ALLOW_SQLITE_IN_AZURE", raising=False)
+    monkeypatch.delenv("REQUIRE_POSTGRES_IN_AZURE", raising=False)
+
+    with pytest.raises(storage_factory_module.SqliteInAzureError):
+        create_storage_service(
+            {
+                "database_backend": "sqlite",
+                "storage_path": str(tmp_path / "factory.db"),
+                "bootstrap_storage_seed_path": str(tmp_path / "missing-seed.db"),
+            }
+        )
+
+
+def test_create_storage_service_allows_explicit_require_postgres_false(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+):
+    """REQUIRE_POSTGRES_IN_AZURE=false is an explicit opt-out that keeps sqlite usable."""
+    monkeypatch.setenv("CONTAINER_APP_NAME", "voicelab")
+    monkeypatch.setenv("REQUIRE_POSTGRES_IN_AZURE", "false")
+    monkeypatch.delenv("WULO_ALLOW_SQLITE_IN_AZURE", raising=False)
+
+    service = create_storage_service(
+        {
+            "database_backend": "sqlite",
+            "storage_path": str(tmp_path / "factory.db"),
+            "bootstrap_storage_seed_path": str(tmp_path / "missing-seed.db"),
+        }
+    )
     assert isinstance(service, StorageService)
 
 

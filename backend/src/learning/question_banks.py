@@ -24,6 +24,7 @@ from typing import Final, List, Tuple
 
 from src.learning.misconceptions import TAXONOMY_VERSION
 from src.learning.models import DiagnosticItem
+from src.services import safety_gates
 
 
 # Kill switch: default OFF in every environment.
@@ -88,6 +89,28 @@ class QuestionBank:
             if metadata.get("subject_lead_approved") and metadata.get("safeguarding_reviewed"):
                 approved.append(item)
         return tuple(approved)
+
+    def production_safe_items(self) -> Tuple[DiagnosticItem, ...]:
+        """Production-safe egress: fail-closed when review is required.
+
+        In hosted production environments (or when
+        ``WULO_REQUIRE_REVIEWED_CONTENT`` is set) any served items MUST
+        come from a bank whose ``review_state`` is ``approved`` and whose
+        items both have ``subject_lead_approved`` and
+        ``safeguarding_reviewed``. A pending/unreviewed bank raises
+        ``QuestionBankUnavailableError`` instead of silently returning an
+        empty tuple, so a misconfigured route cannot serve no-content
+        without operators noticing.
+        """
+        items = self.promotable_items()
+        if not safety_gates.production_content_review_required():
+            return items
+        if self.review_state != "approved" or not items:
+            raise QuestionBankUnavailableError(
+                f"Question bank {self.bank_id!r} cannot be served in production: "
+                f"review_state={self.review_state!r}, approved_items={len(items)}"
+            )
+        return items
 
 
 class QuestionBankUnavailableError(RuntimeError):
