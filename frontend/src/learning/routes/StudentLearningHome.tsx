@@ -464,8 +464,8 @@ const useStyles = makeStyles({
   },
   heroOrbStage: {
     position: 'relative',
-    width: '260px',
-    height: '260px',
+    width: '220px',
+    height: '220px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -487,13 +487,13 @@ const useStyles = makeStyles({
       borderRadius: '999px',
     },
     '@media (max-width: 900px)': {
-      width: '200px',
-      height: '200px',
+      width: '180px',
+      height: '180px',
       justifySelf: 'center',
     },
     '@media (max-width: 480px)': {
-      width: '170px',
-      height: '170px',
+      width: '150px',
+      height: '150px',
     },
   },
   heroOrbBig: {
@@ -539,59 +539,6 @@ const useStyles = makeStyles({
     animationIterationCount: 'infinite',
     animationTimingFunction: 'ease-in-out',
     '@media (prefers-reduced-motion: reduce)': { animationName: 'none' },
-  },
-  heroOrbCaption: {
-    position: 'absolute',
-    left: '50%',
-    bottom: '-2px',
-    transform: 'translateX(-50%)',
-    display: 'inline-flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '2px',
-    whiteSpace: 'nowrap',
-    pointerEvents: 'none',
-  },
-  heroOrbCaptionTitle: {
-    fontSize: '0.86rem',
-    fontWeight: 700,
-    letterSpacing: '-0.005em',
-    color: t.brand.onInk,
-    textShadow: '0 1px 8px rgba(0,0,0,0.6)',
-  },
-  heroOrbCaptionHint: {
-    fontSize: '0.7rem',
-    fontWeight: 500,
-    color: 'rgba(255,255,255,0.78)',
-    letterSpacing: '0.02em',
-    textShadow: '0 1px 6px rgba(0,0,0,0.55)',
-  },
-  heroOrbMicBadge: {
-    position: 'absolute',
-    right: '28px',
-    bottom: '34px',
-    width: '44px',
-    height: '44px',
-    borderRadius: '999px',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
-    color: t.brand.ink,
-    boxShadow: '0 6px 18px rgba(0,0,0,0.32), 0 0 0 4px rgba(255,255,255,0.18)',
-    pointerEvents: 'none',
-    '@media (max-width: 900px)': {
-      width: '38px',
-      height: '38px',
-      right: '20px',
-      bottom: '24px',
-    },
-    '@media (max-width: 480px)': {
-      width: '34px',
-      height: '34px',
-      right: '14px',
-      bottom: '20px',
-    },
   },
   heroEyebrow: {
     fontSize: '0.72rem',
@@ -2319,7 +2266,14 @@ export default function StudentLearningHome({
               )}
             </div>
             {learnerTutorEnabled ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  alignSelf: 'center',
+                }}
+              >
                 <button
                   type="button"
                   className={styles.heroOrbStage}
@@ -2330,24 +2284,6 @@ export default function StudentLearningHome({
                 >
                   <span className={styles.heroOrbBigHalo} aria-hidden="true" />
                   <span className={styles.heroOrbBig} aria-hidden="true" />
-                  <span
-                    className={styles.heroOrbMicBadge}
-                    data-testid="hero-orb-mic-badge"
-                    aria-hidden="true"
-                  >
-                    <MicrophoneIcon
-                      style={{ width: 20, height: 20 }}
-                      aria-hidden="true"
-                    />
-                  </span>
-                  <span className={styles.heroOrbCaption}>
-                    <span className={styles.heroOrbCaptionTitle}>
-                      Talk to your tutor
-                    </span>
-                    <span className={styles.heroOrbCaptionHint}>
-                      Tap to talk
-                    </span>
-                  </span>
                 </button>
               </div>
             ) : null}

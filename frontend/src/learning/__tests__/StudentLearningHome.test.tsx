@@ -126,7 +126,6 @@ describe('StudentLearningHome', () => {
       target: { value: 'Tomi' },
     })
     expect(screen.getByText(/Welcome back, Tomi/)).toBeTruthy()
-    expect(screen.getByTestId('hero-orb-mic-badge')).toBeTruthy()
 
     fireEvent.change(screen.getByLabelText('Select exam'), {
       target: { value: 'NECO' },
