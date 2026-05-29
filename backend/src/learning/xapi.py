@@ -59,7 +59,7 @@ class StudentFactDecisionEvent(LanguageAndProvenanceModel):
     actor_id: str = Field(min_length=1)
     fact_id: str = Field(min_length=1)
     student_id: str = Field(min_length=1)
-    action: Literal["approved", "edited_approved", "rejected"]
+    action: Literal["approved", "edited_approved", "rejected", "auto_approved"]
     reason: Optional[str] = None
 
 

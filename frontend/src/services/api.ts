@@ -78,6 +78,35 @@ export interface AuthSession {
 
 export type OnboardingIntent = 'learner' | 'parent' | 'teacher'
 
+export type SafeguardingSeverity =
+  | 'none'
+  | 'low'
+  | 'medium'
+  | 'high'
+  | 'critical'
+
+export type SafeguardingDirection = 'inbound' | 'outbound'
+
+export interface SafeguardingEvent {
+  id: string
+  user_id: string | null
+  child_id: string | null
+  parent_user_id: string | null
+  session_id: string | null
+  direction: SafeguardingDirection
+  severity: SafeguardingSeverity
+  categories: string[]
+  evidence_quote: string | null
+  rationale: string | null
+  layer_scores: Record<string, unknown>
+  context_window: Array<{ role: string; text: string }>
+  created_at: string
+  acknowledged_at: string | null
+  acknowledged_by: string | null
+  action_taken: string | null
+  action_notes: string | null
+}
+
 export interface LearnerProfile {
   display_name?: string
   exam?: string
@@ -1448,6 +1477,43 @@ export const api = {
     if (!res.ok) {
       const data = await res.json().catch(() => null)
       throw new Error(data?.error || 'Failed to load conversation')
+    }
+    return res.json()
+  },
+
+  async listSafeguardingEvents(
+    status: 'open' | 'acknowledged' | 'all' = 'open',
+    limit = 50
+  ): Promise<{ events: SafeguardingEvent[] }> {
+    const params = new URLSearchParams({
+      status,
+      limit: String(limit),
+    })
+    const res = await fetchWithAuth(
+      `/api/admin/safeguarding/events?${params.toString()}`
+    )
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to load safeguarding events')
+    }
+    return res.json()
+  },
+
+  async acknowledgeSafeguardingEvent(
+    eventId: string,
+    body: { action_taken: string; action_notes?: string }
+  ): Promise<SafeguardingEvent> {
+    const res = await fetchWithAuth(
+      `/api/admin/safeguarding/events/${encodeURIComponent(eventId)}/acknowledge`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }
+    )
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Failed to acknowledge event')
     }
     return res.json()
   },

@@ -26,6 +26,7 @@ import { api } from '../../services/api'
 import type { SafetyConfig } from '../../types'
 import { pilotMetrics } from '../fixtures'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
+import SafeguardingEventsPanel from '../components/SafeguardingEventsPanel'
 
 const fixtureCards: PilotKpiCard[] = pilotMetrics.map(
   ([label, value, detail]) => ({
@@ -764,6 +765,8 @@ export default function TrustSafetyConsole() {
           </button>
         </Card>
       </div>
+
+      <SafeguardingEventsPanel />
 
       <Card className={styles.auditCard}>
         <CardHeader

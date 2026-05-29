@@ -118,6 +118,30 @@
       },
       "publicAppUrl": {
         "value": "${PUBLIC_APP_URL=}"
+      },
+      "safeguardingAdminEmail": {
+        "value": "${ADMIN_EMAIL=}"
+      },
+      "safeguardingAdminSmsTo": {
+        "value": "${ADMIN_SMS_TO=}"
+      },
+      "twilioAccountSid": {
+        "value": "${TWILIO_ACCOUNT_SID=}"
+      },
+      "twilioAuthToken": {
+        "value": "${TWILIO_AUTH_TOKEN=}"
+      },
+      "twilioFromNumber": {
+        "value": "${TWILIO_FROM_NUMBER=}"
+      },
+      "azureContentSafetyEndpoint": {
+        "value": "${AZURE_CONTENT_SAFETY_ENDPOINT=}"
+      },
+      "azureContentSafetyKey": {
+        "value": "${AZURE_CONTENT_SAFETY_KEY=}"
+      },
+      "safeguardingShadowMode": {
+        "value": "${SAFEGUARDING_SHADOW_MODE=false}"
       }
     }
 }

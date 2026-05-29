@@ -128,6 +128,33 @@ param azureCommunicationServicesSenderDisplayName string = 'Wulo'
 @description('Optional public app URL used in invitation emails.')
 param publicAppUrl string = ''
 
+@description('Safeguarding: admin email recipient for high+critical events. Leave empty to disable email routing.')
+param safeguardingAdminEmail string = ''
+
+@description('Safeguarding: admin SMS recipient (E.164) for critical events. Leave empty to disable SMS routing.')
+param safeguardingAdminSmsTo string = ''
+
+@description('Safeguarding: Twilio Account SID for admin SMS. Leave empty to disable SMS.')
+@secure()
+param twilioAccountSid string = ''
+
+@description('Safeguarding: Twilio Auth Token for admin SMS.')
+@secure()
+param twilioAuthToken string = ''
+
+@description('Safeguarding: Twilio sender phone number (E.164) for admin SMS.')
+param twilioFromNumber string = ''
+
+@description('Safeguarding: Azure AI Content Safety endpoint (L2 detector). Leave empty to skip L2.')
+param azureContentSafetyEndpoint string = ''
+
+@description('Safeguarding: Azure AI Content Safety key.')
+@secure()
+param azureContentSafetyKey string = ''
+
+@description('Safeguarding: when true, suppresses all outbound notifications (in-app only).')
+param safeguardingShadowMode bool = false
+
 // Tags that should be applied to all resources.
 //
 // Note that 'azd-service-name' tags should be applied separately to service host resources.
@@ -189,6 +216,14 @@ module resources 'resources.bicep' = {
     azureCommunicationServicesSenderAddress: azureCommunicationServicesSenderAddress
     azureCommunicationServicesSenderDisplayName: azureCommunicationServicesSenderDisplayName
     publicAppUrl: publicAppUrl
+    safeguardingAdminEmail: safeguardingAdminEmail
+    safeguardingAdminSmsTo: safeguardingAdminSmsTo
+    twilioAccountSid: twilioAccountSid
+    twilioAuthToken: twilioAuthToken
+    twilioFromNumber: twilioFromNumber
+    azureContentSafetyEndpoint: azureContentSafetyEndpoint
+    azureContentSafetyKey: azureContentSafetyKey
+    safeguardingShadowMode: safeguardingShadowMode
   }
 }
 

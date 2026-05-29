@@ -128,6 +128,33 @@ param azureCommunicationServicesSenderAddress string = ''
 @description('Optional sender display name for Azure Communication Services Email invitation delivery.')
 param azureCommunicationServicesSenderDisplayName string = 'Wulo'
 
+@description('Safeguarding: admin email recipient for high+critical events.')
+param safeguardingAdminEmail string = ''
+
+@description('Safeguarding: admin SMS recipient (E.164) for critical events.')
+param safeguardingAdminSmsTo string = ''
+
+@description('Safeguarding: Twilio Account SID for admin SMS.')
+@secure()
+param twilioAccountSid string = ''
+
+@description('Safeguarding: Twilio Auth Token for admin SMS.')
+@secure()
+param twilioAuthToken string = ''
+
+@description('Safeguarding: Twilio sender phone number (E.164) for admin SMS.')
+param twilioFromNumber string = ''
+
+@description('Safeguarding: Azure AI Content Safety endpoint (L2 detector).')
+param azureContentSafetyEndpoint string = ''
+
+@description('Safeguarding: Azure AI Content Safety key.')
+@secure()
+param azureContentSafetyKey string = ''
+
+@description('Safeguarding: when true, suppresses all outbound notifications (in-app only).')
+param safeguardingShadowMode bool = false
+
 @description('VAPID public key for Pathfinder W8 Web Push spaced-retrieval reminders. Leave empty to skip provisioning the notifications dispatcher job.')
 @secure()
 param vapidPublicKey string = ''
@@ -541,6 +568,26 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
                 value: resolvedAcsConnectionString
               }
             ]
+          : [],
+        !empty(twilioAuthToken)
+          ? [
+              {
+                name: 'twilio-auth-token'
+                value: twilioAuthToken
+              }
+              {
+                name: 'twilio-account-sid'
+                value: twilioAccountSid
+              }
+            ]
+          : [],
+        !empty(azureContentSafetyKey)
+          ? [
+              {
+                name: 'azure-content-safety-key'
+                value: azureContentSafetyKey
+              }
+            ]
           : []
       )
     }
@@ -680,6 +727,26 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
               name: 'AZURE_COMMUNICATION_SERVICES_SENDER_DISPLAY_NAME'
               value: azureCommunicationServicesSenderDisplayName
             }
+            {
+              name: 'ADMIN_EMAIL'
+              value: safeguardingAdminEmail
+            }
+            {
+              name: 'ADMIN_SMS_TO'
+              value: safeguardingAdminSmsTo
+            }
+            {
+              name: 'TWILIO_FROM_NUMBER'
+              value: twilioFromNumber
+            }
+            {
+              name: 'AZURE_CONTENT_SAFETY_ENDPOINT'
+              value: azureContentSafetyEndpoint
+            }
+            {
+              name: 'SAFEGUARDING_SHADOW_MODE'
+              value: safeguardingShadowMode ? '1' : '0'
+            }
           ],
           enablePostgresPersistence
             ? [
@@ -722,6 +789,26 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
                 {
                   name: 'AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING'
                   secretRef: 'azure-communication-services-connection-string'
+                }
+              ]
+            : [],
+          !empty(twilioAuthToken)
+            ? [
+                {
+                  name: 'TWILIO_ACCOUNT_SID'
+                  secretRef: 'twilio-account-sid'
+                }
+                {
+                  name: 'TWILIO_AUTH_TOKEN'
+                  secretRef: 'twilio-auth-token'
+                }
+              ]
+            : [],
+          !empty(azureContentSafetyKey)
+            ? [
+                {
+                  name: 'AZURE_CONTENT_SAFETY_KEY'
+                  secretRef: 'azure-content-safety-key'
                 }
               ]
             : []

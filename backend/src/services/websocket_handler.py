@@ -35,6 +35,8 @@ from azure.ai.voicelive.models import (
 )
 
 from src.config import config
+from src.safeguarding import Direction as SafeguardingDirection
+from src.safeguarding import get_safeguarding_service
 from src.services.azure_openai_auth import build_voicelive_credential
 from src.services.managers import AgentManager, FINISH_SESSION_TOOL
 from src.services.prompt_rules import append_phoneme_rule
@@ -109,6 +111,16 @@ MAX_AVATAR_ATTEMPTS = 3
 # Azure Realtime API (the SDK exposes this as an enum, but matching by string
 # avoids a hard dependency on a specific SDK version).
 INPUT_AUDIO_TRANSCRIPTION_COMPLETED_TYPE = "conversation.item.input_audio_transcription.completed"
+RESPONSE_AUDIO_TRANSCRIPT_DONE_TYPE = "response.audio_transcript.done"
+
+# Sent to the frontend when a CRITICAL inbound safeguarding event fires. The
+# frontend is responsible for closing the WebRTC session and surfacing the
+# pre-approved avatar handoff line in the UI.
+WULO_SAFEGUARDING_PAUSE_TYPE = "wulo.safeguarding_pause"
+SAFEGUARDING_PAUSE_AVATAR_LINE = (
+    "Thank you for telling me that. Let's take a little break — "
+    "I've let a grown-up know so they can help."
+)
 
 
 def _is_structured_conversation_enabled() -> bool:
@@ -233,6 +245,94 @@ class VoiceProxyHandler:
         environ = getattr(client_ws, "environ", {}) or {}
         principal_id = str(environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_ID") or "").strip()
         return bool(principal_id)
+
+    def _principal_id(self, client_ws: simple_websocket.ws.Server) -> Optional[str]:
+        environ = getattr(client_ws, "environ", {}) or {}
+        pid = str(environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_ID") or "").strip()
+        return pid or None
+
+    def _dispatch_safeguarding(
+        self,
+        text: str,
+        *,
+        direction: "SafeguardingDirection",
+        user_id: Optional[str],
+        child_id: Optional[str],
+        session_id: Optional[str],
+        client_ws: Optional["simple_websocket.ws.Server"] = None,
+    ) -> None:
+        """Fire-and-forget safeguarding analysis.
+
+        Never raises into the realtime forwarding loop — a detector or DB
+        failure must not interrupt the child's session.
+        """
+        service = get_safeguarding_service()
+        if service is None or not service.enabled:
+            return
+        try:
+            asyncio.create_task(
+                self._safeguarding_task(
+                    service,
+                    text=text,
+                    direction=direction,
+                    user_id=user_id,
+                    child_id=child_id,
+                    session_id=session_id,
+                    client_ws=client_ws,
+                )
+            )
+        except RuntimeError:
+            # No running loop (e.g. tests calling synchronously). Swallow.
+            logger.debug("Safeguarding dispatch skipped: no running event loop")
+        except Exception:  # noqa: BLE001
+            logger.exception("Safeguarding dispatch failed")
+
+    async def _safeguarding_task(
+        self,
+        service,
+        *,
+        text: str,
+        direction: "SafeguardingDirection",
+        user_id: Optional[str],
+        child_id: Optional[str],
+        session_id: Optional[str],
+        client_ws: Optional["simple_websocket.ws.Server"],
+    ) -> None:
+        try:
+            event = await service.process_utterance(
+                text=text,
+                direction=direction,
+                user_id=user_id,
+                child_id=child_id,
+                parent_user_id=user_id,
+                session_id=session_id,
+            )
+        except Exception:  # noqa: BLE001
+            logger.exception("Safeguarding pipeline raised in task")
+            return
+        if event is None or client_ws is None:
+            return
+        # Only INBOUND CRITICAL events trigger a session pause — outbound
+        # events are about model behaviour and are surfaced to the admin
+        # instead of the child.
+        if direction.value != "inbound":
+            return
+        if event.severity != "critical":
+            return
+        try:
+            await self._send_message(
+                client_ws,
+                {
+                    "type": WULO_SAFEGUARDING_PAUSE_TYPE,
+                    "payload": {
+                        "event_id": event.id,
+                        "avatar_line": SAFEGUARDING_PAUSE_AVATAR_LINE,
+                        "reason": "critical_safeguarding_event",
+                    },
+                },
+            )
+        except Exception:  # noqa: BLE001
+            logger.exception("Failed to emit safeguarding pause to client")
 
     def _get_profile_context(self, client_ws: simple_websocket.ws.Server) -> AgentProfileContext:
         environ = getattr(client_ws, "environ", {}) or {}
@@ -727,6 +827,8 @@ class VoiceProxyHandler:
         avatar_surrendered = False
         profile_tool_response_pending = False
         handled_profile_tool_call_ids: set[str] = set()
+        azure_session_id: Optional[str] = None
+        principal_id = self._principal_id(client_ws)
         try:
             async for event in azure_conn:
                 event_dict = event.as_dict() if hasattr(event, "as_dict") else dict(event)
@@ -784,11 +886,34 @@ class VoiceProxyHandler:
                                 },
                             )
                 elif event.type == ServerEventType.SESSION_CREATED:
-                    logger.info("Session created: %s", event_dict.get("session", {}).get("id"))
+                    azure_session_id = str(event_dict.get("session", {}).get("id") or "") or azure_session_id
+                    logger.info("Session created: %s", azure_session_id)
                 elif event.type == ServerEventType.SESSION_UPDATED:
                     logger.info("Session updated")
 
                 event_type_str = str(event_dict.get("type") or "")
+                if event_type_str == INPUT_AUDIO_TRANSCRIPTION_COMPLETED_TYPE:
+                    transcript_for_guard = str(event_dict.get("transcript") or "").strip()
+                    if transcript_for_guard:
+                        self._dispatch_safeguarding(
+                            transcript_for_guard,
+                            direction=SafeguardingDirection.INBOUND,
+                            user_id=principal_id,
+                            child_id=(profile_context.child_id if profile_context else None),
+                            session_id=azure_session_id,
+                            client_ws=client_ws,
+                        )
+                elif event_type_str == RESPONSE_AUDIO_TRANSCRIPT_DONE_TYPE:
+                    outbound_transcript = str(event_dict.get("transcript") or "").strip()
+                    if outbound_transcript:
+                        self._dispatch_safeguarding(
+                            outbound_transcript,
+                            direction=SafeguardingDirection.OUTBOUND,
+                            user_id=principal_id,
+                            child_id=(profile_context.child_id if profile_context else None),
+                            session_id=azure_session_id,
+                            client_ws=client_ws,
+                        )
                 if tally is not None:
                     if event_type_str == INPUT_AUDIO_TRANSCRIPTION_COMPLETED_TYPE:
                         transcript = str(event_dict.get("transcript") or "").strip()

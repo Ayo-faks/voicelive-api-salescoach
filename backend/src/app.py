@@ -54,6 +54,11 @@ from src.services.insights_service import (
     _load_router_config_from_env,
 )
 from src.services.azure_openai_auth import build_openai_client
+from src.safeguarding import (
+    build_safeguarding_blueprint,
+    configure_safeguarding_service,
+    get_safeguarding_service,
+)
 from src.services.turn_router.handlers import ChitchatHandler
 from src.services.insights_websocket_handler import InsightsVoiceHandler
 from src.services.voice_agent_action_service import (
@@ -415,10 +420,64 @@ def initialize_runtime_services() -> None:
     if not planner_startup_readiness.get("ready"):
         logger.warning("Planner readiness check failed at startup: %s", planner_startup_readiness)
 
+    _initialize_safeguarding_service()
+
+
+def _initialize_safeguarding_service() -> None:
+    """Wire the safeguarding pipeline + notifier into the running app."""
+
+    def _openai_factory():
+        try:
+            return build_openai_client(config.raw_dict)
+        except Exception:  # noqa: BLE001
+            logger.exception("Safeguarding: failed to build OpenAI client")
+            return None
+
+    def _email_sender(to: str, subject: str, plain: str, html: str) -> None:
+        if email_service is None or email_service._client is None:  # type: ignore[attr-defined]
+            return
+        message = {
+            "senderAddress": email_service._sender_address,  # type: ignore[attr-defined]
+            "content": {"subject": subject, "plainText": plain, "html": html},
+            "recipients": {"to": [{"address": to, "displayName": to}]},
+            "headers": {"X-Wulo-Safeguarding": "1"},
+        }
+        try:
+            poller = email_service._client.begin_send(message)  # type: ignore[attr-defined]
+            poller.result()
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Safeguarding email send failed for %s: %s", to, exc)
+            raise
+
+    def _parent_email_resolver(parent_user_id):
+        if not parent_user_id or storage_service is None:
+            return None
+        try:
+            user = storage_service.get_user(parent_user_id)  # type: ignore[attr-defined]
+            if isinstance(user, dict):
+                return user.get("email")
+        except Exception:  # noqa: BLE001
+            logger.debug("Parent email lookup failed for %s", parent_user_id, exc_info=True)
+        return None
+
+    try:
+        configure_safeguarding_service(
+            settings=config.raw_dict,
+            openai_client_factory=_openai_factory,
+            email_sender=_email_sender,
+            parent_email_resolver=_parent_email_resolver,
+        )
+        logger.info("Safeguarding service: initialised")
+    except Exception:  # noqa: BLE001
+        logger.exception("Safeguarding service: initialisation failed (continuing without it)")
+
 
 initialize_runtime_services()
 learning_repository = make_learning_repository(storage_service=storage_service)
 learning_api = register_learning_api(app, api=LearningApi(repository=learning_repository))
+from src.learning.expiry_worker import maybe_start_expiry_worker
+
+learner_memory_expiry_worker = maybe_start_expiry_worker(learning_repository)
 # Late-bind the learning API into the insights service so the planner can
 # call Pathfinder Learn read-only tools (mastery snapshot, student profile,
 # pending approvals).
@@ -962,6 +1021,14 @@ def _require_role(*roles: str) -> Tuple[Optional[Dict[str, Any]], Optional[Tuple
         return None, (jsonify({"error": THERAPIST_ROLE_REQUIRED}), HTTP_FORBIDDEN)
 
     return user, None
+
+
+app.register_blueprint(
+    build_safeguarding_blueprint(
+        require_admin=lambda: _require_role(ROLE_ADMIN),
+        get_service=get_safeguarding_service,
+    )
+)
 
 
 def _enforce_voice_safety_for_child(

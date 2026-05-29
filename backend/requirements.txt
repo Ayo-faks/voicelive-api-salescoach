@@ -21,4 +21,5 @@ prometheus-client>=0.20.0
 python-dotenv==1.2.1
 pyyaml==6.0.3
 SQLAlchemy>=2.0.0,<2.0.50
+twilio>=8.0.0  # Safeguarding SMS notifications to admin
 websockets==15.0.1

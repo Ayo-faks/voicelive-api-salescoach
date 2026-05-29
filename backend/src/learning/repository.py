@@ -41,7 +41,7 @@ LEARNING_RLS_PROTECTED_TABLES = (
     "learning_student_fact_decisions",
 )
 LEARNING_REQUEST_GUCS = ("app.tenant_id", "app.class_id", "app.user_id", "app.role")
-APPROVAL_STATUSES = ("draft", "pending", "approved", "edited_approved", "rejected")
+APPROVAL_STATUSES = ("draft", "pending", "approved", "edited_approved", "rejected", "auto_approved")
 
 
 class LearningRepository(Protocol):
@@ -68,6 +68,8 @@ class LearningRepository(Protocol):
         fact: StudentFactProposal,
         actor_id: str,
         status: str = "pending",
+        *,
+        expires_at: Optional[str] = None,
     ) -> Dict[str, Any]:
         raise NotImplementedError
 
@@ -86,6 +88,37 @@ class LearningRepository(Protocol):
         event: StudentFactDecisionEvent,
         statement: XAPIStatement,
         edited_fact: Optional[StudentFactProposal] = None,
+    ) -> Dict[str, Any]:
+        raise NotImplementedError
+
+    def delete_student_fact(
+        self,
+        tenant_id: str,
+        fact_id: str,
+        *,
+        actor_id: str,
+        reason: str = "learner_deleted",
+    ) -> bool:
+        raise NotImplementedError
+
+    def expire_due_student_facts(
+        self,
+        *,
+        now: Optional[str] = None,
+        actor_id: str = "system-memory-sweep",
+        reason: str = "expired",
+    ) -> int:
+        raise NotImplementedError
+
+    def get_memory_consent(self, learner_user_id: str) -> Optional[Dict[str, Any]]:
+        raise NotImplementedError
+
+    def upsert_memory_consent(
+        self,
+        learner_user_id: str,
+        *,
+        accepted: bool,
+        policy_version: str = "v1",
     ) -> Dict[str, Any]:
         raise NotImplementedError
 
@@ -153,6 +186,7 @@ class InMemoryLearningRepository:
         self.content_pack_manifests: List[Dict[str, Any]] = []
         self.teacher_classes: Dict[tuple[str, str], set[str]] = {}
         self.skills: Dict[tuple[str, str], CatalogueSkill] = {}
+        self.memory_consents: Dict[str, Dict[str, Any]] = {}
 
     def save_student_response(self, response: StudentResponse, idempotency_key: Optional[str] = None) -> Dict[str, Any]:
         record = response.model_dump()
@@ -211,9 +245,12 @@ class InMemoryLearningRepository:
         fact: StudentFactProposal,
         actor_id: str,
         status: str = "pending",
+        *,
+        expires_at: Optional[str] = None,
     ) -> Dict[str, Any]:
         if status not in APPROVAL_STATUSES:
             raise ValueError(f"unknown student fact status: {status}")
+        now = utc_now()
         record = {
             "id": fact.fact_id,
             "tenant_id": fact.tenant_id,
@@ -224,9 +261,12 @@ class InMemoryLearningRepository:
             "fact": fact.model_dump(),
             "lang": fact.lang,
             "provenance": [item.model_dump() for item in fact.provenance],
-            "created_at": utc_now(),
-            "updated_at": utc_now(),
-            "approved_at": None,
+            "created_at": now,
+            "updated_at": now,
+            "approved_at": now if status in ("approved", "edited_approved", "auto_approved") else None,
+            "expires_at": expires_at,
+            "decided_by": actor_id if status == "auto_approved" else None,
+            "decision_reason": "auto:allowlist+consent" if status == "auto_approved" else None,
         }
         for index, existing in enumerate(self.student_facts):
             if existing["id"] == fact.fact_id and existing["tenant_id"] == fact.tenant_id:
@@ -277,6 +317,71 @@ class InMemoryLearningRepository:
                 record["fact"] = fact_record["fact"]
                 break
         return record
+
+    def delete_student_fact(
+        self,
+        tenant_id: str,
+        fact_id: str,
+        *,
+        actor_id: str,
+        reason: str = "learner_deleted",
+    ) -> bool:
+        for fact_record in self.student_facts:
+            if fact_record["id"] == fact_id and fact_record["tenant_id"] == tenant_id:
+                if fact_record["status"] == "rejected":
+                    return False
+                fact_record["status"] = "rejected"
+                fact_record["updated_at"] = utc_now()
+                fact_record["decided_by"] = actor_id
+                fact_record["decision_reason"] = reason
+                return True
+        return False
+
+    def expire_due_student_facts(
+        self,
+        *,
+        now: Optional[str] = None,
+        actor_id: str = "system-memory-sweep",
+        reason: str = "expired",
+    ) -> int:
+        cutoff = now or utc_now()
+        expired = 0
+        for fact_record in self.student_facts:
+            exp = fact_record.get("expires_at")
+            if not exp or fact_record["status"] in ("rejected",):
+                continue
+            if exp <= cutoff:
+                fact_record["status"] = "rejected"
+                fact_record["updated_at"] = utc_now()
+                fact_record["decided_by"] = actor_id
+                fact_record["decision_reason"] = reason
+                expired += 1
+        return expired
+
+    def get_memory_consent(self, learner_user_id: str) -> Optional[Dict[str, Any]]:
+        record = self.memory_consents.get(learner_user_id)
+        return dict(record) if record else None
+
+    def upsert_memory_consent(
+        self,
+        learner_user_id: str,
+        *,
+        accepted: bool,
+        policy_version: str = "v1",
+    ) -> Dict[str, Any]:
+        now_iso = utc_now()
+        existing = self.memory_consents.get(learner_user_id, {})
+        record = {
+            "id": existing.get("id") or str(uuid4()),
+            "learner_user_id": learner_user_id,
+            "accepted_at": now_iso if accepted else existing.get("accepted_at"),
+            "withdrawn_at": None if accepted else now_iso,
+            "policy_version": policy_version or existing.get("policy_version") or "v1",
+            "created_at": existing.get("created_at") or now_iso,
+            "updated_at": now_iso,
+        }
+        self.memory_consents[learner_user_id] = record
+        return dict(record)
 
     def emit_xapi_statement(
         self, tenant_id: str, actor_id: str, statement: XAPIStatement, sink_status: str
@@ -672,6 +777,7 @@ class LearningPostgresRepository:
             "approved_at": row.get("approved_at"),
             "decided_by": row.get("decided_by"),
             "decision_reason": row.get("decision_reason"),
+            "expires_at": row.get("expires_at"),
         }
 
     def save_student_fact(
@@ -679,19 +785,25 @@ class LearningPostgresRepository:
         fact: StudentFactProposal,
         actor_id: str,
         status: str = "pending",
+        *,
+        expires_at: Optional[str] = None,
     ) -> Dict[str, Any]:
         if status not in APPROVAL_STATUSES:
             raise ValueError(f"unknown student fact status: {status}")
         created_at = self.storage._utc_now()
+        approved_at = created_at if status in ("approved", "edited_approved", "auto_approved") else None
+        decided_by = actor_id if status == "auto_approved" else None
+        decision_reason = "auto:allowlist+consent" if status == "auto_approved" else None
 
         def persist(connection: Any) -> None:
             connection.execute(
                 """
                 INSERT INTO learning_student_facts (
                     id, tenant_id, class_id, student_id, created_by_user_id,
-                    status, fact_json, lang, provenance_json, created_at, updated_at
+                    status, fact_json, lang, provenance_json, created_at, updated_at,
+                    approved_at, decided_by, decision_reason, expires_at
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     fact.fact_id,
@@ -705,6 +817,10 @@ class LearningPostgresRepository:
                     self.storage._dumps_json([item.model_dump() for item in fact.provenance]),
                     created_at,
                     created_at,
+                    approved_at,
+                    decided_by,
+                    decision_reason,
+                    expires_at,
                 ),
             )
 
@@ -721,7 +837,10 @@ class LearningPostgresRepository:
             "provenance": [item.model_dump() for item in fact.provenance],
             "created_at": created_at,
             "updated_at": created_at,
-            "approved_at": None,
+            "approved_at": approved_at,
+            "decided_by": decided_by,
+            "decision_reason": decision_reason,
+            "expires_at": expires_at,
         }
 
     def list_student_facts(
@@ -751,7 +870,7 @@ class LearningPostgresRepository:
                 f"""
                 SELECT id, tenant_id, class_id, student_id, created_by_user_id,
                        status, fact_json, lang, provenance_json, created_at,
-                       updated_at, approved_at, decided_by, decision_reason
+                       updated_at, approved_at, decided_by, decision_reason, expires_at
                 FROM learning_student_facts
                 WHERE {where_sql}
                 ORDER BY updated_at DESC, created_at DESC
@@ -835,6 +954,139 @@ class LearningPostgresRepository:
 
         self.storage._execute_write(persist)
         return {"id": decision_id, "tenant_id": event.tenant_id, "class_id": class_id_result["class_id"], "created_at": created_at}
+
+    def delete_student_fact(
+        self,
+        tenant_id: str,
+        fact_id: str,
+        *,
+        actor_id: str,
+        reason: str = "learner_deleted",
+    ) -> bool:
+        updated_at = self.storage._utc_now()
+        result: Dict[str, Any] = {"rowcount": 0}
+
+        def persist(connection: Any) -> None:
+            cur = connection.execute(
+                """
+                UPDATE learning_student_facts
+                SET status = 'rejected',
+                    updated_at = %s,
+                    decided_by = %s,
+                    decision_reason = %s
+                WHERE id = %s AND tenant_id = %s AND status <> 'rejected'
+                """,
+                (updated_at, actor_id, reason, fact_id, tenant_id),
+            )
+            result["rowcount"] = getattr(cur, "rowcount", 0) or 0
+
+        self.storage._execute_write(persist)
+        return result["rowcount"] > 0
+
+    def expire_due_student_facts(
+        self,
+        *,
+        now: Optional[str] = None,
+        actor_id: str = "system-memory-sweep",
+        reason: str = "expired",
+    ) -> int:
+        cutoff = now or self.storage._utc_now()
+        updated_at = self.storage._utc_now()
+        result: Dict[str, Any] = {"rowcount": 0}
+
+        def persist(connection: Any) -> None:
+            cur = connection.execute(
+                """
+                UPDATE learning_student_facts
+                SET status = 'rejected',
+                    updated_at = %s,
+                    decided_by = %s,
+                    decision_reason = %s
+                WHERE expires_at IS NOT NULL
+                  AND expires_at <= %s
+                  AND status <> 'rejected'
+                """,
+                (updated_at, actor_id, reason, cutoff),
+            )
+            result["rowcount"] = getattr(cur, "rowcount", 0) or 0
+
+        self.storage._execute_write(persist)
+        return result["rowcount"]
+
+    def get_memory_consent(self, learner_user_id: str) -> Optional[Dict[str, Any]]:
+        result: Dict[str, Any] = {"row": None}
+
+        def fetch(connection: Any) -> None:
+            row = connection.execute(
+                """
+                SELECT id, learner_user_id, accepted_at, withdrawn_at,
+                       policy_version, created_at, updated_at
+                FROM learner_memory_consent
+                WHERE learner_user_id = %s
+                ORDER BY updated_at DESC
+                LIMIT 1
+                """,
+                (learner_user_id,),
+            ).fetchone()
+            result["row"] = dict(row) if row else None
+
+        self.storage._execute_write(fetch)
+        return result["row"]
+
+    def upsert_memory_consent(
+        self,
+        learner_user_id: str,
+        *,
+        accepted: bool,
+        policy_version: str = "v1",
+    ) -> Dict[str, Any]:
+        now_iso = self.storage._utc_now()
+        existing = self.get_memory_consent(learner_user_id)
+        record_id = (existing or {}).get("id") or str(uuid4())
+        created_at = (existing or {}).get("created_at") or now_iso
+        accepted_at = now_iso if accepted else (existing or {}).get("accepted_at")
+        withdrawn_at = None if accepted else now_iso
+        version = policy_version or (existing or {}).get("policy_version") or "v1"
+        result: Dict[str, Any] = {"row": None}
+
+        def persist(connection: Any) -> None:
+            row = connection.execute(
+                """
+                INSERT INTO learner_memory_consent (
+                    id, learner_user_id, accepted_at, withdrawn_at,
+                    policy_version, created_at, updated_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO UPDATE SET
+                    accepted_at = EXCLUDED.accepted_at,
+                    withdrawn_at = EXCLUDED.withdrawn_at,
+                    policy_version = EXCLUDED.policy_version,
+                    updated_at = EXCLUDED.updated_at
+                RETURNING id, learner_user_id, accepted_at, withdrawn_at,
+                          policy_version, created_at, updated_at
+                """,
+                (
+                    record_id,
+                    learner_user_id,
+                    accepted_at,
+                    withdrawn_at,
+                    version,
+                    created_at,
+                    now_iso,
+                ),
+            ).fetchone()
+            result["row"] = dict(row) if row else None
+
+        self.storage._execute_write(persist)
+        return result["row"] or {
+            "id": record_id,
+            "learner_user_id": learner_user_id,
+            "accepted_at": accepted_at,
+            "withdrawn_at": withdrawn_at,
+            "policy_version": version,
+            "created_at": created_at,
+            "updated_at": now_iso,
+        }
 
     def list_class_ids_for_teacher(self, tenant_id: str, user_id: str) -> set[str]:
         result: Dict[str, Any] = {"class_ids": set()}

@@ -365,6 +365,30 @@ export function useRealtime(options: RealtimeOptions) {
               'Avatar service is unavailable right now — continuing with voice only.'
             )
             break
+          case 'wulo.safeguarding_pause': {
+            // Backend detected a CRITICAL safeguarding signal in the child's
+            // speech. Surface the pre-approved handoff line, end the session,
+            // and suppress reconnect.
+            const payload = (
+              msg as { payload?: { avatar_line?: string; event_id?: string } }
+            ).payload
+            const line =
+              payload?.avatar_line ??
+              "Thank you for telling me that. Let's take a little break — I've let a grown-up know so they can help."
+            finalizeStreamingMessage('assistant', line)
+            conversationRecording.current.push({ role: 'assistant', content: line })
+            callbackRefs.current.onTranscript?.('assistant', line)
+            setConnectionMessage(
+              "We've paused this session and let a trusted adult know."
+            )
+            manualCloseRef.current = true
+            try {
+              ws.close(1000, 'safeguarding_pause')
+            } catch {
+              /* swallow */
+            }
+            break
+          }
         }
       }
 
