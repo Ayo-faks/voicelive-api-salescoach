@@ -22,6 +22,8 @@ import {
 } from '@heroicons/react/24/outline'
 import { useEffect, useState } from 'react'
 import { getPilotKpis, type PilotKpiCard, type PilotKpiResponse } from '../api'
+import { api } from '../../services/api'
+import type { SafetyConfig } from '../../types'
 import { pilotMetrics } from '../fixtures'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 
@@ -451,6 +453,8 @@ export default function TrustSafetyConsole() {
   const styles = useStyles()
   const [kpis, setKpis] = useState<PilotKpiResponse | null>(null)
   const [kpiError, setKpiError] = useState<string | null>(null)
+  const [safety, setSafety] = useState<SafetyConfig | null>(null)
+  const [safetyError, setSafetyError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -465,6 +469,28 @@ export default function TrustSafetyConsole() {
         if (!cancelled) {
           setKpiError((err as Error).message)
           setKpis(null)
+        }
+      })
+    api
+      .getConfig()
+      .then(cfg => {
+        if (!cancelled) {
+          setSafety(cfg.safety ?? null)
+          setSafetyError(null)
+        }
+      })
+      .catch(err => {
+        if (!cancelled) {
+          // Fail closed: treat unknown safety status as voice disabled and
+          // export blocked so the admin sees a safe state rather than a
+          // green-light banner.
+          setSafety({
+            learner_voice_disabled: true,
+            session_turn_cap: null,
+            session_token_cap: null,
+            production_content_review_required: false,
+          })
+          setSafetyError((err as Error).message)
         }
       })
     return () => {
@@ -498,12 +524,25 @@ export default function TrustSafetyConsole() {
           </div>
         </div>
         <div className={styles.actions}>
-          <button type="button" className={styles.actionButton}>
+          <button
+            type="button"
+            className={styles.actionButton}
+            disabled={safety?.learner_voice_disabled === true}
+            data-testid="admin-export-report"
+            aria-disabled={safety?.learner_voice_disabled === true}
+            title={
+              safety?.learner_voice_disabled === true
+                ? 'Report export is temporarily blocked while safety review is open.'
+                : undefined
+            }
+          >
             <ArrowDownTrayIcon
               style={{ width: 16, height: 16 }}
               aria-hidden="true"
             />
-            Export report
+            {safety?.learner_voice_disabled === true
+              ? 'Export blocked'
+              : 'Export report'}
           </button>
           <button type="button" className={styles.primaryActionButton}>
             <ShieldCheckIcon
@@ -521,6 +560,48 @@ export default function TrustSafetyConsole() {
           <span className={styles.pillSolid}>All gates green</span>
           <span className={styles.pill}>25% controlled rollout</span>
           <span className={styles.pill}>Last review 2026-05-22</span>
+        </div>
+      </div>
+
+      <div
+        className={styles.govBanner}
+        data-testid="admin-safety-status"
+        aria-label="Live safety status"
+      >
+        <ShieldCheckIcon style={{ width: 18, height: 18 }} aria-hidden="true" />
+        <div className={styles.govBannerMeta} aria-label="Live safety status">
+          <span
+            className={styles.pill}
+            data-testid="admin-safety-voice"
+          >
+            {safety?.learner_voice_disabled
+              ? 'Learner voice: temporarily unavailable'
+              : 'Learner voice: available'}
+          </span>
+          <span
+            className={styles.pill}
+            data-testid="admin-safety-content-review"
+          >
+            {safety?.production_content_review_required
+              ? 'Content review: required'
+              : 'Content review: not enforced'}
+          </span>
+          <span
+            className={styles.pill}
+            data-testid="admin-safety-export"
+          >
+            {safety?.learner_voice_disabled
+              ? 'Report export: blocked while safety review is open'
+              : 'Report export: enabled'}
+          </span>
+          {safetyError && (
+            <span
+              className={styles.pill}
+              data-testid="admin-safety-error"
+            >
+              Safety status unavailable — showing safe defaults
+            </span>
+          )}
         </div>
       </div>
 

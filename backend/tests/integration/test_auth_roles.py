@@ -52,6 +52,21 @@ def _signup_as_therapist(client: FlaskClient, user_id: str, email: str, name: st
     return payload
 
 
+def _grant_full_parental_consent(child_id: str, *, recorded_by_user_id: str) -> None:
+    app_module.storage_service.save_parental_consent(
+        child_id=child_id,
+        guardian_name="Guardian",
+        guardian_email="guardian@example.com",
+        privacy_accepted=True,
+        terms_accepted=True,
+        ai_notice_accepted=True,
+        personal_data_consent_accepted=True,
+        special_category_consent_accepted=True,
+        parental_responsibility_confirmed=True,
+        recorded_by_user_id=recorded_by_user_id,
+    )
+
+
 def test_protected_routes_require_authentication(client: FlaskClient):
     """Anonymous callers should receive 401 on authenticated Flask routes."""
     for route in ["/api/config", "/api/scenarios", "/api/children", "/api/pilot/state", "/api/learning/class/mastery"]:
@@ -1066,6 +1081,7 @@ def test_workspace_access_guard_allows_same_workspace_therapist(client: FlaskCli
 
     child_resp = client.post("/api/children", headers=t1_headers, json={"name": "Own Child"})
     child_id = child_resp.get_json()["id"]
+    _grant_full_parental_consent(child_id, recorded_by_user_id="user-1")
 
     sessions_resp = client.get(f"/api/children/{child_id}/sessions", headers=t1_headers)
     assert sessions_resp.status_code == 200
@@ -1081,6 +1097,7 @@ def test_invitation_acceptance_grants_workspace_membership(client: FlaskClient):
 
     child_resp = client.post("/api/children", headers=therapist_headers, json={"name": "Nia"})
     child_id = child_resp.get_json()["id"]
+    _grant_full_parental_consent(child_id, recorded_by_user_id="user-1")
 
     invite_resp = client.post(
         "/api/invitations",
@@ -1120,6 +1137,7 @@ def test_admin_bypasses_workspace_access_guard(client: FlaskClient):
 
     child_resp = client.post("/api/children", headers=t1_headers, json={"name": "Admin Visible"})
     child_id = child_resp.get_json()["id"]
+    _grant_full_parental_consent(child_id, recorded_by_user_id="user-1")
 
     sessions_resp = client.get(f"/api/children/{child_id}/sessions", headers=admin_headers)
     assert sessions_resp.status_code == 200
@@ -1163,6 +1181,7 @@ def test_legacy_child_without_workspace_still_accessible(client: FlaskClient):
     # Create child, then manually null out workspace_id to simulate legacy child
     child_resp = client.post("/api/children", headers=t1_headers, json={"name": "Legacy Child"})
     child_id = child_resp.get_json()["id"]
+    _grant_full_parental_consent(child_id, recorded_by_user_id="user-1")
 
     import src.app as _app
 

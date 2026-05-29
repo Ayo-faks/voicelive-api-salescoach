@@ -57,15 +57,40 @@ function jsonResponse(body: unknown): Response {
   } as Response
 }
 
-function mockVoiceConfig() {
+function mockVoiceConfig(
+  options: {
+    voiceEnabled?: boolean
+    safety?: {
+      learner_voice_disabled: boolean
+      session_turn_cap: number | null
+      session_token_cap: number | null
+      production_content_review_required: boolean
+    } | null
+  } = {}
+) {
+  const voiceEnabled = options.voiceEnabled ?? false
+  const safety = options.safety
   vi.spyOn(globalThis, 'fetch').mockImplementation(input => {
     const url = String(input)
     if (url === '/api/learning/voice/config') {
       return Promise.resolve(
         jsonResponse({
-          enabled: false,
+          enabled: voiceEnabled,
           transport: 'flask-sock',
           offline_fallback: 'queued_multilingual_voice_frame',
+        })
+      )
+    }
+    if (url === '/api/config') {
+      return Promise.resolve(
+        jsonResponse({
+          status: 'ok',
+          proxy_enabled: false,
+          ws_endpoint: '/ws',
+          storage_ready: true,
+          telemetry_enabled: false,
+          image_base_path: '/static/images',
+          ...(safety ? { safety } : {}),
         })
       )
     }
@@ -413,5 +438,41 @@ describe('StudentLearningHome', () => {
     render(<MemoryRouter><StudentLearningHome studentId="student-001" /></MemoryRouter>)
     expect(screen.queryByTestId('career-navigation-moment')).toBeNull()
     expect(screen.queryByTestId('career-navigation-answer')).toBeNull()
+  })
+
+  it('hides the voice check-in CTA and shows a non-alarming notice when safety.learner_voice_disabled is true', async () => {
+    // Reset the module-level cachedConfig in services/api so this test sees
+    // a fresh /api/config fetch with safety.learner_voice_disabled = true.
+    vi.resetModules()
+    mockVoiceConfig({
+      voiceEnabled: true,
+      safety: {
+        learner_voice_disabled: true,
+        session_turn_cap: null,
+        session_token_cap: null,
+        production_content_review_required: false,
+      },
+    })
+    const { default: FreshStudentLearningHome } = await import(
+      '../routes/StudentLearningHome'
+    )
+    render(
+      <MemoryRouter>
+        <FreshStudentLearningHome studentId="student-001" />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        '/api/config',
+        expect.anything()
+      )
+    })
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('voice-checkin-disabled-notice')
+      ).toBeTruthy()
+    })
+    expect(screen.queryByTestId('start-voice-checkin')).toBeNull()
   })
 })

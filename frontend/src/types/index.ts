@@ -1128,7 +1128,18 @@ export interface AppConfig {
   voice_agent_dynamic_ui_enabled?: boolean
   voice_agent_actions_enabled?: boolean
   learner_voice_fullscreen_enabled?: boolean
+  safety?: SafetyConfig
   onboarding?: OnboardingFlags
+}
+
+/** Server-side safety posture surfaced by backend safety_gates.public_status_payload().
+ * Frontend uses these to render non-alarming disabled states for learner voice
+ * controls without exposing the underlying reason to children/parents. */
+export interface SafetyConfig {
+  learner_voice_disabled: boolean
+  session_turn_cap: number | null
+  session_token_cap: number | null
+  production_content_review_required: boolean
 }
 
 export interface OnboardingFlags {

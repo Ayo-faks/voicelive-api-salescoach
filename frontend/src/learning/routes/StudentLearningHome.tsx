@@ -49,6 +49,8 @@ import { featureFlags } from '../../utils/featureFlags'
 import { useOnboarding } from '../../onboarding/context'
 import { requestReplayTour } from '../../onboarding/bus'
 import { Link } from 'react-router-dom'
+import { api } from '../../services/api'
+import type { SafetyConfig } from '../../types'
 
 type Activity = {
   id: string
@@ -1800,6 +1802,7 @@ export default function StudentLearningHome({
   const [voiceConfig, setVoiceConfig] = useState<VoiceConfigResponse | null>(
     null
   )
+  const [safetyConfig, setSafetyConfig] = useState<SafetyConfig | null>(null)
   const [voiceResult, setVoiceResult] = useState<VoiceFrameResponse | null>(
     null
   )
@@ -1828,6 +1831,21 @@ export default function StudentLearningHome({
             enabled: false,
             transport: 'flask-sock',
             offline_fallback: 'queued_multilingual_voice_frame',
+          })
+      })
+    api
+      .getConfig()
+      .then(cfg => {
+        if (!cancelled && cfg.safety) setSafetyConfig(cfg.safety)
+      })
+      .catch(() => {
+        // Fail-closed: assume voice disabled if config can't load.
+        if (!cancelled)
+          setSafetyConfig({
+            learner_voice_disabled: true,
+            session_turn_cap: null,
+            session_token_cap: null,
+            production_content_review_required: false,
           })
       })
     return () => {
@@ -2248,7 +2266,16 @@ export default function StudentLearningHome({
                   />
                 </button>
               </div>
-              {voiceConfig?.enabled && (
+              {voiceConfig?.enabled && safetyConfig?.learner_voice_disabled && (
+                <div
+                  data-testid="voice-checkin-disabled-notice"
+                  style={{ marginTop: 12, fontSize: '0.85rem', opacity: 0.85 }}
+                >
+                  Voice check-in is paused right now. You can still keep
+                  learning with the activities above.
+                </div>
+              )}
+              {voiceConfig?.enabled && !safetyConfig?.learner_voice_disabled && (
                 <div
                   style={{
                     marginTop: 12,
