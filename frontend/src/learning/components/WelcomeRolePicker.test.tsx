@@ -49,14 +49,25 @@ describe('WelcomeRolePicker', () => {
     mockedChooseRole.mockReset()
   })
 
-  it('renders three role tiles and the schools mailto', () => {
+  it('renders three role tiles, marks teacher coming soon, and exposes the hello@ mailto', () => {
     renderPicker()
     expect(screen.getByTestId('welcome-role-picker')).toBeTruthy()
     expect(screen.getByTestId('welcome-tile-learner')).toBeTruthy()
     expect(screen.getByTestId('welcome-tile-parent')).toBeTruthy()
-    expect(screen.getByTestId('welcome-tile-teacher')).toBeTruthy()
-    const mailto = screen.getByRole('link', { name: /schools@wulo\.ai/i })
-    expect(mailto.getAttribute('href')).toMatch(/^mailto:schools@wulo\.ai/)
+    const teacherTile = screen.getByTestId('welcome-tile-teacher') as HTMLButtonElement
+    expect(teacherTile.disabled).toBe(true)
+    expect(teacherTile.getAttribute('aria-disabled')).toBe('true')
+    expect(screen.getByTestId('welcome-tile-teacher-coming-soon')).toBeTruthy()
+    expect(screen.getByText(/Welcome to Wulo Academy/i)).toBeTruthy()
+    const mailto = screen.getByRole('link', { name: /hello@wulo\.ai/i })
+    expect(mailto.getAttribute('href')).toMatch(/^mailto:hello@wulo\.ai/)
+  })
+
+  it('does not call chooseRole when the disabled teacher tile is clicked', async () => {
+    const { onChosen } = renderPicker()
+    fireEvent.click(screen.getByTestId('welcome-tile-teacher'))
+    expect(mockedChooseRole).not.toHaveBeenCalled()
+    expect(onChosen).not.toHaveBeenCalled()
   })
 
   it('calls chooseRole and onChosen when a tile is clicked', async () => {

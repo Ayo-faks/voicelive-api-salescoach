@@ -692,6 +692,10 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
               value: pathfinderLearnOtelEnabled
             }
             {
+              name: 'PATHFINDER_B2C_ONBOARDING_ENABLED'
+              value: 'true'
+            }
+            {
               name: 'STORAGE_PATH'
               value: '/tmp/wulo.db'
             }

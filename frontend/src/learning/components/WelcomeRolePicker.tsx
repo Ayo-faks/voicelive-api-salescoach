@@ -93,6 +93,18 @@ const useStyles = makeStyles({
     color: t.brand.text,
     fontWeight: 600,
   },
+  comingSoon: {
+    display: 'inline-block',
+    marginTop: '6px',
+    padding: '2px 8px',
+    borderRadius: '999px',
+    backgroundColor: '#f1f3f4',
+    color: t.brand.textSecondary,
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    letterSpacing: '0.04em',
+    textTransform: 'uppercase',
+  },
   error: {
     color: '#b3261e',
     fontSize: '0.92rem',
@@ -104,6 +116,8 @@ type Tile = {
   title: string
   body: string
   icon: typeof AcademicCapIcon
+  disabled?: boolean
+  comingSoon?: boolean
 }
 
 const TILES: Tile[] = [
@@ -121,9 +135,11 @@ const TILES: Tile[] = [
   },
   {
     intent: 'teacher',
-    title: "I'm a teacher",
-    body: 'Enter the invite code your school admin shared to join a workspace.',
+    title: "I'm a teacher (schools)",
+    body: 'Wulo Academy for schools — invite codes and class workspaces are on the way.',
     icon: UserGroupIcon,
+    disabled: true,
+    comingSoon: true,
   },
 ]
 
@@ -140,6 +156,8 @@ export default function WelcomeRolePicker({
 
   const handlePick = async (intent: OnboardingIntent) => {
     if (pending) return
+    const tile = TILES.find(t => t.intent === intent)
+    if (tile?.disabled) return
     setPending(intent)
     setError(null)
     try {
@@ -157,28 +175,38 @@ export default function WelcomeRolePicker({
     <main className={styles.shell} data-testid="welcome-role-picker">
       <div className={styles.inner}>
         <Text as="h1" className={styles.title}>
-          Welcome to Pathfinder
+          Welcome to Wulo Academy
         </Text>
         <Text className={styles.subtitle}>
-          To set things up, tell us how you&apos;ll use Pathfinder. You can
+          To set things up, tell us how you&apos;ll use Wulo Academy. You can
           change this later from your profile.
         </Text>
         <div className={styles.tiles}>
           {TILES.map(tile => {
             const Icon = tile.icon
+            const isDisabled = pending !== null || tile.disabled === true
             return (
               <Button
                 key={tile.intent}
                 appearance="subtle"
                 className={styles.tile}
                 onClick={() => handlePick(tile.intent)}
-                disabled={pending !== null}
+                disabled={isDisabled}
                 aria-busy={pending === tile.intent}
+                aria-disabled={tile.disabled ? true : undefined}
                 data-testid={`welcome-tile-${tile.intent}`}
               >
                 <Icon className={styles.tileIcon} aria-hidden="true" />
                 <Text className={styles.tileTitle}>{tile.title}</Text>
                 <Text className={styles.tileBody}>{tile.body}</Text>
+                {tile.comingSoon ? (
+                  <span
+                    className={styles.comingSoon}
+                    data-testid={`welcome-tile-${tile.intent}-coming-soon`}
+                  >
+                    Coming soon
+                  </span>
+                ) : null}
               </Button>
             )
           })}
@@ -198,12 +226,12 @@ export default function WelcomeRolePicker({
             }}
             aria-hidden="true"
           />
-          Rolling Pathfinder out across a school?{' '}
+          Rolling Wulo Academy out across a school? Email us at{' '}
           <a
             className={styles.schoolLink}
-            href="mailto:schools@wulo.ai?subject=Pathfinder%20for%20schools"
+            href="mailto:hello@wulo.ai?subject=Wulo%20Academy%20for%20schools"
           >
-            Email schools@wulo.ai
+            hello@wulo.ai
           </a>
         </Text>
       </div>
