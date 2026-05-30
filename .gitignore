@@ -176,3 +176,6 @@ static
 data/wulo.db
 # Local dev logs and handoff notes
 .local-logs/
+
+# Local DB backups (contain user data)
+backups/
