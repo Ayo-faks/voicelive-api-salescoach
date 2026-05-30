@@ -711,13 +711,30 @@ class PostgresStorageService:
             role = ROLE_PARENT if has_pending_invitation else (
                 ROLE_UNASSIGNED if _b2c_onboarding_enabled() else ROLE_THERAPIST
             )
-            connection.execute(
+            cursor = connection.execute(
                 """
                 INSERT INTO users (id, email, name, provider, role, created_at)
                 VALUES (%s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO NOTHING
                 """,
                 (user_id, email, name, provider, role, now),
             )
+            if cursor.rowcount == 0:
+                # Lost an insert race with a concurrent first-login request; the
+                # winning transaction owns bootstrap. Re-read and return its row.
+                winner = connection.execute(
+                    "SELECT id, email, name, provider, role, created_at FROM users WHERE id = %s",
+                    (user_id,),
+                ).fetchone()
+                if winner is not None:
+                    return {
+                        "id": winner["id"],
+                        "email": winner["email"],
+                        "name": winner["name"],
+                        "provider": winner["provider"],
+                        "role": self._normalize_user_role(winner["role"]),
+                        "created_at": winner["created_at"],
+                    }
             if role == ROLE_THERAPIST:
                 self._bootstrap_existing_children_for_user(connection, user_id, CHILD_RELATIONSHIP_THERAPIST)
                 self._ensure_personal_workspace_for_user(connection, user_id, name, email)
@@ -812,6 +829,119 @@ class PostgresStorageService:
                 (created_by,),
             ).fetchall()
             return [dict(r) for r in rows]
+
+        return self._execute_read(query)
+
+    def list_family_intake_invitations_for_user(self, user_id: str, email: str) -> List[Dict[str, Any]]:
+        normalized_email = str(email or "").strip().lower()
+
+        def query(connection: psycopg.Connection[Any]) -> List[Dict[str, Any]]:
+            rows = connection.execute(
+                """
+                SELECT
+                    family_intake_invitations.id,
+                    family_intake_invitations.workspace_id,
+                    therapist_workspaces.name AS workspace_name,
+                    family_intake_invitations.invited_email,
+                    family_intake_invitations.invited_by_user_id,
+                    inviter.name AS invited_by_name,
+                    family_intake_invitations.accepted_by_user_id,
+                    family_intake_invitations.status,
+                    family_intake_invitations.created_at,
+                    family_intake_invitations.updated_at,
+                    family_intake_invitations.responded_at,
+                    family_intake_invitations.expires_at
+                FROM family_intake_invitations
+                INNER JOIN therapist_workspaces ON therapist_workspaces.id = family_intake_invitations.workspace_id
+                INNER JOIN users AS inviter ON inviter.id = family_intake_invitations.invited_by_user_id
+                WHERE family_intake_invitations.invited_by_user_id = %s
+                   OR LOWER(family_intake_invitations.invited_email) = %s
+                ORDER BY family_intake_invitations.updated_at DESC, family_intake_invitations.created_at DESC
+                """,
+                (user_id, normalized_email),
+            ).fetchall()
+            payloads: List[Dict[str, Any]] = []
+            for row in rows:
+                invited_email = str(row["invited_email"] or "")
+                direction = "incoming" if (
+                    normalized_email and invited_email.lower() == normalized_email
+                ) else "sent"
+                payloads.append(
+                    {
+                        "id": row["id"],
+                        "workspace_id": row["workspace_id"],
+                        "workspace_name": row["workspace_name"],
+                        "invited_email": invited_email,
+                        "invited_by_user_id": row["invited_by_user_id"],
+                        "invited_by_name": row["invited_by_name"],
+                        "accepted_by_user_id": row["accepted_by_user_id"],
+                        "status": row["status"],
+                        "created_at": row["created_at"],
+                        "updated_at": row["updated_at"],
+                        "responded_at": row["responded_at"],
+                        "expires_at": row["expires_at"],
+                        "direction": direction,
+                    }
+                )
+            return payloads
+
+        return self._execute_read(query)
+
+    def list_child_intake_proposals_for_user(self, user_id: str) -> List[Dict[str, Any]]:
+        def query(connection: psycopg.Connection[Any]) -> List[Dict[str, Any]]:
+            rows = connection.execute(
+                """
+                SELECT
+                    child_intake_proposals.id,
+                    child_intake_proposals.family_intake_invitation_id,
+                    child_intake_proposals.workspace_id,
+                    therapist_workspaces.name AS workspace_name,
+                    child_intake_proposals.created_by_user_id,
+                    creator.name AS created_by_name,
+                    child_intake_proposals.reviewed_by_user_id,
+                    reviewer.name AS reviewed_by_name,
+                    child_intake_proposals.final_child_id,
+                    child_intake_proposals.child_name,
+                    child_intake_proposals.date_of_birth,
+                    child_intake_proposals.notes,
+                    child_intake_proposals.status,
+                    child_intake_proposals.submitted_at,
+                    child_intake_proposals.reviewed_at,
+                    child_intake_proposals.review_note,
+                    child_intake_proposals.created_at,
+                    child_intake_proposals.updated_at
+                FROM child_intake_proposals
+                INNER JOIN therapist_workspaces ON therapist_workspaces.id = child_intake_proposals.workspace_id
+                INNER JOIN users AS creator ON creator.id = child_intake_proposals.created_by_user_id
+                LEFT JOIN users AS reviewer ON reviewer.id = child_intake_proposals.reviewed_by_user_id
+                WHERE child_intake_proposals.created_by_user_id = %s
+                ORDER BY child_intake_proposals.updated_at DESC, child_intake_proposals.created_at DESC
+                """,
+                (user_id,),
+            ).fetchall()
+            return [
+                {
+                    "id": row["id"],
+                    "family_intake_invitation_id": row["family_intake_invitation_id"],
+                    "workspace_id": row["workspace_id"],
+                    "workspace_name": row["workspace_name"],
+                    "created_by_user_id": row["created_by_user_id"],
+                    "created_by_name": row["created_by_name"],
+                    "reviewed_by_user_id": row["reviewed_by_user_id"],
+                    "reviewed_by_name": row["reviewed_by_name"],
+                    "final_child_id": row["final_child_id"],
+                    "child_name": row["child_name"],
+                    "date_of_birth": row["date_of_birth"],
+                    "notes": row["notes"],
+                    "status": row["status"],
+                    "submitted_at": row["submitted_at"],
+                    "reviewed_at": row["reviewed_at"],
+                    "review_note": row["review_note"],
+                    "created_at": row["created_at"],
+                    "updated_at": row["updated_at"],
+                }
+                for row in rows
+            ]
 
         return self._execute_read(query)
 
