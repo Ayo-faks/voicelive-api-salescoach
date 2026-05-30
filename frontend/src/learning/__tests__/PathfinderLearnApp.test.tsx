@@ -225,11 +225,14 @@ describe('PathfinderLearnApp learner bootstrapping', () => {
     await waitFor(() =>
       expect(apiMocks.createSelfLearner).toHaveBeenCalledTimes(1)
     )
-    const dashboard = await screen.findByTestId('student-learning-home')
+    await waitFor(() =>
+      expect(
+        screen.getByTestId('student-learning-home').textContent
+      ).toContain('child-self')
+    )
 
     expect(apiMocks.getAuthSession).toHaveBeenCalledTimes(1)
     expect(apiMocks.getChildren).toHaveBeenCalledWith(null)
-    expect(dashboard.textContent).toContain('child-self')
   })
 
   it('keeps /home painted when the homepage tour trigger is clicked', async () => {

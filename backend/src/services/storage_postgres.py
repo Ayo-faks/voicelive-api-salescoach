@@ -572,6 +572,10 @@ class PostgresStorageService:
         with self._connect() as connection:
             return operation(connection)
 
+    def _execute_read(self, operation: Callable[[psycopg.Connection[Any]], WriteResult]) -> WriteResult:
+        with self._connect() as connection:
+            return operation(connection)
+
     def _set_setting(self, key: str, value: Optional[str]) -> None:
         def persist_setting(connection: psycopg.Connection[Any]) -> None:
             connection.execute(

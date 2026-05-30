@@ -26,7 +26,6 @@ import {
 import { InsightsRail } from '../components/InsightsRail'
 import { api, type AuthSession } from '../services/api'
 import type { AppConfig, ChildProfile, InsightsScope } from '../types'
-import LearnerEmptyState from './components/LearnerEmptyState'
 import LearnerSelector from './components/LearnerSelector'
 import VoiceAgentFullscreen from './components/VoiceAgentFullscreen'
 import PracticeFullscreen from './components/PracticeFullscreen'
@@ -1047,11 +1046,15 @@ export default function PathfinderLearnApp() {
   }
 
   const learnerHomeElement = () => {
-    if (learnerChildren === null) {
+    // A learner-like role is never shown the parent/therapist "no learners
+    // linked" empty state. While their self-learner profile is being
+    // auto-provisioned (see effect above) or the children list is loading,
+    // render their own learner home; it self-bootstraps once a child exists.
+    if (learnerChildren === null || learnerChildren.length === 0) {
       return (
         <StudentLearningHome
           key="learner-loading"
-          studentId={null}
+          studentId={selectedLearnerId ?? learnerChildren?.[0]?.id ?? null}
           learnerTutorEnabled={['learner', 'kid', 'student'].includes(
             effectiveRole
           )}
@@ -1059,7 +1062,6 @@ export default function PathfinderLearnApp() {
         />
       )
     }
-    if (learnerChildren.length === 0) return <LearnerEmptyState />
     const activeLearnerId = selectedLearnerId ?? learnerChildren[0]?.id ?? null
     return (
       <>

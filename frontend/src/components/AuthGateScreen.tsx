@@ -213,6 +213,14 @@ const useStyles = makeStyles({
     gap: '12px',
     width: '100%',
   },
+  helperNote: {
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.82rem',
+    lineHeight: 1.5,
+    maxWidth: '30ch',
+    textAlign: 'center',
+    justifySelf: 'center',
+  },
   errorText: {
     color: '#a11a17',
   },
@@ -337,6 +345,10 @@ export function AuthGateScreen({
                     <span>Continue with Microsoft</span>
                   </span>
                 </Button>
+                <Text className={styles.helperNote}>
+                  New here? Just continue with Microsoft or Google — we’ll
+                  create your account automatically on first sign-in.
+                </Text>
               </div>
             )}
           </>
