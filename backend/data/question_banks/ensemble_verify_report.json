@@ -1,0 +1,11 @@
+{
+  "bank": "government-ss-mcq-v1.json",
+  "backend": "offline-stub",
+  "total_items": 441,
+  "processed_this_run": 441,
+  "skipped_already_verified": 0,
+  "status_counts": {
+    "machine_verified": 441
+  },
+  "key_disagreements": []
+}

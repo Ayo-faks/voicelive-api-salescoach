@@ -1,0 +1,1066 @@
+{
+  "diagnostic_id": "ss3-government-v1-flagged",
+  "tenant_id": "pilot-tenant",
+  "title": "SS3 Government — Flagged for human review",
+  "subject": "government",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "scrape:government-ssce-derived",
+      "source_id": "government-ss-mcq-v1",
+      "rule_id": "served_promote_v1",
+      "recency": null,
+      "confidence": 1.0,
+      "evidence_count": 13,
+      "metadata": {
+        "review_state": "pending_two_reviewer_signoff",
+        "subject_lead_approved": false,
+        "safeguarding_reviewed": false,
+        "note": "Derived SSCE-style questions; ensemble machine-verified only; below the human two-reviewer gate; staging exercise only; rights for child-facing reuse not cleared."
+      }
+    }
+  ],
+  "skills": [
+    {
+      "skill_id": "ss3.government.basic_concepts.government",
+      "standard_id": "ss3.government.waec-neco",
+      "name": "Basic Concepts: Government",
+      "description": "SS3 Government — basic concepts (government)."
+    },
+    {
+      "skill_id": "ss3.government.constitution.nigerian_constitutions",
+      "standard_id": "ss3.government.waec-neco",
+      "name": "Constitution: Nigerian Constitutions",
+      "description": "SS3 Government — constitution (nigerian constitutions)."
+    },
+    {
+      "skill_id": "ss3.government.ecowas_au_un.un_agencies",
+      "standard_id": "ss3.government.waec-neco",
+      "name": "Ecowas Au Un: Un Agencies",
+      "description": "SS3 Government — ecowas au un (un agencies)."
+    },
+    {
+      "skill_id": "ss3.government.electoral_process.qualification",
+      "standard_id": "ss3.government.waec-neco",
+      "name": "Electoral Process: Qualification",
+      "description": "SS3 Government — electoral process (qualification)."
+    },
+    {
+      "skill_id": "ss3.government.independence.civil_war",
+      "standard_id": "ss3.government.waec-neco",
+      "name": "Independence: Civil War",
+      "description": "SS3 Government — independence (civil war)."
+    },
+    {
+      "skill_id": "ss3.government.independence.first_republic",
+      "standard_id": "ss3.government.waec-neco",
+      "name": "Independence: First Republic",
+      "description": "SS3 Government — independence (first republic)."
+    },
+    {
+      "skill_id": "ss3.government.independence.independence",
+      "standard_id": "ss3.government.waec-neco",
+      "name": "Independence: Independence",
+      "description": "SS3 Government — independence (independence)."
+    },
+    {
+      "skill_id": "ss3.government.independence.nationalism",
+      "standard_id": "ss3.government.waec-neco",
+      "name": "Independence: Nationalism",
+      "description": "SS3 Government — independence (nationalism)."
+    },
+    {
+      "skill_id": "ss3.government.independence.second_republic",
+      "standard_id": "ss3.government.waec-neco",
+      "name": "Independence: Second Republic",
+      "description": "SS3 Government — independence (second republic)."
+    },
+    {
+      "skill_id": "ss3.government.nigerian_government.constitution",
+      "standard_id": "ss3.government.waec-neco",
+      "name": "Nigerian Government: Constitution",
+      "description": "SS3 Government — nigerian government (constitution)."
+    },
+    {
+      "skill_id": "ss3.government.nigerian_government.executive_arm",
+      "standard_id": "ss3.government.waec-neco",
+      "name": "Nigerian Government: Executive Arm",
+      "description": "SS3 Government — nigerian government (executive arm)."
+    },
+    {
+      "skill_id": "ss3.government.organs_of_government.executive",
+      "standard_id": "ss3.government.waec-neco",
+      "name": "Organs Of Government: Executive",
+      "description": "SS3 Government — organs of government (executive)."
+    }
+  ],
+  "items": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:government-ssce-derived",
+          "source_id": "government-mcq-ss3-013",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "An institution"
+              },
+              {
+                "letter": "B",
+                "text": "A market"
+              },
+              {
+                "letter": "C",
+                "text": "A family"
+              },
+              {
+                "letter": "D",
+                "text": "A festival"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "government-mcq-ss3-013",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "government-mcq-ss3-013",
+      "skill_id": "ss3.government.basic_concepts.government",
+      "prompt": "Government as the machinery through which the will of the state is realised is studied as:\n\nA) An institution\nB) A market\nC) A family\nD) A festival",
+      "item_type": "mcq_single",
+      "difficulty": -1.5,
+      "correct_answer": "A) An institution"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:government-ssce-derived",
+          "source_id": "government-mcq-ss3-062",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Macpherson"
+              },
+              {
+                "letter": "B",
+                "text": "Clifford"
+              },
+              {
+                "letter": "C",
+                "text": "Lyttleton"
+              },
+              {
+                "letter": "D",
+                "text": "Richards"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "government-mcq-ss3-062",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "b",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "government-mcq-ss3-062",
+      "skill_id": "ss3.government.constitution.nigerian_constitutions",
+      "prompt": "The first constitution introduced into colonial Nigeria is generally named after:\n\nA) Macpherson\nB) Clifford\nC) Lyttleton\nD) Richards",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "B) Clifford"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:government-ssce-derived",
+          "source_id": "government-mcq-ss3-100",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Inheritance only"
+              },
+              {
+                "letter": "B",
+                "text": "Examination"
+              },
+              {
+                "letter": "C",
+                "text": "Appointment by foreign powers"
+              },
+              {
+                "letter": "D",
+                "text": "Elections"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "government-mcq-ss3-100",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": "d",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "government-mcq-ss3-100",
+      "skill_id": "ss3.government.organs_of_government.executive",
+      "prompt": "A political executive holds office mainly through:\n\nA) Inheritance only\nB) Examination\nC) Appointment by foreign powers\nD) Elections",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "D) Elections"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:government-ssce-derived",
+          "source_id": "government-mcq-ss3-215",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Made returning officer"
+              },
+              {
+                "letter": "B",
+                "text": "Given two votes"
+              },
+              {
+                "letter": "C",
+                "text": "Disqualified from voting"
+              },
+              {
+                "letter": "D",
+                "text": "Appointed judge automatically"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "government-mcq-ss3-215",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.0,
+          "evidence_count": 0,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": null,
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 0,
+            "matches_scraped_key": false,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff",
+            "reviewer_errors": {
+              "reviewer_a": "content_filter",
+              "reviewer_b": "content_filter",
+              "reviewer_c": "content_filter"
+            }
+          }
+        }
+      ],
+      "item_id": "government-mcq-ss3-215",
+      "skill_id": "ss3.government.electoral_process.qualification",
+      "prompt": "A person of unsound mind may be:\n\nA) Made returning officer\nB) Given two votes\nC) Disqualified from voting\nD) Appointed judge automatically",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "C) Disqualified from voting"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:government-ssce-derived",
+          "source_id": "government-mcq-ss3-295",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Easily divisible"
+              },
+              {
+                "letter": "B",
+                "text": "A monarchy"
+              },
+              {
+                "letter": "C",
+                "text": "Indivisible and indissoluble"
+              },
+              {
+                "letter": "D",
+                "text": "A colony"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "government-mcq-ss3-295",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "c",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "government-mcq-ss3-295",
+      "skill_id": "ss3.government.nigerian_government.constitution",
+      "prompt": "The 1999 Constitution describes Nigeria as a federal republic that is:\n\nA) Easily divisible\nB) A monarchy\nC) Indivisible and indissoluble\nD) A colony",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "C) Indivisible and indissoluble"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:government-ssce-derived",
+          "source_id": "government-mcq-ss3-304",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Chief Justice"
+              },
+              {
+                "letter": "B",
+                "text": "Speaker"
+              },
+              {
+                "letter": "C",
+                "text": "Auditor-General"
+              },
+              {
+                "letter": "D",
+                "text": "Deputy Governor"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "government-mcq-ss3-304",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "government-mcq-ss3-304",
+      "skill_id": "ss3.government.nigerian_government.executive_arm",
+      "prompt": "A Nigerian governor's deputy who succeeds on a vacancy is the:\n\nA) Chief Justice\nB) Speaker\nC) Auditor-General\nD) Deputy Governor",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "D) Deputy Governor"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:government-ssce-derived",
+          "source_id": "government-mcq-ss3-307",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Fully valid"
+              },
+              {
+                "letter": "B",
+                "text": "Automatically amended"
+              },
+              {
+                "letter": "C",
+                "text": "Void"
+              },
+              {
+                "letter": "D",
+                "text": "Beyond challenge"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "government-mcq-ss3-307",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "c",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "government-mcq-ss3-307",
+      "skill_id": "ss3.government.nigerian_government.constitution",
+      "prompt": "Any Nigerian law inconsistent with the 1999 Constitution is, to that extent:\n\nA) Fully valid\nB) Automatically amended\nC) Void\nD) Beyond challenge",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "C) Void"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:government-ssce-derived",
+          "source_id": "government-mcq-ss3-337",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Shehu Shagari"
+              },
+              {
+                "letter": "B",
+                "text": "Nnamdi Azikiwe"
+              },
+              {
+                "letter": "C",
+                "text": "Tafawa Balewa"
+              },
+              {
+                "letter": "D",
+                "text": "Olusegun Obasanjo"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "government-mcq-ss3-337",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "government-mcq-ss3-337",
+      "skill_id": "ss3.government.independence.second_republic",
+      "prompt": "The first executive President of the Second Republic was:\n\nA) Shehu Shagari\nB) Nnamdi Azikiwe\nC) Tafawa Balewa\nD) Olusegun Obasanjo",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "A) Shehu Shagari"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:government-ssce-derived",
+          "source_id": "government-mcq-ss3-341",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Ahmadu Bello"
+              },
+              {
+                "letter": "B",
+                "text": "Frederick Lugard"
+              },
+              {
+                "letter": "C",
+                "text": "Hugh Clifford"
+              },
+              {
+                "letter": "D",
+                "text": "Arthur Richards"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "government-mcq-ss3-341",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "government-mcq-ss3-341",
+      "skill_id": "ss3.government.independence.nationalism",
+      "prompt": "A foremost Northern Nigerian political leader of the independence era was:\n\nA) Ahmadu Bello\nB) Frederick Lugard\nC) Hugh Clifford\nD) Arthur Richards",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "A) Ahmadu Bello"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:government-ssce-derived",
+          "source_id": "government-mcq-ss3-344",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Only secret meetings"
+              },
+              {
+                "letter": "B",
+                "text": "Foreign battlefields"
+              },
+              {
+                "letter": "C",
+                "text": "Trade fairs only"
+              },
+              {
+                "letter": "D",
+                "text": "London and Lagos conferences"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "government-mcq-ss3-344",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": "d",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "government-mcq-ss3-344",
+      "skill_id": "ss3.government.independence.independence",
+      "prompt": "The struggle for independence was advanced through constitutional talks held in:\n\nA) Only secret meetings\nB) Foreign battlefields\nC) Trade fairs only\nD) London and Lagos conferences",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "D) London and Lagos conferences"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:government-ssce-derived",
+          "source_id": "government-mcq-ss3-345",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Prime Minister"
+              },
+              {
+                "letter": "B",
+                "text": "President"
+              },
+              {
+                "letter": "C",
+                "text": "Military Head of State"
+              },
+              {
+                "letter": "D",
+                "text": "Governor-General"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "government-mcq-ss3-345",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "government-mcq-ss3-345",
+      "skill_id": "ss3.government.independence.first_republic",
+      "prompt": "In the First Republic, the head of government was the:\n\nA) Prime Minister\nB) President\nC) Military Head of State\nD) Governor-General",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "A) Prime Minister"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:government-ssce-derived",
+          "source_id": "government-mcq-ss3-348",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Permanent partition"
+              },
+              {
+                "letter": "B",
+                "text": "Foreign rule"
+              },
+              {
+                "letter": "C",
+                "text": "Mass disenfranchisement"
+              },
+              {
+                "letter": "D",
+                "text": "Reconciliation and reconstruction"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "government-mcq-ss3-348",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": "d",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "government-mcq-ss3-348",
+      "skill_id": "ss3.government.independence.civil_war",
+      "prompt": "After the civil war, the federal government adopted a policy of:\n\nA) Permanent partition\nB) Foreign rule\nC) Mass disenfranchisement\nD) Reconciliation and reconstruction",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "D) Reconciliation and reconstruction"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:government-ssce-derived",
+          "source_id": "government-mcq-ss3-439",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "NATO"
+              },
+              {
+                "letter": "B",
+                "text": "OPEC"
+              },
+              {
+                "letter": "C",
+                "text": "World Bank"
+              },
+              {
+                "letter": "D",
+                "text": "ECOMOG"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "government-mcq-ss3-439",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "c",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "government-mcq-ss3-439",
+      "skill_id": "ss3.government.ecowas_au_un.un_agencies",
+      "prompt": "The UN financial institution that lends for development projects is the:\n\nA) NATO\nB) OPEC\nC) World Bank\nD) ECOMOG",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "C) World Bank"
+    }
+  ]
+}

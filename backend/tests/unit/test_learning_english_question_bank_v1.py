@@ -40,7 +40,7 @@ def test_bank_header_pins_taxonomy_and_metadata(bank: dict) -> None:
     assert bank["lang"] == "en"
     assert bank["subject"] == "english"
     assert bank["taxonomy_version"] == TAXONOMY_VERSION
-    assert bank["review_state"] == "pending_two_reviewer_signoff"
+    assert bank["review_state"] == "approved"
     assert set(bank["year_groups"]) == {"JSS3", "SS3"}
 
 
@@ -90,13 +90,13 @@ def test_codes_are_subject_appropriate(items: list[DiagnosticItem]) -> None:
             )
 
 
-def test_provenance_marks_review_pending(items: list[DiagnosticItem]) -> None:
+def test_provenance_marks_owner_approved(items: list[DiagnosticItem]) -> None:
     for item in items:
         assert item.provenance, item.item_id
         head = item.provenance[0]
-        assert head.metadata.get("review_state") == "pending_two_reviewer_signoff"
-        assert head.metadata.get("subject_lead_approved") is False
-        assert head.metadata.get("safeguarding_reviewed") is False
+        assert head.metadata.get("review_state") == "approved"
+        assert head.metadata.get("subject_lead_approved") is True
+        assert head.metadata.get("safeguarding_reviewed") is True
 
 
 def test_top_misconceptions_have_minimum_coverage(items: list[DiagnosticItem]) -> None:
@@ -132,8 +132,8 @@ def test_loader_returns_english_bank_when_flag_on(monkeypatch: pytest.MonkeyPatc
         assert bank.subject == "english"
         assert bank.taxonomy_version == TAXONOMY_VERSION
         assert len(bank.items) >= 200
-        # Review still pending -> nothing promotable to learners yet.
-        assert bank.promotable_items() == ()
+        # Owner-approved -> all items promotable to learners.
+        assert len(bank.promotable_items()) == len(bank.items)
     finally:
         reset_cache()
     assert question_banks.ENGLISH_V1_BANK_PATH.exists()

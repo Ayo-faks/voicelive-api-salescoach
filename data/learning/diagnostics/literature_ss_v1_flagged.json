@@ -1,0 +1,1265 @@
+{
+  "diagnostic_id": "ss3-literature-v1-flagged",
+  "tenant_id": "pilot-tenant",
+  "title": "SS3 Literature-in-English — Flagged for human review",
+  "subject": "literature",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "scrape:literature-ssce-derived",
+      "source_id": "literature-ss-mcq-v1",
+      "rule_id": "served_promote_v1",
+      "recency": null,
+      "confidence": 1.0,
+      "evidence_count": 16,
+      "metadata": {
+        "review_state": "pending_two_reviewer_signoff",
+        "subject_lead_approved": false,
+        "safeguarding_reviewed": false,
+        "note": "Derived SSCE-style questions; ensemble machine-verified only; below the human two-reviewer gate; staging exercise only; rights for child-facing reuse not cleared."
+      }
+    }
+  ],
+  "skills": [
+    {
+      "skill_id": "ss3.literature.african_literature.drama",
+      "standard_id": "ss3.literature.waec-neco",
+      "name": "African Literature: Drama",
+      "description": "SS3 Literature-in-English — african literature (drama)."
+    },
+    {
+      "skill_id": "ss3.literature.african_literature.prose_fiction",
+      "standard_id": "ss3.literature.waec-neco",
+      "name": "African Literature: Prose Fiction",
+      "description": "SS3 Literature-in-English — african literature (prose fiction)."
+    },
+    {
+      "skill_id": "ss3.literature.figures_of_speech.metonymy",
+      "standard_id": "ss3.literature.waec-neco",
+      "name": "Figures Of Speech: Metonymy",
+      "description": "SS3 Literature-in-English — figures of speech (metonymy)."
+    },
+    {
+      "skill_id": "ss3.literature.non_african_literature.prose_fiction",
+      "standard_id": "ss3.literature.waec-neco",
+      "name": "Non African Literature: Prose Fiction",
+      "description": "SS3 Literature-in-English — non african literature (prose fiction)."
+    },
+    {
+      "skill_id": "ss3.literature.poetry.foot",
+      "standard_id": "ss3.literature.waec-neco",
+      "name": "Poetry: Foot",
+      "description": "SS3 Literature-in-English — poetry (foot)."
+    },
+    {
+      "skill_id": "ss3.literature.sound_devices.rhyme_gender",
+      "standard_id": "ss3.literature.waec-neco",
+      "name": "Sound Devices: Rhyme Gender",
+      "description": "SS3 Literature-in-English — sound devices (rhyme gender)."
+    },
+    {
+      "skill_id": "ss3.literature.sound_devices.rhyme_type",
+      "standard_id": "ss3.literature.waec-neco",
+      "name": "Sound Devices: Rhyme Type",
+      "description": "SS3 Literature-in-English — sound devices (rhyme type)."
+    },
+    {
+      "skill_id": "ss3.literature.sound_devices.tempo",
+      "standard_id": "ss3.literature.waec-neco",
+      "name": "Sound Devices: Tempo",
+      "description": "SS3 Literature-in-English — sound devices (tempo)."
+    },
+    {
+      "skill_id": "ss3.literature.themes_appreciation.appreciation",
+      "standard_id": "ss3.literature.waec-neco",
+      "name": "Themes Appreciation: Appreciation",
+      "description": "SS3 Literature-in-English — themes appreciation (appreciation)."
+    }
+  ],
+  "items": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:literature-ssce-derived",
+          "source_id": "literature-mcq-ss3-094",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Anapaest"
+              },
+              {
+                "letter": "B",
+                "text": "Dactyl"
+              },
+              {
+                "letter": "C",
+                "text": "Iamb"
+              },
+              {
+                "letter": "D",
+                "text": "Spondee"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "literature-mcq-ss3-094",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": null,
+              "reviewer_c": "b"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "literature-mcq-ss3-094",
+      "skill_id": "ss3.literature.poetry.foot",
+      "prompt": "A metrical foot of one stressed syllable followed by two unstressed syllables is a:\n\nA) Anapaest\nB) Dactyl\nC) Iamb\nD) Spondee",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "B) Dactyl"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:literature-ssce-derived",
+          "source_id": "literature-mcq-ss3-165",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Metonymy"
+              },
+              {
+                "letter": "B",
+                "text": "Synaesthesia"
+              },
+              {
+                "letter": "C",
+                "text": "Litotes"
+              },
+              {
+                "letter": "D",
+                "text": "Apostrophe"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "literature-mcq-ss3-165",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "literature-mcq-ss3-165",
+      "skill_id": "ss3.literature.figures_of_speech.metonymy",
+      "prompt": "Using 'the pen is mightier than the sword' to mean writing versus warfare relies on:\n\nA) Metonymy\nB) Synaesthesia\nC) Litotes\nD) Apostrophe",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "A) Metonymy"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:literature-ssce-derived",
+          "source_id": "literature-mcq-ss3-178",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Eye rhyme"
+              },
+              {
+                "letter": "B",
+                "text": "Half rhyme"
+              },
+              {
+                "letter": "C",
+                "text": "Perfect rhyme"
+              },
+              {
+                "letter": "D",
+                "text": "End rhyme"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "literature-mcq-ss3-178",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "literature-mcq-ss3-178",
+      "skill_id": "ss3.literature.sound_devices.rhyme_type",
+      "prompt": "An imperfect or near rhyme, such as 'shape'/'keep', is called:\n\nA) Eye rhyme\nB) Half rhyme\nC) Perfect rhyme\nD) End rhyme",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "B) Half rhyme"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:literature-ssce-derived",
+          "source_id": "literature-mcq-ss3-191",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Feminine rhyme"
+              },
+              {
+                "letter": "B",
+                "text": "Eye rhyme"
+              },
+              {
+                "letter": "C",
+                "text": "Masculine rhyme"
+              },
+              {
+                "letter": "D",
+                "text": "Half rhyme"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "literature-mcq-ss3-191",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "c",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "literature-mcq-ss3-191",
+      "skill_id": "ss3.literature.sound_devices.rhyme_gender",
+      "prompt": "Rhyme on a single final stressed syllable, e.g. 'compare'/'declare', is:\n\nA) Feminine rhyme\nB) Eye rhyme\nC) Masculine rhyme\nD) Half rhyme",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "C) Masculine rhyme"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:literature-ssce-derived",
+          "source_id": "literature-mcq-ss3-193",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Tempo"
+              },
+              {
+                "letter": "B",
+                "text": "Pitch"
+              },
+              {
+                "letter": "C",
+                "text": "Metre"
+              },
+              {
+                "letter": "D",
+                "text": "Rhyme"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "literature-mcq-ss3-193",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "literature-mcq-ss3-193",
+      "skill_id": "ss3.literature.sound_devices.tempo",
+      "prompt": "The pace or speed at which a poem is read, governed by its sounds, is its:\n\nA) Tempo\nB) Pitch\nC) Metre\nD) Rhyme",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "A) Tempo"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:literature-ssce-derived",
+          "source_id": "literature-mcq-ss3-238",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Scansion"
+              },
+              {
+                "letter": "B",
+                "text": "Appreciation"
+              },
+              {
+                "letter": "C",
+                "text": "Diction"
+              },
+              {
+                "letter": "D",
+                "text": "Caesura"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "literature-mcq-ss3-238",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "literature-mcq-ss3-238",
+      "skill_id": "ss3.literature.themes_appreciation.appreciation",
+      "prompt": "The thoughtful reading and judgement of the worth of a literary work is literary:\n\nA) Scansion\nB) Appreciation\nC) Diction\nD) Caesura",
+      "item_type": "mcq_single",
+      "difficulty": -1.5,
+      "correct_answer": "B) Appreciation"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:literature-ssce-derived",
+          "source_id": "literature-mcq-ss3-269",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "The Lion and the Jewel"
+              },
+              {
+                "letter": "B",
+                "text": "The Gods Are Not to Blame"
+              },
+              {
+                "letter": "C",
+                "text": "The Trials of Brother Jero"
+              },
+              {
+                "letter": "D",
+                "text": "Death and the King's Horseman"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "literature-mcq-ss3-269",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": null,
+              "reviewer_c": "a"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "literature-mcq-ss3-269",
+      "skill_id": "ss3.literature.african_literature.drama",
+      "prompt": "Wole Soyinka's comic play about a wily village chief and a young bride is:\n\nA) The Lion and the Jewel\nB) The Gods Are Not to Blame\nC) The Trials of Brother Jero\nD) Death and the King's Horseman",
+      "item_type": "mcq_single",
+      "difficulty": -1.5,
+      "correct_answer": "A) The Lion and the Jewel"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:literature-ssce-derived",
+          "source_id": "literature-mcq-ss3-275",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Arrow of God"
+              },
+              {
+                "letter": "B",
+                "text": "Petals of Blood"
+              },
+              {
+                "letter": "C",
+                "text": "The Joys of Motherhood"
+              },
+              {
+                "letter": "D",
+                "text": "So Long a Letter"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "literature-mcq-ss3-275",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "c",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "literature-mcq-ss3-275",
+      "skill_id": "ss3.literature.african_literature.prose_fiction",
+      "prompt": "Buchi Emecheta is the author of the novel:\n\nA) Arrow of God\nB) Petals of Blood\nC) The Joys of Motherhood\nD) So Long a Letter",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "C) The Joys of Motherhood"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:literature-ssce-derived",
+          "source_id": "literature-mcq-ss3-277",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "The African Child"
+              },
+              {
+                "letter": "B",
+                "text": "God's Bits of Wood"
+              },
+              {
+                "letter": "C",
+                "text": "Mine Boy"
+              },
+              {
+                "letter": "D",
+                "text": "The Beautyful Ones Are Not Yet Born"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "literature-mcq-ss3-277",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "literature-mcq-ss3-277",
+      "skill_id": "ss3.literature.african_literature.prose_fiction",
+      "prompt": "Camara Laye's autobiographical novel of a Guinean childhood is:\n\nA) The African Child\nB) God's Bits of Wood\nC) Mine Boy\nD) The Beautyful Ones Are Not Yet Born",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "A) The African Child"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:literature-ssce-derived",
+          "source_id": "literature-mcq-ss3-284",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Cry, the Beloved Country"
+              },
+              {
+                "letter": "B",
+                "text": "Burger's Daughter"
+              },
+              {
+                "letter": "C",
+                "text": "July's People"
+              },
+              {
+                "letter": "D",
+                "text": "Mine Boy"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "literature-mcq-ss3-284",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": "d",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "literature-mcq-ss3-284",
+      "skill_id": "ss3.literature.african_literature.prose_fiction",
+      "prompt": "Peter Abrahams' novel of life under early apartheid in South Africa is:\n\nA) Cry, the Beloved Country\nB) Burger's Daughter\nC) July's People\nD) Mine Boy",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "D) Mine Boy"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:literature-ssce-derived",
+          "source_id": "literature-mcq-ss3-285",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "So Long a Letter"
+              },
+              {
+                "letter": "B",
+                "text": "The Joys of Motherhood"
+              },
+              {
+                "letter": "C",
+                "text": "Efuru"
+              },
+              {
+                "letter": "D",
+                "text": "Nervous Conditions"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "literature-mcq-ss3-285",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "literature-mcq-ss3-285",
+      "skill_id": "ss3.literature.african_literature.prose_fiction",
+      "prompt": "Mariama Bâ's celebrated Senegalese epistolary novel is:\n\nA) So Long a Letter\nB) The Joys of Motherhood\nC) Efuru\nD) Nervous Conditions",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "A) So Long a Letter"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:literature-ssce-derived",
+          "source_id": "literature-mcq-ss3-286",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "So Long a Letter"
+              },
+              {
+                "letter": "B",
+                "text": "Nervous Conditions"
+              },
+              {
+                "letter": "C",
+                "text": "Jagua Nana"
+              },
+              {
+                "letter": "D",
+                "text": "Petals of Blood"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "literature-mcq-ss3-286",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "b",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "literature-mcq-ss3-286",
+      "skill_id": "ss3.literature.african_literature.prose_fiction",
+      "prompt": "Tsitsi Dangarembga's novel about a Zimbabwean girl's education is:\n\nA) So Long a Letter\nB) Nervous Conditions\nC) Jagua Nana\nD) Petals of Blood",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "B) Nervous Conditions"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:literature-ssce-derived",
+          "source_id": "literature-mcq-ss3-288",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Weep Not, Child"
+              },
+              {
+                "letter": "B",
+                "text": "The River Between"
+              },
+              {
+                "letter": "C",
+                "text": "Petals of Blood"
+              },
+              {
+                "letter": "D",
+                "text": "A Grain of Wheat"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "literature-mcq-ss3-288",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "literature-mcq-ss3-288",
+      "skill_id": "ss3.literature.african_literature.prose_fiction",
+      "prompt": "Ngugi wa Thiong'o's novel set around Kenyan independence and the Mau Mau struggle is:\n\nA) Weep Not, Child\nB) The River Between\nC) Petals of Blood\nD) A Grain of Wheat",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "D) A Grain of Wheat"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:literature-ssce-derived",
+          "source_id": "literature-mcq-ss3-289",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "The Beautyful Ones Are Not Yet Born"
+              },
+              {
+                "letter": "B",
+                "text": "Houseboy"
+              },
+              {
+                "letter": "C",
+                "text": "Mine Boy"
+              },
+              {
+                "letter": "D",
+                "text": "Efuru"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "literature-mcq-ss3-289",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "literature-mcq-ss3-289",
+      "skill_id": "ss3.literature.african_literature.prose_fiction",
+      "prompt": "Ayi Kwei Armah's Ghanaian novel attacking corruption after independence is:\n\nA) The Beautyful Ones Are Not Yet Born\nB) Houseboy\nC) Mine Boy\nD) Efuru",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "A) The Beautyful Ones Are Not Yet Born"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:literature-ssce-derived",
+          "source_id": "literature-mcq-ss3-290",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "God's Bits of Wood"
+              },
+              {
+                "letter": "B",
+                "text": "Houseboy"
+              },
+              {
+                "letter": "C",
+                "text": "The African Child"
+              },
+              {
+                "letter": "D",
+                "text": "Things Fall Apart"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "literature-mcq-ss3-290",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "b",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "literature-mcq-ss3-290",
+      "skill_id": "ss3.literature.african_literature.prose_fiction",
+      "prompt": "Ferdinand Oyono's satirical Cameroonian novel about a colonial houseboy is:\n\nA) God's Bits of Wood\nB) Houseboy\nC) The African Child\nD) Things Fall Apart",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "B) Houseboy"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:literature-ssce-derived",
+          "source_id": "literature-mcq-ss3-325",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Tess of the d'Urbervilles"
+              },
+              {
+                "letter": "B",
+                "text": "Jude the Obscure"
+              },
+              {
+                "letter": "C",
+                "text": "Far from the Madding Crowd"
+              },
+              {
+                "letter": "D",
+                "text": "Wuthering Heights"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "literature-mcq-ss3-325",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "literature-mcq-ss3-325",
+      "skill_id": "ss3.literature.non_african_literature.prose_fiction",
+      "prompt": "Thomas Hardy's tragic novel about a wronged country woman is:\n\nA) Tess of the d'Urbervilles\nB) Jude the Obscure\nC) Far from the Madding Crowd\nD) Wuthering Heights",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "A) Tess of the d'Urbervilles"
+    }
+  ]
+}

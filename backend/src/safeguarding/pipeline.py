@@ -15,6 +15,15 @@ logger = logging.getLogger(__name__)
 
 
 ENV_DISABLED = "SAFEGUARDING_DISABLED"
+ENV_DISABLED_ACK = "SAFEGUARDING_DISABLED_ACK"
+# Explicit acknowledgement required to actually disable safeguarding. Forces an
+# operator to state, in plain text, that children will be unprotected.
+_DISABLED_ACK_TOKEN = "i-understand-children-are-unprotected"
+# Environment variables that indicate a hosted/managed (prod-like) deployment.
+# In any such environment the kill switch is ignored — safeguarding fails safe ON.
+_HOSTED_ENV_MARKERS = ("CONTAINER_APP_NAME", "WEBSITE_SITE_NAME", "K_SERVICE")
+
+_DISABLE_DECISION_LOGGED = False
 
 
 def _flag(name: str, default: bool = False) -> bool:
@@ -22,6 +31,51 @@ def _flag(name: str, default: bool = False) -> bool:
     if not raw:
         return default
     return raw in {"1", "true", "yes", "on"}
+
+
+def _is_hosted_environment() -> bool:
+    return any(os.environ.get(marker, "").strip() for marker in _HOSTED_ENV_MARKERS)
+
+
+def _safeguarding_disabled() -> bool:
+    """Resolve the safeguarding kill switch, failing safe (enabled) by default.
+
+    ``SAFEGUARDING_DISABLED`` alone is insufficient: it is ignored in hosted
+    environments and, elsewhere, only honoured when ``SAFEGUARDING_DISABLED_ACK``
+    carries the explicit acknowledgement token. Every decision is logged once so
+    an operator can never silently ship with child protection turned off.
+    """
+    global _DISABLE_DECISION_LOGGED
+
+    if not _flag(ENV_DISABLED):
+        return False
+
+    if _is_hosted_environment():
+        if not _DISABLE_DECISION_LOGGED:
+            logger.error(
+                "SAFEGUARDING_DISABLED is set but ignored in a hosted environment — "
+                "child safeguarding remains ON (fail-safe)."
+            )
+            _DISABLE_DECISION_LOGGED = True
+        return False
+
+    if os.environ.get(ENV_DISABLED_ACK, "").strip() != _DISABLED_ACK_TOKEN:
+        if not _DISABLE_DECISION_LOGGED:
+            logger.error(
+                "SAFEGUARDING_DISABLED is set without a valid %s acknowledgement token — "
+                "child safeguarding remains ON.",
+                ENV_DISABLED_ACK,
+            )
+            _DISABLE_DECISION_LOGGED = True
+        return False
+
+    if not _DISABLE_DECISION_LOGGED:
+        logger.warning(
+            "SAFEGUARDING IS DISABLED (non-hosted environment, explicitly acknowledged). "
+            "Children are NOT protected by lexicon/Content Safety/classifier checks."
+        )
+        _DISABLE_DECISION_LOGGED = True
+    return True
 
 
 class SafeguardingPipeline:
@@ -37,7 +91,7 @@ class SafeguardingPipeline:
 
     @property
     def enabled(self) -> bool:
-        return not _flag(ENV_DISABLED)
+        return not _safeguarding_disabled()
 
     async def analyse(
         self,

@@ -1,0 +1,15 @@
+{
+  "bank": "history-ss-mcq-v1.json",
+  "backend": "azure-foundry",
+  "total_items": 325,
+  "processed_this_run": 325,
+  "skipped_already_verified": 0,
+  "status_counts": {
+    "machine_verified": 291,
+    "flagged_for_human": 34
+  },
+  "items_with_errors": 0,
+  "content_filtered": 0,
+  "key_disagreements": [],
+  "item_errors": []
+}

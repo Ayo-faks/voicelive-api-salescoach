@@ -1,0 +1,310 @@
+[
+ {
+  "stem": "What is the place value of 7 in the number 526.97?",
+  "opt_texts": [
+   "7 hundreds",
+   "7 Tens",
+   "7 Units",
+   "7 Hundredths"
+  ],
+  "correct_idx": 3,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "Find the positive difference between -8 and -14",
+  "opt_texts": [
+   "-22",
+   "6",
+   "-6",
+   "11"
+  ],
+  "correct_idx": 1,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "Find the smallest number that 60 must be multiplied with to give a perfect square",
+  "opt_texts": [
+   "15",
+   "5",
+   "10",
+   "6"
+  ],
+  "correct_idx": 1,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "A man spends 1/4 of his monthly income on children’s school fees and 3/5 on home affairs. What fraction of his come is left?",
+  "opt_texts": [
+   "1/4",
+   "12/20",
+   "3/20",
+   "3/5"
+  ],
+  "correct_idx": 2,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "Find the value of 16 x 2 – 3 + 14 ÷ 7",
+  "opt_texts": [
+   "15",
+   "26",
+   "28",
+   "20"
+  ],
+  "correct_idx": 3,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "The sum of angles on a straight link is",
+  "opt_texts": [
+   "90 degrees",
+   "45 degrees",
+   "135 degrees",
+   "180 degrees"
+  ],
+  "correct_idx": 3,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "If the bearing of A from B is 135 degrees, what is the bearing of B from A?",
+  "opt_texts": [
+   "315 degrees",
+   "90 degrees",
+   "45 degrees",
+   "135 degrees"
+  ],
+  "correct_idx": 0,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "Approximate 5.7255 to the nearest thousandth.",
+  "opt_texts": [
+   "5.7",
+   "5.725",
+   "5.726",
+   "5.7255"
+  ],
+  "correct_idx": 2,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "Find the diameter of a circle whose circumference is 44cm",
+  "opt_texts": [
+   "44cm",
+   "22cm",
+   "28cm",
+   "14cm"
+  ],
+  "correct_idx": 1,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "Express 0.00254 in standard form.",
+  "opt_texts": [
+   "2.54 x 10-1 2.54 x 10-2",
+   "2.54 x 10-5",
+   "2.54 x 10-3",
+   "2.54 x 10-4"
+  ],
+  "correct_idx": 1,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "Find the sum of prime factors in 60.",
+  "opt_texts": [
+   "5",
+   "7",
+   "10",
+   "8"
+  ],
+  "correct_idx": 2,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "Round off 6827 to the nearest ten.",
+  "opt_texts": [
+   "6830",
+   "6820",
+   "6821",
+   "6900"
+  ],
+  "correct_idx": 0,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "Express N32.00 as a ratio of N72.00.",
+  "opt_texts": [
+   "34:16",
+   "16:34",
+   "9:4",
+   "4:9"
+  ],
+  "correct_idx": 3,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "Find the L.C.M. of 20a² and 32ab.",
+  "opt_texts": [
+   "4a",
+   "16a2b",
+   "160a²b",
+   "160ab2 320a2b"
+  ],
+  "correct_idx": 2,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "Add the following 1011two, 1111 two and 101111 two.",
+  "opt_texts": [
+   "111110 two",
+   "10111 two",
+   "1001101 two",
+   "1001001 two"
+  ],
+  "correct_idx": 2,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "Find the H.C.F of 108 and 72.",
+  "opt_texts": [
+   "9",
+   "18",
+   "27",
+   "36"
+  ],
+  "correct_idx": 1,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "Increase 4500kg by 15%.",
+  "opt_texts": [
+   "300kg",
+   "5175kg",
+   "675kg",
+   "3825kg"
+  ],
+  "correct_idx": 1,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "Find the product of the L.C.M. and H.C.F. of the following numbers 9, 12 and 18.",
+  "opt_texts": [
+   "6",
+   "18",
+   "36",
+   "216"
+  ],
+  "correct_idx": 3,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "If N240,000.00 is shared among 3 people in the ratio 5:4:3, what is the least share?",
+  "opt_texts": [
+   "N100,000.00",
+   "N60,000.00",
+   "N96,000.00",
+   "N80,000.00"
+  ],
+  "correct_idx": 1,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "Find the simple interest on N30,000.00 for 3½ years at 5% per annum.",
+  "opt_texts": [
+   "N5,775.00",
+   "N5,250.00",
+   "N10,750.00",
+   "N11,550.00"
+  ],
+  "correct_idx": 1,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "Find the square root of 9 x 16 x 25.",
+  "opt_texts": [
+   "60",
+   "3600",
+   "360",
+   "25"
+  ],
+  "correct_idx": 0,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "A desktop computer is bought for N45,000.00 and sold for N30,000.00. Find the loss per cent.",
+  "opt_texts": [
+   "33.33%",
+   "45.00%",
+   "30.00%",
+   "15.33%"
+  ],
+  "correct_idx": 0,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "Arrange in descending order of magnitude 3/5, ½, 4/7, 5/9",
+  "opt_texts": [
+   "½, 4/7, 3/5, 5/9",
+   "3/5, 4/7, 5/9, ½",
+   "3/5, 4/7, 1/2., 5/9",
+   "4/7, 3/5, ½, 5/9"
+  ],
+  "correct_idx": 2,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "On every sale of goods worth N10,000.00, there is a commission of N550.00. If an agent delivers N150,000.00, find his commission.",
+  "opt_texts": [
+   "N1,250.00",
+   "N2,250.00",
+   "4,150.00",
+   "N7,250.00"
+  ],
+  "correct_idx": 3,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "Multiply 1001101two by 111two.",
+  "opt_texts": [
+   "1010001two",
+   "1001101two",
+   "1000101two",
+   "1001001two"
+  ],
+  "correct_idx": 0,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "A Toyota Hilux uses 100 litres of fuel in a distance of 250km. How many litres of fuel will it use for a distance of 150 kilometres?",
+  "opt_texts": [
+   "60 litres",
+   "50 litres",
+   "80 litres",
+   "133 litres"
+  ],
+  "correct_idx": 0,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "The length of a basketball pitch can be divided into 12 parts, each 25cm long. How many parts, each 20cm long can be obtained from the pitch?",
+  "opt_texts": [
+   "12",
+   "13",
+   "15",
+   "14"
+  ],
+  "correct_idx": 3,
+  "badge": "BECE 2023"
+ },
+ {
+  "stem": "What is the probability that a pregnant woman will give birth to a boy?",
+  "opt_texts": [
+   "1/2",
+   "1",
+   "1/3",
+   "1/4"
+  ],
+  "correct_idx": 0,
+  "badge": "BECE 2023"
+ }
+]

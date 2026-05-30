@@ -179,3 +179,9 @@ data/wulo.db
 
 # Local DB backups (contain user data)
 backups/
+
+# Question-bank build backups / scratch artifacts (not source of truth)
+backend/data/question_banks/*.bak
+backend/data/question_banks/*.bak.json
+backend/data/question_banks/*.offline*.bak.json
+backend/data/question_banks/_approval_backup/

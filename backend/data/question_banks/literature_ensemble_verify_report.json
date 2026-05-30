@@ -1,0 +1,15 @@
+{
+  "bank": "literature-ss-mcq-v1.json",
+  "backend": "azure-foundry",
+  "total_items": 329,
+  "processed_this_run": 329,
+  "skipped_already_verified": 0,
+  "status_counts": {
+    "machine_verified": 313,
+    "flagged_for_human": 16
+  },
+  "items_with_errors": 0,
+  "content_filtered": 0,
+  "key_disagreements": [],
+  "item_errors": []
+}

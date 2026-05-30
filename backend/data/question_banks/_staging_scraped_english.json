@@ -1,0 +1,2242 @@
+[
+  {
+    "stem": "After the following sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider appropriate for each sentence. The men eventually gained their freedom and decided later to get their own back on their oppressors.",
+    "opt_texts": [
+      "have their revenge on",
+      "strike",
+      "abuse",
+      "get something from"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23078"
+  },
+  {
+    "stem": "After the following sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider appropriate for each sentence. He went off the rails, as soon as he heard of his failure in the last examination.",
+    "opt_texts": [
+      "became annoyed",
+      "wept bitterly",
+      "became disorganized",
+      "became a man"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23079"
+  },
+  {
+    "stem": "After the following sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider appropriate for each sentence. She is eating her heart out for a sailor who is away at sea",
+    "opt_texts": [
+      "writing to",
+      "quarreling with",
+      "fuming about",
+      "longing for"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23080"
+  },
+  {
+    "stem": "After the following sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider appropriate for each sentence. How do you hope to do it? You can't make bricks without straw",
+    "opt_texts": [
+      "use a straw for making bricks",
+      "seek a leader",
+      "find bricks and straw",
+      "afford not to have all the necessary materials"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23081"
+  },
+  {
+    "stem": "After the following sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider appropriate for each sentence. Mary's classmates agreed to send her to Coventry. This means that Mary's classmates agreed to",
+    "opt_texts": [
+      "send her to the penitentiary",
+      "ignore her",
+      "report her to the Sisters at the convent",
+      "train her to the leader"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "The expression “send someone to Coventry” is an idiom which means to deliberately ignore or ostracise someone , often as a form of punishment or disapproval.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23082"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation you consider appropriate for the sentence. The candidates were told that passing the examination wasn't a passport to getting an admission.",
+    "opt_texts": [
+      "a suggestion in",
+      "an equivalent",
+      "a necessity for",
+      "a guarantee of"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23243"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation you consider appropriate for the sentence. She tried to throw dust in my eyes",
+    "opt_texts": [
+      "mislead me",
+      "blow dust into my eyes",
+      "fight me",
+      "rebuke me"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "The expression \"throw dust in my eyes\" is an idiomatic expression, and in this context, it is not meant to be taken literally. Instead, it is used metaphorically to convey the idea of attempting to deceive or mislead someone.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23244"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation you consider appropriate for the sentence. Despite the different economic measures taken by the government, the country is not yet out of the wood",
+    "opt_texts": [
+      "on the right path",
+      "free from difficulties",
+      "underveloped",
+      "generating enough money from its forest resources"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23245"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation you consider appropriate for the sentence. Our house swept the board in the inter-house sports competition.",
+    "opt_texts": [
+      "prepared the field",
+      "came last",
+      "was only partially successful",
+      "was completely successful"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23246"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation you consider appropriate for the sentence. My father always advised me to take time by the forelock",
+    "opt_texts": [
+      "take things easy",
+      "use an opportunity promptly",
+      "be clever",
+      "always hurry up"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23248"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation you consider appropriate for the sentence. Soyinka has made his mark in the literary world.",
+    "opt_texts": [
+      "become distinguished",
+      "become rich",
+      "scored high marks",
+      "stressed his point"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "The interpretation that is appropriate for the sentence \"Soyinka has made his mark in the literary world\" is: B. become distinguished. This means that Soyinka has achieved recognition and success in the field of literature, indicating that he is distinguished in the literary world.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23249"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation you consider appropriate for the sentence. Chika escaped the accident by a hair's breadth",
+    "opt_texts": [
+      "jumping",
+      "seriously injured",
+      "holding on to another person's hair",
+      "narrowly"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23253"
+  },
+  {
+    "stem": "After each of the following sentences, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation you consider appropriate for each sentence . Chika escaped the accident by a hair's breadth",
+    "opt_texts": [
+      "jumping",
+      "narrowly",
+      "seriously injured",
+      "holding on to another person's hair"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23254"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider appropriate for each sentence. Despite their newness on the workers were remunerated rather handsomely. This means that",
+    "opt_texts": [
+      "the sum paid was poor",
+      "those paid were handsome in appearance",
+      "the system of payment was quite attractive",
+      "the sum paid out was quite attractive"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23266"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider appropriate for each sentence.. The plan to upgrade the dispensary to a general hospital did not materialize. This means that",
+    "opt_texts": [
+      "the plan was badly executed",
+      "the arrangement did not work out as wished",
+      "it was difficult to obtain the materials",
+      "the materials purchased were not the right ones"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23267"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider appropriate for each sentence. When the principal was asked what his opinion was on the controversial issue, his reply was ambiguous. This means that the principal's reply was not",
+    "opt_texts": [
+      "convincing",
+      "audible",
+      "intelligent",
+      "clear"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Ambiguous means not clear or having more than one possible meaning. In this context, the sentence indicates that the principal's reply was unclear or lacking in definitiveness regarding his opinion on the controversial issue.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23268"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider appropriate for each sentence. Even though Susan was the last in the examination, her result wasn't too different from what had been expected. This means that",
+    "opt_texts": [
+      "she had not been serious with her studies",
+      "her result was known early",
+      "her result was as expected",
+      "her poor performance made her feel sad"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23269"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider appropriate for each sentence. Despite their strangely unrefined behavior, the foreigners were given preferential treatment. This means that the foreigners were",
+    "opt_texts": [
+      "ill-treated because of their coarseness",
+      "cautioned before they were attended to",
+      "not attended to because of their behaviour",
+      "well-treated despite their rudeness"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23270"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. Mrs. Adam''s purchased ....",
+    "opt_texts": [
+      "a pure leather bag imported",
+      "an imported pure leather bag",
+      "a leather bag imported pure",
+      "an imported bag pure leather"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23271"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. The students protested against the ....",
+    "opt_texts": [
+      "thrice sports weekly practice",
+      "weekly sports parctice thrice",
+      "weekly thrice sports practice",
+      "thrice weekly sports practice"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23272"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. It was apparent that we were being ... by the heat as soon as the air conditioner was switched off",
+    "opt_texts": [
+      "beaten",
+      "stifled",
+      "attacked",
+      "bitten"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23273"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. The eldest son took a foolish decision which made him ... his claim to the additional chieftain title.",
+    "opt_texts": [
+      "forfeit",
+      "neglect",
+      "yield",
+      "disclaim"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "We need a word that means to lose or give up something as a result of an action or mistake. Forfeit means to lose or be deprived of something as a consequence of wrongdoing or error.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23274"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. Jumai's stay in the hotel afforded her....chance to do her writing.",
+    "opt_texts": [
+      "insufficient",
+      "powerful",
+      "ample",
+      "opportune"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "The sentence suggests that Jumai had enough time or opportunity to do her writing during her stay. Ample means more than enough or sufficient , and it collocates naturally with “chance” :",
+    "detail_url": "https://myschool.ng/classroom/english-language/23275"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. If I ... what actually happened, I would have punished him.",
+    "opt_texts": [
+      "had heard",
+      "have had",
+      "had had",
+      "have heard"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23276"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. It.... If the leader of the group had come with them",
+    "opt_texts": [
+      "will have been better",
+      "ought to have being better",
+      "would have been better",
+      "shall have been better"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Option C is the correct answer.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23277"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. It is time we ... for the party.",
+    "opt_texts": [
+      "leave",
+      "have to leave",
+      "left",
+      "will leave"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23278"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. The suspect ... when I entered the office.",
+    "opt_texts": [
+      "has been questioned",
+      "was being questioned",
+      "have been questioned",
+      "is being questioned"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23279"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. The president's speech ... at 7pm yesterday",
+    "opt_texts": [
+      "was broadcast",
+      "is broadcast",
+      "has been broadcast",
+      "were broadcast"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "The sentence is in the past tense because of the time marker \"yesterday.\" The correct verb tense to use in this context is the simple past passive, which is \"was broadcast.\"",
+    "detail_url": "https://myschool.ng/classroom/english-language/23280"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. You were punished because you ...last week without permission.",
+    "opt_texts": [
+      "ought not to have travelled",
+      "must not have travelled",
+      "ought not to travel",
+      "will not have travelled"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23281"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. It has been rough so far, ....?",
+    "opt_texts": [
+      "hasn't it",
+      "hadn't it",
+      "isn't it",
+      "wasn't it"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23282"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes each of the following sentences. It has been rough so far, ....?",
+    "opt_texts": [
+      "hadn't it",
+      "isn't it",
+      "hasn't it",
+      "wasn't it"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23283"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. The Minister say he is accountable ... the president, and nobody else.",
+    "opt_texts": [
+      "from",
+      "with",
+      "by",
+      "to"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "The correct collocation is “accountable to someone” , meaning to be responsible to a person or authority.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23284"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. Nobody was surprised that the thief was convicted....all the charges.",
+    "opt_texts": [
+      "on",
+      "with",
+      "of",
+      "over"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23285"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. The PTA meeting did not adjourn until it had discussed all the matters placed....it",
+    "opt_texts": [
+      "by",
+      "with",
+      "over",
+      "before"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23286"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. My uncle is an expert ...Mechanical Engineering.",
+    "opt_texts": [
+      "at",
+      "with",
+      "in",
+      "for"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23287"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. .....is the owner of this pair of scissors?",
+    "opt_texts": [
+      "Whom",
+      "Which",
+      "Who",
+      "Whose"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23288"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. My mother was pleased ... me when she learnt of my success.",
+    "opt_texts": [
+      "at",
+      "in",
+      "with",
+      "out on"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23289"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. Musa was disappointed and decided to take it ... Maryam",
+    "opt_texts": [
+      "with",
+      "at",
+      "out on",
+      "in"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23290"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. The students refused to appear before the ...panel set up to look into their demands.",
+    "opt_texts": [
+      "five-man's",
+      "five-men's",
+      "five-man",
+      "five-men"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "In this sentence, \"five-man\" is the correct form to describe the panel. \"Five-man\" is a compound noun used to describe a panel consisting of five individuals. The word \"man\" in this context is being used as a gender-neutral term to describe a group of people, similar to how \"mankind\" can refer to all people, not just men.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23291"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. He played...than anyone else.",
+    "opt_texts": [
+      "worse",
+      "badly",
+      "more worse",
+      "worst"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "\"Worse\" is the comparative form of \"bad,\" and it fits with the word \"than\" in the sentence. E.g. He played worse than anyone else",
+    "detail_url": "https://myschool.ng/classroom/english-language/23292"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. She can't sing ..as I had thought",
+    "opt_texts": [
+      "so well",
+      "as well",
+      "good",
+      "well"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "The correct completion of the sentence is \"She can't sing as well as I had thought,\" because this construction is used to compare the singing ability of \"she\" to the speaker's previous expectation. In this context, \"as well\" is the appropriate choice because it is used to compare the level of ability. \"So well\" and \"good\" are not suitable for this comparison, and \"well\" alone does not convey the comparison being made in the sentence. Therefore, \"as well\" is the best choice to complete the sentence correctly.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23293"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. Tayo was very obstinate; the more his mother insisted ... willingly would he do anything.",
+    "opt_texts": [
+      "the more",
+      "as less",
+      "the less",
+      "so less"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23294"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. There was ... enough food to go around.",
+    "opt_texts": [
+      "a little",
+      "scarcely",
+      "almost",
+      "little"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23295"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. That child... nearly caused an accident.",
+    "opt_texts": [
+      "rather",
+      "very",
+      "just",
+      "fairly"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Very nearly\" is a fixed phrase meaning \"almost\" and is commonly used to emphasize how close something came to happening.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23296"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. The student did the assignment, but not ...the way i had expected.",
+    "opt_texts": [
+      "so",
+      "hardly",
+      "as",
+      "quite"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "\"Quite\" is an adverb that modifies \"the way I had expected.\" It suggests that the assignment was completed in a manner close to, but not fully aligned with, the expectation. The complete sentence is:",
+    "detail_url": "https://myschool.ng/classroom/english-language/23297"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. Osaro told members of his club that the match would kick ... at 4.30pm.",
+    "opt_texts": [
+      "up",
+      "back",
+      "off",
+      "on"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23298"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. Ngozi....comes to see us now.",
+    "opt_texts": [
+      "scarcely never",
+      "almost ever",
+      "hardly ever",
+      "never more"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23299"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. As the opposing parties would not agree, the peace meeting....in confusion.",
+    "opt_texts": [
+      "broke out",
+      "broke through",
+      "broke off",
+      "broke up"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "The phrasal verb \"broke up\" means to come to an end in a disorderly or sudden way , which fits the context of a peace meeting that ended in confusion. The phrasal verb \" broke out\" → Means to start suddenly (e.g., A fight broke out ). It does not fit here.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23301"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. Mallam Gana owns many...on his farm.",
+    "opt_texts": [
+      "herds of cattle",
+      "cattles",
+      "heads of cattle",
+      "head of cattle"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "A group of cattle is commonly referred to as a \"herd.\" Therefore, the sentence should read: \"Mallam Gana owns many herds of cattle on his farm.\" The term \"cattle\" is a plural noun, and the appropriate collective term to describe a group of them is \"herd.\"",
+    "detail_url": "https://myschool.ng/classroom/english-language/23302"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. I want to know your religious ....",
+    "opt_texts": [
+      "believe",
+      "beliefs",
+      "believing",
+      "believes"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23303"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. He runs....",
+    "opt_texts": [
+      "rather much fast",
+      "quite rather fast",
+      "too rather fast",
+      "rather too fast"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23304"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. The previous assignment was ... for me.",
+    "opt_texts": [
+      "too much difficult",
+      "much too difficult",
+      "difficult too much",
+      "much difficult too"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23305"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. The TV set...was damaged last week has been taken to an electronics engineer.",
+    "opt_texts": [
+      "who",
+      "of whom",
+      "which",
+      "of which"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23306"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. My...house is by the side of the road",
+    "opt_texts": [
+      "father's-in-law",
+      "'father-in-law",
+      "fathers-in-laws'",
+      "father-in-law's"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "The question reveals the absence of a possessive case, therefore the possessive word 'father-in-law' for the singular noun 'house' should be accompanied by an apostrophe before 's'",
+    "detail_url": "https://myschool.ng/classroom/english-language/23307"
+  },
+  {
+    "stem": "From the words or group of words lettered A to D, choose the one that best completes the sentence. The students were advised to look....difficult words in the dictionary.",
+    "opt_texts": [
+      "in",
+      "up",
+      "on",
+      "out"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23308"
+  },
+  {
+    "stem": "From the word lettered A to E , choose the word that best completes the following sentence. The fishermen threw a stone into the river and this caused a ....",
+    "opt_texts": [
+      "sprinke",
+      "sparkle",
+      "spring",
+      "splash"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "When a stone is thrown into water, it creates a splash , which refers to the movement of water caused by an object hitting its surface.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23347"
+  },
+  {
+    "stem": "From the word lettered A to E , choose the word that best completes the sentence. The building ... because of weak structural foundation",
+    "opt_texts": [
+      "tumbled",
+      "succumbed",
+      "collapsed",
+      "caved"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23349"
+  },
+  {
+    "stem": "From the word lettered A to E , choose the word that best completes the sentence. The magazine was ...by the government for an offensive publication.",
+    "opt_texts": [
+      "prescribed",
+      "suspended",
+      "proscribed",
+      "condemned"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23350"
+  },
+  {
+    "stem": "From the word lettered A to E , choose the word that best completes the sentence. Many people reacted to the brutal murder of the popular journalist with strong ...",
+    "opt_texts": [
+      "demonstration",
+      "mobilization",
+      "indignation",
+      "condemnation"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23351"
+  },
+  {
+    "stem": "From the word lettered A to E , choose the word that best completes the sentence. Since the writer did not indicate his name, the editor decided not to publish such ...article.",
+    "opt_texts": [
+      "an anonymous",
+      "a discourteous",
+      "a scandalous",
+      "a libellous"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23354"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. Mrs. Alabi was not around when her case was called and none of her colleague was willing to hold brief for her. This means that",
+    "opt_texts": [
+      "her colleagues were afraid",
+      "her colleagues did not want to represent her",
+      "she was not trusted",
+      "she had quarelled with her colleagues"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23355"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. Telling lies has become second nature of Kunle. This means that Kunle",
+    "opt_texts": [
+      "rarely tells lies",
+      "tells lies has become second thoughts",
+      "always tells lies",
+      "learnt to tell lies from childhood"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23356"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. For us to accomplish the task successfully, all hands must be on deck. This means that every body",
+    "opt_texts": [
+      "should push with his hands",
+      "will have to travel by sea",
+      "should take a test before continuing the task",
+      "must cooperate"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23357"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. The wedding was attended by the cream of the society. This means that the wedding was attended by",
+    "opt_texts": [
+      "very important people",
+      "everybody in the society",
+      "only those who were invited",
+      "only the educated people"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23358"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. I want you to keep an eye on that child. This means that I want you to",
+    "opt_texts": [
+      "watch the child all the time",
+      "discipline the child",
+      "keep the child busy all the time",
+      "punish the child if he misbehaves"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23359"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. It appears Sade's success at the last examination has gone to her head. This means that Sade is",
+    "opt_texts": [
+      "too happy",
+      "crazy",
+      "impudent",
+      "conceited"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "The expression “has gone to her head” means that someone has become overly proud or arrogant because of success.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23360"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. Little Sheila is always as lively as a kitten. This means that Sheila is always",
+    "opt_texts": [
+      "wearing bright dresses",
+      "very realistic in what she does",
+      "gay and cheerful",
+      "moving quickly like a kitten"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23361"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. This masquerade appears once in a blue moon. This means that the masquerade appears",
+    "opt_texts": [
+      "on very rare occasions",
+      "when the moon is blue",
+      "whenever a special request is made",
+      "once a month"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23362"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. Okon is quite hardworking but his problem is that he has too many irons in the fire . This means that Okon",
+    "opt_texts": [
+      "is a blacksmith",
+      "takes on more problems than he can cope with",
+      "is very good at solving problem",
+      "is a very successful businessman"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23363"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. If Kunle hadn't been transferred to Kano his wife would not have resigned her teaching job. This means that",
+    "opt_texts": [
+      "Kunle was not transferred yet his wife resigned her job",
+      "Kunle was transferred and his wife thought of resigning her job",
+      "Kunle was transferred and so his wife had to resign her job",
+      "Kunle's wife resigned though her husband wasn't transferred"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23373"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. Though Ibrahim was provoked, he ought to have controlled himself . That means that Ibrahim",
+    "opt_texts": [
+      "was the aggressor",
+      "should have exercised some restraint",
+      "took the provocation with calmness",
+      "was found guilty of committing the offence"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23374"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. The members of staff told the principal that they took exception to his comments. This means that the members of staff",
+    "opt_texts": [
+      "approved of the principle's comments",
+      "wanted to be exempted from the principal's comments",
+      "warned the principal about his comments",
+      "objected to the principal's comments"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23375"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. Okon is too quiet for my liking. This means that Okon",
+    "opt_texts": [
+      "is liked because he is very quiet",
+      "likes people who are quiet",
+      "is not liked because of his extreme quietness",
+      "behaves in a very queer and suspicious manner"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23376"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. The teacher said that all but one of the sixty candidates scored below a credit grade. This means that",
+    "opt_texts": [
+      "all the candidates scored below a credit grade",
+      "only one of the candidates scored below a credit grade",
+      "all the candidates scored a credit grade",
+      "only one of the candidates scored a credit grade"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "The sentence, \"The teacher said that all but one of the sixty candidates scored below a credit grade,\" means that out of the sixty candidates, all except one failed to achieve a credit grade. Therefore, the appropriate interpretation would be: only one of the candidates scored a credit grade. This is because \"all but one\" means that one candidate managed to score a credit grade.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23377"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. He was charged with complicity ...the abortive coup",
+    "opt_texts": [
+      "for",
+      "about",
+      "on",
+      "in"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23378"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. He was convicted....stealing some bags of cocoa.",
+    "opt_texts": [
+      "with",
+      "of",
+      "in",
+      "for"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "The correct preposition after \"convicted\" is always \"of\" when referring to the crime or offence a person was found guilty of.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23379"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. Mary said she was acting ... the instructions of the principal.",
+    "opt_texts": [
+      "by",
+      "for",
+      "through",
+      "on"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "So, the completed sentence is:",
+    "detail_url": "https://myschool.ng/classroom/english-language/23380"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. ......normal circumstances, it is rare to get all registered voters to vote.",
+    "opt_texts": [
+      "on",
+      "by",
+      "under",
+      "in"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23381"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. Lekan has been trying hard to live...to his parents expectations.",
+    "opt_texts": [
+      "over",
+      "up",
+      "on",
+      "through"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23382"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. The minister's daughter boasted she would have her way, and she really.....",
+    "opt_texts": [
+      "had",
+      "has",
+      "have",
+      "did"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "\"The minister's daughter boasted she would have her way, and she really did .\"",
+    "detail_url": "https://myschool.ng/classroom/english-language/23383"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. As at yesterday, only nomination papers in respect of three candidates.....",
+    "opt_texts": [
+      "have been filed",
+      "are being filed",
+      "had been filed",
+      "has been filed"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23384"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. They embraced passionately as if they ..seen each other for years.",
+    "opt_texts": [
+      "had",
+      "have",
+      "have not",
+      "had not"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23385"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. You are not sure where you placed the book....?",
+    "opt_texts": [
+      "isn't it",
+      "weren't you",
+      "didn't you",
+      "are you"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Question tags turn a statement into a question. They are often used for checking information that we think we know is true. Always remember that, when the statement is positive the question tag will be negative.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23386"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. We arrived when the hall ...arranged so we stood outside.",
+    "opt_texts": [
+      "has been",
+      "is being",
+      "had been",
+      "was being"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23387"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. She doesn't know you like your food hot...?",
+    "opt_texts": [
+      "shouldn't she",
+      "didn't she",
+      "does she",
+      "wasn't it"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23388"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. It's certain we shall travel by train ...?",
+    "opt_texts": [
+      "shan't we",
+      "shall we",
+      "don't we",
+      "isn't it"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23389"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. ......of what he said made no sense.",
+    "opt_texts": [
+      "Majority",
+      "Much",
+      "Plenty",
+      "Many"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23390"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes each of the following sentences. ......of what he said made no sense",
+    "opt_texts": [
+      "Majority",
+      "Much",
+      "Plenty",
+      "Many"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23391"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. That is not your book, it is",
+    "opt_texts": [
+      "Johns' own",
+      "for John's",
+      "John",
+      "John's"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "The apostrophe + \"s\" ('s) is used to indicate possession. In this context, the sentence implies that the book belongs to John, so \"it is John's\" is the correct way to show ownership.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23392"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. Nana Sawara is a queen and demands to be treated.....",
+    "opt_texts": [
+      "like that",
+      "like so",
+      "as such",
+      "that much"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "The phrase \"as such\" means \"in that capacity\" or \"in that manner\" , which correctly fits the sentence:",
+    "detail_url": "https://myschool.ng/classroom/english-language/23393"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. It is pretty difficult to choose...those three boys",
+    "opt_texts": [
+      "between",
+      "over",
+      "against",
+      "among"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23394"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. There were five boys.....",
+    "opt_texts": [
+      "which two were beaten",
+      "Whom two were beaten",
+      "two of whom were beaten",
+      "of whom two of them were beaten"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23395"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. ....of the five boys was able to show me the way to the zoo.",
+    "opt_texts": [
+      "None",
+      "Neither",
+      "Any",
+      "Some"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23396"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. we will leave....you are ready.",
+    "opt_texts": [
+      "as",
+      "while",
+      "until",
+      "whenever"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23397"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. This...be David's handwriting: I know his handwriting well enough.",
+    "opt_texts": [
+      "may",
+      "can't",
+      "will",
+      "ought"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23398"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. The book is not in this locker and it is not in that cupboard...",
+    "opt_texts": [
+      "neither",
+      "either",
+      "again",
+      "even"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23399"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. ....things she had in the room were thrown out.",
+    "opt_texts": [
+      "the few",
+      "so few",
+      "all few",
+      "very few"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23400"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. The party had hardly started...the lights went off.",
+    "opt_texts": [
+      "when",
+      "than",
+      "then",
+      "as"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23401"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. This is the man....told me the story",
+    "opt_texts": [
+      "whom I said",
+      "I said that he",
+      "who I said",
+      "Who I said he"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "The clause “who I said told me the story” means:",
+    "detail_url": "https://myschool.ng/classroom/english-language/23402"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. I feel you are none...for experiencing that shock",
+    "opt_texts": [
+      "worse",
+      "worst",
+      "the worst",
+      "the worse"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23403"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. Many students find Mathematics...than English.",
+    "opt_texts": [
+      "difficult",
+      "too diffcult",
+      "very difficult",
+      "more difficult"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23404"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. Tunde is the ...qualified for job",
+    "opt_texts": [
+      "more",
+      "more than",
+      "many more",
+      "most"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23405"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. It is such a bad place...I will never dream of going there another time.",
+    "opt_texts": [
+      "therefore",
+      "thus",
+      "that",
+      "then"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23406"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. He has not been seen by his parents...seven days",
+    "opt_texts": [
+      "since",
+      "for",
+      "getting to",
+      "for last"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23407"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. Please, let me ...you in your car to the Railway Station",
+    "opt_texts": [
+      "move with",
+      "go with",
+      "follow",
+      "ride"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23408"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. The...came here last week.",
+    "opt_texts": [
+      "handsome tall young man",
+      "young tall handsome man",
+      "tall handsome young man",
+      "young handsome tall man"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23409"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, chose the word or group of words that best completes the sentence. The activities marking the golden jubilee celebrations of the club were...with a party.",
+    "opt_texts": [
+      "rounded over",
+      "rounded through",
+      "rounded off",
+      "rounded up"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23410"
+  },
+  {
+    "stem": "Instruction. Choose the word most suitable for the sentence. The .....of the few rich in our society contrasts with the poverty of the masses.",
+    "opt_texts": [
+      "arrogance",
+      "authority",
+      "affluence",
+      "influence"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23438"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. The peace meeting nipped the crisis in the bud. This means that",
+    "opt_texts": [
+      "the peace meeting was deadlocked",
+      "members disagreed on who should receive the flower pot",
+      "the crisis was averted",
+      "the crisis escalated despite the peace meeting"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Nip in the bud means to stop something at an early stage.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23453"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. Ugonna passed his examinations with flying colours. This means Ugonna",
+    "opt_texts": [
+      "did very well",
+      "wore cloths of different colours",
+      "was helped to pass the examination",
+      "cheated to pass the examination"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23454"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. Emeka had a field day at the dancing competition. This means that Emeka",
+    "opt_texts": [
+      "triumphed in all aspects of the competition",
+      "performed woefully",
+      "fell down on the field while others were dancing",
+      "withdrew from the competition at the last minute."
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23455"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. Femi's plans amount to building castles in the air. This means that Feml's plans are",
+    "opt_texts": [
+      "beautiful",
+      "practicable",
+      "unrealizable",
+      "interesting"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23456"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. The appearance which the famous actor made last month was his swan song. This means that",
+    "opt_texts": [
+      "the actor sang beautifully during the play",
+      "the play was postponed because of the actor's non-appearance",
+      "the play was the actor's last appearance before the died",
+      "the last play was the actor's best performance"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Swan Song - the final performance or activity of a person's career before his death or retirement",
+    "detail_url": "https://myschool.ng/classroom/english-language/23457"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of all or part of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. Akpan does not let grass grow under his feet. This means that Akpan",
+    "opt_texts": [
+      "is a very wicked man",
+      "does not waste time in doing things",
+      "cuts the grass in his field reguarly",
+      "cares only about himself"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23458"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. He preferred travelling by road....travelling by air.",
+    "opt_texts": [
+      "against",
+      "over",
+      "than",
+      "to"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "In English, when we want to express a preference for one option over another, we use \"to\" to indicate that preference. For example: - \"I prefer tea to coffee.\" (I like tea more than coffee.) - \"She prefers reading to watching TV.\" (She likes reading more than watching TV.)",
+    "detail_url": "https://myschool.ng/classroom/english-language/23469"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. The police are...the trail of the suspect.",
+    "opt_texts": [
+      "on",
+      "in",
+      "after",
+      "over"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23470"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. .............candidates passed in English Language than in Mathematics.",
+    "opt_texts": [
+      "More",
+      "Many",
+      "Plenty",
+      "Much"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23472"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. Alhaji Musa owns fifty....",
+    "opt_texts": [
+      "herd of cattles",
+      "heads of cattle",
+      "head of cattle",
+      "herds of cattles"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "\"Heads of cattle\" is the correct phrase. In this context, \"head\" refers to the individual animals in a herd, and \"cattle\" is a plural noun that does not take an -s at the end.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23473"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. Ameh....to school nowadays.",
+    "opt_texts": [
+      "walk",
+      "walked",
+      "walking",
+      "walks"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23474"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. He......say it to my face that I did that.",
+    "opt_texts": [
+      "dares not",
+      "not dare",
+      "dare not",
+      "dared not"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23476"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. One of his greatest achievements...the restoration of order and stability to the company.",
+    "opt_texts": [
+      "were",
+      "have been",
+      "was",
+      "are"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23477"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. If I had heard this earlier, I ....given him the job.",
+    "opt_texts": [
+      "would not have",
+      "would have not",
+      "will not have",
+      "will have not"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23478"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. Mr. Smith had worked here before leaving for the U.K....?",
+    "opt_texts": [
+      "wasn't it",
+      "didn't it",
+      "isn't it",
+      "hadn't it"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "This is a tag question , and the rules are:",
+    "detail_url": "https://myschool.ng/classroom/english-language/23479"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. Who saw the accused...the purse from the complainant's handbag?",
+    "opt_texts": [
+      "took",
+      "taken",
+      "take",
+      "takes"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "This follows the structure:",
+    "detail_url": "https://myschool.ng/classroom/english-language/23483"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. ..........bring a letter of authority before he can collect the money?",
+    "opt_texts": [
+      "Needs he",
+      "He needs",
+      "Need he",
+      "Does he needed"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "The correct answer is: B. Need he",
+    "detail_url": "https://myschool.ng/classroom/english-language/23484"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. Surely, he ....come in person if he doesn't want to !",
+    "opt_texts": [
+      "does not need",
+      "did not need",
+      "needs not",
+      "need to"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Although, \"needs not\" is grammatically outdated and not commonly used in modern English, it appears to fit. This means that the person does not need to come in person if he does not want to.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23486"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. Fortunately my father..........the scene before the explosion occurred.",
+    "opt_texts": [
+      "has just left",
+      "just left",
+      "is just leaving",
+      "had just left"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23487"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. The rainstorm did a lot of.......to the houses and trees in the area.",
+    "opt_texts": [
+      "damages",
+      "damage",
+      "damaging",
+      "havocs"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23489"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. You are not allowed to carry.....on this flight.",
+    "opt_texts": [
+      "many luggage",
+      "few luggages",
+      "much luggage",
+      "more luggages"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23493"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. It is no longer easy for graduates to secure.......",
+    "opt_texts": [
+      "employments",
+      "many employments",
+      "an employment",
+      "employment"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23499"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. If you would listen, I could give you............",
+    "opt_texts": [
+      "a valuable advice",
+      "some valuable advices",
+      "valuable advise",
+      "valuable advice"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23501"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. That load is......heavy for a child of his age to carry.",
+    "opt_texts": [
+      "very",
+      "most",
+      "much",
+      "too"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23502"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. Tunji was..............hungry that he ate the food meant for his three sisters",
+    "opt_texts": [
+      "extremely",
+      "so",
+      "very",
+      "quiet"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23503"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. On my way to the post office,I ..........my classmate.",
+    "opt_texts": [
+      "stop to greet",
+      "stopped to greet",
+      "had stopped greeting",
+      "stopped greeting"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "The sentence \"On my way to the post office, I .......... my classmate.\" requires the correct verb form to match the intended meaning. The correct verb to use is the passed tense \"stopped\". \"to greet\" is a to-infinitive added to further clarify the action that took place.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23508"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. The celebrations were rounded ....... with a novelty match.",
+    "opt_texts": [
+      "off",
+      "up",
+      "down",
+      "out"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23509"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. As fresh fruits are scarce in the dry season, we had to.............tinned fruits.",
+    "opt_texts": [
+      "make up for",
+      "take out with",
+      "make do with",
+      "take up with"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23512"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. They are.....new employees at the headquarters of the factory.",
+    "opt_texts": [
+      "taking up",
+      "taking on",
+      "taking after",
+      "taking over"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23514"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. We all look forward to ........ ourselves at the party.",
+    "opt_texts": [
+      "enjoy",
+      "have enjoyed",
+      "be enjoying",
+      "enjoying"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23516"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. The messenger .....home until his boss leaves.",
+    "opt_texts": [
+      "dare not went",
+      "dare not to go",
+      "dare not going",
+      "dare not go"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23517"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. Sherifat did not behave.....her parents' wishes.",
+    "opt_texts": [
+      "with accordance",
+      "in accordance about",
+      "in accordance with",
+      "with accordance in"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23518"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. Are you keen...........joining me in this venture?",
+    "opt_texts": [
+      "at",
+      "in",
+      "on",
+      "about"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23519"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. Do you notice John and Comfort glancing at .....?",
+    "opt_texts": [
+      "each other",
+      "themselves",
+      "the others",
+      "theirseleves"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "\"Each other\" is a reciprocal pronoun that is used when two or more people are involved in an action directed toward one another. In this context, the use of \"each other\" conveys the idea that John and Comfort are glancing at one another.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23520"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes each of the following sentences. Do you notice John and Comfort glancing at ...?",
+    "opt_texts": [
+      "themselves",
+      "the others",
+      "each other",
+      "theirseleves"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23521"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. The corrupt bank manager was arrested and convicted..........",
+    "opt_texts": [
+      "on the long run",
+      "at the long run",
+      "after the long run",
+      "in the long run"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "'in the long run' is a common idiom which means 'eventually'",
+    "detail_url": "https://myschool.ng/classroom/english-language/23522"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. I cannot travel in an open car because I am allergic......dust",
+    "opt_texts": [
+      "with",
+      "on",
+      "by",
+      "to"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "When you say you are allergic \"to\" something, it means that thing causes an allergic reaction in you. In this case, dust is the cause of the allergic reaction, so the correct preposition to use is \"to.\" If you were allergic \"with\" dust, it would imply that dust is somehow accompanying or connected with your allergy, which doesn't make sense in this context.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23523"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. If you keep trying, you'll succeed...........the end.",
+    "opt_texts": [
+      "by",
+      "at",
+      "with",
+      "in"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23524"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. For our Sunday lunch. Mother always cooked a .......",
+    "opt_texts": [
+      "large, thick,spicy pot of groundnut soup",
+      "large, spicy, thick groundnut pot of soup",
+      "large pot of thick,spicy groundnut soup",
+      "large,spicy groundnut soup"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "The correct order of adjectives in English follows this pattern:",
+    "detail_url": "https://myschool.ng/classroom/english-language/23525"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. Don't believe all.............he had told you.",
+    "opt_texts": [
+      "that",
+      "what",
+      "which",
+      "there"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23526"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. He succeeded ....the odds he faced.",
+    "opt_texts": [
+      "despite",
+      "after",
+      "even",
+      "in addition to"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23527"
+  },
+  {
+    "stem": "From the words or groups of words lettered A to D, choose the word or group of words that best completes the sentence. Please let me have.........salt in my soup.",
+    "opt_texts": [
+      "few",
+      "small",
+      "a little",
+      "a few"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23528"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. Though we lost the match, we will get even with our opponents in the next round. This means that",
+    "opt_texts": [
+      "our opponents were just lucky to win",
+      "we will not play again",
+      "the two teams are not evenly matched",
+      "we will win the next match"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23605"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. He was retrenched last year and now he is only the shadow of his former self. This means that he",
+    "opt_texts": [
+      "is very thin and weak",
+      "looks very well",
+      "is just like his shadow",
+      "is very fearful"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23606"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. Due to poor visibility all aircraft were grounded at the Kano Airport for two days. This means that.",
+    "opt_texts": [
+      "no aircraft could take off",
+      "all aircraft had mechanical problems",
+      "the runway at Kano Airport was damaged",
+      "there was a visible disturbance at Kano Airport"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "The sentence \"Due to poor visibility, all aircraft were grounded at the Kano Airport for two days\" implies that the reason for grounding the aircraft was poor visibility. The term \"grounded\" in this context means that the aircraft were not allowed to take off or fly due to unfavourable visibility conditions.",
+    "detail_url": "https://myschool.ng/classroom/english-language/23607"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. Getting six distinctions in your mock examinations is praiseworthy but do not allow it to get into year head. This means that the good result",
+    "opt_texts": [
+      "has made you mad",
+      "should not make you conceited",
+      "has not bothered you",
+      "could be better"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23608"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. When Mr. Ojo, the first principal, suddenly left the school it became a regular bedlam. This means that",
+    "opt_texts": [
+      "everybody started coming to school regularly",
+      "everybody was happy with his departure",
+      "discipline was restored to the school",
+      "there was noise and confusion everywhere"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23612"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. Segun held the audience spellbound with his superb performance. This means that",
+    "opt_texts": [
+      "members of the audience were captivated by Segun's performance",
+      "the play was a good one",
+      "all the actors put up a good performance",
+      "all the actors, except Segun, performed very well"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23613"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. Matters came to a head when the man accused his wife of infidelity. This means that the",
+    "opt_texts": [
+      "accusation worsened the relationship between the couple",
+      "couple were living peacefull before the accusation",
+      "wife had been proved to be unfaithful by the husband",
+      "husband hit the wife on the head because of her misbehaviour"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23614"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. The way the young pupils were chasing the poor mad woman made my blood boil. This means that",
+    "opt_texts": [
+      "the pupils were made to chase the poor woman",
+      "I was agitated about the action of the pupils",
+      "the woman was angry with the pupils",
+      "my blood was actually boiling becasue the pupils maltreated the mad woman"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23615"
+  },
+  {
+    "stem": "After the sentence, a list of possible interpretations of the sentence is given. Choose the interpretation that you consider most appropriate for the sentence. The former chairman has no moral right to criticize the present chairman because he too has a skeleton in the cupboard. This means that the",
+    "opt_texts": [
+      "former chairman has an unpleasant secret that is hidden",
+      "present chairman has not done anything wrog so far",
+      "former chairman maintained a very low moral standard during his tenure",
+      "former chairman kept a very terrifying skeleton in a large cupoard"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23616"
+  },
+  {
+    "stem": "After each of the following sentences, a list of possible interpretations of the sentence is given. Choose the interpretation that you consider most appropriate for each sentence. When asked to state her side of the story Bunmi started by beating about the bush. This means that Bunmi",
+    "opt_texts": [
+      "went striaght to the point",
+      "was lost in great thought",
+      "approached the subject without coming to the point",
+      "followed a bush path"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/english-language/23720"
+  }
+]

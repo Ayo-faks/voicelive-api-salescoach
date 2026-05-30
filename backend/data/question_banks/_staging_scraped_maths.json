@@ -1,0 +1,2242 @@
+[
+  {
+    "stem": "Evaluate (101.5)^2 - (100.5)^2",
+    "opt_texts": [
+      "1",
+      "2.02",
+      "20.02",
+      "202"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22007"
+  },
+  {
+    "stem": "Express the product of 0.06 and 0.09 in standard form",
+    "opt_texts": [
+      "5.4 * 10^-1",
+      "5.4*10^-2",
+      "5.4*10^2",
+      "5.4*10^-3"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22008"
+  },
+  {
+    "stem": "Find the 8th term of the A.P -3, -1, 1 ......",
+    "opt_texts": [
+      "13",
+      "-8",
+      "11",
+      "-11"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22014"
+  },
+  {
+    "stem": "If cos 60° = 1/2, which of the following angle has cosine of -1/2?",
+    "opt_texts": [
+      "30^o",
+      "150^o",
+      "120^o",
+      "210^o"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "cos 60° = 1/2, cos(180° - 60°) = -1/2 cos120° = -1/2",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22025"
+  },
+  {
+    "stem": "A ladder 9m long leans against a vertical wall, making an angle of 64° with the horizontal ground. calculate correct to one decimal place, how far the foot of the ladder is from the wall.",
+    "opt_texts": [
+      "5.8m",
+      "7.1m",
+      "4.0m",
+      "8.1m"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22030"
+  },
+  {
+    "stem": "What is the difference in longitude between P (lat. 50°N. long. 50°W) and Q (lat.50°N, long. 150°W)?",
+    "opt_texts": [
+      "100^o",
+      "300^o",
+      "200^o",
+      "130^o"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22035"
+  },
+  {
+    "stem": "Points P and Q respectively 24m north and 7m east point R. Calculate |PQ| in meters",
+    "opt_texts": [
+      "20",
+      "24",
+      "25",
+      "31"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22043"
+  },
+  {
+    "stem": "Simplify (27^1/3)^2",
+    "opt_texts": [
+      "9",
+      "4^1/2",
+      "6",
+      "18"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22049"
+  },
+  {
+    "stem": "A student told to draw the graph of y = x^2 + 4x - 6. He is then told to draw a liner graph on the same axis such that the intersection of the two graphs will give the solutions to the equation x^2 + 4x - 7 = 0, What is the equation of the linear graph he needs to draw?",
+    "opt_texts": [
+      "x = 1",
+      "y = 1",
+      "x = -1",
+      "y = -1"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22050"
+  },
+  {
+    "stem": "Find the quadratic equation whose roots are x = -2 or x = 7",
+    "opt_texts": [
+      "x^2 - 5x - 14 = 0",
+      "x^2 + 2x - 7 = 0",
+      "x^2 - 2x + 7 = 0",
+      "x^2 + 5 +14 = 0"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22052"
+  },
+  {
+    "stem": "A sales girl gave a change of N1.15 to a customer instead of N1.25. Calculate her percentage error",
+    "opt_texts": [
+      "10%",
+      "7%",
+      "2.4%",
+      "8.0%"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22054"
+  },
+  {
+    "stem": "What is the probability of having an odd number in a single toss of a fair die?",
+    "opt_texts": [
+      "1/6",
+      "1/3",
+      "2/3",
+      "1/2"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22057"
+  },
+  {
+    "stem": "Evaluate log106 + log1045 - log1027 without using logarithm tables",
+    "opt_texts": [
+      "1",
+      "o",
+      "1.1738",
+      "1.3802"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22092"
+  },
+  {
+    "stem": "What value of k makes the given expression a perfect square ? m^2 - 8m + k = 0",
+    "opt_texts": [
+      "16",
+      "2",
+      "4",
+      "8"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Take half the coefficient of m and square it => (-8/2)2 = k = 16",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22094"
+  },
+  {
+    "stem": "If log10 q = 2.7078, what is q?",
+    "opt_texts": [
+      "5102",
+      "849.9",
+      "510.2",
+      "84.99"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22095"
+  },
+  {
+    "stem": "Cos x is negative and sin x is negative.Which of the following is true of x?",
+    "opt_texts": [
+      "180^o < x < 270^o",
+      "0^o < x < 90^o",
+      "90^o < x <180^o",
+      "270^o < x <360^o"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "In the 3rd quadrant, only the tan of angles are positive.",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22096"
+  },
+  {
+    "stem": "A student measured the length of a room and obtained the measurement of 3.99m. If the percentage error of is measurement was 5% and his own measurement was smaller than the length , what is the length of the room?",
+    "opt_texts": [
+      "3.78m",
+      "3.80m",
+      "4.20m",
+      "4.18m"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Let the actual length of the room = y m",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22099"
+  },
+  {
+    "stem": "Find the product xy if, x, 3/2, 6/7, y are in G.P",
+    "opt_texts": [
+      "9/7",
+      "24/49",
+      "4/7",
+      "7/4"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "In GP, when you are given three consecutive terms, say f, g, h, then",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22101"
+  },
+  {
+    "stem": "Which of the following is a correct method for constructing an angle of 60^o at Q?",
+    "opt_texts": [
+      "I only",
+      "III only",
+      "I and II only",
+      "II only"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22161"
+  },
+  {
+    "stem": "Abidjan is 4^o west of Accra and on the same circle of latitude. If the radius of this circle of latitude is 6370km, how far is Abidjan west of Accra, correct to the nearest kilometer? [Take π = 22/7]",
+    "opt_texts": [
+      "222km",
+      "445km",
+      "890km",
+      "5005km"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22182"
+  },
+  {
+    "stem": "A cone is made from a sector of circle of radius 14cm and angle of 90^o. What is the area of the curved surface of the cone? (Take x = 22/7)",
+    "opt_texts": [
+      "22cm^2",
+      "38.5cm^2",
+      "77cm^2",
+      "154cm^2"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22192"
+  },
+  {
+    "stem": "A rope of length 18m is used to form a sector of a circle of radius 3.5m on a school playing field. What is the size of the angle of the sector, correct to the nearest degree?",
+    "opt_texts": [
+      "33^o",
+      "40^o",
+      "90^o",
+      "180^o"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Circumference = 2πr 2 x 22/7 x 3.5 ≅ 22m 22m = 360o 11m = 360/22 x 11 = 180o",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22199"
+  },
+  {
+    "stem": "Cotonou and Niamey are on the same line of longitude and Niamey is 7^o north of Cotonou. If the radius of the earth is 6400km, how far is Niamey north of Cotonou along the line of longitude, correct to the nearest kilometer? [Take π = 22/7]",
+    "opt_texts": [
+      "391km",
+      "503km",
+      "782km",
+      "1006km"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22226"
+  },
+  {
+    "stem": "If Q = (all perfect squares less than 30) and P = (all odd numbers from 1 to 10). Find Q ∩ P.",
+    "opt_texts": [
+      "(1, 4, 9, 16, 25)",
+      "(1, 3, 4, 5, 7, 9, 16, 25)",
+      "(1, 9)",
+      "(1, 3, 5, 7, 9)"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22227"
+  },
+  {
+    "stem": "The histogram below shows the number of candidates, in thousands, obtaining given ranges of marks in a State examination. How many candidates scored at most 30%?",
+    "opt_texts": [
+      "35,000",
+      "15,000",
+      "20,000",
+      "25,000"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Those who scored at most 30% = ( 5 + 10 + 20)thousand = 35000",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22229"
+  },
+  {
+    "stem": "The surnames of 40 children in a class arranged in alphabetical order. 16 of the surnames begins with O and 9 of the surname begins with A, 14, of the letters of the alphabet do not appear as the first letter of a surname What is the probability that the surname of a child picked at random from the class begins with either O or A?",
+    "opt_texts": [
+      "7/8",
+      "5/8",
+      "9/16",
+      "14/25"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22230"
+  },
+  {
+    "stem": "If 3loga + 5loga - 6loga = log64, what is a?",
+    "opt_texts": [
+      "4",
+      "6",
+      "16",
+      "8"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22336"
+  },
+  {
+    "stem": "If the second and fourth term of a G.P are 8 and 32 respectively,what is the sum of the first four terms?",
+    "opt_texts": [
+      "28",
+      "40",
+      "48",
+      "60"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "ar = 8 .....(1)",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22342"
+  },
+  {
+    "stem": "Evaluate, using logarithm tables (5.34 × 67.4)/(2.7)",
+    "opt_texts": [
+      "1.332",
+      "13.32",
+      "1332",
+      "133.2"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22345"
+  },
+  {
+    "stem": "Factorize 35 - 2b - b^2",
+    "opt_texts": [
+      "(35-2b)(b-1)",
+      "(3+7b)(5-b)",
+      "(35-b)(3b+7)",
+      "(7+b)(5-b)"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22346"
+  },
+  {
+    "stem": "Evaluate (0.009)/(0.012), leaving your answer in standard form.",
+    "opt_texts": [
+      "7.5 x 10^2",
+      "7.5 x 10^1",
+      "7.5 x 10^-2",
+      "7.5 x 10^-1"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22347"
+  },
+  {
+    "stem": "Factorize the following expression; 2x^2 + x - 15",
+    "opt_texts": [
+      "(2x-5)(x+3)",
+      "(2x+5)(x-3)",
+      "(2x-5)(x-3)",
+      "(2x-3)(x+5)"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22349"
+  },
+  {
+    "stem": "Instead of recording the number 1.23cm of the radius of a tube, a student recorded 1.32cm. Find the percentage of error, correct to one decimal place.",
+    "opt_texts": [
+      "6.8%",
+      "9.6%",
+      "7.3%",
+      "14.4%"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22351"
+  },
+  {
+    "stem": "If twice a certain integer is subtracted from 5 times the integer, the result is 63. Find the integer.",
+    "opt_texts": [
+      "21",
+      "9",
+      "7",
+      "4"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Let the integer = y",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22357"
+  },
+  {
+    "stem": "If 3^y = 243, find the value of y.",
+    "opt_texts": [
+      "2",
+      "3",
+      "5",
+      "4"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "3^y = 243;",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22358"
+  },
+  {
+    "stem": "Points X and Y are respectively 20km North and 9km East of a point O. What is the bearing of Y from X? Correct to the nearest degree",
+    "opt_texts": [
+      "024^o",
+      "156^o",
+      "114^o",
+      "204^o"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22359"
+  },
+  {
+    "stem": "Calculate the surface area of a hallow cylinder which is closed at one end, if the base radius is 3.5cm and the height 8cm.[take π = 22/7]",
+    "opt_texts": [
+      "126.5cm^2",
+      "165cm^2",
+      "176cm^2",
+      "214.5cm^2"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22361"
+  },
+  {
+    "stem": "Solve the following equation: 6x^2 - 7x - 5 = 0",
+    "opt_texts": [
+      "x = 1 ^2/3 or x = -^1/2",
+      "x = ^1/2 or x = -2^1/2",
+      "x = 1/3 or x = 2^1/2",
+      "x = 1^2/3 or x = ^1/2"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "6x^2 - 7x - 5 = 0",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22362"
+  },
+  {
+    "stem": "What angle represents grown up girls ? Correct to one decimal place",
+    "opt_texts": [
+      "37.5^o",
+      "25.7^o",
+      "20^o",
+      "26.7^o"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22363"
+  },
+  {
+    "stem": "What percentage of the population are married? correct to one decimal place",
+    "opt_texts": [
+      "14.8%",
+      "35.2%",
+      "20.4%",
+      "30.5%"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22397"
+  },
+  {
+    "stem": "What is the median score?",
+    "opt_texts": [
+      "2",
+      "4",
+      "5",
+      "6"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "If the data is arranged either in ascending or descending order, the 15th and 16th scores are in the middle, which is 5 and 5, respectively",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22400"
+  },
+  {
+    "stem": "What is the range of the distribution?",
+    "opt_texts": [
+      "2",
+      "8",
+      "9",
+      "7"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22401"
+  },
+  {
+    "stem": "The angle of a sector of a circle of diameter 8cm is 135°. Find the area of the sector [Take π = 22/7].",
+    "opt_texts": [
+      "18(6)/(7)cm^2",
+      "9(3)/(7)cm^2",
+      "12(4)/(7)cm^2",
+      "25(1)/(7)cm^2"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Area of a sector",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22408"
+  },
+  {
+    "stem": "The angle of depression of a point on the ground from the top of a building is 20.3^o. If the foot of the building is 40m, calculate the height of the building, correct to one decimal place",
+    "opt_texts": [
+      "14.8m",
+      "37.5m",
+      "28.1m",
+      "27.8m"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22415"
+  },
+  {
+    "stem": "Solve for x: (x^2 + 2x + 1) = 25",
+    "opt_texts": [
+      "-6, 4",
+      "-6, -4",
+      "6, -4",
+      "6, 4"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "x^2 + 2x + 1 = 25 x^2 + 6x - 4x -24= 0 x(x + 6) - 4(x + 6) = 0 (x - 4)(x + 6) = 0 x = 4 or -6",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22416"
+  },
+  {
+    "stem": "What is the probability that 3 customers waiting in a bank will be served in the sequence of their arrival at the bank",
+    "opt_texts": [
+      "1/3",
+      "1/2",
+      "2/3",
+      "1/6"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Probability that 3 customers are attended to in the sequence they arrive",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22419"
+  },
+  {
+    "stem": "In an A.P. the first term is 2, and the sum of the 1st and the 6th term is 16(1)/(2). What is the 4th term",
+    "opt_texts": [
+      "12",
+      "9^1/2",
+      "8",
+      "7"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "1st term a = 2; 6th term = a + (6 - 1)d = 2 + 5d 2 + (2 + 5d) = 16(1)/(2); 4 + 5d = 16(1)/(2) 5d = 12.5 ∴ = 2.5 the 4th term is 2 + (4 - 1)2.5= 9(1)/(2)",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22421"
+  },
+  {
+    "stem": "If 3^2x = 27, what is x?",
+    "opt_texts": [
+      "1",
+      "4.5",
+      "18",
+      "1.5"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "3^2x = 27",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22600"
+  },
+  {
+    "stem": "Express 0.00562 in standard form",
+    "opt_texts": [
+      "5.62 x 10^-2",
+      "5.62 x 10^-3",
+      "562 x 10^-2",
+      "5.62 x 10^2"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22601"
+  },
+  {
+    "stem": "While doing his physics practical, Idowu recorded a reading as 1.12cm instead of 1.21cm. Calculate his percentage error",
+    "opt_texts": [
+      "7.44%",
+      "1.17%",
+      "6.38%",
+      "8.035%"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "%error = (1.21 - 1.12)/(1.21) × 100%",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22606"
+  },
+  {
+    "stem": "Find the 4th term of an A.P, whose first term is 2 and the common difference is 0.5",
+    "opt_texts": [
+      "3.5",
+      "0.5",
+      "2.5",
+      "4"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Un = a + (n - 1)d",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22607"
+  },
+  {
+    "stem": "From the graph determine the roots of the equation y = 2x^2 + x - 6",
+    "opt_texts": [
+      "-3, 4",
+      "-2, -6",
+      "-2, 1.5",
+      "-1, 1"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Where the curve cut x-axis is the root of the equation i.e. x = -2.0 and x = 1.5",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22641"
+  },
+  {
+    "stem": "Find the values of x for which y = 5",
+    "opt_texts": [
+      "-2.6, 2.1",
+      "-2.5, 2.0",
+      "-2.0, 1.5",
+      "-2.0, 2.0"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22642"
+  },
+  {
+    "stem": "An arc of length 22cm subtends an angle of θ at the center of the circle. What is the value of θ if the radius of the circle is 15cm?[Take π = 22/7]",
+    "opt_texts": [
+      "84^o",
+      "70^o",
+      "96^o",
+      "156^o"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "2π r = 2 × 3.142 × 15 = 94.28cm",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22643"
+  },
+  {
+    "stem": "Find the sum of the first five terms of the G.P 2,6, 18 ....",
+    "opt_texts": [
+      "484",
+      "243",
+      "242",
+      "130"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Sn = (a(r^n - 1))/(r - 1)",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22644"
+  },
+  {
+    "stem": "In a class of 80 students, every students had to study economics or geography, or both economics and geography, if 65 students studied economics and 50 studied geography, how many studied both subjects?",
+    "opt_texts": [
+      "15",
+      "30",
+      "45",
+      "35"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22646"
+  },
+  {
+    "stem": "The area shaded with horizontal lines is the solution set of the inequalities;",
+    "opt_texts": [
+      "y ≤ x, y + 2x ≥ -3, x ≤ 3",
+      "y ≥ x, y + 3 ≥ 2x, x ≤ 3",
+      "y ≤ -x, y + 2x ≤ 3, x ≥ -3",
+      "y ≥ -x, y + 3 ≤ 2x, x ≥ -3"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22647"
+  },
+  {
+    "stem": "the area shaded with vertical lines is the solution set of the inequalities;",
+    "opt_texts": [
+      "y ≤ x, y ≤ 2x - 3, x ≤ 3",
+      "y ≤ x, y + 2x ≤ -3",
+      "y ≥ x, y + 2x ≥ - 3",
+      "y ≤ -x, y ≤ 2x - 3, x ≤ 3"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Vertical Line x = 3: This line indicates a constraint on x, specifically that x ≤ 3.(behind is shaded)",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22649"
+  },
+  {
+    "stem": "Factorize x^2 + 4x - 192",
+    "opt_texts": [
+      "(x-4) (x+48)",
+      "(x-48) (x+4)",
+      "(x-12) (x-16)",
+      "(x-12) (x+16)"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "x^2 + 4x - 192",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22652"
+  },
+  {
+    "stem": "Factorize 2e^2 - 3e + 1",
+    "opt_texts": [
+      "(e+1) (2e+1)",
+      "(2e+3) (e+2)",
+      "(2e-3) (e-1)",
+      "(2e-1) (e-1)"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "2e^2 - 3e + 1",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22655"
+  },
+  {
+    "stem": "Solve the equation 7y^2 = 3y",
+    "opt_texts": [
+      "y = 3 or 7",
+      "y = 0 or 3/7",
+      "y = 0 or 7",
+      "y = 0 or 9"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "7y^2 = 3y",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22657"
+  },
+  {
+    "stem": "A sector of a circle of radius 7cm has an area of 44cm^2. Calculate the angle of the sector correct to the nearest degree [Take π = 22/7]",
+    "opt_texts": [
+      "103^o",
+      "6^o",
+      "26^o",
+      "52^o"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22664"
+  },
+  {
+    "stem": "calculate the surface area of a sphere of radius 7cm [Take π = 22/7]",
+    "opt_texts": [
+      "86cm^2",
+      "154cm^2",
+      "616cm^2",
+      "1434cm^2"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Surface area of a sphere = 4π r^2",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22665"
+  },
+  {
+    "stem": "If the radius of the parallel of latitude 30°N is equal to the radius of the parallel of latitude θ°S, what is the value of θ?",
+    "opt_texts": [
+      "75^o",
+      "60^o",
+      "30^o",
+      "45^o"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22667"
+  },
+  {
+    "stem": "A cylindrical container closed at both ends, has a radius of 7cm and height 5cm [Take π = 22/7] Find the total surface area of the container",
+    "opt_texts": [
+      "35cm^2",
+      "154cm^2",
+      "220cm^2",
+      "528cm^2"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "TSA of a cylinder = 2π r^2 + 2π rh",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22668"
+  },
+  {
+    "stem": "Which angle is equal to ∠VWZ?",
+    "opt_texts": [
+      "∠VYX",
+      "∠XZW",
+      "∠YXZ",
+      "∠VXZ"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "< VWZ = < VXZ (angles in the same segment)",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22676"
+  },
+  {
+    "stem": "Which triangle is equal in area to ΔVWZ",
+    "opt_texts": [
+      "ΔVXZ",
+      "ΔXYV",
+      "ΔWYV",
+      "ΔVYZ"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22678"
+  },
+  {
+    "stem": "Use mathematical table to evaluate (cos40° - sin30°)",
+    "opt_texts": [
+      "-0.2660",
+      "0.2660",
+      "-0.0266",
+      "0.0266"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "(cos 40° - sin 30°)",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22691"
+  },
+  {
+    "stem": "If the shadow of a pole 7m high is 1/2 its length what is the angle of elevation of the sun, correct to the nearest degree?",
+    "opt_texts": [
+      "90^o",
+      "60^o",
+      "26^o",
+      "63^o"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22692"
+  },
+  {
+    "stem": "From the top of a building 10m high, the angle of depression of a stone lying on the horizontal ground is 69^o. Calculate ,correct to one decimal place, the distance of the stone from the foot of the building",
+    "opt_texts": [
+      "3.6m",
+      "6.0m",
+      "9.3m",
+      "3.8m"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22695"
+  },
+  {
+    "stem": "The bearing of a point X from a point Y is 074°. What is the bearing of Y from X?",
+    "opt_texts": [
+      "254^o",
+      "106^o",
+      "146^o",
+      "164^o"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22696"
+  },
+  {
+    "stem": "Two groups of male students cast their votes on a particular proposal. The result are as follows: In favor Against Group A 128 32 Group B 96 48 If a student in favor of the proposal is selected for a post, what is the probability that he is from group A?",
+    "opt_texts": [
+      "16/35",
+      "8/19",
+      "10/19",
+      "4/7"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Probability that a student in favor is group A",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22701"
+  },
+  {
+    "stem": "Two groups of male students cast their vote on a particular proposal. The results are as follows: In favor Against Group A 128 32 Group B 96 48 If a student is chosen at random, what is probability that he is against the proposal?",
+    "opt_texts": [
+      "3/19",
+      "4/19",
+      "5/19",
+      "9/19"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Probability that the student is against the proposal",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22702"
+  },
+  {
+    "stem": "Express 0.0462 in standard form",
+    "opt_texts": [
+      "4.62 x 10^-2",
+      "0.462 x 10^-1",
+      "0.462 x 10^-2",
+      "4.62 x 10^-1"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22864"
+  },
+  {
+    "stem": "Simplify: log6 + log2 - log12",
+    "opt_texts": [
+      "0",
+      "-4",
+      "-1",
+      "1"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "log 6 + log 2 - log 12",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22866"
+  },
+  {
+    "stem": "Find the number whose logarithm to base 10 is 2.6025",
+    "opt_texts": [
+      "400.4",
+      "0.4004",
+      "0.04004",
+      "0.004004"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "For the log to be 2.6025, there must be three digits before the decimal point.",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22867"
+  },
+  {
+    "stem": "Factorize 3a^2 - 11a + 6",
+    "opt_texts": [
+      "(3a - 2)(a - 3)",
+      "(2a -2)(a - 3)",
+      "(3a - 2)(a + 3)",
+      "(3a + 2)(a - 3)"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "3a^2 - 11a + 6",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22870"
+  },
+  {
+    "stem": "Simplify ((3)/(x) - (15)/(2y)) ÷ (6)/(xy)",
+    "opt_texts": [
+      "(2y - 5x)/(4)",
+      "(9(2x - 5x))/(x^2y^2)",
+      "(5x - 2y)/(2)",
+      "(c^2y^2)/(18y - 45x)"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "((3)/(x) - (15)/(2y)) ÷ (6)/(xy)",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22872"
+  },
+  {
+    "stem": "Find the equation whose roots are -2/3 and -1/4",
+    "opt_texts": [
+      "12x^2 - 11x + 2 = 0",
+      "x^2 - 11/12x + 2 = 0",
+      "12x^2 + 11x + 2 = 0",
+      "12x^2 - 11x - 2 = 0"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "x = -(2)/(3) and -(1)/(4)",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22874"
+  },
+  {
+    "stem": "Solve: 6(x - 4) + 3(x + 7) = 3",
+    "opt_texts": [
+      "2/3",
+      "3/2",
+      "1/2",
+      "1/3"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "6(x - 4) + 3(x + 7) = 3",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22875"
+  },
+  {
+    "stem": "If 2x + y = 7 and 3x - 2y = 3, by how much is 7x greater than 10?",
+    "opt_texts": [
+      "1",
+      "7",
+      "3",
+      "10"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22876"
+  },
+  {
+    "stem": "A cylinder of base radius 4cm is open at one end . If the ratio of the area of its base to that of its curved surface is 1:4, calculate the height of the cylinder",
+    "opt_texts": [
+      "1cm",
+      "8cm",
+      "2cm",
+      "4cm"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22877"
+  },
+  {
+    "stem": "A headmaster contributes 7% of his income into a fund and his wife contributes 4% of her income. If the husband earns N5,500 per annum (p.a) and the wife earns N4,000 (P.a), find the sum of their annual contribution to the fund",
+    "opt_texts": [
+      "N1045",
+      "N545",
+      "N605",
+      "N490"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22878"
+  },
+  {
+    "stem": "A car is travelling at an average speed of 80km/hr. Its speed in meters per second (m/s) is",
+    "opt_texts": [
+      "13.3m/s",
+      "133.3m/s",
+      "22.2m/s",
+      "222.2m/s"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22879"
+  },
+  {
+    "stem": "Mrs. Kofi sold an article for C7.50 instead of C12.75. Calculate her percentage of error, correct to one decimal place.",
+    "opt_texts": [
+      "41.2%",
+      "18.3%",
+      "5.3%",
+      "1.7%"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22880"
+  },
+  {
+    "stem": "The first term a of an A.P is equal to twice the common difference d. Find, in terms of d, the 5th term of the A.P.",
+    "opt_texts": [
+      "6d",
+      "4d",
+      "5d",
+      "a + 5d"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22916"
+  },
+  {
+    "stem": "The common ratio of a G.P. is 2. If the 5th term is greater than the 1st term by 45, find the 5th term,",
+    "opt_texts": [
+      "48",
+      "3",
+      "6",
+      "45"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "a = 1st term ; ar^4 = 5th term ∴ ar^4 = a(2)^4 = 16a; 16a = 45 + a, a = 3; 3(2)^4 = 48",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22917"
+  },
+  {
+    "stem": "Two towns, P and Q, are on (4^oN 40^oW) and (4^oN 20^oE) respectively. What is the distance between them, along their line of latitude? (Give your answer in teems of π and R, the radius of the earth).",
+    "opt_texts": [
+      "2πR cos4^o",
+      "πR sin40^o",
+      "πR / 3 cos4^o",
+      "πR / 2 cos4^o"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22918"
+  },
+  {
+    "stem": "In a class of 80 students, every student had to study Economics or Geography or both Economics and Geography. lf 65 students studied Economics and 50 studied Geography, how many studied both subjects?",
+    "opt_texts": [
+      "15",
+      "35",
+      "30",
+      "45"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22928"
+  },
+  {
+    "stem": "Which of the following is not a measure of dispersion?",
+    "opt_texts": [
+      "Mean deviation",
+      "Range",
+      "Mode",
+      "interquartile range"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22929"
+  },
+  {
+    "stem": "The mean of 30 observations recorded in an experiment is 5. lf the observed largest value of 34 is deleted, find the mean of the remaining observations",
+    "opt_texts": [
+      "4",
+      "5",
+      "3.9",
+      "3.4"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22930"
+  },
+  {
+    "stem": "Find the mean of the distribution",
+    "opt_texts": [
+      "3.5",
+      "4.4",
+      "4.0",
+      "5.0"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22931"
+  },
+  {
+    "stem": "Find the mode of the distribution",
+    "opt_texts": [
+      "40",
+      "5",
+      "9",
+      "7"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22932"
+  },
+  {
+    "stem": "No. of chairs 1 2 3 4 5 6 7 Frequency 2 7 5 4 9 7 6 Find the median of the distribution",
+    "opt_texts": [
+      "9",
+      "6.5",
+      "5",
+      "4.5"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Median = 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, | 5, 5, | 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7,",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22933"
+  },
+  {
+    "stem": "If two events are mutually exclusive, their intersection is empty. This means that there are no outcomes that are common to both events. In probability terms, if X and Y are mutually exclusive events, then: Pr(X ∩ Y ) = 0",
+    "opt_texts": [
+      "0",
+      "2/15",
+      "11/15",
+      "4/15"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Since X and Y are mutually exclusive, Pr(X ∩ Y) = 0",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22934"
+  },
+  {
+    "stem": "If events X and Y are mutually exclusive, P(X) = 1/3 and P(Y) = 2/5, P(X∪Y) is",
+    "opt_texts": [
+      "o",
+      "2/15",
+      "11/15",
+      "4/14"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/22935"
+  },
+  {
+    "stem": "A box contains 2 white and 3 blue identical marbles. If two marbles are picked at random, one after the other without replacement, what is the probability of picking two marbles of different colors?",
+    "opt_texts": [
+      "3/5",
+      "2/3",
+      "2/5",
+      "7/20"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Total number of marbles = 5; 1st pick = 2/5 2nd pick = 3/4; 3rd pick = 3/5; 4th pick = 2/4 ∴ Probability of picking two marbles of different colors = (2/5 x 3/4) + (3/5 + 2/4) = 12/20 = 3/5",
+    "detail_url": "https://myschool.ng/classroom/mathematics/22936"
+  },
+  {
+    "stem": "Mrs. Jones is expecting a baby. The probability that it will be a boy is 1/2 and probability that the baby will have blue eyes is 1/4. What is the probability that she will have a blue-eyed boy?",
+    "opt_texts": [
+      "1/8",
+      "^1/4",
+      "3/8",
+      "^1/2"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "(1/2)(1/4) = 1/8",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23107"
+  },
+  {
+    "stem": "Which of the following about a rhombus may not be true?",
+    "opt_texts": [
+      "The diagonals are equal",
+      "The diagonals bisect the angles through which they pass",
+      "the diagonals bisect each other",
+      "The adjacent sides are equal"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23108"
+  },
+  {
+    "stem": "The angles of a pentagon are x°, 2x°, (x + 60)°, (x + 10)°, (x -10)°. Find the value of x.",
+    "opt_texts": [
+      "40",
+      "80",
+      "60",
+      "75"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Sum of ∠s in a pentagon = (n - 2)180 = 540° x° + 2x° + x° + 60° + x° + 10° + x° - 10° = 540° 6x° + 60° = 540°; x = 80°",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23109"
+  },
+  {
+    "stem": "In a given regular polygon, the ratio of the exterior angle to the interior angles is 1:3. How many side has the polygon?",
+    "opt_texts": [
+      "8",
+      "40",
+      "5",
+      "6"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23112"
+  },
+  {
+    "stem": "Find the area of an equivalent triangle of side 16cm",
+    "opt_texts": [
+      "64√3cm^2",
+      "72√3cm^2",
+      "96cm^2",
+      "128√3cm^2"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23115"
+  },
+  {
+    "stem": "Convert 77 to a number in base two",
+    "opt_texts": [
+      "1001 101",
+      "111001",
+      "100110",
+      "10101"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23142"
+  },
+  {
+    "stem": "A bricklayer measured the length of a wall and obtained 4.10m. If the actual length of the wall is 4.25m, find his percentage error.",
+    "opt_texts": [
+      "3 27/41%",
+      "15%",
+      "3 9/17%",
+      "35 5/17%"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Error = 4.25 - 4.10 = 0.15",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23143"
+  },
+  {
+    "stem": "Factorize the expression 2y^2 + xy - 3x^2",
+    "opt_texts": [
+      "2y (y + x) - 3x^2",
+      "(2y - x)(2y + x)",
+      "(3x - 2y(x - y)",
+      "(2y + 3x)(y - x)"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "2y^2 + xy - 3x^2",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23147"
+  },
+  {
+    "stem": "Solve the equation (m)/(3) + (1)/(2) = (3)/(4) + (m)/(4)",
+    "opt_texts": [
+      "-3",
+      "-2",
+      "3",
+      "2"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "(m)/(3) + (1)/(2) = (3)/(4) + (m)/(4)",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23151"
+  },
+  {
+    "stem": "The angle of a sector of a circle of radius 8cm is 240°. This sector is bent to form a cone. Find the radius of the base of the cone.",
+    "opt_texts": [
+      "15/3cm",
+      "16/5cm",
+      "8/3cm",
+      "16/3cm"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "L = θ/360 x 2πR = 240/360 x 2 x 22/7 x 8/1 ... (1)",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23152"
+  },
+  {
+    "stem": "The curved surface area of a cylindrical tin is 704cm^2. Calculate the height when the radius is 8cm. [Take π = 22/7]",
+    "opt_texts": [
+      "3.5cm",
+      "14cm",
+      "7cm",
+      "28cm"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Curved surface area of a cylindrical tin = 2π rh",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23153"
+  },
+  {
+    "stem": "The volume of a cone of height 9cm is 1848cm^3. Find its radius. [Take π = 22/7]",
+    "opt_texts": [
+      "7cm",
+      "28cm",
+      "14cm",
+      "98cm"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "1/3 πr^2 x 9 = 1848 3 x πr2 = 1848 r2 = 1848/3 x 7/22 r = 14",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23154"
+  },
+  {
+    "stem": "The area of a parallelogram is 513cm^2 and the height is 19cm. Calculate the base.",
+    "opt_texts": [
+      "13.5cm",
+      "27cm",
+      "25cm",
+      "54cm"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Area of parallelogram = base × height.",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23155"
+  },
+  {
+    "stem": "A regular polygon has each of its exterior angles as 18^o. How many sides has the polygon",
+    "opt_texts": [
+      "10",
+      "20",
+      "11",
+      "12"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23165"
+  },
+  {
+    "stem": "Sin 60° has the same value as I. Sin 120° II. cos 240° III. -sin 150° IV. cos 210° V. sin 240°",
+    "opt_texts": [
+      "II only",
+      "IV only",
+      "I only",
+      "III only"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23167"
+  },
+  {
+    "stem": "The value of tan 315°",
+    "opt_texts": [
+      "1",
+      "√2/2",
+      "o",
+      "-1"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "tan 315° = - tan (360 - 315) = - tan 45",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23169"
+  },
+  {
+    "stem": "Town P is on bearing 315^o from town Q while town R is south of town P and west of town Q. lf town R is 60km away from Q, how far is R from P?",
+    "opt_texts": [
+      "30km",
+      "42km",
+      "60km",
+      "45km"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23171"
+  },
+  {
+    "stem": "A ladder leans against a vertical wall at an angle 60° to the wall, if the foot of the ladder is 5 metres away from the wall, calculate the length of the ladder.",
+    "opt_texts": [
+      "(5√3)/(3)m",
+      "5m",
+      "(10√3)/(3)m",
+      "5√3m"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "The ladder makes 60° inclination with the wall and its foot is 5m away from the wall.",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23172"
+  },
+  {
+    "stem": "A cliff on the bank of a river is 300 metres high. if the angle of depression of a point on the opposite side of the river is 60° find the width of the river.",
+    "opt_texts": [
+      "100m",
+      "75√3m",
+      "100√3m",
+      "200√3m"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23173"
+  },
+  {
+    "stem": "Points X and Y are respectively 12m North and 5m east of point Z. Calculate XY",
+    "opt_texts": [
+      "7m",
+      "12m",
+      "17m",
+      "13m"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Using pythagora's theorem:",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23174"
+  },
+  {
+    "stem": "Find the median of the following set of scores: 65, 72, 55, 48, 78",
+    "opt_texts": [
+      "55",
+      "60",
+      "65",
+      "63.5"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23175"
+  },
+  {
+    "stem": "The data below shows the frequency distribution of marks scored by a group of students in a class test. What is the modal score",
+    "opt_texts": [
+      "4",
+      "2",
+      "3",
+      "5"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23177"
+  },
+  {
+    "stem": "A number is chosen at random from the set (1 ,2,3 ....,9, 10). What is the probability that the number is greater than or equal to 7?",
+    "opt_texts": [
+      "2/5",
+      "1/10",
+      "3/10",
+      "3/5"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23181"
+  },
+  {
+    "stem": "What is the probability of throwing a number greater than 2 with a single fair die",
+    "opt_texts": [
+      "1/6",
+      "2/3",
+      "1/3",
+      "1/2"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "If a die is rolled once, the probability of getting a number greater than 2 is (2)/(3) .",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23182"
+  },
+  {
+    "stem": "A fair die is rolled once. What is the probability of obtaining 4 or 6?",
+    "opt_texts": [
+      "1/12",
+      "1/6",
+      "1/3",
+      "1/2"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23183"
+  },
+  {
+    "stem": "Three balls are drawn one after the other with replacement, from a bag containing 5 red, 9white and 4 blue identical balls, What is the probability that they are one red, one white and one blue?",
+    "opt_texts": [
+      "5/102",
+      "5/136",
+      "5/204",
+      "5/162"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23184"
+  },
+  {
+    "stem": "The data below shows the number of worker? employed in the various sections of a construction company in Lagos. Carpenters 24 Labourers 27 Plumbers 12 Plasterers 15 Painters 9 Messengers 3 Bricklayers 18 If one of the workers is absent on a certain day, what is the probability that he is a bricklayer?",
+    "opt_texts": [
+      "1/12",
+      "1/6",
+      "1/9",
+      "2/9"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23185"
+  },
+  {
+    "stem": "The data below shows the number of worker? employed in the various sections of a construction company in Lagos. Carpenters 24 Labourers 27 Plumbers 12 Plasterers 15 Painters 9 Messengers 3 Bricklayers 18 If a worker is retrenched, what is the probability that he is a plumber or plasterer.",
+    "opt_texts": [
+      "1/27",
+      "1/4",
+      "1/9",
+      "5/36"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23186"
+  },
+  {
+    "stem": "Simplify: (3)/(4) ÷ 1(1)/(4) × (1(1)/(2) - (2)/(3))",
+    "opt_texts": [
+      "7/30",
+      "^1/2",
+      "7/24",
+      "9/25"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "(3)/(4) ÷ 1(1)/(4) × (1(1)/(2) - (2)/(3))",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23188"
+  },
+  {
+    "stem": "Solve the inequality: 3m + 3 > 9",
+    "opt_texts": [
+      "m > 3",
+      "m>4",
+      "m > 2",
+      "m>6"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "3m + 3 > 9",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23189"
+  },
+  {
+    "stem": "Convert 8910 to a number in base two.",
+    "opt_texts": [
+      "1101001",
+      "1001101",
+      "1011001",
+      "101101"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "8910",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23190"
+  },
+  {
+    "stem": "A stick of length 1.75m was measured by a boy as 1.80m. Find the percentage error in his measurement",
+    "opt_texts": [
+      "2^7/9%",
+      "5%",
+      "2^6/7%",
+      "27^7/9%"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "% error = (error value)/(true value) x 100%",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23191"
+  },
+  {
+    "stem": "Factorize the expression 2s^2 - 3st - 2t^2.",
+    "opt_texts": [
+      "(2s - t)(s + 2t)",
+      "(2s + t)(s - 2t)",
+      "(s + t)(2s - 1)",
+      "(2s + t)(s -t)"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "2s^2 - 3st - 2t^2",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23195"
+  },
+  {
+    "stem": "Factorize 2x^2 - 21x + 45",
+    "opt_texts": [
+      "(2x - 9)(x - 5)",
+      "(2x -15(x - 3)",
+      "(2x-15)(x + 3)",
+      "(2x +15)(x - 3)"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "2x^2 - 21x + 45",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23198"
+  },
+  {
+    "stem": "Solve the simultaneous equations y = 3x; 4y - 5x =14",
+    "opt_texts": [
+      ".-2,-6",
+      "2,6",
+      "2,-6",
+      "-2,6"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "y = 3x ... (i);",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23199"
+  },
+  {
+    "stem": "A sector of a circle of radius 9cm subtends angle 120° at the centre of the circle. Find the area of the sector to the nearest cm^2 [Take π = 22/7]",
+    "opt_texts": [
+      "75cm^2",
+      "85cm^2",
+      "84cm^2",
+      "86cm^2"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23200"
+  },
+  {
+    "stem": "Calculate the total surface area of a cone of height 12cm and base radius 5cm. [Take π = 22/7]",
+    "opt_texts": [
+      "180(5)/(7)cm^2",
+      "240(2)/(7)cm^2",
+      "282(6)/(7)cm^2",
+      "235(5)/(7)cm^2"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23201"
+  },
+  {
+    "stem": "A cone is 14cm deep and the base radius is 4(1)/(2)cm. Calculate the volume of water that is exactly half the volume of the cone.[Take π = (22)/(7)]",
+    "opt_texts": [
+      "49.5cm^3",
+      "99cm^3",
+      "297cm^3",
+      "148.5cm^3"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Volume of a cone = (1)/(3) π r^2 h",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23202"
+  },
+  {
+    "stem": "The area and a diagonal of a rhombus are 60 cm^2 and 12 cm respectively. Calculate the length of the other diagonal.",
+    "opt_texts": [
+      "5cm",
+      "6cm",
+      "10cm",
+      "12cm"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Area of rhombus = (pq)/(2)",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23203"
+  },
+  {
+    "stem": "The angle of a sector of a circle radius 10.5cm is 120°. Find the perimeter of the sector [Take π = 22/7]",
+    "opt_texts": [
+      "43cm",
+      "22cm",
+      "33.5cm",
+      "66cm"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23204"
+  },
+  {
+    "stem": "The sum of an interior angles of a regular polygon is 30 right angles. How many sides has the polygon?",
+    "opt_texts": [
+      "17 sides",
+      "34 sides",
+      "30 sides",
+      "26 sides"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Sum of interior angles in a polygon = (2n - 4) × 90°",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23206"
+  },
+  {
+    "stem": "Two chords PQ and RS of a circle when produced meet at K. If ∠KPS = 31^o and ∠PKR = 42^o, find ∠KQR",
+    "opt_texts": [
+      "11^o",
+      "107^o",
+      "73^o",
+      "138^o"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23209"
+  },
+  {
+    "stem": "State the fifth and seventh terms of the sequence -2, -3, -4(1)/(2), ...",
+    "opt_texts": [
+      "(8)/(81), (72)/(39)",
+      "(27)/(729), (718)/(39)",
+      "-(27)/(16), -(79)/(81)",
+      "-(81)/(8), -(729)/(32)"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "-2, -3, -4(1)/(2), ...",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23212"
+  },
+  {
+    "stem": "A plane tiles 90km on a bearing 030° and then flies 150km due east. How far east of the starting point is the plane?",
+    "opt_texts": [
+      "195km",
+      "120km",
+      "165km",
+      "(150 + 45√3)km"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23214"
+  },
+  {
+    "stem": "If sin x = cos 50^o, then x equals",
+    "opt_texts": [
+      "45^o",
+      "50^o",
+      "90^o",
+      "40^o"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23215"
+  },
+  {
+    "stem": "From a point on the edge of the sea, one ship is 24km away on a bearing S 50^oE and another ship is 7km away on a bearing S40^oW. How far apart are the ships?",
+    "opt_texts": [
+      "20km",
+      "25km",
+      "24km",
+      "31km"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23216"
+  },
+  {
+    "stem": "Given that tan x = 5/12, what is the value of sin x + cos x ?",
+    "opt_texts": [
+      "5/13",
+      "17/13",
+      "7/13",
+      "12/13"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23217"
+  },
+  {
+    "stem": "Cos 75^o has the same value as",
+    "opt_texts": [
+      "cos 115^o",
+      "cos 255^o",
+      "cos 285^o",
+      "-sin165^o"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23218"
+  },
+  {
+    "stem": "If sin x = 12/13, where 0° < x < 90°, find the value of 1 - cos^2x",
+    "opt_texts": [
+      "25/169",
+      "64/169",
+      "105/169",
+      "144/169"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23219"
+  },
+  {
+    "stem": "The angle of elevation of the top of a tower from a point on the horizontal ground, 40m away from the foot of the tower is 30o. Find the height of the tower.",
+    "opt_texts": [
+      "20m",
+      "40√3m / 3",
+      "20√3m",
+      "40√3m"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23220"
+  },
+  {
+    "stem": "Find the median of the following set of numbers: 28, 29, 39, 38, 33, 37, 26, 20, 15, 25",
+    "opt_texts": [
+      "33",
+      "28.5",
+      "29.5",
+      "29"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "15, 20, 25, 26, 28, 29, 33, 37, 38, 39",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23222"
+  },
+  {
+    "stem": "Find the median of the set of numbers 12, 15, 13, 14, 12, 12.",
+    "opt_texts": [
+      "12",
+      "12.5",
+      "13",
+      "13.5"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "12, 12, 12, 13, 14, 15",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23226"
+  },
+  {
+    "stem": "How many students scored less than 7 marks?",
+    "opt_texts": [
+      "9",
+      "18",
+      "21",
+      "15"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "= 2 + 4 + 3 + 6",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23229"
+  },
+  {
+    "stem": "What is the probability that an integer selected from the set of integers (20, 21, ...., 30) is a prime number?",
+    "opt_texts": [
+      "5/11",
+      "6/11",
+      "9/11",
+      "2/11"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": null,
+    "detail_url": "https://myschool.ng/classroom/mathematics/23230"
+  },
+  {
+    "stem": "A fair die is rolled once. What is the probability of obtaining a number less than 3?",
+    "opt_texts": [
+      "1/6",
+      "2/3",
+      "1/3",
+      "1/2"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Prob(less than 3) = (2)/(6)",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23231"
+  },
+  {
+    "stem": "What is the probability of having an even number in a single toss of a fair die?",
+    "opt_texts": [
+      "1/6",
+      "1/3",
+      "1/2",
+      "2/3"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Prob(even number in single toss) = (3)/(6)",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23232"
+  },
+  {
+    "stem": "What is the probability that a total sum of seven would appear in two tosses of a fair die?",
+    "opt_texts": [
+      "5/36",
+      "7/36",
+      "1/6",
+      "5/6"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "No of possible outcome = 36",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23233"
+  },
+  {
+    "stem": "Simplify: 2(1)/(3) ÷ 2(2)/(3) × 1(1)/(7)",
+    "opt_texts": [
+      "0",
+      "2",
+      "1",
+      "3"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "2(1)/(3) ÷ 2(2)/(3) × 1(1)/(7)",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23459"
+  },
+  {
+    "stem": "Which of the following is equal to (72)/(125)",
+    "opt_texts": [
+      "(2^4 × 3)/(5^3)",
+      "(2^3 × 3)/(5^3)",
+      "(2^4 × 3)/(5^5)",
+      "(2^3 × 3^2)/(5^3)"
+    ],
+    "correct_idx": 3,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "(72)/(125) = (8 × 9)/(5 × 5 × 5)",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23460"
+  },
+  {
+    "stem": "Express in (8.75)/(0.025) standard form",
+    "opt_texts": [
+      "3.5 x 10^-3",
+      "3.5 x 10^-2",
+      "3.5 x 10^2",
+      "3.5 x 10^1"
+    ],
+    "correct_idx": 2,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "(8.75)/(0.025)",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23461"
+  },
+  {
+    "stem": "simplify; 2log3 6 + log3 12 - log3 16",
+    "opt_texts": [
+      "2",
+      "3",
+      "2 - 2log32",
+      "3 - log32"
+    ],
+    "correct_idx": 1,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "2log3 6 + log3 12 - log3 16",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23468"
+  },
+  {
+    "stem": "A house bought for N100,000 was later auctioned for N80,000. Find the loss percent.",
+    "opt_texts": [
+      "20%",
+      "30%",
+      "40%",
+      "50%"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "Loss = N(100,000 - 80,000)",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23475"
+  },
+  {
+    "stem": "A string is 4.8m. A boy measured it to be 4.95m. Find the percentage error.",
+    "opt_texts": [
+      "3(1)/(8) %",
+      "(5)/(16) %",
+      "1(5)/(16) %",
+      "3(1)/(33) %"
+    ],
+    "correct_idx": 0,
+    "badge": "",
+    "exam_type": "waec",
+    "explanation": "4.95m - 4.8m = 0.15m",
+    "detail_url": "https://myschool.ng/classroom/mathematics/23480"
+  }
+]

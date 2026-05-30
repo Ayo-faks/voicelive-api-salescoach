@@ -1,0 +1,33 @@
+{
+  "bank": "government-ss-mcq-v1.json",
+  "backend": "azure-foundry",
+  "total_items": 441,
+  "processed_this_run": 436,
+  "skipped_already_verified": 5,
+  "status_counts": {
+    "machine_verified": 423,
+    "flagged_for_human": 13
+  },
+  "items_with_errors": 1,
+  "content_filtered": 1,
+  "key_disagreements": [
+    {
+      "item_id": "government-mcq-ss3-215",
+      "skill_id": "ss3.government.electoral_process.qualification",
+      "scraped_key": "c",
+      "proposed_correct_option_id": null,
+      "agreement": 0
+    }
+  ],
+  "item_errors": [
+    {
+      "item_id": "government-mcq-ss3-215",
+      "skill_id": "ss3.government.electoral_process.qualification",
+      "errors": {
+        "reviewer_a": "content_filter",
+        "reviewer_b": "content_filter",
+        "reviewer_c": "content_filter"
+      }
+    }
+  ]
+}

@@ -1,0 +1,2729 @@
+{
+  "diagnostic_id": "ss3-history-v1-flagged",
+  "tenant_id": "pilot-tenant",
+  "title": "SS3 History — Flagged for human review",
+  "subject": "history",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "scrape:history-ssce-derived",
+      "source_id": "history-ss-mcq-v1",
+      "rule_id": "served_promote_v1",
+      "recency": null,
+      "confidence": 1.0,
+      "evidence_count": 34,
+      "metadata": {
+        "review_state": "pending_two_reviewer_signoff",
+        "subject_lead_approved": false,
+        "safeguarding_reviewed": false,
+        "note": "Derived SSCE-style questions; ensemble machine-verified only; below the human two-reviewer gate; staging exercise only; rights for child-facing reuse not cleared."
+      }
+    }
+  ],
+  "skills": [
+    {
+      "skill_id": "ss3.history.civil_war.course",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Civil War: Course",
+      "description": "SS3 History — civil war (course)."
+    },
+    {
+      "skill_id": "ss3.history.civil_war.gowon",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Civil War: Gowon",
+      "description": "SS3 History — civil war (gowon)."
+    },
+    {
+      "skill_id": "ss3.history.civil_war.states_creation",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Civil War: States Creation",
+      "description": "SS3 History — civil war (states creation)."
+    },
+    {
+      "skill_id": "ss3.history.colonial_rule.colonial_resistance",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Colonial Rule: Colonial Resistance",
+      "description": "SS3 History — colonial rule (colonial resistance)."
+    },
+    {
+      "skill_id": "ss3.history.early_nigerian_states.benin_kingdom",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Early Nigerian States: Benin Kingdom",
+      "description": "SS3 History — early nigerian states (benin kingdom)."
+    },
+    {
+      "skill_id": "ss3.history.early_nigerian_states.kanem_bornu",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Early Nigerian States: Kanem Bornu",
+      "description": "SS3 History — early nigerian states (kanem bornu)."
+    },
+    {
+      "skill_id": "ss3.history.early_nigerian_states.nupe",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Early Nigerian States: Nupe",
+      "description": "SS3 History — early nigerian states (nupe)."
+    },
+    {
+      "skill_id": "ss3.history.early_nigerian_states.oyo_empire",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Early Nigerian States: Oyo Empire",
+      "description": "SS3 History — early nigerian states (oyo empire)."
+    },
+    {
+      "skill_id": "ss3.history.independence.awolowo_premier",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Independence: Awolowo Premier",
+      "description": "SS3 History — independence (awolowo premier)."
+    },
+    {
+      "skill_id": "ss3.history.independence.constitutional_conferences",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Independence: Constitutional Conferences",
+      "description": "SS3 History — independence (constitutional conferences)."
+    },
+    {
+      "skill_id": "ss3.history.independence.flag_anthem",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Independence: Flag Anthem",
+      "description": "SS3 History — independence (flag anthem)."
+    },
+    {
+      "skill_id": "ss3.history.independence.national_anthem",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Independence: National Anthem",
+      "description": "SS3 History — independence (national anthem)."
+    },
+    {
+      "skill_id": "ss3.history.nationalism.achievements",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Nationalism: Achievements",
+      "description": "SS3 History — nationalism (achievements)."
+    },
+    {
+      "skill_id": "ss3.history.nationalism.ghana_influence",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Nationalism: Ghana Influence",
+      "description": "SS3 History — nationalism (ghana influence)."
+    },
+    {
+      "skill_id": "ss3.history.nationalism.herbert_macaulay",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Nationalism: Herbert Macaulay",
+      "description": "SS3 History — nationalism (herbert macaulay)."
+    },
+    {
+      "skill_id": "ss3.history.nationalism.nigerian_youth_movement",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Nationalism: Nigerian Youth Movement",
+      "description": "SS3 History — nationalism (nigerian youth movement)."
+    },
+    {
+      "skill_id": "ss3.history.nationalism.nnamdi_azikiwe",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Nationalism: Nnamdi Azikiwe",
+      "description": "SS3 History — nationalism (nnamdi azikiwe)."
+    },
+    {
+      "skill_id": "ss3.history.nationalism.political_parties",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Nationalism: Political Parties",
+      "description": "SS3 History — nationalism (political parties)."
+    },
+    {
+      "skill_id": "ss3.history.post_independence.1983_coup",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Post Independence: 1983 Coup",
+      "description": "SS3 History — post independence (1983 coup)."
+    },
+    {
+      "skill_id": "ss3.history.post_independence.abacha",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Post Independence: Abacha",
+      "description": "SS3 History — post independence (abacha)."
+    },
+    {
+      "skill_id": "ss3.history.post_independence.abubakar",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Post Independence: Abubakar",
+      "description": "SS3 History — post independence (abubakar)."
+    },
+    {
+      "skill_id": "ss3.history.post_independence.babangida",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Post Independence: Babangida",
+      "description": "SS3 History — post independence (babangida)."
+    },
+    {
+      "skill_id": "ss3.history.post_independence.obasanjo_1979",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Post Independence: Obasanjo 1979",
+      "description": "SS3 History — post independence (obasanjo 1979)."
+    },
+    {
+      "skill_id": "ss3.history.post_independence.second_republic",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Post Independence: Second Republic",
+      "description": "SS3 History — post independence (second republic)."
+    },
+    {
+      "skill_id": "ss3.history.post_independence.state_creation_history",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Post Independence: State Creation History",
+      "description": "SS3 History — post independence (state creation history)."
+    },
+    {
+      "skill_id": "ss3.history.trade.legitimate_trade",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "Trade: Legitimate Trade",
+      "description": "SS3 History — trade (legitimate trade)."
+    },
+    {
+      "skill_id": "ss3.history.west_africa.ghana_empire",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "West Africa: Ghana Empire",
+      "description": "SS3 History — west africa (ghana empire)."
+    },
+    {
+      "skill_id": "ss3.history.west_africa.liberia",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "West Africa: Liberia",
+      "description": "SS3 History — west africa (liberia)."
+    },
+    {
+      "skill_id": "ss3.history.west_africa.nkrumah",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "West Africa: Nkrumah",
+      "description": "SS3 History — west africa (nkrumah)."
+    },
+    {
+      "skill_id": "ss3.history.west_africa.sierra_leone",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "West Africa: Sierra Leone",
+      "description": "SS3 History — west africa (sierra leone)."
+    },
+    {
+      "skill_id": "ss3.history.west_africa.sokoto_caliphate",
+      "standard_id": "ss3.history.waec-neco",
+      "name": "West Africa: Sokoto Caliphate",
+      "description": "SS3 History — west africa (sokoto caliphate)."
+    }
+  ],
+  "items": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-002",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Sundiata Keita"
+              },
+              {
+                "letter": "B",
+                "text": "Mai Idris Alooma"
+              },
+              {
+                "letter": "C",
+                "text": "Mansa Musa"
+              },
+              {
+                "letter": "D",
+                "text": "Sunni Ali"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-002",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "b",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-002",
+      "skill_id": "ss3.history.early_nigerian_states.kanem_bornu",
+      "prompt": "Which ruler is credited with strengthening Islam and central authority in Kanem-Bornu in the 16th century?\n\nA) Sundiata Keita\nB) Mai Idris Alooma\nC) Mansa Musa\nD) Sunni Ali",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "B) Mai Idris Alooma"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-010",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Ogboni"
+              },
+              {
+                "letter": "B",
+                "text": "Oyo Mesi"
+              },
+              {
+                "letter": "C",
+                "text": "Aros"
+              },
+              {
+                "letter": "D",
+                "text": "Nri"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-010",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "b",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-010",
+      "skill_id": "ss3.history.early_nigerian_states.oyo_empire",
+      "prompt": "The council of kingmakers that checked the power of the Alaafin of Oyo was the:\n\nA) Ogboni\nB) Oyo Mesi\nC) Aros\nD) Nri",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "B) Oyo Mesi"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-013",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Internal disputes and the Fulani jihad"
+              },
+              {
+                "letter": "B",
+                "text": "European colonisation of Lagos"
+              },
+              {
+                "letter": "C",
+                "text": "The Atlantic charter"
+              },
+              {
+                "letter": "D",
+                "text": "The Berlin Conference"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-013",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-013",
+      "skill_id": "ss3.history.early_nigerian_states.oyo_empire",
+      "prompt": "A major cause of the decline of the Oyo empire in the 19th century was:\n\nA) Internal disputes and the Fulani jihad\nB) European colonisation of Lagos\nC) The Atlantic charter\nD) The Berlin Conference",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "A) Internal disputes and the Fulani jihad"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-016",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Oba Ovonramwen"
+              },
+              {
+                "letter": "B",
+                "text": "Jaja of Opobo"
+              },
+              {
+                "letter": "C",
+                "text": "Nana Olomu"
+              },
+              {
+                "letter": "D",
+                "text": "Oba Ewuare the Great"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-016",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": "d",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-016",
+      "skill_id": "ss3.history.early_nigerian_states.benin_kingdom",
+      "prompt": "Benin reached its greatest extent and power under which 15th-century ruler?\n\nA) Oba Ovonramwen\nB) Jaja of Opobo\nC) Nana Olomu\nD) Oba Ewuare the Great",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "D) Oba Ewuare the Great"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-031",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Crude oil"
+              },
+              {
+                "letter": "B",
+                "text": "Cocoa"
+              },
+              {
+                "letter": "C",
+                "text": "Cloth and beads"
+              },
+              {
+                "letter": "D",
+                "text": "Diamonds"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-031",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "c",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-031",
+      "skill_id": "ss3.history.early_nigerian_states.benin_kingdom",
+      "prompt": "Trade between Benin and the early Portuguese included pepper, ivory and:\n\nA) Crude oil\nB) Cocoa\nC) Cloth and beads\nD) Diamonds",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "C) Cloth and beads"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-035",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Nile and Congo"
+              },
+              {
+                "letter": "B",
+                "text": "Volta and Senegal"
+              },
+              {
+                "letter": "C",
+                "text": "Niger and Benue"
+              },
+              {
+                "letter": "D",
+                "text": "Gambia and Casamance"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-035",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "c",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-035",
+      "skill_id": "ss3.history.early_nigerian_states.nupe",
+      "prompt": "The Nupe kingdom was located mainly around the confluence area of which rivers?\n\nA) Nile and Congo\nB) Volta and Senegal\nC) Niger and Benue\nD) Gambia and Casamance",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "C) Niger and Benue"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-062",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Mansa Musa"
+              },
+              {
+                "letter": "B",
+                "text": "Jaja of Opobo"
+              },
+              {
+                "letter": "C",
+                "text": "Sundiata"
+              },
+              {
+                "letter": "D",
+                "text": "Idris Alooma"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-062",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "b",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-062",
+      "skill_id": "ss3.history.trade.legitimate_trade",
+      "prompt": "A West African trader who became wealthy and powerful in the palm-oil trade was:\n\nA) Mansa Musa\nB) Jaja of Opobo\nC) Sundiata\nD) Idris Alooma",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "B) Jaja of Opobo"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-109",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Sokoto Caliphate and Benin"
+              },
+              {
+                "letter": "B",
+                "text": "United Nations"
+              },
+              {
+                "letter": "C",
+                "text": "League of Nations"
+              },
+              {
+                "letter": "D",
+                "text": "Royal Niger Company"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-109",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-109",
+      "skill_id": "ss3.history.colonial_rule.colonial_resistance",
+      "prompt": "Many Nigerian peoples resisted colonial conquest; an example is the resistance of the:\n\nA) Sokoto Caliphate and Benin\nB) United Nations\nC) League of Nations\nD) Royal Niger Company",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "A) Sokoto Caliphate and Benin"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-116",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Action Group"
+              },
+              {
+                "letter": "B",
+                "text": "NCNC"
+              },
+              {
+                "letter": "C",
+                "text": "NPC"
+              },
+              {
+                "letter": "D",
+                "text": "Nigerian National Democratic Party"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-116",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": null,
+              "reviewer_c": "d"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-116",
+      "skill_id": "ss3.history.nationalism.herbert_macaulay",
+      "prompt": "Herbert Macaulay founded which early Nigerian political party in 1923?\n\nA) Action Group\nB) NCNC\nC) NPC\nD) Nigerian National Democratic Party",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "D) Nigerian National Democratic Party"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-118",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Prime Minister of Nigeria"
+              },
+              {
+                "letter": "B",
+                "text": "President of Nigeria"
+              },
+              {
+                "letter": "C",
+                "text": "Sultan of Sokoto"
+              },
+              {
+                "letter": "D",
+                "text": "Sardauna of the North"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-118",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "b",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-118",
+      "skill_id": "ss3.history.nationalism.nnamdi_azikiwe",
+      "prompt": "Nnamdi Azikiwe became the first indigenous Governor-General and later first:\n\nA) Prime Minister of Nigeria\nB) President of Nigeria\nC) Sultan of Sokoto\nD) Sardauna of the North",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "B) President of Nigeria"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-131",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Ahmadu Bello"
+              },
+              {
+                "letter": "B",
+                "text": "Tafawa Balewa"
+              },
+              {
+                "letter": "C",
+                "text": "Anthony Enahoro"
+              },
+              {
+                "letter": "D",
+                "text": "Yakubu Gowon"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-131",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "c",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-131",
+      "skill_id": "ss3.history.nationalism.achievements",
+      "prompt": "The motion for Nigeria's self-government in 1953 was moved by:\n\nA) Ahmadu Bello\nB) Tafawa Balewa\nC) Anthony Enahoro\nD) Yakubu Gowon",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "C) Anthony Enahoro"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-134",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Kenya"
+              },
+              {
+                "letter": "B",
+                "text": "Ghana"
+              },
+              {
+                "letter": "C",
+                "text": "Tanzania"
+              },
+              {
+                "letter": "D",
+                "text": "Sierra Leone"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-134",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "b",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-134",
+      "skill_id": "ss3.history.nationalism.ghana_influence",
+      "prompt": "The first African colony south of the Sahara to gain independence (1957), inspiring Nigeria, was:\n\nA) Kenya\nB) Ghana\nC) Tanzania\nD) Sierra Leone",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "B) Ghana"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-138",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Colonies"
+              },
+              {
+                "letter": "B",
+                "text": "Cameroons"
+              },
+              {
+                "letter": "C",
+                "text": "Caliphate"
+              },
+              {
+                "letter": "D",
+                "text": "Coast"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-138",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "b",
+              "reviewer_c": "b"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": false,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-138",
+      "skill_id": "ss3.history.nationalism.political_parties",
+      "prompt": "The acronym NCNC originally stood for the National Council of Nigeria and the:\n\nA) Colonies\nB) Cameroons\nC) Caliphate\nD) Coast",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "B) Cameroons"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-140",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Royal Niger Company"
+              },
+              {
+                "letter": "B",
+                "text": "League of Nations"
+              },
+              {
+                "letter": "C",
+                "text": "Oyo Mesi"
+              },
+              {
+                "letter": "D",
+                "text": "Nigerian Youth Movement"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-140",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": null,
+              "reviewer_c": "d"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-140",
+      "skill_id": "ss3.history.nationalism.nigerian_youth_movement",
+      "prompt": "An important nationalist organisation of the 1930s that united different ethnic groups was the:\n\nA) Royal Niger Company\nB) League of Nations\nC) Oyo Mesi\nD) Nigerian Youth Movement",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "D) Nigerian Youth Movement"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-153",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "London and Lagos"
+              },
+              {
+                "letter": "B",
+                "text": "Berlin"
+              },
+              {
+                "letter": "C",
+                "text": "Paris"
+              },
+              {
+                "letter": "D",
+                "text": "Geneva"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-153",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-153",
+      "skill_id": "ss3.history.independence.constitutional_conferences",
+      "prompt": "Nigeria's independence constitution was finalised at conferences held mainly in:\n\nA) London and Lagos\nB) Berlin\nC) Paris\nD) Geneva",
+      "item_type": "mcq_single",
+      "difficulty": -3.0,
+      "correct_answer": "A) London and Lagos"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-172",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Ahmadu Bello"
+              },
+              {
+                "letter": "B",
+                "text": "Michael Okpara"
+              },
+              {
+                "letter": "C",
+                "text": "Tafawa Balewa"
+              },
+              {
+                "letter": "D",
+                "text": "Obafemi Awolowo"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-172",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": "d",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-172",
+      "skill_id": "ss3.history.independence.awolowo_premier",
+      "prompt": "The premier of the Western Region in the early independence years was:\n\nA) Ahmadu Bello\nB) Michael Okpara\nC) Tafawa Balewa\nD) Obafemi Awolowo",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "D) Obafemi Awolowo"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-176",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Peace"
+              },
+              {
+                "letter": "B",
+                "text": "Oil"
+              },
+              {
+                "letter": "C",
+                "text": "The military"
+              },
+              {
+                "letter": "D",
+                "text": "Agriculture and natural wealth"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-176",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": "d",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-176",
+      "skill_id": "ss3.history.independence.flag_anthem",
+      "prompt": "The two green bands of the Nigerian flag stand for:\n\nA) Peace\nB) Oil\nC) The military\nD) Agriculture and natural wealth",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "D) Agriculture and natural wealth"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-183",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Royal charter"
+              },
+              {
+                "letter": "B",
+                "text": "Berlin Act"
+              },
+              {
+                "letter": "C",
+                "text": "National anthem"
+              },
+              {
+                "letter": "D",
+                "text": "Atlantic Charter"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-183",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "c",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-183",
+      "skill_id": "ss3.history.independence.national_anthem",
+      "prompt": "At independence in 1960, the symbol adopted to represent the new nation alongside the flag was the:\n\nA) Royal charter\nB) Berlin Act\nC) National anthem\nD) Atlantic Charter",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "C) National anthem"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-187",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Nnamdi Azikiwe"
+              },
+              {
+                "letter": "B",
+                "text": "Tafawa Balewa"
+              },
+              {
+                "letter": "C",
+                "text": "Yakubu Gowon"
+              },
+              {
+                "letter": "D",
+                "text": "Obafemi Awolowo"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-187",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-187",
+      "skill_id": "ss3.history.civil_war.gowon",
+      "prompt": "The Federal Head of State during most of the civil war was:\n\nA) Nnamdi Azikiwe\nB) Tafawa Balewa\nC) Yakubu Gowon\nD) Obafemi Awolowo",
+      "item_type": "mcq_single",
+      "difficulty": -3.0,
+      "correct_answer": "C) Yakubu Gowon"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-192",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Three states"
+              },
+              {
+                "letter": "B",
+                "text": "Nineteen states"
+              },
+              {
+                "letter": "C",
+                "text": "Thirty-six states"
+              },
+              {
+                "letter": "D",
+                "text": "Twelve states"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-192",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": "d",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-192",
+      "skill_id": "ss3.history.civil_war.states_creation",
+      "prompt": "Just before the war, Gowon divided Nigeria from four regions into:\n\nA) Three states\nB) Nineteen states\nC) Thirty-six states\nD) Twelve states",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "D) Twelve states"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-209",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Benin City"
+              },
+              {
+                "letter": "B",
+                "text": "Kano"
+              },
+              {
+                "letter": "C",
+                "text": "Sokoto"
+              },
+              {
+                "letter": "D",
+                "text": "Maiduguri"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-209",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-209",
+      "skill_id": "ss3.history.civil_war.course",
+      "prompt": "Early in the war, federal forces recaptured the town that Biafran troops had advanced toward in the Mid-West, namely:\n\nA) Benin City\nB) Kano\nC) Sokoto\nD) Maiduguri",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "A) Benin City"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-213",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Four regions"
+              },
+              {
+                "letter": "B",
+                "text": "Thirty-six states"
+              },
+              {
+                "letter": "C",
+                "text": "Nineteen states"
+              },
+              {
+                "letter": "D",
+                "text": "Three provinces"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-213",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-213",
+      "skill_id": "ss3.history.civil_war.states_creation",
+      "prompt": "The creation of twelve states in 1967 replaced the previous structure of:\n\nA) Four regions\nB) Thirty-six states\nC) Nineteen states\nD) Three provinces",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "A) Four regions"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-221",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Olusegun Obasanjo"
+              },
+              {
+                "letter": "B",
+                "text": "Murtala Mohammed"
+              },
+              {
+                "letter": "C",
+                "text": "Ibrahim Babangida"
+              },
+              {
+                "letter": "D",
+                "text": "Sani Abacha"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-221",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-221",
+      "skill_id": "ss3.history.post_independence.obasanjo_1979",
+      "prompt": "The military handed over power to a civilian government in 1979 under:\n\nA) Olusegun Obasanjo\nB) Murtala Mohammed\nC) Ibrahim Babangida\nD) Sani Abacha",
+      "item_type": "mcq_single",
+      "difficulty": -3.0,
+      "correct_answer": "A) Olusegun Obasanjo"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-222",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "First Republic"
+              },
+              {
+                "letter": "B",
+                "text": "Second Republic"
+              },
+              {
+                "letter": "C",
+                "text": "Fourth Republic"
+              },
+              {
+                "letter": "D",
+                "text": "Interim government"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-222",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "b",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-222",
+      "skill_id": "ss3.history.post_independence.second_republic",
+      "prompt": "The civilian government of 1979 to 1983 is known as the:\n\nA) First Republic\nB) Second Republic\nC) Fourth Republic\nD) Interim government",
+      "item_type": "mcq_single",
+      "difficulty": -1.5,
+      "correct_answer": "B) Second Republic"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-225",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Muhammadu Buhari"
+              },
+              {
+                "letter": "B",
+                "text": "Shehu Shagari"
+              },
+              {
+                "letter": "C",
+                "text": "Ibrahim Babangida"
+              },
+              {
+                "letter": "D",
+                "text": "Sani Abacha"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-225",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-225",
+      "skill_id": "ss3.history.post_independence.1983_coup",
+      "prompt": "The Second Republic was overthrown at the end of 1983 by a coup that brought in:\n\nA) Muhammadu Buhari\nB) Shehu Shagari\nC) Ibrahim Babangida\nD) Sani Abacha",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "A) Muhammadu Buhari"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-226",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Yakubu Gowon"
+              },
+              {
+                "letter": "B",
+                "text": "Ibrahim Babangida"
+              },
+              {
+                "letter": "C",
+                "text": "Murtala Mohammed"
+              },
+              {
+                "letter": "D",
+                "text": "Aguiyi-Ironsi"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-226",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "b",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-226",
+      "skill_id": "ss3.history.post_independence.babangida",
+      "prompt": "The military ruler who styled himself 'President' and annulled the 1993 election was:\n\nA) Yakubu Gowon\nB) Ibrahim Babangida\nC) Murtala Mohammed\nD) Aguiyi-Ironsi",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "B) Ibrahim Babangida"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-229",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Sani Abacha"
+              },
+              {
+                "letter": "B",
+                "text": "Ibrahim Babangida"
+              },
+              {
+                "letter": "C",
+                "text": "Olusegun Obasanjo"
+              },
+              {
+                "letter": "D",
+                "text": "Shehu Shagari"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-229",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-229",
+      "skill_id": "ss3.history.post_independence.abacha",
+      "prompt": "The military Head of State who ruled Nigeria from 1993 to 1998 was:\n\nA) Sani Abacha\nB) Ibrahim Babangida\nC) Olusegun Obasanjo\nD) Shehu Shagari",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "A) Sani Abacha"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-233",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "36"
+              },
+              {
+                "letter": "B",
+                "text": "12"
+              },
+              {
+                "letter": "C",
+                "text": "19"
+              },
+              {
+                "letter": "D",
+                "text": "30"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-233",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-233",
+      "skill_id": "ss3.history.post_independence.state_creation_history",
+      "prompt": "Nigeria today is made up of how many states plus the Federal Capital Territory?\n\nA) 36\nB) 12\nC) 19\nD) 30",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "A) 36"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-245",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Abdulsalami Abubakar"
+              },
+              {
+                "letter": "B",
+                "text": "Sani Abacha"
+              },
+              {
+                "letter": "C",
+                "text": "Ibrahim Babangida"
+              },
+              {
+                "letter": "D",
+                "text": "Yakubu Gowon"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-245",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": null,
+              "reviewer_c": "a"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-245",
+      "skill_id": "ss3.history.post_independence.abubakar",
+      "prompt": "The military ruler who organised the handover to civilians in 1999 was:\n\nA) Abdulsalami Abubakar\nB) Sani Abacha\nC) Ibrahim Babangida\nD) Yakubu Gowon",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "A) Abdulsalami Abubakar"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-255",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Mali"
+              },
+              {
+                "letter": "B",
+                "text": "Mauritania"
+              },
+              {
+                "letter": "C",
+                "text": "Ghana"
+              },
+              {
+                "letter": "D",
+                "text": "Senegal"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-255",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "c",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-255",
+      "skill_id": "ss3.history.west_africa.ghana_empire",
+      "prompt": "Ancient Ghana was located in the western Sudan, not in the area of modern:\n\nA) Mali\nB) Mauritania\nC) Ghana\nD) Senegal",
+      "item_type": "mcq_single",
+      "difficulty": -3.0,
+      "correct_answer": "C) Ghana"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-269",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "One of the few states never formally colonised by Europeans"
+              },
+              {
+                "letter": "B",
+                "text": "The first British colony"
+              },
+              {
+                "letter": "C",
+                "text": "A Portuguese trading fort"
+              },
+              {
+                "letter": "D",
+                "text": "A French protectorate"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-269",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-269",
+      "skill_id": "ss3.history.west_africa.liberia",
+      "prompt": "Liberia is notable in African history for being:\n\nA) One of the few states never formally colonised by Europeans\nB) The first British colony\nC) A Portuguese trading fort\nD) A French protectorate",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "A) One of the few states never formally colonised by Europeans"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-271",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Nnamdi Azikiwe"
+              },
+              {
+                "letter": "B",
+                "text": "Leopold Senghor"
+              },
+              {
+                "letter": "C",
+                "text": "Kwame Nkrumah"
+              },
+              {
+                "letter": "D",
+                "text": "Sekou Toure"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-271",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "c",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-271",
+      "skill_id": "ss3.history.west_africa.nkrumah",
+      "prompt": "The first Prime Minister and President of independent Ghana was:\n\nA) Nnamdi Azikiwe\nB) Leopold Senghor\nC) Kwame Nkrumah\nD) Sekou Toure",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "C) Kwame Nkrumah"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-281",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Gwandu"
+              },
+              {
+                "letter": "B",
+                "text": "Lagos"
+              },
+              {
+                "letter": "C",
+                "text": "Accra"
+              },
+              {
+                "letter": "D",
+                "text": "Timbuktu"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-281",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-281",
+      "skill_id": "ss3.history.west_africa.sokoto_caliphate",
+      "prompt": "After the jihad, the two main centres of authority in the Sokoto Caliphate were Sokoto and:\n\nA) Gwandu\nB) Lagos\nC) Accra\nD) Timbuktu",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "A) Gwandu"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:history-ssce-derived",
+          "source_id": "history-mcq-ss3-288",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Royal Niger Company"
+              },
+              {
+                "letter": "B",
+                "text": "League of Nations"
+              },
+              {
+                "letter": "C",
+                "text": "Sokoto Caliphate"
+              },
+              {
+                "letter": "D",
+                "text": "Recaptives and missionaries"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "history-mcq-ss3-288",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": "d",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "history-mcq-ss3-288",
+      "skill_id": "ss3.history.west_africa.sierra_leone",
+      "prompt": "Freetown became an important centre from which Christianity and Western education spread, partly through the work of the:\n\nA) Royal Niger Company\nB) League of Nations\nC) Sokoto Caliphate\nD) Recaptives and missionaries",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "D) Recaptives and missionaries"
+    }
+  ]
+}

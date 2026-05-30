@@ -49,10 +49,20 @@ def test_loader_can_be_forced_for_tests() -> None:
     assert set(bank.year_groups) == {"JSS3", "SS3"}
 
 
-def test_promotable_items_is_empty_while_review_pending() -> None:
+def test_promotable_items_served_when_owner_approved() -> None:
     bank = load_maths_v1_bank(require_flag=False)
-    assert bank.review_state == "pending_two_reviewer_signoff"
-    assert bank.promotable_items() == ()
+    assert bank.review_state == "approved"
+    assert len(bank.promotable_items()) == len(bank.items)
+
+
+def test_promotable_items_empty_for_synthetic_pending_bank() -> None:
+    import dataclasses
+
+    bank = load_maths_v1_bank(require_flag=False)
+    pending = dataclasses.replace(
+        bank, review_state="pending_two_reviewer_signoff"
+    )
+    assert pending.promotable_items() == ()
 
 
 def test_bank_path_resolves_under_repo() -> None:

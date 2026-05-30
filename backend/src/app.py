@@ -1282,6 +1282,38 @@ def _learning_admin_tenant_ids(user: Mapping[str, Any]) -> set[str]:
     return {PILOT_TENANT_ID}
 
 
+def _learning_authorized_tenant_ids(user: Mapping[str, Any]) -> set[str]:
+    """Tenant IDs the authenticated user may bind the learning RLS scope to.
+
+    Admins use their configured/persisted admin tenants. Every other role is
+    constrained to the tenant recorded on their identity (falling back to the
+    pilot tenant) so a request body or query string can never widen the tenant
+    scope used for row-level security.
+    """
+    if str(user.get("role") or "") == ROLE_ADMIN:
+        return _learning_admin_tenant_ids(user)
+
+    tenant_id = str(user.get("tenant_id") or user.get("current_tenant_id") or "").strip()
+    if tenant_id:
+        return {tenant_id}
+
+    user_id = str(user.get("id") or "").strip()
+    if user_id:
+        try:
+            persisted_user = storage_service.get_user(user_id)
+        except Exception:
+            logger.exception("Learning tenant lookup failed for user %s", user_id)
+            persisted_user = None
+        if isinstance(persisted_user, Mapping):
+            tenant_id = str(
+                persisted_user.get("tenant_id") or persisted_user.get("current_tenant_id") or ""
+            ).strip()
+            if tenant_id:
+                return {tenant_id}
+
+    return {PILOT_TENANT_ID}
+
+
 def _learning_student_ids_for_user(user: Mapping[str, Any]) -> set[str]:
     configured = _csv_set(os.environ.get(PATHFINDER_LEARN_LEARNER_STUDENT_IDS_ENV))
     if configured:
@@ -1358,6 +1390,19 @@ def _enforce_learning_api_policy() -> Optional[Tuple[Any, int]]:
 
     payload = _learning_payload()
     tenant_id, class_id = _learning_scope_from_request(payload)
+
+    # Authenticate once and constrain the tenant to the caller's identity before
+    # binding the RLS scope. This prevents a request body/query from widening the
+    # tenant used for row-level security (cross-tenant access).
+    user, guard_response = _require_authenticated()
+    if guard_response is not None or user is None:
+        return guard_response
+
+    authorized_tenant_ids = _learning_authorized_tenant_ids(user)
+    if authorized_tenant_ids and tenant_id not in authorized_tenant_ids:
+        _bind_learning_storage_scope(sorted(authorized_tenant_ids)[0], class_id)
+        return jsonify({"error": "Tenant access required"}), HTTP_FORBIDDEN
+
     _bind_learning_storage_scope(tenant_id, class_id)
 
     if _learning_admin_endpoint(path, request.method):

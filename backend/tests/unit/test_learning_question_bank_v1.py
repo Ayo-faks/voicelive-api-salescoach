@@ -40,7 +40,8 @@ def test_bank_header_pins_taxonomy_and_metadata(bank: dict) -> None:
     assert bank["lang"] == "en"
     assert bank["subject"] == "maths"
     assert bank["taxonomy_version"] == TAXONOMY_VERSION
-    assert bank["review_state"] == "pending_two_reviewer_signoff"
+    # Owner-approved for staging+production release (rights owner-accepted).
+    assert bank["review_state"] == "approved"
     assert set(bank["year_groups"]) == {"JSS3", "SS3"}
 
 
@@ -89,13 +90,13 @@ def test_codes_are_subject_appropriate(items: list[DiagnosticItem]) -> None:
             assert code in maths_codes, f"{item.item_id} uses non-maths code {code}"
 
 
-def test_provenance_marks_review_pending(items: list[DiagnosticItem]) -> None:
+def test_provenance_marks_owner_approved(items: list[DiagnosticItem]) -> None:
     for item in items:
         assert item.provenance, item.item_id
         head = item.provenance[0]
-        assert head.metadata.get("review_state") == "pending_two_reviewer_signoff"
-        assert head.metadata.get("subject_lead_approved") is False
-        assert head.metadata.get("safeguarding_reviewed") is False
+        assert head.metadata.get("review_state") == "approved"
+        assert head.metadata.get("subject_lead_approved") is True
+        assert head.metadata.get("safeguarding_reviewed") is True
 
 
 def test_top_misconceptions_have_minimum_coverage(items: list[DiagnosticItem]) -> None:
@@ -142,16 +143,20 @@ def test_production_safe_items_blocks_pending_bank_in_hosted_env(
         reset_cache,
     )
 
+    import dataclasses
+
     _clear_safety_env(monkeypatch)
     monkeypatch.setenv("CONTAINER_APP_NAME", "voicelab")
     reset_cache()
-    bank = load_maths_v1_bank(require_flag=False)
-
-    # Bank ships with review_state=pending_two_reviewer_signoff so promotable
-    # is empty. In a hosted env this MUST fail loudly, not silently empty.
-    assert bank.promotable_items() == ()
+    real = load_maths_v1_bank(require_flag=False)
+    # Synthetic pending bank proves the fail-closed guard still holds even though
+    # the shipped bank is now owner-approved.
+    pending = dataclasses.replace(
+        real, review_state="pending_two_reviewer_signoff"
+    )
+    assert pending.promotable_items() == ()
     with pytest.raises(QuestionBankUnavailableError):
-        bank.production_safe_items()
+        pending.production_safe_items()
 
 
 def test_production_safe_items_allows_when_dev_override_set(
@@ -165,9 +170,10 @@ def test_production_safe_items_allows_when_dev_override_set(
     reset_cache()
     bank = load_maths_v1_bank(require_flag=False)
 
-    # Escape hatch makes the gate non-required; falls back to promotable_items()
-    # which is still empty for the pending bank but no longer raises.
-    assert bank.production_safe_items() == ()
+    # Escape hatch makes the gate non-required; falls back to promotable_items().
+    # Bank is owner-approved so this serves the approved items (no raise).
+    assert bank.production_safe_items() == bank.promotable_items()
+    assert len(bank.production_safe_items()) == len(bank.items)
 
 
 def test_production_safe_items_passthrough_in_non_prod(

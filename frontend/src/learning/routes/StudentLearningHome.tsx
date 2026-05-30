@@ -187,6 +187,105 @@ const todaysPath: Activity[] = [
   },
 ]
 
+const examPrep: Activity[] = [
+  {
+    id: 'maths-ss3-indices',
+    title: 'Maths · Laws of indices',
+    meta: 'SS3 Indices · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.indices.laws_of_indices',
+  },
+  {
+    id: 'maths-ss3-mensuration',
+    title: 'Maths · Mensuration',
+    meta: 'SS3 Geometry · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.geometry.mensuration',
+  },
+  {
+    id: 'maths-jss3-fractions',
+    title: 'Maths · Fractions',
+    meta: 'JSS3 Number · JSSCE prep',
+    minutes: 5,
+    type: 'practice',
+    skillId: 'jss3.number.fractions',
+  },
+  {
+    id: 'english-ss3-sentence',
+    title: 'English · Sentence completion',
+    meta: 'SS3 Lexis & structure · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.lexis_and_structure.sentence_completion',
+  },
+  {
+    id: 'english-jss3-comprehension',
+    title: 'English · Reading comprehension',
+    meta: 'JSS3 Comprehension · JSSCE prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'jss3.comprehension.reading',
+  },
+  {
+    id: 'english-jss3-vocab',
+    title: 'English · Synonyms',
+    meta: 'JSS3 Vocabulary · JSSCE prep',
+    minutes: 5,
+    type: 'practice',
+    skillId: 'jss3.english.vocab.synonyms',
+  },
+  {
+    id: 'government-ss3-basics',
+    title: 'Government · Power & authority',
+    meta: 'SS3 Basic concepts · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.government.basic_concepts.power_authority',
+  },
+  {
+    id: 'government-ss3-constitution',
+    title: 'Government · Nigerian constitutions',
+    meta: 'SS3 Constitution · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.government.constitution.nigerian_constitutions',
+  },
+  {
+    id: 'history-ss3-early-states',
+    title: 'History · Early Nigerian states',
+    meta: 'SS3 Early states · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.history.early_nigerian_states.kanem_bornu',
+  },
+  {
+    id: 'history-ss3-independence',
+    title: 'History · Road to independence',
+    meta: 'SS3 Independence · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.history.independence.challenges',
+  },
+  {
+    id: 'literature-ss3-figures-of-speech',
+    title: 'Literature · Figures of speech',
+    meta: 'SS3 Figures of speech · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.literature.figures_of_speech.comparison',
+  },
+  {
+    id: 'literature-ss3-african-prose',
+    title: 'Literature · African prose fiction',
+    meta: 'SS3 African literature · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.literature.african_literature.prose_fiction',
+  },
+]
+
 const weeklyTiles: Array<{ label: string; value: string; delta: string }> = [
   { label: 'Sessions', value: '4 / 5', delta: 'On pace' },
   { label: 'Streak', value: '7 days', delta: 'Personal best' },
@@ -2955,6 +3054,41 @@ export default function StudentLearningHome({
                 </div>
               )}
             </div>
+          </div>
+        </article>
+
+        <article className={styles.card} data-testid="exam-prep-card">
+          <div className={styles.cardHeader}>
+            <Text className={styles.cardTitle}>Exam prep · JSS3 &amp; SS3</Text>
+            <Text className={styles.cardCaption}>WAEC · NECO · JSSCE practice</Text>
+          </div>
+          <div className={styles.pathList}>
+            {examPrep.map(item => (
+              <button
+                key={item.id}
+                type="button"
+                className={styles.pathRow}
+                style={{ textAlign: 'left', font: 'inherit' }}
+                onClick={() => startCheckIn(item.skillId)}
+                data-testid={`exam-prep-${item.id}`}
+              >
+                <div className={styles.pathIcon} aria-hidden="true">
+                  <PlayCircleIcon style={{ width: 20, height: 20 }} />
+                </div>
+                <div className={styles.pathTitle}>
+                  <span className={styles.pathTitleText}>{item.title}</span>
+                  <span className={styles.pathMeta}>{item.meta}</span>
+                </div>
+                <span className={styles.minutes}>
+                  <ClockIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
+                  {item.minutes} min
+                </span>
+                <ChevronRightIcon
+                  style={{ width: 18, height: 18, color: t.brand.textTertiary }}
+                  aria-hidden="true"
+                />
+              </button>
+            ))}
           </div>
         </article>
 

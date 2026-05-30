@@ -1,14 +1,512 @@
 {
-  "bank_id": "maths-jss3-ss3-v1",
-  "version": "1.0.0",
+  "diagnostic_id": "maths-jss3-ss3-v1",
+  "subject": "maths-jss3-ss3",
+  "tenant_id": "tenant-phase-2",
+  "title": "JSS3–SS3 Mathematics (WAEC/NECO/JSSCE prep)",
   "lang": "en",
-  "subject": "maths",
-  "taxonomy_version": "1.0.0",
-  "year_groups": [
-    "JSS3",
-    "SS3"
+  "provenance": [
+    {
+      "source": "pathfinder_question_bank",
+      "source_id": "maths-jss3-ss3-v1",
+      "rule_id": "owner_approved_jss3_ss3_release",
+      "confidence": 1.0,
+      "evidence_count": 288,
+      "metadata": {
+        "version": "1.0.0",
+        "taxonomy_version": "1.0.0",
+        "year_groups": [
+          "JSS3",
+          "SS3"
+        ],
+        "review_state": "approved",
+        "approval_scope": "staging_and_production",
+        "approval_basis": "owner sign-off + automated answer-sanity pass; NO independent subject-lead/safeguarding professional review",
+        "licence_note": "underlying past-paper rights uncleared; owner-accepted for release"
+      }
+    }
   ],
-  "review_state": "approved",
+  "skills": [
+    {
+      "skill_id": "jss3.number.place_value",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Number — Place value",
+      "description": "Number: Place value"
+    },
+    {
+      "skill_id": "jss3.number.decimals",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Number — Decimals",
+      "description": "Number: Decimals"
+    },
+    {
+      "skill_id": "jss3.number.fractions",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Number — Fractions",
+      "description": "Number: Fractions"
+    },
+    {
+      "skill_id": "jss3.number.percentages",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Number — Percentages",
+      "description": "Number: Percentages"
+    },
+    {
+      "skill_id": "jss3.number.ratio",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Number — Ratio",
+      "description": "Number: Ratio"
+    },
+    {
+      "skill_id": "jss3.number.proportion",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Number — Proportion",
+      "description": "Number: Proportion"
+    },
+    {
+      "skill_id": "jss3.number.indices",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Number — Indices",
+      "description": "Number: Indices"
+    },
+    {
+      "skill_id": "jss3.algebra.simplification",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Algebra — Simplification",
+      "description": "Algebra: Simplification"
+    },
+    {
+      "skill_id": "jss3.algebra.linear",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Algebra — Linear equations",
+      "description": "Algebra: Linear equations"
+    },
+    {
+      "skill_id": "jss3.algebra.inequalities",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Algebra — Inequalities",
+      "description": "Algebra: Inequalities"
+    },
+    {
+      "skill_id": "jss3.geometry.angles",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Geometry — Angles",
+      "description": "Geometry: Angles"
+    },
+    {
+      "skill_id": "jss3.geometry.area",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Geometry — Area and perimeter",
+      "description": "Geometry: Area and perimeter"
+    },
+    {
+      "skill_id": "jss3.geometry.volume",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Geometry — Volume",
+      "description": "Geometry: Volume"
+    },
+    {
+      "skill_id": "jss3.measurement.units",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Measurement — Unit conversion",
+      "description": "Measurement: Unit conversion"
+    },
+    {
+      "skill_id": "jss3.statistics.mean",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Statistics — Mean",
+      "description": "Statistics: Mean"
+    },
+    {
+      "skill_id": "jss3.statistics.median",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Statistics — Median",
+      "description": "Statistics: Median"
+    },
+    {
+      "skill_id": "jss3.statistics.mode",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Statistics — Mode",
+      "description": "Statistics: Mode"
+    },
+    {
+      "skill_id": "jss3.statistics.range",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Statistics — Range",
+      "description": "Statistics: Range"
+    },
+    {
+      "skill_id": "jss3.probability.basic",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Probability — Single event",
+      "description": "Probability: Single event"
+    },
+    {
+      "skill_id": "ss3.indices.laws",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Indices — Laws of indices",
+      "description": "Indices: Laws of indices"
+    },
+    {
+      "skill_id": "ss3.indices.negative",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Indices — Negative indices",
+      "description": "Indices: Negative indices"
+    },
+    {
+      "skill_id": "ss3.surds.simplify",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Surds — Simplification",
+      "description": "Surds: Simplification"
+    },
+    {
+      "skill_id": "ss3.surds.rationalise",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Surds — Rationalisation",
+      "description": "Surds: Rationalisation"
+    },
+    {
+      "skill_id": "ss3.logarithms.basic",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Logarithms — Definition",
+      "description": "Logarithms: Definition"
+    },
+    {
+      "skill_id": "ss3.logarithms.laws",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Logarithms — Laws",
+      "description": "Logarithms: Laws"
+    },
+    {
+      "skill_id": "ss3.logarithms.solve",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Logarithms — Equations",
+      "description": "Logarithms: Equations"
+    },
+    {
+      "skill_id": "ss3.quadratics.factor",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Quadratics — Factorisation",
+      "description": "Quadratics: Factorisation"
+    },
+    {
+      "skill_id": "ss3.quadratics.solve",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Quadratics — Solving",
+      "description": "Quadratics: Solving"
+    },
+    {
+      "skill_id": "ss3.quadratics.formula",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Quadratics — Quadratic formula",
+      "description": "Quadratics: Quadratic formula"
+    },
+    {
+      "skill_id": "ss3.quadratics.discriminant",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Quadratics — Discriminant",
+      "description": "Quadratics: Discriminant"
+    },
+    {
+      "skill_id": "ss3.algebra.simultaneous",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Algebra — Simultaneous equations",
+      "description": "Algebra: Simultaneous equations"
+    },
+    {
+      "skill_id": "ss3.sequences.ap.nth",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Sequences — AP nth term",
+      "description": "Sequences: AP nth term"
+    },
+    {
+      "skill_id": "ss3.sequences.ap.sum",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Sequences — AP sum",
+      "description": "Sequences: AP sum"
+    },
+    {
+      "skill_id": "ss3.sequences.gp.nth",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Sequences — GP nth term",
+      "description": "Sequences: GP nth term"
+    },
+    {
+      "skill_id": "ss3.sequences.gp.sum",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Sequences — GP sum",
+      "description": "Sequences: GP sum"
+    },
+    {
+      "skill_id": "ss3.sequences.gp.infinite",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Sequences — Infinite GP",
+      "description": "Sequences: Infinite GP"
+    },
+    {
+      "skill_id": "ss3.trig.right_triangle",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Trigonometry — Right triangle",
+      "description": "Trigonometry: Right triangle"
+    },
+    {
+      "skill_id": "ss3.trig.exact",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Trigonometry — Exact values",
+      "description": "Trigonometry: Exact values"
+    },
+    {
+      "skill_id": "ss3.trig.identity",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Trigonometry — Identities",
+      "description": "Trigonometry: Identities"
+    },
+    {
+      "skill_id": "ss3.trig.sine_rule",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Trigonometry — Sine rule",
+      "description": "Trigonometry: Sine rule"
+    },
+    {
+      "skill_id": "ss3.coord.distance",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Coordinate geometry — Distance",
+      "description": "Coordinate geometry: Distance"
+    },
+    {
+      "skill_id": "ss3.coord.midpoint",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Coordinate geometry — Midpoint",
+      "description": "Coordinate geometry: Midpoint"
+    },
+    {
+      "skill_id": "ss3.coord.gradient",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Coordinate geometry — Gradient",
+      "description": "Coordinate geometry: Gradient"
+    },
+    {
+      "skill_id": "ss3.coord.line",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Coordinate geometry — Equation of line",
+      "description": "Coordinate geometry: Equation of line"
+    },
+    {
+      "skill_id": "ss3.calc.diff.poly",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Calculus — Differentiation of polynomials",
+      "description": "Calculus: Differentiation of polynomials"
+    },
+    {
+      "skill_id": "ss3.calc.diff.stationary",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Calculus — Stationary points",
+      "description": "Calculus: Stationary points"
+    },
+    {
+      "skill_id": "ss3.calc.integration.poly",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Calculus — Indefinite integration",
+      "description": "Calculus: Indefinite integration"
+    },
+    {
+      "skill_id": "ss3.calc.integration.definite",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Calculus — Definite integration",
+      "description": "Calculus: Definite integration"
+    },
+    {
+      "skill_id": "ss3.probability.combined",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Probability — Independent events",
+      "description": "Probability: Independent events"
+    },
+    {
+      "skill_id": "ss3.probability.complement",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Probability — Complement",
+      "description": "Probability: Complement"
+    },
+    {
+      "skill_id": "ss3.statistics.frequency_mean",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Statistics — Frequency mean",
+      "description": "Statistics: Frequency mean"
+    },
+    {
+      "skill_id": "ss3.statistics.std_dev",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Statistics — Standard deviation",
+      "description": "Statistics: Standard deviation"
+    },
+    {
+      "skill_id": "ss3.statistics.grouped_mean",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Statistics — Grouped data",
+      "description": "Statistics: Grouped data"
+    },
+    {
+      "skill_id": "ss3.variation.direct",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Variation — Direct variation",
+      "description": "Variation: Direct variation"
+    },
+    {
+      "skill_id": "ss3.variation.inverse",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Variation — Inverse variation",
+      "description": "Variation: Inverse variation"
+    },
+    {
+      "skill_id": "ss3.sets.union",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Sets — Union and intersection",
+      "description": "Sets: Union and intersection"
+    },
+    {
+      "skill_id": "ss3.sets.venn",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Sets — Two-set Venn",
+      "description": "Sets: Two-set Venn"
+    },
+    {
+      "skill_id": "ss3.mensuration.cone",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Mensuration — Cone",
+      "description": "Mensuration: Cone"
+    },
+    {
+      "skill_id": "ss3.mensuration.sphere",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Mensuration — Sphere",
+      "description": "Mensuration: Sphere"
+    },
+    {
+      "skill_id": "ss3.numberbases.binary",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Number bases — Binary",
+      "description": "Number bases: Binary"
+    },
+    {
+      "skill_id": "ss3.numberbases.octal",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Number bases — Base conversion",
+      "description": "Number bases: Base conversion"
+    },
+    {
+      "skill_id": "ss3.indices.laws_of_indices",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Indices — Laws of indices",
+      "description": "Indices: Laws of indices"
+    },
+    {
+      "skill_id": "ss3.sequences_and_series.progressions",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Sequences and series — Progressions",
+      "description": "Sequences and series: Progressions"
+    },
+    {
+      "skill_id": "ss3.trigonometry.ratios",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Trigonometry — Ratios",
+      "description": "Trigonometry: Ratios"
+    },
+    {
+      "skill_id": "ss3.number_and_numeration.fractions_and_approximation",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Number and numeration — Fractions and approximation",
+      "description": "Number and numeration: Fractions and approximation"
+    },
+    {
+      "skill_id": "ss3.algebra.general",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Algebra — General",
+      "description": "Algebra: General"
+    },
+    {
+      "skill_id": "ss3.algebra.equations_and_expressions",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Algebra — Equations and expressions",
+      "description": "Algebra: Equations and expressions"
+    },
+    {
+      "skill_id": "ss3.number_and_numeration.ratio_and_percentage",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Number and numeration — Ratio and percentage",
+      "description": "Number and numeration: Ratio and percentage"
+    },
+    {
+      "skill_id": "ss3.probability.single_events",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Probability — Single events",
+      "description": "Probability: Single events"
+    },
+    {
+      "skill_id": "ss3.logarithms.log_laws",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Logarithms — Log laws",
+      "description": "Logarithms: Log laws"
+    },
+    {
+      "skill_id": "ss3.geometry.mensuration",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Geometry — Mensuration",
+      "description": "Geometry: Mensuration"
+    },
+    {
+      "skill_id": "ss3.statistics.measures",
+      "standard_id": "ng-ss3-maths",
+      "name": "SS3 Statistics — Measures",
+      "description": "Statistics: Measures"
+    },
+    {
+      "skill_id": "jss3.number.fractions_and_number",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Number — Fractions and number",
+      "description": "Number: Fractions and number"
+    },
+    {
+      "skill_id": "jss3.number.general",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Number — General",
+      "description": "Number: General"
+    },
+    {
+      "skill_id": "jss3.geometry.plane_shapes_and_angles",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Geometry — Plane shapes and angles",
+      "description": "Geometry: Plane shapes and angles"
+    },
+    {
+      "skill_id": "jss3.geometry.trigonometry_and_bearings",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Geometry — Trigonometry and bearings",
+      "description": "Geometry: Trigonometry and bearings"
+    },
+    {
+      "skill_id": "jss3.measurement.mensuration",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Measurement — Mensuration",
+      "description": "Measurement: Mensuration"
+    },
+    {
+      "skill_id": "jss3.indices.powers",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Indices — Powers",
+      "description": "Indices: Powers"
+    },
+    {
+      "skill_id": "jss3.number.ratio_and_percentage",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Number — Ratio and percentage",
+      "description": "Number: Ratio and percentage"
+    },
+    {
+      "skill_id": "jss3.probability.single_events",
+      "standard_id": "ng-jss3-maths",
+      "name": "JSS3 Probability — Single events",
+      "description": "Probability: Single events"
+    }
+  ],
   "items": [
     {
       "lang": "en",
@@ -39,16 +537,7 @@
       "prompt": "Write 4,072,503 in words.",
       "item_type": "short_answer",
       "difficulty": -2.0,
-      "correct_answer": "four million seventy-two thousand five hundred and three",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Place value",
-      "misconception_codes": [
-        "place_value",
-        "transcription"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "four million seventy-two thousand five hundred and three"
     },
     {
       "lang": "en",
@@ -79,15 +568,7 @@
       "prompt": "What is the value of the digit 6 in 360,124?",
       "item_type": "short_answer",
       "difficulty": -2.5,
-      "correct_answer": "60,000",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Place value",
-      "misconception_codes": [
-        "place_value"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "60,000"
     },
     {
       "lang": "en",
@@ -118,16 +599,7 @@
       "prompt": "Round 4.5872 to two decimal places.",
       "item_type": "short_answer",
       "difficulty": -1.5,
-      "correct_answer": "4.59",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Decimals",
-      "misconception_codes": [
-        "place_value",
-        "careless"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "4.59"
     },
     {
       "lang": "en",
@@ -158,16 +630,7 @@
       "prompt": "Compute 0.6 × 0.4.",
       "item_type": "short_answer",
       "difficulty": -1.0,
-      "correct_answer": "0.24",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Decimals",
-      "misconception_codes": [
-        "place_value",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "0.24"
     },
     {
       "lang": "en",
@@ -198,16 +661,7 @@
       "prompt": "Express 0.125 as a fraction in simplest form.",
       "item_type": "short_answer",
       "difficulty": -0.5,
-      "correct_answer": "1/8",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Decimals",
-      "misconception_codes": [
-        "fraction_part_whole",
-        "answer_form"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "1/8"
     },
     {
       "lang": "en",
@@ -238,16 +692,7 @@
       "prompt": "Simplify 18/24.",
       "item_type": "short_answer",
       "difficulty": -1.5,
-      "correct_answer": "3/4",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Fractions",
-      "misconception_codes": [
-        "fraction_part_whole",
-        "answer_form"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "3/4"
     },
     {
       "lang": "en",
@@ -278,16 +723,7 @@
       "prompt": "Compute 2/3 + 1/4.",
       "item_type": "short_answer",
       "difficulty": -0.5,
-      "correct_answer": "11/12",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Fractions",
-      "misconception_codes": [
-        "fraction_part_whole",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "11/12"
     },
     {
       "lang": "en",
@@ -318,16 +754,7 @@
       "prompt": "Compute 5/6 − 1/2.",
       "item_type": "short_answer",
       "difficulty": -0.5,
-      "correct_answer": "1/3",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Fractions",
-      "misconception_codes": [
-        "fraction_part_whole",
-        "sign_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "1/3"
     },
     {
       "lang": "en",
@@ -358,16 +785,7 @@
       "prompt": "Compute 3/4 × 8/9.",
       "item_type": "short_answer",
       "difficulty": 0.0,
-      "correct_answer": "2/3",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Fractions",
-      "misconception_codes": [
-        "fraction_part_whole",
-        "answer_form"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "2/3"
     },
     {
       "lang": "en",
@@ -398,16 +816,7 @@
       "prompt": "Divide 4/5 by 2/3.",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "6/5",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Fractions",
-      "misconception_codes": [
-        "fraction_part_whole",
-        "misread_question"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "6/5"
     },
     {
       "lang": "en",
@@ -438,16 +847,7 @@
       "prompt": "What is 15% of 240?",
       "item_type": "short_answer",
       "difficulty": -1.0,
-      "correct_answer": "36",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Percentages",
-      "misconception_codes": [
-        "calc_error",
-        "unit_conversion"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "36"
     },
     {
       "lang": "en",
@@ -478,16 +878,7 @@
       "prompt": "A shirt costs ₦4,000. It is discounted by 20%. What is the sale price?",
       "item_type": "short_answer",
       "difficulty": 0.0,
-      "correct_answer": "₦3,200",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Percentages",
-      "misconception_codes": [
-        "language_comprehension",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "₦3,200"
     },
     {
       "lang": "en",
@@ -518,16 +909,7 @@
       "prompt": "Express 7/20 as a percentage.",
       "item_type": "short_answer",
       "difficulty": -1.0,
-      "correct_answer": "35%",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Percentages",
-      "misconception_codes": [
-        "fraction_part_whole",
-        "answer_form"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "35%"
     },
     {
       "lang": "en",
@@ -558,16 +940,7 @@
       "prompt": "A salary of ₦60,000 is increased by 12%. What is the new salary?",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "₦67,200",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Percentages",
-      "misconception_codes": [
-        "calc_error",
-        "language_comprehension"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "₦67,200"
     },
     {
       "lang": "en",
@@ -598,16 +971,7 @@
       "prompt": "Share ₦4,500 in the ratio 2:3.",
       "item_type": "short_answer",
       "difficulty": 0.0,
-      "correct_answer": "₦1,800 and ₦2,700",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Ratio",
-      "misconception_codes": [
-        "ratio_inversion",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "₦1,800 and ₦2,700"
     },
     {
       "lang": "en",
@@ -638,16 +1002,7 @@
       "prompt": "If 5 pens cost ₦750, how much do 8 pens cost?",
       "item_type": "short_answer",
       "difficulty": -0.5,
-      "correct_answer": "₦1,200",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Ratio",
-      "misconception_codes": [
-        "ratio_inversion",
-        "language_comprehension"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "₦1,200"
     },
     {
       "lang": "en",
@@ -678,16 +1033,7 @@
       "prompt": "If 3 workers build a wall in 12 days, how long for 4 workers (same rate)?",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "9 days",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Proportion",
-      "misconception_codes": [
-        "ratio_inversion",
-        "language_comprehension"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "9 days"
     },
     {
       "lang": "en",
@@ -718,16 +1064,7 @@
       "prompt": "Convert 72 km/h to m/s.",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "20 m/s",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Proportion",
-      "misconception_codes": [
-        "unit_conversion",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "20 m/s"
     },
     {
       "lang": "en",
@@ -758,16 +1095,7 @@
       "prompt": "Evaluate 2^5.",
       "item_type": "short_answer",
       "difficulty": -2.0,
-      "correct_answer": "32",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Indices",
-      "misconception_codes": [
-        "calc_error",
-        "computation_slip"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "32"
     },
     {
       "lang": "en",
@@ -798,16 +1126,7 @@
       "prompt": "Simplify 3^4 × 3^2 (leave in index form).",
       "item_type": "short_answer",
       "difficulty": -0.5,
-      "correct_answer": "3^6",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Indices",
-      "misconception_codes": [
-        "algebra_distribution",
-        "answer_form"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "3^6"
     },
     {
       "lang": "en",
@@ -838,16 +1157,7 @@
       "prompt": "Simplify 4x + 3 − x + 5.",
       "item_type": "short_answer",
       "difficulty": -1.0,
-      "correct_answer": "3x + 8",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Algebra",
-      "subtopic": "Simplification",
-      "misconception_codes": [
-        "sign_error",
-        "algebra_distribution"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "3x + 8"
     },
     {
       "lang": "en",
@@ -878,16 +1188,7 @@
       "prompt": "Expand 3(2x − 5).",
       "item_type": "short_answer",
       "difficulty": -0.5,
-      "correct_answer": "6x − 15",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Algebra",
-      "subtopic": "Simplification",
-      "misconception_codes": [
-        "algebra_distribution",
-        "sign_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "6x − 15"
     },
     {
       "lang": "en",
@@ -918,16 +1219,7 @@
       "prompt": "Expand (x + 2)(x − 3).",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "x^2 − x − 6",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Algebra",
-      "subtopic": "Simplification",
-      "misconception_codes": [
-        "algebra_distribution",
-        "sign_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "x^2 − x − 6"
     },
     {
       "lang": "en",
@@ -958,16 +1250,7 @@
       "prompt": "Solve 3x + 4 = 19.",
       "item_type": "short_answer",
       "difficulty": -1.5,
-      "correct_answer": "x = 5",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Algebra",
-      "subtopic": "Linear equations",
-      "misconception_codes": [
-        "sign_error",
-        "order_of_operations"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "x = 5"
     },
     {
       "lang": "en",
@@ -998,16 +1281,7 @@
       "prompt": "Solve 2(x − 3) = 14.",
       "item_type": "short_answer",
       "difficulty": -0.5,
-      "correct_answer": "x = 10",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Algebra",
-      "subtopic": "Linear equations",
-      "misconception_codes": [
-        "algebra_distribution",
-        "sign_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "x = 10"
     },
     {
       "lang": "en",
@@ -1038,16 +1312,7 @@
       "prompt": "Solve 5x − 7 = 2x + 8.",
       "item_type": "short_answer",
       "difficulty": 0.0,
-      "correct_answer": "x = 5",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Algebra",
-      "subtopic": "Linear equations",
-      "misconception_codes": [
-        "sign_error",
-        "algebra_distribution"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "x = 5"
     },
     {
       "lang": "en",
@@ -1078,16 +1343,7 @@
       "prompt": "Solve (x/3) + 2 = 5.",
       "item_type": "short_answer",
       "difficulty": -0.5,
-      "correct_answer": "x = 9",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Algebra",
-      "subtopic": "Linear equations",
-      "misconception_codes": [
-        "fraction_part_whole",
-        "order_of_operations"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "x = 9"
     },
     {
       "lang": "en",
@@ -1118,16 +1374,7 @@
       "prompt": "If 4(y − 1) = 2y + 6, find y.",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "y = 5",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Algebra",
-      "subtopic": "Linear equations",
-      "misconception_codes": [
-        "algebra_distribution",
-        "sign_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "y = 5"
     },
     {
       "lang": "en",
@@ -1158,16 +1405,7 @@
       "prompt": "Solve 2x − 1 < 7.",
       "item_type": "short_answer",
       "difficulty": 0.0,
-      "correct_answer": "x < 4",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Algebra",
-      "subtopic": "Inequalities",
-      "misconception_codes": [
-        "sign_error",
-        "answer_form"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "x < 4"
     },
     {
       "lang": "en",
@@ -1198,16 +1436,7 @@
       "prompt": "Solve −3x ≥ 12.",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "x ≤ −4",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Algebra",
-      "subtopic": "Inequalities",
-      "misconception_codes": [
-        "sign_error",
-        "order_of_operations"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "x ≤ −4"
     },
     {
       "lang": "en",
@@ -1238,16 +1467,7 @@
       "prompt": "Two angles on a straight line are x and 110°. Find x.",
       "item_type": "short_answer",
       "difficulty": -1.5,
-      "correct_answer": "70°",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Geometry",
-      "subtopic": "Angles",
-      "misconception_codes": [
-        "calc_error",
-        "geometry_units"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "70°"
     },
     {
       "lang": "en",
@@ -1278,16 +1498,7 @@
       "prompt": "The angles of a triangle are 50°, 60°, and x. Find x.",
       "item_type": "short_answer",
       "difficulty": -2.0,
-      "correct_answer": "70°",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Geometry",
-      "subtopic": "Angles",
-      "misconception_codes": [
-        "calc_error",
-        "language_comprehension"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "70°"
     },
     {
       "lang": "en",
@@ -1318,16 +1529,7 @@
       "prompt": "Find the size of each interior angle of a regular hexagon.",
       "item_type": "short_answer",
       "difficulty": 0.0,
-      "correct_answer": "120°",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Geometry",
-      "subtopic": "Angles",
-      "misconception_codes": [
-        "prerequisite_gap",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "120°"
     },
     {
       "lang": "en",
@@ -1358,16 +1560,7 @@
       "prompt": "Find the area of a rectangle with length 8 cm and width 5 cm.",
       "item_type": "short_answer",
       "difficulty": -2.0,
-      "correct_answer": "40 cm^2",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Geometry",
-      "subtopic": "Area and perimeter",
-      "misconception_codes": [
-        "geometry_units",
-        "misread_question"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "40 cm^2"
     },
     {
       "lang": "en",
@@ -1398,16 +1591,7 @@
       "prompt": "Find the perimeter of a square of side 7 cm.",
       "item_type": "short_answer",
       "difficulty": -2.0,
-      "correct_answer": "28 cm",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Geometry",
-      "subtopic": "Area and perimeter",
-      "misconception_codes": [
-        "geometry_units",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "28 cm"
     },
     {
       "lang": "en",
@@ -1438,16 +1622,7 @@
       "prompt": "Find the area of a triangle with base 10 cm and height 6 cm.",
       "item_type": "short_answer",
       "difficulty": -1.0,
-      "correct_answer": "30 cm^2",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Geometry",
-      "subtopic": "Area and perimeter",
-      "misconception_codes": [
-        "fraction_part_whole",
-        "geometry_units"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "30 cm^2"
     },
     {
       "lang": "en",
@@ -1478,16 +1653,7 @@
       "prompt": "Find the area of a circle of radius 7 cm (π = 22/7).",
       "item_type": "short_answer",
       "difficulty": 0.0,
-      "correct_answer": "154 cm^2",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Geometry",
-      "subtopic": "Area and perimeter",
-      "misconception_codes": [
-        "geometry_units",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "154 cm^2"
     },
     {
       "lang": "en",
@@ -1518,16 +1684,7 @@
       "prompt": "Find the circumference of a circle of diameter 14 cm (π = 22/7).",
       "item_type": "short_answer",
       "difficulty": 0.0,
-      "correct_answer": "44 cm",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Geometry",
-      "subtopic": "Area and perimeter",
-      "misconception_codes": [
-        "geometry_units",
-        "misread_question"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "44 cm"
     },
     {
       "lang": "en",
@@ -1558,16 +1715,7 @@
       "prompt": "Find the volume of a cube of side 4 cm.",
       "item_type": "short_answer",
       "difficulty": -1.0,
-      "correct_answer": "64 cm^3",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Geometry",
-      "subtopic": "Volume",
-      "misconception_codes": [
-        "geometry_units",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "64 cm^3"
     },
     {
       "lang": "en",
@@ -1598,16 +1746,7 @@
       "prompt": "A cuboid has dimensions 3 cm × 4 cm × 5 cm. Find its volume.",
       "item_type": "short_answer",
       "difficulty": -1.0,
-      "correct_answer": "60 cm^3",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Geometry",
-      "subtopic": "Volume",
-      "misconception_codes": [
-        "geometry_units",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "60 cm^3"
     },
     {
       "lang": "en",
@@ -1638,16 +1777,7 @@
       "prompt": "Convert 2.5 km to metres.",
       "item_type": "short_answer",
       "difficulty": -2.0,
-      "correct_answer": "2,500 m",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Measurement",
-      "subtopic": "Unit conversion",
-      "misconception_codes": [
-        "unit_conversion",
-        "place_value"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "2,500 m"
     },
     {
       "lang": "en",
@@ -1678,16 +1808,7 @@
       "prompt": "Convert 4,500 g to kilograms.",
       "item_type": "short_answer",
       "difficulty": -2.0,
-      "correct_answer": "4.5 kg",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Measurement",
-      "subtopic": "Unit conversion",
-      "misconception_codes": [
-        "unit_conversion",
-        "place_value"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "4.5 kg"
     },
     {
       "lang": "en",
@@ -1718,16 +1839,7 @@
       "prompt": "How many minutes are there in 3.25 hours?",
       "item_type": "short_answer",
       "difficulty": -0.5,
-      "correct_answer": "195 minutes",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Measurement",
-      "subtopic": "Unit conversion",
-      "misconception_codes": [
-        "unit_conversion",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "195 minutes"
     },
     {
       "lang": "en",
@@ -1758,16 +1870,7 @@
       "prompt": "Find the mean of 4, 7, 9, 10, 5.",
       "item_type": "short_answer",
       "difficulty": -1.5,
-      "correct_answer": "7",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Statistics",
-      "subtopic": "Mean",
-      "misconception_codes": [
-        "off_by_one",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "7"
     },
     {
       "lang": "en",
@@ -1798,16 +1901,7 @@
       "prompt": "Find the median of 3, 7, 1, 9, 5, 4, 8.",
       "item_type": "short_answer",
       "difficulty": -1.0,
-      "correct_answer": "5",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Statistics",
-      "subtopic": "Median",
-      "misconception_codes": [
-        "off_by_one",
-        "language_comprehension"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "5"
     },
     {
       "lang": "en",
@@ -1838,16 +1932,7 @@
       "prompt": "Find the mode of 2, 5, 3, 5, 4, 5, 6.",
       "item_type": "short_answer",
       "difficulty": -2.0,
-      "correct_answer": "5",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Statistics",
-      "subtopic": "Mode",
-      "misconception_codes": [
-        "language_comprehension",
-        "misread_question"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "5"
     },
     {
       "lang": "en",
@@ -1878,16 +1963,7 @@
       "prompt": "Find the range of 12, 7, 18, 4, 15.",
       "item_type": "short_answer",
       "difficulty": -1.5,
-      "correct_answer": "14",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Statistics",
-      "subtopic": "Range",
-      "misconception_codes": [
-        "off_by_one",
-        "language_comprehension"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "14"
     },
     {
       "lang": "en",
@@ -1918,16 +1994,7 @@
       "prompt": "A fair die is rolled. What is the probability of getting a 4?",
       "item_type": "short_answer",
       "difficulty": -1.5,
-      "correct_answer": "1/6",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Probability",
-      "subtopic": "Single event",
-      "misconception_codes": [
-        "fraction_part_whole",
-        "probability_complement"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "1/6"
     },
     {
       "lang": "en",
@@ -1958,16 +2025,7 @@
       "prompt": "A bag has 3 red and 5 blue balls. What is the probability of drawing red?",
       "item_type": "short_answer",
       "difficulty": -0.5,
-      "correct_answer": "3/8",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Probability",
-      "subtopic": "Single event",
-      "misconception_codes": [
-        "fraction_part_whole",
-        "probability_complement"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "3/8"
     },
     {
       "lang": "en",
@@ -1998,16 +2056,7 @@
       "prompt": "If P(rain) = 0.3, what is P(no rain)?",
       "item_type": "short_answer",
       "difficulty": -1.5,
-      "correct_answer": "0.7",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Probability",
-      "subtopic": "Complement",
-      "misconception_codes": [
-        "probability_complement",
-        "sign_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "0.7"
     },
     {
       "lang": "en",
@@ -2038,16 +2087,7 @@
       "prompt": "Simplify (2^3)^4.",
       "item_type": "short_answer",
       "difficulty": 0.0,
-      "correct_answer": "2^12",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "algebra_distribution",
-        "order_of_operations"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "2^12"
     },
     {
       "lang": "en",
@@ -2078,16 +2118,7 @@
       "prompt": "Evaluate 27^(2/3).",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "9",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "order_of_operations",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "9"
     },
     {
       "lang": "en",
@@ -2118,16 +2149,7 @@
       "prompt": "Evaluate 5^(−2).",
       "item_type": "short_answer",
       "difficulty": 0.0,
-      "correct_answer": "1/25",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Negative indices",
-      "misconception_codes": [
-        "sign_error",
-        "fraction_part_whole"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "1/25"
     },
     {
       "lang": "en",
@@ -2158,16 +2180,7 @@
       "prompt": "Simplify √50.",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "5√2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Surds",
-      "subtopic": "Simplification",
-      "misconception_codes": [
-        "prerequisite_gap",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "5√2"
     },
     {
       "lang": "en",
@@ -2198,16 +2211,7 @@
       "prompt": "Rationalise the denominator of 1/(√3).",
       "item_type": "short_answer",
       "difficulty": 1.0,
-      "correct_answer": "√3/3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Surds",
-      "subtopic": "Rationalisation",
-      "misconception_codes": [
-        "answer_form",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "√3/3"
     },
     {
       "lang": "en",
@@ -2238,16 +2242,7 @@
       "prompt": "Evaluate log₂ 32.",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "5",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Logarithms",
-      "subtopic": "Definition",
-      "misconception_codes": [
-        "prerequisite_gap",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "5"
     },
     {
       "lang": "en",
@@ -2278,16 +2273,7 @@
       "prompt": "Simplify log 8 + log 125 (base 10).",
       "item_type": "short_answer",
       "difficulty": 1.0,
-      "correct_answer": "3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Logarithms",
-      "subtopic": "Laws",
-      "misconception_codes": [
-        "algebra_distribution",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "3"
     },
     {
       "lang": "en",
@@ -2318,16 +2304,7 @@
       "prompt": "Solve log₃ (x + 1) = 2.",
       "item_type": "short_answer",
       "difficulty": 1.0,
-      "correct_answer": "x = 8",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Logarithms",
-      "subtopic": "Equations",
-      "misconception_codes": [
-        "sign_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "x = 8"
     },
     {
       "lang": "en",
@@ -2358,16 +2335,7 @@
       "prompt": "Factorise x^2 − 9.",
       "item_type": "short_answer",
       "difficulty": 0.0,
-      "correct_answer": "(x − 3)(x + 3)",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Quadratics",
-      "subtopic": "Factorisation",
-      "misconception_codes": [
-        "algebra_distribution",
-        "sign_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "(x − 3)(x + 3)"
     },
     {
       "lang": "en",
@@ -2398,16 +2366,7 @@
       "prompt": "Factorise x^2 + 5x + 6.",
       "item_type": "short_answer",
       "difficulty": 0.0,
-      "correct_answer": "(x + 2)(x + 3)",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Quadratics",
-      "subtopic": "Factorisation",
-      "misconception_codes": [
-        "sign_error",
-        "algebra_distribution"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "(x + 2)(x + 3)"
     },
     {
       "lang": "en",
@@ -2438,16 +2397,7 @@
       "prompt": "Solve x^2 − 5x + 6 = 0.",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "x = 2 or x = 3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Quadratics",
-      "subtopic": "Solving",
-      "misconception_codes": [
-        "sign_error",
-        "algebra_distribution"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "x = 2 or x = 3"
     },
     {
       "lang": "en",
@@ -2478,16 +2428,7 @@
       "prompt": "Use the quadratic formula to solve x^2 − 4x + 1 = 0.",
       "item_type": "short_answer",
       "difficulty": 1.5,
-      "correct_answer": "x = 2 ± √3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Quadratics",
-      "subtopic": "Quadratic formula",
-      "misconception_codes": [
-        "sign_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "x = 2 ± √3"
     },
     {
       "lang": "en",
@@ -2518,16 +2459,7 @@
       "prompt": "How many real roots does x^2 + x + 1 = 0 have?",
       "item_type": "short_answer",
       "difficulty": 1.5,
-      "correct_answer": "0",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Quadratics",
-      "subtopic": "Discriminant",
-      "misconception_codes": [
-        "sign_error",
-        "language_comprehension"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "0"
     },
     {
       "lang": "en",
@@ -2558,16 +2490,7 @@
       "prompt": "Solve x + y = 7 and 2x − y = 5.",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "x = 4, y = 3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "Simultaneous equations",
-      "misconception_codes": [
-        "sign_error",
-        "algebra_distribution"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "x = 4, y = 3"
     },
     {
       "lang": "en",
@@ -2598,16 +2521,7 @@
       "prompt": "Solve 3x + 2y = 12 and x − y = 1.",
       "item_type": "short_answer",
       "difficulty": 1.5,
-      "correct_answer": "x = 14/5, y = 9/5",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "Simultaneous equations",
-      "misconception_codes": [
-        "algebra_distribution",
-        "fraction_part_whole"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "x = 14/5, y = 9/5"
     },
     {
       "lang": "en",
@@ -2638,16 +2552,7 @@
       "prompt": "Find the 10th term of the AP 3, 7, 11, ...",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "39",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Sequences",
-      "subtopic": "AP nth term",
-      "misconception_codes": [
-        "off_by_one",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "39"
     },
     {
       "lang": "en",
@@ -2678,16 +2583,7 @@
       "prompt": "Find the sum of the first 20 terms of the AP 2, 5, 8, ...",
       "item_type": "short_answer",
       "difficulty": 1.0,
-      "correct_answer": "590",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Sequences",
-      "subtopic": "AP sum",
-      "misconception_codes": [
-        "off_by_one",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "590"
     },
     {
       "lang": "en",
@@ -2718,16 +2614,7 @@
       "prompt": "Find the 6th term of the GP 2, 6, 18, ...",
       "item_type": "short_answer",
       "difficulty": 1.0,
-      "correct_answer": "486",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Sequences",
-      "subtopic": "GP nth term",
-      "misconception_codes": [
-        "off_by_one",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "486"
     },
     {
       "lang": "en",
@@ -2758,16 +2645,7 @@
       "prompt": "Find the sum of the first 5 terms of the GP 3, 6, 12, ...",
       "item_type": "short_answer",
       "difficulty": 1.0,
-      "correct_answer": "93",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Sequences",
-      "subtopic": "GP sum",
-      "misconception_codes": [
-        "off_by_one",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "93"
     },
     {
       "lang": "en",
@@ -2798,16 +2676,7 @@
       "prompt": "Find the sum to infinity of 8, 4, 2, 1, ...",
       "item_type": "short_answer",
       "difficulty": 1.5,
-      "correct_answer": "16",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Sequences",
-      "subtopic": "Infinite GP",
-      "misconception_codes": [
-        "prerequisite_gap",
-        "fraction_part_whole"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "16"
     },
     {
       "lang": "en",
@@ -2838,16 +2707,7 @@
       "prompt": "In a right triangle, the opposite side is 3 and hypotenuse is 5. Find sin θ.",
       "item_type": "short_answer",
       "difficulty": 0.0,
-      "correct_answer": "3/5",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Trigonometry",
-      "subtopic": "Right triangle",
-      "misconception_codes": [
-        "fraction_part_whole",
-        "language_comprehension"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "3/5"
     },
     {
       "lang": "en",
@@ -2878,16 +2738,7 @@
       "prompt": "What is sin 30°?",
       "item_type": "short_answer",
       "difficulty": -0.5,
-      "correct_answer": "1/2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Trigonometry",
-      "subtopic": "Exact values",
-      "misconception_codes": [
-        "fraction_part_whole",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "1/2"
     },
     {
       "lang": "en",
@@ -2918,16 +2769,7 @@
       "prompt": "What is cos 60°?",
       "item_type": "short_answer",
       "difficulty": -0.5,
-      "correct_answer": "1/2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Trigonometry",
-      "subtopic": "Exact values",
-      "misconception_codes": [
-        "fraction_part_whole",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "1/2"
     },
     {
       "lang": "en",
@@ -2958,16 +2800,7 @@
       "prompt": "What is tan 45°?",
       "item_type": "short_answer",
       "difficulty": -0.5,
-      "correct_answer": "1",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Trigonometry",
-      "subtopic": "Exact values",
-      "misconception_codes": [
-        "prerequisite_gap",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "1"
     },
     {
       "lang": "en",
@@ -2998,16 +2831,7 @@
       "prompt": "Simplify sin^2 θ + cos^2 θ.",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "1",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Trigonometry",
-      "subtopic": "Identities",
-      "misconception_codes": [
-        "prerequisite_gap",
-        "algebra_distribution"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "1"
     },
     {
       "lang": "en",
@@ -3038,16 +2862,7 @@
       "prompt": "In triangle ABC, A = 30°, B = 45°, a = 10. Find b. (Exact form.)",
       "item_type": "short_answer",
       "difficulty": 1.5,
-      "correct_answer": "10√2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Trigonometry",
-      "subtopic": "Sine rule",
-      "misconception_codes": [
-        "prerequisite_gap",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "10√2"
     },
     {
       "lang": "en",
@@ -3078,16 +2893,7 @@
       "prompt": "Find the distance between (1, 2) and (4, 6).",
       "item_type": "short_answer",
       "difficulty": 0.0,
-      "correct_answer": "5",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Coordinate geometry",
-      "subtopic": "Distance",
-      "misconception_codes": [
-        "sign_error",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "5"
     },
     {
       "lang": "en",
@@ -3118,16 +2924,7 @@
       "prompt": "Find the midpoint of (−2, 3) and (4, 7).",
       "item_type": "short_answer",
       "difficulty": 0.0,
-      "correct_answer": "(1, 5)",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Coordinate geometry",
-      "subtopic": "Midpoint",
-      "misconception_codes": [
-        "sign_error",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "(1, 5)"
     },
     {
       "lang": "en",
@@ -3158,16 +2955,7 @@
       "prompt": "Find the gradient of the line through (1, 2) and (5, 10).",
       "item_type": "short_answer",
       "difficulty": 0.0,
-      "correct_answer": "2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Coordinate geometry",
-      "subtopic": "Gradient",
-      "misconception_codes": [
-        "sign_error",
-        "ratio_inversion"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "2"
     },
     {
       "lang": "en",
@@ -3198,16 +2986,7 @@
       "prompt": "Find the equation of the line through (0, 3) with gradient 2.",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "y = 2x + 3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Coordinate geometry",
-      "subtopic": "Equation of line",
-      "misconception_codes": [
-        "sign_error",
-        "answer_form"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "y = 2x + 3"
     },
     {
       "lang": "en",
@@ -3238,16 +3017,7 @@
       "prompt": "Differentiate y = 3x^4 with respect to x.",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "12x^3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Calculus",
-      "subtopic": "Differentiation of polynomials",
-      "misconception_codes": [
-        "algebra_distribution",
-        "off_by_one"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "12x^3"
     },
     {
       "lang": "en",
@@ -3278,16 +3048,7 @@
       "prompt": "Differentiate y = x^3 − 2x^2 + 5x − 1.",
       "item_type": "short_answer",
       "difficulty": 1.0,
-      "correct_answer": "3x^2 − 4x + 5",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Calculus",
-      "subtopic": "Differentiation of polynomials",
-      "misconception_codes": [
-        "sign_error",
-        "off_by_one"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "3x^2 − 4x + 5"
     },
     {
       "lang": "en",
@@ -3318,16 +3079,7 @@
       "prompt": "Find the x-coordinate(s) of the stationary point of y = x^2 − 6x + 5.",
       "item_type": "short_answer",
       "difficulty": 1.5,
-      "correct_answer": "x = 3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Calculus",
-      "subtopic": "Stationary points",
-      "misconception_codes": [
-        "sign_error",
-        "order_of_operations"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "x = 3"
     },
     {
       "lang": "en",
@@ -3358,16 +3110,7 @@
       "prompt": "Find ∫ (4x^3) dx.",
       "item_type": "short_answer",
       "difficulty": 1.0,
-      "correct_answer": "x^4 + C",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Calculus",
-      "subtopic": "Indefinite integration",
-      "misconception_codes": [
-        "off_by_one",
-        "answer_form"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "x^4 + C"
     },
     {
       "lang": "en",
@@ -3398,16 +3141,7 @@
       "prompt": "Evaluate ∫₀¹ (2x) dx.",
       "item_type": "short_answer",
       "difficulty": 1.5,
-      "correct_answer": "1",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Calculus",
-      "subtopic": "Definite integration",
-      "misconception_codes": [
-        "off_by_one",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "1"
     },
     {
       "lang": "en",
@@ -3438,16 +3172,7 @@
       "prompt": "P(A) = 1/3, P(B) = 1/2. If independent, find P(A and B).",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "1/6",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Independent events",
-      "misconception_codes": [
-        "fraction_part_whole",
-        "probability_complement"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "1/6"
     },
     {
       "lang": "en",
@@ -3478,16 +3203,7 @@
       "prompt": "P(A) = 0.2, P(B) = 0.5, exclusive. Find P(A or B).",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "0.7",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Mutually exclusive",
-      "misconception_codes": [
-        "probability_complement",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "0.7"
     },
     {
       "lang": "en",
@@ -3518,16 +3234,7 @@
       "prompt": "If P(passing) = 0.85, what is P(failing)?",
       "item_type": "short_answer",
       "difficulty": -0.5,
-      "correct_answer": "0.15",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Complement",
-      "misconception_codes": [
-        "probability_complement",
-        "sign_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "0.15"
     },
     {
       "lang": "en",
@@ -3558,16 +3265,7 @@
       "prompt": "Scores: 2(f=3), 3(f=5), 4(f=2). Find the mean.",
       "item_type": "short_answer",
       "difficulty": 1.0,
-      "correct_answer": "2.9",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Statistics",
-      "subtopic": "Frequency mean",
-      "misconception_codes": [
-        "fraction_part_whole",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "2.9"
     },
     {
       "lang": "en",
@@ -3598,16 +3296,7 @@
       "prompt": "Find the standard deviation of 4, 4, 4, 4. ",
       "item_type": "short_answer",
       "difficulty": 0.0,
-      "correct_answer": "0",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Statistics",
-      "subtopic": "Standard deviation",
-      "misconception_codes": [
-        "language_comprehension",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "0"
     },
     {
       "lang": "en",
@@ -3638,16 +3327,7 @@
       "prompt": "Class 1–5 (f=4) and 6–10 (f=6). Estimate the mean using midpoints.",
       "item_type": "short_answer",
       "difficulty": 1.5,
-      "correct_answer": "5.8",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Statistics",
-      "subtopic": "Grouped data",
-      "misconception_codes": [
-        "prerequisite_gap",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "5.8"
     },
     {
       "lang": "en",
@@ -3678,16 +3358,7 @@
       "prompt": "y varies directly as x. y = 12 when x = 4. Find y when x = 7.",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "21",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Variation",
-      "subtopic": "Direct variation",
-      "misconception_codes": [
-        "ratio_inversion",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "21"
     },
     {
       "lang": "en",
@@ -3718,16 +3389,7 @@
       "prompt": "y varies inversely as x. y = 6 when x = 4. Find y when x = 3.",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "8",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Variation",
-      "subtopic": "Inverse variation",
-      "misconception_codes": [
-        "ratio_inversion",
-        "fraction_part_whole"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "8"
     },
     {
       "lang": "en",
@@ -3758,16 +3420,7 @@
       "prompt": "If A = {1,2,3,4} and B = {3,4,5,6}, find A ∪ B.",
       "item_type": "short_answer",
       "difficulty": -1.0,
-      "correct_answer": "{1,2,3,4,5,6}",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Sets",
-      "subtopic": "Union and intersection",
-      "misconception_codes": [
-        "language_comprehension",
-        "misread_question"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "{1,2,3,4,5,6}"
     },
     {
       "lang": "en",
@@ -3798,16 +3451,7 @@
       "prompt": "If A = {1,2,3,4} and B = {3,4,5,6}, find A ∩ B.",
       "item_type": "short_answer",
       "difficulty": -1.0,
-      "correct_answer": "{3,4}",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Sets",
-      "subtopic": "Union and intersection",
-      "misconception_codes": [
-        "language_comprehension",
-        "misread_question"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "{3,4}"
     },
     {
       "lang": "en",
@@ -3838,16 +3482,7 @@
       "prompt": "In a class of 30, 18 do Maths and 14 do Physics; 6 do both. How many do Maths only?",
       "item_type": "short_answer",
       "difficulty": 1.0,
-      "correct_answer": "12",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Sets",
-      "subtopic": "Two-set Venn",
-      "misconception_codes": [
-        "language_comprehension",
-        "off_by_one"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "12"
     },
     {
       "lang": "en",
@@ -3878,16 +3513,7 @@
       "prompt": "Find the volume of a cone of radius 7 cm, height 9 cm (π = 22/7).",
       "item_type": "short_answer",
       "difficulty": 1.5,
-      "correct_answer": "462 cm^3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Mensuration",
-      "subtopic": "Cone",
-      "misconception_codes": [
-        "geometry_units",
-        "calc_error"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "462 cm^3"
     },
     {
       "lang": "en",
@@ -3918,16 +3544,7 @@
       "prompt": "Find the volume of a sphere of radius 3 cm (π = 22/7). Give answer to 2 d.p.",
       "item_type": "short_answer",
       "difficulty": 1.5,
-      "correct_answer": "113.14 cm^3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Mensuration",
-      "subtopic": "Sphere",
-      "misconception_codes": [
-        "geometry_units",
-        "place_value"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "113.14 cm^3"
     },
     {
       "lang": "en",
@@ -3958,16 +3575,7 @@
       "prompt": "Convert 1101₂ to base 10.",
       "item_type": "short_answer",
       "difficulty": 0.0,
-      "correct_answer": "13",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Number bases",
-      "subtopic": "Binary",
-      "misconception_codes": [
-        "place_value",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "13"
     },
     {
       "lang": "en",
@@ -3998,16 +3606,7 @@
       "prompt": "Convert 25₁₀ to base 2.",
       "item_type": "short_answer",
       "difficulty": 0.5,
-      "correct_answer": "11001",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Number bases",
-      "subtopic": "Base conversion",
-      "misconception_codes": [
-        "place_value",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "11001"
     },
     {
       "lang": "en",
@@ -4062,16 +3661,7 @@
       "prompt": "Evaluate (101.5)^2 - (100.5)^2\n\nA) 1\nB) 2.02\nC) 20.02\nD) 202",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "D) 202",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 202"
     },
     {
       "lang": "en",
@@ -4126,16 +3716,7 @@
       "prompt": "Express the product of 0.06 and 0.09 in standard form\n\nA) 5.4 * 10^-1\nB) 5.4*10^-2\nC) 5.4*10^2\nD) 5.4*10^-3",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "D) 5.4*10^-3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 5.4*10^-3"
     },
     {
       "lang": "en",
@@ -4190,16 +3771,7 @@
       "prompt": "Find the 8th term of the A.P -3, -1, 1 ......\n\nA) 13\nB) -8\nC) 11\nD) -11",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "C) 11",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Sequences and series",
-      "subtopic": "Progressions",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 11"
     },
     {
       "lang": "en",
@@ -4254,16 +3826,7 @@
       "prompt": "If cos 60° = 1/2, which of the following angle has cosine of -1/2?\n\nA) 30^o\nB) 150^o\nC) 120^o\nD) 210^o",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "C) 120^o",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Trigonometry",
-      "subtopic": "Ratios",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 120^o"
     },
     {
       "lang": "en",
@@ -4318,16 +3881,7 @@
       "prompt": "A ladder 9m long leans against a vertical wall, making an angle of 64° with the horizontal ground. calculate correct to one decimal place, how far the foot of the ladder is from the wall.\n\nA) 5.8m\nB) 7.1m\nC) 4.0m\nD) 8.1m",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "C) 4.0m",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Number and numeration",
-      "subtopic": "Fractions and approximation",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 4.0m"
     },
     {
       "lang": "en",
@@ -4382,16 +3936,7 @@
       "prompt": "What is the difference in longitude between P (lat. 50°N. long. 50°W) and Q (lat.50°N, long. 150°W)?\n\nA) 100^o\nB) 300^o\nC) 200^o\nD) 130^o",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "A) 100^o",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 100^o"
     },
     {
       "lang": "en",
@@ -4446,16 +3991,7 @@
       "prompt": "Points P and Q respectively 24m north and 7m east point R. Calculate |PQ| in meters\n\nA) 20\nB) 24\nC) 25\nD) 31",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "C) 25",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 25"
     },
     {
       "lang": "en",
@@ -4510,16 +4046,7 @@
       "prompt": "Simplify (27^1/3)^2\n\nA) 9\nB) 4^1/2\nC) 6\nD) 18",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "A) 9",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 9"
     },
     {
       "lang": "en",
@@ -4574,16 +4101,7 @@
       "prompt": "A student told to draw the graph of y = x^2 + 4x - 6. He is then told to draw a liner graph on the same axis such that the intersection of the two graphs will give the solutions to the equation x^2 + 4x - 7 = 0, What is the equation of the linear graph he needs to draw?\n\nA) x = 1\nB) y = 1\nC) x = -1\nD) y = -1",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "B) y = 1",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) y = 1"
     },
     {
       "lang": "en",
@@ -4638,16 +4156,7 @@
       "prompt": "Find the quadratic equation whose roots are x = -2 or x = 7\n\nA) x^2 - 5x - 14 = 0\nB) x^2 + 2x - 7 = 0\nC) x^2 - 2x + 7 = 0\nD) x^2 + 5 +14 = 0",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "A) x^2 - 5x - 14 = 0",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "Equations and expressions",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) x^2 - 5x - 14 = 0"
     },
     {
       "lang": "en",
@@ -4702,16 +4211,7 @@
       "prompt": "A sales girl gave a change of N1.15 to a customer instead of N1.25. Calculate her percentage error\n\nA) 10%\nB) 7%\nC) 2.4%\nD) 8.0%",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "D) 8.0%",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Number and numeration",
-      "subtopic": "Ratio and percentage",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 8.0%"
     },
     {
       "lang": "en",
@@ -4766,16 +4266,7 @@
       "prompt": "What is the probability of having an odd number in a single toss of a fair die?\n\nA) 1/6\nB) 1/3\nC) 2/3\nD) 1/2",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "D) 1/2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Single events",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 1/2"
     },
     {
       "lang": "en",
@@ -4830,16 +4321,7 @@
       "prompt": "Evaluate log106 + log1045 - log1027 without using logarithm tables\n\nA) 1\nB) o\nC) 1.1738\nD) 1.3802",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "A) 1",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Logarithms",
-      "subtopic": "Log laws",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 1"
     },
     {
       "lang": "en",
@@ -4894,16 +4376,7 @@
       "prompt": "What value of k makes the given expression a perfect square ? m^2 - 8m + k = 0\n\nA) 16\nB) 2\nC) 4\nD) 8",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "A) 16",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 16"
     },
     {
       "lang": "en",
@@ -4958,16 +4431,7 @@
       "prompt": "If log10 q = 2.7078, what is q?\n\nA) 5102\nB) 849.9\nC) 510.2\nD) 84.99",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "C) 510.2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Logarithms",
-      "subtopic": "Log laws",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 510.2"
     },
     {
       "lang": "en",
@@ -5022,16 +4486,7 @@
       "prompt": "Cos x is negative and sin x is negative.Which of the following is true of x?\n\nA) 180^o < x < 270^o\nB) 0^o < x < 90^o\nC) 90^o < x <180^o\nD) 270^o < x <360^o",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "A) 180^o < x < 270^o",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Trigonometry",
-      "subtopic": "Ratios",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 180^o < x < 270^o"
     },
     {
       "lang": "en",
@@ -5086,16 +4541,7 @@
       "prompt": "A student measured the length of a room and obtained the measurement of 3.99m. If the percentage error of is measurement was 5% and his own measurement was smaller than the length , what is the length of the room?\n\nA) 3.78m\nB) 3.80m\nC) 4.20m\nD) 4.18m",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "C) 4.20m",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Number and numeration",
-      "subtopic": "Ratio and percentage",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 4.20m"
     },
     {
       "lang": "en",
@@ -5150,16 +4596,7 @@
       "prompt": "Find the product xy if, x, 3/2, 6/7, y are in G.P\n\nA) 9/7\nB) 24/49\nC) 4/7\nD) 7/4",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "A) 9/7",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Sequences and series",
-      "subtopic": "Progressions",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 9/7"
     },
     {
       "lang": "en",
@@ -5214,16 +4651,7 @@
       "prompt": "Which of the following is a correct method for constructing an angle of 60^o at Q?\n\nA) I only\nB) III only\nC) I and II only\nD) II only",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "D) II only",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) II only"
     },
     {
       "lang": "en",
@@ -5278,16 +4706,7 @@
       "prompt": "Abidjan is 4^o west of Accra and on the same circle of latitude. If the radius of this circle of latitude is 6370km, how far is Abidjan west of Accra, correct to the nearest kilometer? [Take π = 22/7]\n\nA) 222km\nB) 445km\nC) 890km\nD) 5005km",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "B) 445km",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 445km"
     },
     {
       "lang": "en",
@@ -5342,16 +4761,7 @@
       "prompt": "A cone is made from a sector of circle of radius 14cm and angle of 90^o. What is the area of the curved surface of the cone? (Take x = 22/7)\n\nA) 22cm^2\nB) 38.5cm^2\nC) 77cm^2\nD) 154cm^2",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "D) 154cm^2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 154cm^2"
     },
     {
       "lang": "en",
@@ -5406,16 +4816,7 @@
       "prompt": "A rope of length 18m is used to form a sector of a circle of radius 3.5m on a school playing field. What is the size of the angle of the sector, correct to the nearest degree?\n\nA) 33^o\nB) 40^o\nC) 90^o\nD) 180^o",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "D) 180^o",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Geometry",
-      "subtopic": "Mensuration",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 180^o"
     },
     {
       "lang": "en",
@@ -5470,16 +4871,7 @@
       "prompt": "Cotonou and Niamey are on the same line of longitude and Niamey is 7^o north of Cotonou. If the radius of the earth is 6400km, how far is Niamey north of Cotonou along the line of longitude, correct to the nearest kilometer? [Take π = 22/7]\n\nA) 391km\nB) 503km\nC) 782km\nD) 1006km",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "C) 782km",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 782km"
     },
     {
       "lang": "en",
@@ -5534,16 +4926,7 @@
       "prompt": "If Q = (all perfect squares less than 30) and P = (all odd numbers from 1 to 10). Find Q ∩ P.\n\nA) (1, 4, 9, 16, 25)\nB) (1, 3, 4, 5, 7, 9, 16, 25)\nC) (1, 9)\nD) (1, 3, 5, 7, 9)",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "C) (1, 9)",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) (1, 9)"
     },
     {
       "lang": "en",
@@ -5598,16 +4981,7 @@
       "prompt": "The histogram below shows the number of candidates, in thousands, obtaining given ranges of marks in a State examination. How many candidates scored at most 30%?\n\nA) 35,000\nB) 15,000\nC) 20,000\nD) 25,000",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "A) 35,000",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Statistics",
-      "subtopic": "Measures",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 35,000"
     },
     {
       "lang": "en",
@@ -5662,16 +5036,7 @@
       "prompt": "The surnames of 40 children in a class arranged in alphabetical order. 16 of the surnames begins with O and 9 of the surname begins with A, 14, of the letters of the alphabet do not appear as the first letter of a surname What is the probability that the surname of a child picked at random from the class begins with either O or A?\n\nA) 7/8\nB) 5/8\nC) 9/16\nD) 14/25",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "B) 5/8",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Single events",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 5/8"
     },
     {
       "lang": "en",
@@ -5726,16 +5091,7 @@
       "prompt": "If 3loga + 5loga - 6loga = log64, what is a?\n\nA) 4\nB) 6\nC) 16\nD) 8",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "D) 8",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Logarithms",
-      "subtopic": "Log laws",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 8"
     },
     {
       "lang": "en",
@@ -5790,16 +5146,7 @@
       "prompt": "If the second and fourth term of a G.P are 8 and 32 respectively,what is the sum of the first four terms?\n\nA) 28\nB) 40\nC) 48\nD) 60",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "D) 60",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Sequences and series",
-      "subtopic": "Progressions",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 60"
     },
     {
       "lang": "en",
@@ -5854,16 +5201,7 @@
       "prompt": "Evaluate, using logarithm tables (5.34 × 67.4)/(2.7)\n\nA) 1.332\nB) 13.32\nC) 1332\nD) 133.2",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "D) 133.2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Logarithms",
-      "subtopic": "Log laws",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 133.2"
     },
     {
       "lang": "en",
@@ -5918,16 +5256,7 @@
       "prompt": "Factorize 35 - 2b - b^2\n\nA) (35-2b)(b-1)\nB) (3+7b)(5-b)\nC) (35-b)(3b+7)\nD) (7+b)(5-b)",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "D) (7+b)(5-b)",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) (7+b)(5-b)"
     },
     {
       "lang": "en",
@@ -5982,16 +5311,7 @@
       "prompt": "Evaluate (0.009)/(0.012), leaving your answer in standard form.\n\nA) 7.5 x 10^2\nB) 7.5 x 10^1\nC) 7.5 x 10^-2\nD) 7.5 x 10^-1",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "D) 7.5 x 10^-1",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 7.5 x 10^-1"
     },
     {
       "lang": "en",
@@ -6046,16 +5366,7 @@
       "prompt": "Factorize the following expression; 2x^2 + x - 15\n\nA) (2x-5)(x+3)\nB) (2x+5)(x-3)\nC) (2x-5)(x-3)\nD) (2x-3)(x+5)",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "A) (2x-5)(x+3)",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) (2x-5)(x+3)"
     },
     {
       "lang": "en",
@@ -6110,16 +5421,7 @@
       "prompt": "Instead of recording the number 1.23cm of the radius of a tube, a student recorded 1.32cm. Find the percentage of error, correct to one decimal place.\n\nA) 6.8%\nB) 9.6%\nC) 7.3%\nD) 14.4%",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "C) 7.3%",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Geometry",
-      "subtopic": "Mensuration",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 7.3%"
     },
     {
       "lang": "en",
@@ -6174,16 +5476,7 @@
       "prompt": "If twice a certain integer is subtracted from 5 times the integer, the result is 63. Find the integer.\n\nA) 21\nB) 9\nC) 7\nD) 4",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "A) 21",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 21"
     },
     {
       "lang": "en",
@@ -6238,16 +5531,7 @@
       "prompt": "If 3^y = 243, find the value of y.\n\nA) 2\nB) 3\nC) 5\nD) 4",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "C) 5",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 5"
     },
     {
       "lang": "en",
@@ -6302,16 +5586,7 @@
       "prompt": "Points X and Y are respectively 20km North and 9km East of a point O. What is the bearing of Y from X? Correct to the nearest degree\n\nA) 024^o\nB) 156^o\nC) 114^o\nD) 204^o",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "B) 156^o",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Trigonometry",
-      "subtopic": "Ratios",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 156^o"
     },
     {
       "lang": "en",
@@ -6366,16 +5641,7 @@
       "prompt": "Calculate the surface area of a hallow cylinder which is closed at one end, if the base radius is 3.5cm and the height 8cm.[take π = 22/7]\n\nA) 126.5cm^2\nB) 165cm^2\nC) 176cm^2\nD) 214.5cm^2",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "D) 214.5cm^2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Geometry",
-      "subtopic": "Mensuration",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 214.5cm^2"
     },
     {
       "lang": "en",
@@ -6430,16 +5696,7 @@
       "prompt": "Solve the following equation: 6x^2 - 7x - 5 = 0\n\nA) x = 1 ^2/3 or x = -^1/2\nB) x = ^1/2 or x = -2^1/2\nC) x = 1/3 or x = 2^1/2\nD) x = 1^2/3 or x = ^1/2",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "A) x = 1 ^2/3 or x = -^1/2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) x = 1 ^2/3 or x = -^1/2"
     },
     {
       "lang": "en",
@@ -6494,16 +5751,7 @@
       "prompt": "What angle represents grown up girls ? Correct to one decimal place\n\nA) 37.5^o\nB) 25.7^o\nC) 20^o\nD) 26.7^o",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "D) 26.7^o",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Number and numeration",
-      "subtopic": "Fractions and approximation",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 26.7^o"
     },
     {
       "lang": "en",
@@ -6558,16 +5806,7 @@
       "prompt": "What percentage of the population are married? correct to one decimal place\n\nA) 14.8%\nB) 35.2%\nC) 20.4%\nD) 30.5%",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "B) 35.2%",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Number and numeration",
-      "subtopic": "Ratio and percentage",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 35.2%"
     },
     {
       "lang": "en",
@@ -6622,16 +5861,7 @@
       "prompt": "What is the median score?\n\nA) 2\nB) 4\nC) 5\nD) 6",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "C) 5",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Statistics",
-      "subtopic": "Measures",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 5"
     },
     {
       "lang": "en",
@@ -6686,16 +5916,7 @@
       "prompt": "What is the range of the distribution?\n\nA) 2\nB) 8\nC) 9\nD) 7",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "D) 7",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 7"
     },
     {
       "lang": "en",
@@ -6750,16 +5971,7 @@
       "prompt": "The angle of a sector of a circle of diameter 8cm is 135°. Find the area of the sector [Take π = 22/7].\n\nA) 18(6)/(7)cm^2\nB) 9(3)/(7)cm^2\nC) 12(4)/(7)cm^2\nD) 25(1)/(7)cm^2",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "A) 18(6)/(7)cm^2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Geometry",
-      "subtopic": "Mensuration",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 18(6)/(7)cm^2"
     },
     {
       "lang": "en",
@@ -6814,16 +6026,7 @@
       "prompt": "The angle of depression of a point on the ground from the top of a building is 20.3^o. If the foot of the building is 40m, calculate the height of the building, correct to one decimal place\n\nA) 14.8m\nB) 37.5m\nC) 28.1m\nD) 27.8m",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "A) 14.8m",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 14.8m"
     },
     {
       "lang": "en",
@@ -6878,16 +6081,7 @@
       "prompt": "Solve for x: (x^2 + 2x + 1) = 25\n\nA) -6, 4\nB) -6, -4\nC) 6, -4\nD) 6, 4",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "A) -6, 4",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) -6, 4"
     },
     {
       "lang": "en",
@@ -6942,16 +6136,7 @@
       "prompt": "What is the probability that 3 customers waiting in a bank will be served in the sequence of their arrival at the bank\n\nA) 1/3\nB) 1/2\nC) 2/3\nD) 1/6",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "D) 1/6",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Single events",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 1/6"
     },
     {
       "lang": "en",
@@ -7006,16 +6191,7 @@
       "prompt": "In an A.P. the first term is 2, and the sum of the 1st and the 6th term is 16(1)/(2). What is the 4th term\n\nA) 12\nB) 9^1/2\nC) 8\nD) 7",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "B) 9^1/2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Sequences and series",
-      "subtopic": "Progressions",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 9^1/2"
     },
     {
       "lang": "en",
@@ -7070,16 +6246,7 @@
       "prompt": "If 3^2x = 27, what is x?\n\nA) 1\nB) 4.5\nC) 18\nD) 1.5",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "D) 1.5",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 1.5"
     },
     {
       "lang": "en",
@@ -7134,16 +6301,7 @@
       "prompt": "Express 0.00562 in standard form\n\nA) 5.62 x 10^-2\nB) 5.62 x 10^-3\nC) 562 x 10^-2\nD) 5.62 x 10^2",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "B) 5.62 x 10^-3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 5.62 x 10^-3"
     },
     {
       "lang": "en",
@@ -7198,16 +6356,7 @@
       "prompt": "While doing his physics practical, Idowu recorded a reading as 1.12cm instead of 1.21cm. Calculate his percentage error\n\nA) 7.44%\nB) 1.17%\nC) 6.38%\nD) 8.035%",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "A) 7.44%",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Number and numeration",
-      "subtopic": "Ratio and percentage",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 7.44%"
     },
     {
       "lang": "en",
@@ -7262,16 +6411,7 @@
       "prompt": "Find the 4th term of an A.P, whose first term is 2 and the common difference is 0.5\n\nA) 3.5\nB) 0.5\nC) 2.5\nD) 4",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "A) 3.5",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Sequences and series",
-      "subtopic": "Progressions",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 3.5"
     },
     {
       "lang": "en",
@@ -7326,16 +6466,7 @@
       "prompt": "From the graph determine the roots of the equation y = 2x^2 + x - 6\n\nA) -3, 4\nB) -2, -6\nC) -2, 1.5\nD) -1, 1",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "C) -2, 1.5",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) -2, 1.5"
     },
     {
       "lang": "en",
@@ -7390,16 +6521,7 @@
       "prompt": "Find the values of x for which y = 5\n\nA) -2.6, 2.1\nB) -2.5, 2.0\nC) -2.0, 1.5\nD) -2.0, 2.0",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "A) -2.6, 2.1",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) -2.6, 2.1"
     },
     {
       "lang": "en",
@@ -7454,16 +6576,7 @@
       "prompt": "An arc of length 22cm subtends an angle of θ at the center of the circle. What is the value of θ if the radius of the circle is 15cm?[Take π = 22/7]\n\nA) 84^o\nB) 70^o\nC) 96^o\nD) 156^o",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "A) 84^o",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Geometry",
-      "subtopic": "Mensuration",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 84^o"
     },
     {
       "lang": "en",
@@ -7518,16 +6631,7 @@
       "prompt": "Find the sum of the first five terms of the G.P 2,6, 18 ....\n\nA) 484\nB) 243\nC) 242\nD) 130",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "C) 242",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Sequences and series",
-      "subtopic": "Progressions",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 242"
     },
     {
       "lang": "en",
@@ -7582,16 +6686,7 @@
       "prompt": "In a class of 80 students, every students had to study economics or geography, or both economics and geography, if 65 students studied economics and 50 studied geography, how many studied both subjects?\n\nA) 15\nB) 30\nC) 45\nD) 35",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "D) 35",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 35"
     },
     {
       "lang": "en",
@@ -7646,16 +6741,7 @@
       "prompt": "The area shaded with horizontal lines is the solution set of the inequalities;\n\nA) y ≤ x, y + 2x ≥ -3, x ≤ 3\nB) y ≥ x, y + 3 ≥ 2x, x ≤ 3\nC) y ≤ -x, y + 2x ≤ 3, x ≥ -3\nD) y ≥ -x, y + 3 ≤ 2x, x ≥ -3",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "A) y ≤ x, y + 2x ≥ -3, x ≤ 3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Geometry",
-      "subtopic": "Mensuration",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) y ≤ x, y + 2x ≥ -3, x ≤ 3"
     },
     {
       "lang": "en",
@@ -7710,16 +6796,7 @@
       "prompt": "the area shaded with vertical lines is the solution set of the inequalities;\n\nA) y ≤ x, y ≤ 2x - 3, x ≤ 3\nB) y ≤ x, y + 2x ≤ -3\nC) y ≥ x, y + 2x ≥ - 3\nD) y ≤ -x, y ≤ 2x - 3, x ≤ 3",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "A) y ≤ x, y ≤ 2x - 3, x ≤ 3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Geometry",
-      "subtopic": "Mensuration",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) y ≤ x, y ≤ 2x - 3, x ≤ 3"
     },
     {
       "lang": "en",
@@ -7774,16 +6851,7 @@
       "prompt": "Factorize x^2 + 4x - 192\n\nA) (x-4) (x+48)\nB) (x-48) (x+4)\nC) (x-12) (x-16)\nD) (x-12) (x+16)",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "D) (x-12) (x+16)",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) (x-12) (x+16)"
     },
     {
       "lang": "en",
@@ -7838,16 +6906,7 @@
       "prompt": "Factorize 2e^2 - 3e + 1\n\nA) (e+1) (2e+1)\nB) (2e+3) (e+2)\nC) (2e-3) (e-1)\nD) (2e-1) (e-1)",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "D) (2e-1) (e-1)",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) (2e-1) (e-1)"
     },
     {
       "lang": "en",
@@ -7902,16 +6961,7 @@
       "prompt": "Solve the equation 7y^2 = 3y\n\nA) y = 3 or 7\nB) y = 0 or 3/7\nC) y = 0 or 7\nD) y = 0 or 9",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "B) y = 0 or 3/7",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) y = 0 or 3/7"
     },
     {
       "lang": "en",
@@ -7966,16 +7016,7 @@
       "prompt": "A sector of a circle of radius 7cm has an area of 44cm^2. Calculate the angle of the sector correct to the nearest degree [Take π = 22/7]\n\nA) 103^o\nB) 6^o\nC) 26^o\nD) 52^o",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "A) 103^o",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 103^o"
     },
     {
       "lang": "en",
@@ -8030,16 +7071,7 @@
       "prompt": "calculate the surface area of a sphere of radius 7cm [Take π = 22/7]\n\nA) 86cm^2\nB) 154cm^2\nC) 616cm^2\nD) 1434cm^2",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "C) 616cm^2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Geometry",
-      "subtopic": "Mensuration",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 616cm^2"
     },
     {
       "lang": "en",
@@ -8094,16 +7126,7 @@
       "prompt": "If the radius of the parallel of latitude 30°N is equal to the radius of the parallel of latitude θ°S, what is the value of θ?\n\nA) 75^o\nB) 60^o\nC) 30^o\nD) 45^o",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "C) 30^o",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Geometry",
-      "subtopic": "Mensuration",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 30^o"
     },
     {
       "lang": "en",
@@ -8158,16 +7181,7 @@
       "prompt": "A cylindrical container closed at both ends, has a radius of 7cm and height 5cm [Take π = 22/7] Find the total surface area of the container\n\nA) 35cm^2\nB) 154cm^2\nC) 220cm^2\nD) 528cm^2",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "D) 528cm^2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Geometry",
-      "subtopic": "Mensuration",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 528cm^2"
     },
     {
       "lang": "en",
@@ -8222,16 +7236,7 @@
       "prompt": "Which angle is equal to ∠VWZ?\n\nA) ∠VYX\nB) ∠XZW\nC) ∠YXZ\nD) ∠VXZ",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "D) ∠VXZ",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) ∠VXZ"
     },
     {
       "lang": "en",
@@ -8286,16 +7291,7 @@
       "prompt": "Which triangle is equal in area to ΔVWZ\n\nA) ΔVXZ\nB) ΔXYV\nC) ΔWYV\nD) ΔVYZ",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "D) ΔVYZ",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Geometry",
-      "subtopic": "Mensuration",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) ΔVYZ"
     },
     {
       "lang": "en",
@@ -8350,16 +7346,7 @@
       "prompt": "Use mathematical table to evaluate (cos40° - sin30°)\n\nA) -0.2660\nB) 0.2660\nC) -0.0266\nD) 0.0266",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "B) 0.2660",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 0.2660"
     },
     {
       "lang": "en",
@@ -8414,16 +7401,7 @@
       "prompt": "If the shadow of a pole 7m high is 1/2 its length what is the angle of elevation of the sun, correct to the nearest degree?\n\nA) 90^o\nB) 60^o\nC) 26^o\nD) 63^o",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "D) 63^o",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Trigonometry",
-      "subtopic": "Ratios",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 63^o"
     },
     {
       "lang": "en",
@@ -8478,16 +7456,7 @@
       "prompt": "From the top of a building 10m high, the angle of depression of a stone lying on the horizontal ground is 69^o. Calculate ,correct to one decimal place, the distance of the stone from the foot of the building\n\nA) 3.6m\nB) 6.0m\nC) 9.3m\nD) 3.8m",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "D) 3.8m",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 3.8m"
     },
     {
       "lang": "en",
@@ -8542,16 +7511,7 @@
       "prompt": "The bearing of a point X from a point Y is 074°. What is the bearing of Y from X?\n\nA) 254^o\nB) 106^o\nC) 146^o\nD) 164^o",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "A) 254^o",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Trigonometry",
-      "subtopic": "Ratios",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 254^o"
     },
     {
       "lang": "en",
@@ -8606,16 +7566,7 @@
       "prompt": "Two groups of male students cast their votes on a particular proposal. The result are as follows: In favor Against Group A 128 32 Group B 96 48 If a student in favor of the proposal is selected for a post, what is the probability that he is from group A?\n\nA) 16/35\nB) 8/19\nC) 10/19\nD) 4/7",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "B) 8/19",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Single events",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 8/19"
     },
     {
       "lang": "en",
@@ -8670,16 +7621,7 @@
       "prompt": "Two groups of male students cast their vote on a particular proposal. The results are as follows: In favor Against Group A 128 32 Group B 96 48 If a student is chosen at random, what is probability that he is against the proposal?\n\nA) 3/19\nB) 4/19\nC) 5/19\nD) 9/19",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "C) 5/19",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Single events",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 5/19"
     },
     {
       "lang": "en",
@@ -8734,16 +7676,7 @@
       "prompt": "Express 0.0462 in standard form\n\nA) 4.62 x 10^-2\nB) 0.462 x 10^-1\nC) 0.462 x 10^-2\nD) 4.62 x 10^-1",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "A) 4.62 x 10^-2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 4.62 x 10^-2"
     },
     {
       "lang": "en",
@@ -8798,16 +7731,7 @@
       "prompt": "Simplify: log6 + log2 - log12\n\nA) 0\nB) -4\nC) -1\nD) 1",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "A) 0",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Logarithms",
-      "subtopic": "Log laws",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 0"
     },
     {
       "lang": "en",
@@ -8862,16 +7786,7 @@
       "prompt": "Find the number whose logarithm to base 10 is 2.6025\n\nA) 400.4\nB) 0.4004\nC) 0.04004\nD) 0.004004",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "A) 400.4",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Logarithms",
-      "subtopic": "Log laws",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 400.4"
     },
     {
       "lang": "en",
@@ -8926,16 +7841,7 @@
       "prompt": "Factorize 3a^2 - 11a + 6\n\nA) (3a - 2)(a - 3)\nB) (2a -2)(a - 3)\nC) (3a - 2)(a + 3)\nD) (3a + 2)(a - 3)",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "A) (3a - 2)(a - 3)",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) (3a - 2)(a - 3)"
     },
     {
       "lang": "en",
@@ -8990,16 +7896,7 @@
       "prompt": "Simplify ((3)/(x) - (15)/(2y)) ÷ (6)/(xy)\n\nA) (2y - 5x)/(4)\nB) (9(2x - 5x))/(x^2y^2)\nC) (5x - 2y)/(2)\nD) (c^2y^2)/(18y - 45x)",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "A) (2y - 5x)/(4)",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "Equations and expressions",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) (2y - 5x)/(4)"
     },
     {
       "lang": "en",
@@ -9054,16 +7951,7 @@
       "prompt": "Find the equation whose roots are -2/3 and -1/4\n\nA) 12x^2 - 11x + 2 = 0\nB) x^2 - 11/12x + 2 = 0\nC) 12x^2 + 11x + 2 = 0\nD) 12x^2 - 11x - 2 = 0",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "C) 12x^2 + 11x + 2 = 0",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "Equations and expressions",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 12x^2 + 11x + 2 = 0"
     },
     {
       "lang": "en",
@@ -9118,16 +8006,7 @@
       "prompt": "Solve: 6(x - 4) + 3(x + 7) = 3\n\nA) 2/3\nB) 3/2\nC) 1/2\nD) 1/3",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "A) 2/3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 2/3"
     },
     {
       "lang": "en",
@@ -9182,16 +8061,7 @@
       "prompt": "If 2x + y = 7 and 3x - 2y = 3, by how much is 7x greater than 10?\n\nA) 1\nB) 7\nC) 3\nD) 10",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "B) 7",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 7"
     },
     {
       "lang": "en",
@@ -9246,16 +8116,7 @@
       "prompt": "A cylinder of base radius 4cm is open at one end . If the ratio of the area of its base to that of its curved surface is 1:4, calculate the height of the cylinder\n\nA) 1cm\nB) 8cm\nC) 2cm\nD) 4cm",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "B) 8cm",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Geometry",
-      "subtopic": "Mensuration",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 8cm"
     },
     {
       "lang": "en",
@@ -9310,16 +8171,7 @@
       "prompt": "A headmaster contributes 7% of his income into a fund and his wife contributes 4% of her income. If the husband earns N5,500 per annum (p.a) and the wife earns N4,000 (P.a), find the sum of their annual contribution to the fund\n\nA) N1045\nB) N545\nC) N605\nD) N490",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "B) N545",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) N545"
     },
     {
       "lang": "en",
@@ -9374,16 +8226,7 @@
       "prompt": "A car is travelling at an average speed of 80km/hr. Its speed in meters per second (m/s) is\n\nA) 13.3m/s\nB) 133.3m/s\nC) 22.2m/s\nD) 222.2m/s",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "C) 22.2m/s",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 22.2m/s"
     },
     {
       "lang": "en",
@@ -9438,16 +8281,7 @@
       "prompt": "Mrs. Kofi sold an article for C7.50 instead of C12.75. Calculate her percentage of error, correct to one decimal place.\n\nA) 41.2%\nB) 18.3%\nC) 5.3%\nD) 1.7%",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "A) 41.2%",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Number and numeration",
-      "subtopic": "Ratio and percentage",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 41.2%"
     },
     {
       "lang": "en",
@@ -9502,16 +8336,7 @@
       "prompt": "The first term a of an A.P is equal to twice the common difference d. Find, in terms of d, the 5th term of the A.P.\n\nA) 6d\nB) 4d\nC) 5d\nD) a + 5d",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "A) 6d",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Sequences and series",
-      "subtopic": "Progressions",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 6d"
     },
     {
       "lang": "en",
@@ -9566,16 +8391,7 @@
       "prompt": "The common ratio of a G.P. is 2. If the 5th term is greater than the 1st term by 45, find the 5th term,\n\nA) 48\nB) 3\nC) 6\nD) 45",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "A) 48",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Sequences and series",
-      "subtopic": "Progressions",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 48"
     },
     {
       "lang": "en",
@@ -9630,16 +8446,7 @@
       "prompt": "Two towns, P and Q, are on (4^oN 40^oW) and (4^oN 20^oE) respectively. What is the distance between them, along their line of latitude? (Give your answer in teems of π and R, the radius of the earth).\n\nA) 2πR cos4^o\nB) πR sin40^o\nC) πR / 3 cos4^o\nD) πR / 2 cos4^o",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "C) πR / 3 cos4^o",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) πR / 3 cos4^o"
     },
     {
       "lang": "en",
@@ -9694,16 +8501,7 @@
       "prompt": "In a class of 80 students, every student had to study Economics or Geography or both Economics and Geography. lf 65 students studied Economics and 50 studied Geography, how many studied both subjects?\n\nA) 15\nB) 35\nC) 30\nD) 45",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "B) 35",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 35"
     },
     {
       "lang": "en",
@@ -9758,16 +8556,7 @@
       "prompt": "Which of the following is not a measure of dispersion?\n\nA) Mean deviation\nB) Range\nC) Mode\nD) interquartile range",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "C) Mode",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) Mode"
     },
     {
       "lang": "en",
@@ -9822,16 +8611,7 @@
       "prompt": "The mean of 30 observations recorded in an experiment is 5. lf the observed largest value of 34 is deleted, find the mean of the remaining observations\n\nA) 4\nB) 5\nC) 3.9\nD) 3.4",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "A) 4",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Statistics",
-      "subtopic": "Measures",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 4"
     },
     {
       "lang": "en",
@@ -9886,16 +8666,7 @@
       "prompt": "Find the mean of the distribution\n\nA) 3.5\nB) 4.4\nC) 4.0\nD) 5.0",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "B) 4.4",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Statistics",
-      "subtopic": "Measures",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 4.4"
     },
     {
       "lang": "en",
@@ -9950,16 +8721,7 @@
       "prompt": "Find the mode of the distribution\n\nA) 40\nB) 5\nC) 9\nD) 7",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "B) 5",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Statistics",
-      "subtopic": "Measures",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 5"
     },
     {
       "lang": "en",
@@ -10014,16 +8776,7 @@
       "prompt": "No. of chairs 1 2 3 4 5 6 7 Frequency 2 7 5 4 9 7 6 Find the median of the distribution\n\nA) 9\nB) 6.5\nC) 5\nD) 4.5",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "C) 5",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Statistics",
-      "subtopic": "Measures",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 5"
     },
     {
       "lang": "en",
@@ -10078,16 +8831,7 @@
       "prompt": "If two events are mutually exclusive, their intersection is empty. This means that there are no outcomes that are common to both events. In probability terms, if X and Y are mutually exclusive events, then: Pr(X ∩ Y ) = 0\n\nA) 0\nB) 2/15\nC) 11/15\nD) 4/15",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "A) 0",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Single events",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 0"
     },
     {
       "lang": "en",
@@ -10142,16 +8886,7 @@
       "prompt": "If events X and Y are mutually exclusive, P(X) = 1/3 and P(Y) = 2/5, P(X∪Y) is\n\nA) o\nB) 2/15\nC) 11/15\nD) 4/14",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "C) 11/15",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 11/15"
     },
     {
       "lang": "en",
@@ -10206,16 +8941,7 @@
       "prompt": "A box contains 2 white and 3 blue identical marbles. If two marbles are picked at random, one after the other without replacement, what is the probability of picking two marbles of different colors?\n\nA) 3/5\nB) 2/3\nC) 2/5\nD) 7/20",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "A) 3/5",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Single events",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 3/5"
     },
     {
       "lang": "en",
@@ -10270,16 +8996,7 @@
       "prompt": "Mrs. Jones is expecting a baby. The probability that it will be a boy is 1/2 and probability that the baby will have blue eyes is 1/4. What is the probability that she will have a blue-eyed boy?\n\nA) 1/8\nB) ^1/4\nC) 3/8\nD) ^1/2",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "A) 1/8",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Single events",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 1/8"
     },
     {
       "lang": "en",
@@ -10334,16 +9051,7 @@
       "prompt": "Which of the following about a rhombus may not be true?\n\nA) The diagonals are equal\nB) The diagonals bisect the angles through which they pass\nC) the diagonals bisect each other\nD) The adjacent sides are equal",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "A) The diagonals are equal",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) The diagonals are equal"
     },
     {
       "lang": "en",
@@ -10398,16 +9106,7 @@
       "prompt": "The angles of a pentagon are x°, 2x°, (x + 60)°, (x + 10)°, (x -10)°. Find the value of x.\n\nA) 40\nB) 80\nC) 60\nD) 75",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "B) 80",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 80"
     },
     {
       "lang": "en",
@@ -10462,16 +9161,7 @@
       "prompt": "In a given regular polygon, the ratio of the exterior angle to the interior angles is 1:3. How many side has the polygon?\n\nA) 8\nB) 40\nC) 5\nD) 6",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "A) 8",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Geometry",
-      "subtopic": "Mensuration",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 8"
     },
     {
       "lang": "en",
@@ -10526,16 +9216,7 @@
       "prompt": "Find the area of an equivalent triangle of side 16cm\n\nA) 64√3cm^2\nB) 72√3cm^2\nC) 96cm^2\nD) 128√3cm^2",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "A) 64√3cm^2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Geometry",
-      "subtopic": "Mensuration",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 64√3cm^2"
     },
     {
       "lang": "en",
@@ -10590,16 +9271,7 @@
       "prompt": "Convert 77 to a number in base two\n\nA) 1001 101\nB) 111001\nC) 100110\nD) 10101",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "A) 1001 101",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 1001 101"
     },
     {
       "lang": "en",
@@ -10654,16 +9326,7 @@
       "prompt": "A bricklayer measured the length of a wall and obtained 4.10m. If the actual length of the wall is 4.25m, find his percentage error.\n\nA) 3 27/41%\nB) 15%\nC) 3 9/17%\nD) 35 5/17%",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "C) 3 9/17%",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Number and numeration",
-      "subtopic": "Ratio and percentage",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 3 9/17%"
     },
     {
       "lang": "en",
@@ -10718,16 +9381,7 @@
       "prompt": "Factorize the expression 2y^2 + xy - 3x^2\n\nA) 2y (y + x) - 3x^2\nB) (2y - x)(2y + x)\nC) (3x - 2y(x - y)\nD) (2y + 3x)(y - x)",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "D) (2y + 3x)(y - x)",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) (2y + 3x)(y - x)"
     },
     {
       "lang": "en",
@@ -10782,16 +9436,7 @@
       "prompt": "Solve the equation (m)/(3) + (1)/(2) = (3)/(4) + (m)/(4)\n\nA) -3\nB) -2\nC) 3\nD) 2",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "C) 3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "Equations and expressions",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 3"
     },
     {
       "lang": "en",
@@ -10846,16 +9491,7 @@
       "prompt": "The angle of a sector of a circle of radius 8cm is 240°. This sector is bent to form a cone. Find the radius of the base of the cone.\n\nA) 15/3cm\nB) 16/5cm\nC) 8/3cm\nD) 16/3cm",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "D) 16/3cm",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Geometry",
-      "subtopic": "Mensuration",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 16/3cm"
     },
     {
       "lang": "en",
@@ -10910,16 +9546,7 @@
       "prompt": "The curved surface area of a cylindrical tin is 704cm^2. Calculate the height when the radius is 8cm. [Take π = 22/7]\n\nA) 3.5cm\nB) 14cm\nC) 7cm\nD) 28cm",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "B) 14cm",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 14cm"
     },
     {
       "lang": "en",
@@ -10974,16 +9601,7 @@
       "prompt": "The volume of a cone of height 9cm is 1848cm^3. Find its radius. [Take π = 22/7]\n\nA) 7cm\nB) 28cm\nC) 14cm\nD) 98cm",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "C) 14cm",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 14cm"
     },
     {
       "lang": "en",
@@ -11038,16 +9656,7 @@
       "prompt": "The area of a parallelogram is 513cm^2 and the height is 19cm. Calculate the base.\n\nA) 13.5cm\nB) 27cm\nC) 25cm\nD) 54cm",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "B) 27cm",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 27cm"
     },
     {
       "lang": "en",
@@ -11102,16 +9711,7 @@
       "prompt": "A regular polygon has each of its exterior angles as 18^o. How many sides has the polygon\n\nA) 10\nB) 20\nC) 11\nD) 12",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "B) 20",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 20"
     },
     {
       "lang": "en",
@@ -11166,16 +9766,7 @@
       "prompt": "Sin 60° has the same value as I. Sin 120° II. cos 240° III. -sin 150° IV. cos 210° V. sin 240°\n\nA) II only\nB) IV only\nC) I only\nD) III only",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "C) I only",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Trigonometry",
-      "subtopic": "Ratios",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) I only"
     },
     {
       "lang": "en",
@@ -11230,16 +9821,7 @@
       "prompt": "The value of tan 315°\n\nA) 1\nB) √2/2\nC) o\nD) -1",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "D) -1",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Trigonometry",
-      "subtopic": "Ratios",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) -1"
     },
     {
       "lang": "en",
@@ -11294,16 +9876,7 @@
       "prompt": "Town P is on bearing 315^o from town Q while town R is south of town P and west of town Q. lf town R is 60km away from Q, how far is R from P?\n\nA) 30km\nB) 42km\nC) 60km\nD) 45km",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "C) 60km",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 60km"
     },
     {
       "lang": "en",
@@ -11358,16 +9931,7 @@
       "prompt": "A ladder leans against a vertical wall at an angle 60° to the wall, if the foot of the ladder is 5 metres away from the wall, calculate the length of the ladder.\n\nA) (5√3)/(3)m\nB) 5m\nC) (10√3)/(3)m\nD) 5√3m",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "C) (10√3)/(3)m",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) (10√3)/(3)m"
     },
     {
       "lang": "en",
@@ -11422,16 +9986,7 @@
       "prompt": "A cliff on the bank of a river is 300 metres high. if the angle of depression of a point on the opposite side of the river is 60° find the width of the river.\n\nA) 100m\nB) 75√3m\nC) 100√3m\nD) 200√3m",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "C) 100√3m",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 100√3m"
     },
     {
       "lang": "en",
@@ -11486,16 +10041,7 @@
       "prompt": "Points X and Y are respectively 12m North and 5m east of point Z. Calculate XY\n\nA) 7m\nB) 12m\nC) 17m\nD) 13m",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "D) 13m",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 13m"
     },
     {
       "lang": "en",
@@ -11550,16 +10096,7 @@
       "prompt": "Find the median of the following set of scores: 65, 72, 55, 48, 78\n\nA) 55\nB) 60\nC) 65\nD) 63.5",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "C) 65",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Statistics",
-      "subtopic": "Measures",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 65"
     },
     {
       "lang": "en",
@@ -11614,16 +10151,7 @@
       "prompt": "The data below shows the frequency distribution of marks scored by a group of students in a class test. What is the modal score\n\nA) 4\nB) 2\nC) 3\nD) 5",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "A) 4",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Statistics",
-      "subtopic": "Measures",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 4"
     },
     {
       "lang": "en",
@@ -11678,16 +10206,7 @@
       "prompt": "A number is chosen at random from the set (1 ,2,3 ....,9, 10). What is the probability that the number is greater than or equal to 7?\n\nA) 2/5\nB) 1/10\nC) 3/10\nD) 3/5",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "A) 2/5",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Single events",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 2/5"
     },
     {
       "lang": "en",
@@ -11742,16 +10261,7 @@
       "prompt": "What is the probability of throwing a number greater than 2 with a single fair die\n\nA) 1/6\nB) 2/3\nC) 1/3\nD) 1/2",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "B) 2/3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Single events",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 2/3"
     },
     {
       "lang": "en",
@@ -11806,16 +10316,7 @@
       "prompt": "A fair die is rolled once. What is the probability of obtaining 4 or 6?\n\nA) 1/12\nB) 1/6\nC) 1/3\nD) 1/2",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "C) 1/3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Single events",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 1/3"
     },
     {
       "lang": "en",
@@ -11870,16 +10371,7 @@
       "prompt": "Three balls are drawn one after the other with replacement, from a bag containing 5 red, 9white and 4 blue identical balls, What is the probability that they are one red, one white and one blue?\n\nA) 5/102\nB) 5/136\nC) 5/204\nD) 5/162",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "D) 5/162",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Single events",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 5/162"
     },
     {
       "lang": "en",
@@ -11934,16 +10426,7 @@
       "prompt": "The data below shows the number of worker? employed in the various sections of a construction company in Lagos. Carpenters 24 Labourers 27 Plumbers 12 Plasterers 15 Painters 9 Messengers 3 Bricklayers 18 If one of the workers is absent on a certain day, what is the probability that he is a bricklayer?\n\nA) 1/12\nB) 1/6\nC) 1/9\nD) 2/9",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "B) 1/6",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Single events",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 1/6"
     },
     {
       "lang": "en",
@@ -11998,16 +10481,7 @@
       "prompt": "The data below shows the number of worker? employed in the various sections of a construction company in Lagos. Carpenters 24 Labourers 27 Plumbers 12 Plasterers 15 Painters 9 Messengers 3 Bricklayers 18 If a worker is retrenched, what is the probability that he is a plumber or plasterer.\n\nA) 1/27\nB) 1/4\nC) 1/9\nD) 5/36",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "B) 1/4",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Single events",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 1/4"
     },
     {
       "lang": "en",
@@ -12062,16 +10536,7 @@
       "prompt": "Simplify: (3)/(4) ÷ 1(1)/(4) × (1(1)/(2) - (2)/(3))\n\nA) 7/30\nB) ^1/2\nC) 7/24\nD) 9/25",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "B) ^1/2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "Equations and expressions",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) ^1/2"
     },
     {
       "lang": "en",
@@ -12126,16 +10591,7 @@
       "prompt": "Solve the inequality: 3m + 3 > 9\n\nA) m > 3\nB) m>4\nC) m > 2\nD) m>6",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "C) m > 2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) m > 2"
     },
     {
       "lang": "en",
@@ -12190,16 +10646,7 @@
       "prompt": "Convert 8910 to a number in base two.\n\nA) 1101001\nB) 1001101\nC) 1011001\nD) 101101",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "C) 1011001",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 1011001"
     },
     {
       "lang": "en",
@@ -12254,16 +10701,7 @@
       "prompt": "A stick of length 1.75m was measured by a boy as 1.80m. Find the percentage error in his measurement\n\nA) 2^7/9%\nB) 5%\nC) 2^6/7%\nD) 27^7/9%",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "C) 2^6/7%",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Number and numeration",
-      "subtopic": "Ratio and percentage",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 2^6/7%"
     },
     {
       "lang": "en",
@@ -12318,16 +10756,7 @@
       "prompt": "Factorize the expression 2s^2 - 3st - 2t^2.\n\nA) (2s - t)(s + 2t)\nB) (2s + t)(s - 2t)\nC) (s + t)(2s - 1)\nD) (2s + t)(s -t)",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "B) (2s + t)(s - 2t)",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) (2s + t)(s - 2t)"
     },
     {
       "lang": "en",
@@ -12382,16 +10811,7 @@
       "prompt": "Factorize 2x^2 - 21x + 45\n\nA) (2x - 9)(x - 5)\nB) (2x -15(x - 3)\nC) (2x-15)(x + 3)\nD) (2x +15)(x - 3)",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "B) (2x -15(x - 3)",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) (2x -15(x - 3)"
     },
     {
       "lang": "en",
@@ -12446,16 +10866,7 @@
       "prompt": "Solve the simultaneous equations y = 3x; 4y - 5x =14\n\nA) .-2,-6\nB) 2,6\nC) 2,-6\nD) -2,6",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "B) 2,6",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "Equations and expressions",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 2,6"
     },
     {
       "lang": "en",
@@ -12510,16 +10921,7 @@
       "prompt": "A sector of a circle of radius 9cm subtends angle 120° at the centre of the circle. Find the area of the sector to the nearest cm^2 [Take π = 22/7]\n\nA) 75cm^2\nB) 85cm^2\nC) 84cm^2\nD) 86cm^2",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "B) 85cm^2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 85cm^2"
     },
     {
       "lang": "en",
@@ -12574,16 +10976,7 @@
       "prompt": "Calculate the total surface area of a cone of height 12cm and base radius 5cm. [Take π = 22/7]\n\nA) 180(5)/(7)cm^2\nB) 240(2)/(7)cm^2\nC) 282(6)/(7)cm^2\nD) 235(5)/(7)cm^2",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "C) 282(6)/(7)cm^2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Geometry",
-      "subtopic": "Mensuration",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 282(6)/(7)cm^2"
     },
     {
       "lang": "en",
@@ -12638,16 +11031,7 @@
       "prompt": "A cone is 14cm deep and the base radius is 4(1)/(2)cm. Calculate the volume of water that is exactly half the volume of the cone.[Take π = (22)/(7)]\n\nA) 49.5cm^3\nB) 99cm^3\nC) 297cm^3\nD) 148.5cm^3",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "D) 148.5cm^3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Geometry",
-      "subtopic": "Mensuration",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 148.5cm^3"
     },
     {
       "lang": "en",
@@ -12702,16 +11086,7 @@
       "prompt": "The area and a diagonal of a rhombus are 60 cm^2 and 12 cm respectively. Calculate the length of the other diagonal.\n\nA) 5cm\nB) 6cm\nC) 10cm\nD) 12cm",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "C) 10cm",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 10cm"
     },
     {
       "lang": "en",
@@ -12766,16 +11141,7 @@
       "prompt": "The angle of a sector of a circle radius 10.5cm is 120°. Find the perimeter of the sector [Take π = 22/7]\n\nA) 43cm\nB) 22cm\nC) 33.5cm\nD) 66cm",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "A) 43cm",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Geometry",
-      "subtopic": "Mensuration",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 43cm"
     },
     {
       "lang": "en",
@@ -12830,16 +11196,7 @@
       "prompt": "The sum of an interior angles of a regular polygon is 30 right angles. How many sides has the polygon?\n\nA) 17 sides\nB) 34 sides\nC) 30 sides\nD) 26 sides",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "A) 17 sides",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Geometry",
-      "subtopic": "Mensuration",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 17 sides"
     },
     {
       "lang": "en",
@@ -12894,16 +11251,7 @@
       "prompt": "Two chords PQ and RS of a circle when produced meet at K. If ∠KPS = 31^o and ∠PKR = 42^o, find ∠KQR\n\nA) 11^o\nB) 107^o\nC) 73^o\nD) 138^o",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "B) 107^o",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 107^o"
     },
     {
       "lang": "en",
@@ -12958,16 +11306,7 @@
       "prompt": "State the fifth and seventh terms of the sequence -2, -3, -4(1)/(2), ...\n\nA) (8)/(81), (72)/(39)\nB) (27)/(729), (718)/(39)\nC) -(27)/(16), -(79)/(81)\nD) -(81)/(8), -(729)/(32)",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "D) -(81)/(8), -(729)/(32)",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Sequences and series",
-      "subtopic": "Progressions",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) -(81)/(8), -(729)/(32)"
     },
     {
       "lang": "en",
@@ -13022,16 +11361,7 @@
       "prompt": "A plane tiles 90km on a bearing 030° and then flies 150km due east. How far east of the starting point is the plane?\n\nA) 195km\nB) 120km\nC) 165km\nD) (150 + 45√3)km",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "A) 195km",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Trigonometry",
-      "subtopic": "Ratios",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 195km"
     },
     {
       "lang": "en",
@@ -13086,16 +11416,7 @@
       "prompt": "If sin x = cos 50^o, then x equals\n\nA) 45^o\nB) 50^o\nC) 90^o\nD) 40^o",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "D) 40^o",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 40^o"
     },
     {
       "lang": "en",
@@ -13150,16 +11471,7 @@
       "prompt": "From a point on the edge of the sea, one ship is 24km away on a bearing S 50^oE and another ship is 7km away on a bearing S40^oW. How far apart are the ships?\n\nA) 20km\nB) 25km\nC) 24km\nD) 31km",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "B) 25km",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 25km"
     },
     {
       "lang": "en",
@@ -13214,16 +11526,7 @@
       "prompt": "Given that tan x = 5/12, what is the value of sin x + cos x ?\n\nA) 5/13\nB) 17/13\nC) 7/13\nD) 12/13",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "B) 17/13",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Trigonometry",
-      "subtopic": "Ratios",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 17/13"
     },
     {
       "lang": "en",
@@ -13278,16 +11581,7 @@
       "prompt": "Cos 75^o has the same value as\n\nA) cos 115^o\nB) cos 255^o\nC) cos 285^o\nD) -sin165^o",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "C) cos 285^o",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) cos 285^o"
     },
     {
       "lang": "en",
@@ -13342,16 +11636,7 @@
       "prompt": "If sin x = 12/13, where 0° < x < 90°, find the value of 1 - cos^2x\n\nA) 25/169\nB) 64/169\nC) 105/169\nD) 144/169",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "D) 144/169",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 144/169"
     },
     {
       "lang": "en",
@@ -13406,16 +11691,7 @@
       "prompt": "The angle of elevation of the top of a tower from a point on the horizontal ground, 40m away from the foot of the tower is 30o. Find the height of the tower.\n\nA) 20m\nB) 40√3m / 3\nC) 20√3m\nD) 40√3m",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "B) 40√3m / 3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Trigonometry",
-      "subtopic": "Ratios",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 40√3m / 3"
     },
     {
       "lang": "en",
@@ -13470,16 +11746,7 @@
       "prompt": "Find the median of the following set of numbers: 28, 29, 39, 38, 33, 37, 26, 20, 15, 25\n\nA) 33\nB) 28.5\nC) 29.5\nD) 29",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "B) 28.5",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Statistics",
-      "subtopic": "Measures",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 28.5"
     },
     {
       "lang": "en",
@@ -13534,16 +11801,7 @@
       "prompt": "Find the median of the set of numbers 12, 15, 13, 14, 12, 12.\n\nA) 12\nB) 12.5\nC) 13\nD) 13.5",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "B) 12.5",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Statistics",
-      "subtopic": "Measures",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 12.5"
     },
     {
       "lang": "en",
@@ -13598,16 +11856,7 @@
       "prompt": "How many students scored less than 7 marks?\n\nA) 9\nB) 18\nC) 21\nD) 15",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "D) 15",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 15"
     },
     {
       "lang": "en",
@@ -13662,16 +11911,7 @@
       "prompt": "What is the probability that an integer selected from the set of integers (20, 21, ...., 30) is a prime number?\n\nA) 5/11\nB) 6/11\nC) 9/11\nD) 2/11",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "D) 2/11",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Single events",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 2/11"
     },
     {
       "lang": "en",
@@ -13726,16 +11966,7 @@
       "prompt": "A fair die is rolled once. What is the probability of obtaining a number less than 3?\n\nA) 1/6\nB) 2/3\nC) 1/3\nD) 1/2",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "C) 1/3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Single events",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 1/3"
     },
     {
       "lang": "en",
@@ -13790,16 +12021,7 @@
       "prompt": "What is the probability of having an even number in a single toss of a fair die?\n\nA) 1/6\nB) 1/3\nC) 1/2\nD) 2/3",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "C) 1/2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Single events",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 1/2"
     },
     {
       "lang": "en",
@@ -13854,16 +12076,7 @@
       "prompt": "What is the probability that a total sum of seven would appear in two tosses of a fair die?\n\nA) 5/36\nB) 7/36\nC) 1/6\nD) 5/6",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "C) 1/6",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Probability",
-      "subtopic": "Single events",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 1/6"
     },
     {
       "lang": "en",
@@ -13918,16 +12131,7 @@
       "prompt": "Simplify: 2(1)/(3) ÷ 2(2)/(3) × 1(1)/(7)\n\nA) 0\nB) 2\nC) 1\nD) 3",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "C) 1",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "Equations and expressions",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 1"
     },
     {
       "lang": "en",
@@ -13982,16 +12186,7 @@
       "prompt": "Which of the following is equal to (72)/(125)\n\nA) (2^4 × 3)/(5^3)\nB) (2^3 × 3)/(5^3)\nC) (2^4 × 3)/(5^5)\nD) (2^3 × 3^2)/(5^3)",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "D) (2^3 × 3^2)/(5^3)",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Algebra",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) (2^3 × 3^2)/(5^3)"
     },
     {
       "lang": "en",
@@ -14046,16 +12241,7 @@
       "prompt": "Express in (8.75)/(0.025) standard form\n\nA) 3.5 x 10^-3\nB) 3.5 x 10^-2\nC) 3.5 x 10^2\nD) 3.5 x 10^1",
       "item_type": "mcq_single",
       "difficulty": 1.0,
-      "correct_answer": "C) 3.5 x 10^2",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Indices",
-      "subtopic": "Laws of indices",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 3.5 x 10^2"
     },
     {
       "lang": "en",
@@ -14110,16 +12296,7 @@
       "prompt": "simplify; 2log3 6 + log3 12 - log3 16\n\nA) 2\nB) 3\nC) 2 - 2log32\nD) 3 - log32",
       "item_type": "mcq_single",
       "difficulty": 2.0,
-      "correct_answer": "B) 3",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Logarithms",
-      "subtopic": "Log laws",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 3"
     },
     {
       "lang": "en",
@@ -14174,16 +12351,7 @@
       "prompt": "A house bought for N100,000 was later auctioned for N80,000. Find the loss percent.\n\nA) 20%\nB) 30%\nC) 40%\nD) 50%",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "A) 20%",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Number and numeration",
-      "subtopic": "Ratio and percentage",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 20%"
     },
     {
       "lang": "en",
@@ -14238,16 +12406,7 @@
       "prompt": "A string is 4.8m. A boy measured it to be 4.95m. Find the percentage error.\n\nA) 3(1)/(8) %\nB) (5)/(16) %\nC) 1(5)/(16) %\nD) 3(1)/(33) %",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "A) 3(1)/(8) %",
-      "subject": "maths",
-      "year_group": "SS3",
-      "topic": "Number and numeration",
-      "subtopic": "Ratio and percentage",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 3(1)/(8) %"
     },
     {
       "lang": "en",
@@ -14302,16 +12461,7 @@
       "prompt": "What is the place value of 7 in the number 526.97?\n\nA) 7 hundreds\nB) 7 Tens\nC) 7 Units\nD) 7 Hundredths",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "D) 7 Hundredths",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Fractions and number",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 7 Hundredths"
     },
     {
       "lang": "en",
@@ -14366,16 +12516,7 @@
       "prompt": "Find the positive difference between -8 and -14\n\nA) -22\nB) 6\nC) -6\nD) 11",
       "item_type": "mcq_single",
       "difficulty": 0.5,
-      "correct_answer": "B) 6",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 6"
     },
     {
       "lang": "en",
@@ -14430,16 +12571,7 @@
       "prompt": "Find the smallest number that 60 must be multiplied with to give a perfect square\n\nA) 15\nB) 5\nC) 10\nD) 6",
       "item_type": "mcq_single",
       "difficulty": 0.5,
-      "correct_answer": "B) 5",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 5"
     },
     {
       "lang": "en",
@@ -14494,16 +12626,7 @@
       "prompt": "A man spends 1/4 of his monthly income on children’s school fees and 3/5 on home affairs. What fraction of his come is left?\n\nA) 1/4\nB) 12/20\nC) 3/20\nD) 3/5",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "C) 3/20",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Fractions and number",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 3/20"
     },
     {
       "lang": "en",
@@ -14558,16 +12681,7 @@
       "prompt": "Find the value of 16 x 2 – 3 + 14 ÷ 7\n\nA) 15\nB) 26\nC) 28\nD) 20",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "D) 20",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 20"
     },
     {
       "lang": "en",
@@ -14622,16 +12736,7 @@
       "prompt": "The sum of angles on a straight link is\n\nA) 90 degrees\nB) 45 degrees\nC) 135 degrees\nD) 180 degrees",
       "item_type": "mcq_single",
       "difficulty": -1.0,
-      "correct_answer": "D) 180 degrees",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Geometry",
-      "subtopic": "Plane shapes and angles",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 180 degrees"
     },
     {
       "lang": "en",
@@ -14686,16 +12791,7 @@
       "prompt": "If the bearing of A from B is 135 degrees, what is the bearing of B from A?\n\nA) 315 degrees\nB) 90 degrees\nC) 45 degrees\nD) 135 degrees",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "A) 315 degrees",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Geometry",
-      "subtopic": "Trigonometry and bearings",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 315 degrees"
     },
     {
       "lang": "en",
@@ -14750,16 +12846,7 @@
       "prompt": "Approximate 5.7255 to the nearest thousandth.\n\nA) 5.7\nB) 5.725\nC) 5.726\nD) 5.7255",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "C) 5.726",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Fractions and number",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 5.726"
     },
     {
       "lang": "en",
@@ -14814,16 +12901,7 @@
       "prompt": "Find the diameter of a circle whose circumference is 44cm\n\nA) 44cm\nB) 22cm\nC) 28cm\nD) 14cm",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "B) 22cm",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Measurement",
-      "subtopic": "Mensuration",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 22cm"
     },
     {
       "lang": "en",
@@ -14878,16 +12956,7 @@
       "prompt": "Express 0.00254 in standard form.\n\nA) 2.54 x 10-1 2.54 x 10-2\nB) 2.54 x 10-5\nC) 2.54 x 10-3\nD) 2.54 x 10-4",
       "item_type": "mcq_single",
       "difficulty": -1.0,
-      "correct_answer": "B) 2.54 x 10-5",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Indices",
-      "subtopic": "Powers",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 2.54 x 10-5"
     },
     {
       "lang": "en",
@@ -14942,16 +13011,7 @@
       "prompt": "Find the sum of prime factors in 60.\n\nA) 5\nB) 7\nC) 10\nD) 8",
       "item_type": "mcq_single",
       "difficulty": 0.5,
-      "correct_answer": "C) 10",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Fractions and number",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 10"
     },
     {
       "lang": "en",
@@ -15006,16 +13066,7 @@
       "prompt": "Round off 6827 to the nearest ten.\n\nA) 6830\nB) 6820\nC) 6821\nD) 6900",
       "item_type": "mcq_single",
       "difficulty": -1.5,
-      "correct_answer": "A) 6830",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Fractions and number",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 6830"
     },
     {
       "lang": "en",
@@ -15070,16 +13121,7 @@
       "prompt": "Express N32.00 as a ratio of N72.00.\n\nA) 34:16\nB) 16:34\nC) 9:4\nD) 4:9",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "D) 4:9",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Ratio and percentage",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 4:9"
     },
     {
       "lang": "en",
@@ -15134,16 +13176,7 @@
       "prompt": "Find the L.C.M. of 20a² and 32ab.\n\nA) 4a\nB) 16a2b\nC) 160a²b\nD) 160ab2 320a2b",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "C) 160a²b",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Fractions and number",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 160a²b"
     },
     {
       "lang": "en",
@@ -15198,16 +13231,7 @@
       "prompt": "Add the following 1011two, 1111 two and 101111 two.\n\nA) 111110 two\nB) 10111 two\nC) 1001101 two\nD) 1001001 two",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "C) 1001101 two",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 1001101 two"
     },
     {
       "lang": "en",
@@ -15262,16 +13286,7 @@
       "prompt": "Find the H.C.F of 108 and 72.\n\nA) 9\nB) 18\nC) 27\nD) 36",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "B) 18",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Fractions and number",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 18"
     },
     {
       "lang": "en",
@@ -15326,16 +13341,7 @@
       "prompt": "Increase 4500kg by 15%.\n\nA) 300kg\nB) 5175kg\nC) 675kg\nD) 3825kg",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "B) 5175kg",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) 5175kg"
     },
     {
       "lang": "en",
@@ -15390,16 +13396,7 @@
       "prompt": "Find the product of the L.C.M. and H.C.F. of the following numbers 9, 12 and 18.\n\nA) 6\nB) 18\nC) 36\nD) 216",
       "item_type": "mcq_single",
       "difficulty": -1.0,
-      "correct_answer": "D) 216",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Fractions and number",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 216"
     },
     {
       "lang": "en",
@@ -15454,16 +13451,7 @@
       "prompt": "If N240,000.00 is shared among 3 people in the ratio 5:4:3, what is the least share?\n\nA) N100,000.00\nB) N60,000.00\nC) N96,000.00\nD) N80,000.00",
       "item_type": "mcq_single",
       "difficulty": -1.0,
-      "correct_answer": "B) N60,000.00",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Ratio and percentage",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) N60,000.00"
     },
     {
       "lang": "en",
@@ -15518,16 +13506,7 @@
       "prompt": "Find the simple interest on N30,000.00 for 3½ years at 5% per annum.\n\nA) N5,775.00\nB) N5,250.00\nC) N10,750.00\nD) N11,550.00",
       "item_type": "mcq_single",
       "difficulty": -1.0,
-      "correct_answer": "B) N5,250.00",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Ratio and percentage",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "B) N5,250.00"
     },
     {
       "lang": "en",
@@ -15582,16 +13561,7 @@
       "prompt": "Find the square root of 9 x 16 x 25.\n\nA) 60\nB) 3600\nC) 360\nD) 25",
       "item_type": "mcq_single",
       "difficulty": -1.0,
-      "correct_answer": "A) 60",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 60"
     },
     {
       "lang": "en",
@@ -15646,16 +13616,7 @@
       "prompt": "A desktop computer is bought for N45,000.00 and sold for N30,000.00. Find the loss per cent.\n\nA) 33.33%\nB) 45.00%\nC) 30.00%\nD) 15.33%",
       "item_type": "mcq_single",
       "difficulty": -0.5,
-      "correct_answer": "A) 33.33%",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "Ratio and percentage",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 33.33%"
     },
     {
       "lang": "en",
@@ -15710,16 +13671,7 @@
       "prompt": "Arrange in descending order of magnitude 3/5, ½, 4/7, 5/9\n\nA) ½, 4/7, 3/5, 5/9\nB) 3/5, 4/7, 5/9, ½\nC) 3/5, 4/7, 1/2., 5/9\nD) 4/7, 3/5, ½, 5/9",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "C) 3/5, 4/7, 1/2., 5/9",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "C) 3/5, 4/7, 1/2., 5/9"
     },
     {
       "lang": "en",
@@ -15774,16 +13726,7 @@
       "prompt": "On every sale of goods worth N10,000.00, there is a commission of N550.00. If an agent delivers N150,000.00, find his commission.\n\nA) N1,250.00\nB) N2,250.00\nC) 4,150.00\nD) N7,250.00",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "D) N7,250.00",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) N7,250.00"
     },
     {
       "lang": "en",
@@ -15838,16 +13781,7 @@
       "prompt": "Multiply 1001101two by 111two.\n\nA) 1010001two\nB) 1001101two\nC) 1000101two\nD) 1001001two",
       "item_type": "mcq_single",
       "difficulty": 0.0,
-      "correct_answer": "A) 1010001two",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 1010001two"
     },
     {
       "lang": "en",
@@ -15902,16 +13836,7 @@
       "prompt": "A Toyota Hilux uses 100 litres of fuel in a distance of 250km. How many litres of fuel will it use for a distance of 150 kilometres?\n\nA) 60 litres\nB) 50 litres\nC) 80 litres\nD) 133 litres",
       "item_type": "mcq_single",
       "difficulty": 0.5,
-      "correct_answer": "A) 60 litres",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 60 litres"
     },
     {
       "lang": "en",
@@ -15966,16 +13891,7 @@
       "prompt": "The length of a basketball pitch can be divided into 12 parts, each 25cm long. How many parts, each 20cm long can be obtained from the pitch?\n\nA) 12\nB) 13\nC) 15\nD) 14",
       "item_type": "mcq_single",
       "difficulty": 0.5,
-      "correct_answer": "D) 14",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Number",
-      "subtopic": "General",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "D) 14"
     },
     {
       "lang": "en",
@@ -16030,16 +13946,7 @@
       "prompt": "What is the probability that a pregnant woman will give birth to a boy?\n\nA) 1/2\nB) 1\nC) 1/3\nD) 1/4",
       "item_type": "mcq_single",
       "difficulty": 0.5,
-      "correct_answer": "A) 1/2",
-      "subject": "maths",
-      "year_group": "JSS3",
-      "topic": "Probability",
-      "subtopic": "Single events",
-      "misconception_codes": [
-        "calc_error",
-        "prerequisite_gap"
-      ],
-      "taxonomy_version": "1.0.0"
+      "correct_answer": "A) 1/2"
     }
   ]
 }

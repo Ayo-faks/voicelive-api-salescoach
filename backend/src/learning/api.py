@@ -398,6 +398,14 @@ class LearningApi:
         self._banks_by_subject: Dict[str, DiagnosticItemBank] = {
             bank.subject: bank for bank in registry_banks if bank.subject
         }
+        # Map each skill_id to its owning bank (first bank wins, so the default
+        # maths bank keeps priority for any skill_id shared across banks). This
+        # lets clients that only send skill_id reach non-default banks such as
+        # the JSS3/SS3 question banks.
+        self._bank_by_skill_id: Dict[str, DiagnosticItemBank] = {}
+        for bank in registry_banks:
+            for skill in bank.skills:
+                self._bank_by_skill_id.setdefault(skill.skill_id, bank)
 
         seen: Dict[str, None] = {}
         for bank in registry_banks:
@@ -571,6 +579,11 @@ class LearningApi:
             if bank is None:
                 raise LearningApiError(f"unknown subject {subject!r}", status_code=404)
             return bank
+        skill_id = payload.get("skill_id")
+        if skill_id:
+            bank = self._bank_by_skill_id.get(str(skill_id))
+            if bank is not None:
+                return bank
         return self.item_bank
 
     def answer_diagnostic(self, payload: Mapping[str, Any]) -> Dict[str, Any]:

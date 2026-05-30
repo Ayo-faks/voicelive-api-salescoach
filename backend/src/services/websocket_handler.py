@@ -260,6 +260,7 @@ class VoiceProxyHandler:
         child_id: Optional[str],
         session_id: Optional[str],
         client_ws: Optional["simple_websocket.ws.Server"] = None,
+        halt_event: Optional[asyncio.Event] = None,
     ) -> None:
         """Fire-and-forget safeguarding analysis.
 
@@ -279,6 +280,7 @@ class VoiceProxyHandler:
                     child_id=child_id,
                     session_id=session_id,
                     client_ws=client_ws,
+                    halt_event=halt_event,
                 )
             )
         except RuntimeError:
@@ -297,6 +299,7 @@ class VoiceProxyHandler:
         child_id: Optional[str],
         session_id: Optional[str],
         client_ws: Optional["simple_websocket.ws.Server"],
+        halt_event: Optional[asyncio.Event] = None,
     ) -> None:
         try:
             event = await service.process_utterance(
@@ -310,29 +313,44 @@ class VoiceProxyHandler:
         except Exception:  # noqa: BLE001
             logger.exception("Safeguarding pipeline raised in task")
             return
-        if event is None or client_ws is None:
+        if event is None or event.severity != "critical":
             return
-        # Only INBOUND CRITICAL events trigger a session pause — outbound
-        # events are about model behaviour and are surfaced to the admin
-        # instead of the child.
-        if direction.value != "inbound":
-            return
-        if event.severity != "critical":
-            return
-        try:
-            await self._send_message(
-                client_ws,
-                {
-                    "type": WULO_SAFEGUARDING_PAUSE_TYPE,
-                    "payload": {
-                        "event_id": event.id,
-                        "avatar_line": SAFEGUARDING_PAUSE_AVATAR_LINE,
-                        "reason": "critical_safeguarding_event",
+
+        # A CRITICAL verdict in EITHER direction halts the session server-side:
+        # inbound means the child disclosed something requiring an adult; outbound
+        # means the model produced unsafe content. Halting does not rely on the
+        # client honouring an advisory pause — we set the shared halt flag so the
+        # forwarding loops stop relaying, then tear the connection down.
+        if halt_event is not None and not halt_event.is_set():
+            halt_event.set()
+
+        if client_ws is not None:
+            try:
+                await self._send_message(
+                    client_ws,
+                    {
+                        "type": WULO_SAFEGUARDING_PAUSE_TYPE,
+                        "payload": {
+                            "event_id": event.id,
+                            "avatar_line": SAFEGUARDING_PAUSE_AVATAR_LINE,
+                            "reason": "critical_safeguarding_event",
+                            "direction": direction.value,
+                        },
                     },
-                },
-            )
-        except Exception:  # noqa: BLE001
-            logger.exception("Failed to emit safeguarding pause to client")
+                )
+            except Exception:  # noqa: BLE001
+                logger.exception("Failed to emit safeguarding pause to client")
+
+        # Force teardown so neither the child nor the model can continue the
+        # turn even if the client ignores the pause message.
+        if client_ws is not None:
+            try:
+                await asyncio.get_event_loop().run_in_executor(
+                    None,
+                    client_ws.close,  # pyright: ignore[reportUnknownMemberType]
+                )
+            except Exception:  # noqa: BLE001
+                logger.exception("Failed to close client socket after critical safeguarding event")
 
     def _get_profile_context(self, client_ws: simple_websocket.ws.Server) -> AgentProfileContext:
         environ = getattr(client_ws, "environ", {}) or {}
@@ -642,10 +660,17 @@ class VoiceProxyHandler:
         scored_turn: Optional[ScoredTurnDispatcher] = (
             ScoredTurnDispatcher() if _is_conversational_mic_enabled() else None
         )
+        halt_event = asyncio.Event()
         tasks = [
-            asyncio.create_task(self._forward_client_to_azure(client_ws, azure_conn, tally, scored_turn, profile)),
             asyncio.create_task(
-                self._forward_azure_to_client(azure_conn, client_ws, tally, scored_turn, profile, profile_context)
+                self._forward_client_to_azure(
+                    client_ws, azure_conn, tally, scored_turn, profile, halt_event=halt_event
+                )
+            ),
+            asyncio.create_task(
+                self._forward_azure_to_client(
+                    azure_conn, client_ws, tally, scored_turn, profile, profile_context, halt_event=halt_event
+                )
             ),
         ]
 
@@ -661,6 +686,7 @@ class VoiceProxyHandler:
         tally: Optional[TargetTokenTally] = None,
         scored_turn: Optional[ScoredTurnDispatcher] = None,
         profile: AgentProfile | None = None,
+        halt_event: Optional[asyncio.Event] = None,
     ) -> None:
         """Forward messages from client to Azure using SDK.
 
@@ -669,11 +695,15 @@ class VoiceProxyHandler:
         """
         try:
             while True:
+                if halt_event is not None and halt_event.is_set():
+                    break
                 message: Optional[Any] = await asyncio.get_event_loop().run_in_executor(
                     None,
                     client_ws.receive,  # pyright: ignore[reportUnknownArgumentType,reportUnknownMemberType]
                 )
                 if message is None:
+                    break
+                if halt_event is not None and halt_event.is_set():
                     break
 
                 logger.debug("Client->Azure: %s", str(message)[:LOG_MESSAGE_MAX_LENGTH])
@@ -817,6 +847,7 @@ class VoiceProxyHandler:
         scored_turn: Optional[ScoredTurnDispatcher] = None,
         profile: AgentProfile | None = None,
         profile_context: AgentProfileContext | None = None,
+        halt_event: Optional[asyncio.Event] = None,
     ) -> None:
         """Forward messages from Azure to client using SDK typed events.
 
@@ -831,6 +862,11 @@ class VoiceProxyHandler:
         principal_id = self._principal_id(client_ws)
         try:
             async for event in azure_conn:
+                # A critical safeguarding verdict (set asynchronously) stops the
+                # model's audio/text from reaching the child immediately, before
+                # the connection is fully torn down.
+                if halt_event is not None and halt_event.is_set():
+                    break
                 event_dict = event.as_dict() if hasattr(event, "as_dict") else dict(event)
                 if profile is not None and profile_context is not None:
                     if await self._maybe_handle_profile_tool_call(
@@ -902,6 +938,7 @@ class VoiceProxyHandler:
                             child_id=(profile_context.child_id if profile_context else None),
                             session_id=azure_session_id,
                             client_ws=client_ws,
+                            halt_event=halt_event,
                         )
                 elif event_type_str == RESPONSE_AUDIO_TRANSCRIPT_DONE_TYPE:
                     outbound_transcript = str(event_dict.get("transcript") or "").strip()
@@ -913,6 +950,7 @@ class VoiceProxyHandler:
                             child_id=(profile_context.child_id if profile_context else None),
                             session_id=azure_session_id,
                             client_ws=client_ws,
+                            halt_event=halt_event,
                         )
                 if tally is not None:
                     if event_type_str == INPUT_AUDIO_TRANSCRIPTION_COMPLETED_TYPE:
