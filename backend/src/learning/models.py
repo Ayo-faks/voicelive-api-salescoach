@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Literal, Optional
 from uuid import uuid4
 
@@ -9,6 +10,24 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 
 LANGUAGE_TAG_PATTERN = r"^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$"
+
+# Default mastery half-life: after this many days without fresh evidence, the
+# weight of prior evidence has decayed by half. Keeps estimates honest when a
+# learner's skills drift (improve or fade) between diagnostics.
+DEFAULT_MASTERY_HALF_LIFE_DAYS = 30.0
+
+
+def parse_iso_timestamp(value: Optional[str]) -> Optional[datetime]:
+    """Parse an ISO-8601 string into a timezone-aware UTC datetime, or None."""
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value)
+    except (TypeError, ValueError):
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed
 
 
 class ContractModel(BaseModel):
@@ -153,6 +172,7 @@ class MasteryEstimate(ContractModel):
     b: Optional[float] = Field(default=None, gt=0.0)
     rating: Optional[float] = None
     deviation: Optional[float] = Field(default=None, ge=0.0)
+    as_of: Optional[str] = None
 
     @model_validator(mode="after")
     def require_estimator_fields(self) -> "MasteryEstimate":
@@ -161,6 +181,33 @@ class MasteryEstimate(ContractModel):
         if self.kind == "elo" and self.rating is None:
             raise ValueError("elo mastery estimates require rating")
         return self
+
+    def age_adjusted_uncertainty(
+        self,
+        now: Optional[datetime] = None,
+        half_life_days: float = DEFAULT_MASTERY_HALF_LIFE_DAYS,
+    ) -> float:
+        """Read-side staleness: widen uncertainty as the evidence ages.
+
+        The point estimate (``probability``) is preserved. As elapsed time since
+        ``as_of`` exceeds the half-life, the returned uncertainty approaches 1.0,
+        so a stale-but-confident estimate stops being treated as gospel and the
+        adaptive selector is prompted to re-gather evidence. Pure and lazy: no
+        persistence, safe to call on every read.
+        """
+        if not self.as_of or half_life_days <= 0.0:
+            return self.uncertainty
+        as_of = parse_iso_timestamp(self.as_of)
+        if as_of is None:
+            return self.uncertainty
+        current = now or datetime.now(timezone.utc)
+        if current.tzinfo is None:
+            current = current.replace(tzinfo=timezone.utc)
+        elapsed_days = (current - as_of).total_seconds() / 86400.0
+        if elapsed_days <= 0.0:
+            return self.uncertainty
+        retained = 0.5 ** (elapsed_days / half_life_days)
+        return min(1.0, 1.0 - retained * (1.0 - self.uncertainty))
 
 
 class MasteryEvent(LanguageAndProvenanceModel):
@@ -241,6 +288,11 @@ class StudentFactProposal(LanguageAndProvenanceModel):
     value: str = Field(min_length=1)
     evidence: str = Field(min_length=1)
     requires_approval: bool = True
+    # Set when a previously-approved fact is contradicted by fresher mastery
+    # evidence (e.g. a "needs practice" gap whose skill is now secure). Routes
+    # the fact back to the teacher approval queue for re-review. ``None`` while
+    # the fact is still consistent with current mastery.
+    staleness_reason: Optional[str] = None
 
 
 class StudentLearningEvidence(ContractModel):

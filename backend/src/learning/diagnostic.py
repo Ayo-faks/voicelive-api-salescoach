@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Literal, Mapping, Optional, Protocol
 from uuid import uuid4
@@ -12,6 +13,7 @@ from pydantic import Field
 
 from src.learning.mastery import BetaBKT, MasteryEstimator, MasteryUpdateInput
 from src.learning.models import (
+    DEFAULT_MASTERY_HALF_LIFE_DAYS,
     ContractModel,
     DiagnosticItem,
     InterventionPlan,
@@ -96,6 +98,47 @@ class DiagnosticItemSelector(Protocol):
         raise NotImplementedError
 
 
+# Weight applied to a skill's (age-adjusted) uncertainty when ordering the
+# diagnostic. A stale-but-confident skill carries high age-adjusted uncertainty,
+# so subtracting this term pulls its effective priority down and re-surfaces it
+# for re-testing even though its point estimate still looks secure.
+STALENESS_SELECTION_WEIGHT = 0.5
+
+
+def selection_priority(
+    estimate: Optional[MasteryEstimate],
+    now: Optional[datetime] = None,
+    half_life_days: float = DEFAULT_MASTERY_HALF_LIFE_DAYS,
+) -> float:
+    """Sort key for weakest-and-stalest-first item selection (ascending).
+
+    Lower values are selected earlier. Weak skills (low probability) sort first,
+    and stale skills are pulled forward in proportion to their age-adjusted
+    uncertainty so improvement *or* fade since the last evidence is re-checked.
+    Unknown skills keep the historical neutral priority of ``0.5``.
+    """
+    if estimate is None:
+        return 0.5
+    adjusted_uncertainty = estimate.age_adjusted_uncertainty(now, half_life_days)
+    return estimate.probability - STALENESS_SELECTION_WEIGHT * adjusted_uncertainty
+
+
+def heatmap_status(
+    estimate: MasteryEstimate,
+    now: Optional[datetime] = None,
+    half_life_days: float = DEFAULT_MASTERY_HALF_LIFE_DAYS,
+) -> Literal["secure", "developing", "needs_support"]:
+    # Apply read-side freshness: a confident estimate that has aged past its
+    # half-life widens toward uncertain, so it can no longer qualify as
+    # "secure" without fresh evidence.
+    adjusted_uncertainty = estimate.age_adjusted_uncertainty(now, half_life_days)
+    if estimate.probability >= 0.75 and adjusted_uncertainty <= 0.35:
+        return "secure"
+    if estimate.probability >= 0.5:
+        return "developing"
+    return "needs_support"
+
+
 class DeterministicItemSelector:
     """Round-robin item selector that gives each skill early coverage offline."""
 
@@ -113,10 +156,11 @@ class DeterministicItemSelector:
         for items in grouped_items.values():
             items.sort(key=lambda item: (item.difficulty, item.item_id))
 
+        now = datetime.now(timezone.utc)
         selected: List[DiagnosticItem] = []
         skill_order = sorted(
             grouped_items.keys(),
-            key=lambda skill_id: prior_mastery.get(skill_id).probability if skill_id in prior_mastery else 0.5,
+            key=lambda skill_id: selection_priority(prior_mastery.get(skill_id), now),
         )
         while len(selected) < limit and any(grouped_items.values()):
             for skill_id in skill_order:
@@ -157,14 +201,6 @@ def score_answer(item: DiagnosticItem, answer: DiagnosticAnswer) -> bool:
     if item.correct_answer is None:
         return False
     return normalize_answer(answer.response_text) == normalize_answer(item.correct_answer)
-
-
-def heatmap_status(estimate: MasteryEstimate) -> Literal["secure", "developing", "needs_support"]:
-    if estimate.probability >= 0.75 and estimate.uncertainty <= 0.35:
-        return "secure"
-    if estimate.probability >= 0.5:
-        return "developing"
-    return "needs_support"
 
 
 class DiagnosticEngine:
@@ -244,6 +280,7 @@ class DiagnosticEngine:
                     item_difficulty=item.difficulty,
                     lang=item.lang,
                     provenance=item.provenance,
+                    now=datetime.now(timezone.utc),
                 )
             )
             latest_estimates[item.skill_id] = update.estimate

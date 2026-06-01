@@ -45,3 +45,35 @@ def test_safeguarding_help_resources_contain_uk_numbers() -> None:
     labels = {item["phone"] for item in memory_policy.SAFEGUARDING_HELP_RESOURCES}
     assert "116 123" in labels  # Samaritans
     assert "0800 1111" in labels  # Childline
+
+
+def test_skill_id_from_fact_key_extracts_namespaced_skill() -> None:
+    assert memory_policy.skill_id_from_fact_key("diagnostic_gap:fractions") == "fractions"
+    assert memory_policy.skill_id_from_fact_key("weak_topic") is None
+    assert memory_policy.skill_id_from_fact_key("") is None
+
+
+def test_gap_fact_is_stale_when_skill_now_secure() -> None:
+    assert (
+        memory_policy.classify_fact_staleness("diagnostic_gap:fractions", "secure")
+        == "skill_now_secure"
+    )
+    assert memory_policy.classify_fact_staleness("weak_topic", "secure") == "skill_now_secure"
+
+
+def test_gap_fact_is_not_stale_while_skill_still_weak() -> None:
+    assert memory_policy.classify_fact_staleness("diagnostic_gap:fractions", "developing") is None
+    assert memory_policy.classify_fact_staleness("diagnostic_gap:fractions", "needs_support") is None
+
+
+def test_strength_fact_is_stale_when_skill_regresses() -> None:
+    assert (
+        memory_policy.classify_fact_staleness("strong_topic", "needs_support")
+        == "skill_now_needs_support"
+    )
+    assert memory_policy.classify_fact_staleness("strong_topic", "secure") is None
+
+
+def test_unrelated_fact_is_never_stale() -> None:
+    assert memory_policy.classify_fact_staleness("preferred_subject", "secure") is None
+

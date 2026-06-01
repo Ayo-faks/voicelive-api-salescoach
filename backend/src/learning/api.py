@@ -48,6 +48,10 @@ from src.learning.lti import (
     session_expiry_timestamp,
 )
 from src.learning.mastery import BetaBKT, MasteryEstimator, MasteryUpdateInput
+from src.learning.memory_policy import (
+    classify_fact_staleness,
+    skill_id_from_fact_key,
+)
 from src.learning.models import (
     CatalogueSkill,
     DiagnosticItem,
@@ -622,6 +626,10 @@ class LearningApi:
             selected_items=selected,
             bank=bank,
         )
+        # Seed the session with the learner's last-known mastery (carrying its
+        # ``as_of`` timestamp) so the first answer after a long gap decays the
+        # stale prior instead of starting cold.
+        state.estimates.update(prior)
         with self._lock:
             self._sessions[session_id] = state
             self._student_classes[(tenant_id, student_id)] = class_id
@@ -748,6 +756,7 @@ class LearningApi:
                 item_difficulty=current_item.difficulty,
                 lang=current_item.lang,
                 provenance=current_item.provenance,
+                now=datetime.now(timezone.utc),
             )
         )
         state.estimates[current_item.skill_id] = update.estimate
@@ -1265,6 +1274,56 @@ class LearningApi:
             kind="student_fact_proposed",
         )
         return {"fact": record, "queued": True, "audit": self._audit_events[-1]}
+
+    def review_fact_staleness(
+        self,
+        tenant_id: str,
+        student_id: str,
+        *,
+        now: Optional[datetime] = None,
+    ) -> List[Dict[str, Any]]:
+        """Re-check approved gap/strength facts against current mastery.
+
+        A teacher-approved "needs practice" fact whose backing skill is now
+        secure (or a "strength" fact whose skill has regressed) is contradicted
+        by fresher, recency-adjusted evidence. Such facts are flagged back to the
+        approval queue so a human re-reviews rather than the system silently
+        editing the learner's memory. Returns the list of flagged facts.
+        """
+        moment = now or datetime.now(timezone.utc)
+        estimates = self._student_estimates.get((tenant_id, student_id), {})
+        if not estimates:
+            return []
+        flagged: List[Dict[str, Any]] = []
+        active_statuses = {"approved", "edited_approved", "auto_approved"}
+        for record in self.repository.list_student_facts(
+            tenant_id, student_id=student_id
+        ):
+            if record.get("status") not in active_statuses:
+                continue
+            fact = record.get("fact") or {}
+            if fact.get("staleness_reason"):
+                continue
+            key = str(fact.get("key") or "")
+            skill_id = skill_id_from_fact_key(key)
+            estimate = estimates.get(skill_id) if skill_id else None
+            if estimate is None:
+                continue
+            status = heatmap_status(estimate, now=moment)
+            reason = classify_fact_staleness(key, status)
+            if reason is None:
+                continue
+            if self.repository.mark_student_fact_stale(
+                tenant_id, record["id"], reason=reason
+            ):
+                self._record_audit(
+                    tenant_id=tenant_id,
+                    actor_id="system-memory-sweep",
+                    label=f"Flagged stale fact {record['id']} ({reason})",
+                    kind="student_fact_stale_flagged",
+                )
+                flagged.append({"fact_id": record["id"], "reason": reason})
+        return flagged
 
     def approve_student_fact(self, fact_id: str, payload: Mapping[str, Any]) -> Dict[str, Any]:
         return self._decide_student_fact(fact_id, payload, action="approved")

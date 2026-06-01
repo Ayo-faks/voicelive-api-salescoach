@@ -162,3 +162,48 @@ SAFEGUARDING_HELP_RESOURCES: tuple[dict, ...] = (
     {"label": "Childline (UK, under 19)", "phone": "0800 1111", "url": "https://www.childline.org.uk"},
     {"label": "Shout (text UK)", "phone": "Text 85258", "url": "https://giveusashout.org"},
 )
+
+
+# --- Memory-fact staleness (anti-staleness, Phase 5) -----------------------
+#
+# Mastery estimates decay as evidence ages and rise again when the learner
+# improves. A teacher-approved fact that asserts a *gap* ("needs targeted
+# practice on fractions") becomes misleading once that skill is secure again,
+# and a *strength* fact becomes misleading once the skill regresses. We never
+# silently rewrite the fact: we flag it back to the approval queue so a human
+# confirms the change.
+
+# Fact keys produced from a diagnostic gap are namespaced ``diagnostic_gap:<skill_id>``.
+GAP_KEY_PREFIX = "diagnostic_gap:"
+
+# Allowlisted free-text gap/strength keys (learner- or teacher-authored).
+WEAK_TOPIC_KEYS: frozenset[str] = frozenset({"weak_topic"})
+STRONG_TOPIC_KEYS: frozenset[str] = frozenset({"strong_topic"})
+
+
+def skill_id_from_fact_key(key: str) -> Optional[str]:
+    """Return the backing skill id for a namespaced gap fact, else ``None``."""
+    key_norm = (key or "").strip()
+    if key_norm.startswith(GAP_KEY_PREFIX):
+        skill_id = key_norm[len(GAP_KEY_PREFIX):].strip()
+        return skill_id or None
+    return None
+
+
+def classify_fact_staleness(key: str, mastery_status: str) -> Optional[str]:
+    """Return a staleness reason when a fact contradicts current mastery.
+
+    ``mastery_status`` is the heatmap classification (``secure`` /
+    ``developing`` / ``needs_support``) for the fact's backing skill, already
+    adjusted for recency by the caller. Returns ``None`` when the fact is still
+    consistent (or unrelated to mastery).
+    """
+    key_norm = (key or "").strip().lower()
+    is_gap = key_norm.startswith(GAP_KEY_PREFIX) or key_norm in WEAK_TOPIC_KEYS
+    is_strength = key_norm in STRONG_TOPIC_KEYS
+    if is_gap and mastery_status == "secure":
+        return "skill_now_secure"
+    if is_strength and mastery_status == "needs_support":
+        return "skill_now_needs_support"
+    return None
+

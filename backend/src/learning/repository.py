@@ -121,6 +121,16 @@ class LearningRepository(Protocol):
     ) -> int:
         raise NotImplementedError
 
+    def mark_student_fact_stale(
+        self,
+        tenant_id: str,
+        fact_id: str,
+        *,
+        reason: str,
+        actor_id: str = "system-memory-sweep",
+    ) -> bool:
+        raise NotImplementedError
+
     def get_memory_consent(self, learner_user_id: str) -> Optional[Dict[str, Any]]:
         raise NotImplementedError
 
@@ -424,6 +434,30 @@ class InMemoryLearningRepository:
                 fact_record["decision_reason"] = reason
                 expired += 1
         return expired
+
+    def mark_student_fact_stale(
+        self,
+        tenant_id: str,
+        fact_id: str,
+        *,
+        reason: str,
+        actor_id: str = "system-memory-sweep",
+    ) -> bool:
+        for fact_record in self.student_facts:
+            if fact_record["id"] == fact_id and fact_record["tenant_id"] == tenant_id:
+                if fact_record["status"] in ("rejected", "pending"):
+                    return False
+                fact = dict(fact_record.get("fact") or {})
+                if fact.get("staleness_reason") == reason and fact_record["status"] == "pending":
+                    return False
+                fact["staleness_reason"] = reason
+                fact_record["fact"] = fact
+                fact_record["status"] = "pending"
+                fact_record["updated_at"] = utc_now()
+                fact_record["decided_by"] = actor_id
+                fact_record["decision_reason"] = f"stale:{reason}"
+                return True
+        return False
 
     def get_memory_consent(self, learner_user_id: str) -> Optional[Dict[str, Any]]:
         record = self.memory_consents.get(learner_user_id)
@@ -1298,6 +1332,59 @@ class LearningPostgresRepository:
 
         self.storage._execute_write(persist)
         return result["rowcount"]
+
+    def mark_student_fact_stale(
+        self,
+        tenant_id: str,
+        fact_id: str,
+        *,
+        reason: str,
+        actor_id: str = "system-memory-sweep",
+    ) -> bool:
+        updated_at = self.storage._utc_now()
+        result: Dict[str, Any] = {"rowcount": 0}
+
+        def persist(connection: Any) -> None:
+            row = connection.execute(
+                """
+                SELECT fact_json, status
+                FROM learning_student_facts
+                WHERE id = %s AND tenant_id = %s
+                """,
+                (fact_id, tenant_id),
+            ).fetchone()
+            if row is None:
+                return
+            row_dict = dict(row)
+            if row_dict.get("status") in ("rejected", "pending"):
+                return
+            fact_raw = self.storage._loads_json(row_dict.get("fact_json"), {})
+            if not isinstance(fact_raw, dict):
+                fact_raw = {}
+            fact_raw["staleness_reason"] = reason
+            cur = connection.execute(
+                """
+                UPDATE learning_student_facts
+                SET status = 'pending',
+                    fact_json = %s,
+                    updated_at = %s,
+                    decided_by = %s,
+                    decision_reason = %s
+                WHERE id = %s AND tenant_id = %s AND status NOT IN ('rejected', 'pending')
+                """,
+                (
+                    self.storage._dumps_json(fact_raw),
+                    updated_at,
+                    actor_id,
+                    f"stale:{reason}",
+                    fact_id,
+                    tenant_id,
+                ),
+            )
+            result["rowcount"] = getattr(cur, "rowcount", 0) or 0
+
+        self.storage._execute_write(persist)
+        return result["rowcount"] > 0
 
     def get_memory_consent(self, learner_user_id: str) -> Optional[Dict[str, Any]]:
         result: Dict[str, Any] = {"row": None}
