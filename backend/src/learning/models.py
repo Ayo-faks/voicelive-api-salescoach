@@ -173,6 +173,46 @@ class MasteryEvent(LanguageAndProvenanceModel):
     estimate: MasteryEstimate
 
 
+class LearnerDailyPlanItem(ContractModel):
+    """A single ranked activity in the learner's adaptive daily queue."""
+
+    id: str = Field(min_length=1)
+    title: str = Field(min_length=1)
+    meta: str = Field(min_length=1)
+    minutes: int = Field(ge=1, le=60)
+    type: Literal["check-in", "practice", "exit-ticket"]
+    skill_id: Optional[str] = None
+    subject: Optional[str] = None
+
+
+class LearnerWeakTopic(ContractModel):
+    """A mastery-ranked weak topic surfaced on the learner profile card."""
+
+    skill_id: str = Field(min_length=1)
+    label: str = Field(min_length=1)
+    mastery: int = Field(ge=0, le=100)
+    gap: str = Field(min_length=1)
+    next_action: str = Field(min_length=1)
+
+
+class LearnerDailyPlan(ContractModel):
+    """Adaptive daily plan returned by ``GET /api/learning/learner/plan``.
+
+    ``source`` is ``mastery`` when the queue is ranked from the learner's own
+    history and ``fallback`` when we serve the deterministic WAEC / SSS2 /
+    Mathematics walk for a learner with no mastery events yet.
+    """
+
+    student_id: str = Field(min_length=1)
+    exam: str = Field(min_length=1)
+    class_year: str = Field(min_length=1)
+    subject: str = Field(min_length=1)
+    source: Literal["mastery", "fallback"]
+    generated_at: str = Field(min_length=1)
+    today: List[LearnerDailyPlanItem] = Field(default_factory=list)
+    weak_topics: List[LearnerWeakTopic] = Field(default_factory=list)
+
+
 class InterventionPlan(LanguageAndProvenanceModel):
     plan_id: str = Field(default_factory=lambda: f"intervention-plan-{uuid4().hex[:12]}")
     parent_plan_id: Optional[str] = None

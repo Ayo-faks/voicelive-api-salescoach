@@ -845,6 +845,59 @@ class LearnerVoiceTurnPlanner:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
+    @staticmethod
+    def default_taxonomy() -> Tuple[str, str, str]:
+        """Deterministic fallback taxonomy (WAEC / SSS2 / Mathematics)."""
+        return (_DEFAULT_EXAM, _DEFAULT_CLASS_YEAR, _DEFAULT_SUBJECT)
+
+    def resolve_taxonomy(
+        self,
+        *,
+        exam: Optional[str] = None,
+        class_year: Optional[str] = None,
+        subject: Optional[str] = None,
+    ) -> Tuple[str, str, str]:
+        """Fill any missing taxonomy slot from the deterministic default."""
+        return (
+            exam or _DEFAULT_EXAM,
+            class_year or _DEFAULT_CLASS_YEAR,
+            subject or _DEFAULT_SUBJECT,
+        )
+
+    def candidate_cards(
+        self,
+        *,
+        exam: str,
+        class_year: str,
+        subject: str,
+        limit: Optional[int] = None,
+    ) -> List[McqTapCard]:
+        """Return taxonomy-matched MCQ cards for a non-conversational caller.
+
+        Unlike :meth:`next_turn`, this is stateless and order-preserving: it
+        exposes the raw bank matches so callers (e.g. the adaptive daily-plan
+        endpoint) can re-rank them by mastery before presenting. Returns an
+        empty list when the ``(exam, class_year, subject)`` combination has no
+        content, and respects the same exam/class validity rules as the voice
+        walk-through.
+        """
+        if exam not in _VALID_EXAMS_FOR_CLASS.get(class_year, frozenset()):
+            return []
+        matches = _filter_bank(
+            self._bank, exam=exam, class_year=class_year, subject=subject
+        )
+        if limit is not None:
+            matches = matches[: max(0, limit)]
+        return [
+            McqTapCard(
+                speak=question.stem,
+                stem=question.stem,
+                options=list(question.options),
+                skill_id=question.skill_id,
+            )
+            for question in matches
+        ]
+
     def next_turn(self, request: LearnerVoiceTurnRequest) -> LearnerVoiceTurnResponse:
         taxonomy = self._resolve_taxonomy(request)
         invalid_card = self._validate_taxonomy(taxonomy)

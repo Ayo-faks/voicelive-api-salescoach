@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import os
 import threading
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Protocol, Tuple
 from urllib.parse import urlencode
@@ -49,6 +50,9 @@ from src.learning.models import (
     CatalogueSkill,
     DiagnosticItem,
     InterventionPlan,
+    LearnerDailyPlan,
+    LearnerDailyPlanItem,
+    LearnerWeakTopic,
     MasteryEstimate,
     MasteryEvent,
     Provenance,
@@ -1781,6 +1785,142 @@ class LearningApi:
         response = self.learner_voice_planner.next_turn(request_model)
         return response.model_dump()
 
+    def build_learner_plan(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        """Return an adaptive, mastery-ranked daily plan for one learner.
+
+        The queue is ranked from the learner's persisted ``MasteryEvent``
+        history (weakest skills first). Learners with no history get a
+        deterministic WAEC / SSS2 / Mathematics walk (``source="fallback"``).
+        ``student_id`` is required and is expected to have been ownership-checked
+        by the route's RBAC guard before this method runs.
+        """
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        student_id = str(payload.get("student_id") or "").strip()
+        if not student_id:
+            raise LearningApiError("student_id is required", status_code=400)
+
+        exam = str(payload.get("exam") or "").strip() or None
+        class_year = str(payload.get("class_year") or "").strip() or None
+        subject = str(payload.get("subject") or "").strip() or None
+
+        # 1. Latest mastery estimate per skill. Persisted events are returned
+        #    newest-first, so the first occurrence of each skill wins; the
+        #    process-local cache backfills a just-completed diagnostic.
+        estimates_by_skill: Dict[str, MasteryEstimate] = {}
+        try:
+            events = self.repository.list_mastery_events_for_student(
+                tenant_id, student_id, limit=200
+            )
+        except Exception:  # noqa: BLE001 - degrade to fallback on storage errors
+            events = []
+        for record in events:
+            skill_id = str(record.get("skill_id") or "")
+            if not skill_id or skill_id in estimates_by_skill:
+                continue
+            raw_estimate = record.get("estimate")
+            if not isinstance(raw_estimate, Mapping):
+                continue
+            try:
+                estimates_by_skill[skill_id] = MasteryEstimate(**dict(raw_estimate))
+            except Exception:  # noqa: BLE001 - skip malformed rows
+                continue
+        for skill_id, estimate in self._student_estimates.get(
+            (tenant_id, student_id), {}
+        ).items():
+            estimates_by_skill.setdefault(skill_id, estimate)
+
+        has_history = bool(estimates_by_skill)
+        source = "mastery" if has_history else "fallback"
+
+        # 2. Resolve the content taxonomy from the learner's profile slots,
+        #    filling any gaps from the deterministic default. ``source`` tracks
+        #    whether the *ranking* used real mastery history, independently of
+        #    which taxonomy supplies the content.
+        planner = self.learner_voice_planner
+        r_exam, r_class, r_subject = planner.resolve_taxonomy(
+            exam=exam, class_year=class_year, subject=subject
+        )
+        cards = planner.candidate_cards(
+            exam=r_exam, class_year=r_class, subject=r_subject
+        )
+        if not cards:
+            r_exam, r_class, r_subject = planner.default_taxonomy()
+            cards = planner.candidate_cards(
+                exam=r_exam, class_year=r_class, subject=r_subject
+            )
+
+        skill_labels = self._skill_label_lookup()
+
+        # 3. Rank weakest skills (lowest probability first, then by id).
+        ranked = sorted(
+            estimates_by_skill.items(),
+            key=lambda kv: (kv[1].probability, kv[0]),
+        )
+        weak_topics: List[LearnerWeakTopic] = []
+        for skill_id, estimate in ranked[:3]:
+            status = heatmap_status(estimate)
+            weak_topics.append(
+                LearnerWeakTopic(
+                    skill_id=skill_id,
+                    label=skill_labels.get(skill_id) or _humanize_skill_id(skill_id),
+                    mastery=int(round(estimate.probability * 100)),
+                    gap=_WEAK_TOPIC_GAP[status],
+                    next_action=_WEAK_TOPIC_ACTION[status],
+                )
+            )
+
+        # 4. Order today's cards so the weakest-skill cards come first.
+        weakness_rank = {
+            skill_id: index for index, (skill_id, _est) in enumerate(ranked)
+        }
+        ordered_cards = sorted(
+            cards,
+            key=lambda card: weakness_rank.get(card.skill_id or "", len(weakness_rank) + 1),
+        )[: planner.MAX_QUESTIONS]
+
+        item_types: List[str] = ["check-in", "practice", "exit-ticket"]
+        item_minutes = {"check-in": 5, "practice": 6, "exit-ticket": 3}
+        today: List[LearnerDailyPlanItem] = []
+        for index, card in enumerate(ordered_cards):
+            kind = item_types[index] if index < len(item_types) else "practice"
+            card_skill = card.skill_id or None
+            label = (
+                skill_labels.get(card_skill or "")
+                or _humanize_skill_id(card_skill or "")
+                if card_skill
+                else "Practice"
+            )
+            today.append(
+                LearnerDailyPlanItem(
+                    id=f"plan-{index + 1}-{card_skill or 'item'}",
+                    title=label,
+                    meta=_truncate_text(card.stem, 90),
+                    minutes=item_minutes[kind],
+                    type=kind,  # type: ignore[arg-type]
+                    skill_id=card_skill,
+                    subject=r_subject.lower(),
+                )
+            )
+
+        plan = LearnerDailyPlan(
+            student_id=student_id,
+            exam=r_exam,
+            class_year=r_class,
+            subject=r_subject,
+            source=source,  # type: ignore[arg-type]
+            generated_at=_utc_now_iso(),
+            today=today,
+            weak_topics=weak_topics,
+        )
+        return plan.model_dump()
+
+    def _skill_label_lookup(self) -> Dict[str, str]:
+        labels: Dict[str, str] = {}
+        for bank in self._banks_by_id.values():
+            for skill in bank.skills:
+                labels.setdefault(skill.skill_id, skill.name)
+        return labels
+
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
@@ -2000,6 +2140,39 @@ def _item_to_payload(item: DiagnosticItem) -> Dict[str, Any]:
         "difficulty": item.difficulty,
         "lang": item.lang,
     }
+
+
+_WEAK_TOPIC_GAP: Dict[str, str] = {
+    "needs_support": "This topic needs the most attention right now.",
+    "developing": "You're getting there — a little more practice will lock it in.",
+    "secure": "Mostly solid; a quick check keeps it sharp.",
+}
+
+_WEAK_TOPIC_ACTION: Dict[str, str] = {
+    "needs_support": "Start with a worked example, then try two short questions.",
+    "developing": "Answer three timed questions to build confidence.",
+    "secure": "Do one quick retrieval question to stay fresh.",
+}
+
+
+def _humanize_skill_id(skill_id: str) -> str:
+    cleaned = skill_id.replace("_", " ").replace(".", " ").replace("-", " ").strip()
+    if not cleaned:
+        return "Practice"
+    return " ".join(part.capitalize() for part in cleaned.split())
+
+
+def _truncate_text(text: str, limit: int) -> str:
+    collapsed = " ".join((text or "").split())
+    if not collapsed:
+        return "Practice question"
+    if len(collapsed) <= limit:
+        return collapsed
+    return collapsed[: max(1, limit - 1)].rstrip() + "…"
+
+
+def _utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 def _request_user_agent() -> Optional[str]:

@@ -40,6 +40,7 @@ from src.learning.api import (
     PILOT_TENANT_ID,
     register_learning_api,
 )
+from src.learning.errors import LearningApiError
 from src.learning.repository_factory import make_repository as make_learning_repository
 from src.learning.profile_config import (
     ALLOWED_CONSENT_KINDS,
@@ -2074,6 +2075,71 @@ def learner_self_consent():
         metadata={"kind": kind, "version": version, "granted": bool(granted_raw)},
     )
     return jsonify(_learner_profile_response(user_id))
+
+
+_LEARNER_PLAN_YEAR_GROUP_TO_CLASS_YEAR: Dict[str, str] = {
+    "JSS1": "JSS1",
+    "JSS2": "JSS2",
+    "JSS3": "JSS3",
+    "SS1": "SSS1",
+    "SS2": "SSS2",
+    "SS3": "SSS3",
+}
+
+_LEARNER_PLAN_SUBJECT_ALIASES: Dict[str, str] = {
+    "maths": "Mathematics",
+    "mathematics": "Mathematics",
+    "english language": "English",
+    "english": "English",
+}
+
+
+@app.route("/api/learning/learner/plan", methods=["GET"])
+def learner_daily_plan():
+    """Return an adaptive, mastery-ranked daily plan for the calling learner."""
+    if not _pathfinder_learner_onboarding_enabled():
+        return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
+
+    user, guard_response = _require_role(ROLE_LEARNER)
+    if guard_response is not None:
+        return guard_response
+
+    owned_student_ids = _learning_student_ids_for_user(cast(Dict[str, Any], user))
+    requested = str(request.args.get("student_id") or "").strip()
+    if requested:
+        if requested not in owned_student_ids:
+            return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
+        student_id = requested
+    else:
+        student_id = next(iter(sorted(owned_student_ids)), "")
+    if not student_id:
+        return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
+
+    user_id = str(cast(Dict[str, Any], user).get("id") or "")
+    profile = storage_service.get_learner_profile(user_id) or {}
+
+    plan_payload: Dict[str, Any] = {"student_id": student_id}
+    exam = str(profile.get("exam") or "").strip()
+    if exam:
+        plan_payload["exam"] = exam
+    class_year = _LEARNER_PLAN_YEAR_GROUP_TO_CLASS_YEAR.get(
+        str(profile.get("year_group") or "").strip()
+    )
+    if class_year:
+        plan_payload["class_year"] = class_year
+    subjects = profile.get("subjects")
+    if isinstance(subjects, list):
+        for raw_subject in subjects:
+            alias = _LEARNER_PLAN_SUBJECT_ALIASES.get(str(raw_subject).strip().lower())
+            if alias:
+                plan_payload["subject"] = alias
+                break
+
+    try:
+        plan = learning_api.build_learner_plan(plan_payload)
+    except LearningApiError as exc:
+        return jsonify({"error": str(exc)}), exc.status_code
+    return jsonify(plan)
 
 
 @app.route(API_ADMIN_INVITE_CODES_ENDPOINT, methods=["GET", "POST"])

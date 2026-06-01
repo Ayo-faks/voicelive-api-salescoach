@@ -36,6 +36,7 @@ import {
 import {
   getVoiceConfig,
   submitVoiceFrame,
+  fetchLearnerPlan,
   type VoiceConfigResponse,
   type VoiceFrameResponse,
 } from '../api'
@@ -158,7 +159,7 @@ type WrongAnswerExplanation = {
   revisionAction: string
 }
 
-const todaysPath: Activity[] = [
+const fallbackTodaysPath: Activity[] = [
   {
     id: 'ratio-check',
     title: 'Ratio mini check-in',
@@ -182,237 +183,6 @@ const todaysPath: Activity[] = [
     minutes: 3,
     type: 'exit-ticket',
     skillId: 'linear-equations',
-  },
-]
-
-const examPrep: Activity[] = [
-  {
-    id: 'maths-ss3-indices',
-    title: 'Maths · Laws of indices',
-    meta: 'SS3 Indices · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.indices.laws_of_indices',
-  },
-  {
-    id: 'maths-ss3-mensuration',
-    title: 'Maths · Mensuration',
-    meta: 'SS3 Geometry · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.geometry.mensuration',
-  },
-  {
-    id: 'maths-jss3-fractions',
-    title: 'Maths · Fractions',
-    meta: 'JSS3 Number · JSSCE prep',
-    minutes: 5,
-    type: 'practice',
-    skillId: 'jss3.number.fractions',
-  },
-  {
-    id: 'english-ss3-sentence',
-    title: 'English · Sentence completion',
-    meta: 'SS3 Lexis & structure · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.lexis_and_structure.sentence_completion',
-  },
-  {
-    id: 'english-jss3-comprehension',
-    title: 'English · Reading comprehension',
-    meta: 'JSS3 Comprehension · JSSCE prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'jss3.comprehension.reading',
-  },
-  {
-    id: 'english-jss3-vocab',
-    title: 'English · Synonyms',
-    meta: 'JSS3 Vocabulary · JSSCE prep',
-    minutes: 5,
-    type: 'practice',
-    skillId: 'jss3.english.vocab.synonyms',
-  },
-  {
-    id: 'government-ss3-basics',
-    title: 'Government · Power & authority',
-    meta: 'SS3 Basic concepts · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.government.basic_concepts.power_authority',
-    subject: 'government',
-  },
-  {
-    id: 'government-ss3-constitution',
-    title: 'Government · Nigerian constitutions',
-    meta: 'SS3 Constitution · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.government.constitution.nigerian_constitutions',
-    subject: 'government',
-  },
-  {
-    id: 'history-ss3-early-states',
-    title: 'History · Early Nigerian states',
-    meta: 'SS3 Early states · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.history.early_nigerian_states.kanem_bornu',
-    subject: 'history',
-  },
-  {
-    id: 'history-ss3-independence',
-    title: 'History · Road to independence',
-    meta: 'SS3 Independence · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.history.independence.challenges',
-    subject: 'history',
-  },
-  {
-    id: 'literature-ss3-figures-of-speech',
-    title: 'Literature · Figures of speech',
-    meta: 'SS3 Figures of speech · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.literature.figures_of_speech.comparison',
-    subject: 'literature',
-  },
-  {
-    id: 'literature-ss3-african-prose',
-    title: 'Literature · African prose fiction',
-    meta: 'SS3 African literature · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.literature.african_literature.prose_fiction',
-    subject: 'literature',
-  },
-  {
-    id: 'physics-ss3-kinematics',
-    title: 'Physics · Motion & kinematics',
-    meta: 'SS3 Kinematics · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.physics.kinematics.speed_def',
-    subject: 'physics',
-  },
-  {
-    id: 'physics-ss3-current-electricity',
-    title: 'Physics · Current electricity',
-    meta: 'SS3 Electricity · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.physics.current_electricity.current_def',
-    subject: 'physics',
-  },
-  {
-    id: 'economics-ss3-scarcity',
-    title: 'Economics · Scarcity & choice',
-    meta: 'SS3 Basic economic problem · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.economics.basic_economic_problem.scarcity',
-    subject: 'economics',
-  },
-  {
-    id: 'economics-ss3-opportunity-cost',
-    title: 'Economics · Opportunity cost',
-    meta: 'SS3 Basic economic problem · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.economics.basic_economic_problem.opportunity_cost',
-    subject: 'economics',
-  },
-  {
-    id: 'data-processing-ss3-data',
-    title: 'Data Processing · Data vs information',
-    meta: 'SS3 Data & information · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.data_processing.data_information.data_def',
-    subject: 'data_processing',
-  },
-  {
-    id: 'data-processing-ss3-information',
-    title: 'Data Processing · Information',
-    meta: 'SS3 Data & information · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.data_processing.data_information.info_def',
-    subject: 'data_processing',
-  },
-  {
-    id: 'computer-science-ss3-history',
-    title: 'Computer Science · History of computing',
-    meta: 'SS3 Generations of computers · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.computer_science.history_generations.definition',
-    subject: 'computer_science',
-  },
-  {
-    id: 'computer-science-ss3-abacus',
-    title: 'Computer Science · Early computing devices',
-    meta: 'SS3 Generations of computers · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.computer_science.history_generations.abacus',
-    subject: 'computer_science',
-  },
-  {
-    id: 'agricultural-science-ss3-meaning',
-    title: 'Agricultural Science · Meaning & importance',
-    meta: 'SS3 Meaning & importance · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.agricultural_science.meaning_importance.definition',
-    subject: 'agricultural_science',
-  },
-  {
-    id: 'agricultural-science-ss3-food',
-    title: 'Agricultural Science · Food & agriculture',
-    meta: 'SS3 Meaning & importance · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.agricultural_science.meaning_importance.food',
-    subject: 'agricultural_science',
-  },
-  {
-    id: 'biology-ss3-living-things',
-    title: 'Biology · Characteristics of living things',
-    meta: 'SS3 Living things · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.biology.living_things.mrs_gren',
-    subject: 'biology',
-  },
-  {
-    id: 'biology-ss3-respiration',
-    title: 'Biology · Respiration',
-    meta: 'SS3 Living things · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.biology.living_things.respiration_def',
-    subject: 'biology',
-  },
-  {
-    id: 'chemistry-ss3-matter',
-    title: 'Chemistry · Particulate nature of matter',
-    meta: 'SS3 Particulate matter · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.chemistry.particulate_matter.matter_def',
-    subject: 'chemistry',
-  },
-  {
-    id: 'chemistry-ss3-states',
-    title: 'Chemistry · States of matter',
-    meta: 'SS3 Particulate matter · WAEC/NECO prep',
-    minutes: 6,
-    type: 'practice',
-    skillId: 'ss3.chemistry.particulate_matter.states',
-    subject: 'chemistry',
   },
 ]
 
@@ -440,7 +210,7 @@ const subjectOptions = [
   'Data Processing',
 ]
 
-const weakTopicProfile: WeakTopic[] = [
+const fallbackWeakTopicProfile: WeakTopic[] = [
   {
     skillId: 'ratio-proportion',
     label: 'Ratio and proportion',
@@ -1941,6 +1711,51 @@ export default function StudentLearningHome({
   const [activeSkill, setActiveSkill] = useState<string | null>(null)
   const [activeSubject, setActiveSubject] = useState<string | null>(null)
   const [panelKey, setPanelKey] = useState(0)
+  // Today's path + weak-topic profile start from a deterministic local
+  // fallback and are replaced by the per-learner adaptive plan from
+  // `GET /api/learning/learner/plan` when the onboarding flag is on. Flag-off
+  // builds (and tests, where the flag defaults to false) keep the legacy
+  // hardcoded arrays untouched.
+  const [todaysPath, setTodaysPath] = useState<Activity[]>(fallbackTodaysPath)
+  const [weakTopicProfile, setWeakTopicProfile] = useState<WeakTopic[]>(
+    fallbackWeakTopicProfile
+  )
+  useEffect(() => {
+    if (!featureFlags.pathfinder_learner_onboarding_enabled) return
+    let cancelled = false
+    fetchLearnerPlan(studentId ? { student_id: studentId } : {})
+      .then(plan => {
+        if (cancelled) return
+        if (plan.today.length > 0) {
+          setTodaysPath(
+            plan.today.map(item => ({
+              id: item.id,
+              title: item.title,
+              meta: item.meta,
+              minutes: item.minutes,
+              type: item.type,
+              skillId: item.skill_id ?? undefined,
+              subject: item.subject ?? undefined,
+            }))
+          )
+        }
+        setWeakTopicProfile(
+          plan.weak_topics.map(topic => ({
+            skillId: topic.skill_id,
+            label: topic.label,
+            mastery: topic.mastery,
+            gap: topic.gap,
+            nextAction: topic.next_action,
+          }))
+        )
+      })
+      .catch(err => {
+        console.warn('learner plan fetch failed', err)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [studentId])
   const [checkInActive, setCheckInActive] = useState(false)
   const [demoActive, setDemoActive] = useState(false)
   const [demoCompleted, setDemoCompleted] = useState(false)
@@ -3164,41 +2979,6 @@ export default function StudentLearningHome({
                 </div>
               )}
             </div>
-          </div>
-        </article>
-
-        <article className={styles.card} data-testid="exam-prep-card">
-          <div className={styles.cardHeader}>
-            <Text className={styles.cardTitle}>Exam prep · JSS3 &amp; SS3</Text>
-            <Text className={styles.cardCaption}>WAEC · NECO · JSSCE practice</Text>
-          </div>
-          <div className={styles.pathList}>
-            {examPrep.map(item => (
-              <button
-                key={item.id}
-                type="button"
-                className={styles.pathRow}
-                style={{ textAlign: 'left', font: 'inherit' }}
-                onClick={() => startCheckIn(item.skillId, item.subject)}
-                data-testid={`exam-prep-${item.id}`}
-              >
-                <div className={styles.pathIcon} aria-hidden="true">
-                  <PlayCircleIcon style={{ width: 20, height: 20 }} />
-                </div>
-                <div className={styles.pathTitle}>
-                  <span className={styles.pathTitleText}>{item.title}</span>
-                  <span className={styles.pathMeta}>{item.meta}</span>
-                </div>
-                <span className={styles.minutes}>
-                  <ClockIcon style={{ width: 14, height: 14 }} aria-hidden="true" />
-                  {item.minutes} min
-                </span>
-                <ChevronRightIcon
-                  style={{ width: 18, height: 18, color: t.brand.textTertiary }}
-                  aria-hidden="true"
-                />
-              </button>
-            ))}
           </div>
         </article>
 

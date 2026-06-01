@@ -51,6 +51,17 @@ class LearningRepository(Protocol):
     def save_mastery_event(self, event: MasteryEvent, statement: XAPIStatement) -> Dict[str, Any]:
         raise NotImplementedError
 
+    def list_mastery_events_for_student(
+        self, tenant_id: str, student_id: str, *, limit: int = 200
+    ) -> List[Dict[str, Any]]:
+        """Return persisted mastery events for a learner, newest first.
+
+        Each record carries at least ``skill_id``, ``estimate`` (a serialized
+        :class:`MasteryEstimate`) and ``created_at`` so callers can rebuild the
+        latest mastery picture per skill.
+        """
+        raise NotImplementedError
+
     def save_intervention_plan(
         self,
         plan: InterventionPlan,
@@ -216,6 +227,18 @@ class InMemoryLearningRepository:
         record["created_at"] = utc_now()
         self.mastery_events.append(record)
         return record
+
+    def list_mastery_events_for_student(
+        self, tenant_id: str, student_id: str, *, limit: int = 200
+    ) -> List[Dict[str, Any]]:
+        matches = [
+            rec
+            for rec in self.mastery_events
+            if rec.get("tenant_id") == tenant_id and rec.get("student_id") == student_id
+        ]
+        # Newest first; the in-memory list is append-ordered (oldest first).
+        ordered = list(reversed(matches))
+        return ordered[: max(0, limit)]
 
     def save_intervention_plan(
         self,
@@ -647,6 +670,40 @@ class LearningPostgresRepository:
 
         self.storage._execute_write(persist)
         return {"id": event.event_id, "tenant_id": event.tenant_id, "created_at": created_at}
+
+    def list_mastery_events_for_student(
+        self, tenant_id: str, student_id: str, *, limit: int = 200
+    ) -> List[Dict[str, Any]]:
+        result: Dict[str, Any] = {"rows": []}
+
+        def fetch(connection: Any) -> None:
+            rows = connection.execute(
+                """
+                SELECT id, tenant_id, student_id, skill_id, response_id,
+                       estimate_json, lang, created_at
+                FROM learning_mastery_events
+                WHERE tenant_id = %s AND student_id = %s
+                ORDER BY created_at DESC
+                LIMIT %s
+                """,
+                (tenant_id, student_id, max(0, limit)),
+            ).fetchall()
+            result["rows"] = [dict(row) for row in rows]
+
+        self.storage._execute_write(fetch)
+        return [
+            {
+                "id": row.get("id"),
+                "tenant_id": row.get("tenant_id"),
+                "student_id": row.get("student_id"),
+                "skill_id": row.get("skill_id"),
+                "response_id": row.get("response_id"),
+                "estimate": self.storage._loads_json(row.get("estimate_json"), {}),
+                "lang": row.get("lang"),
+                "created_at": row.get("created_at"),
+            }
+            for row in result["rows"]
+        ]
 
     def save_intervention_plan(
         self,

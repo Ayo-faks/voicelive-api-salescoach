@@ -169,6 +169,35 @@ export type AnswerDiagnosticResponse = {
   completion_xapi: Record<string, unknown> | null
 }
 
+export type LearnerDailyPlanItemPayload = {
+  id: string
+  title: string
+  meta: string
+  minutes: number
+  type: 'check-in' | 'practice' | 'exit-ticket'
+  skill_id?: string | null
+  subject?: string | null
+}
+
+export type LearnerWeakTopicPayload = {
+  skill_id: string
+  label: string
+  mastery: number
+  gap: string
+  next_action: string
+}
+
+export type LearnerDailyPlanResponse = {
+  student_id: string
+  exam: string
+  class_year: string
+  subject: string
+  source: 'mastery' | 'fallback'
+  generated_at: string
+  today: LearnerDailyPlanItemPayload[]
+  weak_topics: LearnerWeakTopicPayload[]
+}
+
 export type StudentFactPayload = {
   fact_id: string
   tenant_id: string
@@ -424,6 +453,17 @@ export async function getStudentProfile(
     : `/api/learning/students/${encodeURIComponent(studentId)}/profile`
   const response = await fetch(url, withDefaults({ method: 'GET' }))
   return jsonOrThrow<StudentProfileResponse>(response)
+}
+
+export async function fetchLearnerPlan(
+  query: { student_id?: string } = {}
+): Promise<LearnerDailyPlanResponse> {
+  const search = toSearchParams(query)
+  const url = search
+    ? `/api/learning/learner/plan?${search}`
+    : '/api/learning/learner/plan'
+  const response = await fetch(url, withDefaults({ method: 'GET' }))
+  return jsonOrThrow<LearnerDailyPlanResponse>(response)
 }
 
 export async function listSkills(

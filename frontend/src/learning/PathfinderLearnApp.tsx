@@ -38,6 +38,7 @@ import { useLearnerSetup } from './hooks/useLearnerSetup'
 import { useLearnerProfile } from './hooks/useLearnerProfile'
 import LearnerOnboardingWizard from './onboarding/LearnerOnboardingWizard'
 import PathwaysExplorer from './routes/PathwaysExplorer'
+import ExamPrepLibrary from './routes/ExamPrepLibrary'
 import SkillLibrary from './routes/SkillLibrary'
 import StudentLearningHome from './routes/StudentLearningHome'
 import StudentMasteryProfile from './routes/StudentMasteryProfile'
@@ -120,6 +121,14 @@ const navItems: NavItem[] = [
     icon: ChartBarIcon,
     allowedRoles: ['therapist', 'admin'],
     testId: 'pf-nav-teacher',
+  },
+  {
+    to: '/exam-prep',
+    label: 'Exam prep',
+    hint: 'WAEC · NECO',
+    icon: BookOpenIcon,
+    allowedRoles: ['parent', 'learner', 'kid', 'student'],
+    testId: 'pf-nav-exam-prep',
   },
   {
     to: '/library',
@@ -1334,6 +1343,17 @@ export default function PathfinderLearnApp() {
                 element={routeForRole(
                   ['therapist', 'admin'],
                   <TeacherMasteryDashboard />
+                )}
+              />
+              <Route
+                path="/exam-prep"
+                element={routeForRole(
+                  ['parent', 'learner', 'kid', 'student'],
+                  <ExamPrepLibrary
+                    studentId={
+                      selectedLearnerId ?? learnerChildren?.[0]?.id ?? null
+                    }
+                  />
                 )}
               />
               <Route
