@@ -424,7 +424,21 @@ const weeklyTiles: Array<{ label: string; value: string; delta: string }> = [
 
 const examOptions = ['WAEC', 'NECO', 'JAMB', 'Junior WAEC']
 const yearOptions = ['JSS2', 'JSS3', 'SSS1', 'SSS2', 'SSS3']
-const subjectOptions = ['Mathematics', 'English Language', 'Basic Science']
+const subjectOptions = [
+  'Mathematics',
+  'English Language',
+  'Basic Science',
+  'Biology',
+  'Chemistry',
+  'Physics',
+  'Agricultural Science',
+  'Economics',
+  'Government',
+  'History',
+  'Literature',
+  'Computer Science',
+  'Data Processing',
+]
 
 const weakTopicProfile: WeakTopic[] = [
   {
