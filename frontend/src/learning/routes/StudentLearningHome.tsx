@@ -8,17 +8,13 @@ import {
   CalculatorIcon,
   ChartBarIcon,
   CheckBadgeIcon,
-  ChevronDownIcon,
   ChevronRightIcon,
-  ClipboardDocumentListIcon,
   ClockIcon,
   DocumentDuplicateIcon,
   DocumentTextIcon,
-  LightBulbIcon,
   MicrophoneIcon,
   PlayCircleIcon,
   ShareIcon,
-  ShieldCheckIcon,
   SparklesIcon,
   WifiIcon,
   XMarkIcon,
@@ -34,6 +30,7 @@ import {
   usePushSubscription,
 } from '../notifications/usePushSubscription'
 import {
+  fetchLearnerPlan,
   getVoiceConfig,
   submitVoiceFrame,
   type VoiceConfigResponse,
@@ -158,7 +155,7 @@ type WrongAnswerExplanation = {
   revisionAction: string
 }
 
-const todaysPath: Activity[] = [
+const fallbackTodaysPath: Activity[] = [
   {
     id: 'ratio-check',
     title: 'Ratio mini check-in',
@@ -440,7 +437,7 @@ const subjectOptions = [
   'Data Processing',
 ]
 
-const weakTopicProfile: WeakTopic[] = [
+const fallbackWeakTopicProfile: WeakTopic[] = [
   {
     skillId: 'ratio-proportion',
     label: 'Ratio and proportion',
@@ -978,7 +975,7 @@ const useStyles = makeStyles({
   },
   tutorOrbTitle: {
     fontSize: '0.92rem',
-    fontWeight: 800,
+    fontWeight: 700,
     letterSpacing: '-0.005em',
   },
   tutorOrbHint: {
@@ -992,7 +989,7 @@ const useStyles = makeStyles({
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: '36px',
+    minHeight: t.control.minHeight,
     paddingRight: '16px',
     paddingLeft: '16px',
     borderRadius: t.radius.pill,
@@ -1002,7 +999,7 @@ const useStyles = makeStyles({
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.84rem',
-    fontWeight: 800,
+    fontWeight: 700,
     ':disabled': {
       cursor: 'not-allowed',
       opacity: 0.55,
@@ -1122,7 +1119,7 @@ const useStyles = makeStyles({
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.82rem',
-    fontWeight: 850,
+    fontWeight: 700,
     ':hover': { filter: 'brightness(1.06)' },
   },
   openPracticeIcon: {
@@ -1154,7 +1151,7 @@ const useStyles = makeStyles({
     alignItems: 'center',
     justifyContent: 'center',
     justifySelf: 'start',
-    minHeight: '32px',
+    minHeight: t.control.minHeight,
     marginTop: '12px',
     paddingRight: '13px',
     paddingLeft: '13px',
@@ -1165,7 +1162,7 @@ const useStyles = makeStyles({
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.78rem',
-    fontWeight: 800,
+    fontWeight: 700,
   },
   setupGrid: {
     display: 'grid',
@@ -1195,7 +1192,7 @@ const useStyles = makeStyles({
     paddingLeft: '14px',
     font: 'inherit',
     fontSize: '0.92rem',
-    fontWeight: 800,
+    fontWeight: 700,
   },
   insightGrid: {
     display: 'grid',
@@ -1341,7 +1338,7 @@ const useStyles = makeStyles({
   demoTitle: {
     fontFamily: t.font.display,
     fontSize: '1.24rem',
-    fontWeight: 800,
+    fontWeight: 700,
     color: t.brand.text,
     letterSpacing: '0',
   },
@@ -1406,7 +1403,7 @@ const useStyles = makeStyles({
     fontFamily: t.font.display,
     fontSize: 'clamp(1.2rem, 5vw, 1.55rem)',
     lineHeight: 1.18,
-    fontWeight: 800,
+    fontWeight: 700,
     letterSpacing: '0',
   },
   demoHelper: {
@@ -1435,7 +1432,7 @@ const useStyles = makeStyles({
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '1rem',
-    fontWeight: 800,
+    fontWeight: 700,
     textAlign: 'left',
     boxShadow: '0 8px 18px rgba(15, 42, 58, 0.08)',
   },
@@ -1479,7 +1476,7 @@ const useStyles = makeStyles({
     color: t.brand.text,
     fontFamily: t.font.display,
     fontSize: 'clamp(1.16rem, 5vw, 1.48rem)',
-    fontWeight: 800,
+    fontWeight: 700,
     lineHeight: 1.2,
     letterSpacing: '0',
   },
@@ -1523,7 +1520,7 @@ const useStyles = makeStyles({
   },
   practiceOptionLabel: {
     fontSize: '1rem',
-    fontWeight: 850,
+    fontWeight: 700,
   },
   practiceOptionMeta: {
     fontSize: '0.76rem',
@@ -1593,7 +1590,7 @@ const useStyles = makeStyles({
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.9rem',
-    fontWeight: 850,
+    fontWeight: 700,
   },
   careerActionSecondary: {
     appearance: 'none',
@@ -1611,7 +1608,7 @@ const useStyles = makeStyles({
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.9rem',
-    fontWeight: 850,
+    fontWeight: 700,
   },
   careerPointList: {
     display: 'grid',
@@ -1680,7 +1677,7 @@ const useStyles = makeStyles({
   deviceModeValue: {
     color: t.brand.text,
     fontSize: '0.95rem',
-    fontWeight: 850,
+    fontWeight: 700,
   },
   deviceModeDetail: {
     color: t.brand.textSecondary,
@@ -1958,7 +1955,7 @@ export default function StudentLearningHome({
   )
   const [practiceOpen, setPracticeOpen] = useState(false)
   const [tutorOpen, setTutorOpen] = useState(false)
-  const [tutorVoice, setTutorVoice] = useState<TutorVoiceSnapshot>({
+  const [, setTutorVoice] = useState<TutorVoiceSnapshot>({
     state: 'idle',
     inputLevel: 0,
     recording: false,
@@ -2011,6 +2008,51 @@ export default function StudentLearningHome({
   )
   const [shareCopied, setShareCopied] = useState(false)
   const [expandedStepId, setExpandedStepId] = useState<string | null>(null)
+  // Today's path + weak-topic profile start from a deterministic local
+  // fallback and are replaced by the per-learner adaptive plan from
+  // `GET /api/learning/learner/plan` when the onboarding flag is on. Flag-off
+  // builds (and tests, where the flag defaults to false) keep the legacy
+  // hardcoded arrays untouched.
+  const [todaysPath, setTodaysPath] = useState<Activity[]>(fallbackTodaysPath)
+  const [weakTopicProfile, setWeakTopicProfile] = useState<WeakTopic[]>(
+    fallbackWeakTopicProfile
+  )
+  useEffect(() => {
+    if (!featureFlags.pathfinder_learner_onboarding_enabled) return
+    let cancelled = false
+    fetchLearnerPlan(studentId ? { student_id: studentId } : {})
+      .then(plan => {
+        if (cancelled) return
+        if (plan.today.length > 0) {
+          setTodaysPath(
+            plan.today.map(item => ({
+              id: item.id,
+              title: item.title,
+              meta: item.meta,
+              minutes: item.minutes,
+              type: item.type,
+              skillId: item.skill_id ?? undefined,
+              subject: item.subject ?? undefined,
+            }))
+          )
+        }
+        setWeakTopicProfile(
+          plan.weak_topics.map(topic => ({
+            skillId: topic.skill_id,
+            label: topic.label,
+            mastery: topic.mastery,
+            gap: topic.gap,
+            nextAction: topic.next_action,
+          }))
+        )
+      })
+      .catch(err => {
+        console.warn('learner plan fetch failed', err)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [studentId])
   const [wrongAnswerExplanation, setWrongAnswerExplanation] =
     useState<WrongAnswerExplanation | null>(null)
   const [revisionPlanAdded, setRevisionPlanAdded] = useState(false)
@@ -2020,6 +2062,9 @@ export default function StudentLearningHome({
   })
   const [shareStatus, setShareStatus] = useState<string | null>(null)
   const [completed, setCompleted] = useState(false)
+  // The exam-path picker is a secondary affordance (#13): collapsed by default
+  // so it does not compete with the hero "Pick up where we left off" action.
+  const [examPathOpen, setExamPathOpen] = useState(false)
   const [voiceConfig, setVoiceConfig] = useState<VoiceConfigResponse | null>(
     null
   )
@@ -2029,7 +2074,7 @@ export default function StudentLearningHome({
   )
   const [voiceError, setVoiceError] = useState<string | null>(null)
   const [voiceBusy, setVoiceBusy] = useState(false)
-  const [lastSession, setLastSession] = useState<{
+  const [, setLastSession] = useState<{
     topicLabel: string
     correct: boolean
   } | null>(null)
@@ -2542,94 +2587,107 @@ export default function StudentLearningHome({
         <article className={styles.card} data-testid="b2c-learner-setup">
           <div className={styles.cardHeader}>
             <div>
-              <Text className={styles.cardTitle}>Choose your exam path</Text>
+              <Text className={styles.cardTitle}>Your exam path</Text>
               <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
-                Select exam, class/year, and subject before the short diagnostic
-                starts.
+                {learnerSetup.exam} · {learnerSetup.year} ·{' '}
+                {learnerSetup.subject}
               </p>
             </div>
+            <button
+              type="button"
+              className={styles.textAction}
+              style={{ marginTop: 0 }}
+              onClick={() => setExamPathOpen(open => !open)}
+              aria-expanded={examPathOpen}
+              data-testid="change-exam-path"
+            >
+              {examPathOpen ? 'Done' : 'Change exam path'}
+            </button>
           </div>
-          {featureFlags.pathfinder_learner_onboarding_enabled ? (
-            <div style={{ display: 'grid', gap: 8 }}>
-              <Text>
-                Exam: <strong>{learnerSetup.exam}</strong> · Class:{' '}
-                <strong>{learnerSetup.year}</strong> · Subject:{' '}
-                <strong>{learnerSetup.subject}</strong>
-              </Text>
-              <Link to="/welcome" data-testid="b2c-learner-setup-edit">
-                Edit your profile
-              </Link>
-            </div>
-          ) : (
-            <div className={styles.setupGrid}>
-              <label className={styles.selectField}>
-                <span className={styles.selectLabel}>Your name (optional)</span>
-                <input
-                  className={styles.select}
-                  type="text"
-                  value={learnerSetup.firstName}
-                  onChange={event =>
-                    updateLearnerSetup('firstName', event.currentTarget.value)
-                  }
-                  placeholder="e.g. Tomi"
-                  aria-label="Your first name"
-                  maxLength={40}
-                  data-testid="learner-first-name"
-                />
-              </label>
-              <label className={styles.selectField}>
-                <span className={styles.selectLabel}>Exam</span>
-                <select
-                  className={styles.select}
-                  value={learnerSetup.exam}
-                  onChange={event =>
-                    updateLearnerSetup('exam', event.currentTarget.value)
-                  }
-                  aria-label="Select exam"
-                >
-                  {examOptions.map(option => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className={styles.selectField}>
-                <span className={styles.selectLabel}>Class / year</span>
-                <select
-                  className={styles.select}
-                  value={learnerSetup.year}
-                  onChange={event =>
-                    updateLearnerSetup('year', event.currentTarget.value)
-                  }
-                  aria-label="Select class or year"
-                >
-                  {yearOptions.map(option => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className={styles.selectField}>
-                <span className={styles.selectLabel}>Subject area</span>
-                <select
-                  className={styles.select}
-                  value={learnerSetup.subject}
-                  onChange={event =>
-                    updateLearnerSetup('subject', event.currentTarget.value)
-                  }
-                  aria-label="Select subject"
-                >
-                  {subjectOptions.map(option => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-          )}
+          {examPathOpen &&
+            (featureFlags.pathfinder_learner_onboarding_enabled ? (
+              <div style={{ display: 'grid', gap: 8 }}>
+                <Text>
+                  Exam: <strong>{learnerSetup.exam}</strong> · Class:{' '}
+                  <strong>{learnerSetup.year}</strong> · Subject:{' '}
+                  <strong>{learnerSetup.subject}</strong>
+                </Text>
+                <Link to="/welcome" data-testid="b2c-learner-setup-edit">
+                  Edit your profile
+                </Link>
+              </div>
+            ) : (
+              <div className={styles.setupGrid}>
+                <label className={styles.selectField}>
+                  <span className={styles.selectLabel}>
+                    Your name (optional)
+                  </span>
+                  <input
+                    className={styles.select}
+                    type="text"
+                    value={learnerSetup.firstName}
+                    onChange={event =>
+                      updateLearnerSetup('firstName', event.currentTarget.value)
+                    }
+                    placeholder="e.g. Tomi"
+                    aria-label="Your first name"
+                    maxLength={40}
+                    data-testid="learner-first-name"
+                  />
+                </label>
+                <label className={styles.selectField}>
+                  <span className={styles.selectLabel}>Exam</span>
+                  <select
+                    className={styles.select}
+                    value={learnerSetup.exam}
+                    onChange={event =>
+                      updateLearnerSetup('exam', event.currentTarget.value)
+                    }
+                    aria-label="Select exam"
+                  >
+                    {examOptions.map(option => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className={styles.selectField}>
+                  <span className={styles.selectLabel}>Class / year</span>
+                  <select
+                    className={styles.select}
+                    value={learnerSetup.year}
+                    onChange={event =>
+                      updateLearnerSetup('year', event.currentTarget.value)
+                    }
+                    aria-label="Select class or year"
+                  >
+                    {yearOptions.map(option => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className={styles.selectField}>
+                  <span className={styles.selectLabel}>Subject area</span>
+                  <select
+                    className={styles.select}
+                    value={learnerSetup.subject}
+                    onChange={event =>
+                      updateLearnerSetup('subject', event.currentTarget.value)
+                    }
+                    aria-label="Select subject"
+                  >
+                    {subjectOptions.map(option => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            ))}
         </article>
 
         {demoActive &&

@@ -61,7 +61,8 @@ export interface HelpMenuProps {
 const useStyles = makeStyles({
   triggerButton: {
     justifyContent: 'flex-start',
-    minHeight: '40px',
+    minHeight: '44px',
+    borderRadius: '10px',
     fontFamily: 'var(--font-display)',
     fontWeight: '600',
   },

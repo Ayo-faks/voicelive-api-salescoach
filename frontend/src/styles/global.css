@@ -124,7 +124,7 @@ body,
 body {
   margin: 0;
   font-family: var(--font-body);
-  font-size: 14.5px;
+  font-size: 16px;
   line-height: 1.55;
   color: var(--color-text-primary);
   background: linear-gradient(180deg, #fdfaf4 0%, #f5eee3 100%);

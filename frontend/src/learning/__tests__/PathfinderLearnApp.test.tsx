@@ -149,6 +149,17 @@ describe('CookieConsentBanner', () => {
 
     expect(screen.queryByTestId('cookie-consent-banner')).toBeNull()
   })
+
+  it('notifies onResolved once the banner is dismissed (sequences the tour, #19)', () => {
+    const onResolved = vi.fn()
+    render(<CookieConsentBanner onResolved={onResolved} />)
+
+    expect(onResolved).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByTestId('cookie-consent-accept'))
+
+    expect(onResolved).toHaveBeenCalledTimes(1)
+  })
 })
 
 describe('Pathfinder role routing helpers', () => {

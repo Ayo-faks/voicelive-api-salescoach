@@ -102,7 +102,7 @@ describe('PathfinderPhase3Demo', () => {
       screen.getByTestId('phase3-voice-queue-card').getAttribute('data-queued')
     ).toBe('true')
     expect(screen.getByTestId('phase3-voice-queue-card').textContent).toContain(
-      'queued_multilingual_voice_frame'
+      "Saved offline — we'll play this voice practice as soon as you're back online."
     )
     expect(
       screen.getAllByTestId('phase3-provenance-footer').length

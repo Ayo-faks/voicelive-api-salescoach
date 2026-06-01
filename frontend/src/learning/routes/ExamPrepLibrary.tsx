@@ -16,6 +16,7 @@ import {
   PlayCircleIcon,
 } from '@heroicons/react/24/outline'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import DiagnosticPanel from '../components/DiagnosticPanel'
 import {
   fetchExamPrepTopics,
@@ -29,6 +30,7 @@ import {
   examPrepYear,
   type Activity,
 } from '../data/examPrep'
+import { useLearnerSetup } from '../hooks/useLearnerSetup'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 
 export type ExamPrepLibraryProps = {
@@ -113,7 +115,24 @@ const useStyles = makeStyles({
     color: t.brand.textSecondary,
     margin: 0,
   },
+  resultCount: {
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    color: t.brand.textSecondary,
+    margin: 0,
+  },
   toolbar: { display: 'grid', gap: '12px' },
+  toolbarSticky: {
+    position: 'sticky',
+    top: 0,
+    zIndex: 5,
+    display: 'grid',
+    gap: '12px',
+    paddingTop: '8px',
+    paddingBottom: '12px',
+    backgroundColor: t.brand.page,
+    boxShadow: `0 1px 0 ${t.brand.line}`,
+  },
   searchBox: { maxWidth: '420px' },
   filterRow: {
     display: 'flex',
@@ -150,6 +169,35 @@ const useStyles = makeStyles({
     cursor: 'pointer',
   },
   list: { display: 'grid', gap: '10px' },
+  sections: { display: 'grid', gap: '10px' },
+  section: { display: 'grid', gap: '10px' },
+  sectionHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    width: '100%',
+    minHeight: t.control.minHeight,
+    textAlign: 'left',
+    font: 'inherit',
+    border: `1px solid ${t.brand.line}`,
+    backgroundColor: t.surface.cardMuted,
+    borderRadius: t.radius.control,
+    padding: '8px 14px',
+    cursor: 'pointer',
+    color: t.brand.text,
+  },
+  sectionTitle: {
+    flex: 1,
+    minWidth: 0,
+    fontWeight: t.weight.strong,
+    fontSize: '0.95rem',
+  },
+  sectionCount: {
+    fontSize: '0.78rem',
+    fontWeight: t.weight.regular,
+    color: t.brand.textSecondary,
+    whiteSpace: 'nowrap',
+  },
   row: {
     display: 'flex',
     alignItems: 'center',
@@ -301,12 +349,23 @@ const useStyles = makeStyles({
 
 export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
   const styles = useStyles()
+  const [setup] = useLearnerSetup()
+  const navigate = useNavigate()
+  // The topic + skill segments live in the URL (`/exam-prep/:topic/:skill`) so
+  // Back, refresh, and deep links step through the library, the topic detail,
+  // and the practice session instead of exiting the whole page.
+  const params = useParams()
+  const restPath = params['*'] ?? ''
+  const [rawTopicSlug, rawSkillSlug] = restPath.split('/').filter(Boolean)
+  const topicSlug = rawTopicSlug ? decodeURIComponent(rawTopicSlug) : undefined
+  const skillSlug = rawSkillSlug ? decodeURIComponent(rawSkillSlug) : undefined
   const [query, setQuery] = useState('')
   const [subject, setSubject] = useState('All')
   const [track, setTrack] = useState('All')
-  const [activeTopic, setActiveTopic] = useState<ExamRow | null>(null)
-  const [practice, setPractice] = useState<PracticeTarget | null>(null)
   const [rows, setRows] = useState<ExamRow[]>(STATIC_ROWS)
+  const [expandedSubjects, setExpandedSubjects] = useState<Set<string>>(
+    () => new Set()
+  )
   const practiceRef = useRef<HTMLDivElement | null>(null)
 
   // Load the live diagnostic topic catalogue. The static teaser stays as the
@@ -360,8 +419,73 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
     })
   }, [query, subject, track, rows])
 
-  const startPractice = (target: PracticeTarget) => {
-    setPractice(target)
+  const subjectCount = useMemo(
+    () => new Set(filtered.map(item => item.subject)).size,
+    [filtered]
+  )
+
+  // The learner's own subject (from their saved setup) sorts first and opens
+  // by default, so the most relevant topics are one tap away while the rest of
+  // the catalogue stays collapsed.
+  const learnerSubjectKey = useMemo(() => {
+    const wanted = setup.subject.trim().toLowerCase()
+    if (!wanted) return null
+    const match = rows.find(
+      item =>
+        item.subject.toLowerCase() === wanted ||
+        item.subjectLabel.toLowerCase() === wanted
+    )
+    return match?.subject ?? null
+  }, [setup.subject, rows])
+
+  // Group the filtered topics into subject sections, learner's subject first.
+  const sections = useMemo(() => {
+    const map = new Map<
+      string,
+      { subject: string; label: string; rows: ExamRow[] }
+    >()
+    for (const item of filtered) {
+      const entry = map.get(item.subject) ?? {
+        subject: item.subject,
+        label: item.subjectLabel,
+        rows: [],
+      }
+      entry.rows.push(item)
+      map.set(item.subject, entry)
+    }
+    return Array.from(map.values()).sort((a, b) => {
+      if (a.subject === learnerSubjectKey) return -1
+      if (b.subject === learnerSubjectKey) return 1
+      return a.label.localeCompare(b.label)
+    })
+  }, [filtered, learnerSubjectKey])
+
+  // Pre-expand the learner's own subject once the catalogue is known.
+  useEffect(() => {
+    if (!learnerSubjectKey) return
+    setExpandedSubjects(prev => {
+      if (prev.has(learnerSubjectKey)) return prev
+      const next = new Set(prev)
+      next.add(learnerSubjectKey)
+      return next
+    })
+  }, [learnerSubjectKey])
+
+  const toggleSubject = (value: string) => {
+    setExpandedSubjects(prev => {
+      const next = new Set(prev)
+      if (next.has(value)) next.delete(value)
+      else next.add(value)
+      return next
+    })
+  }
+
+  // When the learner searches or narrows by a filter chip, every matching
+  // section opens so results are never hidden behind a collapsed header.
+  const searchOrFilterActive =
+    query.trim() !== '' || subject !== 'All' || track !== 'All'
+
+  const startPractice = () => {
     // Defer the scroll until the panel has mounted.
     window.requestAnimationFrame(() => {
       practiceRef.current?.scrollIntoView({
@@ -371,55 +495,103 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
     })
   }
 
-  // A topic with a drillable skill breakdown opens the detail view; a thin
-  // static-teaser row (no skills) practises straight away.
-  const openTopic = (item: ExamRow) => {
-    if (item.skills.length > 0) {
-      setActiveTopic(item)
-      return
+  // The topic detail and practice session are resolved from the URL segments
+  // against the loaded catalogue, so a refresh or shared deep link lands on the
+  // same view.
+  const activeTopic = useMemo(
+    () => (topicSlug ? rows.find(item => item.id === topicSlug) ?? null : null),
+    [topicSlug, rows]
+  )
+
+  const practice = useMemo<PracticeTarget | null>(() => {
+    if (!topicSlug || !skillSlug) return null
+    const item = rows.find(row => row.id === topicSlug)
+    if (!item) return null
+    if (skillSlug === 'all') {
+      const skillIds = item.skills.map(skill => skill.skill_id)
+      return {
+        key: skillIds.length > 0 ? `${item.id}:all` : item.id,
+        title:
+          skillIds.length > 0 ? `${item.title} · All skills` : item.title,
+        skillId: item.skillId,
+        skillIds: skillIds.length > 0 ? skillIds : undefined,
+        subject: item.subject,
+        diagnosticSubject: item.diagnosticSubject,
+      }
     }
-    startPractice({
+    const skill = item.skills.find(entry => entry.skill_id === skillSlug)
+    if (skill) {
+      return {
+        key: `${item.id}:${skill.skill_id}`,
+        title: `${item.title} · ${skill.label}`,
+        skillId: skill.skill_id,
+        subject: item.subject,
+        diagnosticSubject: item.diagnosticSubject,
+      }
+    }
+    // A skill-less teaser topic practised straight from the library.
+    return {
       key: item.id,
       title: item.title,
       skillId: item.skillId,
       subject: item.subject,
       diagnosticSubject: item.diagnosticSubject,
-    })
+    }
+  }, [topicSlug, skillSlug, rows])
+
+  // Scroll the practice panel into view whenever a session opens.
+  useEffect(() => {
+    if (practice) startPractice()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [practice?.key])
+
+  const goToPath = (path: string) => navigate(path)
+
+  // A topic with a drillable skill breakdown opens the detail view; a thin
+  // static-teaser row (no skills) practises straight away.
+  const openTopic = (item: ExamRow) => {
+    if (item.skills.length > 0) {
+      goToPath(`/exam-prep/${encodeURIComponent(item.id)}`)
+      return
+    }
+    goToPath(`/exam-prep/${encodeURIComponent(item.id)}/practice`)
   }
 
   const practiceWholeTopic = (item: ExamRow) => {
-    const skillIds = item.skills.map(skill => skill.skill_id)
-    startPractice({
-      key: skillIds.length > 0 ? `${item.id}:all` : item.id,
-      title:
-        skillIds.length > 0 ? `${item.title} · All skills` : item.title,
-      skillId: item.skillId,
-      skillIds: skillIds.length > 0 ? skillIds : undefined,
-      subject: item.subject,
-      diagnosticSubject: item.diagnosticSubject,
-    })
+    goToPath(`/exam-prep/${encodeURIComponent(item.id)}/all`)
   }
 
   const practiceSkill = (item: ExamRow, skill: ExamPrepSkill) => {
-    startPractice({
-      key: `${item.id}:${skill.skill_id}`,
-      title: `${item.title} · ${skill.label}`,
-      skillId: skill.skill_id,
-      subject: item.subject,
-      diagnosticSubject: item.diagnosticSubject,
-    })
+    goToPath(
+      `/exam-prep/${encodeURIComponent(item.id)}/${encodeURIComponent(
+        skill.skill_id
+      )}`
+    )
   }
 
 
   return (
     <div className={styles.shell} data-testid="route-exam-prep">
       <div className={styles.header}>
-        <Text as="h1" className={styles.title}>
-          Exam prep · JSS3 &amp; SS3
-        </Text>
-        <p className={styles.caption}>
-          Search and filter WAEC, NECO, and JSSCE practice, then start a session.
-        </p>
+        {practice ? (
+          <>
+            <Text as="h1" className={styles.title} data-testid="exam-prep-heading">
+              {practice.title}
+            </Text>
+            <p className={styles.caption}>
+              Practice session in progress — answer each question, then keep going.
+            </p>
+          </>
+        ) : (
+          <>
+            <Text as="h1" className={styles.title} data-testid="exam-prep-heading">
+              Exam prep · JSS3 &amp; SS3
+            </Text>
+            <p className={styles.caption}>
+              Search and filter WAEC, NECO, and JSSCE practice, then start a session.
+            </p>
+          </>
+        )}
       </div>
 
       {practice ? (
@@ -436,13 +608,21 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
               type="button"
               className={styles.backButton}
               data-testid="exam-prep-back"
-              onClick={() => setPractice(null)}
+              onClick={() =>
+                goToPath(
+                  activeTopic && activeTopic.skills.length > 0
+                    ? `/exam-prep/${encodeURIComponent(activeTopic.id)}`
+                    : '/exam-prep'
+                )
+              }
             >
               <ArrowLeftIcon
                 style={{ width: 14, height: 14 }}
                 aria-hidden="true"
               />
-              {activeTopic ? 'Back to skills' : 'Back to library'}
+              {activeTopic && activeTopic.skills.length > 0
+                ? 'Back to skills'
+                : 'Back to library'}
             </button>
           </div>
           <DiagnosticPanel
@@ -464,7 +644,7 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
                 type="button"
                 className={styles.backButton}
                 data-testid="exam-prep-detail-back"
-                onClick={() => setActiveTopic(null)}
+                onClick={() => goToPath('/exam-prep')}
               >
                 <ArrowLeftIcon
                   style={{ width: 14, height: 14 }}
@@ -517,7 +697,7 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
         </div>
       ) : (
         <>
-          <div className={styles.toolbar}>
+          <div className={styles.toolbarSticky}>
             <div className={styles.searchBox}>
               <Input
                 data-testid="exam-prep-search"
@@ -570,6 +750,10 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
                 </button>
               ))}
             </div>
+            <p className={styles.resultCount} data-testid="exam-prep-count">
+              {filtered.length} topic{filtered.length === 1 ? '' : 's'} ·{' '}
+              {subjectCount} subject{subjectCount === 1 ? '' : 's'}
+            </p>
           </div>
 
           {filtered.length === 0 ? (
@@ -577,38 +761,93 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
               No exam-prep topics match this view.
             </div>
           ) : (
-            <div className={styles.list}>
-              {filtered.map(item => {
-                const drillable = item.skills.length > 0
+            <div className={styles.sections}>
+              {sections.map(section => {
+                const open =
+                  searchOrFilterActive ||
+                  sections.length === 1 ||
+                  expandedSubjects.has(section.subject)
                 return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={styles.row}
-                    data-testid={`exam-prep-${item.id}`}
-                    onClick={() => openTopic(item)}
+                  <section
+                    key={section.subject}
+                    className={styles.section}
+                    data-testid={`exam-prep-section-${section.subject}`}
                   >
-                    <span className={styles.rowIcon} aria-hidden="true">
-                      <PlayCircleIcon style={{ width: 20, height: 20 }} />
-                    </span>
-                    <span className={styles.rowBody}>
-                      <span className={styles.rowTitle}>{item.title}</span>
-                      <span className={styles.rowMeta}>{item.meta}</span>
-                    </span>
-                    {drillable ? (
-                      <span className={styles.rowChevron} aria-hidden="true">
-                        <ChevronRightIcon style={{ width: 18, height: 18 }} />
+                    <button
+                      type="button"
+                      className={styles.sectionHeader}
+                      aria-expanded={open}
+                      data-testid={`exam-prep-section-toggle-${section.subject}`}
+                      onClick={() => toggleSubject(section.subject)}
+                    >
+                      <ChevronRightIcon
+                        style={{
+                          width: 16,
+                          height: 16,
+                          transform: open ? 'rotate(90deg)' : 'none',
+                        }}
+                        aria-hidden="true"
+                      />
+                      <span className={styles.sectionTitle}>
+                        {section.label}
                       </span>
-                    ) : (
-                      <span className={styles.minutes}>
-                        <ClockIcon
-                          style={{ width: 14, height: 14 }}
-                          aria-hidden="true"
-                        />
-                        {item.minutes} min
+                      <span className={styles.sectionCount}>
+                        {section.rows.length} topic
+                        {section.rows.length === 1 ? '' : 's'}
                       </span>
+                    </button>
+                    {open && (
+                      <div className={styles.list}>
+                        {section.rows.map(item => {
+                          const drillable = item.skills.length > 0
+                          return (
+                            <button
+                              key={item.id}
+                              type="button"
+                              className={styles.row}
+                              data-testid={`exam-prep-${item.id}`}
+                              onClick={() => openTopic(item)}
+                            >
+                              <span
+                                className={styles.rowIcon}
+                                aria-hidden="true"
+                              >
+                                <PlayCircleIcon
+                                  style={{ width: 20, height: 20 }}
+                                />
+                              </span>
+                              <span className={styles.rowBody}>
+                                <span className={styles.rowTitle}>
+                                  {item.title}
+                                </span>
+                                <span className={styles.rowMeta}>
+                                  {item.meta}
+                                </span>
+                              </span>
+                              {drillable ? (
+                                <span
+                                  className={styles.rowChevron}
+                                  aria-hidden="true"
+                                >
+                                  <ChevronRightIcon
+                                    style={{ width: 18, height: 18 }}
+                                  />
+                                </span>
+                              ) : (
+                                <span className={styles.minutes}>
+                                  <ClockIcon
+                                    style={{ width: 14, height: 14 }}
+                                    aria-hidden="true"
+                                  />
+                                  {item.minutes} min
+                                </span>
+                              )}
+                            </button>
+                          )
+                        })}
+                      </div>
                     )}
-                  </button>
+                  </section>
                 )
               })}
             </div>

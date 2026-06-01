@@ -42,6 +42,8 @@ const useStyles = makeStyles({
   },
   dropdown: {
     minWidth: '220px',
+    minHeight: t.control.minHeight,
+    borderRadius: t.radius.control,
     '@media (max-width: 720px)': { width: '100%' },
   },
 })

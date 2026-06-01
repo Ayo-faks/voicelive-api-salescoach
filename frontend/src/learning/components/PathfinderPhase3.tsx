@@ -422,7 +422,9 @@ export function VoiceQueueCard({ voiceQueue }: { voiceQueue: VoiceQueueView }) {
         image={<SpeakerWaveIcon className={styles.icon} aria-hidden="true" />}
       />
       <Text>
-        {voiceQueue.queued ? voiceQueue.offlineFallback : voiceQueue.transcript}
+        {voiceQueue.queued
+          ? "Saved offline — we'll play this voice practice as soon as you're back online."
+          : voiceQueue.transcript}
       </Text>
       <Phase3ProvenanceFooter provenance={voiceQueue.provenance} />
     </Card>

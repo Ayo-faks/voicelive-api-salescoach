@@ -14,8 +14,10 @@ export const pathfinderTokens = {
     surfaceMuted: '#fafafa',
     page: '#f7f7f8',
     text: '#0a0a0a',
-    textSecondary: '#6e6e73',
-    textTertiary: '#8e8e93',
+    // Muted foregrounds tuned to clear WCAG AA (>=4.5:1) on surface, surfaceMuted
+    // and page backgrounds while preserving a two-step hierarchy.
+    textSecondary: '#5c5c61',
+    textTertiary: '#6e6e73',
     onInk: '#ffffff',
   },
   status: {
@@ -62,6 +64,21 @@ export const pathfinderTokens = {
     xl: '18px',
     xxl: '22px',
     pill: '999px',
+    // Deliberate control radius so chrome (selectors, secondary buttons) is
+    // never left on a square Fluent default.
+    control: '10px',
+  },
+  // Three-step weight scale. Use these instead of ad-hoc 700/800/850 values so
+  // type weight stays coherent across the learner surface.
+  weight: {
+    regular: 500,
+    medium: 600,
+    strong: 700,
+  },
+  // Minimum interactive target height (px) — keeps tap targets >= 44px (WCAG 2.5.5).
+  control: {
+    minHeight: '44px',
+    minHeightCompact: '36px',
   },
   font: {
     display:

@@ -32,7 +32,15 @@ import {
   parentProgress,
   voiceQueue,
 } from '../fixtures'
+import { useLearnerSetup } from '../hooks/useLearnerSetup'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
+
+export type StudentMasteryProfileProps = {
+  /** Effective viewer role; counsellor widgets only render for staff. */
+  role?: string
+  /** Selected learner's display name, for a single identity source. */
+  learnerName?: string | null
+}
 
 const radarData = [
   { skill: 'Ratio', mastery: 42, target: 75 },
@@ -52,13 +60,13 @@ const trajectoryData = [
   { week: 'W6', ratio: 42, fractions: 61 },
 ]
 
-const parentReadySummary = [
+const buildParentReadySummary = (name: string) => [
   {
     label: 'What we noticed',
     items: [
-      'Tobi is strongest in geometry and is improving in fractions.',
+      `${name} is strongest in geometry and is improving in fractions.`,
       'Ratio and proportion is still the main learning gap this week.',
-      'Recent practice shows Tobi benefits from worked examples before independent questions.',
+      `Recent practice shows ${name} benefits from worked examples before independent questions.`,
     ],
   },
   {
@@ -73,7 +81,7 @@ const parentReadySummary = [
     label: 'What to do at home',
     items: [
       'Spend 10 minutes twice this week on recipe or shopping ratios.',
-      'Ask Tobi to explain what changed and what stayed the same in each ratio.',
+      `Ask ${name} to explain what changed and what stayed the same in each ratio.`,
       'Encourage effort on chemistry and science pathways without promising outcomes.',
     ],
   },
@@ -81,7 +89,7 @@ const parentReadySummary = [
     label: 'Next school action',
     items: [
       `Teacher review is scheduled for ${parentProgress.nextReview}.`,
-      'Personalisation facts only apply after teacher approval.',
+      'Saved facts only apply after the teacher approves them.',
       'Parents can reply with context for the teacher to approve or reject.',
     ],
   },
@@ -185,7 +193,7 @@ const useStyles = makeStyles({
     gap: '8px',
   },
   riskTitle: {
-    fontWeight: 800,
+    fontWeight: 700,
     color: t.brand.text,
   },
   sideStack: {
@@ -281,7 +289,7 @@ const useStyles = makeStyles({
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: '38px',
+    minHeight: t.control.minHeight,
     paddingRight: '15px',
     paddingLeft: '15px',
     borderRadius: t.radius.pill,
@@ -291,13 +299,41 @@ const useStyles = makeStyles({
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.84rem',
-    fontWeight: 800,
+    fontWeight: 700,
   },
 })
 
-export default function StudentMasteryProfile() {
+export default function StudentMasteryProfile({
+  role,
+  learnerName,
+}: StudentMasteryProfileProps = {}) {
   const styles = useStyles()
+  const [setup] = useLearnerSetup()
   const [auditEvents, setAuditEvents] = useState<string[]>([])
+
+  // Counsellor/teacher/parent controls (approvals, risk flags, send-home) are
+  // for adults reviewing a learner. Learners themselves get a read-only,
+  // encouraging progress view (#3).
+  const isStaff =
+    role === 'parent' || role === 'therapist' || role === 'admin'
+
+  // One identity source across surfaces (#7): the selected learner's name,
+  // falling back to the saved setup first name.
+  const displayName =
+    learnerName?.trim() || setup.firstName.trim() || 'Your progress'
+
+  // Parent-ready summary uses a readable first name (never the H1 fallback).
+  const summaryName =
+    learnerName?.trim() || setup.firstName.trim() || 'Your learner'
+  const parentReadySummary = buildParentReadySummary(summaryName)
+
+  // Plain-language, table-style alternatives for the charts (#17).
+  const radarSummary = radarData
+    .map(point => `${point.skill} ${point.mastery}%`)
+    .join(', ')
+  const trajectorySummary = trajectoryData
+    .map(point => `${point.week}: ratio ${point.ratio}%, fractions ${point.fractions}%`)
+    .join('; ')
 
   function pushEvent(e: string) {
     setAuditEvents(cur => [...cur, e])
@@ -308,21 +344,23 @@ export default function StudentMasteryProfile() {
       <div className={styles.headerRow}>
         <div className={styles.studentMeta}>
           <Text as="h1" className={styles.title}>
-            Tobi A.
+            {displayName}
           </Text>
           <div className={styles.metaBadges}>
             <span className={styles.softBadgeSolid}>
               Learner insights profile
             </span>
-            <span className={styles.softBadge}>JSS2</span>
-            <span className={styles.softBadge}>English</span>
+            <span className={styles.softBadge}>{setup.year}</span>
+            <span className={styles.softBadge}>{setup.subject}</span>
             <span className={styles.softBadge}>Mastery trajectory</span>
             <span className={styles.softBadge}>Career fit</span>
           </div>
           <div className={styles.metaBadges}>
             <span className={styles.softBadge}>Current focus: ratio</span>
             <span className={styles.softBadge}>Review: 2026-06-02</span>
-            <span className={styles.softBadgeSolid}>Counsellor sign-off</span>
+            {isStaff && (
+              <span className={styles.softBadgeSolid}>Teacher checked</span>
+            )}
           </div>
         </div>
       </div>
@@ -346,10 +384,14 @@ export default function StudentMasteryProfile() {
             </p>
           </div>
           <div className={styles.parentSummaryActions}>
-            <span className={styles.softBadgeSolid}>Ready to send home</span>
-            <button type="button" className={styles.sendHomeButton}>
-              Send home summary
-            </button>
+            {isStaff && (
+              <>
+                <span className={styles.softBadgeSolid}>Ready to send home</span>
+                <button type="button" className={styles.sendHomeButton}>
+                  Send home summary
+                </button>
+              </>
+            )}
           </div>
         </div>
         <div className={styles.parentSummaryGrid}>
@@ -377,7 +419,11 @@ export default function StudentMasteryProfile() {
           />
           <div className={styles.chartBox}>
             <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={radarData}>
+              <RadarChart
+                data={radarData}
+                role="img"
+                aria-label={`Skill radar — mastery versus the ${setup.year} target of 75 percent: ${radarSummary}.`}
+              >
                 <PolarGrid stroke={t.brand.line} />
                 <PolarAngleAxis
                   dataKey="skill"
@@ -408,16 +454,28 @@ export default function StudentMasteryProfile() {
         </Card>
 
         <div className={styles.sideStack}>
-          <Card className={styles.riskCard}>
-            <Text className={styles.riskTitle}>Risks & flags</Text>
-            <span className={styles.softBadge}>Ratio mastery below 50%</span>
-            <span className={styles.softBadge}>
-              Uncertainty rising on linear eq.
-            </span>
-            <Text size={200}>
-              Two risks open. Counsellor review scheduled 2026-06-02.
-            </Text>
-          </Card>
+          {isStaff ? (
+            <Card className={styles.riskCard}>
+              <Text className={styles.riskTitle}>Risks &amp; flags</Text>
+              <span className={styles.softBadge}>Ratio mastery below 50%</span>
+              <span className={styles.softBadge}>
+                Uncertainty rising on linear eq.
+              </span>
+              <Text size={200}>
+                Two flags open. Teacher check-in scheduled 2026-06-02.
+              </Text>
+            </Card>
+          ) : (
+            <Card className={styles.riskCard}>
+              <Text className={styles.riskTitle}>Your focus this week</Text>
+              <span className={styles.softBadge}>Ratio &amp; proportion</span>
+              <span className={styles.softBadge}>Keep practising linear eq.</span>
+              <Text size={200}>
+                You&apos;re making steady progress — a short ratio practice this
+                week will lift your score.
+              </Text>
+            </Card>
+          )}
           <ParentProgressCard progress={parentProgress} />
         </div>
       </div>
@@ -432,7 +490,11 @@ export default function StudentMasteryProfile() {
           />
           <div className={styles.chartBox}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trajectoryData}>
+              <LineChart
+                data={trajectoryData}
+                role="img"
+                aria-label={`Mastery trajectory over the last 6 weeks — ${trajectorySummary}.`}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke={t.brand.line} />
                 <XAxis
                   dataKey="week"
@@ -464,16 +526,18 @@ export default function StudentMasteryProfile() {
         </Card>
 
         <div className={styles.sideStack}>
-          <CounsellorGatePanel
-            plan={careerPlan}
-            decision={advisorDecision}
-            onApproveNarration={() => pushEvent('Counsellor guidance approved')}
-            onRejectNarration={() =>
-              pushEvent('Counsellor guidance sent back for revision')
-            }
-          />
+          {isStaff && (
+            <CounsellorGatePanel
+              plan={careerPlan}
+              decision={advisorDecision}
+              onApproveNarration={() => pushEvent('Teacher summary approved')}
+              onRejectNarration={() =>
+                pushEvent('Teacher summary sent back for revision')
+              }
+            />
+          )}
           <VoiceQueueCard voiceQueue={voiceQueue} />
-          {auditEvents.length > 0 && (
+          {isStaff && auditEvents.length > 0 && (
             <Card className={styles.auditCard}>
               <CardHeader
                 header={<Text weight="semibold">Recent actions</Text>}

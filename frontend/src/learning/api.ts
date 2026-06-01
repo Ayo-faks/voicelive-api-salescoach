@@ -169,6 +169,73 @@ export type AnswerDiagnosticResponse = {
   completion_xapi: Record<string, unknown> | null
 }
 
+export type LearnerDailyPlanItemPayload = {
+  id: string
+  title: string
+  meta: string
+  minutes: number
+  type: 'check-in' | 'practice' | 'exit-ticket'
+  skill_id?: string | null
+  subject?: string | null
+}
+
+export type LearnerWeakTopicPayload = {
+  skill_id: string
+  label: string
+  mastery: number
+  gap: string
+  next_action: string
+}
+
+export type LearnerDailyPlanResponse = {
+  student_id: string
+  exam: string
+  class_year: string
+  subject: string
+  source: 'mastery' | 'fallback'
+  generated_at: string
+  today: LearnerDailyPlanItemPayload[]
+  weak_topics: LearnerWeakTopicPayload[]
+}
+
+export type ExamPrepSkill = {
+  skill_id: string
+  label: string
+}
+
+export type ExamPrepTopic = {
+  id: string
+  title: string
+  subject: string
+  subject_label: string
+  topic: string
+  topic_label: string
+  year: string
+  exam: string
+  skill_id: string
+  diagnostic_id: string
+  diagnostic_subject: string
+  skill_count: number
+  skills: ExamPrepSkill[]
+  minutes: number
+}
+
+export type ExamPrepSubject = {
+  subject: string
+  label: string
+  topic_count: number
+  skill_count: number
+  topics: ExamPrepTopic[]
+}
+
+export type ExamPrepTopicsResponse = {
+  generated_at: string
+  subject_count: number
+  topic_count: number
+  subjects: ExamPrepSubject[]
+  topics: ExamPrepTopic[]
+}
+
 export type StudentFactPayload = {
   fact_id: string
   tenant_id: string
@@ -376,6 +443,7 @@ export async function startDiagnostic(
     student_id?: string
     teacher_id?: string
     skill_id?: string
+    skill_ids?: string[]
     subject?: string
     diagnostic_id?: string
     item_count?: number
@@ -424,6 +492,25 @@ export async function getStudentProfile(
     : `/api/learning/students/${encodeURIComponent(studentId)}/profile`
   const response = await fetch(url, withDefaults({ method: 'GET' }))
   return jsonOrThrow<StudentProfileResponse>(response)
+}
+
+export async function fetchLearnerPlan(
+  query: { student_id?: string } = {}
+): Promise<LearnerDailyPlanResponse> {
+  const search = toSearchParams(query)
+  const url = search
+    ? `/api/learning/learner/plan?${search}`
+    : '/api/learning/learner/plan'
+  const response = await fetch(url, withDefaults({ method: 'GET' }))
+  return jsonOrThrow<LearnerDailyPlanResponse>(response)
+}
+
+export async function fetchExamPrepTopics(): Promise<ExamPrepTopicsResponse> {
+  const response = await fetch(
+    '/api/learning/exam-prep/topics',
+    withDefaults({ method: 'GET' })
+  )
+  return jsonOrThrow<ExamPrepTopicsResponse>(response)
 }
 
 export async function listSkills(

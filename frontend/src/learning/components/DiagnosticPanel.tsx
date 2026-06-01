@@ -6,7 +6,14 @@
  * dependency-light — no router push, no global store. Surfaces completion +
  * pending plan so the parent route can update its UI.
  */
-import { Button, Input, Text, makeStyles } from '@fluentui/react-components'
+import {
+  Button,
+  Input,
+  Text,
+  makeStyles,
+  mergeClasses,
+} from '@fluentui/react-components'
+import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline'
 import { useEffect, useRef, useState } from 'react'
 import {
   answerDiagnostic,
@@ -20,6 +27,7 @@ import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 
 export type DiagnosticPanelProps = {
   skillId?: string
+  skillIds?: string[]
   subject?: string
   studentId?: string | null
   onCompleted?: (plan: PendingPlanRecord | null) => void
@@ -76,19 +84,78 @@ const useStyles = makeStyles({
     gridTemplateColumns: 'minmax(0,1fr) auto',
     gap: '8px',
   },
+  hint: {
+    gridColumn: '1 / -1',
+    margin: 0,
+    fontSize: '0.78rem',
+    color: t.brand.textSecondary,
+  },
   feedback: {
     fontSize: '0.85rem',
     color: t.brand.textSecondary,
   },
-  feedbackCorrect: {
-    fontSize: '0.85rem',
-    color: t.status.okFg,
-    fontWeight: 600,
+  feedbackCard: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '12px',
+    padding: '14px 16px',
+    borderRadius: t.radius.control,
+    border: `1px solid ${t.brand.line}`,
+    backgroundColor: t.surface.cardMuted,
   },
-  feedbackWrong: {
+  feedbackCardCorrect: {
+    border: `1px solid ${t.status.okFg}`,
+    backgroundColor: 'rgba(34, 134, 58, 0.08)',
+    animationName: {
+      from: { opacity: 0, transform: 'scale(0.96)' },
+      to: { opacity: 1, transform: 'scale(1)' },
+    },
+    animationDuration: '160ms',
+    animationTimingFunction: 'ease-out',
+    '@media (prefers-reduced-motion: reduce)': {
+      animationDuration: '1ms',
+    },
+  },
+  feedbackCardWrong: {
+    border: `1px solid ${t.status.criticalFg}`,
+    backgroundColor: 'rgba(176, 0, 32, 0.06)',
+  },
+  feedbackIcon: {
+    flexShrink: 0,
+    display: 'inline-flex',
+    width: '22px',
+    height: '22px',
+  },
+  feedbackIconCorrect: { color: t.status.okFg },
+  feedbackIconWrong: { color: t.status.criticalFg },
+  feedbackBody: {
+    display: 'grid',
+    gap: '6px',
+    minWidth: 0,
+  },
+  feedbackTitle: {
+    margin: 0,
+    fontSize: '0.95rem',
+    fontWeight: t.weight.strong,
+    color: t.brand.text,
+  },
+  feedbackDetail: {
+    margin: 0,
     fontSize: '0.85rem',
-    color: t.status.criticalFg,
-    fontWeight: 600,
+    color: t.brand.textSecondary,
+    lineHeight: 1.4,
+  },
+  feedbackActions: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap',
+    marginTop: '2px',
+  },
+  feedbackExplain: {
+    margin: 0,
+    fontSize: '0.82rem',
+    color: t.brand.text,
+    lineHeight: 1.45,
   },
   completion: {
     fontSize: '0.9rem',
@@ -98,21 +165,46 @@ const useStyles = makeStyles({
 })
 
 function displaySkill(value: string) {
-  return value
-    .split('-')
-    .filter(Boolean)
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+  if (!value) return 'This skill'
+  // Skill IDs are namespaced like `jss3.algebra.linear` or
+  // `ss3.indices.laws_of_indices`. Never leak the raw ID to a learner: take
+  // the most specific segment and humanise its separators into a readable
+  // topic label ("Laws of indices", "Linear").
+  const segment = value.split('.').filter(Boolean).pop() ?? value
+  const words = segment.replace(/[-_]+/g, ' ').trim().split(/\s+/).filter(Boolean)
+  if (words.length === 0) return 'This skill'
+  return words
+    .map((word, index) =>
+      index === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word
+    )
     .join(' ')
 }
 
 function languageLabel(value: string) {
   if (value === 'en-NG') return 'English'
   if (value === 'yo-NG') return 'Yoruba'
-  return 'Learner language'
+  return 'In your language'
+}
+
+/**
+ * Normalise a learner's typed answer before it is graded (#10).
+ *
+ * Learners frequently restate the variable ("x = 5") or pad their answer with
+ * extra spacing. An exact-string grader would reject those even when the value
+ * is correct, so we strip a leading `<symbol> =` assignment and collapse all
+ * runs of whitespace to a single space.
+ */
+export function normalizeAnswer(value: string): string {
+  return value
+    .trim()
+    .replace(/^[a-z][a-z0-9_]*\s*=\s*/i, '')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 export default function DiagnosticPanel({
   skillId,
+  skillIds,
   subject,
   studentId,
   onCompleted,
@@ -131,6 +223,7 @@ export default function DiagnosticPanel({
   const [completed, setCompleted] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showExplain, setShowExplain] = useState(false)
   const startedRef = useRef(false)
 
   useEffect(() => {
@@ -144,6 +237,7 @@ export default function DiagnosticPanel({
     startedRef.current = true
     setBusy(true)
     startDiagnostic({
+      ...(skillIds && skillIds.length > 0 ? { skill_ids: skillIds } : {}),
       ...(skillId ? { skill_id: skillId } : {}),
       ...(subject ? { subject } : {}),
       ...(studentId ? { student_id: studentId } : {}),
@@ -157,7 +251,7 @@ export default function DiagnosticPanel({
         onError?.(err)
       })
       .finally(() => setBusy(false))
-  }, [skillId, subject, onError, studentId])
+  }, [skillId, skillIds, subject, onError, studentId])
 
   async function submitAnswer(e: React.FormEvent) {
     e.preventDefault()
@@ -170,10 +264,11 @@ export default function DiagnosticPanel({
       const result = await answerDiagnostic({
         session_id: session.session_id,
         item_id: currentItem.item_id,
-        response_text: trimmed,
+        response_text: normalizeAnswer(trimmed),
       })
       setLastResult(result)
       setAnswer('')
+      setShowExplain(false)
       onItemAnswered?.(result)
       if (result.next_item) {
         setCurrentItem(result.next_item)
@@ -256,22 +351,75 @@ export default function DiagnosticPanel({
           >
             Submit
           </Button>
+          <p className={styles.hint} data-testid="diagnostic-hint">
+            Type just the value — for example <strong>5</strong>, not{' '}
+            <strong>x = 5</strong>.
+          </p>
         </form>
       )}
 
       {lastResult && (
-        <Text
-          className={
-            lastResult.correct ? styles.feedbackCorrect : styles.feedbackWrong
-          }
+        <div
+          className={mergeClasses(
+            styles.feedbackCard,
+            lastResult.correct
+              ? styles.feedbackCardCorrect
+              : styles.feedbackCardWrong
+          )}
           data-testid="diagnostic-feedback"
+          role="status"
         >
-          {lastResult.correct
-            ? 'Correct — mastery updated.'
-            : lastResult.expected_answer
-              ? `Not quite. Expected ${lastResult.expected_answer}.`
-              : 'Not quite. Review the worked answer with your teacher.'}
-        </Text>
+          <span
+            className={mergeClasses(
+              styles.feedbackIcon,
+              lastResult.correct
+                ? styles.feedbackIconCorrect
+                : styles.feedbackIconWrong
+            )}
+            aria-hidden="true"
+          >
+            {lastResult.correct ? (
+              <CheckCircleIcon style={{ width: 22, height: 22 }} />
+            ) : (
+              <XCircleIcon style={{ width: 22, height: 22 }} />
+            )}
+          </span>
+          <div className={styles.feedbackBody}>
+            <p className={styles.feedbackTitle}>
+              {lastResult.correct ? 'Correct' : 'Not quite'}
+            </p>
+            <p className={styles.feedbackDetail}>
+              {lastResult.correct
+                ? 'Nice — your mastery just went up.'
+                : lastResult.expected_answer
+                  ? `The expected answer was ${lastResult.expected_answer}.`
+                  : 'Review the worked answer with your teacher.'}
+            </p>
+            {!lastResult.correct && (
+              <div className={styles.feedbackActions}>
+                <Button
+                  appearance="secondary"
+                  size="small"
+                  type="button"
+                  data-testid="diagnostic-explain"
+                  onClick={() => setShowExplain(value => !value)}
+                >
+                  {showExplain ? 'Hide explanation' : 'Explain this'}
+                </Button>
+              </div>
+            )}
+            {showExplain && !lastResult.correct && (
+              <p
+                className={styles.feedbackExplain}
+                data-testid="diagnostic-explain-text"
+              >
+                {lastResult.expected_answer
+                  ? `Compare your working with ${lastResult.expected_answer}, then try the next question.`
+                  : 'Ask your teacher to walk through this one with you, then keep going.'}
+              </p>
+            )}
+          </div>
+        </div>
       )}
 
       {completed && (

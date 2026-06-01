@@ -295,7 +295,7 @@ const useStyles = makeStyles({
     letterSpacing: '0.01em',
   },
   navGroupLabel: {
-    fontSize: '0.66rem',
+    fontSize: '0.75rem',
     textTransform: 'uppercase',
     letterSpacing: '0.08em',
     color: t.brand.textTertiary,
@@ -307,7 +307,7 @@ const useStyles = makeStyles({
     gridTemplateColumns: '20px 1fr auto',
     alignItems: 'center',
     gap: '10px',
-    minHeight: '38px',
+    minHeight: t.control.minHeight,
     padding: '8px 10px',
     borderRadius: t.radius.sm,
     border: '1px solid transparent',
@@ -378,14 +378,14 @@ const useStyles = makeStyles({
     textOverflow: 'ellipsis',
   },
   userEmail: {
-    fontSize: '0.7rem',
+    fontSize: '0.75rem',
     color: t.brand.textTertiary,
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
   },
   userRole: {
-    fontSize: '0.66rem',
+    fontSize: '0.75rem',
     color: t.brand.textTertiary,
     textTransform: 'uppercase',
     letterSpacing: '0.08em',
@@ -402,7 +402,7 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    minHeight: '32px',
+    minHeight: t.control.minHeight,
     padding: '6px 8px',
     borderRadius: t.radius.sm,
     border: '1px solid transparent',
@@ -810,7 +810,7 @@ const useStyles = makeStyles({
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: '34px',
+    minHeight: t.control.minHeight,
     paddingRight: '14px',
     paddingLeft: '14px',
     borderRadius: t.radius.pill,
@@ -820,14 +820,14 @@ const useStyles = makeStyles({
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.8rem',
-    fontWeight: 800,
+    fontWeight: 700,
   },
   cookieButtonPrimary: {
     appearance: 'none',
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: '34px',
+    minHeight: t.control.minHeight,
     paddingRight: '14px',
     paddingLeft: '14px',
     borderRadius: t.radius.pill,
@@ -837,11 +837,15 @@ const useStyles = makeStyles({
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.8rem',
-    fontWeight: 800,
+    fontWeight: 700,
   },
 })
 
-export function CookieConsentBanner() {
+export function CookieConsentBanner({
+  onResolved,
+}: {
+  onResolved?: () => void
+} = {}) {
   const styles = useStyles()
   const [visible, setVisible] = useState(
     () => getStoredCookieConsent() === null
@@ -850,6 +854,7 @@ export function CookieConsentBanner() {
   const dismiss = (choice: 'accepted' | 'managed') => {
     storeCookieConsent(choice)
     setVisible(false)
+    onResolved?.()
   }
 
   if (!visible) return null
@@ -903,6 +908,11 @@ export default function PathfinderLearnApp() {
   const [appConfig, setAppConfig] = useState<AppConfig | null>(null)
   const [voiceOpen, setVoiceOpen] = useState(false)
   const [chatOpen, setChatOpen] = useState(false)
+  // Sequence first-run dismissables (#19): hold the onboarding tour until the
+  // cookie banner has been resolved, so they never stack on first load.
+  const [cookieConsentResolved, setCookieConsentResolved] = useState(
+    () => getStoredCookieConsent() !== null
+  )
   const [chatClosing, setChatClosing] = useState(false)
   const [chatExpanded, setChatExpanded] = useState(false)
   const closeChatPanel = useCallback(() => {
@@ -930,6 +940,10 @@ export default function PathfinderLearnApp() {
   const [practiceOpen, setPracticeOpen] = useState(false)
   const activeLearnerIdForPractice =
     selectedLearnerId ?? learnerChildren?.[0]?.id ?? null
+  const selectedLearnerName =
+    learnerChildren?.find(
+      child => child.id === activeLearnerIdForPractice
+    )?.name ?? null
   const [learnerSetup] = useLearnerSetup()
 
   useEffect(() => {
@@ -1224,7 +1238,10 @@ export default function PathfinderLearnApp() {
       <OnboardingRuntime
         role={authSession?.role ?? null}
         userMode="workspace"
-        toursEnabled={appConfig?.onboarding?.tours_enabled ?? true}
+        toursEnabled={
+          (appConfig?.onboarding?.tours_enabled ?? true) &&
+          cookieConsentResolved
+        }
         authenticated={authStatus === 'authenticated'}
       >
       <div className={styles.page} data-testid="pathfinder-learn-app">
@@ -1346,7 +1363,7 @@ export default function PathfinderLearnApp() {
                 )}
               />
               <Route
-                path="/exam-prep"
+                path="/exam-prep/*"
                 element={routeForRole(
                   ['parent', 'learner', 'kid', 'student'],
                   <ExamPrepLibrary
@@ -1364,7 +1381,10 @@ export default function PathfinderLearnApp() {
                 path="/profile"
                 element={routeForRole(
                   ['parent', 'learner', 'kid', 'student', 'admin'],
-                  <StudentMasteryProfile />
+                  <StudentMasteryProfile
+                    role={effectiveRole}
+                    learnerName={selectedLearnerName}
+                  />
                 )}
               />
               <Route
@@ -1519,7 +1539,9 @@ export default function PathfinderLearnApp() {
             actionsEnabled={!!appConfig?.voice_agent_actions_enabled}
           />
         )}
-        <CookieConsentBanner />
+        <CookieConsentBanner
+          onResolved={() => setCookieConsentResolved(true)}
+        />
       </div>
       </OnboardingRuntime>
     </FluentProvider>

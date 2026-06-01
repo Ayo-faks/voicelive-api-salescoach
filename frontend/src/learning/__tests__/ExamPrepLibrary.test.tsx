@@ -25,8 +25,25 @@ vi.mock('../api', () => ({
   fetchExamPrepTopics: (...args: unknown[]) => fetchExamPrepTopicsMock(...args),
 }))
 
-import ExamPrepLibrary from '../routes/ExamPrepLibrary'
+import ExamPrepLibraryRoute from '../routes/ExamPrepLibrary'
 import { examPrep } from '../data/examPrep'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
+
+// The route reads/writes `/exam-prep/:topic/:skill`, so the tests mount it
+// inside a matching splat route. Topic + practice navigation then steps through
+// real URL changes exactly as it does in the app shell.
+function ExamPrepLibrary(props: { studentId?: string | null }) {
+  return (
+    <MemoryRouter initialEntries={['/exam-prep']}>
+      <Routes>
+        <Route
+          path="/exam-prep/*"
+          element={<ExamPrepLibraryRoute {...props} />}
+        />
+      </Routes>
+    </MemoryRouter>
+  )
+}
 
 beforeEach(() => {
   // jsdom does not implement scrollIntoView.
@@ -42,13 +59,28 @@ afterEach(() => {
 })
 
 describe('ExamPrepLibrary', () => {
-  it('renders the catalogue as a searchable library', () => {
+  it('groups topics into collapsible subject sections, learner subject open by default (#1)', () => {
     render(<ExamPrepLibrary studentId="student-1" />)
     expect(screen.getByTestId('route-exam-prep')).toBeTruthy()
-    // Every catalogue item is rendered as a row by default.
-    for (const item of examPrep) {
-      expect(screen.getByTestId(`exam-prep-${item.id}`)).toBeTruthy()
+
+    // A section header exists for every subject in the catalogue.
+    const subjects = Array.from(new Set(examPrep.map(item => item.subject)))
+    for (const subjectKey of subjects) {
+      expect(
+        screen.getByTestId(`exam-prep-section-${subjectKey ?? 'general'}`)
+      ).toBeTruthy()
     }
+
+    // The learner's own subject (Mathematics, from the default setup) is
+    // expanded, so its topics are visible without any interaction.
+    expect(screen.getByTestId('exam-prep-maths-ss3-indices')).toBeTruthy()
+
+    // A different subject stays collapsed until its header is toggled.
+    expect(screen.queryByTestId('exam-prep-biology-ss3-respiration')).toBeNull()
+    fireEvent.click(screen.getByTestId('exam-prep-section-toggle-biology'))
+    expect(
+      screen.getByTestId('exam-prep-biology-ss3-respiration')
+    ).toBeTruthy()
   })
 
   it('filters by free-text search and shows an empty state', () => {
@@ -100,6 +132,32 @@ describe('ExamPrepLibrary', () => {
     expect(screen.getByTestId('exam-prep-practice')).toBeTruthy()
     fireEvent.click(screen.getByTestId('exam-prep-back'))
     expect(screen.queryByTestId('exam-prep-practice')).toBeNull()
+  })
+
+  it('shows a result count that tracks the active filters', () => {
+    render(<ExamPrepLibrary studentId="student-1" />)
+    const count = screen.getByTestId('exam-prep-count')
+    expect(count.textContent).toMatch(/\d+ topics? · \d+ subjects?/)
+
+    fireEvent.click(screen.getByTestId('exam-prep-subject-biology'))
+    expect(screen.getByTestId('exam-prep-count').textContent).toMatch(
+      /1 subject\b/
+    )
+  })
+
+  it('swaps the library heading for the session context during practice (#15)', () => {
+    render(<ExamPrepLibrary studentId="student-1" />)
+    expect(screen.getByTestId('exam-prep-heading').textContent).toContain(
+      'Exam prep'
+    )
+    fireEvent.click(screen.getByTestId('exam-prep-maths-ss3-indices'))
+    // The dominant heading is now the live task, not library chrome.
+    expect(screen.getByTestId('exam-prep-heading').textContent).not.toContain(
+      'Exam prep'
+    )
+    expect(screen.getByTestId('exam-prep-heading').textContent).toContain(
+      'Laws of indices'
+    )
   })
 })
 
@@ -214,5 +272,28 @@ describe('ExamPrepLibrary live catalogue', () => {
     expect(
       await screen.findByTestId('exam-prep-maths-ss3-indices')
     ).toBeTruthy()
+  })
+
+  it('opens a practice session straight from a deep link (#8)', () => {
+    // A shared/refreshed `/exam-prep/:topic/:skill` URL lands directly on the
+    // practice session instead of the bare library.
+    render(
+      <MemoryRouter initialEntries={['/exam-prep/maths-ss3-indices/practice']}>
+        <Routes>
+          <Route
+            path="/exam-prep/*"
+            element={<ExamPrepLibraryRoute studentId="student-1" />}
+          />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    expect(screen.getByTestId('exam-prep-practice')).toBeTruthy()
+    expect(diagnosticPanelMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        skillId: 'ss3.indices.laws_of_indices',
+        studentId: 'student-1',
+      })
+    )
   })
 })

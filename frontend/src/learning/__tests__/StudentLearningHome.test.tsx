@@ -122,6 +122,14 @@ describe('StudentLearningHome', () => {
     expect(screen.getByText('Welcome 👋')).toBeTruthy()
     expect(screen.queryByText(/Tobi/i)).toBeNull()
 
+    // The exam-path picker stays collapsed behind one secondary affordance so
+    // it does not compete with the hero action (#13).
+    expect(screen.queryByLabelText('Select exam')).toBeNull()
+    expect(screen.getByTestId('change-exam-path')).toBeTruthy()
+
+    // The exam-path picker is collapsed by default (#13) — open it first.
+    fireEvent.click(screen.getByTestId('change-exam-path'))
+
     fireEvent.change(screen.getByLabelText('Your first name'), {
       target: { value: 'Tomi' },
     })
@@ -362,6 +370,7 @@ describe('StudentLearningHome', () => {
       )
     })
 
+    fireEvent.click(screen.getByTestId('change-exam-path'))
     fireEvent.change(screen.getByLabelText('Select exam'), {
       target: { value: 'JAMB' },
     })
@@ -405,6 +414,7 @@ describe('StudentLearningHome', () => {
       )
     })
 
+    fireEvent.click(screen.getByTestId('change-exam-path'))
     fireEvent.change(screen.getByLabelText('Select exam'), {
       target: { value: 'WAEC' },
     })
