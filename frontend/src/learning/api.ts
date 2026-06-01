@@ -198,6 +198,38 @@ export type LearnerDailyPlanResponse = {
   weak_topics: LearnerWeakTopicPayload[]
 }
 
+export type ExamPrepTopic = {
+  id: string
+  title: string
+  subject: string
+  subject_label: string
+  topic: string
+  topic_label: string
+  year: string
+  exam: string
+  skill_id: string
+  diagnostic_id: string
+  diagnostic_subject: string
+  skill_count: number
+  minutes: number
+}
+
+export type ExamPrepSubject = {
+  subject: string
+  label: string
+  topic_count: number
+  skill_count: number
+  topics: ExamPrepTopic[]
+}
+
+export type ExamPrepTopicsResponse = {
+  generated_at: string
+  subject_count: number
+  topic_count: number
+  subjects: ExamPrepSubject[]
+  topics: ExamPrepTopic[]
+}
+
 export type StudentFactPayload = {
   fact_id: string
   tenant_id: string
@@ -464,6 +496,14 @@ export async function fetchLearnerPlan(
     : '/api/learning/learner/plan'
   const response = await fetch(url, withDefaults({ method: 'GET' }))
   return jsonOrThrow<LearnerDailyPlanResponse>(response)
+}
+
+export async function fetchExamPrepTopics(): Promise<ExamPrepTopicsResponse> {
+  const response = await fetch(
+    '/api/learning/exam-prep/topics',
+    withDefaults({ method: 'GET' })
+  )
+  return jsonOrThrow<ExamPrepTopicsResponse>(response)
 }
 
 export async function listSkills(

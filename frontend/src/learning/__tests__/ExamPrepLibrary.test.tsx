@@ -18,6 +18,18 @@ vi.mock('../components/DiagnosticPanel', () => ({
   },
 }))
 
+const flags = vi.hoisted(() => ({
+  pathfinder_learner_onboarding_enabled: false,
+}))
+
+vi.mock('../../utils/featureFlags', () => ({ featureFlags: flags }))
+
+const fetchExamPrepTopicsMock = vi.hoisted(() => vi.fn())
+
+vi.mock('../api', () => ({
+  fetchExamPrepTopics: (...args: unknown[]) => fetchExamPrepTopicsMock(...args),
+}))
+
 import ExamPrepLibrary from '../routes/ExamPrepLibrary'
 import { examPrep } from '../data/examPrep'
 
@@ -28,6 +40,8 @@ beforeEach(() => {
 
 afterEach(() => {
   diagnosticPanelMock.mockClear()
+  fetchExamPrepTopicsMock.mockReset()
+  flags.pathfinder_learner_onboarding_enabled = false
   vi.restoreAllMocks()
 })
 
@@ -90,5 +104,71 @@ describe('ExamPrepLibrary', () => {
     expect(screen.getByTestId('exam-prep-practice')).toBeTruthy()
     fireEvent.click(screen.getByTestId('exam-prep-back'))
     expect(screen.queryByTestId('exam-prep-practice')).toBeNull()
+  })
+})
+
+describe('ExamPrepLibrary live catalogue', () => {
+  const liveResponse = {
+    generated_at: '2026-01-01T00:00:00Z',
+    subject_count: 1,
+    topic_count: 1,
+    subjects: [
+      {
+        subject: 'physics',
+        label: 'Physics',
+        topic_count: 1,
+        skill_count: 12,
+        topics: [],
+      },
+    ],
+    topics: [
+      {
+        id: 'physics.ss3.motion',
+        title: 'Physics · Motion',
+        subject: 'physics',
+        subject_label: 'Physics',
+        topic: 'motion',
+        topic_label: 'Motion',
+        year: 'SS3',
+        exam: 'WAEC/NECO',
+        skill_id: 'ss3.motion.newtons_laws',
+        diagnostic_id: 'diag-physics',
+        diagnostic_subject: 'physics',
+        skill_count: 12,
+        minutes: 6,
+      },
+    ],
+  }
+
+  it('renders live diagnostic topics when the flag is enabled', async () => {
+    flags.pathfinder_learner_onboarding_enabled = true
+    fetchExamPrepTopicsMock.mockResolvedValue(liveResponse)
+
+    render(<ExamPrepLibrary studentId="student-1" />)
+
+    const row = await screen.findByTestId('exam-prep-physics.ss3.motion')
+    expect(row).toBeTruthy()
+    // The static teaser is replaced by the live catalogue.
+    expect(screen.queryByTestId('exam-prep-maths-ss3-indices')).toBeNull()
+
+    fireEvent.click(row)
+    expect(diagnosticPanelMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        skillId: 'ss3.motion.newtons_laws',
+        subject: 'physics',
+        studentId: 'student-1',
+      })
+    )
+  })
+
+  it('falls back to the static catalogue when the live fetch fails', async () => {
+    flags.pathfinder_learner_onboarding_enabled = true
+    fetchExamPrepTopicsMock.mockRejectedValue(new Error('boom'))
+
+    render(<ExamPrepLibrary studentId="student-1" />)
+
+    expect(
+      await screen.findByTestId('exam-prep-maths-ss3-indices')
+    ).toBeTruthy()
   })
 })

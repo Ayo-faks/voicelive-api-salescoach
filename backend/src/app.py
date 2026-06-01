@@ -2142,6 +2142,23 @@ def learner_daily_plan():
     return jsonify(plan)
 
 
+@app.route("/api/learning/exam-prep/topics", methods=["GET"])
+def exam_prep_topics():
+    """Return the full exam-prep topic catalogue grouped by subject."""
+    if not _pathfinder_learner_onboarding_enabled():
+        return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
+
+    _user, guard_response = _require_role(ROLE_LEARNER)
+    if guard_response is not None:
+        return guard_response
+
+    try:
+        catalogue = learning_api.build_exam_prep_topics()
+    except LearningApiError as exc:
+        return jsonify({"error": str(exc)}), exc.status_code
+    return jsonify(catalogue)
+
+
 @app.route(API_ADMIN_INVITE_CODES_ENDPOINT, methods=["GET", "POST"])
 def admin_invite_codes():
     """Admin endpoint to create and list therapist invite codes."""

@@ -398,6 +398,15 @@ class LearningApi:
         self._banks_by_subject: Dict[str, DiagnosticItemBank] = {
             bank.subject: bank for bank in registry_banks if bank.subject
         }
+        # Slug-normalised lookup so client-facing subject slugs (e.g.
+        # "mathematics", "english") resolve to banks keyed by their raw subject
+        # ("maths-jss3-ss3", "english-jss3-ss3"). First bank per slug wins,
+        # which keeps the richer JSS3/SS3 banks ahead of small phase-2 fixtures.
+        self._banks_by_subject_slug: Dict[str, DiagnosticItemBank] = {}
+        for bank in registry_banks:
+            self._banks_by_subject_slug.setdefault(
+                _exam_prep_subject_slug(bank.subject), bank
+            )
 
         seen: Dict[str, None] = {}
         for bank in registry_banks:
@@ -523,6 +532,19 @@ class LearningApi:
         selected = self.selector.select_items(bank, prior_mastery=prior, limit=item_count)
         if target_skill_id:
             filtered = [item for item in selected if item.skill_id == target_skill_id]
+            if not filtered:
+                # Large banks round-robin a sample across all skills, so a
+                # specific exam-prep topic may be absent. Serve its items
+                # directly so targeted practice always lands on the topic.
+                direct = sorted(
+                    (
+                        item
+                        for item in bank.items
+                        if item.skill_id == target_skill_id
+                    ),
+                    key=lambda item: (item.difficulty, item.item_id),
+                )
+                filtered = direct[:item_count]
             if filtered:
                 selected = filtered
 
@@ -568,6 +590,10 @@ class LearningApi:
         subject = payload.get("subject")
         if subject:
             bank = self._banks_by_subject.get(str(subject))
+            if bank is None:
+                bank = self._banks_by_subject_slug.get(
+                    _exam_prep_subject_slug(str(subject))
+                )
             if bank is None:
                 raise LearningApiError(f"unknown subject {subject!r}", status_code=404)
             return bank
@@ -1921,6 +1947,86 @@ class LearningApi:
                 labels.setdefault(skill.skill_id, skill.name)
         return labels
 
+    def build_exam_prep_topics(self) -> Dict[str, Any]:
+        """Return the full exam-prep topic catalogue grouped by subject.
+
+        Topics are derived from every served diagnostic bank's skill list:
+        each distinct ``(year, topic-area)`` becomes one practisable topic
+        whose ``skill_id`` is the first catalogued skill in that area. This
+        exposes the real breadth of the question banks (tens of topics per
+        subject) instead of the static teaser list the client ships as an
+        offline fallback. Each topic carries a ``diagnostic_subject`` /
+        ``skill_id`` pair the client can replay through
+        ``/api/learning/diagnostic/start``.
+        """
+        subjects: Dict[str, Dict[str, Any]] = {}
+        for bank in self._banks_by_id.values():
+            slug = _exam_prep_subject_slug(bank.subject)
+            label = _exam_prep_title_case(slug)
+            subject_entry = subjects.setdefault(
+                slug, {"subject": slug, "label": label, "_topics": {}}
+            )
+            topics_by_key: Dict[Tuple[str, str], Dict[str, Any]] = subject_entry[
+                "_topics"
+            ]
+            for skill in bank.skills:
+                year, topic = _exam_prep_topic_parts(skill.skill_id)
+                if not topic or year is None:
+                    # Skip skills without a recognised year band (e.g. small
+                    # phase-2 / pilot fixtures): the exam-prep catalogue only
+                    # surfaces JSSCE / WAEC / NECO content.
+                    continue
+                key = (year or "", topic)
+                entry = topics_by_key.get(key)
+                if entry is None:
+                    year_label, exam = _exam_prep_year_exam(year)
+                    topic_label = _exam_prep_title_case(topic)
+                    entry = {
+                        "id": f"{slug}.{year or 'x'}.{topic}",
+                        "title": f"{label} · {topic_label}",
+                        "subject": slug,
+                        "subject_label": label,
+                        "topic": topic,
+                        "topic_label": topic_label,
+                        "year": year_label,
+                        "exam": exam,
+                        "skill_id": skill.skill_id,
+                        "diagnostic_id": bank.diagnostic_id,
+                        "diagnostic_subject": bank.subject or slug,
+                        "skill_count": 0,
+                        "minutes": 5 if exam == "JSSCE" else 6,
+                    }
+                    topics_by_key[key] = entry
+                entry["skill_count"] += 1
+
+        out_subjects: List[Dict[str, Any]] = []
+        flat: List[Dict[str, Any]] = []
+        for slug in sorted(subjects):
+            subject_entry = subjects[slug]
+            topics = sorted(
+                subject_entry["_topics"].values(),
+                key=lambda topic_entry: (topic_entry["year"], topic_entry["topic"]),
+            )
+            if not topics:
+                continue
+            out_subjects.append(
+                {
+                    "subject": subject_entry["subject"],
+                    "label": subject_entry["label"],
+                    "topic_count": len(topics),
+                    "skill_count": sum(t["skill_count"] for t in topics),
+                    "topics": topics,
+                }
+            )
+            flat.extend(topics)
+        return {
+            "generated_at": _utc_now_iso(),
+            "subject_count": len(out_subjects),
+            "topic_count": len(flat),
+            "subjects": out_subjects,
+            "topics": flat,
+        }
+
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
@@ -2160,6 +2266,90 @@ def _humanize_skill_id(skill_id: str) -> str:
     if not cleaned:
         return "Practice"
     return " ".join(part.capitalize() for part in cleaned.split())
+
+
+# ---------------------------------------------------------------------------
+# Exam-prep topic catalogue helpers
+#
+# Skill ids in the served diagnostic banks encode a taxonomy:
+#   ``<year>.<subject?>.<topic-area>.<specific>`` (e.g.
+#   ``ss3.physics.kinematics.speed_def``) or, for maths/english,
+#   ``<year>.<topic-area>.<specific>`` (e.g. ``jss3.number.fractions``).
+# The exam-prep library groups skills into one practisable topic per
+# ``(year, topic-area)`` so the page reflects the real breadth of each bank.
+# ---------------------------------------------------------------------------
+_EXAM_PREP_YEAR_PREFIXES = frozenset(
+    {"jss1", "jss2", "jss3", "ss1", "ss2", "ss3"}
+)
+_EXAM_PREP_SUBJECT_WORDS = frozenset(
+    {
+        "english",
+        "mathematics",
+        "maths",
+        "physics",
+        "biology",
+        "chemistry",
+        "government",
+        "history",
+        "literature",
+        "economics",
+        "agricultural_science",
+        "computer_science",
+        "data_processing",
+        "ict",
+        "basic_science",
+        "social_studies",
+    }
+)
+_EXAM_PREP_SUBJECT_SLUG_ALIASES = {"maths": "mathematics"}
+_EXAM_PREP_SUBJECT_SUFFIXES = (
+    "-jss3-ss3",
+    "-jss2-ss3",
+    "-jss3",
+    "-jss2",
+    "-ss3",
+    "-ss2",
+    "-ss1",
+    "-ss",
+)
+
+
+def _exam_prep_title_case(value: str) -> str:
+    cleaned = value.replace("_", " ").replace("-", " ").strip()
+    if not cleaned:
+        return "General"
+    return " ".join(part.capitalize() for part in cleaned.split())
+
+
+def _exam_prep_subject_slug(bank_subject: Optional[str]) -> str:
+    raw = (bank_subject or "general").strip().lower()
+    for suffix in _EXAM_PREP_SUBJECT_SUFFIXES:
+        if raw.endswith(suffix):
+            raw = raw[: -len(suffix)]
+            break
+    slug = raw.replace("-", "_").strip("_")
+    slug = _EXAM_PREP_SUBJECT_SLUG_ALIASES.get(slug, slug)
+    return slug or "general"
+
+
+def _exam_prep_topic_parts(skill_id: str) -> Tuple[Optional[str], Optional[str]]:
+    parts = [part for part in skill_id.split(".") if part]
+    if not parts:
+        return None, None
+    year: Optional[str] = parts[0] if parts[0] in _EXAM_PREP_YEAR_PREFIXES else None
+    rest = parts[1:] if year else parts
+    if len(rest) > 1 and rest[0] in _EXAM_PREP_SUBJECT_WORDS:
+        rest = rest[1:]
+    topic = rest[0] if rest else None
+    return year, topic
+
+
+def _exam_prep_year_exam(year: Optional[str]) -> Tuple[str, str]:
+    if year and year.startswith("jss"):
+        return year.upper(), "JSSCE"
+    if year and year.startswith("ss"):
+        return year.upper(), "WAEC/NECO"
+    return "Other", "Other"
 
 
 def _truncate_text(text: str, limit: int) -> str:

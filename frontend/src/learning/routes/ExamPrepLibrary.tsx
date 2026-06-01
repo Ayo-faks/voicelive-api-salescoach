@@ -14,8 +14,9 @@ import {
   MagnifyingGlassIcon,
   PlayCircleIcon,
 } from '@heroicons/react/24/outline'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import DiagnosticPanel from '../components/DiagnosticPanel'
+import { fetchExamPrepTopics, type ExamPrepTopic } from '../api'
 import {
   examPrep,
   examPrepExam,
@@ -24,10 +25,62 @@ import {
   type Activity,
 } from '../data/examPrep'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
+import { featureFlags } from '../../utils/featureFlags'
 
 export type ExamPrepLibraryProps = {
   studentId?: string | null
 }
+
+/**
+ * Normalised row rendered by the library. Both the live topic catalogue
+ * (`/api/learning/exam-prep/topics`) and the static `examPrep` teaser used as
+ * an offline fallback map into this shape.
+ */
+type ExamRow = {
+  id: string
+  title: string
+  meta: string
+  minutes: number
+  skillId?: string
+  subject: string
+  subjectLabel: string
+  year: string
+  exam: string
+  diagnosticSubject?: string
+}
+
+function activityToRow(item: Activity): ExamRow {
+  return {
+    id: item.id,
+    title: item.title,
+    meta: item.meta,
+    minutes: item.minutes,
+    skillId: item.skillId,
+    subject: item.subject ?? 'general',
+    subjectLabel: examPrepSubjectLabel(item.subject),
+    year: examPrepYear(item),
+    exam: examPrepExam(item),
+    diagnosticSubject: item.subject,
+  }
+}
+
+function topicToRow(topic: ExamPrepTopic): ExamRow {
+  const skills = `${topic.skill_count} skill${topic.skill_count === 1 ? '' : 's'}`
+  return {
+    id: topic.id,
+    title: topic.title,
+    meta: `${topic.year} · ${topic.exam} · ${skills}`,
+    minutes: topic.minutes,
+    skillId: topic.skill_id,
+    subject: topic.subject,
+    subjectLabel: topic.subject_label,
+    year: topic.year,
+    exam: topic.exam,
+    diagnosticSubject: topic.diagnostic_subject,
+  }
+}
+
+const STATIC_ROWS: ExamRow[] = examPrep.map(activityToRow)
 
 const useStyles = makeStyles({
   shell: { display: 'grid', gap: '18px' },
@@ -161,35 +214,51 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
   const [query, setQuery] = useState('')
   const [subject, setSubject] = useState('All')
   const [track, setTrack] = useState('All')
-  const [activeItem, setActiveItem] = useState<Activity | null>(null)
+  const [activeItem, setActiveItem] = useState<ExamRow | null>(null)
+  const [rows, setRows] = useState<ExamRow[]>(STATIC_ROWS)
   const practiceRef = useRef<HTMLDivElement | null>(null)
 
+  // Load the live diagnostic topic catalogue. The static teaser stays as the
+  // fallback when the feature is gated off (404) or the request fails/empties.
+  useEffect(() => {
+    if (!featureFlags.pathfinder_learner_onboarding_enabled) return
+    let cancelled = false
+    fetchExamPrepTopics()
+      .then(response => {
+        if (cancelled) return
+        const mapped = (response.topics ?? []).map(topicToRow)
+        if (mapped.length > 0) setRows(mapped)
+      })
+      .catch(() => {
+        // Keep the static fallback already in state.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   const subjects = useMemo(
-    () => [
-      'All',
-      ...Array.from(new Set(examPrep.map(item => item.subject ?? 'general'))),
-    ],
-    []
+    () => ['All', ...Array.from(new Set(rows.map(item => item.subject)))],
+    [rows]
   )
 
   const tracks = useMemo(
-    () => ['All', ...Array.from(new Set(examPrep.map(examPrepExam)))],
-    []
+    () => ['All', ...Array.from(new Set(rows.map(item => item.exam)))],
+    [rows]
   )
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase()
-    return examPrep.filter(item => {
-      const matchesSubject =
-        subject === 'All' || (item.subject ?? 'general') === subject
-      const matchesTrack = track === 'All' || examPrepExam(item) === track
+    return rows.filter(item => {
+      const matchesSubject = subject === 'All' || item.subject === subject
+      const matchesTrack = track === 'All' || item.exam === track
       const haystack = [
         item.title,
         item.meta,
         item.skillId ?? '',
-        examPrepSubjectLabel(item.subject),
-        examPrepYear(item),
-        examPrepExam(item),
+        item.subjectLabel,
+        item.year,
+        item.exam,
       ]
         .join(' ')
         .toLowerCase()
@@ -199,9 +268,9 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
         (!normalized || haystack.includes(normalized))
       )
     })
-  }, [query, subject, track])
+  }, [query, subject, track, rows])
 
-  const startPractice = (item: Activity) => {
+  const startPractice = (item: ExamRow) => {
     setActiveItem(item)
     // Defer the scroll until the panel has mounted.
     window.requestAnimationFrame(() => {
@@ -333,7 +402,7 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
           <DiagnosticPanel
             key={activeItem.id}
             skillId={activeItem.skillId}
-            subject={activeItem.subject}
+            subject={activeItem.diagnosticSubject ?? activeItem.subject}
             studentId={studentId}
           />
         </div>
