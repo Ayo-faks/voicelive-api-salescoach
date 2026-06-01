@@ -6,6 +6,7 @@ import {
   mergeClasses,
 } from '@fluentui/react-components'
 import { APP_RELEASE_LABEL, APP_TITLE } from '../app/branding'
+import { pathfinderTokens as t } from '../learning/theme/pathfinder-tokens'
 
 type AuthGateStatus = 'loading' | 'unauthenticated' | 'error'
 
@@ -50,26 +51,19 @@ const useStyles = makeStyles({
     placeItems: 'center',
     padding: 'var(--space-lg)',
     background:
-      'radial-gradient(circle at 12% 14%, rgba(13, 138, 132, 0.16), transparent 30%), ' +
-      'radial-gradient(circle at 86% 82%, rgba(13, 138, 132, 0.12), transparent 32%), ' +
-      'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.72), rgba(241, 247, 246, 0.92) 48%, #eef5f3 100%)',
+      `radial-gradient(circle at 50% 0%, rgba(0,0,0,0.04), transparent 38%), ${t.surface.page}`,
   },
   card: {
     width: 'min(384px, 100%)',
-    borderRadius: '20px',
-    border: '1px solid rgba(17, 36, 58, 0.08)',
-    background:
-      'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,252,252,0.94))',
-    boxShadow:
-      'inset 0 1px 0 rgba(255,255,255,0.85), ' +
-      '0 1px 2px rgba(15,42,58,0.05), ' +
-      '0 32px 80px rgba(17, 36, 58, 0.14)',
+    borderRadius: t.radius.xxl,
+    border: t.surface.hairline,
+    backgroundColor: t.brand.surface,
+    boxShadow: t.surface.cardElevatedShadow,
     padding: '34px 30px 28px',
     display: 'grid',
     gap: '18px',
     justifyItems: 'center',
     textAlign: 'center',
-    backdropFilter: 'blur(16px)',
   },
   brandRow: {
     display: 'grid',
@@ -85,17 +79,14 @@ const useStyles = makeStyles({
   brandPlatter: {
     width: '48px',
     height: '48px',
-    borderRadius: '14px',
+    borderRadius: t.radius.lg,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
-    background:
-      'radial-gradient(circle at 32% 28%, rgba(255,255,255,0.95), rgba(232,244,244,0.65) 58%, rgba(13,138,132,0.14) 100%)',
-    border: '1px solid rgba(13,138,132,0.18)',
-    boxShadow:
-      'inset 0 1px 0 rgba(255,255,255,0.9), ' +
-      '0 4px 12px rgba(13,138,132,0.12)',
+    backgroundColor: t.brand.surfaceMuted,
+    border: t.surface.hairline,
+    boxShadow: t.surface.raisedShadow,
   },
   brandMark: {
     width: '32px',
@@ -103,35 +94,35 @@ const useStyles = makeStyles({
     objectFit: 'contain',
   },
   brandName: {
-    fontFamily: 'var(--font-display)',
+    fontFamily: t.font.display,
     fontSize: '1.08rem',
-    fontWeight: '800',
-    color: 'var(--color-text-primary)',
-    letterSpacing: '-0.03em',
+    fontWeight: '700',
+    color: t.brand.text,
+    letterSpacing: '-0.02em',
   },
   brandMeta: {
-    color: 'var(--color-text-tertiary)',
+    color: t.brand.textTertiary,
     fontSize: '0.64rem',
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: '0.12em',
     textTransform: 'uppercase',
     whiteSpace: 'nowrap',
   },
   eyebrow: {
-    color: 'var(--color-primary-dark)',
+    color: t.brand.textTertiary,
     fontSize: '0.76rem',
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: '0.24em',
     textTransform: 'uppercase',
   },
   title: {
-    fontFamily: 'var(--font-display)',
+    fontFamily: t.font.display,
     fontSize: 'clamp(1.5rem, 3vw, 2rem)',
     lineHeight: 1.1,
-    fontWeight: '800',
-    letterSpacing: '-0.05em',
-    color: 'var(--color-text-primary)',
-    maxWidth: '14ch',
+    fontWeight: '700',
+    letterSpacing: '-0.03em',
+    color: t.brand.text,
+    maxWidth: '16ch',
     textAlign: 'center',
     justifySelf: 'center',
   },
@@ -140,10 +131,10 @@ const useStyles = makeStyles({
     maxWidth: '16ch',
   },
   body: {
-    color: 'var(--color-text-secondary)',
+    color: t.brand.textSecondary,
     lineHeight: 1.55,
     fontSize: '0.92rem',
-    maxWidth: '28ch',
+    maxWidth: '30ch',
     textAlign: 'center',
   },
   actionStack: {
@@ -154,9 +145,9 @@ const useStyles = makeStyles({
   buttonBase: {
     minHeight: '48px',
     width: '100%',
-    borderRadius: '12px',
-    fontFamily: 'var(--font-display)',
-    fontWeight: '700',
+    borderRadius: t.radius.md,
+    fontFamily: t.font.display,
+    fontWeight: '600',
     fontSize: '0.95rem',
     letterSpacing: '-0.01em',
     paddingInline: '16px',
@@ -165,45 +156,32 @@ const useStyles = makeStyles({
       'box-shadow 180ms ease, background 180ms ease, border-color 180ms ease, transform 180ms ease',
   },
   primaryButton: {
-    backgroundColor: 'var(--color-primary)',
-    color: 'var(--color-text-inverse)',
-    border: '1px solid rgba(6, 98, 94, 0.32)',
-    boxShadow:
-      'inset 0 1px 0 rgba(255,255,255,0.32), ' +
-      '0 1px 2px rgba(15,42,58,0.08), ' +
-      '0 6px 18px rgba(13,138,132,0.28)',
+    backgroundColor: t.brand.ink,
+    color: t.brand.onInk,
+    border: `1px solid ${t.brand.ink}`,
+    boxShadow: '0 1px 2px rgba(0,0,0,0.12), 0 6px 18px rgba(0,0,0,0.16)',
     ':hover': {
-      backgroundColor: 'var(--color-primary)',
-      boxShadow:
-        'inset 0 1px 0 rgba(255,255,255,0.42), ' +
-        '0 2px 4px rgba(15,42,58,0.1), ' +
-        '0 10px 24px rgba(13,138,132,0.34)',
+      backgroundColor: t.brand.inkSoft,
+      color: t.brand.onInk,
+      border: `1px solid ${t.brand.inkSoft}`,
+      boxShadow: '0 2px 4px rgba(0,0,0,0.14), 0 10px 24px rgba(0,0,0,0.2)',
     },
     ':active': {
-      boxShadow:
-        'inset 0 1px 2px rgba(6,98,94,0.35), ' +
-        '0 1px 2px rgba(15,42,58,0.08)',
+      boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.3)',
     },
   },
   secondaryButton: {
-    background:
-      'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,250,250,0.88))',
-    color: 'var(--color-text-primary)',
-    border: '1px solid rgba(17, 36, 58, 0.12)',
-    boxShadow:
-      'inset 0 1px 0 rgba(255,255,255,0.85), ' +
-      '0 1px 2px rgba(15,42,58,0.06)',
+    backgroundColor: t.brand.surface,
+    color: t.brand.text,
+    border: `1px solid ${t.brand.line}`,
+    boxShadow: t.surface.raisedShadow,
     ':hover': {
-      background:
-        'linear-gradient(180deg, rgba(255,255,255,1), rgba(248,252,252,0.92))',
-      border: '1px solid rgba(17, 36, 58, 0.18)',
-      boxShadow:
-        'inset 0 1px 0 rgba(255,255,255,0.9), ' +
-        '0 2px 4px rgba(15,42,58,0.1), ' +
-        '0 8px 18px rgba(15,42,58,0.08)',
+      backgroundColor: t.brand.surfaceMuted,
+      border: `1px solid ${t.brand.inkMuted}`,
+      boxShadow: t.surface.hoverShadow,
     },
     ':active': {
-      boxShadow: 'inset 0 1px 2px rgba(15,42,58,0.12)',
+      boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.08)',
     },
   },
   buttonContent: {
@@ -214,7 +192,7 @@ const useStyles = makeStyles({
     width: '100%',
   },
   helperNote: {
-    color: 'var(--color-text-secondary)',
+    color: t.brand.textSecondary,
     fontSize: '0.82rem',
     lineHeight: 1.5,
     maxWidth: '30ch',
@@ -222,7 +200,7 @@ const useStyles = makeStyles({
     justifySelf: 'center',
   },
   errorText: {
-    color: '#a11a17',
+    color: t.status.criticalFg,
   },
 })
 
@@ -272,7 +250,7 @@ export function AuthGateScreen({
               Checking your secure session
             </Text>
             <Text className={styles.body}>
-              Loading your practice workspace and verifying your sign-in state.
+              Loading your learning workspace and verifying your sign-in state.
             </Text>
             <Spinner size="large" />
           </>
@@ -301,7 +279,7 @@ export function AuthGateScreen({
         ) : (
           <>
             <Text className={styles.eyebrow}>Welcome back</Text>
-            <Text className={styles.title}>Speech practice for everyone</Text>
+            <Text className={styles.title}>Your study companion for exam success</Text>
 
             {isLocalAuthOrigin() ? (
               <div className={styles.actionStack}>
