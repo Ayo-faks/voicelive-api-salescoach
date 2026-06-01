@@ -62,6 +62,7 @@ type Activity = {
   minutes: number
   type: 'check-in' | 'practice' | 'exit-ticket'
   skillId?: string
+  subject?: string
 }
 
 type DemoStep = {
@@ -243,6 +244,7 @@ const examPrep: Activity[] = [
     minutes: 6,
     type: 'practice',
     skillId: 'ss3.government.basic_concepts.power_authority',
+    subject: 'government',
   },
   {
     id: 'government-ss3-constitution',
@@ -251,6 +253,7 @@ const examPrep: Activity[] = [
     minutes: 6,
     type: 'practice',
     skillId: 'ss3.government.constitution.nigerian_constitutions',
+    subject: 'government',
   },
   {
     id: 'history-ss3-early-states',
@@ -259,6 +262,7 @@ const examPrep: Activity[] = [
     minutes: 6,
     type: 'practice',
     skillId: 'ss3.history.early_nigerian_states.kanem_bornu',
+    subject: 'history',
   },
   {
     id: 'history-ss3-independence',
@@ -267,6 +271,7 @@ const examPrep: Activity[] = [
     minutes: 6,
     type: 'practice',
     skillId: 'ss3.history.independence.challenges',
+    subject: 'history',
   },
   {
     id: 'literature-ss3-figures-of-speech',
@@ -275,6 +280,7 @@ const examPrep: Activity[] = [
     minutes: 6,
     type: 'practice',
     skillId: 'ss3.literature.figures_of_speech.comparison',
+    subject: 'literature',
   },
   {
     id: 'literature-ss3-african-prose',
@@ -283,6 +289,133 @@ const examPrep: Activity[] = [
     minutes: 6,
     type: 'practice',
     skillId: 'ss3.literature.african_literature.prose_fiction',
+    subject: 'literature',
+  },
+  {
+    id: 'physics-ss3-kinematics',
+    title: 'Physics · Motion & kinematics',
+    meta: 'SS3 Kinematics · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.physics.kinematics.speed_def',
+    subject: 'physics',
+  },
+  {
+    id: 'physics-ss3-current-electricity',
+    title: 'Physics · Current electricity',
+    meta: 'SS3 Electricity · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.physics.current_electricity.current_def',
+    subject: 'physics',
+  },
+  {
+    id: 'economics-ss3-scarcity',
+    title: 'Economics · Scarcity & choice',
+    meta: 'SS3 Basic economic problem · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.economics.basic_economic_problem.scarcity',
+    subject: 'economics',
+  },
+  {
+    id: 'economics-ss3-opportunity-cost',
+    title: 'Economics · Opportunity cost',
+    meta: 'SS3 Basic economic problem · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.economics.basic_economic_problem.opportunity_cost',
+    subject: 'economics',
+  },
+  {
+    id: 'data-processing-ss3-data',
+    title: 'Data Processing · Data vs information',
+    meta: 'SS3 Data & information · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.data_processing.data_information.data_def',
+    subject: 'data_processing',
+  },
+  {
+    id: 'data-processing-ss3-information',
+    title: 'Data Processing · Information',
+    meta: 'SS3 Data & information · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.data_processing.data_information.info_def',
+    subject: 'data_processing',
+  },
+  {
+    id: 'computer-science-ss3-history',
+    title: 'Computer Science · History of computing',
+    meta: 'SS3 Generations of computers · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.computer_science.history_generations.definition',
+    subject: 'computer_science',
+  },
+  {
+    id: 'computer-science-ss3-abacus',
+    title: 'Computer Science · Early computing devices',
+    meta: 'SS3 Generations of computers · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.computer_science.history_generations.abacus',
+    subject: 'computer_science',
+  },
+  {
+    id: 'agricultural-science-ss3-meaning',
+    title: 'Agricultural Science · Meaning & importance',
+    meta: 'SS3 Meaning & importance · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.agricultural_science.meaning_importance.definition',
+    subject: 'agricultural_science',
+  },
+  {
+    id: 'agricultural-science-ss3-food',
+    title: 'Agricultural Science · Food & agriculture',
+    meta: 'SS3 Meaning & importance · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.agricultural_science.meaning_importance.food',
+    subject: 'agricultural_science',
+  },
+  {
+    id: 'biology-ss3-living-things',
+    title: 'Biology · Characteristics of living things',
+    meta: 'SS3 Living things · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.biology.living_things.mrs_gren',
+    subject: 'biology',
+  },
+  {
+    id: 'biology-ss3-respiration',
+    title: 'Biology · Respiration',
+    meta: 'SS3 Living things · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.biology.living_things.respiration_def',
+    subject: 'biology',
+  },
+  {
+    id: 'chemistry-ss3-matter',
+    title: 'Chemistry · Particulate nature of matter',
+    meta: 'SS3 Particulate matter · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.chemistry.particulate_matter.matter_def',
+    subject: 'chemistry',
+  },
+  {
+    id: 'chemistry-ss3-states',
+    title: 'Chemistry · States of matter',
+    meta: 'SS3 Particulate matter · WAEC/NECO prep',
+    minutes: 6,
+    type: 'practice',
+    skillId: 'ss3.chemistry.particulate_matter.states',
+    subject: 'chemistry',
   },
 ]
 
@@ -1795,6 +1928,7 @@ export default function StudentLearningHome({
   const learnerSetup = learnerProfile.setup
   const setLearnerSetup = learnerProfile.updateSetup
   const [activeSkill, setActiveSkill] = useState<string | null>(null)
+  const [activeSubject, setActiveSubject] = useState<string | null>(null)
   const [panelKey, setPanelKey] = useState(0)
   const [checkInActive, setCheckInActive] = useState(false)
   const [demoActive, setDemoActive] = useState(false)
@@ -2022,10 +2156,11 @@ export default function StudentLearningHome({
     onboarding.patch({ tours_seen: next })
   }, [tourSeenAt, tourSeen, onboarding])
 
-  function startCheckIn(skillId?: string) {
+  function startCheckIn(skillId?: string, subject?: string) {
     setDemoActive(false)
     setDemoCompleted(false)
     setActiveSkill(skillId ?? null)
+    setActiveSubject(subject ?? null)
     setCompleted(false)
     setCheckInActive(true)
     setPanelKey(value => value + 1)
@@ -2033,6 +2168,7 @@ export default function StudentLearningHome({
 
   function startDemoDiagnostic() {
     setActiveSkill(null)
+    setActiveSubject(null)
     setCheckInActive(false)
     setCompleted(false)
     setDemoCompleted(false)
@@ -2640,6 +2776,7 @@ export default function StudentLearningHome({
           <DiagnosticPanel
             key={panelKey}
             skillId={activeSkill ?? undefined}
+            subject={activeSubject ?? undefined}
             studentId={studentId}
             onCompleted={() => setCompleted(true)}
           />
@@ -2798,14 +2935,13 @@ export default function StudentLearningHome({
               </span>
             </summary>
             <div className={`${styles.sharePanel} ${styles.disclosureBody}`}>
-              <div
+              <section
                 className={styles.shareBubble}
                 data-testid="parent-share-preview"
-                role="region"
                 aria-label="Parent summary preview"
               >
                 {parentSummaryText}
-              </div>
+              </section>
               <div className={styles.shareActions}>
                 <button
                   type="button"
@@ -3069,7 +3205,7 @@ export default function StudentLearningHome({
                 type="button"
                 className={styles.pathRow}
                 style={{ textAlign: 'left', font: 'inherit' }}
-                onClick={() => startCheckIn(item.skillId)}
+                onClick={() => startCheckIn(item.skillId, item.subject)}
                 data-testid={`exam-prep-${item.id}`}
               >
                 <div className={styles.pathIcon} aria-hidden="true">

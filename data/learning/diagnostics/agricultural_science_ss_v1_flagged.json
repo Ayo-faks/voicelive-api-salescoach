@@ -1,0 +1,427 @@
+{
+  "diagnostic_id": "ss3-agricultural_science-v1-flagged",
+  "tenant_id": "pilot-tenant",
+  "title": "SS3 Agricultural Science — Flagged for human review",
+  "subject": "agricultural_science",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "scrape:agricultural_science-ssce-derived",
+      "source_id": "agricultural_science-ss-mcq-v1",
+      "rule_id": "served_promote_v1",
+      "recency": null,
+      "confidence": 1.0,
+      "evidence_count": 5,
+      "metadata": {
+        "review_state": "pending_two_reviewer_signoff",
+        "subject_lead_approved": false,
+        "safeguarding_reviewed": false,
+        "note": "Derived SSCE-style questions; ensemble machine-verified only; below the human two-reviewer gate; staging exercise only; rights for child-facing reuse not cleared."
+      }
+    }
+  ],
+  "skills": [
+    {
+      "skill_id": "ss3.agricultural_science.agricultural_extension.early_adopter",
+      "standard_id": "ss3.agricultural_science.waec-neco",
+      "name": "Agricultural Extension: Early Adopter",
+      "description": "SS3 Agricultural Science — agricultural extension (early adopter)."
+    },
+    {
+      "skill_id": "ss3.agricultural_science.animal_production.sow",
+      "standard_id": "ss3.agricultural_science.waec-neco",
+      "name": "Animal Production: Sow",
+      "description": "SS3 Agricultural Science — animal production (sow)."
+    },
+    {
+      "skill_id": "ss3.agricultural_science.crop_production.supplying",
+      "standard_id": "ss3.agricultural_science.waec-neco",
+      "name": "Crop Production: Supplying",
+      "description": "SS3 Agricultural Science — crop production (supplying)."
+    },
+    {
+      "skill_id": "ss3.agricultural_science.forestry_fishery.fingerling",
+      "standard_id": "ss3.agricultural_science.waec-neco",
+      "name": "Forestry Fishery: Fingerling",
+      "description": "SS3 Agricultural Science — forestry fishery (fingerling)."
+    },
+    {
+      "skill_id": "ss3.agricultural_science.weeds_pests.control_cultural",
+      "standard_id": "ss3.agricultural_science.waec-neco",
+      "name": "Weeds Pests: Control Cultural",
+      "description": "SS3 Agricultural Science — weeds pests (control cultural)."
+    }
+  ],
+  "items": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:agricultural_science-ssce-derived",
+          "source_id": "agricultural_science-mcq-ss3-100",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Thinning"
+              },
+              {
+                "letter": "B",
+                "text": "Pruning"
+              },
+              {
+                "letter": "C",
+                "text": "Weeding"
+              },
+              {
+                "letter": "D",
+                "text": "Supplying"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "agricultural_science-mcq-ss3-100",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": "d",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "agricultural_science-mcq-ss3-100",
+      "skill_id": "ss3.agricultural_science.crop_production.supplying",
+      "prompt": "Replanting seeds in places where the first planting failed to germinate is called:\n\nA) Thinning\nB) Pruning\nC) Weeding\nD) Supplying",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "D) Supplying"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:agricultural_science-ssce-derived",
+          "source_id": "agricultural_science-mcq-ss3-123",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Chemical control"
+              },
+              {
+                "letter": "B",
+                "text": "Biological control"
+              },
+              {
+                "letter": "C",
+                "text": "Cultural (mechanical) control"
+              },
+              {
+                "letter": "D",
+                "text": "Legislative control"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "agricultural_science-mcq-ss3-123",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "c",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "agricultural_science-mcq-ss3-123",
+      "skill_id": "ss3.agricultural_science.weeds_pests.control_cultural",
+      "prompt": "Hoeing and hand-pulling of weeds are examples of which method of weed control?\n\nA) Chemical control\nB) Biological control\nC) Cultural (mechanical) control\nD) Legislative control",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "C) Cultural (mechanical) control"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:agricultural_science-ssce-derived",
+          "source_id": "agricultural_science-mcq-ss3-168",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Boar"
+              },
+              {
+                "letter": "B",
+                "text": "Piglet"
+              },
+              {
+                "letter": "C",
+                "text": "Gilt"
+              },
+              {
+                "letter": "D",
+                "text": "Sow"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "agricultural_science-mcq-ss3-168",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": "d",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "agricultural_science-mcq-ss3-168",
+      "skill_id": "ss3.agricultural_science.animal_production.sow",
+      "prompt": "An adult female pig that has produced young ones is called a:\n\nA) Boar\nB) Piglet\nC) Gilt\nD) Sow",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "D) Sow"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:agricultural_science-ssce-derived",
+          "source_id": "agricultural_science-mcq-ss3-335",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Smolts only"
+              },
+              {
+                "letter": "B",
+                "text": "Fry only forever"
+              },
+              {
+                "letter": "C",
+                "text": "Fingerlings"
+              },
+              {
+                "letter": "D",
+                "text": "Spawn only forever"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "agricultural_science-mcq-ss3-335",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "c",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "agricultural_science-mcq-ss3-335",
+      "skill_id": "ss3.agricultural_science.forestry_fishery.fingerling",
+      "prompt": "Young fish stocked into a pond to grow to market size are called:\n\nA) Smolts only\nB) Fry only forever\nC) Fingerlings\nD) Spawn only forever",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "C) Fingerlings"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:agricultural_science-ssce-derived",
+          "source_id": "agricultural_science-mcq-ss3-386",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Laggards"
+              },
+              {
+                "letter": "B",
+                "text": "Early adopters"
+              },
+              {
+                "letter": "C",
+                "text": "Non-adopters only"
+              },
+              {
+                "letter": "D",
+                "text": "Tax officers"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "agricultural_science-mcq-ss3-386",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "agricultural_science-mcq-ss3-386",
+      "skill_id": "ss3.agricultural_science.agricultural_extension.early_adopter",
+      "prompt": "Farmers who are among the first to try out a new practice in their community are called:\n\nA) Laggards\nB) Early adopters\nC) Non-adopters only\nD) Tax officers",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "B) Early adopters"
+    }
+  ]
+}

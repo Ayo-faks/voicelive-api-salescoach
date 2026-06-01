@@ -1,0 +1,2347 @@
+{
+  "diagnostic_id": "ss3-physics-v1-flagged",
+  "tenant_id": "pilot-tenant",
+  "title": "SS3 Physics — Flagged for human review",
+  "subject": "physics",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "scrape:physics-ssce-derived",
+      "source_id": "physics-ss-mcq-v1",
+      "rule_id": "served_promote_v1",
+      "recency": null,
+      "confidence": 1.0,
+      "evidence_count": 29,
+      "metadata": {
+        "review_state": "pending_two_reviewer_signoff",
+        "subject_lead_approved": false,
+        "safeguarding_reviewed": false,
+        "note": "Derived SSCE-style questions; ensemble machine-verified only; below the human two-reviewer gate; staging exercise only; rights for child-facing reuse not cleared."
+      }
+    }
+  ],
+  "skills": [
+    {
+      "skill_id": "ss3.physics.current_electricity.ohms_calc3",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Current Electricity: Ohms Calc3",
+      "description": "SS3 Physics — current electricity (ohms calc3)."
+    },
+    {
+      "skill_id": "ss3.physics.elasticity.elastic_limit",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Elasticity: Elastic Limit",
+      "description": "SS3 Physics — elasticity (elastic limit)."
+    },
+    {
+      "skill_id": "ss3.physics.elasticity.hooke_calc",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Elasticity: Hooke Calc",
+      "description": "SS3 Physics — elasticity (hooke calc)."
+    },
+    {
+      "skill_id": "ss3.physics.em_induction.ac_generator",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Em Induction: Ac Generator",
+      "description": "SS3 Physics — em induction (ac generator)."
+    },
+    {
+      "skill_id": "ss3.physics.em_induction.induced_emf_increase",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Em Induction: Induced Emf Increase",
+      "description": "SS3 Physics — em induction (induced emf increase)."
+    },
+    {
+      "skill_id": "ss3.physics.em_induction.transformer_ratio2",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Em Induction: Transformer Ratio2",
+      "description": "SS3 Physics — em induction (transformer ratio2)."
+    },
+    {
+      "skill_id": "ss3.physics.equilibrium.balance_calc",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Equilibrium: Balance Calc",
+      "description": "SS3 Physics — equilibrium (balance calc)."
+    },
+    {
+      "skill_id": "ss3.physics.gas_laws.charles_calc",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Gas Laws: Charles Calc",
+      "description": "SS3 Physics — gas laws (charles calc)."
+    },
+    {
+      "skill_id": "ss3.physics.gas_laws.pressure_calc_gas",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Gas Laws: Pressure Calc Gas",
+      "description": "SS3 Physics — gas laws (pressure calc gas)."
+    },
+    {
+      "skill_id": "ss3.physics.gravitation.escape_velocity",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Gravitation: Escape Velocity",
+      "description": "SS3 Physics — gravitation (escape velocity)."
+    },
+    {
+      "skill_id": "ss3.physics.heat_thermometry.heat_capacity_calc",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Heat Thermometry: Heat Capacity Calc",
+      "description": "SS3 Physics — heat thermometry (heat capacity calc)."
+    },
+    {
+      "skill_id": "ss3.physics.heat_thermometry.shc_calc2",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Heat Thermometry: Shc Calc2",
+      "description": "SS3 Physics — heat thermometry (shc calc2)."
+    },
+    {
+      "skill_id": "ss3.physics.kinematics.free_fall_g",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Kinematics: Free Fall G",
+      "description": "SS3 Physics — kinematics (free fall g)."
+    },
+    {
+      "skill_id": "ss3.physics.kinematics.free_fall_h",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Kinematics: Free Fall H",
+      "description": "SS3 Physics — kinematics (free fall h)."
+    },
+    {
+      "skill_id": "ss3.physics.kinematics.suvat_s",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Kinematics: Suvat S",
+      "description": "SS3 Physics — kinematics (suvat s)."
+    },
+    {
+      "skill_id": "ss3.physics.latent_heat.latent_calc",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Latent Heat: Latent Calc",
+      "description": "SS3 Physics — latent heat (latent calc)."
+    },
+    {
+      "skill_id": "ss3.physics.latent_heat.latent_calc2",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Latent Heat: Latent Calc2",
+      "description": "SS3 Physics — latent heat (latent calc2)."
+    },
+    {
+      "skill_id": "ss3.physics.latent_heat.pressure_boiling",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Latent Heat: Pressure Boiling",
+      "description": "SS3 Physics — latent heat (pressure boiling)."
+    },
+    {
+      "skill_id": "ss3.physics.measurements.vernier",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Measurements: Vernier",
+      "description": "SS3 Physics — measurements (vernier)."
+    },
+    {
+      "skill_id": "ss3.physics.momentum.inelastic_collision2",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Momentum: Inelastic Collision2",
+      "description": "SS3 Physics — momentum (inelastic collision2)."
+    },
+    {
+      "skill_id": "ss3.physics.momentum.recoil",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Momentum: Recoil",
+      "description": "SS3 Physics — momentum (recoil)."
+    },
+    {
+      "skill_id": "ss3.physics.optics.critical_angle",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Optics: Critical Angle",
+      "description": "SS3 Physics — optics (critical angle)."
+    },
+    {
+      "skill_id": "ss3.physics.optics.lens_calc",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Optics: Lens Calc",
+      "description": "SS3 Physics — optics (lens calc)."
+    },
+    {
+      "skill_id": "ss3.physics.optics.power_lens",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Optics: Power Lens",
+      "description": "SS3 Physics — optics (power lens)."
+    },
+    {
+      "skill_id": "ss3.physics.pressure_fluids.pressure_calc2",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Pressure Fluids: Pressure Calc2",
+      "description": "SS3 Physics — pressure fluids (pressure calc2)."
+    },
+    {
+      "skill_id": "ss3.physics.pressure_fluids.upthrust_calc",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Pressure Fluids: Upthrust Calc",
+      "description": "SS3 Physics — pressure fluids (upthrust calc)."
+    },
+    {
+      "skill_id": "ss3.physics.waves_sound.echo_calc",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Waves Sound: Echo Calc",
+      "description": "SS3 Physics — waves sound (echo calc)."
+    },
+    {
+      "skill_id": "ss3.physics.work_energy.ke_calc",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Work Energy: Ke Calc",
+      "description": "SS3 Physics — work energy (ke calc)."
+    },
+    {
+      "skill_id": "ss3.physics.work_energy.ke_calc2",
+      "standard_id": "ss3.physics.waec-neco",
+      "name": "Work Energy: Ke Calc2",
+      "description": "SS3 Physics — work energy (ke calc2)."
+    }
+  ],
+  "items": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-021",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Vernier callipers"
+              },
+              {
+                "letter": "B",
+                "text": "Metre rule"
+              },
+              {
+                "letter": "C",
+                "text": "Measuring tape"
+              },
+              {
+                "letter": "D",
+                "text": "Trundle wheel"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-021",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": null,
+              "reviewer_c": "a"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-021",
+      "skill_id": "ss3.physics.measurements.vernier",
+      "prompt": "The instrument used to measure small lengths to 0.01 cm precision is the:\n\nA) Vernier callipers\nB) Metre rule\nC) Measuring tape\nD) Trundle wheel",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "A) Vernier callipers"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-051",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "36 m"
+              },
+              {
+                "letter": "B",
+                "text": "12 m"
+              },
+              {
+                "letter": "C",
+                "text": "18 m"
+              },
+              {
+                "letter": "D",
+                "text": "6 m"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-051",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "c",
+              "reviewer_c": "c"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": false,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-051",
+      "skill_id": "ss3.physics.kinematics.suvat_s",
+      "prompt": "Using s = ut + ½at^2, the distance covered from rest with a = 4 m/s^2 in 3 s is:\n\nA) 36 m\nB) 12 m\nC) 18 m\nD) 6 m",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "C) 18 m"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-054",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "100 m/s^2"
+              },
+              {
+                "letter": "B",
+                "text": "10 m/s^2"
+              },
+              {
+                "letter": "C",
+                "text": "1 m/s^2"
+              },
+              {
+                "letter": "D",
+                "text": "9.8 km/s^2"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-054",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "b",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-054",
+      "skill_id": "ss3.physics.kinematics.free_fall_g",
+      "prompt": "Near the Earth's surface the acceleration due to gravity is approximately:\n\nA) 100 m/s^2\nB) 10 m/s^2\nC) 1 m/s^2\nD) 9.8 km/s^2",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "B) 10 m/s^2"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-056",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "40 m"
+              },
+              {
+                "letter": "B",
+                "text": "10 m"
+              },
+              {
+                "letter": "C",
+                "text": "5 m"
+              },
+              {
+                "letter": "D",
+                "text": "20 m"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-056",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "d",
+              "reviewer_c": "d"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": false,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-056",
+      "skill_id": "ss3.physics.kinematics.free_fall_h",
+      "prompt": "A body falls freely from rest for 2 s (g = 10 m/s^2). The distance fallen is:\n\nA) 40 m\nB) 10 m\nC) 5 m\nD) 20 m",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "D) 20 m"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-085",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "2 N"
+              },
+              {
+                "letter": "B",
+                "text": "8 N"
+              },
+              {
+                "letter": "C",
+                "text": "4 N"
+              },
+              {
+                "letter": "D",
+                "text": "0.5 N"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-085",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-085",
+      "skill_id": "ss3.physics.equilibrium.balance_calc",
+      "prompt": "A uniform metre rule balances at its centre. A 4 N weight at 20 cm from the pivot is balanced by a weight at 40 cm of:\n\nA) 2 N\nB) 8 N\nC) 4 N\nD) 0.5 N",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "A) 2 N"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-105",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "100 J"
+              },
+              {
+                "letter": "B",
+                "text": "20 J"
+              },
+              {
+                "letter": "C",
+                "text": "200 J"
+              },
+              {
+                "letter": "D",
+                "text": "10 J"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-105",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "a",
+              "reviewer_c": "a"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": false,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-105",
+      "skill_id": "ss3.physics.work_energy.ke_calc",
+      "prompt": "The kinetic energy of a 2 kg body moving at 10 m/s is:\n\nA) 100 J\nB) 20 J\nC) 200 J\nD) 10 J",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "A) 100 J"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-106",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "100 J"
+              },
+              {
+                "letter": "B",
+                "text": "50 J"
+              },
+              {
+                "letter": "C",
+                "text": "20 J"
+              },
+              {
+                "letter": "D",
+                "text": "10 J"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-106",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "b",
+              "reviewer_c": "b"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-106",
+      "skill_id": "ss3.physics.work_energy.ke_calc2",
+      "prompt": "A 4 kg body moves at 5 m/s. Its kinetic energy is:\n\nA) 100 J\nB) 50 J\nC) 20 J\nD) 10 J",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "B) 50 J"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-150",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "5 m/s"
+              },
+              {
+                "letter": "B",
+                "text": "4 m/s"
+              },
+              {
+                "letter": "C",
+                "text": "1 m/s"
+              },
+              {
+                "letter": "D",
+                "text": "20 m/s"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-150",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": null,
+              "reviewer_c": "b"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-150",
+      "skill_id": "ss3.physics.momentum.inelastic_collision2",
+      "prompt": "A 4 kg body at 5 m/s sticks to a stationary 1 kg body on impact. The common velocity is:\n\nA) 5 m/s\nB) 4 m/s\nC) 1 m/s\nD) 20 m/s",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "B) 4 m/s"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-151",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "4 m/s"
+              },
+              {
+                "letter": "B",
+                "text": "0.5 m/s"
+              },
+              {
+                "letter": "C",
+                "text": "2 m/s"
+              },
+              {
+                "letter": "D",
+                "text": "8 m/s"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-151",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": false,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-151",
+      "skill_id": "ss3.physics.momentum.recoil",
+      "prompt": "A 2 kg rifle recoils when a 0.01 kg bullet leaves at 400 m/s. The recoil speed of the rifle is:\n\nA) 4 m/s\nB) 0.5 m/s\nC) 2 m/s\nD) 8 m/s",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "C) 2 m/s"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-173",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Escape velocity"
+              },
+              {
+                "letter": "B",
+                "text": "Terminal velocity"
+              },
+              {
+                "letter": "C",
+                "text": "Orbital velocity"
+              },
+              {
+                "letter": "D",
+                "text": "Critical velocity"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-173",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-173",
+      "skill_id": "ss3.physics.gravitation.escape_velocity",
+      "prompt": "The minimum speed a body needs to completely escape the Earth's gravitational field is the:\n\nA) Escape velocity\nB) Terminal velocity\nC) Orbital velocity\nD) Critical velocity",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "A) Escape velocity"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-180",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "18 Pa"
+              },
+              {
+                "letter": "B",
+                "text": "0.00005 Pa"
+              },
+              {
+                "letter": "C",
+                "text": "600 Pa"
+              },
+              {
+                "letter": "D",
+                "text": "20000 Pa"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-180",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": null,
+              "reviewer_c": "d"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-180",
+      "skill_id": "ss3.physics.pressure_fluids.pressure_calc2",
+      "prompt": "A 600 N person stands on a floor with feet covering 0.03 m^2. The pressure is:\n\nA) 18 Pa\nB) 0.00005 Pa\nC) 600 Pa\nD) 20000 Pa",
+      "item_type": "mcq_single",
+      "difficulty": -3.0,
+      "correct_answer": "D) 20000 Pa"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-188",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "2 N"
+              },
+              {
+                "letter": "B",
+                "text": "200 N"
+              },
+              {
+                "letter": "C",
+                "text": "0.02 N"
+              },
+              {
+                "letter": "D",
+                "text": "20 N"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-188",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": "d",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-188",
+      "skill_id": "ss3.physics.pressure_fluids.upthrust_calc",
+      "prompt": "A body displaces 0.002 m^3 of water (ρ = 1000 kg/m^3, g = 10 m/s^2). The upthrust on it is:\n\nA) 2 N\nB) 200 N\nC) 0.02 N\nD) 20 N",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "D) 20 N"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-198",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Yield drop"
+              },
+              {
+                "letter": "B",
+                "text": "Elastic limit"
+              },
+              {
+                "letter": "C",
+                "text": "Focal point"
+              },
+              {
+                "letter": "D",
+                "text": "Neutral point"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-198",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "b",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-198",
+      "skill_id": "ss3.physics.elasticity.elastic_limit",
+      "prompt": "The point beyond which a stretched spring does not return to its original length is the:\n\nA) Yield drop\nB) Elastic limit\nC) Focal point\nD) Neutral point",
+      "item_type": "mcq_single",
+      "difficulty": -3.0,
+      "correct_answer": "B) Elastic limit"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-200",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "0.48 N/m"
+              },
+              {
+                "letter": "B",
+                "text": "3 N/m"
+              },
+              {
+                "letter": "C",
+                "text": "0.0033 N/m"
+              },
+              {
+                "letter": "D",
+                "text": "300 N/m"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-200",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": null,
+              "reviewer_c": "d"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-200",
+      "skill_id": "ss3.physics.elasticity.hooke_calc",
+      "prompt": "A force of 12 N stretches a spring by 0.04 m. The spring constant is:\n\nA) 0.48 N/m\nB) 3 N/m\nC) 0.0033 N/m\nD) 300 N/m",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "D) 300 N/m"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-225",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "4000 J"
+              },
+              {
+                "letter": "B",
+                "text": "400 J"
+              },
+              {
+                "letter": "C",
+                "text": "8000 J"
+              },
+              {
+                "letter": "D",
+                "text": "16000 J"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-225",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "a",
+              "reviewer_c": "a"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-225",
+      "skill_id": "ss3.physics.heat_thermometry.shc_calc2",
+      "prompt": "The heat needed to raise 0.5 kg of a metal (c = 400 J/kg K) by 20 K is:\n\nA) 4000 J\nB) 400 J\nC) 8000 J\nD) 16000 J",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "A) 4000 J"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-226",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "1400 J/K"
+              },
+              {
+                "letter": "B",
+                "text": "12600 J/K"
+              },
+              {
+                "letter": "C",
+                "text": "4200 J/K"
+              },
+              {
+                "letter": "D",
+                "text": "126000 J/K"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-226",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": "b",
+              "reviewer_c": "b"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": false,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-226",
+      "skill_id": "ss3.physics.heat_thermometry.heat_capacity_calc",
+      "prompt": "Heat capacity equals mass × specific heat capacity. For 3 kg of water (c = 4200 J/kg K) it is:\n\nA) 1400 J/K\nB) 12600 J/K\nC) 4200 J/K\nD) 126000 J/K",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "B) 12600 J/K"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-251",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "150 cm^3"
+              },
+              {
+                "letter": "B",
+                "text": "300 cm^3"
+              },
+              {
+                "letter": "C",
+                "text": "600 cm^3"
+              },
+              {
+                "letter": "D",
+                "text": "900 cm^3"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-251",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "c",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-251",
+      "skill_id": "ss3.physics.gas_laws.charles_calc",
+      "prompt": "A gas of volume 300 cm^3 at 300 K is heated at constant pressure to 600 K. Its new volume is:\n\nA) 150 cm^3\nB) 300 cm^3\nC) 600 cm^3\nD) 900 cm^3",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "C) 600 cm^3"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-252",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "100 kPa"
+              },
+              {
+                "letter": "B",
+                "text": "200 kPa"
+              },
+              {
+                "letter": "C",
+                "text": "900 kPa"
+              },
+              {
+                "letter": "D",
+                "text": "400 kPa"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-252",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": null,
+              "reviewer_c": "d"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-252",
+      "skill_id": "ss3.physics.gas_laws.pressure_calc_gas",
+      "prompt": "A gas at 200 kPa and 300 K is heated at constant volume to 600 K. Its new pressure is:\n\nA) 100 kPa\nB) 200 kPa\nC) 900 kPa\nD) 400 kPa",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "D) 400 kPa"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-264",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "672000 J"
+              },
+              {
+                "letter": "B",
+                "text": "336000 J"
+              },
+              {
+                "letter": "C",
+                "text": "672 J"
+              },
+              {
+                "letter": "D",
+                "text": "168000 J"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-264",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 3,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": "d",
+              "reviewer_c": "d"
+            },
+            "agreement": 3,
+            "matches_scraped_key": true,
+            "critic_pass": false,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-264",
+      "skill_id": "ss3.physics.latent_heat.latent_calc",
+      "prompt": "The heat to melt 0.5 kg of ice (L = 336000 J/kg) at 0 °C is:\n\nA) 672000 J\nB) 336000 J\nC) 672 J\nD) 168000 J",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "D) 168000 J"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-265",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "4520000 J"
+              },
+              {
+                "letter": "B",
+                "text": "1130000 J"
+              },
+              {
+                "letter": "C",
+                "text": "2260000 J"
+              },
+              {
+                "letter": "D",
+                "text": "4520 J"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-265",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-265",
+      "skill_id": "ss3.physics.latent_heat.latent_calc2",
+      "prompt": "The heat to boil away 2 kg of water (L = 2260000 J/kg) at 100 °C is:\n\nA) 4520000 J\nB) 1130000 J\nC) 2260000 J\nD) 4520 J",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "A) 4520000 J"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-268",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Melting point only"
+              },
+              {
+                "letter": "B",
+                "text": "Density to zero"
+              },
+              {
+                "letter": "C",
+                "text": "Latent heat to zero"
+              },
+              {
+                "letter": "D",
+                "text": "Boiling point"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-268",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-268",
+      "skill_id": "ss3.physics.latent_heat.pressure_boiling",
+      "prompt": "Increasing the external pressure on a liquid will raise its:\n\nA) Melting point only\nB) Density to zero\nC) Latent heat to zero\nD) Boiling point",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "D) Boiling point"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-289",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "340 m"
+              },
+              {
+                "letter": "B",
+                "text": "680 m"
+              },
+              {
+                "letter": "C",
+                "text": "170 m"
+              },
+              {
+                "letter": "D",
+                "text": "85 m"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-289",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": false,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-289",
+      "skill_id": "ss3.physics.waves_sound.echo_calc",
+      "prompt": "An echo returns 2 s after a shout, with sound at 340 m/s. The reflecting wall is at a distance of:\n\nA) 340 m\nB) 680 m\nC) 170 m\nD) 85 m",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "A) 340 m"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-307",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Glancing angle"
+              },
+              {
+                "letter": "B",
+                "text": "Angle of deviation"
+              },
+              {
+                "letter": "C",
+                "text": "Critical angle"
+              },
+              {
+                "letter": "D",
+                "text": "Brewster angle"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-307",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "c",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-307",
+      "skill_id": "ss3.physics.optics.critical_angle",
+      "prompt": "The angle of incidence in the denser medium for which the angle of refraction is 90° is the:\n\nA) Glancing angle\nB) Angle of deviation\nC) Critical angle\nD) Brewster angle",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "C) Critical angle"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-311",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "90 cm"
+              },
+              {
+                "letter": "B",
+                "text": "45 cm"
+              },
+              {
+                "letter": "C",
+                "text": "20 cm"
+              },
+              {
+                "letter": "D",
+                "text": "10 cm"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-311",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "c",
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": false,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-311",
+      "skill_id": "ss3.physics.optics.lens_calc",
+      "prompt": "An object 30 cm from a converging lens forms an image 60 cm away (1/f = 1/u + 1/v). The focal length is:\n\nA) 90 cm\nB) 45 cm\nC) 20 cm\nD) 10 cm",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "C) 20 cm"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-312",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "0.5 dioptres"
+              },
+              {
+                "letter": "B",
+                "text": "5 dioptres"
+              },
+              {
+                "letter": "C",
+                "text": "50 dioptres"
+              },
+              {
+                "letter": "D",
+                "text": "2 dioptres"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-312",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "d",
+              "reviewer_c": "d"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-312",
+      "skill_id": "ss3.physics.optics.power_lens",
+      "prompt": "A lens of focal length 0.5 m has a power of:\n\nA) 0.5 dioptres\nB) 5 dioptres\nC) 50 dioptres\nD) 2 dioptres",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "D) 2 dioptres"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-339",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "5 Ω"
+              },
+              {
+                "letter": "B",
+                "text": "10.5 Ω"
+              },
+              {
+                "letter": "C",
+                "text": "20 Ω"
+              },
+              {
+                "letter": "D",
+                "text": "0.05 Ω"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-339",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "c",
+              "reviewer_c": "c"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-339",
+      "skill_id": "ss3.physics.current_electricity.ohms_calc3",
+      "prompt": "A 10 V supply drives a current of 0.5 A through a resistor. Its resistance is:\n\nA) 5 Ω\nB) 10.5 Ω\nC) 20 Ω\nD) 0.05 Ω",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "C) 20 Ω"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-379",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Using a weaker magnet"
+              },
+              {
+                "letter": "B",
+                "text": "Reducing the number of turns"
+              },
+              {
+                "letter": "C",
+                "text": "Moving the magnet faster"
+              },
+              {
+                "letter": "D",
+                "text": "Holding the magnet still"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-379",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "c",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-379",
+      "skill_id": "ss3.physics.em_induction.induced_emf_increase",
+      "prompt": "The induced e.m.f. in a coil can be increased by:\n\nA) Using a weaker magnet\nB) Reducing the number of turns\nC) Moving the magnet faster\nD) Holding the magnet still",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "C) Moving the magnet faster"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-381",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Reverses its connection to the circuit every half turn through slip rings"
+              },
+              {
+                "letter": "B",
+                "text": "Stays still"
+              },
+              {
+                "letter": "C",
+                "text": "Carries direct current"
+              },
+              {
+                "letter": "D",
+                "text": "Has no magnetic field"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-381",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-381",
+      "skill_id": "ss3.physics.em_induction.ac_generator",
+      "prompt": "An a.c. generator produces an alternating current because the coil:\n\nA) Reverses its connection to the circuit every half turn through slip rings\nB) Stays still\nC) Carries direct current\nD) Has no magnetic field",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "A) Reverses its connection to the circuit every half turn through slip rings"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:physics-ssce-derived",
+          "source_id": "physics-mcq-ss3-386",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "960 V"
+              },
+              {
+                "letter": "B",
+                "text": "60 V"
+              },
+              {
+                "letter": "C",
+                "text": "240 V"
+              },
+              {
+                "letter": "D",
+                "text": "120 V"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "physics-mcq-ss3-386",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "b",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "physics-mcq-ss3-386",
+      "skill_id": "ss3.physics.em_induction.transformer_ratio2",
+      "prompt": "An ideal transformer with 800 primary and 200 secondary turns fed with 240 V gives an output of:\n\nA) 960 V\nB) 60 V\nC) 240 V\nD) 120 V",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "B) 60 V"
+    }
+  ]
+}

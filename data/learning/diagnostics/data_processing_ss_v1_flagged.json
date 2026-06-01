@@ -1,0 +1,347 @@
+{
+  "diagnostic_id": "ss3-data_processing-v1-flagged",
+  "tenant_id": "pilot-tenant",
+  "title": "SS3 Data Processing — Flagged for human review",
+  "subject": "data_processing",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "scrape:data_processing-ssce-derived",
+      "source_id": "data_processing-ss-mcq-v1",
+      "rule_id": "served_promote_v1",
+      "recency": null,
+      "confidence": 1.0,
+      "evidence_count": 4,
+      "metadata": {
+        "review_state": "pending_two_reviewer_signoff",
+        "subject_lead_approved": false,
+        "safeguarding_reviewed": false,
+        "note": "Derived SSCE-style questions; ensemble machine-verified only; below the human two-reviewer gate; staging exercise only; rights for child-facing reuse not cleared."
+      }
+    }
+  ],
+  "skills": [
+    {
+      "skill_id": "ss3.data_processing.file_concepts.file_org",
+      "standard_id": "ss3.data_processing.waec-neco",
+      "name": "File Concepts: File Org",
+      "description": "SS3 Data Processing — file concepts (file org)."
+    },
+    {
+      "skill_id": "ss3.data_processing.processing_cycle.data_capture",
+      "standard_id": "ss3.data_processing.waec-neco",
+      "name": "Processing Cycle: Data Capture",
+      "description": "SS3 Data Processing — processing cycle (data capture)."
+    },
+    {
+      "skill_id": "ss3.data_processing.processing_cycle.data_preparation",
+      "standard_id": "ss3.data_processing.waec-neco",
+      "name": "Processing Cycle: Data Preparation",
+      "description": "SS3 Data Processing — processing cycle (data preparation)."
+    },
+    {
+      "skill_id": "ss3.data_processing.software.os",
+      "standard_id": "ss3.data_processing.waec-neco",
+      "name": "Software: Os",
+      "description": "SS3 Data Processing — software (os)."
+    }
+  ],
+  "items": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:data_processing-ssce-derived",
+          "source_id": "data_processing-mcq-ss3-091",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Word processor"
+              },
+              {
+                "letter": "B",
+                "text": "Game"
+              },
+              {
+                "letter": "C",
+                "text": "Operating system"
+              },
+              {
+                "letter": "D",
+                "text": "Web page"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "data_processing-mcq-ss3-091",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "c",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "data_processing-mcq-ss3-091",
+      "skill_id": "ss3.data_processing.software.os",
+      "prompt": "Which type of software starts running first when a computer is switched on?\n\nA) Word processor\nB) Game\nC) Operating system\nD) Web page",
+      "item_type": "mcq_single",
+      "difficulty": -3.0,
+      "correct_answer": "C) Operating system"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:data_processing-ssce-derived",
+          "source_id": "data_processing-mcq-ss3-104",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Output"
+              },
+              {
+                "letter": "B",
+                "text": "Display"
+              },
+              {
+                "letter": "C",
+                "text": "Transmission"
+              },
+              {
+                "letter": "D",
+                "text": "Preparation (encoding)"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "data_processing-mcq-ss3-104",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": "d",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "data_processing-mcq-ss3-104",
+      "skill_id": "ss3.data_processing.processing_cycle.data_preparation",
+      "prompt": "Converting collected data into a form suitable for processing is known as data:\n\nA) Output\nB) Display\nC) Transmission\nD) Preparation (encoding)",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "D) Preparation (encoding)"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:data_processing-ssce-derived",
+          "source_id": "data_processing-mcq-ss3-105",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Capture"
+              },
+              {
+                "letter": "B",
+                "text": "Disposal"
+              },
+              {
+                "letter": "C",
+                "text": "Compression only"
+              },
+              {
+                "letter": "D",
+                "text": "Archiving"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "data_processing-mcq-ss3-105",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "data_processing-mcq-ss3-105",
+      "skill_id": "ss3.data_processing.processing_cycle.data_capture",
+      "prompt": "The process of getting data into the computer, often automatically, is called data:\n\nA) Capture\nB) Disposal\nC) Compression only\nD) Archiving",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "A) Capture"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:data_processing-ssce-derived",
+          "source_id": "data_processing-mcq-ss3-125",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Serially (sequentially)"
+              },
+              {
+                "letter": "B",
+                "text": "Randomly only"
+              },
+              {
+                "letter": "C",
+                "text": "In a pyramid"
+              },
+              {
+                "letter": "D",
+                "text": "In a circle"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "data_processing-mcq-ss3-125",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "data_processing-mcq-ss3-125",
+      "skill_id": "ss3.data_processing.file_concepts.file_org",
+      "prompt": "A file in which records are stored one after another in entry order is organised:\n\nA) Serially (sequentially)\nB) Randomly only\nC) In a pyramid\nD) In a circle",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "A) Serially (sequentially)"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "bank": "chemistry-ss-mcq-v1.json",
+  "backend": "azure-foundry",
+  "total_items": 374,
+  "processed_this_run": 374,
+  "skipped_already_verified": 0,
+  "status_counts": {
+    "machine_verified": 355,
+    "flagged_for_human": 19
+  },
+  "items_with_errors": 0,
+  "content_filtered": 0,
+  "key_disagreements": [
+    {
+      "item_id": "chemistry-mcq-ss3-104",
+      "skill_id": "ss3.chemistry.chemical_bonding.co2_bonds",
+      "scraped_key": "d",
+      "proposed_correct_option_id": null,
+      "agreement": 1
+    }
+  ],
+  "item_errors": []
+}

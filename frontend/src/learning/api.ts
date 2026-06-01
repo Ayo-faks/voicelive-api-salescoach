@@ -376,6 +376,8 @@ export async function startDiagnostic(
     student_id?: string
     teacher_id?: string
     skill_id?: string
+    subject?: string
+    diagnostic_id?: string
     item_count?: number
   } = {}
 ): Promise<StartDiagnosticResponse> {
@@ -845,84 +847,4 @@ export async function executeVoiceAction(
     withDefaults({ method: 'POST', body: JSON.stringify({}), headers })
   )
   return jsonOrThrow<VoiceAgentActionExecutionResult>(response)
-}
-
-// ---- B2C learner memory (consent + panel + delete) -----------------------
-
-export interface LearnerMemoryConsent {
-  learner_id: string
-  accepted: boolean
-  accepted_at?: string | null
-  withdrawn_at?: string | null
-  policy_version: string
-}
-
-export interface LearnerMemoryFact {
-  id: string
-  tenant_id: string
-  student_id: string
-  status: string
-  fact: {
-    key: string
-    value: string
-    student_name?: string
-    [k: string]: unknown
-  }
-  expires_at?: string | null
-  created_at: string
-  updated_at: string
-}
-
-export interface LearnerMemoryListResponse {
-  learner_id: string
-  consent: LearnerMemoryConsent
-  facts: LearnerMemoryFact[]
-  count: number
-}
-
-export async function getMemoryConsent(
-  learnerId: string
-): Promise<LearnerMemoryConsent> {
-  const qs = toSearchParams({ learner_id: learnerId })
-  const url = qs
-    ? `/api/learning/memory/consent?${qs}`
-    : '/api/learning/memory/consent'
-  const response = await fetch(url, withDefaults({ method: 'GET' }))
-  return jsonOrThrow<LearnerMemoryConsent>(response)
-}
-
-export async function setMemoryConsent(payload: {
-  learner_id: string
-  accepted: boolean
-  policy_version?: string
-}): Promise<LearnerMemoryConsent> {
-  const response = await fetch(
-    '/api/learning/memory/consent',
-    withDefaults({ method: 'POST', body: JSON.stringify(payload) })
-  )
-  return jsonOrThrow<LearnerMemoryConsent>(response)
-}
-
-export async function getLearnerMemory(
-  learnerId: string,
-  tenantId?: string
-): Promise<LearnerMemoryListResponse> {
-  const qs = toSearchParams({ learner_id: learnerId, tenant_id: tenantId })
-  const url = qs ? `/api/learning/memory?${qs}` : '/api/learning/memory'
-  const response = await fetch(url, withDefaults({ method: 'GET' }))
-  return jsonOrThrow<LearnerMemoryListResponse>(response)
-}
-
-export async function deleteLearnerMemoryFact(
-  factId: string,
-  learnerId: string
-): Promise<{ ok: boolean; fact_id: string }> {
-  const response = await fetch(
-    `/api/learning/memory/${encodeURIComponent(factId)}`,
-    withDefaults({
-      method: 'DELETE',
-      body: JSON.stringify({ learner_id: learnerId }),
-    })
-  )
-  return jsonOrThrow<{ ok: boolean; fact_id: string }>(response)
 }

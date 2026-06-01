@@ -130,7 +130,11 @@ def load_item_bank(path: Path) -> DiagnosticItemBank:
 
 
 def load_subject_diagnostics(directory: Path) -> List[DiagnosticItemBank]:
-    """Load every ``*.json`` diagnostic in ``directory`` in sorted filename order.
+    """Load every served ``*.json`` diagnostic in ``directory`` in sorted order.
+
+    Files ending in ``_flagged.json`` are skipped: those are human-review
+    holding queues of items that failed ensemble verification and must never
+    enter the student-serving registry.
 
     Returns an empty list if the directory does not exist so callers can
     treat the multi-subject pack as optional.
@@ -139,6 +143,8 @@ def load_subject_diagnostics(directory: Path) -> List[DiagnosticItemBank]:
         return []
     banks: List[DiagnosticItemBank] = []
     for path in sorted(directory.glob("*.json")):
+        if path.name.endswith("_flagged.json"):
+            continue
         banks.append(load_item_bank(path))
     return banks
 

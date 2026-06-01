@@ -1,0 +1,421 @@
+{
+  "diagnostic_id": "ss3-computer_science-v1-flagged",
+  "tenant_id": "pilot-tenant",
+  "title": "SS3 Computer Science — Flagged for human review",
+  "subject": "computer_science",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "scrape:computer_science-ssce-derived",
+      "source_id": "computer_science-ss-mcq-v1",
+      "rule_id": "served_promote_v1",
+      "recency": null,
+      "confidence": 1.0,
+      "evidence_count": 5,
+      "metadata": {
+        "review_state": "pending_two_reviewer_signoff",
+        "subject_lead_approved": false,
+        "safeguarding_reviewed": false,
+        "note": "Derived SSCE-style questions; ensemble machine-verified only; below the human two-reviewer gate; staging exercise only; rights for child-facing reuse not cleared."
+      }
+    }
+  ],
+  "skills": [
+    {
+      "skill_id": "ss3.computer_science.number_systems.oct_to_dec",
+      "standard_id": "ss3.computer_science.waec-neco",
+      "name": "Number Systems: Oct To Dec",
+      "description": "SS3 Computer Science — number systems (oct to dec)."
+    },
+    {
+      "skill_id": "ss3.computer_science.number_systems.place_value",
+      "standard_id": "ss3.computer_science.waec-neco",
+      "name": "Number Systems: Place Value",
+      "description": "SS3 Computer Science — number systems (place value)."
+    },
+    {
+      "skill_id": "ss3.computer_science.system_development.computer_system",
+      "standard_id": "ss3.computer_science.waec-neco",
+      "name": "System Development: Computer System",
+      "description": "SS3 Computer Science — system development (computer system)."
+    },
+    {
+      "skill_id": "ss3.computer_science.system_development.evaluation",
+      "standard_id": "ss3.computer_science.waec-neco",
+      "name": "System Development: Evaluation",
+      "description": "SS3 Computer Science — system development (evaluation)."
+    }
+  ],
+  "items": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:computer_science-ssce-derived",
+          "source_id": "computer_science-mcq-ss3-078",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "4"
+              },
+              {
+                "letter": "B",
+                "text": "8"
+              },
+              {
+                "letter": "C",
+                "text": "2"
+              },
+              {
+                "letter": "D",
+                "text": "16"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "computer_science-mcq-ss3-078",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": null,
+              "reviewer_c": "b"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "computer_science-mcq-ss3-078",
+      "skill_id": "ss3.computer_science.number_systems.place_value",
+      "prompt": "In the binary number 1000, the leftmost 1 has a place value of:\n\nA) 4\nB) 8\nC) 2\nD) 16",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "B) 8"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:computer_science-ssce-derived",
+          "source_id": "computer_science-mcq-ss3-079",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "1, 10, 100, 1000"
+              },
+              {
+                "letter": "B",
+                "text": "8, 4, 2, 1 from right"
+              },
+              {
+                "letter": "C",
+                "text": "1, 2, 4, 8"
+              },
+              {
+                "letter": "D",
+                "text": "2, 4, 6, 8"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "computer_science-mcq-ss3-079",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "computer_science-mcq-ss3-079",
+      "skill_id": "ss3.computer_science.number_systems.place_value",
+      "prompt": "Reading right to left, the place values of a 4-bit binary number are:\n\nA) 1, 10, 100, 1000\nB) 8, 4, 2, 1 from right\nC) 1, 2, 4, 8\nD) 2, 4, 6, 8",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "C) 1, 2, 4, 8"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:computer_science-ssce-derived",
+          "source_id": "computer_science-mcq-ss3-082",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "17"
+              },
+              {
+                "letter": "B",
+                "text": "15"
+              },
+              {
+                "letter": "C",
+                "text": "13"
+              },
+              {
+                "letter": "D",
+                "text": "23"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "computer_science-mcq-ss3-082",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": "b",
+              "reviewer_c": "b"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "computer_science-mcq-ss3-082",
+      "skill_id": "ss3.computer_science.number_systems.oct_to_dec",
+      "prompt": "The octal number 17 is equal to which decimal number?\n\nA) 17\nB) 15\nC) 13\nD) 23",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "B) 15"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:computer_science-ssce-derived",
+          "source_id": "computer_science-mcq-ss3-297",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "People (users) and data"
+              },
+              {
+                "letter": "B",
+                "text": "Electricity only"
+              },
+              {
+                "letter": "C",
+                "text": "Furniture only"
+              },
+              {
+                "letter": "D",
+                "text": "Paint only"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "computer_science-mcq-ss3-297",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "computer_science-mcq-ss3-297",
+      "skill_id": "ss3.computer_science.system_development.computer_system",
+      "prompt": "The main parts of a complete computer system are hardware, software and:\n\nA) People (users) and data\nB) Electricity only\nC) Furniture only\nD) Paint only",
+      "item_type": "mcq_single",
+      "difficulty": -3.0,
+      "correct_answer": "A) People (users) and data"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:computer_science-ssce-derived",
+          "source_id": "computer_science-mcq-ss3-314",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Feasibility"
+              },
+              {
+                "letter": "B",
+                "text": "Evaluation"
+              },
+              {
+                "letter": "C",
+                "text": "Encryption"
+              },
+              {
+                "letter": "D",
+                "text": "Topology"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "computer_science-mcq-ss3-314",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "b",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "computer_science-mcq-ss3-314",
+      "skill_id": "ss3.computer_science.system_development.evaluation",
+      "prompt": "After a new system is in use, checking whether it actually meets the users' needs is called system:\n\nA) Feasibility\nB) Evaluation\nC) Encryption\nD) Topology",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "B) Evaluation"
+    }
+  ]
+}

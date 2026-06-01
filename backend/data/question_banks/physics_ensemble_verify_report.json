@@ -1,0 +1,37 @@
+{
+  "bank": "physics-ss-mcq-v1.json",
+  "backend": "azure-foundry",
+  "total_items": 447,
+  "processed_this_run": 447,
+  "skipped_already_verified": 0,
+  "status_counts": {
+    "machine_verified": 418,
+    "flagged_for_human": 29
+  },
+  "items_with_errors": 0,
+  "content_filtered": 0,
+  "key_disagreements": [
+    {
+      "item_id": "physics-mcq-ss3-151",
+      "skill_id": "ss3.physics.momentum.recoil",
+      "scraped_key": "c",
+      "proposed_correct_option_id": null,
+      "agreement": 1
+    },
+    {
+      "item_id": "physics-mcq-ss3-289",
+      "skill_id": "ss3.physics.waves_sound.echo_calc",
+      "scraped_key": "a",
+      "proposed_correct_option_id": null,
+      "agreement": 1
+    },
+    {
+      "item_id": "physics-mcq-ss3-311",
+      "skill_id": "ss3.physics.optics.lens_calc",
+      "scraped_key": "c",
+      "proposed_correct_option_id": null,
+      "agreement": 1
+    }
+  ],
+  "item_errors": []
+}

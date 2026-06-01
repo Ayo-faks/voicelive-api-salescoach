@@ -20,6 +20,7 @@ import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 
 export type DiagnosticPanelProps = {
   skillId?: string
+  subject?: string
   studentId?: string | null
   onCompleted?: (plan: PendingPlanRecord | null) => void
   onItemAnswered?: (result: AnswerDiagnosticResponse) => void
@@ -112,6 +113,7 @@ function languageLabel(value: string) {
 
 export default function DiagnosticPanel({
   skillId,
+  subject,
   studentId,
   onCompleted,
   onItemAnswered,
@@ -143,6 +145,7 @@ export default function DiagnosticPanel({
     setBusy(true)
     startDiagnostic({
       ...(skillId ? { skill_id: skillId } : {}),
+      ...(subject ? { subject } : {}),
       ...(studentId ? { student_id: studentId } : {}),
     })
       .then(payload => {
@@ -154,7 +157,7 @@ export default function DiagnosticPanel({
         onError?.(err)
       })
       .finally(() => setBusy(false))
-  }, [skillId, onError, studentId])
+  }, [skillId, subject, onError, studentId])
 
   async function submitAnswer(e: React.FormEvent) {
     e.preventDefault()

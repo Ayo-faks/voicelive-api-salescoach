@@ -1,0 +1,1547 @@
+{
+  "diagnostic_id": "ss3-chemistry-v1-flagged",
+  "tenant_id": "pilot-tenant",
+  "title": "SS3 Chemistry — Flagged for human review",
+  "subject": "chemistry",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "scrape:chemistry-ssce-derived",
+      "source_id": "chemistry-ss-mcq-v1",
+      "rule_id": "served_promote_v1",
+      "recency": null,
+      "confidence": 1.0,
+      "evidence_count": 19,
+      "metadata": {
+        "review_state": "pending_two_reviewer_signoff",
+        "subject_lead_approved": false,
+        "safeguarding_reviewed": false,
+        "note": "Derived SSCE-style questions; ensemble machine-verified only; below the human two-reviewer gate; staging exercise only; rights for child-facing reuse not cleared."
+      }
+    }
+  ],
+  "skills": [
+    {
+      "skill_id": "ss3.chemistry.atomic_structure.atom_def",
+      "standard_id": "ss3.chemistry.waec-neco",
+      "name": "Atomic Structure: Atom Def",
+      "description": "SS3 Chemistry — atomic structure (atom def)."
+    },
+    {
+      "skill_id": "ss3.chemistry.chemical_bonding.bond_strength",
+      "standard_id": "ss3.chemistry.waec-neco",
+      "name": "Chemical Bonding: Bond Strength",
+      "description": "SS3 Chemistry — chemical bonding (bond strength)."
+    },
+    {
+      "skill_id": "ss3.chemistry.chemical_bonding.co2_bonds",
+      "standard_id": "ss3.chemistry.waec-neco",
+      "name": "Chemical Bonding: Co2 Bonds",
+      "description": "SS3 Chemistry — chemical bonding (co2 bonds)."
+    },
+    {
+      "skill_id": "ss3.chemistry.energetics.endothermic_example",
+      "standard_id": "ss3.chemistry.waec-neco",
+      "name": "Energetics: Endothermic Example",
+      "description": "SS3 Chemistry — energetics (endothermic example)."
+    },
+    {
+      "skill_id": "ss3.chemistry.energetics.enthalpy_neutralisation",
+      "standard_id": "ss3.chemistry.waec-neco",
+      "name": "Energetics: Enthalpy Neutralisation",
+      "description": "SS3 Chemistry — energetics (enthalpy neutralisation)."
+    },
+    {
+      "skill_id": "ss3.chemistry.formulae_equations.balancing_combustion",
+      "standard_id": "ss3.chemistry.waec-neco",
+      "name": "Formulae Equations: Balancing Combustion",
+      "description": "SS3 Chemistry — formulae equations (balancing combustion)."
+    },
+    {
+      "skill_id": "ss3.chemistry.formulae_equations.empirical_from_percent",
+      "standard_id": "ss3.chemistry.waec-neco",
+      "name": "Formulae Equations: Empirical From Percent",
+      "description": "SS3 Chemistry — formulae equations (empirical from percent)."
+    },
+    {
+      "skill_id": "ss3.chemistry.formulae_equations.word_equation",
+      "standard_id": "ss3.chemistry.waec-neco",
+      "name": "Formulae Equations: Word Equation",
+      "description": "SS3 Chemistry — formulae equations (word equation)."
+    },
+    {
+      "skill_id": "ss3.chemistry.gas_laws.boyles_calc",
+      "standard_id": "ss3.chemistry.waec-neco",
+      "name": "Gas Laws: Boyles Calc",
+      "description": "SS3 Chemistry — gas laws (boyles calc)."
+    },
+    {
+      "skill_id": "ss3.chemistry.metals.reactivity_series",
+      "standard_id": "ss3.chemistry.waec-neco",
+      "name": "Metals: Reactivity Series",
+      "description": "SS3 Chemistry — metals (reactivity series)."
+    },
+    {
+      "skill_id": "ss3.chemistry.mole_concept.percent_composition",
+      "standard_id": "ss3.chemistry.waec-neco",
+      "name": "Mole Concept: Percent Composition",
+      "description": "SS3 Chemistry — mole concept (percent composition)."
+    },
+    {
+      "skill_id": "ss3.chemistry.mole_concept.stoich_limiting",
+      "standard_id": "ss3.chemistry.waec-neco",
+      "name": "Mole Concept: Stoich Limiting",
+      "description": "SS3 Chemistry — mole concept (stoich limiting)."
+    },
+    {
+      "skill_id": "ss3.chemistry.mole_concept.stoich_mass",
+      "standard_id": "ss3.chemistry.waec-neco",
+      "name": "Mole Concept: Stoich Mass",
+      "description": "SS3 Chemistry — mole concept (stoich mass)."
+    },
+    {
+      "skill_id": "ss3.chemistry.non_metals.chlorine_test",
+      "standard_id": "ss3.chemistry.waec-neco",
+      "name": "Non Metals: Chlorine Test",
+      "description": "SS3 Chemistry — non metals (chlorine test)."
+    },
+    {
+      "skill_id": "ss3.chemistry.particulate_matter.brownian",
+      "standard_id": "ss3.chemistry.waec-neco",
+      "name": "Particulate Matter: Brownian",
+      "description": "SS3 Chemistry — particulate matter (brownian)."
+    },
+    {
+      "skill_id": "ss3.chemistry.particulate_matter.diffusion_rate",
+      "standard_id": "ss3.chemistry.waec-neco",
+      "name": "Particulate Matter: Diffusion Rate",
+      "description": "SS3 Chemistry — particulate matter (diffusion rate)."
+    },
+    {
+      "skill_id": "ss3.chemistry.redox.oxidation_mn_kmno4",
+      "standard_id": "ss3.chemistry.waec-neco",
+      "name": "Redox: Oxidation Mn Kmno4",
+      "description": "SS3 Chemistry — redox (oxidation mn kmno4)."
+    },
+    {
+      "skill_id": "ss3.chemistry.redox.oxidation_s_h2so4",
+      "standard_id": "ss3.chemistry.waec-neco",
+      "name": "Redox: Oxidation S H2So4",
+      "description": "SS3 Chemistry — redox (oxidation s h2so4)."
+    },
+    {
+      "skill_id": "ss3.chemistry.redox.oxidising_agent",
+      "standard_id": "ss3.chemistry.waec-neco",
+      "name": "Redox: Oxidising Agent",
+      "description": "SS3 Chemistry — redox (oxidising agent)."
+    }
+  ],
+  "items": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:chemistry-ssce-derived",
+          "source_id": "chemistry-mcq-ss3-015",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Oxygen"
+              },
+              {
+                "letter": "B",
+                "text": "Carbon dioxide"
+              },
+              {
+                "letter": "C",
+                "text": "Hydrogen"
+              },
+              {
+                "letter": "D",
+                "text": "Chlorine"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "chemistry-mcq-ss3-015",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": null,
+              "reviewer_c": "c"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "chemistry-mcq-ss3-015",
+      "skill_id": "ss3.chemistry.particulate_matter.diffusion_rate",
+      "prompt": "Of the gases below, which diffuses fastest at the same temperature?\n\nA) Oxygen\nB) Carbon dioxide\nC) Hydrogen\nD) Chlorine",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "C) Hydrogen"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:chemistry-ssce-derived",
+          "source_id": "chemistry-mcq-ss3-016",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "The presence of bacteria"
+              },
+              {
+                "letter": "B",
+                "text": "Chemical reaction"
+              },
+              {
+                "letter": "C",
+                "text": "Electric current"
+              },
+              {
+                "letter": "D",
+                "text": "The motion of air particles"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "chemistry-mcq-ss3-016",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 3,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": "d",
+              "reviewer_c": "d"
+            },
+            "agreement": 3,
+            "matches_scraped_key": true,
+            "critic_pass": false,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "chemistry-mcq-ss3-016",
+      "skill_id": "ss3.chemistry.particulate_matter.brownian",
+      "prompt": "The continuous random movement of smoke particles seen under a microscope provides evidence for:\n\nA) The presence of bacteria\nB) Chemical reaction\nC) Electric current\nD) The motion of air particles",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "D) The motion of air particles"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:chemistry-ssce-derived",
+          "source_id": "chemistry-mcq-ss3-046",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Molecule"
+              },
+              {
+                "letter": "B",
+                "text": "Atom"
+              },
+              {
+                "letter": "C",
+                "text": "Ion"
+              },
+              {
+                "letter": "D",
+                "text": "Electron"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "chemistry-mcq-ss3-046",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "b",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "chemistry-mcq-ss3-046",
+      "skill_id": "ss3.chemistry.atomic_structure.atom_def",
+      "prompt": "The smallest particle of an element that can take part in a chemical reaction is the:\n\nA) Molecule\nB) Atom\nC) Ion\nD) Electron",
+      "item_type": "mcq_single",
+      "difficulty": -3.0,
+      "correct_answer": "B) Atom"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:chemistry-ssce-derived",
+          "source_id": "chemistry-mcq-ss3-104",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Two"
+              },
+              {
+                "letter": "B",
+                "text": "Three"
+              },
+              {
+                "letter": "C",
+                "text": "One"
+              },
+              {
+                "letter": "D",
+                "text": "Four"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "chemistry-mcq-ss3-104",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": false,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "chemistry-mcq-ss3-104",
+      "skill_id": "ss3.chemistry.chemical_bonding.co2_bonds",
+      "prompt": "Carbon dioxide (CO2) contains how many covalent bonds in total?\n\nA) Two\nB) Three\nC) One\nD) Four",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "D) Four"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:chemistry-ssce-derived",
+          "source_id": "chemistry-mcq-ss3-113",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Sodium chloride (ionic lattice)"
+              },
+              {
+                "letter": "B",
+                "text": "Solid iodine"
+              },
+              {
+                "letter": "C",
+                "text": "Liquid water"
+              },
+              {
+                "letter": "D",
+                "text": "Solid carbon dioxide"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "chemistry-mcq-ss3-113",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "chemistry-mcq-ss3-113",
+      "skill_id": "ss3.chemistry.chemical_bonding.bond_strength",
+      "prompt": "Which of the following has the strongest forces holding the structure together?\n\nA) Sodium chloride (ionic lattice)\nB) Solid iodine\nC) Liquid water\nD) Solid carbon dioxide",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "A) Sodium chloride (ionic lattice)"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:chemistry-ssce-derived",
+          "source_id": "chemistry-mcq-ss3-128",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "3 mol"
+              },
+              {
+                "letter": "B",
+                "text": "6 mol"
+              },
+              {
+                "letter": "C",
+                "text": "1 mol"
+              },
+              {
+                "letter": "D",
+                "text": "2 mol"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "chemistry-mcq-ss3-128",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": "d",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "chemistry-mcq-ss3-128",
+      "skill_id": "ss3.chemistry.mole_concept.stoich_limiting",
+      "prompt": "In N2 + 3H2 -> 2NH3, the number of moles of ammonia formed from 3 moles of hydrogen (excess N2) is:\n\nA) 3 mol\nB) 6 mol\nC) 1 mol\nD) 2 mol",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "D) 2 mol"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:chemistry-ssce-derived",
+          "source_id": "chemistry-mcq-ss3-129",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "56 g"
+              },
+              {
+                "letter": "B",
+                "text": "44 g"
+              },
+              {
+                "letter": "C",
+                "text": "100 g"
+              },
+              {
+                "letter": "D",
+                "text": "144 g"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "chemistry-mcq-ss3-129",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": null,
+              "reviewer_c": "a"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "chemistry-mcq-ss3-129",
+      "skill_id": "ss3.chemistry.mole_concept.stoich_mass",
+      "prompt": "In CaCO3 -> CaO + CO2 (CaCO3 = 100, CaO = 56), the mass of CaO formed from 100 g of CaCO3 is:\n\nA) 56 g\nB) 44 g\nC) 100 g\nD) 144 g",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "A) 56 g"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:chemistry-ssce-derived",
+          "source_id": "chemistry-mcq-ss3-130",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "11.1%"
+              },
+              {
+                "letter": "B",
+                "text": "88.9%"
+              },
+              {
+                "letter": "C",
+                "text": "50%"
+              },
+              {
+                "letter": "D",
+                "text": "16%"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "chemistry-mcq-ss3-130",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 3,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "b",
+              "reviewer_c": "b"
+            },
+            "agreement": 3,
+            "matches_scraped_key": true,
+            "critic_pass": false,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "chemistry-mcq-ss3-130",
+      "skill_id": "ss3.chemistry.mole_concept.percent_composition",
+      "prompt": "The percentage by mass of oxygen in water (H2O, molar mass 18) is approximately:\n\nA) 11.1%\nB) 88.9%\nC) 50%\nD) 16%",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "B) 88.9%"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:chemistry-ssce-derived",
+          "source_id": "chemistry-mcq-ss3-138",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "C2H4O2"
+              },
+              {
+                "letter": "B",
+                "text": "CH2O"
+              },
+              {
+                "letter": "C",
+                "text": "CHO"
+              },
+              {
+                "letter": "D",
+                "text": "CH4O"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "chemistry-mcq-ss3-138",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "chemistry-mcq-ss3-138",
+      "skill_id": "ss3.chemistry.formulae_equations.empirical_from_percent",
+      "prompt": "A compound contains 40% carbon, 6.7% hydrogen and 53.3% oxygen by mass (C=12, H=1, O=16). Its empirical formula is:\n\nA) C2H4O2\nB) CH2O\nC) CHO\nD) CH4O",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "B) CH2O"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:chemistry-ssce-derived",
+          "source_id": "chemistry-mcq-ss3-147",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "1"
+              },
+              {
+                "letter": "B",
+                "text": "3"
+              },
+              {
+                "letter": "C",
+                "text": "2"
+              },
+              {
+                "letter": "D",
+                "text": "4"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "chemistry-mcq-ss3-147",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": null,
+              "reviewer_c": "c"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "chemistry-mcq-ss3-147",
+      "skill_id": "ss3.chemistry.formulae_equations.balancing_combustion",
+      "prompt": "When CH4 + O2 -> CO2 + H2O is balanced, the coefficient of O2 is:\n\nA) 1\nB) 3\nC) 2\nD) 4",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "C) 2"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:chemistry-ssce-derived",
+          "source_id": "chemistry-mcq-ss3-152",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Ionic equation"
+              },
+              {
+                "letter": "B",
+                "text": "Balanced symbol equation"
+              },
+              {
+                "letter": "C",
+                "text": "Structural formula"
+              },
+              {
+                "letter": "D",
+                "text": "Word equation"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "chemistry-mcq-ss3-152",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": null,
+              "reviewer_c": "d"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "chemistry-mcq-ss3-152",
+      "skill_id": "ss3.chemistry.formulae_equations.word_equation",
+      "prompt": "Magnesium + oxygen -> magnesium oxide is an example of a:\n\nA) Ionic equation\nB) Balanced symbol equation\nC) Structural formula\nD) Word equation",
+      "item_type": "mcq_single",
+      "difficulty": -1.5,
+      "correct_answer": "D) Word equation"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:chemistry-ssce-derived",
+          "source_id": "chemistry-mcq-ss3-181",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Accepts electrons (is itself reduced)"
+              },
+              {
+                "letter": "B",
+                "text": "Donates electrons"
+              },
+              {
+                "letter": "C",
+                "text": "Adds hydrogen"
+              },
+              {
+                "letter": "D",
+                "text": "Removes oxygen"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "chemistry-mcq-ss3-181",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "chemistry-mcq-ss3-181",
+      "skill_id": "ss3.chemistry.redox.oxidising_agent",
+      "prompt": "An oxidising agent is a substance that:\n\nA) Accepts electrons (is itself reduced)\nB) Donates electrons\nC) Adds hydrogen\nD) Removes oxygen",
+      "item_type": "mcq_single",
+      "difficulty": -1.5,
+      "correct_answer": "A) Accepts electrons (is itself reduced)"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:chemistry-ssce-derived",
+          "source_id": "chemistry-mcq-ss3-187",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "+2"
+              },
+              {
+                "letter": "B",
+                "text": "+4"
+              },
+              {
+                "letter": "C",
+                "text": "+7"
+              },
+              {
+                "letter": "D",
+                "text": "-7"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "chemistry-mcq-ss3-187",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": null,
+              "reviewer_c": "c"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "chemistry-mcq-ss3-187",
+      "skill_id": "ss3.chemistry.redox.oxidation_mn_kmno4",
+      "prompt": "The oxidation number of manganese in potassium permanganate (KMnO4) is:\n\nA) +2\nB) +4\nC) +7\nD) -7",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "C) +7"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:chemistry-ssce-derived",
+          "source_id": "chemistry-mcq-ss3-188",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "+4"
+              },
+              {
+                "letter": "B",
+                "text": "-2"
+              },
+              {
+                "letter": "C",
+                "text": "+2"
+              },
+              {
+                "letter": "D",
+                "text": "+6"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "chemistry-mcq-ss3-188",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "chemistry-mcq-ss3-188",
+      "skill_id": "ss3.chemistry.redox.oxidation_s_h2so4",
+      "prompt": "The oxidation number of sulphur in sulphuric acid (H2SO4) is:\n\nA) +4\nB) -2\nC) +2\nD) +6",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "D) +6"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:chemistry-ssce-derived",
+          "source_id": "chemistry-mcq-ss3-220",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Burning of charcoal"
+              },
+              {
+                "letter": "B",
+                "text": "Respiration"
+              },
+              {
+                "letter": "C",
+                "text": "Rusting of iron"
+              },
+              {
+                "letter": "D",
+                "text": "Thermal decomposition of limestone"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "chemistry-mcq-ss3-220",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": null,
+              "reviewer_c": "d"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "chemistry-mcq-ss3-220",
+      "skill_id": "ss3.chemistry.energetics.endothermic_example",
+      "prompt": "Which of the following is an endothermic process?\n\nA) Burning of charcoal\nB) Respiration\nC) Rusting of iron\nD) Thermal decomposition of limestone",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "D) Thermal decomposition of limestone"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:chemistry-ssce-derived",
+          "source_id": "chemistry-mcq-ss3-226",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Combustion"
+              },
+              {
+                "letter": "B",
+                "text": "Neutralisation"
+              },
+              {
+                "letter": "C",
+                "text": "Formation"
+              },
+              {
+                "letter": "D",
+                "text": "Fusion"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "chemistry-mcq-ss3-226",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "b",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "chemistry-mcq-ss3-226",
+      "skill_id": "ss3.chemistry.energetics.enthalpy_neutralisation",
+      "prompt": "The heat change when one mole of water is formed from acid and alkali is the enthalpy of:\n\nA) Combustion\nB) Neutralisation\nC) Formation\nD) Fusion",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "B) Neutralisation"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:chemistry-ssce-derived",
+          "source_id": "chemistry-mcq-ss3-291",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "400 cm^3"
+              },
+              {
+                "letter": "B",
+                "text": "200 cm^3"
+              },
+              {
+                "letter": "C",
+                "text": "100 cm^3"
+              },
+              {
+                "letter": "D",
+                "text": "300 cm^3"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "chemistry-mcq-ss3-291",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": null,
+              "reviewer_c": "c"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "chemistry-mcq-ss3-291",
+      "skill_id": "ss3.chemistry.gas_laws.boyles_calc",
+      "prompt": "A gas occupies 200 cm^3 at 100 kPa. At constant temperature, its volume at 200 kPa is:\n\nA) 400 cm^3\nB) 200 cm^3\nC) 100 cm^3\nD) 300 cm^3",
+      "item_type": "mcq_single",
+      "difficulty": -3.0,
+      "correct_answer": "C) 100 cm^3"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:chemistry-ssce-derived",
+          "source_id": "chemistry-mcq-ss3-311",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Burns with a pop"
+              },
+              {
+                "letter": "B",
+                "text": "Relights a glowing splint"
+              },
+              {
+                "letter": "C",
+                "text": "Bleaches moist litmus paper"
+              },
+              {
+                "letter": "D",
+                "text": "Has no colour or smell"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "chemistry-mcq-ss3-311",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "chemistry-mcq-ss3-311",
+      "skill_id": "ss3.chemistry.non_metals.chlorine_test",
+      "prompt": "Chlorine gas is recognised because it:\n\nA) Burns with a pop\nB) Relights a glowing splint\nC) Bleaches moist litmus paper\nD) Has no colour or smell",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "C) Bleaches moist litmus paper"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:chemistry-ssce-derived",
+          "source_id": "chemistry-mcq-ss3-322",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Copper"
+              },
+              {
+                "letter": "B",
+                "text": "Sodium"
+              },
+              {
+                "letter": "C",
+                "text": "Gold"
+              },
+              {
+                "letter": "D",
+                "text": "Silver"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "chemistry-mcq-ss3-322",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "b",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "chemistry-mcq-ss3-322",
+      "skill_id": "ss3.chemistry.metals.reactivity_series",
+      "prompt": "In the reactivity series, which metal is more reactive than iron?\n\nA) Copper\nB) Sodium\nC) Gold\nD) Silver",
+      "item_type": "mcq_single",
+      "difficulty": -3.0,
+      "correct_answer": "B) Sodium"
+    }
+  ]
+}

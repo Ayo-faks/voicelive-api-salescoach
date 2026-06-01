@@ -1,0 +1,747 @@
+{
+  "diagnostic_id": "ss3-economics-v1-flagged",
+  "tenant_id": "pilot-tenant",
+  "title": "SS3 Economics — Flagged for human review",
+  "subject": "economics",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "scrape:economics-ssce-derived",
+      "source_id": "economics-ss-mcq-v1",
+      "rule_id": "served_promote_v1",
+      "recency": null,
+      "confidence": 1.0,
+      "evidence_count": 9,
+      "metadata": {
+        "review_state": "pending_two_reviewer_signoff",
+        "subject_lead_approved": false,
+        "safeguarding_reviewed": false,
+        "note": "Derived SSCE-style questions; ensemble machine-verified only; below the human two-reviewer gate; staging exercise only; rights for child-facing reuse not cleared."
+      }
+    }
+  ],
+  "skills": [
+    {
+      "skill_id": "ss3.economics.banking_finance.other_institutions",
+      "standard_id": "ss3.economics.waec-neco",
+      "name": "Banking Finance: Other Institutions",
+      "description": "SS3 Economics — banking finance (other institutions)."
+    },
+    {
+      "skill_id": "ss3.economics.demand_supply.demand_determinants",
+      "standard_id": "ss3.economics.waec-neco",
+      "name": "Demand Supply: Demand Determinants",
+      "description": "SS3 Economics — demand supply (demand determinants)."
+    },
+    {
+      "skill_id": "ss3.economics.demand_supply.demand_types",
+      "standard_id": "ss3.economics.waec-neco",
+      "name": "Demand Supply: Demand Types",
+      "description": "SS3 Economics — demand supply (demand types)."
+    },
+    {
+      "skill_id": "ss3.economics.demand_supply.supply_types",
+      "standard_id": "ss3.economics.waec-neco",
+      "name": "Demand Supply: Supply Types",
+      "description": "SS3 Economics — demand supply (supply types)."
+    },
+    {
+      "skill_id": "ss3.economics.elasticity.ped_calc",
+      "standard_id": "ss3.economics.waec-neco",
+      "name": "Elasticity: Ped Calc",
+      "description": "SS3 Economics — elasticity (ped calc)."
+    },
+    {
+      "skill_id": "ss3.economics.elasticity.ped_concept",
+      "standard_id": "ss3.economics.waec-neco",
+      "name": "Elasticity: Ped Concept",
+      "description": "SS3 Economics — elasticity (ped concept)."
+    },
+    {
+      "skill_id": "ss3.economics.market_structures.comparison",
+      "standard_id": "ss3.economics.waec-neco",
+      "name": "Market Structures: Comparison",
+      "description": "SS3 Economics — market structures (comparison)."
+    },
+    {
+      "skill_id": "ss3.economics.national_income.concepts",
+      "standard_id": "ss3.economics.waec-neco",
+      "name": "National Income: Concepts",
+      "description": "SS3 Economics — national income (concepts)."
+    },
+    {
+      "skill_id": "ss3.economics.national_income.per_capita",
+      "standard_id": "ss3.economics.waec-neco",
+      "name": "National Income: Per Capita",
+      "description": "SS3 Economics — national income (per capita)."
+    }
+  ],
+  "items": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:economics-ssce-derived",
+          "source_id": "economics-mcq-ss3-030",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "A rise in the price of tea"
+              },
+              {
+                "letter": "B",
+                "text": "A fall in the price of sugar (a complement)"
+              },
+              {
+                "letter": "C",
+                "text": "A fall in consumer incomes"
+              },
+              {
+                "letter": "D",
+                "text": "A fall in the price of coffee (a substitute)"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "economics-mcq-ss3-030",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "economics-mcq-ss3-030",
+      "skill_id": "ss3.economics.demand_supply.demand_determinants",
+      "prompt": "Which of the following will normally shift the demand curve for tea to the right?\n\nA) A rise in the price of tea\nB) A fall in the price of sugar (a complement)\nC) A fall in consumer incomes\nD) A fall in the price of coffee (a substitute)",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "B) A fall in the price of sugar (a complement)"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:economics-ssce-derived",
+          "source_id": "economics-mcq-ss3-035",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Joint demand"
+              },
+              {
+                "letter": "B",
+                "text": "Derived demand"
+              },
+              {
+                "letter": "C",
+                "text": "Composite demand"
+              },
+              {
+                "letter": "D",
+                "text": "Competitive supply"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "economics-mcq-ss3-035",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": false,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "economics-mcq-ss3-035",
+      "skill_id": "ss3.economics.demand_supply.demand_types",
+      "prompt": "Land that can be used for either housing or farming is said to be in:\n\nA) Joint demand\nB) Derived demand\nC) Composite demand\nD) Competitive supply",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "C) Composite demand"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:economics-ssce-derived",
+          "source_id": "economics-mcq-ss3-041",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Joint supply"
+              },
+              {
+                "letter": "B",
+                "text": "Composite supply"
+              },
+              {
+                "letter": "C",
+                "text": "Competitive supply"
+              },
+              {
+                "letter": "D",
+                "text": "Derived supply"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "economics-mcq-ss3-041",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "economics-mcq-ss3-041",
+      "skill_id": "ss3.economics.demand_supply.supply_types",
+      "prompt": "Beef and hides obtained from the same animal are an example of goods in:\n\nA) Joint supply\nB) Composite supply\nC) Competitive supply\nD) Derived supply",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "A) Joint supply"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:economics-ssce-derived",
+          "source_id": "economics-mcq-ss3-059",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "0.67"
+              },
+              {
+                "letter": "B",
+                "text": "0.5"
+              },
+              {
+                "letter": "C",
+                "text": "1.5"
+              },
+              {
+                "letter": "D",
+                "text": "3.0"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "economics-mcq-ss3-059",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "economics-mcq-ss3-059",
+      "skill_id": "ss3.economics.elasticity.ped_calc",
+      "prompt": "The price of a good falls from N10 to N8 and quantity demanded rises from 100 to 130 units. The price elasticity of demand is:\n\nA) 0.67\nB) 0.5\nC) 1.5\nD) 3.0",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "C) 1.5"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:economics-ssce-derived",
+          "source_id": "economics-mcq-ss3-075",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Constant and equal to one everywhere"
+              },
+              {
+                "letter": "B",
+                "text": "Zero everywhere"
+              },
+              {
+                "letter": "C",
+                "text": "Different at every point, falling as price falls"
+              },
+              {
+                "letter": "D",
+                "text": "Infinite everywhere"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "economics-mcq-ss3-075",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "economics-mcq-ss3-075",
+      "skill_id": "ss3.economics.elasticity.ped_concept",
+      "prompt": "Along a straight-line downward-sloping demand curve, elasticity is:\n\nA) Constant and equal to one everywhere\nB) Zero everywhere\nC) Different at every point, falling as price falls\nD) Infinite everywhere",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "C) Different at every point, falling as price falls"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:economics-ssce-derived",
+          "source_id": "economics-mcq-ss3-139",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Monopoly"
+              },
+              {
+                "letter": "B",
+                "text": "Oligopoly with a cartel"
+              },
+              {
+                "letter": "C",
+                "text": "Perfect competition"
+              },
+              {
+                "letter": "D",
+                "text": "Pure monopsony"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "economics-mcq-ss3-139",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.333,
+          "evidence_count": 1,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": null,
+              "reviewer_c": null
+            },
+            "agreement": 1,
+            "matches_scraped_key": false,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "economics-mcq-ss3-139",
+      "skill_id": "ss3.economics.market_structures.comparison",
+      "prompt": "Which market structure is most likely to have the lowest price and output efficiency for consumers?\n\nA) Monopoly\nB) Oligopoly with a cartel\nC) Perfect competition\nD) Pure monopsony",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "C) Perfect competition"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:economics-ssce-derived",
+          "source_id": "economics-mcq-ss3-155",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Adding indirect taxes and subtracting subsidies"
+              },
+              {
+                "letter": "B",
+                "text": "Adding depreciation"
+              },
+              {
+                "letter": "C",
+                "text": "Subtracting indirect taxes and adding subsidies"
+              },
+              {
+                "letter": "D",
+                "text": "Subtracting net income from abroad"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "economics-mcq-ss3-155",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": null,
+              "reviewer_c": "c"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "economics-mcq-ss3-155",
+      "skill_id": "ss3.economics.national_income.concepts",
+      "prompt": "National income at factor cost is obtained from NNP at market prices by:\n\nA) Adding indirect taxes and subtracting subsidies\nB) Adding depreciation\nC) Subtracting indirect taxes and adding subsidies\nD) Subtracting net income from abroad",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "C) Subtracting indirect taxes and adding subsidies"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:economics-ssce-derived",
+          "source_id": "economics-mcq-ss3-161",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "N3,000"
+              },
+              {
+                "letter": "B",
+                "text": "N300"
+              },
+              {
+                "letter": "C",
+                "text": "N30,000"
+              },
+              {
+                "letter": "D",
+                "text": "N120,000 billion"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "economics-mcq-ss3-161",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": null,
+              "reviewer_c": "a"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "economics-mcq-ss3-161",
+      "skill_id": "ss3.economics.national_income.per_capita",
+      "prompt": "If a country's national income is N600 billion and its population is 200 million, its per capita income is:\n\nA) N3,000\nB) N300\nC) N30,000\nD) N120,000 billion",
+      "item_type": "mcq_single",
+      "difficulty": 1.5,
+      "correct_answer": "A) N3,000"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:economics-ssce-derived",
+          "source_id": "economics-mcq-ss3-208",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Central bank"
+              },
+              {
+                "letter": "B",
+                "text": "Savings cooperative"
+              },
+              {
+                "letter": "C",
+                "text": "Insurance broker"
+              },
+              {
+                "letter": "D",
+                "text": "Merchant bank"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "economics-mcq-ss3-208",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": "d",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "economics-mcq-ss3-208",
+      "skill_id": "ss3.economics.banking_finance.other_institutions",
+      "prompt": "An institution that specialises in providing medium- and long-term finance and corporate advice to firms is a:\n\nA) Central bank\nB) Savings cooperative\nC) Insurance broker\nD) Merchant bank",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "D) Merchant bank"
+    }
+  ]
+}

@@ -1,5 +1,28 @@
 # Literature-in-English SS MCQ Diagnostic Bank — Phase 4 Go/No-Go Report
 
+## Update — Human sign-off complete & go-live (2026-06-01)
+
+**Status superseded:** the original "No deployment / pending_two_reviewer_signoff"
+status above reflects the state at Phase 4. As of **2026-06-01** the product owner
+confirmed the human **two-reviewer sign-off is complete** (subject-lead review +
+safeguarding review) and authorized making the Literature bank learner-available.
+
+What changed as a result:
+
+- **Served diagnostic** (313 machine_verified items) is now learner-visible
+  via the exam-prep chips in `frontend/src/learning/routes/StudentLearningHome.tsx`.
+- Per-item `provenance[0].metadata` on the served + source banks set to
+  `subject_lead_approved = true`, `safeguarding_reviewed = true`,
+  `review_state = "approved"`.
+- Source bank top-level `review_state` synced to `"approved"`.
+- **16 flagged_for_human items remain pending** — held out of the served pack,
+  left at `review_state = "pending_two_reviewer_signoff"`.
+- Rights/derived-content caveats (§5) are unchanged; sign-off asserts the human
+  review occurred, not that licensing was re-cleared.
+
+---
+
+
 **Status:** GO (real online verification complete) — decision recorded 2026-05-30. **No deployment performed.**
 **Scope:** Literature-in-English (SS3) only — subject 3 of 10 in the Pathfinder rollout. Working tree: `voicelive-api-salescoach` (branch `main`).
 **Date:** generated at end of Phases 1–3 + Stage 3.5 online execution.

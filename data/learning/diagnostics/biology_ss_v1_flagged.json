@@ -1,0 +1,667 @@
+{
+  "diagnostic_id": "ss3-biology-v1-flagged",
+  "tenant_id": "pilot-tenant",
+  "title": "SS3 Biology — Flagged for human review",
+  "subject": "biology",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "scrape:biology-ssce-derived",
+      "source_id": "biology-ss-mcq-v1",
+      "rule_id": "served_promote_v1",
+      "recency": null,
+      "confidence": 1.0,
+      "evidence_count": 8,
+      "metadata": {
+        "review_state": "pending_two_reviewer_signoff",
+        "subject_lead_approved": false,
+        "safeguarding_reviewed": false,
+        "note": "Derived SSCE-style questions; ensemble machine-verified only; below the human two-reviewer gate; staging exercise only; rights for child-facing reuse not cleared."
+      }
+    }
+  ],
+  "skills": [
+    {
+      "skill_id": "ss3.biology.cell_structure.multicellular",
+      "standard_id": "ss3.biology.waec-neco",
+      "name": "Cell Structure: Multicellular",
+      "description": "SS3 Biology — cell structure (multicellular)."
+    },
+    {
+      "skill_id": "ss3.biology.evolution_conservation.afforestation",
+      "standard_id": "ss3.biology.waec-neco",
+      "name": "Evolution Conservation: Afforestation",
+      "description": "SS3 Biology — evolution conservation (afforestation)."
+    },
+    {
+      "skill_id": "ss3.biology.excretion.egestion_excretion",
+      "standard_id": "ss3.biology.waec-neco",
+      "name": "Excretion: Egestion Excretion",
+      "description": "SS3 Biology — excretion (egestion excretion)."
+    },
+    {
+      "skill_id": "ss3.biology.excretion.homeostasis_link",
+      "standard_id": "ss3.biology.waec-neco",
+      "name": "Excretion: Homeostasis Link",
+      "description": "SS3 Biology — excretion (homeostasis link)."
+    },
+    {
+      "skill_id": "ss3.biology.growth_development.cotyledon",
+      "standard_id": "ss3.biology.waec-neco",
+      "name": "Growth Development: Cotyledon",
+      "description": "SS3 Biology — growth development (cotyledon)."
+    },
+    {
+      "skill_id": "ss3.biology.nutrient_cycles.balance_co2_o2",
+      "standard_id": "ss3.biology.waec-neco",
+      "name": "Nutrient Cycles: Balance Co2 O2",
+      "description": "SS3 Biology — nutrient cycles (balance co2 o2)."
+    },
+    {
+      "skill_id": "ss3.biology.nutrient_cycles.decay_carbon",
+      "standard_id": "ss3.biology.waec-neco",
+      "name": "Nutrient Cycles: Decay Carbon",
+      "description": "SS3 Biology — nutrient cycles (decay carbon)."
+    },
+    {
+      "skill_id": "ss3.biology.transport.platelets",
+      "standard_id": "ss3.biology.waec-neco",
+      "name": "Transport: Platelets",
+      "description": "SS3 Biology — transport (platelets)."
+    }
+  ],
+  "items": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:biology-ssce-derived",
+          "source_id": "biology-mcq-ss3-036",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Unicellular"
+              },
+              {
+                "letter": "B",
+                "text": "Acellular"
+              },
+              {
+                "letter": "C",
+                "text": "Prokaryotic"
+              },
+              {
+                "letter": "D",
+                "text": "Multicellular"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "biology-mcq-ss3-036",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": "d",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "biology-mcq-ss3-036",
+      "skill_id": "ss3.biology.cell_structure.multicellular",
+      "prompt": "Organisms such as humans and flowering plants that are made of many cells are:\n\nA) Unicellular\nB) Acellular\nC) Prokaryotic\nD) Multicellular",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "D) Multicellular"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:biology-ssce-derived",
+          "source_id": "biology-mcq-ss3-106",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Red blood cells"
+              },
+              {
+                "letter": "B",
+                "text": "Platelets"
+              },
+              {
+                "letter": "C",
+                "text": "White blood cells"
+              },
+              {
+                "letter": "D",
+                "text": "Plasma proteins"
+              }
+            ],
+            "mcq_correct_letter": "B"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "biology-mcq-ss3-106",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "b",
+              "reviewer_b": "b",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "biology-mcq-ss3-106",
+      "skill_id": "ss3.biology.transport.platelets",
+      "prompt": "The blood components responsible for clotting are the:\n\nA) Red blood cells\nB) Platelets\nC) White blood cells\nD) Plasma proteins",
+      "item_type": "mcq_single",
+      "difficulty": -3.0,
+      "correct_answer": "B) Platelets"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:biology-ssce-derived",
+          "source_id": "biology-mcq-ss3-152",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Contains urea"
+              },
+              {
+                "letter": "B",
+                "text": "Is removed by the kidney"
+              },
+              {
+                "letter": "C",
+                "text": "Comes from the blood"
+              },
+              {
+                "letter": "D",
+                "text": "Was never part of the body's metabolism"
+              }
+            ],
+            "mcq_correct_letter": "D"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "biology-mcq-ss3-152",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "d",
+              "reviewer_b": "d",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "biology-mcq-ss3-152",
+      "skill_id": "ss3.biology.excretion.egestion_excretion",
+      "prompt": "Passing out undigested food as faeces is NOT excretion because the waste:\n\nA) Contains urea\nB) Is removed by the kidney\nC) Comes from the blood\nD) Was never part of the body's metabolism",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "D) Was never part of the body's metabolism"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:biology-ssce-derived",
+          "source_id": "biology-mcq-ss3-157",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Water and salt balance of the blood (osmoregulation)"
+              },
+              {
+                "letter": "B",
+                "text": "Number of red cells made"
+              },
+              {
+                "letter": "C",
+                "text": "Rate of digestion"
+              },
+              {
+                "letter": "D",
+                "text": "Production of bile"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "biology-mcq-ss3-157",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "biology-mcq-ss3-157",
+      "skill_id": "ss3.biology.excretion.homeostasis_link",
+      "prompt": "Besides removing waste, the kidney helps the body by regulating the:\n\nA) Water and salt balance of the blood (osmoregulation)\nB) Number of red cells made\nC) Rate of digestion\nD) Production of bile",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "A) Water and salt balance of the blood (osmoregulation)"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:biology-ssce-derived",
+          "source_id": "biology-mcq-ss3-227",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Testa"
+              },
+              {
+                "letter": "B",
+                "text": "Radicle"
+              },
+              {
+                "letter": "C",
+                "text": "Cotyledon (seed leaf)"
+              },
+              {
+                "letter": "D",
+                "text": "Micropyle"
+              }
+            ],
+            "mcq_correct_letter": "C"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "biology-mcq-ss3-227",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "c",
+              "reviewer_b": null,
+              "reviewer_c": "c"
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "biology-mcq-ss3-227",
+      "skill_id": "ss3.biology.growth_development.cotyledon",
+      "prompt": "The part of a seed that stores food for the developing seedling is the:\n\nA) Testa\nB) Radicle\nC) Cotyledon (seed leaf)\nD) Micropyle",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "C) Cotyledon (seed leaf)"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:biology-ssce-derived",
+          "source_id": "biology-mcq-ss3-285",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Respiration during decay"
+              },
+              {
+                "letter": "B",
+                "text": "Photosynthesis"
+              },
+              {
+                "letter": "C",
+                "text": "Nitrogen fixation"
+              },
+              {
+                "letter": "D",
+                "text": "Transpiration"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "biology-mcq-ss3-285",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "biology-mcq-ss3-285",
+      "skill_id": "ss3.biology.nutrient_cycles.decay_carbon",
+      "prompt": "Carbon locked in dead plants and animals is released back to the air when decomposers carry out:\n\nA) Respiration during decay\nB) Photosynthesis\nC) Nitrogen fixation\nD) Transpiration",
+      "item_type": "mcq_single",
+      "difficulty": -3.0,
+      "correct_answer": "A) Respiration during decay"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:biology-ssce-derived",
+          "source_id": "biology-mcq-ss3-297",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Fairly balanced"
+              },
+              {
+                "letter": "B",
+                "text": "Falling to zero"
+              },
+              {
+                "letter": "C",
+                "text": "Always rising rapidly"
+              },
+              {
+                "letter": "D",
+                "text": "Completely unchanged forever"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "biology-mcq-ss3-297",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "biology-mcq-ss3-297",
+      "skill_id": "ss3.biology.nutrient_cycles.balance_co2_o2",
+      "prompt": "Photosynthesis and respiration together help to keep the atmospheric levels of carbon dioxide and oxygen:\n\nA) Fairly balanced\nB) Falling to zero\nC) Always rising rapidly\nD) Completely unchanged forever",
+      "item_type": "mcq_single",
+      "difficulty": 3.0,
+      "correct_answer": "A) Fairly balanced"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "scrape:biology-ssce-derived",
+          "source_id": "biology-mcq-ss3-353",
+          "rule_id": "mcq_scrape_v1",
+          "recency": null,
+          "confidence": 1.0,
+          "evidence_count": 0,
+          "metadata": {
+            "review_state": "pending_two_reviewer_signoff",
+            "subject_lead_approved": false,
+            "safeguarding_reviewed": false,
+            "verification_status": "flagged_for_human",
+            "answer_verified": false,
+            "source_url": null,
+            "licence": "derived",
+            "origin": "derived",
+            "mcq_options": [
+              {
+                "letter": "A",
+                "text": "Afforestation"
+              },
+              {
+                "letter": "B",
+                "text": "Deforestation"
+              },
+              {
+                "letter": "C",
+                "text": "Erosion"
+              },
+              {
+                "letter": "D",
+                "text": "Pollution"
+              }
+            ],
+            "mcq_correct_letter": "A"
+          }
+        },
+        {
+          "source": "model_consensus",
+          "source_id": "biology-mcq-ss3-353",
+          "rule_id": "ensemble_verify_v1",
+          "recency": null,
+          "confidence": 0.667,
+          "evidence_count": 2,
+          "metadata": {
+            "verification_status": "flagged_for_human",
+            "model_reviewers": [
+              "gpt-4o",
+              "gpt-5.2-chat",
+              "gpt-5.3-chat"
+            ],
+            "votes": {
+              "reviewer_a": "a",
+              "reviewer_b": "a",
+              "reviewer_c": null
+            },
+            "agreement": 2,
+            "matches_scraped_key": true,
+            "critic_pass": true,
+            "proposed_correct_option_id": null,
+            "review_state": "pending_two_reviewer_signoff"
+          }
+        }
+      ],
+      "item_id": "biology-mcq-ss3-353",
+      "skill_id": "ss3.biology.evolution_conservation.afforestation",
+      "prompt": "Planting trees in areas that were previously bare to restore forest cover is called:\n\nA) Afforestation\nB) Deforestation\nC) Erosion\nD) Pollution",
+      "item_type": "mcq_single",
+      "difficulty": 0.0,
+      "correct_answer": "A) Afforestation"
+    }
+  ]
+}
