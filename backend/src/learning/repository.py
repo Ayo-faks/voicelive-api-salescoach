@@ -133,6 +133,36 @@ class LearningRepository(Protocol):
     ) -> Dict[str, Any]:
         raise NotImplementedError
 
+    def record_misconception_attempts(
+        self,
+        tenant_id: str,
+        student_id: str,
+        *,
+        item_id: str,
+        skill_id: str,
+        topic: Optional[str],
+        misconception_codes: List[str],
+        occurred_at: Optional[str] = None,
+    ) -> int:
+        """Persist one episodic record per misconception code on a wrong attempt.
+
+        Returns the number of rows written (0 when ``misconception_codes`` is
+        empty). Episodic recall (Phase 5) reads these back, consent-gated, to
+        build cross-session ``the X trap caught you`` callbacks.
+        """
+        raise NotImplementedError
+
+    def list_misconception_attempts(
+        self, tenant_id: str, student_id: str, *, limit: int = 200
+    ) -> List[Dict[str, Any]]:
+        """Return episodic misconception attempts for a learner, newest first.
+
+        Each record carries ``misconception_code``, ``topic``, ``correct``
+        (always ``False``) and ``occurred_at`` so callers can feed them to
+        ``episodic_memory.build_memory_callback`` directly.
+        """
+        raise NotImplementedError
+
     def emit_xapi_statement(
         self, tenant_id: str, actor_id: str, statement: XAPIStatement, sink_status: str
     ) -> Dict[str, Any]:
@@ -211,6 +241,7 @@ class InMemoryLearningRepository:
         self.teacher_classes: Dict[tuple[str, str], set[str]] = {}
         self.skills: Dict[tuple[str, str], CatalogueSkill] = {}
         self.memory_consents: Dict[str, Dict[str, Any]] = {}
+        self.misconception_attempts: List[Dict[str, Any]] = []
 
     def save_student_response(self, response: StudentResponse, idempotency_key: Optional[str] = None) -> Dict[str, Any]:
         record = response.model_dump()
@@ -418,6 +449,50 @@ class InMemoryLearningRepository:
         }
         self.memory_consents[learner_user_id] = record
         return dict(record)
+
+    def record_misconception_attempts(
+        self,
+        tenant_id: str,
+        student_id: str,
+        *,
+        item_id: str,
+        skill_id: str,
+        topic: Optional[str],
+        misconception_codes: List[str],
+        occurred_at: Optional[str] = None,
+    ) -> int:
+        when = occurred_at or utc_now()
+        written = 0
+        for code in misconception_codes:
+            if not code:
+                continue
+            self.misconception_attempts.append(
+                {
+                    "id": str(uuid4()),
+                    "tenant_id": tenant_id,
+                    "student_id": student_id,
+                    "item_id": item_id,
+                    "skill_id": skill_id,
+                    "misconception_code": code,
+                    "topic": topic,
+                    "correct": False,
+                    "occurred_at": when,
+                    "created_at": utc_now(),
+                }
+            )
+            written += 1
+        return written
+
+    def list_misconception_attempts(
+        self, tenant_id: str, student_id: str, *, limit: int = 200
+    ) -> List[Dict[str, Any]]:
+        matches = [
+            dict(rec)
+            for rec in self.misconception_attempts
+            if rec.get("tenant_id") == tenant_id and rec.get("student_id") == student_id
+        ]
+        ordered = list(reversed(matches))
+        return ordered[: max(0, limit)]
 
     def emit_xapi_statement(
         self, tenant_id: str, actor_id: str, statement: XAPIStatement, sink_status: str
@@ -1298,6 +1373,71 @@ class LearningPostgresRepository:
             "created_at": created_at,
             "updated_at": now_iso,
         }
+
+    def record_misconception_attempts(
+        self,
+        tenant_id: str,
+        student_id: str,
+        *,
+        item_id: str,
+        skill_id: str,
+        topic: Optional[str],
+        misconception_codes: List[str],
+        occurred_at: Optional[str] = None,
+    ) -> int:
+        codes = [code for code in misconception_codes if code]
+        if not codes:
+            return 0
+        when = occurred_at or self.storage._utc_now()
+        now_iso = self.storage._utc_now()
+        rows = [
+            (str(uuid4()), tenant_id, student_id, item_id, skill_id, code, topic, when, now_iso)
+            for code in codes
+        ]
+        result: Dict[str, Any] = {"rowcount": 0}
+
+        def persist(connection: Any) -> None:
+            written = 0
+            for params in rows:
+                connection.execute(
+                    """
+                    INSERT INTO learner_misconception_attempts (
+                        id, tenant_id, student_id, item_id, skill_id,
+                        misconception_code, topic, occurred_at, created_at
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    params,
+                )
+                written += 1
+            result["rowcount"] = written
+
+        self.storage._execute_write(persist)
+        return result["rowcount"]
+
+    def list_misconception_attempts(
+        self, tenant_id: str, student_id: str, *, limit: int = 200
+    ) -> List[Dict[str, Any]]:
+        result: Dict[str, Any] = {"rows": []}
+
+        def fetch(connection: Any) -> None:
+            rows = connection.execute(
+                """
+                SELECT id, tenant_id, student_id, item_id, skill_id,
+                       misconception_code, topic, occurred_at, created_at
+                FROM learner_misconception_attempts
+                WHERE tenant_id = %s AND student_id = %s
+                ORDER BY occurred_at DESC, created_at DESC
+                LIMIT %s
+                """,
+                (tenant_id, student_id, max(0, limit)),
+            ).fetchall()
+            result["rows"] = [
+                {**dict(row), "correct": False} for row in rows
+            ]
+
+        self.storage._execute_write(fetch)
+        return result["rows"]
 
     def list_class_ids_for_teacher(self, tenant_id: str, user_id: str) -> set[str]:
         result: Dict[str, Any] = {"class_ids": set()}

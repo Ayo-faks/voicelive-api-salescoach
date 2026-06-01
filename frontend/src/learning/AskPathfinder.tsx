@@ -7,7 +7,7 @@
  * button into the existing voice frame pipeline.
  */
 import { useCallback, useState, type FormEvent } from 'react'
-import { makeStyles } from '@fluentui/react-components'
+import { makeStyles, mergeClasses } from '@fluentui/react-components'
 import {
   ChatBubbleLeftRightIcon,
   MicrophoneIcon,
@@ -24,7 +24,13 @@ type Citation = {
 
 type TranscriptEntry =
   | { role: 'user'; text: string; id: string }
-  | { role: 'assistant'; text: string; citations: Citation[]; id: string }
+  | {
+      role: 'assistant'
+      text: string
+      citations: Citation[]
+      grounded?: boolean
+      id: string
+    }
 
 const useStyles = makeStyles({
   fab: {
@@ -128,6 +134,28 @@ const useStyles = makeStyles({
     background: '#16161a',
     border: '1px solid rgba(255,255,255,0.06)',
   },
+  msgAssistantDeferred: {
+    borderTopColor: 'rgba(243, 197, 86, 0.35)',
+    borderRightColor: 'rgba(243, 197, 86, 0.35)',
+    borderBottomColor: 'rgba(243, 197, 86, 0.35)',
+    borderLeftColor: 'rgba(243, 197, 86, 0.35)',
+    borderTopStyle: 'dashed',
+    borderRightStyle: 'dashed',
+    borderBottomStyle: 'dashed',
+    borderLeftStyle: 'dashed',
+    background: 'rgba(243, 197, 86, 0.06)',
+  },
+  deferBadge: {
+    display: 'inline-block',
+    marginBottom: '6px',
+    padding: '1px 8px',
+    borderRadius: '999px',
+    fontSize: '11px',
+    fontWeight: 600,
+    letterSpacing: '0.02em',
+    color: '#f3c556',
+    background: 'rgba(243, 197, 86, 0.12)',
+  },
   citations: {
     marginTop: '6px',
     display: 'flex',
@@ -205,6 +233,14 @@ export function AskPathfinder({
       const question = draft.trim()
       if (!question || busy) return
       const userId = `u-${Date.now().toString(36)}`
+      // Maintain the dig-deeper thread: prior turns (before this question) give
+      // the model the running context to ground multi-turn follow-ups.
+      const thread = transcript.map(entry => ({
+        role: entry.role,
+        text: entry.text,
+      }))
+      const focusItem = learner.focusItem
+      const setup = learner.learnerSetup
       setTranscript(prev => [
         ...prev,
         { role: 'user', text: question, id: userId },
@@ -233,11 +269,39 @@ export function AskPathfinder({
                   label: learner.lastWrongAnswer.label,
                 }
               : null,
+            // Dig-Deeper anchoring: the item the learner is on (if any), the
+            // running thread, and the subject/year for curriculum retrieval.
+            focus_item: focusItem
+              ? {
+                  stem: focusItem.stem,
+                  options: focusItem.options,
+                  chosen: focusItem.chosen,
+                  correct: focusItem.correct,
+                  rationale: focusItem.rationale,
+                  skill_id: focusItem.skillId,
+                  misconception: focusItem.misconception,
+                  scored: focusItem.scored,
+                }
+              : null,
+            learner_setup: setup
+              ? { subject: setup.subject, year_group: setup.yearGroup }
+              : null,
+            // Episodic recall (Phase 5): recent misconception-tagged wrong
+            // attempts as working memory. The backend gates this on memory
+            // consent before turning it into a cross-session trap callback.
+            attempt_history: learner.attemptHistory.map(a => ({
+              misconception_code: a.misconceptionCode,
+              topic: a.topic,
+              correct: a.correct ?? false,
+              occurred_at: a.occurredAt,
+            })),
+            thread,
           }),
         })
         const body = (await resp.json()) as {
           answer?: string
           citations?: Citation[]
+          grounded?: boolean
           error?: string
         }
         const text =
@@ -250,6 +314,7 @@ export function AskPathfinder({
             role: 'assistant',
             text,
             citations: body.citations ?? [],
+            grounded: body.grounded,
             id: `a-${Date.now().toString(36)}`,
           },
         ])
@@ -267,7 +332,7 @@ export function AskPathfinder({
         setBusy(false)
       }
     },
-    [busy, draft, endpoint, learner]
+    [busy, draft, endpoint, learner, transcript]
   )
 
   return (
@@ -319,7 +384,22 @@ export function AskPathfinder({
                   {entry.text}
                 </div>
               ) : (
-                <div key={entry.id} className={styles.msgAssistant}>
+                <div
+                  key={entry.id}
+                  className={mergeClasses(
+                    styles.msgAssistant,
+                    entry.grounded === false && styles.msgAssistantDeferred
+                  )}
+                  data-grounded={entry.grounded === false ? 'false' : 'true'}
+                >
+                  {entry.grounded === false && (
+                    <span
+                      className={styles.deferBadge}
+                      data-testid="ask-pathfinder-defer-badge"
+                    >
+                      No grounded source
+                    </span>
+                  )}
                   {entry.text}
                   {entry.citations.length > 0 && (
                     <div className={styles.citations}>

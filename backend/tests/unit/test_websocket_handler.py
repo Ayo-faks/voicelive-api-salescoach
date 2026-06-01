@@ -350,6 +350,99 @@ class TestVoiceProxyHandler:
         assert handled_again is True
         azure_conn.send.assert_awaited_once()
 
+    def test_profile_instruction_block_omits_focus_when_absent(self):
+        """Without a focus item the learner instructions have no Dig-Deeper block."""
+        handler = VoiceProxyHandler(Mock())
+        block = handler._build_profile_instruction_block(
+            get_profile("learner"),
+            AgentProfileContext(scope="learner", child_id="stu-1"),
+        )
+        assert "DIG-DEEPER FOCUS ITEM" not in block
+        assert "SESSION CONTEXT" in block
+
+    def test_profile_instruction_block_anchors_on_focus_item(self):
+        """A focus item is injected as an anchor with Socratic guidance when unscored."""
+        handler = VoiceProxyHandler(Mock())
+        context = AgentProfileContext(
+            scope="learner",
+            child_id="stu-1",
+            subject="Mathematics",
+            class_year="SSS2",
+            focus_stem="Differentiate y = 3x^2 with respect to x.",
+            focus_skill_id="differentiation",
+            focus_misconception="forgetting to multiply by the exponent",
+            focus_scored=False,
+        )
+        block = handler._build_profile_instruction_block(get_profile("learner"), context)
+        assert "DIG-DEEPER FOCUS ITEM" in block
+        assert "Differentiate y = 3x^2" in block
+        assert "differentiation" in block
+        assert "forgetting to multiply by the exponent" in block
+        # Unscored -> stay Socratic, never reveal the answer.
+        assert "Socratic" in block
+        assert "never reveal the final answer" in block
+
+    def test_profile_instruction_block_allows_full_explanation_when_scored(self):
+        """A scored focus item permits a full worked explanation."""
+        handler = VoiceProxyHandler(Mock())
+        context = AgentProfileContext(
+            scope="learner",
+            child_id="stu-1",
+            focus_stem="Differentiate y = 3x^2.",
+            focus_scored=True,
+        )
+        block = handler._build_profile_instruction_block(get_profile("learner"), context)
+        assert "already scored" in block
+        assert "worked solution" in block
+
+    def test_profile_instruction_block_injects_grounded_sources(self, monkeypatch):
+        """When retrieval returns hits, they are injected as cite-able sources."""
+        import src.services.websocket_handler as mod
+
+        class _Node:
+            body_markdown = "Multiply each term by its exponent, then reduce the power by one."
+
+        class _Hit:
+            node = _Node()
+
+        class _Retriever:
+            similarity_threshold = 0.5
+
+        monkeypatch.setattr(mod, "_get_learner_focus_retriever", lambda: _Retriever())
+        monkeypatch.setattr(
+            "src.learning.rag.retrieve_or_refuse",
+            lambda *args, **kwargs: ([_Hit()], None),
+        )
+
+        handler = VoiceProxyHandler(Mock())
+        context = AgentProfileContext(
+            scope="learner",
+            child_id="stu-1",
+            subject="Mathematics",
+            class_year="SSS2",
+            focus_stem="Differentiate y = 3x^2.",
+            focus_scored=True,
+        )
+        block = handler._build_profile_instruction_block(get_profile("learner"), context)
+        assert "GROUNDING SOURCES" in block
+        assert "[S1] Multiply each term by its exponent" in block
+
+    def test_profile_instruction_block_defers_when_no_sources(self, monkeypatch):
+        """No retriever/hits -> instruct the model to defer rather than invent."""
+        import src.services.websocket_handler as mod
+
+        monkeypatch.setattr(mod, "_get_learner_focus_retriever", lambda: None)
+        handler = VoiceProxyHandler(Mock())
+        context = AgentProfileContext(
+            scope="learner",
+            child_id="stu-1",
+            focus_stem="Differentiate y = 3x^2.",
+            focus_scored=True,
+        )
+        block = handler._build_profile_instruction_block(get_profile("learner"), context)
+        assert "No curriculum source was retrieved" in block
+        assert "GROUNDING SOURCES" not in block
+
     @patch("src.services.websocket_handler.config")
     def test_build_session_config_uses_legacy_vad_by_default(self, mock_config):
         """With the conversational mic flag off (default), turn_detection stays on the legacy semantic VAD."""

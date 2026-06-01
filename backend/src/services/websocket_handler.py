@@ -78,6 +78,43 @@ SESSION_UPDATE_TYPE = "session.update"
 PROXY_CONNECTED_TYPE = "proxy.connected"
 ERROR_TYPE = "error"
 
+# Learner Dig-Deeper grounding: map the realtime taxonomy onto the curriculum
+# corpus axes so a focus item can be pre-warmed against the bundled wiki seeds
+# before the first tool call. Mirrors the REST/turn-based planner mapping.
+_FOCUS_SUBJECT_TO_CORPUS = {"Mathematics": "maths", "English Language": "english"}
+_FOCUS_CLASS_TO_YEAR_GROUP = {
+    "JSS2": "JSS3",
+    "JSS3": "JSS3",
+    "SSS1": "SS3",
+    "SSS2": "SS3",
+    "SSS3": "SS3",
+}
+_LEARNER_FOCUS_RETRIEVER: Any = None
+_LEARNER_FOCUS_RETRIEVER_LOADED = False
+
+
+def _get_learner_focus_retriever() -> Any:
+    """Lazily build (and cache) the shared curriculum retriever for grounding.
+
+    Loaded on first learner focus injection only — never at import — so the
+    bundled wiki corpus is not read for practice sessions. Returns ``None`` on
+    any failure so grounding degrades gracefully (the model still has the focus
+    anchor + get_next_card tool).
+    """
+    global _LEARNER_FOCUS_RETRIEVER, _LEARNER_FOCUS_RETRIEVER_LOADED
+    if _LEARNER_FOCUS_RETRIEVER_LOADED:
+        return _LEARNER_FOCUS_RETRIEVER
+    _LEARNER_FOCUS_RETRIEVER_LOADED = True
+    try:
+        from src.learning.rag import build_default_retriever
+
+        _LEARNER_FOCUS_RETRIEVER = build_default_retriever()
+    except Exception:  # noqa: BLE001
+        logger.exception("Failed to build learner focus retriever; grounding disabled")
+        _LEARNER_FOCUS_RETRIEVER = None
+    return _LEARNER_FOCUS_RETRIEVER
+
+
 # Stage 8 structured_conversation custom event types (Wulo-namespaced so they
 # never collide with Azure Realtime event types).
 WULO_TALLY_CONFIGURE_TYPE = "wulo.tally_configure"
@@ -361,12 +398,21 @@ class VoiceProxyHandler:
             return value or default
 
         scope = first("scope", "practice") or "practice"
+        scored_raw = first("focus_scored")
+        focus_scored: bool | None = None
+        if scored_raw is not None:
+            focus_scored = scored_raw.strip().lower() in {"1", "true", "yes", "on"}
         return AgentProfileContext(
             scope=scope,
             child_id=first("child_id"),
             exam=first("exam"),
             class_year=first("class_year"),
             subject=first("subject"),
+            focus_stem=first("focus_stem"),
+            focus_skill_id=first("focus_skill_id"),
+            focus_topic=first("focus_topic"),
+            focus_misconception=first("focus_misconception"),
+            focus_scored=focus_scored,
         )
 
     async def _get_agent_id_from_client(self, client_ws: simple_websocket.ws.Server) -> Optional[str]:
@@ -568,7 +614,104 @@ class VoiceProxyHandler:
             f"- class_year: {profile_context.class_year or 'default'}",
             f"- subject: {profile_context.subject or 'default'}",
         ]
-        return f"{profile.system_prompt.strip()}\n\n" + "\n".join(context_lines)
+        block = f"{profile.system_prompt.strip()}\n\n" + "\n".join(context_lines)
+        focus_block = self._build_focus_instruction_block(profile_context)
+        if focus_block:
+            block = f"{block}\n\n{focus_block}"
+        return block
+
+    def _build_focus_instruction_block(
+        self,
+        profile_context: AgentProfileContext,
+    ) -> str | None:
+        """Anchor the realtime tutor on the learner's Dig-Deeper focus item.
+
+        When the learner arrives on a specific question we (a) state the item so
+        the model stays on it, (b) keep guidance Socratic while the item is
+        unscored (never hand over the answer mid-assessment), and (c) pre-warm
+        the curriculum corpus so factual claims are grounded BEFORE the first
+        ``get_next_card`` tool call. Every injected source traces to a retrieval
+        hit; if nothing grounds we still anchor on the item and let the model
+        defer rather than invent.
+        """
+        stem = (profile_context.focus_stem or "").strip()
+        skill_id = (profile_context.focus_skill_id or "").strip()
+        topic = (profile_context.focus_topic or "").strip()
+        misconception = (profile_context.focus_misconception or "").strip()
+        if not (stem or skill_id or topic):
+            return None
+
+        lines: List[str] = ["DIG-DEEPER FOCUS ITEM:"]
+        if stem:
+            lines.append(f"- The learner is working through: {stem}")
+        if topic:
+            lines.append(f"- Topic: {topic}")
+        if skill_id:
+            lines.append(f"- Skill: {skill_id}")
+        if misconception:
+            lines.append(f"- Watch for this misconception: {misconception}")
+        if profile_context.focus_scored is False:
+            lines.append(
+                "- This item is NOT yet scored: stay Socratic — guide with hints "
+                "and questions, never reveal the final answer until it is scored."
+            )
+        elif profile_context.focus_scored is True:
+            lines.append(
+                "- This item is already scored: you may explain it fully and walk "
+                "through the worked solution."
+            )
+
+        sources = self._retrieve_focus_sources(profile_context, query=stem or topic or skill_id)
+        if sources:
+            lines.append("")
+            lines.append(
+                "GROUNDING SOURCES (cite as [S1], [S2]; state only what these "
+                "support — if a fact is not here, say you are not sure):"
+            )
+            for index, snippet in enumerate(sources, start=1):
+                lines.append(f"[S{index}] {snippet}")
+        else:
+            lines.append("")
+            lines.append(
+                "No curriculum source was retrieved for this item — explain only "
+                "from the item itself and say you are not sure rather than guess."
+            )
+        return "\n".join(lines)
+
+    def _retrieve_focus_sources(
+        self,
+        profile_context: AgentProfileContext,
+        *,
+        query: str,
+        limit: int = 3,
+    ) -> List[str]:
+        query = (query or "").strip()
+        if not query:
+            return []
+        retriever = _get_learner_focus_retriever()
+        if retriever is None:
+            return []
+        subject = _FOCUS_SUBJECT_TO_CORPUS.get((profile_context.subject or "").strip())
+        year_group = _FOCUS_CLASS_TO_YEAR_GROUP.get((profile_context.class_year or "").strip())
+        try:
+            from src.learning.rag import retrieve_or_refuse
+
+            hits, _refusal = retrieve_or_refuse(
+                retriever,
+                query,
+                subject=subject,  # type: ignore[arg-type]
+                year_group=year_group,  # type: ignore[arg-type]
+            )
+        except Exception:  # noqa: BLE001
+            logger.exception("Focus grounding retrieval failed; continuing ungrounded")
+            return []
+        snippets: List[str] = []
+        for hit in hits[:limit]:
+            body = str(getattr(getattr(hit, "node", None), "body_markdown", "") or "").strip()
+            if body:
+                snippets.append(body)
+        return snippets
+
 
     def _combine_instructions(self, base_instructions: Any, personalization_block: Optional[str]) -> Optional[str]:
         base_text = str(base_instructions or "").strip()

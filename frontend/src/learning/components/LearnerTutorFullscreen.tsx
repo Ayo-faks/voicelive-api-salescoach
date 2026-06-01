@@ -4,6 +4,7 @@ import { MicrophoneIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useAudioPlayer } from '../../hooks/useAudioPlayer'
 import { useRecorder } from '../../hooks/useRecorder'
 import type { LearnerVoiceCard } from '../api'
+import type { LearnerFocusItem } from '../contexts/LearnerContext'
 import { LearnerVoiceCardRenderer } from './LearnerVoiceCard'
 
 const MIC_DENIED_COPY =
@@ -170,6 +171,12 @@ export interface LearnerTutorFullscreenProps {
   exam?: string
   classYear?: string
   subject?: string
+  /**
+   * Dig-Deeper focus item the learner arrived on. When present the realtime
+   * voice session is anchored and grounded on this question before the first
+   * tool call, mirroring the text drawer path.
+   */
+  focusItem?: LearnerFocusItem | null
   onVoiceStateChange?: (snapshot: TutorVoiceSnapshot) => void
 }
 
@@ -187,9 +194,10 @@ function buildLearnerVoiceUrl({
   exam,
   classYear,
   subject,
+  focusItem,
 }: Pick<
   LearnerTutorFullscreenProps,
-  'childId' | 'exam' | 'classYear' | 'subject'
+  'childId' | 'exam' | 'classYear' | 'subject' | 'focusItem'
 >): string {
   const endpoint = '/ws/voice'
   const isLocalDevServer = location.port !== '' && location.port !== '8000'
@@ -203,6 +211,15 @@ function buildLearnerVoiceUrl({
   if (exam) url.searchParams.set('exam', exam)
   if (classYear) url.searchParams.set('class_year', classYear)
   if (subject) url.searchParams.set('subject', subject)
+  if (focusItem) {
+    if (focusItem.stem) url.searchParams.set('focus_stem', focusItem.stem)
+    if (focusItem.skillId)
+      url.searchParams.set('focus_skill_id', focusItem.skillId)
+    if (focusItem.misconception)
+      url.searchParams.set('focus_misconception', focusItem.misconception)
+    if (typeof focusItem.scored === 'boolean')
+      url.searchParams.set('focus_scored', focusItem.scored ? 'true' : 'false')
+  }
   return url.toString()
 }
 
@@ -233,6 +250,7 @@ export function LearnerTutorFullscreen({
   exam,
   classYear,
   subject,
+  focusItem,
   onVoiceStateChange,
 }: LearnerTutorFullscreenProps): JSX.Element | null {
   const styles = useStyles()
@@ -290,8 +308,8 @@ export function LearnerTutorFullscreen({
   )
 
   const wsUrl = useMemo(
-    () => buildLearnerVoiceUrl({ childId, exam, classYear, subject }),
-    [childId, exam, classYear, subject]
+    () => buildLearnerVoiceUrl({ childId, exam, classYear, subject, focusItem }),
+    [childId, exam, classYear, subject, focusItem]
   )
 
   useEffect(() => {

@@ -18,6 +18,14 @@ class AgentProfileContext:
     subject: str | None = None
     last_card_id: str | None = None
     last_kind: str | None = None
+    # Dig-Deeper focus item the learner arrived on (optional). When present the
+    # realtime voice session is anchored on this question and grounded on it
+    # before the first tool call, mirroring the text drawer path.
+    focus_stem: str | None = None
+    focus_skill_id: str | None = None
+    focus_topic: str | None = None
+    focus_misconception: str | None = None
+    focus_scored: bool | None = None
 
 
 @dataclass(frozen=True)

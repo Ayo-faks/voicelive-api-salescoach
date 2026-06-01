@@ -8,9 +8,26 @@ from typing import Any, Mapping
 from azure.ai.voicelive.models import FunctionTool
 
 from src.learning.learner_voice import LearnerVoiceTurnPlanner, LearnerVoiceTurnRequest
+from src.learning.learner_voice_llm import build_default_voice_planner
 from src.services.voice_agent_profiles.base import AgentProfile, AgentProfileContext
 
 _PLANNER = LearnerVoiceTurnPlanner()
+
+# Lazily-resolved planner for the realtime tool. Built on first use (not at
+# import) so the feature flag / Azure config are read at connection time and we
+# never construct the OpenAI client just by importing this module. When the
+# voice LLM flag is on it is a ``ModelLearnerVoicePlanner`` that re-authors the
+# wrong-answer explanation moment with grounded RAG; otherwise it stays the
+# deterministic ``_PLANNER``. Both expose ``next_turn``.
+_RESOLVED_PLANNER: LearnerVoiceTurnPlanner | None = None
+
+
+def _resolve_planner() -> LearnerVoiceTurnPlanner:
+    global _RESOLVED_PLANNER
+    if _RESOLVED_PLANNER is None:
+        _RESOLVED_PLANNER = build_default_voice_planner(_PLANNER)
+    return _RESOLVED_PLANNER
+
 
 LEARNER_SYSTEM_PROMPT = """
 You are Pathfinder, a warm and encouraging Nigerian tutor for a learner.
@@ -100,7 +117,7 @@ def _get_next_card(arguments: Mapping[str, Any], context: AgentProfileContext) -
         answer_option_id=answer_choice,
         advance=bool(prev_card_id and not answer_choice),
     )
-    response = _PLANNER.next_turn(request)
+    response = _resolve_planner().next_turn(request)
     payload = _as_json_dict(response)
     card = payload.get("card")
     if isinstance(card, dict):

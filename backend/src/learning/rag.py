@@ -262,3 +262,41 @@ def load_wiki_corpus(path: Union[str, Path]) -> WikiCorpus:
         payload.setdefault("provenance", default_provenance)
         nodes.append(WikiNode(**payload))
     return WikiCorpus(nodes)
+
+
+def _default_corpus_paths() -> Tuple[Path, ...]:
+    """Resolve the bundled wiki seed paths without importing the heavy api module."""
+    module_path = Path(__file__).resolve()
+    data_candidates = [
+        module_path.parents[3] / "data" / "learning",
+        module_path.parents[2] / "data" / "learning",
+    ]
+    learning_dir = next((c for c in data_candidates if c.exists()), data_candidates[0])
+    wiki_dir = learning_dir / "wiki"
+    return (
+        wiki_dir / "jss3_maths_wiki_seed.json",
+        wiki_dir / "english_jss3_ss3_wiki_seed.json",
+    )
+
+
+def build_default_retriever(
+    *,
+    similarity_threshold: float = DEFAULT_SIMILARITY_THRESHOLD,
+    top_k: int = DEFAULT_TOP_K,
+) -> RagRetriever:
+    """Build a :class:`RagRetriever` over the bundled maths + english seeds.
+
+    Shared by the REST tutor (``LearningApi``) and the realtime learner voice
+    profile so both ground on the same corpus without duplicating the loading
+    logic. Missing seed files are skipped — an empty corpus simply yields no
+    grounding (callers fall back to the item rationale / deterministic path).
+    """
+    merged_nodes: List[WikiNode] = []
+    for path in _default_corpus_paths():
+        if path.exists():
+            merged_nodes.extend(load_wiki_corpus(path).nodes())
+    return RagRetriever(
+        WikiCorpus(merged_nodes),
+        similarity_threshold=similarity_threshold,
+        top_k=top_k,
+    )

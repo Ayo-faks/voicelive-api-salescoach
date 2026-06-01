@@ -16,6 +16,7 @@ layer via row-level security (`assert_learning_rls_contract_active`).
 from __future__ import annotations
 
 import json
+import logging
 import os
 import threading
 from datetime import datetime, timezone
@@ -36,6 +37,7 @@ from src.learning.diagnostic import (
     normalize_answer,
 )
 from src.learning.errors import LearningApiError
+from src.learning.episodic_memory import build_memory_callback
 from src.learning.lti import (
     JWKSProvider,
     LTIPlatformConfig,
@@ -93,6 +95,7 @@ from src.learning.voice import FlaskSockVoiceTransportAdapter, VoiceFrame
 from src.learning.learner_voice import (
     LearnerVoiceTurnPlanner,
     LearnerVoiceTurnRequest,
+    LearnerVoiceTurnResponse,
 )
 from src.learning.xapi import (
     ApprovalEvent,
@@ -121,6 +124,9 @@ PILOT_TEACHER_ID = "pilot-jss2-teacher-001"
 PILOT_DIAGNOSTIC_ITEMS_PER_RUN = 12
 PILOT_KPI_TENANT_ID = "tenant-phase-4"
 VOICE_FEATURE_FLAG_ENV = "PATHFINDER_VOICE_ENABLED"
+
+logger = logging.getLogger(__name__)
+
 PILOT_STUDENT_FACTS = (
     {
         "fact_id": "student-fact-pilot-tobi-ratio-worked-examples",
@@ -438,6 +444,47 @@ class LearningApi:
                 top_k=DEFAULT_TOP_K,
             )
 
+        # Upgrade the deterministic assistant to the model-backed Dig-Deeper
+        # tutor when the caller didn't inject a provider AND the LLM flag is on
+        # and Azure OpenAI is configured. The deterministic provider stays as
+        # the fallback (no creds / no grounding / error / turn-cap). Failure to
+        # build the model provider must never break construction.
+        if assistant_provider is None:
+            try:
+                from src.config import get_config
+                from src.learning.assistant_llm import ModelAssistantProvider
+
+                settings = get_config()
+                model_provider = ModelAssistantProvider.from_settings(
+                    settings,
+                    rag_retriever=self.rag_retriever,
+                    fallback=self.assistant_provider,
+                )
+                if model_provider is not None:
+                    self.assistant_provider = model_provider
+            except Exception:  # noqa: BLE001
+                logger.exception("Failed to build model assistant provider; using deterministic fallback")
+
+        # Upgrade the deterministic learner voice planner to the model-backed
+        # turn planner (Phase 3) under the same conditions: flag on + Azure
+        # OpenAI configured. It re-authors only the explanation teaching moment
+        # and delegates everything else to the deterministic planner, which
+        # also stays as the fallback on any error.
+        try:
+            from src.config import get_config
+            from src.learning.learner_voice_llm import ModelLearnerVoicePlanner
+
+            settings = get_config()
+            voice_model_planner = ModelLearnerVoicePlanner.from_settings(
+                settings,
+                deterministic=self.learner_voice_planner,
+                rag_retriever=self.rag_retriever,
+            )
+            if voice_model_planner is not None:
+                self.learner_voice_planner = voice_model_planner
+        except Exception:  # noqa: BLE001
+            logger.exception("Failed to build model learner voice planner; using deterministic fallback")
+
         # W8 — Spaced-retrieval Web Push.
         self.notifications_repository: NotificationsRepository = (
             notifications_repository or InMemoryNotificationsRepository()
@@ -720,6 +767,26 @@ class LearningApi:
         statement = mastery_event_to_xapi(mastery_event)
         self.repository.save_mastery_event(mastery_event, statement)
         self._emit_xapi(state.tenant_id, state.student_id, statement)
+
+        # Episodic recall (Phase 5): persist the item's misconception tags on a
+        # wrong attempt so cross-session trap callbacks survive across devices.
+        # Consent is enforced at *read* time (ask_assistant); writing the raw
+        # diagnostic signal mirrors how mastery events are always recorded.
+        if not correct:
+            recorder = getattr(self.repository, "record_misconception_attempts", None)
+            codes = list(getattr(current_item, "misconception_codes", []) or [])
+            if callable(recorder) and codes:
+                try:
+                    recorder(
+                        state.tenant_id,
+                        state.student_id,
+                        item_id=current_item.item_id,
+                        skill_id=current_item.skill_id,
+                        topic=getattr(current_item, "topic", None),
+                        misconception_codes=codes,
+                    )
+                except Exception:  # noqa: BLE001 — episodic recall is best-effort.
+                    pass
 
         state.current_index += 1
         next_item_payload: Optional[Dict[str, Any]] = None
@@ -1780,6 +1847,56 @@ class LearningApi:
             "offline_fallback": self.voice_adapter.offline_fallback,
         }
 
+    def _memory_consent_allowed(self, user_id: Any) -> bool:
+        """Resolve whether long-term memory may be used for this learner.
+
+        Returns ``True`` only when the learner has an accepted memory-consent
+        record. Missing user, missing record, or a repository that does not
+        implement consent → ``False`` (privacy-safe default).
+        """
+        if not user_id:
+            return False
+        try:
+            record = self.repository.get_memory_consent(str(user_id))
+        except Exception:  # noqa: BLE001
+            return False
+        if not record:
+            return False
+        # Consent records are stored as accepted_at / withdrawn_at timestamps
+        # (see LearningRepository.upsert_memory_consent). Treat a record as
+        # allowing memory only when it was accepted and not later withdrawn.
+        # Tolerate a normalised ``accepted`` boolean if a provider supplies one.
+        if "accepted" in record:
+            return bool(record.get("accepted"))
+        return bool(record.get("accepted_at")) and not record.get("withdrawn_at")
+
+    def _load_episodic_attempts(
+        self, payload: Mapping[str, Any], *, memory_allowed: bool
+    ) -> List[Dict[str, Any]]:
+        """Resolve episodic attempt history for the memory callback.
+
+        Prefers frontend-supplied working memory (``attempt_history``); when
+        absent and consent is granted, falls back to the persisted episodic
+        store keyed by ``student_id``/``tenant_id`` so recall works across
+        sessions and devices. Returns ``[]`` whenever memory is not allowed.
+        """
+        supplied = payload.get("attempt_history")
+        if supplied:
+            return list(supplied)
+        if not memory_allowed:
+            return []
+        student_id = payload.get("student_id") or payload.get("user_id")
+        tenant_id = payload.get("tenant_id")
+        if not student_id or not tenant_id:
+            return []
+        reader = getattr(self.repository, "list_misconception_attempts", None)
+        if not callable(reader):
+            return []
+        try:
+            return list(reader(str(tenant_id), str(student_id)))
+        except Exception:  # noqa: BLE001 — recall is best-effort, never fatal.
+            return []
+
     def ask_assistant(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
         """Unified Ask Pathfinder entrypoint — text in, deterministic answer out.
 
@@ -1791,6 +1908,10 @@ class LearningApi:
         question = str(payload.get("question") or "").strip()
         if not question:
             raise LearningApiError("question is required", status_code=400)
+        memory_allowed = self._memory_consent_allowed(payload.get("user_id"))
+        attempt_history = self._load_episodic_attempts(
+            payload, memory_allowed=memory_allowed
+        )
         context: Dict[str, Any] = {
             "user_id": payload.get("user_id"),
             "weak_topics": payload.get("weak_topics") or [],
@@ -1798,12 +1919,35 @@ class LearningApi:
             "career_fits": payload.get("career_fits") or [],
             "last_wrong_answer": payload.get("last_wrong_answer") or {},
             "learner_setup": payload.get("learner_setup") or {},
+            # Dig-Deeper focus anchoring (additive). The deterministic provider
+            # ignores these; a model-backed provider grounds the turn on the
+            # current question and the running thread. See learning/tutor.py.
+            "focus_item": payload.get("focus_item") or {},
+            "thread": payload.get("thread") or [],
+            # Consent-gated long-term memory: when the learner has not accepted
+            # memory, the model provider drops episodic/semantic profile signals
+            # and runs on working memory + retrieval only.
+            "memory_allowed": memory_allowed,
+            "attempt_history": attempt_history,
+            # Episodic recall (Phase 5): a cross-session callback for recurring
+            # misconception traps. ``build_memory_callback`` is itself consent-
+            # gated, so this is ``None`` whenever memory is not allowed.
+            "memory_callback": build_memory_callback(
+                attempt_history, memory_allowed=memory_allowed
+            ),
         }
         reply = self.assistant_provider.ask(question, context)
-        return {
+        result: Dict[str, Any] = {
             "answer": str(reply.get("answer", "")),
             "citations": list(reply.get("citations") or []),
         }
+        # Additive grounding signal: model-backed provider reports whether the
+        # reply was grounded on curriculum authority (False on defer/safety/
+        # turn-cap) so the drawer can render those states distinctly. The
+        # deterministic provider omits it, so we only surface it when present.
+        if "grounded" in reply:
+            result["grounded"] = bool(reply.get("grounded"))
+        return result
 
     def submit_voice_frame(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
         if not self.voice_enabled():
@@ -1864,6 +2008,34 @@ class LearningApi:
         except Exception as exc:  # pydantic validation
             raise LearningApiError(f"invalid voice turn: {exc}", status_code=400) from exc
         response = self.learner_voice_planner.next_turn(request_model)
+        # Episodic recall parity (Phase 5): open the voice session with the same
+        # consent-gated cross-session trap nudge the text tutor uses. The
+        # deterministic planner bakes its greeting into the *first* card's speak
+        # (an mcq-tap with ``prefix_greeting=True``), so we inject on the opening
+        # turn — identified by the absence of a prior card — and only prefix that
+        # card. Mid-session teaching cards stay untouched, so the callback is
+        # never spoken twice. ``build_memory_callback`` is itself consent-gated
+        # and safeguarding-screened.
+        is_opening_turn = (
+            request_model.last_card_id is None or request_model.last_kind is None
+        )
+        card = getattr(response, "card", None)
+        if is_opening_turn and card is not None and getattr(card, "speak", None):
+            child_id = request_model.child_id
+            tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+            memory_allowed = self._memory_consent_allowed(child_id)
+            attempts = self._load_episodic_attempts(
+                {"student_id": child_id, "tenant_id": tenant_id, "user_id": child_id},
+                memory_allowed=memory_allowed,
+            )
+            callback = build_memory_callback(attempts, memory_allowed=memory_allowed)
+            if callback:
+                response = LearnerVoiceTurnResponse(
+                    card=card.model_copy(
+                        update={"speak": f"{callback} {card.speak}".strip()}
+                    ),
+                    session_complete=response.session_complete,
+                )
         return response.model_dump()
 
     def build_learner_plan(self, payload: Mapping[str, Any]) -> Dict[str, Any]:

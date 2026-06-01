@@ -98,6 +98,31 @@ describe('LearnerTutorFullscreen', () => {
     expect(recorderMock.toggleRecording).toHaveBeenCalledTimes(1)
   })
 
+  it('threads the Dig-Deeper focus item into the websocket URL', async () => {
+    render(
+      <LearnerTutorFullscreen
+        open={true}
+        onClose={() => {}}
+        childId="stu-1"
+        subject="Mathematics"
+        classYear="SSS2"
+        focusItem={{
+          stem: 'Differentiate y = 3x^2.',
+          skillId: 'differentiation',
+          misconception: 'forgetting the exponent multiplier',
+          scored: false,
+        }}
+      />
+    )
+
+    await waitFor(() => expect(FakeWebSocket.instances).toHaveLength(1))
+    const url = FakeWebSocket.instances[0].url
+    expect(url).toContain('focus_stem=Differentiate')
+    expect(url).toContain('focus_skill_id=differentiation')
+    expect(url).toContain('focus_misconception=')
+    expect(url).toContain('focus_scored=false')
+  })
+
   it('renders learner cards emitted by the backend tool bridge', async () => {
     render(
       <LearnerTutorFullscreen open={true} onClose={() => {}} childId="stu-1" />

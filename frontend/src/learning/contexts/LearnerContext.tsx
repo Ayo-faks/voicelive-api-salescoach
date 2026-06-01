@@ -33,12 +33,53 @@ export type LearnerLastWrongAnswer = {
   label: string
 }
 
+/**
+ * The diagnostic/practice item the learner is currently looking at. When set,
+ * the Dig-Deeper drawer anchors the tutor on it: the model grounds its reply on
+ * this item (and keeps Socratic guidance while `scored` is false so it never
+ * hands over the answer mid-assessment). All fields optional — an absent focus
+ * item means a free-form question.
+ */
+export type LearnerFocusItem = {
+  stem?: string
+  options?: string[]
+  chosen?: string
+  correct?: string
+  rationale?: string
+  skillId?: string
+  misconception?: string
+  scored?: boolean
+}
+
+/** Subject + year group used to scope curriculum retrieval. */
+export type LearnerSetupSignal = {
+  subject?: string
+  yearGroup?: string
+}
+
+/**
+ * A past wrong attempt the learner made, tagged with the misconception it hit.
+ * Feeds the consent-gated episodic "trap recall" callback (Phase 5): when the
+ * same misconception recurs, the tutor opens with a heads-up nudge. This is
+ * working memory pushed from the practice/diagnostic flow; the backend also has
+ * a durable episodic store, so this list may be empty without losing recall.
+ */
+export type LearnerAttempt = {
+  misconceptionCode: string
+  topic: string
+  correct?: boolean
+  occurredAt?: string
+}
+
 export interface LearnerContextValue {
   userId: string | null
   weakTopics: LearnerWeakTopic[]
   dailyPlan: LearnerDailyPlanItem[]
   careerFits: LearnerCareerFit[]
   lastWrongAnswer: LearnerLastWrongAnswer | null
+  focusItem: LearnerFocusItem | null
+  learnerSetup: LearnerSetupSignal | null
+  attemptHistory: LearnerAttempt[]
 }
 
 export const defaultLearnerContext: LearnerContextValue = {
@@ -63,6 +104,9 @@ export const defaultLearnerContext: LearnerContextValue = {
     { id: 'renewable-energy', label: 'Renewable energy technician' },
   ],
   lastWrongAnswer: null,
+  focusItem: null,
+  learnerSetup: null,
+  attemptHistory: [],
 }
 
 export const LearnerContext = createContext<LearnerContextValue>(

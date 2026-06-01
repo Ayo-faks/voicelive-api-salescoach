@@ -1,0 +1,389 @@
+"""Model-backed ``AssistantProvider`` for the learner Dig-Deeper tutor.
+
+This is the Phase 1 brain behind the text drawer (``/api/learning/assistant/ask``).
+It composes the shared pedagogy core in :mod:`src.learning.tutor` with the
+existing RAG retriever and Azure OpenAI plumbing:
+
+1. **Retrieval-first grounding** — every turn pulls curriculum snippets via
+   ``retrieve_or_refuse``; those snippets plus the focus item's stored
+   rationale are the *only* factual authority handed to the model.
+2. **Teach-parametric, ground-on-RAG** — the system prompt tells the model to
+   teach the method/concept in its own words but to ground every fact, formula
+   and final answer strictly in the numbered ``[S#]`` sources, and to defer
+   honestly when the sources don't cover the ask (no invention).
+3. **Socratic-while-scored** — when an anchored diagnostic item is still being
+   assessed, the model must guide with hints/questions and must not reveal the
+   answer (protecting the assessment signal).
+4. **Citations bind to RAG only** — the model cites sources by index; we map
+   those indices back to real retrieval hits and drop anything it invents.
+5. **Outbound safeguarding** — the generated reply is screened with the
+   deterministic lexicon before it can reach a learner.
+6. **Deterministic fallback** — missing creds, no grounding, turn-cap, or any
+   error falls back to the injected deterministic provider so the drawer never
+   breaks.
+
+The module never imports :mod:`src.learning.api` (one-way dependency) so the
+provider stays independently testable with a faked OpenAI client.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import os
+from typing import Any, Dict, List, Mapping, Optional, Sequence
+
+from src.learning.rag import RagRetriever, RetrievalHit, retrieve_or_refuse
+from src.learning.tutor import (
+    FocusItem,
+    build_grounded_context,
+    screen_outbound_text,
+)
+from src.services.azure_openai_auth import build_openai_client
+
+logger = logging.getLogger(__name__)
+
+ASSISTANT_LLM_FLAG_ENV = "PATHFINDER_ASSISTANT_LLM_ENABLED"
+ASSISTANT_MAX_TURNS_ENV = "PATHFINDER_ASSISTANT_MAX_TURNS"
+
+_DEFAULT_MAX_TURNS = 12
+_DEFAULT_TEMPERATURE = 0.3
+_DEFAULT_MAX_TOKENS = 600
+
+_VALID_SUBJECTS = {"maths", "english"}
+_VALID_YEAR_GROUPS = {"JSS3", "SS3"}
+
+_SUBJECT_ALIASES = {
+    "math": "maths",
+    "maths": "maths",
+    "mathematics": "maths",
+    "english": "english",
+    "english language": "english",
+    "english-language": "english",
+}
+
+_DEFER_MESSAGE = (
+    "I don't have study material I can ground that on yet, so I won't guess. "
+    "Try asking about the topic you're practising, or rephrase using the words "
+    "from your worksheet, and I'll talk it through with you."
+)
+
+_TURN_CAP_MESSAGE = (
+    "We've covered a lot in this chat. Let's pause here so it sticks — try a "
+    "quick practice card on this topic, then come back and ask me the next thing."
+)
+
+_SYSTEM_PROMPT = """You are Pathfinder, a patient study tutor for Nigerian \
+secondary-school learners (JSS3 and SS3) preparing for Junior WAEC/JSSCE and \
+WAEC/NECO/JAMB. Speak in clear, warm Nigerian English (en-NG).
+
+Hard rules — follow every one:
+- Teach the METHOD and the IDEA in your own words so the learner can reuse it. \
+You may explain reasoning, steps and worked technique parametrically.
+- GROUND EVERY FACT in the numbered SOURCES below. Any specific fact, formula, \
+definition, rule, date or final numeric answer MUST come from the SOURCES. If \
+the SOURCES do not cover what is asked, say you don't have it and ask the \
+learner to rephrase — DO NOT invent facts, citations, or answers.
+- Cite the sources you use by their tag (for example S1, S2) and list those \
+numbers in "sources_used".
+- Never promise or guarantee an exam grade, pass, or outcome. Encourage effort \
+and realistic next steps only.
+- Keep it short: 2-5 sentences, age-appropriate, encouraging, no jargon dumps.
+{mode_clause}
+
+Return ONLY a JSON object: {{"answer": "<your reply>", "sources_used": [<source numbers you used>]}}."""
+
+_SOCRATIC_CLAUSE = (
+    "- THIS QUESTION IS STILL BEING MARKED. Do NOT reveal or confirm the final "
+    "answer or which option is correct. Guide with one hint or one guiding "
+    "question so the learner works it out themselves."
+)
+_EXPLAIN_CLAUSE = (
+    "- You may give a full worked explanation, including the correct answer, as "
+    "long as every fact is grounded in the SOURCES."
+)
+
+
+def _coerce_subject(value: Any) -> Optional[str]:
+    if not value:
+        return None
+    key = str(value).strip().lower()
+    resolved = _SUBJECT_ALIASES.get(key)
+    if resolved in _VALID_SUBJECTS:
+        return resolved
+    if key in _VALID_SUBJECTS:
+        return key
+    return None
+
+
+def _coerce_year_group(value: Any) -> Optional[str]:
+    if not value:
+        return None
+    key = str(value).strip().upper().replace(" ", "")
+    return key if key in _VALID_YEAR_GROUPS else None
+
+
+class ModelAssistantProvider:
+    """Azure OpenAI-backed tutor provider with deterministic fallback."""
+
+    def __init__(
+        self,
+        client: Any,
+        model: str,
+        rag_retriever: RagRetriever,
+        fallback: Any,
+        *,
+        temperature: float = _DEFAULT_TEMPERATURE,
+        max_tokens: int = _DEFAULT_MAX_TOKENS,
+        max_turns: int = _DEFAULT_MAX_TURNS,
+    ) -> None:
+        self.client = client
+        self.model = model
+        self.rag_retriever = rag_retriever
+        self.fallback = fallback
+        self.temperature = temperature
+        self.max_tokens = max_tokens
+        self.max_turns = max_turns
+
+    # ------------------------------------------------------------------
+    # Construction
+    # ------------------------------------------------------------------
+    @classmethod
+    def from_settings(
+        cls,
+        settings: Mapping[str, Any],
+        *,
+        rag_retriever: RagRetriever,
+        fallback: Any,
+    ) -> Optional["ModelAssistantProvider"]:
+        """Build the provider, or ``None`` when it should not be used.
+
+        Returns ``None`` (so the caller keeps the deterministic provider) when
+        the feature flag is off, the model deployment is unresolved, or Azure
+        OpenAI is not configured.
+        """
+        raw_flag = str(settings.get(ASSISTANT_LLM_FLAG_ENV) or os.environ.get(ASSISTANT_LLM_FLAG_ENV, ""))
+        if raw_flag.strip().lower() not in {"1", "true", "yes", "on"}:
+            return None
+
+        client = build_openai_client(settings)
+        if client is None:
+            logger.warning("Assistant LLM enabled but Azure OpenAI is not configured; using deterministic provider")
+            return None
+
+        model = str(settings.get("model_deployment_name") or "").strip()
+        if not model:
+            logger.warning("Assistant LLM enabled but no model deployment name resolved; using deterministic provider")
+            return None
+
+        max_turns = _DEFAULT_MAX_TURNS
+        raw_cap = settings.get(ASSISTANT_MAX_TURNS_ENV) or os.environ.get(ASSISTANT_MAX_TURNS_ENV)
+        if raw_cap:
+            try:
+                max_turns = max(1, int(raw_cap))
+            except (TypeError, ValueError):
+                max_turns = _DEFAULT_MAX_TURNS
+
+        return cls(client, model, rag_retriever, fallback, max_turns=max_turns)
+
+    # ------------------------------------------------------------------
+    # AssistantProvider protocol
+    # ------------------------------------------------------------------
+    def ask(self, question: str, context: Mapping[str, Any]) -> Dict[str, Any]:
+        q = (question or "").strip()
+        if not q:
+            return {"answer": "", "citations": []}
+
+        item = FocusItem.from_payload(context.get("focus_item"))
+        memory_allowed = bool(context.get("memory_allowed"))
+        thread_raw = context.get("thread") or []
+
+        # Per-learner turn cap (cost / fatigue guard) — count user turns.
+        user_turns = sum(
+            1
+            for t in thread_raw
+            if isinstance(t, Mapping) and str(t.get("role") or "").lower() == "user"
+        )
+        if user_turns >= self.max_turns:
+            return {"answer": _TURN_CAP_MESSAGE, "citations": [], "grounded": False}
+
+        # Retrieval-first grounding.
+        setup = context.get("learner_setup") or {}
+        subject = _coerce_subject(item.skill_id) or _coerce_subject(setup.get("subject"))
+        year_group = _coerce_year_group(setup.get("year_group"))
+        retrieval_query = f"{q}\n{item.stem}".strip() if item.stem else q
+
+        hits: List[RetrievalHit] = []
+        try:
+            hits, _refusal = retrieve_or_refuse(
+                self.rag_retriever,
+                retrieval_query,
+                subject=subject,  # type: ignore[arg-type]
+                year_group=year_group,  # type: ignore[arg-type]
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Assistant retrieval failed: %s", exc)
+            hits = []
+
+        snippets = [hit.node.body_markdown for hit in hits]
+        # Consent-gated learner memory signals: weak topics (semantic) plus the
+        # cross-session episodic callback for recurring misconception traps. Both
+        # are withheld inside build_grounded_context when memory is not allowed.
+        memory_profile: Dict[str, Any] = {}
+        if context.get("weak_topics"):
+            memory_profile["weak_topics"] = context.get("weak_topics")
+        memory_callback = context.get("memory_callback")
+        if memory_callback:
+            memory_profile["memory_callback"] = str(memory_callback)
+        grounded = build_grounded_context(
+            q,
+            item=item,
+            retrieved=snippets,
+            profile=memory_profile,
+            thread=thread_raw,
+            memory_allowed=memory_allowed,
+        )
+
+        # Grounding contract: no authority → defer honestly, never invent.
+        if not grounded.grounded:
+            return {"answer": _DEFER_MESSAGE, "citations": [], "grounded": False}
+
+        try:
+            answer, used_indices = self._call_model(grounded, hits)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Assistant model call failed; falling back: %s", exc)
+            return self.fallback.ask(question, context)
+
+        # Outbound safeguarding before anything reaches the learner.
+        decision = screen_outbound_text(answer)
+        if not decision.allowed:
+            logger.warning(
+                "Assistant outbound reply blocked (severity=%s, categories=%s)",
+                decision.severity.value,
+                decision.categories,
+            )
+            return {"answer": decision.safe_message, "citations": [], "grounded": False}
+
+        citations = self._bind_citations(used_indices, hits)
+        return {"answer": answer, "citations": citations, "grounded": True}
+
+    # ------------------------------------------------------------------
+    # Internals
+    # ------------------------------------------------------------------
+    def _call_model(
+        self, grounded: Any, hits: Sequence[RetrievalHit]
+    ) -> tuple[str, List[int]]:
+        mode_clause = _SOCRATIC_CLAUSE if grounded.mode == "socratic" else _EXPLAIN_CLAUSE
+        system = _SYSTEM_PROMPT.format(mode_clause=mode_clause)
+
+        messages: List[Dict[str, str]] = [{"role": "system", "content": system}]
+
+        # Sources block (numbered) — the only factual authority.
+        source_lines: List[str] = []
+        for idx, hit in enumerate(hits, start=1):
+            title = hit.node.title or hit.node.topic or hit.node.node_id
+            source_lines.append(f"[S{idx}] {title}: {hit.node.body_markdown}")
+        if grounded.item.rationale:
+            source_lines.append(f"[R] Item rationale: {grounded.item.rationale}")
+        messages.append(
+            {"role": "system", "content": "SOURCES:\n" + "\n".join(source_lines)}
+        )
+
+        # Focus item (the question being worked on).
+        if grounded.item.is_present:
+            item_bits: List[str] = []
+            if grounded.item.stem:
+                item_bits.append(f"Question: {grounded.item.stem}")
+            if grounded.item.options:
+                item_bits.append("Options: " + " | ".join(grounded.item.options))
+            if grounded.item.chosen:
+                item_bits.append(f"Learner chose: {grounded.item.chosen}")
+            if item_bits:
+                messages.append(
+                    {"role": "system", "content": "CURRENT ITEM:\n" + "\n".join(item_bits)}
+                )
+
+        # Learner profile only when memory consent allows it.
+        if grounded.memory_allowed and grounded.profile:
+            profile_view = dict(grounded.profile)
+            # Surface the episodic cross-session callback as a readable memory
+            # line (a pedagogy nudge, not a curriculum fact — never a citation).
+            callback = profile_view.pop("memory_callback", None)
+            if callback:
+                messages.append(
+                    {
+                        "role": "system",
+                        "content": (
+                            "LEARNER MEMORY (use to motivate and pre-empt the trap; "
+                            "do not treat as a source): " + str(callback)
+                        ),
+                    }
+                )
+            if profile_view:
+                messages.append(
+                    {
+                        "role": "system",
+                        "content": "LEARNER PROFILE: " + json.dumps(profile_view, ensure_ascii=False),
+                    }
+                )
+
+        # Prior turns in this dig-deeper thread.
+        for turn in grounded.thread:
+            role = "assistant" if turn.get("role") == "assistant" else "user"
+            messages.append({"role": role, "content": str(turn.get("text") or "")})
+
+        messages.append({"role": "user", "content": grounded.question})
+
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            response_format={"type": "json_object"},
+            temperature=self.temperature,
+            max_tokens=self.max_tokens,
+        )
+        content = completion.choices[0].message.content
+        if not content:
+            raise RuntimeError("assistant model returned empty content")
+        payload = json.loads(content)
+        answer = str(payload.get("answer") or "").strip()
+        if not answer:
+            raise RuntimeError("assistant model returned empty answer")
+
+        used: List[int] = []
+        for raw in payload.get("sources_used") or []:
+            try:
+                used.append(int(raw))
+            except (TypeError, ValueError):
+                continue
+        return answer, used
+
+    @staticmethod
+    def _bind_citations(
+        used_indices: Sequence[int], hits: Sequence[RetrievalHit]
+    ) -> List[Dict[str, str]]:
+        """Map model-reported source numbers back to real retrieval hits.
+
+        Any index outside the retrieved set is dropped — citations can only
+        point at sources we actually supplied (no invented references).
+        """
+        citations: List[Dict[str, str]] = []
+        seen: set[str] = set()
+        for idx in used_indices:
+            if idx < 1 or idx > len(hits):
+                continue
+            hit = hits[idx - 1]
+            node = hit.node
+            topic_id = str(node.node_id)
+            if topic_id in seen:
+                continue
+            seen.add(topic_id)
+            label = str(node.title or node.topic or node.node_id)
+            citations.append({"label": label, "topic_id": topic_id})
+        return citations
+
+
+__all__ = [
+    "ASSISTANT_LLM_FLAG_ENV",
+    "ASSISTANT_MAX_TURNS_ENV",
+    "ModelAssistantProvider",
+]
