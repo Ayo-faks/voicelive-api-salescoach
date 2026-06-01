@@ -18,12 +18,6 @@ vi.mock('../components/DiagnosticPanel', () => ({
   },
 }))
 
-const flags = vi.hoisted(() => ({
-  pathfinder_learner_onboarding_enabled: false,
-}))
-
-vi.mock('../../utils/featureFlags', () => ({ featureFlags: flags }))
-
 const fetchExamPrepTopicsMock = vi.hoisted(() => vi.fn())
 
 vi.mock('../api', () => ({
@@ -36,12 +30,13 @@ import { examPrep } from '../data/examPrep'
 beforeEach(() => {
   // jsdom does not implement scrollIntoView.
   Element.prototype.scrollIntoView = vi.fn()
+  // Default: empty live catalogue so the static teaser stays in place.
+  fetchExamPrepTopicsMock.mockResolvedValue({ topics: [] })
 })
 
 afterEach(() => {
   diagnosticPanelMock.mockClear()
   fetchExamPrepTopicsMock.mockReset()
-  flags.pathfinder_learner_onboarding_enabled = false
   vi.restoreAllMocks()
 })
 
@@ -140,8 +135,7 @@ describe('ExamPrepLibrary live catalogue', () => {
     ],
   }
 
-  it('renders live diagnostic topics when the flag is enabled', async () => {
-    flags.pathfinder_learner_onboarding_enabled = true
+  it('renders live diagnostic topics from the catalogue', async () => {
     fetchExamPrepTopicsMock.mockResolvedValue(liveResponse)
 
     render(<ExamPrepLibrary studentId="student-1" />)
@@ -162,7 +156,6 @@ describe('ExamPrepLibrary live catalogue', () => {
   })
 
   it('falls back to the static catalogue when the live fetch fails', async () => {
-    flags.pathfinder_learner_onboarding_enabled = true
     fetchExamPrepTopicsMock.mockRejectedValue(new Error('boom'))
 
     render(<ExamPrepLibrary studentId="student-1" />)

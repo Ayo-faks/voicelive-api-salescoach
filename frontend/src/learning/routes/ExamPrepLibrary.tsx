@@ -25,7 +25,6 @@ import {
   type Activity,
 } from '../data/examPrep'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
-import { featureFlags } from '../../utils/featureFlags'
 
 export type ExamPrepLibraryProps = {
   studentId?: string | null
@@ -219,9 +218,8 @@ export default function ExamPrepLibrary({ studentId }: ExamPrepLibraryProps) {
   const practiceRef = useRef<HTMLDivElement | null>(null)
 
   // Load the live diagnostic topic catalogue. The static teaser stays as the
-  // fallback when the feature is gated off (404) or the request fails/empties.
+  // fallback when the request fails or comes back empty.
   useEffect(() => {
-    if (!featureFlags.pathfinder_learner_onboarding_enabled) return
     let cancelled = false
     fetchExamPrepTopics()
       .then(response => {

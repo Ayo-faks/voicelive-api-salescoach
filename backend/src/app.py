@@ -2144,10 +2144,12 @@ def learner_daily_plan():
 
 @app.route("/api/learning/exam-prep/topics", methods=["GET"])
 def exam_prep_topics():
-    """Return the full exam-prep topic catalogue grouped by subject."""
-    if not _pathfinder_learner_onboarding_enabled():
-        return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
+    """Return the full exam-prep topic catalogue grouped by subject.
 
+    This is read-only learner content (the diagnostic topic breakdown the
+    exam-prep library binds to), so it is intentionally not gated behind the
+    learner-onboarding feature flag.
+    """
     _user, guard_response = _require_role(ROLE_LEARNER)
     if guard_response is not None:
         return guard_response
