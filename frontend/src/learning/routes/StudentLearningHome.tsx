@@ -29,9 +29,6 @@ import LearnerTutorFullscreen, {
   type TutorVoiceSnapshot,
 } from '../components/LearnerTutorFullscreen'
 import PracticeFullscreen from '../components/PracticeFullscreen'
-import LearnerMemoryPanel from '../components/LearnerMemoryPanel'
-import MemoryConsentModal from '../components/MemoryConsentModal'
-import { getMemoryConsent } from '../api'
 import {
   scheduleRevisionCards,
   usePushSubscription,
@@ -1983,28 +1980,6 @@ export default function StudentLearningHome({
     return () => window.removeEventListener('popstate', apply)
   }, [])
   const disclosureUserKey = studentId ?? 'demo-student'
-  const memoryLearnerId = studentId ?? 'demo-student'
-  const [memoryConsentPromptOpen, setMemoryConsentPromptOpen] = useState(false)
-  useEffect(() => {
-    let cancelled = false
-    const localKey = `pathfinder.memory.consent.asked:${memoryLearnerId}`
-    if (typeof window !== 'undefined' && window.localStorage.getItem(localKey)) {
-      return
-    }
-    void getMemoryConsent(memoryLearnerId)
-      .then((c) => {
-        if (cancelled) return
-        if (!c.accepted && !c.withdrawn_at) {
-          setMemoryConsentPromptOpen(true)
-        }
-      })
-      .catch(() => {
-        // network/feature off — silently ignore; panel will render its own state
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [memoryLearnerId])
   const [careerOpen, setCareerOpen] = useDisclosureState(
     disclosureUserKey,
     'career',
@@ -2835,21 +2810,6 @@ export default function StudentLearningHome({
             ))}
           </div>
         </article>
-
-        <LearnerMemoryPanel learnerId={memoryLearnerId} />
-        <MemoryConsentModal
-          open={memoryConsentPromptOpen}
-          learnerId={memoryLearnerId}
-          onClose={() => {
-            setMemoryConsentPromptOpen(false)
-            if (typeof window !== 'undefined') {
-              window.localStorage.setItem(
-                `pathfinder.memory.consent.asked:${memoryLearnerId}`,
-                '1'
-              )
-            }
-          }}
-        />
 
         <article
           className={styles.card}

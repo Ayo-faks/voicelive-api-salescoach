@@ -130,6 +130,19 @@ class LearningRepository(Protocol):
     def queue_offline_event(self, event: OfflineQueuedEvent) -> Dict[str, Any]:
         raise NotImplementedError
 
+    def list_replayable_offline_events(
+        self, *, limit: int = 100, max_attempts: int = 5
+    ) -> List[Dict[str, Any]]:
+        raise NotImplementedError
+
+    def mark_offline_event_replayed(self, queue_id: str) -> bool:
+        raise NotImplementedError
+
+    def mark_offline_event_failed(
+        self, queue_id: str, *, error: str, max_attempts: int = 5
+    ) -> Dict[str, Any]:
+        raise NotImplementedError
+
     def save_content_pack_manifest(self, manifest: ContentPackManifest) -> Dict[str, Any]:
         raise NotImplementedError
 
@@ -404,8 +417,61 @@ class InMemoryLearningRepository:
         record["id"] = event.queue_id
         record["created_at"] = utc_now()
         record["updated_at"] = record["created_at"]
+        record["attempts"] = 0
+        record["last_error"] = None
+        record["replayed_at"] = None
+        existing = next(
+            (
+                item
+                for item in self.offline_queue
+                if item["tenant_id"] == record["tenant_id"]
+                and item["idempotency_key"] == record["idempotency_key"]
+            ),
+            None,
+        )
+        if existing is not None:
+            # Mirror the Postgres ``ON CONFLICT (tenant_id, idempotency_key)
+            # DO NOTHING`` semantics so re-enqueues are idempotent.
+            return existing
         self.offline_queue.append(record)
         return record
+
+    def list_replayable_offline_events(
+        self, *, limit: int = 100, max_attempts: int = 5
+    ) -> List[Dict[str, Any]]:
+        candidates = [
+            record
+            for record in self.offline_queue
+            if record.get("status") == "queued"
+            and int(record.get("attempts", 0)) < max_attempts
+        ]
+        candidates.sort(key=lambda record: str(record.get("updated_at", "")))
+        return [dict(record) for record in candidates[: max(0, limit)]]
+
+    def mark_offline_event_replayed(self, queue_id: str) -> bool:
+        for record in self.offline_queue:
+            if record["id"] == queue_id:
+                record["status"] = "replayed"
+                now = utc_now()
+                record["updated_at"] = now
+                record["replayed_at"] = now
+                record["last_error"] = None
+                return True
+        return False
+
+    def mark_offline_event_failed(
+        self, queue_id: str, *, error: str, max_attempts: int = 5
+    ) -> Dict[str, Any]:
+        for record in self.offline_queue:
+            if record["id"] == queue_id:
+                attempts = int(record.get("attempts", 0)) + 1
+                status = "manual_review" if attempts >= max_attempts else "queued"
+                record["attempts"] = attempts
+                record["status"] = status
+                record["last_error"] = error
+                record["updated_at"] = utc_now()
+                return {"attempts": attempts, "status": status}
+        return {"attempts": 0, "status": "queued"}
 
     def save_content_pack_manifest(self, manifest: ContentPackManifest) -> Dict[str, Any]:
         record = manifest.model_dump()
@@ -722,6 +788,94 @@ class LearningPostgresRepository:
 
         self.storage._execute_write(persist)
         return {"id": event.queue_id, "tenant_id": event.tenant_id, "status": event.status, "created_at": created_at}
+
+    def _row_to_offline_event(self, row: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "id": row.get("id"),
+            "tenant_id": row.get("tenant_id"),
+            "actor_id": row.get("actor_id"),
+            "idempotency_key": row.get("idempotency_key"),
+            "event_type": row.get("event_type"),
+            "payload": self.storage._loads_json(row.get("payload_json"), {}),
+            "status": row.get("status"),
+            "attempts": int(row.get("attempts") or 0),
+            "created_at": row.get("created_at"),
+            "updated_at": row.get("updated_at"),
+            "last_error": row.get("last_error"),
+        }
+
+    def list_replayable_offline_events(
+        self, *, limit: int = 100, max_attempts: int = 5
+    ) -> List[Dict[str, Any]]:
+        result: Dict[str, Any] = {"rows": []}
+
+        def fetch(connection: Any) -> None:
+            rows = connection.execute(
+                """
+                SELECT id, tenant_id, actor_id, idempotency_key, event_type,
+                       payload_json, status, attempts, created_at, updated_at,
+                       last_error
+                FROM learning_offline_queue
+                WHERE status = 'queued' AND attempts < %s
+                ORDER BY updated_at ASC, created_at ASC
+                LIMIT %s
+                """,
+                (max_attempts, max(0, limit)),
+            ).fetchall()
+            result["rows"] = [dict(row) for row in rows]
+
+        self.storage._execute_write(fetch)
+        return [self._row_to_offline_event(row) for row in result["rows"]]
+
+    def mark_offline_event_replayed(self, queue_id: str) -> bool:
+        now = self.storage._utc_now()
+        result: Dict[str, Any] = {"rowcount": 0}
+
+        def persist(connection: Any) -> None:
+            cur = connection.execute(
+                """
+                UPDATE learning_offline_queue
+                SET status = 'replayed',
+                    updated_at = %s,
+                    replayed_at = %s,
+                    last_error = NULL
+                WHERE id = %s
+                """,
+                (now, now, queue_id),
+            )
+            result["rowcount"] = getattr(cur, "rowcount", 0) or 0
+
+        self.storage._execute_write(persist)
+        return result["rowcount"] > 0
+
+    def mark_offline_event_failed(
+        self, queue_id: str, *, error: str, max_attempts: int = 5
+    ) -> Dict[str, Any]:
+        now = self.storage._utc_now()
+        result: Dict[str, Any] = {"attempts": 0, "status": "queued"}
+
+        def persist(connection: Any) -> None:
+            row = connection.execute(
+                """
+                UPDATE learning_offline_queue
+                SET attempts = attempts + 1,
+                    last_error = %s,
+                    updated_at = %s,
+                    status = CASE
+                        WHEN attempts + 1 >= %s THEN 'manual_review'
+                        ELSE 'queued'
+                    END
+                WHERE id = %s
+                RETURNING attempts, status
+                """,
+                (error, now, max_attempts, queue_id),
+            ).fetchone()
+            if row is not None:
+                result["attempts"] = int(row["attempts"])
+                result["status"] = row["status"]
+
+        self.storage._execute_write(persist)
+        return result
 
     def save_content_pack_manifest(self, manifest: ContentPackManifest) -> Dict[str, Any]:
         created_at = self.storage._utc_now()

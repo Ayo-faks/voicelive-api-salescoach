@@ -11,12 +11,29 @@ from src.learning.diagnostic import load_item_bank
 from src.learning.repository import LearningPostgresRepository
 
 
+class _FakeCursor:
+    """Minimal cursor so read paths (``.fetchall()``/``.fetchone()``) work.
+
+    The fake storage has no real tables, so reads return empty results — the
+    tests only assert on write shapes and recorded executions.
+    """
+
+    rowcount = 0
+
+    def fetchall(self) -> List[Dict[str, Any]]:
+        return []
+
+    def fetchone(self) -> None:
+        return None
+
+
 class _FakeConnection:
     def __init__(self) -> None:
         self.executions: List[Tuple[str, Tuple[Any, ...]]] = []
 
-    def execute(self, sql: str, params: Tuple[Any, ...]) -> None:
+    def execute(self, sql: str, params: Tuple[Any, ...]) -> _FakeCursor:
         self.executions.append((sql, params))
+        return _FakeCursor()
 
 
 class _FakePostgresStorage:
@@ -91,6 +108,10 @@ def test_postgres_save_intervention_plan_persists_parent_plan_id_column() -> Non
     queued = _queue_plan(api)
     storage = api._fake_storage  # type: ignore[attr-defined]
 
-    insert_sql, insert_params = storage.connection.executions[0]
+    insert_sql, insert_params = next(
+        (sql, params)
+        for sql, params in storage.connection.executions
+        if "INSERT INTO learning_intervention_plans" in sql
+    )
     assert "parent_plan_id" in insert_sql
     assert insert_params[-1] == queued["plan"].get("parent_plan_id")

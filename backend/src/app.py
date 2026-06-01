@@ -478,6 +478,9 @@ learning_api = register_learning_api(app, api=LearningApi(repository=learning_re
 from src.learning.expiry_worker import maybe_start_expiry_worker
 
 learner_memory_expiry_worker = maybe_start_expiry_worker(learning_repository)
+from src.learning.offline_queue_drainer import maybe_start_offline_drainer
+
+offline_queue_drain_worker = maybe_start_offline_drainer(learning_repository)
 # Late-bind the learning API into the insights service so the planner can
 # call Pathfinder Learn read-only tools (mastery snapshot, student profile,
 # pending approvals).
