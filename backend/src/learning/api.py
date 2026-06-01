@@ -20,7 +20,7 @@ import os
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Optional, Protocol, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Protocol, Sequence, Tuple
 from urllib.parse import urlencode
 from uuid import uuid4
 
@@ -525,12 +525,28 @@ class LearningApi:
         student_id = str(payload.get("student_id") or PILOT_STUDENT_ID)
         teacher_id = str(payload.get("teacher_id") or PILOT_TEACHER_ID)
         target_skill_id = payload.get("skill_id")
+        raw_skill_ids = payload.get("skill_ids")
+        target_skill_ids: List[str] = []
+        if isinstance(raw_skill_ids, (list, tuple)):
+            seen: set[str] = set()
+            for value in raw_skill_ids:
+                skill_id = str(value)
+                if skill_id and skill_id not in seen:
+                    seen.add(skill_id)
+                    target_skill_ids.append(skill_id)
         item_count = int(payload.get("item_count") or PILOT_DIAGNOSTIC_ITEMS_PER_RUN)
 
         bank = self._resolve_bank(payload)
         prior = self._student_estimates.get((tenant_id, student_id), {})
         selected = self.selector.select_items(bank, prior_mastery=prior, limit=item_count)
-        if target_skill_id:
+        if target_skill_ids:
+            # Multi-skill topic session: interleave items across every skill in
+            # the topic so one continuous run mirrors a real mixed-skill paper
+            # and surfaces which of the topic's skills are weak.
+            selected = self._select_topic_items(
+                bank, target_skill_ids, item_count
+            )
+        elif target_skill_id:
             filtered = [item for item in selected if item.skill_id == target_skill_id]
             if not filtered:
                 # Large banks round-robin a sample across all skills, so a
@@ -577,6 +593,45 @@ class LearningApi:
             "items_remaining": max(0, len(selected) - 1),
             "items_total": len(selected),
         }
+
+    def _select_topic_items(
+        self,
+        bank: DiagnosticItemBank,
+        skill_ids: Sequence[str],
+        item_count: int,
+    ) -> List[DiagnosticItem]:
+        """Interleave items across every requested skill in a topic.
+
+        Groups the bank's items by skill, orders each group easiest-first, then
+        round-robins across the skills so the session mixes them (rather than
+        drilling one skill in a block) up to ``item_count`` items. Skills with
+        no items in the bank are skipped; order follows ``skill_ids``.
+        """
+
+        by_skill: Dict[str, List[DiagnosticItem]] = {}
+        for item in bank.items:
+            if item.skill_id in skill_ids:
+                by_skill.setdefault(item.skill_id, []).append(item)
+        for items in by_skill.values():
+            items.sort(key=lambda item: (item.difficulty, item.item_id))
+
+        ordered_groups = [
+            by_skill[skill_id] for skill_id in skill_ids if skill_id in by_skill
+        ]
+        interleaved: List[DiagnosticItem] = []
+        cursor = 0
+        while ordered_groups and len(interleaved) < item_count:
+            progressed = False
+            for group in ordered_groups:
+                if cursor < len(group):
+                    interleaved.append(group[cursor])
+                    progressed = True
+                    if len(interleaved) >= item_count:
+                        break
+            if not progressed:
+                break
+            cursor += 1
+        return interleaved
 
     def _resolve_bank(self, payload: Mapping[str, Any]) -> DiagnosticItemBank:
         diagnostic_id = payload.get("diagnostic_id")
@@ -1994,10 +2049,14 @@ class LearningApi:
                         "diagnostic_id": bank.diagnostic_id,
                         "diagnostic_subject": bank.subject or slug,
                         "skill_count": 0,
+                        "skills": [],
                         "minutes": 5 if exam == "JSSCE" else 6,
                     }
                     topics_by_key[key] = entry
                 entry["skill_count"] += 1
+                entry["skills"].append(
+                    {"skill_id": skill.skill_id, "label": skill.name}
+                )
 
         out_subjects: List[Dict[str, Any]] = []
         flat: List[Dict[str, Any]] = []

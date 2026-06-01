@@ -198,6 +198,11 @@ export type LearnerDailyPlanResponse = {
   weak_topics: LearnerWeakTopicPayload[]
 }
 
+export type ExamPrepSkill = {
+  skill_id: string
+  label: string
+}
+
 export type ExamPrepTopic = {
   id: string
   title: string
@@ -211,6 +216,7 @@ export type ExamPrepTopic = {
   diagnostic_id: string
   diagnostic_subject: string
   skill_count: number
+  skills: ExamPrepSkill[]
   minutes: number
 }
 
@@ -437,6 +443,7 @@ export async function startDiagnostic(
     student_id?: string
     teacher_id?: string
     skill_id?: string
+    skill_ids?: string[]
     subject?: string
     diagnostic_id?: string
     item_count?: number

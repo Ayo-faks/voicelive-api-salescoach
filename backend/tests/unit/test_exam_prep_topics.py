@@ -67,6 +67,27 @@ def test_every_topic_is_well_formed_and_resolvable(learning_api: LearningApi):
         )
 
 
+def test_topic_exposes_its_drillable_skill_list(learning_api: LearningApi):
+    catalogue = learning_api.build_exam_prep_topics()
+
+    for topic in catalogue["topics"]:
+        skills = topic["skills"]
+        # Every topic carries the full skill breakdown the client drills into.
+        assert isinstance(skills, list)
+        assert len(skills) == topic["skill_count"]
+        skill_ids = [skill["skill_id"] for skill in skills]
+        for skill in skills:
+            assert skill["skill_id"], f"topic {topic['id']} skill missing id"
+            assert skill["label"], f"topic {topic['id']} skill missing label"
+        # The representative skill_id is one of the drillable skills, and each
+        # skill resolves through the topic's bank so it can be practised.
+        assert topic["skill_id"] in skill_ids
+        bank = learning_api._resolve_bank({"subject": topic["diagnostic_subject"]})
+        bank_skill_ids = {skill.skill_id for skill in bank.skills}
+        for skill_id in skill_ids:
+            assert skill_id in bank_skill_ids
+
+
 def test_subject_slug_aliases_resolve_to_banks(learning_api: LearningApi):
     # "mathematics" has no exact bank key, so it resolves via the slug alias.
     maths = learning_api._resolve_bank({"subject": "mathematics"})
@@ -106,3 +127,43 @@ def test_targeted_topic_practice_serves_that_skill(learning_api: LearningApi):
 
     assert result["item"] is not None
     assert result["item"]["skill_id"] == topic["skill_id"]
+
+
+def test_multi_skill_topic_session_interleaves_all_topic_skills(
+    learning_api: LearningApi,
+):
+    catalogue = learning_api.build_exam_prep_topics()
+    # Find any topic that genuinely spans several distinct, bank-backed skills.
+    topic = next(
+        entry
+        for entry in catalogue["topics"]
+        if len({skill["skill_id"] for skill in entry["skills"]}) >= 3
+    )
+    skill_ids = [skill["skill_id"] for skill in topic["skills"]]
+
+    result = learning_api.start_diagnostic(
+        {
+            "subject": topic["diagnostic_subject"],
+            "skill_ids": skill_ids,
+            "item_count": 12,
+            "student_id": "exam-prep-learner",
+        }
+    )
+
+    assert result["item"] is not None
+    assert result["items_total"] >= 1
+
+    state = learning_api._sessions[result["session_id"]]
+    served = [item.skill_id for item in state.selected_items]
+    # Every served item belongs to the topic's skill set.
+    assert set(served).issubset(set(skill_ids))
+    # The session genuinely mixes more than one skill (not a single-skill block).
+    assert len({sid for sid in served}) >= 2
+    # Round-robin: the first items step across distinct skills rather than
+    # repeating one skill before moving on.
+    distinct_skills_available = {
+        item.skill_id
+        for item in state.bank.items
+        if item.skill_id in set(skill_ids)
+    }
+    assert served[0] != served[1] or len(distinct_skills_available) == 1

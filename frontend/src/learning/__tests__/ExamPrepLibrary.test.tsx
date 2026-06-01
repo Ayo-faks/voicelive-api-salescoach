@@ -6,6 +6,7 @@ const diagnosticPanelMock = vi.hoisted(() => vi.fn())
 vi.mock('../components/DiagnosticPanel', () => ({
   default: (props: {
     skillId?: string
+    skillIds?: string[]
     subject?: string
     studentId?: string | null
   }) => {
@@ -129,13 +130,17 @@ describe('ExamPrepLibrary live catalogue', () => {
         skill_id: 'ss3.motion.newtons_laws',
         diagnostic_id: 'diag-physics',
         diagnostic_subject: 'physics',
-        skill_count: 12,
+        skill_count: 2,
+        skills: [
+          { skill_id: 'ss3.motion.newtons_laws', label: "Newton's laws" },
+          { skill_id: 'ss3.motion.projectiles', label: 'Projectiles' },
+        ],
         minutes: 6,
       },
     ],
   }
 
-  it('renders live diagnostic topics from the catalogue', async () => {
+  it('drills into a topic to reveal its skills before practice', async () => {
     fetchExamPrepTopicsMock.mockResolvedValue(liveResponse)
 
     render(<ExamPrepLibrary studentId="student-1" />)
@@ -145,10 +150,56 @@ describe('ExamPrepLibrary live catalogue', () => {
     // The static teaser is replaced by the live catalogue.
     expect(screen.queryByTestId('exam-prep-maths-ss3-indices')).toBeNull()
 
+    // Clicking a topic opens its skill breakdown, not practice straight away.
     fireEvent.click(row)
+    expect(screen.queryByTestId('exam-prep-practice')).toBeNull()
+    const detail = screen.getByTestId('exam-prep-detail')
+    expect(detail).toBeTruthy()
+    expect(
+      within(detail).getByTestId('exam-prep-skill-ss3.motion.newtons_laws')
+    ).toBeTruthy()
+    expect(
+      within(detail).getByTestId('exam-prep-skill-ss3.motion.projectiles')
+    ).toBeTruthy()
+    expect(diagnosticPanelMock).not.toHaveBeenCalled()
+  })
+
+  it('practises a single drilled-into skill', async () => {
+    fetchExamPrepTopicsMock.mockResolvedValue(liveResponse)
+
+    render(<ExamPrepLibrary studentId="student-1" />)
+
+    fireEvent.click(await screen.findByTestId('exam-prep-physics.ss3.motion'))
+    fireEvent.click(screen.getByTestId('exam-prep-skill-ss3.motion.projectiles'))
+
+    expect(screen.getByTestId('exam-prep-practice')).toBeTruthy()
     expect(diagnosticPanelMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        skillId: 'ss3.motion.newtons_laws',
+        skillId: 'ss3.motion.projectiles',
+        subject: 'physics',
+        studentId: 'student-1',
+      })
+    )
+
+    // Back returns to the skill list, not the library.
+    fireEvent.click(screen.getByTestId('exam-prep-back'))
+    expect(screen.queryByTestId('exam-prep-practice')).toBeNull()
+    expect(screen.getByTestId('exam-prep-detail')).toBeTruthy()
+  })
+
+  it('practises the whole topic from the detail view', async () => {
+    fetchExamPrepTopicsMock.mockResolvedValue(liveResponse)
+
+    render(<ExamPrepLibrary studentId="student-1" />)
+
+    fireEvent.click(await screen.findByTestId('exam-prep-physics.ss3.motion'))
+    fireEvent.click(screen.getByTestId('exam-prep-practice-all'))
+
+    expect(screen.getByTestId('exam-prep-practice')).toBeTruthy()
+    // "Practise all" runs a multi-skill session across every topic skill.
+    expect(diagnosticPanelMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        skillIds: ['ss3.motion.newtons_laws', 'ss3.motion.projectiles'],
         subject: 'physics',
         studentId: 'student-1',
       })
