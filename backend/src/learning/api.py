@@ -76,6 +76,7 @@ from src.learning.rag import (
     DEFAULT_TOP_K,
     RagRetriever,
     WikiCorpus,
+    build_default_embedder,
     load_wiki_corpus,
     retrieve_or_refuse,
 )
@@ -199,10 +200,29 @@ ITEM_BANK_PATH = LEARNING_DATA_DIR / "jss2_maths_diagnostic_phase_2.json"
 DIAGNOSTICS_DIR = LEARNING_DATA_DIR / "diagnostics"
 PILOT_METRICS_PATH = LEARNING_DATA_DIR / "ops" / "phase_4_pilot_metrics.json"
 WIKI_CORPUS_PATH = LEARNING_DATA_DIR / "wiki" / "jss3_maths_wiki_seed.json"
-WIKI_CORPUS_PATHS = (
-    WIKI_CORPUS_PATH,
-    LEARNING_DATA_DIR / "wiki" / "english_jss3_ss3_wiki_seed.json",
-)
+
+
+def _discover_wiki_corpus_paths() -> tuple:
+    """Every ``*.json`` seed under ``data/learning/wiki`` (pilot files first).
+
+    Globs the wiki directory so curriculum seeds emitted by the offline
+    ingestion pipeline are loaded automatically, kept in sync with
+    ``rag._default_corpus_paths``.
+    """
+    wiki_dir = LEARNING_DATA_DIR / "wiki"
+    preferred = [
+        WIKI_CORPUS_PATH,
+        wiki_dir / "english_jss3_ss3_wiki_seed.json",
+    ]
+    ordered = [p for p in preferred if p.exists()]
+    if wiki_dir.exists():
+        for path in sorted(wiki_dir.glob("*.json")):
+            if path not in ordered:
+                ordered.append(path)
+    return tuple(ordered) if ordered else tuple(preferred)
+
+
+WIKI_CORPUS_PATHS = _discover_wiki_corpus_paths()
 EXPLAIN_SNIPPET_MAX_CHARS = 320
 
 
@@ -237,6 +257,8 @@ class DeterministicAssistantProvider:
     def ask(self, question: str, context: Mapping[str, Any]) -> AssistantReply:
         q = (question or "").strip()
         ql = q.lower()
+        normalized = "".join(ch if ch.isalnum() or ch.isspace() else " " for ch in ql)
+        words = normalized.split()
         weak_topics = list(context.get("weak_topics") or [])
         career_fits = list(context.get("career_fits") or [])
         daily_plan = list(context.get("daily_plan") or [])
@@ -254,6 +276,97 @@ class DeterministicAssistantProvider:
 
         weak_labels = [_topic_label(t) for t in weak_topics if _topic_label(t)]
         citations: List[Dict[str, str]] = []
+
+        # Social opener fallback: even without the model-backed provider,
+        # greetings/thanks should never fall into weak-topic templates.
+        greeting_tokens = {
+            "hi",
+            "hii",
+            "hiii",
+            "hello",
+            "helo",
+            "hey",
+            "heyy",
+            "yo",
+            "hiya",
+            "howdy",
+            "greetings",
+            "morning",
+            "afternoon",
+            "evening",
+            "sup",
+            "whatsup",
+            "wassup",
+        }
+        greeting_phrases = (
+            "good morning",
+            "good afternoon",
+            "good evening",
+            "how are you",
+            "how are u",
+            "how far",
+            "you there",
+            "are you there",
+        )
+        thanks_phrases = (
+            "thank you",
+            "thanks",
+            "thank u",
+            "thx",
+            "appreciate it",
+        )
+        capability_phrases = (
+            "what can you do",
+            "how can you help",
+            "who are you",
+            "what is your name",
+            "what's your name",
+        )
+
+        smalltalk_kind: Optional[str] = None
+        if any(phrase in normalized for phrase in greeting_phrases):
+            smalltalk_kind = "greeting"
+        elif words and all(w in greeting_tokens or w in {"there", "tutor", "pathfinder"} for w in words):
+            smalltalk_kind = "greeting"
+        elif any(phrase in normalized for phrase in thanks_phrases):
+            smalltalk_kind = "thanks"
+        elif any(phrase in normalized for phrase in capability_phrases):
+            smalltalk_kind = "capability"
+
+        if smalltalk_kind == "thanks":
+            return AssistantReply(
+                answer="You're welcome. Want to do a quick concept recap or one short practice card next?",
+                citations=[],
+                smalltalk=True,
+            )
+
+        if smalltalk_kind == "capability":
+            setup = context.get("learner_setup") or {}
+            subject = str(setup.get("subject") or "").strip()
+            suffix = f" in {subject}" if subject else ""
+            return AssistantReply(
+                answer=(
+                    "I'm Pathfinder, your study tutor for WAEC/NECO/JAMB prep. "
+                    "I can explain a tricky topic, break down a wrong answer, "
+                    f"and guide short practice steps{suffix}."
+                ),
+                citations=[],
+                smalltalk=True,
+            )
+
+        if smalltalk_kind == "greeting":
+            setup = context.get("learner_setup") or {}
+            subject = str(setup.get("subject") or "").strip()
+            subject_hint = f" in {subject}" if subject else ""
+            return AssistantReply(
+                answer=(
+                    "Hi! I'm Pathfinder, your study tutor. I can explain a tricky topic, "
+                    "work through a question you found hard, or give you a quick practice card. "
+                    f"What would you like to look at today{subject_hint}?"
+                ),
+                citations=[],
+                smalltalk=True,
+            )
 
         # 1) Wrong-answer follow-up
         if last_wrong and any(k in ql for k in ("why", "wrong", "mistake", "explain")):
@@ -448,6 +561,7 @@ class LearningApi:
                 wiki_corpus,
                 similarity_threshold=DEFAULT_SIMILARITY_THRESHOLD,
                 top_k=DEFAULT_TOP_K,
+                embedder=build_default_embedder(),
             )
 
         # Upgrade the deterministic assistant to the model-backed Dig-Deeper

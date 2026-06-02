@@ -12,16 +12,22 @@ from typing import Any, Dict
 import pytest
 from flask import Flask
 
+from src.config import reload_config
 from src.learning.api import LearningApi, register_learning_api
 
 
 @pytest.fixture()
-def client() -> Any:
+def client(monkeypatch: pytest.MonkeyPatch) -> Any:
+    monkeypatch.setenv("PATHFINDER_ASSISTANT_LLM_ENABLED", "false")
+    reload_config()
     api = LearningApi()
     app = Flask(__name__)
     app.config["TESTING"] = True
     register_learning_api(app, api)
-    return app.test_client()
+    try:
+        yield app.test_client()
+    finally:
+        reload_config()
 
 
 def _post(client: Any, body: Dict[str, Any]):
@@ -101,6 +107,30 @@ def test_wrong_answer_question_anchors_on_last_topic(client: Any) -> None:
 def test_missing_question_returns_400(client: Any) -> None:
     resp = _post(client, {"user_id": "student-001"})
     assert resp.status_code == 400
+
+
+def test_greeting_uses_smalltalk_not_weak_topic_template(client: Any) -> None:
+    resp = _post(
+        client,
+        {
+            "user_id": "student-001",
+            "question": "hi",
+            "weak_topics": [
+                {"skill_id": "ratio-proportion", "label": "Ratio and proportion"},
+            ],
+            "daily_plan": [
+                {"title": "Ratio mini diagnostic"},
+                {"title": "Explain one mistake"},
+            ],
+            "learner_setup": {"subject": "Mathematics"},
+        },
+    )
+    assert resp.status_code == 200, resp.get_data(as_text=True)
+    body = resp.get_json()
+    assert body.get("smalltalk") is True
+    assert body.get("grounded") is not True
+    assert "Hi! I'm Pathfinder" in body["answer"]
+    assert "Start with Ratio and proportion" not in body["answer"]
 
 
 def test_route_forwards_smalltalk_flag() -> None:

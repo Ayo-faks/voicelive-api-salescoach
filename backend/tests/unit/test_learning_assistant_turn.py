@@ -13,16 +13,22 @@ from typing import Any, Dict
 import pytest
 from flask import Flask
 
+from src.config import reload_config
 from src.learning.api import LearningApi, register_learning_api
 
 
 @pytest.fixture()
-def client() -> Any:
+def client(monkeypatch: pytest.MonkeyPatch) -> Any:
+    monkeypatch.setenv("PATHFINDER_ASSISTANT_LLM_ENABLED", "false")
+    reload_config()
     api = LearningApi()
     app = Flask(__name__)
     app.config["TESTING"] = True
     register_learning_api(app, api)
-    return app.test_client()
+    try:
+        yield app.test_client()
+    finally:
+        reload_config()
 
 
 def _turn(client: Any, body: Dict[str, Any]):
@@ -131,3 +137,23 @@ def test_empty_turn_with_no_signals_prompts(client: Any) -> None:
     assert len(blocks) == 1
     assert blocks[0]["kind"] == "prose"
     assert blocks[0]["smalltalk"] is True
+
+
+def test_greeting_turn_returns_smalltalk_prose_not_profile_template(client: Any) -> None:
+    resp = _turn(
+        client,
+        {
+            "user_id": "student-001",
+            "question": "hi",
+            "weak_topics": [{"label": "Ratio and proportion", "skill_id": "ratio-proportion"}],
+            "daily_plan": [{"title": "Ratio mini diagnostic"}],
+            "learner_setup": {"subject": "Mathematics"},
+        },
+    )
+    assert resp.status_code == 200
+    blocks = resp.get_json()["blocks"]
+    assert len(blocks) == 1
+    assert blocks[0]["kind"] == "prose"
+    assert blocks[0]["smalltalk"] is True
+    assert "Hi! I'm Pathfinder" in blocks[0]["text"]
+    assert "Start with Ratio and proportion" not in blocks[0]["text"]
