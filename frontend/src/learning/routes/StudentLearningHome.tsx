@@ -31,6 +31,7 @@ import {
 } from '../notifications/usePushSubscription'
 import {
   fetchLearnerPlan,
+  fetchLearnerCareers,
   getVoiceConfig,
   submitVoiceFrame,
   type VoiceConfigResponse,
@@ -1822,6 +1823,45 @@ export default function StudentLearningHome({
       cancelled = true
     }
   }, [studentId])
+  // Career pathways start from the deterministic local list and are replaced by
+  // the per-learner mastery-ranked plan from `GET /api/learning/learner/careers`
+  // when the onboarding flag is on. Flag-off builds keep the static array.
+  const [careerPathwaysState, setCareerPathwaysState] =
+    useState<CareerPathway[]>(careerPathways)
+  useEffect(() => {
+    if (!featureFlags.pathfinder_learner_onboarding_enabled) return
+    let cancelled = false
+    fetchLearnerCareers(studentId ? { student_id: studentId } : {})
+      .then(plan => {
+        if (cancelled || plan.pathways.length === 0) return
+        setCareerPathwaysState(
+          plan.pathways.map(p => {
+            const wage = p.wage_band as {
+              currency?: string
+              min_monthly?: number
+              max_monthly?: number
+            }
+            const wageText =
+              wage.currency && wage.min_monthly && wage.max_monthly
+                ? `${wage.currency} ${Math.round(wage.min_monthly / 1000)}k–${Math.round(wage.max_monthly / 1000)}k/mo`
+                : 'wage data sourced'
+            return {
+              id: p.id,
+              title: p.title,
+              fit: p.fit,
+              strength: p.rationale,
+              gap: `Demand: ${p.demand_trend ?? 'tracked'} · ${wageText}`,
+            }
+          })
+        )
+      })
+      .catch(err => {
+        console.warn('learner careers fetch failed', err)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [studentId])
   const [wrongAnswerExplanation, setWrongAnswerExplanation] =
     useState<WrongAnswerExplanation | null>(null)
   const [revisionPlanAdded, setRevisionPlanAdded] = useState(false)
@@ -2685,7 +2725,7 @@ export default function StudentLearningHome({
               </span>
             </summary>
             <div className={`${styles.pathwayGrid} ${styles.disclosureBody}`}>
-              {careerPathways.map(pathway => (
+              {careerPathwaysState.map(pathway => (
                 <div key={pathway.id} className={styles.pathwayCard}>
                   <div className={styles.pathIcon} aria-hidden="true">
                     <BriefcaseIcon style={{ width: 20, height: 20 }} />

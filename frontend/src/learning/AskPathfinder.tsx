@@ -224,6 +224,28 @@ const useStyles = makeStyles({
     borderRadius: '12px 12px 4px 12px',
     background: '#2a2a2e',
   },
+  typingRow: {
+    alignSelf: 'flex-start',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '5px',
+    padding: '11px 14px',
+    borderRadius: '12px 12px 12px 4px',
+    background: '#1b1b20',
+  },
+  typingDot: {
+    width: '7px',
+    height: '7px',
+    borderRadius: '50%',
+    background: '#9a9aa2',
+    animationName: {
+      '0%, 80%, 100%': { opacity: 0.25, transform: 'translateY(0)' },
+      '40%': { opacity: 1, transform: 'translateY(-4px)' },
+    },
+    animationDuration: '1.2s',
+    animationIterationCount: 'infinite',
+    animationTimingFunction: 'ease-in-out',
+  },
   empty: { color: '#8a8a91', fontStyle: 'italic' },
   voiceStage: {
     display: 'flex',
@@ -808,6 +830,26 @@ export function AskPathfinder({
                   onDismiss={handleDismiss}
                 />
               )
+            )}
+            {busy && (
+              <output
+                className={styles.typingRow}
+                data-testid="ask-pathfinder-typing"
+                aria-label="Pathfinder is thinking"
+              >
+                <span
+                  className={styles.typingDot}
+                  style={{ animationDelay: '0ms' }}
+                />
+                <span
+                  className={styles.typingDot}
+                  style={{ animationDelay: '160ms' }}
+                />
+                <span
+                  className={styles.typingDot}
+                  style={{ animationDelay: '320ms' }}
+                />
+              </output>
             )}
           </div>
 

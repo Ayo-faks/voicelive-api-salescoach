@@ -47,12 +47,15 @@ from src.learning.lti import (
     fetch_jwks,
     session_expiry_timestamp,
 )
+from src.common.labour_market import LabourMarketLoader
+from src.learning.career.planner import DeterministicCareerPlanner
 from src.learning.mastery import BetaBKT, MasteryEstimator, MasteryUpdateInput
 from src.learning.memory_policy import (
     classify_fact_staleness,
     skill_id_from_fact_key,
 )
 from src.learning.models import (
+    CareerPlan,
     CatalogueSkill,
     DiagnosticItem,
     InterventionPlan,
@@ -200,6 +203,7 @@ ITEM_BANK_PATH = LEARNING_DATA_DIR / "jss2_maths_diagnostic_phase_2.json"
 DIAGNOSTICS_DIR = LEARNING_DATA_DIR / "diagnostics"
 PILOT_METRICS_PATH = LEARNING_DATA_DIR / "ops" / "phase_4_pilot_metrics.json"
 WIKI_CORPUS_PATH = LEARNING_DATA_DIR / "wiki" / "jss3_maths_wiki_seed.json"
+CAREER_LABOUR_MARKET_PATH = LEARNING_DATA_DIR / "career" / "labour_market_phase_3.json"
 
 
 def _discover_wiki_corpus_paths() -> tuple:
@@ -498,6 +502,7 @@ class LearningApi:
         self.selector = DeterministicItemSelector()
         self.voice_adapter = FlaskSockVoiceTransportAdapter()
         self.learner_voice_planner = LearnerVoiceTurnPlanner()
+        self.career_planner = self._load_career_planner()
         self.assistant_provider: AssistantProvider = (
             assistant_provider or DeterministicAssistantProvider()
         )
@@ -2497,6 +2502,106 @@ class LearningApi:
             weak_topics=weak_topics,
         )
         return plan.model_dump()
+
+    @staticmethod
+    def _load_career_planner() -> Optional[DeterministicCareerPlanner]:
+        """Load the sourced labour-market dataset into a deterministic ranker.
+
+        Degrades to ``None`` (career endpoint returns 503) if the fixture is
+        missing or invalid, so a bad data file never takes down the app.
+        """
+        try:
+            dataset = LabourMarketLoader().load(CAREER_LABOUR_MARKET_PATH)
+        except Exception:  # noqa: BLE001 - missing/invalid fixture degrades gracefully
+            return None
+        return DeterministicCareerPlanner(dataset.records)
+
+    def build_career_plan(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        """Return mastery-ranked career pathways for one learner.
+
+        Cold start (no mastery history) ranks purely on labour-market demand and
+        a neutral 0.5 mastery prior, so a freshly onboarded learner still gets a
+        sensible, consent-weighted ordering. As ``MasteryEvent`` history
+        accumulates the ranking sharpens toward the learner's actual strengths.
+        ``student_id`` is expected to have been ownership-checked by the route.
+        """
+        if self.career_planner is None:
+            raise LearningApiError(
+                "career dataset unavailable", status_code=503
+            )
+
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        student_id = str(payload.get("student_id") or "").strip()
+        if not student_id:
+            raise LearningApiError("student_id is required", status_code=400)
+        career_consent = bool(payload.get("career_consent", False))
+
+        # Latest mastery estimate per skill (newest-first; first occurrence
+        # wins), backfilled from the process-local cache. Mirrors build_learner_plan.
+        mastery_profile: Dict[str, float] = {}
+        try:
+            events = self.repository.list_mastery_events_for_student(
+                tenant_id, student_id, limit=200
+            )
+        except Exception:  # noqa: BLE001 - degrade to demand-only ranking
+            events = []
+        for record in events:
+            skill_id = str(record.get("skill_id") or "")
+            if not skill_id or skill_id in mastery_profile:
+                continue
+            raw_estimate = record.get("estimate")
+            if isinstance(raw_estimate, Mapping):
+                probability = raw_estimate.get("probability")
+                if isinstance(probability, (int, float)):
+                    mastery_profile[skill_id] = float(probability)
+        for skill_id, estimate in self._student_estimates.get(
+            (tenant_id, student_id), {}
+        ).items():
+            mastery_profile.setdefault(skill_id, estimate.probability)
+
+        source = "mastery" if mastery_profile else "demand"
+        request = PlannerRequest(
+            tenant_id=tenant_id,
+            actor_id=student_id,
+            role="learner",
+            prompt="career pathways for this learner",
+            scope={
+                "student_id": student_id,
+                "mastery_profile": mastery_profile,
+                "career_consent": career_consent,
+            },
+            offline=True,
+            lang="en-NG",
+            provenance=[
+                Provenance(
+                    source="career_planner",
+                    rule_id="learner_career_request",
+                    confidence=1.0,
+                    evidence_count=1,
+                )
+            ],
+        )
+        result = self.career_planner.run_turn(request)
+        plan: CareerPlan = result.plan
+        return {
+            "student_id": student_id,
+            "source": source,
+            "career_consent": career_consent,
+            "generated_at": _utc_now_iso(),
+            "pathways": [
+                {
+                    "id": pathway.pathway_id,
+                    "title": pathway.title,
+                    "fit": int(round(pathway.fit_score * 100)),
+                    "wage_band": pathway.wage_band.value,
+                    "wage_source": pathway.wage_band.source,
+                    "demand_trend": pathway.demand_trend.value.get("trend"),
+                    "demand_source": pathway.demand_trend.source,
+                    "rationale": pathway.rationale,
+                }
+                for pathway in plan.pathways
+            ],
+        }
 
     def _skill_label_lookup(self) -> Dict[str, str]:
         labels: Dict[str, str] = {}

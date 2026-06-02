@@ -198,6 +198,25 @@ export type LearnerDailyPlanResponse = {
   weak_topics: LearnerWeakTopicPayload[]
 }
 
+export type LearnerCareerPathwayPayload = {
+  id: string
+  title: string
+  fit: number
+  wage_band: Record<string, unknown>
+  wage_source: string
+  demand_trend?: string | null
+  demand_source: string
+  rationale: string
+}
+
+export type LearnerCareerPlanResponse = {
+  student_id: string
+  source: 'mastery' | 'demand'
+  career_consent: boolean
+  generated_at: string
+  pathways: LearnerCareerPathwayPayload[]
+}
+
 export type ExamPrepSkill = {
   skill_id: string
   label: string
@@ -503,6 +522,17 @@ export async function fetchLearnerPlan(
     : '/api/learning/learner/plan'
   const response = await fetch(url, withDefaults({ method: 'GET' }))
   return jsonOrThrow<LearnerDailyPlanResponse>(response)
+}
+
+export async function fetchLearnerCareers(
+  query: { student_id?: string } = {}
+): Promise<LearnerCareerPlanResponse> {
+  const search = toSearchParams(query)
+  const url = search
+    ? `/api/learning/learner/careers?${search}`
+    : '/api/learning/learner/careers'
+  const response = await fetch(url, withDefaults({ method: 'GET' }))
+  return jsonOrThrow<LearnerCareerPlanResponse>(response)
 }
 
 export async function fetchExamPrepTopics(): Promise<ExamPrepTopicsResponse> {

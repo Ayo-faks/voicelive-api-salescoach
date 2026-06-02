@@ -713,6 +713,10 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
               value: 'true'
             }
             {
+              name: 'PATHFINDER_LEARNER_ONBOARDING_ENABLED'
+              value: 'true'
+            }
+            {
               name: 'STORAGE_PATH'
               value: '/tmp/wulo.db'
             }

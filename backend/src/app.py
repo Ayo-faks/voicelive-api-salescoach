@@ -2212,6 +2212,40 @@ def learner_daily_plan():
     return jsonify(plan)
 
 
+@app.route("/api/learning/learner/careers", methods=["GET"])
+def learner_career_plan():
+    """Return mastery-ranked, consent-weighted career pathways for the learner."""
+    if not _pathfinder_learner_onboarding_enabled():
+        return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
+
+    user, guard_response = _require_role(ROLE_LEARNER)
+    if guard_response is not None:
+        return guard_response
+
+    owned_student_ids = _learning_student_ids_for_user(cast(Dict[str, Any], user))
+    requested = str(request.args.get("student_id") or "").strip()
+    if requested:
+        if requested not in owned_student_ids:
+            return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
+        student_id = requested
+    else:
+        student_id = next(iter(sorted(owned_student_ids)), "")
+    if not student_id:
+        return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
+
+    user_id = str(cast(Dict[str, Any], user).get("id") or "")
+    profile = storage_service.get_learner_profile(user_id) or {}
+    career_consent = bool(profile.get("career_consent"))
+
+    try:
+        plan = learning_api.build_career_plan(
+            {"student_id": student_id, "career_consent": career_consent}
+        )
+    except LearningApiError as exc:
+        return jsonify({"error": str(exc)}), exc.status_code
+    return jsonify(plan)
+
+
 @app.route("/api/learning/exam-prep/topics", methods=["GET"])
 def exam_prep_topics():
     """Return the full exam-prep topic catalogue grouped by subject.

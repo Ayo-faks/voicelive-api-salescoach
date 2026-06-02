@@ -17,6 +17,11 @@ COPY frontend/eslint.config.js ./
 COPY frontend/.prettierrc ./
 COPY frontend/.prettierignore ./
 
+# Build-time feature flags baked into the Vite bundle. Keep in sync with the
+# backend env in infra/resources.bicep (PATHFINDER_LEARNER_ONBOARDING_ENABLED).
+ARG VITE_PATHFINDER_LEARNER_ONBOARDING_ENABLED=true
+ENV VITE_PATHFINDER_LEARNER_ONBOARDING_ENABLED=${VITE_PATHFINDER_LEARNER_ONBOARDING_ENABLED}
+
 RUN npx --yes tsc && npx --yes vite build
 
 # Stage 2: Python runtime (using Ubuntu 20.04 base to avoid OpenSSL 3 issues with speechsdk)
