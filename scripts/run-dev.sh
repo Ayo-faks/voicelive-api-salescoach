@@ -65,6 +65,11 @@ start_backend() {
     export PATHFINDER_ASSISTANT_LLM_ENABLED=1
     export PATHFINDER_VOICE_ENABLED=1
     export PATHFINDER_VOICELIVE_ENABLED=true
+    # Dense (semantic) RAG stage so the tutor grounds on misspelled / phonetic
+    # queries (e.g. "homsteasis" -> homeostasis) instead of deferring. Opt-in
+    # by design; uses the same Azure OpenAI creds as chat, embedding deployment
+    # text-embedding-3-small (calibrated threshold lives in rag.py).
+    export PATHFINDER_RAG_EMBEDDINGS_ENABLED=true
     # Local dev identity / storage (caller shell override wins, else learner):
     export LOCAL_DEV_AUTH=true
     export LOCAL_DEV_USER_ROLE="${_caller_role:-learner}"

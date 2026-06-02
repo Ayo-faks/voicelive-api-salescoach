@@ -327,6 +327,16 @@ class ModelAssistantProvider:
                 subject=subject,  # type: ignore[arg-type]
                 year_group=year_group,  # type: ignore[arg-type]
             )
+            # Subject/year scoping is a relevance preference, not a wall: a learner
+            # whose profile says Maths can still ask a valid Biology question. When
+            # the scoped pass finds nothing, retry across the whole corpus so any
+            # grounded curriculum answer is reachable. Only widens on an empty
+            # scoped result, so in-subject relevance is unchanged.
+            if not hits and (subject is not None or year_group is not None):
+                hits, _refusal = retrieve_or_refuse(
+                    self.rag_retriever,
+                    retrieval_query,
+                )
         except Exception as exc:  # noqa: BLE001
             logger.warning("Assistant retrieval failed: %s", exc)
             hits = []
