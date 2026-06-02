@@ -73,6 +73,88 @@ _TURN_CAP_MESSAGE = (
     "quick practice card on this topic, then come back and ask me the next thing."
 )
 
+# Greetings / social chit-chat that a learner opens with. These never need
+# RAG grounding — refusing to "ground" a "hi" feels broken, so we answer warmly
+# and steer toward study, exactly like a human tutor would before getting to
+# work. Kept deterministic (no model call) so it is free, instant, and safe.
+_GREETING_TOKENS = frozenset(
+    {
+        "hi", "hii", "hiii", "hello", "helo", "hey", "heyy", "yo", "hiya",
+        "howdy", "greetings", "morning", "afternoon", "evening",
+        "wagwan", "wassup", "whatsup", "sup",
+    }
+)
+_GREETING_PHRASES = (
+    "good morning", "good afternoon", "good evening", "good day",
+    "how are you", "how are u", "how you dey", "how far", "hope you are well",
+    "hope you're well", "are you there", "you there",
+)
+_THANKS_PHRASES = (
+    "thank you", "thanks", "thank u", "thx", "tnks", "well done", "nice one",
+    "appreciate it", "good job", "you're the best", "youre the best",
+)
+_CAPABILITY_PHRASES = (
+    "who are you", "what are you", "what is your name", "what's your name",
+    "whats your name", "what can you do", "what do you do", "how can you help",
+    "what can you help", "how do you work", "how does this work",
+    "what is this", "what's this", "help me", "can you help",
+)
+
+
+def _normalize_smalltalk(text: str) -> str:
+    cleaned = "".join(ch if ch.isalnum() or ch.isspace() else " " for ch in text.lower())
+    return " ".join(cleaned.split())
+
+
+def _classify_smalltalk(question: str) -> Optional[str]:
+    """Return ``greeting`` | ``thanks`` | ``capability`` for social openers.
+
+    Conservative on purpose: only fires for short messages so a real study
+    question that happens to contain "hi" (e.g. "what is a histogram") is never
+    misrouted. Returns ``None`` for anything that should go through grounding.
+    """
+    norm = _normalize_smalltalk(question)
+    if not norm:
+        return None
+    words = norm.split()
+    # Only treat very short messages as pure social chit-chat.
+    if len(words) > 6:
+        return None
+    if any(p in norm for p in _CAPABILITY_PHRASES):
+        return "capability"
+    if any(p in norm for p in _THANKS_PHRASES) or norm in {"ok", "okay", "k", "cool", "alright"}:
+        return "thanks"
+    if any(p in norm for p in _GREETING_PHRASES):
+        return "greeting"
+    # Pure greeting tokens only (e.g. "hi", "hey there", "hello!!!").
+    if words and all(w in _GREETING_TOKENS or w in {"there", "tutor", "pathfinder"} for w in words):
+        return "greeting"
+    return None
+
+
+def _smalltalk_reply(kind: str, context: Mapping[str, Any]) -> str:
+    setup = context.get("learner_setup") or {}
+    subject = str(setup.get("subject") or "").strip()
+    subject_clause = f" in {subject}" if subject else ""
+    if kind == "thanks":
+        return (
+            "You're welcome — glad that helped! Want to lock it in with a quick "
+            "practice question, or is there another topic you'd like to go over?"
+        )
+    if kind == "capability":
+        return (
+            "I'm Pathfinder, your study tutor for WAEC/NECO/JAMB prep. I can "
+            "explain how a topic works, talk through a question you got wrong, "
+            "and set short practice cards — always grounded in your study "
+            f"material. What would you like to start with{subject_clause}?"
+        )
+    # greeting
+    return (
+        "Hi! I'm Pathfinder, your study tutor. I can explain a tricky topic, "
+        "work through a question you found hard, or give you a quick practice "
+        f"card. What would you like to look at today{subject_clause}?"
+    )
+
 _SYSTEM_PROMPT = """You are Pathfinder, a patient study tutor for Nigerian \
 secondary-school learners (JSS3 and SS3) preparing for Junior WAEC/JSSCE and \
 WAEC/NECO/JAMB. Speak in clear, warm Nigerian English (en-NG).
@@ -206,6 +288,19 @@ class ModelAssistantProvider:
         )
         if user_turns >= self.max_turns:
             return {"answer": _TURN_CAP_MESSAGE, "citations": [], "grounded": False}
+
+        # Social opener (greeting / thanks / "what can you do") — answer warmly
+        # and steer to study instead of demanding grounded sources. Only when no
+        # diagnostic item is anchored, so a hint request mid-question still goes
+        # through the grounded, assessment-protecting path.
+        if not item.is_present:
+            smalltalk = _classify_smalltalk(q)
+            if smalltalk is not None:
+                reply = _smalltalk_reply(smalltalk, context)
+                decision = screen_outbound_text(reply)
+                if not decision.allowed:
+                    return {"answer": decision.safe_message, "citations": [], "grounded": False}
+                return {"answer": reply, "citations": [], "grounded": False, "smalltalk": True}
 
         # Retrieval-first grounding.
         setup = context.get("learner_setup") or {}

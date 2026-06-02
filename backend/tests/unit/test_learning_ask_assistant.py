@@ -101,3 +101,30 @@ def test_wrong_answer_question_anchors_on_last_topic(client: Any) -> None:
 def test_missing_question_returns_400(client: Any) -> None:
     resp = _post(client, {"user_id": "student-001"})
     assert resp.status_code == 400
+
+
+def test_route_forwards_smalltalk_flag() -> None:
+    """A provider that flags a reply as small-talk has that signal surfaced on
+    the route so the drawer can suppress the "No grounded source" badge."""
+
+    class _SmalltalkProvider:
+        def ask(self, question: str, context: Dict[str, Any]) -> Dict[str, Any]:
+            return {
+                "answer": "Hi! I'm Pathfinder, your study tutor.",
+                "citations": [],
+                "grounded": False,
+                "smalltalk": True,
+            }
+
+    api = LearningApi(assistant_provider=_SmalltalkProvider())
+    app = Flask(__name__)
+    app.config["TESTING"] = True
+    register_learning_api(app, api)
+    client = app.test_client()
+
+    resp = client.post("/api/learning/assistant/ask", json={"question": "hi"})
+    assert resp.status_code == 200, resp.get_data(as_text=True)
+    body = resp.get_json()
+    assert body["smalltalk"] is True
+    assert body["grounded"] is False
+

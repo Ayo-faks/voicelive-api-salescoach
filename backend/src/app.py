@@ -62,6 +62,7 @@ from src.safeguarding import (
 )
 from src.services.turn_router.handlers import ChitchatHandler
 from src.services.insights_websocket_handler import InsightsVoiceHandler
+from src.services.learner_voice_websocket_handler import LearnerVoiceSocketHandler
 from src.services.voice_agent_action_service import (
     VoiceAgentActionError,
     VoiceAgentActionService,
@@ -966,6 +967,23 @@ def _enforce_request_security_controls() -> Optional[Tuple[Any, int]]:
         return rate_limit_result
 
     return None
+
+
+@app.before_request
+def _disable_ws_permessage_deflate() -> None:
+    """Keep WebSocket frames uncompressed so they survive intermediary proxies.
+
+    ``simple_websocket`` unconditionally accepts ``PerMessageDeflate`` whenever
+    a client offers it. Compressed frames get mangled by proxies that sit
+    between the browser and Flask (notably Vite's dev ws proxy, which raises
+    "Invalid frame header"), surfacing in the UI as a perpetual
+    "Voice connection hiccup — retrying as you speak" loop. The frames here are
+    tiny JSON, so compression buys nothing; dropping the client's offer means
+    ``wsproto`` never negotiates the extension and frames stay plain. This is a
+    no-op for same-origin production traffic.
+    """
+    if request.path.startswith("/ws/"):
+        request.environ.pop("HTTP_SEC_WEBSOCKET_EXTENSIONS", None)
 
 
 @app.teardown_request
@@ -5156,6 +5174,74 @@ def insights_voice_socket(ws: simple_websocket.ws.Server):
 
 
 sock.route("/ws/insights-voice")(insights_voice_socket)  # pyright: ignore[reportUnknownMemberType]
+
+
+def learner_voice_socket(ws: simple_websocket.ws.Server):
+    """Realtime transport for the unified learner assistant.
+
+    The voice twin of ``POST /api/learning/assistant/turn``: it authenticates the
+    socket, binds the learner's RLS scope, then pumps every frame through the
+    same ``run_assistant_turn`` brain so voice and text share one vocabulary of
+    :class:`AssistantBlock` results. STT/TTS happen at the client edge — this
+    layer streams blocks, not audio.
+    """
+    environ = cast(Dict[str, Any], getattr(ws, "environ", {}) or {})
+    ws_headers = {
+        "X-MS-CLIENT-PRINCIPAL": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL", ""),
+        "X-MS-CLIENT-PRINCIPAL-ID": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_ID", ""),
+        "X-MS-CLIENT-PRINCIPAL-NAME": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_NAME", ""),
+        "X-MS-CLIENT-PRINCIPAL-IDP": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_IDP", ""),
+        "X-MS-CLIENT-PRINCIPAL-EMAIL": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_EMAIL", ""),
+    }
+    user = _get_authenticated_user_from_headers(ws_headers)
+    if user is None:
+        logger.warning("Rejected unauthenticated learner voice WebSocket connection")
+        ws.close(4401, "learning_voice_unauthorized")
+        return
+
+    role = str(user.get("role") or "")
+    if role == ROLE_PENDING_THERAPIST:
+        ws.close(4403, "learning_voice_forbidden")
+        return
+
+    # Learner roles are scoped to the children they own; teachers/admins pass
+    # through with no child binding (an empty owned set disables the per-frame
+    # child check, matching the text endpoint's learning policy).
+    owned_child_ids: set[str] = set()
+    if role in LEARNING_LEARNER_ROLES:
+        owned_child_ids = _learning_student_ids_for_user(user)
+
+    query = parse_qs(str(environ.get("QUERY_STRING") or ""), keep_blank_values=False)
+    default_user_id = str((query.get("user_id") or [""])[0] or user.get("id") or "").strip()
+    defaults: Dict[str, Any] = {}
+    if default_user_id:
+        defaults["user_id"] = default_user_id
+
+    def _bind_scope(payload: Mapping[str, Any]) -> None:
+        tenant_id, class_id = _learning_scope_from_request(payload)
+        authorized = _learning_authorized_tenant_ids(user)
+        if authorized and tenant_id not in authorized:
+            tenant_id = sorted(authorized)[0]
+        _bind_learning_storage_scope(tenant_id, class_id)
+
+    handler = LearnerVoiceSocketHandler(
+        ws,
+        run_turn=learning_api.run_assistant_turn,
+        owned_child_ids=owned_child_ids,
+        bind_scope=_bind_scope,
+        default_payload=defaults,
+    )
+    try:
+        handler.run()
+    finally:
+        try:
+            ws.close(1000)
+        except Exception:
+            logger.debug("Failed to close learner voice websocket cleanly", exc_info=True)
+
+
+sock.route("/ws/learning-voice")(learner_voice_socket)  # pyright: ignore[reportUnknownMemberType]
+
 
 
 def main():

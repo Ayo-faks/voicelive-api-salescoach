@@ -876,6 +876,191 @@ export async function runLearnerVoiceTurn(
   return jsonOrThrow<LearnerVoiceTurnResponse>(response)
 }
 
+// --- Unified assistant blocks (one brain, any modality) --------------------
+//
+// The merged voice+chat surface speaks a single output vocabulary: a list of
+// `AssistantBlock`s. The learner-voice cards above are members of this union,
+// so a practice card and a prose answer render through the same pipeline. The
+// only modality difference is the `speak` field — voice TTS reads it, text
+// ignores it. Mirrors `backend/src/learning/assistant_blocks.py`.
+
+export interface AssistantCitation {
+  label?: string
+  url?: string | null
+  topic_id?: string | null
+}
+
+export interface AssistantProseBlock {
+  kind: 'prose'
+  speak: string
+  text: string
+  citations: AssistantCitation[]
+  grounded?: boolean | null
+  smalltalk?: boolean
+}
+
+export interface AssistantProfileChip {
+  label: string
+  value: string
+  tone: 'neutral' | 'good' | 'warn'
+}
+
+export interface AssistantProfileBlock {
+  kind: 'profile'
+  speak?: string
+  headline: string
+  chips: AssistantProfileChip[]
+  weak_topics: string[]
+}
+
+export interface AssistantPlanStep {
+  title: string
+  skill_id?: string | null
+  done?: boolean
+}
+
+export interface AssistantPlanBlock {
+  kind: 'plan'
+  speak?: string
+  headline: string
+  steps: AssistantPlanStep[]
+}
+
+export interface AssistantConfirmationBlock {
+  kind: 'confirmation'
+  speak?: string
+  prompt: string
+  confirm_label?: string
+  dismiss_label?: string
+  action?: string | null
+  params?: Record<string, unknown>
+}
+
+/** Every block the unified assistant can emit, in any modality. */
+export type AssistantBlock =
+  | LearnerVoiceCard
+  | AssistantProseBlock
+  | AssistantProfileBlock
+  | AssistantPlanBlock
+  | AssistantConfirmationBlock
+
+export interface AssistantTurnResult {
+  blocks: AssistantBlock[]
+  session_complete: boolean
+}
+
+export interface AssistantThreadTurn {
+  role: string
+  text: string
+}
+
+/** The full payload `POST /api/learning/assistant/turn` understands. */
+export interface AssistantTurnRequest {
+  user_id?: string | null
+  child_id?: string | null
+  question?: string
+  intent?: string | null
+  // Practice-walk signals — present means "continue / start an exercise".
+  last_card_id?: string | null
+  last_kind?: string | null
+  answer_option_id?: string | null
+  advance?: boolean
+  exam?: string | null
+  class_year?: string | null
+  subject?: string | null
+  // Personalisation context (the learner's own data only).
+  weak_topics?: Array<{ skill_id?: string; label?: string }>
+  daily_plan?: Array<{ id?: string; title?: string }>
+  career_fits?: unknown
+  last_wrong_answer?: { skill_id?: string; label?: string } | null
+  learner_setup?: { subject?: string; year_group?: string } | null
+  focus_item?: unknown
+  attempt_history?: unknown
+  thread?: AssistantThreadTurn[]
+  lang?: string
+}
+
+/** Text transport: one HTTP turn returning the shared block contract. */
+export async function runAssistantTurn(
+  payload: AssistantTurnRequest
+): Promise<AssistantTurnResult> {
+  const response = await fetch(
+    '/api/learning/assistant/turn',
+    withDefaults({ method: 'POST', body: JSON.stringify(payload) })
+  )
+  return jsonOrThrow<AssistantTurnResult>(response)
+}
+
+export interface LearnerVoiceSocketHandlers {
+  onConnected?: () => void
+  onResult?: (result: AssistantTurnResult) => void
+  onError?: (message: string) => void
+  onClose?: () => void
+}
+
+export interface LearnerVoiceSocket {
+  /** Send one turn frame (a `type: 'turn'` envelope is added automatically). */
+  send: (frame: Record<string, unknown>) => void
+  /** Politely say goodbye and close the socket. */
+  close: () => void
+}
+
+/**
+ * Voice transport: open the realtime `/ws/learning-voice` socket. It speaks the
+ * exact same brain as {@link runAssistantTurn}; STT (speech→text) and TTS
+ * (block.speak→audio) happen at the client edge. Returns a thin sender/closer.
+ */
+export function openLearnerVoiceSocket(
+  handlers: LearnerVoiceSocketHandlers,
+  params?: { userId?: string | null }
+): LearnerVoiceSocket {
+  const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
+  const query = params?.userId
+    ? `?user_id=${encodeURIComponent(params.userId)}`
+    : ''
+  const socket = new WebSocket(
+    `${proto}://${window.location.host}/ws/learning-voice${query}`
+  )
+  socket.onmessage = event => {
+    let message: { type?: string; blocks?: AssistantBlock[]; session_complete?: boolean; message?: string }
+    try {
+      message = JSON.parse(String(event.data))
+    } catch {
+      return
+    }
+    if (message.type === 'connected') {
+      handlers.onConnected?.()
+    } else if (message.type === 'turn.result') {
+      handlers.onResult?.({
+        blocks: message.blocks ?? [],
+        session_complete: Boolean(message.session_complete),
+      })
+    } else if (message.type === 'error') {
+      handlers.onError?.(String(message.message ?? 'error'))
+    }
+  }
+  socket.onclose = () => handlers.onClose?.()
+  socket.onerror = () => handlers.onError?.('socket_error')
+  return {
+    send: frame => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type: 'turn', ...frame }))
+      }
+    },
+    close: () => {
+      try {
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({ type: 'bye' }))
+        }
+      } catch {
+        /* ignore */
+      }
+      socket.close()
+    },
+  }
+}
+
+
 // --- Voice-agent action API -------------------------------------------------
 
 export interface VoiceAgentActionRecord {

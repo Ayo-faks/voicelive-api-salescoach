@@ -272,6 +272,56 @@ def test_turn_cap_short_circuits_before_model() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Social openers (greeting / thanks / capability) — answered without grounding
+# ---------------------------------------------------------------------------
+
+
+def test_greeting_answers_warmly_without_grounding() -> None:
+    retriever = FakeRetriever([])  # no sources at all
+    client = FakeClient(_model_json("should not be used", [1]))
+    provider = _provider(client, retriever, FakeFallback())
+
+    reply = provider.ask("hi", {"focus_item": {}, "memory_allowed": False})
+
+    assert client.calls == []  # no model call
+    assert "won't guess" not in reply["answer"]  # not the defer message
+    assert "Pathfinder" in reply["answer"]
+    assert reply["smalltalk"] is True
+    assert reply["grounded"] is False
+
+
+def test_capability_question_describes_tutor() -> None:
+    provider = _provider(FakeClient(_model_json("x", [])), FakeRetriever([]), FakeFallback())
+    reply = provider.ask("what can you do?", {"focus_item": {}, "memory_allowed": False})
+    assert "explain" in reply["answer"].lower()
+    assert reply.get("smalltalk") is True
+
+
+def test_greeting_with_anchored_item_still_grounds() -> None:
+    # A "hi" while a diagnostic item is anchored must not bypass grounding.
+    retriever = FakeRetriever([])
+    client = FakeClient(_model_json("should not be used", [1]))
+    provider = _provider(client, retriever, FakeFallback())
+
+    reply = provider.ask(
+        "hi",
+        {"focus_item": {"stem": "Simplify 2/4", "scored": True}, "memory_allowed": False},
+    )
+    assert reply.get("smalltalk") is not True
+    assert "won't guess" in reply["answer"]
+
+
+def test_study_question_with_greeting_word_is_not_smalltalk() -> None:
+    retriever = FakeRetriever([_hit("wiki-a", "Histograms", "stats", "A histogram groups data.")])
+    client = FakeClient(_model_json("A histogram groups data into bars.", [1]))
+    provider = _provider(client, retriever, FakeFallback())
+
+    reply = provider.ask("what is a histogram", {"focus_item": {}, "memory_allowed": False})
+    assert reply.get("smalltalk") is not True
+    assert len(client.calls) == 1
+
+
+# ---------------------------------------------------------------------------
 # Consent gating of the learner profile
 # ---------------------------------------------------------------------------
 

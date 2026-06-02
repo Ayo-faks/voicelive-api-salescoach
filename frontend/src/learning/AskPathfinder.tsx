@@ -1,36 +1,91 @@
 /**
- * Ask Pathfinder FAB + Drawer — unified assistant entry-point for learners.
+ * Ask Pathfinder — the unified learner assistant surface.
  *
- * Replaces the standalone Career Navigator. Phase 1 is text-only and hits the
- * deterministic `/api/learning/assistant/ask` backend. Phase 2 (see
- * `/memories/repo/pathfinder-ask-assistant-phase2.md`) plugs the disabled mic
- * button into the existing voice frame pipeline.
+ * One brain, one transcript, two transports. The learner can type or talk to
+ * the same assistant: ask a question, start an exercise, check their own
+ * progress — and every reply comes back as a list of `AssistantBlock`s that
+ * render through the shared {@link AssistantBlockRenderer}. A keyboard⟷mic
+ * toggle morphs the same surface between a compact text drawer and a fullscreen
+ * voice panel; the transcript persists across the switch.
+ *
+ * - Text turns POST `/api/learning/assistant/turn` (see {@link runAssistantTurn}).
+ * - Voice turns stream over `/ws/learning-voice` (see {@link openLearnerVoiceSocket}),
+ *   with speech-to-text and block.speak text-to-speech handled at the edge via
+ *   the Web Speech API when the browser supports it.
  */
-import { useCallback, useState, type FormEvent } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+} from 'react'
 import { makeStyles, mergeClasses } from '@fluentui/react-components'
 import {
   ChatBubbleLeftRightIcon,
   MicrophoneIcon,
   PaperAirplaneIcon,
+  PencilSquareIcon,
+  StopIcon,
   XMarkIcon,
 } from '@heroicons/react/24/solid'
+import {
+  openLearnerVoiceSocket,
+  runAssistantTurn,
+  type AssistantBlock,
+  type AssistantConfirmationBlock,
+  type AssistantThreadTurn,
+  type AssistantTurnRequest,
+  type AssistantTurnResult,
+  type LearnerVoiceSocket,
+} from './api'
+import { AssistantBlockRenderer } from './components/AssistantBlockRenderer'
 import { useLearnerContext } from './contexts/LearnerContext'
 
-type Citation = {
-  label?: string
-  url?: string
-  topic_id?: string
+type Mode = 'text' | 'voice'
+
+type TranscriptItem =
+  | { id: string; role: 'user'; text: string }
+  | { id: string; role: 'assistant'; block: AssistantBlock }
+
+const CARD_KINDS = new Set([
+  'greeting',
+  'mcq-tap',
+  'explanation',
+  'progress',
+  'mark-known',
+])
+
+let counter = 0
+function nextId(prefix: string): string {
+  counter += 1
+  return `${prefix}-${Date.now().toString(36)}-${counter}`
 }
 
-type TranscriptEntry =
-  | { role: 'user'; text: string; id: string }
-  | {
-      role: 'assistant'
-      text: string
-      citations: Citation[]
-      grounded?: boolean
-      id: string
-    }
+interface SpeechRecognitionLike {
+  lang: string
+  continuous: boolean
+  interimResults: boolean
+  start: () => void
+  stop: () => void
+  onresult:
+    | ((event: {
+        results: ArrayLike<ArrayLike<{ transcript: string }>>
+      }) => void)
+    | null
+  onend: (() => void) | null
+  onerror: (() => void) | null
+}
+
+function getSpeechRecognition(): (new () => SpeechRecognitionLike) | undefined {
+  if (typeof window === 'undefined') return undefined
+  const w = window as unknown as {
+    SpeechRecognition?: new () => SpeechRecognitionLike
+    webkitSpeechRecognition?: new () => SpeechRecognitionLike
+  }
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition
+}
 
 const useStyles = makeStyles({
   fab: {
@@ -69,8 +124,8 @@ const useStyles = makeStyles({
     right: '24px',
     bottom: '24px',
     zIndex: 50,
-    width: 'min(420px, calc(100vw - 48px))',
-    height: 'min(640px, calc(100vh - 80px))',
+    width: 'min(440px, calc(100vw - 48px))',
+    height: 'min(660px, calc(100vh - 80px))',
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
@@ -79,6 +134,7 @@ const useStyles = makeStyles({
     boxShadow: '0 24px 64px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)',
     background: '#0d0d0f',
     color: '#f4f4f6',
+    transition: 'width .28s ease, height .28s ease, inset .28s ease',
     '@media (max-width: 700px)': {
       right: '0',
       left: '0',
@@ -88,6 +144,22 @@ const useStyles = makeStyles({
       borderRadius: '18px 18px 0 0',
     },
   },
+  drawerVoice: {
+    right: '24px',
+    bottom: '24px',
+    top: '24px',
+    width: 'min(720px, calc(100vw - 48px))',
+    height: 'auto',
+    '@media (max-width: 700px)': {
+      right: '0',
+      left: '0',
+      top: '0',
+      bottom: '0',
+      width: '100vw',
+      height: '100vh',
+      borderRadius: '0',
+    },
+  },
   header: {
     display: 'flex',
     alignItems: 'center',
@@ -95,7 +167,32 @@ const useStyles = makeStyles({
     padding: '14px 16px',
     borderBottom: '1px solid rgba(255,255,255,0.06)',
   },
+  headerLeft: { display: 'flex', alignItems: 'center', gap: '10px' },
   title: { fontWeight: 600, fontSize: '15px' },
+  modeToggle: {
+    display: 'flex',
+    gap: '2px',
+    padding: '2px',
+    borderRadius: '999px',
+    background: 'rgba(255,255,255,0.05)',
+  },
+  modeBtn: {
+    appearance: 'none',
+    border: 'none',
+    background: 'transparent',
+    color: '#9a9aa2',
+    cursor: 'pointer',
+    padding: '5px 8px',
+    borderRadius: '999px',
+    display: 'grid',
+    placeItems: 'center',
+    ':hover': { color: '#f4f4f6' },
+  },
+  modeBtnActive: {
+    background: 'linear-gradient(160deg, #4a4a4d 0%, #0a0a0a 100%)',
+    color: '#ffffff',
+  },
+  modeGlyph: { width: '16px', height: '16px' },
   closeBtn: {
     appearance: 'none',
     border: 'none',
@@ -115,7 +212,7 @@ const useStyles = makeStyles({
     padding: '14px 16px',
     display: 'flex',
     flexDirection: 'column',
-    gap: '10px',
+    gap: '12px',
     fontSize: '14px',
     lineHeight: 1.45,
   },
@@ -126,50 +223,36 @@ const useStyles = makeStyles({
     borderRadius: '12px 12px 4px 12px',
     background: '#2a2a2e',
   },
-  msgAssistant: {
-    alignSelf: 'flex-start',
-    maxWidth: '90%',
-    padding: '10px 12px',
-    borderRadius: '12px 12px 12px 4px',
-    background: '#16161a',
-    border: '1px solid rgba(255,255,255,0.06)',
-  },
-  msgAssistantDeferred: {
-    borderTopColor: 'rgba(243, 197, 86, 0.35)',
-    borderRightColor: 'rgba(243, 197, 86, 0.35)',
-    borderBottomColor: 'rgba(243, 197, 86, 0.35)',
-    borderLeftColor: 'rgba(243, 197, 86, 0.35)',
-    borderTopStyle: 'dashed',
-    borderRightStyle: 'dashed',
-    borderBottomStyle: 'dashed',
-    borderLeftStyle: 'dashed',
-    background: 'rgba(243, 197, 86, 0.06)',
-  },
-  deferBadge: {
-    display: 'inline-block',
-    marginBottom: '6px',
-    padding: '1px 8px',
-    borderRadius: '999px',
-    fontSize: '11px',
-    fontWeight: 600,
-    letterSpacing: '0.02em',
-    color: '#f3c556',
-    background: 'rgba(243, 197, 86, 0.12)',
-  },
-  citations: {
-    marginTop: '6px',
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '6px',
-    fontSize: '12px',
-    color: '#a8a8b0',
-  },
-  citation: {
-    padding: '2px 8px',
-    borderRadius: '999px',
-    background: 'rgba(255,255,255,0.06)',
-  },
   empty: { color: '#8a8a91', fontStyle: 'italic' },
+  voiceStage: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '8px 16px 16px',
+  },
+  orb: {
+    width: '92px',
+    height: '92px',
+    borderRadius: '50%',
+    border: 'none',
+    cursor: 'pointer',
+    background:
+      'radial-gradient(circle at 35% 30%, rgba(155,212,255,0.6), rgba(20,20,24,0.9))',
+    boxShadow: '0 0 48px rgba(155,212,255,0.25)',
+    display: 'grid',
+    placeItems: 'center',
+    color: '#ffffff',
+    transition: 'transform .2s ease, box-shadow .2s ease',
+    ':disabled': { opacity: 0.5, cursor: 'not-allowed' },
+  },
+  orbActive: {
+    transform: 'scale(1.08)',
+    boxShadow: '0 0 72px rgba(155,212,255,0.5)',
+  },
+  orbGlyph: { width: '34px', height: '34px' },
+  voiceHint: { color: '#9a9aa2', fontSize: '13px', textAlign: 'center' },
+  voiceError: { color: '#ff9d9d', fontSize: '13px', textAlign: 'center' },
   composer: {
     display: 'flex',
     alignItems: 'flex-end',
@@ -213,127 +296,299 @@ const useStyles = makeStyles({
   iconGlyph: { width: '18px', height: '18px' },
 })
 
-export interface AskPathfinderProps {
-  endpoint?: string
-}
-
-export function AskPathfinder({
-  endpoint = '/api/learning/assistant/ask',
-}: AskPathfinderProps) {
+export function AskPathfinder() {
   const styles = useStyles()
   const learner = useLearnerContext()
   const [open, setOpen] = useState(false)
+  const [mode, setMode] = useState<Mode>('text')
   const [draft, setDraft] = useState('')
-  const [transcript, setTranscript] = useState<TranscriptEntry[]>([])
+  const [transcript, setTranscript] = useState<TranscriptItem[]>([])
   const [busy, setBusy] = useState(false)
+  const [sessionComplete, setSessionComplete] = useState(false)
+  const [listening, setListening] = useState(false)
+  const [voiceError, setVoiceError] = useState<string | null>(null)
 
-  const send = useCallback(
-    async (event?: FormEvent) => {
-      if (event) event.preventDefault()
-      const question = draft.trim()
-      if (!question || busy) return
-      const userId = `u-${Date.now().toString(36)}`
-      // Maintain the dig-deeper thread: prior turns (before this question) give
-      // the model the running context to ground multi-turn follow-ups.
-      const thread = transcript.map(entry => ({
-        role: entry.role,
-        text: entry.text,
-      }))
-      const focusItem = learner.focusItem
-      const setup = learner.learnerSetup
-      setTranscript(prev => [
-        ...prev,
-        { role: 'user', text: question, id: userId },
-      ])
-      setDraft('')
+  const socketRef = useRef<LearnerVoiceSocket | null>(null)
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
+  const transcriptRef = useRef<TranscriptItem[]>([])
+  transcriptRef.current = transcript
+
+  const speechSupported = useMemo(() => Boolean(getSpeechRecognition()), [])
+
+  const buildContext = useCallback(
+    (): AssistantTurnRequest => ({
+      user_id: learner.userId,
+      child_id: learner.userId,
+      weak_topics: learner.weakTopics.map(w => ({
+        skill_id: w.skillId,
+        label: w.label,
+      })),
+      daily_plan: learner.dailyPlan.map(d => ({ id: d.id, title: d.title })),
+      career_fits: learner.careerFits,
+      last_wrong_answer: learner.lastWrongAnswer
+        ? {
+            skill_id: learner.lastWrongAnswer.skillId,
+            label: learner.lastWrongAnswer.label,
+          }
+        : null,
+      focus_item: learner.focusItem
+        ? {
+            stem: learner.focusItem.stem,
+            options: learner.focusItem.options,
+            chosen: learner.focusItem.chosen,
+            correct: learner.focusItem.correct,
+            rationale: learner.focusItem.rationale,
+            skill_id: learner.focusItem.skillId,
+            misconception: learner.focusItem.misconception,
+            scored: learner.focusItem.scored,
+          }
+        : null,
+      learner_setup: learner.learnerSetup
+        ? {
+            subject: learner.learnerSetup.subject,
+            year_group: learner.learnerSetup.yearGroup,
+          }
+        : null,
+      attempt_history: learner.attemptHistory.map(a => ({
+        misconception_code: a.misconceptionCode,
+        topic: a.topic,
+        correct: a.correct ?? false,
+        occurred_at: a.occurredAt,
+      })),
+    }),
+    [learner]
+  )
+
+  // The running conversation thread — user utterances and prose replies — so
+  // the brain can ground multi-turn follow-ups. Cards carry their own state.
+  const buildThread = useCallback((): AssistantThreadTurn[] => {
+    const out: AssistantThreadTurn[] = []
+    for (const item of transcriptRef.current) {
+      if (item.role === 'user') {
+        out.push({ role: 'user', text: item.text })
+      } else if (item.block.kind === 'prose') {
+        out.push({ role: 'assistant', text: item.block.text })
+      }
+    }
+    return out
+  }, [])
+
+  // The last practice card shown, so a tap/utterance continues the same walk.
+  const lastCard = useCallback((): { id: string; kind: string } | null => {
+    for (let i = transcriptRef.current.length - 1; i >= 0; i -= 1) {
+      const item = transcriptRef.current[i]
+      if (item.role === 'assistant' && CARD_KINDS.has(item.block.kind)) {
+        const card = item.block as { card_id: string; kind: string }
+        return { id: card.card_id, kind: card.kind }
+      }
+    }
+    return null
+  }, [])
+
+  const speak = useCallback(
+    (result: AssistantTurnResult) => {
+      if (mode !== 'voice' || typeof window === 'undefined') return
+      const synth = window.speechSynthesis
+      if (!synth) return
+      const line = result.blocks
+        .map(block => ('speak' in block ? block.speak : ''))
+        .filter(Boolean)
+        .join(' ')
+      if (!line) return
+      synth.speak(new SpeechSynthesisUtterance(line))
+    },
+    [mode]
+  )
+
+  const appendResult = useCallback((result: AssistantTurnResult) => {
+    setTranscript(prev => [
+      ...prev,
+      ...result.blocks.map(block => ({
+        id: nextId('a'),
+        role: 'assistant' as const,
+        block,
+      })),
+    ])
+    setSessionComplete(result.session_complete)
+  }, [])
+
+  const dispatchTurn = useCallback(
+    async (partial: Partial<AssistantTurnRequest>, userText?: string) => {
+      if (busy) return
+      if (userText) {
+        setTranscript(prev => [
+          ...prev,
+          { id: nextId('u'), role: 'user', text: userText },
+        ])
+      }
+      const payload: AssistantTurnRequest = {
+        ...buildContext(),
+        thread: buildThread(),
+        ...partial,
+      }
       setBusy(true)
+      setVoiceError(null)
+      if (mode === 'voice' && socketRef.current) {
+        // Result arrives asynchronously via the socket onResult handler.
+        socketRef.current.send(payload as Record<string, unknown>)
+        return
+      }
       try {
-        const resp = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            user_id: learner.userId,
-            question,
-            weak_topics: learner.weakTopics.map(w => ({
-              skill_id: w.skillId,
-              label: w.label,
-            })),
-            daily_plan: learner.dailyPlan.map(d => ({
-              id: d.id,
-              title: d.title,
-            })),
-            career_fits: learner.careerFits,
-            last_wrong_answer: learner.lastWrongAnswer
-              ? {
-                  skill_id: learner.lastWrongAnswer.skillId,
-                  label: learner.lastWrongAnswer.label,
-                }
-              : null,
-            // Dig-Deeper anchoring: the item the learner is on (if any), the
-            // running thread, and the subject/year for curriculum retrieval.
-            focus_item: focusItem
-              ? {
-                  stem: focusItem.stem,
-                  options: focusItem.options,
-                  chosen: focusItem.chosen,
-                  correct: focusItem.correct,
-                  rationale: focusItem.rationale,
-                  skill_id: focusItem.skillId,
-                  misconception: focusItem.misconception,
-                  scored: focusItem.scored,
-                }
-              : null,
-            learner_setup: setup
-              ? { subject: setup.subject, year_group: setup.yearGroup }
-              : null,
-            // Episodic recall (Phase 5): recent misconception-tagged wrong
-            // attempts as working memory. The backend gates this on memory
-            // consent before turning it into a cross-session trap callback.
-            attempt_history: learner.attemptHistory.map(a => ({
-              misconception_code: a.misconceptionCode,
-              topic: a.topic,
-              correct: a.correct ?? false,
-              occurred_at: a.occurredAt,
-            })),
-            thread,
-          }),
-        })
-        const body = (await resp.json()) as {
-          answer?: string
-          citations?: Citation[]
-          grounded?: boolean
-          error?: string
-        }
-        const text =
-          body.answer ??
-          body.error ??
-          'Sorry — Pathfinder could not answer that just now.'
-        setTranscript(prev => [
-          ...prev,
-          {
-            role: 'assistant',
-            text,
-            citations: body.citations ?? [],
-            grounded: body.grounded,
-            id: `a-${Date.now().toString(36)}`,
-          },
-        ])
+        const result = await runAssistantTurn(payload)
+        appendResult(result)
+        speak(result)
       } catch {
-        setTranscript(prev => [
-          ...prev,
-          {
-            role: 'assistant',
-            text: 'Offline for the moment. Try again when you have a connection.',
-            citations: [],
-            id: `a-${Date.now().toString(36)}`,
-          },
-        ])
+        appendResult({
+          blocks: [
+            {
+              kind: 'prose',
+              speak: '',
+              text: 'Offline for the moment. Try again when you have a connection.',
+              citations: [],
+            },
+          ],
+          session_complete: false,
+        })
       } finally {
         setBusy(false)
       }
     },
-    [busy, draft, endpoint, learner, transcript]
+    [appendResult, buildContext, buildThread, busy, mode, speak]
   )
+
+  const send = useCallback(
+    (event?: FormEvent) => {
+      if (event) event.preventDefault()
+      const question = draft.trim()
+      if (!question || busy) return
+      setDraft('')
+      void dispatchTurn({ question }, question)
+    },
+    [busy, dispatchTurn, draft]
+  )
+
+  const handleMcqAnswer = useCallback(
+    (optionId: string) => {
+      const card = lastCard()
+      if (!card) return
+      void dispatchTurn({
+        last_card_id: card.id,
+        last_kind: card.kind,
+        answer_option_id: optionId,
+      })
+    },
+    [dispatchTurn, lastCard]
+  )
+
+  const handleAdvance = useCallback(() => {
+    const card = lastCard()
+    void dispatchTurn({
+      last_card_id: card?.id,
+      last_kind: card?.kind,
+      advance: true,
+    })
+  }, [dispatchTurn, lastCard])
+
+  const handleFinish = useCallback(() => {
+    setSessionComplete(false)
+  }, [])
+
+  const handleConfirm = useCallback(
+    (block: AssistantConfirmationBlock) => {
+      void dispatchTurn(
+        { intent: block.action ?? 'practice', ...(block.params ?? {}) },
+        block.confirm_label ?? 'Yes'
+      )
+    },
+    [dispatchTurn]
+  )
+
+  const handleDismiss = useCallback((_block: AssistantConfirmationBlock) => {
+    /* The learner declined — nothing to send; the prompt simply stands. */
+  }, [])
+
+  // --- Voice transport lifecycle -------------------------------------------
+
+  const closeSocket = useCallback(() => {
+    socketRef.current?.close()
+    socketRef.current = null
+  }, [])
+
+  const stopListening = useCallback(() => {
+    recognitionRef.current?.stop()
+    recognitionRef.current = null
+    setListening(false)
+  }, [])
+
+  const startListening = useCallback(() => {
+    const Recognition = getSpeechRecognition()
+    if (!Recognition) {
+      setVoiceError('Voice input is not supported in this browser.')
+      return
+    }
+    const recognition = new Recognition()
+    recognition.lang = 'en-GB'
+    recognition.continuous = false
+    recognition.interimResults = false
+    recognition.onresult = event => {
+      const said = event.results?.[0]?.[0]?.transcript?.trim()
+      if (said) void dispatchTurn({ question: said }, said)
+    }
+    recognition.onerror = () => setVoiceError('Could not hear that. Try again.')
+    recognition.onend = () => setListening(false)
+    recognitionRef.current = recognition
+    setListening(true)
+    setVoiceError(null)
+    recognition.start()
+  }, [dispatchTurn])
+
+  const enterVoiceMode = useCallback(() => {
+    setMode('voice')
+    setVoiceError(null)
+    if (!socketRef.current) {
+      socketRef.current = openLearnerVoiceSocket(
+        {
+          onResult: result => {
+            appendResult(result)
+            speak(result)
+            setBusy(false)
+          },
+          onError: message => {
+            setVoiceError(
+              message === 'child_access_required'
+                ? 'You can only talk about your own progress.'
+                : 'Voice connection hiccup — retrying as you speak.'
+            )
+            setBusy(false)
+          },
+          onClose: () => setBusy(false),
+        },
+        { userId: learner.userId }
+      )
+    }
+  }, [appendResult, learner.userId, speak])
+
+  const enterTextMode = useCallback(() => {
+    setMode('text')
+    stopListening()
+    closeSocket()
+  }, [closeSocket, stopListening])
+
+  const closeSurface = useCallback(() => {
+    setOpen(false)
+    stopListening()
+    closeSocket()
+    if (typeof window !== 'undefined') window.speechSynthesis?.cancel()
+  }, [closeSocket, stopListening])
+
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.stop()
+      socketRef.current?.close()
+    }
+  }, [])
+
+  const isVoice = mode === 'voice'
 
   return (
     <>
@@ -353,109 +608,158 @@ export function AskPathfinder({
       )}
       {open && (
         <aside
-          className={styles.drawer}
+          className={mergeClasses(styles.drawer, isVoice && styles.drawerVoice)}
           aria-label="Ask Pathfinder"
           data-testid="ask-pathfinder-drawer"
+          data-mode={mode}
         >
           <header className={styles.header}>
-            <span className={styles.title}>Ask Pathfinder</span>
+            <div className={styles.headerLeft}>
+              <span className={styles.title}>Ask Pathfinder</span>
+              <div className={styles.modeToggle}>
+                <button
+                  type="button"
+                  className={mergeClasses(
+                    styles.modeBtn,
+                    !isVoice && styles.modeBtnActive
+                  )}
+                  onClick={enterTextMode}
+                  aria-pressed={!isVoice}
+                  aria-label="Type your question"
+                  data-testid="ask-pathfinder-mode-text"
+                >
+                  <PencilSquareIcon
+                    className={styles.modeGlyph}
+                    aria-hidden="true"
+                  />
+                </button>
+                <button
+                  type="button"
+                  className={mergeClasses(
+                    styles.modeBtn,
+                    isVoice && styles.modeBtnActive
+                  )}
+                  onClick={enterVoiceMode}
+                  aria-pressed={isVoice}
+                  aria-label="Talk to Pathfinder"
+                  data-testid="ask-pathfinder-mode-voice"
+                >
+                  <MicrophoneIcon
+                    className={styles.modeGlyph}
+                    aria-hidden="true"
+                  />
+                </button>
+              </div>
+            </div>
             <button
               type="button"
               className={styles.closeBtn}
-              onClick={() => setOpen(false)}
+              onClick={closeSurface}
               aria-label="Close Ask Pathfinder"
             >
               <XMarkIcon className={styles.closeGlyph} aria-hidden="true" />
             </button>
           </header>
+
           <div
             className={styles.transcript}
             data-testid="ask-pathfinder-transcript"
           >
             {transcript.length === 0 && (
               <span className={styles.empty}>
-                Ask about today's plan, a wrong answer, or a career pathway.
-                Grounded answers, no outcome guarantees.
+                {isVoice
+                  ? 'Tap the mic and talk. Ask about your plan, start an exercise, or check your progress.'
+                  : "Ask about today's plan, a wrong answer, or start an exercise. Grounded answers, no outcome guarantees."}
               </span>
             )}
-            {transcript.map(entry =>
-              entry.role === 'user' ? (
-                <div key={entry.id} className={styles.msgUser}>
-                  {entry.text}
+            {transcript.map(item =>
+              item.role === 'user' ? (
+                <div key={item.id} className={styles.msgUser}>
+                  {item.text}
                 </div>
               ) : (
-                <div
-                  key={entry.id}
-                  className={mergeClasses(
-                    styles.msgAssistant,
-                    entry.grounded === false && styles.msgAssistantDeferred
-                  )}
-                  data-grounded={entry.grounded === false ? 'false' : 'true'}
-                >
-                  {entry.grounded === false && (
-                    <span
-                      className={styles.deferBadge}
-                      data-testid="ask-pathfinder-defer-badge"
-                    >
-                      No grounded source
-                    </span>
-                  )}
-                  {entry.text}
-                  {entry.citations.length > 0 && (
-                    <div className={styles.citations}>
-                      {entry.citations.map((c, idx) => (
-                        <span
-                          key={`${entry.id}-${idx}`}
-                          className={styles.citation}
-                        >
-                          {c.label ?? c.topic_id ?? c.url ?? 'source'}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <AssistantBlockRenderer
+                  key={item.id}
+                  block={item.block}
+                  disabled={busy}
+                  sessionComplete={sessionComplete}
+                  onMcqAnswer={handleMcqAnswer}
+                  onAdvance={handleAdvance}
+                  onFinish={handleFinish}
+                  onConfirm={handleConfirm}
+                  onDismiss={handleDismiss}
+                />
               )
             )}
           </div>
-          <form className={styles.composer} onSubmit={send}>
-            <button
-              type="button"
-              className={styles.iconBtn}
-              disabled
-              title="Voice answers coming next"
-              aria-label="Voice answers coming next"
-              data-testid="ask-pathfinder-mic"
-            >
-              <MicrophoneIcon className={styles.iconGlyph} aria-hidden="true" />
-            </button>
-            <textarea
-              className={styles.textarea}
-              aria-label="Ask Pathfinder a question"
-              placeholder="Ask Pathfinder…"
-              value={draft}
-              onChange={e => setDraft(e.currentTarget.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  void send()
-                }
-              }}
-              rows={1}
-              data-testid="ask-pathfinder-input"
-            />
-            <button
-              type="submit"
-              className={styles.iconBtn}
-              disabled={busy || draft.trim().length === 0}
-              aria-label="Send question"
-              data-testid="ask-pathfinder-send"
-            >
-              <PaperAirplaneIcon
-                className={styles.iconGlyph}
-                aria-hidden="true"
+
+          {isVoice ? (
+            <div className={styles.voiceStage}>
+              <button
+                type="button"
+                className={mergeClasses(
+                  styles.orb,
+                  listening && styles.orbActive
+                )}
+                onClick={listening ? stopListening : startListening}
+                disabled={!speechSupported || busy}
+                aria-label={listening ? 'Stop listening' : 'Start talking'}
+                data-testid="ask-pathfinder-mic"
+              >
+                {listening ? (
+                  <StopIcon className={styles.orbGlyph} aria-hidden="true" />
+                ) : (
+                  <MicrophoneIcon
+                    className={styles.orbGlyph}
+                    aria-hidden="true"
+                  />
+                )}
+              </button>
+              {voiceError ? (
+                <span className={styles.voiceError}>{voiceError}</span>
+              ) : (
+                <span className={styles.voiceHint}>
+                  {!speechSupported
+                    ? 'Voice input is not supported here — switch to the keyboard to type.'
+                    : listening
+                      ? 'Listening… tap to stop.'
+                      : busy
+                        ? 'Thinking…'
+                        : 'Tap to talk.'}
+                </span>
+              )}
+            </div>
+          ) : (
+            <form className={styles.composer} onSubmit={send}>
+              <textarea
+                className={styles.textarea}
+                aria-label="Ask Pathfinder a question"
+                placeholder="Ask Pathfinder…"
+                value={draft}
+                onChange={e => setDraft(e.currentTarget.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    send()
+                  }
+                }}
+                rows={1}
+                data-testid="ask-pathfinder-input"
               />
-            </button>
-          </form>
+              <button
+                type="submit"
+                className={styles.iconBtn}
+                disabled={busy || draft.trim().length === 0}
+                aria-label="Send question"
+                data-testid="ask-pathfinder-send"
+              >
+                <PaperAirplaneIcon
+                  className={styles.iconGlyph}
+                  aria-hidden="true"
+                />
+              </button>
+            </form>
+          )}
         </aside>
       )}
     </>

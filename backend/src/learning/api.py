@@ -101,6 +101,8 @@ from src.learning.learner_voice import (
     LearnerVoiceTurnRequest,
     LearnerVoiceTurnResponse,
 )
+from src.learning.assistant_blocks import PlanBlock, PlanStep, ProfileBlock, ProfileChip
+from src.learning.assistant_planner import UnifiedAssistantPlanner
 from src.learning.xapi import (
     ApprovalEvent,
     DiagnosticCompletionEvent,
@@ -488,6 +490,15 @@ class LearningApi:
                 self.learner_voice_planner = voice_model_planner
         except Exception:  # noqa: BLE001
             logger.exception("Failed to build model learner voice planner; using deterministic fallback")
+
+        # Unified assistant facade — the single brain behind the merged
+        # voice+chat surface. It delegates to whichever prose/card brains were
+        # resolved above (model-backed or deterministic) and normalises every
+        # turn to the shared AssistantBlock contract, so the text drawer and the
+        # realtime voice transport render the same blocks.
+        self.assistant_planner = UnifiedAssistantPlanner(
+            self.assistant_provider, self.learner_voice_planner
+        )
 
         # W8 — Spaced-retrieval Web Push.
         self.notifications_repository: NotificationsRepository = (
@@ -2006,7 +2017,154 @@ class LearningApi:
         # deterministic provider omits it, so we only surface it when present.
         if "grounded" in reply:
             result["grounded"] = bool(reply.get("grounded"))
+        # Small-talk signal: greetings/thanks/capability replies are
+        # deliberately ungrounded but conversational, so the drawer suppresses
+        # the "No grounded source" badge for them while still showing it for
+        # genuine no-corpus defers.
+        if reply.get("smalltalk"):
+            result["smalltalk"] = True
         return result
+
+    def run_assistant_turn(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        """Unified voice+chat turn — returns the shared AssistantBlock contract.
+
+        This is the single entrypoint behind the merged assistant surface. The
+        text drawer and the realtime voice transport both POST here (or call
+        this method) and receive ``{"blocks": [...], "session_complete": bool}``.
+
+        ``intent`` (optional) disambiguates: ``practice``/``start_exercise``
+        drives a gen-UI question walk; ``profile``/``plan`` render the learner's
+        own snapshot; anything else with a ``question`` returns a grounded prose
+        block. With no question and no intent we open with the learner's profile
+        and plan — the "just logged in / digging around" entry.
+
+        Reuses :meth:`ask_assistant`'s context contract for the prose brain and
+        the :class:`LearnerVoiceTurnRequest` shape for the card brain, so no
+        existing grounding/safeguarding behaviour changes.
+        """
+        question = str(payload.get("question") or "").strip()
+        intent = payload.get("intent")
+
+        # Prose-brain context (identical to ask_assistant so grounding,
+        # memory-consent and safeguarding behave the same on this path).
+        memory_allowed = self._memory_consent_allowed(payload.get("user_id"))
+        attempt_history = self._load_episodic_attempts(
+            payload, memory_allowed=memory_allowed
+        )
+        context: Dict[str, Any] = {
+            "user_id": payload.get("user_id"),
+            "weak_topics": payload.get("weak_topics") or [],
+            "daily_plan": payload.get("daily_plan") or [],
+            "career_fits": payload.get("career_fits") or [],
+            "last_wrong_answer": payload.get("last_wrong_answer") or {},
+            "learner_setup": payload.get("learner_setup") or {},
+            "focus_item": payload.get("focus_item") or {},
+            "thread": payload.get("thread") or [],
+            "memory_allowed": memory_allowed,
+            "attempt_history": attempt_history,
+            "memory_callback": build_memory_callback(
+                attempt_history, memory_allowed=memory_allowed
+            ),
+        }
+
+        # Card-brain request — only built when the payload carries practice
+        # signals, so a pure question never spins up a walk.
+        voice_request: Optional[LearnerVoiceTurnRequest] = None
+        has_practice_signal = any(
+            payload.get(k) is not None
+            for k in ("last_card_id", "last_kind", "answer_option_id")
+        ) or bool(payload.get("advance"))
+        wants_practice = str(intent or "").strip().lower() in {
+            "practice", "start_exercise", "exercise", "next", "quiz"
+        }
+        if has_practice_signal or wants_practice:
+            try:
+                voice_request = LearnerVoiceTurnRequest(
+                    child_id=str(payload.get("child_id") or payload.get("user_id") or "pending").strip()
+                    or "pending",
+                    lang=str(payload.get("lang") or "en-NG"),
+                    last_card_id=payload.get("last_card_id"),
+                    last_kind=payload.get("last_kind"),
+                    answer_option_id=payload.get("answer_option_id"),
+                    advance=bool(payload.get("advance") or False),
+                    exam=payload.get("exam"),
+                    class_year=payload.get("class_year"),
+                    subject=payload.get("subject"),
+                )
+            except Exception as exc:  # pydantic validation
+                raise LearningApiError(f"invalid practice turn: {exc}", status_code=400) from exc
+
+        profile_block = self._build_profile_block(payload)
+        plan_block = self._build_plan_block(payload)
+
+        result = self.assistant_planner.plan_turn(
+            question=question,
+            intent=str(intent) if intent is not None else None,
+            context=context,
+            voice_request=voice_request,
+            profile_block=profile_block,
+            plan_block=plan_block,
+        )
+        return result.model_dump()
+
+    @staticmethod
+    def _build_profile_block(payload: Mapping[str, Any]) -> Optional[ProfileBlock]:
+        """Build a learner self-view from client-supplied signals (RLS-safe)."""
+        weak_topics = payload.get("weak_topics") or []
+        labels = [
+            str(t.get("label") or t.get("skill_id") or t.get("topic_id"))
+            if isinstance(t, Mapping)
+            else str(t)
+            for t in weak_topics
+        ]
+        labels = [l for l in labels if l]
+        if not labels and not payload.get("learner_setup"):
+            return None
+        setup = payload.get("learner_setup") or {}
+        chips: List[ProfileChip] = []
+        if setup.get("subject"):
+            chips.append(ProfileChip(label="Subject", value=str(setup["subject"])))
+        if setup.get("year_group") or setup.get("class_year"):
+            chips.append(
+                ProfileChip(
+                    label="Class",
+                    value=str(setup.get("year_group") or setup.get("class_year")),
+                )
+            )
+        if labels:
+            chips.append(
+                ProfileChip(label="Focus areas", value=str(len(labels)), tone="warn")
+            )
+        return ProfileBlock(
+            speak="Here's where you are right now.",
+            headline="Your progress",
+            chips=chips,
+            weak_topics=labels[:5],
+        )
+
+    @staticmethod
+    def _build_plan_block(payload: Mapping[str, Any]) -> Optional[PlanBlock]:
+        daily_plan = payload.get("daily_plan") or []
+        steps: List[PlanStep] = []
+        for item in daily_plan:
+            if isinstance(item, Mapping):
+                title = str(item.get("title") or item.get("skill_id") or "").strip()
+                if not title:
+                    continue
+                steps.append(
+                    PlanStep(
+                        title=title,
+                        skill_id=item.get("skill_id"),
+                        done=bool(item.get("done")),
+                    )
+                )
+            elif item:
+                steps.append(PlanStep(title=str(item)))
+        if not steps:
+            return None
+        return PlanBlock(
+            speak="Here's today's plan.", headline="Today's plan", steps=steps
+        )
 
     def submit_voice_frame(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
         if not self.voice_enabled():
@@ -2892,6 +3050,11 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
     @_wrap
     def _ask_assistant(payload: Dict[str, Any]) -> Dict[str, Any]:
         return learning_api.ask_assistant(payload)
+
+    @app.route("/api/learning/assistant/turn", methods=["POST"])
+    @_wrap
+    def _assistant_turn(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.run_assistant_turn(payload)
 
     @app.route("/api/learning/subjects", methods=["GET"])
     @_wrap

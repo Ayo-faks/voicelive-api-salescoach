@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import AskPathfinder from '../AskPathfinder'
+import type { AssistantBlock } from '../api'
 import {
   LearnerContext,
   defaultLearnerContext,
@@ -17,14 +18,27 @@ function renderDrawer(overrides: Partial<LearnerContextValue> = {}) {
   fireEvent.click(screen.getByTestId('ask-pathfinder-fab'))
 }
 
-function jsonResponse(body: unknown): Response {
+function turnResponse(
+  blocks: AssistantBlock[],
+  sessionComplete = false
+): Response {
   return {
     ok: true,
-    json: async () => body,
+    json: async () => ({ blocks, session_complete: sessionComplete }),
   } as unknown as Response
 }
 
-describe('AskPathfinder — Phase 2 anchoring', () => {
+function prose(text: string, extra: Partial<Record<string, unknown>> = {}) {
+  return {
+    kind: 'prose',
+    speak: text,
+    text,
+    citations: [],
+    ...extra,
+  } as unknown as AssistantBlock
+}
+
+describe('AskPathfinder — unified assistant surface', () => {
   let fetchMock: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
@@ -44,10 +58,14 @@ describe('AskPathfinder — Phase 2 anchoring', () => {
     fireEvent.click(screen.getByTestId('ask-pathfinder-send'))
   }
 
-  it('sends the focus item, learner setup, and an empty thread on the first turn', async () => {
-    fetchMock.mockResolvedValueOnce(
-      jsonResponse({ answer: 'Divide both by 2.', citations: [], grounded: true })
+  function bodyOf(call: number) {
+    return JSON.parse(
+      (fetchMock.mock.calls[call][1] as RequestInit).body as string
     )
+  }
+
+  it('posts to the unified turn endpoint with focus item, setup, and empty thread', async () => {
+    fetchMock.mockResolvedValueOnce(turnResponse([prose('Divide both by 2.')]))
     renderDrawer({
       userId: 'learner-1',
       focusItem: {
@@ -61,9 +79,9 @@ describe('AskPathfinder — Phase 2 anchoring', () => {
     await ask('why is it 1/2?')
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
 
-    const body = JSON.parse(
-      (fetchMock.mock.calls[0][1] as RequestInit).body as string
-    )
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/learning/assistant/turn')
+    const body = bodyOf(0)
+    expect(body.question).toBe('why is it 1/2?')
     expect(body.focus_item).toMatchObject({
       stem: 'Simplify 2/4',
       skill_id: 'fraction-operations',
@@ -74,9 +92,7 @@ describe('AskPathfinder — Phase 2 anchoring', () => {
   })
 
   it('forwards the learner attempt history so the tutor can recall traps', async () => {
-    fetchMock.mockResolvedValueOnce(
-      jsonResponse({ answer: 'Watch the sign.', citations: [], grounded: true })
-    )
+    fetchMock.mockResolvedValueOnce(turnResponse([prose('Watch the sign.')]))
     renderDrawer({
       userId: 'learner-1',
       attemptHistory: [
@@ -92,10 +108,7 @@ describe('AskPathfinder — Phase 2 anchoring', () => {
     await ask('why did I get this wrong?')
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
 
-    const body = JSON.parse(
-      (fetchMock.mock.calls[0][1] as RequestInit).body as string
-    )
-    expect(body.attempt_history).toEqual([
+    expect(bodyOf(0).attempt_history).toEqual([
       {
         misconception_code: 'sign_error',
         topic: 'Algebra',
@@ -105,27 +118,19 @@ describe('AskPathfinder — Phase 2 anchoring', () => {
     ])
   })
 
-  it('maintains the running thread across turns', async () => {
+  it('maintains the running thread of prose turns across questions', async () => {
     fetchMock
-      .mockResolvedValueOnce(
-        jsonResponse({ answer: 'First answer.', citations: [], grounded: true })
-      )
-      .mockResolvedValueOnce(
-        jsonResponse({ answer: 'Second answer.', citations: [], grounded: true })
-      )
+      .mockResolvedValueOnce(turnResponse([prose('First answer.')]))
+      .mockResolvedValueOnce(turnResponse([prose('Second answer.')]))
     renderDrawer()
 
     await ask('question one')
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
     await screen.findByText('First answer.')
 
     await ask('question two')
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
 
-    const secondBody = JSON.parse(
-      (fetchMock.mock.calls[1][1] as RequestInit).body as string
-    )
-    expect(secondBody.thread).toEqual([
+    expect(bodyOf(1).thread).toEqual([
       { role: 'user', text: 'question one' },
       { role: 'assistant', text: 'First answer.' },
     ])
@@ -133,49 +138,113 @@ describe('AskPathfinder — Phase 2 anchoring', () => {
 
   it('renders a distinct defer state when the answer is not grounded', async () => {
     fetchMock.mockResolvedValueOnce(
-      jsonResponse({
-        answer: "I don't have study material I can ground that on yet.",
-        citations: [],
-        grounded: false,
-      })
+      turnResponse([
+        prose("I don't have study material I can ground that on yet.", {
+          grounded: false,
+        }),
+      ])
     )
     renderDrawer()
 
     await ask('what is a black hole?')
     await waitFor(() =>
-      expect(screen.getByTestId('ask-pathfinder-defer-badge')).toBeTruthy()
+      expect(screen.getByTestId('assistant-defer-badge')).toBeTruthy()
     )
   })
 
-  it('does not render a defer badge for a grounded answer', async () => {
+  it('does not render a defer badge for a small-talk reply', async () => {
     fetchMock.mockResolvedValueOnce(
-      jsonResponse({
-        answer: 'Divide both by 2.',
-        citations: [{ label: 'Simplifying fractions', topic_id: 'wiki-1' }],
-        grounded: true,
-      })
+      turnResponse([
+        prose("Hi! I'm Pathfinder, your study tutor.", {
+          grounded: false,
+          smalltalk: true,
+        }),
+      ])
+    )
+    renderDrawer()
+
+    await ask('hi')
+    await screen.findByText("Hi! I'm Pathfinder, your study tutor.")
+    expect(screen.queryByTestId('assistant-defer-badge')).toBeNull()
+  })
+
+  it('renders citations for a grounded answer without a defer badge', async () => {
+    fetchMock.mockResolvedValueOnce(
+      turnResponse([
+        prose('Divide both by 2.', {
+          grounded: true,
+          citations: [{ label: 'Simplifying fractions', topic_id: 'wiki-1' }],
+        }),
+      ])
     )
     renderDrawer()
 
     await ask('why is 2/4 = 1/2?')
     await screen.findByText('Divide both by 2.')
-    expect(screen.queryByTestId('ask-pathfinder-defer-badge')).toBeNull()
+    expect(screen.queryByTestId('assistant-defer-badge')).toBeNull()
     expect(screen.getByText('Simplifying fractions')).toBeTruthy()
   })
 
   it('omits focus_item and learner_setup when none are anchored', async () => {
-    fetchMock.mockResolvedValueOnce(
-      jsonResponse({ answer: 'ok', citations: [], grounded: true })
-    )
+    fetchMock.mockResolvedValueOnce(turnResponse([prose('ok')]))
     renderDrawer()
 
     await ask('general question')
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
 
-    const body = JSON.parse(
-      (fetchMock.mock.calls[0][1] as RequestInit).body as string
-    )
+    const body = bodyOf(0)
     expect(body.focus_item).toBeNull()
     expect(body.learner_setup).toBeNull()
+  })
+
+  it('renders a practice card and continues the walk when an option is tapped', async () => {
+    const mcq: AssistantBlock = {
+      kind: 'mcq-tap',
+      card_id: 'c1',
+      speak: 'Pick one.',
+      stem: 'What is 2 + 2?',
+      options: [
+        { id: 'o1', label: 'A', text: '4' },
+        { id: 'o2', label: 'B', text: '5' },
+      ],
+    } as unknown as AssistantBlock
+    fetchMock
+      .mockResolvedValueOnce(turnResponse([mcq]))
+      .mockResolvedValueOnce(turnResponse([prose('Correct!')]))
+    renderDrawer()
+
+    await ask('start an exercise')
+    await screen.findByTestId('practice-card')
+
+    fireEvent.click(screen.getByTestId('practice-option-o1'))
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+
+    expect(bodyOf(1)).toMatchObject({
+      last_card_id: 'c1',
+      last_kind: 'mcq-tap',
+      answer_option_id: 'o1',
+    })
+  })
+
+  it('morphs to voice mode and shows the mic stage', async () => {
+    class FakeWebSocket {
+      static OPEN = 1
+      readyState = 1
+      onmessage: ((e: { data: string }) => void) | null = null
+      onclose: (() => void) | null = null
+      onerror: (() => void) | null = null
+      constructor(public url: string) {}
+      send() {}
+      close() {}
+    }
+    vi.stubGlobal('WebSocket', FakeWebSocket)
+    renderDrawer()
+
+    fireEvent.click(screen.getByTestId('ask-pathfinder-mode-voice'))
+    expect(screen.getByTestId('ask-pathfinder-mic')).toBeTruthy()
+    expect(screen.queryByTestId('ask-pathfinder-input')).toBeNull()
+    expect(
+      screen.getByTestId('ask-pathfinder-drawer').getAttribute('data-mode')
+    ).toBe('voice')
   })
 })
