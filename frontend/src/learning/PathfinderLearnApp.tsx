@@ -10,6 +10,7 @@ import {
   ArrowRightStartOnRectangleIcon,
   BookOpenIcon,
   ChartBarIcon,
+  ChartBarSquareIcon,
   Cog6ToothIcon,
   DocumentTextIcon,
   InformationCircleIcon,
@@ -44,6 +45,7 @@ import StudentLearningHome from './routes/StudentLearningHome'
 import StudentMasteryProfile from './routes/StudentMasteryProfile'
 import TeacherMasteryDashboard from './routes/TeacherMasteryDashboard'
 import TrustSafetyConsole from './routes/TrustSafetyConsole'
+import ObservabilityDashboard from './routes/ObservabilityDashboard'
 import {
   PathfinderAccountHub,
   PathfinderAiNotice,
@@ -161,6 +163,14 @@ const navItems: NavItem[] = [
     icon: ShieldCheckIcon,
     allowedRoles: ['admin'],
     testId: 'pf-nav-safety',
+  },
+  {
+    to: '/observability',
+    label: 'Observability',
+    hint: 'Signals',
+    icon: ChartBarSquareIcon,
+    allowedRoles: ['admin'],
+    testId: 'pf-nav-observability',
   },
 ]
 
@@ -1428,6 +1438,10 @@ export default function PathfinderLearnApp() {
               <Route
                 path="/safety"
                 element={routeForRole(['admin'], <TrustSafetyConsole />)}
+              />
+              <Route
+                path="/observability"
+                element={routeForRole(['admin'], <ObservabilityDashboard />)}
               />
               <Route path="/account" element={<PathfinderAccountHub />} />
               <Route

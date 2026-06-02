@@ -1420,7 +1420,7 @@ def _learning_student_guard(user: Mapping[str, Any], student_id: str) -> Optiona
 
 def _learning_admin_endpoint(path: str, method: str) -> bool:
     return (
-        path in {"/api/learning/audit", "/api/learning/kpis", "/api/learning/observability/config", "/api/learning/metrics"}
+        path in {"/api/learning/audit", "/api/learning/kpis", "/api/learning/observability/config", "/api/learning/observability/dashboard", "/api/learning/metrics"}
         or (path == "/api/learning/skills" and method == "POST")
         or (path.startswith("/api/learning/skills/") and method == "POST")
     )

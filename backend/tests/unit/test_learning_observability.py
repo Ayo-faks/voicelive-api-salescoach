@@ -53,14 +53,30 @@ class _FakeMetricCounter:
         self.adds.append((value, dict(attributes)))
 
 
+class _FakeHistogram:
+    def __init__(self, name: str) -> None:
+        self.name = name
+        self.observations: List[float] = []
+
+    def record(self, value: float, *_args: Any, **_kwargs: Any) -> None:
+        self.observations.append(value)
+
+
 class _FakeMeter:
     def __init__(self) -> None:
         self.counters: Dict[str, _FakeMetricCounter] = {}
+        self.histograms: Dict[str, _FakeHistogram] = {}
 
     def create_counter(self, name: str, **_kwargs: Any) -> _FakeMetricCounter:
         counter = _FakeMetricCounter(name)
         self.counters[name] = counter
         return counter
+
+    def create_histogram(self, name: str, **_kwargs: Any) -> _FakeHistogram:
+        histogram = _FakeHistogram(name)
+        self.histograms[name] = histogram
+        return histogram
+
 
 
 def _learning_api(observability: LearningObservability) -> LearningApi:
@@ -203,3 +219,116 @@ def test_learning_routes_start_opentelemetry_spans():
     assert span.attributes["http.method"] == "GET"
     assert span.attributes["http.status_code"] == 200
     assert span.attributes["learning.outcome"] == "success"
+
+
+def _enabled_observability(meter: _FakeMeter | None = None) -> LearningObservability:
+    return LearningObservability(
+        flags=LearningFeatureFlags(
+            observability_enabled=True,
+            prometheus_enabled=True,
+            otel_enabled=meter is not None,
+        ),
+        meter=meter,
+    )
+
+
+def test_metrics_snapshot_aggregates_new_signals():
+    observability = _enabled_observability()
+    observability.record_request("practice", "post", "success")
+    observability.record_request("practice", "post", "error")
+    observability.record_grounding("grounded")
+    observability.record_grounding("refused")
+    observability.record_citation(True)
+    observability.record_citation(False)
+    observability.record_safety("critical", "escalated", actioned=True)
+    observability.record_llm_turn(latency_ms=400, tokens=250, cost_gbp=0.002, outcome="success")
+    observability.record_llm_turn(latency_ms=1200, tokens=500, cost_gbp=0.004, outcome="error")
+    observability.record_retry("success", "v2")
+    observability.record_retry("fail", "v2")
+
+    snap = observability.metrics_snapshot()
+    assert snap["requests"]["error_rate"] == 0.5
+    assert snap["grounding"]["refusal_rate"] == 0.5
+    assert snap["citation"]["present_rate"] == 0.5
+    assert snap["safety"]["total"] == 1.0
+    assert snap["safety"]["by_severity"]["critical"] == 1.0
+    assert snap["safety"]["ack_rate"] == 1.0
+    assert snap["llm"]["turns"] == 2.0
+    assert snap["llm"]["error_rate"] == 0.5
+    assert snap["llm"]["latency_ms_p95"] >= 400
+    assert snap["llm"]["cost_gbp_total"] == 0.006
+    assert snap["retry"]["success_rate"] == 0.5
+    assert snap["retry"]["by_version"]["v2"]["success_rate"] == 0.5
+
+
+def test_new_signals_emit_open_telemetry_metrics():
+    meter = _FakeMeter()
+    observability = _enabled_observability(meter)
+    observability.record_grounding("grounded")
+    observability.record_citation(True)
+    observability.record_safety("high", "logged", actioned=False)
+    observability.record_llm_turn(latency_ms=500, tokens=100, cost_gbp=0.001, outcome="success")
+    observability.record_retry("success", "v1")
+
+    assert meter.counters["pathfinder_learning_grounding_total"].adds == [
+        (1, {"decision": "grounded"})
+    ]
+    assert meter.counters["pathfinder_learning_citation_total"].adds == [
+        (1, {"presence": "present"})
+    ]
+    assert meter.counters["pathfinder_learning_safety_events_total"].adds == [
+        (1, {"severity": "high", "action": "logged"})
+    ]
+    assert meter.counters["pathfinder_learning_llm_turns_total"].adds == [
+        (1, {"outcome": "success"})
+    ]
+    assert meter.counters["pathfinder_learning_retry_outcomes_total"].adds == [
+        (1, {"outcome": "success"})
+    ]
+    assert meter.histograms["pathfinder_learning_llm_latency_ms"].observations == [500]
+
+
+def test_observability_dashboard_endpoint_shape():
+    observability = _enabled_observability()
+    observability.record_request("practice", "post", "success")
+    observability.record_request("practice", "post", "error")
+    observability.record_retry("success", "v2")
+    observability.record_citation(True)
+    observability.record_llm_turn(latency_ms=420, tokens=200, cost_gbp=0.002, outcome="success")
+    client = _client(_learning_api(observability))
+
+    response = client.get("/api/learning/observability/dashboard")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["overall_status"] in {"ok", "warn", "crit", "nodata"}
+    section_ids = {section["id"] for section in body["sections"]}
+    assert section_ids == {"product", "health", "safety-agent"}
+    tile_ids = {
+        tile["id"]
+        for section in body["sections"]
+        for tile in section["tiles"]
+    }
+    assert {"north-star-retry", "api-error-rate", "citation-coverage"} <= tile_ids
+    for section in body["sections"]:
+        for tile in section["tiles"]:
+            assert tile["status"] in {"ok", "warn", "crit", "nodata"}
+            assert tile["source"] in {"live", "fixture", "nodata"}
+
+
+def test_observability_dashboard_degrades_without_signals():
+    observability = _enabled_observability()
+    client = _client(_learning_api(observability))
+
+    response = client.get("/api/learning/observability/dashboard")
+    assert response.status_code == 200
+    body = response.get_json()
+    # No live traffic yet — live tiles should report nodata, but the endpoint
+    # must still return the full section/tile structure for the dashboard UI.
+    assert len(body["sections"]) == 3
+    retry_tile = next(
+        tile
+        for section in body["sections"]
+        for tile in section["tiles"]
+        if tile["id"] == "north-star-retry"
+    )
+    assert retry_tile["source"] == "nodata"

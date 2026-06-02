@@ -725,6 +725,45 @@ export async function getPilotKpis(
   return jsonOrThrow<PilotKpiResponse>(response)
 }
 
+export type ObservabilityTileStatus = 'ok' | 'warn' | 'crit' | 'nodata'
+export type ObservabilityTileSource = 'live' | 'fixture' | 'nodata'
+
+export type ObservabilityTile = {
+  id: string
+  label: string
+  value: string
+  detail: string
+  status: ObservabilityTileStatus
+  source: ObservabilityTileSource
+}
+
+export type ObservabilitySection = {
+  id: string
+  title: string
+  tiles: ObservabilityTile[]
+}
+
+export type ObservabilityDashboardResponse = {
+  generated_at: string
+  tenant_id: string
+  overall_status: ObservabilityTileStatus
+  sections: ObservabilitySection[]
+  raw: Record<string, unknown>
+}
+
+export async function getObservabilityDashboard(
+  query: {
+    tenant_id?: string
+  } = {}
+): Promise<ObservabilityDashboardResponse> {
+  const search = toSearchParams(query)
+  const url = search
+    ? `/api/learning/observability/dashboard?${search}`
+    : '/api/learning/observability/dashboard'
+  const response = await fetch(url, withDefaults({ method: 'GET' }))
+  return jsonOrThrow<ObservabilityDashboardResponse>(response)
+}
+
 // ---------------------------------------------------------------------------
 // W3-B — explanation surface
 // ---------------------------------------------------------------------------

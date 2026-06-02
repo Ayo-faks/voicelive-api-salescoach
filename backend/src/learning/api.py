@@ -1937,6 +1937,247 @@ class LearningApi:
     def get_observability_config(self, _payload: Mapping[str, Any]) -> Dict[str, Any]:
         return self.observability.config_payload()
 
+    def get_observability_dashboard(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        """Admin observability dashboard: product, health and safety/agent tiles.
+
+        Tiles are assembled from three sources, each badged so operators can see
+        provenance: ``live`` (in-process counters this process has seen),
+        ``fixture`` (pilot KPI snapshots) and ``nodata`` (no signal locally yet).
+        In production the same shape is intended to be backed by App Insights /
+        Log Analytics KQL; locally it degrades gracefully so the dashboard and
+        its Playwright check work without a metrics scraper.
+        """
+        snap = self.observability.metrics_snapshot()
+        tenant_id = str(payload.get("tenant_id") or PILOT_KPI_TENANT_ID)
+
+        # --- Pilot KPI report (fixture-backed, optional) -------------------
+        report = None
+        try:
+            snapshots = load_metric_snapshots(PILOT_METRICS_PATH, tenant_id)
+            if snapshots:
+                report = compute_kpi_report(snapshots, tenant_id)
+        except Exception:  # pragma: no cover - dashboard must never 500
+            report = None
+
+        def pct(value: Optional[float]) -> str:
+            return "—" if value is None else f"{value * 100:.1f}%"
+
+        def status_from_rate(
+            value: Optional[float], *, warn: float, crit: float, higher_is_better: bool = True
+        ) -> str:
+            if value is None:
+                return "nodata"
+            if higher_is_better:
+                if value < crit:
+                    return "crit"
+                if value < warn:
+                    return "warn"
+                return "ok"
+            if value > crit:
+                return "crit"
+            if value > warn:
+                return "warn"
+            return "ok"
+
+        req = snap["requests"]
+        llm = snap["llm"]
+        grounding = snap["grounding"]
+        citation = snap["citation"]
+        safety = snap["safety"]
+        retry = snap["retry"]
+
+        has_requests = req["total"] > 0
+        has_llm = llm["turns"] > 0
+        has_retry = retry["total"] > 0
+        has_grounding = grounding["total"] > 0
+        has_citation = citation["total"] > 0
+
+        # --- Product section ----------------------------------------------
+        north_star_status = status_from_rate(
+            retry["success_rate"] if has_retry else None, warn=0.55, crit=0.4
+        )
+        product_tiles = [
+            {
+                "id": "north-star-retry",
+                "label": "Retry-after-explanation success",
+                "value": pct(retry["success_rate"]) if has_retry else "no data yet",
+                "detail": (
+                    f"{int(retry['counts'].get('success', 0))} of {int(retry['total'])} retries correct"
+                    if has_retry
+                    else "Learners who retried a question after seeing an explanation"
+                ),
+                "status": north_star_status,
+                "source": "live" if has_retry else "nodata",
+            },
+            {
+                "id": "diagnostic-completion",
+                "label": "Diagnostic completion",
+                "value": pct(report.diagnostic_completion_rate) if report else "—",
+                "detail": "Assigned diagnostics completed"
+                if report
+                else "No pilot snapshots loaded",
+                "status": status_from_rate(
+                    report.diagnostic_completion_rate if report else None, warn=0.7, crit=0.5
+                ),
+                "source": "fixture" if report else "nodata",
+            },
+            {
+                "id": "cost-per-student",
+                "label": "Weekly cost / student",
+                "value": f"GBP {report.cost_per_student_gbp:.2f}" if report else "—",
+                "detail": "Blended pilot cost per active student"
+                if report
+                else "No pilot snapshots loaded",
+                "status": "ok" if report else "nodata",
+                "source": "fixture" if report else "nodata",
+            },
+        ]
+
+        # --- Health section -----------------------------------------------
+        health_tiles = [
+            {
+                "id": "api-error-rate",
+                "label": "API error rate",
+                "value": pct(req["error_rate"]) if has_requests else "no traffic yet",
+                "detail": f"{int(req['counts'].get('error', 0))} errors / {int(req['total'])} requests"
+                if has_requests
+                else "Learning API requests seen this process",
+                "status": status_from_rate(
+                    req["error_rate"] if has_requests else None,
+                    warn=0.02,
+                    crit=0.05,
+                    higher_is_better=False,
+                ),
+                "source": "live" if has_requests else "nodata",
+            },
+            {
+                "id": "llm-latency-p95",
+                "label": "LLM latency p95",
+                "value": f"{llm['latency_ms_p95']:.0f} ms" if has_llm else "no turns yet",
+                "detail": f"p50 {llm['latency_ms_p50']:.0f} ms · p99 {llm['latency_ms_p99']:.0f} ms · n={llm['latency_sample_size']}"
+                if has_llm
+                else "Model turn latency distribution",
+                "status": (
+                    "nodata"
+                    if not has_llm
+                    else "crit"
+                    if llm["latency_ms_p95"] > 8000
+                    else "warn"
+                    if llm["latency_ms_p95"] > 4000
+                    else "ok"
+                ),
+                "source": "live" if has_llm else "nodata",
+            },
+            {
+                "id": "llm-error-rate",
+                "label": "LLM turn error rate",
+                "value": pct(llm["error_rate"]) if has_llm else "no turns yet",
+                "detail": f"{int(llm['errors'])} failed of {int(llm['turns'])} turns · GBP {llm['cost_gbp_total']:.3f} spent"
+                if has_llm
+                else "Model call failures",
+                "status": status_from_rate(
+                    llm["error_rate"] if has_llm else None,
+                    warn=0.02,
+                    crit=0.05,
+                    higher_is_better=False,
+                ),
+                "source": "live" if has_llm else "nodata",
+            },
+        ]
+
+        # --- Safety & agent section ---------------------------------------
+        safety_agent_tiles = [
+            {
+                "id": "citation-coverage",
+                "label": "Citation coverage",
+                "value": pct(citation["present_rate"]) if has_citation else "no data yet",
+                "detail": f"{int(citation['counts'].get('present', 0))} of {int(citation['total'])} explanations cited a source"
+                if has_citation
+                else "Explanations must carry a wiki citation",
+                "status": status_from_rate(
+                    citation["present_rate"] if has_citation else None, warn=0.99, crit=0.95
+                ),
+                "source": "live" if has_citation else "nodata",
+            },
+            {
+                "id": "grounding-refusal-rate",
+                "label": "RAG refusal rate",
+                "value": pct(grounding["refusal_rate"]) if has_grounding else "no data yet",
+                "detail": f"{int(grounding['counts'].get('grounded', 0))} grounded / {int(grounding['total'])} retrievals"
+                if has_grounding
+                else "Ungrounded answers should refuse, not hallucinate",
+                "status": (
+                    "nodata"
+                    if not has_grounding
+                    else "warn"
+                    if grounding["refusal_rate"] > 0.3
+                    else "ok"
+                ),
+                "source": "live" if has_grounding else "nodata",
+            },
+            {
+                "id": "safety-events",
+                "label": "Safeguarding signals",
+                "value": str(int(safety["total"])),
+                "detail": (
+                    f"{int(safety['actioned'])} actioned · "
+                    + ", ".join(
+                        f"{sev}:{int(count)}" for sev, count in sorted(safety["by_severity"].items())
+                    )
+                    if safety["total"] > 0
+                    else "No safeguarding signals this process"
+                ),
+                "status": (
+                    "crit"
+                    if safety["by_severity"].get("critical", 0) > 0
+                    else "warn"
+                    if safety["total"] > 0 and safety["ack_rate"] < 1.0
+                    else "ok"
+                ),
+                "source": "live" if safety["total"] > 0 else "nodata",
+            },
+            {
+                "id": "safety-eval-pass",
+                "label": "Safety eval pass rate",
+                "value": pct(report.safety_rate) if report else "—",
+                "detail": "Latest pilot safety eval cases"
+                if report
+                else "No eval snapshots loaded",
+                "status": status_from_rate(
+                    report.safety_rate if report else None, warn=0.99, crit=0.95
+                ),
+                "source": "fixture" if report else "nodata",
+            },
+        ]
+
+        sections = [
+            {"id": "product", "title": "Product & learning outcomes", "tiles": product_tiles},
+            {"id": "health", "title": "Service health", "tiles": health_tiles},
+            {"id": "safety-agent", "title": "Safety & agent quality", "tiles": safety_agent_tiles},
+        ]
+
+        worst = "ok"
+        rank = {"ok": 0, "nodata": 0, "warn": 1, "crit": 2}
+        for section in sections:
+            for tile in section["tiles"]:
+                if rank.get(tile["status"], 0) > rank.get(worst, 0):
+                    worst = tile["status"]
+
+        return {
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "tenant_id": tenant_id,
+            "overall_status": worst,
+            "sections": sections,
+            "raw": {
+                "requests": req,
+                "llm": llm,
+                "grounding": grounding,
+                "citation": citation,
+                "safety": safety,
+                "retry": retry,
+            },
+        }
+
     # ------------------------------------------------------------------
     # Subjects (multi-subject diagnostic registry)
     # ------------------------------------------------------------------
@@ -3242,6 +3483,11 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
     @_wrap
     def _observability_config(payload: Dict[str, Any]) -> Dict[str, Any]:
         return learning_api.get_observability_config(payload)
+
+    @app.route("/api/learning/observability/dashboard", methods=["GET"])
+    @_wrap
+    def _observability_dashboard(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.get_observability_dashboard(payload)
 
     @app.route("/api/learning/metrics", methods=["GET"])
     def _learning_metrics():
