@@ -62,13 +62,37 @@ export function profileToSetup(
   return { exam, year, subject, firstName }
 }
 
+/** Server-side enum allow-lists (mirror of `backend/.../profile_config.py`).
+ * Kept here so the legacy-localStorage migration never PATCHes a stale value
+ * the API will reject with 400 (which, because the legacy key is only cleared
+ * on success, would otherwise retry on every mount). */
+const ALLOWED_EXAMS: ReadonlySet<string> = new Set([
+  'WAEC',
+  'NECO',
+  'JAMB',
+  'Junior WAEC',
+  'IGCSE',
+  'A-Level',
+])
+const ALLOWED_YEAR_GROUPS: ReadonlySet<string> = new Set([
+  'JSS1',
+  'JSS2',
+  'JSS3',
+  'SS1',
+  'SS2',
+  'SS3',
+])
+
 /** Convert a `LearnerSetup` patch to a server profile patch. Exported for
- * the legacy-localStorage migration helper. */
+ * the legacy-localStorage migration helper. Enum fields are only included
+ * when they match the server allow-list, so stale localStorage values can't
+ * produce a 400 on the migration PATCH. */
 export function setupToProfilePatch(setup: LearnerSetup): LearnerProfilePatch {
   const patch: LearnerProfilePatch = {}
   if (setup.firstName) patch.display_name = setup.firstName
-  if (setup.exam) patch.exam = setup.exam
-  if (setup.year) patch.year_group = setup.year
+  if (setup.exam && ALLOWED_EXAMS.has(setup.exam)) patch.exam = setup.exam
+  if (setup.year && ALLOWED_YEAR_GROUPS.has(setup.year))
+    patch.year_group = setup.year
   if (setup.subject) patch.subjects = [setup.subject]
   return patch
 }

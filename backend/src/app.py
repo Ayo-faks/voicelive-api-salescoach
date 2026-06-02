@@ -2088,6 +2088,12 @@ def learner_self_profile():
     data = cast(Dict[str, Any], request.get_json(silent=True) or {})
     cleaned, error = validate_learner_profile_patch(data)
     if error is not None:
+        logger.warning(
+            "learner.profile_update.rejected user_id=%s fields=%s error=%s",
+            user_id,
+            sorted(data.keys()) if isinstance(data, dict) else "<non-object>",
+            error,
+        )
         return jsonify({"error": error}), HTTP_BAD_REQUEST
 
     storage_service.upsert_learner_profile(user_id, cleaned)
