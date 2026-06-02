@@ -59,12 +59,54 @@ const useStyles = makeStyles({
   },
 })
 
+type ConsentVariant = 'academy' | 'therapy'
+
 interface Props {
   open: boolean
   saving: boolean
   error: string | null
   onAccept: () => void
   onCancel: () => void
+  /** Branding/copy for the consent dialog. Defaults to the Wulo Academy study
+   *  companion wording; 'therapy' preserves the legacy speech-practice copy. */
+  variant?: ConsentVariant
+}
+
+const CONSENT_COPY: Record<
+  ConsentVariant,
+  {
+    title: string
+    intro: string
+    acknowledgement: string
+    detail: string
+    checkbox: string
+  }
+> = {
+  academy: {
+    title: 'Welcome to Wulo Academy',
+    intro:
+      'Before your first session, please confirm how Wulo Academy works. ' +
+      'It is a study companion for JSS1–SS3 learners preparing for WAEC, NECO, ' +
+      'and JAMB — built for supervised practice, not formal assessment.',
+    acknowledgement: 'Practice support — not a formal exam or grade.',
+    detail:
+      'Wulo Academy helps you revise and practise with an AI tutor. It does ' +
+      'not replace your teacher, your school, or official examinations.',
+    checkbox:
+      'I understand that Wulo Academy is a study companion for supervised practice, not a formal assessment.',
+  },
+  therapy: {
+    title: 'Supervised practice consent',
+    intro:
+      'Before the first child session, please confirm that Wulo is being used ' +
+      'for therapist-supervised speech practice.',
+    acknowledgement: 'Practice feedback — not a clinical assessment.',
+    detail:
+      'This tool supports supervised practice only and should not be used for ' +
+      'diagnosis or unsupervised decision-making.',
+    checkbox:
+      'I understand that Wulo is for supervised practice only and not diagnosis.',
+  },
 }
 
 export function ConsentScreen({
@@ -73,9 +115,11 @@ export function ConsentScreen({
   error,
   onAccept,
   onCancel,
+  variant = 'academy',
 }: Props) {
   const styles = useStyles()
   const [acknowledged, setAcknowledged] = useState(false)
+  const copy = CONSENT_COPY[variant]
 
   useEffect(() => {
     if (open) {
@@ -86,20 +130,18 @@ export function ConsentScreen({
   return (
     <Dialog open={open} onOpenChange={(_, data) => !data.open && onCancel()}>
       <DialogSurface className={styles.surface}>
-        <DialogTitle>Supervised practice consent</DialogTitle>
+        <DialogTitle>{copy.title}</DialogTitle>
         <DialogBody>
           <div className={styles.body}>
             <Text className={styles.helperText} size={300}>
-              Before the first child session, please confirm that Wulo is being
-              used for therapist-supervised speech practice.
+              {copy.intro}
             </Text>
             <div className={styles.acknowledgement}>
               <Text className={styles.helperText} size={300}>
-                Practice feedback — not a clinical assessment.
+                {copy.acknowledgement}
               </Text>
               <Text className={styles.helperText} size={300}>
-                This tool supports supervised practice only and should not be
-                used for diagnosis or unsupervised decision-making.
+                {copy.detail}
               </Text>
               <Text className={styles.helperText} size={300}>
                 By continuing, you confirm you have read our{' '}
@@ -119,7 +161,7 @@ export function ConsentScreen({
             </div>
             <Checkbox
               checked={acknowledged}
-              label="I understand that Wulo is for supervised practice only and not diagnosis."
+              label={copy.checkbox}
               onChange={(_, data) => setAcknowledged(Boolean(data.checked))}
             />
             {error ? <Text className={styles.errorText}>{error}</Text> : null}
