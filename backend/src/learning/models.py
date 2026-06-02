@@ -109,13 +109,30 @@ class DiagnosticItem(LanguageAndProvenanceModel):
     # MVP §4.2 — misconception taxonomy + question schema extension (W1).
     # All new fields are optional to keep wire compatibility with existing
     # fixtures; cross-field rules below enforce the taxonomy contract when
-    # any of them are populated.
-    subject: Optional[Literal["maths", "english"]] = None
-    year_group: Optional[Literal["JSS3", "SS3"]] = None
+    # any of them are populated. subject/year_group are open strings validated
+    # against the central curriculum taxonomy (see learning.taxonomy).
+    subject: Optional[str] = None
+    year_group: Optional[str] = None
     topic: Optional[str] = None
     subtopic: Optional[str] = None
     misconception_codes: List[str] = Field(default_factory=list)
     taxonomy_version: Optional[str] = None
+
+    @field_validator("subject")
+    @classmethod
+    def _validate_subject(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        from src.learning.taxonomy import validate_subject
+
+        return validate_subject(value)
+
+    @field_validator("year_group")
+    @classmethod
+    def _validate_year_group(cls, value: Optional[str]) -> Optional[str]:
+        from src.learning.taxonomy import validate_year_group
+
+        return validate_year_group(value)
 
     @field_validator("misconception_codes")
     @classmethod
@@ -430,14 +447,28 @@ class WikiNode(LanguageAndProvenanceModel):
     node_id: str = Field(min_length=1)
     version: str = Field(min_length=1)
     title: str = Field(min_length=1)
-    subject: Literal["maths", "english"]
-    year_group: Optional[Literal["JSS3", "SS3"]] = None
+    subject: str = Field(min_length=1)
+    year_group: Optional[str] = None
     topic: str = Field(min_length=1)
     subtopic: Optional[str] = None
     misconception_codes: List[str] = Field(default_factory=list)
     body_markdown: str = Field(min_length=1)
     anchors: List[str] = Field(default_factory=list)
     status: Literal["draft", "review", "approved", "frozen", "archived"] = "draft"
+
+    @field_validator("subject")
+    @classmethod
+    def _validate_subject(cls, value: str) -> str:
+        from src.learning.taxonomy import validate_subject
+
+        return validate_subject(value)
+
+    @field_validator("year_group")
+    @classmethod
+    def _validate_year_group(cls, value: Optional[str]) -> Optional[str]:
+        from src.learning.taxonomy import validate_year_group
+
+        return validate_year_group(value)
 
     @field_validator("misconception_codes")
     @classmethod

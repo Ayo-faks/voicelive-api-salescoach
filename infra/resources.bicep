@@ -229,6 +229,15 @@ param openAiModelDeployments array = [
       capacity: 10
     }
   }
+  {
+    name: 'text-embedding-3-small'
+    model: 'text-embedding-3-small'
+    version: '1'
+    sku: {
+      name: 'GlobalStandard'
+      capacity: 50
+    }
+  }
 ]
 
 resource aiFoundryResource 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
@@ -622,6 +631,14 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
             {
               name: 'MODEL_DEPLOYMENT_NAME'
               value: gptDeploymentName
+            }
+            {
+              name: 'AZURE_OPENAI_EMBEDDING_DEPLOYMENT'
+              value: 'text-embedding-3-small'
+            }
+            {
+              name: 'PATHFINDER_RAG_EMBEDDINGS_ENABLED'
+              value: '1'
             }
             {
               name: 'AZURE_SPEECH_KEY'

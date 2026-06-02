@@ -127,6 +127,29 @@ export async function installRouteMocks(
     })
   )
 
+  // The unified drawer sends turns to `/assistant/turn` and renders the shared
+  // AssistantBlock contract (`{ blocks, session_complete }`). The catch-all
+  // returns `{}`, whose missing `blocks` crashes the renderer, so mock a single
+  // grounded prose block. Tests assert on "Ratio and proportion" in the
+  // streamed transcript.
+  await page.route('**/api/learning/assistant/turn', (route) =>
+    fulfillJson(route, {
+      blocks: [
+        {
+          kind: 'prose',
+          speak:
+            'Focus on Ratio and proportion this week — it is your weakest topic.',
+          text: 'Focus on Ratio and proportion this week — it is your weakest topic. No outcome guarantee, just where to spend study time.',
+          citations: [
+            { skill_id: 'ratio-proportion', label: 'Ratio and proportion' },
+          ],
+          grounded: true,
+        },
+      ],
+      session_complete: false,
+    })
+  )
+
   // Teacher dashboard endpoints — empty payloads of the *correct shape* so the
   // component renders without crashing on `cells.map` / `plans.length`.
   await page.route('**/api/learning/class/mastery**', (route) =>

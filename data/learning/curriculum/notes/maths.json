@@ -1,0 +1,295 @@
+{
+  "subject": "maths",
+  "license": "CC0-1.0",
+  "source_url": "https://nerdc.gov.ng/ (Senior Secondary Mathematics scheme of work topic taxonomy; explanations authored clean-room)",
+  "attribution": null,
+  "notes": [
+    {
+      "year_group": "SS3",
+      "topic": "surds",
+      "subtopic": "simplification of surds",
+      "title": "Simplifying surds",
+      "body": "A surd is an irrational root that cannot be written as an exact fraction, such as the square root of 2. To simplify a surd, look for the largest perfect-square factor inside the root and take its square root outside. For example, the square root of 12 equals the square root of 4 times 3, which is 2 times the square root of 3. A surd is in its simplest form when the number under the root sign has no perfect-square factor other than 1. Like surds, such as the square root of 3 and twice the square root of 3, can be added or subtracted by combining their whole-number coefficients."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "surds",
+      "subtopic": "rationalisation of surds",
+      "title": "Rationalising the denominator",
+      "body": "Rationalising means rewriting a fraction so that no surd remains in the denominator. When the denominator is a single surd, multiply the numerator and denominator by that surd. For example, multiply one over the square root of 2 by the square root of 2 over the square root of 2 to get the square root of 2 over 2. When the denominator is a sum or difference such as one plus the square root of 3, multiply by its conjugate, one minus the square root of 3. The product of conjugates removes the surd because it follows the difference-of-two-squares pattern, leaving a rational denominator."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "indices",
+      "subtopic": "laws of indices",
+      "title": "Laws of indices",
+      "body": "Indices, or powers, follow fixed rules. To multiply powers of the same base, add the indices: a to the power m times a to the power n equals a to the power m plus n. To divide, subtract the indices. To raise a power to another power, multiply the indices. Any non-zero number to the power zero equals 1. A negative index means a reciprocal, so a to the power minus n equals one over a to the power n. A fractional index means a root: a to the power one over n is the n-th root of a. These laws let you simplify expressions and solve equations involving powers."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "indices",
+      "subtopic": "indicial equations",
+      "title": "Solving indicial equations",
+      "body": "An indicial equation has the unknown in the index, such as 2 to the power x equals 8. The usual method is to write both sides with the same base, then equate the indices. Since 8 equals 2 to the power 3, the equation 2 to the power x equals 8 gives x equals 3. When the bases cannot be matched easily, take logarithms of both sides and use the power law of logarithms to bring the index down. Some indicial equations reduce to a quadratic by substituting a new variable for the power term, which you then solve and convert back."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "logarithms",
+      "subtopic": "laws of logarithms",
+      "title": "Laws of logarithms",
+      "body": "A logarithm answers the question: to what power must the base be raised to give a number? The logarithm of a product equals the sum of the logarithms: log of a times b equals log a plus log b. The logarithm of a quotient equals the difference of the logarithms. The logarithm of a number raised to a power equals the power times the logarithm: log of a to the power n equals n times log a. The logarithm of 1 is always 0, and the logarithm of the base itself is 1. These laws turn multiplication and division into addition and subtraction, which simplifies calculation."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "logarithms",
+      "subtopic": "change of base",
+      "title": "Change of base formula",
+      "body": "Sometimes a logarithm is given in one base but you need another, often base 10 or base e. The change of base formula states that the logarithm of a number x to base a equals the logarithm of x to base b divided by the logarithm of a to base b. In symbols, log to base a of x equals log of x over log of a, using any convenient common base. This is useful when a calculator only provides base-10 or natural logarithms. It also helps simplify expressions where several different bases appear by rewriting them all in one chosen base."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "quadratics",
+      "subtopic": "factorisation",
+      "title": "Solving quadratics by factorisation",
+      "body": "A quadratic equation has the form a x squared plus b x plus c equals 0. To solve by factorisation, write the left side as a product of two brackets. Find two numbers that multiply to give a times c and add to give b, split the middle term using them, then factor by grouping. Once the equation is written as a product of two factors equal to zero, use the zero-product rule: if two factors multiply to zero, at least one of them must be zero. Set each bracket equal to zero and solve to get the two roots. Always check your roots by substituting them back."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "quadratics",
+      "subtopic": "completing the square",
+      "title": "Completing the square",
+      "body": "Completing the square rewrites a quadratic so that one side is a perfect-square bracket. First make the coefficient of x squared equal to 1 by dividing through. Move the constant to the other side, then add the square of half the coefficient of x to both sides. The left side now factors as a single squared bracket. Take the square root of both sides, remembering the plus-or-minus sign, and solve for x. This method works for every quadratic, even when factorisation fails, and it is also the route used to derive the quadratic formula and to find the turning point of a parabola."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "quadratics",
+      "subtopic": "quadratic formula",
+      "title": "The quadratic formula",
+      "body": "For any quadratic a x squared plus b x plus c equals 0 with a not zero, the solutions are given by the quadratic formula: x equals minus b plus or minus the square root of b squared minus 4 a c, all divided by 2 a. The expression under the root, b squared minus 4 a c, is called the discriminant. If it is positive there are two different real roots; if it is zero there is one repeated root; if it is negative there are no real roots. The formula always works, so it is a reliable method when factorisation is difficult. Substitute the values of a, b and c carefully, watching the signs."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "quadratics",
+      "subtopic": "sum and product of roots",
+      "title": "Sum and product of roots",
+      "body": "If a quadratic a x squared plus b x plus c equals 0 has roots called alpha and beta, then the sum of the roots equals minus b over a and the product of the roots equals c over a. These relationships let you find information about the roots without solving the equation, and to build a new equation from given roots. To form a quadratic with known roots, use x squared minus the sum of the roots times x plus the product of the roots equals 0. This is a quick way to check answers or to construct equations whose roots are related to an original equation."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "sequences-and-series",
+      "subtopic": "arithmetic progression",
+      "title": "Arithmetic progression",
+      "body": "An arithmetic progression, or AP, is a sequence in which each term differs from the previous one by a fixed amount called the common difference. The n-th term equals the first term plus n minus 1 times the common difference. The sum of the first n terms equals n over 2 times twice the first term plus n minus 1 times the common difference, which can also be written as n over 2 times the sum of the first and last terms. APs model situations with steady, equal increases, such as regular savings. To identify an AP, check that the difference between consecutive terms is constant."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "sequences-and-series",
+      "subtopic": "geometric progression",
+      "title": "Geometric progression",
+      "body": "A geometric progression, or GP, is a sequence in which each term is found by multiplying the previous term by a fixed number called the common ratio. The n-th term equals the first term times the common ratio raised to the power n minus 1. The sum of the first n terms equals the first term times one minus the ratio to the power n, divided by one minus the ratio. When the common ratio lies strictly between minus 1 and 1, the sum to infinity exists and equals the first term divided by one minus the ratio. GPs model repeated proportional change such as compound interest."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "coordinate-geometry",
+      "subtopic": "midpoint and distance",
+      "title": "Midpoint and distance",
+      "body": "Coordinate geometry uses pairs of numbers to locate points on a plane. The midpoint of the line joining two points is found by averaging their coordinates: add the two x-values and halve them, then add the two y-values and halve them. The distance between two points comes from Pythagoras' theorem: it equals the square root of the squared difference in x-values plus the squared difference in y-values. These two formulas are the foundation for many proofs, such as showing a triangle is isosceles or that a point is equidistant from two others. Always subtract coordinates consistently to avoid sign errors."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "coordinate-geometry",
+      "subtopic": "gradient",
+      "title": "Gradient of a line",
+      "body": "The gradient, or slope, measures how steep a straight line is. It equals the change in y divided by the change in x between any two points on the line, often described as rise over run. A positive gradient rises from left to right, a negative gradient falls, and a horizontal line has gradient zero. Two lines are parallel when their gradients are equal. Two lines are perpendicular when the product of their gradients is minus 1, meaning one gradient is the negative reciprocal of the other. The gradient is a key part of writing the equation of a straight line."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "trigonometry",
+      "subtopic": "trigonometric ratios",
+      "title": "Trigonometric ratios",
+      "body": "In a right-angled triangle the three basic trigonometric ratios relate an angle to the sides. Sine equals the opposite side over the hypotenuse, cosine equals the adjacent side over the hypotenuse, and tangent equals the opposite side over the adjacent side. A common memory aid is SOHCAHTOA. These ratios let you find an unknown side when you know an angle and one side, or find an angle when you know two sides by using the inverse functions. The hypotenuse is always the longest side, opposite the right angle, while opposite and adjacent are defined relative to the angle you are working with."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "trigonometry",
+      "subtopic": "sine rule",
+      "title": "The sine rule",
+      "body": "The sine rule applies to any triangle, not only right-angled ones. It states that the ratio of each side to the sine of its opposite angle is the same for all three sides: a over sine A equals b over sine B equals c over sine C. Use the sine rule when you know two angles and any side, or two sides and an angle opposite one of them. It lets you find the remaining sides or angles. Be careful with the ambiguous case, where two angles less than 180 degrees can have the same sine, so a problem may have two possible triangles."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "trigonometry",
+      "subtopic": "cosine rule",
+      "title": "The cosine rule",
+      "body": "The cosine rule also works for any triangle and generalises Pythagoras' theorem. It states that the square of one side equals the sum of the squares of the other two sides minus twice their product times the cosine of the included angle: a squared equals b squared plus c squared minus 2 b c cosine A. Use the cosine rule when you know two sides and the angle between them, to find the third side, or when you know all three sides, to find any angle. When the included angle is 90 degrees its cosine is zero, and the formula reduces to Pythagoras' theorem."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "calculus",
+      "subtopic": "differentiation",
+      "title": "Differentiation",
+      "body": "Differentiation finds the rate at which a quantity changes, that is, the gradient of a curve at a point. For a power term, the rule is to multiply by the index and then reduce the index by one: the derivative of x to the power n is n times x to the power n minus one. The derivative of a constant is zero. You differentiate a sum term by term. The result, called the derivative, gives the gradient function. Setting the derivative equal to zero locates turning points, where a curve has a maximum or minimum. Differentiation is widely used to study motion, growth and optimisation."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "calculus",
+      "subtopic": "integration",
+      "title": "Integration",
+      "body": "Integration is the reverse of differentiation and is used to find areas under curves and to recover a quantity from its rate of change. To integrate a power term, increase the index by one and divide by the new index: the integral of x to the power n is x to the power n plus one, divided by n plus one, provided n is not minus one. For indefinite integrals add a constant of integration, because differentiating a constant gives zero. A definite integral evaluates the result between two limits by substituting the upper and lower values and subtracting, giving the exact area under the curve."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "statistics",
+      "subtopic": "measures of central tendency",
+      "title": "Measures of central tendency",
+      "body": "Measures of central tendency describe the centre of a data set with a single value. The mean is the sum of all values divided by how many there are. The median is the middle value when the data are arranged in order; with an even number of values it is the average of the two middle ones. The mode is the value that occurs most often. The mean uses every value but is affected by extreme outliers, while the median is more resistant to them. Choosing the right measure depends on the shape of the data and what you want to summarise."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "statistics",
+      "subtopic": "measures of dispersion",
+      "title": "Measures of dispersion",
+      "body": "Measures of dispersion describe how spread out a data set is. The range is the difference between the highest and lowest values and is quick but sensitive to outliers. The variance is the average of the squared differences from the mean, and the standard deviation is the square root of the variance, returning the spread to the original units. A small standard deviation means values cluster close to the mean, while a large one means they are widely scattered. Dispersion is important because two data sets can share the same mean yet behave very differently, and the spread reveals that difference."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "probability",
+      "subtopic": "simple probability",
+      "title": "Simple probability",
+      "body": "Probability measures how likely an event is, on a scale from 0 for impossible to 1 for certain. For equally likely outcomes, the probability of an event equals the number of favourable outcomes divided by the total number of possible outcomes. For example, the probability of rolling a 4 on a fair six-sided die is one out of six. The probabilities of all possible outcomes add up to 1, so the probability that an event does not happen equals 1 minus the probability that it does. Probabilities can be written as fractions, decimals or percentages, and never fall outside the range 0 to 1."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "probability",
+      "subtopic": "addition and multiplication rules",
+      "title": "Addition and multiplication rules",
+      "body": "The addition rule handles the probability that one event or another happens. For mutually exclusive events, which cannot occur together, add their probabilities. If the events can overlap, add their probabilities and subtract the probability of both happening together to avoid double counting. The multiplication rule handles the probability that two events both happen. For independent events, whose outcomes do not affect each other, multiply their probabilities. When events are dependent, use the probability of the second event given that the first has already occurred. Identifying whether events are exclusive or independent is the key to choosing the correct rule."
+    },
+    {
+      "year_group": "JSS3",
+      "topic": "number-and-numeration",
+      "subtopic": "percentages",
+      "title": "Working with percentages",
+      "body": "A percentage is a way of expressing a number as parts per hundred; the symbol is the percent sign. To convert a fraction or decimal to a percentage, multiply by 100. To convert a percentage back, divide by 100. To find a percentage of an amount, change the percentage to a fraction or decimal and multiply, so 25 percent of 80 is one quarter of 80, which is 20. To find one quantity as a percentage of another, divide the first by the second and multiply by 100. Percentages are used for discounts, interest, test scores and comparing quantities measured out of different totals."
+    },
+    {
+      "year_group": "JSS3",
+      "topic": "number-and-numeration",
+      "subtopic": "percentage increase and decrease",
+      "title": "Percentage increase and decrease",
+      "body": "A percentage increase or decrease describes how much a quantity has grown or shrunk relative to its original value. To find the percentage change, work out the difference between the new and original amounts, divide that difference by the original amount, then multiply by 100. If the new value is larger it is an increase; if smaller it is a decrease. To increase an amount by a percentage, find that percentage of the amount and add it on; to decrease, subtract it instead. Always divide by the original value, not the new one, or the percentage change will be wrong."
+    },
+    {
+      "year_group": "JSS3",
+      "topic": "number-and-numeration",
+      "subtopic": "ratio",
+      "title": "Sharing in a given ratio",
+      "body": "A ratio compares two or more quantities of the same kind, written with a colon such as 2 to 3. To share an amount in a given ratio, first add the parts of the ratio to find the total number of parts. Divide the amount by the total number of parts to find the value of one part. Then multiply each share of the ratio by the value of one part. For example, sharing 600 naira in the ratio 2 to 3 gives five parts of 120 naira each, so the shares are 240 naira and 360 naira. Equivalent ratios are found by multiplying or dividing all parts by the same number."
+    },
+    {
+      "year_group": "JSS3",
+      "topic": "algebraic-processes",
+      "subtopic": "use of symbols",
+      "title": "Using letters for numbers",
+      "body": "Algebra uses letters and symbols to stand for numbers that are unknown or that can change. A letter such as x or n represents a value we may not yet know, which lets us write general rules and solve problems. A term is a single part such as 5x, made of a number called the coefficient and a letter called the variable; when a letter has no number in front, its coefficient is 1. Writing 5x means five times x, so the multiplication sign is left out. A word problem can be turned into algebra by choosing a letter for the unknown, for example letting a boy's age be x and his father's age be x plus 30. This makes everyday problems easier to handle."
+    },
+    {
+      "year_group": "JSS3",
+      "topic": "algebraic-processes",
+      "subtopic": "simplifying expressions",
+      "title": "Simplifying algebraic expressions",
+      "body": "To simplify an algebraic expression we collect like terms, which are terms that have exactly the same letter part. For example, 3x and 5x are like terms and add to give 8x, but 3x and 3y are unlike and cannot be combined. Add or subtract the coefficients of like terms while keeping the letter the same, so 7a plus 2a minus 3a equals 6a. Expressions with brackets are simplified by expanding, multiplying every term inside the bracket by the term outside; for instance 2 times the bracket x plus 4 gives 2x plus 8. After expanding, collect any like terms that result. Simplifying makes an expression shorter and easier to use without changing its value."
+    },
+    {
+      "year_group": "JSS3",
+      "topic": "algebraic-processes",
+      "subtopic": "substitution",
+      "title": "Substituting values into expressions",
+      "body": "Substitution means replacing the letters in an algebraic expression with given numbers and then working out the result. It lets us find the value of an expression for particular values of its variables. For example, if x equals 4 and y equals 3, then the expression 2x plus 5y becomes 2 times 4 plus 5 times 3, which is 8 plus 15, giving 23. When substituting, always follow the order of operations, doing multiplication and division before addition and subtraction, and take care with negative numbers and brackets. Substitution is how formulae are used in real life, such as putting numbers into a formula for area or speed to get an actual answer."
+    },
+    {
+      "year_group": "JSS3",
+      "topic": "approximation",
+      "subtopic": "rounding to decimal places",
+      "title": "Rounding to decimal places",
+      "body": "Rounding makes a number simpler by reducing the number of decimal places while keeping it close to the original value. To round to a given number of decimal places, look at the first digit to be removed. If that digit is 5 or more, add one to the last digit you keep; if it is less than 5, leave the kept digit unchanged. For example, 3.276 rounded to two decimal places is 3.28, because the removed digit 6 is 5 or more, while 3.274 rounds to 3.27. Rounding is useful for giving sensible, tidy answers, such as money to two decimal places, but you should usually round only at the end of a calculation to avoid building up errors."
+    },
+    {
+      "year_group": "JSS3",
+      "topic": "approximation",
+      "subtopic": "significant figures",
+      "title": "Significant figures",
+      "body": "Significant figures are the digits in a number that carry meaning about its size, counted from the first non-zero digit. To round to a number of significant figures, find that many significant digits and then use the next digit to decide whether to round up, just as with decimal places. For example, 2748 to two significant figures is 2700, and 0.004519 to three significant figures is 0.00452. Zeros at the start of a small decimal are not significant because they only fix the position of the point, but zeros between other digits are. Rounding to significant figures is a quick way to give an approximate answer that shows the right scale without too much detail."
+    },
+    {
+      "year_group": "JSS3",
+      "topic": "approximation",
+      "subtopic": "estimation",
+      "title": "Estimating answers",
+      "body": "Estimation means finding an approximate answer quickly by rounding the numbers in a calculation to convenient values before working it out. It is useful for checking whether a careful answer is sensible and for situations where an exact figure is not needed. To estimate, round each number to one significant figure and then calculate. For example, to estimate 312 multiplied by 19, round to 300 times 20, which gives about 6000, close to the exact answer of 5928. If your full calculation gives something far from the estimate, it warns you that a mistake may have been made. Estimation also helps in everyday life, such as judging the rough cost of shopping before reaching the till."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "variation",
+      "subtopic": "direct variation",
+      "title": "Direct variation",
+      "body": "Two quantities are in direct variation when one increases in the same proportion as the other, so that if one doubles the other doubles too. We write this as y varies as x, or in symbols y is proportional to x, which becomes the equation y equals k times x, where k is a fixed number called the constant of variation. To solve a problem, first use a given pair of values to find k, then use that value to answer the question. For example, if y equals 12 when x equals 4, then k equals 12 divided by 4, which is 3, so the rule is y equals 3x, and when x equals 10, y equals 30."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "variation",
+      "subtopic": "inverse variation",
+      "title": "Inverse variation",
+      "body": "Two quantities are in inverse variation when one increases as the other decreases in the same proportion, so that their product stays constant. We say y varies inversely as x, written y is proportional to one over x, which gives the equation y equals k divided by x. As before, use a known pair of values to find the constant k, then use it to answer the problem. For example, if y equals 6 when x equals 2, then k equals y times x, which is 12, so the rule is y equals 12 over x, and when x equals 4, y equals 3. Inverse variation describes situations such as more workers taking less time to finish the same job."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "variation",
+      "subtopic": "joint and partial variation",
+      "title": "Joint and partial variation",
+      "body": "Joint variation is when one quantity varies as the product of two or more others, for example z varies as x times y, giving z equals k times x times y. Inverse and direct relationships can be combined, such as z varying as x and inversely as y, giving z equals k times x over y. Partial variation is when a quantity is the sum of two parts, one constant and one that varies, written as y equals a plus b times x, where a and b are constants found from two sets of given values by solving simultaneous equations. Partial variation models real costs, such as a taxi fare made of a fixed charge plus an amount for each kilometre travelled."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "simple-equations-and-variation",
+      "subtopic": "forming an equation from a word problem",
+      "title": "Forming an equation from words",
+      "body": "Many problems are given in words and must be turned into an equation before they can be solved. The first step is to choose a letter to stand for the unknown quantity. Then translate the relationships in the problem into algebra, writing what is described in symbols. For example, if a number added to 7 gives 19, let the number be x, and the sentence becomes the equation x plus 7 equals 19. A phrase like twice a number becomes 2x, and three less than a number becomes x minus 3. Reading carefully to spot which operation each phrase means is the key skill, because a correctly formed equation makes the rest of the problem straightforward to solve."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "simple-equations-and-variation",
+      "subtopic": "solving linear equations",
+      "title": "Solving linear equations",
+      "body": "A linear equation contains an unknown to the first power only, such as 3x plus 5 equals 20. To solve it we get the unknown by itself on one side by doing the same operation to both sides so the equation stays balanced. First undo addition or subtraction: subtracting 5 from both sides of 3x plus 5 equals 20 gives 3x equals 15. Then undo multiplication or division: dividing both sides by 3 gives x equals 5. When the unknown appears on both sides, collect the unknown terms on one side and the numbers on the other before finishing. Working in this orderly way, one step at a time, leads reliably to the value of the unknown."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "simple-equations-and-variation",
+      "subtopic": "checking the solution",
+      "title": "Checking the solution",
+      "body": "After solving an equation it is good practice to check the answer, because this catches mistakes. To check, substitute the value you found back into the original equation in place of the unknown, then work out each side separately. If both sides give the same number, the solution is correct. For example, if solving 3x plus 5 equals 20 gives x equals 5, put 5 back in: 3 times 5 plus 5 equals 15 plus 5, which is 20, matching the right-hand side, so the answer is confirmed. If the two sides do not match, an error was made and the working should be looked at again. Checking takes only a moment and gives confidence that the solution is right."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "logical-reasoning",
+      "subtopic": "simple and compound statements",
+      "title": "Simple and compound statements",
+      "body": "In logic a statement is a sentence that is either true or false but not both. A simple statement expresses a single idea, such as five is a prime number. A compound statement is formed by joining simple statements using connectives. The word and forms a conjunction, which is true only when both parts are true. The word or forms a disjunction, which is true when at least one part is true. The word not forms a negation, which reverses the truth of a statement. Letters such as p and q are used to stand for statements, so p and q means the conjunction of the two. Recognising how a sentence is built from simple parts is the first step in reasoning about whether it is true."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "logical-reasoning",
+      "subtopic": "truth tables",
+      "title": "Truth tables",
+      "body": "A truth table is a chart that shows whether a compound statement is true or false for every possible combination of truth values of its simple parts. Each simple statement can be either true or false, so a statement built from two parts needs four rows to cover all the cases. For the conjunction p and q, the result is true only in the row where both p and q are true; for the disjunction p or q, the result is false only when both are false; and the negation of p simply gives the opposite of p in every row. Building the table column by column lets you work out the truth of complicated statements and compare whether two statements always agree."
+    },
+    {
+      "year_group": "SS3",
+      "topic": "logical-reasoning",
+      "subtopic": "conditional statements",
+      "title": "Conditional statements",
+      "body": "A conditional statement has the form if p then q, where p is the condition, or antecedent, and q is the conclusion, or consequent. It claims that whenever p is true, q is also true, and it is counted as false only in the single case where p is true but q is false. From a conditional we can form related statements: the converse if q then p, the inverse if not p then not q, and the contrapositive if not q then not p. The contrapositive always has the same truth value as the original, while the converse and inverse may differ. These ideas are the basis of valid argument and proof, where conclusions must follow correctly from given conditions."
+    }
+  ]
+}

@@ -14,6 +14,7 @@ import json
 import logging
 import os
 from pathlib import Path
+import socket
 import sys
 import threading
 import time
@@ -253,7 +254,7 @@ _LEARNING_TEACHER_SCOPE_EMPTY_WARNED: set[tuple[str, str]] = set()
 
 def _is_voice_scope_allowed_for_role(scope: str, role: str) -> bool:
     normalized_scope = (scope or "practice").strip().lower() or "practice"
-    if normalized_scope != "learner":
+    if normalized_scope not in {"learner", "learner_ask"}:
         return True
     return role in LEARNER_VOICE_SCOPE_ROLES
 
@@ -986,6 +987,40 @@ def _disable_ws_permessage_deflate() -> None:
         request.environ.pop("HTTP_SEC_WEBSOCKET_EXTENSIONS", None)
 
 
+def _shutdown_ws_socket(ws: Any) -> None:
+    """Send the WebSocket close frame and hard-shutdown the raw TCP socket.
+
+    flask_sock on the Werkzeug dev server returns a normal ``Response`` after
+    the view exits, which Werkzeug writes onto the *already-upgraded* socket.
+    Those stray ``HTTP/1.1 200 OK`` bytes land in the middle of the WebSocket
+    frame stream, so the browser parses them as a corrupt frame ("Invalid frame
+    header"), tears the connection down as a 1006 abnormal closure, and the
+    learner sees the perpetual "Voice connection hiccup" banner. By sending the
+    close frame and then shutting down the underlying socket ourselves, that
+    trailing HTTP write hits a closed socket and fails silently (BrokenPipe,
+    swallowed by Werkzeug) instead of poisoning the stream. Same-origin
+    production servers (gunicorn/eventlet) are unaffected — their flask_sock
+    response path never writes a body onto the hijacked socket.
+    """
+    try:
+        ws.close(1000)
+    except Exception:
+        logger.debug("Failed to send websocket close frame", exc_info=True)
+    raw_sock = getattr(ws, "sock", None)
+    if raw_sock is None:
+        return
+    try:
+        raw_sock.shutdown(socket.SHUT_RDWR)
+    except OSError:
+        pass
+    except Exception:
+        logger.debug("Failed to shutdown websocket socket", exc_info=True)
+    try:
+        raw_sock.close()
+    except Exception:
+        logger.debug("Failed to close websocket socket", exc_info=True)
+
+
 @app.teardown_request
 def _clear_storage_request_actor(_error: Optional[BaseException]) -> None:
     storage_service.clear_request_actor()
@@ -1561,6 +1596,22 @@ def _learner_voice_fullscreen_enabled(user: Optional[Dict[str, Any]]) -> bool:
     return str(raw).strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _pathfinder_voicelive_enabled(user: Optional[Dict[str, Any]]) -> bool:
+    """Whether the AskPathfinder voice surface uses Azure VoiceLive.
+
+    When off, the client falls back to the browser Web Speech API. Gated to
+    learner roles so the neural-voice realtime path is only offered where the
+    ``learner_ask`` VoiceLive scope is authorized.
+    """
+    if user is None:
+        return False
+    role = str(user.get("role") or "")
+    if role not in LEARNING_LEARNER_ROLES:
+        return False
+    raw = os.getenv("PATHFINDER_VOICELIVE_ENABLED", "false")
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
 def _log_audit_event(
     *,
     user_id: Optional[str],
@@ -1756,6 +1807,7 @@ def get_config():
             "voice_agent_dynamic_ui_enabled": _voice_agent_dynamic_ui_enabled(cast(Dict[str, Any], user) if user else None),
             "voice_agent_actions_enabled": _voice_agent_actions_enabled(cast(Dict[str, Any], user) if user else None),
             "learner_voice_fullscreen_enabled": _learner_voice_fullscreen_enabled(cast(Dict[str, Any], user) if user else None),
+            "pathfinder_voicelive_enabled": _pathfinder_voicelive_enabled(cast(Dict[str, Any], user) if user else None),
             "safety": dict(safety_gates.public_status_payload()),
             "onboarding": {
                 # Kill switch for the v2 onboarding/guidance system
@@ -5111,6 +5163,11 @@ def voice_proxy(ws: simple_websocket.ws.Server):
         ws.close(4403, "voice_learner_forbidden")
         return
 
+    if scope == "learner_ask" and not _pathfinder_voicelive_enabled(user):
+        logger.info("Rejected learner_ask VoiceLive connection: flag disabled")
+        ws.close(4404, "voice_voicelive_disabled")
+        return
+
     try:
         loop = asyncio.get_event_loop()
     except RuntimeError:
@@ -5210,6 +5267,17 @@ def learner_voice_socket(ws: simple_websocket.ws.Server):
     owned_child_ids: set[str] = set()
     if role in LEARNING_LEARNER_ROLES:
         owned_child_ids = _learning_student_ids_for_user(user)
+        # The unified assistant turn is self-directed: the client sends
+        # ``child_id == the learner's own id`` (see AskPathfinder.buildContext),
+        # exactly as the text twin ``/api/learning/assistant/turn`` does — which
+        # never gates on ``child_id``. So a learner may always act on their own
+        # id; the per-frame check still rejects any *other* unowned child. Without
+        # this, a learner who also owns children (non-empty owned set that
+        # excludes their own id) is wrongly rejected with ``child_access_required``
+        # and the voice surface shows the connection-hiccup banner.
+        self_id = str(user.get("id") or "").strip()
+        if self_id:
+            owned_child_ids.add(self_id)
 
     query = parse_qs(str(environ.get("QUERY_STRING") or ""), keep_blank_values=False)
     default_user_id = str((query.get("user_id") or [""])[0] or user.get("id") or "").strip()
@@ -5234,10 +5302,7 @@ def learner_voice_socket(ws: simple_websocket.ws.Server):
     try:
         handler.run()
     finally:
-        try:
-            ws.close(1000)
-        except Exception:
-            logger.debug("Failed to close learner voice websocket cleanly", exc_info=True)
+        _shutdown_ws_socket(ws)
 
 
 sock.route("/ws/learning-voice")(learner_voice_socket)  # pyright: ignore[reportUnknownMemberType]

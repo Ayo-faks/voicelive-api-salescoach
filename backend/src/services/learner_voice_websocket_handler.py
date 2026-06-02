@@ -128,6 +128,13 @@ class LearnerVoiceSocketHandler:
 
             ftype = str(frame.get("type") or FRAME_TURN).strip().lower()
             if ftype == FRAME_BYE:
+                # Acknowledge so the client can drive a clean WebSocket close
+                # handshake from its side. simple_websocket on the Werkzeug dev
+                # server does not always echo a server-initiated close frame,
+                # which left the browser seeing a 1006 abnormal closure (a
+                # console error + spurious "connection hiccup" banner). Letting
+                # the client close after this ack avoids that race.
+                self._send(FRAME_BYE, {})
                 break
             if ftype != FRAME_TURN:
                 self._send(FRAME_ERROR, {"message": f"unsupported_frame:{ftype}"})

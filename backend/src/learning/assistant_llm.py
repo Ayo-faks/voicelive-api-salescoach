@@ -33,6 +33,7 @@ import logging
 import os
 from typing import Any, Dict, List, Mapping, Optional, Sequence
 
+from src.learning import taxonomy
 from src.learning.rag import RagRetriever, RetrievalHit, retrieve_or_refuse
 from src.learning.tutor import (
     FocusItem,
@@ -50,8 +51,8 @@ _DEFAULT_MAX_TURNS = 12
 _DEFAULT_TEMPERATURE = 0.3
 _DEFAULT_MAX_TOKENS = 600
 
-_VALID_SUBJECTS = {"maths", "english"}
-_VALID_YEAR_GROUPS = {"JSS3", "SS3"}
+_VALID_SUBJECTS = set(taxonomy.SUBJECTS)
+_VALID_YEAR_GROUPS = set(taxonomy.YEAR_GROUPS)
 
 _SUBJECT_ALIASES = {
     "math": "maths",
@@ -60,6 +61,16 @@ _SUBJECT_ALIASES = {
     "english": "english",
     "english language": "english",
     "english-language": "english",
+    "lit": "literature",
+    "literature in english": "literature",
+    "literature-in-english": "literature",
+    "agric": "agricultural_science",
+    "agriculture": "agricultural_science",
+    "agricultural science": "agricultural_science",
+    "computer": "computer_science",
+    "computer science": "computer_science",
+    "data processing": "data_processing",
+    "econs": "economics",
 }
 
 _DEFER_MESSAGE = (

@@ -1,4 +1,5 @@
 import { makeStyles, mergeClasses } from '@fluentui/react-components'
+import { useEffect, useRef, useState } from 'react'
 import type {
   AssistantBlock,
   AssistantConfirmationBlock,
@@ -19,6 +20,140 @@ const CARD_KINDS = new Set([
 
 function isCard(block: AssistantBlock): block is LearnerVoiceCard {
   return CARD_KINDS.has(block.kind)
+}
+
+// Friendly, kid-facing label for the grounding chip. The raw source title is
+// engineer-facing corpus metadata, so we never show it to a learner — it stays
+// available to grown-ups via the chip tooltip (`title`).
+const FRIENDLY_CITATION_LABEL = '📖 Checked against your notes'
+
+// Unicode super/subscript tables so chemistry and exponents (H_2O, x^2) read
+// naturally instead of leaking raw LaTeX markup to a learner.
+const SUPERSCRIPTS: Record<string, string> = {
+  '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶',
+  '7': '⁷', '8': '⁸', '9': '⁹', '+': '⁺', '-': '⁻', '=': '⁼', '(': '⁽',
+  ')': '⁾', n: 'ⁿ', i: 'ⁱ',
+}
+const SUBSCRIPTS: Record<string, string> = {
+  '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆',
+  '7': '₇', '8': '₈', '9': '₉', '+': '₊', '-': '₋', '=': '₌', '(': '₍',
+  ')': '₎',
+}
+
+// Single-token LaTeX commands → their Unicode equivalent. Each is matched with
+// a trailing non-letter guard so e.g. `\to` does not eat the start of `\theta`.
+const LATEX_SYMBOLS: Array<[RegExp, string]> = [
+  [/\\xrightarrow/g, '→'], // labels handled separately below
+  [/\\longrightarrow/g, '→'],
+  [/\\Rightarrow/g, '⇒'],
+  [/\\rightarrow/g, '→'],
+  [/\\to(?![a-zA-Z])/g, '→'],
+  [/\\longleftarrow/g, '←'],
+  [/\\Leftarrow/g, '⇐'],
+  [/\\leftarrow/g, '←'],
+  [/\\times(?![a-zA-Z])/g, '×'],
+  [/\\div(?![a-zA-Z])/g, '÷'],
+  [/\\cdot(?![a-zA-Z])/g, '·'],
+  [/\\pm(?![a-zA-Z])/g, '±'],
+  [/\\mp(?![a-zA-Z])/g, '∓'],
+  [/\\leq(?![a-zA-Z])/g, '≤'],
+  [/\\le(?![a-zA-Z])/g, '≤'],
+  [/\\geq(?![a-zA-Z])/g, '≥'],
+  [/\\ge(?![a-zA-Z])/g, '≥'],
+  [/\\neq(?![a-zA-Z])/g, '≠'],
+  [/\\ne(?![a-zA-Z])/g, '≠'],
+  [/\\approx(?![a-zA-Z])/g, '≈'],
+  [/\\equiv(?![a-zA-Z])/g, '≡'],
+  [/\\propto(?![a-zA-Z])/g, '∝'],
+  [/\\infty(?![a-zA-Z])/g, '∞'],
+  [/\\degree(?![a-zA-Z])/g, '°'],
+  [/\\circ(?![a-zA-Z])/g, '°'],
+  [/\\alpha(?![a-zA-Z])/g, 'α'],
+  [/\\beta(?![a-zA-Z])/g, 'β'],
+  [/\\theta(?![a-zA-Z])/g, 'θ'],
+  [/\\pi(?![a-zA-Z])/g, 'π'],
+  [/\\Delta(?![a-zA-Z])/g, 'Δ'],
+  [/\\sum(?![a-zA-Z])/g, '∑'],
+]
+
+function toScript(input: string, table: Record<string, string>): string {
+  let mapped = ''
+  for (const ch of input) {
+    mapped += table[ch] ?? ch
+  }
+  return mapped
+}
+
+// Convert the LaTeX a learner-facing model sometimes emits into plain, readable
+// text. The chat has no math typesetter, so without this the raw `\(`,
+// `\xrightarrow{...}`, escaped spaces, etc. show up as ugly backslashes.
+function normalizeLearnerMath(text: string): string {
+  let out = text
+
+  // Arrows that carry a condition above them, e.g.
+  // `\xrightarrow{light energy, chlorophyll}` → ` —(light energy, chlorophyll)→ `.
+  const arrowLabel = (label: string): string =>
+    label
+      .replace(/\\[,;:!]/g, ' ')
+      .replace(/\\ /g, ' ')
+      .replace(/\\[a-zA-Z]+/g, ' ')
+      .replace(/[{}]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+  out = out.replace(/\\xrightarrow\s*\{([^}]*)\}/g, (_m, label: string) => {
+    const clean = arrowLabel(label)
+    return clean ? ` —(${clean})→ ` : ' → '
+  })
+  out = out.replace(/\\xleftarrow\s*\{([^}]*)\}/g, (_m, label: string) => {
+    const clean = arrowLabel(label)
+    return clean ? ` ←(${clean})— ` : ' ← '
+  })
+
+  // Structural commands.
+  out = out.replace(/\\(?:d|t)?frac\s*\{([^}]*)\}\s*\{([^}]*)\}/g, '$1/$2')
+  out = out.replace(/\\sqrt\s*\{([^}]*)\}/g, '√($1)')
+  out = out.replace(
+    /\\(?:text|mathrm|mathbf|mathit|mathsf|operatorname)\s*\{([^}]*)\}/g,
+    '$1'
+  )
+
+  // Single-token symbols.
+  for (const [pattern, replacement] of LATEX_SYMBOLS) {
+    out = out.replace(pattern, replacement)
+  }
+
+  // Super/subscripts: braced first, then a single bare token.
+  out = out.replace(/\^\{([^}]*)\}/g, (_m, s: string) => toScript(s, SUPERSCRIPTS))
+  out = out.replace(/\^(\w)/g, (_m, s: string) => toScript(s, SUPERSCRIPTS))
+  out = out.replace(/_\{([^}]*)\}/g, (_m, s: string) => toScript(s, SUBSCRIPTS))
+  out = out.replace(/_(\w)/g, (_m, s: string) => toScript(s, SUBSCRIPTS))
+
+  // Inline math delimiters: \( \) \[ \] and $…$ / $$…$$.
+  out = out.replace(/\\[()[\]]/g, '')
+  out = out.replace(/\${1,2}/g, '')
+
+  // Escaped spaces and punctuation LaTeX uses for spacing/escaping.
+  out = out.replace(/\\[,;:!]/g, ' ')
+  out = out.replace(/\\ /g, ' ')
+  out = out.replace(/\\([%&#_{}$])/g, '$1')
+
+  // Any leftover lone backslash before a word (unknown command) — drop the
+  // slash but keep the word so meaning survives.
+  out = out.replace(/\\(?=[a-zA-Z])/g, '')
+
+  return out
+}
+
+// Strip the LLM-authored inline source tags like "(S1)", "(S1, S2)" or "[S2]"
+// from the prose shown to learners. The grounding requirement is enforced in
+// the backend, so removing the academic-looking markers is purely cosmetic and
+// does not weaken the "no citation, no answer" guarantee.
+function stripSourceMarkers(text: string): string {
+  return normalizeLearnerMath(text)
+    .replace(/\s*[([]\s*S\d+(?:\s*,\s*S\d+)*\s*[)\]]/gi, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/[ \t]+([.,!?;:])/g, '$1')
+    .trim()
 }
 
 const useStyles = makeStyles({
@@ -44,6 +179,22 @@ const useStyles = makeStyles({
   proseText: {
     margin: 0,
     whiteSpace: 'pre-wrap',
+  },
+  caret: {
+    display: 'inline-block',
+    width: '2px',
+    height: '1.05em',
+    marginLeft: '1px',
+    verticalAlign: 'text-bottom',
+    background: 'currentColor',
+    opacity: 0.7,
+    animationName: {
+      '0%, 45%': { opacity: 0.7 },
+      '50%, 95%': { opacity: 0 },
+      '100%': { opacity: 0.7 },
+    },
+    animationDuration: '900ms',
+    animationIterationCount: 'infinite',
   },
   deferBadge: {
     alignSelf: 'flex-start',
@@ -202,41 +353,119 @@ const useStyles = makeStyles({
   },
 })
 
+function prefersReducedMotion(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  )
+}
+
+/**
+ * Whether the typewriter reveal should run. We only animate in environments
+ * that expose `matchMedia` and a frame scheduler (real browsers) and where the
+ * learner has not asked for reduced motion. Under the unit-test runner and in
+ * SSR/jsdom environments without those primitives we show the full answer
+ * immediately so assertions see the complete, already-screened text.
+ */
+function shouldAnimateReveal(): boolean {
+  if (import.meta.env.MODE === 'test') {
+    return false
+  }
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    typeof window.requestAnimationFrame === 'function' &&
+    !prefersReducedMotion()
+  )
+}
+
+/**
+ * Reveal `full` one character at a time so a freshly-arrived grounded answer
+ * visibly "streams in" instead of popping in whole. The animation runs once,
+ * when the block first mounts — older transcript items keep their existing
+ * React instance (keyed by id) and so never re-animate. The text itself is the
+ * complete, already safety-screened answer from the backend; we only animate
+ * how much of it is on screen, so no unscreened token ever reaches the learner.
+ * Honours `prefers-reduced-motion` (and test/SSR environments) by showing the
+ * whole answer immediately.
+ */
+function useTypewriter(full: string): { shown: string; done: boolean } {
+  const [count, setCount] = useState(() =>
+    shouldAnimateReveal() ? 0 : full.length,
+  )
+  const fullRef = useRef(full)
+  fullRef.current = full
+
+  useEffect(() => {
+    if (!shouldAnimateReveal()) {
+      setCount(full.length)
+      return
+    }
+    setCount(0)
+    let raf = 0
+    let last = 0
+    // ~45 chars/sec feels like brisk typing without dragging on long answers.
+    const charsPerMs = 45 / 1000
+    const tick = (now: number) => {
+      if (last === 0) last = now
+      const delta = now - last
+      last = now
+      setCount((prev) => {
+        const next = Math.min(
+          fullRef.current.length,
+          prev + Math.max(1, Math.round(delta * charsPerMs)),
+        )
+        if (next < fullRef.current.length) {
+          raf = requestAnimationFrame(tick)
+        }
+        return next
+      })
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [full])
+
+  return { shown: full.slice(0, count), done: count >= full.length }
+}
+
 function ProseBlockView({ block }: { block: AssistantProseBlock }): JSX.Element {
   const styles = useStyles()
   const deferred = block.grounded === false && block.smalltalk !== true
+  const fullText = stripSourceMarkers(block.text)
+  const { shown, done } = useTypewriter(fullText)
   return (
     <div
       className={mergeClasses(styles.prose, deferred && styles.proseDeferred)}
       data-testid="assistant-block"
       data-block-kind="prose"
+      data-streaming={done ? undefined : 'true'}
     >
       {deferred ? (
         <span className={styles.deferBadge} data-testid="assistant-defer-badge">
           No grounded source
         </span>
       ) : null}
-      <p className={styles.proseText}>{block.text}</p>
+      <p className={styles.proseText}>
+        {shown}
+        {!done ? (
+          <span className={styles.caret} aria-hidden="true" />
+        ) : null}
+      </p>
       {block.citations.length > 0 ? (
         <div className={styles.citations}>
-          {block.citations.map((citation, index) => {
-            const key = `${citation.label ?? citation.topic_id ?? citation.url ?? 'cite'}-${index}`
-            return citation.url ? (
-              <a
-                key={key}
-                className={styles.citation}
-                href={citation.url}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {citation.label ?? citation.url}
-              </a>
-            ) : (
-              <span key={key} className={styles.citation}>
-                {citation.label ?? citation.topic_id ?? 'source'}
-              </span>
-            )
-          })}
+          <span
+            className={styles.citation}
+            data-testid="assistant-citation"
+            title={block.citations
+              .map(
+                (citation) =>
+                  citation.label ?? citation.topic_id ?? citation.url ?? 'source',
+              )
+              .join(', ')}
+          >
+            {FRIENDLY_CITATION_LABEL}
+          </span>
         </div>
       ) : null}
     </div>

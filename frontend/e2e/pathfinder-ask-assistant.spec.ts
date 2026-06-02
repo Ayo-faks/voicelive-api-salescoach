@@ -1,19 +1,20 @@
 /**
- * Pathfinder — Unified Ask Pathfinder drawer (text-only phase 1).
+ * Pathfinder — Unified Ask Pathfinder drawer.
  *
  * Validates:
- *  1. `POST /api/learning/assistant/ask` accepts a question + learner context
- *     and answers without making outcome guarantees.
+ *  1. `POST /api/learning/assistant/ask` accepts a question + learner context.
+ *     The assistant grounds strictly on the curriculum corpus and safely defers
+ *     on out-of-corpus questions (e.g. careers), never promising outcomes.
  *  2. The Learn home shell renders the Ask Pathfinder FAB for learner roles,
- *     opens the drawer with a transcript area, mic placeholder, and send
- *     control, and the drawer transcript shows the assistant's answer.
+ *     opens the drawer with a transcript area and a text composer (send), and
+ *     the drawer transcript streams in the assistant's answer.
  *  3. The legacy `career-navigation-moment` card is gone from the home.
  */
 import { expect, request, test } from '@playwright/test'
 import { installRouteMocks } from './fixtures/pathfinder-route-mocks'
 
 test.describe('Pathfinder · Ask Pathfinder drawer', () => {
-  test('assistant endpoint quotes career fits without promising outcomes', async ({ baseURL }) => {
+  test('assistant endpoint grounds or defers without promising outcomes', async ({ baseURL }) => {
     const api = await request.newContext({ baseURL })
     try {
       const resp = await api.post('/api/learning/assistant/ask', {
@@ -30,9 +31,17 @@ test.describe('Pathfinder · Ask Pathfinder drawer', () => {
       expect(resp.ok(), `assistant ask failed: ${resp.status()}`).toBeTruthy()
       const body = await resp.json()
       expect(typeof body.answer).toBe('string')
-      expect(body.answer).toMatch(/Civil engineer/)
-      expect(body.answer.toLowerCase()).toContain('no outcome guarantee')
+      expect(body.answer.length).toBeGreaterThan(0)
       expect(Array.isArray(body.citations)).toBeTruthy()
+      // Career asks sit outside the curriculum corpus, so the grounded
+      // assistant must defer rather than fabricate a pathway claim, and it
+      // must never promise an outcome.
+      if (typeof body.grounded === 'boolean') {
+        expect(body.grounded).toBe(false)
+      }
+      expect(body.answer).not.toMatch(
+        /guarantee(d)?\s+(you|your|a\b|admission|pass|success|career|job)/i,
+      )
     } finally {
       await api.dispose()
     }
@@ -50,7 +59,7 @@ test.describe('Pathfinder · Ask Pathfinder drawer', () => {
     const drawer = page.getByTestId('ask-pathfinder-drawer')
     await expect(drawer).toBeVisible()
     await expect(page.getByTestId('ask-pathfinder-transcript')).toBeVisible()
-    await expect(page.getByTestId('ask-pathfinder-mic')).toBeDisabled()
+    await expect(page.getByTestId('ask-pathfinder-input')).toBeVisible()
 
     await page.getByTestId('ask-pathfinder-input').fill('What should I study today?')
     await page.getByTestId('ask-pathfinder-send').click()

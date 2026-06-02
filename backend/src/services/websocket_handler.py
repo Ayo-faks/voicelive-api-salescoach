@@ -50,6 +50,11 @@ logger = logging.getLogger(__name__)
 AZURE_VOICE_API_VERSION = "2025-05-01-preview"
 AZURE_COGNITIVE_SERVICES_DOMAIN = "cognitiveservices.azure.com"
 
+# Learner-scoped profiles share audio-only modality, the profile voice, and the
+# profile instruction block (no on-screen avatar). ``learner`` walks practice
+# cards; ``learner_ask`` is the ask-anything AskPathfinder voice surface.
+LEARNER_VOICE_PROFILE_IDS = frozenset({"learner", "learner_ask"})
+
 
 def _is_local_dev_auth_enabled() -> bool:
     """Resolve LOCAL_DEV_AUTH dynamically so test and shell env changes are honored."""
@@ -499,7 +504,7 @@ class VoiceProxyHandler:
             is_photo_avatar = custom_avatar.get("is_photo_avatar", False)
             voice_name = custom_avatar.get("voice_name") or voice_name
 
-        if profile.id == "learner":
+        if profile.id in LEARNER_VOICE_PROFILE_IDS:
             voice_name = profile.voice
 
         avatar_config_value = self._build_avatar_config(avatar_character, avatar_style, is_photo_avatar)
@@ -553,7 +558,7 @@ class VoiceProxyHandler:
         # through the avatar/WebRTC stream and does not emit
         # `response.audio.delta` frames over the realtime websocket, so the
         # browser never hears the tutor. Practice/teacher flows keep the avatar.
-        is_audio_only_profile = profile.id == "learner"
+        is_audio_only_profile = profile.id in LEARNER_VOICE_PROFILE_IDS
         if is_audio_only_profile:
             modalities: list[Modality] = [Modality.TEXT, Modality.AUDIO]
             avatar_for_session: Any = None
@@ -584,7 +589,7 @@ class VoiceProxyHandler:
 
         personalization_block = self._build_personalization_instruction_block(agent_config)
 
-        if profile.id == "learner":
+        if profile.id in LEARNER_VOICE_PROFILE_IDS:
             session["instructions"] = append_phoneme_rule(
                 self._build_profile_instruction_block(profile, profile_context)
             )
@@ -1139,6 +1144,11 @@ class VoiceProxyHandler:
         if tool_call is None:
             return False
         name, call_id, arguments = tool_call
+        if profile.id == "learner_ask" and not str(arguments.get("question") or "").strip():
+            # VoiceLive can emit incomplete argument snapshots before the final
+            # function_call item is done. For learner_ask, wait until the
+            # required question argument is present.
+            return False
         if name not in profile.tool_handlers:
             return False
         if handled_tool_call_ids is not None:
@@ -1175,7 +1185,56 @@ class VoiceProxyHandler:
                     },
                 },
             )
+        elif profile.id == "learner_ask":
+            blocks = result.get("blocks")
+            if isinstance(blocks, list):
+                session_complete = bool(result.get("session_complete", False))
+                for block in self._screen_assistant_blocks(blocks):
+                    await self._send_message(
+                        client_ws,
+                        {
+                            "type": "wulo.assistant_block",
+                            "payload": {
+                                "block": block,
+                                "session_complete": session_complete,
+                            },
+                        },
+                    )
         return True
+
+    @staticmethod
+    def _screen_assistant_blocks(blocks: list[Any]) -> list[dict[str, Any]]:
+        """Defense-in-depth outbound screen on gen-UI blocks before emission.
+
+        ``run_assistant_turn`` already runs grounding + ``screen_outbound_text``
+        on the prose it produces, but the card/block emission point historically
+        forwarded planner output to the client unscreened. We re-screen the
+        speakable/visible text of each block here and drop any block the
+        safeguarding lexicon rejects, so a regression in the brain can never push
+        unsafe text to a child's screen.
+        """
+        from src.learning.tutor import screen_outbound_text  # lazy: avoid import cycle
+
+        screened: list[dict[str, Any]] = []
+        for raw in blocks:
+            if not isinstance(raw, dict):
+                continue
+            text_parts = [
+                str(raw.get(key) or "")
+                for key in ("speak", "text", "title", "body")
+            ]
+            combined = " ".join(part for part in text_parts if part).strip()
+            if combined:
+                try:
+                    decision = screen_outbound_text(combined)
+                except Exception:  # screening must never crash the turn
+                    logger.exception("Outbound block screening failed")
+                    continue
+                if not getattr(decision, "allowed", True):
+                    logger.warning("Dropped assistant block failing outbound screen")
+                    continue
+            screened.append(raw)
+        return screened
 
     def _extract_profile_tool_call(self, event_dict: Dict[str, Any]) -> tuple[str, str, Dict[str, Any]] | None:
         event_type = str(event_dict.get("type") or "")
@@ -1185,6 +1244,15 @@ class VoiceProxyHandler:
             arguments = self._coerce_tool_arguments(event_dict.get("arguments"))
             if name and call_id:
                 return name, call_id, arguments
+
+        if event_type == "response.output_item.done":
+            item = event_dict.get("item")
+            if isinstance(item, dict) and str(item.get("type") or "") == "function_call":
+                name = str(item.get("name") or "").strip()
+                call_id = str(item.get("call_id") or item.get("id") or "").strip()
+                arguments = self._coerce_tool_arguments(item.get("arguments"))
+                if name and call_id:
+                    return name, call_id, arguments
 
         if event_type == "conversation.item.created":
             item = event_dict.get("item")

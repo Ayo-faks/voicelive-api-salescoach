@@ -141,7 +141,7 @@ def test_diagnostic_item_rejects_unknown_subject() -> None:
 
 def test_diagnostic_item_rejects_unknown_year_group() -> None:
     with pytest.raises(ValueError):
-        _make_item(year_group="JSS1")
+        _make_item(year_group="JSS9")
 
 
 def test_diagnostic_item_rejects_blank_topic() -> None:

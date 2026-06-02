@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   FluentProvider,
   Text,
@@ -945,6 +945,22 @@ export default function PathfinderLearnApp() {
       child => child.id === activeLearnerIdForPractice
     )?.name ?? null
   const [learnerSetup] = useLearnerSetup()
+  const askPathfinderLearnerId =
+    activeLearnerIdForPractice ?? authSession?.user_id ?? null
+  const askPathfinderContextValue = useMemo(
+    () => ({
+      ...defaultLearnerContext,
+      userId: askPathfinderLearnerId,
+      learnerSetup:
+        learnerSetup.subject || learnerSetup.year
+          ? {
+              subject: learnerSetup.subject,
+              yearGroup: learnerSetup.year,
+            }
+          : null,
+    }),
+    [askPathfinderLearnerId, learnerSetup.subject, learnerSetup.year]
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -1431,8 +1447,10 @@ export default function PathfinderLearnApp() {
           </nav>
         </main>
         {['learner', 'kid', 'student'].includes(effectiveRole) && (
-          <LearnerContext.Provider value={defaultLearnerContext}>
-            <AskPathfinder />
+          <LearnerContext.Provider value={askPathfinderContextValue}>
+            <AskPathfinder
+              voiceLiveEnabled={!!appConfig?.pathfinder_voicelive_enabled}
+            />
           </LearnerContext.Provider>
         )}
         {practiceFullscreenEnabled &&

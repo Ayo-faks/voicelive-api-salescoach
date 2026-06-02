@@ -1,0 +1,5951 @@
+{
+  "schema_version": "1.0.0",
+  "description": "Nigerian curriculum topic taxonomy (JSS1-SS3) for the Pathfinder tutor RAG corpus. Coverage target and retrieval oracle. Topic names are factual NERDC/WAEC/NECO scheme-of-work headings; no copyrighted prose is stored here.",
+  "exam_tag_vocab": [
+    "WAEC",
+    "NECO",
+    "JSSCE",
+    "BECE"
+  ],
+  "year_group_vocab": [
+    "JSS1",
+    "JSS2",
+    "JSS3",
+    "SS1",
+    "SS2",
+    "SS3"
+  ],
+  "entries": [
+    {
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "whole-numbers",
+      "subtopics": [
+        "counting and place value",
+        "rounding and estimation",
+        "factors and multiples",
+        "LCM and HCF",
+        "prime numbers"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "fractions",
+      "subtopics": [
+        "proper and improper fractions",
+        "equivalent fractions",
+        "addition and subtraction of fractions",
+        "multiplication and division of fractions"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "decimals",
+      "subtopics": [
+        "place value in decimals",
+        "converting fractions to decimals",
+        "operations with decimals"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "number-bases",
+      "subtopics": [
+        "counting in base two",
+        "conversion between base two and base ten"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "basic-operations",
+      "subtopics": [
+        "addition and subtraction",
+        "multiplication and division",
+        "order of operations"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "approximation",
+      "subtopics": [
+        "rounding to decimal places",
+        "significant figures"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "algebraic-processes",
+      "subtopics": [
+        "use of symbols",
+        "simplification of algebraic expressions"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "basic-geometry",
+      "subtopics": [
+        "points lines and planes",
+        "angles",
+        "types of triangles"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "measurement",
+      "subtopics": [
+        "length",
+        "perimeter of plane shapes",
+        "area of rectangles and squares"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "statistics",
+      "subtopics": [
+        "data collection",
+        "pictograms and bar charts"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "whole-numbers-and-operations",
+      "subtopics": [
+        "multiples and factors",
+        "squares and square roots",
+        "standard form"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "fractions-and-decimals",
+      "subtopics": [
+        "operations with fractions",
+        "decimals and percentages",
+        "ratio"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "percentages",
+      "subtopics": [
+        "percentage of a quantity",
+        "percentage increase and decrease",
+        "simple interest"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "number-bases",
+      "subtopics": [
+        "conversion between bases",
+        "operations in base two"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "algebraic-expressions",
+      "subtopics": [
+        "expansion of expressions",
+        "factorisation by common factor",
+        "substitution"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "simple-equations",
+      "subtopics": [
+        "linear equations in one variable",
+        "word problems with equations"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "geometry-angles",
+      "subtopics": [
+        "angles on a straight line",
+        "angles at a point",
+        "angles in parallel lines"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "plane-shapes",
+      "subtopics": [
+        "properties of quadrilaterals",
+        "perimeter and area of triangles",
+        "area of parallelogram and trapezium"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "scale-drawing",
+      "subtopics": [
+        "scales and ratios",
+        "interpreting scale drawings"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "statistics",
+      "subtopics": [
+        "frequency tables",
+        "mean median and mode",
+        "pie charts"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "probability",
+      "subtopics": [
+        "chance and likelihood",
+        "simple probability"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "number-and-numeration",
+      "subtopics": [
+        "place value",
+        "decimals",
+        "fractions",
+        "percentages",
+        "ratio",
+        "proportion",
+        "indices",
+        "standard form"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "algebra",
+      "subtopics": [
+        "simplification",
+        "expansion and factorisation",
+        "linear equations",
+        "inequalities",
+        "change of subject of formula"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "indices",
+      "subtopics": [
+        "laws of indices"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "geometry",
+      "subtopics": [
+        "angles",
+        "plane shapes and angles",
+        "construction",
+        "similar shapes",
+        "Pythagoras theorem"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "measurement",
+      "subtopics": [
+        "area",
+        "volume of solids"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "mensuration",
+      "subtopics": [
+        "perimeter and area",
+        "surface area"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "statistics",
+      "subtopics": [
+        "frequency tables",
+        "mean median and mode",
+        "bar and pie charts",
+        "cumulative frequency"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "probability",
+      "subtopics": [
+        "simple probability",
+        "experimental probability"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — Mathematics (Junior Secondary)"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "number-bases",
+      "subtopics": [
+        "conversion between bases",
+        "arithmetic in number bases"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "indices",
+      "subtopics": [
+        "laws of indices",
+        "fractional and negative indices"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "logarithms",
+      "subtopics": [
+        "logarithms in base ten",
+        "laws of logarithms"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "sets",
+      "subtopics": [
+        "set notation",
+        "Venn diagrams",
+        "two-set problems"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "simple-equations-and-variation",
+      "subtopics": [
+        "change of subject",
+        "direct and inverse variation"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "quadratic-equations",
+      "subtopics": [
+        "factorisation method",
+        "completing the square"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "logical-reasoning",
+      "subtopics": [
+        "simple and compound statements",
+        "truth tables"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "geometry",
+      "subtopics": [
+        "properties of polygons",
+        "angles of polygons"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "trigonometry",
+      "subtopics": [
+        "sine cosine and tangent",
+        "trigonometric ratios of special angles"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "mensuration",
+      "subtopics": [
+        "length of arc and area of sector",
+        "surface area and volume of solids"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "statistics",
+      "subtopics": [
+        "collection and presentation of data",
+        "measures of central tendency"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "logarithms",
+      "subtopics": [
+        "logarithms of numbers greater than one",
+        "antilogarithms",
+        "calculations using logarithm tables"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "approximation",
+      "subtopics": [
+        "significant figures and decimal places",
+        "percentage error"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "sequences-and-series",
+      "subtopics": [
+        "arithmetic progression",
+        "geometric progression",
+        "sum of a series"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "quadratic-functions",
+      "subtopics": [
+        "graphs of quadratic functions",
+        "roots of quadratic equations",
+        "quadratic inequalities"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "simultaneous-equations",
+      "subtopics": [
+        "linear and quadratic simultaneous equations"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "trigonometry",
+      "subtopics": [
+        "sine rule",
+        "cosine rule",
+        "bearings"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "circle-geometry",
+      "subtopics": [
+        "angles in a circle",
+        "cyclic quadrilaterals",
+        "tangents to a circle"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "coordinate-geometry",
+      "subtopics": [
+        "gradient and intercept",
+        "distance between two points",
+        "equation of a straight line"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "probability",
+      "subtopics": [
+        "addition and multiplication rules",
+        "mutually exclusive and independent events"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "statistics",
+      "subtopics": [
+        "cumulative frequency",
+        "measures of dispersion",
+        "ogive"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "number-and-numeration",
+      "subtopics": [
+        "surds",
+        "number bases"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "surds",
+      "subtopics": [
+        "simplification of surds",
+        "rationalisation of surds"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "indices",
+      "subtopics": [
+        "laws of indices",
+        "indicial equations"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "logarithms",
+      "subtopics": [
+        "laws of logarithms",
+        "change of base",
+        "logarithmic equations"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "sets",
+      "subtopics": [
+        "set operations",
+        "Venn diagram problems"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "algebra",
+      "subtopics": [
+        "algebraic fractions",
+        "factor theorem",
+        "partial fractions"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "quadratics",
+      "subtopics": [
+        "factorisation",
+        "completing the square",
+        "quadratic formula",
+        "sum and product of roots"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "variation",
+      "subtopics": [
+        "direct variation",
+        "inverse variation",
+        "joint and partial variation"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "sequences-and-series",
+      "subtopics": [
+        "arithmetic progression",
+        "geometric progression"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "coordinate-geometry",
+      "subtopics": [
+        "straight line",
+        "midpoint and distance",
+        "gradient",
+        "equation of a line"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "trigonometry",
+      "subtopics": [
+        "trigonometric ratios",
+        "right triangle",
+        "sine rule",
+        "cosine rule",
+        "identities"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "mensuration",
+      "subtopics": [
+        "areas and volumes",
+        "latitude and longitude"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "calculus",
+      "subtopics": [
+        "differentiation",
+        "integration"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "statistics",
+      "subtopics": [
+        "measures of central tendency",
+        "measures of dispersion",
+        "cumulative frequency"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "probability",
+      "subtopics": [
+        "simple probability",
+        "addition and multiplication rules",
+        "probability of combined events"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — Mathematics; WAEC/NECO SSCE Mathematics syllabus"
+    },
+    {
+      "subject": "english",
+      "year_group": "JSS1",
+      "topic": "vocabulary",
+      "subtopics": [
+        "word meaning",
+        "synonyms",
+        "antonyms",
+        "everyday vocabulary"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — English Studies (Junior Secondary)"
+    },
+    {
+      "subject": "english",
+      "year_group": "JSS1",
+      "topic": "grammar",
+      "subtopics": [
+        "nouns",
+        "pronouns",
+        "verbs",
+        "articles",
+        "simple sentences"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — English Studies (Junior Secondary)"
+    },
+    {
+      "subject": "english",
+      "year_group": "JSS1",
+      "topic": "comprehension",
+      "subtopics": [
+        "reading for detail",
+        "main idea"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — English Studies (Junior Secondary)"
+    },
+    {
+      "subject": "english",
+      "year_group": "JSS1",
+      "topic": "composition",
+      "subtopics": [
+        "narrative writing",
+        "informal letter"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — English Studies (Junior Secondary)"
+    },
+    {
+      "subject": "english",
+      "year_group": "JSS1",
+      "topic": "speech-work",
+      "subtopics": [
+        "vowel sounds",
+        "consonant sounds"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — English Studies (Junior Secondary)"
+    },
+    {
+      "subject": "english",
+      "year_group": "JSS2",
+      "topic": "vocabulary",
+      "subtopics": [
+        "synonyms and antonyms",
+        "word formation",
+        "collocations"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — English Studies (Junior Secondary)"
+    },
+    {
+      "subject": "english",
+      "year_group": "JSS2",
+      "topic": "grammar",
+      "subtopics": [
+        "tenses",
+        "adjectives and adverbs",
+        "prepositions",
+        "conjunctions",
+        "question tags"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — English Studies (Junior Secondary)"
+    },
+    {
+      "subject": "english",
+      "year_group": "JSS2",
+      "topic": "comprehension",
+      "subtopics": [
+        "reading for detail",
+        "inference",
+        "vocabulary in context"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — English Studies (Junior Secondary)"
+    },
+    {
+      "subject": "english",
+      "year_group": "JSS2",
+      "topic": "composition",
+      "subtopics": [
+        "descriptive writing",
+        "formal letter",
+        "article writing"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — English Studies (Junior Secondary)"
+    },
+    {
+      "subject": "english",
+      "year_group": "JSS2",
+      "topic": "speech-work",
+      "subtopics": [
+        "word stress",
+        "rhymes"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — English Studies (Junior Secondary)"
+    },
+    {
+      "subject": "english",
+      "year_group": "JSS2",
+      "topic": "summary",
+      "subtopics": [
+        "identifying key points"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — English Studies (Junior Secondary)"
+    },
+    {
+      "subject": "english",
+      "year_group": "JSS3",
+      "topic": "vocab",
+      "subtopics": [
+        "synonyms",
+        "antonyms",
+        "word meaning",
+        "collocations"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — English Studies (Junior Secondary)"
+    },
+    {
+      "subject": "english",
+      "year_group": "JSS3",
+      "topic": "grammar",
+      "subtopics": [
+        "tense",
+        "tense agreement",
+        "parts of speech",
+        "concord",
+        "active and passive voice"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — English Studies (Junior Secondary)"
+    },
+    {
+      "subject": "english",
+      "year_group": "JSS3",
+      "topic": "comprehension",
+      "subtopics": [
+        "detail",
+        "inference",
+        "main idea",
+        "vocabulary in context"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — English Studies (Junior Secondary)"
+    },
+    {
+      "subject": "english",
+      "year_group": "JSS3",
+      "topic": "figurative",
+      "subtopics": [
+        "similes and metaphors",
+        "basic figures of speech"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — English Studies (Junior Secondary)"
+    },
+    {
+      "subject": "english",
+      "year_group": "JSS3",
+      "topic": "composition",
+      "subtopics": [
+        "narrative essay",
+        "formal and informal letters",
+        "report writing"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — English Studies (Junior Secondary)"
+    },
+    {
+      "subject": "english",
+      "year_group": "JSS3",
+      "topic": "summary",
+      "subtopics": [
+        "compressing a passage"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — English Studies (Junior Secondary)"
+    },
+    {
+      "subject": "english",
+      "year_group": "JSS3",
+      "topic": "speech-work",
+      "subtopics": [
+        "vowel and consonant sounds",
+        "stress and intonation"
+      ],
+      "exam_tags": [
+        "JSSCE",
+        "BECE"
+      ],
+      "source_ref": "NERDC 9-Year Basic Education Curriculum — English Studies (Junior Secondary)"
+    },
+    {
+      "subject": "english",
+      "year_group": "SS1",
+      "topic": "lexis-and-structure",
+      "subtopics": [
+        "vocabulary development",
+        "word classes",
+        "sentence patterns"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — English Language; WAEC/NECO SSCE English syllabus"
+    },
+    {
+      "subject": "english",
+      "year_group": "SS1",
+      "topic": "grammar",
+      "subtopics": [
+        "concord",
+        "tenses",
+        "phrases and clauses",
+        "voice and mood"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — English Language; WAEC/NECO SSCE English syllabus"
+    },
+    {
+      "subject": "english",
+      "year_group": "SS1",
+      "topic": "comprehension",
+      "subtopics": [
+        "reading for detail",
+        "inference",
+        "author's purpose"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — English Language; WAEC/NECO SSCE English syllabus"
+    },
+    {
+      "subject": "english",
+      "year_group": "SS1",
+      "topic": "composition",
+      "subtopics": [
+        "expository essay",
+        "argumentative essay",
+        "letter writing"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — English Language; WAEC/NECO SSCE English syllabus"
+    },
+    {
+      "subject": "english",
+      "year_group": "SS1",
+      "topic": "oral-english",
+      "subtopics": [
+        "vowels",
+        "consonants",
+        "stress"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — English Language; WAEC/NECO SSCE English syllabus"
+    },
+    {
+      "subject": "english",
+      "year_group": "SS1",
+      "topic": "summary",
+      "subtopics": [
+        "summarising in continuous prose"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — English Language; WAEC/NECO SSCE English syllabus"
+    },
+    {
+      "subject": "english",
+      "year_group": "SS2",
+      "topic": "lexis-and-structure",
+      "subtopics": [
+        "vocabulary in context",
+        "sentence completion",
+        "usage"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — English Language; WAEC/NECO SSCE English syllabus"
+    },
+    {
+      "subject": "english",
+      "year_group": "SS2",
+      "topic": "grammar",
+      "subtopics": [
+        "concord",
+        "tense sequence",
+        "reported speech",
+        "conditional sentences"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — English Language; WAEC/NECO SSCE English syllabus"
+    },
+    {
+      "subject": "english",
+      "year_group": "SS2",
+      "topic": "comprehension",
+      "subtopics": [
+        "detail",
+        "inference",
+        "tone and attitude"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — English Language; WAEC/NECO SSCE English syllabus"
+    },
+    {
+      "subject": "english",
+      "year_group": "SS2",
+      "topic": "composition",
+      "subtopics": [
+        "argumentative essay",
+        "speech writing",
+        "article writing"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — English Language; WAEC/NECO SSCE English syllabus"
+    },
+    {
+      "subject": "english",
+      "year_group": "SS2",
+      "topic": "oral-english",
+      "subtopics": [
+        "stress and intonation",
+        "rhymes and homophones"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — English Language; WAEC/NECO SSCE English syllabus"
+    },
+    {
+      "subject": "english",
+      "year_group": "SS2",
+      "topic": "summary",
+      "subtopics": [
+        "compressing multiple paragraphs"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — English Language; WAEC/NECO SSCE English syllabus"
+    },
+    {
+      "subject": "english",
+      "year_group": "SS3",
+      "topic": "lexis-and-structure",
+      "subtopics": [
+        "sentence completion",
+        "usage",
+        "vocabulary and meaning"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — English Language; WAEC/NECO SSCE English syllabus"
+    },
+    {
+      "subject": "english",
+      "year_group": "SS3",
+      "topic": "grammar",
+      "subtopics": [
+        "concord",
+        "tense and aspect",
+        "transformation of sentences"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — English Language; WAEC/NECO SSCE English syllabus"
+    },
+    {
+      "subject": "english",
+      "year_group": "SS3",
+      "topic": "comprehension",
+      "subtopics": [
+        "detail",
+        "inference",
+        "main idea",
+        "vocabulary in context"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — English Language; WAEC/NECO SSCE English syllabus"
+    },
+    {
+      "subject": "english",
+      "year_group": "SS3",
+      "topic": "mechanics",
+      "subtopics": [
+        "spelling",
+        "punctuation"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — English Language; WAEC/NECO SSCE English syllabus"
+    },
+    {
+      "subject": "english",
+      "year_group": "SS3",
+      "topic": "sentence",
+      "subtopics": [
+        "transformation",
+        "rewriting in another structure"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — English Language; WAEC/NECO SSCE English syllabus"
+    },
+    {
+      "subject": "english",
+      "year_group": "SS3",
+      "topic": "summary",
+      "subtopics": [
+        "compressing a passage in continuous prose"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — English Language; WAEC/NECO SSCE English syllabus"
+    },
+    {
+      "subject": "english",
+      "year_group": "SS3",
+      "topic": "composition",
+      "subtopics": [
+        "argumentative essay",
+        "narrative essay",
+        "formal letter"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — English Language; WAEC/NECO SSCE English syllabus"
+    },
+    {
+      "subject": "english",
+      "year_group": "SS3",
+      "topic": "oral-english",
+      "subtopics": [
+        "vowel and consonant contrasts",
+        "stress and intonation"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "NERDC Senior Secondary Education Curriculum — English Language; WAEC/NECO SSCE English syllabus"
+    },
+    {
+      "subject": "government",
+      "year_group": "SS3",
+      "topic": "basic_concepts",
+      "subtopics": [
+        "citizenship",
+        "democracy",
+        "freedom equality",
+        "government",
+        "legitimacy",
+        "nation",
+        "political culture",
+        "political obligation",
+        "political participation",
+        "political systems",
+        "power authority",
+        "rights duties",
+        "rule of law",
+        "separation of powers",
+        "sovereignty",
+        "state"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Government; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank government_ss_v1.json)"
+    },
+    {
+      "subject": "government",
+      "year_group": "SS3",
+      "topic": "constitution",
+      "subtopics": [
+        "amendment",
+        "bill of rights",
+        "citizenship clause",
+        "conventions",
+        "directive principles",
+        "emergency",
+        "features",
+        "federal constitution",
+        "functions",
+        "interpretation",
+        "meaning",
+        "merits",
+        "nigerian constitutions",
+        "separation clause",
+        "supremacy",
+        "types",
+        "unitary constitution"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Government; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank government_ss_v1.json)"
+    },
+    {
+      "subject": "government",
+      "year_group": "SS3",
+      "topic": "ecowas_au_un",
+      "subtopics": [
+        "au",
+        "ecowas",
+        "intl aims",
+        "oau",
+        "un",
+        "un agencies"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Government; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank government_ss_v1.json)"
+    },
+    {
+      "subject": "government",
+      "year_group": "SS3",
+      "topic": "electoral_process",
+      "subtopics": [
+        "ballot",
+        "campaign rules",
+        "constituency",
+        "election",
+        "electoral body",
+        "electoral systems",
+        "malpractice",
+        "observers",
+        "qualification",
+        "recall",
+        "referendum",
+        "registration",
+        "returning officer",
+        "suffrage",
+        "tribunal",
+        "types of election"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Government; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank government_ss_v1.json)"
+    },
+    {
+      "subject": "government",
+      "year_group": "SS3",
+      "topic": "independence",
+      "subtopics": [
+        "amalgamation",
+        "civil war",
+        "colonial rule",
+        "constitutional dev",
+        "first republic",
+        "fourth republic",
+        "independence",
+        "military rule",
+        "nationalism",
+        "republic",
+        "second republic"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Government; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank government_ss_v1.json)"
+    },
+    {
+      "subject": "government",
+      "year_group": "SS3",
+      "topic": "international_relations",
+      "subtopics": [
+        "bilateral",
+        "determinants",
+        "diplomacy",
+        "foreign policy",
+        "intl organisations",
+        "meaning",
+        "multilateral",
+        "national interest",
+        "non alignment",
+        "sanctions",
+        "sovereign equality",
+        "treaty"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Government; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank government_ss_v1.json)"
+    },
+    {
+      "subject": "government",
+      "year_group": "SS3",
+      "topic": "nigerian_government",
+      "subtopics": [
+        "checks",
+        "constitution",
+        "executive arm",
+        "federal character",
+        "federalism",
+        "fundamental rights",
+        "judiciary arm",
+        "legislature",
+        "local gov",
+        "presidential",
+        "revenue allocation",
+        "separation"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Government; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank government_ss_v1.json)"
+    },
+    {
+      "subject": "government",
+      "year_group": "SS3",
+      "topic": "organs_of_government",
+      "subtopics": [
+        "checks",
+        "civil service",
+        "delegated legislation",
+        "executive",
+        "judiciary",
+        "legislature",
+        "public corporations"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Government; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank government_ss_v1.json)"
+    },
+    {
+      "subject": "government",
+      "year_group": "SS3",
+      "topic": "political_parties",
+      "subtopics": [
+        "campaign",
+        "demerits",
+        "financing",
+        "functions",
+        "ideology",
+        "manifesto",
+        "meaning",
+        "membership",
+        "merits",
+        "opposition",
+        "pressure groups",
+        "types"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Government; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank government_ss_v1.json)"
+    },
+    {
+      "subject": "government",
+      "year_group": "SS3",
+      "topic": "public_administration",
+      "subtopics": [
+        "accountability",
+        "bureaucracy",
+        "civil service",
+        "delegated legislation",
+        "finance",
+        "local government",
+        "meaning",
+        "merit system",
+        "ombudsman",
+        "public corporations",
+        "recruitment",
+        "spoils system"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Government; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank government_ss_v1.json)"
+    },
+    {
+      "subject": "history",
+      "year_group": "SS3",
+      "topic": "civil_war",
+      "subtopics": [
+        "aburi",
+        "biafra",
+        "causes",
+        "counter coup",
+        "course",
+        "dates",
+        "effects",
+        "end",
+        "foreign recognition",
+        "gowon overthrow",
+        "ironsi",
+        "legacy",
+        "oil",
+        "ojukwu",
+        "pogroms",
+        "reconciliation",
+        "reconstruction",
+        "refugees",
+        "relief",
+        "states creation",
+        "supporters",
+        "three rs",
+        "unification decree",
+        "war lessons"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — History; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank history_ss_v1.json)"
+    },
+    {
+      "subject": "history",
+      "year_group": "SS3",
+      "topic": "colonial_rule",
+      "subtopics": [
+        "amalgamation",
+        "clifford constitution",
+        "colonial admin",
+        "colonial economy",
+        "colonial education",
+        "colonial impact",
+        "colonial resistance",
+        "colonisation nigeria",
+        "french rule",
+        "indirect rule",
+        "partition",
+        "warrant chiefs"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — History; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank history_ss_v1.json)"
+    },
+    {
+      "subject": "history",
+      "year_group": "SS3",
+      "topic": "early_nigerian_states",
+      "subtopics": [
+        "benin kingdom",
+        "early states general",
+        "hausa states",
+        "ife",
+        "igala jukun",
+        "igbo society",
+        "kanem bornu",
+        "niger delta",
+        "oyo empire"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — History; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank history_ss_v1.json)"
+    },
+    {
+      "subject": "history",
+      "year_group": "SS3",
+      "topic": "independence",
+      "subtopics": [
+        "balewa",
+        "census crisis",
+        "challenges",
+        "commonwealth",
+        "constitutional conferences",
+        "date",
+        "decolonisation",
+        "election crisis",
+        "federal structure",
+        "first coup",
+        "first pm",
+        "first president",
+        "first republic",
+        "first republic crisis",
+        "flag anthem",
+        "midwest region",
+        "parliamentary system",
+        "republic 1963",
+        "sardauna"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — History; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank history_ss_v1.json)"
+    },
+    {
+      "subject": "history",
+      "year_group": "SS3",
+      "topic": "nationalism",
+      "subtopics": [
+        "achievements",
+        "constitutions nationalism",
+        "early nationalism",
+        "ex servicemen",
+        "external influences",
+        "herbert macaulay",
+        "meaning",
+        "media unions",
+        "nationalism methods",
+        "nationalism unity",
+        "nnamdi azikiwe",
+        "pan africanism",
+        "political parties",
+        "women nationalism",
+        "zikist movement"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — History; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank history_ss_v1.json)"
+    },
+    {
+      "subject": "history",
+      "year_group": "SS3",
+      "topic": "post_independence",
+      "subtopics": [
+        "abacha death",
+        "abiola",
+        "babangida overthrow",
+        "buhari first",
+        "corruption challenges",
+        "democracy day",
+        "democracy day change",
+        "economy diversification",
+        "fct",
+        "federal character",
+        "fourth republic",
+        "interim government",
+        "june 12",
+        "military rule",
+        "murtala",
+        "national assembly",
+        "niger delta unrest",
+        "obasanjo 1999",
+        "obasanjo terms",
+        "oil economy",
+        "revenue allocation",
+        "second republic system",
+        "shagari",
+        "structural adjustment",
+        "three arms",
+        "transitions"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — History; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank history_ss_v1.json)"
+    },
+    {
+      "subject": "history",
+      "year_group": "SS3",
+      "topic": "trade",
+      "subtopics": [
+        "abolition",
+        "atlantic effects",
+        "atlantic goods",
+        "atlantic origins",
+        "atlantic triangular",
+        "legitimate trade",
+        "trade overview",
+        "trans saharan centres",
+        "trans saharan effects",
+        "trans saharan goods",
+        "trans saharan routes"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — History; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank history_ss_v1.json)"
+    },
+    {
+      "subject": "history",
+      "year_group": "SS3",
+      "topic": "west_africa",
+      "subtopics": [
+        "asante",
+        "dahomey",
+        "ecowas",
+        "freetown",
+        "french west africa",
+        "ghana empire",
+        "liberia",
+        "mali empire",
+        "nkrumah",
+        "oau",
+        "regional movements",
+        "senghor",
+        "sokoto caliphate",
+        "songhai empire",
+        "sundiata",
+        "trade history",
+        "west africa independence"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — History; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank history_ss_v1.json)"
+    },
+    {
+      "subject": "history",
+      "year_group": "SS3",
+      "topic": "world_history",
+      "subtopics": [
+        "american independence",
+        "apartheid",
+        "cold war",
+        "decolonisation world",
+        "french revolution",
+        "imperialism",
+        "industrial revolution",
+        "league of nations",
+        "non aligned",
+        "reformation",
+        "renaissance",
+        "russian revolution",
+        "slavery americas",
+        "un decolonisation",
+        "united nations",
+        "world overview",
+        "ww1",
+        "ww2"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — History; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank history_ss_v1.json)"
+    },
+    {
+      "subject": "literature",
+      "year_group": "SS3",
+      "topic": "african_literature",
+      "subtopics": [
+        "concept",
+        "drama",
+        "poetry",
+        "prose fiction"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Literature; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank literature_ss_v1.json)"
+    },
+    {
+      "subject": "literature",
+      "year_group": "SS3",
+      "topic": "characterisation",
+      "subtopics": [
+        "antagonist",
+        "anti hero",
+        "characterisation",
+        "confidant",
+        "development",
+        "direct",
+        "dynamic",
+        "flat",
+        "foil",
+        "foil use",
+        "hero",
+        "hero type",
+        "indirect",
+        "major",
+        "minor",
+        "minor use",
+        "motivation",
+        "protagonist",
+        "round",
+        "round use",
+        "speech char",
+        "static",
+        "stock",
+        "tragic flaw",
+        "tragic hero",
+        "trait",
+        "villain"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Literature; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank literature_ss_v1.json)"
+    },
+    {
+      "subject": "literature",
+      "year_group": "SS3",
+      "topic": "drama",
+      "subtopics": [
+        "character",
+        "classical",
+        "comedy",
+        "forms",
+        "medieval",
+        "speech",
+        "staging",
+        "structure",
+        "technique",
+        "tragedy",
+        "types"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Literature; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank literature_ss_v1.json)"
+    },
+    {
+      "subject": "literature",
+      "year_group": "SS3",
+      "topic": "elements_of_literature",
+      "subtopics": [
+        "character",
+        "device",
+        "genres",
+        "irony",
+        "mood tone",
+        "narration",
+        "plot",
+        "symbol",
+        "theme"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Literature; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank literature_ss_v1.json)"
+    },
+    {
+      "subject": "literature",
+      "year_group": "SS3",
+      "topic": "figures_of_speech",
+      "subtopics": [
+        "address",
+        "balance",
+        "comparison",
+        "contradiction",
+        "epithet",
+        "exaggeration",
+        "expression",
+        "hyperbole",
+        "inversion",
+        "irony fig",
+        "personification",
+        "question",
+        "reference",
+        "repetition",
+        "sense",
+        "softening",
+        "substitution",
+        "symbol",
+        "transfer",
+        "understatement",
+        "wordplay"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Literature; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank literature_ss_v1.json)"
+    },
+    {
+      "subject": "literature",
+      "year_group": "SS3",
+      "topic": "non_african_literature",
+      "subtopics": [
+        "drama",
+        "poetry",
+        "prose fiction"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Literature; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank literature_ss_v1.json)"
+    },
+    {
+      "subject": "literature",
+      "year_group": "SS3",
+      "topic": "poetry",
+      "subtopics": [
+        "device",
+        "foot",
+        "forms",
+        "length",
+        "line",
+        "meter",
+        "refrain",
+        "rhyme",
+        "sonnet",
+        "stanza"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Literature; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank literature_ss_v1.json)"
+    },
+    {
+      "subject": "literature",
+      "year_group": "SS3",
+      "topic": "prose",
+      "subtopics": [
+        "dialogue",
+        "forms",
+        "narration",
+        "short forms",
+        "structure",
+        "technique",
+        "types"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Literature; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank literature_ss_v1.json)"
+    },
+    {
+      "subject": "literature",
+      "year_group": "SS3",
+      "topic": "sound_devices",
+      "subtopics": [
+        "alliteration",
+        "assonance",
+        "cacophony",
+        "consonance",
+        "device effect",
+        "euphony",
+        "flow",
+        "onomatopoeia",
+        "pause",
+        "refrain",
+        "repetition",
+        "rhyme",
+        "rhyme gender",
+        "rhyme pos",
+        "rhyme type",
+        "rhythm",
+        "sibilance",
+        "stress",
+        "tone sound"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Literature; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank literature_ss_v1.json)"
+    },
+    {
+      "subject": "literature",
+      "year_group": "SS3",
+      "topic": "themes_appreciation",
+      "subtopics": [
+        "appreciation",
+        "appreciation form",
+        "appreciation skill",
+        "character theme",
+        "comparison lit",
+        "conflict theme",
+        "context",
+        "diction",
+        "didactic",
+        "genre purpose",
+        "imagery",
+        "message",
+        "mood",
+        "moral",
+        "multiple themes",
+        "purpose",
+        "relevance",
+        "setting",
+        "setting function",
+        "style",
+        "subject",
+        "symbol theme",
+        "theme",
+        "theme evidence",
+        "theme id",
+        "theme universal",
+        "tone",
+        "tone shift",
+        "universal"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Literature; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank literature_ss_v1.json)"
+    },
+    {
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "agric_industrialisation",
+      "subtopics": [
+        "agric importance",
+        "agric improve",
+        "agric marketing",
+        "agric problems",
+        "agric systems",
+        "diversification",
+        "industrial importance",
+        "industrial location",
+        "industrial problems",
+        "industrial types",
+        "location",
+        "petroleum",
+        "small scale"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Economics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank economics_ss_v1.json)"
+    },
+    {
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "banking_finance",
+      "subtopics": [
+        "central bank",
+        "commercial banks",
+        "credit creation",
+        "informal",
+        "instruments",
+        "insurance",
+        "other institutions",
+        "stock exchange"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Economics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank economics_ss_v1.json)"
+    },
+    {
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "basic_economic_problem",
+      "subtopics": [
+        "economic systems",
+        "opportunity cost",
+        "ppc",
+        "scale of preference",
+        "scarcity",
+        "wants"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Economics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank economics_ss_v1.json)"
+    },
+    {
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "cost_revenue",
+      "subtopics": [
+        "average cost",
+        "cost curves",
+        "fixed variable",
+        "marginal cost",
+        "marginal revenue",
+        "profit",
+        "profit max",
+        "revenue",
+        "shutdown",
+        "total cost"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Economics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank economics_ss_v1.json)"
+    },
+    {
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "demand_supply",
+      "subtopics": [
+        "demand determinants",
+        "demand types",
+        "equilibrium",
+        "law of demand",
+        "law of supply",
+        "price controls",
+        "supply determinants",
+        "utility"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Economics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank economics_ss_v1.json)"
+    },
+    {
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "economic_development",
+      "subtopics": [
+        "balanced growth",
+        "capital formation",
+        "characteristics",
+        "dualism",
+        "foreign aid",
+        "growth vs dev",
+        "indicators",
+        "industrialisation strategy",
+        "infrastructure",
+        "obstacles",
+        "planning",
+        "privatisation"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Economics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank economics_ss_v1.json)"
+    },
+    {
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "elasticity",
+      "subtopics": [
+        "cross elasticity",
+        "income elasticity",
+        "ped calc",
+        "ped concept",
+        "ped determinants",
+        "ped revenue",
+        "pes concept"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Economics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank economics_ss_v1.json)"
+    },
+    {
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "international_trade",
+      "subtopics": [
+        "absolute advantage",
+        "balance of payments",
+        "balance of trade",
+        "bop correction",
+        "bop deficit",
+        "comparative advantage",
+        "devaluation",
+        "exchange rate",
+        "free trade",
+        "protection",
+        "specialisation",
+        "terms of trade",
+        "trade basis",
+        "trade organisations",
+        "trade types"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Economics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank economics_ss_v1.json)"
+    },
+    {
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "market_structures",
+      "subtopics": [
+        "comparison",
+        "monopolistic",
+        "monopoly",
+        "oligopoly",
+        "perfect competition"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Economics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank economics_ss_v1.json)"
+    },
+    {
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "money_inflation",
+      "subtopics": [
+        "barter",
+        "deflation",
+        "functions",
+        "inflation control",
+        "inflation def",
+        "inflation effects",
+        "inflation measure",
+        "inflation types",
+        "legal tender",
+        "money demand",
+        "money supply",
+        "money value",
+        "near money",
+        "qualities",
+        "quantity theory",
+        "stagflation"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Economics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank economics_ss_v1.json)"
+    },
+    {
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "national_income",
+      "subtopics": [
+        "circular flow",
+        "concepts",
+        "difficulties",
+        "measurement",
+        "per capita",
+        "real nominal",
+        "transfer",
+        "uses"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Economics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank economics_ss_v1.json)"
+    },
+    {
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "population",
+      "subtopics": [
+        "census",
+        "dependency",
+        "distribution",
+        "effects",
+        "growth",
+        "labour force",
+        "malthus",
+        "migration",
+        "optimum",
+        "structure",
+        "vital"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Economics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank economics_ss_v1.json)"
+    },
+    {
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "public_finance",
+      "subtopics": [
+        "budget",
+        "direct indirect",
+        "fiscal policy",
+        "progressive",
+        "public debt",
+        "public expenditure",
+        "public finance",
+        "tax canons",
+        "tax effects",
+        "tax purposes",
+        "taxation def"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Economics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank economics_ss_v1.json)"
+    },
+    {
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "theory_of_production",
+      "subtopics": [
+        "division of labour",
+        "economies of scale",
+        "factors",
+        "labour",
+        "production types",
+        "productivity",
+        "returns",
+        "scale",
+        "specialisation"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Economics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank economics_ss_v1.json)"
+    },
+    {
+      "subject": "data_processing",
+      "year_group": "SS3",
+      "topic": "data_information",
+      "subtopics": [
+        "data def",
+        "data hierarchy",
+        "data processing def",
+        "data types",
+        "data vs info",
+        "info def",
+        "info processing value",
+        "methods",
+        "qualities",
+        "sources",
+        "value"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Data Processing; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank data_processing_ss_v1.json)"
+    },
+    {
+      "subject": "data_processing",
+      "year_group": "SS3",
+      "topic": "database",
+      "subtopics": [
+        "column field",
+        "data dictionary",
+        "data integrity",
+        "db def",
+        "dbms advantages",
+        "dbms def",
+        "dbms examples",
+        "flat file",
+        "foreign key",
+        "form",
+        "primary key",
+        "query",
+        "relational model",
+        "relationship",
+        "report",
+        "row record",
+        "table"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Data Processing; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank data_processing_ss_v1.json)"
+    },
+    {
+      "subject": "data_processing",
+      "year_group": "SS3",
+      "topic": "ethics_security",
+      "subtopics": [
+        "access control",
+        "antivirus",
+        "backup security",
+        "computer virus",
+        "copyright",
+        "encryption",
+        "ethics",
+        "firewall",
+        "hacking",
+        "malware",
+        "password",
+        "phishing",
+        "piracy",
+        "plagiarism"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Data Processing; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank data_processing_ss_v1.json)"
+    },
+    {
+      "subject": "data_processing",
+      "year_group": "SS3",
+      "topic": "file_concepts",
+      "subtopics": [
+        "backup",
+        "field def",
+        "file access",
+        "file def",
+        "file format",
+        "file operations",
+        "file org",
+        "file types",
+        "key field",
+        "record def"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Data Processing; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank data_processing_ss_v1.json)"
+    },
+    {
+      "subject": "data_processing",
+      "year_group": "SS3",
+      "topic": "hardware",
+      "subtopics": [
+        "alu",
+        "control unit",
+        "cpu",
+        "cpu parts",
+        "hardware def",
+        "input devices",
+        "input output",
+        "memory",
+        "memory volatility",
+        "motherboard",
+        "output devices",
+        "ports",
+        "storage",
+        "system unit"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Data Processing; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank data_processing_ss_v1.json)"
+    },
+    {
+      "subject": "data_processing",
+      "year_group": "SS3",
+      "topic": "ict_society",
+      "subtopics": [
+        "automation",
+        "digital divide",
+        "e banking",
+        "e commerce",
+        "e learning",
+        "gps",
+        "ict areas",
+        "ict benefits",
+        "ict def",
+        "ict problems",
+        "teleconferencing"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Data Processing; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank data_processing_ss_v1.json)"
+    },
+    {
+      "subject": "data_processing",
+      "year_group": "SS3",
+      "topic": "integrity_validation",
+      "subtopics": [
+        "check digit",
+        "double entry",
+        "format check",
+        "gigo",
+        "integrity def",
+        "length check",
+        "presence check",
+        "range check",
+        "type check",
+        "validation def",
+        "verification def"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Data Processing; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank data_processing_ss_v1.json)"
+    },
+    {
+      "subject": "data_processing",
+      "year_group": "SS3",
+      "topic": "internet",
+      "subtopics": [
+        "browser",
+        "browser examples",
+        "download upload",
+        "email",
+        "http",
+        "hyperlink web",
+        "internet def",
+        "isp",
+        "search engine",
+        "search engine examples",
+        "services",
+        "url",
+        "webpage",
+        "www"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Data Processing; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank data_processing_ss_v1.json)"
+    },
+    {
+      "subject": "data_processing",
+      "year_group": "SS3",
+      "topic": "maintenance",
+      "subtopics": [
+        "antivirus maint",
+        "backup maint",
+        "corrective",
+        "disk cleanup",
+        "dust",
+        "environment",
+        "handling",
+        "power",
+        "preventive",
+        "shutdown",
+        "stabiliser"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Data Processing; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank data_processing_ss_v1.json)"
+    },
+    {
+      "subject": "data_processing",
+      "year_group": "SS3",
+      "topic": "networks",
+      "subtopics": [
+        "bandwidth",
+        "lan",
+        "man",
+        "modem",
+        "network def",
+        "nic",
+        "protocol",
+        "server",
+        "sharing",
+        "topology bus",
+        "topology ring",
+        "topology star",
+        "transmission",
+        "wan",
+        "wireless"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Data Processing; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank data_processing_ss_v1.json)"
+    },
+    {
+      "subject": "data_processing",
+      "year_group": "SS3",
+      "topic": "number_systems",
+      "subtopics": [
+        "ascii",
+        "base",
+        "bcd",
+        "bin to dec",
+        "binary",
+        "bit",
+        "byte",
+        "dec to bin",
+        "decimal",
+        "digital",
+        "hex",
+        "hex digits",
+        "nibble",
+        "octal",
+        "place value",
+        "unicode"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Data Processing; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank data_processing_ss_v1.json)"
+    },
+    {
+      "subject": "data_processing",
+      "year_group": "SS3",
+      "topic": "presentation",
+      "subtopics": [
+        "animation",
+        "hyperlink",
+        "insert media",
+        "master slide",
+        "pp def",
+        "pp examples",
+        "slide",
+        "slide show",
+        "template",
+        "transition",
+        "uses"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Data Processing; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank data_processing_ss_v1.json)"
+    },
+    {
+      "subject": "data_processing",
+      "year_group": "SS3",
+      "topic": "processing_cycle",
+      "subtopics": [
+        "batch",
+        "cycle order",
+        "data collection",
+        "feedback",
+        "input stage",
+        "ipo",
+        "online",
+        "output stage",
+        "processing stage",
+        "real time",
+        "storage stage",
+        "validation",
+        "verification"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Data Processing; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank data_processing_ss_v1.json)"
+    },
+    {
+      "subject": "data_processing",
+      "year_group": "SS3",
+      "topic": "software",
+      "subtopics": [
+        "application software",
+        "assembler",
+        "custom packaged",
+        "driver",
+        "examples app",
+        "examples os",
+        "firmware",
+        "language translator",
+        "open source",
+        "os",
+        "os functions",
+        "proprietary",
+        "software def",
+        "system software",
+        "utility"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Data Processing; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank data_processing_ss_v1.json)"
+    },
+    {
+      "subject": "data_processing",
+      "year_group": "SS3",
+      "topic": "spreadsheet",
+      "subtopics": [
+        "absolute ref",
+        "autofill",
+        "cell",
+        "cell ref",
+        "chart",
+        "column",
+        "formula",
+        "function average",
+        "function max",
+        "function min",
+        "function sum",
+        "range",
+        "relative ref",
+        "row",
+        "ss def",
+        "uses"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Data Processing; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank data_processing_ss_v1.json)"
+    },
+    {
+      "subject": "data_processing",
+      "year_group": "SS3",
+      "topic": "word_processing",
+      "subtopics": [
+        "alignment",
+        "copy paste",
+        "cut paste",
+        "editing",
+        "find replace",
+        "formatting",
+        "header footer",
+        "mail merge",
+        "save",
+        "spell check",
+        "word wrap",
+        "wp def",
+        "wp examples"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Data Processing; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank data_processing_ss_v1.json)"
+    },
+    {
+      "subject": "computer_science",
+      "year_group": "SS3",
+      "topic": "algorithms",
+      "subtopics": [
+        "algorithm def",
+        "arrow symbol",
+        "decision branches",
+        "diamond symbol",
+        "finite",
+        "flowchart def",
+        "flowchart purpose",
+        "infinite loop",
+        "input first",
+        "iteration",
+        "loop condition",
+        "oval symbol",
+        "parallelogram symbol",
+        "pseudocode def",
+        "rectangle symbol",
+        "selection",
+        "sequence",
+        "step order",
+        "swap steps",
+        "trace count",
+        "trace sum",
+        "unambiguous"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Computer Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank computer_science_ss_v1.json)"
+    },
+    {
+      "subject": "computer_science",
+      "year_group": "SS3",
+      "topic": "basics_python",
+      "subtopics": [
+        "basic end",
+        "basic input",
+        "basic let",
+        "basic meaning",
+        "basic print",
+        "basic rem",
+        "case sensitive",
+        "input python",
+        "line numbers",
+        "loop output",
+        "print python",
+        "py comment",
+        "python assignment",
+        "python comment",
+        "python for",
+        "python if",
+        "python indent",
+        "python int",
+        "python print",
+        "python var name",
+        "run program",
+        "string quotes",
+        "sum program",
+        "syntax basic"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Computer Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank computer_science_ss_v1.json)"
+    },
+    {
+      "subject": "computer_science",
+      "year_group": "SS3",
+      "topic": "boolean_logic",
+      "subtopics": [
+        "and gate def",
+        "and output",
+        "and output zero",
+        "and symbol",
+        "and vs or",
+        "boole",
+        "gate use",
+        "identity and",
+        "identity or",
+        "nand def",
+        "nor def",
+        "not gate def",
+        "not output",
+        "not symbol",
+        "or gate def",
+        "or output",
+        "or output zero",
+        "or symbol",
+        "three input rows",
+        "truth table",
+        "two input rows",
+        "two values",
+        "xor def",
+        "xor output"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Computer Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank computer_science_ss_v1.json)"
+    },
+    {
+      "subject": "computer_science",
+      "year_group": "SS3",
+      "topic": "databases",
+      "subtopics": [
+        "backup",
+        "character unit",
+        "database def",
+        "dbms benefit",
+        "dbms def",
+        "field def",
+        "file def",
+        "hierarchy",
+        "primary key",
+        "query",
+        "random access",
+        "record def",
+        "redundancy",
+        "searching",
+        "sequential file",
+        "sorting",
+        "table def",
+        "table relationship",
+        "validation",
+        "verification"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Computer Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank computer_science_ss_v1.json)"
+    },
+    {
+      "subject": "computer_science",
+      "year_group": "SS3",
+      "topic": "hardware",
+      "subtopics": [
+        "alu",
+        "cache",
+        "control unit",
+        "cpu",
+        "flash drive",
+        "hardware def",
+        "hdd",
+        "input device",
+        "memory speed",
+        "monitor",
+        "motherboard",
+        "mouse",
+        "optical disk",
+        "output device",
+        "peripheral",
+        "plotter",
+        "primary storage",
+        "ram",
+        "ram vs rom",
+        "register",
+        "rom",
+        "scanner",
+        "secondary storage",
+        "system unit",
+        "touchpad"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Computer Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank computer_science_ss_v1.json)"
+    },
+    {
+      "subject": "computer_science",
+      "year_group": "SS3",
+      "topic": "history_generations",
+      "subtopics": [
+        "abacus",
+        "ada",
+        "babbage",
+        "definition",
+        "eniac",
+        "fifth gen",
+        "first gen",
+        "fourth gen",
+        "generation order",
+        "hollerith",
+        "ic meaning",
+        "microprocessor def",
+        "napier",
+        "pascaline",
+        "second gen",
+        "third gen",
+        "transistor invention",
+        "trend",
+        "uses today",
+        "vacuum tube size"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Computer Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank computer_science_ss_v1.json)"
+    },
+    {
+      "subject": "computer_science",
+      "year_group": "SS3",
+      "topic": "ict_applications",
+      "subtopics": [
+        "agriculture",
+        "automation",
+        "banking",
+        "cad",
+        "commerce",
+        "communication app",
+        "communication speed",
+        "data processing app",
+        "digital divide",
+        "e learning",
+        "education",
+        "entertainment",
+        "government use",
+        "health",
+        "health risk",
+        "ict def",
+        "job creation",
+        "responsible society",
+        "teleconferencing",
+        "unemployment"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Computer Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank computer_science_ss_v1.json)"
+    },
+    {
+      "subject": "computer_science",
+      "year_group": "SS3",
+      "topic": "internet_web",
+      "subtopics": [
+        "benefits",
+        "browser def",
+        "connection risk",
+        "download",
+        "e commerce",
+        "email def",
+        "html",
+        "http",
+        "hyperlink",
+        "internet def",
+        "isp",
+        "online service",
+        "search engine",
+        "social media",
+        "upload",
+        "url def",
+        "web server",
+        "webpage def",
+        "website def",
+        "www def"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Computer Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank computer_science_ss_v1.json)"
+    },
+    {
+      "subject": "computer_science",
+      "year_group": "SS3",
+      "topic": "languages",
+      "subtopics": [
+        "assembler def",
+        "assembly",
+        "basic lang",
+        "compiler def",
+        "compiler vs interp",
+        "error detection",
+        "fourth gen lang",
+        "high level",
+        "hll advantage",
+        "hll example",
+        "hll examples",
+        "interpreter def",
+        "interpreter speed",
+        "language choice",
+        "low level",
+        "low vs high speed",
+        "machine binary",
+        "machine dependent",
+        "machine lang",
+        "portability",
+        "source program",
+        "source to object",
+        "translator purpose"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Computer Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank computer_science_ss_v1.json)"
+    },
+    {
+      "subject": "computer_science",
+      "year_group": "SS3",
+      "topic": "networking",
+      "subtopics": [
+        "bandwidth",
+        "bus topology",
+        "client",
+        "fibre",
+        "hub",
+        "lan",
+        "lan vs wan",
+        "modem",
+        "network def",
+        "node",
+        "protocol",
+        "ring topology",
+        "router",
+        "server",
+        "sharing resources",
+        "star topology",
+        "switch",
+        "topology def",
+        "transmission medium",
+        "wan",
+        "wireless"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Computer Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank computer_science_ss_v1.json)"
+    },
+    {
+      "subject": "computer_science",
+      "year_group": "SS3",
+      "topic": "number_systems",
+      "subtopics": [
+        "ascii",
+        "ascii full",
+        "bcd",
+        "bin to dec",
+        "binary base",
+        "bit def",
+        "byte def",
+        "dec to bin",
+        "decimal base",
+        "hex base",
+        "hex digit a",
+        "hex digit f",
+        "internal rep",
+        "kilobyte",
+        "msb",
+        "nibble def",
+        "octal base",
+        "unit order"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Computer Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank computer_science_ss_v1.json)"
+    },
+    {
+      "subject": "computer_science",
+      "year_group": "SS3",
+      "topic": "programming_concepts",
+      "subtopics": [
+        "assignment",
+        "comment",
+        "conditional",
+        "constant def",
+        "data type boolean",
+        "data type int",
+        "data type string",
+        "debugging",
+        "function",
+        "input statement",
+        "logic error",
+        "loop concept",
+        "object code",
+        "operator arith",
+        "operator relational",
+        "output statement",
+        "program def",
+        "programming def",
+        "source code",
+        "structured",
+        "syntax def",
+        "syntax error",
+        "variable def"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Computer Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank computer_science_ss_v1.json)"
+    },
+    {
+      "subject": "computer_science",
+      "year_group": "SS3",
+      "topic": "security_ethics",
+      "subtopics": [
+        "antivirus",
+        "antivirus role",
+        "backup security",
+        "computer virus",
+        "copyright",
+        "data privacy",
+        "encryption",
+        "ethics def",
+        "firewall",
+        "hacking",
+        "malware",
+        "password",
+        "password use",
+        "phishing",
+        "physical security",
+        "piracy",
+        "plagiarism",
+        "responsible use",
+        "strong password",
+        "unauthorised use",
+        "update software",
+        "virus def",
+        "virus spread"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Computer Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank computer_science_ss_v1.json)"
+    },
+    {
+      "subject": "computer_science",
+      "year_group": "SS3",
+      "topic": "software",
+      "subtopics": [
+        "application examples",
+        "application software",
+        "booting",
+        "cli",
+        "dbms",
+        "device driver",
+        "file management",
+        "firmware",
+        "freeware",
+        "gui",
+        "multitasking",
+        "open source",
+        "os def",
+        "os examples",
+        "os functions",
+        "proprietary",
+        "software def",
+        "software vs hardware",
+        "system software",
+        "translator need",
+        "utility software",
+        "word processor"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Computer Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank computer_science_ss_v1.json)"
+    },
+    {
+      "subject": "computer_science",
+      "year_group": "SS3",
+      "topic": "system_development",
+      "subtopics": [
+        "analyst",
+        "analyst role",
+        "changeover",
+        "data in system",
+        "design stage",
+        "documentation",
+        "feasibility",
+        "feasibility purpose",
+        "flow of system",
+        "garbage",
+        "implementation",
+        "info out",
+        "input process output",
+        "maintenance stage",
+        "parallel run",
+        "requirements",
+        "sdlc",
+        "sdlc meaning",
+        "system def",
+        "testing stage",
+        "user role"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Computer Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank computer_science_ss_v1.json)"
+    },
+    {
+      "subject": "agricultural_science",
+      "year_group": "SS3",
+      "topic": "agricultural_ecology",
+      "subtopics": [
+        "afforestation",
+        "altitude",
+        "biotic",
+        "carrying capacity",
+        "climate def",
+        "conservation",
+        "decomposers",
+        "deforestation",
+        "ecology def",
+        "ecosystem",
+        "edaphic",
+        "environment",
+        "food chain",
+        "greenhouse",
+        "habitat",
+        "light",
+        "micro organisms",
+        "pollution",
+        "rainfall effect",
+        "relative humidity",
+        "succession",
+        "temperature",
+        "wind"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Agricultural Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank agricultural_science_ss_v1.json)"
+    },
+    {
+      "subject": "agricultural_science",
+      "year_group": "SS3",
+      "topic": "agricultural_economics",
+      "subtopics": [
+        "agric econ def",
+        "capital",
+        "commodity board",
+        "demand def",
+        "elastic demand",
+        "equilibrium",
+        "grading",
+        "law demand",
+        "law supply",
+        "marketing def",
+        "middlemen",
+        "opportunity cost",
+        "perishability",
+        "price fluctuation",
+        "price mechanism",
+        "processing",
+        "production factors",
+        "scarcity",
+        "storage function",
+        "subsistence market",
+        "supply def",
+        "transportation",
+        "value addition"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Agricultural Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank agricultural_science_ss_v1.json)"
+    },
+    {
+      "subject": "agricultural_science",
+      "year_group": "SS3",
+      "topic": "agricultural_extension",
+      "subtopics": [
+        "adoption",
+        "adoption stages",
+        "aim extension",
+        "audio visual",
+        "constraint",
+        "demonstration",
+        "evaluation",
+        "extension agent",
+        "extension def",
+        "extension importance",
+        "farm visit",
+        "feedback",
+        "field day",
+        "group method",
+        "individual method",
+        "innovation",
+        "laggard",
+        "mass method",
+        "research link",
+        "result demo",
+        "training visit",
+        "two way"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Agricultural Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank agricultural_science_ss_v1.json)"
+    },
+    {
+      "subject": "agricultural_science",
+      "year_group": "SS3",
+      "topic": "agricultural_finance",
+      "subtopics": [
+        "bulk purchase",
+        "collateral finance",
+        "coop advantage",
+        "coop education",
+        "coop principle share",
+        "cooperative def",
+        "credit def",
+        "finance def",
+        "finance importance",
+        "grant",
+        "informal credit",
+        "interest",
+        "loan default",
+        "long term",
+        "marketing coop",
+        "membership",
+        "micro credit",
+        "revolving fund",
+        "savings",
+        "short term",
+        "source credit",
+        "subsidy",
+        "thrift"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Agricultural Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank agricultural_science_ss_v1.json)"
+    },
+    {
+      "subject": "agricultural_science",
+      "year_group": "SS3",
+      "topic": "animal_diseases_parasites",
+      "subtopics": [
+        "acaricide",
+        "anthelmintic",
+        "coccidiosis",
+        "dipping",
+        "disease spread",
+        "ectoparasite",
+        "endoparasite",
+        "foot mouth",
+        "incubation disease",
+        "isolation",
+        "liver fluke",
+        "newcastle",
+        "notifiable",
+        "parasite def",
+        "rinderpest",
+        "symptom disease",
+        "tapeworm",
+        "tick",
+        "tsetse",
+        "vaccination program",
+        "vector",
+        "worm control",
+        "zoonosis"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Agricultural Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank agricultural_science_ss_v1.json)"
+    },
+    {
+      "subject": "agricultural_science",
+      "year_group": "SS3",
+      "topic": "animal_nutrition_health",
+      "subtopics": [
+        "antibiotic",
+        "balanced ration",
+        "carbohydrate",
+        "colostrum",
+        "concentrate",
+        "deficiency",
+        "fat",
+        "feed def",
+        "forage def",
+        "hay",
+        "health def",
+        "hygiene",
+        "mineral",
+        "mineral lick",
+        "protein",
+        "protein source",
+        "quarantine animal",
+        "ration def",
+        "roughage",
+        "silage",
+        "vaccination",
+        "vitamin",
+        "water importance"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Agricultural Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank agricultural_science_ss_v1.json)"
+    },
+    {
+      "subject": "agricultural_science",
+      "year_group": "SS3",
+      "topic": "animal_production",
+      "subtopics": [
+        "ai",
+        "battery cage",
+        "breeding",
+        "castration",
+        "cattle",
+        "cock",
+        "crossbreeding",
+        "culling",
+        "deep litter",
+        "extensive",
+        "gestation",
+        "housing",
+        "incubation",
+        "intensive",
+        "lactation",
+        "livestock def",
+        "non ruminant",
+        "poultry",
+        "ram",
+        "ruminant",
+        "selection",
+        "weaning"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Agricultural Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank agricultural_science_ss_v1.json)"
+    },
+    {
+      "subject": "agricultural_science",
+      "year_group": "SS3",
+      "topic": "biotechnology_improvement",
+      "subtopics": [
+        "ai improve",
+        "biotech benefit",
+        "biotech def",
+        "budding",
+        "clone",
+        "crossbreeding improve",
+        "drought resistant",
+        "early maturing",
+        "genetic engineering",
+        "gmo",
+        "grafting",
+        "hybrid def",
+        "hybrid vigour",
+        "improvement def",
+        "improvement importance",
+        "inbreeding",
+        "mutation",
+        "preservation germplasm",
+        "resistant variety improve",
+        "selection advantage",
+        "selection def",
+        "tissue culture",
+        "vaccine biotech"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Agricultural Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank agricultural_science_ss_v1.json)"
+    },
+    {
+      "subject": "agricultural_science",
+      "year_group": "SS3",
+      "topic": "crop_production",
+      "subtopics": [
+        "cassava planting",
+        "crop rotation",
+        "drainage crop",
+        "fertiliser app",
+        "harvesting",
+        "irrigation def",
+        "land prep",
+        "legume crop",
+        "maize cereal",
+        "mixed cropping",
+        "mono cropping",
+        "mulching",
+        "nursery",
+        "rotation benefit",
+        "seed",
+        "shifting",
+        "spacing",
+        "staking",
+        "thinning",
+        "transplanting",
+        "tuber crop",
+        "weeding"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Agricultural Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank agricultural_science_ss_v1.json)"
+    },
+    {
+      "subject": "agricultural_science",
+      "year_group": "SS3",
+      "topic": "farm_management",
+      "subtopics": [
+        "asset",
+        "balance sheet",
+        "breeding record",
+        "budget",
+        "decision making",
+        "efficiency",
+        "expenditure",
+        "financial record",
+        "fixed cost",
+        "gross margin",
+        "income",
+        "inventory",
+        "labour record",
+        "liability",
+        "management def",
+        "manager role",
+        "planning",
+        "production record",
+        "profit",
+        "record benefit",
+        "record def",
+        "variable cost",
+        "why records"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Agricultural Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank agricultural_science_ss_v1.json)"
+    },
+    {
+      "subject": "agricultural_science",
+      "year_group": "SS3",
+      "topic": "farm_tools_machinery",
+      "subtopics": [
+        "axe",
+        "cutlass",
+        "fragmentation",
+        "harrow",
+        "harvester",
+        "hoe",
+        "implement match",
+        "maintenance",
+        "mech advantage",
+        "mech problem",
+        "mechanisation def",
+        "planter",
+        "plough",
+        "power source",
+        "ridger",
+        "secateurs",
+        "sickle",
+        "simple machine",
+        "spade",
+        "sprayer",
+        "tractor",
+        "watering can",
+        "wheelbarrow"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Agricultural Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank agricultural_science_ss_v1.json)"
+    },
+    {
+      "subject": "agricultural_science",
+      "year_group": "SS3",
+      "topic": "forestry_fishery",
+      "subtopics": [
+        "afforestation forestry",
+        "aquaculture",
+        "capture fishery",
+        "conservation forest",
+        "culture fishery",
+        "deforestation effect",
+        "fish feed",
+        "fish pond",
+        "fish preservation",
+        "fishery def",
+        "forest benefit",
+        "forest economic",
+        "forest product",
+        "forest reserve",
+        "forestry def",
+        "overfishing",
+        "pond management",
+        "reforestation",
+        "restocking",
+        "silviculture",
+        "timber",
+        "trawling"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Agricultural Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank agricultural_science_ss_v1.json)"
+    },
+    {
+      "subject": "agricultural_science",
+      "year_group": "SS3",
+      "topic": "land_tenure",
+      "subtopics": [
+        "borrowing land",
+        "collateral",
+        "communal",
+        "communal advantage",
+        "communal problem",
+        "consolidation",
+        "fragmentation tenure",
+        "freehold",
+        "gift",
+        "inheritance",
+        "land use act",
+        "landlord",
+        "leasehold",
+        "pledge",
+        "purchase",
+        "rent",
+        "security",
+        "share cropping",
+        "tenant",
+        "tenure def",
+        "tenure effect mech",
+        "tenure food",
+        "title document"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Agricultural Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank agricultural_science_ss_v1.json)"
+    },
+    {
+      "subject": "agricultural_science",
+      "year_group": "SS3",
+      "topic": "meaning_importance",
+      "subtopics": [
+        "agriculture science",
+        "agronomy",
+        "apiculture",
+        "aviculture",
+        "branch animal",
+        "branch crop",
+        "commercial",
+        "definition",
+        "employment",
+        "food",
+        "foreign exchange",
+        "forestry",
+        "horticulture",
+        "market provision",
+        "mixed farming",
+        "pastoral",
+        "pisciculture",
+        "plantation",
+        "raw materials",
+        "sericulture",
+        "source income",
+        "standard living",
+        "subsistence"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Agricultural Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank agricultural_science_ss_v1.json)"
+    },
+    {
+      "subject": "agricultural_science",
+      "year_group": "SS3",
+      "topic": "plant_diseases",
+      "subtopics": [
+        "bacterial",
+        "blight",
+        "certified seed",
+        "control sanitation",
+        "crop rotation disease",
+        "damping off",
+        "deficiency disease",
+        "disease def",
+        "economic importance",
+        "environment disease",
+        "fungal",
+        "fungicide",
+        "pathogen",
+        "quarantine disease",
+        "resistant var disease",
+        "rust",
+        "seed dressing",
+        "smut",
+        "symptom spot",
+        "transmission",
+        "vector control",
+        "viral",
+        "wilting"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Agricultural Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank agricultural_science_ss_v1.json)"
+    },
+    {
+      "subject": "agricultural_science",
+      "year_group": "SS3",
+      "topic": "soil_science",
+      "subtopics": [
+        "acidic correction",
+        "cation exchange",
+        "clay",
+        "drainage",
+        "erosion",
+        "fertility def",
+        "green manure",
+        "humus",
+        "leaching",
+        "legume fertility",
+        "loam",
+        "maintain fertility",
+        "nitrogen role",
+        "npk",
+        "ph",
+        "sand",
+        "soil def",
+        "soil formation",
+        "structure",
+        "texture",
+        "topsoil",
+        "water holding",
+        "waterlogging"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Agricultural Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank agricultural_science_ss_v1.json)"
+    },
+    {
+      "subject": "agricultural_science",
+      "year_group": "SS3",
+      "topic": "weeds_pests",
+      "subtopics": [
+        "annual weed",
+        "biological control",
+        "bird pest",
+        "chemical control",
+        "contact poison",
+        "example weed",
+        "herbicide",
+        "insect pest",
+        "insecticide",
+        "integrated",
+        "perennial weed",
+        "pest def",
+        "quarantine",
+        "resistant variety",
+        "rodent pest",
+        "safety",
+        "storage pest",
+        "systemic",
+        "weed advantage",
+        "weed competition",
+        "weed def",
+        "weed host"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Agricultural Science; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank agricultural_science_ss_v1.json)"
+    },
+    {
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "adaptation",
+      "subtopics": [
+        "adaptation def",
+        "aestivation",
+        "aquatic gills",
+        "aquatic leaf",
+        "behavioural adapt",
+        "camel adapt",
+        "camouflage",
+        "countercurrent",
+        "desert plant",
+        "fish streamline",
+        "hibernation",
+        "hydrophyte",
+        "migration",
+        "mimicry",
+        "nocturnal",
+        "root desert",
+        "structural adapt",
+        "succulent",
+        "survival value",
+        "xerophyte feature"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Biology; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank biology_ss_v1.json)"
+    },
+    {
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "cell_division",
+      "subtopics": [
+        "centromere",
+        "chromatid",
+        "chromosome",
+        "constant number",
+        "crossing over",
+        "cytokinesis",
+        "diploid",
+        "gamete def",
+        "haploid",
+        "human chromosome",
+        "interphase",
+        "meiosis def",
+        "meiosis number",
+        "meiosis role",
+        "mitosis def",
+        "mitosis number",
+        "mitosis role",
+        "somatic division",
+        "variation source",
+        "zygote division"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Biology; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank biology_ss_v1.json)"
+    },
+    {
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "cell_structure",
+      "subtopics": [
+        "cell def",
+        "cell membrane",
+        "cell theory",
+        "cell wall",
+        "chlorophyll",
+        "chloroplast",
+        "cytoplasm",
+        "er",
+        "golgi",
+        "lysosome",
+        "mitochondrion",
+        "nuclear membrane",
+        "nucleus",
+        "organelle function",
+        "plant vs animal",
+        "ribosome",
+        "turgidity link",
+        "unicellular",
+        "vacuole"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Biology; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank biology_ss_v1.json)"
+    },
+    {
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "coordination",
+      "subtopics": [
+        "adrenaline",
+        "brain",
+        "cerebellum",
+        "cerebrum",
+        "effector",
+        "hormone",
+        "hormone transport",
+        "insulin glucagon",
+        "medulla",
+        "motor neuron",
+        "nervous system",
+        "nervous vs hormonal",
+        "neuron",
+        "pituitary",
+        "receptor",
+        "reflex action",
+        "reflex arc path",
+        "sensory neuron",
+        "synapse",
+        "thyroid"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Biology; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank biology_ss_v1.json)"
+    },
+    {
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "ecology",
+      "subtopics": [
+        "abiotic",
+        "biosphere",
+        "biotic",
+        "carnivore",
+        "carrying capacity",
+        "community",
+        "competition",
+        "consumer",
+        "decomposer",
+        "ecology def",
+        "ecosystem def",
+        "habitat",
+        "herbivore",
+        "limiting factor",
+        "niche",
+        "parasitism",
+        "population",
+        "predation",
+        "producer",
+        "symbiosis"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Biology; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank biology_ss_v1.json)"
+    },
+    {
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "evolution_conservation",
+      "subtopics": [
+        "adaptive advantage",
+        "antibiotic",
+        "bacteria",
+        "conservation def",
+        "conservation importance",
+        "darwin",
+        "deforestation",
+        "evolution def",
+        "extinction",
+        "fossil",
+        "malaria",
+        "microbe def",
+        "natural selection",
+        "non renewable",
+        "pathogen",
+        "renewable",
+        "useful microbe",
+        "variation evolution",
+        "virus"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Biology; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank biology_ss_v1.json)"
+    },
+    {
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "excretion",
+      "subtopics": [
+        "bladder",
+        "dialysis",
+        "excretion def",
+        "excretion importance",
+        "filtration",
+        "glomerulus",
+        "kidney",
+        "liver excretion",
+        "lung excretion",
+        "nephron",
+        "plant excretion",
+        "reabsorption",
+        "skin excretion",
+        "sweat gland",
+        "urea",
+        "ureter",
+        "urethra",
+        "uric acid"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Biology; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank biology_ss_v1.json)"
+    },
+    {
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "food_chains",
+      "subtopics": [
+        "arrow meaning",
+        "biomass pyramid",
+        "chain start",
+        "decomposer role",
+        "energy loss",
+        "energy source",
+        "food chain def",
+        "food web def",
+        "grass eat",
+        "omnivore chain",
+        "primary consumer",
+        "pyramid energy",
+        "pyramid numbers",
+        "remove producer",
+        "secondary consumer",
+        "short chain",
+        "ten percent",
+        "top predator",
+        "trophic level",
+        "web stability"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Biology; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank biology_ss_v1.json)"
+    },
+    {
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "genetics",
+      "subtopics": [
+        "chromosome",
+        "continuous var",
+        "discontinuous var",
+        "dna",
+        "dominant",
+        "f1 ratio",
+        "f2 ratio",
+        "gene",
+        "genetics def",
+        "genotype",
+        "heredity def",
+        "heterozygous",
+        "homozygous",
+        "male chromosome",
+        "mono cross ratio",
+        "mutation def",
+        "phenotype",
+        "recessive",
+        "sex chromosomes",
+        "variation def"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Biology; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank biology_ss_v1.json)"
+    },
+    {
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "growth_development",
+      "subtopics": [
+        "apical meristem",
+        "complete metamorphosis",
+        "development",
+        "dormancy",
+        "epigeal",
+        "etiolation",
+        "germ conditions",
+        "germination def",
+        "growth curve",
+        "growth def",
+        "hypogeal",
+        "metamorphosis",
+        "plumule",
+        "primary growth",
+        "radicle",
+        "regeneration",
+        "seed germ need",
+        "senescence",
+        "testa"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Biology; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank biology_ss_v1.json)"
+    },
+    {
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "homeostasis",
+      "subtopics": [
+        "blood sugar",
+        "cold blooded",
+        "constant examples",
+        "diabetes",
+        "feedback temp",
+        "homeostasis def",
+        "homeostasis importance",
+        "hypothalamus",
+        "insulin",
+        "kidney osmo",
+        "liver glycogen",
+        "negative feedback",
+        "osmoregulation",
+        "salt balance",
+        "shivering",
+        "sweating",
+        "temp regulation",
+        "vasoconstriction",
+        "vasodilation",
+        "water loss routes"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Biology; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank biology_ss_v1.json)"
+    },
+    {
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "living_things",
+      "subtopics": [
+        "adaptation char",
+        "death char",
+        "egestion vs excretion",
+        "excretion",
+        "growth",
+        "hierarchy",
+        "irritability",
+        "living nonliving",
+        "metabolic waste",
+        "metabolism",
+        "movement",
+        "mrs gren",
+        "nutrition",
+        "organisation cell",
+        "organisation organ",
+        "organisation system",
+        "organisation tissue",
+        "organism",
+        "reproduction",
+        "respiration def"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Biology; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank biology_ss_v1.json)"
+    },
+    {
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "nutrient_cycles",
+      "subtopics": [
+        "ammonification",
+        "carbon cycle def",
+        "co2 added",
+        "co2 removed",
+        "combustion",
+        "condensation",
+        "decomposer cycles",
+        "denitrification",
+        "evaporation",
+        "greenhouse link",
+        "legume soil",
+        "nitrate use",
+        "nitrification",
+        "nitrogen cycle def",
+        "nitrogen fixation",
+        "nitrogen fixing bact",
+        "plant role water",
+        "water cycle"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Biology; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank biology_ss_v1.json)"
+    },
+    {
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "nutrition",
+      "subtopics": [
+        "amylase",
+        "autotroph",
+        "balanced diet",
+        "catalyst unchanged",
+        "denatured",
+        "enzyme def",
+        "enzyme ph",
+        "enzyme protein",
+        "enzyme specific",
+        "enzyme temperature",
+        "heterotroph",
+        "holozoic",
+        "insectivorous",
+        "lipase",
+        "mineral salt",
+        "parasite",
+        "pepsin",
+        "roughage",
+        "saprophyte",
+        "symbiosis"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Biology; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank biology_ss_v1.json)"
+    },
+    {
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "photosynthesis",
+      "subtopics": [
+        "photo boil leaf",
+        "photo chemical eq",
+        "photo co2 test",
+        "photo compensation",
+        "photo def",
+        "photo destarch",
+        "photo energy",
+        "photo gas out",
+        "photo importance",
+        "photo limiting",
+        "photo pigment",
+        "photo product",
+        "photo raw",
+        "photo site",
+        "photo starch colour",
+        "photo starch store",
+        "photo stomata",
+        "photo test starch",
+        "photo variegated",
+        "photo word eq"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Biology; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank biology_ss_v1.json)"
+    },
+    {
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "reproduction",
+      "subtopics": [
+        "anther",
+        "asexual def",
+        "binary fission",
+        "budding",
+        "cross pollination",
+        "fertilisation plant",
+        "flower function",
+        "insect pollinated",
+        "ovary plant",
+        "ovum",
+        "pistil",
+        "placenta",
+        "pollination",
+        "self pollination",
+        "sexual def",
+        "sperm",
+        "stamen",
+        "vegetative prop",
+        "wind pollinated",
+        "zygote"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Biology; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank biology_ss_v1.json)"
+    },
+    {
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "respiration",
+      "subtopics": [
+        "aerobic",
+        "alveoli",
+        "alveoli adaptation",
+        "anaerobic",
+        "breathing vs resp",
+        "diaphragm",
+        "energy release compare",
+        "fermentation",
+        "gas in",
+        "gas out",
+        "inhalation pressure",
+        "limewater",
+        "muscle anaerobic",
+        "oxygen debt",
+        "resp def",
+        "resp energy",
+        "resp product",
+        "resp site",
+        "resp word eq",
+        "yeast anaerobic"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Biology; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank biology_ss_v1.json)"
+    },
+    {
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "transport",
+      "subtopics": [
+        "artery",
+        "blood",
+        "capillary",
+        "double circulation",
+        "haemoglobin",
+        "heart chambers",
+        "oxygenated blood",
+        "phloem",
+        "plasma",
+        "plasma function",
+        "rbc",
+        "root hair",
+        "translocation",
+        "transpiration",
+        "transpiration pull",
+        "valves function",
+        "vein",
+        "wbc",
+        "xylem"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Biology; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank biology_ss_v1.json)"
+    },
+    {
+      "subject": "chemistry",
+      "year_group": "SS3",
+      "topic": "acids_bases_salts",
+      "subtopics": [
+        "acid carbonate",
+        "acid def",
+        "acid litmus",
+        "acid metal",
+        "acidic oxide",
+        "amphoteric",
+        "base def",
+        "base litmus",
+        "base vs alkali",
+        "basic oxide",
+        "indicator methyl",
+        "indicator phenol",
+        "neutralisation",
+        "ph acid",
+        "ph alkali",
+        "ph change dilute",
+        "ph scale",
+        "salt def",
+        "salt normal",
+        "strong acid",
+        "titration",
+        "weak acid"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Chemistry; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank chemistry_ss_v1.json)"
+    },
+    {
+      "subject": "chemistry",
+      "year_group": "SS3",
+      "topic": "atomic_structure",
+      "subtopics": [
+        "anion formation",
+        "atomic number def",
+        "config chlorine",
+        "config sodium",
+        "dalton",
+        "electron",
+        "electron config def",
+        "electrons neutral",
+        "first shell",
+        "ion formation atom",
+        "isotope chlorine",
+        "isotope neutrons",
+        "isotopes def",
+        "mass number def",
+        "neutron",
+        "neutrons calc",
+        "nucleus",
+        "octet",
+        "proton",
+        "rel atomic mass",
+        "rutherford",
+        "second shell",
+        "valence electrons"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Chemistry; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank chemistry_ss_v1.json)"
+    },
+    {
+      "subject": "chemistry",
+      "year_group": "SS3",
+      "topic": "chemical_bonding",
+      "subtopics": [
+        "ammonium dative",
+        "chloride ion",
+        "covalent def",
+        "covalent properties",
+        "dative def",
+        "electronegativity",
+        "electrovalency",
+        "giant covalent",
+        "graphite conduct",
+        "hydrogen bond",
+        "ionic conduction",
+        "ionic def",
+        "ionic properties",
+        "ionic radius",
+        "metallic conduction",
+        "metallic def",
+        "mgcl2 formula",
+        "nacl bond",
+        "polar bond",
+        "water bond"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Chemistry; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank chemistry_ss_v1.json)"
+    },
+    {
+      "subject": "chemistry",
+      "year_group": "SS3",
+      "topic": "electrolysis",
+      "subtopics": [
+        "anion movement",
+        "anode def",
+        "anode reaction",
+        "brine anode",
+        "cathode def",
+        "cathode reaction",
+        "cation movement",
+        "charge calc",
+        "charge calc2",
+        "electrochemical cell",
+        "electrolysis def",
+        "electrolysis water",
+        "electrolysis water anode",
+        "electrolyte def",
+        "electrolyte strong",
+        "electroplating",
+        "faraday copper",
+        "faraday def",
+        "faraday silver",
+        "moles electrons",
+        "non electrolyte"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Chemistry; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank chemistry_ss_v1.json)"
+    },
+    {
+      "subject": "chemistry",
+      "year_group": "SS3",
+      "topic": "energetics",
+      "subtopics": [
+        "activation energy",
+        "bond breaking",
+        "bond making",
+        "calorimeter",
+        "endo absorbs",
+        "endothermic def",
+        "endothermic sign",
+        "energy profile exo",
+        "energy unit",
+        "enthalpy combustion",
+        "enthalpy symbol",
+        "exo releases",
+        "exothermic def",
+        "exothermic example",
+        "exothermic sign",
+        "heat def",
+        "temp endo",
+        "temp exo"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Chemistry; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank chemistry_ss_v1.json)"
+    },
+    {
+      "subject": "chemistry",
+      "year_group": "SS3",
+      "topic": "equilibrium",
+      "subtopics": [
+        "catalyst eq",
+        "closed system",
+        "conc eq",
+        "dynamic nature",
+        "equilibrium constant idea",
+        "equilibrium def",
+        "forward back",
+        "haber eq",
+        "haber reversible mark",
+        "irreversible example",
+        "le chatelier",
+        "pressure eq",
+        "reversible def",
+        "reversible example",
+        "reversible symbol",
+        "temp exo eq"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Chemistry; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank chemistry_ss_v1.json)"
+    },
+    {
+      "subject": "chemistry",
+      "year_group": "SS3",
+      "topic": "formulae_equations",
+      "subtopics": [
+        "balancing check",
+        "balancing h2o",
+        "balancing nh3",
+        "conservation mass",
+        "empirical ch2",
+        "empirical def",
+        "formula aluminium oxide",
+        "formula ammonium sulphate",
+        "formula calcium chloride",
+        "formula sulphuric",
+        "formula water",
+        "ionic equation",
+        "molecular def",
+        "molecular from empirical",
+        "state symbols",
+        "valency use"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Chemistry; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank chemistry_ss_v1.json)"
+    },
+    {
+      "subject": "chemistry",
+      "year_group": "SS3",
+      "topic": "gas_laws",
+      "subtopics": [
+        "avogadro law",
+        "boyles calc2",
+        "boyles law",
+        "charles calc",
+        "charles law",
+        "combined gas law",
+        "gas compressible",
+        "gas no shape",
+        "gay lussac",
+        "graham law",
+        "kelvin",
+        "kelvin calc",
+        "pressure unit",
+        "stp conditions",
+        "volume unit"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Chemistry; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank chemistry_ss_v1.json)"
+    },
+    {
+      "subject": "chemistry",
+      "year_group": "SS3",
+      "topic": "industry_environment",
+      "subtopics": [
+        "acid rain cause",
+        "air pollution co2",
+        "catalytic converter",
+        "contact catalyst",
+        "contact process",
+        "greenhouse gas",
+        "haber catalyst",
+        "haber materials",
+        "haber product",
+        "limestone use",
+        "nitrogen fertiliser",
+        "ozone depletion",
+        "petroleum products",
+        "recycling",
+        "renewable resource",
+        "water pollution"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Chemistry; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank chemistry_ss_v1.json)"
+    },
+    {
+      "subject": "chemistry",
+      "year_group": "SS3",
+      "topic": "metals",
+      "subtopics": [
+        "alloy reason",
+        "alloy steel",
+        "aluminium extraction",
+        "blast reducer",
+        "displacement metal",
+        "ductile",
+        "galvanising",
+        "iron extraction",
+        "malleable",
+        "metal property",
+        "ore def",
+        "reactive metal method",
+        "reactivity least",
+        "rusting condition",
+        "sodium storage"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Chemistry; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank chemistry_ss_v1.json)"
+    },
+    {
+      "subject": "chemistry",
+      "year_group": "SS3",
+      "topic": "mole_concept",
+      "subtopics": [
+        "avogadro const",
+        "conc moles",
+        "mass from moles",
+        "molar mass caco3",
+        "molar mass co2",
+        "molar mass naoh",
+        "molar mass water",
+        "molar volume",
+        "mole def",
+        "moles from mass",
+        "moles from mass2",
+        "moles from volume",
+        "particles from moles",
+        "percent carbon co2",
+        "rfm def",
+        "stoich ratio",
+        "stoich water",
+        "volume from moles"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Chemistry; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank chemistry_ss_v1.json)"
+    },
+    {
+      "subject": "chemistry",
+      "year_group": "SS3",
+      "topic": "non_metals",
+      "subtopics": [
+        "allotropes carbon",
+        "allotropy def",
+        "ammonia test",
+        "chlorine bleach",
+        "co2 acidic",
+        "co2 test",
+        "co poison",
+        "h2s smell",
+        "hydrogen test",
+        "nitric acid use",
+        "nitrogen uses",
+        "noble gas use",
+        "oxygen prep",
+        "oxygen test",
+        "sulphur dioxide"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Chemistry; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank chemistry_ss_v1.json)"
+    },
+    {
+      "subject": "chemistry",
+      "year_group": "SS3",
+      "topic": "organic",
+      "subtopics": [
+        "addition reaction",
+        "alkane general",
+        "alkanoic def",
+        "alkanol def",
+        "alkene general",
+        "alkyne general",
+        "complete combustion",
+        "cracking",
+        "esterification",
+        "ethanoic acid",
+        "ethanol use",
+        "ethene",
+        "ethyne",
+        "homologous series",
+        "hydrocarbon def",
+        "isomerism",
+        "methane",
+        "organic def",
+        "polymer def",
+        "polythene",
+        "saturated def",
+        "substitution reaction",
+        "test unsaturation",
+        "unsaturated def"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Chemistry; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank chemistry_ss_v1.json)"
+    },
+    {
+      "subject": "chemistry",
+      "year_group": "SS3",
+      "topic": "particulate_matter",
+      "subtopics": [
+        "boiling",
+        "condensation",
+        "density states",
+        "diffusion",
+        "evaporation",
+        "freezing",
+        "gas pressure particle",
+        "gas property",
+        "interconversion",
+        "kinetic theory",
+        "liquid property",
+        "matter def",
+        "melting",
+        "particle spacing",
+        "plasma",
+        "solid property",
+        "states",
+        "sublimation",
+        "sublimation example",
+        "temp effect"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Chemistry; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank chemistry_ss_v1.json)"
+    },
+    {
+      "subject": "chemistry",
+      "year_group": "SS3",
+      "topic": "periodic_table",
+      "subtopics": [
+        "atomic radius group",
+        "atomic radius period",
+        "group1 name",
+        "group7 name",
+        "group8 name",
+        "group def",
+        "group number valence",
+        "group property",
+        "ionisation period",
+        "mendeleev",
+        "metallic period",
+        "metalloid",
+        "metals position",
+        "modern basis",
+        "noble gas reactivity",
+        "period def",
+        "period number shells",
+        "period property",
+        "reactivity group1",
+        "reactivity group7",
+        "transition metals",
+        "valency group2"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Chemistry; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank chemistry_ss_v1.json)"
+    },
+    {
+      "subject": "chemistry",
+      "year_group": "SS3",
+      "topic": "rates",
+      "subtopics": [
+        "catalyst activation",
+        "catalyst def",
+        "catalyst unchanged",
+        "collision theory",
+        "conc effect rate",
+        "enzyme",
+        "fast reaction",
+        "light rate",
+        "measure rate",
+        "pressure gas rate",
+        "rate completion",
+        "rate def",
+        "rate graph",
+        "rate meaning",
+        "slow reaction",
+        "stirring",
+        "surface area rate",
+        "temp collision",
+        "temp effect rate"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Chemistry; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank chemistry_ss_v1.json)"
+    },
+    {
+      "subject": "chemistry",
+      "year_group": "SS3",
+      "topic": "redox",
+      "subtopics": [
+        "displacement redox",
+        "hydrogen reducer",
+        "oil rig",
+        "oxidation electron",
+        "oxidation h",
+        "oxidation o",
+        "oxidation o2",
+        "oxidation s so2",
+        "oxidation state element",
+        "redox both",
+        "reducing agent",
+        "reduction electron",
+        "reduction o2",
+        "rusting redox",
+        "test oxidiser"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Chemistry; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank chemistry_ss_v1.json)"
+    },
+    {
+      "subject": "chemistry",
+      "year_group": "SS3",
+      "topic": "separation",
+      "subtopics": [
+        "air mixture",
+        "alloy",
+        "centrifuging",
+        "chromatography",
+        "compound def",
+        "crude oil",
+        "crystallisation",
+        "decantation",
+        "distillation",
+        "element def",
+        "evaporation sep",
+        "filtrate",
+        "filtration",
+        "fractional distillation",
+        "impure melting",
+        "magnet sep",
+        "mixture def",
+        "mixture property",
+        "pure substance",
+        "residue",
+        "separating funnel",
+        "solvent extraction",
+        "sublimation sep"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Chemistry; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank chemistry_ss_v1.json)"
+    },
+    {
+      "subject": "chemistry",
+      "year_group": "SS3",
+      "topic": "water_solubility",
+      "subtopics": [
+        "conc calc",
+        "conc gdm3",
+        "concentration def",
+        "gas solubility temp",
+        "hard water",
+        "hard water cause",
+        "saturated",
+        "solubility temp",
+        "solute def",
+        "solution def",
+        "solvent def",
+        "suspension",
+        "temporary hardness",
+        "universal solvent",
+        "unsaturated",
+        "water of crystallisation",
+        "water test"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Chemistry; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank chemistry_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "atomic_nuclear",
+      "subtopics": [
+        "atom structure",
+        "atomic number",
+        "electron charge",
+        "electron orbit",
+        "energy levels",
+        "isotope def",
+        "isotopes def",
+        "mass number",
+        "neutron charge",
+        "neutron count",
+        "nucleus content",
+        "photoelectric",
+        "proton charge",
+        "thermionic emission"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "current_electricity",
+      "subtopics": [
+        "ammeter connection",
+        "charge calc",
+        "charge unit",
+        "conductor basic",
+        "current def",
+        "current unit",
+        "electrical power",
+        "electrical power2",
+        "emf def",
+        "energy kwh",
+        "internal resistance",
+        "ohms calc",
+        "ohms calc2",
+        "ohms law",
+        "parallel calc",
+        "parallel calc2",
+        "parallel resistance",
+        "parallel voltage",
+        "resistance unit",
+        "series calc",
+        "series current",
+        "series resistance",
+        "voltage def",
+        "voltage def basic",
+        "voltmeter connection"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "elasticity",
+      "subtopics": [
+        "elastic basic",
+        "elastic limit",
+        "elastic pe",
+        "elasticity def",
+        "extension def",
+        "hooke basic",
+        "hooke calc2",
+        "hooke calc3",
+        "hookes law",
+        "spring constant",
+        "spring load",
+        "tensile strain",
+        "tensile stress",
+        "youngs modulus"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "electronics",
+      "subtopics": [
+        "conductor semiconductor",
+        "diode function",
+        "diode symbol use",
+        "forward bias",
+        "insulator example",
+        "ldr",
+        "led",
+        "led basic",
+        "n type",
+        "p type",
+        "rectification",
+        "rectifier device",
+        "semiconductor example",
+        "silicon basic",
+        "thermistor",
+        "transistor basic",
+        "transistor use"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "electrostatics",
+      "subtopics": [
+        "capacitor def",
+        "charge types",
+        "charging friction",
+        "conductor charge",
+        "conductor def",
+        "coulomb law",
+        "electric field",
+        "electroscope",
+        "induction charge",
+        "insulator example",
+        "lightning conductor",
+        "like charges",
+        "unlike charges"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "em_induction",
+      "subtopics": [
+        "eddy currents",
+        "faraday law",
+        "fleming right",
+        "generator basic",
+        "generator function",
+        "induction def",
+        "induction need change",
+        "lenz law",
+        "step up",
+        "transformer ac",
+        "transformer function",
+        "transformer power",
+        "transformer ratio",
+        "transformer use basic",
+        "transmission high voltage"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "equilibrium",
+      "subtopics": [
+        "balance calc2",
+        "centre gravity",
+        "cog point",
+        "couple def",
+        "equilibrium cond",
+        "moment calc",
+        "moment calc2",
+        "moment def",
+        "moment unit",
+        "moment unit eq",
+        "neutral equilibrium",
+        "parallel forces",
+        "principle moments",
+        "seesaw principle",
+        "stable equilibrium",
+        "turning effect",
+        "unstable equilibrium",
+        "wide base stability"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "gas_laws",
+      "subtopics": [
+        "absolute temp gas",
+        "boyle basic",
+        "boyle calc",
+        "boyle calc2",
+        "boyle law",
+        "charles basic",
+        "charles law",
+        "gas pressure cause",
+        "gas shape",
+        "general gas law",
+        "ideal gas",
+        "pressure law",
+        "stp"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "gravitation",
+      "subtopics": [
+        "big g",
+        "free fall independence",
+        "freefall basic",
+        "g def",
+        "g value",
+        "g variation",
+        "gravitational field",
+        "gravity pull",
+        "kepler period",
+        "mass constant",
+        "newton gravitation",
+        "orbital motion",
+        "satellite orbit",
+        "weight gravity",
+        "weight height",
+        "weightlessness"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "heat_thermometry",
+      "subtopics": [
+        "absolute zero",
+        "celsius kelvin",
+        "clinical thermometer",
+        "heat capacity def",
+        "heat def",
+        "heat def basic",
+        "heat unit",
+        "heat vs temp",
+        "ice point",
+        "kelvin celsius",
+        "shc calc",
+        "specific heat def",
+        "steam point",
+        "temp def",
+        "temperature def",
+        "thermometer property",
+        "thermometer use"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "kinematics",
+      "subtopics": [
+        "accel calc",
+        "accel calc2",
+        "accel def",
+        "dist time slope",
+        "free fall v",
+        "proj max height",
+        "proj max height time",
+        "speed calc",
+        "speed calc2",
+        "speed def",
+        "suvat s2",
+        "suvat v",
+        "suvat v2",
+        "terminal velocity",
+        "uniform velocity",
+        "vel time area",
+        "vel time slope",
+        "velocity def"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "latent_heat",
+      "subtopics": [
+        "boiling basic",
+        "boiling vs evaporation",
+        "evaporation cooling",
+        "fusion def",
+        "impurity melting",
+        "latent meaning",
+        "latent no temp",
+        "melting basic",
+        "melting temp",
+        "regelation",
+        "sublimation phys",
+        "vaporisation def"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "machines",
+      "subtopics": [
+        "efficiency machine",
+        "effort load",
+        "friction efficiency",
+        "incline vr",
+        "inclined plane",
+        "inclined plane use",
+        "lever class1",
+        "lever class2",
+        "lever example machine",
+        "ma calc",
+        "ma def",
+        "machine def",
+        "pulley block",
+        "pulley single fixed",
+        "pulley use",
+        "screw jack",
+        "vr calc",
+        "vr def"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "magnetism",
+      "subtopics": [
+        "dc motor",
+        "electromagnet strength",
+        "field direction",
+        "fleming left",
+        "hard soft magnet",
+        "like poles",
+        "magnet poles",
+        "magnetic field def",
+        "magnetic keepers",
+        "magnetic material",
+        "motor effect",
+        "oersted",
+        "solenoid",
+        "unlike poles"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "measurements",
+      "subtopics": [
+        "convert cm m",
+        "convert hr s",
+        "convert km m",
+        "derived qty",
+        "dimension energy",
+        "dimension force",
+        "dimension power",
+        "fundamental qty",
+        "micrometer",
+        "phys def",
+        "prefix kilo",
+        "prefix micro",
+        "prefix milli",
+        "scalar example",
+        "si current",
+        "si energy",
+        "si force",
+        "si length",
+        "si mass",
+        "si power",
+        "si time",
+        "std form",
+        "stopwatch"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "momentum",
+      "subtopics": [
+        "collision types",
+        "conservation basic",
+        "conservation momentum",
+        "elastic vs inelastic",
+        "force time collision",
+        "impulse calc",
+        "impulse def",
+        "impulse momentum",
+        "inelastic collision",
+        "momentum calc",
+        "momentum calc2",
+        "momentum def",
+        "momentum def basic",
+        "momentum unit",
+        "momentum vector",
+        "rocket propulsion"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "newtons_laws",
+      "subtopics": [
+        "first law",
+        "force calc",
+        "force calc2",
+        "friction def",
+        "friction reduce",
+        "inertia def",
+        "limiting friction",
+        "mass calc",
+        "mass vs weight",
+        "momentum first",
+        "normal reaction",
+        "seatbelt",
+        "second law",
+        "third law",
+        "weight calc",
+        "weight def"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "optics",
+      "subtopics": [
+        "concave lens",
+        "concave mirror",
+        "convex lens",
+        "convex mirror",
+        "dispersion",
+        "focal calc",
+        "focal length radius",
+        "lens formula",
+        "light nature",
+        "mirror image distance",
+        "plane mirror image",
+        "primary colours",
+        "reflection law",
+        "refraction def",
+        "refractive index",
+        "snell calc",
+        "tir condition"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "pressure_fluids",
+      "subtopics": [
+        "archimedes",
+        "atmospheric pressure",
+        "density float",
+        "floatation",
+        "hydraulic calc",
+        "hydraulic press",
+        "liquid pressure",
+        "liquid pressure calc",
+        "liquid pressure depth",
+        "manometer",
+        "pascal principle",
+        "pressure calc",
+        "pressure def",
+        "pressure def basic",
+        "pressure depth",
+        "pressure unit",
+        "pressure unit basic"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "radioactivity",
+      "subtopics": [
+        "alpha charge",
+        "alpha particle",
+        "atom parts",
+        "beta charge",
+        "beta particle",
+        "electron charge basic",
+        "fission def",
+        "fusion def",
+        "gamma charge",
+        "gamma ray",
+        "half life calc",
+        "half life calc2",
+        "half life def",
+        "nuclear energy source",
+        "penetration order",
+        "proton charge basic",
+        "radiation hazard",
+        "radiation use",
+        "radioactivity basic",
+        "radioactivity def"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "thermal_expansion",
+      "subtopics": [
+        "aquatic life",
+        "bimetallic strip",
+        "bimetallic use",
+        "bridge rollers",
+        "expansion basic",
+        "expansion cause",
+        "expansion def",
+        "expansion order",
+        "gap rails",
+        "linear exp calc",
+        "linear expansivity",
+        "railway gaps",
+        "volume expansivity",
+        "water anomaly",
+        "water max density"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "vectors",
+      "subtopics": [
+        "collinear zero",
+        "component 30",
+        "component 60",
+        "component horiz",
+        "component vert",
+        "displacement def",
+        "equilibrant def",
+        "parallel opp",
+        "parallel same",
+        "parallelogram law",
+        "perp resultant",
+        "perp resultant2",
+        "resultant def",
+        "scalar def",
+        "scalar example2",
+        "triangle law",
+        "vector def",
+        "vector example"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "waves_sound",
+      "subtopics": [
+        "amplitude def",
+        "echo def",
+        "frequency def",
+        "longitudinal def",
+        "loudness amp",
+        "period calc",
+        "period freq",
+        "pitch freq",
+        "resonance def",
+        "sound longitudinal",
+        "sound medium",
+        "sound speed medium",
+        "transverse def",
+        "wave calc",
+        "wave calc2",
+        "wave def",
+        "wave equation",
+        "wavelength def"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    },
+    {
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "work_energy",
+      "subtopics": [
+        "cofg def",
+        "efficiency calc",
+        "efficiency def",
+        "energy conservation",
+        "energy def",
+        "energy forms",
+        "ke formula",
+        "lever example",
+        "moment def basic",
+        "moment unit",
+        "pe calc",
+        "pe formula",
+        "power calc",
+        "power calc2",
+        "power def",
+        "power unit",
+        "stable equilibrium",
+        "work calc",
+        "work calc2",
+        "work def",
+        "work unit"
+      ],
+      "exam_tags": [
+        "WAEC",
+        "NECO"
+      ],
+      "source_ref": "WAEC/NECO SSCE syllabus — Physics; NERDC Senior Secondary Education Curriculum (topic taxonomy via staging bank physics_ss_v1.json)"
+    }
+  ]
+}

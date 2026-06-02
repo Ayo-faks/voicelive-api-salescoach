@@ -42,6 +42,7 @@ import {
 } from './api'
 import { AssistantBlockRenderer } from './components/AssistantBlockRenderer'
 import { useLearnerContext } from './contexts/LearnerContext'
+import { useAskPathfinderVoice } from './hooks/useAskPathfinderVoice'
 
 type Mode = 'text' | 'voice'
 
@@ -75,7 +76,7 @@ interface SpeechRecognitionLike {
       }) => void)
     | null
   onend: (() => void) | null
-  onerror: (() => void) | null
+  onerror: ((event: { error?: string }) => void) | null
 }
 
 function getSpeechRecognition(): (new () => SpeechRecognitionLike) | undefined {
@@ -296,7 +297,9 @@ const useStyles = makeStyles({
   iconGlyph: { width: '18px', height: '18px' },
 })
 
-export function AskPathfinder() {
+export function AskPathfinder({
+  voiceLiveEnabled = false,
+}: { voiceLiveEnabled?: boolean } = {}) {
   const styles = useStyles()
   const learner = useLearnerContext()
   const [open, setOpen] = useState(false)
@@ -312,6 +315,23 @@ export function AskPathfinder() {
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
   const transcriptRef = useRef<TranscriptItem[]>([])
   transcriptRef.current = transcript
+  const transcriptScrollRef = useRef<HTMLDivElement | null>(null)
+
+  // Keep the newest reply in view: as soon as a turn is appended (or the
+  // assistant starts thinking) pin the transcript to the bottom so the learner
+  // never has to drag the scrollbar to read the response.
+  const turnCount = transcript.length
+  useEffect(() => {
+    void turnCount
+    void busy
+    const node = transcriptScrollRef.current
+    if (!node) return
+    if (typeof node.scrollTo === 'function') {
+      node.scrollTo({ top: node.scrollHeight, behavior: 'smooth' })
+    } else {
+      node.scrollTop = node.scrollHeight
+    }
+  }, [turnCount, busy])
 
   const speechSupported = useMemo(() => Boolean(getSpeechRecognition()), [])
 
@@ -411,6 +431,50 @@ export function AskPathfinder() {
     ])
     setSessionComplete(result.session_complete)
   }, [])
+
+  // VoiceLive emits one grounded, safeguarded block at a time over the realtime
+  // socket; append it and clear the busy spinner. The neural voice is heard via
+  // the audio player inside the hook, so no edge TTS here.
+  const appendVoiceBlock = useCallback(
+    (block: AssistantBlock, complete: boolean) => {
+      setTranscript(prev => [
+        ...prev,
+        { id: nextId('a'), role: 'assistant' as const, block },
+      ])
+      setSessionComplete(complete)
+      setBusy(false)
+    },
+    []
+  )
+
+  const appendUserUtterance = useCallback((text: string) => {
+    setTranscript(prev => [
+      ...prev,
+      { id: nextId('u'), role: 'user' as const, text },
+    ])
+  }, [])
+
+  const {
+    voiceState: liveVoiceState,
+    recording: liveRecording,
+    toggleRecording: liveToggleRecording,
+  } = useAskPathfinderVoice({
+    active: mode === 'voice' && voiceLiveEnabled,
+    childId: learner.userId ?? '',
+    subject: learner.learnerSetup?.subject,
+    classYear: learner.learnerSetup?.yearGroup,
+    onBlock: appendVoiceBlock,
+    onUserTranscript: appendUserUtterance,
+    onError: code => {
+      setVoiceError(
+        code === 'mic_denied'
+          ? 'Microphone blocked. Allow mic access for this site, then tap again.'
+          : code === 'missing_child_context'
+            ? 'Learner context is still loading. Wait a second and try voice again.'
+          : 'Voice connection hiccup — try again.'
+      )
+    },
+  })
 
   const dispatchTurn = useCallback(
     async (partial: Partial<AssistantTurnRequest>, userText?: string) => {
@@ -534,7 +598,27 @@ export function AskPathfinder() {
       const said = event.results?.[0]?.[0]?.transcript?.trim()
       if (said) void dispatchTurn({ question: said }, said)
     }
-    recognition.onerror = () => setVoiceError('Could not hear that. Try again.')
+    recognition.onerror = event => {
+      const code = event?.error ?? 'unknown'
+      // Surface the real reason so failures are diagnosable instead of a single
+      // catch-all "Could not hear that". `no-speech`/`aborted` are benign (the
+      // learner simply did not speak, or tapped to stop) — reset quietly.
+      if (code === 'no-speech' || code === 'aborted') {
+        setListening(false)
+        return
+      }
+      console.warn('[AskPathfinder] speech recognition error:', code)
+      setVoiceError(
+        code === 'not-allowed' || code === 'service-not-allowed'
+          ? 'Microphone blocked. Allow mic access for this site, then tap again.'
+          : code === 'audio-capture'
+            ? 'No microphone found. Check your mic and try again.'
+            : code === 'network'
+              ? 'Speech service unreachable. Check your connection and try again.'
+              : 'Could not hear that. Try again.'
+      )
+      setListening(false)
+    }
     recognition.onend = () => setListening(false)
     recognitionRef.current = recognition
     setListening(true)
@@ -545,6 +629,10 @@ export function AskPathfinder() {
   const enterVoiceMode = useCallback(() => {
     setMode('voice')
     setVoiceError(null)
+    // VoiceLive streams full-duplex audio over `/ws/voice?scope=learner_ask`
+    // (handled by useAskPathfinderVoice); the Web Speech JSON socket is only the
+    // fallback transport when the flag is off or the browser lacks the SDK.
+    if (voiceLiveEnabled) return
     if (!socketRef.current) {
       socketRef.current = openLearnerVoiceSocket(
         {
@@ -566,7 +654,7 @@ export function AskPathfinder() {
         { userId: learner.userId }
       )
     }
-  }, [appendResult, learner.userId, speak])
+  }, [appendResult, learner.userId, speak, voiceLiveEnabled])
 
   const enterTextMode = useCallback(() => {
     setMode('text')
@@ -589,6 +677,35 @@ export function AskPathfinder() {
   }, [])
 
   const isVoice = mode === 'voice'
+
+  // Voice mic is driven either by VoiceLive (full-duplex realtime) or the Web
+  // Speech fallback, depending on the server feature flag.
+  const micActive = voiceLiveEnabled ? liveRecording : listening
+  const micDisabled = voiceLiveEnabled ? false : !speechSupported || busy
+  const micOnClick = voiceLiveEnabled
+    ? () => {
+        void liveToggleRecording()
+      }
+    : listening
+      ? stopListening
+      : startListening
+  const voiceHint = voiceLiveEnabled
+    ? liveVoiceState === 'speaking'
+      ? 'Pathfinder is speaking…'
+      : liveVoiceState === 'thinking'
+        ? 'Thinking…'
+        : liveVoiceState === 'connecting'
+          ? 'Connecting…'
+          : micActive
+            ? 'Listening… tap to mute.'
+            : 'Tap to talk.'
+    : !speechSupported
+      ? 'Voice input is not supported here — switch to the keyboard to type.'
+      : listening
+        ? 'Listening… tap to stop.'
+        : busy
+          ? 'Thinking…'
+          : 'Tap to talk.'
 
   return (
     <>
@@ -664,6 +781,7 @@ export function AskPathfinder() {
           <div
             className={styles.transcript}
             data-testid="ask-pathfinder-transcript"
+            ref={transcriptScrollRef}
           >
             {transcript.length === 0 && (
               <span className={styles.empty}>
@@ -699,14 +817,14 @@ export function AskPathfinder() {
                 type="button"
                 className={mergeClasses(
                   styles.orb,
-                  listening && styles.orbActive
+                  micActive && styles.orbActive
                 )}
-                onClick={listening ? stopListening : startListening}
-                disabled={!speechSupported || busy}
-                aria-label={listening ? 'Stop listening' : 'Start talking'}
+                onClick={micOnClick}
+                disabled={micDisabled}
+                aria-label={micActive ? 'Stop listening' : 'Start talking'}
                 data-testid="ask-pathfinder-mic"
               >
-                {listening ? (
+                {micActive ? (
                   <StopIcon className={styles.orbGlyph} aria-hidden="true" />
                 ) : (
                   <MicrophoneIcon
@@ -718,15 +836,7 @@ export function AskPathfinder() {
               {voiceError ? (
                 <span className={styles.voiceError}>{voiceError}</span>
               ) : (
-                <span className={styles.voiceHint}>
-                  {!speechSupported
-                    ? 'Voice input is not supported here — switch to the keyboard to type.'
-                    : listening
-                      ? 'Listening… tap to stop.'
-                      : busy
-                        ? 'Thinking…'
-                        : 'Tap to talk.'}
-                </span>
+                <span className={styles.voiceHint}>{voiceHint}</span>
               )}
             </div>
           ) : (

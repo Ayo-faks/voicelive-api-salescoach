@@ -1128,6 +1128,7 @@ export interface AppConfig {
   voice_agent_dynamic_ui_enabled?: boolean
   voice_agent_actions_enabled?: boolean
   learner_voice_fullscreen_enabled?: boolean
+  pathfinder_voicelive_enabled?: boolean
   safety?: SafetyConfig
   onboarding?: OnboardingFlags
 }

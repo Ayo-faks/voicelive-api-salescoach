@@ -1,0 +1,1094 @@
+{
+  "version": "1.0.0",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "pathfinder.ingest",
+      "rule_id": "ingest",
+      "confidence": 1.0,
+      "evidence_count": 1
+    }
+  ],
+  "nodes": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.585834+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.adaptation.adaptation-to-habitats",
+      "version": "1.0.0",
+      "title": "Adaptation to different habitats",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "adaptation",
+      "subtopic": "adaptation to habitats",
+      "misconception_codes": [],
+      "body_markdown": "Organisms are adapted to the particular habitat in which they live. Plants in a dry savanna or desert, such as the cactus and some grasses, may have deep roots, thick stems that store water, and small or spiny leaves that reduce water loss. Plants living in water have soft, light tissues and broad floating leaves. Animals of the dry north of Nigeria are adapted to conserve water and bear heat, while animals of the rainforest are suited to a wet, shaded, crowded world, with features for climbing or camouflage. Aquatic animals like fish have gills to breathe in water and fins for swimming. In each case the organism's features match the conditions of food, water, temperature and predators where it lives.",
+      "anchors": [
+        "sec-biology-ss3-adaptation-adaptation-to-habitats"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.585700+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.adaptation.structural-and-behavioural-adaptations",
+      "version": "1.0.0",
+      "title": "Structural and behavioural adaptations",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "adaptation",
+      "subtopic": "structural and behavioural adaptations",
+      "misconception_codes": [],
+      "body_markdown": "Adaptations can be divided into structural and behavioural kinds. Structural adaptations are features of the body, such as the long neck of a giraffe for reaching high leaves, the sharp teeth and claws of a lion for catching prey, or the streamlined shape of a fish for moving through water. Behavioural adaptations are the things an organism does, such as birds migrating to avoid a harsh season, animals hunting at night to escape the heat of the day, or weaver birds building nests to protect their eggs. A third kind, physiological adaptation, involves processes inside the body, such as producing concentrated urine to save water. All these features improve an organism's chance of survival in its surroundings.",
+      "anchors": [
+        "sec-biology-ss3-adaptation-structural-and-behavioural-adaptations"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.585567+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.adaptation.what-adaptation-is",
+      "version": "1.0.0",
+      "title": "What adaptation means",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "adaptation",
+      "subtopic": "what adaptation is",
+      "misconception_codes": [],
+      "body_markdown": "Adaptation is the way a living thing is suited to survive and reproduce in its particular environment. An adaptation may be a feature of the body, a way of behaving, or a process inside the organism that gives it a better chance of staying alive where it lives. Adaptations build up over many generations through natural selection, as individuals with helpful features survive and pass them on. A well-adapted organism can find food, avoid being eaten, cope with the climate and reproduce successfully in its habitat. Because different habitats present different challenges, the same kind of problem, such as losing too much water, may be solved in different ways by organisms living in different places.",
+      "anchors": [
+        "sec-biology-ss3-adaptation-what-adaptation-is"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.582751+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.cell-structure.plant-and-animal-cells",
+      "version": "1.0.0",
+      "title": "Plant and animal cells",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "cell_structure",
+      "subtopic": "plant and animal cells",
+      "misconception_codes": [],
+      "body_markdown": "All living things are made of cells, the basic units of life. Both plant and animal cells have a cell membrane that controls what enters and leaves, cytoplasm where reactions happen, and a nucleus that controls the cell and holds genetic material. Plant cells have extra features: a rigid cell wall made of cellulose that gives shape and support, a large central vacuole filled with cell sap, and chloroplasts containing chlorophyll for photosynthesis. Animal cells lack a cell wall and chloroplasts, and any vacuoles they have are small. These differences reflect that plants make their own food while animals must eat it.",
+      "anchors": [
+        "sec-biology-ss3-cell-structure-plant-and-animal-cells"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.583800+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.coordination.hormonal-coordination",
+      "version": "1.0.0",
+      "title": "Hormones and the endocrine system",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "coordination",
+      "subtopic": "hormonal coordination",
+      "misconception_codes": [],
+      "body_markdown": "Hormones provide a slower, longer-lasting form of coordination than nerves. They are chemical messengers made by endocrine glands and carried in the blood to target organs, where they cause a response. For example, the pancreas releases insulin to control blood sugar, the thyroid gland releases a hormone that controls the rate of body reactions, and the adrenal glands release adrenaline, which prepares the body for action when a person is frightened or excited. Because hormones travel in the blood, they reach the whole body and their effects build up and fade more gradually than nerve impulses. The nervous and hormonal systems work together to keep body processes coordinated.",
+      "anchors": [
+        "sec-biology-ss3-coordination-hormonal-coordination"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.583684+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.coordination.nervous-coordination",
+      "version": "1.0.0",
+      "title": "The nervous system",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "coordination",
+      "subtopic": "nervous coordination",
+      "misconception_codes": [],
+      "body_markdown": "Coordination is how an organism detects changes and responds in an organised way so its parts work together. In animals the nervous system gives fast coordination. Receptors in sense organs detect a stimulus and send electrical impulses along sensory neurones to the central nervous system, made up of the brain and spinal cord. There the information is processed, and impulses travel out along motor neurones to effectors, which are muscles or glands that carry out the response. A reflex action, such as quickly pulling your hand from a hot pot, follows a short pathway through the spinal cord, so it happens before you have time to think. Nervous coordination is rapid but its effects are usually short-lived.",
+      "anchors": [
+        "sec-biology-ss3-coordination-nervous-coordination"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.583918+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.coordination.sense-organs-and-the-eye",
+      "version": "1.0.0",
+      "title": "Sense organs and the eye",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "coordination",
+      "subtopic": "sense organs and the eye",
+      "misconception_codes": [],
+      "body_markdown": "Sense organs are the parts of the body that contain receptors able to detect particular stimuli. The eye detects light, the ear detects sound and balance, the tongue detects taste, the nose detects smell, and the skin detects touch, pressure, heat and pain. In the eye, light passes through the transparent cornea and the lens, which focuses it onto the retina at the back. Receptor cells in the retina turn the light into nerve impulses, which travel along the optic nerve to the brain, where the image is interpreted. The iris adjusts the size of the pupil to control how much light enters, protecting the eye in bright conditions and helping vision in dim light.",
+      "anchors": [
+        "sec-biology-ss3-coordination-sense-organs-and-the-eye"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.582860+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.ecology.food-chains-and-energy-flow",
+      "version": "1.0.0",
+      "title": "Food chains and energy flow",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "ecology",
+      "subtopic": "food chains and energy flow",
+      "misconception_codes": [],
+      "body_markdown": "A food chain shows how energy passes from one organism to another as food. It begins with a producer, usually a green plant that makes food by photosynthesis. Primary consumers, which are herbivores, eat the producers; secondary and tertiary consumers, which are carnivores, eat other animals. Each arrow in a food chain points in the direction the energy flows, from the organism being eaten to the one eating it. At every step a large part of the energy is lost as heat through respiration, so food chains are usually short and there is less energy available at each higher level.",
+      "anchors": [
+        "sec-biology-ss3-ecology-food-chains-and-energy-flow"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.586586+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.evolution-conservation.conservation-of-natural-resources",
+      "version": "1.0.0",
+      "title": "Conservation of natural resources",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "evolution_conservation",
+      "subtopic": "conservation of natural resources",
+      "misconception_codes": [],
+      "body_markdown": "Conservation is the wise use and protection of natural resources so that they are not used up or destroyed and remain available for the future. Living resources such as forests, wildlife and fish, and non-living ones such as soil and water, can be damaged by overhunting, overfishing, bush burning, deforestation and pollution. Conservation methods include creating game reserves and national parks to protect wildlife, replanting trees through afforestation, controlling hunting and fishing with laws and seasons, preventing erosion, and recycling materials. In Nigeria, protecting forests and endangered animals helps keep the variety of living things, called biodiversity, healthy. Conserving resources also keeps the natural cycles and food chains that all life depends on working properly, so people continue to benefit from them.",
+      "anchors": [
+        "sec-biology-ss3-evolution-conservation-conservation-of-natural-resources"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.586331+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.evolution-conservation.evidence-for-evolution",
+      "version": "1.0.0",
+      "title": "Evidence for evolution",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "evolution_conservation",
+      "subtopic": "evidence for evolution",
+      "misconception_codes": [],
+      "body_markdown": "Evolution is the gradual change in living things over very long periods of time, by which today's species have descended from earlier, different ones. Several kinds of evidence support this idea. Fossils, the preserved remains or traces of organisms that lived long ago, show that life forms have changed through time and that some have died out. Comparing the body structures of different animals reveals similar underlying patterns, such as the same arrangement of bones in the limbs of very different mammals, suggesting a shared ancestor. Similarities in early development and, more recently, in the chemicals and genetic material of organisms add further evidence. Together these clues build the picture that living things are related and have changed over millions of years.",
+      "anchors": [
+        "sec-biology-ss3-evolution-conservation-evidence-for-evolution"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.586454+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.evolution-conservation.natural-selection",
+      "version": "1.0.0",
+      "title": "Natural selection",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "evolution_conservation",
+      "subtopic": "natural selection",
+      "misconception_codes": [],
+      "body_markdown": "Natural selection is the main process that drives evolution, an idea explained by Charles Darwin. Within any species the individuals are not all alike; they show variation in their features. More offspring are produced than can survive, so there is a struggle for limited food, space and mates. Individuals whose features happen to suit the environment best are more likely to survive and reproduce, a situation often summed up as survival of the fittest. These survivors pass their helpful features to their offspring, so over many generations the helpful features become more common in the population while less useful ones fade. In this slow way species become better adapted to their surroundings and, over a long time, may change into new species.",
+      "anchors": [
+        "sec-biology-ss3-evolution-conservation-natural-selection"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.583083+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.excretion.the-kidney-and-urine-formation",
+      "version": "1.0.0",
+      "title": "The kidney and excretion",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "excretion",
+      "subtopic": "the kidney and urine formation",
+      "misconception_codes": [],
+      "body_markdown": "Excretion is the removal of waste products made by the body's own chemical reactions, such as carbon dioxide and urea. The kidneys are the main organs of excretion in humans. Blood entering a kidney is filtered under pressure in tiny units called nephrons, where water, salts, glucose and urea pass out of the blood. As the filtered liquid travels along the nephron, useful substances such as glucose and most of the water are reabsorbed back into the blood. The remaining liquid, containing urea and excess salts and water, forms urine, which is stored in the bladder before being passed out.",
+      "anchors": [
+        "sec-biology-ss3-excretion-the-kidney-and-urine-formation"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.582975+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.genetics.dominant-and-recessive-traits",
+      "version": "1.0.0",
+      "title": "Dominant and recessive traits",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "genetics",
+      "subtopic": "dominant and recessive traits",
+      "misconception_codes": [],
+      "body_markdown": "Genetics is the study of how characteristics are passed from parents to offspring through genes. Each gene can exist in different forms called alleles. A dominant allele shows its effect even when only one copy is present, while a recessive allele shows only when two copies are present, one from each parent. The combination of alleles an organism carries is its genotype, and the characteristic that actually appears is its phenotype. When two parents each carry one dominant and one recessive allele, their offspring typically show a three to one ratio of the dominant to the recessive trait, a pattern first described by Gregor Mendel.",
+      "anchors": [
+        "sec-biology-ss3-genetics-dominant-and-recessive-traits"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.585445+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.growth-development.development-and-metamorphosis",
+      "version": "1.0.0",
+      "title": "Development and metamorphosis",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "growth_development",
+      "subtopic": "development and metamorphosis",
+      "misconception_codes": [],
+      "body_markdown": "As organisms grow they also develop, changing their form and gaining new structures and abilities. In some animals development includes metamorphosis, a marked change in body form between the young and the adult. In complete metamorphosis, seen in insects such as the butterfly and the housefly, the animal passes through egg, larva, pupa and adult stages, with the larva looking nothing like the adult. In incomplete metamorphosis, seen in the grasshopper and cockroach, the young, called a nymph, resembles a small adult and changes gradually as it moults. The frog also shows metamorphosis as a tadpole develops legs and lungs and becomes an adult. These changes often let the young and adult live in different places and eat different food.",
+      "anchors": [
+        "sec-biology-ss3-growth-development-development-and-metamorphosis"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.585257+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.growth-development.measuring-growth",
+      "version": "1.0.0",
+      "title": "Measuring growth",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "growth_development",
+      "subtopic": "measuring growth",
+      "misconception_codes": [],
+      "body_markdown": "Because growth is an increase in living material, it can be measured in several ways. The simplest is to measure a length, such as the height of a plant or a child, at regular intervals and record how it changes. Mass can also be measured, but wet mass varies with water content, so scientists often use dry mass, the mass after all water is removed, as a more reliable measure of how much new tissue has formed. The number of cells, leaves or other parts can be counted as well. When growth is plotted against time, the line is called a growth curve, and in many organisms it has an S shape, rising slowly, then quickly, then levelling off.",
+      "anchors": [
+        "sec-biology-ss3-growth-development-measuring-growth"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.585140+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.growth-development.what-growth-is",
+      "version": "1.0.0",
+      "title": "Growth and development",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "growth_development",
+      "subtopic": "what growth is",
+      "misconception_codes": [],
+      "body_markdown": "Growth is a permanent increase in the size, mass and number of cells of a living thing, while development is the change in form and complexity as the organism matures. Growth happens when cells divide to make more cells and when those cells enlarge, using materials supplied by nutrition. Unlike a temporary increase such as a swelling, growth cannot easily be reversed. In many organisms growth is not even across the whole body or across time; it is often rapid early in life and slows later. Development goes alongside growth, as cells become specialised for different jobs and the organism gains new abilities. Together growth and development turn a single fertilised cell into a complete, working organism.",
+      "anchors": [
+        "sec-biology-ss3-growth-development-what-growth-is"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.583562+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.homeostasis.blood-sugar-control",
+      "version": "1.0.0",
+      "title": "Controlling blood sugar",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "homeostasis",
+      "subtopic": "blood sugar control",
+      "misconception_codes": [],
+      "body_markdown": "The amount of glucose in the blood must be kept within safe limits, and the pancreas controls this using two hormones. After a meal, blood sugar rises, and the pancreas releases insulin, which makes the liver and muscles take up glucose and store it as glycogen, lowering the level again. When blood sugar falls, for example during exercise or fasting, the pancreas releases glucagon, which makes the liver break stored glycogen back into glucose and release it into the blood. This balance is an example of negative feedback. When the system fails and blood sugar cannot be controlled, the condition known as diabetes results, which is why a balanced diet matters.",
+      "anchors": [
+        "sec-biology-ss3-homeostasis-blood-sugar-control"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.583438+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.homeostasis.osmoregulation-and-the-kidney",
+      "version": "1.0.0",
+      "title": "Water and salt balance",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "homeostasis",
+      "subtopic": "osmoregulation and the kidney",
+      "misconception_codes": [],
+      "body_markdown": "Osmoregulation is the control of the amount of water and dissolved salts in the body fluids. The kidneys are the main organs involved. When the blood becomes too concentrated, for example after sweating heavily or drinking little water, the brain releases a hormone that makes the kidneys reabsorb more water, so only a small amount of concentrated urine is passed. When the blood is too dilute, less of this hormone is released, the kidneys reabsorb less water, and a large amount of dilute urine is passed. In this way the kidneys adjust how much water leaves the body to match how much is taken in, keeping the concentration of body fluids fairly constant.",
+      "anchors": [
+        "sec-biology-ss3-homeostasis-osmoregulation-and-the-kidney"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.583323+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.homeostasis.temperature-regulation",
+      "version": "1.0.0",
+      "title": "Controlling body temperature",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "homeostasis",
+      "subtopic": "temperature regulation",
+      "misconception_codes": [],
+      "body_markdown": "Humans are warm-blooded, keeping body temperature near thirty-seven degrees Celsius regardless of the weather. The skin plays the main part. When the body is too hot, blood vessels near the skin surface widen so more heat is lost, and sweat glands release sweat that cools the skin as it evaporates. When the body is too cold, these vessels narrow to keep heat in, sweating stops, and shivering produces extra heat from muscle activity. In a hot Nigerian climate, sweating and drinking water are especially important to avoid overheating. The brain, through a region called the hypothalamus, detects blood temperature and coordinates these responses so the internal temperature stays steady.",
+      "anchors": [
+        "sec-biology-ss3-homeostasis-temperature-regulation"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.583206+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.homeostasis.what-homeostasis-is",
+      "version": "1.0.0",
+      "title": "Keeping the internal environment steady",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "homeostasis",
+      "subtopic": "what homeostasis is",
+      "misconception_codes": [],
+      "body_markdown": "Homeostasis is the maintenance of a fairly constant internal environment inside the body even when conditions outside change. Cells work best within narrow limits of temperature, water content, salt level and sugar level, so the body constantly monitors these and corrects any drift. This usually works by negative feedback: a change is detected by a receptor, a message is sent to a control centre, and an effector such as a muscle or gland acts to reverse the change and bring the condition back to normal. Examples include controlling body temperature, water and salt balance, and blood sugar. Without homeostasis the chemical reactions of life, which depend on enzymes that are sensitive to such conditions, would not run reliably.",
+      "anchors": [
+        "sec-biology-ss3-homeostasis-what-homeostasis-is"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.585959+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.nutrient-cycles.the-carbon-cycle",
+      "version": "1.0.0",
+      "title": "The carbon cycle",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "nutrient_cycles",
+      "subtopic": "the carbon cycle",
+      "misconception_codes": [],
+      "body_markdown": "The carbon cycle describes how the element carbon moves between the air, living things and the soil so that it is used again and again. Carbon is taken out of the air as carbon dioxide by green plants during photosynthesis and built into food substances. When animals eat plants the carbon passes into them. Respiration by plants, animals and decomposers returns carbon dioxide to the air, and so does the burning of wood and fossil fuels. When organisms die, decomposers break down their bodies and release the carbon. Over long periods some carbon becomes trapped as coal, oil and gas. Because the cycle keeps recycling carbon, the supply of this essential element never runs out, though burning too much fuel can upset the balance.",
+      "anchors": [
+        "sec-biology-ss3-nutrient-cycles-the-carbon-cycle"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.586083+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.nutrient-cycles.the-nitrogen-cycle",
+      "version": "1.0.0",
+      "title": "The nitrogen cycle",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "nutrient_cycles",
+      "subtopic": "the nitrogen cycle",
+      "misconception_codes": [],
+      "body_markdown": "Nitrogen is needed by living things to make proteins, but although the air is mostly nitrogen gas, most organisms cannot use it directly. The nitrogen cycle shows how it is made usable and returned. Nitrogen-fixing bacteria, some living in the root nodules of legumes such as beans and groundnuts, turn nitrogen gas into nitrogen compounds in the soil. Lightning also fixes some nitrogen. Plants absorb these nitrates and build them into proteins, which pass to animals that eat the plants. When organisms die or release waste, decomposers turn the nitrogen back into ammonia, and other bacteria change it to nitrates again. Denitrifying bacteria return some nitrogen to the air, completing the cycle. This is why farmers grow legumes to enrich the soil.",
+      "anchors": [
+        "sec-biology-ss3-nutrient-cycles-the-nitrogen-cycle"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.586205+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.nutrient-cycles.the-water-cycle",
+      "version": "1.0.0",
+      "title": "The water cycle",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "nutrient_cycles",
+      "subtopic": "the water cycle",
+      "misconception_codes": [],
+      "body_markdown": "The water cycle describes how water moves continually between the earth, the air and living things. Heat from the sun evaporates water from rivers, lakes and the sea, turning it into water vapour that rises into the air. Plants also add vapour through transpiration. As the vapour rises and cools, it condenses into tiny droplets that form clouds. When the droplets join and grow heavy, they fall as rain or other precipitation. Some of this water sinks into the soil and is taken up by plants or feeds underground stores, while the rest flows over the land into streams and rivers and back to the sea. Because the cycle repeats endlessly, fresh water is renewed and made available for living things.",
+      "anchors": [
+        "sec-biology-ss3-nutrient-cycles-the-water-cycle"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.584660+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.nutrition.balanced-diet-and-deficiency",
+      "version": "1.0.0",
+      "title": "Balanced diet and deficiency diseases",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "nutrition",
+      "subtopic": "balanced diet and deficiency",
+      "misconception_codes": [],
+      "body_markdown": "A balanced diet contains all the classes of food in the right amounts and proportions for a person's age, size and activity. Eating too little of a particular nutrient causes a deficiency disease. A shortage of protein in children can cause kwashiorkor, with a swollen belly and poor growth, while too little food energy overall causes marasmus and severe wasting. A lack of vitamin C can cause scurvy, a lack of vitamin D causes rickets with weak bones, and a lack of iron causes anaemia. Too little of the mineral iodine causes goitre, a swelling of the neck. Eating a variety of local foods such as beans, vegetables, fruits and fish helps prevent these conditions.",
+      "anchors": [
+        "sec-biology-ss3-nutrition-balanced-diet-and-deficiency"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.584532+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.nutrition.classes-of-food",
+      "version": "1.0.0",
+      "title": "Classes of food and their uses",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "nutrition",
+      "subtopic": "classes of food",
+      "misconception_codes": [],
+      "body_markdown": "A healthy diet contains several classes of food, each with its own role. Carbohydrates, found in foods such as rice, yam and garri, are the body's main source of energy. Proteins, from beans, fish, meat and eggs, are needed for growth and the repair of tissues. Fats and oils, from groundnuts and palm oil, store energy and help insulate the body. Vitamins and mineral salts are needed in small amounts to keep the body working properly and to prevent deficiency diseases. Water makes up most of the body and is the medium for its reactions, while dietary fibre, or roughage, helps food move smoothly through the gut. A meal that lacks any class can lead to poor health.",
+      "anchors": [
+        "sec-biology-ss3-nutrition-classes-of-food"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.584407+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.nutrition.modes-of-nutrition",
+      "version": "1.0.0",
+      "title": "How living things feed",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "nutrition",
+      "subtopic": "modes of nutrition",
+      "misconception_codes": [],
+      "body_markdown": "Nutrition is the way living things obtain and use food for energy, growth and repair. There are two main modes. In autotrophic nutrition an organism makes its own food from simple raw materials, as green plants do by photosynthesis using light energy. In heterotrophic nutrition an organism cannot make its own food and must take in ready-made organic food from other organisms. Animals are heterotrophs; so are fungi and many bacteria, which feed on dead matter or on living hosts. Heterotrophs can be grouped further as herbivores that eat plants, carnivores that eat animals, and omnivores like humans that eat both. All food chains begin with autotrophs because they capture the energy that others depend on.",
+      "anchors": [
+        "sec-biology-ss3-nutrition-modes-of-nutrition"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.580739+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.photosynthesis.definition",
+      "version": "1.0.0",
+      "title": "What photosynthesis is",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "photosynthesis",
+      "subtopic": "definition",
+      "misconception_codes": [],
+      "body_markdown": "Photosynthesis is the process by which green plants make their own food using light energy. It takes place mainly in the leaves, inside tiny structures called chloroplasts that contain the green pigment chlorophyll. Chlorophyll absorbs light energy, usually from the sun, and uses it to combine carbon dioxide from the air with water from the soil. The products are glucose, a sugar that stores energy, and oxygen, which is released into the air. Because plants build food from simple raw materials, they are called producers, and almost all other living things depend on them either directly or indirectly for energy and oxygen.",
+      "anchors": [
+        "sec-biology-ss3-photosynthesis-definition"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.582526+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.photosynthesis.testing-a-leaf-for-starch",
+      "version": "1.0.0",
+      "title": "Testing a leaf for starch",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "photosynthesis",
+      "subtopic": "testing a leaf for starch",
+      "misconception_codes": [],
+      "body_markdown": "To show that a leaf has carried out photosynthesis, scientists test it for starch, because glucose made in the leaf is quickly stored as starch. First the leaf is boiled in water to kill it and stop reactions. Next it is boiled in alcohol to remove the green chlorophyll, which would otherwise hide the result; the alcohol is heated in a water bath, not over a direct flame, because alcohol is flammable. The softened leaf is then dipped in warm water and iodine solution is added. A blue-black colour shows that starch is present, confirming that photosynthesis has taken place.",
+      "anchors": [
+        "sec-biology-ss3-photosynthesis-testing-a-leaf-for-starch"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.582402+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.photosynthesis.word-and-chemical-equation",
+      "version": "1.0.0",
+      "title": "The equation for photosynthesis",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "photosynthesis",
+      "subtopic": "word and chemical equation",
+      "misconception_codes": [],
+      "body_markdown": "Photosynthesis can be summarised by a word equation: carbon dioxide plus water, in the presence of light energy and chlorophyll, produces glucose plus oxygen. The balanced chemical equation uses six molecules of carbon dioxide and six molecules of water to make one molecule of glucose and six molecules of oxygen. Light energy is not a substance but a requirement, and chlorophyll acts as the pigment that traps it; neither is used up. The glucose made can be used at once for energy in respiration, stored as starch, or used to build other substances the plant needs such as cellulose and proteins.",
+      "anchors": [
+        "sec-biology-ss3-photosynthesis-word-and-chemical-equation"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.584782+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.reproduction.asexual-reproduction",
+      "version": "1.0.0",
+      "title": "Asexual reproduction",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "reproduction",
+      "subtopic": "asexual reproduction",
+      "misconception_codes": [],
+      "body_markdown": "Reproduction is the process by which living things produce new individuals of their own kind, so that a species continues. In asexual reproduction only one parent is needed and no sex cells join. The offspring are produced from the body of the single parent and are genetically identical to it, forming what is called a clone. Common forms include binary fission in bacteria, budding in yeast, spore formation in fungi, and vegetative propagation in plants, where new plants grow from roots, stems or leaves. Farmers use vegetative propagation to grow crops such as cassava from stem cuttings and yam from tubers. Asexual reproduction is fast and needs no partner, but it produces little variation among the offspring.",
+      "anchors": [
+        "sec-biology-ss3-reproduction-asexual-reproduction"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.585021+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.reproduction.reproduction-in-humans",
+      "version": "1.0.0",
+      "title": "Reproduction in humans",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "reproduction",
+      "subtopic": "reproduction in humans",
+      "misconception_codes": [],
+      "body_markdown": "Humans reproduce sexually, and the male and female reproductive systems each produce gametes. The male system produces sperm cells in the testes, and the female system produces egg cells, or ova, in the ovaries, usually releasing one each month in a cycle. During fertilisation a sperm joins an egg, normally in the oviduct, to form a single cell called a zygote. The zygote divides many times and embeds in the wall of the uterus, where it develops into an embryo and then a foetus, nourished through the placenta. After about nine months the baby is born. Understanding reproduction, personal hygiene and responsible behaviour helps young people protect their health and prevent the spread of disease.",
+      "anchors": [
+        "sec-biology-ss3-reproduction-reproduction-in-humans"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.584902+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.reproduction.sexual-reproduction-in-plants",
+      "version": "1.0.0",
+      "title": "Reproduction in flowering plants",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "reproduction",
+      "subtopic": "sexual reproduction in plants",
+      "misconception_codes": [],
+      "body_markdown": "In sexual reproduction two sex cells, or gametes, join to form a new individual that differs from both parents. In flowering plants the flower is the reproductive organ. The male parts, the stamens, produce pollen grains, while the female part, the carpel, contains the ovules. Pollination is the movement of pollen from an anther to a stigma, carried out by insects, wind or other agents. After pollination a pollen grain grows a tube down to an ovule, and fertilisation occurs when the male gamete joins the female gamete. The fertilised ovule becomes a seed and the ovary becomes a fruit. The seed can later germinate to grow into a new plant, spreading the species to new ground.",
+      "anchors": [
+        "sec-biology-ss3-reproduction-sexual-reproduction-in-plants"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.582639+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.respiration.aerobic-and-anaerobic-respiration",
+      "version": "1.0.0",
+      "title": "Aerobic and anaerobic respiration",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "respiration",
+      "subtopic": "aerobic and anaerobic respiration",
+      "misconception_codes": [],
+      "body_markdown": "Respiration is the process by which living cells release energy from food, especially glucose. Aerobic respiration uses oxygen and breaks glucose down completely into carbon dioxide and water, releasing a large amount of energy. Anaerobic respiration takes place without oxygen and releases much less energy; in animal muscles it produces lactic acid, while in yeast it produces ethanol and carbon dioxide, a process used in baking and brewing. Respiration should not be confused with breathing: breathing is the physical movement of air in and out of the lungs, whereas respiration is the chemical release of energy inside cells.",
+      "anchors": [
+        "sec-biology-ss3-respiration-aerobic-and-anaerobic-respiration"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.584288+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.transport.transport-in-humans",
+      "version": "1.0.0",
+      "title": "The blood and circulation",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "transport",
+      "subtopic": "transport in humans",
+      "misconception_codes": [],
+      "body_markdown": "Humans transport materials in blood, which is pumped around the body by the heart through blood vessels. Blood is made of plasma, a watery liquid that carries dissolved substances, red blood cells that carry oxygen using the pigment haemoglobin, white blood cells that fight disease, and platelets that help clotting. Arteries carry blood away from the heart at high pressure, veins return it to the heart, and tiny capillaries allow exchange of substances with the cells. Blood delivers oxygen and digested food to cells and carries away wastes such as carbon dioxide and urea. The heart has four chambers and keeps blood moving in a double circulation, once through the lungs and once through the rest of the body.",
+      "anchors": [
+        "sec-biology-ss3-transport-transport-in-humans"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.584167+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.transport.transport-in-plants",
+      "version": "1.0.0",
+      "title": "Transport in plants",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "transport",
+      "subtopic": "transport in plants",
+      "misconception_codes": [],
+      "body_markdown": "Flowering plants have two transport tissues that run from the roots through the stem to the leaves. Xylem carries water and dissolved mineral salts upward from the roots, where they are absorbed by root hairs, to the leaves. This upward flow is driven largely by transpiration, the evaporation of water from the leaf surface, which pulls more water up behind it. Phloem carries dissolved food, mainly sugar made in the leaves by photosynthesis, to other parts of the plant such as growing tips, fruits and storage roots like cassava and yam. Because phloem can move food in different directions depending on need, this movement is called translocation. Together xylem and phloem keep the whole plant supplied.",
+      "anchors": [
+        "sec-biology-ss3-transport-transport-in-plants"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (Senior Secondary Biology scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "ingest",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-02T10:44:02.584047+00:00",
+            "ingest_pipeline": "learning.ingest",
+            "note_file": "biology.json"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss3.transport.why-organisms-need-transport",
+      "version": "1.0.0",
+      "title": "Why organisms need transport",
+      "subject": "biology",
+      "year_group": "SS3",
+      "topic": "transport",
+      "subtopic": "why organisms need transport",
+      "misconception_codes": [],
+      "body_markdown": "Every living cell needs a supply of food and oxygen and must get rid of waste products such as carbon dioxide. Very small organisms can rely on simple diffusion across their surface because no cell is far from the outside. Larger organisms, including plants and animals, have many cells deep inside the body where diffusion alone would be far too slow. They therefore need transport systems that carry materials quickly over longer distances. These systems link the parts of the body that take in or make substances with the parts that use or remove them. In this way every cell, however deep in the body, receives what it needs and has its wastes carried away.",
+      "anchors": [
+        "sec-biology-ss3-transport-why-organisms-need-transport"
+      ],
+      "status": "approved"
+    }
+  ]
+}

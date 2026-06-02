@@ -182,7 +182,9 @@ describe('AskPathfinder — unified assistant surface', () => {
     await ask('why is 2/4 = 1/2?')
     await screen.findByText('Divide both by 2.')
     expect(screen.queryByTestId('assistant-defer-badge')).toBeNull()
-    expect(screen.getByText('Simplifying fractions')).toBeTruthy()
+    const citation = screen.getByTestId('assistant-citation')
+    expect(citation.textContent).toContain('Checked against your notes')
+    expect(citation.getAttribute('title')).toContain('Simplifying fractions')
   })
 
   it('omits focus_item and learner_setup when none are anchored', async () => {

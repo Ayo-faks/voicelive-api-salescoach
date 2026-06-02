@@ -1021,6 +1021,15 @@ export function openLearnerVoiceSocket(
   const socket = new WebSocket(
     `${proto}://${window.location.host}/ws/learning-voice${query}`
   )
+  // The dev/prod WebSocket server (simple_websocket on Werkzeug) does not always
+  // complete the closing handshake — when either side closes, the connection can
+  // drop with a 1006 "abnormal closure" that fires `onerror` *before* `onclose`.
+  // That is not a failure the learner should ever see, so we only surface a
+  // transport error while the socket is genuinely live and not being torn down.
+  // Once we (or a clean server `bye`) initiate the close, all subsequent
+  // error/close noise is swallowed — this is what kept the "Voice connection
+  // hiccup — retrying as you speak" banner stuck on the learner surface.
+  let closing = false
   socket.onmessage = event => {
     let message: { type?: string; blocks?: AssistantBlock[]; session_complete?: boolean; message?: string }
     try {
@@ -1035,12 +1044,26 @@ export function openLearnerVoiceSocket(
         blocks: message.blocks ?? [],
         session_complete: Boolean(message.session_complete),
       })
+    } else if (message.type === 'bye') {
+      // Server acknowledged our goodbye and will now send the WebSocket close
+      // frame itself (route calls ws.close(1000)). We must NOT close from our
+      // side too — racing close frames on the Werkzeug dev server reset the TCP
+      // connection and surface a 1006 "Invalid frame header" console error plus
+      // the spurious "connection hiccup" banner. Just mark intent and wait for
+      // the server's clean close frame, which the browser auto-acknowledges.
+      closing = true
     } else if (message.type === 'error') {
       handlers.onError?.(String(message.message ?? 'error'))
     }
   }
   socket.onclose = () => handlers.onClose?.()
-  socket.onerror = () => handlers.onError?.('socket_error')
+  socket.onerror = () => {
+    // Suppress the benign close-race error; only report a real mid-session drop.
+    if (closing || socket.readyState === WebSocket.CLOSING || socket.readyState === WebSocket.CLOSED) {
+      return
+    }
+    handlers.onError?.('socket_error')
+  }
   return {
     send: frame => {
       if (socket.readyState === WebSocket.OPEN) {
@@ -1048,14 +1071,27 @@ export function openLearnerVoiceSocket(
       }
     },
     close: () => {
+      closing = true
       try {
         if (socket.readyState === WebSocket.OPEN) {
+          // Ask the server to say goodbye and close the socket. The server is
+          // the sole closer (see the `bye` branch above); we only fall back to
+          // a local close if it never acks within a short grace period.
           socket.send(JSON.stringify({ type: 'bye' }))
+          window.setTimeout(() => {
+            if (
+              socket.readyState !== WebSocket.CLOSED &&
+              socket.readyState !== WebSocket.CLOSING
+            ) {
+              socket.close()
+            }
+          }, 1000)
+        } else {
+          socket.close()
         }
       } catch {
-        /* ignore */
+        socket.close()
       }
-      socket.close()
     },
   }
 }

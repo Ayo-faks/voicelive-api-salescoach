@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Mapping, Optional
 import pytest
 
 from src.services.learner_voice_websocket_handler import (
+    FRAME_BYE,
     FRAME_CONNECTED,
     FRAME_ERROR,
     FRAME_TURN_RESULT,
@@ -202,6 +203,9 @@ def test_bye_frame_ends_the_session() -> None:
     ).run()
     # No turn was processed because we said goodbye first.
     assert not sock.frames(FRAME_TURN_RESULT)
+    # The handler acks the goodbye so the client can drive a clean WS close
+    # handshake (avoids a 1006 abnormal-closure console error in the browser).
+    assert sock.frames(FRAME_BYE)
 
 
 def test_brain_exception_is_contained() -> None:

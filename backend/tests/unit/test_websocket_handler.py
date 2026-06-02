@@ -300,6 +300,18 @@ class TestVoiceProxyHandler:
             "name": "get_next_card",
         }
 
+    def test_learner_ask_response_create_forces_ask_pathfinder_tool(self):
+        """AskPathfinder VoiceLive turns must route through ask_pathfinder."""
+        handler = VoiceProxyHandler(Mock())
+        message = {"type": "response.create"}
+
+        handler._apply_profile_response_tool_choice(message, get_profile("learner_ask"))
+
+        assert message["response"]["tool_choice"] == {
+            "type": "function",
+            "name": "ask_pathfinder",
+        }
+
     def test_practice_response_create_keeps_existing_tool_choice_behavior(self):
         """Practice VoiceLive sessions keep the existing auto tool behavior."""
         handler = VoiceProxyHandler(Mock())
@@ -349,6 +361,108 @@ class TestVoiceProxyHandler:
 
         assert handled_again is True
         azure_conn.send.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_learner_ask_tool_call_emits_assistant_blocks(self):
+        """learner_ask tool output emits one wulo.assistant_block frame per screened block."""
+        handler = VoiceProxyHandler(Mock())
+        handler._send_message = AsyncMock()
+        azure_conn = Mock()
+        azure_conn.send = AsyncMock()
+        handled_call_ids: set[str] = set()
+        event = {
+            "type": "response.function_call_arguments.done",
+            "name": "ask_pathfinder",
+            "call_id": "call-ask-1",
+            "arguments": '{"question":"help me"}',
+        }
+        client_ws = Mock()
+
+        profile = Mock()
+        profile.id = "learner_ask"
+        profile.tool_handlers = {"ask_pathfinder": Mock()}
+        profile.handle_tool_call.return_value = {
+            "blocks": [
+                {
+                    "kind": "prose",
+                    "speak": "Safe answer.",
+                    "text": "Safe answer.",
+                    "citations": [{"label": "Source"}],
+                }
+            ],
+            "session_complete": True,
+        }
+
+        with patch.object(
+            VoiceProxyHandler,
+            "_screen_assistant_blocks",
+            return_value=profile.handle_tool_call.return_value["blocks"],
+        ) as mock_screen:
+            handled = await handler._maybe_handle_profile_tool_call(
+                event,
+                azure_conn,
+                client_ws,
+                profile,
+                AgentProfileContext(scope="learner_ask"),
+                handled_call_ids,
+            )
+
+        assert handled is True
+        azure_conn.send.assert_awaited_once()
+        mock_screen.assert_called_once()
+        handler._send_message.assert_awaited_once_with(
+            client_ws,
+            {
+                "type": "wulo.assistant_block",
+                "payload": {
+                    "block": {
+                        "kind": "prose",
+                        "speak": "Safe answer.",
+                        "text": "Safe answer.",
+                        "citations": [{"label": "Source"}],
+                    },
+                    "session_complete": True,
+                },
+            },
+        )
+
+    @pytest.mark.asyncio
+    async def test_learner_ask_tool_call_drops_all_screened_blocks(self):
+        """If outbound screening drops every block, nothing is emitted to the client."""
+        handler = VoiceProxyHandler(Mock())
+        handler._send_message = AsyncMock()
+        azure_conn = Mock()
+        azure_conn.send = AsyncMock()
+        handled_call_ids: set[str] = set()
+        event = {
+            "type": "response.function_call_arguments.done",
+            "name": "ask_pathfinder",
+            "call_id": "call-ask-2",
+            "arguments": '{"question":"help me"}',
+        }
+        client_ws = Mock()
+
+        profile = Mock()
+        profile.id = "learner_ask"
+        profile.tool_handlers = {"ask_pathfinder": Mock()}
+        profile.handle_tool_call.return_value = {
+            "blocks": [{"kind": "prose", "text": "Blocked text."}],
+            "session_complete": False,
+        }
+
+        with patch.object(VoiceProxyHandler, "_screen_assistant_blocks", return_value=[]):
+            handled = await handler._maybe_handle_profile_tool_call(
+                event,
+                azure_conn,
+                client_ws,
+                profile,
+                AgentProfileContext(scope="learner_ask"),
+                handled_call_ids,
+            )
+
+        assert handled is True
+        azure_conn.send.assert_awaited_once()
+        handler._send_message.assert_not_awaited()
 
     def test_profile_instruction_block_omits_focus_when_absent(self):
         """Without a focus item the learner instructions have no Dig-Deeper block."""
