@@ -364,6 +364,94 @@ def test_parent_cannot_create_workspace(client: FlaskClient):
     assert create_response.get_json() == {"error": "Therapist role required"}
 
 
+def test_self_serve_parent_chooses_role_and_adds_child(
+    client: FlaskClient, monkeypatch: pytest.MonkeyPatch
+):
+    """A self-serve parent can pick the parent role and add their own child."""
+    monkeypatch.setenv("PATHFINDER_B2C_ONBOARDING_ENABLED", "true")
+    parent_headers = _auth_headers(
+        "user-parent", "selfserve@example.com", name="Self Serve Parent"
+    )
+
+    # New B2C signup starts unassigned and must pick a role.
+    signup = client.get("/api/auth/session", headers=parent_headers)
+    assert signup.status_code == 200
+    assert signup.get_json()["role"] == "unassigned"
+
+    # Picking the parent role bootstraps a personal workspace.
+    choose = client.post(
+        "/api/auth/choose-role", headers=parent_headers, json={"intent": "parent"}
+    )
+    assert choose.status_code == 200
+    chosen = choose.get_json()
+    assert chosen["role"] == "parent"
+    assert chosen["current_workspace_id"] is not None
+    assert len(chosen["user_workspaces"]) == 1
+    assert chosen["user_workspaces"][0]["is_personal"] is True
+
+    # The parent can now add a child under their own workspace.
+    child_response = client.post(
+        "/api/children",
+        headers=parent_headers,
+        json={"name": "Tunde"},
+    )
+    assert child_response.status_code == 201
+    child = child_response.get_json()
+    assert child["name"] == "Tunde"
+    assert child["workspace_id"] == chosen["current_workspace_id"]
+
+    # And the child appears in their listing.
+    listing = client.get("/api/children", headers=parent_headers)
+    assert listing.status_code == 200
+    names = [entry["name"] for entry in listing.get_json()]
+    assert "Tunde" in names
+
+
+def test_self_serve_parent_can_manage_child_consent(client: FlaskClient):
+    """A self-serve parent owns the parental-consent gate for their own child."""
+    parent_headers = _auth_headers(
+        "user-parent", "consent@example.com", name="Consent Parent"
+    )
+    client.get("/api/auth/session", headers=parent_headers)
+    app_module.storage_service.update_user_role("user-parent", "parent")
+    app_module.storage_service.ensure_personal_workspace(
+        user_id="user-parent", name="Consent Parent", email="consent@example.com"
+    )
+
+    child = client.post(
+        "/api/children", headers=parent_headers, json={"name": "Bisi"}
+    ).get_json()
+
+    consent_response = client.post(
+        f"/api/children/{child['id']}/consent",
+        headers=parent_headers,
+        json={
+            "guardian_name": "Consent Parent",
+            "guardian_email": "consent@example.com",
+            "personal_data_consent_accepted": True,
+            "parental_responsibility_confirmed": True,
+        },
+    )
+
+    assert consent_response.status_code == 201
+    assert consent_response.get_json()["guardian_email"] == "consent@example.com"
+
+
+def test_self_serve_learner_cannot_create_arbitrary_child(client: FlaskClient):
+    """A self-serve learner cannot create arbitrary children via POST /api/children."""
+    learner_headers = _auth_headers(
+        "user-learner", "learner@example.com", name="Learner"
+    )
+    client.get("/api/auth/session", headers=learner_headers)
+    app_module.storage_service.update_user_role("user-learner", "learner")
+
+    response = client.post(
+        "/api/children", headers=learner_headers, json={"name": "Nope"}
+    )
+
+    assert response.status_code == 403
+
+
 def test_therapist_can_promote_user_and_unlock_therapist_routes(client: FlaskClient):
     """Therapists should be able to promote a user who can then access therapist-only routes."""
     therapist_headers = _auth_headers("user-1", "first@example.com", name="First User")

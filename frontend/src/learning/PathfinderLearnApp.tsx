@@ -17,6 +17,7 @@ import {
   MagnifyingGlassIcon,
   ShieldCheckIcon,
   UserCircleIcon,
+  UsersIcon,
 } from '@heroicons/react/24/outline'
 import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import {
@@ -28,6 +29,7 @@ import { InsightsRail } from '../components/InsightsRail'
 import { api, type AuthSession } from '../services/api'
 import type { AppConfig, ChildProfile, InsightsScope } from '../types'
 import LearnerSelector from './components/LearnerSelector'
+import ParentFamilyHome from './components/ParentFamilyHome'
 import VoiceAgentFullscreen from './components/VoiceAgentFullscreen'
 import PracticeFullscreen from './components/PracticeFullscreen'
 import WelcomeRolePicker from './components/WelcomeRolePicker'
@@ -115,6 +117,14 @@ const navItems: NavItem[] = [
     icon: AcademicCapIcon,
     allowedRoles: ['parent', 'learner', 'kid', 'student'],
     testId: 'pf-nav-home',
+  },
+  {
+    to: '/family',
+    label: 'Family',
+    hint: 'Children',
+    icon: UsersIcon,
+    allowedRoles: ['parent'],
+    testId: 'pf-nav-family',
   },
   {
     to: '/teacher',
@@ -238,7 +248,7 @@ export function navItemsForRole(role: LearningRole): NavItem[] {
 
 export function defaultPathForRole(role: LearningRole): string {
   if (role === 'therapist' || role === 'admin') return '/teacher'
-  if (role === 'parent') return '/profile'
+  if (role === 'parent') return '/family'
   return '/home'
 }
 
@@ -937,6 +947,14 @@ export default function PathfinderLearnApp() {
   const { selectedLearnerId, setSelectedLearnerId } = useSelectedLearner(
     learnerChildren ?? []
   )
+  const handleParentChildCreated = useCallback(
+    (child: ChildProfile) => {
+      setLearnerChildren(prev => [...(prev ?? []), child])
+      storeSelectedLearnerId(child.id)
+      setSelectedLearnerId(child.id)
+    },
+    [setSelectedLearnerId]
+  )
   const effectiveRole = learningRole === 'loading' ? 'learner' : learningRole
   const visibleNavItems =
     learningRole === 'loading' ? [] : navItemsForRole(effectiveRole)
@@ -1396,6 +1414,20 @@ export default function PathfinderLearnApp() {
               />
               <Route path="/welcome" element={welcomeRouteElement()} />
               <Route path="/home" element={homeRouteElement()} />
+              <Route
+                path="/family"
+                element={routeForRole(
+                  ['parent'],
+                  <ParentFamilyHome
+                    learners={learnerChildren}
+                    selectedLearnerId={
+                      selectedLearnerId ?? learnerChildren?.[0]?.id ?? null
+                    }
+                    onSelectLearner={setSelectedLearnerId}
+                    onChildCreated={handleParentChildCreated}
+                  />
+                )}
+              />
               <Route
                 path="/teacher"
                 element={routeForRole(

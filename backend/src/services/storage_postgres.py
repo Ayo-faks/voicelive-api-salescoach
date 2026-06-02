@@ -991,6 +991,25 @@ class PostgresStorageService:
 
         return self._execute_read(query)
 
+    def ensure_personal_workspace(
+        self,
+        *,
+        user_id: str,
+        name: str,
+        email: str,
+    ) -> Optional[Dict[str, Any]]:
+        """Idempotently ensure the user owns a personal workspace.
+
+        Unlike :meth:`create_workspace` (therapist/admin only), this bootstraps
+        a personal workspace for any account so that self-serve parents can add
+        children. Safe to call repeatedly.
+        """
+        def bootstrap_workspace(connection: psycopg.Connection[Any]) -> None:
+            self._ensure_personal_workspace_for_user(connection, user_id, name or "", email or "")
+
+        self._execute_write(bootstrap_workspace)
+        return self.get_default_workspace_for_user(user_id)
+
     def find_or_create_self_learner(
         self,
         *,

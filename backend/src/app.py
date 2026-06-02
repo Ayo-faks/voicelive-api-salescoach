@@ -2009,6 +2009,15 @@ def choose_role():
             )
         except Exception as error:  # pragma: no cover - defensive
             logger.exception("Failed to bootstrap self-learner: %s", error)
+    elif target_role == ROLE_PARENT:
+        try:
+            storage_service.ensure_personal_workspace(
+                user_id=user_id,
+                name=str(user_dict.get("name") or ""),
+                email=str(user_dict.get("email") or ""),
+            )
+        except Exception as error:  # pragma: no cover - defensive
+            logger.exception("Failed to bootstrap parent workspace: %s", error)
 
     _log_audit_event(
         user_id=user_id,
@@ -2506,8 +2515,11 @@ def get_children():
         return guard_response
 
     if request.method == "POST":
-        if str(cast(Dict[str, Any], user).get("role") or "") not in {ROLE_THERAPIST, ROLE_ADMIN}:
-            return jsonify({"error": "Therapist role required"}), HTTP_FORBIDDEN
+        user_dict = cast(Dict[str, Any], user)
+        user_id = str(user_dict.get("id"))
+        role = str(user_dict.get("role") or "")
+        if role not in {ROLE_THERAPIST, ROLE_ADMIN, ROLE_PARENT}:
+            return jsonify({"error": "Therapist or parent role required"}), HTTP_FORBIDDEN
 
         data = cast(Dict[str, Any], request.get_json(silent=True) or {})
         name = str(data.get("name") or "").strip()
@@ -2516,11 +2528,27 @@ def get_children():
 
         workspace_id = str(data.get("workspace_id") or "").strip() or None
 
+        if role == ROLE_PARENT:
+            relationship = "parent"
+            if workspace_id is None:
+                try:
+                    workspace = storage_service.ensure_personal_workspace(
+                        user_id=user_id,
+                        name=str(user_dict.get("name") or ""),
+                        email=str(user_dict.get("email") or ""),
+                    )
+                    if workspace is not None:
+                        workspace_id = str(workspace.get("id") or "") or None
+                except Exception as error:  # pragma: no cover - defensive
+                    logger.exception("Failed to ensure parent workspace: %s", error)
+        else:
+            relationship = "therapist"
+
         try:
             child = storage_service.create_child(
                 name=name,
-                created_by_user_id=str(cast(Dict[str, Any], user).get("id")),
-                relationship="therapist",
+                created_by_user_id=user_id,
+                relationship=relationship,
                 date_of_birth=str(data.get("date_of_birth") or "").strip() or None,
                 notes=str(data.get("notes") or "").strip() or None,
                 workspace_id=workspace_id,
@@ -2528,12 +2556,12 @@ def get_children():
         except ValueError as error:
             return jsonify({"error": str(error)}), HTTP_FORBIDDEN
         _log_audit_event(
-            user_id=str(cast(Dict[str, Any], user).get("id")),
+            user_id=user_id,
             action="child.create",
             resource_type="child",
             resource_id=str(child.get("id")),
             child_id=str(child.get("id")),
-            metadata={"workspace_id": child.get("workspace_id")},
+            metadata={"workspace_id": child.get("workspace_id"), "relationship": relationship},
         )
         return jsonify(child), 201
 
