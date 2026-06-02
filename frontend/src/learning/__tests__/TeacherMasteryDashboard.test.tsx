@@ -240,7 +240,7 @@ describe('TeacherMasteryDashboard', () => {
       )
     ).toBeTruthy()
     expect(
-      screen.getByText('Pathfinder proposes; the teacher stays in charge.')
+      screen.getByText('Wulo Academy proposes; the teacher stays in charge.')
     ).toBeTruthy()
     expect(screen.getByTestId('practice-plan-proposal')).toBeTruthy()
     expect(screen.getByText('1-2 weeks')).toBeTruthy()

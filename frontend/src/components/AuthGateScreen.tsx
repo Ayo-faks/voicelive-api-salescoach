@@ -1,5 +1,4 @@
 import {
-  Button,
   Spinner,
   Text,
   makeStyles,
@@ -151,7 +150,10 @@ const useStyles = makeStyles({
     fontSize: '0.95rem',
     letterSpacing: '-0.01em',
     paddingInline: '16px',
+    display: 'inline-flex',
+    alignItems: 'center',
     justifyContent: 'center',
+    cursor: 'pointer',
     transition:
       'box-shadow 180ms ease, background 180ms ease, border-color 180ms ease, transform 180ms ease',
   },
@@ -265,7 +267,8 @@ export function AuthGateScreen({
             </Text>
             {error ? <Text className={styles.errorText}>{error}</Text> : null}
             <div className={styles.actionStack}>
-              <Button
+              <button
+                type="button"
                 className={mergeClasses(
                   styles.buttonBase,
                   styles.primaryButton
@@ -273,7 +276,7 @@ export function AuthGateScreen({
                 onClick={onRetry}
               >
                 Retry session
-              </Button>
+              </button>
             </div>
           </>
         ) : (
@@ -287,7 +290,8 @@ export function AuthGateScreen({
                   Local development is running without Azure Easy Auth. Restart
                   the backend with local auth enabled, then recheck the session.
                 </Text>
-                <Button
+                <button
+                  type="button"
                   className={mergeClasses(
                     styles.buttonBase,
                     styles.primaryButton
@@ -295,11 +299,12 @@ export function AuthGateScreen({
                   onClick={onRetry}
                 >
                   Recheck session
-                </Button>
+                </button>
               </div>
             ) : (
               <div className={styles.actionStack}>
-                <Button
+                <button
+                  type="button"
                   className={mergeClasses(
                     styles.buttonBase,
                     styles.secondaryButton
@@ -310,8 +315,9 @@ export function AuthGateScreen({
                     <GoogleIcon />
                     <span>Continue with Google</span>
                   </span>
-                </Button>
-                <Button
+                </button>
+                <button
+                  type="button"
                   className={mergeClasses(
                     styles.buttonBase,
                     styles.primaryButton
@@ -322,7 +328,7 @@ export function AuthGateScreen({
                     <MicrosoftIcon />
                     <span>Continue with Microsoft</span>
                   </span>
-                </Button>
+                </button>
                 <Text className={styles.helperNote}>
                   New here? Just continue with Microsoft or Google — we’ll
                   create your account automatically on first sign-in.

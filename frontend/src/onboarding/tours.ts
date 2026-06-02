@@ -268,10 +268,10 @@ export const welcomeLearnerTour: TourDefinition = {
     {
       selector: '[data-testid="learner-hero-title"]',
       testId: 'learner-hero-title',
-      title: t('tour.welcome_learner.step1.title', 'Welcome to Pathfinder'),
+      title: t('tour.welcome_learner.step1.title', 'Welcome to Wulo Academy'),
       body: t(
         'tour.welcome_learner.step1.body',
-        'Pathfinder learns how you study and turns it into a daily plan. This quick tour shows where everything lives.'
+        'Wulo Academy learns how you study and turns it into a daily plan. This quick tour shows where everything lives.'
       ),
       placement: 'auto',
     },

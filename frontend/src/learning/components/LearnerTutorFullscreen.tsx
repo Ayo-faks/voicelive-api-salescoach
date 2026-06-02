@@ -421,7 +421,7 @@ export function LearnerTutorFullscreen({
     <dialog
       open
       className={styles.scrim}
-      aria-label="Pathfinder learner tutor"
+      aria-label="Wulo Academy learner tutor"
       data-testid="learner-tutor"
     >
       <header className={styles.header}>

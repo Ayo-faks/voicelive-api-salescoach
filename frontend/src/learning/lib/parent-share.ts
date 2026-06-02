@@ -17,7 +17,7 @@ export async function copyParentSummary(text: string): Promise<ShareResult> {
 }
 
 export async function shareParentSummary(text: string): Promise<ShareResult> {
-  const shareData = { text, title: 'Pathfinder update' }
+  const shareData = { text, title: 'Wulo Academy update' }
   const canUseWebShare =
     typeof navigator !== 'undefined' &&
     typeof navigator.share === 'function' &&

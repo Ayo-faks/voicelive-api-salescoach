@@ -691,7 +691,7 @@ export function AskPathfinder({
       : startListening
   const voiceHint = voiceLiveEnabled
     ? liveVoiceState === 'speaking'
-      ? 'Pathfinder is speaking…'
+      ? 'Wulo Academy is speaking…'
       : liveVoiceState === 'thinking'
         ? 'Thinking…'
         : liveVoiceState === 'connecting'
@@ -714,7 +714,7 @@ export function AskPathfinder({
           type="button"
           className={styles.fab}
           onClick={() => setOpen(true)}
-          aria-label="Open Ask Pathfinder"
+          aria-label="Open Ask Wulo Academy"
           data-testid="ask-pathfinder-fab"
         >
           <ChatBubbleLeftRightIcon
@@ -726,13 +726,13 @@ export function AskPathfinder({
       {open && (
         <aside
           className={mergeClasses(styles.drawer, isVoice && styles.drawerVoice)}
-          aria-label="Ask Pathfinder"
+          aria-label="Ask Wulo Academy"
           data-testid="ask-pathfinder-drawer"
           data-mode={mode}
         >
           <header className={styles.header}>
             <div className={styles.headerLeft}>
-              <span className={styles.title}>Ask Pathfinder</span>
+              <span className={styles.title}>Ask Wulo Academy</span>
               <div className={styles.modeToggle}>
                 <button
                   type="button"
@@ -758,7 +758,7 @@ export function AskPathfinder({
                   )}
                   onClick={enterVoiceMode}
                   aria-pressed={isVoice}
-                  aria-label="Talk to Pathfinder"
+                  aria-label="Talk to Wulo Academy"
                   data-testid="ask-pathfinder-mode-voice"
                 >
                   <MicrophoneIcon
@@ -772,7 +772,7 @@ export function AskPathfinder({
               type="button"
               className={styles.closeBtn}
               onClick={closeSurface}
-              aria-label="Close Ask Pathfinder"
+              aria-label="Close Ask Wulo Academy"
             >
               <XMarkIcon className={styles.closeGlyph} aria-hidden="true" />
             </button>
@@ -843,8 +843,8 @@ export function AskPathfinder({
             <form className={styles.composer} onSubmit={send}>
               <textarea
                 className={styles.textarea}
-                aria-label="Ask Pathfinder a question"
-                placeholder="Ask Pathfinder…"
+                aria-label="Ask Wulo Academy a question"
+                placeholder="Ask Wulo Academy…"
                 value={draft}
                 onChange={e => setDraft(e.currentTarget.value)}
                 onKeyDown={e => {

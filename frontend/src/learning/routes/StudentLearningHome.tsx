@@ -306,7 +306,7 @@ const ratioScaffoldStep: DemoStep = {
   label: 'Adaptive',
   title: 'Same idea, smaller step',
   prompt:
-    'Pathfinder noticed the ratio slip. If 1 cup rice needs 1.5 cups water, what do 2 cups rice need?',
+    'Wulo Academy noticed the ratio slip. If 1 cup rice needs 1.5 cups water, what do 2 cups rice need?',
   helper:
     'The next item changed from a new skill to a scaffolded ratio check so you can recover quickly.',
   icon: CalculatorIcon,
@@ -333,7 +333,7 @@ const demoDiagnosticSteps: DemoStep[] = [
       { id: '8', label: '8 cups' },
     ],
     adaptation: {
-      title: 'Pathfinder adapted the next item',
+      title: 'Wulo Academy adapted the next item',
       body: 'The answer suggests doubling the rice was missed, so the next card stays on ratios and reduces the jump before moving on.',
       nextStep: ratioScaffoldStep,
     },
@@ -359,7 +359,7 @@ const demoDiagnosticSteps: DemoStep[] = [
     prompt:
       'Read aloud: The small solar lamp helped Amina finish her homework.',
     helper:
-      'No marks here. Pathfinder queues the sample offline when voice is unavailable.',
+      'No marks here. Wulo Academy queues the sample offline when voice is unavailable.',
     icon: MicrophoneIcon,
     voiceText: 'The small solar lamp helped Amina finish her homework.',
     options: [
@@ -2176,7 +2176,7 @@ export default function StudentLearningHome({
     }
   }
 
-  const parentSummaryText = `Your Pathfinder update: ${learnerSetup.exam} ${learnerSetup.year} ${learnerSetup.subject}. Current focus: Ratio and proportion at 42% mastery. Today: 5 min diagnostic, explain one mistake, practise one similar question. Career signals: data/business and health sciences are worth exploring while chemistry and algebra improve.`
+  const parentSummaryText = `Your Wulo Academy update: ${learnerSetup.exam} ${learnerSetup.year} ${learnerSetup.subject}. Current focus: Ratio and proportion at 42% mastery. Today: 5 min diagnostic, explain one mistake, practise one similar question. Career signals: data/business and health sciences are worth exploring while chemistry and algebra improve.`
 
   function persistShare() {
     try {
@@ -2230,7 +2230,7 @@ export default function StudentLearningHome({
                   style={{ width: 14, height: 14 }}
                   aria-hidden="true"
                 />
-                Pathfinder
+                Wulo Academy
               </span>
               <h1 className={styles.heroTitle} data-testid="learner-hero-title">
                 {learnerSetup.firstName.trim()
@@ -2616,7 +2616,7 @@ export default function StudentLearningHome({
             <div>
               <Text className={styles.cardTitle}>Weak-topic profile</Text>
               <p className={styles.demoHelper} style={{ margin: '4px 0 0' }}>
-                Pathfinder turns the diagnostic into the next best topics to
+                Wulo Academy turns the diagnostic into the next best topics to
                 repair.
               </p>
             </div>

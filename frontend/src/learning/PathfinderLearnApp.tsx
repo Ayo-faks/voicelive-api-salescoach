@@ -266,19 +266,19 @@ const useStyles = makeStyles({
     alignItems: 'center',
     gap: '10px',
     padding: '4px 8px 18px',
+    textDecoration: 'none',
+    color: 'inherit',
+    cursor: 'pointer',
+    borderRadius: t.radius.md,
+    transition: 'opacity 120ms ease',
+    ':hover': { opacity: 0.82 },
   },
   brandMark: {
     width: '32px',
     height: '32px',
     borderRadius: '9px',
-    backgroundColor: t.brand.ink,
-    color: t.brand.onInk,
-    display: 'grid',
-    placeItems: 'center',
-    fontWeight: 700,
-    fontSize: '0.85rem',
-    letterSpacing: '-0.02em',
-    fontFamily: t.font.display,
+    objectFit: 'contain',
+    flexShrink: 0,
   },
   brandText: { display: 'grid', gap: '2px' },
   brandTitle: {
@@ -1261,19 +1261,26 @@ export default function PathfinderLearnApp() {
         authenticated={authStatus === 'authenticated'}
       >
       <div className={styles.page} data-testid="pathfinder-learn-app">
-        <aside className={styles.sidebar} aria-label="Pathfinder primary">
-          <div className={styles.brand}>
-            <span className={styles.brandMark} aria-hidden="true">
-              Wa
-            </span>
+        <aside className={styles.sidebar} aria-label="Wulo Academy primary">
+          <NavLink
+            to="/home"
+            className={styles.brand}
+            aria-label="Wulo Academy — go to home"
+          >
+            <img
+              src="/wulo-logo.png"
+              alt=""
+              aria-hidden="true"
+              className={styles.brandMark}
+            />
             <div className={styles.brandText}>
               <Text className={styles.brandTitle}>Wulo Academy</Text>
             </div>
-          </div>
+          </NavLink>
 
           <div className={styles.navGroupLabel}>Workspaces</div>
           <nav
-            aria-label="Pathfinder views"
+            aria-label="Wulo Academy views"
             style={{ display: 'grid', gap: '2px' }}
           >
             {renderNavLinks()}
@@ -1282,7 +1289,7 @@ export default function PathfinderLearnApp() {
                 type="button"
                 className={styles.navLink}
                 onClick={() => setPracticeOpen(true)}
-                aria-label="Open Pathfinder practice"
+                aria-label="Open Wulo Academy practice"
                 data-testid="sidebar-practice-link"
                 style={{
                   fontFamily: 'inherit',
@@ -1315,14 +1322,22 @@ export default function PathfinderLearnApp() {
 
         <main className={styles.main}>
           <div className={styles.mobileTopBar}>
-            <div className={styles.brand} style={{ padding: 0 }}>
-              <span className={styles.brandMark} aria-hidden="true">
-                Wa
-              </span>
+            <NavLink
+              to="/home"
+              className={styles.brand}
+              style={{ padding: 0 }}
+              aria-label="Wulo Academy — go to home"
+            >
+              <img
+                src="/wulo-logo.png"
+                alt=""
+                aria-hidden="true"
+                className={styles.brandMark}
+              />
               <div className={styles.brandText}>
                 <Text className={styles.brandTitle}>Wulo Academy</Text>
               </div>
-            </div>
+            </NavLink>
             {authSession?.authenticated ? (
               <div className={styles.mobileAccountActions}>
                 <a
@@ -1438,7 +1453,7 @@ export default function PathfinderLearnApp() {
 
           <nav
             className={styles.bottomNav}
-            aria-label="Pathfinder bottom nav"
+            aria-label="Wulo Academy bottom nav"
             style={{
               gridTemplateColumns: `repeat(${Math.max(1, visibleNavItems.length)}, 1fr)`,
             }}
@@ -1460,7 +1475,7 @@ export default function PathfinderLearnApp() {
               type="button"
               className={styles.voiceLauncher}
               onClick={() => setPracticeOpen(true)}
-              aria-label="Open Pathfinder practice"
+              aria-label="Open Wulo Academy practice"
               data-testid="practice-launcher"
             >
               <BookOpenIcon
@@ -1486,7 +1501,7 @@ export default function PathfinderLearnApp() {
             type="button"
             className={styles.voiceLauncher}
             onClick={() => setVoiceOpen(true)}
-            aria-label="Open Pathfinder voice assistant"
+            aria-label="Open Wulo Academy voice assistant"
             data-testid="voice-agent-launcher"
           >
             <MicrophoneIcon
@@ -1500,7 +1515,7 @@ export default function PathfinderLearnApp() {
             type="button"
             className={styles.chatLauncher}
             onClick={() => setChatOpen(true)}
-            aria-label="Open Pathfinder text assistant"
+            aria-label="Open Wulo Academy text assistant"
             data-testid="pathfinder-chat-launcher"
           >
             <ChatBubbleLeftRightIcon
@@ -1516,12 +1531,12 @@ export default function PathfinderLearnApp() {
               chatExpanded && styles.chatPanelExpanded,
               chatClosing && styles.chatPanelClosing
             )}
-            aria-label="Pathfinder text assistant"
+            aria-label="Wulo Academy text assistant"
             data-testid="pathfinder-chat-panel"
           >
             <header className={styles.chatPanelHeader}>
               <span className={styles.chatPanelTitle}>
-                Pathfinder Assistant
+                Wulo Academy Assistant
               </span>
               <button
                 type="button"

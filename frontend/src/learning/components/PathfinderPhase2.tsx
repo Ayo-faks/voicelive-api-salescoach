@@ -605,12 +605,12 @@ export function PendingApprovalCard({
         }
         description={
           <Text size={200}>
-            Pathfinder proposes; the teacher stays in charge.
+            Wulo Academy proposes; the teacher stays in charge.
           </Text>
         }
       />
       <div className={styles.planMeta}>
-        <span className={styles.metaBadge}>Pathfinder proposal</span>
+        <span className={styles.metaBadge}>Wulo Academy proposal</span>
         <span className={styles.metaBadge}>
           {languageLabel(plan.lang)} review
         </span>

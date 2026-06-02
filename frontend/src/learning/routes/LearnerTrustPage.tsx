@@ -101,9 +101,9 @@ export default function LearnerTrustPage(): JSX.Element {
   return (
     <section className={styles.root} data-testid="route-learner-trust">
       <header className={styles.hero}>
-        <span className={styles.eyebrow}>Pathfinder · Trust</span>
+        <span className={styles.eyebrow}>Wulo Academy · Trust</span>
         <Text as="h1" className={styles.title}>
-          How Pathfinder keeps you safe
+          How Wulo Academy keeps you safe
         </Text>
         <p className={styles.sub}>
           A short, plain-English summary. The full Trust &amp; Safety console

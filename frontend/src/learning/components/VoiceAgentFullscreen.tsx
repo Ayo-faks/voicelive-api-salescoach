@@ -407,7 +407,7 @@ export function VoiceAgentFullscreen({
       className={styles.scrim}
       role="dialog"
       aria-modal="true"
-      aria-label="Pathfinder voice assistant"
+      aria-label="Wulo Academy voice assistant"
       data-testid="voice-agent-fullscreen"
     >
       <header className={styles.header}>
@@ -474,7 +474,7 @@ export function VoiceAgentFullscreen({
           >
             {lastAnswer ? (
               <>
-                <div className={styles.transcriptLabel}>Pathfinder</div>
+                <div className={styles.transcriptLabel}>Wulo Academy</div>
                 {lastAnswer}
               </>
             ) : (

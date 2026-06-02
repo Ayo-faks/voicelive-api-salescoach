@@ -82,8 +82,8 @@ export const pathfinderTokens = {
   },
   font: {
     display:
-      '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif',
-    text: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, sans-serif',
+      '"Manrope", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+    text: '"Manrope", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
   },
 } as const
 

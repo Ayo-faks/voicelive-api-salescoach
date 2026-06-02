@@ -121,21 +121,21 @@ const ACCOUNT_LINKS: AccountLink[] = [
   {
     href: '/account/privacy',
     label: 'Privacy',
-    hint: 'How Pathfinder handles your data, consents, and parental controls',
+    hint: 'How Wulo Academy handles your data, consents, and parental controls',
     icon: ShieldCheckIcon,
     testId: 'account-action-privacy',
   },
   {
     href: '/account/terms',
     label: 'Terms',
-    hint: 'The agreement that governs your use of Pathfinder',
+    hint: 'The agreement that governs your use of Wulo Academy',
     icon: DocumentTextIcon,
     testId: 'account-action-terms',
   },
   {
     href: '/account/ai-notice',
     label: 'AI notice',
-    hint: 'How the Pathfinder tutor uses AI, limits, and the safety net',
+    hint: 'How the Wulo Academy tutor uses AI, limits, and the safety net',
     icon: InformationCircleIcon,
     testId: 'account-action-ai-notice',
   },
@@ -155,12 +155,12 @@ export function PathfinderAccountHub() {
   return (
     <div className={styles.shell} data-testid="route-account-hub">
       <header className={styles.header}>
-        <Text className={styles.eyebrow}>Pathfinder · Account</Text>
+        <Text className={styles.eyebrow}>Wulo Academy · Account</Text>
         <Text as="h1" className={styles.title}>
           Account & settings
         </Text>
         <Text className={styles.subtitle}>
-          Manage your Pathfinder experience — voice, privacy, what your tutor
+          Manage your Wulo Academy experience — voice, privacy, what your tutor
           may do, and the policies that govern your learning.
         </Text>
       </header>
@@ -197,7 +197,7 @@ export function PathfinderAccountHub() {
           <span className={styles.rowText}>
             <Text className={styles.rowTitle}>Sign out</Text>
             <Text className={styles.rowHint}>
-              End your Pathfinder session on this device
+              End your Wulo Academy session on this device
             </Text>
           </span>
           <ChevronRightIcon className={styles.chevron} aria-hidden="true" />
@@ -213,18 +213,18 @@ export function PathfinderSettings() {
     <div className={styles.shell} data-testid="route-account-settings">
       <BackLink />
       <header className={styles.header}>
-        <Text className={styles.eyebrow}>Pathfinder · Settings</Text>
+        <Text className={styles.eyebrow}>Wulo Academy · Settings</Text>
         <Text as="h1" className={styles.title}>
           Settings
         </Text>
         <Text className={styles.subtitle}>
-          Tune how Pathfinder looks, sounds, and reaches out to you.
+          Tune how Wulo Academy looks, sounds, and reaches out to you.
         </Text>
       </header>
       <article className={styles.card}>
         <Text className={styles.sectionTitle}>Voice & language</Text>
         <Text className={styles.para}>
-          Pathfinder tutors in English and is being trained to support Yoruba.
+          Wulo Academy tutors in English and is being trained to support Yoruba.
           You can switch between push-to-talk and continuous voice from the
           learner home.
         </Text>
@@ -240,7 +240,7 @@ export function PathfinderSettings() {
         <Text className={styles.sectionTitle}>Notifications</Text>
         <Text className={styles.para}>
           Daily practice reminders and counsellor sign-off prompts can be
-          enabled per device. Pathfinder never sends marketing messages.
+          enabled per device. Wulo Academy never sends marketing messages.
         </Text>
       </article>
     </div>
@@ -253,12 +253,12 @@ export function PathfinderPrivacy() {
     <div className={styles.shell} data-testid="route-account-privacy">
       <BackLink />
       <header className={styles.header}>
-        <Text className={styles.eyebrow}>Pathfinder · Privacy</Text>
+        <Text className={styles.eyebrow}>Wulo Academy · Privacy</Text>
         <Text as="h1" className={styles.title}>
           Privacy
         </Text>
         <Text className={styles.subtitle}>
-          What Pathfinder collects from your learning, and what stays with you.
+          What Wulo Academy collects from your learning, and what stays with you.
         </Text>
       </header>
       <article className={styles.card}>
@@ -296,18 +296,18 @@ export function PathfinderTerms() {
     <div className={styles.shell} data-testid="route-account-terms">
       <BackLink />
       <header className={styles.header}>
-        <Text className={styles.eyebrow}>Pathfinder · Terms</Text>
+        <Text className={styles.eyebrow}>Wulo Academy · Terms</Text>
         <Text as="h1" className={styles.title}>
           Terms of use
         </Text>
         <Text className={styles.subtitle}>
-          The agreement between you and Wulo Academy for using Pathfinder.
+          The agreement between you and Wulo Academy for using Wulo Academy.
         </Text>
       </header>
       <article className={styles.card}>
-        <Text className={styles.sectionTitle}>Who Pathfinder is for</Text>
+        <Text className={styles.sectionTitle}>Who Wulo Academy is for</Text>
         <Text className={styles.para}>
-          Pathfinder is a study companion for JSS1–SS3 learners preparing for
+          Wulo Academy is a study companion for JSS1–SS3 learners preparing for
           WAEC, NECO, JAMB, and equivalent exams. Learners under 13 use it with
           a guardian-acknowledged account.
         </Text>
@@ -316,7 +316,7 @@ export function PathfinderTerms() {
         <Text className={styles.sectionTitle}>Using the service fairly</Text>
         <ul className={styles.bullets}>
           <li>
-            Use Pathfinder for your own learning — don't share your login.
+            Use Wulo Academy for your own learning — don't share your login.
           </li>
           <li>Don't try to extract or copy the question bank.</li>
           <li>
@@ -327,7 +327,7 @@ export function PathfinderTerms() {
       <article className={styles.card}>
         <Text className={styles.sectionTitle}>What we promise</Text>
         <Text className={styles.para}>
-          We make a best effort to keep Pathfinder available, accurate, and
+          We make a best effort to keep Wulo Academy available, accurate, and
           aligned to the syllabus. We are not a substitute for a qualified
           teacher or counsellor.
         </Text>
@@ -342,9 +342,9 @@ export function PathfinderAiNotice() {
     <div className={styles.shell} data-testid="route-account-ai-notice">
       <BackLink />
       <header className={styles.header}>
-        <Text className={styles.eyebrow}>Pathfinder · AI notice</Text>
+        <Text className={styles.eyebrow}>Wulo Academy · AI notice</Text>
         <Text as="h1" className={styles.title}>
-          How Pathfinder uses AI
+          How Wulo Academy uses AI
         </Text>
         <Text className={styles.subtitle}>
           The tutor is an AI assistant — here is how it works, what it can do,
@@ -356,7 +356,7 @@ export function PathfinderAiNotice() {
         <Text className={styles.para}>
           The tutor explains concepts, generates short practice questions, and
           turns wrong answers into a step-by-step concept fix. It is grounded in
-          the WAEC / NECO / JAMB syllabus and Pathfinder's vetted skill library.
+          the WAEC / NECO / JAMB syllabus and Wulo Academy's vetted skill library.
         </Text>
       </article>
       <article className={styles.card}>

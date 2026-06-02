@@ -256,11 +256,11 @@ export function PracticeFullscreen({
     <dialog
       open
       className={styles.scrim}
-      aria-label="Pathfinder practice"
+      aria-label="Wulo Academy practice"
       data-testid="practice-fullscreen"
     >
       <header className={styles.header}>
-        <span className={styles.headerTitle}>Pathfinder · practice</span>
+        <span className={styles.headerTitle}>Wulo Academy · practice</span>
         <button
           type="button"
           className={styles.closeBtn}

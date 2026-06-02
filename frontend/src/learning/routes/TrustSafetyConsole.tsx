@@ -628,7 +628,7 @@ export default function TrustSafetyConsole() {
         <div className={styles.leaderNarrative}>
           <Text weight="semibold">Decision view</Text>
           <Text size={200}>
-            Leaders can connect the demo to buying logic: Pathfinder shows where
+            Leaders can connect the demo to buying logic: Wulo Academy shows where
             the cohort is moving, which students need support, which gaps
             repeat, whether practice is happening, what the weekly unit cost
             looks like, and whether approved interventions are changing outcomes

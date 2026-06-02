@@ -70,7 +70,7 @@ const buildParentReadySummary = (name: string) => [
     ],
   },
   {
-    label: 'What Pathfinder did',
+    label: 'What Wulo Academy did',
     items: [
       'Ran a short diagnostic and adapted the next item after a ratio error.',
       'Proposed a 1-2 week ratio recovery plan for teacher approval.',

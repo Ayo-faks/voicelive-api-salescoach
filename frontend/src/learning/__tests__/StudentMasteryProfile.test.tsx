@@ -10,7 +10,7 @@ describe('StudentMasteryProfile', () => {
     expect(screen.getByText('One-page parent-ready summary')).toBeTruthy()
     expect(screen.getByText('Ready to send home')).toBeTruthy()
     expect(screen.getByText('What we noticed')).toBeTruthy()
-    expect(screen.getByText('What Pathfinder did')).toBeTruthy()
+    expect(screen.getByText('What Wulo Academy did')).toBeTruthy()
     expect(screen.getByText('What to do at home')).toBeTruthy()
     expect(screen.getByText('Next school action')).toBeTruthy()
     expect(

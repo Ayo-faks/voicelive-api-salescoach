@@ -384,7 +384,7 @@ export function LearnerOnboardingWizard({
       {step === 1 && (
         <div className={styles.card} data-testid="learner-onboarding-step-1">
           <Text weight="semibold" size={500}>
-            Welcome to Pathfinder
+            Welcome to Wulo Academy
           </Text>
           <Text size={300}>
             Tell us who you are so we can set up your learning plan.
@@ -461,7 +461,7 @@ export function LearnerOnboardingWizard({
           />
           <Checkbox
             data-testid="consent-checkbox-ai_notice"
-            label="I understand Pathfinder uses AI to suggest activities and pathways."
+            label="I understand Wulo Academy uses AI to suggest activities and pathways."
             checked={s1.ai_notice}
             onChange={(_e, data) =>
               setS1({ ...s1, ai_notice: Boolean(data.checked) })
@@ -586,7 +586,7 @@ export function LearnerOnboardingWizard({
             Career interests
           </Text>
           <Text size={300}>
-            These help Pathfinder suggest careers and elective pathways.
+            These help Wulo Academy suggest careers and elective pathways.
           </Text>
 
           <div className={styles.field}>

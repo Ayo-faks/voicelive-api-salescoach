@@ -60,7 +60,7 @@ describe('shareParentSummary', () => {
     const share = vi.fn().mockResolvedValue(undefined)
     setNavigator({ share } as unknown as Navigator)
     const result = await shareParentSummary('msg')
-    expect(share).toHaveBeenCalledWith({ text: 'msg', title: 'Pathfinder update' })
+    expect(share).toHaveBeenCalledWith({ text: 'msg', title: 'Wulo Academy update' })
     expect(result).toEqual({ ok: true, channel: 'web_share' })
     expect(window.open).not.toHaveBeenCalled()
   })
