@@ -61,6 +61,15 @@ REQUIRED_PROFILE_FIELDS: Final[tuple[str, ...]] = (
     "locale",
 )
 
+# Age bands that classify the registering learner as a minor.
+# For these bands the wizard surfaces the guardian contact section.
+MINOR_AGE_BANDS: Final[frozenset[str]] = frozenset(("under-13", "13-15", "16-17"))
+
+# Age band for which guardian_email is treated as required on the client
+# and triggers a server-side ``needs_onboarding`` extension (see
+# ``profile_needs_onboarding``).
+GUARDIAN_EMAIL_REQUIRED_BAND: Final[str] = "under-13"
+
 MAX_SUBJECTS: Final[int] = 6
 MAX_INTERESTS: Final[int] = 12
 MAX_DISPLAY_NAME_LEN: Final[int] = 80
@@ -233,5 +242,11 @@ def profile_needs_onboarding(profile: dict | None, latest_consents: dict) -> boo
     for kind in REQUIRED_CONSENT_KINDS:
         row = latest_consents.get(kind)
         if not row or not row.get("granted"):
+            return True
+    # Under-13 learners must supply a guardian email before onboarding
+    # is considered complete (mirrors the client-side required gate).
+    if profile.get("age_band") == GUARDIAN_EMAIL_REQUIRED_BAND:
+        guardian_email = profile.get("guardian_email")
+        if not (guardian_email and str(guardian_email).strip()):
             return True
     return False
