@@ -362,6 +362,28 @@ export interface SessionSummary {
   exercise: SessionExercise
 }
 
+export interface MasterySkill {
+  skill: string
+  mastery: number
+  target: number
+  sessions: number
+}
+
+export interface MasteryTrajectoryPoint {
+  week: string
+  score: number
+  iso_year: number
+  iso_week: number
+}
+
+export interface ChildMastery {
+  has_data: boolean
+  session_count: number
+  scored_session_count: number
+  skills: MasterySkill[]
+  trajectory: MasteryTrajectoryPoint[]
+}
+
 export interface SessionDetail {
   id: string
   timestamp: string

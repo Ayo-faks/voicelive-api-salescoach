@@ -198,6 +198,14 @@ export type LearnerDailyPlanResponse = {
   weak_topics: LearnerWeakTopicPayload[]
 }
 
+export type LearnerCareerSkillPayload = {
+  skill_id: string
+  label: string
+  weight: number
+  mastery: number
+  is_gap: boolean
+}
+
 export type LearnerCareerPathwayPayload = {
   id: string
   title: string
@@ -207,6 +215,7 @@ export type LearnerCareerPathwayPayload = {
   demand_trend?: string | null
   demand_source: string
   rationale: string
+  skills?: LearnerCareerSkillPayload[]
 }
 
 export type LearnerCareerPlanResponse = {

@@ -11,24 +11,35 @@ import {
   MagnifyingGlassIcon,
   MapPinIcon,
 } from '@heroicons/react/24/outline'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { fetchLearnerCareers } from '../api'
+import { featureFlags } from '../../utils/featureFlags'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
+
+type PathwaySkill = {
+  skillId: string
+  label: string
+  weight: number
+  mastery: number
+  isGap: boolean
+}
 
 type Pathway = {
   id: string
   title: string
-  category: 'Data' | 'Energy' | 'Health' | 'Creative' | 'Trades' | 'Education'
+  category?: 'Data' | 'Energy' | 'Health' | 'Creative' | 'Trades' | 'Education'
   fit: number
   wageBand: string
-  demand: 'growing' | 'stable' | 'declining'
-  region: string
-  duration: string
+  demand: string
+  region?: string
+  duration?: string
   rationale: string
   gaps: string[]
+  skills?: PathwaySkill[]
   source: string
 }
 
-const pathways: Pathway[] = [
+const staticPathways: Pathway[] = [
   {
     id: 'data-analyst',
     title: 'Data analyst apprenticeship',
@@ -123,6 +134,16 @@ function displayCode(value: string) {
   return value
     .replace(/[_-]+/g, ' ')
     .replace(/\b\w/g, char => char.toUpperCase())
+}
+
+function formatWage(wage: Record<string, unknown>): string {
+  const currency = typeof wage.currency === 'string' ? wage.currency : ''
+  const min = typeof wage.min_monthly === 'number' ? wage.min_monthly : undefined
+  const max = typeof wage.max_monthly === 'number' ? wage.max_monthly : undefined
+  if (currency && min && max) {
+    return `${currency} ${Math.round(min / 1000)}k–${Math.round(max / 1000)}k/mo`
+  }
+  return 'Wage data sourced'
 }
 
 const useStyles = makeStyles({
@@ -300,10 +321,8 @@ const useStyles = makeStyles({
     whiteSpace: 'nowrap',
   },
   source: {
-    fontSize: '0.7rem',
+    fontSize: '0.72rem',
     color: tokens.colorNeutralForeground3,
-    borderTop: `1px dashed ${tokens.colorNeutralStroke2}`,
-    paddingTop: '8px',
   },
   compareBar: {
     position: 'sticky',
@@ -345,22 +364,81 @@ const useStyles = makeStyles({
   },
 })
 
-export default function PathwaysExplorer() {
+export default function PathwaysExplorer({
+  studentId,
+}: {
+  studentId?: string
+}) {
   const styles = useStyles()
   const [category, setCategory] = useState<(typeof categories)[number]>('All')
   const [query, setQuery] = useState('')
   const [compare, setCompare] = useState<string[]>([])
+  // Cards start from the deterministic local list and are replaced by the
+  // per-learner mastery-ranked plan from `GET /api/learning/learner/careers`
+  // when the onboarding flag is on. Flag-off / cold-start / error keeps the
+  // static example array so the page never renders empty.
+  const [pathwaysData, setPathwaysData] = useState<Pathway[]>(staticPathways)
+  const [planSource, setPlanSource] = useState<'mastery' | 'demand' | null>(
+    null
+  )
+
+  useEffect(() => {
+    if (!featureFlags.pathfinder_learner_onboarding_enabled) return
+    let cancelled = false
+    fetchLearnerCareers(studentId ? { student_id: studentId } : {})
+      .then(plan => {
+        if (cancelled || plan.pathways.length === 0) return
+        setPathwaysData(
+          plan.pathways.map(p => {
+            const skills = (p.skills ?? []).map(s => ({
+              skillId: s.skill_id,
+              label: s.label,
+              weight: s.weight,
+              mastery: s.mastery,
+              isGap: s.is_gap,
+            }))
+            return {
+              id: p.id,
+              title: p.title,
+              fit: p.fit,
+              wageBand: formatWage(p.wage_band),
+              demand: p.demand_trend ?? 'tracked',
+              rationale: p.rationale,
+              gaps: skills.filter(s => s.isGap).map(s => s.label),
+              skills,
+              source: `Wage & demand sourced · ${p.demand_source}`,
+            }
+          })
+        )
+        setPlanSource(plan.source)
+        setCategory('All')
+      })
+      .catch(err => {
+        console.warn('learner careers fetch failed', err)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [studentId])
+
+  const isLive = planSource !== null
+  const subtitle = !isLive
+    ? 'Example career routes with fit scores and demand signals — personalised ranking appears once practice data is available.'
+    : planSource === 'mastery'
+      ? 'Career routes ranked by current mastery — each with a fit score, demand signal, and the skills to close next.'
+      : 'Career routes ranked by labour-market demand for now — mastery sharpens the ranking as practice builds.'
 
   const filtered = useMemo(() => {
-    return pathways.filter(p => {
-      const matchCat = category === 'All' || p.category === category
+    return pathwaysData.filter(p => {
+      const matchCat =
+        isLive || category === 'All' || p.category === category
       const matchQuery =
         query.trim() === '' ||
         p.title.toLowerCase().includes(query.toLowerCase()) ||
         p.rationale.toLowerCase().includes(query.toLowerCase())
       return matchCat && matchQuery
     })
-  }, [category, query])
+  }, [pathwaysData, isLive, category, query])
 
   function toggleCompare(id: string) {
     setCompare(cur =>
@@ -378,13 +456,9 @@ export default function PathwaysExplorer() {
         <Text as="h1" className={styles.title}>
           Pathways Explorer
         </Text>
+        <Text className={styles.subtitle}>{subtitle}</Text>
         <div className={styles.headerMeta} aria-label="Pathway context">
-          <span className={styles.pill}>Career pathways</span>
-          <span className={styles.pill}>{pathways.length} routes</span>
-          <span className={styles.pill}>Fit scoring</span>
-          <span className={styles.pill}>Demand signals</span>
-          <span className={styles.pill}>Learning gaps</span>
-          <span className={styles.pill}>Local next steps</span>
+          <span className={styles.pill}>{pathwaysData.length} routes</span>
         </div>
       </div>
 
@@ -402,21 +476,23 @@ export default function PathwaysExplorer() {
             }
           />
         </div>
-        <div className={styles.filters}>
-          {categories.map(c => (
-            <button
-              key={c}
-              type="button"
-              aria-pressed={category === c}
-              className={
-                category === c ? styles.pillButtonActive : styles.pillButton
-              }
-              onClick={() => setCategory(c)}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
+        {!isLive && (
+          <div className={styles.filters}>
+            {categories.map(c => (
+              <button
+                key={c}
+                type="button"
+                aria-pressed={category === c}
+                className={
+                  category === c ? styles.pillButtonActive : styles.pillButton
+                }
+                onClick={() => setCategory(c)}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {filtered.length === 0 ? (
@@ -429,7 +505,9 @@ export default function PathwaysExplorer() {
             <Card key={p.id} className={styles.card}>
               <div className={styles.cardHead}>
                 <Text className={styles.cardTitle}>{p.title}</Text>
-                <span className={styles.pill}>{p.category}</span>
+                {p.category && (
+                  <span className={styles.pill}>{p.category}</span>
+                )}
               </div>
 
               <div>
@@ -463,23 +541,35 @@ export default function PathwaysExplorer() {
                   />
                   {p.demand}
                 </span>
-                <span className={styles.metaItem}>
-                  <MapPinIcon className={styles.iconSm} aria-hidden="true" />
-                  {p.region}
-                </span>
-                <span>· {p.duration}</span>
+                {p.region && (
+                  <span className={styles.metaItem}>
+                    <MapPinIcon className={styles.iconSm} aria-hidden="true" />
+                    {p.region}
+                  </span>
+                )}
+                {p.duration && <span>· {p.duration}</span>}
               </div>
 
               <div>
                 <Text size={200} weight="semibold">
-                  Linked gaps
+                  {p.gaps.length > 0 ? 'Skills to close' : 'Linked skills'}
                 </Text>
                 <div className={styles.gapPills} style={{ marginTop: 6 }}>
-                  {p.gaps.map(g => (
-                    <span key={g} className={styles.pill}>
-                      {displayCode(g)}
-                    </span>
-                  ))}
+                  {p.gaps.length > 0 ? (
+                    p.gaps.map(g => (
+                      <span key={g} className={styles.pill}>
+                        {displayCode(g)}
+                      </span>
+                    ))
+                  ) : p.skills && p.skills.length > 0 ? (
+                    p.skills.slice(0, 3).map(s => (
+                      <span key={s.skillId} className={styles.pill}>
+                        {s.label}
+                      </span>
+                    ))
+                  ) : (
+                    <span className={styles.pill}>On track</span>
+                  )}
                 </div>
               </div>
 
@@ -499,10 +589,18 @@ export default function PathwaysExplorer() {
                   View details
                 </button>
               </div>
-
-              <div className={styles.source}>{p.source}</div>
             </Card>
           ))}
+        </div>
+      )}
+
+      {filtered.length > 0 && (
+        <div className={styles.source}>
+          {isLive
+            ? planSource === 'mastery'
+              ? 'Ranked from this learner’s mastery · wage & demand signals sourced'
+              : 'Ranked from labour-market demand · wage & demand signals sourced'
+            : 'Example routes · fit and demand signals · Labour market outlook · 2026 Q2'}
         </div>
       )}
 

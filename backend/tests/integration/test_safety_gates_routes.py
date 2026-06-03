@@ -221,6 +221,63 @@ def test_child_sessions_read_allowed_with_full_consent(client: FlaskClient):
     assert isinstance(response.get_json(), list)
 
 
+def test_child_mastery_blocks_when_data_consent_missing(client: FlaskClient):
+    therapist_headers, child_id = _bootstrap_therapist_with_child(client)
+    # No parental consent persisted — read should fail closed.
+
+    response = client.get(f"/api/children/{child_id}/mastery", headers=therapist_headers)
+    assert response.status_code == 403, response.get_json()
+    assert response.get_json()["error"] == "missing_consent"
+
+
+def test_child_mastery_empty_when_no_sessions(client: FlaskClient):
+    therapist_headers, child_id = _bootstrap_therapist_with_child(client)
+    _grant_full_parental_consent(
+        app_module.storage_service, child_id, recorded_by_user_id="user-therapist"
+    )
+
+    response = client.get(f"/api/children/{child_id}/mastery", headers=therapist_headers)
+    assert response.status_code == 200, response.get_json()
+    body = response.get_json()
+    assert body["has_data"] is False
+    assert body["skills"] == []
+    assert body["trajectory"] == []
+
+
+def test_child_mastery_aggregates_real_sessions(client: FlaskClient):
+    therapist_headers, child_id = _bootstrap_therapist_with_child(client)
+    _grant_full_parental_consent(
+        app_module.storage_service, child_id, recorded_by_user_id="user-therapist"
+    )
+    for score in (60, 80):
+        app_module.storage_service.save_session(
+            {
+                "child_id": child_id,
+                "child_name": "Ada",
+                "exercise": {
+                    "id": "exercise-ratio",
+                    "name": "Ratio practice",
+                    "description": "Ratio and proportion",
+                    "exerciseMetadata": {},
+                },
+                "exercise_metadata": {},
+                "ai_assessment": {"overall_score": score},
+                "pronunciation_assessment": {},
+                "transcript": "user: ratio",
+                "reference_text": "ratio",
+            }
+        )
+
+    response = client.get(f"/api/children/{child_id}/mastery", headers=therapist_headers)
+    assert response.status_code == 200, response.get_json()
+    body = response.get_json()
+    assert body["has_data"] is True
+    assert body["scored_session_count"] == 2
+    skills = {s["skill"]: s for s in body["skills"]}
+    assert skills["Ratio practice"]["mastery"] == 70
+    assert skills["Ratio practice"]["sessions"] == 2
+
+
 def test_child_reports_list_blocks_when_data_consent_missing(client: FlaskClient):
     therapist_headers, child_id = _bootstrap_therapist_with_child(client)
     # No parental consent persisted — read should fail closed.

@@ -115,7 +115,7 @@ const navItems: NavItem[] = [
     label: 'Learner',
     hint: 'Today',
     icon: AcademicCapIcon,
-    allowedRoles: ['parent', 'learner', 'kid', 'student'],
+    allowedRoles: ['learner', 'kid', 'student'],
     testId: 'pf-nav-home',
   },
   {
@@ -253,10 +253,12 @@ export function defaultPathForRole(role: LearningRole): string {
 }
 
 const useStyles = makeStyles({
-  provider: {
-    minHeight: '100vh',
-    backgroundColor: t.brand.page,
-  },
+  // NOTE: FluentProvider applies this className to portal mount nodes too
+  // (applyStylesToPortals defaults to true). Keep it free of layout/background
+  // styles, otherwise popups (e.g. Dropdown) inherit a full-viewport opaque
+  // panel and cover the screen. The page/role-picker children own the
+  // min-height + background.
+  provider: {},
   page: {
     minHeight: '100vh',
     backgroundColor: t.brand.page,
@@ -1457,6 +1459,9 @@ export default function PathfinderLearnApp() {
                   <StudentMasteryProfile
                     role={effectiveRole}
                     learnerName={selectedLearnerName}
+                    studentId={activeLearnerIdForPractice}
+                    learners={learnerChildren ?? undefined}
+                    onSelectStudent={setSelectedLearnerId}
                   />
                 )}
               />
@@ -1464,7 +1469,7 @@ export default function PathfinderLearnApp() {
                 path="/pathways"
                 element={routeForRole(
                   ['parent', 'learner', 'kid', 'student', 'admin'],
-                  <PathwaysExplorer />
+                  <PathwaysExplorer studentId={activeLearnerIdForPractice} />
                 )}
               />
               <Route

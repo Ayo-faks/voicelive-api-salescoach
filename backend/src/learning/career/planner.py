@@ -5,8 +5,15 @@ from __future__ import annotations
 from typing import Dict, Iterable
 
 from src.common.labour_market import LabourMarketRecord
-from src.learning.models import CareerPathway, CareerPlan, Provenance
+from src.learning.models import CareerPathway, CareerPathwaySkill, CareerPlan, Provenance
 from src.learning.planner import PlannerRequest, PlannerResult
+
+
+# A skill the learner has actually practised but estimates below this mastery
+# probability is treated as a closeable "gap" the pathway depends on.
+GAP_MASTERY_THRESHOLD = 0.6
+# Neutral prior used when the learner has no estimate for a weighted skill yet.
+NEUTRAL_MASTERY_PRIOR = 0.5
 
 
 class DeterministicCareerPlanner:
@@ -54,8 +61,20 @@ class DeterministicCareerPlanner:
     ) -> CareerPathway:
         mastery_fit = 0.0
         total_weight = sum(record.skill_weights.values()) or 1.0
+        skills: list[CareerPathwaySkill] = []
         for skill_id, weight in record.skill_weights.items():
-            mastery_fit += mastery_profile.get(skill_id, 0.5) * weight
+            has_estimate = skill_id in mastery_profile
+            mastery = mastery_profile.get(skill_id, NEUTRAL_MASTERY_PRIOR)
+            mastery_fit += mastery * weight
+            skills.append(
+                CareerPathwaySkill(
+                    skill_id=skill_id,
+                    weight=round(float(weight), 4),
+                    mastery=round(float(mastery), 4),
+                    is_gap=has_estimate and mastery < GAP_MASTERY_THRESHOLD,
+                )
+            )
+        skills.sort(key=lambda skill: skill.weight, reverse=True)
         demand_value = record.demand_trend.value.get("score", 0.5)
         demand_score = float(demand_value) if isinstance(demand_value, (int, float)) else 0.5
         consent_multiplier = 1.0 if career_consent else 0.75
@@ -67,6 +86,7 @@ class DeterministicCareerPlanner:
             wage_band=record.wage_band,
             demand_trend=record.demand_trend,
             rationale="Ranked from mastery profile, wage band, demand trend, source recency, and consent state.",
+            skills=skills,
         )
 
 

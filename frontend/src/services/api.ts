@@ -35,6 +35,7 @@ import type {
   PracticePlan,
   SessionDetail,
   SessionSummary,
+  ChildMastery,
   Scenario,
   TherapistFeedbackRating,
   UiState,
@@ -972,6 +973,12 @@ export const api = {
   async getChildSessions(childId: string): Promise<SessionSummary[]> {
     const res = await fetchWithAuth(`/api/children/${childId}/sessions`)
     if (!res.ok) throw new Error('Failed to load session history')
+    return res.json()
+  },
+
+  async getChildMastery(childId: string): Promise<ChildMastery> {
+    const res = await fetchWithAuth(`/api/children/${childId}/mastery`)
+    if (!res.ok) throw new Error('Failed to load mastery profile')
     return res.json()
   },
 

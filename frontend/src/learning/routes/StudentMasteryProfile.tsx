@@ -5,7 +5,7 @@ import {
   makeStyles,
   tokens,
 } from '@fluentui/react-components'
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   Radar,
   RadarChart,
@@ -20,80 +20,129 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts'
-import {
-  CounsellorGatePanel,
-  ParentProgressCard,
-  Phase3ProvenanceFooter,
-  VoiceQueueCard,
-} from '../components/PathfinderPhase3'
-import {
-  advisorDecision,
-  careerPlan,
-  parentProgress,
-  voiceQueue,
-} from '../fixtures'
 import { useLearnerSetup } from '../hooks/useLearnerSetup'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
+import { api } from '../../services/api'
+import LearnerSelector from '../components/LearnerSelector'
+import type { ChildMastery, ChildProfile } from '../../types'
 
 export type StudentMasteryProfileProps = {
   /** Effective viewer role; counsellor widgets only render for staff. */
   role?: string
   /** Selected learner's display name, for a single identity source. */
   learnerName?: string | null
+  /** Selected learner id; drives the real (non-demo) mastery profile. */
+  studentId?: string | null
+  /** All learners this viewer manages; powers the child switcher (multi-kid). */
+  learners?: ChildProfile[]
+  /** Switch the active learner when a parent manages more than one child. */
+  onSelectStudent?: (studentId: string) => void
 }
+// The parent-ready summary is derived from the learner's live mastery profile
+// (strongest skill, below-target gaps, focus skills, scored-session count and
+// the real teacher review date) rather than hard-coded demo copy. It mirrors
+// whatever child is currently selected in the switcher.
+const buildParentReadySummary = (
+  name: string,
+  mastery: ChildMastery | null,
+) => {
+  const skills = mastery?.skills ?? []
+  const hasData = (mastery?.has_data ?? false) && skills.length > 0
+  const sessionCount = mastery?.scored_session_count ?? 0
+  const sessionWord = sessionCount === 1 ? 'session' : 'sessions'
 
-const radarData = [
-  { skill: 'Ratio', mastery: 42, target: 75 },
-  { skill: 'Fractions', mastery: 61, target: 75 },
-  { skill: 'Linear eq.', mastery: 74, target: 75 },
-  { skill: 'Geometry', mastery: 86, target: 75 },
-  { skill: 'Measurement', mastery: 68, target: 75 },
-  { skill: 'Statistics', mastery: 55, target: 75 },
-]
+  if (!hasData) {
+    return [
+      {
+        label: 'What we noticed',
+        items: [
+          `${name} has not completed any scored practice yet, so there is no progress to send home this week.`,
+        ],
+      },
+      {
+        label: 'What Wulo Academy did',
+        items: ['Prepared a short diagnostic to find the right starting point.'],
+      },
+      {
+        label: 'What to do at home',
+        items: [
+          `Encourage ${name} to finish a first practice exercise so we can share real progress.`,
+        ],
+      },
+    ]
+  }
 
-const trajectoryData = [
-  { week: 'W1', ratio: 22, fractions: 41 },
-  { week: 'W2', ratio: 28, fractions: 47 },
-  { week: 'W3', ratio: 31, fractions: 53 },
-  { week: 'W4', ratio: 35, fractions: 56 },
-  { week: 'W5', ratio: 38, fractions: 58 },
-  { week: 'W6', ratio: 42, fractions: 61 },
-]
+  const strongest = [...skills].sort((a, b) => b.mastery - a.mastery)[0]
+  const belowTarget = skills
+    .filter(skill => skill.mastery < skill.target)
+    .sort((a, b) => a.mastery - b.mastery)
+  const topGap = belowTarget[0]
+  const focus = belowTarget.slice(0, 3)
+  const topGapName = topGap?.skill.toLowerCase()
 
-const buildParentReadySummary = (name: string) => [
-  {
-    label: 'What we noticed',
-    items: [
-      `${name} is strongest in geometry and is improving in fractions.`,
-      'Ratio and proportion is still the main learning gap this week.',
-      `Recent practice shows ${name} benefits from worked examples before independent questions.`,
-    ],
-  },
-  {
-    label: 'What Wulo Academy did',
-    items: [
-      'Ran a short diagnostic and adapted the next item after a ratio error.',
-      'Proposed a 1-2 week ratio recovery plan for teacher approval.',
-      'Scheduled spaced retrieval after one bite-sized practice exercise.',
-    ],
-  },
-  {
-    label: 'What to do at home',
-    items: [
-      'Spend 10 minutes twice this week on recipe or shopping ratios.',
-      `Ask ${name} to explain what changed and what stayed the same in each ratio.`,
-      'Encourage effort on chemistry and science pathways without promising outcomes.',
-    ],
-  },
-  {
-    label: 'Next school action',
-    items: [
-      `Teacher review is scheduled for ${parentProgress.nextReview}.`,
-      'Saved facts only apply after the teacher approves them.',
-      'Parents can reply with context for the teacher to approve or reject.',
-    ],
-  },
-]
+  const trajectory = mastery?.trajectory ?? []
+  let trend: 'improving' | 'steady' | 'dipping' | null = null
+  if (trajectory.length >= 2) {
+    const delta =
+      trajectory[trajectory.length - 1].score - trajectory[0].score
+    trend = delta >= 4 ? 'improving' : delta <= -4 ? 'dipping' : 'steady'
+  }
+
+  const noticed: string[] = [
+    `${name} is strongest in ${strongest.skill.toLowerCase()} (${strongest.mastery}%).`,
+  ]
+  if (topGap) {
+    noticed.push(
+      `${topGap.skill} is the main learning gap this week (${topGap.mastery}% against a ${topGap.target}% target).`,
+    )
+  } else {
+    noticed.push(
+      `Every tracked skill is at or above its ${strongest.target}% target.`,
+    )
+  }
+  if (trend === 'improving') {
+    noticed.push(
+      `Weekly practice scores are trending up across ${sessionCount} scored ${sessionWord}.`,
+    )
+  } else if (trend === 'dipping') {
+    noticed.push(
+      `Weekly practice scores have dipped recently across ${sessionCount} scored ${sessionWord}.`,
+    )
+  } else {
+    noticed.push(
+      `Based on ${sessionCount} scored practice ${sessionWord} so far.`,
+    )
+  }
+
+  const wuloDid: string[] = [
+    topGapName
+      ? `Adapted the next questions after ${name} struggled with ${topGapName}.`
+      : 'Kept practice at the right challenge level as skills held above target.',
+    topGapName
+      ? `Proposed a short ${topGapName} recovery plan for teacher approval.`
+      : 'Proposed gentle stretch work for teacher approval.',
+    `Scheduled spaced retrieval across ${sessionCount} practice ${sessionWord}.`,
+  ]
+
+  const atHome: string[] = [
+    topGapName
+      ? `Spend 10 minutes twice this week practising ${topGapName}.`
+      : `Keep ${name}'s routine of short, regular practice going.`,
+    `Ask ${name} to explain their thinking out loud on each question.`,
+    focus.length > 1
+      ? `Also revisit ${focus
+          .slice(1)
+          .map(skill => skill.skill.toLowerCase())
+          .join(' and ')} when there is time.`
+      : 'Celebrate effort and consistency rather than just correct answers.',
+  ]
+
+  return [
+    { label: 'What we noticed', items: noticed },
+    { label: 'What Wulo Academy did', items: wuloDid },
+    { label: 'What to do at home', items: atHome },
+  ]
+}
 
 const useStyles = makeStyles({
   shell: {
@@ -209,36 +258,10 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: '10px',
   },
-  auditCard: {
-    padding: '16px',
-    borderRadius: t.radius.md,
-    border: t.surface.hairline,
-    backgroundColor: t.brand.surface,
-    boxShadow: t.surface.cardElevatedShadow,
-    display: 'grid',
-    gap: '8px',
-  },
   tabRow: {
     display: 'flex',
     gap: '6px',
     flexWrap: 'wrap',
-  },
-  auditEventList: {
-    display: 'grid',
-    gap: '6px',
-    marginTop: '8px',
-  },
-  auditEventItem: {
-    display: 'block',
-    padding: '5px 9px',
-    borderRadius: t.radius.pill,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.cardMuted,
-    color: t.brand.textSecondary,
-    fontSize: '0.72rem',
-    fontWeight: 650,
-    lineHeight: 1.35,
-    overflowWrap: 'anywhere',
   },
   parentSummaryCard: {
     padding: '18px',
@@ -284,32 +307,63 @@ const useStyles = makeStyles({
     gap: '8px',
     flexWrap: 'wrap',
   },
-  sendHomeButton: {
-    appearance: 'none',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: t.control.minHeight,
-    paddingRight: '15px',
-    paddingLeft: '15px',
-    borderRadius: t.radius.pill,
-    border: `1px solid ${t.brand.ink}`,
-    backgroundColor: t.brand.ink,
-    color: t.brand.onInk,
-    cursor: 'pointer',
-    font: 'inherit',
-    fontSize: '0.84rem',
-    fontWeight: 700,
-  },
 })
 
 export default function StudentMasteryProfile({
   role,
   learnerName,
+  studentId,
+  learners,
+  onSelectStudent,
 }: StudentMasteryProfileProps = {}) {
   const styles = useStyles()
   const [setup] = useLearnerSetup()
-  const [auditEvents, setAuditEvents] = useState<string[]>([])
+  const [mastery, setMastery] = useState<ChildMastery | null>(null)
+  const [masteryLoading, setMasteryLoading] = useState(false)
+
+  // Pull the real per-child mastery profile (skill radar + weekly trajectory)
+  // instead of demo fixtures (#1). Falls back to an empty state when the
+  // learner has not practised yet. Scoped to one learner at a time — for a
+  // parent with several children, the radar reflects whichever child is
+  // selected in the switcher below.
+  const loadMastery = useCallback(
+    async (signal?: { cancelled: boolean }, opts?: { quiet?: boolean }) => {
+      if (!studentId) {
+        setMastery(null)
+        return
+      }
+      if (!opts?.quiet) setMasteryLoading(true)
+      try {
+        const data = await api.getChildMastery(studentId)
+        if (!signal?.cancelled) setMastery(data)
+      } catch {
+        if (!signal?.cancelled && !opts?.quiet) setMastery(null)
+      } finally {
+        if (!signal?.cancelled && !opts?.quiet) setMasteryLoading(false)
+      }
+    },
+    [studentId]
+  )
+
+  useEffect(() => {
+    const signal = { cancelled: false }
+    loadMastery(signal)
+    // Keep the radar fresh after the learner finishes practice elsewhere:
+    // refetch quietly when the tab regains focus / becomes visible again.
+    const onFocus = () => loadMastery(signal, { quiet: true })
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        loadMastery(signal, { quiet: true })
+      }
+    }
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      signal.cancelled = true
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [loadMastery])
 
   // Counsellor/teacher/parent controls (approvals, risk flags, send-home) are
   // for adults reviewing a learner. Learners themselves get a read-only,
@@ -322,44 +376,55 @@ export default function StudentMasteryProfile({
   const displayName =
     learnerName?.trim() || setup.firstName.trim() || 'Your progress'
 
-  // Parent-ready summary uses a readable first name (never the H1 fallback).
+  // Parent-ready summary uses a readable first name (never the H1 fallback)
+  // and is derived from the live mastery profile + real teacher review date.
   const summaryName =
     learnerName?.trim() || setup.firstName.trim() || 'Your learner'
-  const parentReadySummary = buildParentReadySummary(summaryName)
+  const parentReadySummary = buildParentReadySummary(summaryName, mastery)
+
+  // Real data drives the charts; the radar broadens to every skill the learner
+  // has actually practised (#2) rather than a fixed list of maths strands.
+  const radarData = mastery?.skills ?? []
+  const trajectoryData = mastery?.trajectory ?? []
+  const hasRadarData = radarData.length > 0
+  const hasTrajectoryData = trajectoryData.length > 0
+
+  // Skills sitting below their mastery target become the real "focus"/"risk"
+  // signal, replacing the previous hard-coded ratio/linear-eq flags (#1).
+  const focusSkills = [...radarData]
+    .filter(point => point.mastery < point.target)
+    .sort((a, b) => a.mastery - b.mastery)
+    .slice(0, 3)
 
   // Plain-language, table-style alternatives for the charts (#17).
   const radarSummary = radarData
     .map(point => `${point.skill} ${point.mastery}%`)
     .join(', ')
   const trajectorySummary = trajectoryData
-    .map(point => `${point.week}: ratio ${point.ratio}%, fractions ${point.fractions}%`)
+    .map(point => `${point.week}: ${point.score}%`)
     .join('; ')
-
-  function pushEvent(e: string) {
-    setAuditEvents(cur => [...cur, e])
-  }
 
   return (
     <div className={styles.shell} data-testid="route-student-profile">
+      {learners && learners.length > 1 && onSelectStudent && (
+        <LearnerSelector
+          learners={learners}
+          selectedLearnerId={studentId ?? null}
+          onChange={onSelectStudent}
+        />
+      )}
       <div className={styles.headerRow}>
         <div className={styles.studentMeta}>
           <Text as="h1" className={styles.title}>
             {displayName}
           </Text>
           <div className={styles.metaBadges}>
-            <span className={styles.softBadgeSolid}>
-              Learner insights profile
-            </span>
             <span className={styles.softBadge}>{setup.year}</span>
             <span className={styles.softBadge}>{setup.subject}</span>
-            <span className={styles.softBadge}>Mastery trajectory</span>
-            <span className={styles.softBadge}>Career fit</span>
-          </div>
-          <div className={styles.metaBadges}>
-            <span className={styles.softBadge}>Current focus: ratio</span>
-            <span className={styles.softBadge}>Review: 2026-06-02</span>
-            {isStaff && (
-              <span className={styles.softBadgeSolid}>Teacher checked</span>
+            {mastery?.has_data && (
+              <span className={styles.softBadge}>
+                {mastery.scored_session_count} sessions
+              </span>
             )}
           </div>
         </div>
@@ -385,12 +450,7 @@ export default function StudentMasteryProfile({
           </div>
           <div className={styles.parentSummaryActions}>
             {isStaff && (
-              <>
-                <span className={styles.softBadgeSolid}>Ready to send home</span>
-                <button type="button" className={styles.sendHomeButton}>
-                  Send home summary
-                </button>
-              </>
+              <span className={styles.softBadgeSolid}>Ready to send home</span>
             )}
           </div>
         </div>
@@ -415,10 +475,33 @@ export default function StudentMasteryProfile({
         <Card className={styles.chartCard}>
           <CardHeader
             header={<Text weight="semibold">Skill radar</Text>}
-            description={<Text size={200}>Mastery vs JSS2 target (75%)</Text>}
+            description={
+              <Text size={200}>
+                Average mastery per skill from real practice sessions
+              </Text>
+            }
           />
           <div className={styles.chartBox}>
-            <ResponsiveContainer width="100%" height="100%">
+            {!hasRadarData ? (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100%',
+                  textAlign: 'center',
+                  color: t.brand.textSecondary,
+                  padding: '0 16px',
+                }}
+              >
+                <Text size={200}>
+                  {masteryLoading
+                    ? 'Loading mastery…'
+                    : 'No practice sessions yet — the skill radar appears once this learner completes their first exercise.'}
+                </Text>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
               <RadarChart
                 data={radarData}
                 role="img"
@@ -450,6 +533,7 @@ export default function StudentMasteryProfile({
                 />
               </RadarChart>
             </ResponsiveContainer>
+            )}
           </div>
         </Card>
 
@@ -457,105 +541,110 @@ export default function StudentMasteryProfile({
           {isStaff ? (
             <Card className={styles.riskCard}>
               <Text className={styles.riskTitle}>Risks &amp; flags</Text>
-              <span className={styles.softBadge}>Ratio mastery below 50%</span>
-              <span className={styles.softBadge}>
-                Uncertainty rising on linear eq.
-              </span>
-              <Text size={200}>
-                Two flags open. Teacher check-in scheduled 2026-06-02.
-              </Text>
+              {focusSkills.length > 0 ? (
+                <>
+                  {focusSkills.map(point => (
+                    <span key={point.skill} className={styles.softBadge}>
+                      {point.skill} mastery {point.mastery}% (target{' '}
+                      {point.target}%)
+                    </span>
+                  ))}
+                  <Text size={200}>
+                    {focusSkills.length} skill
+                    {focusSkills.length === 1 ? '' : 's'} below target.
+                  </Text>
+                </>
+              ) : (
+                <Text size={200}>
+                  {hasRadarData
+                    ? 'No skills below target right now.'
+                    : 'No practice data yet — flags appear after the first sessions.'}
+                </Text>
+              )}
             </Card>
           ) : (
             <Card className={styles.riskCard}>
               <Text className={styles.riskTitle}>Your focus this week</Text>
-              <span className={styles.softBadge}>Ratio &amp; proportion</span>
-              <span className={styles.softBadge}>Keep practising linear eq.</span>
-              <Text size={200}>
-                You&apos;re making steady progress — a short ratio practice this
-                week will lift your score.
-              </Text>
+              {focusSkills.length > 0 ? (
+                <>
+                  {focusSkills.map(point => (
+                    <span key={point.skill} className={styles.softBadge}>
+                      {point.skill}
+                    </span>
+                  ))}
+                  <Text size={200}>
+                    You&apos;re making steady progress — a little practice on
+                    these will lift your score.
+                  </Text>
+                </>
+              ) : (
+                <Text size={200}>
+                  {hasRadarData
+                    ? 'Great work — every skill is on target. Keep it up!'
+                    : 'Start your first practice to see your focus skills here.'}
+                </Text>
+              )}
             </Card>
           )}
-          <ParentProgressCard progress={parentProgress} />
         </div>
       </div>
 
-      <div className={styles.twoCol}>
-        <Card className={styles.trajectoryCard}>
-          <CardHeader
+      <Card className={styles.trajectoryCard}>
+        <CardHeader
             header={<Text weight="semibold">Mastery trajectory</Text>}
             description={
-              <Text size={200}>Last 6 weeks · ratio vs fractions</Text>
+              <Text size={200}>Weekly average mastery across practice</Text>
             }
           />
           <div className={styles.chartBox}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={trajectoryData}
-                role="img"
-                aria-label={`Mastery trajectory over the last 6 weeks — ${trajectorySummary}.`}
+            {!hasTrajectoryData ? (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100%',
+                  textAlign: 'center',
+                  color: t.brand.textSecondary,
+                  padding: '0 16px',
+                }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke={t.brand.line} />
-                <XAxis
-                  dataKey="week"
-                  tick={{ fontSize: 12, fill: t.brand.textTertiary }}
-                />
-                <YAxis
-                  domain={[0, 100]}
-                  tick={{ fontSize: 12, fill: t.brand.textTertiary }}
-                />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="ratio"
-                  stroke={t.brand.ink}
-                  strokeWidth={2.5}
-                  dot
-                />
-                <Line
-                  type="monotone"
-                  dataKey="fractions"
-                  stroke={t.brand.inkMuted}
-                  strokeWidth={2.5}
-                  dot
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-          <Phase3ProvenanceFooter provenance={careerPlan.provenance} />
-        </Card>
-
-        <div className={styles.sideStack}>
-          {isStaff && (
-            <CounsellorGatePanel
-              plan={careerPlan}
-              decision={advisorDecision}
-              onApproveNarration={() => pushEvent('Teacher summary approved')}
-              onRejectNarration={() =>
-                pushEvent('Teacher summary sent back for revision')
-              }
-            />
-          )}
-          <VoiceQueueCard voiceQueue={voiceQueue} />
-          {isStaff && auditEvents.length > 0 && (
-            <Card className={styles.auditCard}>
-              <CardHeader
-                header={<Text weight="semibold">Recent actions</Text>}
-              />
-              <div className={styles.auditEventList}>
-                {auditEvents
-                  .slice(-5)
-                  .reverse()
-                  .map(e => (
-                    <span key={e} className={styles.auditEventItem}>
-                      {e}
-                    </span>
-                  ))}
+                <Text size={200}>
+                  {masteryLoading
+                    ? 'Loading trajectory…'
+                    : 'The weekly trajectory appears after a couple of practice sessions.'}
+                </Text>
               </div>
-            </Card>
-          )}
-        </div>
-      </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={trajectoryData}
+                  role="img"
+                  aria-label={`Mastery trajectory by week — ${trajectorySummary}.`}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke={t.brand.line} />
+                  <XAxis
+                    dataKey="week"
+                    tick={{ fontSize: 12, fill: t.brand.textTertiary }}
+                  />
+                  <YAxis
+                    domain={[0, 100]}
+                    tick={{ fontSize: 12, fill: t.brand.textTertiary }}
+                  />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="score"
+                    name="Mastery"
+                    stroke={t.brand.ink}
+                    strokeWidth={2.5}
+                    dot
+                  />
+                </LineChart>
+            </ResponsiveContainer>
+            )}
+          </div>
+        </Card>
     </div>
   )
 }

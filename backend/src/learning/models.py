@@ -345,6 +345,13 @@ class LabourMarketSignal(ContractModel):
     value: Dict[str, Any]
 
 
+class CareerPathwaySkill(ContractModel):
+    skill_id: str = Field(min_length=1)
+    weight: float = Field(ge=0.0)
+    mastery: float = Field(ge=0.0, le=1.0)
+    is_gap: bool = False
+
+
 class CareerPathway(ContractModel):
     pathway_id: str = Field(min_length=1)
     title: str = Field(min_length=1)
@@ -352,6 +359,7 @@ class CareerPathway(ContractModel):
     wage_band: LabourMarketSignal
     demand_trend: LabourMarketSignal
     rationale: str = Field(min_length=1)
+    skills: List[CareerPathwaySkill] = Field(default_factory=list)
 
 
 class CareerPlan(LanguageAndProvenanceModel):

@@ -179,7 +179,7 @@ describe('Pathfinder role routing helpers', () => {
     const adminLabels = navItemsForRole('admin').map(item => item.label)
 
     expect(defaultPathForRole('therapist')).toBe('/teacher')
-    expect(defaultPathForRole('parent')).toBe('/profile')
+    expect(defaultPathForRole('parent')).toBe('/family')
     expect(teacherLabels).toEqual(['Teacher'])
     expect(adminLabels).toEqual([
       'Teacher',
@@ -187,6 +187,7 @@ describe('Pathfinder role routing helpers', () => {
       'Profile',
       'Pathways',
       'Trust & Safety',
+      'Observability',
     ])
   })
 })

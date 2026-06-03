@@ -42,6 +42,7 @@ from src.learning.api import (
     register_learning_api,
 )
 from src.learning.errors import LearningApiError
+from src.learning.mastery_profile import build_child_mastery
 from src.learning.repository_factory import make_repository as make_learning_repository
 from src.learning.profile_config import (
     ALLOWED_CONSENT_KINDS,
@@ -165,6 +166,7 @@ API_FAMILY_INTAKE_PROPOSAL_APPROVE_ENDPOINT = "/api/family-intake/proposals/<pro
 API_FAMILY_INTAKE_PROPOSAL_REJECT_ENDPOINT = "/api/family-intake/proposals/<proposal_id>/reject"
 API_FAMILY_INTAKE_PROPOSAL_RESUBMIT_ENDPOINT = "/api/family-intake/proposals/<proposal_id>/resubmit"
 API_CHILD_SESSIONS_ENDPOINT = "/api/children/<child_id>/sessions"
+API_CHILD_MASTERY_ENDPOINT = "/api/children/<child_id>/mastery"
 API_CHILD_PLANS_ENDPOINT = "/api/children/<child_id>/plans"
 API_CHILD_MEMORY_SUMMARY_ENDPOINT = "/api/children/<child_id>/memory/summary"
 API_CHILD_MEMORY_ITEMS_ENDPOINT = "/api/children/<child_id>/memory/items"
@@ -2233,7 +2235,12 @@ def learner_career_plan():
     if not _pathfinder_learner_onboarding_enabled():
         return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
 
-    user, guard_response = _require_role(ROLE_LEARNER)
+    # Mastery-ranked careers surface on /pathways for the learner themselves and
+    # for the parent/admin who owns the child (same audience and ownership model
+    # as the /profile mastery view). Access is still scoped to owned children.
+    user, guard_response = _require_role(
+        ROLE_LEARNER, ROLE_KID, ROLE_STUDENT, ROLE_PARENT, ROLE_ADMIN
+    )
     if guard_response is not None:
         return guard_response
 
@@ -3456,6 +3463,29 @@ def get_child_sessions(child_id: str):
         metadata={"count": len(sessions)},
     )
     return jsonify(sessions)
+
+
+@app.route(API_CHILD_MASTERY_ENDPOINT)
+def get_child_mastery(child_id: str):
+    """Return an aggregated mastery profile (skill radar + trajectory)."""
+    user, guard_response = _require_child_access(child_id, enforce_data_consent=True)
+    if guard_response is not None:
+        return guard_response
+
+    sessions = storage_service.list_sessions_for_child(child_id)
+    mastery = build_child_mastery(sessions)
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="mastery.read",
+        resource_type="child_mastery",
+        resource_id=child_id,
+        child_id=child_id,
+        metadata={
+            "skills": len(mastery["skills"]),
+            "scored_sessions": mastery["scored_session_count"],
+        },
+    )
+    return jsonify(mastery)
 
 
 @app.route(API_CHILD_PLANS_ENDPOINT)

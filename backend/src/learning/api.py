@@ -2824,6 +2824,7 @@ class LearningApi:
         )
         result = self.career_planner.run_turn(request)
         plan: CareerPlan = result.plan
+        skill_labels = self._skill_label_lookup()
         return {
             "student_id": student_id,
             "source": source,
@@ -2839,6 +2840,18 @@ class LearningApi:
                     "demand_trend": pathway.demand_trend.value.get("trend"),
                     "demand_source": pathway.demand_trend.source,
                     "rationale": pathway.rationale,
+                    "skills": [
+                        {
+                            "skill_id": skill.skill_id,
+                            "label": skill_labels.get(
+                                skill.skill_id, _humanise_skill_id(skill.skill_id)
+                            ),
+                            "weight": skill.weight,
+                            "mastery": skill.mastery,
+                            "is_gap": skill.is_gap,
+                        }
+                        for skill in pathway.skills
+                    ],
                 }
                 for pathway in plan.pathways
             ],
@@ -3271,6 +3284,11 @@ def _truncate_text(text: str, limit: int) -> str:
 
 def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _humanise_skill_id(skill_id: str) -> str:
+    """Fallback label for skills not present in any served question bank."""
+    return skill_id.replace("-", " ").replace("_", " ").strip().title()
 
 
 def _request_user_agent() -> Optional[str]:

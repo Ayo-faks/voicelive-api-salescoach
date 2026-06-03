@@ -397,9 +397,6 @@ export function ParentProgressCard({
         }
       />
       <Text>{progress.masterySummary}</Text>
-      <span className={styles.metadataBadge}>
-        Next review: {progress.nextReview}
-      </span>
       <Phase3ProvenanceFooter provenance={progress.provenance} />
     </Card>
   )
