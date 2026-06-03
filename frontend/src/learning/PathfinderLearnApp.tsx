@@ -1469,7 +1469,9 @@ export default function PathfinderLearnApp() {
                 path="/pathways"
                 element={routeForRole(
                   ['parent', 'learner', 'kid', 'student', 'admin'],
-                  <PathwaysExplorer studentId={activeLearnerIdForPractice} />
+                  <PathwaysExplorer
+                    studentId={activeLearnerIdForPractice ?? undefined}
+                  />
                 )}
               />
               <Route
