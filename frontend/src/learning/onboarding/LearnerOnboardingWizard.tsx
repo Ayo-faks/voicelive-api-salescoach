@@ -3,7 +3,12 @@
  *
  * Step 1: identity + required consents (terms, privacy, AI notice) + optional analytics.
  * Step 2: exam + year group + up to 6 subject chips.
- * Step 3: interests, career consent, optional guardian contact → finish PATCH.
+ * Step 3: interests, career consent, and — for minor age bands — guardian contact.
+ *
+ * Age-tiered rules (client-enforced; v1 per plan):
+ *   • under-13 / 13-15 / 16-17 → guardian email + relationship fields shown.
+ *   • under-13 → guardian email is required before finish.
+ *   • 18-24 / 25-plus → guardian section hidden entirely.
  *
  * Renders via Fluent + plain HTML inputs to avoid widening the component
  * surface. All state is local; persistence flows through the
@@ -105,6 +110,28 @@ const INTEREST_OPTIONS = [
 const MAX_SUBJECTS = 6
 const MAX_INTERESTS = 8
 const CURRENT_CONSENT_VERSION = '2026-05-01'
+
+/**
+ * Age bands that classify the registering user as a minor.
+ * When any of these is selected, the guardian contact section
+ * is shown in step 3. For under-13 specifically, guardian email
+ * is required before finishing.
+ */
+const MINOR_AGE_BANDS: ReadonlySet<string> = new Set([
+  'under-13',
+  '13-15',
+  '16-17',
+])
+
+/** Returns true when the supplied age_band value is a minor band. */
+export function isMinorAgeBand(ageBand: string): boolean {
+  return MINOR_AGE_BANDS.has(ageBand)
+}
+
+/** Returns true when guardian email is mandatory for the given age band. */
+export function isGuardianEmailRequired(ageBand: string): boolean {
+  return ageBand === 'under-13'
+}
 
 const useStyles = makeStyles({
   root: {
@@ -319,6 +346,13 @@ export function LearnerOnboardingWizard({
 
   const finish = useCallback(async () => {
     setError(null)
+    // Enforce guardian email when age band requires it.
+    if (isGuardianEmailRequired(s1.age_band) && !s3.guardian_email.trim()) {
+      setError(
+        'A guardian email address is required for learners under 13. Please enter a parent or guardian email.'
+      )
+      return
+    }
     setSubmitting(true)
     try {
       if (s3.career_consent) {
@@ -345,7 +379,7 @@ export function LearnerOnboardingWizard({
     } finally {
       setSubmitting(false)
     }
-  }, [navigate, onComplete, patch, recordConsent, s3])
+  }, [navigate, onComplete, patch, recordConsent, s1.age_band, s3])
 
   const goBack = useCallback(() => {
     setError(null)
@@ -619,35 +653,53 @@ export function LearnerOnboardingWizard({
             }
           />
 
-          <div className={styles.field}>
-            <label htmlFor="onboarding-guardian-email">
-              Guardian email (optional)
-            </label>
-            <Input
-              id="onboarding-guardian-email"
-              data-testid="onboarding-guardian-email"
-              value={s3.guardian_email}
-              onChange={(_e, data) =>
-                setS3({ ...s3, guardian_email: data.value })
-              }
-              type="email"
-            />
-          </div>
+          {isMinorAgeBand(s1.age_band) && (
+            <div
+              className={styles.field}
+              data-testid="onboarding-guardian-section"
+            >
+              <Text weight="semibold" size={300}>
+                Parent / guardian contact
+              </Text>
+              <Text size={200}>
+                {s1.age_band === 'under-13'
+                  ? 'Because you are under 13, a parent or guardian email address is required.'
+                  : 'You can optionally share a parent or guardian email address so they can support your learning.'}
+              </Text>
 
-          <div className={styles.field}>
-            <label htmlFor="onboarding-guardian-relationship">
-              Guardian relationship (optional)
-            </label>
-            <Input
-              id="onboarding-guardian-relationship"
-              data-testid="onboarding-guardian-relationship"
-              value={s3.guardian_relationship}
-              onChange={(_e, data) =>
-                setS3({ ...s3, guardian_relationship: data.value })
-              }
-              maxLength={40}
-            />
-          </div>
+              <div className={styles.field}>
+                <label htmlFor="onboarding-guardian-email">
+                  Guardian email
+                  {isGuardianEmailRequired(s1.age_band) ? ' (required)' : ' (optional)'}
+                </label>
+                <Input
+                  id="onboarding-guardian-email"
+                  data-testid="onboarding-guardian-email"
+                  value={s3.guardian_email}
+                  onChange={(_e, data) =>
+                    setS3({ ...s3, guardian_email: data.value })
+                  }
+                  type="email"
+                  required={isGuardianEmailRequired(s1.age_band)}
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label htmlFor="onboarding-guardian-relationship">
+                  Guardian relationship (optional)
+                </label>
+                <Input
+                  id="onboarding-guardian-relationship"
+                  data-testid="onboarding-guardian-relationship"
+                  value={s3.guardian_relationship}
+                  onChange={(_e, data) =>
+                    setS3({ ...s3, guardian_relationship: data.value })
+                  }
+                  maxLength={40}
+                />
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className={styles.error} role="alert">

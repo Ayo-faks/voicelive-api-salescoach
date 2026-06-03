@@ -220,3 +220,71 @@ def test_consent_mirrors_career_and_analytics_to_profile(client: FlaskClient):
     )
     body = client.get("/api/learners/me/profile", headers=headers).get_json()
     assert body["profile"]["career_consent"] is False
+
+
+# ---------------------------------------------------------------------------
+# Age-tiered guardian email gate
+# ---------------------------------------------------------------------------
+
+_REQUIRED_PROFILE_BASE = {
+    "display_name": "Ada",
+    "exam": "WAEC",
+    "year_group": "SS2",
+    "locale": "en-NG",
+}
+
+
+def _grant_required_consents(client: FlaskClient, headers: dict[str, str]) -> None:
+    for kind in ("terms", "privacy"):
+        client.post(
+            "/api/learners/me/consent",
+            headers=headers,
+            json={"kind": kind, "version": "v1", "granted": True},
+        )
+
+
+def test_under_13_needs_onboarding_without_guardian_email(client: FlaskClient):
+    """under-13 profile without guardian_email keeps needs_onboarding=True."""
+    headers = _bootstrap_learner(client)
+    patch = {**_REQUIRED_PROFILE_BASE, "age_band": "under-13"}
+    assert client.patch("/api/learners/me/profile", headers=headers, json=patch).status_code == 200
+    _grant_required_consents(client, headers)
+
+    body = client.get("/api/learners/me/profile", headers=headers).get_json()
+    # All required fields present and consents granted, but guardian_email missing.
+    assert body["needs_onboarding"] is True
+
+
+def test_under_13_onboarding_complete_with_guardian_email(client: FlaskClient):
+    """under-13 profile with guardian_email flips needs_onboarding=False."""
+    headers = _bootstrap_learner(client)
+    patch = {**_REQUIRED_PROFILE_BASE, "age_band": "under-13", "guardian_email": "parent@example.com"}
+    assert client.patch("/api/learners/me/profile", headers=headers, json=patch).status_code == 200
+    _grant_required_consents(client, headers)
+
+    body = client.get("/api/learners/me/profile", headers=headers).get_json()
+    assert body["needs_onboarding"] is False
+
+
+def test_minor_non_under_13_does_not_require_guardian_email(client: FlaskClient):
+    """13-15 and 16-17 profiles do not require guardian_email to finish onboarding."""
+    for band in ("13-15", "16-17"):
+        headers = _bootstrap_learner(client, user_id=f"learner-{band}", email=f"learner-{band}@example.com")
+        patch = {**_REQUIRED_PROFILE_BASE, "age_band": band}
+        assert client.patch("/api/learners/me/profile", headers=headers, json=patch).status_code == 200
+        _grant_required_consents(client, headers)
+
+        body = client.get("/api/learners/me/profile", headers=headers).get_json()
+        assert body["needs_onboarding"] is False, f"Expected onboarding complete for age_band={band}"
+
+
+def test_adult_age_bands_do_not_require_guardian_email(client: FlaskClient):
+    """18-24 and 25-plus profiles do not require guardian_email to finish onboarding."""
+    for band in ("18-24", "25-plus"):
+        headers = _bootstrap_learner(client, user_id=f"learner-adult-{band}", email=f"adult-{band}@example.com")
+        patch = {**_REQUIRED_PROFILE_BASE, "age_band": band}
+        assert client.patch("/api/learners/me/profile", headers=headers, json=patch).status_code == 200
+        _grant_required_consents(client, headers)
+
+        body = client.get("/api/learners/me/profile", headers=headers).get_json()
+        assert body["needs_onboarding"] is False, f"Expected onboarding complete for age_band={band}"
