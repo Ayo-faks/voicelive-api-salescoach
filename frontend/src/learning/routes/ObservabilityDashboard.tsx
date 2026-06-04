@@ -80,7 +80,17 @@ const useStyles = makeStyles({
     fontSize: '0.82rem',
     fontWeight: 700,
   },
+  refreshButtonBusy: { opacity: 0.65, cursor: 'progress' },
   refreshIcon: { width: '16px', height: '16px' },
+  refreshIconSpinning: {
+    animationName: {
+      from: { transform: 'rotate(0deg)' },
+      to: { transform: 'rotate(360deg)' },
+    },
+    animationDuration: '0.8s',
+    animationIterationCount: 'infinite',
+    animationTimingFunction: 'linear',
+  },
   section: { display: 'grid', gap: '12px' },
   sectionTitle: {
     fontSize: '1.05rem',
@@ -273,12 +283,17 @@ export default function ObservabilityDashboard() {
           </span>
           <button
             type="button"
-            className={styles.refreshButton}
+            className={`${styles.refreshButton} ${loading ? styles.refreshButtonBusy : ''}`}
             onClick={() => void load()}
+            disabled={loading}
+            aria-busy={loading}
             data-testid="pf-obs-refresh"
           >
-            <ArrowPathIcon className={styles.refreshIcon} aria-hidden />
-            Refresh
+            <ArrowPathIcon
+              className={`${styles.refreshIcon} ${loading ? styles.refreshIconSpinning : ''}`}
+              aria-hidden
+            />
+            {loading ? 'Refreshing…' : 'Refresh'}
           </button>
         </div>
       </header>
