@@ -1104,6 +1104,14 @@ resource agentMeshObservabilityJob 'Microsoft.App/jobs@2024-03-01' = if (enableA
               name: 'LEARNING_SAFETY_PROBES_V1'
               value: agentMeshObservabilityEnabled
             }
+            // Eval harness kill-switch. The genaiops gate needs BOTH the probe
+            // set (above) and the harness armed; with the harness unset the
+            // verdict is still `gate_skipped` ("eval harness gated by
+            // LEARNING_EVAL_HARNESS_V1"). Arm it to actually run the probes.
+            {
+              name: 'LEARNING_EVAL_HARNESS_V1'
+              value: agentMeshObservabilityEnabled
+            }
             {
               name: 'AGENT_MESH_DRIFT_V1'
               value: agentMeshObservabilityEnabled
