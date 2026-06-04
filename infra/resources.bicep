@@ -989,9 +989,9 @@ resource notificationsDispatcherJob 'Microsoft.App/jobs@2024-03-01' = if (enable
 //       → scripts/agent_mesh_cron.sh runs no agents and exits 0 (a no-op).
 // Flipping either alone is still dark. Both flips are deliberate human actions.
 resource agentMeshObservabilityJob 'Microsoft.App/jobs@2024-03-01' = if (enableAgentMeshObservabilityCron) {
-  name: 'voicelab-agent-mesh-observability'
+  name: 'voicelab-agent-mesh-obs'
   location: location
-  tags: union(tags, { 'azd-service-name': 'voicelab-agent-mesh-observability' })
+  tags: union(tags, { 'azd-service-name': 'voicelab-agent-mesh-obs' })
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
