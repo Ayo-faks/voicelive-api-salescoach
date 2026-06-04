@@ -15,6 +15,10 @@ docs/assets/
 evals/
 fixes/
 scripts/
+# backend/scripts/ IS shipped (the agent-mesh cron Job runs from it), but local
+# scratch notes/handoff prompts living alongside it must never enter the image.
+backend/scripts/*.md
+backend/scripts/*.prompt.md
 
 # IDE and editor files
 .vscode/

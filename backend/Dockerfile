@@ -66,6 +66,12 @@ COPY --chown=app:app backend/alembic/ ./alembic/
 COPY --chown=app:app data/exercises/ ./data/exercises/
 COPY --chown=app:app data/learning/ ./data/learning/
 COPY --chown=app:app data/images/ ./data/images/
+# Agent-mesh observability cron (voicelab-agent-mesh-obs Job) reuses this image
+# and runs scripts/agent_mesh_cron.sh, which invokes run_observability_gate.py
+# and ci_eval_gate.py. The latter grades the committed eval evidence under
+# data/c1/. Both are needed for the scheduled durable-sink refresh.
+COPY --chown=app:app backend/scripts/ ./scripts/
+COPY --chown=app:app backend/data/c1/ ./data/c1/
 
 RUN python -c "from src.services.storage import StorageService; StorageService('/app/bootstrap/wulo.db')" \
     && chown -R app:app /app/bootstrap
