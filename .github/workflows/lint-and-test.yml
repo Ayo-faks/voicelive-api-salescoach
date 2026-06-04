@@ -80,6 +80,35 @@ jobs:
         echo "Grading committed real-agent eval report (fail on hard block)..."
         python scripts/ci_eval_gate.py --force
 
+  loadtest-smoke:
+    # Hermetic k6 load smoke for /internal/agent-mesh/score: starts a local
+    # real-socket server and runs the k6 script in 1-VU/5s SMOKE mode with SLO
+    # thresholds, so a breached latency/error budget fails the job. The real
+    # staging ramp (50->1k VUs) is a manual, deliberate step (see
+    # backend/loadtest/README.md) — not run in CI.
+    if: github.event_name == 'push' || github.base_ref == 'main'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install Python dependencies
+      working-directory: ./backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Set up k6
+      uses: grafana/setup-k6-action@v1
+
+    - name: Run k6 load smoke (SLO-gated)
+      run: make loadtest-smoke PYTHON=python
+
   frontend-test:
     if: github.event_name == 'push' || github.base_ref == 'main'
     runs-on: ubuntu-latest

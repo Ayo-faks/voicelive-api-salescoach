@@ -185,3 +185,6 @@ backend/data/question_banks/*.bak
 backend/data/question_banks/*.bak.json
 backend/data/question_banks/*.offline*.bak.json
 backend/data/question_banks/_approval_backup/
+
+# Transient local k6 smoke report (regenerated each run; not representative of prod)
+backend/data/c1/b3_k6_smoke_report.json

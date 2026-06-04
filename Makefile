@@ -1,6 +1,6 @@
 PYTHON ?= python
 
-.PHONY: lint lint-explanations verify-phase-1 verify-phase-2 verify-phase-3 verify-phase-4
+.PHONY: lint lint-explanations verify-phase-1 verify-phase-2 verify-phase-3 verify-phase-4 loadtest-smoke
 
 # Pathfinder Learn — W2 contract guard.
 # Fails CI if any ExplanationResult(...) construction site omits or empties
@@ -29,3 +29,10 @@ verify-phase-3:
 verify-phase-4:
 	cd backend && $(PYTHON) -m pytest -k "phase_4 or kpi or canary" -v
 	$(PYTHON) scripts/trace_evidence_phase_4.py --tenant tenant-phase-4 --offline-fixtures
+
+# Hermetic k6 load smoke for the /internal/agent-mesh/score route. Starts a
+# local real-socket server, runs k6 SMOKE=1 with SLO thresholds, tears it down.
+# No-ops with exit 0 if k6 is not installed. See backend/loadtest/README.md for
+# the manual staging ramp.
+loadtest-smoke:
+	PYTHON=$(PYTHON) bash backend/loadtest/run_smoke.sh
