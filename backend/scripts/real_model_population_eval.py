@@ -20,12 +20,19 @@ The handler implements the ``handle(turn) -> {outcome, response_excerpt}``
 contract so it is drop-in for ``PopulationScorer.score`` and (later) the
 ``/internal/agent-mesh/score`` route.
 
+This is the NO-SCAFFOLDING BASELINE: a naked model with a generic prompt and an
+LLM judge, deliberately kept to show what the model does *without* the product's
+retrieval, turn-cap and structured-output scaffolding. ``real_agent_eval.py`` is
+the scaffolded successor that drives the REAL agents and closes caveats 1-3
+below (real RAG -> real citations; real in-code turn cap; judge-free scoring).
+
 HONESTY CAVEATS (also surfaced in the JSON report):
   * The handler has no retrieval layer, so "citation" turns will usually be
     judged "answer" — that is a REAL gap this eval is meant to expose, not a bug.
+    (Closed in real_agent_eval.py via the real RAG retriever.)
   * Session-cap enforcement is mechanical in production; here the cap is passed
     to the handler as context, so the cap turn tests prompt-following, not a
-    real rate limiter.
+    real rate limiter. (Closed in real_agent_eval.py via the provider's counter.)
   * Bounded by design (a few persona replicas) to keep token spend trivial.
 
 Env:
