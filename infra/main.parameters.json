@@ -89,6 +89,15 @@
       "pathfinderLearnOtelEnabled": {
         "value": "${PATHFINDER_LEARN_OTEL_ENABLED=true}"
       },
+      "enableAgentMeshObservabilityCron": {
+        "value": "${ENABLE_AGENT_MESH_OBSERVABILITY_CRON=false}"
+      },
+      "agentMeshObservabilityCron": {
+        "value": "${AGENT_MESH_OBSERVABILITY_CRON=*/15 * * * *}"
+      },
+      "agentMeshObservabilityEnabled": {
+        "value": "${AGENT_MESH_OBSERVABILITY_ENABLED=}"
+      },
       "voicelabCustomDomains": {
         "value": "${VOICELAB_CUSTOM_DOMAINS=[]}"
       },

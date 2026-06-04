@@ -87,6 +87,15 @@ param pathfinderLearnPrometheusEnabled string = 'true'
 @description('Set PATHFINDER_LEARN_OTEL_ENABLED for the backend runtime.')
 param pathfinderLearnOtelEnabled string = 'true'
 
+@description('Gate 2 (agent-mesh observability cron). DARK BY DEFAULT: when false the scheduled Job is not provisioned at all.')
+param enableAgentMeshObservabilityCron bool = false
+
+@description('Cron expression for the agent-mesh observability Job.')
+param agentMeshObservabilityCron string = '*/15 * * * *'
+
+@description('Master kill-switch for the agent-mesh observability cron. Empty = dark no-op; set to "1" to arm AGENT_MESH_ENABLED.')
+param agentMeshObservabilityEnabled string = ''
+
 @description('Enable optional Ralph LRS container app for Pathfinder Learn xAPI replay.')
 param enableRalphLrs bool = false
 
@@ -203,6 +212,9 @@ module resources 'resources.bicep' = {
     pathfinderLearnObservabilityEnabled: pathfinderLearnObservabilityEnabled
     pathfinderLearnPrometheusEnabled: pathfinderLearnPrometheusEnabled
     pathfinderLearnOtelEnabled: pathfinderLearnOtelEnabled
+    enableAgentMeshObservabilityCron: enableAgentMeshObservabilityCron
+    agentMeshObservabilityCron: agentMeshObservabilityCron
+    agentMeshObservabilityEnabled: agentMeshObservabilityEnabled
     enableRalphLrs: enableRalphLrs
     ralphLrsImage: ralphLrsImage
     ralphLrsAdminToken: ralphLrsAdminToken

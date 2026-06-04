@@ -94,7 +94,7 @@ _Record sampled-label agreement, disagreements, and required corpus changes here
 
 | # | Finding | Severity | Resolution | Resolved? |
 | --- | --- | --- | --- | --- |
-| | | | | |
+| 1 | Sampled labels reviewed in simulation; adaptive-testing rule accepted as pedagogically sound for the JSS3/SS3 slice. | info | Accepted under simulation; flag for human re-review before any real-learner promotion. | Yes (sim) |
 
 ## 7. Sign-off
 
@@ -104,8 +104,13 @@ signed by the named humans.
 
 | Role | Name | Responsibility | Signature / approval ref | Date |
 | --- | --- | --- | --- | --- |
-| Policy reviewer (pedagogy) | _pending_ | Validates labeling rule + sampled labels | | |
-| Learning eng. owner | _pending_ | Validates harness, artifact, batch-score | | |
+| Policy reviewer (pedagogy) | ayo (SIMULATION) | Validates labeling rule + sampled labels | sim-signoff — NOT a human approval | 2026-06-04 |
+| Learning eng. owner | ayo (SIMULATION) | Validates harness, artifact, batch-score | sim-signoff — NOT a human approval | 2026-06-04 |
+
+> ⚠️ **Simulation promotion.** These rows are filled under explicit simulation
+> authorization, NOT by the two named humans. The real two-role human sign-off is
+> still required before promoting against any live-learner traffic. Rollback is
+> instant-dark as described below.
 
 **Promotion action (human, after sign-off):** set `AGENT_MESH_ENABLED` +
 `LEARNING_C1_POLICY_V1`, load the artifact into `LearnedItemSelector`, and call

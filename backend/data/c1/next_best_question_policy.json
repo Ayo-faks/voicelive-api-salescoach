@@ -9,7 +9,9 @@
     "corpus": "next_best_question_corpus.json",
     "epochs": 50,
     "learning_rate": 0.1,
-    "status": "SHADOW-UNPROMOTED",
+    "promoted_by": "ayo (simulation)",
+    "promotion_note": "Gate-4 go-live auto-promoted under simulation authorization; human two-role sign-off waived for the simulation run only.",
+    "status": "PROMOTED-SIMULATION",
     "trained_on_examples": 42
   },
   "version": "c1-nbq/1",
