@@ -1096,6 +1096,14 @@ resource agentMeshObservabilityJob 'Microsoft.App/jobs@2024-03-01' = if (enableA
               name: 'LEARNING_CRITIC_PROBES_V1'
               value: agentMeshObservabilityEnabled
             }
+            // Default safety probe set behind the genaiops merge-gate. Without
+            // this the merge-gate verdict is `gate_skipped` (fail-closed) even
+            // though safeguarding/critic pass — arm it so the offline release
+            // eval can actually certify a pass.
+            {
+              name: 'LEARNING_SAFETY_PROBES_V1'
+              value: agentMeshObservabilityEnabled
+            }
             {
               name: 'AGENT_MESH_DRIFT_V1'
               value: agentMeshObservabilityEnabled
