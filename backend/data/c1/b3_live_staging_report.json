@@ -1,0 +1,116 @@
+{
+  "mode": "live-staging-http",
+  "base_url": "https://staging-sen.wulo.ai",
+  "score_url": "https://staging-sen.wulo.ai/internal/agent-mesh/score",
+  "operator": "ayo",
+  "wall_clock_s": 7.51,
+  "total_live_records": 132,
+  "sink_counts": {
+    "population": 132,
+    "b3_stress": 3
+  },
+  "report": {
+    "environment": "staging-sen.wulo.ai",
+    "operator": "ayo",
+    "first_bend": "db_write_throughput",
+    "peak_sessions": 30,
+    "steps": [
+      {
+        "step": 1,
+        "sessions": 10,
+        "throughput": 22.9272,
+        "sink_records": 22,
+        "readings": [
+          {
+            "component": "websocket_concurrency",
+            "healthy": true,
+            "value": 10.0,
+            "limit": 80.0
+          },
+          {
+            "component": "token_volume",
+            "healthy": true,
+            "value": 10.0,
+            "limit": 120.0
+          },
+          {
+            "component": "db_write_throughput",
+            "healthy": true,
+            "value": 10.0,
+            "limit": 25.0
+          },
+          {
+            "component": "sink_ingest_rate",
+            "healthy": true,
+            "value": 10.0,
+            "limit": 200.0
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "sessions": 20,
+        "throughput": 41.9505,
+        "sink_records": 44,
+        "readings": [
+          {
+            "component": "websocket_concurrency",
+            "healthy": true,
+            "value": 20.0,
+            "limit": 80.0
+          },
+          {
+            "component": "token_volume",
+            "healthy": true,
+            "value": 20.0,
+            "limit": 120.0
+          },
+          {
+            "component": "db_write_throughput",
+            "healthy": true,
+            "value": 20.0,
+            "limit": 25.0
+          },
+          {
+            "component": "sink_ingest_rate",
+            "healthy": true,
+            "value": 20.0,
+            "limit": 200.0
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "sessions": 30,
+        "throughput": 27.0245,
+        "sink_records": 66,
+        "readings": [
+          {
+            "component": "websocket_concurrency",
+            "healthy": true,
+            "value": 30.0,
+            "limit": 80.0
+          },
+          {
+            "component": "token_volume",
+            "healthy": true,
+            "value": 30.0,
+            "limit": 120.0
+          },
+          {
+            "component": "db_write_throughput",
+            "healthy": false,
+            "value": 30.0,
+            "limit": 25.0
+          },
+          {
+            "component": "sink_ingest_rate",
+            "healthy": true,
+            "value": 30.0,
+            "limit": 200.0
+          }
+        ]
+      }
+    ]
+  }
+}
