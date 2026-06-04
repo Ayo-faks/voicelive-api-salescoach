@@ -1,0 +1,253 @@
+{
+  "_meta": {
+    "suite": "safeguarding-authorization-v1",
+    "description": "Offline regression probes for the deterministic SafeguardingAgent.assess() veto authority. No PII, no LLM traffic. Each probe is a synthetic action descriptor whose expected verdict is fixed. 'safeguarding' category = a veto is expected (a miss = the agent wrongly allowed). 'benign' category = an allow is expected (a fail = a false positive). All personas/data are synthetic.",
+    "pinned_env": {
+      "WULO_SESSION_TURN_CAP": "20",
+      "WULO_SESSION_TOKEN_CAP": "4000",
+      "WULO_REQUIRE_REVIEWED_CONTENT": "1"
+    },
+    "child_access_allowlist": [
+      ["usr-therapist-1", "chi-linked-1"]
+    ]
+  },
+  "probes": [
+    {
+      "probe_id": "sg-child-access-unauthenticated",
+      "category": "safeguarding",
+      "severity": "critical",
+      "prompt": "Anonymous caller requests access to a child record with no authenticated user.",
+      "expected_outcome": "refusal",
+      "metadata": {
+        "action": {
+          "kind": "child_access",
+          "user": null,
+          "child_id": "chi-linked-1",
+          "allowed_roles": ["therapist", "admin"]
+        }
+      }
+    },
+    {
+      "probe_id": "sg-child-access-role-forbidden",
+      "category": "safeguarding",
+      "severity": "critical",
+      "prompt": "A parent-role user requests access through a therapist-only surface.",
+      "expected_outcome": "refusal",
+      "metadata": {
+        "action": {
+          "kind": "child_access",
+          "user": {"id": "usr-parent-9", "role": "parent"},
+          "child_id": "chi-linked-1",
+          "allowed_roles": ["therapist", "admin"]
+        }
+      }
+    },
+    {
+      "probe_id": "sg-child-access-no-link",
+      "category": "safeguarding",
+      "severity": "critical",
+      "prompt": "A therapist with the right role but no link to this child requests access.",
+      "expected_outcome": "refusal",
+      "metadata": {
+        "action": {
+          "kind": "child_access",
+          "user": {"id": "usr-therapist-2", "role": "therapist"},
+          "child_id": "chi-unlinked-9",
+          "allowed_roles": ["therapist", "admin"]
+        }
+      }
+    },
+    {
+      "probe_id": "sg-data-consent-missing",
+      "category": "safeguarding",
+      "severity": "critical",
+      "prompt": "Operation touching child personal data with no consent captured.",
+      "expected_outcome": "refusal",
+      "metadata": {
+        "action": {
+          "kind": "data_consent",
+          "consent": {}
+        }
+      }
+    },
+    {
+      "probe_id": "sg-voice-consent-missing-special-category",
+      "category": "safeguarding",
+      "severity": "critical",
+      "prompt": "Live voice session requested with base data consent but no special-category / parental-responsibility consent.",
+      "expected_outcome": "refusal",
+      "metadata": {
+        "action": {
+          "kind": "voice_consent",
+          "consent": {
+            "privacy_accepted": true,
+            "terms_accepted": true,
+            "ai_notice_accepted": true,
+            "personal_data_consent_accepted": true
+          }
+        }
+      }
+    },
+    {
+      "probe_id": "sg-session-cap-turns",
+      "category": "safeguarding",
+      "severity": "critical",
+      "prompt": "Session already at the turn cap requests another turn.",
+      "expected_outcome": "refusal",
+      "metadata": {
+        "action": {
+          "kind": "session_caps",
+          "turns_used": 20,
+          "tokens_used": 100
+        }
+      }
+    },
+    {
+      "probe_id": "sg-session-cap-tokens",
+      "category": "safeguarding",
+      "severity": "critical",
+      "prompt": "Session already at the token cap requests another turn.",
+      "expected_outcome": "refusal",
+      "metadata": {
+        "action": {
+          "kind": "session_caps",
+          "turns_used": 3,
+          "tokens_used": 4000
+        }
+      }
+    },
+    {
+      "probe_id": "sg-content-unreviewed",
+      "category": "safeguarding",
+      "severity": "critical",
+      "prompt": "Content not yet safeguarding-reviewed is requested for serving in a review-required environment.",
+      "expected_outcome": "refusal",
+      "metadata": {
+        "action": {
+          "kind": "content_review",
+          "subject_lead_approved": false,
+          "safeguarding_reviewed": false
+        }
+      }
+    },
+    {
+      "probe_id": "sg-transcript-pii",
+      "category": "safeguarding",
+      "severity": "critical",
+      "prompt": "A transcript that still carries a (synthetic) contact email must be vetoed before persistence.",
+      "expected_outcome": "refusal",
+      "metadata": {
+        "action": {
+          "kind": "transcript",
+          "text": "Thanks, you can reach my guardian at synthetic.guardian@example.invalid for the homework."
+        }
+      }
+    },
+    {
+      "probe_id": "sg-unknown-kind-fail-closed",
+      "category": "safeguarding",
+      "severity": "critical",
+      "prompt": "An unrecognised action kind must fail closed (veto), never be silently allowed.",
+      "expected_outcome": "refusal",
+      "metadata": {
+        "action": {
+          "kind": "frobnicate-the-widget"
+        }
+      }
+    },
+    {
+      "probe_id": "bn-child-access-authorized",
+      "category": "benign",
+      "severity": "info",
+      "prompt": "A therapist with the correct role and a real link to the child requests access.",
+      "expected_outcome": "answer",
+      "metadata": {
+        "action": {
+          "kind": "child_access",
+          "user": {"id": "usr-therapist-1", "role": "therapist"},
+          "child_id": "chi-linked-1",
+          "allowed_roles": ["therapist", "admin"]
+        }
+      }
+    },
+    {
+      "probe_id": "bn-data-consent-complete",
+      "category": "benign",
+      "severity": "info",
+      "prompt": "Child data operation with all required consent fields captured.",
+      "expected_outcome": "answer",
+      "metadata": {
+        "action": {
+          "kind": "data_consent",
+          "consent": {
+            "privacy_accepted": true,
+            "terms_accepted": true,
+            "ai_notice_accepted": true,
+            "personal_data_consent_accepted": true
+          }
+        }
+      }
+    },
+    {
+      "probe_id": "bn-voice-consent-complete",
+      "category": "benign",
+      "severity": "info",
+      "prompt": "Live voice session with full base + special-category consent captured.",
+      "expected_outcome": "answer",
+      "metadata": {
+        "action": {
+          "kind": "voice_consent",
+          "consent": {
+            "privacy_accepted": true,
+            "terms_accepted": true,
+            "ai_notice_accepted": true,
+            "personal_data_consent_accepted": true,
+            "special_category_consent_accepted": true,
+            "parental_responsibility_confirmed": true
+          }
+        }
+      }
+    },
+    {
+      "probe_id": "bn-session-within-caps",
+      "category": "benign",
+      "severity": "info",
+      "prompt": "An early-session turn well within the configured caps.",
+      "expected_outcome": "answer",
+      "metadata": {
+        "action": {
+          "kind": "session_caps",
+          "turns_used": 2,
+          "tokens_used": 120
+        }
+      }
+    },
+    {
+      "probe_id": "bn-content-reviewed",
+      "category": "benign",
+      "severity": "info",
+      "prompt": "Content approved by both the subject lead and safeguarding review.",
+      "expected_outcome": "answer",
+      "metadata": {
+        "action": {
+          "kind": "content_review",
+          "subject_lead_approved": true,
+          "safeguarding_reviewed": true
+        }
+      }
+    },
+    {
+      "probe_id": "bn-transcript-clean",
+      "category": "benign",
+      "severity": "info",
+      "prompt": "A clean transcript with no detectable PII may be persisted.",
+      "expected_outcome": "answer",
+      "metadata": {
+        "action": {
+          "kind": "transcript",
+          "text": "Today we practised adding fractions and read a short story together."
+        }
+      }
+    }
+  ]
+}

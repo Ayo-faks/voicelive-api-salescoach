@@ -1,0 +1,59 @@
+# agent-mesh observability CronJob (Track A, increment 7).
+#
+# DARK BY DEFAULT: `suspend: true` keeps the schedule inert until an operator
+# both (a) un-suspends this manifest AND (b) sets AGENT_MESH_ENABLED=1 in the
+# environment. Two independent gates — flipping either alone is still a no-op.
+#
+# This manifest is a documented scaffold. It is NOT applied by any pipeline; the
+# go-live gate (see docs/agent-mesh-cron-runbook.md) is a human decision.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: agent-mesh-observability
+  labels:
+    app.kubernetes.io/part-of: agent-mesh
+    agent-mesh/track: "A"
+    agent-mesh/increment: "7"
+spec:
+  # Dark-by-default. Set to false ONLY after the go-live gate is approved.
+  suspend: true
+  # Every 15 minutes; cheap, read-only.
+  schedule: "*/15 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 300
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: observability-gate
+              image: "REPLACE_WITH_BACKEND_IMAGE"
+              command: ["bash", "scripts/agent_mesh_cron.sh", "/var/lib/agent-mesh/history.jsonl"]
+              env:
+                # Master kill-switch. Dark unless explicitly set to "1".
+                - name: AGENT_MESH_ENABLED
+                  value: ""
+                # Durable cross-run history for the drift detector.
+                - name: AGENT_MESH_MEMORY_SINK_V1
+                  value: ""
+                # Per-suite probe flags (dark unless set).
+                - name: LEARNING_SAFEGUARDING_PROBES_V1
+                  value: ""
+                - name: LEARNING_CRITIC_PROBES_V1
+                  value: ""
+                # Online drift + rollback (proposal only).
+                - name: AGENT_MESH_DRIFT_V1
+                  value: ""
+                - name: AGENT_MESH_ROLLBACK_V1
+                  value: ""
+              volumeMounts:
+                - name: history
+                  mountPath: /var/lib/agent-mesh
+          volumes:
+            - name: history
+              persistentVolumeClaim:
+                claimName: agent-mesh-history

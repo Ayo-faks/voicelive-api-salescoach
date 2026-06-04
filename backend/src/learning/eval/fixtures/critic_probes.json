@@ -1,0 +1,116 @@
+{
+  "_meta": {
+    "suite": "critic-quality-v1",
+    "description": "Offline regression probes for the deterministic CriticAgent.review() quality reviewer. No PII, no LLM traffic. Each probe is a synthetic planner result (answer_text/citations/error_text) whose expected critic verdict is fixed. 'answer_quality' category = the critic SHOULD demand a revision (needs_revision -> 'violation'); a probe the critic wrongly passes is a quality miss. 'benign' category = the critic should NOT demand a revision (clean or warn-only -> 'answer'); a benign probe the critic wrongly escalates to a revision is a false positive. All content is synthetic.",
+    "pinned_env": {
+      "CRITIC_MAX_ANSWER_CHARS": "200"
+    }
+  },
+  "probes": [
+    {
+      "probe_id": "critic-empty-answer",
+      "category": "answer_quality",
+      "severity": "critical",
+      "prompt": "Planner returned an empty answer_text.",
+      "expected_outcome": "violation",
+      "expected_keywords": ["empty_answer"],
+      "metadata": {
+        "result": {
+          "answer_text": "",
+          "citations": [],
+          "error_text": null
+        }
+      }
+    },
+    {
+      "probe_id": "critic-whitespace-answer",
+      "category": "answer_quality",
+      "severity": "critical",
+      "prompt": "Planner returned only whitespace, which is effectively empty.",
+      "expected_outcome": "violation",
+      "expected_keywords": ["empty_answer"],
+      "metadata": {
+        "result": {
+          "answer_text": "   \n  ",
+          "citations": [],
+          "error_text": null
+        }
+      }
+    },
+    {
+      "probe_id": "critic-planner-error",
+      "category": "answer_quality",
+      "severity": "critical",
+      "prompt": "Planner reported an error; the turn must not be served as-is.",
+      "expected_outcome": "violation",
+      "expected_keywords": ["planner_error"],
+      "metadata": {
+        "result": {
+          "answer_text": "partial output before failure",
+          "citations": ["wiki:fractions"],
+          "error_text": "tool budget exhausted"
+        }
+      }
+    },
+    {
+      "probe_id": "critic-clean-cited-answer",
+      "category": "benign",
+      "severity": "info",
+      "prompt": "A grounded answer with a citation and no problems must pass clean.",
+      "expected_outcome": "answer",
+      "expected_keywords": ["ok"],
+      "metadata": {
+        "result": {
+          "answer_text": "To add fractions with unlike denominators, find the LCM of the denominators first.",
+          "citations": ["wiki:fraction-operations"],
+          "error_text": null
+        }
+      }
+    },
+    {
+      "probe_id": "critic-clean-benign-chat",
+      "category": "benign",
+      "severity": "info",
+      "prompt": "A short benign answer with no factual claim needs no citation and must pass.",
+      "expected_outcome": "answer",
+      "expected_keywords": ["ok"],
+      "metadata": {
+        "result": {
+          "answer_text": "Hello! Which topic would you like to practise today?",
+          "citations": [],
+          "error_text": null
+        }
+      }
+    },
+    {
+      "probe_id": "critic-warn-uncited-claim-not-blocking",
+      "category": "benign",
+      "severity": "info",
+      "prompt": "An uncited factual claim is a WARN only and must not, by itself, demand a revision.",
+      "expected_outcome": "answer",
+      "expected_keywords": ["uncited_claim"],
+      "metadata": {
+        "result": {
+          "answer_text": "According to the record, you have completed three sessions this week.",
+          "citations": [],
+          "error_text": null
+        }
+      }
+    },
+    {
+      "probe_id": "critic-warn-oversized-not-blocking",
+      "category": "benign",
+      "severity": "info",
+      "prompt": "An oversized answer is a WARN only (pinned guardrail = 200 chars) and must not demand a revision.",
+      "expected_outcome": "answer",
+      "expected_keywords": ["oversized_answer"],
+      "metadata": {
+        "result": {
+          "answer_text": "Let us walk through this slowly and carefully so it is very clear. We will go step by step, then practise a few similar ones together, then review what we learned, and finally try one more example on your own to be sure it has all stuck well.",
+          "citations": [],
+          "error_text": null
+        }
+      }
+    }
+  ]
+}
