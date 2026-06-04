@@ -1,0 +1,5198 @@
+{
+  "schema": "c1-nbq-corpus/1",
+  "provenance": "synthetic, reviewer-rule-labeled (see docs/agent-mesh-c1-policy-signoff.md)",
+  "labeling_rule": "argmax over candidates of 2*mastery_gap + 1*uncertainty + 1.5*difficulty_match",
+  "examples": [
+    {
+      "example_id": "ex00",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.78,
+          "uncertainty": 0.857,
+          "a": 8.8,
+          "b": 3.2
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.707,
+          "uncertainty": 0.795,
+          "a": 8.07,
+          "b": 3.93
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.818,
+          "uncertainty": 0.806,
+          "a": 9.18,
+          "b": 2.82
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.831,
+          "uncertainty": 0.273,
+          "a": 9.31,
+          "b": 2.69
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.257,
+          "uncertainty": 0.436,
+          "a": 3.57,
+          "b": 8.43
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.19,
+          "uncertainty": 0.613,
+          "a": 2.9,
+          "b": 9.1
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex00-it1",
+          "skill_id": "maths.geometry",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q1"
+        },
+        {
+          "item_id": "ex00-it0",
+          "skill_id": "maths.geometry",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q0"
+        },
+        {
+          "item_id": "ex00-it2",
+          "skill_id": "maths.fractions",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q2"
+        },
+        {
+          "item_id": "ex00-it3",
+          "skill_id": "maths.fractions",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q3"
+        }
+      ],
+      "label": "ex00-it2"
+    },
+    {
+      "example_id": "ex01",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.278,
+          "uncertainty": 0.549,
+          "a": 3.78,
+          "b": 8.22
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.551,
+          "uncertainty": 0.577,
+          "a": 6.51,
+          "b": 5.49
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.536,
+          "uncertainty": 0.263,
+          "a": 6.36,
+          "b": 5.64
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.448,
+          "uncertainty": 0.849,
+          "a": 5.48,
+          "b": 6.52
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.514,
+          "uncertainty": 0.664,
+          "a": 6.14,
+          "b": 5.86
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.588,
+          "uncertainty": 0.298,
+          "a": 6.88,
+          "b": 5.12
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex01-it5",
+          "skill_id": "maths.geometry",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q5"
+        },
+        {
+          "item_id": "ex01-it2",
+          "skill_id": "english.grammar",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q2"
+        },
+        {
+          "item_id": "ex01-it4",
+          "skill_id": "maths.geometry",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q4"
+        },
+        {
+          "item_id": "ex01-it1",
+          "skill_id": "english.grammar",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q1"
+        },
+        {
+          "item_id": "ex01-it3",
+          "skill_id": "maths.geometry",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q3"
+        },
+        {
+          "item_id": "ex01-it0",
+          "skill_id": "maths.fractions",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q0"
+        }
+      ],
+      "label": "ex01-it1"
+    },
+    {
+      "example_id": "ex02",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.417,
+          "uncertainty": 0.606,
+          "a": 5.17,
+          "b": 6.83
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.668,
+          "uncertainty": 0.326,
+          "a": 7.68,
+          "b": 4.32
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.361,
+          "uncertainty": 0.834,
+          "a": 4.61,
+          "b": 7.39
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.254,
+          "uncertainty": 0.553,
+          "a": 3.54,
+          "b": 8.46
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.845,
+          "uncertainty": 0.722,
+          "a": 9.45,
+          "b": 2.55
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.513,
+          "uncertainty": 0.229,
+          "a": 6.13,
+          "b": 5.87
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex02-it1",
+          "skill_id": "maths.fractions",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q1"
+        },
+        {
+          "item_id": "ex02-it4",
+          "skill_id": "maths.geometry",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q4"
+        },
+        {
+          "item_id": "ex02-it0",
+          "skill_id": "english.comprehension",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q0"
+        },
+        {
+          "item_id": "ex02-it3",
+          "skill_id": "english.comprehension",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q3"
+        },
+        {
+          "item_id": "ex02-it2",
+          "skill_id": "maths.geometry",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q2"
+        }
+      ],
+      "label": "ex02-it3"
+    },
+    {
+      "example_id": "ex03",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.749,
+          "uncertainty": 0.688,
+          "a": 8.49,
+          "b": 3.51
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.636,
+          "uncertainty": 0.562,
+          "a": 7.36,
+          "b": 4.64
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.364,
+          "uncertainty": 0.812,
+          "a": 4.64,
+          "b": 7.36
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.577,
+          "uncertainty": 0.481,
+          "a": 6.77,
+          "b": 5.23
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.501,
+          "uncertainty": 0.362,
+          "a": 6.01,
+          "b": 5.99
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.331,
+          "uncertainty": 0.433,
+          "a": 4.31,
+          "b": 7.69
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex03-it4",
+          "skill_id": "maths.algebra",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q4"
+        },
+        {
+          "item_id": "ex03-it1",
+          "skill_id": "maths.algebra",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q1"
+        },
+        {
+          "item_id": "ex03-it0",
+          "skill_id": "maths.algebra",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q0"
+        },
+        {
+          "item_id": "ex03-it2",
+          "skill_id": "maths.algebra",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q2"
+        },
+        {
+          "item_id": "ex03-it3",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q3"
+        }
+      ],
+      "label": "ex03-it2"
+    },
+    {
+      "example_id": "ex04",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.694,
+          "uncertainty": 0.864,
+          "a": 7.94,
+          "b": 4.06
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.685,
+          "uncertainty": 0.924,
+          "a": 7.85,
+          "b": 4.15
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.535,
+          "uncertainty": 0.656,
+          "a": 6.35,
+          "b": 5.65
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.569,
+          "uncertainty": 0.949,
+          "a": 6.69,
+          "b": 5.31
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.309,
+          "uncertainty": 0.935,
+          "a": 4.09,
+          "b": 7.91
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.633,
+          "uncertainty": 0.217,
+          "a": 7.33,
+          "b": 4.67
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex04-it1",
+          "skill_id": "english.grammar",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q1"
+        },
+        {
+          "item_id": "ex04-it3",
+          "skill_id": "maths.algebra",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q3"
+        },
+        {
+          "item_id": "ex04-it4",
+          "skill_id": "english.essay",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q4"
+        },
+        {
+          "item_id": "ex04-it2",
+          "skill_id": "english.essay",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q2"
+        },
+        {
+          "item_id": "ex04-it0",
+          "skill_id": "english.essay",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q0"
+        }
+      ],
+      "label": "ex04-it1"
+    },
+    {
+      "example_id": "ex05",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.547,
+          "uncertainty": 0.322,
+          "a": 6.47,
+          "b": 5.53
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.234,
+          "uncertainty": 0.539,
+          "a": 3.34,
+          "b": 8.66
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.707,
+          "uncertainty": 0.923,
+          "a": 8.07,
+          "b": 3.93
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.244,
+          "uncertainty": 0.601,
+          "a": 3.44,
+          "b": 8.56
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.182,
+          "uncertainty": 0.586,
+          "a": 2.82,
+          "b": 9.18
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.449,
+          "uncertainty": 0.48,
+          "a": 5.49,
+          "b": 6.51
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex05-it4",
+          "skill_id": "english.essay",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q4"
+        },
+        {
+          "item_id": "ex05-it1",
+          "skill_id": "maths.algebra",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q1"
+        },
+        {
+          "item_id": "ex05-it5",
+          "skill_id": "english.grammar",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q5"
+        },
+        {
+          "item_id": "ex05-it0",
+          "skill_id": "maths.geometry",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q0"
+        },
+        {
+          "item_id": "ex05-it3",
+          "skill_id": "maths.geometry",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q3"
+        },
+        {
+          "item_id": "ex05-it2",
+          "skill_id": "english.grammar",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q2"
+        }
+      ],
+      "label": "ex05-it5"
+    },
+    {
+      "example_id": "ex06",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.417,
+          "uncertainty": 0.23,
+          "a": 5.17,
+          "b": 6.83
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.798,
+          "uncertainty": 0.928,
+          "a": 8.98,
+          "b": 3.02
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.266,
+          "uncertainty": 0.108,
+          "a": 3.66,
+          "b": 8.34
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.808,
+          "uncertainty": 0.337,
+          "a": 9.08,
+          "b": 2.92
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.627,
+          "uncertainty": 0.213,
+          "a": 7.27,
+          "b": 4.73
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.855,
+          "uncertainty": 0.831,
+          "a": 9.55,
+          "b": 2.45
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex06-it3",
+          "skill_id": "english.essay",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q3"
+        },
+        {
+          "item_id": "ex06-it0",
+          "skill_id": "english.essay",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q0"
+        },
+        {
+          "item_id": "ex06-it2",
+          "skill_id": "maths.fractions",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q2"
+        },
+        {
+          "item_id": "ex06-it1",
+          "skill_id": "english.comprehension",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q1"
+        },
+        {
+          "item_id": "ex06-it4",
+          "skill_id": "english.grammar",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q4"
+        }
+      ],
+      "label": "ex06-it2"
+    },
+    {
+      "example_id": "ex07",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.833,
+          "uncertainty": 0.269,
+          "a": 9.33,
+          "b": 2.67
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.303,
+          "uncertainty": 0.426,
+          "a": 4.03,
+          "b": 7.97
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.353,
+          "uncertainty": 0.406,
+          "a": 4.53,
+          "b": 7.47
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.328,
+          "uncertainty": 0.279,
+          "a": 4.28,
+          "b": 7.72
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.491,
+          "uncertainty": 0.304,
+          "a": 5.91,
+          "b": 6.09
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.751,
+          "uncertainty": 0.43,
+          "a": 8.51,
+          "b": 3.49
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex07-it1",
+          "skill_id": "english.grammar",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q1"
+        },
+        {
+          "item_id": "ex07-it0",
+          "skill_id": "maths.fractions",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q0"
+        },
+        {
+          "item_id": "ex07-it4",
+          "skill_id": "english.grammar",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q4"
+        },
+        {
+          "item_id": "ex07-it5",
+          "skill_id": "maths.fractions",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q5"
+        },
+        {
+          "item_id": "ex07-it3",
+          "skill_id": "maths.geometry",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q3"
+        },
+        {
+          "item_id": "ex07-it2",
+          "skill_id": "english.grammar",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q2"
+        }
+      ],
+      "label": "ex07-it4"
+    },
+    {
+      "example_id": "ex08",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.917,
+          "uncertainty": 0.48,
+          "a": 10.17,
+          "b": 1.83
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.605,
+          "uncertainty": 0.402,
+          "a": 7.05,
+          "b": 4.95
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.421,
+          "uncertainty": 0.101,
+          "a": 5.21,
+          "b": 6.79
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.908,
+          "uncertainty": 0.349,
+          "a": 10.08,
+          "b": 1.92
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.184,
+          "uncertainty": 0.171,
+          "a": 2.84,
+          "b": 9.16
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.492,
+          "uncertainty": 0.527,
+          "a": 5.92,
+          "b": 6.08
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex08-it3",
+          "skill_id": "maths.geometry",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q3"
+        },
+        {
+          "item_id": "ex08-it2",
+          "skill_id": "maths.geometry",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q2"
+        },
+        {
+          "item_id": "ex08-it1",
+          "skill_id": "maths.geometry",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q1"
+        },
+        {
+          "item_id": "ex08-it0",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q0"
+        },
+        {
+          "item_id": "ex08-it4",
+          "skill_id": "maths.geometry",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q4"
+        },
+        {
+          "item_id": "ex08-it5",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q5"
+        }
+      ],
+      "label": "ex08-it3"
+    },
+    {
+      "example_id": "ex09",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.546,
+          "uncertainty": 0.238,
+          "a": 6.46,
+          "b": 5.54
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.152,
+          "uncertainty": 0.278,
+          "a": 2.52,
+          "b": 9.48
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.705,
+          "uncertainty": 0.888,
+          "a": 8.05,
+          "b": 3.95
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.756,
+          "uncertainty": 0.875,
+          "a": 8.56,
+          "b": 3.44
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.747,
+          "uncertainty": 0.651,
+          "a": 8.47,
+          "b": 3.53
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.336,
+          "uncertainty": 0.232,
+          "a": 4.36,
+          "b": 7.64
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex09-it4",
+          "skill_id": "maths.geometry",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q4"
+        },
+        {
+          "item_id": "ex09-it0",
+          "skill_id": "english.essay",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q0"
+        },
+        {
+          "item_id": "ex09-it5",
+          "skill_id": "maths.algebra",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q5"
+        },
+        {
+          "item_id": "ex09-it3",
+          "skill_id": "maths.algebra",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q3"
+        },
+        {
+          "item_id": "ex09-it1",
+          "skill_id": "english.grammar",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q1"
+        },
+        {
+          "item_id": "ex09-it2",
+          "skill_id": "maths.algebra",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q2"
+        }
+      ],
+      "label": "ex09-it5"
+    },
+    {
+      "example_id": "ex10",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.315,
+          "uncertainty": 0.866,
+          "a": 4.15,
+          "b": 7.85
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.205,
+          "uncertainty": 0.727,
+          "a": 3.05,
+          "b": 8.95
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.872,
+          "uncertainty": 0.806,
+          "a": 9.72,
+          "b": 2.28
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.815,
+          "uncertainty": 0.828,
+          "a": 9.15,
+          "b": 2.85
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.296,
+          "uncertainty": 0.927,
+          "a": 3.96,
+          "b": 8.04
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.886,
+          "uncertainty": 0.317,
+          "a": 9.86,
+          "b": 2.14
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex10-it2",
+          "skill_id": "english.comprehension",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q2"
+        },
+        {
+          "item_id": "ex10-it1",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q1"
+        },
+        {
+          "item_id": "ex10-it4",
+          "skill_id": "maths.algebra",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q4"
+        },
+        {
+          "item_id": "ex10-it5",
+          "skill_id": "maths.fractions",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q5"
+        },
+        {
+          "item_id": "ex10-it3",
+          "skill_id": "maths.fractions",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q3"
+        },
+        {
+          "item_id": "ex10-it0",
+          "skill_id": "english.comprehension",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q0"
+        }
+      ],
+      "label": "ex10-it1"
+    },
+    {
+      "example_id": "ex11",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.75,
+          "uncertainty": 0.231,
+          "a": 8.5,
+          "b": 3.5
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.4,
+          "uncertainty": 0.906,
+          "a": 5.0,
+          "b": 7.0
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.353,
+          "uncertainty": 0.231,
+          "a": 4.53,
+          "b": 7.47
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.775,
+          "uncertainty": 0.803,
+          "a": 8.75,
+          "b": 3.25
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.899,
+          "uncertainty": 0.635,
+          "a": 9.99,
+          "b": 2.01
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.734,
+          "uncertainty": 0.363,
+          "a": 8.34,
+          "b": 3.66
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex11-it2",
+          "skill_id": "maths.geometry",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q2"
+        },
+        {
+          "item_id": "ex11-it1",
+          "skill_id": "english.grammar",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q1"
+        },
+        {
+          "item_id": "ex11-it3",
+          "skill_id": "maths.geometry",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q3"
+        },
+        {
+          "item_id": "ex11-it4",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q4"
+        },
+        {
+          "item_id": "ex11-it0",
+          "skill_id": "english.grammar",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q0"
+        }
+      ],
+      "label": "ex11-it4"
+    },
+    {
+      "example_id": "ex12",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.848,
+          "uncertainty": 0.26,
+          "a": 9.48,
+          "b": 2.52
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.358,
+          "uncertainty": 0.926,
+          "a": 4.58,
+          "b": 7.42
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.599,
+          "uncertainty": 0.441,
+          "a": 6.99,
+          "b": 5.01
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.36,
+          "uncertainty": 0.433,
+          "a": 4.6,
+          "b": 7.4
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.297,
+          "uncertainty": 0.206,
+          "a": 3.97,
+          "b": 8.03
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.263,
+          "uncertainty": 0.757,
+          "a": 3.63,
+          "b": 8.37
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex12-it3",
+          "skill_id": "english.comprehension",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q3"
+        },
+        {
+          "item_id": "ex12-it5",
+          "skill_id": "maths.geometry",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q5"
+        },
+        {
+          "item_id": "ex12-it4",
+          "skill_id": "maths.geometry",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q4"
+        },
+        {
+          "item_id": "ex12-it2",
+          "skill_id": "english.essay",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q2"
+        },
+        {
+          "item_id": "ex12-it1",
+          "skill_id": "english.essay",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q1"
+        },
+        {
+          "item_id": "ex12-it0",
+          "skill_id": "english.comprehension",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q0"
+        }
+      ],
+      "label": "ex12-it1"
+    },
+    {
+      "example_id": "ex13",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.398,
+          "uncertainty": 0.151,
+          "a": 4.98,
+          "b": 7.02
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.337,
+          "uncertainty": 0.314,
+          "a": 4.37,
+          "b": 7.63
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.895,
+          "uncertainty": 0.626,
+          "a": 9.95,
+          "b": 2.05
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.617,
+          "uncertainty": 0.861,
+          "a": 7.17,
+          "b": 4.83
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.306,
+          "uncertainty": 0.148,
+          "a": 4.06,
+          "b": 7.94
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.258,
+          "uncertainty": 0.138,
+          "a": 3.58,
+          "b": 8.42
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex13-it4",
+          "skill_id": "english.essay",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q4"
+        },
+        {
+          "item_id": "ex13-it0",
+          "skill_id": "english.essay",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q0"
+        },
+        {
+          "item_id": "ex13-it1",
+          "skill_id": "maths.geometry",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q1"
+        },
+        {
+          "item_id": "ex13-it5",
+          "skill_id": "english.comprehension",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q5"
+        },
+        {
+          "item_id": "ex13-it3",
+          "skill_id": "english.essay",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q3"
+        },
+        {
+          "item_id": "ex13-it2",
+          "skill_id": "english.comprehension",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q2"
+        }
+      ],
+      "label": "ex13-it3"
+    },
+    {
+      "example_id": "ex14",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.857,
+          "uncertainty": 0.2,
+          "a": 9.57,
+          "b": 2.43
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.531,
+          "uncertainty": 0.527,
+          "a": 6.31,
+          "b": 5.69
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.61,
+          "uncertainty": 0.66,
+          "a": 7.1,
+          "b": 4.9
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.831,
+          "uncertainty": 0.465,
+          "a": 9.31,
+          "b": 2.69
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.592,
+          "uncertainty": 0.732,
+          "a": 6.92,
+          "b": 5.08
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.202,
+          "uncertainty": 0.195,
+          "a": 3.02,
+          "b": 8.98
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex14-it2",
+          "skill_id": "maths.algebra",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q2"
+        },
+        {
+          "item_id": "ex14-it1",
+          "skill_id": "english.comprehension",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q1"
+        },
+        {
+          "item_id": "ex14-it4",
+          "skill_id": "maths.algebra",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q4"
+        },
+        {
+          "item_id": "ex14-it0",
+          "skill_id": "english.comprehension",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q0"
+        },
+        {
+          "item_id": "ex14-it3",
+          "skill_id": "maths.algebra",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q3"
+        },
+        {
+          "item_id": "ex14-it5",
+          "skill_id": "maths.algebra",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q5"
+        }
+      ],
+      "label": "ex14-it2"
+    },
+    {
+      "example_id": "ex15",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.19,
+          "uncertainty": 0.741,
+          "a": 2.9,
+          "b": 9.1
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.341,
+          "uncertainty": 0.45,
+          "a": 4.41,
+          "b": 7.59
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.734,
+          "uncertainty": 0.917,
+          "a": 8.34,
+          "b": 3.66
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.538,
+          "uncertainty": 0.36,
+          "a": 6.38,
+          "b": 5.62
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.912,
+          "uncertainty": 0.941,
+          "a": 10.12,
+          "b": 1.88
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.806,
+          "uncertainty": 0.666,
+          "a": 9.06,
+          "b": 2.94
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex15-it3",
+          "skill_id": "maths.fractions",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q3"
+        },
+        {
+          "item_id": "ex15-it4",
+          "skill_id": "maths.fractions",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q4"
+        },
+        {
+          "item_id": "ex15-it0",
+          "skill_id": "english.grammar",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q0"
+        },
+        {
+          "item_id": "ex15-it5",
+          "skill_id": "english.grammar",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q5"
+        },
+        {
+          "item_id": "ex15-it2",
+          "skill_id": "maths.fractions",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q2"
+        },
+        {
+          "item_id": "ex15-it1",
+          "skill_id": "english.grammar",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q1"
+        }
+      ],
+      "label": "ex15-it3"
+    },
+    {
+      "example_id": "ex16",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.609,
+          "uncertainty": 0.244,
+          "a": 7.09,
+          "b": 4.91
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.261,
+          "uncertainty": 0.559,
+          "a": 3.61,
+          "b": 8.39
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.488,
+          "uncertainty": 0.493,
+          "a": 5.88,
+          "b": 6.12
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.434,
+          "uncertainty": 0.495,
+          "a": 5.34,
+          "b": 6.66
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.892,
+          "uncertainty": 0.574,
+          "a": 9.92,
+          "b": 2.08
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.71,
+          "uncertainty": 0.61,
+          "a": 8.1,
+          "b": 3.9
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex16-it0",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q0"
+        },
+        {
+          "item_id": "ex16-it2",
+          "skill_id": "maths.fractions",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q2"
+        },
+        {
+          "item_id": "ex16-it1",
+          "skill_id": "english.grammar",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q1"
+        },
+        {
+          "item_id": "ex16-it4",
+          "skill_id": "maths.fractions",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q4"
+        },
+        {
+          "item_id": "ex16-it3",
+          "skill_id": "english.essay",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q3"
+        }
+      ],
+      "label": "ex16-it0"
+    },
+    {
+      "example_id": "ex17",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.247,
+          "uncertainty": 0.485,
+          "a": 3.47,
+          "b": 8.53
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.691,
+          "uncertainty": 0.751,
+          "a": 7.91,
+          "b": 4.09
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.699,
+          "uncertainty": 0.264,
+          "a": 7.99,
+          "b": 4.01
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.349,
+          "uncertainty": 0.768,
+          "a": 4.49,
+          "b": 7.51
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.617,
+          "uncertainty": 0.201,
+          "a": 7.17,
+          "b": 4.83
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.614,
+          "uncertainty": 0.603,
+          "a": 7.14,
+          "b": 4.86
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex17-it1",
+          "skill_id": "maths.geometry",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q1"
+        },
+        {
+          "item_id": "ex17-it0",
+          "skill_id": "maths.geometry",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q0"
+        },
+        {
+          "item_id": "ex17-it3",
+          "skill_id": "maths.geometry",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q3"
+        },
+        {
+          "item_id": "ex17-it2",
+          "skill_id": "english.comprehension",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q2"
+        },
+        {
+          "item_id": "ex17-it4",
+          "skill_id": "maths.geometry",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q4"
+        }
+      ],
+      "label": "ex17-it2"
+    },
+    {
+      "example_id": "ex18",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.685,
+          "uncertainty": 0.386,
+          "a": 7.85,
+          "b": 4.15
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.244,
+          "uncertainty": 0.264,
+          "a": 3.44,
+          "b": 8.56
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.783,
+          "uncertainty": 0.556,
+          "a": 8.83,
+          "b": 3.17
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.812,
+          "uncertainty": 0.929,
+          "a": 9.12,
+          "b": 2.88
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.572,
+          "uncertainty": 0.231,
+          "a": 6.72,
+          "b": 5.28
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.615,
+          "uncertainty": 0.201,
+          "a": 7.15,
+          "b": 4.85
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex18-it0",
+          "skill_id": "maths.fractions",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q0"
+        },
+        {
+          "item_id": "ex18-it1",
+          "skill_id": "maths.fractions",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q1"
+        },
+        {
+          "item_id": "ex18-it2",
+          "skill_id": "maths.fractions",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q2"
+        },
+        {
+          "item_id": "ex18-it3",
+          "skill_id": "maths.fractions",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q3"
+        }
+      ],
+      "label": "ex18-it0"
+    },
+    {
+      "example_id": "ex19",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.648,
+          "uncertainty": 0.624,
+          "a": 7.48,
+          "b": 4.52
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.663,
+          "uncertainty": 0.915,
+          "a": 7.63,
+          "b": 4.37
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.485,
+          "uncertainty": 0.73,
+          "a": 5.85,
+          "b": 6.15
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.444,
+          "uncertainty": 0.757,
+          "a": 5.44,
+          "b": 6.56
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.387,
+          "uncertainty": 0.25,
+          "a": 4.87,
+          "b": 7.13
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.639,
+          "uncertainty": 0.524,
+          "a": 7.39,
+          "b": 4.61
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex19-it1",
+          "skill_id": "maths.geometry",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q1"
+        },
+        {
+          "item_id": "ex19-it2",
+          "skill_id": "maths.fractions",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q2"
+        },
+        {
+          "item_id": "ex19-it0",
+          "skill_id": "maths.fractions",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q0"
+        },
+        {
+          "item_id": "ex19-it3",
+          "skill_id": "english.grammar",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q3"
+        }
+      ],
+      "label": "ex19-it1"
+    },
+    {
+      "example_id": "ex20",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.824,
+          "uncertainty": 0.167,
+          "a": 9.24,
+          "b": 2.76
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.771,
+          "uncertainty": 0.937,
+          "a": 8.71,
+          "b": 3.29
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.311,
+          "uncertainty": 0.804,
+          "a": 4.11,
+          "b": 7.89
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.184,
+          "uncertainty": 0.901,
+          "a": 2.84,
+          "b": 9.16
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.619,
+          "uncertainty": 0.246,
+          "a": 7.19,
+          "b": 4.81
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.64,
+          "uncertainty": 0.694,
+          "a": 7.4,
+          "b": 4.6
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex20-it3",
+          "skill_id": "maths.geometry",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q3"
+        },
+        {
+          "item_id": "ex20-it4",
+          "skill_id": "maths.geometry",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q4"
+        },
+        {
+          "item_id": "ex20-it0",
+          "skill_id": "maths.algebra",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q0"
+        },
+        {
+          "item_id": "ex20-it1",
+          "skill_id": "maths.geometry",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q1"
+        },
+        {
+          "item_id": "ex20-it2",
+          "skill_id": "english.comprehension",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q2"
+        },
+        {
+          "item_id": "ex20-it5",
+          "skill_id": "english.comprehension",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q5"
+        }
+      ],
+      "label": "ex20-it5"
+    },
+    {
+      "example_id": "ex21",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.373,
+          "uncertainty": 0.603,
+          "a": 4.73,
+          "b": 7.27
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.166,
+          "uncertainty": 0.66,
+          "a": 2.66,
+          "b": 9.34
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.193,
+          "uncertainty": 0.744,
+          "a": 2.93,
+          "b": 9.07
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.302,
+          "uncertainty": 0.342,
+          "a": 4.02,
+          "b": 7.98
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.749,
+          "uncertainty": 0.67,
+          "a": 8.49,
+          "b": 3.51
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.613,
+          "uncertainty": 0.906,
+          "a": 7.13,
+          "b": 4.87
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex21-it2",
+          "skill_id": "english.grammar",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q2"
+        },
+        {
+          "item_id": "ex21-it1",
+          "skill_id": "english.essay",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q1"
+        },
+        {
+          "item_id": "ex21-it3",
+          "skill_id": "maths.fractions",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q3"
+        },
+        {
+          "item_id": "ex21-it0",
+          "skill_id": "maths.fractions",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q0"
+        },
+        {
+          "item_id": "ex21-it4",
+          "skill_id": "maths.fractions",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q4"
+        }
+      ],
+      "label": "ex21-it3"
+    },
+    {
+      "example_id": "ex22",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.898,
+          "uncertainty": 0.472,
+          "a": 9.98,
+          "b": 2.02
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.407,
+          "uncertainty": 0.887,
+          "a": 5.07,
+          "b": 6.93
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.893,
+          "uncertainty": 0.715,
+          "a": 9.93,
+          "b": 2.07
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.691,
+          "uncertainty": 0.303,
+          "a": 7.91,
+          "b": 4.09
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.466,
+          "uncertainty": 0.66,
+          "a": 5.66,
+          "b": 6.34
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.694,
+          "uncertainty": 0.591,
+          "a": 7.94,
+          "b": 4.06
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex22-it3",
+          "skill_id": "english.essay",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q3"
+        },
+        {
+          "item_id": "ex22-it0",
+          "skill_id": "english.grammar",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q0"
+        },
+        {
+          "item_id": "ex22-it1",
+          "skill_id": "english.essay",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q1"
+        },
+        {
+          "item_id": "ex22-it2",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q2"
+        },
+        {
+          "item_id": "ex22-it4",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q4"
+        }
+      ],
+      "label": "ex22-it0"
+    },
+    {
+      "example_id": "ex23",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.443,
+          "uncertainty": 0.702,
+          "a": 5.43,
+          "b": 6.57
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.583,
+          "uncertainty": 0.357,
+          "a": 6.83,
+          "b": 5.17
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.82,
+          "uncertainty": 0.248,
+          "a": 9.2,
+          "b": 2.8
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.511,
+          "uncertainty": 0.7,
+          "a": 6.11,
+          "b": 5.89
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.245,
+          "uncertainty": 0.148,
+          "a": 3.45,
+          "b": 8.55
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.704,
+          "uncertainty": 0.237,
+          "a": 8.04,
+          "b": 3.96
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex23-it0",
+          "skill_id": "maths.geometry",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q0"
+        },
+        {
+          "item_id": "ex23-it5",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q5"
+        },
+        {
+          "item_id": "ex23-it1",
+          "skill_id": "english.essay",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q1"
+        },
+        {
+          "item_id": "ex23-it4",
+          "skill_id": "maths.geometry",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q4"
+        },
+        {
+          "item_id": "ex23-it3",
+          "skill_id": "english.comprehension",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q3"
+        },
+        {
+          "item_id": "ex23-it2",
+          "skill_id": "maths.geometry",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q2"
+        }
+      ],
+      "label": "ex23-it3"
+    },
+    {
+      "example_id": "ex24",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.404,
+          "uncertainty": 0.519,
+          "a": 5.04,
+          "b": 6.96
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.609,
+          "uncertainty": 0.575,
+          "a": 7.09,
+          "b": 4.91
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.676,
+          "uncertainty": 0.225,
+          "a": 7.76,
+          "b": 4.24
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.374,
+          "uncertainty": 0.406,
+          "a": 4.74,
+          "b": 7.26
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.721,
+          "uncertainty": 0.78,
+          "a": 8.21,
+          "b": 3.79
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.268,
+          "uncertainty": 0.682,
+          "a": 3.68,
+          "b": 8.32
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex24-it3",
+          "skill_id": "english.comprehension",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q3"
+        },
+        {
+          "item_id": "ex24-it1",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q1"
+        },
+        {
+          "item_id": "ex24-it2",
+          "skill_id": "english.comprehension",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q2"
+        },
+        {
+          "item_id": "ex24-it0",
+          "skill_id": "english.essay",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q0"
+        },
+        {
+          "item_id": "ex24-it4",
+          "skill_id": "maths.algebra",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q4"
+        }
+      ],
+      "label": "ex24-it0"
+    },
+    {
+      "example_id": "ex25",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.856,
+          "uncertainty": 0.306,
+          "a": 9.56,
+          "b": 2.44
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.48,
+          "uncertainty": 0.403,
+          "a": 5.8,
+          "b": 6.2
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.771,
+          "uncertainty": 0.828,
+          "a": 8.71,
+          "b": 3.29
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.577,
+          "uncertainty": 0.894,
+          "a": 6.77,
+          "b": 5.23
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.44,
+          "uncertainty": 0.898,
+          "a": 5.4,
+          "b": 6.6
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.201,
+          "uncertainty": 0.424,
+          "a": 3.01,
+          "b": 8.99
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex25-it1",
+          "skill_id": "english.grammar",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q1"
+        },
+        {
+          "item_id": "ex25-it4",
+          "skill_id": "maths.geometry",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q4"
+        },
+        {
+          "item_id": "ex25-it3",
+          "skill_id": "maths.fractions",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q3"
+        },
+        {
+          "item_id": "ex25-it2",
+          "skill_id": "english.grammar",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q2"
+        },
+        {
+          "item_id": "ex25-it5",
+          "skill_id": "maths.geometry",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q5"
+        },
+        {
+          "item_id": "ex25-it0",
+          "skill_id": "maths.fractions",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q0"
+        }
+      ],
+      "label": "ex25-it1"
+    },
+    {
+      "example_id": "ex26",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.74,
+          "uncertainty": 0.325,
+          "a": 8.4,
+          "b": 3.6
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.669,
+          "uncertainty": 0.905,
+          "a": 7.69,
+          "b": 4.31
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.899,
+          "uncertainty": 0.19,
+          "a": 9.99,
+          "b": 2.01
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.366,
+          "uncertainty": 0.301,
+          "a": 4.66,
+          "b": 7.34
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.522,
+          "uncertainty": 0.466,
+          "a": 6.22,
+          "b": 5.78
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.256,
+          "uncertainty": 0.881,
+          "a": 3.56,
+          "b": 8.44
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex26-it0",
+          "skill_id": "maths.geometry",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q0"
+        },
+        {
+          "item_id": "ex26-it3",
+          "skill_id": "english.comprehension",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q3"
+        },
+        {
+          "item_id": "ex26-it2",
+          "skill_id": "english.comprehension",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q2"
+        },
+        {
+          "item_id": "ex26-it1",
+          "skill_id": "english.comprehension",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q1"
+        }
+      ],
+      "label": "ex26-it3"
+    },
+    {
+      "example_id": "ex27",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.442,
+          "uncertainty": 0.489,
+          "a": 5.42,
+          "b": 6.58
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.163,
+          "uncertainty": 0.22,
+          "a": 2.63,
+          "b": 9.37
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.782,
+          "uncertainty": 0.74,
+          "a": 8.82,
+          "b": 3.18
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.501,
+          "uncertainty": 0.294,
+          "a": 6.01,
+          "b": 5.99
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.259,
+          "uncertainty": 0.926,
+          "a": 3.59,
+          "b": 8.41
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.345,
+          "uncertainty": 0.743,
+          "a": 4.45,
+          "b": 7.55
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex27-it2",
+          "skill_id": "maths.geometry",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q2"
+        },
+        {
+          "item_id": "ex27-it4",
+          "skill_id": "maths.geometry",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q4"
+        },
+        {
+          "item_id": "ex27-it1",
+          "skill_id": "maths.geometry",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q1"
+        },
+        {
+          "item_id": "ex27-it0",
+          "skill_id": "english.comprehension",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q0"
+        },
+        {
+          "item_id": "ex27-it5",
+          "skill_id": "english.essay",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q5"
+        },
+        {
+          "item_id": "ex27-it3",
+          "skill_id": "maths.algebra",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q3"
+        }
+      ],
+      "label": "ex27-it0"
+    },
+    {
+      "example_id": "ex28",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.756,
+          "uncertainty": 0.38,
+          "a": 8.56,
+          "b": 3.44
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.916,
+          "uncertainty": 0.137,
+          "a": 10.16,
+          "b": 1.84
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.372,
+          "uncertainty": 0.466,
+          "a": 4.72,
+          "b": 7.28
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.893,
+          "uncertainty": 0.224,
+          "a": 9.93,
+          "b": 2.07
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.763,
+          "uncertainty": 0.869,
+          "a": 8.63,
+          "b": 3.37
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.533,
+          "uncertainty": 0.559,
+          "a": 6.33,
+          "b": 5.67
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex28-it3",
+          "skill_id": "english.essay",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q3"
+        },
+        {
+          "item_id": "ex28-it1",
+          "skill_id": "maths.algebra",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q1"
+        },
+        {
+          "item_id": "ex28-it0",
+          "skill_id": "maths.algebra",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q0"
+        },
+        {
+          "item_id": "ex28-it2",
+          "skill_id": "english.grammar",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q2"
+        }
+      ],
+      "label": "ex28-it2"
+    },
+    {
+      "example_id": "ex29",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.904,
+          "uncertainty": 0.252,
+          "a": 10.04,
+          "b": 1.96
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.807,
+          "uncertainty": 0.312,
+          "a": 9.07,
+          "b": 2.93
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.289,
+          "uncertainty": 0.419,
+          "a": 3.89,
+          "b": 8.11
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.689,
+          "uncertainty": 0.573,
+          "a": 7.89,
+          "b": 4.11
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.92,
+          "uncertainty": 0.949,
+          "a": 10.2,
+          "b": 1.8
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.849,
+          "uncertainty": 0.156,
+          "a": 9.49,
+          "b": 2.51
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex29-it2",
+          "skill_id": "maths.fractions",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q2"
+        },
+        {
+          "item_id": "ex29-it3",
+          "skill_id": "english.grammar",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q3"
+        },
+        {
+          "item_id": "ex29-it4",
+          "skill_id": "english.comprehension",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q4"
+        },
+        {
+          "item_id": "ex29-it5",
+          "skill_id": "maths.geometry",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q5"
+        },
+        {
+          "item_id": "ex29-it1",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q1"
+        },
+        {
+          "item_id": "ex29-it0",
+          "skill_id": "maths.fractions",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q0"
+        }
+      ],
+      "label": "ex29-it5"
+    },
+    {
+      "example_id": "ex30",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.613,
+          "uncertainty": 0.861,
+          "a": 7.13,
+          "b": 4.87
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.475,
+          "uncertainty": 0.839,
+          "a": 5.75,
+          "b": 6.25
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.656,
+          "uncertainty": 0.549,
+          "a": 7.56,
+          "b": 4.44
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.204,
+          "uncertainty": 0.756,
+          "a": 3.04,
+          "b": 8.96
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.712,
+          "uncertainty": 0.904,
+          "a": 8.12,
+          "b": 3.88
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.686,
+          "uncertainty": 0.555,
+          "a": 7.86,
+          "b": 4.14
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex30-it1",
+          "skill_id": "maths.geometry",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q1"
+        },
+        {
+          "item_id": "ex30-it2",
+          "skill_id": "english.essay",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q2"
+        },
+        {
+          "item_id": "ex30-it0",
+          "skill_id": "english.essay",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q0"
+        },
+        {
+          "item_id": "ex30-it3",
+          "skill_id": "english.essay",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q3"
+        },
+        {
+          "item_id": "ex30-it4",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q4"
+        }
+      ],
+      "label": "ex30-it3"
+    },
+    {
+      "example_id": "ex31",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.697,
+          "uncertainty": 0.893,
+          "a": 7.97,
+          "b": 4.03
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.683,
+          "uncertainty": 0.848,
+          "a": 7.83,
+          "b": 4.17
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.624,
+          "uncertainty": 0.404,
+          "a": 7.24,
+          "b": 4.76
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.517,
+          "uncertainty": 0.525,
+          "a": 6.17,
+          "b": 5.83
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.636,
+          "uncertainty": 0.659,
+          "a": 7.36,
+          "b": 4.64
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.588,
+          "uncertainty": 0.855,
+          "a": 6.88,
+          "b": 5.12
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex31-it4",
+          "skill_id": "maths.algebra",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q4"
+        },
+        {
+          "item_id": "ex31-it2",
+          "skill_id": "english.comprehension",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q2"
+        },
+        {
+          "item_id": "ex31-it0",
+          "skill_id": "english.essay",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q0"
+        },
+        {
+          "item_id": "ex31-it5",
+          "skill_id": "english.essay",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q5"
+        },
+        {
+          "item_id": "ex31-it3",
+          "skill_id": "english.comprehension",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q3"
+        },
+        {
+          "item_id": "ex31-it1",
+          "skill_id": "english.essay",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q1"
+        }
+      ],
+      "label": "ex31-it0"
+    },
+    {
+      "example_id": "ex32",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.423,
+          "uncertainty": 0.245,
+          "a": 5.23,
+          "b": 6.77
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.817,
+          "uncertainty": 0.582,
+          "a": 9.17,
+          "b": 2.83
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.781,
+          "uncertainty": 0.348,
+          "a": 8.81,
+          "b": 3.19
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.741,
+          "uncertainty": 0.425,
+          "a": 8.41,
+          "b": 3.59
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.472,
+          "uncertainty": 0.353,
+          "a": 5.72,
+          "b": 6.28
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.36,
+          "uncertainty": 0.714,
+          "a": 4.6,
+          "b": 7.4
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex32-it0",
+          "skill_id": "english.essay",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q0"
+        },
+        {
+          "item_id": "ex32-it3",
+          "skill_id": "maths.algebra",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q3"
+        },
+        {
+          "item_id": "ex32-it1",
+          "skill_id": "english.grammar",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q1"
+        },
+        {
+          "item_id": "ex32-it2",
+          "skill_id": "english.grammar",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q2"
+        }
+      ],
+      "label": "ex32-it0"
+    },
+    {
+      "example_id": "ex33",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.862,
+          "uncertainty": 0.814,
+          "a": 9.62,
+          "b": 2.38
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.847,
+          "uncertainty": 0.335,
+          "a": 9.47,
+          "b": 2.53
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.463,
+          "uncertainty": 0.43,
+          "a": 5.63,
+          "b": 6.37
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.855,
+          "uncertainty": 0.101,
+          "a": 9.55,
+          "b": 2.45
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.446,
+          "uncertainty": 0.623,
+          "a": 5.46,
+          "b": 6.54
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.483,
+          "uncertainty": 0.262,
+          "a": 5.83,
+          "b": 6.17
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex33-it1",
+          "skill_id": "english.grammar",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q1"
+        },
+        {
+          "item_id": "ex33-it0",
+          "skill_id": "maths.geometry",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q0"
+        },
+        {
+          "item_id": "ex33-it3",
+          "skill_id": "english.grammar",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q3"
+        },
+        {
+          "item_id": "ex33-it2",
+          "skill_id": "english.comprehension",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q2"
+        }
+      ],
+      "label": "ex33-it3"
+    },
+    {
+      "example_id": "ex34",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.794,
+          "uncertainty": 0.485,
+          "a": 8.94,
+          "b": 3.06
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.694,
+          "uncertainty": 0.577,
+          "a": 7.94,
+          "b": 4.06
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.396,
+          "uncertainty": 0.927,
+          "a": 4.96,
+          "b": 7.04
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.315,
+          "uncertainty": 0.675,
+          "a": 4.15,
+          "b": 7.85
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.34,
+          "uncertainty": 0.266,
+          "a": 4.4,
+          "b": 7.6
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.815,
+          "uncertainty": 0.255,
+          "a": 9.15,
+          "b": 2.85
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex34-it2",
+          "skill_id": "english.grammar",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q2"
+        },
+        {
+          "item_id": "ex34-it0",
+          "skill_id": "maths.fractions",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q0"
+        },
+        {
+          "item_id": "ex34-it1",
+          "skill_id": "maths.fractions",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q1"
+        },
+        {
+          "item_id": "ex34-it3",
+          "skill_id": "english.essay",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q3"
+        }
+      ],
+      "label": "ex34-it2"
+    },
+    {
+      "example_id": "ex35",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.561,
+          "uncertainty": 0.77,
+          "a": 6.61,
+          "b": 5.39
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.293,
+          "uncertainty": 0.528,
+          "a": 3.93,
+          "b": 8.07
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.665,
+          "uncertainty": 0.25,
+          "a": 7.65,
+          "b": 4.35
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.322,
+          "uncertainty": 0.771,
+          "a": 4.22,
+          "b": 7.78
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.58,
+          "uncertainty": 0.428,
+          "a": 6.8,
+          "b": 5.2
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.456,
+          "uncertainty": 0.109,
+          "a": 5.56,
+          "b": 6.44
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex35-it4",
+          "skill_id": "maths.geometry",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q4"
+        },
+        {
+          "item_id": "ex35-it2",
+          "skill_id": "maths.fractions",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q2"
+        },
+        {
+          "item_id": "ex35-it1",
+          "skill_id": "maths.geometry",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q1"
+        },
+        {
+          "item_id": "ex35-it0",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q0"
+        },
+        {
+          "item_id": "ex35-it3",
+          "skill_id": "maths.fractions",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q3"
+        }
+      ],
+      "label": "ex35-it3"
+    },
+    {
+      "example_id": "ex36",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.874,
+          "uncertainty": 0.499,
+          "a": 9.74,
+          "b": 2.26
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.571,
+          "uncertainty": 0.162,
+          "a": 6.71,
+          "b": 5.29
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.794,
+          "uncertainty": 0.633,
+          "a": 8.94,
+          "b": 3.06
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.619,
+          "uncertainty": 0.567,
+          "a": 7.19,
+          "b": 4.81
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.712,
+          "uncertainty": 0.328,
+          "a": 8.12,
+          "b": 3.88
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.908,
+          "uncertainty": 0.714,
+          "a": 10.08,
+          "b": 1.92
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex36-it2",
+          "skill_id": "english.comprehension",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q2"
+        },
+        {
+          "item_id": "ex36-it1",
+          "skill_id": "maths.geometry",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q1"
+        },
+        {
+          "item_id": "ex36-it4",
+          "skill_id": "english.comprehension",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q4"
+        },
+        {
+          "item_id": "ex36-it3",
+          "skill_id": "english.comprehension",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q3"
+        },
+        {
+          "item_id": "ex36-it0",
+          "skill_id": "english.comprehension",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q0"
+        }
+      ],
+      "label": "ex36-it3"
+    },
+    {
+      "example_id": "ex37",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.41,
+          "uncertainty": 0.257,
+          "a": 5.1,
+          "b": 6.9
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.791,
+          "uncertainty": 0.173,
+          "a": 8.91,
+          "b": 3.09
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.698,
+          "uncertainty": 0.255,
+          "a": 7.98,
+          "b": 4.02
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.885,
+          "uncertainty": 0.126,
+          "a": 9.85,
+          "b": 2.15
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.733,
+          "uncertainty": 0.578,
+          "a": 8.33,
+          "b": 3.67
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.325,
+          "uncertainty": 0.365,
+          "a": 4.25,
+          "b": 7.75
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex37-it0",
+          "skill_id": "english.comprehension",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q0"
+        },
+        {
+          "item_id": "ex37-it1",
+          "skill_id": "english.grammar",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q1"
+        },
+        {
+          "item_id": "ex37-it3",
+          "skill_id": "maths.fractions",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q3"
+        },
+        {
+          "item_id": "ex37-it2",
+          "skill_id": "maths.geometry",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q2"
+        }
+      ],
+      "label": "ex37-it3"
+    },
+    {
+      "example_id": "ex38",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.64,
+          "uncertainty": 0.476,
+          "a": 7.4,
+          "b": 4.6
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.543,
+          "uncertainty": 0.933,
+          "a": 6.43,
+          "b": 5.57
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.797,
+          "uncertainty": 0.179,
+          "a": 8.97,
+          "b": 3.03
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.752,
+          "uncertainty": 0.509,
+          "a": 8.52,
+          "b": 3.48
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.765,
+          "uncertainty": 0.863,
+          "a": 8.65,
+          "b": 3.35
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.9,
+          "uncertainty": 0.806,
+          "a": 10.0,
+          "b": 2.0
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex38-it4",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q4"
+        },
+        {
+          "item_id": "ex38-it2",
+          "skill_id": "english.comprehension",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q2"
+        },
+        {
+          "item_id": "ex38-it3",
+          "skill_id": "english.essay",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q3"
+        },
+        {
+          "item_id": "ex38-it0",
+          "skill_id": "english.comprehension",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q0"
+        },
+        {
+          "item_id": "ex38-it1",
+          "skill_id": "english.essay",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q1"
+        }
+      ],
+      "label": "ex38-it4"
+    },
+    {
+      "example_id": "ex39",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.285,
+          "uncertainty": 0.205,
+          "a": 3.85,
+          "b": 8.15
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.26,
+          "uncertainty": 0.786,
+          "a": 3.6,
+          "b": 8.4
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.627,
+          "uncertainty": 0.273,
+          "a": 7.27,
+          "b": 4.73
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.474,
+          "uncertainty": 0.112,
+          "a": 5.74,
+          "b": 6.26
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.434,
+          "uncertainty": 0.69,
+          "a": 5.34,
+          "b": 6.66
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.676,
+          "uncertainty": 0.478,
+          "a": 7.76,
+          "b": 4.24
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex39-it3",
+          "skill_id": "english.essay",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q3"
+        },
+        {
+          "item_id": "ex39-it4",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q4"
+        },
+        {
+          "item_id": "ex39-it5",
+          "skill_id": "english.grammar",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q5"
+        },
+        {
+          "item_id": "ex39-it1",
+          "skill_id": "maths.algebra",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q1"
+        },
+        {
+          "item_id": "ex39-it2",
+          "skill_id": "english.grammar",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q2"
+        },
+        {
+          "item_id": "ex39-it0",
+          "skill_id": "maths.algebra",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q0"
+        }
+      ],
+      "label": "ex39-it4"
+    },
+    {
+      "example_id": "ex40",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.467,
+          "uncertainty": 0.217,
+          "a": 5.67,
+          "b": 6.33
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.362,
+          "uncertainty": 0.163,
+          "a": 4.62,
+          "b": 7.38
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.457,
+          "uncertainty": 0.23,
+          "a": 5.57,
+          "b": 6.43
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.229,
+          "uncertainty": 0.784,
+          "a": 3.29,
+          "b": 8.71
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.88,
+          "uncertainty": 0.814,
+          "a": 9.8,
+          "b": 2.2
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.26,
+          "uncertainty": 0.839,
+          "a": 3.6,
+          "b": 8.4
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex40-it1",
+          "skill_id": "english.grammar",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q1"
+        },
+        {
+          "item_id": "ex40-it2",
+          "skill_id": "maths.fractions",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q2"
+        },
+        {
+          "item_id": "ex40-it3",
+          "skill_id": "maths.algebra",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q3"
+        },
+        {
+          "item_id": "ex40-it5",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q5"
+        },
+        {
+          "item_id": "ex40-it0",
+          "skill_id": "maths.algebra",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q0"
+        },
+        {
+          "item_id": "ex40-it4",
+          "skill_id": "english.comprehension",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q4"
+        }
+      ],
+      "label": "ex40-it4"
+    },
+    {
+      "example_id": "ex41",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.355,
+          "uncertainty": 0.493,
+          "a": 4.55,
+          "b": 7.45
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.21,
+          "uncertainty": 0.652,
+          "a": 3.1,
+          "b": 8.9
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.871,
+          "uncertainty": 0.241,
+          "a": 9.71,
+          "b": 2.29
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.415,
+          "uncertainty": 0.47,
+          "a": 5.15,
+          "b": 6.85
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.503,
+          "uncertainty": 0.4,
+          "a": 6.03,
+          "b": 5.97
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.258,
+          "uncertainty": 0.889,
+          "a": 3.58,
+          "b": 8.42
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex41-it2",
+          "skill_id": "maths.geometry",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q2"
+        },
+        {
+          "item_id": "ex41-it3",
+          "skill_id": "english.grammar",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q3"
+        },
+        {
+          "item_id": "ex41-it0",
+          "skill_id": "maths.geometry",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q0"
+        },
+        {
+          "item_id": "ex41-it1",
+          "skill_id": "maths.algebra",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q1"
+        }
+      ],
+      "label": "ex41-it1"
+    },
+    {
+      "example_id": "ex42",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.714,
+          "uncertainty": 0.486,
+          "a": 8.14,
+          "b": 3.86
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.316,
+          "uncertainty": 0.326,
+          "a": 4.16,
+          "b": 7.84
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.347,
+          "uncertainty": 0.266,
+          "a": 4.47,
+          "b": 7.53
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.788,
+          "uncertainty": 0.227,
+          "a": 8.88,
+          "b": 3.12
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.536,
+          "uncertainty": 0.246,
+          "a": 6.36,
+          "b": 5.64
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.335,
+          "uncertainty": 0.805,
+          "a": 4.35,
+          "b": 7.65
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex42-it3",
+          "skill_id": "english.essay",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q3"
+        },
+        {
+          "item_id": "ex42-it1",
+          "skill_id": "maths.geometry",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q1"
+        },
+        {
+          "item_id": "ex42-it4",
+          "skill_id": "english.essay",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q4"
+        },
+        {
+          "item_id": "ex42-it2",
+          "skill_id": "maths.fractions",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q2"
+        },
+        {
+          "item_id": "ex42-it0",
+          "skill_id": "english.essay",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q0"
+        }
+      ],
+      "label": "ex42-it4"
+    },
+    {
+      "example_id": "ex43",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.774,
+          "uncertainty": 0.337,
+          "a": 8.74,
+          "b": 3.26
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.692,
+          "uncertainty": 0.662,
+          "a": 7.92,
+          "b": 4.08
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.808,
+          "uncertainty": 0.769,
+          "a": 9.08,
+          "b": 2.92
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.282,
+          "uncertainty": 0.162,
+          "a": 3.82,
+          "b": 8.18
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.843,
+          "uncertainty": 0.396,
+          "a": 9.43,
+          "b": 2.57
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.671,
+          "uncertainty": 0.776,
+          "a": 7.71,
+          "b": 4.29
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex43-it0",
+          "skill_id": "english.comprehension",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q0"
+        },
+        {
+          "item_id": "ex43-it1",
+          "skill_id": "maths.geometry",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q1"
+        },
+        {
+          "item_id": "ex43-it2",
+          "skill_id": "maths.geometry",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q2"
+        },
+        {
+          "item_id": "ex43-it3",
+          "skill_id": "english.comprehension",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q3"
+        }
+      ],
+      "label": "ex43-it0"
+    },
+    {
+      "example_id": "ex44",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.737,
+          "uncertainty": 0.194,
+          "a": 8.37,
+          "b": 3.63
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.616,
+          "uncertainty": 0.418,
+          "a": 7.16,
+          "b": 4.84
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.571,
+          "uncertainty": 0.894,
+          "a": 6.71,
+          "b": 5.29
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.621,
+          "uncertainty": 0.732,
+          "a": 7.21,
+          "b": 4.79
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.164,
+          "uncertainty": 0.145,
+          "a": 2.64,
+          "b": 9.36
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.719,
+          "uncertainty": 0.495,
+          "a": 8.19,
+          "b": 3.81
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex44-it0",
+          "skill_id": "english.essay",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q0"
+        },
+        {
+          "item_id": "ex44-it1",
+          "skill_id": "maths.fractions",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q1"
+        },
+        {
+          "item_id": "ex44-it3",
+          "skill_id": "maths.fractions",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q3"
+        },
+        {
+          "item_id": "ex44-it2",
+          "skill_id": "english.grammar",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q2"
+        }
+      ],
+      "label": "ex44-it2"
+    },
+    {
+      "example_id": "ex45",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.166,
+          "uncertainty": 0.351,
+          "a": 2.66,
+          "b": 9.34
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.69,
+          "uncertainty": 0.122,
+          "a": 7.9,
+          "b": 4.1
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.31,
+          "uncertainty": 0.742,
+          "a": 4.1,
+          "b": 7.9
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.786,
+          "uncertainty": 0.27,
+          "a": 8.86,
+          "b": 3.14
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.629,
+          "uncertainty": 0.645,
+          "a": 7.29,
+          "b": 4.71
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.384,
+          "uncertainty": 0.946,
+          "a": 4.84,
+          "b": 7.16
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex45-it2",
+          "skill_id": "english.essay",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q2"
+        },
+        {
+          "item_id": "ex45-it4",
+          "skill_id": "english.essay",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q4"
+        },
+        {
+          "item_id": "ex45-it0",
+          "skill_id": "maths.fractions",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q0"
+        },
+        {
+          "item_id": "ex45-it5",
+          "skill_id": "maths.geometry",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q5"
+        },
+        {
+          "item_id": "ex45-it3",
+          "skill_id": "maths.fractions",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q3"
+        },
+        {
+          "item_id": "ex45-it1",
+          "skill_id": "maths.fractions",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q1"
+        }
+      ],
+      "label": "ex45-it5"
+    },
+    {
+      "example_id": "ex46",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.32,
+          "uncertainty": 0.332,
+          "a": 4.2,
+          "b": 7.8
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.384,
+          "uncertainty": 0.594,
+          "a": 4.84,
+          "b": 7.16
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.46,
+          "uncertainty": 0.154,
+          "a": 5.6,
+          "b": 6.4
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.775,
+          "uncertainty": 0.573,
+          "a": 8.75,
+          "b": 3.25
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.826,
+          "uncertainty": 0.588,
+          "a": 9.26,
+          "b": 2.74
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.493,
+          "uncertainty": 0.317,
+          "a": 5.93,
+          "b": 6.07
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex46-it1",
+          "skill_id": "english.grammar",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q1"
+        },
+        {
+          "item_id": "ex46-it0",
+          "skill_id": "maths.fractions",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q0"
+        },
+        {
+          "item_id": "ex46-it4",
+          "skill_id": "maths.geometry",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q4"
+        },
+        {
+          "item_id": "ex46-it3",
+          "skill_id": "maths.fractions",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q3"
+        },
+        {
+          "item_id": "ex46-it2",
+          "skill_id": "english.grammar",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q2"
+        }
+      ],
+      "label": "ex46-it0"
+    },
+    {
+      "example_id": "ex47",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.81,
+          "uncertainty": 0.216,
+          "a": 9.1,
+          "b": 2.9
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.29,
+          "uncertainty": 0.583,
+          "a": 3.9,
+          "b": 8.1
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.295,
+          "uncertainty": 0.903,
+          "a": 3.95,
+          "b": 8.05
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.883,
+          "uncertainty": 0.22,
+          "a": 9.83,
+          "b": 2.17
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.668,
+          "uncertainty": 0.738,
+          "a": 7.68,
+          "b": 4.32
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.586,
+          "uncertainty": 0.573,
+          "a": 6.86,
+          "b": 5.14
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex47-it5",
+          "skill_id": "english.comprehension",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q5"
+        },
+        {
+          "item_id": "ex47-it0",
+          "skill_id": "maths.fractions",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q0"
+        },
+        {
+          "item_id": "ex47-it4",
+          "skill_id": "maths.fractions",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q4"
+        },
+        {
+          "item_id": "ex47-it1",
+          "skill_id": "maths.fractions",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q1"
+        },
+        {
+          "item_id": "ex47-it2",
+          "skill_id": "english.comprehension",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q2"
+        },
+        {
+          "item_id": "ex47-it3",
+          "skill_id": "maths.fractions",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q3"
+        }
+      ],
+      "label": "ex47-it1"
+    },
+    {
+      "example_id": "ex48",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.315,
+          "uncertainty": 0.355,
+          "a": 4.15,
+          "b": 7.85
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.172,
+          "uncertainty": 0.493,
+          "a": 2.72,
+          "b": 9.28
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.242,
+          "uncertainty": 0.284,
+          "a": 3.42,
+          "b": 8.58
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.224,
+          "uncertainty": 0.94,
+          "a": 3.24,
+          "b": 8.76
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.377,
+          "uncertainty": 0.656,
+          "a": 4.77,
+          "b": 7.23
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.895,
+          "uncertainty": 0.523,
+          "a": 9.95,
+          "b": 2.05
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex48-it4",
+          "skill_id": "english.grammar",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q4"
+        },
+        {
+          "item_id": "ex48-it0",
+          "skill_id": "maths.fractions",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q0"
+        },
+        {
+          "item_id": "ex48-it3",
+          "skill_id": "english.comprehension",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q3"
+        },
+        {
+          "item_id": "ex48-it1",
+          "skill_id": "english.comprehension",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q1"
+        },
+        {
+          "item_id": "ex48-it2",
+          "skill_id": "maths.algebra",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q2"
+        },
+        {
+          "item_id": "ex48-it5",
+          "skill_id": "maths.fractions",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q5"
+        }
+      ],
+      "label": "ex48-it3"
+    },
+    {
+      "example_id": "ex49",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.838,
+          "uncertainty": 0.617,
+          "a": 9.38,
+          "b": 2.62
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.178,
+          "uncertainty": 0.932,
+          "a": 2.78,
+          "b": 9.22
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.629,
+          "uncertainty": 0.256,
+          "a": 7.29,
+          "b": 4.71
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.327,
+          "uncertainty": 0.929,
+          "a": 4.27,
+          "b": 7.73
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.322,
+          "uncertainty": 0.134,
+          "a": 4.22,
+          "b": 7.78
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.256,
+          "uncertainty": 0.263,
+          "a": 3.56,
+          "b": 8.44
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex49-it3",
+          "skill_id": "maths.algebra",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q3"
+        },
+        {
+          "item_id": "ex49-it0",
+          "skill_id": "maths.geometry",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q0"
+        },
+        {
+          "item_id": "ex49-it2",
+          "skill_id": "maths.geometry",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q2"
+        },
+        {
+          "item_id": "ex49-it1",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q1"
+        },
+        {
+          "item_id": "ex49-it4",
+          "skill_id": "english.grammar",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q4"
+        }
+      ],
+      "label": "ex49-it1"
+    },
+    {
+      "example_id": "ex50",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.411,
+          "uncertainty": 0.241,
+          "a": 5.11,
+          "b": 6.89
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.657,
+          "uncertainty": 0.614,
+          "a": 7.57,
+          "b": 4.43
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.248,
+          "uncertainty": 0.321,
+          "a": 3.48,
+          "b": 8.52
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.449,
+          "uncertainty": 0.739,
+          "a": 5.49,
+          "b": 6.51
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.63,
+          "uncertainty": 0.232,
+          "a": 7.3,
+          "b": 4.7
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.63,
+          "uncertainty": 0.238,
+          "a": 7.3,
+          "b": 4.7
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex50-it4",
+          "skill_id": "maths.geometry",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q4"
+        },
+        {
+          "item_id": "ex50-it0",
+          "skill_id": "maths.fractions",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q0"
+        },
+        {
+          "item_id": "ex50-it1",
+          "skill_id": "maths.geometry",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q1"
+        },
+        {
+          "item_id": "ex50-it2",
+          "skill_id": "maths.fractions",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q2"
+        },
+        {
+          "item_id": "ex50-it3",
+          "skill_id": "maths.fractions",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q3"
+        },
+        {
+          "item_id": "ex50-it5",
+          "skill_id": "english.essay",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q5"
+        }
+      ],
+      "label": "ex50-it3"
+    },
+    {
+      "example_id": "ex51",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.678,
+          "uncertainty": 0.928,
+          "a": 7.78,
+          "b": 4.22
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.498,
+          "uncertainty": 0.802,
+          "a": 5.98,
+          "b": 6.02
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.593,
+          "uncertainty": 0.554,
+          "a": 6.93,
+          "b": 5.07
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.44,
+          "uncertainty": 0.114,
+          "a": 5.4,
+          "b": 6.6
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.461,
+          "uncertainty": 0.111,
+          "a": 5.61,
+          "b": 6.39
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.644,
+          "uncertainty": 0.175,
+          "a": 7.44,
+          "b": 4.56
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex51-it2",
+          "skill_id": "english.comprehension",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q2"
+        },
+        {
+          "item_id": "ex51-it5",
+          "skill_id": "maths.geometry",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q5"
+        },
+        {
+          "item_id": "ex51-it0",
+          "skill_id": "english.comprehension",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q0"
+        },
+        {
+          "item_id": "ex51-it4",
+          "skill_id": "maths.geometry",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q4"
+        },
+        {
+          "item_id": "ex51-it1",
+          "skill_id": "english.comprehension",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q1"
+        },
+        {
+          "item_id": "ex51-it3",
+          "skill_id": "maths.geometry",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q3"
+        }
+      ],
+      "label": "ex51-it1"
+    },
+    {
+      "example_id": "ex52",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.308,
+          "uncertainty": 0.293,
+          "a": 4.08,
+          "b": 7.92
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.799,
+          "uncertainty": 0.546,
+          "a": 8.99,
+          "b": 3.01
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.392,
+          "uncertainty": 0.632,
+          "a": 4.92,
+          "b": 7.08
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.536,
+          "uncertainty": 0.547,
+          "a": 6.36,
+          "b": 5.64
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.213,
+          "uncertainty": 0.148,
+          "a": 3.13,
+          "b": 8.87
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.288,
+          "uncertainty": 0.751,
+          "a": 3.88,
+          "b": 8.12
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex52-it0",
+          "skill_id": "english.comprehension",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q0"
+        },
+        {
+          "item_id": "ex52-it1",
+          "skill_id": "english.comprehension",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q1"
+        },
+        {
+          "item_id": "ex52-it2",
+          "skill_id": "english.comprehension",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q2"
+        },
+        {
+          "item_id": "ex52-it3",
+          "skill_id": "maths.fractions",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q3"
+        }
+      ],
+      "label": "ex52-it0"
+    },
+    {
+      "example_id": "ex53",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.735,
+          "uncertainty": 0.931,
+          "a": 8.35,
+          "b": 3.65
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.917,
+          "uncertainty": 0.595,
+          "a": 10.17,
+          "b": 1.83
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.771,
+          "uncertainty": 0.342,
+          "a": 8.71,
+          "b": 3.29
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.348,
+          "uncertainty": 0.65,
+          "a": 4.48,
+          "b": 7.52
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.54,
+          "uncertainty": 0.211,
+          "a": 6.4,
+          "b": 5.6
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.406,
+          "uncertainty": 0.244,
+          "a": 5.06,
+          "b": 6.94
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex53-it4",
+          "skill_id": "maths.fractions",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q4"
+        },
+        {
+          "item_id": "ex53-it2",
+          "skill_id": "maths.fractions",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q2"
+        },
+        {
+          "item_id": "ex53-it1",
+          "skill_id": "english.comprehension",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q1"
+        },
+        {
+          "item_id": "ex53-it5",
+          "skill_id": "maths.fractions",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q5"
+        },
+        {
+          "item_id": "ex53-it0",
+          "skill_id": "maths.geometry",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q0"
+        },
+        {
+          "item_id": "ex53-it3",
+          "skill_id": "maths.fractions",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q3"
+        }
+      ],
+      "label": "ex53-it1"
+    },
+    {
+      "example_id": "ex54",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.397,
+          "uncertainty": 0.597,
+          "a": 4.97,
+          "b": 7.03
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.18,
+          "uncertainty": 0.163,
+          "a": 2.8,
+          "b": 9.2
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.561,
+          "uncertainty": 0.139,
+          "a": 6.61,
+          "b": 5.39
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.375,
+          "uncertainty": 0.141,
+          "a": 4.75,
+          "b": 7.25
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.636,
+          "uncertainty": 0.442,
+          "a": 7.36,
+          "b": 4.64
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.408,
+          "uncertainty": 0.926,
+          "a": 5.08,
+          "b": 6.92
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex54-it1",
+          "skill_id": "english.grammar",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q1"
+        },
+        {
+          "item_id": "ex54-it2",
+          "skill_id": "maths.algebra",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q2"
+        },
+        {
+          "item_id": "ex54-it0",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q0"
+        },
+        {
+          "item_id": "ex54-it3",
+          "skill_id": "maths.geometry",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q3"
+        },
+        {
+          "item_id": "ex54-it4",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q4"
+        }
+      ],
+      "label": "ex54-it0"
+    },
+    {
+      "example_id": "ex55",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.27,
+          "uncertainty": 0.619,
+          "a": 3.7,
+          "b": 8.3
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.342,
+          "uncertainty": 0.786,
+          "a": 4.42,
+          "b": 7.58
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.491,
+          "uncertainty": 0.136,
+          "a": 5.91,
+          "b": 6.09
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.8,
+          "uncertainty": 0.586,
+          "a": 9.0,
+          "b": 3.0
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.787,
+          "uncertainty": 0.902,
+          "a": 8.87,
+          "b": 3.13
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.906,
+          "uncertainty": 0.883,
+          "a": 10.06,
+          "b": 1.94
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex55-it2",
+          "skill_id": "maths.geometry",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q2"
+        },
+        {
+          "item_id": "ex55-it0",
+          "skill_id": "english.essay",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q0"
+        },
+        {
+          "item_id": "ex55-it4",
+          "skill_id": "english.essay",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q4"
+        },
+        {
+          "item_id": "ex55-it1",
+          "skill_id": "maths.geometry",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q1"
+        },
+        {
+          "item_id": "ex55-it5",
+          "skill_id": "english.essay",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q5"
+        },
+        {
+          "item_id": "ex55-it3",
+          "skill_id": "english.essay",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q3"
+        }
+      ],
+      "label": "ex55-it1"
+    },
+    {
+      "example_id": "ex56",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.862,
+          "uncertainty": 0.59,
+          "a": 9.62,
+          "b": 2.38
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.514,
+          "uncertainty": 0.237,
+          "a": 6.14,
+          "b": 5.86
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.675,
+          "uncertainty": 0.38,
+          "a": 7.75,
+          "b": 4.25
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.879,
+          "uncertainty": 0.118,
+          "a": 9.79,
+          "b": 2.21
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.667,
+          "uncertainty": 0.49,
+          "a": 7.67,
+          "b": 4.33
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.354,
+          "uncertainty": 0.633,
+          "a": 4.54,
+          "b": 7.46
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex56-it4",
+          "skill_id": "english.grammar",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q4"
+        },
+        {
+          "item_id": "ex56-it3",
+          "skill_id": "maths.fractions",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q3"
+        },
+        {
+          "item_id": "ex56-it2",
+          "skill_id": "maths.geometry",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q2"
+        },
+        {
+          "item_id": "ex56-it1",
+          "skill_id": "english.grammar",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "english.grammar q1"
+        },
+        {
+          "item_id": "ex56-it0",
+          "skill_id": "maths.fractions",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q0"
+        }
+      ],
+      "label": "ex56-it4"
+    },
+    {
+      "example_id": "ex57",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.164,
+          "uncertainty": 0.285,
+          "a": 2.64,
+          "b": 9.36
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.483,
+          "uncertainty": 0.773,
+          "a": 5.83,
+          "b": 6.17
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.809,
+          "uncertainty": 0.283,
+          "a": 9.09,
+          "b": 2.91
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.777,
+          "uncertainty": 0.236,
+          "a": 8.77,
+          "b": 3.23
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.343,
+          "uncertainty": 0.487,
+          "a": 4.43,
+          "b": 7.57
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.463,
+          "uncertainty": 0.4,
+          "a": 5.63,
+          "b": 6.37
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex57-it0",
+          "skill_id": "maths.fractions",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q0"
+        },
+        {
+          "item_id": "ex57-it3",
+          "skill_id": "english.comprehension",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.comprehension q3"
+        },
+        {
+          "item_id": "ex57-it2",
+          "skill_id": "maths.algebra",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q2"
+        },
+        {
+          "item_id": "ex57-it1",
+          "skill_id": "maths.geometry",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q1"
+        },
+        {
+          "item_id": "ex57-it4",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q4"
+        },
+        {
+          "item_id": "ex57-it5",
+          "skill_id": "maths.geometry",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.geometry q5"
+        }
+      ],
+      "label": "ex57-it2"
+    },
+    {
+      "example_id": "ex58",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.419,
+          "uncertainty": 0.564,
+          "a": 5.19,
+          "b": 6.81
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.207,
+          "uncertainty": 0.158,
+          "a": 3.07,
+          "b": 8.93
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.641,
+          "uncertainty": 0.476,
+          "a": 7.41,
+          "b": 4.59
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.271,
+          "uncertainty": 0.647,
+          "a": 3.71,
+          "b": 8.29
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.488,
+          "uncertainty": 0.54,
+          "a": 5.88,
+          "b": 6.12
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.428,
+          "uncertainty": 0.364,
+          "a": 5.28,
+          "b": 6.72
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex58-it4",
+          "skill_id": "english.essay",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q4"
+        },
+        {
+          "item_id": "ex58-it0",
+          "skill_id": "maths.fractions",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q0"
+        },
+        {
+          "item_id": "ex58-it2",
+          "skill_id": "maths.algebra",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q2"
+        },
+        {
+          "item_id": "ex58-it1",
+          "skill_id": "maths.fractions",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q1"
+        },
+        {
+          "item_id": "ex58-it3",
+          "skill_id": "maths.fractions",
+          "difficulty": 2.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q3"
+        },
+        {
+          "item_id": "ex58-it5",
+          "skill_id": "english.essay",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "english.essay q5"
+        }
+      ],
+      "label": "ex58-it4"
+    },
+    {
+      "example_id": "ex59",
+      "prior_mastery": {
+        "maths.fractions": {
+          "kind": "beta",
+          "probability": 0.485,
+          "uncertainty": 0.129,
+          "a": 5.85,
+          "b": 6.15
+        },
+        "maths.algebra": {
+          "kind": "beta",
+          "probability": 0.37,
+          "uncertainty": 0.301,
+          "a": 4.7,
+          "b": 7.3
+        },
+        "maths.geometry": {
+          "kind": "beta",
+          "probability": 0.899,
+          "uncertainty": 0.617,
+          "a": 9.99,
+          "b": 2.01
+        },
+        "english.comprehension": {
+          "kind": "beta",
+          "probability": 0.28,
+          "uncertainty": 0.827,
+          "a": 3.8,
+          "b": 8.2
+        },
+        "english.grammar": {
+          "kind": "beta",
+          "probability": 0.378,
+          "uncertainty": 0.525,
+          "a": 4.78,
+          "b": 7.22
+        },
+        "english.essay": {
+          "kind": "beta",
+          "probability": 0.62,
+          "uncertainty": 0.37,
+          "a": 7.2,
+          "b": 4.8
+        }
+      },
+      "candidates": [
+        {
+          "item_id": "ex59-it2",
+          "skill_id": "maths.fractions",
+          "difficulty": 0.0,
+          "item_type": "mcq",
+          "prompt": "maths.fractions q2"
+        },
+        {
+          "item_id": "ex59-it0",
+          "skill_id": "maths.algebra",
+          "difficulty": -1.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q0"
+        },
+        {
+          "item_id": "ex59-it1",
+          "skill_id": "maths.algebra",
+          "difficulty": 1.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q1"
+        },
+        {
+          "item_id": "ex59-it3",
+          "skill_id": "maths.algebra",
+          "difficulty": -2.0,
+          "item_type": "mcq",
+          "prompt": "maths.algebra q3"
+        }
+      ],
+      "label": "ex59-it0"
+    }
+  ]
+}

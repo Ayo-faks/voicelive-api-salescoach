@@ -169,6 +169,15 @@ param vapidSubject string = 'mailto:notify@wulo.ai'
 @description('Cron expression for the notifications dispatcher Container Apps Job. Default: every 5 minutes.')
 param notificationsDispatcherCron string = '*/5 * * * *'
 
+@description('Gate 2 (agent-mesh observability cron). DARK BY DEFAULT: when false the scheduled Job is not provisioned at all. Provisioning it is an explicit human go-live stop-point; even once provisioned the cron stays a no-op until AGENT_MESH_ENABLED is set in agentMeshObservabilityEnabled.')
+param enableAgentMeshObservabilityCron bool = false
+
+@description('Cron expression for the agent-mesh observability Job. Default: every 15 minutes (cheap, read-only).')
+param agentMeshObservabilityCron string = '*/15 * * * *'
+
+@description('Second, independent dark gate for the agent-mesh observability cron. Empty keeps the cron a no-op even when the Job is provisioned. Set to "1" ONLY behind the gate-2 sign-off to arm the read-only mesh.')
+param agentMeshObservabilityEnabled string = ''
+
 @description('Public application URL used in invitation emails. Defaults to the active custom domain or Container App host.')
 param publicAppUrl string = ''
 
@@ -963,6 +972,121 @@ resource notificationsDispatcherJob 'Microsoft.App/jobs@2024-03-01' = if (enable
       ]
     }
   }
+}
+
+
+// Agent-mesh gate 2 — observability cron (Track A, increment 7).
+//
+// Re-expresses backend/deploy/agent-mesh-cron.yaml (a k8s CronJob scaffold that
+// can NEVER apply on this runtime) as the real Container Apps primitive: a
+// scheduled `Microsoft.App/jobs`. It reuses the voicelab image and mounts the
+// EXISTING `wulo-data` Azure Files share (via the managedEnvironments/storages
+// resource) at /var/lib/agent-mesh — no PVC, no AKS.
+//
+// DARK BY DEFAULT, two independent gates:
+//   (1) enableAgentMeshObservabilityCron=false → the Job is not provisioned.
+//   (2) AGENT_MESH_ENABLED comes from agentMeshObservabilityEnabled (default "")
+//       → scripts/agent_mesh_cron.sh runs no agents and exits 0 (a no-op).
+// Flipping either alone is still dark. Both flips are deliberate human actions.
+resource agentMeshObservabilityJob 'Microsoft.App/jobs@2024-03-01' = if (enableAgentMeshObservabilityCron) {
+  name: 'voicelab-agent-mesh-observability'
+  location: location
+  tags: union(tags, { 'azd-service-name': 'voicelab-agent-mesh-observability' })
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${voicelabIdentityResourceId}': {}
+    }
+  }
+  properties: {
+    environmentId: containerAppsEnvironment.outputs.resourceId
+    configuration: {
+      triggerType: 'Schedule'
+      replicaTimeout: 300
+      replicaRetryLimit: 0
+      scheduleTriggerConfig: {
+        cronExpression: agentMeshObservabilityCron
+        parallelism: 1
+        replicaCompletionCount: 1
+      }
+      registries: [
+        {
+          server: containerRegistry.outputs.loginServer
+          identity: voicelabIdentityResourceId
+        }
+      ]
+    }
+    template: {
+      volumes: [
+        {
+          name: 'agent-mesh-history'
+          storageType: 'AzureFile'
+          storageName: 'wulo-data'
+        }
+      ]
+      containers: [
+        {
+          name: 'observability-gate'
+          image: voicelabFetchLatestImage.outputs.?containers[?0].?image ?? 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+          command: [
+            'bash'
+            'scripts/agent_mesh_cron.sh'
+            '/var/lib/agent-mesh/history.jsonl'
+          ]
+          resources: {
+            cpu: json('0.25')
+            memory: '0.5Gi'
+          }
+          volumeMounts: [
+            {
+              volumeName: 'agent-mesh-history'
+              mountPath: '/var/lib/agent-mesh'
+            }
+          ]
+          env: [
+            // Master kill-switch — dark unless agentMeshObservabilityEnabled="1".
+            {
+              name: 'AGENT_MESH_ENABLED'
+              value: agentMeshObservabilityEnabled
+            }
+            // Durable cross-run history path on the mounted Azure Files share.
+            {
+              name: 'AGENT_MESH_HISTORY_PATH'
+              value: '/var/lib/agent-mesh/history.jsonl'
+            }
+            // Per-feature flags follow the master flag; arm individually at go-live.
+            {
+              name: 'AGENT_MESH_MEMORY_SINK_V1'
+              value: agentMeshObservabilityEnabled
+            }
+            {
+              name: 'LEARNING_SAFEGUARDING_PROBES_V1'
+              value: agentMeshObservabilityEnabled
+            }
+            {
+              name: 'LEARNING_CRITIC_PROBES_V1'
+              value: agentMeshObservabilityEnabled
+            }
+            {
+              name: 'AGENT_MESH_DRIFT_V1'
+              value: agentMeshObservabilityEnabled
+            }
+            {
+              name: 'AGENT_MESH_ROLLBACK_V1'
+              value: agentMeshObservabilityEnabled
+            }
+            {
+              name: 'AZURE_CLIENT_ID'
+              value: voicelabIdentity.outputs.clientId
+            }
+          ]
+        }
+      ]
+    }
+  }
+  dependsOn: [
+    containerAppsManagedEnvironmentStorage
+  ]
 }
 
 

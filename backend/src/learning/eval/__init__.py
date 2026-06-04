@@ -102,6 +102,14 @@ from src.learning.eval.b3_driver import (  # noqa: F401
     default_component_probes,
     make_capacity_probe,
 )
+from src.learning.eval.b3_staging_handler import (  # noqa: F401
+    B3_STAGING_HANDLER_FLAG,
+    B3StagingHandlerDarkError,
+    B3StagingTargetError,
+    StagingHttpTurnHandler,
+    b3_staging_handler_enabled,
+    build_staging_handler,
+)
 from src.learning.eval.c1_policy import (  # noqa: F401
     C1_POLICY_FLAG,
     C1DarkError,
@@ -109,6 +117,19 @@ from src.learning.eval.c1_policy import (  # noqa: F401
     LearnedItemSelector,
     NextBestQuestionPolicy,
     c1_policy_enabled,
+)
+from src.learning.eval.c1_training import (  # noqa: F401
+    POLICY_ARTIFACT_VERSION,
+    BatchScore,
+    LabeledExample,
+    TrainingReport,
+    WeightedNextBestQuestionPolicy,
+    batch_score_policy,
+    item_features,
+    load_corpus,
+    load_policy_artifact,
+    save_policy_artifact,
+    train_next_best_question_policy,
 )
 from src.learning.eval.cost_dashboard import (  # noqa: F401
     COST_DASHBOARD_FLAG,

@@ -19,18 +19,22 @@ clean for its soak window. Each gate has its own owner sign-off.
 
 ## Gate 2 — cron online shadow
 
-**Pre-flight:** gate 1 green in CI · `agent-mesh-history` PVC provisioned ·
+**Pre-flight:** gate 1 green in CI · Container Apps observability Job provisioned
+(`enableAgentMeshObservabilityCron=true` in infra, mounting the existing
+`wulo-data` Azure Files share at `/var/lib/agent-mesh` — **not** a k8s PVC) ·
 dashboards wired (merge verdict, false-positive rate, veto-rate drift, rollback
 proposals) · on-call owner named.
 
 **Go live** (see [cron runbook](agent-mesh-cron-runbook.md)):
-1. Set `AGENT_MESH_ENABLED=1`, `AGENT_MESH_MEMORY_SINK_V1=1`, the per-suite probe
-   flags, and `AGENT_MESH_DRIFT_V1` / `AGENT_MESH_ROLLBACK_V1` in the CronJob.
-2. Set `spec.suspend: false`.
+1. Set `agentMeshObservabilityEnabled="1"` in infra so the Job's
+   `AGENT_MESH_ENABLED` (+ sink/probe/drift/rollback flags) are armed.
+2. Re-deploy infra so the scheduled Job picks up the flag (the cron itself runs
+   `scripts/agent_mesh_cron.sh` every 15 min against the mounted share).
 3. Soak: confirm sink accrues cross-run history and exit codes are `0` on healthy
    ticks before proceeding to gate 3.
 
-**Rollback (any one, instant dark):** set `spec.suspend: true` **or** clear
+**Rollback (any one, instant dark):** set `agentMeshObservabilityEnabled=""`
+(or `enableAgentMeshObservabilityCron=false` to de-provision the Job) **or** clear
 `AGENT_MESH_ENABLED`. Drift stops watching; rollback stays a proposal that was
 never executed. No data cleanup needed — the sink is append-only history.
 

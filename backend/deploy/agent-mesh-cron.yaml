@@ -1,5 +1,13 @@
 # agent-mesh observability CronJob (Track A, increment 7).
 #
+# ⚠️ REFERENCE SCAFFOLD ONLY — NOT THE DEPLOYED ARTIFACT.
+# The runtime is Azure Container Apps, not Kubernetes: there is no AKS cluster
+# and the `agent-mesh-history` PVC below does not exist, so this manifest can
+# never apply as-is. The REAL gate-2 cron is the Container Apps scheduled Job
+# `agentMeshObservabilityJob` in infra/resources.bicep, which mounts the existing
+# `wulo-data` Azure Files share at /var/lib/agent-mesh (no PVC). This file is kept
+# only to document the equivalent k8s shape for portability.
+#
 # DARK BY DEFAULT: `suspend: true` keeps the schedule inert until an operator
 # both (a) un-suspends this manifest AND (b) sets AGENT_MESH_ENABLED=1 in the
 # environment. Two independent gates — flipping either alone is still a no-op.

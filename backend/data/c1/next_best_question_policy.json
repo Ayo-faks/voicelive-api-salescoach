@@ -1,0 +1,21 @@
+{
+  "bias": 0.0,
+  "feature_names": [
+    "mastery_gap",
+    "uncertainty",
+    "difficulty_match"
+  ],
+  "metadata": {
+    "corpus": "next_best_question_corpus.json",
+    "epochs": 50,
+    "learning_rate": 0.1,
+    "status": "SHADOW-UNPROMOTED",
+    "trained_on_examples": 42
+  },
+  "version": "c1-nbq/1",
+  "weights": [
+    6.118294,
+    3.01732,
+    5.357319
+  ]
+}
