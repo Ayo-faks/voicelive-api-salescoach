@@ -95,6 +95,7 @@ from src.learning.notifications import (
 from src.learning.repository import InMemoryLearningRepository, LearningRepository
 from src.learning.skills import SkillCatalogueError, SkillsCatalogueService
 from src.learning.tts.routes import create_learning_tts_blueprint
+from src.learning.agent_mesh_routes import create_agent_mesh_blueprint
 from src.learning.validator import (
     PlanValidator,
     catalogue_grounding_rule,
@@ -3673,6 +3674,8 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
     learning_api = api or LearningApi()
     if "learning_tts" not in app.blueprints:
         app.register_blueprint(create_learning_tts_blueprint(learning_api.observability))
+    if "agent_mesh" not in app.blueprints:
+        app.register_blueprint(create_agent_mesh_blueprint())
 
     decision_actions = {
         "approve_plan": "approved",
