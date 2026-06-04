@@ -9,9 +9,9 @@
     "corpus": "next_best_question_corpus.json",
     "epochs": 50,
     "learning_rate": 0.1,
-    "promoted_by": "ayo (simulation)",
-    "promotion_note": "Gate-4 go-live auto-promoted under simulation authorization; human two-role sign-off waived for the simulation run only.",
-    "status": "PROMOTED-SIMULATION",
+    "promotion_note": "Shadow (dark) artifact - NOT promoted to live learners. Promotion requires human two-role sign-off; the earlier 'simulation auto-promotion' was a dry-run label only and conferred no production status.",
+    "status": "SHADOW-UNPROMOTED",
+    "trained_by": "ayo (simulation dry-run)",
     "trained_on_examples": 42
   },
   "version": "c1-nbq/1",

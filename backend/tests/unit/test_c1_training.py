@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import pathlib
 
 import pytest
 
@@ -103,6 +104,23 @@ def test_artifact_roundtrip(tmp_path):
     doc = json.loads(art_path.read_text(encoding="utf-8"))
     assert doc["version"] == POLICY_ARTIFACT_VERSION
     assert doc["metadata"]["status"] == "SHADOW-UNPROMOTED"
+
+
+def test_committed_policy_artifact_is_not_promoted():
+    """The shipped c1 policy artifact must read as dark/shadow, never as a real
+    production promotion. Guards against the misleading 'PROMOTED-SIMULATION'
+    label that could be mistaken for a live promotion."""
+    art_path = pathlib.Path(__file__).resolve().parents[2] / "data" / "c1" / "next_best_question_policy.json"
+    doc = json.loads(art_path.read_text(encoding="utf-8"))
+    status = doc["metadata"]["status"]
+    assert status == "SHADOW-UNPROMOTED"
+    assert "PROMOTED" not in status.replace("UNPROMOTED", "")
+    note = doc["metadata"].get("promotion_note", "").lower()
+    assert "not promoted" in note
+    assert "sign-off" in note
+    # The artifact must still load as a usable policy.
+    loaded = load_policy_artifact(art_path)
+    assert len(loaded.weights) == len(FEATURE_NAMES)
 
 
 def test_artifact_rejects_bad_version():
