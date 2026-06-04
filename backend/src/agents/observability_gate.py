@@ -66,6 +66,7 @@ class ObservabilityReport:
     critic: Optional[Dict[str, Any]] = None
     deploy: Optional[Dict[str, Any]] = None
     migration: Optional[Dict[str, Any]] = None
+    planners: Optional[Dict[str, Any]] = None
     reasons: Tuple[str, ...] = ()
     recorded: int = 0
 
@@ -96,6 +97,7 @@ class ObservabilityReport:
             "critic": self.critic,
             "deploy": self.deploy,
             "migration": self.migration,
+            "planners": self.planners,
         }
 
 

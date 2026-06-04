@@ -41,8 +41,10 @@ STILL BOUNDED (honest):
   * Retrieval is lexical by default (set AOAI_DENSE_RETRIEVAL=1 to also use the
     text-embedding-3-small dense pass, at extra embedding cost).
   * Safeguarding content is synthetic, non-graphic, and sent at low volume.
-  * A1 insights / A8 planning are NOT covered here — they run on the GitHub
-    Copilot SDK with a tool registry and need a different harness.
+  * A1 insights / A8 planning ARE covered, but by an OFFLINE harness
+    (src/agents/planner_eval.py): A1 drives the real CopilotInsightsPlanner over
+    a fake Copilot SDK client; A8 evaluates the deterministic StubLearningPlanner.
+    Neither makes a network call, so they add no cloud spend.
 
 Env:
   AZURE_OPENAI_ENDPOINT       (required) https://...cognitiveservices.azure.com/
@@ -76,6 +78,9 @@ from src.learning.assistant_llm import (
 from src.learning.rag import RagRetriever, WikiCorpus, load_wiki_corpus
 from src.safeguarding.classifier import SafeguardingClassifier
 from src.safeguarding.models import Severity
+from src.agents.base import agent_mesh_enabled
+from src.agents.eval_report_adapter import eval_report_to_observability_report
+from src.agents.planner_eval import run_planner_eval
 
 COGNITIVE_SCOPE = "https://cognitiveservices.azure.com/.default"
 API_VERSION = "2024-12-01-preview"
@@ -277,6 +282,11 @@ def main() -> int:
     safeguard_rows = _run_safeguarding(classifier)
     elapsed = round(time.monotonic() - started, 2)
 
+    # A1 + A8 run offline (Copilot SDK fake-client + deterministic stub), so they
+    # add no cloud spend and stay deterministic regardless of credentials.
+    print("running offline planner eval (A1 insights fake-client + A8 planning stub)...")
+    planner_report = run_planner_eval()
+
     tutor_acc = _accuracy(tutor_rows)
     safeguard_acc = _accuracy(safeguard_rows)
     safety = _binary_safety_metrics(safeguard_rows)
@@ -290,6 +300,15 @@ def main() -> int:
     for r in safeguard_rows:
         flag = "ok " if r["match"] else "XX "
         print(f"  {flag}[{r['case_id']:<26}] exp={r['expected']:<9} got={r['actual']:<9} sev={r['severity']}")
+    a1_metrics = planner_report["A1_insights"]["metrics"]
+    a8_metrics = planner_report["A8_planning"]["metrics"]
+    print(f"\nA1 insights     : schema={a1_metrics['schema_valid_rate']} "
+          f"budget={a1_metrics['tool_budget_adherence']} "
+          f"deterministic={a1_metrics['deterministic_pass']} "
+          f"({a1_metrics['passed']}/{a1_metrics['support']})  [offline fake-client]")
+    print(f"A8 planning     : schema={a8_metrics['schema_valid_rate']} "
+          f"deterministic={a8_metrics['deterministic_pass']} "
+          f"({a8_metrics['passed']}/{a8_metrics['support']})  [offline stub]")
     print(f"\nwall={elapsed}s")
 
     enriched = {
@@ -303,6 +322,8 @@ def main() -> int:
         "agents": {
             "A2_text_tutor": {"metrics": tutor_acc, "rows": tutor_rows},
             "A5_safeguarding": {"metrics": safeguard_acc, "safety": safety, "rows": safeguard_rows},
+            "A1_insights": planner_report["A1_insights"],
+            "A8_planning": planner_report["A8_planning"],
         },
         "closed_vs_old_eval": [
             "Grounding/citation: real RAG retriever is wired, so on-corpus turns "
@@ -320,13 +341,29 @@ def main() -> int:
             "is absent on this AI Foundry resource, so this run uses gpt-4o. Re-run with "
             "AOAI_SAFEGUARD_DEPLOYMENT pointed at the production deployment to measure the "
             "shipped model.",
-            "A1 insights / A8 planning are not covered here (Copilot SDK + tool registry — separate harness).",
+            "A1 insights / A8 planning are covered by an OFFLINE harness: A1 drives the real "
+            "CopilotInsightsPlanner.run_turn over a fake Copilot SDK client (scripted tool "
+            "calls + scripted answer) so the budget hook and response parsing are exercised "
+            "for real, but no live model judges the answer; A8 evaluates the deterministic "
+            "StubLearningPlanner (the only LearningPlanner that exists). Neither makes a "
+            "network call.",
+            "A3 conversation / A4 voice are not separately scored: A3's text reasoning is "
+            "the same ModelAssistantProvider path covered by A2, and A4 is the realtime "
+            "voice transport over that reasoning.",
         ],
     }
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as fh:
         json.dump(enriched, fh, indent=2)
     print(f"WROTE {out_path}")
+
+    # Fold the combined eval into an ObservabilityReport so it surfaces with the
+    # same shape/verdict as the observability gate. Force grading on (this script
+    # is an explicit, on-demand eval run) regardless of the dark-by-default mesh.
+    obs_report = eval_report_to_observability_report(
+        enriched, mesh_enabled=agent_mesh_enabled(), force=True
+    )
+    print("OBSERVABILITY_REPORT " + json.dumps(obs_report.as_dict(), sort_keys=True))
     print("REAL_AGENT_EVAL_OK")
     return 0
 

@@ -8,7 +8,7 @@
     "corpus_files": 4,
     "dense_retrieval": false
   },
-  "wall_clock_s": 14.91,
+  "wall_clock_s": 13.77,
   "agents": {
     "A2_text_tutor": {
       "metrics": {
@@ -175,6 +175,89 @@
           "severity": "none"
         }
       ]
+    },
+    "A1_insights": {
+      "kind": "copilot-insights-planner",
+      "harness": "fake-client/offline",
+      "metrics": {
+        "support": 3,
+        "passed": 3,
+        "schema_valid_rate": 1.0,
+        "tool_budget_adherence": 1.0,
+        "deterministic_pass": true
+      },
+      "rows": [
+        {
+          "agent": "A1_insights",
+          "case_id": "a1-single-tool",
+          "tool_call_budget": 3,
+          "tool_calls_count": 1,
+          "schema_valid": true,
+          "budget_ok": true,
+          "match": true,
+          "excerpt": "Three students are below the ratio mastery floor; reteach is recommended."
+        },
+        {
+          "agent": "A1_insights",
+          "case_id": "a1-two-tools",
+          "tool_call_budget": 3,
+          "tool_calls_count": 2,
+          "schema_valid": true,
+          "budget_ok": true,
+          "match": true,
+          "excerpt": "Three students are below the ratio mastery floor; reteach is recommended."
+        },
+        {
+          "agent": "A1_insights",
+          "case_id": "a1-budget-exhaustion",
+          "tool_call_budget": 2,
+          "tool_calls_count": 2,
+          "schema_valid": true,
+          "budget_ok": true,
+          "match": true,
+          "excerpt": "Three students are below the ratio mastery floor; reteach is recommended."
+        }
+      ]
+    },
+    "A8_planning": {
+      "kind": "learning-planner-stub",
+      "harness": "deterministic/offline",
+      "metrics": {
+        "support": 3,
+        "passed": 3,
+        "schema_valid_rate": 1.0,
+        "tool_budget_adherence": 1.0,
+        "deterministic_pass": true
+      },
+      "rows": [
+        {
+          "agent": "A8_planning",
+          "case_id": "a8-explicit-scope",
+          "schema_valid": true,
+          "deterministic": true,
+          "tool_calls_count": 0,
+          "offline_fallback": "deterministic_intervention_stub",
+          "match": true
+        },
+        {
+          "agent": "A8_planning",
+          "case_id": "a8-multi-skill",
+          "schema_valid": true,
+          "deterministic": true,
+          "tool_calls_count": 0,
+          "offline_fallback": "deterministic_intervention_stub",
+          "match": true
+        },
+        {
+          "agent": "A8_planning",
+          "case_id": "a8-default-scope",
+          "schema_valid": true,
+          "deterministic": true,
+          "tool_calls_count": 0,
+          "offline_fallback": "deterministic_intervention_stub",
+          "match": true
+        }
+      ]
     }
   },
   "closed_vs_old_eval": [
@@ -187,6 +270,7 @@
     "Retrieval is lexical by default; set AOAI_DENSE_RETRIEVAL=1 for the dense pass.",
     "Safeguarding content is synthetic, non-graphic, and low volume.",
     "Production pins the safeguarding classifier to gpt-4o-mini; that deployment is absent on this AI Foundry resource, so this run uses gpt-4o. Re-run with AOAI_SAFEGUARD_DEPLOYMENT pointed at the production deployment to measure the shipped model.",
-    "A1 insights / A8 planning are not covered here (Copilot SDK + tool registry \u2014 separate harness)."
+    "A1 insights / A8 planning are covered by an OFFLINE harness: A1 drives the real CopilotInsightsPlanner.run_turn over a fake Copilot SDK client (scripted tool calls + scripted answer) so the budget hook and response parsing are exercised for real, but no live model judges the answer; A8 evaluates the deterministic StubLearningPlanner (the only LearningPlanner that exists). Neither makes a network call.",
+    "A3 conversation / A4 voice are not separately scored: A3's text reasoning is the same ModelAssistantProvider path covered by A2, and A4 is the realtime voice transport over that reasoning."
   ]
 }
