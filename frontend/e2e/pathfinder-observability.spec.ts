@@ -67,7 +67,7 @@ test.describe('Pathfinder · observability dashboard', () => {
     for (const section of body.sections) {
       for (const tile of section.tiles) {
         expect(['ok', 'warn', 'crit', 'nodata']).toContain(tile.status)
-        expect(['live', 'fixture', 'nodata']).toContain(tile.source)
+        expect(['live', 'kql', 'snapshot', 'fixture', 'nodata']).toContain(tile.source)
       }
     }
     await api.dispose()

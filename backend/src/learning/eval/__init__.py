@@ -83,6 +83,33 @@ from src.learning.eval.population_scorer import (  # noqa: F401
     population_fixture_handler,
     population_scorer_enabled,
 )
+from src.learning.eval.b3_driver import (  # noqa: F401
+    B3_DRIVER_FLAG,
+    B3Config,
+    B3Driver,
+    B3PreflightError,
+    B3RunReport,
+    B3SuspendedError,
+    CaptureSinkNotifier,
+    ComponentReading,
+    GateCheck,
+    HumanPagingNotifier,
+    LoadSample,
+    PreflightResult,
+    RampStepReport,
+    SafeguardingNotifier,
+    b3_driver_enabled,
+    default_component_probes,
+    make_capacity_probe,
+)
+from src.learning.eval.c1_policy import (  # noqa: F401
+    C1_POLICY_FLAG,
+    C1DarkError,
+    C1Proposal,
+    LearnedItemSelector,
+    NextBestQuestionPolicy,
+    c1_policy_enabled,
+)
 from src.learning.eval.cost_dashboard import (  # noqa: F401
     COST_DASHBOARD_FLAG,
     CostDashboardUnavailableError,

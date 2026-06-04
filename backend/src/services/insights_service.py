@@ -411,6 +411,39 @@ def _chunk_prose(text: str, *, target_chars: int = 24) -> List[str]:
     return [c if i == 0 else " " + c.lstrip(" ") for i, c in enumerate(chunks)]
 
 
+def _maybe_wrap_planner(planner: "InsightsPlanner") -> "InsightsPlanner":
+    """Optionally wrap the planner in the agent-mesh ``PlannerAgent`` shim.
+
+    Default-off: when ``AGENT_MESH_ENABLED`` is not truthy the planner is
+    returned unchanged, so the planner code path is byte-identical to today.
+    When the flag is on, the planner is wrapped in :class:`PlannerAgent`,
+    which delegates 1:1 and only adds ``[agent-mesh]`` structured logging.
+
+    Wrapping is best-effort: any import/construction failure falls back to the
+    original planner so the flag can never break the insights surface.
+    """
+
+    # Local import avoids a module-level cycle: ``planner_agent`` imports the
+    # ``InsightsPlanner`` protocol from this module.
+    try:
+        from src.agents.base import agent_mesh_enabled
+
+        if not agent_mesh_enabled():
+            return planner
+
+        from src.agents.planner_agent import PlannerAgent
+
+        wrapped = PlannerAgent(planner)
+        logger.info(
+            "[agent-mesh] insights planner wrapped underlying=%s",
+            type(planner).__name__,
+        )
+        return wrapped
+    except Exception:  # pragma: no cover - defensive: never break insights
+        logger.exception("[agent-mesh] planner wrap failed; using planner unwrapped")
+        return planner
+
+
 # --- Service ----------------------------------------------------------------
 
 
@@ -438,7 +471,7 @@ class InsightsService:
         self.child_memory_service = child_memory_service
         self.institutional_memory_service = institutional_memory_service
         self.learning_api = learning_api
-        self.planner: InsightsPlanner = planner or StubInsightsPlanner()
+        self.planner: InsightsPlanner = _maybe_wrap_planner(planner or StubInsightsPlanner())
         self.tool_call_budget = max(1, int(tool_call_budget))
         self.wall_clock_budget_seconds = max(1.0, float(wall_clock_budget_seconds))
         self._answer_cache = _AnswerCache(

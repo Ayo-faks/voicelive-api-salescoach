@@ -433,6 +433,17 @@ module monitoring 'br/public:avm/ptn/azd/monitoring:0.1.0' = {
     tags: tags
   }
 }
+// Azure Monitor alert rules (push notifications for the observability surface)
+module monitoringAlerts 'monitoring-alerts.bicep' = {
+  name: 'monitoring-alerts'
+  params: {
+    location: location
+    tags: tags
+    resourceToken: resourceToken
+    alertEmail: safeguardingAdminEmail
+    applicationInsightsResourceId: monitoring.outputs.applicationInsightsResourceId
+  }
+}
 // Container registry
 module containerRegistry 'br/public:avm/res/container-registry/registry:0.1.1' = {
   name: 'registry'
@@ -615,6 +626,10 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
             {
               name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
               value: monitoring.outputs.applicationInsightsConnectionString
+            }
+            {
+              name: 'APPLICATIONINSIGHTS_RESOURCE_ID'
+              value: monitoring.outputs.applicationInsightsResourceId
             }
             {
               name: 'AZURE_CLIENT_ID'
@@ -1126,6 +1141,15 @@ resource containerAppCognitiveServicesOpenAIUserRole 'Microsoft.Authorization/ro
     principalId: voicelabIdentity.outputs.principalId
     principalType: 'ServicePrincipal'
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd')
+  }
+}
+
+resource containerAppMonitoringReaderRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(resourceGroup().id, voicelab.name, '43d0d8ad-25c7-4714-9337-8ba259a9fe05')
+  properties: {
+    principalId: voicelabIdentity.outputs.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '43d0d8ad-25c7-4714-9337-8ba259a9fe05')
   }
 }
 

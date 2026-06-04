@@ -735,7 +735,7 @@ export async function getPilotKpis(
 }
 
 export type ObservabilityTileStatus = 'ok' | 'warn' | 'crit' | 'nodata'
-export type ObservabilityTileSource = 'live' | 'fixture' | 'nodata'
+export type ObservabilityTileSource = 'live' | 'kql' | 'snapshot' | 'fixture' | 'nodata'
 
 export type ObservabilityTile = {
   id: string

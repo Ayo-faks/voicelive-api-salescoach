@@ -51,6 +51,22 @@ flipped on only behind the go-live gate.
 B2 `PopulationScorer` and feeds the same durable sink + drift detector — it adds
 concurrency + a real stack, not new scoring logic.
 
+**Driver module built (DARK / SUSPENDED).** The driver itself now exists at
+[`b3_driver.py`](../src/learning/eval/b3_driver.py) so it is ready the moment the
+gate opens, while staying suspended:
+
+- The mandatory **notifier → sink pre-flight check** is implemented as the pure,
+  test-covered `B3Driver.preflight()` gate (`CaptureSinkNotifier` vs the rejected
+  `HumanPagingNotifier`); it enforces all five gate conditions below.
+- `B3Driver.run()` is **suspended**: it raises `B3SuspendedError` unless the gate
+  passes *and* an operator passes `force=True` (the go-live action), and
+  `suspend()` disarms it in one call.
+- The default handler is the in-process B2 fixture (no live stack); the real
+  staging stack is an injected handler seam. Concurrency is real
+  (`ThreadPoolExecutor`); component bend detection is via injectable probes.
+- Behind `AGENT_MESH_ENABLED` + `AGENT_MESH_B3_DRIVER_V1`. Tested in
+  [`test_b3_driver.py`](../tests/unit/test_b3_driver.py) (14 tests).
+
 ### B3 go-live gate (all must hold before un-suspending)
 
 1. Target is a confirmed **non-prod** environment (assert subscription / cluster).
@@ -72,7 +88,7 @@ human approves, then behaviour updates. **Never live self-retraining.**
 
 | Phase | Scope | Slots into | Gate |
 |-------|-------|-----------|------|
-| C1 | Next-best-question policy (replace round-robin `DeterministicItemSelector`) | the existing `cat.py` fallback seam | harness beats round-robin in batch → shadow → human-promote |
+| C1 | Next-best-question policy (replace round-robin `DeterministicItemSelector`) — **STUB BUILT (dark)**: `src/learning/eval/c1_policy.py` + `tests/unit/test_c1_policy.py` | the existing `cat.py` / diagnostic fallback seam | harness beats round-robin in batch → shadow → human-promote |
 | C2 | Intervention recommendation from approved `InterventionPlan` outcomes | proposes only; teacher approves every plan | offline → shadow → human-gated |
 | C3 | Tutor explanation quality from `CriticAgent` + `OverrideEvent` signal | biases which explanations the tutor reaches for | reuses Track A scoring |
 | C4 | Safeguarding **drift baseline** (learn the baseline, NOT the decision) | `MemoryAgent.history` veto-rate baseline | monitoring-only |
@@ -96,3 +112,25 @@ and violate the signed, dark-by-default discipline. The prerequisites it depends
 — the Track A offline harness (its batch scorer), the durable sink (its log source),
 and the drift detector (C4's baseline watcher) — are already built and green, so C1
 can begin from this scaffold whenever the go-live process is opened.
+
+### C1 stub (built, dark, proposes-only)
+
+`src/learning/eval/c1_policy.py` is the real Track C starting point, deliberately
+suspended. `LearnedItemSelector` satisfies the existing `DiagnosticItemSelector`
+Protocol (`offline_fallback_available` + `select_items`), so it drops into the same
+seam the deterministic/catsim selectors use **without editing `diagnostic.py` or
+`cat.py`**. Discipline enforced by `tests/unit/test_c1_policy.py` (14 tests):
+
+- **Dark by default.** Flags `AGENT_MESH_ENABLED` + `LEARNING_C1_POLICY_V1` unset
+  (or no human-promoted policy loaded) → `select_items` returns the round-robin
+  baseline byte-for-byte.
+- **Proposes only.** With the flags on *and* a policy loaded, the selector runs in
+  shadow: it computes the learned ordering, records the proposal-vs-baseline
+  divergence to the durable sink (`c1_policy_shadow`) for Track A to score, and
+  STILL returns the baseline.
+- **Single gated go-live.** The learned order is only ever returned after an explicit
+  `promote()` — which refuses (`C1DarkError`) unless the flag is on AND a policy is
+  loaded. `suspend()` reverts to baseline in one call. The stub ships with no policy,
+  so it is permanently dark until one is supplied through the gated process.
+- **No training here, no online updates.** The policy is an injected, offline-trained,
+  human-promoted artifact (`NextBestQuestionPolicy`); none exists in the stub.

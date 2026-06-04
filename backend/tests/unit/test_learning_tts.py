@@ -94,3 +94,25 @@ def test_learning_tts_provider_swap_to_google(client, monkeypatch: pytest.Monkey
     assert response.status_code == 200
     assert response.data == b"FAKE"
     assert response.headers["X-TTS-Provider"] == "google"
+
+
+def test_learning_tts_records_voice_ttfa(monkeypatch: pytest.MonkeyPatch) -> None:
+    api = LearningApi()
+    app = Flask(__name__)
+    app.config["TESTING"] = True
+    register_learning_api(app, api)
+    monkeypatch.setattr(tts_service, "get_provider", lambda: StubTtsProvider(audio=b"MP3"))
+    client = app.test_client()
+
+    ok = client.post("/api/learning/tts", json={"text": "Read this aloud."})
+    assert ok.status_code == 200
+
+    monkeypatch.setattr(tts_service, "get_provider", lambda: UnavailableTtsProvider())
+    failed = client.post("/api/learning/tts", json={"text": "Now fail."})
+    assert failed.status_code == 503
+
+    voice = api.observability.metrics_snapshot()["voice"]
+    assert voice["ttfa_counts"]["success"] == 1.0
+    assert voice["ttfa_counts"]["error"] == 1.0
+    assert voice["ttfa_sample_size"] == 1
+

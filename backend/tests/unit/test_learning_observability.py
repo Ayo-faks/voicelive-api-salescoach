@@ -3,11 +3,13 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, List
 
+import pytest
 from flask import Flask
 
 from src.learning.api import ITEM_BANK_PATH, LearningApi, register_learning_api
 from src.learning.diagnostic import load_item_bank
 from src.learning.observability import LearningFeatureFlags, LearningObservability
+from src.learning.observability_kql import DurableMetricsReader
 
 
 class _FakeSpan:
@@ -288,6 +290,107 @@ def test_new_signals_emit_open_telemetry_metrics():
     assert meter.histograms["pathfinder_learning_llm_latency_ms"].observations == [500]
 
 
+def test_llm_cost_metric_accumulates_spend():
+    meter = _FakeMeter()
+    observability = _enabled_observability(meter)
+    observability.record_llm_turn(latency_ms=500, tokens=100, cost_gbp=0.002, outcome="success")
+    observability.record_llm_turn(latency_ms=600, tokens=120, cost_gbp=0.003, outcome="success")
+    observability.record_llm_turn(latency_ms=None, tokens=None, cost_gbp=None, outcome="error")
+
+    cost_adds = meter.counters["pathfinder_learning_llm_cost_gbp_total"].adds
+    assert cost_adds == [
+        (0.002, {"outcome": "success"}),
+        (0.003, {"outcome": "success"}),
+    ]
+    snap = observability.metrics_snapshot()
+    assert snap["llm"]["cost_gbp_total"] == pytest.approx(0.005)
+
+
+def test_decision_and_planner_signals_aggregate_and_emit():
+    meter = _FakeMeter()
+    observability = _enabled_observability(meter)
+    observability.record_decision("approved", "success")
+    observability.record_decision("edited_approved", "success")
+    observability.record_decision("rejected", "success")
+    observability.record_decision("approved", "error")  # errors are not counted
+    observability.record_planner_run(tool_calls=2, budget=5)
+    observability.record_planner_run(tool_calls=7, budget=5)
+
+    snap = observability.metrics_snapshot()
+    decisions = snap["decisions"]
+    assert decisions["total"] == 3.0
+    assert decisions["approval_rate"] == pytest.approx(1 / 3)
+    assert decisions["override_rate"] == pytest.approx(2 / 3)
+    planner = snap["planner"]
+    assert planner["runs"] == 2.0
+    assert planner["breaches"] == 1.0
+    assert planner["breach_rate"] == pytest.approx(0.5)
+    assert planner["avg_tool_calls"] == pytest.approx(4.5)
+    assert meter.counters["pathfinder_learning_planner_runs_total"].adds == [
+        (1, {"outcome": "within_budget"}),
+        (1, {"outcome": "budget_exceeded"}),
+    ]
+
+
+def test_voice_ttfa_metric_aggregates_and_emits_histogram():
+    meter = _FakeMeter()
+    observability = _enabled_observability(meter)
+    observability.record_voice_ttfa(latency_ms=600, outcome="success")
+    observability.record_voice_ttfa(latency_ms=1400, outcome="success")
+    observability.record_voice_ttfa(latency_ms=None, outcome="error")
+
+    snap = observability.metrics_snapshot()
+    voice = snap["voice"]
+    assert voice["ttfa_total"] == 3.0
+    assert voice["ttfa_counts"]["success"] == 2.0
+    assert voice["ttfa_counts"]["error"] == 1.0
+    assert voice["ttfa_error_rate"] == 1 / 3
+    assert voice["ttfa_sample_size"] == 2
+    assert voice["ttfa_ms_p95"] >= 600
+    # Only successful turns with a latency are observed on the histogram.
+    assert meter.histograms["pathfinder_learning_voice_ttfa_ms"].observations == [600, 1400]
+
+
+def test_voice_ttfa_tile_appears_on_dashboard():
+    observability = _enabled_observability()
+    observability.record_voice_ttfa(latency_ms=700, outcome="success")
+    client = _client(_learning_api(observability))
+
+    response = client.get("/api/learning/observability/dashboard")
+    assert response.status_code == 200
+    body = response.get_json()
+    voice_tile = next(
+        tile
+        for section in body["sections"]
+        for tile in section["tiles"]
+        if tile["id"] == "voice-ttfa-p95"
+    )
+    assert voice_tile["source"] == "live"
+    assert voice_tile["status"] in {"ok", "warn", "crit"}
+
+
+def test_agentops_tiles_appear_on_dashboard():
+    observability = _enabled_observability()
+    observability.record_decision("approved", "success")
+    observability.record_decision("rejected", "success")
+    observability.record_planner_run(tool_calls=9, budget=5)
+    client = _client(_learning_api(observability))
+
+    response = client.get("/api/learning/observability/dashboard")
+    assert response.status_code == 200
+    body = response.get_json()
+    tiles = {
+        tile["id"]: tile
+        for section in body["sections"]
+        for tile in section["tiles"]
+    }
+    assert tiles["approval-override-rate"]["source"] == "live"
+    assert tiles["approval-override-rate"]["status"] in {"ok", "warn", "crit"}
+    assert tiles["planner-budget-breaches"]["source"] == "live"
+    assert body["raw"]["decisions"]["total"] == 2.0
+    assert body["raw"]["planner"]["breaches"] == 1.0
+
+
 def test_observability_dashboard_endpoint_shape():
     observability = _enabled_observability()
     observability.record_request("practice", "post", "success")
@@ -302,17 +405,121 @@ def test_observability_dashboard_endpoint_shape():
     body = response.get_json()
     assert body["overall_status"] in {"ok", "warn", "crit", "nodata"}
     section_ids = {section["id"] for section in body["sections"]}
-    assert section_ids == {"product", "health", "safety-agent"}
+    assert section_ids == {"product", "health", "safety-agent", "service-infra", "agent-mesh"}
     tile_ids = {
         tile["id"]
         for section in body["sections"]
         for tile in section["tiles"]
     }
-    assert {"north-star-retry", "api-error-rate", "citation-coverage"} <= tile_ids
+    assert {
+        "north-star-retry",
+        "api-error-rate",
+        "citation-coverage",
+        "active-revision",
+        "api-health",
+        "db-connectivity",
+        "mesh-merge-gate",
+        "mesh-veto-rate",
+        "mesh-veto-drift",
+        "mesh-rollback-proposals",
+    } <= tile_ids
     for section in body["sections"]:
         for tile in section["tiles"]:
             assert tile["status"] in {"ok", "warn", "crit", "nodata"}
-            assert tile["source"] in {"live", "fixture", "nodata"}
+            assert tile["source"] in {"live", "kql", "snapshot", "fixture", "nodata"}
+
+
+def test_service_infra_section_reports_revision_and_db(monkeypatch):
+    monkeypatch.setenv("CONTAINER_APP_REVISION", "voicelab--azd-1780459617")
+    monkeypatch.setenv("CONTAINER_APP_REPLICA_NAME", "voicelab--azd-1780459617-abc")
+    monkeypatch.setenv("CONTAINER_APP_NAME", "voicelab")
+    monkeypatch.delenv("DATABASE_BACKEND", raising=False)
+    observability = _enabled_observability()
+    client = _client(_learning_api(observability))
+
+    response = client.get("/api/learning/observability/dashboard")
+    assert response.status_code == 200
+    body = response.get_json()
+
+    infra = next(s for s in body["sections"] if s["id"] == "service-infra")
+    tiles = {tile["id"]: tile for tile in infra["tiles"]}
+
+    revision = tiles["active-revision"]
+    assert revision["value"] == "voicelab--azd-1780459617"
+    assert revision["source"] == "live"
+    assert "Deployed 2026" in revision["detail"]
+
+    assert tiles["api-health"]["value"] == "ok"
+    assert tiles["api-health"]["status"] == "ok"
+
+    # In-memory backend has no Postgres probe — tile stays ok/live, never 500.
+    db = tiles["db-connectivity"]
+    assert db["status"] == "ok"
+    assert db["source"] == "live"
+
+
+def test_agent_mesh_section_dark_without_history(monkeypatch, tmp_path):
+    # No history file → every mesh tile is nodata and the endpoint never 500s.
+    monkeypatch.setenv("AGENT_MESH_HISTORY_PATH", str(tmp_path / "missing.jsonl"))
+    observability = _enabled_observability()
+    client = _client(_learning_api(observability))
+
+    response = client.get("/api/learning/observability/dashboard")
+    assert response.status_code == 200
+    body = response.get_json()
+
+    mesh = next(s for s in body["sections"] if s["id"] == "agent-mesh")
+    tiles = {tile["id"]: tile for tile in mesh["tiles"]}
+    assert set(tiles) == {
+        "mesh-merge-gate",
+        "mesh-veto-rate",
+        "mesh-veto-drift",
+        "mesh-rollback-proposals",
+    }
+    for tile in tiles.values():
+        assert tile["status"] == "nodata"
+        assert tile["source"] == "nodata"
+
+
+def test_agent_mesh_section_reads_durable_history(monkeypatch, tmp_path):
+    import json as _json
+
+    history = tmp_path / "history.jsonl"
+    rows = [
+        {"seq": 1, "kind": "genaiops", "ts": 1.0,
+         "payload": {"passed": False, "pass_rate": 0.82, "blocking_reasons": ["tier1_breach"]}, "tags": {}},
+        {"seq": 2, "kind": "migration", "ts": 2.0, "payload": {"destructive": True}, "tags": {}},
+    ]
+    # A run of safeguarding checks, two of which veto (allowed == False).
+    for i in range(10):
+        rows.append({
+            "seq": 3 + i, "kind": "safeguarding", "ts": 3.0 + i,
+            "payload": {"allowed": i >= 2}, "tags": {},
+        })
+    history.write_text("\n".join(_json.dumps(r) for r in rows) + "\n", encoding="utf-8")
+
+    monkeypatch.setenv("AGENT_MESH_HISTORY_PATH", str(history))
+    observability = _enabled_observability()
+    client = _client(_learning_api(observability))
+
+    response = client.get("/api/learning/observability/dashboard")
+    assert response.status_code == 200
+    body = response.get_json()
+
+    mesh = next(s for s in body["sections"] if s["id"] == "agent-mesh")
+    tiles = {tile["id"]: tile for tile in mesh["tiles"]}
+
+    # Failing eval verdict → crit, kql-badged.
+    assert tiles["mesh-merge-gate"]["status"] == "crit"
+    assert tiles["mesh-merge-gate"]["source"] == "kql"
+
+    # 2 vetoes / 10 checks = 20% → above the 10% target → crit.
+    assert tiles["mesh-veto-rate"]["value"] == "20.0%"
+    assert tiles["mesh-veto-rate"]["status"] == "crit"
+
+    # 1 migration proposal recorded, none auto-executed.
+    assert tiles["mesh-rollback-proposals"]["value"] == "1"
+    assert "0 auto-executed" in tiles["mesh-rollback-proposals"]["detail"]
 
 
 def test_observability_dashboard_degrades_without_signals():
@@ -324,7 +531,7 @@ def test_observability_dashboard_degrades_without_signals():
     body = response.get_json()
     # No live traffic yet — live tiles should report nodata, but the endpoint
     # must still return the full section/tile structure for the dashboard UI.
-    assert len(body["sections"]) == 3
+    assert len(body["sections"]) == 5
     retry_tile = next(
         tile
         for section in body["sections"]
@@ -332,3 +539,91 @@ def test_observability_dashboard_degrades_without_signals():
         if tile["id"] == "north-star-retry"
     )
     assert retry_tile["source"] == "nodata"
+
+
+def test_durable_reader_disabled_without_resource_id():
+    reader = DurableMetricsReader(resource_id=None)
+    assert reader.enabled is False
+    assert reader.read() is None
+
+
+def test_durable_reader_rows_to_snapshot():
+    rows = [
+        ["pathfinder_learning_requests_total", '{"outcome": "success"}', 90.0],
+        ["pathfinder_learning_requests_total", '{"outcome": "error"}', 10.0],
+        ["pathfinder_learning_llm_turns_total", '{"outcome": "success"}', 40.0],
+        ["pathfinder_learning_llm_turns_total", '{"outcome": "error"}', 5.0],
+        ["pathfinder_learning_llm_cost_gbp_total", '{"outcome": "success"}', 1.25],
+        ["pathfinder_learning_citation_total", '{"presence": "present"}', 48.0],
+        ["pathfinder_learning_citation_total", '{"presence": "missing"}', 2.0],
+        ["pathfinder_learning_grounding_total", '{"decision": "grounded"}', 30.0],
+        ["pathfinder_learning_grounding_total", '{"decision": "refused"}', 6.0],
+        ["pathfinder_learning_retry_outcomes_total", '{"outcome": "success"}', 18.0],
+        ["pathfinder_learning_retry_outcomes_total", '{"outcome": "fail"}', 6.0],
+    ]
+    snap = DurableMetricsReader._rows_to_snapshot(rows)
+
+    assert snap["requests"]["total"] == 100.0
+    assert snap["requests"]["error_rate"] == pytest.approx(0.1)
+    assert snap["llm"]["turns"] == 45.0
+    assert snap["llm"]["errors"] == 5.0
+    assert snap["llm"]["cost_gbp_total"] == pytest.approx(1.25)
+    assert snap["citation"]["present_rate"] == pytest.approx(0.96)
+    assert snap["grounding"]["refusal_rate"] == pytest.approx(6.0 / 36.0)
+    assert snap["retry"]["success_rate"] == pytest.approx(0.75)
+
+
+class _StubDurableReader:
+    def __init__(self, snapshot):
+        self._snapshot = snapshot
+
+    def read(self):
+        return self._snapshot
+
+
+def test_dashboard_badges_durable_tiles_as_kql():
+    observability = _enabled_observability()
+    reader = _StubDurableReader(
+        {
+            "requests": {
+                "counts": {"success": 90.0, "error": 10.0},
+                "total": 100.0,
+                "error_rate": 0.1,
+            },
+            "retry": {
+                "counts": {"success": 18.0, "fail": 6.0},
+                "total": 24.0,
+                "success_rate": 0.75,
+                "by_version": {},
+            },
+            "llm": {
+                "turns": 45.0,
+                "errors": 5.0,
+                "error_rate": 5.0 / 45.0,
+                "cost_gbp_total": 1.25,
+                "avg_cost_per_turn_gbp": 1.25 / 45.0,
+            },
+        }
+    )
+    api = LearningApi(
+        item_bank=load_item_bank(Path(ITEM_BANK_PATH)),
+        observability=observability,
+        durable_metrics_reader=reader,
+    )
+    client = _client(api)
+
+    response = client.get("/api/learning/observability/dashboard")
+    assert response.status_code == 200
+    tiles = {
+        tile["id"]: tile
+        for section in response.get_json()["sections"]
+        for tile in section["tiles"]
+    }
+
+    assert tiles["api-error-rate"]["source"] == "kql"
+    assert tiles["north-star-retry"]["source"] == "kql"
+    assert tiles["llm-error-rate"]["source"] == "kql"
+    # Histogram-backed latency stays in-process even when durable data exists.
+    assert tiles["llm-latency-p95"]["source"] in {"live", "nodata"}
+
+

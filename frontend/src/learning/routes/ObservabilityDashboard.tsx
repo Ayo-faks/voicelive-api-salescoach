@@ -23,6 +23,8 @@ const STATUS_LABEL: Record<ObservabilityTileStatus, string> = {
 
 const SOURCE_LABEL: Record<ObservabilityTileSource, string> = {
   live: 'Live',
+  kql: 'Azure Monitor',
+  snapshot: 'Pilot snapshot',
   fixture: 'Pilot data',
   nodata: 'No data',
 }

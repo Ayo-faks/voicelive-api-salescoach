@@ -95,6 +95,10 @@ class _MetricSnapshotStore:
         self.grounding: Dict[str, float] = defaultdict(float)  # grounded/deferred/refused
         self.citation: Dict[str, float] = defaultdict(float)  # present/missing
         self.requests: Dict[str, float] = defaultdict(float)  # success/error
+        self.decisions: Dict[str, float] = defaultdict(float)  # approved/rejected/edited_approved
+        self.planner_runs: float = 0.0
+        self.planner_breaches: float = 0.0
+        self.planner_tool_calls_sum: float = 0.0
         self.safety_total: float = 0.0
         self.safety_by_severity: Dict[str, float] = defaultdict(float)
         self.safety_actioned: float = 0.0  # events acknowledged at record time
@@ -107,10 +111,25 @@ class _MetricSnapshotStore:
         self.retry_by_version: Dict[str, Dict[str, float]] = defaultdict(
             lambda: defaultdict(float)
         )
+        self.voice_ttfa: Dict[str, float] = defaultdict(float)  # success/error
+        self._voice_ttfa_ms: list[float] = []
 
     def record_request(self, outcome: str) -> None:
         with self._lock:
             self.requests["success" if outcome == "success" else "error"] += 1.0
+
+    def record_decision(self, action: str, outcome: str) -> None:
+        if outcome != "success" or not action:
+            return
+        with self._lock:
+            self.decisions[action] += 1.0
+
+    def record_planner_run(self, tool_calls: float, budget: float) -> None:
+        with self._lock:
+            self.planner_runs += 1.0
+            self.planner_tool_calls_sum += max(0.0, float(tool_calls))
+            if budget > 0 and tool_calls > budget:
+                self.planner_breaches += 1.0
 
     def record_grounding(self, decision: str) -> None:
         with self._lock:
@@ -153,6 +172,14 @@ class _MetricSnapshotStore:
             self.retry[key] += 1.0
             self.retry_by_version[explanation_version][key] += 1.0
 
+    def record_voice_ttfa(self, latency_ms: Optional[float], outcome: str) -> None:
+        with self._lock:
+            self.voice_ttfa["success" if outcome == "success" else "error"] += 1.0
+            if outcome == "success" and latency_ms is not None and latency_ms >= 0:
+                self._voice_ttfa_ms.append(float(latency_ms))
+                if len(self._voice_ttfa_ms) > self._LATENCY_RESERVOIR_MAX:
+                    self._voice_ttfa_ms = self._voice_ttfa_ms[-self._LATENCY_RESERVOIR_MAX :]
+
     @staticmethod
     def _percentile(values: list[float], pct: float) -> float:
         if not values:
@@ -172,6 +199,10 @@ class _MetricSnapshotStore:
             grounding = dict(self.grounding)
             citation = dict(self.citation)
             requests = dict(self.requests)
+            decisions = dict(self.decisions)
+            planner_runs = self.planner_runs
+            planner_breaches = self.planner_breaches
+            planner_tool_calls_sum = self.planner_tool_calls_sum
             safety_by_severity = dict(self.safety_by_severity)
             safety_total = self.safety_total
             safety_actioned = self.safety_actioned
@@ -182,16 +213,33 @@ class _MetricSnapshotStore:
             latencies = list(self._latencies_ms)
             retry = dict(self.retry)
             retry_by_version = {k: dict(v) for k, v in self.retry_by_version.items()}
+            voice_ttfa = dict(self.voice_ttfa)
+            voice_ttfa_ms = list(self._voice_ttfa_ms)
 
         grounding_total = sum(grounding.values())
         citation_total = sum(citation.values())
         requests_total = sum(requests.values())
+        decisions_total = sum(decisions.values())
+        decisions_override = decisions.get("rejected", 0.0) + decisions.get("edited_approved", 0.0)
         retry_total = retry.get("success", 0.0) + retry.get("fail", 0.0)
+        voice_ttfa_total = voice_ttfa.get("success", 0.0) + voice_ttfa.get("error", 0.0)
         return {
             "requests": {
                 "counts": requests,
                 "total": requests_total,
                 "error_rate": self._ratio(requests.get("error", 0.0), requests_total),
+            },
+            "decisions": {
+                "counts": decisions,
+                "total": decisions_total,
+                "approval_rate": self._ratio(decisions.get("approved", 0.0), decisions_total),
+                "override_rate": self._ratio(decisions_override, decisions_total),
+            },
+            "planner": {
+                "runs": planner_runs,
+                "breaches": planner_breaches,
+                "breach_rate": self._ratio(planner_breaches, planner_runs),
+                "avg_tool_calls": self._ratio(planner_tool_calls_sum, planner_runs),
             },
             "grounding": {
                 "counts": grounding,
@@ -237,6 +285,14 @@ class _MetricSnapshotStore:
                     for version, counts in retry_by_version.items()
                 },
             },
+            "voice": {
+                "ttfa_counts": voice_ttfa,
+                "ttfa_total": voice_ttfa_total,
+                "ttfa_error_rate": self._ratio(voice_ttfa.get("error", 0.0), voice_ttfa_total),
+                "ttfa_ms_p50": self._percentile(voice_ttfa_ms, 50),
+                "ttfa_ms_p95": self._percentile(voice_ttfa_ms, 95),
+                "ttfa_sample_size": len(voice_ttfa_ms),
+            },
         }
 
     def reset(self) -> None:
@@ -244,6 +300,10 @@ class _MetricSnapshotStore:
             self.grounding.clear()
             self.citation.clear()
             self.requests.clear()
+            self.decisions.clear()
+            self.planner_runs = 0.0
+            self.planner_breaches = 0.0
+            self.planner_tool_calls_sum = 0.0
             self.safety_total = 0.0
             self.safety_by_severity.clear()
             self.safety_actioned = 0.0
@@ -254,6 +314,8 @@ class _MetricSnapshotStore:
             self._latencies_ms.clear()
             self.retry.clear()
             self.retry_by_version.clear()
+            self.voice_ttfa.clear()
+            self._voice_ttfa_ms.clear()
 
 
 class LearningObservability:
@@ -273,7 +335,9 @@ class LearningObservability:
         "citation": "pathfinder_learning_citation_total",
         "safety": "pathfinder_learning_safety_events_total",
         "llm_turns": "pathfinder_learning_llm_turns_total",
+        "llm_cost": "pathfinder_learning_llm_cost_gbp_total",
         "retry": "pathfinder_learning_retry_outcomes_total",
+        "planner": "pathfinder_learning_planner_runs_total",
     }
     metric_descriptions = {
         "requests": "Pathfinder Learn HTTP requests by endpoint, method, and outcome.",
@@ -283,13 +347,17 @@ class LearningObservability:
         "citation": "Pathfinder Learn explanation citation presence (present/missing).",
         "safety": "Pathfinder Learn safeguarding/safety events by severity and action.",
         "llm_turns": "Pathfinder Learn LLM turns by outcome.",
+        "llm_cost": "Pathfinder Learn cumulative LLM spend in GBP by outcome.",
         "retry": "Pathfinder Learn retry-after-explanation outcomes by result.",
+        "planner": "Pathfinder Learn planner runs by tool-call budget outcome.",
     }
     histogram_names = {
         "llm_latency": "pathfinder_learning_llm_latency_ms",
+        "voice_ttfa": "pathfinder_learning_voice_ttfa_ms",
     }
     histogram_descriptions = {
         "llm_latency": "Pathfinder Learn LLM turn latency in milliseconds.",
+        "voice_ttfa": "Pathfinder Learn voice time-to-first-audio in milliseconds.",
     }
 
     def __init__(
@@ -317,8 +385,11 @@ class LearningObservability:
         self._citation_counter = None
         self._safety_counter = None
         self._llm_turn_counter = None
+        self._llm_cost_counter = None
         self._retry_counter = None
+        self._planner_counter = None
         self._llm_latency_histogram = None
+        self._voice_ttfa_histogram = None
         if self._registry is not None and Counter is not None:
             self._request_counter = Counter(
                 self.metric_names["requests"],
@@ -362,9 +433,21 @@ class LearningObservability:
                 ["outcome"],
                 registry=self._registry,
             )
+            self._llm_cost_counter = Counter(
+                self.metric_names["llm_cost"],
+                self.metric_descriptions["llm_cost"],
+                ["outcome"],
+                registry=self._registry,
+            )
             self._retry_counter = Counter(
                 self.metric_names["retry"],
                 self.metric_descriptions["retry"],
+                ["outcome"],
+                registry=self._registry,
+            )
+            self._planner_counter = Counter(
+                self.metric_names["planner"],
+                self.metric_descriptions["planner"],
                 ["outcome"],
                 registry=self._registry,
             )
@@ -375,6 +458,12 @@ class LearningObservability:
                     buckets=(100, 250, 500, 1000, 2000, 4000, 8000, 16000),
                     registry=self._registry,
                 )
+                self._voice_ttfa_histogram = Histogram(
+                    self.histogram_names["voice_ttfa"],
+                    self.histogram_descriptions["voice_ttfa"],
+                    buckets=(100, 250, 500, 1000, 2000, 4000, 8000, 16000),
+                    registry=self._registry,
+                )
         self._otel_request_counter = self._create_otel_counter("requests")
         self._otel_decision_counter = self._create_otel_counter("decisions")
         self._otel_xapi_counter = self._create_otel_counter("xapi")
@@ -382,8 +471,11 @@ class LearningObservability:
         self._otel_citation_counter = self._create_otel_counter("citation")
         self._otel_safety_counter = self._create_otel_counter("safety")
         self._otel_llm_turn_counter = self._create_otel_counter("llm_turns")
+        self._otel_llm_cost_counter = self._create_otel_counter("llm_cost")
         self._otel_retry_counter = self._create_otel_counter("retry")
+        self._otel_planner_counter = self._create_otel_counter("planner")
         self._otel_llm_latency_histogram = self._create_otel_histogram("llm_latency")
+        self._otel_voice_ttfa_histogram = self._create_otel_histogram("voice_ttfa")
         self.snapshot_store = _MetricSnapshotStore()
 
     @property
@@ -437,6 +529,17 @@ class LearningObservability:
         labels = {"action": action, "outcome": outcome}
         self._record_prometheus(self._decision_counter, self.metric_names["decisions"], labels)
         self._record_otel(self._otel_decision_counter, labels)
+        self.snapshot_store.record_decision(action, outcome)
+
+    def record_planner_run(self, *, tool_calls: float, budget: float) -> None:
+        """Record a planner turn's tool-call usage against its budget."""
+        if not self.flags.observability_enabled:
+            return
+        outcome = "budget_exceeded" if budget > 0 and tool_calls > budget else "within_budget"
+        labels = {"outcome": outcome}
+        self._record_prometheus(self._planner_counter, self.metric_names["planner"], labels)
+        self._record_otel(self._otel_planner_counter, labels)
+        self.snapshot_store.record_planner_run(tool_calls, budget)
 
     def record_xapi(self, sink_status: str, outcome: str = "success") -> None:
         if not self.flags.observability_enabled:
@@ -486,6 +589,11 @@ class LearningObservability:
         labels = {"outcome": outcome}
         self._record_prometheus(self._llm_turn_counter, self.metric_names["llm_turns"], labels)
         self._record_otel(self._otel_llm_turn_counter, labels)
+        if cost_gbp:
+            self._add_prometheus(
+                self._llm_cost_counter, self.metric_names["llm_cost"], labels, float(cost_gbp)
+            )
+            self._add_otel(self._otel_llm_cost_counter, labels, float(cost_gbp))
         if latency_ms is not None and latency_ms >= 0:
             if self._llm_latency_histogram is not None:
                 self._llm_latency_histogram.observe(latency_ms)
@@ -502,6 +610,17 @@ class LearningObservability:
         self._record_prometheus(self._retry_counter, self.metric_names["retry"], labels)
         self._record_otel(self._otel_retry_counter, labels)
         self.snapshot_store.record_retry(outcome, explanation_version)
+
+    def record_voice_ttfa(self, *, latency_ms: Optional[float] = None, outcome: str = "success") -> None:
+        """Record voice time-to-first-audio (TTFA) latency and outcome."""
+        if not self.flags.observability_enabled:
+            return
+        if outcome == "success" and latency_ms is not None and latency_ms >= 0:
+            if self._voice_ttfa_histogram is not None:
+                self._voice_ttfa_histogram.observe(latency_ms)
+            if self._otel_voice_ttfa_histogram is not None:
+                self._otel_voice_ttfa_histogram.record(latency_ms)
+        self.snapshot_store.record_voice_ttfa(latency_ms, outcome)
 
     def metrics_snapshot(self) -> Dict[str, Any]:
         """Return the in-process aggregate for the admin observability dashboard."""
@@ -562,6 +681,27 @@ class LearningObservability:
         if not self.otel_enabled or counter is None:
             return
         counter.add(1, attributes=dict(labels))
+
+    def _add_prometheus(
+        self,
+        counter: Optional[Any],
+        metric_name: str,
+        labels: Mapping[str, str],
+        amount: float,
+    ) -> None:
+        if not self.prometheus_enabled or amount <= 0:
+            return
+        if counter is not None:
+            counter.labels(**labels).inc(amount)
+            return
+        label_tuple = tuple(sorted((key, str(value)) for key, value in labels.items()))
+        with self._lock:
+            self._fallback_counts[(metric_name, label_tuple)] += amount
+
+    def _add_otel(self, counter: Optional[Any], labels: Mapping[str, str], amount: float) -> None:
+        if not self.otel_enabled or counter is None or amount <= 0:
+            return
+        counter.add(amount, attributes=dict(labels))
 
     def _increment_fallback(self, metric_name: str, labels: Mapping[str, str]) -> None:
         label_tuple = tuple(sorted((key, str(value)) for key, value in labels.items()))

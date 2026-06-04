@@ -72,6 +72,7 @@ from src.learning.models import (
     VoiceFluencyResult,
 )
 from src.learning.observability import LearningObservability
+from src.learning.observability_kql import DurableMetricsReader
 from src.learning.operations import compute_kpi_report, load_metric_snapshots
 from src.learning.planner import PlannerRequest, StubLearningPlanner
 from src.learning.rag import (
@@ -490,6 +491,7 @@ class LearningApi:
         notifications_repository: Optional[NotificationsRepository] = None,
         vapid_config: Optional[VapidConfig] = None,
         assistant_provider: Optional[AssistantProvider] = None,
+        durable_metrics_reader: Optional[DurableMetricsReader] = None,
     ) -> None:
         self.repository: LearningRepository = repository or InMemoryLearningRepository()
         self.item_bank: DiagnosticItemBank = item_bank or load_item_bank(ITEM_BANK_PATH)
@@ -499,6 +501,7 @@ class LearningApi:
         self.lti_state_store = lti_state_store or LTIStateStore()
         self.lti_session_secret = lti_session_secret or os.environ.get("LTI_SESSION_SECRET")
         self.observability = observability or LearningObservability()
+        self._durable_metrics_reader = durable_metrics_reader or DurableMetricsReader()
         self.selector = DeterministicItemSelector()
         self.voice_adapter = FlaskSockVoiceTransportAdapter()
         self.learner_voice_planner = LearnerVoiceTurnPlanner()
@@ -1668,6 +1671,9 @@ class LearningApi:
             provenance=self.item_bank.provenance,
         )
         result = StubLearningPlanner().run_turn(request_model)
+        self.observability.record_planner_run(
+            tool_calls=result.tool_calls_count, budget=request_model.tool_call_budget
+        )
         validation = self._validator.validate(result.plan)
         if not validation.ok:
             raise LearningApiError(
@@ -1937,6 +1943,248 @@ class LearningApi:
     def get_observability_config(self, _payload: Mapping[str, Any]) -> Dict[str, Any]:
         return self.observability.config_payload()
 
+    def _probe_database(self) -> Dict[str, Any]:
+        """Lightweight Postgres connectivity + migration-head probe.
+
+        Never raises: any failure is reported as ``connected=False`` so the
+        observability dashboard can render a ``crit``/``nodata`` tile instead of
+        500-ing. In-memory/sqlite backends report ``backend`` without probing.
+        """
+        backend = (os.environ.get("DATABASE_BACKEND") or "").strip().lower()
+        storage = getattr(self.repository, "storage", None)
+        if storage is None or not hasattr(storage, "_execute_read"):
+            return {"backend": backend or "memory", "connected": None, "migration_head": None, "error": None}
+
+        def _read(connection: Any) -> Dict[str, Any]:
+            connection.execute("SELECT 1")
+            head: Optional[str] = None
+            try:
+                row = connection.execute("SELECT version_num FROM alembic_version LIMIT 1").fetchone()
+                if row:
+                    head = str(row.get("version_num") if isinstance(row, Mapping) else row[0])
+            except Exception:  # pragma: no cover - table may be absent pre-migration
+                head = None
+            return {"connected": True, "migration_head": head}
+
+        try:
+            result = storage._execute_read(_read)
+            return {
+                "backend": backend or "postgres",
+                "connected": True,
+                "migration_head": result.get("migration_head"),
+                "error": None,
+            }
+        except Exception as exc:  # pragma: no cover - exercised via failure paths
+            return {
+                "backend": backend or "postgres",
+                "connected": False,
+                "migration_head": None,
+                "error": type(exc).__name__,
+            }
+
+    def _service_infra_section(self) -> Dict[str, Any]:
+        """DevOps / platform tiles: revision, replica, API health, Postgres.
+
+        Reads Azure Container Apps-injected env vars (no Azure control-plane
+        calls in the request path) and a graceful Postgres probe.
+        """
+        revision = (os.environ.get("CONTAINER_APP_REVISION") or "").strip()
+        replica = (os.environ.get("CONTAINER_APP_REPLICA_NAME") or "").strip()
+        app_name = (os.environ.get("CONTAINER_APP_NAME") or "").strip()
+        has_revision = bool(revision)
+
+        deploy_detail = f"Replica {replica}" if replica else "Single active replica"
+        suffix = revision.rsplit("-", 1)[-1] if "-" in revision else ""
+        if suffix.isdigit():
+            try:
+                deployed_at = datetime.fromtimestamp(int(suffix), tz=timezone.utc)
+                deploy_detail = (
+                    f"Deployed {deployed_at.strftime('%Y-%m-%d %H:%M UTC')}"
+                    + (f" · replica {replica}" if replica else "")
+                )
+            except (ValueError, OverflowError, OSError):
+                pass
+
+        db = self._probe_database()
+        db_backend = db.get("backend") or "memory"
+        is_postgres = db_backend == "postgres"
+        connected = db.get("connected")
+        if not is_postgres:
+            db_value = f"{db_backend} (no probe)"
+            db_status = "ok"
+            db_source = "live"
+            db_detail = "Non-Postgres backend — connectivity probe not applicable"
+        elif connected:
+            head = db.get("migration_head")
+            db_value = "connected"
+            db_status = "ok"
+            db_source = "live"
+            db_detail = (
+                f"Migration head {head}" if head else "Connected; alembic_version not found"
+            )
+        else:
+            db_value = "unreachable"
+            db_status = "crit"
+            db_source = "live"
+            db_detail = f"Postgres probe failed ({db.get('error') or 'unknown'})"
+
+        tiles = [
+            {
+                "id": "active-revision",
+                "label": "Active revision",
+                "value": revision or "unknown",
+                "detail": deploy_detail if has_revision else "CONTAINER_APP_REVISION not set (local/dev)",
+                "status": "ok" if has_revision else "nodata",
+                "source": "live" if has_revision else "nodata",
+            },
+            {
+                "id": "api-health",
+                "label": "API health",
+                "value": "ok",
+                "detail": f"{app_name or 'service'} serving /api/health and dashboard requests",
+                "status": "ok",
+                "source": "live",
+            },
+            {
+                "id": "db-connectivity",
+                "label": "Database connectivity",
+                "value": db_value,
+                "detail": db_detail,
+                "status": db_status,
+                "source": db_source,
+            },
+        ]
+        return {"id": "service-infra", "title": "Service & infrastructure", "tiles": tiles}
+
+    def _agent_mesh_section(self) -> Dict[str, Any]:
+        """Gate-2 agent-mesh tiles, sourced from the durable verdict history.
+
+        Read-only and never-raising. Reads the cross-run JSON-lines history the
+        agent-mesh cron writes (``AGENT_MESH_HISTORY_PATH``, default
+        ``/var/lib/agent-mesh/history.jsonl``); when no history exists every tile
+        renders ``nodata`` so the section is naturally dark until the cron runs.
+        These are *monitoring* signals only — acting on them (rollback, policy
+        promotion) stays human-gated elsewhere.
+        """
+        from src.agents.drift_detector import DriftDetector
+        from src.agents.durable_sink import JsonlDurableSink
+
+        history_path = (
+            os.environ.get("AGENT_MESH_HISTORY_PATH") or "/var/lib/agent-mesh/history.jsonl"
+        ).strip()
+
+        counts: Dict[str, int] = {}
+        eval_records: List[Any] = []
+        safeguarding_records: List[Any] = []
+        sink: Any = None
+        try:
+            sink = JsonlDurableSink(history_path)
+            counts = sink.counts_by_kind()
+            eval_records = sink.read(limit=20, kind="genaiops")
+            safeguarding_records = sink.read(limit=256, kind="safeguarding")
+        except Exception:  # pragma: no cover - dashboard must never 500
+            sink = None
+
+        # Tile 1: merge-gate (offline eval) verdict — latest genaiops record.
+        eval_payload = eval_records[-1].payload if eval_records else {}
+        has_eval = bool(eval_records)
+        eval_passed = bool(eval_payload.get("passed")) if has_eval else None
+        eval_pass_rate = eval_payload.get("pass_rate") if has_eval else None
+        eval_blocking = eval_payload.get("blocking_reasons") or []
+        merge_value = "—"
+        if has_eval:
+            merge_value = "pass" if eval_passed else "fail"
+            if isinstance(eval_pass_rate, (int, float)):
+                merge_value = f"{merge_value} · {eval_pass_rate * 100:.1f}%"
+        merge_status = "nodata" if not has_eval else "ok" if eval_passed else "crit"
+
+        # Tile 2: safeguarding veto rate (false-positive-adjacent). Static
+        # computation — available regardless of the drift kill-switch.
+        has_sg = bool(safeguarding_records)
+        veto_rate = DriftDetector.veto_rate(safeguarding_records) if has_sg else None
+        veto_status = "nodata"
+        if veto_rate is not None:
+            veto_status = "crit" if veto_rate > 0.10 else "warn" if veto_rate > 0.05 else "ok"
+
+        # Tile 3: veto-rate drift — honours AGENT_MESH_DRIFT_V1 (no force).
+        drift = None
+        try:
+            drift = DriftDetector().assess(sink) if sink is not None else None
+        except Exception:  # pragma: no cover - never 500
+            drift = None
+        if drift is None or drift.disabled:
+            drift_value = "—"
+            drift_detail = (
+                "; ".join(drift.reasons)
+                if drift is not None and drift.reasons
+                else "Drift detector dark or under-powered"
+            )
+            drift_status = "nodata"
+        else:
+            drift_value = f"Δ {drift.delta:+.3f}"
+            drift_detail = (
+                f"observed {drift.observed:.3f} vs baseline {drift.baseline:.3f} "
+                f"(threshold {drift.threshold:.2f}, n={drift.sample_size})"
+            )
+            drift_status = "crit" if drift.drifted else "ok"
+
+        # Tile 4: rollback / migration proposals — count only, never auto-acted.
+        proposal_kinds = ("migration", "rollback")
+        proposals = sum(int(counts.get(k, 0)) for k in proposal_kinds)
+        has_history = bool(counts)
+        proposal_status = "nodata" if not has_history else "ok"
+        mesh_source = "kql" if has_history else "nodata"
+
+        tiles = [
+            {
+                "id": "mesh-merge-gate",
+                "label": "Merge-gate eval verdict",
+                "value": merge_value,
+                "detail": (
+                    "Latest offline release-eval gate from the mesh cron"
+                    + (f" · blocking: {', '.join(map(str, eval_blocking))}" if eval_blocking else "")
+                    if has_eval
+                    else "No eval verdict recorded in mesh history yet"
+                ),
+                "status": merge_status,
+                "source": "kql" if has_eval else "nodata",
+            },
+            {
+                "id": "mesh-veto-rate",
+                "label": "Safeguarding veto rate",
+                "value": f"{veto_rate * 100:.1f}%" if veto_rate is not None else "no data yet",
+                "detail": (
+                    f"{sum(1 for r in safeguarding_records if getattr(r, 'payload', {}).get('allowed') is False)} "
+                    f"vetoes of {len(safeguarding_records)} safeguarding checks (target ≤ 10%)"
+                    if has_sg
+                    else "Deterministic safeguarding vetoes recorded by the mesh cron"
+                ),
+                "status": veto_status,
+                "source": "kql" if has_sg else "nodata",
+            },
+            {
+                "id": "mesh-veto-drift",
+                "label": "Veto-rate drift",
+                "value": drift_value,
+                "detail": drift_detail,
+                "status": drift_status,
+                "source": "kql" if (drift is not None and not drift.disabled) else "nodata",
+            },
+            {
+                "id": "mesh-rollback-proposals",
+                "label": "Rollback proposals",
+                "value": str(proposals) if has_history else "no data yet",
+                "detail": (
+                    f"{proposals} migration/rollback proposals recorded · 0 auto-executed (human-gated)"
+                    if has_history
+                    else "Migration/rollback proposals surfaced by the mesh (advisory only)"
+                ),
+                "status": proposal_status,
+                "source": mesh_source,
+            },
+        ]
+        return {"id": "agent-mesh", "title": "Agent mesh (gate 2)", "tiles": tiles}
+
     def get_observability_dashboard(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
         """Admin observability dashboard: product, health and safety/agent tiles.
 
@@ -1949,6 +2197,29 @@ class LearningApi:
         """
         snap = self.observability.metrics_snapshot()
         tenant_id = str(payload.get("tenant_id") or PILOT_KPI_TENANT_ID)
+
+        # --- Durable overlay (App Insights / Log Analytics KQL) -----------
+        # Counter-based subsections can be backed by exported OTel metrics so
+        # the tiles survive deploys and aggregate across replicas. Histogram
+        # percentiles and the safeguarding actioned-rate stay in-process.
+        durable_domains: set[str] = set()
+        try:
+            durable = self._durable_metrics_reader.read()
+        except Exception:  # pragma: no cover - dashboard must never 500
+            durable = None
+        if durable:
+            for key in ("requests", "citation", "grounding", "retry"):
+                if key in durable:
+                    snap[key] = durable[key]
+                    durable_domains.add(key)
+            if "llm" in durable:
+                snap["llm"] = {**snap["llm"], **durable["llm"]}
+                durable_domains.add("llm")
+
+        def live_source(domain: str, has_data: bool) -> str:
+            if not has_data:
+                return "nodata"
+            return "kql" if domain in durable_domains else "live"
 
         # --- Pilot KPI report (fixture-backed, optional) -------------------
         report = None
@@ -1985,13 +2256,18 @@ class LearningApi:
         citation = snap["citation"]
         safety = snap["safety"]
         retry = snap["retry"]
+        voice = snap.get("voice", {})
+        decisions = snap.get("decisions", {})
+        planner = snap.get("planner", {})
 
         has_requests = req["total"] > 0
         has_llm = llm["turns"] > 0
         has_retry = retry["total"] > 0
         has_grounding = grounding["total"] > 0
         has_citation = citation["total"] > 0
-
+        has_voice = voice.get("ttfa_total", 0) > 0
+        has_decisions = decisions.get("total", 0) > 0
+        has_planner = planner.get("runs", 0) > 0
         # --- Product section ----------------------------------------------
         north_star_status = status_from_rate(
             retry["success_rate"] if has_retry else None, warn=0.55, crit=0.4
@@ -2007,7 +2283,7 @@ class LearningApi:
                     else "Learners who retried a question after seeing an explanation"
                 ),
                 "status": north_star_status,
-                "source": "live" if has_retry else "nodata",
+                "source": live_source("retry", has_retry),
             },
             {
                 "id": "diagnostic-completion",
@@ -2019,7 +2295,7 @@ class LearningApi:
                 "status": status_from_rate(
                     report.diagnostic_completion_rate if report else None, warn=0.7, crit=0.5
                 ),
-                "source": "fixture" if report else "nodata",
+                "source": "snapshot" if report else "nodata",
             },
             {
                 "id": "cost-per-student",
@@ -2029,7 +2305,7 @@ class LearningApi:
                 if report
                 else "No pilot snapshots loaded",
                 "status": "ok" if report else "nodata",
-                "source": "fixture" if report else "nodata",
+                "source": "snapshot" if report else "nodata",
             },
         ]
 
@@ -2048,7 +2324,7 @@ class LearningApi:
                     crit=0.05,
                     higher_is_better=False,
                 ),
-                "source": "live" if has_requests else "nodata",
+                "source": live_source("requests", has_requests),
             },
             {
                 "id": "llm-latency-p95",
@@ -2081,7 +2357,7 @@ class LearningApi:
                     crit=0.05,
                     higher_is_better=False,
                 ),
-                "source": "live" if has_llm else "nodata",
+                "source": live_source("llm", has_llm),
             },
         ]
 
@@ -2097,7 +2373,7 @@ class LearningApi:
                 "status": status_from_rate(
                     citation["present_rate"] if has_citation else None, warn=0.99, crit=0.95
                 ),
-                "source": "live" if has_citation else "nodata",
+                "source": live_source("citation", has_citation),
             },
             {
                 "id": "grounding-refusal-rate",
@@ -2113,7 +2389,7 @@ class LearningApi:
                     if grounding["refusal_rate"] > 0.3
                     else "ok"
                 ),
-                "source": "live" if has_grounding else "nodata",
+                "source": live_source("grounding", has_grounding),
             },
             {
                 "id": "safety-events",
@@ -2146,7 +2422,65 @@ class LearningApi:
                 "status": status_from_rate(
                     report.safety_rate if report else None, warn=0.99, crit=0.95
                 ),
-                "source": "fixture" if report else "nodata",
+                "source": "snapshot" if report else "nodata",
+            },
+            {
+                "id": "voice-ttfa-p95",
+                "label": "Voice time-to-first-audio p95",
+                "value": f"{voice['ttfa_ms_p95']:.0f} ms" if has_voice else "no audio yet",
+                "detail": (
+                    f"p50 {voice['ttfa_ms_p50']:.0f} ms · {int(voice.get('ttfa_counts', {}).get('error', 0))} errors / "
+                    f"{int(voice['ttfa_total'])} requests · n={voice['ttfa_sample_size']}"
+                    if has_voice
+                    else "Latency from voice request to first synthesized audio"
+                ),
+                "status": (
+                    "nodata"
+                    if not has_voice
+                    else "crit"
+                    if voice["ttfa_ms_p95"] > 4000
+                    else "warn"
+                    if voice["ttfa_ms_p95"] > 2000
+                    else "ok"
+                ),
+                "source": "live" if has_voice else "nodata",
+            },
+            {
+                "id": "approval-override-rate",
+                "label": "Teacher override rate",
+                "value": pct(decisions["override_rate"]) if has_decisions else "no decisions yet",
+                "detail": (
+                    f"{int(decisions['counts'].get('approved', 0))} approved · "
+                    f"{int(decisions['counts'].get('edited_approved', 0))} edited · "
+                    f"{int(decisions['counts'].get('rejected', 0))} rejected of {int(decisions['total'])}"
+                    if has_decisions
+                    else "Teachers approving, editing, or rejecting AI intervention plans"
+                ),
+                "status": status_from_rate(
+                    decisions["override_rate"] if has_decisions else None,
+                    warn=0.4,
+                    crit=0.6,
+                    higher_is_better=False,
+                ),
+                "source": "live" if has_decisions else "nodata",
+            },
+            {
+                "id": "planner-budget-breaches",
+                "label": "Planner tool-call breaches",
+                "value": pct(planner["breach_rate"]) if has_planner else "no runs yet",
+                "detail": (
+                    f"{int(planner['breaches'])} of {int(planner['runs'])} runs over budget · "
+                    f"avg {planner['avg_tool_calls']:.1f} tool calls"
+                    if has_planner
+                    else "Planner runs exceeding their tool-call budget"
+                ),
+                "status": status_from_rate(
+                    planner["breach_rate"] if has_planner else None,
+                    warn=0.05,
+                    crit=0.15,
+                    higher_is_better=False,
+                ),
+                "source": "live" if has_planner else "nodata",
             },
         ]
 
@@ -2155,6 +2489,16 @@ class LearningApi:
             {"id": "health", "title": "Service health", "tiles": health_tiles},
             {"id": "safety-agent", "title": "Safety & agent quality", "tiles": safety_agent_tiles},
         ]
+
+        try:
+            sections.append(self._service_infra_section())
+        except Exception:  # pragma: no cover - dashboard must never 500
+            pass
+
+        try:
+            sections.append(self._agent_mesh_section())
+        except Exception:  # pragma: no cover - dashboard must never 500
+            pass
 
         worst = "ok"
         rank = {"ok": 0, "nodata": 0, "warn": 1, "crit": 2}
@@ -2175,6 +2519,9 @@ class LearningApi:
                 "citation": citation,
                 "safety": safety,
                 "retry": retry,
+                "voice": voice,
+                "decisions": decisions,
+                "planner": planner,
             },
         }
 
@@ -2823,6 +3170,9 @@ class LearningApi:
             ],
         )
         result = self.career_planner.run_turn(request)
+        self.observability.record_planner_run(
+            tool_calls=result.tool_calls_count, budget=request.tool_call_budget
+        )
         plan: CareerPlan = result.plan
         skill_labels = self._skill_label_lookup()
         return {
@@ -2966,6 +3316,9 @@ class LearningApi:
             provenance=self.item_bank.provenance,
         )
         result = StubLearningPlanner().run_turn(request_model)
+        self.observability.record_planner_run(
+            tool_calls=result.tool_calls_count, budget=request_model.tool_call_budget
+        )
         validation = self._validator.validate(result.plan)
         if not validation.ok:
             raise LearningApiError(
@@ -3319,7 +3672,7 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
 
     learning_api = api or LearningApi()
     if "learning_tts" not in app.blueprints:
-        app.register_blueprint(create_learning_tts_blueprint())
+        app.register_blueprint(create_learning_tts_blueprint(learning_api.observability))
 
     decision_actions = {
         "approve_plan": "approved",
