@@ -44,6 +44,9 @@ param copilotAzureApiVersion string = ''
 @description('Optional Voice Live model override. Defaults to the deployed Azure OpenAI model.')
 param voiceLiveModel string = ''
 
+@description('Optional input audio transcription (STT) model override, e.g. mai-transcribe-1. Defaults to azure-speech.')
+param inputTranscriptionModel string = ''
+
 @description('Enable Azure Database for PostgreSQL Flexible Server resources and secret wiring.')
 param enablePostgresPersistence bool = false
 
@@ -755,6 +758,10 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
             {
               name: 'VOICE_LIVE_MODEL'
               value: empty(voiceLiveModel) ? gptDeploymentName : voiceLiveModel
+            }
+            {
+              name: 'AZURE_INPUT_TRANSCRIPTION_MODEL'
+              value: empty(inputTranscriptionModel) ? 'azure-speech' : inputTranscriptionModel
             }
             {
               name: 'COPILOT_PLANNER_MODEL'

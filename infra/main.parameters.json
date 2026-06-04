@@ -50,6 +50,9 @@
       "voiceLiveModel": {
         "value": "${VOICE_LIVE_MODEL=}"
       },
+      "inputTranscriptionModel": {
+        "value": "${AZURE_INPUT_TRANSCRIPTION_MODEL=}"
+      },
       "enablePostgresPersistence": {
         "value": "${ENABLE_POSTGRES_PERSISTENCE=false}"
       },

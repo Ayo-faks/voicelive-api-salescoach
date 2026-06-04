@@ -53,6 +53,9 @@ param copilotAzureApiVersion string = ''
 @description('Optional Voice Live model override. Defaults to the deployed Azure OpenAI model.')
 param voiceLiveModel string = ''
 
+@description('Optional input audio transcription (STT) model override, e.g. mai-transcribe-1. Defaults to azure-speech.')
+param inputTranscriptionModel string = ''
+
 @description('Enable Azure Database for PostgreSQL Flexible Server resources and secret wiring.')
 param enablePostgresPersistence bool = false
 
@@ -201,6 +204,7 @@ module resources 'resources.bicep' = {
     copilotPlannerReasoningEffort: copilotPlannerReasoningEffort
     copilotAzureApiVersion: copilotAzureApiVersion
     voiceLiveModel: voiceLiveModel
+    inputTranscriptionModel: inputTranscriptionModel
     enablePostgresPersistence: enablePostgresPersistence
     postgresAdminUsername: postgresAdminUsername
     postgresAdminPassword: postgresAdminPassword
