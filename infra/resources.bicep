@@ -623,7 +623,18 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
           : []
       )
     }
-    volumes: []
+    volumes: [
+      // Durable cross-run agent-mesh history on the shared Azure Files share.
+      // The scheduled `voicelab-agent-mesh-obs` Job writes verdict + agent_eval
+      // records here; mounting the same share on the API lets the observability
+      // dashboard read them back, so the gate-2 tiles survive restarts instead
+      // of reading an ephemeral per-replica file.
+      {
+        name: 'agent-mesh-history'
+        storageType: 'AzureFile'
+        storageName: 'wulo-data'
+      }
+    ]
     containers: [
       {
         image: voicelabFetchLatestImage.outputs.?containers[?0].?image ?? 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
@@ -632,7 +643,12 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
           cpu: json('1.0')
           memory: '2.0Gi'
         }
-        volumeMounts: []
+        volumeMounts: [
+          {
+            volumeName: 'agent-mesh-history'
+            mountPath: '/var/lib/agent-mesh'
+          }
+        ]
         env: concat(
           [
             {
@@ -750,6 +766,12 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
             {
               name: 'BLOB_BACKUP_ACCOUNT_NAME'
               value: persistenceStorage.name
+            }
+            {
+              // Durable agent-mesh history the dashboard reads — the same path the
+              // scheduled observability Job writes on the shared Azure Files mount.
+              name: 'AGENT_MESH_HISTORY_PATH'
+              value: '/var/lib/agent-mesh/history.jsonl'
             }
             {
               name: 'COPILOT_CLI_PATH'

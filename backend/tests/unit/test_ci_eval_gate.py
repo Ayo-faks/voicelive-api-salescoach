@@ -132,3 +132,47 @@ def test_gate_grades_committed_report_clean(capsys):
     payload = json.loads(capsys.readouterr().out.splitlines()[0])
     assert payload["status"] in ("ok", "degraded")
     assert payload["gate_passed"] is True
+
+
+def test_record_writes_agent_eval_to_durable_sink(tmp_path, monkeypatch, capsys):
+    """--record persists an ``agent_eval`` line when the sink is armed."""
+    history = tmp_path / "history.jsonl"
+    monkeypatch.delenv("AGENT_MESH_ENABLED", raising=False)
+    monkeypatch.setenv("AGENT_MESH_MEMORY_SINK_V1", "1")
+    monkeypatch.setenv("AGENT_MESH_HISTORY_PATH", str(history))
+    path = _write(tmp_path, _clean_report())
+
+    code = ci_eval_gate.main(["--force", "--record", "--report", str(path)])
+    assert code == 0
+
+    rows = [json.loads(line) for line in history.read_text().splitlines() if line.strip()]
+    assert len(rows) == 1
+    assert rows[0]["kind"] == "agent_eval"
+    assert rows[0]["payload"]["eval"]["accuracy"] == 1.0
+
+
+def test_record_is_noop_when_sink_disabled(tmp_path, monkeypatch):
+    """--record writes nothing when AGENT_MESH_MEMORY_SINK_V1 is unset."""
+    history = tmp_path / "history.jsonl"
+    monkeypatch.delenv("AGENT_MESH_ENABLED", raising=False)
+    monkeypatch.delenv("AGENT_MESH_MEMORY_SINK_V1", raising=False)
+    monkeypatch.setenv("AGENT_MESH_HISTORY_PATH", str(history))
+    path = _write(tmp_path, _clean_report())
+
+    code = ci_eval_gate.main(["--force", "--record", "--report", str(path)])
+    assert code == 0
+    assert not history.exists()
+
+
+def test_record_skips_disabled_dark_grade(tmp_path, monkeypatch):
+    """A dark (unforced) grade is ``disabled`` and records nothing even if armed."""
+    history = tmp_path / "history.jsonl"
+    monkeypatch.delenv("AGENT_MESH_ENABLED", raising=False)
+    monkeypatch.setenv("AGENT_MESH_MEMORY_SINK_V1", "1")
+    monkeypatch.setenv("AGENT_MESH_HISTORY_PATH", str(history))
+    path = _write(tmp_path, _clean_report())
+
+    # No --force: mesh is dark, status is "disabled", so nothing is recorded.
+    code = ci_eval_gate.main(["--record", "--report", str(path)])
+    assert code == 0
+    assert not history.exists()

@@ -32,9 +32,23 @@ PYTHON_BIN="${PYTHON_BIN:-python}"
 # NOTE: the master-flag override is deliberately NOT passed. The cron honours the
 # dark-by-default master flag so a misconfigured schedule can never run the mesh
 # before its go-live gate.
-exec "${PYTHON_BIN}" "${BACKEND_DIR}/scripts/run_observability_gate.py" \
+GATE_EXIT=0
+"${PYTHON_BIN}" "${BACKEND_DIR}/scripts/run_observability_gate.py" \
   --metrics \
   --safeguarding \
   --critic \
   --durable-sink "${SINK_PATH}" \
-  "${@:2}"
+  "${@:2}" || GATE_EXIT=$?
+
+# Refresh the per-agent eval tiles (tutor accuracy / safeguarding recall /
+# planner pass) on the same durable sink the dashboard reads. Credential-free
+# and best-effort: it grades the committed eval report and records an
+# ``agent_eval`` line only when AGENT_MESH_MEMORY_SINK_V1 is set (dark otherwise),
+# so the tiles survive container restarts instead of going stale. A real durable
+# path (not the in-memory "-" sentinel) is required to persist anything.
+if [[ "${SINK_PATH}" != "-" ]]; then
+  AGENT_MESH_HISTORY_PATH="${SINK_PATH}" \
+    "${PYTHON_BIN}" "${BACKEND_DIR}/scripts/ci_eval_gate.py" --record || true
+fi
+
+exit "${GATE_EXIT}"

@@ -48,8 +48,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from src.agents.base import agent_mesh_enabled  # noqa: E402
 from src.agents.eval_report_adapter import (  # noqa: E402
     eval_report_to_observability_report,
+    record_eval_observability_report,
 )
-from src.agents.observability_gate import STATUS_ERROR  # noqa: E402
+from src.agents.observability_gate import (  # noqa: E402
+    STATUS_DISABLED,
+    STATUS_ERROR,
+)
 
 DEFAULT_REPORT = Path("data/c1/real_agent_eval_report.json")
 
@@ -80,6 +84,13 @@ def main(argv=None) -> int:
         type=Path,
         default=None,
         help="also write the ObservabilityReport JSON here",
+    )
+    parser.add_argument(
+        "--record",
+        action="store_true",
+        help="persist the graded report as an ``agent_eval`` record in the durable"
+        " mesh-history sink so the observability dashboard's per-agent eval tiles"
+        " refresh; dark unless AGENT_MESH_MEMORY_SINK_V1 is set (a no-op otherwise)",
     )
     args = parser.parse_args(argv)
 
@@ -122,6 +133,14 @@ def main(argv=None) -> int:
         with args.out.open("w", encoding="utf-8") as fh:
             json.dump(payload, fh, indent=2)
             fh.write("\n")
+
+    # Optionally persist the graded report so the dashboard's per-agent eval
+    # tiles survive restarts and refresh on a schedule. Never blocks the gate:
+    # the sink is dark unless AGENT_MESH_MEMORY_SINK_V1 is set, and a grade of
+    # ``disabled`` (dark mesh) has nothing meaningful to record.
+    if args.record and obs_report.status != STATUS_DISABLED:
+        if record_eval_observability_report(obs_report):
+            print("[ok] recorded agent_eval to durable sink", file=sys.stderr)
 
     print(json.dumps(payload, sort_keys=True))
     print(
