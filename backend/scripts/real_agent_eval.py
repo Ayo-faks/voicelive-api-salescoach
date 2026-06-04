@@ -79,7 +79,10 @@ from src.learning.rag import RagRetriever, WikiCorpus, load_wiki_corpus
 from src.safeguarding.classifier import SafeguardingClassifier
 from src.safeguarding.models import Severity
 from src.agents.base import agent_mesh_enabled
-from src.agents.eval_report_adapter import eval_report_to_observability_report
+from src.agents.eval_report_adapter import (
+    eval_report_to_observability_report,
+    record_eval_observability_report,
+)
 from src.agents.planner_eval import run_planner_eval
 
 COGNITIVE_SCOPE = "https://cognitiveservices.azure.com/.default"
@@ -570,6 +573,11 @@ def main() -> int:
     # is an explicit, on-demand eval run) regardless of the dark-by-default mesh.
     obs_report = eval_report_to_observability_report(enriched, mesh_enabled=agent_mesh_enabled(), force=True)
     print("OBSERVABILITY_REPORT " + json.dumps(obs_report.as_dict(), sort_keys=True))
+    # Persist to the durable mesh history so the observability dashboard's
+    # agent-mesh section can render the per-agent eval tiles. Opt-in via
+    # AGENT_MESH_MEMORY_SINK_V1; a no-op (and never an error) when unset.
+    if record_eval_observability_report(obs_report):
+        print("OBSERVABILITY_REPORT_RECORDED")
     print("REAL_AGENT_EVAL_OK")
     return 0
 

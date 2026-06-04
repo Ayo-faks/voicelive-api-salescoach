@@ -26,6 +26,7 @@ Threshold policy (fail-closed on safety, fail-soft elsewhere):
 
 from __future__ import annotations
 
+import os
 from typing import Any, Dict, List, Mapping, Optional
 
 from src.agents.observability_gate import (
@@ -41,6 +42,12 @@ TUTOR_ACCURACY_FLOOR = 0.85
 SAFEGUARDING_RECALL_FLOOR = 1.0
 PLANNER_SCHEMA_FLOOR = 1.0
 PLANNER_BUDGET_FLOOR = 1.0
+
+# Durable-sink record kind the observability dashboard reads to render the
+# per-agent eval tiles (tutor accuracy / safeguarding recall / planner pass).
+EVAL_HISTORY_KIND = "agent_eval"
+# Same default the dashboard's ``_agent_mesh_section`` falls back to.
+DEFAULT_HISTORY_PATH = "/var/lib/agent-mesh/history.jsonl"
 
 # Reason codes (stable strings for dashboards / alerting).
 REASON_SAFEGUARDING_CRITICAL_FN = "safeguarding_critical_false_negative"
@@ -197,3 +204,38 @@ def eval_report_to_observability_report(
         reasons=tuple(reasons),
         recorded=len(agents),
     )
+
+
+def record_eval_observability_report(
+    report: ObservabilityReport,
+    *,
+    history_path: Optional[str] = None,
+) -> bool:
+    """Persist an eval ``ObservabilityReport`` to the durable mesh-history sink.
+
+    The observability dashboard's ``_agent_mesh_section`` reads the latest
+    ``agent_eval`` record from this same JSON-lines history and renders the
+    per-agent eval tiles (tutor accuracy / safeguarding recall / planner pass).
+
+    Opt-in and non-raising: writes only when ``AGENT_MESH_MEMORY_SINK_V1`` is
+    truthy (mirroring the rest of the durable-sink wiring), and any failure
+    degrades to a no-op so an eval run can never be broken by telemetry. Returns
+    ``True`` only when a record was actually appended.
+    """
+    # Lazy imports: keep the durable-sink (and its observability decorator)
+    # dependency out of this module's import graph until a write is requested.
+    from src.agents.durable_sink import JsonlDurableSink, durable_sink_enabled
+
+    if not durable_sink_enabled():
+        return False
+
+    path = (history_path or os.environ.get("AGENT_MESH_HISTORY_PATH") or DEFAULT_HISTORY_PATH).strip()
+    if not path:
+        return False
+
+    try:
+        sink = JsonlDurableSink(path)
+        written = sink.append(EVAL_HISTORY_KIND, report.as_dict())
+        return written is not None
+    except Exception:  # pragma: no cover - telemetry must never crash the writer
+        return False

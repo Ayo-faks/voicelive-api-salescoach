@@ -475,6 +475,9 @@ def test_agent_mesh_section_dark_without_history(monkeypatch, tmp_path):
         "mesh-veto-rate",
         "mesh-veto-drift",
         "mesh-rollback-proposals",
+        "mesh-tutor-accuracy",
+        "mesh-safeguarding-recall",
+        "mesh-planner-eval",
     }
     for tile in tiles.values():
         assert tile["status"] == "nodata"
@@ -520,6 +523,62 @@ def test_agent_mesh_section_reads_durable_history(monkeypatch, tmp_path):
     # 1 migration proposal recorded, none auto-executed.
     assert tiles["mesh-rollback-proposals"]["value"] == "1"
     assert "0 auto-executed" in tiles["mesh-rollback-proposals"]["detail"]
+
+
+def test_agent_mesh_section_reads_agent_eval_history(monkeypatch, tmp_path):
+    import json as _json
+
+    history = tmp_path / "history.jsonl"
+    rows = [
+        {
+            "seq": 1,
+            "kind": "agent_eval",
+            "ts": 1.0,
+            "payload": {
+                "status": "degraded",
+                "eval": {"accuracy": 0.75, "accuracy_floor": 0.85, "support": 8},
+                "safeguarding": {
+                    "recall": 1.0,
+                    "recall_floor": 1.0,
+                    "false_positive_rate": 0.0,
+                    "critical_false_negatives": 0,
+                },
+                "planners": {
+                    "A1_insights": {"passed": True},
+                    "A8_planning": {"passed": True},
+                    "passed": True,
+                },
+            },
+            "tags": {},
+        },
+    ]
+    history.write_text("\n".join(_json.dumps(r) for r in rows) + "\n", encoding="utf-8")
+
+    monkeypatch.setenv("AGENT_MESH_HISTORY_PATH", str(history))
+    observability = _enabled_observability()
+    client = _client(_learning_api(observability))
+
+    response = client.get("/api/learning/observability/dashboard")
+    assert response.status_code == 200
+    body = response.get_json()
+
+    mesh = next(s for s in body["sections"] if s["id"] == "agent-mesh")
+    tiles = {tile["id"]: tile for tile in mesh["tiles"]}
+
+    # Tutor accuracy below its 85% floor → crit, kql-badged.
+    assert tiles["mesh-tutor-accuracy"]["value"] == "75.0%"
+    assert tiles["mesh-tutor-accuracy"]["status"] == "crit"
+    assert tiles["mesh-tutor-accuracy"]["source"] == "kql"
+
+    # Perfect recall, no critical misses → ok.
+    assert tiles["mesh-safeguarding-recall"]["value"] == "100.0%"
+    assert tiles["mesh-safeguarding-recall"]["status"] == "ok"
+    assert tiles["mesh-safeguarding-recall"]["source"] == "kql"
+
+    # Both planners pass → ok.
+    assert tiles["mesh-planner-eval"]["value"] == "pass"
+    assert tiles["mesh-planner-eval"]["status"] == "ok"
+    assert tiles["mesh-planner-eval"]["source"] == "kql"
 
 
 def test_observability_dashboard_degrades_without_signals():

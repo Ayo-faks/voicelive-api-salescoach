@@ -145,3 +145,38 @@ def test_as_dict_carries_existing_keys_and_planners_bucket():
     assert payload["eval"]["accuracy"] == 1.0
     assert payload["safeguarding"]["recall"] == 1.0
     assert set(payload["planners"]) >= {"A1_insights", "A8_planning", "passed"}
+
+
+def test_record_eval_observability_report_noop_when_sink_disabled(monkeypatch, tmp_path):
+    from src.agents.eval_report_adapter import record_eval_observability_report
+
+    monkeypatch.delenv("AGENT_MESH_MEMORY_SINK_V1", raising=False)
+    history = tmp_path / "history.jsonl"
+    monkeypatch.setenv("AGENT_MESH_HISTORY_PATH", str(history))
+
+    report = eval_report_to_observability_report(_clean_report(), mesh_enabled=True)
+    assert record_eval_observability_report(report) is False
+    assert not history.exists()
+
+
+def test_record_eval_observability_report_writes_agent_eval_record(monkeypatch, tmp_path):
+    from src.agents.durable_sink import JsonlDurableSink
+    from src.agents.eval_report_adapter import (
+        EVAL_HISTORY_KIND,
+        record_eval_observability_report,
+    )
+
+    monkeypatch.setenv("AGENT_MESH_MEMORY_SINK_V1", "1")
+    history = tmp_path / "history.jsonl"
+    monkeypatch.setenv("AGENT_MESH_HISTORY_PATH", str(history))
+
+    report = eval_report_to_observability_report(_clean_report(), mesh_enabled=True)
+    assert record_eval_observability_report(report) is True
+
+    records = JsonlDurableSink(history).read(limit=10, kind=EVAL_HISTORY_KIND)
+    assert len(records) == 1
+    payload = records[-1].payload
+    assert payload["status"] == STATUS_OK
+    assert payload["eval"]["accuracy"] == 1.0
+    assert payload["safeguarding"]["recall"] == 1.0
+    assert payload["planners"]["passed"] is True

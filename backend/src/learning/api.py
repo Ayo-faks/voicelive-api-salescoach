@@ -2077,12 +2077,14 @@ class LearningApi:
         counts: Dict[str, int] = {}
         eval_records: List[Any] = []
         safeguarding_records: List[Any] = []
+        agent_eval_records: List[Any] = []
         sink: Any = None
         try:
             sink = JsonlDurableSink(history_path)
             counts = sink.counts_by_kind()
             eval_records = sink.read(limit=20, kind="genaiops")
             safeguarding_records = sink.read(limit=256, kind="safeguarding")
+            agent_eval_records = sink.read(limit=20, kind="agent_eval")
         except Exception:  # pragma: no cover - dashboard must never 500
             sink = None
 
@@ -2136,6 +2138,13 @@ class LearningApi:
         proposal_status = "nodata" if not has_history else "ok"
         mesh_source = "kql" if has_history else "nodata"
 
+        # Tiles 5-7: per-agent eval verdicts (tutor accuracy / safeguarding
+        # recall / planner pass), sourced from the latest ``agent_eval`` record
+        # the eval harness writes. These answer "did this agent version pass its
+        # offline suite", distinct from the live production-state tiles above.
+        agent_eval_payload = agent_eval_records[-1].payload if agent_eval_records else {}
+        eval_tiles = self._agent_eval_tiles(agent_eval_payload)
+
         tiles = [
             {
                 "id": "mesh-merge-gate",
@@ -2184,7 +2193,126 @@ class LearningApi:
                 "source": mesh_source,
             },
         ]
+        tiles.extend(eval_tiles)
         return {"id": "agent-mesh", "title": "Agent mesh (gate 2)", "tiles": tiles}
+
+    @staticmethod
+    def _agent_eval_tiles(payload: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Build the per-agent eval tiles from a durable ``agent_eval`` payload.
+
+        ``payload`` is an :class:`ObservabilityReport.as_dict` snapshot. Each tile
+        renders ``nodata`` when its slice of the report is absent, so the tiles
+        are naturally dark until the eval harness writes a record. Read-only and
+        never-raising — a malformed payload degrades to ``nodata`` tiles.
+        """
+
+        def _num(value: Any) -> Optional[float]:
+            return value if isinstance(value, (int, float)) and not isinstance(value, bool) else None
+
+        # Tutor answer accuracy (A2).
+        tutor = payload.get("eval") if isinstance(payload.get("eval"), dict) else {}
+        accuracy = _num(tutor.get("accuracy"))
+        accuracy_floor = _num(tutor.get("accuracy_floor")) or 0.85
+        if accuracy is None:
+            tutor_value, tutor_status, tutor_detail, tutor_source = (
+                "no data yet",
+                "nodata",
+                "Tutor answer accuracy from the latest agent eval run",
+                "nodata",
+            )
+        else:
+            tutor_value = f"{accuracy * 100:.1f}%"
+            tutor_status = "ok" if accuracy >= accuracy_floor else "crit"
+            support = tutor.get("support")
+            tutor_detail = (
+                f"{accuracy * 100:.1f}% correct (floor {accuracy_floor * 100:.0f}%)"
+                + (f" · n={support}" if isinstance(support, int) else "")
+            )
+            tutor_source = "kql"
+
+        # Safeguarding recall (A5) — distinct from the live veto-rate tile: this
+        # is the offline false-negative side (did we miss a real intervention).
+        sg = payload.get("safeguarding") if isinstance(payload.get("safeguarding"), dict) else {}
+        recall = _num(sg.get("recall"))
+        recall_floor = _num(sg.get("recall_floor")) or 1.0
+        critical_fn = sg.get("critical_false_negatives")
+        if recall is None:
+            sg_value, sg_status, sg_detail, sg_source = (
+                "no data yet",
+                "nodata",
+                "Safeguarding recall from the latest agent eval run",
+                "nodata",
+            )
+        else:
+            sg_value = f"{recall * 100:.1f}%"
+            if isinstance(critical_fn, int) and critical_fn > 0:
+                sg_status = "crit"
+            elif recall < recall_floor:
+                sg_status = "warn"
+            else:
+                sg_status = "ok"
+            sg_detail = (
+                f"{recall * 100:.1f}% recall (floor {recall_floor * 100:.0f}%)"
+                + (
+                    f" · {critical_fn} critical miss(es)"
+                    if isinstance(critical_fn, int) and critical_fn > 0
+                    else ""
+                )
+            )
+            sg_source = "kql"
+
+        # Planner eval pass (A1 insights + A8 planning).
+        planners = payload.get("planners") if isinstance(payload.get("planners"), dict) else {}
+        planner_passed = planners.get("passed")
+        if planner_passed is None:
+            planner_value, planner_status, planner_detail, planner_source = (
+                "no data yet",
+                "nodata",
+                "Planner schema/budget eval from the latest agent eval run",
+                "nodata",
+            )
+        else:
+            passed = bool(planner_passed)
+            planner_value = "pass" if passed else "fail"
+            planner_status = "ok" if passed else "crit"
+            failing = [
+                key
+                for key in ("A1_insights", "A8_planning")
+                if isinstance(planners.get(key), dict) and planners[key].get("passed") is False
+            ]
+            planner_detail = (
+                "A1 + A8 planners pass schema & tool-budget checks"
+                if passed
+                else f"Failing: {', '.join(failing) or 'planner eval'}"
+            )
+            planner_source = "kql"
+
+        return [
+            {
+                "id": "mesh-tutor-accuracy",
+                "label": "Tutor answer accuracy (A2)",
+                "value": tutor_value,
+                "detail": tutor_detail,
+                "status": tutor_status,
+                "source": tutor_source,
+            },
+            {
+                "id": "mesh-safeguarding-recall",
+                "label": "Safeguarding recall (A5)",
+                "value": sg_value,
+                "detail": sg_detail,
+                "status": sg_status,
+                "source": sg_source,
+            },
+            {
+                "id": "mesh-planner-eval",
+                "label": "Planner eval (A1+A8)",
+                "value": planner_value,
+                "detail": planner_detail,
+                "status": planner_status,
+                "source": planner_source,
+            },
+        ]
 
     def get_observability_dashboard(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
         """Admin observability dashboard: product, health and safety/agent tiles.
