@@ -7,6 +7,7 @@ plan: exam set lives in config so it can grow without touching route code.
 from __future__ import annotations
 
 import re
+from datetime import date
 from typing import Final, Iterable
 
 ALLOWED_EXAMS: Final[tuple[str, ...]] = (
@@ -91,6 +92,45 @@ def is_valid_email(value: str) -> bool:
 
 def is_valid_country(value: str) -> bool:
     return bool(_COUNTRY_RE.match(value or ""))
+
+
+def age_band_from_dob(date_of_birth: str | None, *, today: date | None = None) -> str | None:
+    """Map an ISO ``YYYY-MM-DD`` date of birth to an :data:`ALLOWED_AGE_BANDS` value.
+
+    Returns ``None`` when the input is missing, unparseable, or a future date.
+    Callers treat ``None`` as "age unknown" and must fail safe (e.g. route the
+    safeguarding contact to the admin backstop rather than the learner's own
+    inbox).
+    """
+    if not isinstance(date_of_birth, str):
+        return None
+    raw = date_of_birth.strip()
+    if not raw:
+        return None
+    try:
+        dob = date.fromisoformat(raw[:10])
+    except ValueError:
+        return None
+    reference = today or date.today()
+    if dob > reference:
+        return None
+    age = reference.year - dob.year - (
+        (reference.month, reference.day) < (dob.month, dob.day)
+    )
+    if age < 13:
+        return "under-13"
+    if age <= 15:
+        return "13-15"
+    if age <= 17:
+        return "16-17"
+    if age <= 24:
+        return "18-24"
+    return "25-plus"
+
+
+def is_minor_age_band(age_band: str | None) -> bool:
+    """True when ``age_band`` denotes a minor (see :data:`MINOR_AGE_BANDS`)."""
+    return age_band in MINOR_AGE_BANDS
 
 
 def _coerce_string_list(value: object, *, limit: int) -> list[str] | None:

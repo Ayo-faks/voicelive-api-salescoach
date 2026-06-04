@@ -1615,12 +1615,17 @@ class StorageService:
         user_id: str,
         name: str,
         email: str,
+        date_of_birth: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Return the user's existing self-learner child, or create one.
 
         Idempotent: safe to call repeatedly. The self-learner is a child row
         owned by the user via user_children.relationship = 'self'. A personal
         workspace is ensured first so the child has a valid workspace_id.
+
+        ``date_of_birth`` (ISO ``YYYY-MM-DD``) is stored on the child row when a
+        new self-learner is created, so the age-tiered safeguarding gate has a
+        durable source of truth.
         """
         with self._connect() as connection:
             existing = connection.execute(
@@ -1645,6 +1650,7 @@ class StorageService:
             name=learner_name,
             created_by_user_id=user_id,
             relationship=CHILD_RELATIONSHIP_SELF,
+            date_of_birth=date_of_birth,
         )
 
     def create_child(

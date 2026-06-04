@@ -1016,10 +1016,14 @@ class PostgresStorageService:
         user_id: str,
         name: str,
         email: str,
+        date_of_birth: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Return the user's existing self-learner child, or create one.
 
-        Idempotent. Ensures a personal workspace exists first.
+        Idempotent. Ensures a personal workspace exists first. ``date_of_birth``
+        (ISO ``YYYY-MM-DD``) is stored on the child row when a new self-learner
+        is created, giving the age-tiered safeguarding gate a durable source of
+        truth.
         """
         def find_existing(connection: psycopg.Connection[Any]) -> Optional[str]:
             row = connection.execute(
@@ -1047,6 +1051,7 @@ class PostgresStorageService:
             name=learner_name,
             created_by_user_id=user_id,
             relationship=CHILD_RELATIONSHIP_SELF,
+            date_of_birth=date_of_birth,
         )
 
     def create_child(

@@ -46,7 +46,9 @@ from src.learning.mastery_profile import build_child_mastery
 from src.learning.repository_factory import make_repository as make_learning_repository
 from src.learning.profile_config import (
     ALLOWED_CONSENT_KINDS,
+    MINOR_AGE_BANDS,
     PROFILE_CONSENT_MIRRORS,
+    age_band_from_dob,
     profile_needs_onboarding,
     validate_patch as validate_learner_profile_patch,
 )
@@ -459,6 +461,31 @@ def _initialize_safeguarding_service() -> None:
             return None
         try:
             user = storage_service.get_user(parent_user_id)  # type: ignore[attr-defined]
+            role = ""
+            if isinstance(user, dict):
+                role = str(user.get("role") or "").strip().lower()
+
+            # Self-learner accounts act as their own "parent" in the safeguarding
+            # matrix (parent_user_id == the learner's own user_id). For minors we
+            # must redirect the parent-channel alert to the registered guardian,
+            # never to the child's own inbox.
+            if role in {ROLE_LEARNER, ROLE_KID, ROLE_STUDENT}:
+                profile = storage_service.get_learner_profile(parent_user_id) or {}  # type: ignore[attr-defined]
+                age_band = profile.get("age_band")
+                # Minors, and unknown-age self-learners (fail safe), route to the
+                # guardian. If no guardian email is on file we return None so the
+                # admin backstop still fires but the child is never emailed.
+                if age_band in MINOR_AGE_BANDS or not age_band:
+                    guardian_email = profile.get("guardian_email")
+                    if guardian_email and str(guardian_email).strip():
+                        return str(guardian_email).strip()
+                    return None
+                # Adult self-learner (18+) is their own guardian.
+                if isinstance(user, dict):
+                    return user.get("email")
+                return None
+
+            # Parent / guardian / staff operator: their own email is the contact.
             if isinstance(user, dict):
                 return user.get("email")
         except Exception:  # noqa: BLE001
