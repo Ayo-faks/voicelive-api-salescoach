@@ -51,6 +51,35 @@ jobs:
       run: |
         python -m pytest -v
 
+  agent-eval-gate:
+    # Blocking agent-eval gate: grades the committed real-agent eval report
+    # through the same thresholds the observability gate uses and fails the
+    # pipeline on a hard `blocked` (e.g. a critical safeguarding false negative).
+    # Credential-free and offline by design — the live A2/A5 re-run stays a
+    # manual, unsandboxed step (see backend/scripts/all-agent-eval-handoff.prompt.md).
+    if: github.event_name == 'push' || github.base_ref == 'main'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install Python dependencies
+      working-directory: ./backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run blocking agent-eval gate
+      working-directory: ./backend
+      run: |
+        echo "Grading committed real-agent eval report (fail on hard block)..."
+        python scripts/ci_eval_gate.py --force
+
   frontend-test:
     if: github.event_name == 'push' || github.base_ref == 'main'
     runs-on: ubuntu-latest
