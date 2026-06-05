@@ -104,6 +104,18 @@
       "voicelabCustomDomains": {
         "value": "${VOICELAB_CUSTOM_DOMAINS=[]}"
       },
+      "ingressAllowedSourceRanges": {
+        "value": "${INGRESS_ALLOWED_SOURCE_RANGES=[]}"
+      },
+      "useKeyVault": {
+        "value": "${USE_KEY_VAULT=false}"
+      },
+      "enablePrivateNetworking": {
+        "value": "${ENABLE_PRIVATE_NETWORKING=false}"
+      },
+      "enableDefenderPlans": {
+        "value": "${ENABLE_DEFENDER_PLANS=false}"
+      },
       "enableAzureCommunicationServicesEmail": {
         "value": "${ENABLE_AZURE_COMMUNICATION_SERVICES_EMAIL=false}"
       },

@@ -101,6 +101,15 @@ param ralphLrsAdminToken string = ''
 @description('Optional custom domain bindings for the voicelab Container App ingress.')
 param voicelabCustomDomains array = []
 
+@description('Optional ingress IP allow-list (CIDR ranges) for the voicelab Container App. Empty = no restriction (current behavior). When set, only listed ranges may reach the origin; used to lock the ACA default FQDN to Cloudflare published IP ranges.')
+param ingressAllowedSourceRanges array = []
+
+@description('Route application secrets through Azure Key Vault instead of inline Container App secret values. Default false keeps existing environments byte-identical; new environments (e.g. academy) set this true.')
+param useKeyVault bool = false
+
+@description('Enable VNet integration + Private Endpoints and disable public network access on data plane resources (Postgres, AI Foundry, Key Vault, Storage). Default false keeps existing environments unchanged. Cannot be retrofitted onto an existing Container Apps environment, so it must be set on the first provision of a new environment.')
+param enablePrivateNetworking bool = false
+
 @description('Enable Azure Communication Services Email resources and backend wiring.')
 param enableAzureCommunicationServicesEmail bool = false
 
@@ -204,6 +213,11 @@ var customRedirectHost = environmentName == 'salescoach-swe'
   : environmentName == 'salescoach-prod'
     ? 'https://sen.wulo.ai'
     : ''
+// Env-driven public host for Easy Auth external redirects. Prefer the explicit
+// publicAppUrl param (PUBLIC_APP_URL) so new environments (e.g. academy) do not
+// require a hardcoded environmentName branch; fall back to the legacy per-env
+// host for backward compatibility with salescoach-swe / salescoach-prod.
+var resolvedRedirectHost = !empty(publicAppUrl) ? publicAppUrl : customRedirectHost
 var resolvedPublicAppUrl = !empty(publicAppUrl)
   ? publicAppUrl
   : !empty(customRedirectHost)
@@ -218,6 +232,170 @@ var postgresRuntimeUsername = usePostgresRuntimeCredential ? postgresAppUsername
 var postgresRuntimePassword = usePostgresRuntimeCredential ? postgresAppPassword : postgresAdminPassword
 var postgresRuntimeConnectionString = enablePostgresPersistence ? 'postgresql://${postgresRuntimeUsername}:${postgresRuntimePassword}@${postgresServer!.properties.fullyQualifiedDomainName}:5432/${postgresDatabaseName}?sslmode=require' : ''
 var postgresAdminConnectionString = enablePostgresPersistence ? 'postgresql://${postgresAdminUsername}:${postgresAdminPassword}@${postgresServer!.properties.fullyQualifiedDomainName}:5432/${postgresDatabaseName}?sslmode=require' : ''
+
+// Application secrets, computed once and shared between the inline Container App
+// secret list (default) and the Key Vault-backed variant (useKeyVault=true).
+// Keeping a single source of truth guarantees the two code paths stay in sync.
+var voicelabInlineSecrets = concat(
+  [
+    {
+      name: 'speech-api-key'
+      value: speechService.listKeys().key1
+    }
+  ],
+  enablePostgresPersistence
+    ? [
+        {
+          name: 'postgres-database-url'
+          value: postgresRuntimeConnectionString
+        }
+        {
+          name: 'postgres-admin-database-url'
+          value: postgresAdminConnectionString
+        }
+      ]
+    : [],
+  !empty(copilotGithubToken)
+    ? [
+        {
+          name: 'copilot-github-token'
+          value: copilotGithubToken
+        }
+      ]
+    : [],
+  !empty(microsoftProviderClientSecret)
+    ? [
+        {
+          name: 'microsoft-provider-auth-secret'
+          value: microsoftProviderClientSecret
+        }
+      ]
+    : [],
+  !empty(googleProviderClientSecret)
+    ? [
+        {
+          name: 'google-provider-auth-secret'
+          value: googleProviderClientSecret
+        }
+      ]
+    : [],
+  !empty(azureCommunicationServicesConnectionString) || enableAzureCommunicationServicesEmail
+    ? [
+        {
+          name: 'azure-communication-services-connection-string'
+          value: resolvedAcsConnectionString
+        }
+      ]
+    : [],
+  !empty(twilioAuthToken)
+    ? [
+        {
+          name: 'twilio-auth-token'
+          value: twilioAuthToken
+        }
+        {
+          name: 'twilio-account-sid'
+          value: twilioAccountSid
+        }
+      ]
+    : [],
+  !empty(azureContentSafetyKey)
+    ? [
+        {
+          name: 'azure-content-safety-key'
+          value: azureContentSafetyKey
+        }
+      ]
+    : []
+)
+// Key Vault-backed equivalents: same secret names, but the Container App resolves
+// them from Key Vault using the user-assigned managed identity (Key Vault Secrets
+// User). vaultUri already ends with '/', so no version suffix = always latest.
+// Built as a conditional concat (not a for-loop) because the inline values use
+// listKeys()/connection strings, which Bicep cannot evaluate at the start of a
+// loop expression. Only consumed when useKeyVault=true.
+var voicelabKeyVaultSecrets = concat(
+  [
+    {
+      name: 'speech-api-key'
+      keyVaultUrl: '${keyVaultVaultUri}secrets/speech-api-key'
+      identity: voicelabIdentity.outputs.resourceId
+    }
+  ],
+  enablePostgresPersistence
+    ? [
+        {
+          name: 'postgres-database-url'
+          keyVaultUrl: '${keyVaultVaultUri}secrets/postgres-database-url'
+          identity: voicelabIdentity.outputs.resourceId
+        }
+        {
+          name: 'postgres-admin-database-url'
+          keyVaultUrl: '${keyVaultVaultUri}secrets/postgres-admin-database-url'
+          identity: voicelabIdentity.outputs.resourceId
+        }
+      ]
+    : [],
+  !empty(copilotGithubToken)
+    ? [
+        {
+          name: 'copilot-github-token'
+          keyVaultUrl: '${keyVaultVaultUri}secrets/copilot-github-token'
+          identity: voicelabIdentity.outputs.resourceId
+        }
+      ]
+    : [],
+  !empty(microsoftProviderClientSecret)
+    ? [
+        {
+          name: 'microsoft-provider-auth-secret'
+          keyVaultUrl: '${keyVaultVaultUri}secrets/microsoft-provider-auth-secret'
+          identity: voicelabIdentity.outputs.resourceId
+        }
+      ]
+    : [],
+  !empty(googleProviderClientSecret)
+    ? [
+        {
+          name: 'google-provider-auth-secret'
+          keyVaultUrl: '${keyVaultVaultUri}secrets/google-provider-auth-secret'
+          identity: voicelabIdentity.outputs.resourceId
+        }
+      ]
+    : [],
+  !empty(azureCommunicationServicesConnectionString) || enableAzureCommunicationServicesEmail
+    ? [
+        {
+          name: 'azure-communication-services-connection-string'
+          keyVaultUrl: '${keyVaultVaultUri}secrets/azure-communication-services-connection-string'
+          identity: voicelabIdentity.outputs.resourceId
+        }
+      ]
+    : [],
+  !empty(twilioAuthToken)
+    ? [
+        {
+          name: 'twilio-auth-token'
+          keyVaultUrl: '${keyVaultVaultUri}secrets/twilio-auth-token'
+          identity: voicelabIdentity.outputs.resourceId
+        }
+        {
+          name: 'twilio-account-sid'
+          keyVaultUrl: '${keyVaultVaultUri}secrets/twilio-account-sid'
+          identity: voicelabIdentity.outputs.resourceId
+        }
+      ]
+    : [],
+  !empty(azureContentSafetyKey)
+    ? [
+        {
+          name: 'azure-content-safety-key'
+          keyVaultUrl: '${keyVaultVaultUri}secrets/azure-content-safety-key'
+          identity: voicelabIdentity.outputs.resourceId
+        }
+      ]
+    : []
+)
 
 param gptModelName string = 'gpt-4o'
 param gptModelVersion string = '2024-11-20'
@@ -265,7 +443,7 @@ resource aiFoundryResource 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
   }
   properties: {
     customSubDomainName: 'aifoundry-voicelab-${resourceToken}'
-    publicNetworkAccess: 'Enabled'
+    publicNetworkAccess: enablePrivateNetworking ? 'Disabled' : 'Enabled'
   }
 
   @batchSize(1)
@@ -299,7 +477,7 @@ resource speechService 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
   }
   properties: {
     customSubDomainName: 'speech-voicelab-${resourceToken}'
-    publicNetworkAccess: 'Enabled'
+    publicNetworkAccess: enablePrivateNetworking ? 'Disabled' : 'Enabled'
   }
 }
 
@@ -353,10 +531,21 @@ resource persistenceStorage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
     name: 'Standard_LRS'
   }
   kind: 'StorageV2'
-  properties: {
-    minimumTlsVersion: 'TLS1_2'
-    supportsHttpsTrafficOnly: true
-  }
+  properties: union(
+    {
+      minimumTlsVersion: 'TLS1_2'
+      supportsHttpsTrafficOnly: true
+    },
+    enablePrivateNetworking
+      ? {
+          publicNetworkAccess: 'Disabled'
+          networkAcls: {
+            bypass: 'AzureServices'
+            defaultAction: 'Deny'
+          }
+        }
+      : {}
+  )
 }
 
 resource persistenceFileShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2023-01-01' = {
@@ -400,7 +589,7 @@ resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2023-12-01-pr
       geoRedundantBackup: 'Disabled'
     }
     network: {
-      publicNetworkAccess: 'Enabled'
+      publicNetworkAccess: enablePrivateNetworking ? 'Disabled' : 'Enabled'
     }
     highAvailability: {
       mode: 'Disabled'
@@ -417,7 +606,7 @@ resource postgresDatabase 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2
   }
 }
 
-resource postgresAllowAzureServices 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2023-12-01-preview' = if (enablePostgresPersistence) {
+resource postgresAllowAzureServices 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2023-12-01-preview' = if (enablePostgresPersistence && !enablePrivateNetworking) {
   parent: postgresServer
   name: 'AllowAzureServices'
   properties: {
@@ -477,6 +666,17 @@ module containerRegistry 'br/public:avm/res/container-registry/registry:0.1.1' =
   }
 }
 
+// Optional private networking: VNet for Container Apps egress + private endpoints.
+// Default-off; cannot be retrofitted onto an existing Container Apps environment.
+module network 'network.bicep' = if (enablePrivateNetworking) {
+  name: 'network'
+  params: {
+    location: location
+    tags: tags
+    resourceToken: resourceToken
+  }
+}
+
 // Container apps environment
 module containerAppsEnvironment 'br/public:avm/res/app/managed-environment:0.4.5' = {
   name: 'container-apps-environment'
@@ -485,6 +685,7 @@ module containerAppsEnvironment 'br/public:avm/res/app/managed-environment:0.4.5
     name: '${abbrs.appManagedEnvironments}${resourceToken}'
     location: location
     zoneRedundant: false
+    infrastructureSubnetId: enablePrivateNetworking ? network!.outputs.infraSubnetResourceId : ''
   }
 }
 
@@ -511,6 +712,124 @@ module voicelabIdentity 'br/public:avm/res/managed-identity/user-assigned-identi
     location: location
   }
 }
+
+// ---------------------------------------------------------------------------
+// Key Vault (gated on useKeyVault). RBAC-authorized; the user-assigned identity
+// gets Key Vault Secrets User and the Container App reads secrets at runtime.
+// Default-off so existing environments render identically.
+// ---------------------------------------------------------------------------
+var keyVaultName = 'kv-vl-${resourceToken}'
+// Built-in role: Key Vault Secrets User
+var keyVaultSecretsUserRoleId = '4633458b-17de-408a-b874-0445c86b69e6'
+// vaultUri (ends with '/') used to build Container App keyVaultUrl references.
+// Only meaningful when useKeyVault=true; '' otherwise so the inline path is unaffected.
+var keyVaultVaultUri = useKeyVault ? keyVault!.properties.vaultUri : ''
+
+// Static secret name list drives the Key Vault secret resource loop. The list is
+// known at the start of deployment (no runtime values), which the loop requires;
+// per-secret enablement and values are looked up from the maps below.
+var keyVaultSecretNames = [
+  'speech-api-key'
+  'postgres-database-url'
+  'postgres-admin-database-url'
+  'copilot-github-token'
+  'microsoft-provider-auth-secret'
+  'google-provider-auth-secret'
+  'azure-communication-services-connection-string'
+  'twilio-auth-token'
+  'twilio-account-sid'
+  'azure-content-safety-key'
+]
+var keyVaultSecretEnabled = {
+  'speech-api-key': true
+  'postgres-database-url': enablePostgresPersistence
+  'postgres-admin-database-url': enablePostgresPersistence
+  'copilot-github-token': !empty(copilotGithubToken)
+  'microsoft-provider-auth-secret': !empty(microsoftProviderClientSecret)
+  'google-provider-auth-secret': !empty(googleProviderClientSecret)
+  'azure-communication-services-connection-string': !empty(azureCommunicationServicesConnectionString) || enableAzureCommunicationServicesEmail
+  'twilio-auth-token': !empty(twilioAuthToken)
+  'twilio-account-sid': !empty(twilioAuthToken)
+  'azure-content-safety-key': !empty(azureContentSafetyKey)
+}
+var keyVaultSecretValues = {
+  'speech-api-key': speechService.listKeys().key1
+  'postgres-database-url': postgresRuntimeConnectionString
+  'postgres-admin-database-url': postgresAdminConnectionString
+  'copilot-github-token': copilotGithubToken
+  'microsoft-provider-auth-secret': microsoftProviderClientSecret
+  'google-provider-auth-secret': googleProviderClientSecret
+  'azure-communication-services-connection-string': resolvedAcsConnectionString
+  'twilio-auth-token': twilioAuthToken
+  'twilio-account-sid': twilioAccountSid
+  'azure-content-safety-key': azureContentSafetyKey
+}
+
+resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = if (useKeyVault) {
+  name: keyVaultName
+  location: location
+  tags: tags
+  properties: {
+    sku: {
+      family: 'A'
+      name: 'standard'
+    }
+    tenantId: subscription().tenantId
+    enableRbacAuthorization: true
+    enableSoftDelete: true
+    softDeleteRetentionInDays: 7
+    enablePurgeProtection: true
+    publicNetworkAccess: enablePrivateNetworking ? 'Disabled' : 'Enabled'
+    networkAcls: {
+      bypass: 'AzureServices'
+      defaultAction: enablePrivateNetworking ? 'Deny' : 'Allow'
+    }
+  }
+}
+
+resource keyVaultSecrets 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = [
+  for secretName in keyVaultSecretNames: if (useKeyVault && keyVaultSecretEnabled[secretName]) {
+    parent: keyVault
+    name: secretName
+    properties: {
+      value: keyVaultSecretValues[secretName]
+    }
+  }
+]
+
+resource keyVaultSecretsUserAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (useKeyVault) {
+  scope: keyVault
+  name: guid(resourceGroup().id, 'voicelab-kv-secrets-user', keyVaultSecretsUserRoleId)
+  properties: {
+    principalId: voicelabIdentity.outputs.principalId
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      keyVaultSecretsUserRoleId
+    )
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Private endpoints for data-plane resources (gated on enablePrivateNetworking).
+// Provisioned after the data stores and Key Vault so their resource IDs are known.
+module privateEndpoints 'private-endpoints.bicep' = if (enablePrivateNetworking) {
+  name: 'private-endpoints'
+  params: {
+    location: location
+    tags: tags
+    resourceToken: resourceToken
+    vnetResourceId: enablePrivateNetworking ? network!.outputs.vnetResourceId : ''
+    privateEndpointSubnetResourceId: enablePrivateNetworking ? network!.outputs.privateEndpointSubnetResourceId : ''
+    aiFoundryResourceId: aiFoundryResource.id
+    speechResourceId: speechService.id
+    storageResourceId: persistenceStorage.id
+    enablePostgres: enablePostgresPersistence
+    postgresResourceId: enablePostgresPersistence ? postgresServer!.id : ''
+    enableKeyVault: useKeyVault
+    keyVaultResourceId: useKeyVault ? keyVault!.id : ''
+  }
+}
+
 module voicelabFetchLatestImage './modules/fetch-container-image.bicep' = {
   name: 'voicelab-fetch-image'
   params: {
@@ -527,6 +846,7 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
     ingressExternal: true
     ingressTransport: 'http'
     customDomains: voicelabCustomDomains
+    ipSecurityRestrictions: ingressAllowedSourceRanges
     corsPolicy: {
       allowCredentials: true
       allowedHeaders: [
@@ -541,87 +861,19 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
         'DELETE'
         'OPTIONS'
       ]
-      allowedOrigins: [
-        'https://sen.wulo.ai'
-        'https://staging-sen.wulo.ai'
-        defaultVoicelabHost
-      ]
+      allowedOrigins: union(
+        [
+          'https://sen.wulo.ai'
+          'https://staging-sen.wulo.ai'
+          defaultVoicelabHost
+        ],
+        !empty(resolvedPublicAppUrl) ? [resolvedPublicAppUrl] : []
+      )
     }
     scaleMinReplicas: 1
     scaleMaxReplicas: 1
     secrets: {
-      secureList: concat(
-        [
-              {
-                name: 'speech-api-key'
-                value: speechService.listKeys().key1
-              }
-        ],
-        enablePostgresPersistence
-          ? [
-              {
-                name: 'postgres-database-url'
-                value: postgresRuntimeConnectionString
-              }
-              {
-                name: 'postgres-admin-database-url'
-                value: postgresAdminConnectionString
-              }
-            ]
-          : [],
-        !empty(copilotGithubToken)
-          ? [
-              {
-                name: 'copilot-github-token'
-                value: copilotGithubToken
-              }
-            ]
-          : [],
-        !empty(microsoftProviderClientSecret)
-          ? [
-              {
-                name: 'microsoft-provider-auth-secret'
-                value: microsoftProviderClientSecret
-              }
-            ]
-          : [],
-        !empty(googleProviderClientSecret)
-          ? [
-              {
-                name: 'google-provider-auth-secret'
-                value: googleProviderClientSecret
-              }
-            ]
-          : [],
-        !empty(azureCommunicationServicesConnectionString) || enableAzureCommunicationServicesEmail
-          ? [
-              {
-                name: 'azure-communication-services-connection-string'
-                value: resolvedAcsConnectionString
-              }
-            ]
-          : [],
-        !empty(twilioAuthToken)
-          ? [
-              {
-                name: 'twilio-auth-token'
-                value: twilioAuthToken
-              }
-              {
-                name: 'twilio-account-sid'
-                value: twilioAccountSid
-              }
-            ]
-          : [],
-        !empty(azureContentSafetyKey)
-          ? [
-              {
-                name: 'azure-content-safety-key'
-                value: azureContentSafetyKey
-              }
-            ]
-          : []
-      )
+      secureList: useKeyVault ? voicelabKeyVaultSecrets : voicelabInlineSecrets
     }
     volumes: [
       // Durable cross-run agent-mesh history on the shared Azure Files share.
@@ -909,6 +1161,9 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
   }
   dependsOn: [
     containerAppsManagedEnvironmentStorage
+    keyVaultSecrets
+    keyVaultSecretsUserAssignment
+    privateEndpoints
   ]
 }
 
@@ -1268,12 +1523,12 @@ resource voicelabAuth 'Microsoft.App/containerApps/authConfigs@2024-03-01' = if 
       tokenStore: {
         enabled: false
       }
-      allowedExternalRedirectUrls: empty(customRedirectHost)
+      allowedExternalRedirectUrls: empty(resolvedRedirectHost)
         ? [
             defaultVoicelabHost
           ]
         : [
-            customRedirectHost
+            resolvedRedirectHost
             defaultVoicelabHost
           ]
     }

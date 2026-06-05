@@ -112,6 +112,18 @@ param ralphLrsAdminToken string = ''
 @description('Optional custom domain bindings for the voicelab Container App ingress.')
 param voicelabCustomDomains array = []
 
+@description('Optional ingress IP allow-list (CIDR ranges) for the voicelab Container App. Empty = no restriction. Used to lock the ACA default FQDN to Cloudflare published IP ranges.')
+param ingressAllowedSourceRanges array = []
+
+@description('Route application secrets through Azure Key Vault instead of inline Container App secret values. Default false keeps existing environments byte-identical.')
+param useKeyVault bool = false
+
+@description('Enable VNet integration + Private Endpoints and disable public network access on data plane resources. Default false keeps existing environments unchanged; must be set on the first provision of a new environment.')
+param enablePrivateNetworking bool = false
+
+@description('Enable Microsoft Defender for Cloud plans (Containers, Key Vaults, Open-source relational DBs). NOTE: Defender pricing is SUBSCRIPTION-WIDE — enabling it bills every environment in this subscription, not just this one.')
+param enableDefenderPlans bool = false
+
 @description('Enable Azure Communication Services Email resources and backend wiring.')
 param enableAzureCommunicationServicesEmail bool = false
 
@@ -183,6 +195,33 @@ resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   tags: tags
 }
 
+// ---------------------------------------------------------------------------
+// Microsoft Defender for Cloud (subscription scope). Default-off.
+// WARNING: Defender pricing applies to the whole subscription, so enabling this
+// for one environment bills every environment in the subscription. Gate behind
+// an explicit cost approval before setting ENABLE_DEFENDER_PLANS=true.
+// ---------------------------------------------------------------------------
+resource defenderContainers 'Microsoft.Security/pricings@2024-01-01' = if (enableDefenderPlans) {
+  name: 'Containers'
+  properties: {
+    pricingTier: 'Standard'
+  }
+}
+
+resource defenderKeyVaults 'Microsoft.Security/pricings@2024-01-01' = if (enableDefenderPlans) {
+  name: 'KeyVaults'
+  properties: {
+    pricingTier: 'Standard'
+  }
+}
+
+resource defenderOpenSourceDbs 'Microsoft.Security/pricings@2024-01-01' = if (enableDefenderPlans) {
+  name: 'OpenSourceRelationalDatabases'
+  properties: {
+    pricingTier: 'Standard'
+  }
+}
+
 module resources 'resources.bicep' = {
   scope: rg
   name: 'resources'
@@ -223,6 +262,9 @@ module resources 'resources.bicep' = {
     ralphLrsImage: ralphLrsImage
     ralphLrsAdminToken: ralphLrsAdminToken
     voicelabCustomDomains: voicelabCustomDomains
+    ingressAllowedSourceRanges: ingressAllowedSourceRanges
+    useKeyVault: useKeyVault
+    enablePrivateNetworking: enablePrivateNetworking
     enableAzureCommunicationServicesEmail: enableAzureCommunicationServicesEmail
     azureCommunicationServicesDataLocation: azureCommunicationServicesDataLocation
     azureCommunicationServicesDomainName: azureCommunicationServicesDomainName

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.37.4.10188",
-      "templateHash": "12491659071528749526"
+      "templateHash": "968312350380226578"
     }
   },
   "parameters": {
@@ -106,6 +106,20 @@
         "description": "Optional API version override for the Copilot Azure BYOK provider."
       }
     },
+    "voiceLiveModel": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional Voice Live model override. Defaults to the deployed Azure OpenAI model."
+      }
+    },
+    "inputTranscriptionModel": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional input audio transcription (STT) model override, e.g. mai-transcribe-1. Defaults to azure-speech."
+      }
+    },
     "enablePostgresPersistence": {
       "type": "bool",
       "defaultValue": false,
@@ -162,11 +176,102 @@
         "description": "Comma-separated AZD environment names allowed to run PostgreSQL startup migrations in Azure-hosted environments."
       }
     },
+    "pathfinderLearnObservabilityEnabled": {
+      "type": "string",
+      "defaultValue": "true",
+      "metadata": {
+        "description": "Set PATHFINDER_LEARN_OBSERVABILITY_ENABLED for the backend runtime."
+      }
+    },
+    "pathfinderLearnPrometheusEnabled": {
+      "type": "string",
+      "defaultValue": "true",
+      "metadata": {
+        "description": "Set PATHFINDER_LEARN_PROMETHEUS_ENABLED for the backend runtime."
+      }
+    },
+    "pathfinderLearnOtelEnabled": {
+      "type": "string",
+      "defaultValue": "true",
+      "metadata": {
+        "description": "Set PATHFINDER_LEARN_OTEL_ENABLED for the backend runtime."
+      }
+    },
+    "enableAgentMeshObservabilityCron": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Gate 2 (agent-mesh observability cron). DARK BY DEFAULT: when false the scheduled Job is not provisioned at all."
+      }
+    },
+    "agentMeshObservabilityCron": {
+      "type": "string",
+      "defaultValue": "*/15 * * * *",
+      "metadata": {
+        "description": "Cron expression for the agent-mesh observability Job."
+      }
+    },
+    "agentMeshObservabilityEnabled": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Master kill-switch for the agent-mesh observability cron. Empty = dark no-op; set to \"1\" to arm AGENT_MESH_ENABLED."
+      }
+    },
+    "enableRalphLrs": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Enable optional Ralph LRS container app for Pathfinder Learn xAPI replay."
+      }
+    },
+    "ralphLrsImage": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Container image for Ralph LRS. Leave empty to keep Ralph disabled."
+      }
+    },
+    "ralphLrsAdminToken": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional Ralph LRS admin token secret."
+      }
+    },
     "voicelabCustomDomains": {
       "type": "array",
       "defaultValue": [],
       "metadata": {
         "description": "Optional custom domain bindings for the voicelab Container App ingress."
+      }
+    },
+    "ingressAllowedSourceRanges": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Optional ingress IP allow-list (CIDR ranges) for the voicelab Container App. Empty = no restriction. Used to lock the ACA default FQDN to Cloudflare published IP ranges."
+      }
+    },
+    "useKeyVault": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Route application secrets through Azure Key Vault instead of inline Container App secret values. Default false keeps existing environments byte-identical."
+      }
+    },
+    "enablePrivateNetworking": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Enable VNet integration + Private Endpoints and disable public network access on data plane resources. Default false keeps existing environments unchanged; must be set on the first provision of a new environment."
+      }
+    },
+    "enableDefenderPlans": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Enable Microsoft Defender for Cloud plans (Containers, Key Vaults, Open-source relational DBs). NOTE: Defender pricing is SUBSCRIPTION-WIDE — enabling it bills every environment in this subscription, not just this one."
       }
     },
     "enableAzureCommunicationServicesEmail": {
@@ -232,11 +337,60 @@
         "description": "Optional public app URL used in invitation emails."
       }
     },
-    "customLexiconUrl": {
+    "safeguardingAdminEmail": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Safeguarding: admin email recipient for high+critical events. Leave empty to disable email routing."
+      }
+    },
+    "safeguardingAdminSmsTo": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Safeguarding: admin SMS recipient (E.164) for critical events. Leave empty to disable SMS routing."
+      }
+    },
+    "twilioAccountSid": {
       "type": "securestring",
       "defaultValue": "",
       "metadata": {
-        "description": "Optional SAS-backed custom lexicon URL for Azure Speech and Voice Live pronunciation control."
+        "description": "Safeguarding: Twilio Account SID for admin SMS. Leave empty to disable SMS."
+      }
+    },
+    "twilioAuthToken": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Safeguarding: Twilio Auth Token for admin SMS."
+      }
+    },
+    "twilioFromNumber": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Safeguarding: Twilio sender phone number (E.164) for admin SMS."
+      }
+    },
+    "azureContentSafetyEndpoint": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Safeguarding: Azure AI Content Safety endpoint (L2 detector). Leave empty to skip L2."
+      }
+    },
+    "azureContentSafetyKey": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Safeguarding: Azure AI Content Safety key."
+      }
+    },
+    "safeguardingShadowMode": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Safeguarding: when true, suppresses all outbound notifications (in-app only)."
       }
     }
   },
@@ -252,6 +406,33 @@
       "name": "[format('rg-{0}', parameters('environmentName'))]",
       "location": "[parameters('location')]",
       "tags": "[variables('tags')]"
+    },
+    {
+      "condition": "[parameters('enableDefenderPlans')]",
+      "type": "Microsoft.Security/pricings",
+      "apiVersion": "2024-01-01",
+      "name": "Containers",
+      "properties": {
+        "pricingTier": "Standard"
+      }
+    },
+    {
+      "condition": "[parameters('enableDefenderPlans')]",
+      "type": "Microsoft.Security/pricings",
+      "apiVersion": "2024-01-01",
+      "name": "KeyVaults",
+      "properties": {
+        "pricingTier": "Standard"
+      }
+    },
+    {
+      "condition": "[parameters('enableDefenderPlans')]",
+      "type": "Microsoft.Security/pricings",
+      "apiVersion": "2024-01-01",
+      "name": "OpenSourceRelationalDatabases",
+      "properties": {
+        "pricingTier": "Standard"
+      }
     },
     {
       "type": "Microsoft.Resources/deployments",
@@ -312,6 +493,12 @@
           "copilotAzureApiVersion": {
             "value": "[parameters('copilotAzureApiVersion')]"
           },
+          "voiceLiveModel": {
+            "value": "[parameters('voiceLiveModel')]"
+          },
+          "inputTranscriptionModel": {
+            "value": "[parameters('inputTranscriptionModel')]"
+          },
           "enablePostgresPersistence": {
             "value": "[parameters('enablePostgresPersistence')]"
           },
@@ -336,8 +523,44 @@
           "databaseMigrationAllowedEnvironments": {
             "value": "[parameters('databaseMigrationAllowedEnvironments')]"
           },
+          "pathfinderLearnObservabilityEnabled": {
+            "value": "[parameters('pathfinderLearnObservabilityEnabled')]"
+          },
+          "pathfinderLearnPrometheusEnabled": {
+            "value": "[parameters('pathfinderLearnPrometheusEnabled')]"
+          },
+          "pathfinderLearnOtelEnabled": {
+            "value": "[parameters('pathfinderLearnOtelEnabled')]"
+          },
+          "enableAgentMeshObservabilityCron": {
+            "value": "[parameters('enableAgentMeshObservabilityCron')]"
+          },
+          "agentMeshObservabilityCron": {
+            "value": "[parameters('agentMeshObservabilityCron')]"
+          },
+          "agentMeshObservabilityEnabled": {
+            "value": "[parameters('agentMeshObservabilityEnabled')]"
+          },
+          "enableRalphLrs": {
+            "value": "[parameters('enableRalphLrs')]"
+          },
+          "ralphLrsImage": {
+            "value": "[parameters('ralphLrsImage')]"
+          },
+          "ralphLrsAdminToken": {
+            "value": "[parameters('ralphLrsAdminToken')]"
+          },
           "voicelabCustomDomains": {
             "value": "[parameters('voicelabCustomDomains')]"
+          },
+          "ingressAllowedSourceRanges": {
+            "value": "[parameters('ingressAllowedSourceRanges')]"
+          },
+          "useKeyVault": {
+            "value": "[parameters('useKeyVault')]"
+          },
+          "enablePrivateNetworking": {
+            "value": "[parameters('enablePrivateNetworking')]"
           },
           "enableAzureCommunicationServicesEmail": {
             "value": "[parameters('enableAzureCommunicationServicesEmail')]"
@@ -366,8 +589,29 @@
           "publicAppUrl": {
             "value": "[parameters('publicAppUrl')]"
           },
-          "customLexiconUrl": {
-            "value": "[parameters('customLexiconUrl')]"
+          "safeguardingAdminEmail": {
+            "value": "[parameters('safeguardingAdminEmail')]"
+          },
+          "safeguardingAdminSmsTo": {
+            "value": "[parameters('safeguardingAdminSmsTo')]"
+          },
+          "twilioAccountSid": {
+            "value": "[parameters('twilioAccountSid')]"
+          },
+          "twilioAuthToken": {
+            "value": "[parameters('twilioAuthToken')]"
+          },
+          "twilioFromNumber": {
+            "value": "[parameters('twilioFromNumber')]"
+          },
+          "azureContentSafetyEndpoint": {
+            "value": "[parameters('azureContentSafetyEndpoint')]"
+          },
+          "azureContentSafetyKey": {
+            "value": "[parameters('azureContentSafetyKey')]"
+          },
+          "safeguardingShadowMode": {
+            "value": "[parameters('safeguardingShadowMode')]"
           }
         },
         "template": {
@@ -377,7 +621,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.37.4.10188",
-              "templateHash": "2684754791035168078"
+              "templateHash": "17515088511550429639"
             }
           },
           "parameters": {
@@ -470,6 +714,20 @@
                 "description": "Optional API version override for the Copilot Azure BYOK provider."
               }
             },
+            "voiceLiveModel": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Optional Voice Live model override. Defaults to the deployed Azure OpenAI model."
+              }
+            },
+            "inputTranscriptionModel": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Optional input audio transcription (STT) model override, e.g. mai-transcribe-1. Defaults to azure-speech."
+              }
+            },
             "enablePostgresPersistence": {
               "type": "bool",
               "defaultValue": false,
@@ -540,11 +798,74 @@
                 "description": "Comma-separated AZD environment names allowed to run PostgreSQL startup migrations in Azure-hosted environments."
               }
             },
+            "pathfinderLearnObservabilityEnabled": {
+              "type": "string",
+              "defaultValue": "true",
+              "metadata": {
+                "description": "Set PATHFINDER_LEARN_OBSERVABILITY_ENABLED for the backend runtime."
+              }
+            },
+            "pathfinderLearnPrometheusEnabled": {
+              "type": "string",
+              "defaultValue": "true",
+              "metadata": {
+                "description": "Set PATHFINDER_LEARN_PROMETHEUS_ENABLED for the backend runtime."
+              }
+            },
+            "pathfinderLearnOtelEnabled": {
+              "type": "string",
+              "defaultValue": "true",
+              "metadata": {
+                "description": "Set PATHFINDER_LEARN_OTEL_ENABLED for the backend runtime."
+              }
+            },
+            "enableRalphLrs": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Enable optional Ralph LRS container app for Pathfinder Learn xAPI replay."
+              }
+            },
+            "ralphLrsImage": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Container image for Ralph LRS. Leave empty to keep Ralph disabled."
+              }
+            },
+            "ralphLrsAdminToken": {
+              "type": "securestring",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Optional Ralph LRS admin token secret."
+              }
+            },
             "voicelabCustomDomains": {
               "type": "array",
               "defaultValue": [],
               "metadata": {
                 "description": "Optional custom domain bindings for the voicelab Container App ingress."
+              }
+            },
+            "ingressAllowedSourceRanges": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Optional ingress IP allow-list (CIDR ranges) for the voicelab Container App. Empty = no restriction (current behavior). When set, only listed ranges may reach the origin; used to lock the ACA default FQDN to Cloudflare published IP ranges."
+              }
+            },
+            "useKeyVault": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Route application secrets through Azure Key Vault instead of inline Container App secret values. Default false keeps existing environments byte-identical; new environments (e.g. academy) set this true."
+              }
+            },
+            "enablePrivateNetworking": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Enable VNet integration + Private Endpoints and disable public network access on data plane resources (Postgres, AI Foundry, Key Vault, Storage). Default false keeps existing environments unchanged. Cannot be retrofitted onto an existing Container Apps environment, so it must be set on the first provision of a new environment."
               }
             },
             "enableAzureCommunicationServicesEmail": {
@@ -608,18 +929,116 @@
                 "description": "Optional sender display name for Azure Communication Services Email invitation delivery."
               }
             },
+            "safeguardingAdminEmail": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Safeguarding: admin email recipient for high+critical events."
+              }
+            },
+            "safeguardingAdminSmsTo": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Safeguarding: admin SMS recipient (E.164) for critical events."
+              }
+            },
+            "twilioAccountSid": {
+              "type": "securestring",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Safeguarding: Twilio Account SID for admin SMS."
+              }
+            },
+            "twilioAuthToken": {
+              "type": "securestring",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Safeguarding: Twilio Auth Token for admin SMS."
+              }
+            },
+            "twilioFromNumber": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Safeguarding: Twilio sender phone number (E.164) for admin SMS."
+              }
+            },
+            "azureContentSafetyEndpoint": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Safeguarding: Azure AI Content Safety endpoint (L2 detector)."
+              }
+            },
+            "azureContentSafetyKey": {
+              "type": "securestring",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Safeguarding: Azure AI Content Safety key."
+              }
+            },
+            "safeguardingShadowMode": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Safeguarding: when true, suppresses all outbound notifications (in-app only)."
+              }
+            },
+            "vapidPublicKey": {
+              "type": "securestring",
+              "defaultValue": "",
+              "metadata": {
+                "description": "VAPID public key for Pathfinder W8 Web Push spaced-retrieval reminders. Leave empty to skip provisioning the notifications dispatcher job."
+              }
+            },
+            "vapidPrivateKey": {
+              "type": "securestring",
+              "defaultValue": "",
+              "metadata": {
+                "description": "VAPID private key (X.509-EC) for Pathfinder W8 Web Push spaced-retrieval reminders."
+              }
+            },
+            "vapidSubject": {
+              "type": "string",
+              "defaultValue": "mailto:notify@wulo.ai",
+              "metadata": {
+                "description": "VAPID subject (mailto: address) advertised in JWT claims to the push service."
+              }
+            },
+            "notificationsDispatcherCron": {
+              "type": "string",
+              "defaultValue": "*/5 * * * *",
+              "metadata": {
+                "description": "Cron expression for the notifications dispatcher Container Apps Job. Default: every 5 minutes."
+              }
+            },
+            "enableAgentMeshObservabilityCron": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Gate 2 (agent-mesh observability cron). DARK BY DEFAULT: when false the scheduled Job is not provisioned at all. Provisioning it is an explicit human go-live stop-point; even once provisioned the cron stays a no-op until AGENT_MESH_ENABLED is set in agentMeshObservabilityEnabled."
+              }
+            },
+            "agentMeshObservabilityCron": {
+              "type": "string",
+              "defaultValue": "*/15 * * * *",
+              "metadata": {
+                "description": "Cron expression for the agent-mesh observability Job. Default: every 15 minutes (cheap, read-only)."
+              }
+            },
+            "agentMeshObservabilityEnabled": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Second, independent dark gate for the agent-mesh observability cron. Empty keeps the cron a no-op even when the Job is provisioned. Set to \"1\" ONLY behind the gate-2 sign-off to arm the read-only mesh."
+              }
+            },
             "publicAppUrl": {
               "type": "string",
               "defaultValue": "",
               "metadata": {
                 "description": "Public application URL used in invitation emails. Defaults to the active custom domain or Container App host."
-              }
-            },
-            "customLexiconUrl": {
-              "type": "securestring",
-              "defaultValue": "",
-              "metadata": {
-                "description": "Optional SAS-backed custom lexicon URL for Azure Speech and Voice Live pronunciation control."
               }
             },
             "principalId": {
@@ -653,7 +1072,6 @@
                   "name": "[parameters('gptDeploymentName')]",
                   "model": "[parameters('gptModelName')]",
                   "version": "[parameters('gptModelVersion')]",
-                  "raiPolicyName": "Microsoft.DefaultV2",
                   "sku": {
                     "name": "Standard",
                     "capacity": 10
@@ -662,11 +1080,18 @@
                 {
                   "name": "text-embedding-ada-002",
                   "model": "text-embedding-ada-002",
-                  "version": "2",
-                  "raiPolicyName": "Microsoft.DefaultV2",
                   "sku": {
                     "name": "Standard",
                     "capacity": 10
+                  }
+                },
+                {
+                  "name": "text-embedding-3-small",
+                  "model": "text-embedding-3-small",
+                  "version": "1",
+                  "sku": {
+                    "name": "GlobalStandard",
+                    "capacity": 50
                   }
                 }
               ]
@@ -816,10 +1241,39 @@
             "emailServiceName": "[format('acsemail-voicelab-{0}', take(variables('resourceToken'), 18))]",
             "resolvedAcsSenderUsername": "[if(and(not(empty(parameters('azureCommunicationServicesSenderAddress'))), contains(parameters('azureCommunicationServicesSenderAddress'), '@')), split(parameters('azureCommunicationServicesSenderAddress'), '@')[0], '')]",
             "customRedirectHost": "[if(equals(parameters('environmentName'), 'salescoach-swe'), 'https://staging-sen.wulo.ai', if(equals(parameters('environmentName'), 'salescoach-prod'), 'https://sen.wulo.ai', ''))]",
+            "resolvedRedirectHost": "[if(not(empty(parameters('publicAppUrl'))), parameters('publicAppUrl'), variables('customRedirectHost'))]",
             "easyAuthEnabled": "[or(not(empty(parameters('microsoftProviderClientId'))), not(empty(parameters('googleProviderClientId'))))]",
             "usePostgresRuntimeCredential": "[and(not(empty(parameters('postgresAppUsername'))), not(empty(parameters('postgresAppPassword'))))]",
             "postgresRuntimeUsername": "[if(variables('usePostgresRuntimeCredential'), parameters('postgresAppUsername'), parameters('postgresAdminUsername'))]",
-            "postgresRuntimePassword": "[if(variables('usePostgresRuntimeCredential'), parameters('postgresAppPassword'), parameters('postgresAdminPassword'))]"
+            "postgresRuntimePassword": "[if(variables('usePostgresRuntimeCredential'), parameters('postgresAppPassword'), parameters('postgresAdminPassword'))]",
+            "keyVaultName": "[format('kv-vl-{0}', variables('resourceToken'))]",
+            "keyVaultSecretsUserRoleId": "4633458b-17de-408a-b874-0445c86b69e6",
+            "keyVaultSecretNames": [
+              "speech-api-key",
+              "postgres-database-url",
+              "postgres-admin-database-url",
+              "copilot-github-token",
+              "microsoft-provider-auth-secret",
+              "google-provider-auth-secret",
+              "azure-communication-services-connection-string",
+              "twilio-auth-token",
+              "twilio-account-sid",
+              "azure-content-safety-key"
+            ],
+            "keyVaultSecretEnabled": {
+              "speech-api-key": true,
+              "postgres-database-url": "[parameters('enablePostgresPersistence')]",
+              "postgres-admin-database-url": "[parameters('enablePostgresPersistence')]",
+              "copilot-github-token": "[not(empty(parameters('copilotGithubToken')))]",
+              "microsoft-provider-auth-secret": "[not(empty(parameters('microsoftProviderClientSecret')))]",
+              "google-provider-auth-secret": "[not(empty(parameters('googleProviderClientSecret')))]",
+              "azure-communication-services-connection-string": "[or(not(empty(parameters('azureCommunicationServicesConnectionString'))), parameters('enableAzureCommunicationServicesEmail'))]",
+              "twilio-auth-token": "[not(empty(parameters('twilioAuthToken')))]",
+              "twilio-account-sid": "[not(empty(parameters('twilioAuthToken')))]",
+              "azure-content-safety-key": "[not(empty(parameters('azureContentSafetyKey')))]"
+            },
+            "voicelabIdentityName": "[format('{0}voicelab-{1}', variables('abbrs').managedIdentityUserAssignedIdentities, variables('resourceToken'))]",
+            "voicelabIdentityResourceId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('voicelabIdentityName'))]"
           },
           "resources": [
             {
@@ -861,7 +1315,7 @@
               },
               "properties": {
                 "customSubDomainName": "[format('aifoundry-voicelab-{0}', variables('resourceToken'))]",
-                "publicNetworkAccess": "Enabled"
+                "publicNetworkAccess": "[if(parameters('enablePrivateNetworking'), 'Disabled', 'Enabled')]"
               }
             },
             {
@@ -876,7 +1330,7 @@
               },
               "properties": {
                 "customSubDomainName": "[format('speech-voicelab-{0}', variables('resourceToken'))]",
-                "publicNetworkAccess": "Enabled"
+                "publicNetworkAccess": "[if(parameters('enablePrivateNetworking'), 'Disabled', 'Enabled')]"
               }
             },
             {
@@ -944,10 +1398,7 @@
                 "name": "Standard_LRS"
               },
               "kind": "StorageV2",
-              "properties": {
-                "minimumTlsVersion": "TLS1_2",
-                "supportsHttpsTrafficOnly": true
-              }
+              "properties": "[union(createObject('minimumTlsVersion', 'TLS1_2', 'supportsHttpsTrafficOnly', true()), if(parameters('enablePrivateNetworking'), createObject('publicNetworkAccess', 'Disabled', 'networkAcls', createObject('bypass', 'AzureServices', 'defaultAction', 'Deny')), createObject()))]"
             },
             {
               "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
@@ -993,26 +1444,17 @@
               "properties": {
                 "administratorLogin": "[parameters('postgresAdminUsername')]",
                 "administratorLoginPassword": "[parameters('postgresAdminPassword')]",
-                "authConfig": {
-                  "activeDirectoryAuth": "Disabled",
-                  "passwordAuth": "Enabled"
-                },
                 "version": "16",
                 "storage": {
                   "storageSizeGB": 32,
-                  "autoGrow": "Enabled",
-                  "iops": 120,
-                  "tier": "P4"
-                },
-                "dataEncryption": {
-                  "type": "SystemManaged"
+                  "autoGrow": "Enabled"
                 },
                 "backup": {
                   "backupRetentionDays": 7,
                   "geoRedundantBackup": "Disabled"
                 },
                 "network": {
-                  "publicNetworkAccess": "Enabled"
+                  "publicNetworkAccess": "[if(parameters('enablePrivateNetworking'), 'Disabled', 'Enabled')]"
                 },
                 "highAvailability": {
                   "mode": "Disabled"
@@ -1033,7 +1475,7 @@
               ]
             },
             {
-              "condition": "[parameters('enablePostgresPersistence')]",
+              "condition": "[and(parameters('enablePostgresPersistence'), not(parameters('enablePrivateNetworking')))]",
               "type": "Microsoft.DBforPostgreSQL/flexibleServers/firewallRules",
               "apiVersion": "2023-12-01-preview",
               "name": "[format('{0}/{1}', variables('postgresServerName'), 'AllowAzureServices')]",
@@ -1060,6 +1502,270 @@
               "dependsOn": [
                 "[resourceId('Microsoft.Resources/deployments', 'container-apps-environment')]",
                 "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}data', variables('abbrs').storageStorageAccounts, variables('resourceToken')))]"
+              ]
+            },
+            {
+              "condition": "[parameters('useKeyVault')]",
+              "type": "Microsoft.KeyVault/vaults",
+              "apiVersion": "2023-07-01",
+              "name": "[variables('keyVaultName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "sku": {
+                  "family": "A",
+                  "name": "standard"
+                },
+                "tenantId": "[subscription().tenantId]",
+                "enableRbacAuthorization": true,
+                "enableSoftDelete": true,
+                "softDeleteRetentionInDays": 7,
+                "enablePurgeProtection": true,
+                "publicNetworkAccess": "[if(parameters('enablePrivateNetworking'), 'Disabled', 'Enabled')]",
+                "networkAcls": {
+                  "bypass": "AzureServices",
+                  "defaultAction": "[if(parameters('enablePrivateNetworking'), 'Deny', 'Allow')]"
+                }
+              }
+            },
+            {
+              "copy": {
+                "name": "keyVaultSecrets",
+                "count": "[length(variables('keyVaultSecretNames'))]"
+              },
+              "condition": "[and(parameters('useKeyVault'), variables('keyVaultSecretEnabled')[variables('keyVaultSecretNames')[copyIndex()]])]",
+              "type": "Microsoft.KeyVault/vaults/secrets",
+              "apiVersion": "2023-07-01",
+              "name": "[format('{0}/{1}', variables('keyVaultName'), variables('keyVaultSecretNames')[copyIndex()])]",
+              "properties": {
+                "value": "[createObject('speech-api-key', listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('speech-voicelab-{0}', variables('resourceToken'))), '2024-10-01').key1, 'postgres-database-url', if(parameters('enablePostgresPersistence'), format('postgresql://{0}:{1}@{2}:5432/{3}?sslmode=require', variables('postgresRuntimeUsername'), variables('postgresRuntimePassword'), reference(resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName')), '2023-12-01-preview').fullyQualifiedDomainName, parameters('postgresDatabaseName')), ''), 'postgres-admin-database-url', if(parameters('enablePostgresPersistence'), format('postgresql://{0}:{1}@{2}:5432/{3}?sslmode=require', parameters('postgresAdminUsername'), parameters('postgresAdminPassword'), reference(resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName')), '2023-12-01-preview').fullyQualifiedDomainName, parameters('postgresDatabaseName')), ''), 'copilot-github-token', parameters('copilotGithubToken'), 'microsoft-provider-auth-secret', parameters('microsoftProviderClientSecret'), 'google-provider-auth-secret', parameters('googleProviderClientSecret'), 'azure-communication-services-connection-string', if(parameters('enableAzureCommunicationServicesEmail'), listKeys(resourceId('Microsoft.Communication/communicationServices', variables('communicationServiceName')), '2026-03-18').primaryConnectionString, parameters('azureCommunicationServicesConnectionString')), 'twilio-auth-token', parameters('twilioAuthToken'), 'twilio-account-sid', parameters('twilioAccountSid'), 'azure-content-safety-key', parameters('azureContentSafetyKey'))[variables('keyVaultSecretNames')[copyIndex()]]]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Communication/communicationServices', variables('communicationServiceName'))]",
+                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName'))]",
+                "[resourceId('Microsoft.CognitiveServices/accounts', format('speech-voicelab-{0}', variables('resourceToken')))]"
+              ]
+            },
+            {
+              "condition": "[parameters('useKeyVault')]",
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[format('Microsoft.KeyVault/vaults/{0}', variables('keyVaultName'))]",
+              "name": "[guid(resourceGroup().id, 'voicelab-kv-secrets-user', variables('keyVaultSecretsUserRoleId'))]",
+              "properties": {
+                "principalId": "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.principalId.value]",
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('keyVaultSecretsUserRoleId'))]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
+                "[resourceId('Microsoft.Resources/deployments', 'voicelabidentity')]"
+              ]
+            },
+            {
+              "condition": "[and(and(parameters('enablePostgresPersistence'), not(empty(parameters('vapidPublicKey')))), not(empty(parameters('vapidPrivateKey'))))]",
+              "type": "Microsoft.App/jobs",
+              "apiVersion": "2024-03-01",
+              "name": "voicelab-notifications-dispatcher",
+              "location": "[parameters('location')]",
+              "tags": "[union(parameters('tags'), createObject('azd-service-name', 'voicelab-notifications-dispatcher'))]",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', variables('voicelabIdentityResourceId'))]": {}
+                }
+              },
+              "properties": {
+                "environmentId": "[reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.resourceId.value]",
+                "configuration": {
+                  "triggerType": "Schedule",
+                  "replicaTimeout": 300,
+                  "replicaRetryLimit": 1,
+                  "scheduleTriggerConfig": {
+                    "cronExpression": "[parameters('notificationsDispatcherCron')]",
+                    "parallelism": 1,
+                    "replicaCompletionCount": 1
+                  },
+                  "registries": [
+                    {
+                      "server": "[reference(resourceId('Microsoft.Resources/deployments', 'registry'), '2022-09-01').outputs.loginServer.value]",
+                      "identity": "[variables('voicelabIdentityResourceId')]"
+                    }
+                  ],
+                  "secrets": [
+                    {
+                      "name": "postgres-database-url",
+                      "value": "[if(parameters('enablePostgresPersistence'), format('postgresql://{0}:{1}@{2}:5432/{3}?sslmode=require', variables('postgresRuntimeUsername'), variables('postgresRuntimePassword'), reference(resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName')), '2023-12-01-preview').fullyQualifiedDomainName, parameters('postgresDatabaseName')), '')]"
+                    },
+                    {
+                      "name": "vapid-public-key",
+                      "value": "[parameters('vapidPublicKey')]"
+                    },
+                    {
+                      "name": "vapid-private-key",
+                      "value": "[parameters('vapidPrivateKey')]"
+                    }
+                  ]
+                },
+                "template": {
+                  "containers": [
+                    {
+                      "name": "dispatcher",
+                      "image": "[coalesce(tryGet(tryGet(tryGet(tryGet(reference(resourceId('Microsoft.Resources/deployments', 'voicelab-fetch-image'), '2022-09-01').outputs, 'containers'), 'value'), 0), 'image'), 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest')]",
+                      "command": [
+                        "python",
+                        "-m",
+                        "src.learning.notifications_dispatcher"
+                      ],
+                      "resources": {
+                        "cpu": "[json('0.25')]",
+                        "memory": "0.5Gi"
+                      },
+                      "env": [
+                        {
+                          "name": "DATABASE_URL",
+                          "secretRef": "postgres-database-url"
+                        },
+                        {
+                          "name": "VAPID_PUBLIC_KEY",
+                          "secretRef": "vapid-public-key"
+                        },
+                        {
+                          "name": "VAPID_PRIVATE_KEY",
+                          "secretRef": "vapid-private-key"
+                        },
+                        {
+                          "name": "VAPID_SUBJECT",
+                          "value": "[parameters('vapidSubject')]"
+                        },
+                        {
+                          "name": "AZURE_CLIENT_ID",
+                          "value": "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.clientId.value]"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'container-apps-environment')]",
+                "[resourceId('Microsoft.Resources/deployments', 'registry')]",
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName'))]",
+                "[resourceId('Microsoft.Resources/deployments', 'voicelab-fetch-image')]",
+                "[resourceId('Microsoft.Resources/deployments', 'voicelabidentity')]"
+              ]
+            },
+            {
+              "condition": "[parameters('enableAgentMeshObservabilityCron')]",
+              "type": "Microsoft.App/jobs",
+              "apiVersion": "2024-03-01",
+              "name": "voicelab-agent-mesh-obs",
+              "location": "[parameters('location')]",
+              "tags": "[union(parameters('tags'), createObject('azd-service-name', 'voicelab-agent-mesh-obs'))]",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', variables('voicelabIdentityResourceId'))]": {}
+                }
+              },
+              "properties": {
+                "environmentId": "[reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.resourceId.value]",
+                "configuration": {
+                  "triggerType": "Schedule",
+                  "replicaTimeout": 300,
+                  "replicaRetryLimit": 0,
+                  "scheduleTriggerConfig": {
+                    "cronExpression": "[parameters('agentMeshObservabilityCron')]",
+                    "parallelism": 1,
+                    "replicaCompletionCount": 1
+                  },
+                  "registries": [
+                    {
+                      "server": "[reference(resourceId('Microsoft.Resources/deployments', 'registry'), '2022-09-01').outputs.loginServer.value]",
+                      "identity": "[variables('voicelabIdentityResourceId')]"
+                    }
+                  ]
+                },
+                "template": {
+                  "volumes": [
+                    {
+                      "name": "agent-mesh-history",
+                      "storageType": "AzureFile",
+                      "storageName": "wulo-data"
+                    }
+                  ],
+                  "containers": [
+                    {
+                      "name": "observability-gate",
+                      "image": "[coalesce(tryGet(tryGet(tryGet(tryGet(reference(resourceId('Microsoft.Resources/deployments', 'voicelab-fetch-image'), '2022-09-01').outputs, 'containers'), 'value'), 0), 'image'), 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest')]",
+                      "command": [
+                        "bash",
+                        "scripts/agent_mesh_cron.sh",
+                        "/var/lib/agent-mesh/history.jsonl"
+                      ],
+                      "resources": {
+                        "cpu": "[json('0.25')]",
+                        "memory": "0.5Gi"
+                      },
+                      "volumeMounts": [
+                        {
+                          "volumeName": "agent-mesh-history",
+                          "mountPath": "/var/lib/agent-mesh"
+                        }
+                      ],
+                      "env": [
+                        {
+                          "name": "AGENT_MESH_ENABLED",
+                          "value": "[parameters('agentMeshObservabilityEnabled')]"
+                        },
+                        {
+                          "name": "AGENT_MESH_HISTORY_PATH",
+                          "value": "/var/lib/agent-mesh/history.jsonl"
+                        },
+                        {
+                          "name": "AGENT_MESH_MEMORY_SINK_V1",
+                          "value": "[parameters('agentMeshObservabilityEnabled')]"
+                        },
+                        {
+                          "name": "LEARNING_SAFEGUARDING_PROBES_V1",
+                          "value": "[parameters('agentMeshObservabilityEnabled')]"
+                        },
+                        {
+                          "name": "LEARNING_CRITIC_PROBES_V1",
+                          "value": "[parameters('agentMeshObservabilityEnabled')]"
+                        },
+                        {
+                          "name": "LEARNING_SAFETY_PROBES_V1",
+                          "value": "[parameters('agentMeshObservabilityEnabled')]"
+                        },
+                        {
+                          "name": "LEARNING_EVAL_HARNESS_V1",
+                          "value": "[parameters('agentMeshObservabilityEnabled')]"
+                        },
+                        {
+                          "name": "AGENT_MESH_DRIFT_V1",
+                          "value": "[parameters('agentMeshObservabilityEnabled')]"
+                        },
+                        {
+                          "name": "AGENT_MESH_ROLLBACK_V1",
+                          "value": "[parameters('agentMeshObservabilityEnabled')]"
+                        },
+                        {
+                          "name": "AZURE_CLIENT_ID",
+                          "value": "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.clientId.value]"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'container-apps-environment')]",
+                "[resourceId('Microsoft.App/managedEnvironments/storages', format('{0}{1}', variables('abbrs').appManagedEnvironments, variables('resourceToken')), 'wulo-data')]",
+                "[resourceId('Microsoft.Resources/deployments', 'registry')]",
+                "[resourceId('Microsoft.Resources/deployments', 'voicelab-fetch-image')]",
+                "[resourceId('Microsoft.Resources/deployments', 'voicelabidentity')]"
               ]
             },
             {
@@ -1128,7 +1834,7 @@
                   "tokenStore": {
                     "enabled": false
                   },
-                  "allowedExternalRedirectUrls": "[if(empty(variables('customRedirectHost')), createArray(format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.defaultDomain.value)), createArray(variables('customRedirectHost'), format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.defaultDomain.value)))]"
+                  "allowedExternalRedirectUrls": "[if(empty(variables('resolvedRedirectHost')), createArray(format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.defaultDomain.value)), createArray(variables('resolvedRedirectHost'), format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.defaultDomain.value)))]"
                 },
                 "httpSettings": {
                   "requireHttps": true
@@ -1175,6 +1881,20 @@
                 "principalId": "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.principalId.value]",
                 "principalType": "ServicePrincipal",
                 "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd')]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'voicelab')]",
+                "[resourceId('Microsoft.Resources/deployments', 'voicelabidentity')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(resourceGroup().id, 'voicelab', '43d0d8ad-25c7-4714-9337-8ba259a9fe05')]",
+              "properties": {
+                "principalId": "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.principalId.value]",
+                "principalType": "ServicePrincipal",
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', '43d0d8ad-25c7-4714-9337-8ba259a9fe05')]"
               },
               "dependsOn": [
                 "[resourceId('Microsoft.Resources/deployments', 'voicelab')]",
@@ -5838,6 +6558,407 @@
             {
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
+              "name": "monitoring-alerts",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "tags": {
+                    "value": "[parameters('tags')]"
+                  },
+                  "resourceToken": {
+                    "value": "[variables('resourceToken')]"
+                  },
+                  "alertEmail": {
+                    "value": "[parameters('safeguardingAdminEmail')]"
+                  },
+                  "applicationInsightsResourceId": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2022-09-01').outputs.applicationInsightsResourceId.value]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.37.4.10188",
+                      "templateHash": "16870772743721553203"
+                    },
+                    "description": "Action group + scheduled-query alert rules for Pathfinder Learn (HTTP 5xx, p95 latency, Postgres auth failures, LLM token spend)."
+                  },
+                  "parameters": {
+                    "location": {
+                      "type": "string",
+                      "defaultValue": "[resourceGroup().location]",
+                      "metadata": {
+                        "description": "Location for the alert rules. Action groups are always global."
+                      }
+                    },
+                    "tags": {
+                      "type": "object",
+                      "defaultValue": {},
+                      "metadata": {
+                        "description": "Tags applied to every alert resource."
+                      }
+                    },
+                    "resourceToken": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Naming suffix (resource token) to keep alert names unique per environment."
+                      }
+                    },
+                    "alertEmail": {
+                      "type": "string",
+                      "defaultValue": "",
+                      "metadata": {
+                        "description": "Email address that receives alert notifications. When empty, no alert resources are deployed."
+                      }
+                    },
+                    "applicationInsightsResourceId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Resource ID of the Application Insights component backing the dashboard signals."
+                      }
+                    },
+                    "http5xxThreshold": {
+                      "type": "int",
+                      "defaultValue": 5,
+                      "metadata": {
+                        "description": "HTTP 5xx count over the evaluation window that triggers the health alert."
+                      }
+                    },
+                    "latencyP95ThresholdMs": {
+                      "type": "int",
+                      "defaultValue": 3000,
+                      "metadata": {
+                        "description": "Request duration p95 (milliseconds) that triggers the latency alert."
+                      }
+                    },
+                    "llmSpendGbpThreshold": {
+                      "type": "int",
+                      "defaultValue": 50,
+                      "metadata": {
+                        "description": "LLM spend (GBP) over the evaluation window that triggers the token-spend alert."
+                      }
+                    },
+                    "meshGateBlockedThreshold": {
+                      "type": "int",
+                      "defaultValue": 0,
+                      "metadata": {
+                        "description": "Count of blocked agent-mesh observability cycles over the window that triggers an alert."
+                      }
+                    },
+                    "meshVetoDriftThreshold": {
+                      "type": "int",
+                      "defaultValue": 0,
+                      "metadata": {
+                        "description": "Count of veto-rate drift signals over the window that triggers an alert."
+                      }
+                    }
+                  },
+                  "variables": {
+                    "deployAlerts": "[not(empty(parameters('alertEmail')))]",
+                    "abbrsActionGroup": "ag-"
+                  },
+                  "resources": [
+                    {
+                      "condition": "[variables('deployAlerts')]",
+                      "type": "Microsoft.Insights/actionGroups",
+                      "apiVersion": "2023-01-01",
+                      "name": "[format('{0}{1}', variables('abbrsActionGroup'), parameters('resourceToken'))]",
+                      "location": "global",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "groupShortName": "pfobs",
+                        "enabled": true,
+                        "emailReceivers": [
+                          {
+                            "name": "observabilityAdmin",
+                            "emailAddress": "[parameters('alertEmail')]",
+                            "useCommonAlertSchema": true
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "condition": "[variables('deployAlerts')]",
+                      "type": "Microsoft.Insights/scheduledQueryRules",
+                      "apiVersion": "2023-03-15-preview",
+                      "name": "[format('pf-obs-http-5xx-{0}', parameters('resourceToken'))]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "displayName": "Pathfinder Learn - HTTP 5xx rate",
+                        "description": "Backend is returning server errors (HTTP 5xx).",
+                        "severity": 1,
+                        "enabled": true,
+                        "scopes": [
+                          "[parameters('applicationInsightsResourceId')]"
+                        ],
+                        "evaluationFrequency": "PT5M",
+                        "windowSize": "PT15M",
+                        "criteria": {
+                          "allOf": [
+                            {
+                              "query": "requests | where toint(resultCode) >= 500",
+                              "timeAggregation": "Count",
+                              "operator": "GreaterThan",
+                              "threshold": "[parameters('http5xxThreshold')]",
+                              "failingPeriods": {
+                                "numberOfEvaluationPeriods": 1,
+                                "minFailingPeriodsToAlert": 1
+                              }
+                            }
+                          ]
+                        },
+                        "autoMitigate": true,
+                        "actions": {
+                          "actionGroups": [
+                            "[resourceId('Microsoft.Insights/actionGroups', format('{0}{1}', variables('abbrsActionGroup'), parameters('resourceToken')))]"
+                          ]
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Insights/actionGroups', format('{0}{1}', variables('abbrsActionGroup'), parameters('resourceToken')))]"
+                      ]
+                    },
+                    {
+                      "condition": "[variables('deployAlerts')]",
+                      "type": "Microsoft.Insights/scheduledQueryRules",
+                      "apiVersion": "2023-03-15-preview",
+                      "name": "[format('pf-obs-latency-p95-{0}', parameters('resourceToken'))]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "displayName": "Pathfinder Learn - request latency p95",
+                        "description": "Request duration p95 has exceeded the latency budget.",
+                        "severity": 2,
+                        "enabled": true,
+                        "scopes": [
+                          "[parameters('applicationInsightsResourceId')]"
+                        ],
+                        "evaluationFrequency": "PT5M",
+                        "windowSize": "PT15M",
+                        "criteria": {
+                          "allOf": [
+                            {
+                              "query": "requests | summarize AggregatedValue = percentile(duration, 95) by bin(timestamp, 5m)",
+                              "metricMeasureColumn": "AggregatedValue",
+                              "timeAggregation": "Average",
+                              "operator": "GreaterThan",
+                              "threshold": "[parameters('latencyP95ThresholdMs')]",
+                              "failingPeriods": {
+                                "numberOfEvaluationPeriods": 1,
+                                "minFailingPeriodsToAlert": 1
+                              }
+                            }
+                          ]
+                        },
+                        "autoMitigate": true,
+                        "actions": {
+                          "actionGroups": [
+                            "[resourceId('Microsoft.Insights/actionGroups', format('{0}{1}', variables('abbrsActionGroup'), parameters('resourceToken')))]"
+                          ]
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Insights/actionGroups', format('{0}{1}', variables('abbrsActionGroup'), parameters('resourceToken')))]"
+                      ]
+                    },
+                    {
+                      "condition": "[variables('deployAlerts')]",
+                      "type": "Microsoft.Insights/scheduledQueryRules",
+                      "apiVersion": "2023-03-15-preview",
+                      "name": "[format('pf-obs-postgres-auth-{0}', parameters('resourceToken'))]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "displayName": "Pathfinder Learn - Postgres auth/connection failures",
+                        "description": "The app is failing to authenticate or connect to PostgreSQL.",
+                        "severity": 1,
+                        "enabled": true,
+                        "scopes": [
+                          "[parameters('applicationInsightsResourceId')]"
+                        ],
+                        "evaluationFrequency": "PT5M",
+                        "windowSize": "PT15M",
+                        "criteria": {
+                          "allOf": [
+                            {
+                              "query": "union traces, exceptions | where message has \"password authentication failed\" or outerMessage has \"password authentication failed\" or message has \"OperationalError\" or message has \"could not connect to server\"",
+                              "timeAggregation": "Count",
+                              "operator": "GreaterThan",
+                              "threshold": 0,
+                              "failingPeriods": {
+                                "numberOfEvaluationPeriods": 1,
+                                "minFailingPeriodsToAlert": 1
+                              }
+                            }
+                          ]
+                        },
+                        "autoMitigate": true,
+                        "actions": {
+                          "actionGroups": [
+                            "[resourceId('Microsoft.Insights/actionGroups', format('{0}{1}', variables('abbrsActionGroup'), parameters('resourceToken')))]"
+                          ]
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Insights/actionGroups', format('{0}{1}', variables('abbrsActionGroup'), parameters('resourceToken')))]"
+                      ]
+                    },
+                    {
+                      "condition": "[variables('deployAlerts')]",
+                      "type": "Microsoft.Insights/scheduledQueryRules",
+                      "apiVersion": "2023-03-15-preview",
+                      "name": "[format('pf-obs-token-spend-{0}', parameters('resourceToken'))]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "displayName": "Pathfinder Learn - LLM token spend (GBP)",
+                        "description": "Cumulative LLM spend has spiked over the evaluation window.",
+                        "severity": 2,
+                        "enabled": true,
+                        "scopes": [
+                          "[parameters('applicationInsightsResourceId')]"
+                        ],
+                        "evaluationFrequency": "PT15M",
+                        "windowSize": "PT1H",
+                        "criteria": {
+                          "allOf": [
+                            {
+                              "query": "customMetrics | where name == \"pathfinder_learning_llm_cost_gbp_total\" | summarize AggregatedValue = sum(valueSum) by bin(timestamp, 15m)",
+                              "metricMeasureColumn": "AggregatedValue",
+                              "timeAggregation": "Total",
+                              "operator": "GreaterThan",
+                              "threshold": "[parameters('llmSpendGbpThreshold')]",
+                              "failingPeriods": {
+                                "numberOfEvaluationPeriods": 1,
+                                "minFailingPeriodsToAlert": 1
+                              }
+                            }
+                          ]
+                        },
+                        "autoMitigate": true,
+                        "actions": {
+                          "actionGroups": [
+                            "[resourceId('Microsoft.Insights/actionGroups', format('{0}{1}', variables('abbrsActionGroup'), parameters('resourceToken')))]"
+                          ]
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Insights/actionGroups', format('{0}{1}', variables('abbrsActionGroup'), parameters('resourceToken')))]"
+                      ]
+                    },
+                    {
+                      "condition": "[variables('deployAlerts')]",
+                      "type": "Microsoft.Insights/scheduledQueryRules",
+                      "apiVersion": "2023-03-15-preview",
+                      "name": "[format('pf-obs-mesh-gate-blocked-{0}', parameters('resourceToken'))]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "displayName": "Pathfinder Learn - agent-mesh gate blocked",
+                        "description": "The agent-mesh observability gate reported a blocked (gate-2) cycle.",
+                        "severity": 2,
+                        "enabled": true,
+                        "scopes": [
+                          "[parameters('applicationInsightsResourceId')]"
+                        ],
+                        "evaluationFrequency": "PT15M",
+                        "windowSize": "PT1H",
+                        "criteria": {
+                          "allOf": [
+                            {
+                              "query": "union traces, customEvents | where message has \"agent_mesh.gate.blocked\" or name has \"agent_mesh.gate.blocked\"",
+                              "timeAggregation": "Count",
+                              "operator": "GreaterThan",
+                              "threshold": "[parameters('meshGateBlockedThreshold')]",
+                              "failingPeriods": {
+                                "numberOfEvaluationPeriods": 1,
+                                "minFailingPeriodsToAlert": 1
+                              }
+                            }
+                          ]
+                        },
+                        "autoMitigate": true,
+                        "actions": {
+                          "actionGroups": [
+                            "[resourceId('Microsoft.Insights/actionGroups', format('{0}{1}', variables('abbrsActionGroup'), parameters('resourceToken')))]"
+                          ]
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Insights/actionGroups', format('{0}{1}', variables('abbrsActionGroup'), parameters('resourceToken')))]"
+                      ]
+                    },
+                    {
+                      "condition": "[variables('deployAlerts')]",
+                      "type": "Microsoft.Insights/scheduledQueryRules",
+                      "apiVersion": "2023-03-15-preview",
+                      "name": "[format('pf-obs-mesh-veto-drift-{0}', parameters('resourceToken'))]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "displayName": "Pathfinder Learn - agent-mesh veto-rate drift",
+                        "description": "The agent-mesh drift detector flagged safeguarding veto-rate drift (monitoring only).",
+                        "severity": 3,
+                        "enabled": true,
+                        "scopes": [
+                          "[parameters('applicationInsightsResourceId')]"
+                        ],
+                        "evaluationFrequency": "PT15M",
+                        "windowSize": "PT1H",
+                        "criteria": {
+                          "allOf": [
+                            {
+                              "query": "union traces, customEvents | where message has \"agent_mesh.drift.detected\" or name has \"agent_mesh.drift.detected\"",
+                              "timeAggregation": "Count",
+                              "operator": "GreaterThan",
+                              "threshold": "[parameters('meshVetoDriftThreshold')]",
+                              "failingPeriods": {
+                                "numberOfEvaluationPeriods": 1,
+                                "minFailingPeriodsToAlert": 1
+                              }
+                            }
+                          ]
+                        },
+                        "autoMitigate": true,
+                        "actions": {
+                          "actionGroups": [
+                            "[resourceId('Microsoft.Insights/actionGroups', format('{0}{1}', variables('abbrsActionGroup'), parameters('resourceToken')))]"
+                          ]
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Insights/actionGroups', format('{0}{1}', variables('abbrsActionGroup'), parameters('resourceToken')))]"
+                      ]
+                    }
+                  ],
+                  "outputs": {
+                    "actionGroupResourceId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Resource ID of the deployed action group, or empty when alerts are disabled."
+                      },
+                      "value": "[if(variables('deployAlerts'), resourceId('Microsoft.Insights/actionGroups', format('{0}{1}', variables('abbrsActionGroup'), parameters('resourceToken'))), '')]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'monitoring')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2022-09-01",
               "name": "registry",
               "properties": {
                 "expressionEvaluationOptions": {
@@ -7977,6 +9098,136 @@
               ]
             },
             {
+              "condition": "[parameters('enablePrivateNetworking')]",
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2022-09-01",
+              "name": "network",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "tags": {
+                    "value": "[parameters('tags')]"
+                  },
+                  "resourceToken": {
+                    "value": "[variables('resourceToken')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.37.4.10188",
+                      "templateHash": "854482322248596870"
+                    }
+                  },
+                  "parameters": {
+                    "location": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Location for the virtual network."
+                      }
+                    },
+                    "tags": {
+                      "type": "object",
+                      "defaultValue": {},
+                      "metadata": {
+                        "description": "Tags applied to the virtual network."
+                      }
+                    },
+                    "resourceToken": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Resource token used to name the virtual network."
+                      }
+                    },
+                    "vnetAddressPrefix": {
+                      "type": "string",
+                      "defaultValue": "10.20.0.0/16",
+                      "metadata": {
+                        "description": "Address space for the virtual network."
+                      }
+                    },
+                    "infraSubnetPrefix": {
+                      "type": "string",
+                      "defaultValue": "10.20.0.0/23",
+                      "metadata": {
+                        "description": "Address prefix for the Container Apps environment infrastructure subnet. Consumption environments require at least a /23."
+                      }
+                    },
+                    "privateEndpointSubnetPrefix": {
+                      "type": "string",
+                      "defaultValue": "10.20.2.0/27",
+                      "metadata": {
+                        "description": "Address prefix for the private endpoint subnet."
+                      }
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Network/virtualNetworks",
+                      "apiVersion": "2023-11-01",
+                      "name": "[format('vnet-voicelab-{0}', parameters('resourceToken'))]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "addressSpace": {
+                          "addressPrefixes": [
+                            "[parameters('vnetAddressPrefix')]"
+                          ]
+                        },
+                        "subnets": [
+                          {
+                            "name": "infra",
+                            "properties": {
+                              "addressPrefix": "[parameters('infraSubnetPrefix')]",
+                              "delegations": [
+                                {
+                                  "name": "aca-delegation",
+                                  "properties": {
+                                    "serviceName": "Microsoft.App/environments"
+                                  }
+                                }
+                              ],
+                              "privateEndpointNetworkPolicies": "Enabled"
+                            }
+                          },
+                          {
+                            "name": "private-endpoints",
+                            "properties": {
+                              "addressPrefix": "[parameters('privateEndpointSubnetPrefix')]",
+                              "privateEndpointNetworkPolicies": "Disabled"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "vnetResourceId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.Network/virtualNetworks', format('vnet-voicelab-{0}', parameters('resourceToken')))]"
+                    },
+                    "infraSubnetResourceId": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('vnet-voicelab-{0}', parameters('resourceToken'))), '2023-11-01').subnets[0].id]"
+                    },
+                    "privateEndpointSubnetResourceId": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('vnet-voicelab-{0}', parameters('resourceToken'))), '2023-11-01').subnets[1].id]"
+                    }
+                  }
+                }
+              }
+            },
+            {
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
               "name": "container-apps-environment",
@@ -7997,7 +9248,8 @@
                   },
                   "zoneRedundant": {
                     "value": false
-                  }
+                  },
+                  "infrastructureSubnetId": "[if(parameters('enablePrivateNetworking'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'network'), '2022-09-01').outputs.infraSubnetResourceId.value), createObject('value', ''))]"
                 },
                 "template": {
                   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -8403,7 +9655,8 @@
                 }
               },
               "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', 'monitoring')]"
+                "[resourceId('Microsoft.Resources/deployments', 'monitoring')]",
+                "[resourceId('Microsoft.Resources/deployments', 'network')]"
               ]
             },
             {
@@ -8855,6 +10108,547 @@
               }
             },
             {
+              "condition": "[parameters('enablePrivateNetworking')]",
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2022-09-01",
+              "name": "private-endpoints",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "tags": {
+                    "value": "[parameters('tags')]"
+                  },
+                  "resourceToken": {
+                    "value": "[variables('resourceToken')]"
+                  },
+                  "vnetResourceId": "[if(parameters('enablePrivateNetworking'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'network'), '2022-09-01').outputs.vnetResourceId.value), createObject('value', ''))]",
+                  "privateEndpointSubnetResourceId": "[if(parameters('enablePrivateNetworking'), createObject('value', reference(resourceId('Microsoft.Resources/deployments', 'network'), '2022-09-01').outputs.privateEndpointSubnetResourceId.value), createObject('value', ''))]",
+                  "aiFoundryResourceId": {
+                    "value": "[resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken')))]"
+                  },
+                  "speechResourceId": {
+                    "value": "[resourceId('Microsoft.CognitiveServices/accounts', format('speech-voicelab-{0}', variables('resourceToken')))]"
+                  },
+                  "storageResourceId": {
+                    "value": "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}data', variables('abbrs').storageStorageAccounts, variables('resourceToken')))]"
+                  },
+                  "enablePostgres": {
+                    "value": "[parameters('enablePostgresPersistence')]"
+                  },
+                  "postgresResourceId": "[if(parameters('enablePostgresPersistence'), createObject('value', resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName'))), createObject('value', ''))]",
+                  "enableKeyVault": {
+                    "value": "[parameters('useKeyVault')]"
+                  },
+                  "keyVaultResourceId": "[if(parameters('useKeyVault'), createObject('value', resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))), createObject('value', ''))]"
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.37.4.10188",
+                      "templateHash": "1767920270299654802"
+                    }
+                  },
+                  "parameters": {
+                    "location": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Location for the private endpoints."
+                      }
+                    },
+                    "tags": {
+                      "type": "object",
+                      "defaultValue": {},
+                      "metadata": {
+                        "description": "Tags applied to resources."
+                      }
+                    },
+                    "resourceToken": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Resource token used for naming."
+                      }
+                    },
+                    "vnetResourceId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Resource ID of the virtual network (for private DNS zone links)."
+                      }
+                    },
+                    "privateEndpointSubnetResourceId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Resource ID of the subnet that hosts the private endpoints."
+                      }
+                    },
+                    "aiFoundryResourceId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Resource ID of the AI Foundry (Cognitive Services AIServices) account."
+                      }
+                    },
+                    "speechResourceId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Resource ID of the Speech (Cognitive Services) account."
+                      }
+                    },
+                    "storageResourceId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Resource ID of the persistence storage account."
+                      }
+                    },
+                    "enablePostgres": {
+                      "type": "bool",
+                      "defaultValue": false,
+                      "metadata": {
+                        "description": "Create a private endpoint for PostgreSQL Flexible Server."
+                      }
+                    },
+                    "postgresResourceId": {
+                      "type": "string",
+                      "defaultValue": "",
+                      "metadata": {
+                        "description": "Resource ID of the PostgreSQL Flexible Server. Required when enablePostgres is true."
+                      }
+                    },
+                    "enableKeyVault": {
+                      "type": "bool",
+                      "defaultValue": false,
+                      "metadata": {
+                        "description": "Create a private endpoint for Key Vault."
+                      }
+                    },
+                    "keyVaultResourceId": {
+                      "type": "string",
+                      "defaultValue": "",
+                      "metadata": {
+                        "description": "Resource ID of the Key Vault. Required when enableKeyVault is true."
+                      }
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Network/privateDnsZones",
+                      "apiVersion": "2020-06-01",
+                      "name": "privatelink.cognitiveservices.azure.com",
+                      "location": "global",
+                      "tags": "[parameters('tags')]"
+                    },
+                    {
+                      "type": "Microsoft.Network/privateDnsZones",
+                      "apiVersion": "2020-06-01",
+                      "name": "privatelink.openai.azure.com",
+                      "location": "global",
+                      "tags": "[parameters('tags')]"
+                    },
+                    {
+                      "type": "Microsoft.Network/privateDnsZones",
+                      "apiVersion": "2020-06-01",
+                      "name": "[format('privatelink.blob.{0}', environment().suffixes.storage)]",
+                      "location": "global",
+                      "tags": "[parameters('tags')]"
+                    },
+                    {
+                      "type": "Microsoft.Network/privateDnsZones",
+                      "apiVersion": "2020-06-01",
+                      "name": "[format('privatelink.file.{0}', environment().suffixes.storage)]",
+                      "location": "global",
+                      "tags": "[parameters('tags')]"
+                    },
+                    {
+                      "condition": "[parameters('enablePostgres')]",
+                      "type": "Microsoft.Network/privateDnsZones",
+                      "apiVersion": "2020-06-01",
+                      "name": "privatelink.postgres.database.azure.com",
+                      "location": "global",
+                      "tags": "[parameters('tags')]"
+                    },
+                    {
+                      "condition": "[parameters('enableKeyVault')]",
+                      "type": "Microsoft.Network/privateDnsZones",
+                      "apiVersion": "2020-06-01",
+                      "name": "privatelink.vaultcore.azure.net",
+                      "location": "global",
+                      "tags": "[parameters('tags')]"
+                    },
+                    {
+                      "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                      "apiVersion": "2020-06-01",
+                      "name": "[format('{0}/{1}', 'privatelink.cognitiveservices.azure.com', format('link-{0}', parameters('resourceToken')))]",
+                      "location": "global",
+                      "properties": {
+                        "registrationEnabled": false,
+                        "virtualNetwork": {
+                          "id": "[parameters('vnetResourceId')]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.cognitiveservices.azure.com')]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                      "apiVersion": "2020-06-01",
+                      "name": "[format('{0}/{1}', 'privatelink.openai.azure.com', format('link-{0}', parameters('resourceToken')))]",
+                      "location": "global",
+                      "properties": {
+                        "registrationEnabled": false,
+                        "virtualNetwork": {
+                          "id": "[parameters('vnetResourceId')]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.openai.azure.com')]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                      "apiVersion": "2020-06-01",
+                      "name": "[format('{0}/{1}', format('privatelink.blob.{0}', environment().suffixes.storage), format('link-{0}', parameters('resourceToken')))]",
+                      "location": "global",
+                      "properties": {
+                        "registrationEnabled": false,
+                        "virtualNetwork": {
+                          "id": "[parameters('vnetResourceId')]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateDnsZones', format('privatelink.blob.{0}', environment().suffixes.storage))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                      "apiVersion": "2020-06-01",
+                      "name": "[format('{0}/{1}', format('privatelink.file.{0}', environment().suffixes.storage), format('link-{0}', parameters('resourceToken')))]",
+                      "location": "global",
+                      "properties": {
+                        "registrationEnabled": false,
+                        "virtualNetwork": {
+                          "id": "[parameters('vnetResourceId')]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateDnsZones', format('privatelink.file.{0}', environment().suffixes.storage))]"
+                      ]
+                    },
+                    {
+                      "condition": "[parameters('enablePostgres')]",
+                      "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                      "apiVersion": "2020-06-01",
+                      "name": "[format('{0}/{1}', 'privatelink.postgres.database.azure.com', format('link-{0}', parameters('resourceToken')))]",
+                      "location": "global",
+                      "properties": {
+                        "registrationEnabled": false,
+                        "virtualNetwork": {
+                          "id": "[parameters('vnetResourceId')]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.postgres.database.azure.com')]"
+                      ]
+                    },
+                    {
+                      "condition": "[parameters('enableKeyVault')]",
+                      "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                      "apiVersion": "2020-06-01",
+                      "name": "[format('{0}/{1}', 'privatelink.vaultcore.azure.net', format('link-{0}', parameters('resourceToken')))]",
+                      "location": "global",
+                      "properties": {
+                        "registrationEnabled": false,
+                        "virtualNetwork": {
+                          "id": "[parameters('vnetResourceId')]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.vaultcore.azure.net')]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Network/privateEndpoints",
+                      "apiVersion": "2023-11-01",
+                      "name": "[format('pe-aifoundry-{0}', parameters('resourceToken'))]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "subnet": {
+                          "id": "[parameters('privateEndpointSubnetResourceId')]"
+                        },
+                        "privateLinkServiceConnections": [
+                          {
+                            "name": "aifoundry",
+                            "properties": {
+                              "privateLinkServiceId": "[parameters('aiFoundryResourceId')]",
+                              "groupIds": [
+                                "account"
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+                      "apiVersion": "2023-11-01",
+                      "name": "[format('{0}/{1}', format('pe-aifoundry-{0}', parameters('resourceToken')), 'default')]",
+                      "properties": {
+                        "privateDnsZoneConfigs": [
+                          {
+                            "name": "cognitive",
+                            "properties": {
+                              "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.cognitiveservices.azure.com')]"
+                            }
+                          },
+                          {
+                            "name": "openai",
+                            "properties": {
+                              "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.openai.azure.com')]"
+                            }
+                          }
+                        ]
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateEndpoints', format('pe-aifoundry-{0}', parameters('resourceToken')))]",
+                        "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.cognitiveservices.azure.com')]",
+                        "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.openai.azure.com')]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Network/privateEndpoints",
+                      "apiVersion": "2023-11-01",
+                      "name": "[format('pe-speech-{0}', parameters('resourceToken'))]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "subnet": {
+                          "id": "[parameters('privateEndpointSubnetResourceId')]"
+                        },
+                        "privateLinkServiceConnections": [
+                          {
+                            "name": "speech",
+                            "properties": {
+                              "privateLinkServiceId": "[parameters('speechResourceId')]",
+                              "groupIds": [
+                                "account"
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+                      "apiVersion": "2023-11-01",
+                      "name": "[format('{0}/{1}', format('pe-speech-{0}', parameters('resourceToken')), 'default')]",
+                      "properties": {
+                        "privateDnsZoneConfigs": [
+                          {
+                            "name": "cognitive",
+                            "properties": {
+                              "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.cognitiveservices.azure.com')]"
+                            }
+                          }
+                        ]
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.cognitiveservices.azure.com')]",
+                        "[resourceId('Microsoft.Network/privateEndpoints', format('pe-speech-{0}', parameters('resourceToken')))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Network/privateEndpoints",
+                      "apiVersion": "2023-11-01",
+                      "name": "[format('pe-blob-{0}', parameters('resourceToken'))]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "subnet": {
+                          "id": "[parameters('privateEndpointSubnetResourceId')]"
+                        },
+                        "privateLinkServiceConnections": [
+                          {
+                            "name": "blob",
+                            "properties": {
+                              "privateLinkServiceId": "[parameters('storageResourceId')]",
+                              "groupIds": [
+                                "blob"
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+                      "apiVersion": "2023-11-01",
+                      "name": "[format('{0}/{1}', format('pe-blob-{0}', parameters('resourceToken')), 'default')]",
+                      "properties": {
+                        "privateDnsZoneConfigs": [
+                          {
+                            "name": "blob",
+                            "properties": {
+                              "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', format('privatelink.blob.{0}', environment().suffixes.storage))]"
+                            }
+                          }
+                        ]
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateEndpoints', format('pe-blob-{0}', parameters('resourceToken')))]",
+                        "[resourceId('Microsoft.Network/privateDnsZones', format('privatelink.blob.{0}', environment().suffixes.storage))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Network/privateEndpoints",
+                      "apiVersion": "2023-11-01",
+                      "name": "[format('pe-file-{0}', parameters('resourceToken'))]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "subnet": {
+                          "id": "[parameters('privateEndpointSubnetResourceId')]"
+                        },
+                        "privateLinkServiceConnections": [
+                          {
+                            "name": "file",
+                            "properties": {
+                              "privateLinkServiceId": "[parameters('storageResourceId')]",
+                              "groupIds": [
+                                "file"
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+                      "apiVersion": "2023-11-01",
+                      "name": "[format('{0}/{1}', format('pe-file-{0}', parameters('resourceToken')), 'default')]",
+                      "properties": {
+                        "privateDnsZoneConfigs": [
+                          {
+                            "name": "file",
+                            "properties": {
+                              "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', format('privatelink.file.{0}', environment().suffixes.storage))]"
+                            }
+                          }
+                        ]
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateEndpoints', format('pe-file-{0}', parameters('resourceToken')))]",
+                        "[resourceId('Microsoft.Network/privateDnsZones', format('privatelink.file.{0}', environment().suffixes.storage))]"
+                      ]
+                    },
+                    {
+                      "condition": "[parameters('enablePostgres')]",
+                      "type": "Microsoft.Network/privateEndpoints",
+                      "apiVersion": "2023-11-01",
+                      "name": "[format('pe-postgres-{0}', parameters('resourceToken'))]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "subnet": {
+                          "id": "[parameters('privateEndpointSubnetResourceId')]"
+                        },
+                        "privateLinkServiceConnections": [
+                          {
+                            "name": "postgres",
+                            "properties": {
+                              "privateLinkServiceId": "[parameters('postgresResourceId')]",
+                              "groupIds": [
+                                "postgresqlServer"
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "condition": "[parameters('enablePostgres')]",
+                      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+                      "apiVersion": "2023-11-01",
+                      "name": "[format('{0}/{1}', format('pe-postgres-{0}', parameters('resourceToken')), 'default')]",
+                      "properties": {
+                        "privateDnsZoneConfigs": [
+                          {
+                            "name": "postgres",
+                            "properties": {
+                              "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.postgres.database.azure.com')]"
+                            }
+                          }
+                        ]
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateEndpoints', format('pe-postgres-{0}', parameters('resourceToken')))]",
+                        "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.postgres.database.azure.com')]"
+                      ]
+                    },
+                    {
+                      "condition": "[parameters('enableKeyVault')]",
+                      "type": "Microsoft.Network/privateEndpoints",
+                      "apiVersion": "2023-11-01",
+                      "name": "[format('pe-keyvault-{0}', parameters('resourceToken'))]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "subnet": {
+                          "id": "[parameters('privateEndpointSubnetResourceId')]"
+                        },
+                        "privateLinkServiceConnections": [
+                          {
+                            "name": "keyvault",
+                            "properties": {
+                              "privateLinkServiceId": "[parameters('keyVaultResourceId')]",
+                              "groupIds": [
+                                "vault"
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "condition": "[parameters('enableKeyVault')]",
+                      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+                      "apiVersion": "2023-11-01",
+                      "name": "[format('{0}/{1}', format('pe-keyvault-{0}', parameters('resourceToken')), 'default')]",
+                      "properties": {
+                        "privateDnsZoneConfigs": [
+                          {
+                            "name": "vault",
+                            "properties": {
+                              "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.vaultcore.azure.net')]"
+                            }
+                          }
+                        ]
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateEndpoints', format('pe-keyvault-{0}', parameters('resourceToken')))]",
+                        "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.vaultcore.azure.net')]"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken')))]",
+                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
+                "[resourceId('Microsoft.Resources/deployments', 'network')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}data', variables('abbrs').storageStorageAccounts, variables('resourceToken')))]",
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName'))]",
+                "[resourceId('Microsoft.CognitiveServices/accounts', format('speech-voicelab-{0}', variables('resourceToken')))]"
+              ]
+            },
+            {
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
               "name": "voicelab-fetch-image",
@@ -8924,6 +10718,9 @@
                   "customDomains": {
                     "value": "[parameters('voicelabCustomDomains')]"
                   },
+                  "ipSecurityRestrictions": {
+                    "value": "[parameters('ingressAllowedSourceRanges')]"
+                  },
                   "corsPolicy": {
                     "value": {
                       "allowCredentials": true,
@@ -8939,11 +10736,7 @@
                         "DELETE",
                         "OPTIONS"
                       ],
-                      "allowedOrigins": [
-                        "https://sen.wulo.ai",
-                        "https://staging-sen.wulo.ai",
-                        "[format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.defaultDomain.value)]"
-                      ]
+                      "allowedOrigins": "[union(createArray('https://sen.wulo.ai', 'https://staging-sen.wulo.ai', format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.defaultDomain.value)), if(not(empty(if(not(empty(parameters('publicAppUrl'))), parameters('publicAppUrl'), if(not(empty(variables('customRedirectHost'))), variables('customRedirectHost'), format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.defaultDomain.value))))), createArray(if(not(empty(parameters('publicAppUrl'))), parameters('publicAppUrl'), if(not(empty(variables('customRedirectHost'))), variables('customRedirectHost'), format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.defaultDomain.value)))), createArray()))]"
                     }
                   },
                   "scaleMinReplicas": {
@@ -8954,11 +10747,17 @@
                   },
                   "secrets": {
                     "value": {
-                      "secureList": "[concat(createArray(createObject('name', 'speech-api-key', 'value', listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('speech-voicelab-{0}', variables('resourceToken'))), '2024-10-01').key1)), if(parameters('enablePostgresPersistence'), createArray(createObject('name', 'postgres-database-url', 'value', format('postgresql://{0}:{1}@{2}:5432/{3}?sslmode=require', variables('postgresRuntimeUsername'), variables('postgresRuntimePassword'), reference(resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName')), '2023-12-01-preview').fullyQualifiedDomainName, parameters('postgresDatabaseName'))), createObject('name', 'postgres-admin-database-url', 'value', format('postgresql://{0}:{1}@{2}:5432/{3}?sslmode=require', parameters('postgresAdminUsername'), parameters('postgresAdminPassword'), reference(resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName')), '2023-12-01-preview').fullyQualifiedDomainName, parameters('postgresDatabaseName')))), createArray()), if(not(empty(parameters('copilotGithubToken'))), createArray(createObject('name', 'copilot-github-token', 'value', parameters('copilotGithubToken'))), createArray()), if(not(empty(parameters('microsoftProviderClientSecret'))), createArray(createObject('name', 'microsoft-provider-auth-secret', 'value', parameters('microsoftProviderClientSecret'))), createArray()), if(not(empty(parameters('googleProviderClientSecret'))), createArray(createObject('name', 'google-provider-auth-secret', 'value', parameters('googleProviderClientSecret'))), createArray()), if(or(not(empty(parameters('azureCommunicationServicesConnectionString'))), parameters('enableAzureCommunicationServicesEmail')), createArray(createObject('name', 'azure-communication-services-connection-string', 'value', if(parameters('enableAzureCommunicationServicesEmail'), listKeys(resourceId('Microsoft.Communication/communicationServices', variables('communicationServiceName')), '2026-03-18').primaryConnectionString, parameters('azureCommunicationServicesConnectionString')))), createArray()), if(not(empty(parameters('customLexiconUrl'))), createArray(createObject('name', 'azure-custom-lexicon-url', 'value', parameters('customLexiconUrl'))), createArray()))]"
+                      "secureList": "[if(parameters('useKeyVault'), concat(createArray(createObject('name', 'speech-api-key', 'keyVaultUrl', format('{0}secrets/speech-api-key', if(parameters('useKeyVault'), reference(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName')), '2023-07-01').vaultUri, '')), 'identity', reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.resourceId.value)), if(parameters('enablePostgresPersistence'), createArray(createObject('name', 'postgres-database-url', 'keyVaultUrl', format('{0}secrets/postgres-database-url', if(parameters('useKeyVault'), reference(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName')), '2023-07-01').vaultUri, '')), 'identity', reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.resourceId.value), createObject('name', 'postgres-admin-database-url', 'keyVaultUrl', format('{0}secrets/postgres-admin-database-url', if(parameters('useKeyVault'), reference(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName')), '2023-07-01').vaultUri, '')), 'identity', reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.resourceId.value)), createArray()), if(not(empty(parameters('copilotGithubToken'))), createArray(createObject('name', 'copilot-github-token', 'keyVaultUrl', format('{0}secrets/copilot-github-token', if(parameters('useKeyVault'), reference(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName')), '2023-07-01').vaultUri, '')), 'identity', reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.resourceId.value)), createArray()), if(not(empty(parameters('microsoftProviderClientSecret'))), createArray(createObject('name', 'microsoft-provider-auth-secret', 'keyVaultUrl', format('{0}secrets/microsoft-provider-auth-secret', if(parameters('useKeyVault'), reference(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName')), '2023-07-01').vaultUri, '')), 'identity', reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.resourceId.value)), createArray()), if(not(empty(parameters('googleProviderClientSecret'))), createArray(createObject('name', 'google-provider-auth-secret', 'keyVaultUrl', format('{0}secrets/google-provider-auth-secret', if(parameters('useKeyVault'), reference(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName')), '2023-07-01').vaultUri, '')), 'identity', reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.resourceId.value)), createArray()), if(or(not(empty(parameters('azureCommunicationServicesConnectionString'))), parameters('enableAzureCommunicationServicesEmail')), createArray(createObject('name', 'azure-communication-services-connection-string', 'keyVaultUrl', format('{0}secrets/azure-communication-services-connection-string', if(parameters('useKeyVault'), reference(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName')), '2023-07-01').vaultUri, '')), 'identity', reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.resourceId.value)), createArray()), if(not(empty(parameters('twilioAuthToken'))), createArray(createObject('name', 'twilio-auth-token', 'keyVaultUrl', format('{0}secrets/twilio-auth-token', if(parameters('useKeyVault'), reference(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName')), '2023-07-01').vaultUri, '')), 'identity', reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.resourceId.value), createObject('name', 'twilio-account-sid', 'keyVaultUrl', format('{0}secrets/twilio-account-sid', if(parameters('useKeyVault'), reference(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName')), '2023-07-01').vaultUri, '')), 'identity', reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.resourceId.value)), createArray()), if(not(empty(parameters('azureContentSafetyKey'))), createArray(createObject('name', 'azure-content-safety-key', 'keyVaultUrl', format('{0}secrets/azure-content-safety-key', if(parameters('useKeyVault'), reference(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName')), '2023-07-01').vaultUri, '')), 'identity', reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.resourceId.value)), createArray())), concat(createArray(createObject('name', 'speech-api-key', 'value', listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('speech-voicelab-{0}', variables('resourceToken'))), '2024-10-01').key1)), if(parameters('enablePostgresPersistence'), createArray(createObject('name', 'postgres-database-url', 'value', if(parameters('enablePostgresPersistence'), format('postgresql://{0}:{1}@{2}:5432/{3}?sslmode=require', variables('postgresRuntimeUsername'), variables('postgresRuntimePassword'), reference(resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName')), '2023-12-01-preview').fullyQualifiedDomainName, parameters('postgresDatabaseName')), '')), createObject('name', 'postgres-admin-database-url', 'value', if(parameters('enablePostgresPersistence'), format('postgresql://{0}:{1}@{2}:5432/{3}?sslmode=require', parameters('postgresAdminUsername'), parameters('postgresAdminPassword'), reference(resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName')), '2023-12-01-preview').fullyQualifiedDomainName, parameters('postgresDatabaseName')), ''))), createArray()), if(not(empty(parameters('copilotGithubToken'))), createArray(createObject('name', 'copilot-github-token', 'value', parameters('copilotGithubToken'))), createArray()), if(not(empty(parameters('microsoftProviderClientSecret'))), createArray(createObject('name', 'microsoft-provider-auth-secret', 'value', parameters('microsoftProviderClientSecret'))), createArray()), if(not(empty(parameters('googleProviderClientSecret'))), createArray(createObject('name', 'google-provider-auth-secret', 'value', parameters('googleProviderClientSecret'))), createArray()), if(or(not(empty(parameters('azureCommunicationServicesConnectionString'))), parameters('enableAzureCommunicationServicesEmail')), createArray(createObject('name', 'azure-communication-services-connection-string', 'value', if(parameters('enableAzureCommunicationServicesEmail'), listKeys(resourceId('Microsoft.Communication/communicationServices', variables('communicationServiceName')), '2026-03-18').primaryConnectionString, parameters('azureCommunicationServicesConnectionString')))), createArray()), if(not(empty(parameters('twilioAuthToken'))), createArray(createObject('name', 'twilio-auth-token', 'value', parameters('twilioAuthToken')), createObject('name', 'twilio-account-sid', 'value', parameters('twilioAccountSid'))), createArray()), if(not(empty(parameters('azureContentSafetyKey'))), createArray(createObject('name', 'azure-content-safety-key', 'value', parameters('azureContentSafetyKey'))), createArray())))]"
                     }
                   },
                   "volumes": {
-                    "value": []
+                    "value": [
+                      {
+                        "name": "agent-mesh-history",
+                        "storageType": "AzureFile",
+                        "storageName": "wulo-data"
+                      }
+                    ]
                   },
                   "containers": {
                     "value": [
@@ -8969,8 +10768,13 @@
                           "cpu": "[json('1.0')]",
                           "memory": "2.0Gi"
                         },
-                        "volumeMounts": [],
-                        "env": "[concat(createArray(createObject('name', 'APPLICATIONINSIGHTS_CONNECTION_STRING', 'value', reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2022-09-01').outputs.applicationInsightsConnectionString.value), createObject('name', 'AZURE_CLIENT_ID', 'value', reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.clientId.value), createObject('name', 'AZURE_OPENAI_ENDPOINT', 'value', reference(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint), createObject('name', 'PROJECT_ENDPOINT', 'value', format('{0}api/projects/default-project', reference(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint)), createObject('name', 'MODEL_DEPLOYMENT_NAME', 'value', parameters('gptDeploymentName')), createObject('name', 'AZURE_SPEECH_KEY', 'secretRef', 'speech-api-key'), createObject('name', 'AZURE_SPEECH_REGION', 'value', 'swedencentral'), createObject('name', 'AZURE_AI_RESOURCE_NAME', 'value', format('aifoundry-voicelab-{0}', variables('resourceToken'))), createObject('name', 'AZURE_AI_REGION', 'value', 'swedencentral'), createObject('name', 'SUBSCRIPTION_ID', 'value', subscription().subscriptionId), createObject('name', 'RESOURCE_GROUP_NAME', 'value', resourceGroup().name), createObject('name', 'USE_AZURE_AI_AGENTS', 'value', if(parameters('useFoundryAgents'), 'true', 'false')), createObject('name', 'PORT', 'value', '8000'), createObject('name', 'HOST', 'value', '0.0.0.0'), createObject('name', 'AZD_ENV_NAME', 'value', parameters('environmentName')), createObject('name', 'PUBLIC_APP_URL', 'value', if(not(empty(parameters('publicAppUrl'))), parameters('publicAppUrl'), if(not(empty(variables('customRedirectHost'))), variables('customRedirectHost'), format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.defaultDomain.value)))), createObject('name', 'DATABASE_BACKEND', 'value', parameters('databaseBackend')), createObject('name', 'DATABASE_RUN_MIGRATIONS_ON_STARTUP', 'value', if(parameters('databaseRunMigrationsOnStartup'), 'true', 'false')), createObject('name', 'DATABASE_MIGRATION_ALLOWED_ENVIRONMENTS', 'value', parameters('databaseMigrationAllowedEnvironments')), createObject('name', 'STORAGE_PATH', 'value', '/tmp/wulo.db'), createObject('name', 'BLOB_BACKUP_ACCOUNT_NAME', 'value', format('{0}{1}data', variables('abbrs').storageStorageAccounts, variables('resourceToken'))), createObject('name', 'COPILOT_CLI_PATH', 'value', if(empty(parameters('copilotCliPath')), '/usr/local/bin/copilot', parameters('copilotCliPath'))), createObject('name', 'COPILOT_PLANNER_MODEL', 'value', if(empty(parameters('copilotPlannerModel')), parameters('gptDeploymentName'), parameters('copilotPlannerModel'))), createObject('name', 'COPILOT_PLANNER_REASONING_EFFORT', 'value', parameters('copilotPlannerReasoningEffort')), createObject('name', 'COPILOT_AZURE_API_VERSION', 'value', if(empty(parameters('copilotAzureApiVersion')), '2024-10-21', parameters('copilotAzureApiVersion'))), createObject('name', 'AZURE_COMMUNICATION_SERVICES_SENDER_ADDRESS', 'value', parameters('azureCommunicationServicesSenderAddress')), createObject('name', 'AZURE_COMMUNICATION_SERVICES_SENDER_DISPLAY_NAME', 'value', parameters('azureCommunicationServicesSenderDisplayName'))), if(not(empty(parameters('customLexiconUrl'))), createArray(createObject('name', 'AZURE_CUSTOM_LEXICON_URL', 'secretRef', 'azure-custom-lexicon-url')), createArray()), if(parameters('enablePostgresPersistence'), createArray(createObject('name', 'DATABASE_URL', 'secretRef', 'postgres-database-url'), createObject('name', 'DATABASE_ADMIN_URL', 'secretRef', 'postgres-admin-database-url')), createArray()), if(not(empty(parameters('copilotGithubToken'))), createArray(createObject('name', 'COPILOT_GITHUB_TOKEN', 'secretRef', 'copilot-github-token')), createArray()), if(not(empty(parameters('microsoftProviderClientSecret'))), createArray(createObject('name', 'MICROSOFT_PROVIDER_AUTHENTICATION_SECRET', 'secretRef', 'microsoft-provider-auth-secret')), createArray()), if(not(empty(parameters('googleProviderClientSecret'))), createArray(createObject('name', 'GOOGLE_PROVIDER_AUTHENTICATION_SECRET', 'secretRef', 'google-provider-auth-secret')), createArray()), if(or(not(empty(parameters('azureCommunicationServicesConnectionString'))), parameters('enableAzureCommunicationServicesEmail')), createArray(createObject('name', 'AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING', 'secretRef', 'azure-communication-services-connection-string')), createArray()))]"
+                        "volumeMounts": [
+                          {
+                            "volumeName": "agent-mesh-history",
+                            "mountPath": "/var/lib/agent-mesh"
+                          }
+                        ],
+                        "env": "[concat(createArray(createObject('name', 'APPLICATIONINSIGHTS_CONNECTION_STRING', 'value', reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2022-09-01').outputs.applicationInsightsConnectionString.value), createObject('name', 'APPLICATIONINSIGHTS_RESOURCE_ID', 'value', reference(resourceId('Microsoft.Resources/deployments', 'monitoring'), '2022-09-01').outputs.applicationInsightsResourceId.value), createObject('name', 'AZURE_CLIENT_ID', 'value', reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.clientId.value), createObject('name', 'AZURE_OPENAI_ENDPOINT', 'value', reference(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint), createObject('name', 'PROJECT_ENDPOINT', 'value', format('{0}api/projects/default-project', reference(resourceId('Microsoft.CognitiveServices/accounts', format('aifoundry-voicelab-{0}', variables('resourceToken'))), '2024-10-01').endpoint)), createObject('name', 'MODEL_DEPLOYMENT_NAME', 'value', parameters('gptDeploymentName')), createObject('name', 'AZURE_OPENAI_EMBEDDING_DEPLOYMENT', 'value', 'text-embedding-3-small'), createObject('name', 'PATHFINDER_RAG_EMBEDDINGS_ENABLED', 'value', '1'), createObject('name', 'AZURE_SPEECH_KEY', 'secretRef', 'speech-api-key'), createObject('name', 'AZURE_SPEECH_REGION', 'value', 'swedencentral'), createObject('name', 'AZURE_AI_RESOURCE_NAME', 'value', format('aifoundry-voicelab-{0}', variables('resourceToken'))), createObject('name', 'AZURE_AI_REGION', 'value', 'swedencentral'), createObject('name', 'SUBSCRIPTION_ID', 'value', subscription().subscriptionId), createObject('name', 'RESOURCE_GROUP_NAME', 'value', resourceGroup().name), createObject('name', 'USE_AZURE_AI_AGENTS', 'value', if(parameters('useFoundryAgents'), 'true', 'false')), createObject('name', 'PORT', 'value', '8000'), createObject('name', 'HOST', 'value', '0.0.0.0'), createObject('name', 'AZD_ENV_NAME', 'value', parameters('environmentName')), createObject('name', 'PUBLIC_APP_URL', 'value', if(not(empty(parameters('publicAppUrl'))), parameters('publicAppUrl'), if(not(empty(variables('customRedirectHost'))), variables('customRedirectHost'), format('https://voicelab.{0}', reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.defaultDomain.value)))), createObject('name', 'DATABASE_BACKEND', 'value', parameters('databaseBackend')), createObject('name', 'DATABASE_RUN_MIGRATIONS_ON_STARTUP', 'value', if(parameters('databaseRunMigrationsOnStartup'), 'true', 'false')), createObject('name', 'DATABASE_MIGRATION_ALLOWED_ENVIRONMENTS', 'value', parameters('databaseMigrationAllowedEnvironments')), createObject('name', 'PATHFINDER_LEARN_OBSERVABILITY_ENABLED', 'value', parameters('pathfinderLearnObservabilityEnabled')), createObject('name', 'PATHFINDER_LEARN_PROMETHEUS_ENABLED', 'value', parameters('pathfinderLearnPrometheusEnabled')), createObject('name', 'PATHFINDER_LEARN_OTEL_ENABLED', 'value', parameters('pathfinderLearnOtelEnabled')), createObject('name', 'PATHFINDER_B2C_ONBOARDING_ENABLED', 'value', 'true'), createObject('name', 'PATHFINDER_LEARNER_ONBOARDING_ENABLED', 'value', 'true'), createObject('name', 'STORAGE_PATH', 'value', '/tmp/wulo.db'), createObject('name', 'BLOB_BACKUP_ACCOUNT_NAME', 'value', format('{0}{1}data', variables('abbrs').storageStorageAccounts, variables('resourceToken'))), createObject('name', 'AGENT_MESH_HISTORY_PATH', 'value', '/var/lib/agent-mesh/history.jsonl'), createObject('name', 'COPILOT_CLI_PATH', 'value', if(empty(parameters('copilotCliPath')), '/usr/local/bin/copilot', parameters('copilotCliPath'))), createObject('name', 'VOICE_LIVE_MODEL', 'value', if(empty(parameters('voiceLiveModel')), parameters('gptDeploymentName'), parameters('voiceLiveModel'))), createObject('name', 'AZURE_INPUT_TRANSCRIPTION_MODEL', 'value', if(empty(parameters('inputTranscriptionModel')), 'azure-speech', parameters('inputTranscriptionModel'))), createObject('name', 'COPILOT_PLANNER_MODEL', 'value', if(empty(parameters('copilotPlannerModel')), parameters('gptDeploymentName'), parameters('copilotPlannerModel'))), createObject('name', 'COPILOT_PLANNER_REASONING_EFFORT', 'value', parameters('copilotPlannerReasoningEffort')), createObject('name', 'COPILOT_AZURE_API_VERSION', 'value', if(empty(parameters('copilotAzureApiVersion')), '2024-10-21', parameters('copilotAzureApiVersion'))), createObject('name', 'AZURE_COMMUNICATION_SERVICES_SENDER_ADDRESS', 'value', parameters('azureCommunicationServicesSenderAddress')), createObject('name', 'AZURE_COMMUNICATION_SERVICES_SENDER_DISPLAY_NAME', 'value', parameters('azureCommunicationServicesSenderDisplayName')), createObject('name', 'ADMIN_EMAIL', 'value', parameters('safeguardingAdminEmail')), createObject('name', 'ADMIN_SMS_TO', 'value', parameters('safeguardingAdminSmsTo')), createObject('name', 'TWILIO_FROM_NUMBER', 'value', parameters('twilioFromNumber')), createObject('name', 'AZURE_CONTENT_SAFETY_ENDPOINT', 'value', parameters('azureContentSafetyEndpoint')), createObject('name', 'SAFEGUARDING_SHADOW_MODE', 'value', if(parameters('safeguardingShadowMode'), '1', '0'))), if(parameters('enablePostgresPersistence'), createArray(createObject('name', 'DATABASE_URL', 'secretRef', 'postgres-database-url'), createObject('name', 'DATABASE_ADMIN_URL', 'secretRef', 'postgres-admin-database-url')), createArray()), if(not(empty(parameters('copilotGithubToken'))), createArray(createObject('name', 'COPILOT_GITHUB_TOKEN', 'secretRef', 'copilot-github-token')), createArray()), if(not(empty(parameters('microsoftProviderClientSecret'))), createArray(createObject('name', 'MICROSOFT_PROVIDER_AUTHENTICATION_SECRET', 'secretRef', 'microsoft-provider-auth-secret')), createArray()), if(not(empty(parameters('googleProviderClientSecret'))), createArray(createObject('name', 'GOOGLE_PROVIDER_AUTHENTICATION_SECRET', 'secretRef', 'google-provider-auth-secret')), createArray()), if(or(not(empty(parameters('azureCommunicationServicesConnectionString'))), parameters('enableAzureCommunicationServicesEmail')), createArray(createObject('name', 'AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING', 'secretRef', 'azure-communication-services-connection-string')), createArray()), if(not(empty(parameters('twilioAuthToken'))), createArray(createObject('name', 'TWILIO_ACCOUNT_SID', 'secretRef', 'twilio-account-sid'), createObject('name', 'TWILIO_AUTH_TOKEN', 'secretRef', 'twilio-auth-token')), createArray()), if(not(empty(parameters('azureContentSafetyKey'))), createArray(createObject('name', 'AZURE_CONTENT_SAFETY_KEY', 'secretRef', 'azure-content-safety-key')), createArray()))]"
                       }
                     ]
                   },
@@ -9915,11 +11719,999 @@
                 "[resourceId('Microsoft.Resources/deployments', 'container-apps-environment')]",
                 "[resourceId('Microsoft.App/managedEnvironments/storages', format('{0}{1}', variables('abbrs').appManagedEnvironments, variables('resourceToken')), 'wulo-data')]",
                 "[resourceId('Microsoft.Resources/deployments', 'registry')]",
+                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
+                "keyVaultSecrets",
+                "[extensionResourceId(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName')), 'Microsoft.Authorization/roleAssignments', guid(resourceGroup().id, 'voicelab-kv-secrets-user', variables('keyVaultSecretsUserRoleId')))]",
                 "[resourceId('Microsoft.Resources/deployments', 'monitoring')]",
                 "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}data', variables('abbrs').storageStorageAccounts, variables('resourceToken')))]",
                 "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName'))]",
+                "[resourceId('Microsoft.Resources/deployments', 'private-endpoints')]",
                 "[resourceId('Microsoft.CognitiveServices/accounts', format('speech-voicelab-{0}', variables('resourceToken')))]",
                 "[resourceId('Microsoft.Resources/deployments', 'voicelab-fetch-image')]",
+                "[resourceId('Microsoft.Resources/deployments', 'voicelabidentity')]"
+              ]
+            },
+            {
+              "condition": "[and(parameters('enableRalphLrs'), not(empty(parameters('ralphLrsImage'))))]",
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2022-09-01",
+              "name": "ralph-lrs",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "name": {
+                    "value": "ralph-lrs"
+                  },
+                  "ingressTargetPort": {
+                    "value": 8100
+                  },
+                  "ingressExternal": {
+                    "value": false
+                  },
+                  "ingressTransport": {
+                    "value": "http"
+                  },
+                  "scaleMinReplicas": {
+                    "value": 0
+                  },
+                  "scaleMaxReplicas": {
+                    "value": 1
+                  },
+                  "secrets": {
+                    "value": {
+                      "secureList": "[concat(if(parameters('enablePostgresPersistence'), createArray(createObject('name', 'postgres-database-url', 'value', if(parameters('enablePostgresPersistence'), format('postgresql://{0}:{1}@{2}:5432/{3}?sslmode=require', variables('postgresRuntimeUsername'), variables('postgresRuntimePassword'), reference(resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName')), '2023-12-01-preview').fullyQualifiedDomainName, parameters('postgresDatabaseName')), ''))), createArray()), if(not(empty(parameters('ralphLrsAdminToken'))), createArray(createObject('name', 'ralph-admin-token', 'value', parameters('ralphLrsAdminToken'))), createArray()))]"
+                    }
+                  },
+                  "volumes": {
+                    "value": []
+                  },
+                  "containers": {
+                    "value": [
+                      {
+                        "image": "[parameters('ralphLrsImage')]",
+                        "name": "main",
+                        "resources": {
+                          "cpu": "[json('0.5')]",
+                          "memory": "1.0Gi"
+                        },
+                        "volumeMounts": [],
+                        "env": "[concat(if(parameters('enablePostgresPersistence'), createArray(createObject('name', 'DATABASE_URL', 'secretRef', 'postgres-database-url')), createArray()), if(not(empty(parameters('ralphLrsAdminToken'))), createArray(createObject('name', 'RALPH_ADMIN_TOKEN', 'secretRef', 'ralph-admin-token')), createArray()))]"
+                      }
+                    ]
+                  },
+                  "managedIdentities": {
+                    "value": {
+                      "systemAssigned": false,
+                      "userAssignedResourceIds": [
+                        "[reference(resourceId('Microsoft.Resources/deployments', 'voicelabidentity'), '2022-09-01').outputs.resourceId.value]"
+                      ]
+                    }
+                  },
+                  "environmentResourceId": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-apps-environment'), '2022-09-01').outputs.resourceId.value]"
+                  },
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "tags": {
+                    "value": "[union(parameters('tags'), createObject('azd-service-name', 'ralph-lrs'))]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "languageVersion": "2.0",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.29.47.4906",
+                      "templateHash": "6290070069549338411"
+                    },
+                    "name": "Container Apps",
+                    "description": "This module deploys a Container App.",
+                    "owner": "Azure/module-maintainers"
+                  },
+                  "definitions": {
+                    "managedIdentitiesType": {
+                      "type": "object",
+                      "properties": {
+                        "systemAssigned": {
+                          "type": "bool",
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Enables system assigned managed identity on the resource."
+                          }
+                        },
+                        "userAssignedResourceIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. The resource ID(s) to assign to the resource."
+                          }
+                        }
+                      },
+                      "nullable": true
+                    },
+                    "lockType": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Specify the name of lock."
+                          }
+                        },
+                        "kind": {
+                          "type": "string",
+                          "allowedValues": [
+                            "CanNotDelete",
+                            "None",
+                            "ReadOnly"
+                          ],
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Specify the type of lock."
+                          }
+                        }
+                      },
+                      "nullable": true
+                    },
+                    "roleAssignmentType": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "nullable": true,
+                            "metadata": {
+                              "description": "Optional. The name (as GUID) of the role assignment. If not provided, a GUID will be generated."
+                            }
+                          },
+                          "roleDefinitionIdOrName": {
+                            "type": "string",
+                            "metadata": {
+                              "description": "Required. The role to assign. You can provide either the display name of the role definition, the role definition GUID, or its fully qualified ID in the following format: '/providers/Microsoft.Authorization/roleDefinitions/c2f4ef07-c644-48eb-af81-4b1b4947fb11'."
+                            }
+                          },
+                          "principalId": {
+                            "type": "string",
+                            "metadata": {
+                              "description": "Required. The principal ID of the principal (user/group/identity) to assign the role to."
+                            }
+                          },
+                          "principalType": {
+                            "type": "string",
+                            "allowedValues": [
+                              "Device",
+                              "ForeignGroup",
+                              "Group",
+                              "ServicePrincipal",
+                              "User"
+                            ],
+                            "nullable": true,
+                            "metadata": {
+                              "description": "Optional. The principal type of the assigned principal ID."
+                            }
+                          },
+                          "description": {
+                            "type": "string",
+                            "nullable": true,
+                            "metadata": {
+                              "description": "Optional. The description of the role assignment."
+                            }
+                          },
+                          "condition": {
+                            "type": "string",
+                            "nullable": true,
+                            "metadata": {
+                              "description": "Optional. The conditions on the role assignment. This limits the resources it can be assigned to. e.g.: @Resource[Microsoft.Storage/storageAccounts/blobServices/containers:ContainerName] StringEqualsIgnoreCase \"foo_storage_container\"."
+                            }
+                          },
+                          "conditionVersion": {
+                            "type": "string",
+                            "allowedValues": [
+                              "2.0"
+                            ],
+                            "nullable": true,
+                            "metadata": {
+                              "description": "Optional. Version of the condition."
+                            }
+                          },
+                          "delegatedManagedIdentityResourceId": {
+                            "type": "string",
+                            "nullable": true,
+                            "metadata": {
+                              "description": "Optional. The Resource Id of the delegated managed identity resource."
+                            }
+                          }
+                        }
+                      },
+                      "nullable": true
+                    },
+                    "container": {
+                      "type": "object",
+                      "properties": {
+                        "args": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Container start command arguments."
+                          }
+                        },
+                        "command": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Container start command."
+                          }
+                        },
+                        "env": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/environmentVar"
+                          },
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Container environment variables."
+                          }
+                        },
+                        "image": {
+                          "type": "string",
+                          "metadata": {
+                            "description": "Required. Container image tag."
+                          }
+                        },
+                        "name": {
+                          "type": "string",
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Custom container name."
+                          }
+                        },
+                        "probes": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/containerAppProbe"
+                          },
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. List of probes for the container."
+                          }
+                        },
+                        "resources": {
+                          "type": "object",
+                          "metadata": {
+                            "description": "Required. Container resource requirements."
+                          }
+                        },
+                        "volumeMounts": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/volumeMount"
+                          },
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Container volume mounts."
+                          }
+                        }
+                      }
+                    },
+                    "environmentVar": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "metadata": {
+                            "description": "Required. Environment variable name."
+                          }
+                        },
+                        "secretRef": {
+                          "type": "string",
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Name of the Container App secret from which to pull the environment variable value."
+                          }
+                        },
+                        "value": {
+                          "type": "string",
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Non-secret environment variable value."
+                          }
+                        }
+                      }
+                    },
+                    "containerAppProbe": {
+                      "type": "object",
+                      "properties": {
+                        "failureThreshold": {
+                          "type": "int",
+                          "nullable": true,
+                          "minValue": 1,
+                          "maxValue": 10,
+                          "metadata": {
+                            "description": "Optional. Minimum consecutive failures for the probe to be considered failed after having succeeded. Defaults to 3."
+                          }
+                        },
+                        "httpGet": {
+                          "$ref": "#/definitions/containerAppProbeHttpGet",
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. HTTPGet specifies the http request to perform."
+                          }
+                        },
+                        "initialDelaySeconds": {
+                          "type": "int",
+                          "nullable": true,
+                          "minValue": 1,
+                          "maxValue": 60,
+                          "metadata": {
+                            "description": "Optional. Number of seconds after the container has started before liveness probes are initiated."
+                          }
+                        },
+                        "periodSeconds": {
+                          "type": "int",
+                          "nullable": true,
+                          "minValue": 1,
+                          "maxValue": 240,
+                          "metadata": {
+                            "description": "Optional. How often (in seconds) to perform the probe. Default to 10 seconds."
+                          }
+                        },
+                        "successThreshold": {
+                          "type": "int",
+                          "nullable": true,
+                          "minValue": 1,
+                          "maxValue": 10,
+                          "metadata": {
+                            "description": "Optional. Minimum consecutive successes for the probe to be considered successful after having failed. Defaults to 1. Must be 1 for liveness and startup."
+                          }
+                        },
+                        "tcpSocket": {
+                          "$ref": "#/definitions/containerAppProbeTcpSocket",
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. TCPSocket specifies an action involving a TCP port. TCP hooks not yet supported."
+                          }
+                        },
+                        "terminationGracePeriodSeconds": {
+                          "type": "int",
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Optional duration in seconds the pod needs to terminate gracefully upon probe failure. The grace period is the duration in seconds after the processes running in the pod are sent a termination signal and the time when the processes are forcibly halted with a kill signal. Set this value longer than the expected cleanup time for your process. If this value is nil, the pod's terminationGracePeriodSeconds will be used. Otherwise, this value overrides the value provided by the pod spec. Value must be non-negative integer. The value zero indicates stop immediately via the kill signal (no opportunity to shut down). This is an alpha field and requires enabling ProbeTerminationGracePeriod feature gate. Maximum value is 3600 seconds (1 hour)."
+                          }
+                        },
+                        "timeoutSeconds": {
+                          "type": "int",
+                          "nullable": true,
+                          "minValue": 1,
+                          "maxValue": 240,
+                          "metadata": {
+                            "description": "Optional. Number of seconds after which the probe times out. Defaults to 1 second."
+                          }
+                        },
+                        "type": {
+                          "type": "string",
+                          "allowedValues": [
+                            "Liveness",
+                            "Readiness",
+                            "Startup"
+                          ],
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. The type of probe."
+                          }
+                        }
+                      }
+                    },
+                    "corsPolicyType": {
+                      "type": "object",
+                      "properties": {
+                        "allowCredentials": {
+                          "type": "bool",
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Switch to determine whether the resource allows credentials."
+                          }
+                        },
+                        "allowedHeaders": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Specifies the content for the access-control-allow-headers header."
+                          }
+                        },
+                        "allowedMethods": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Specifies the content for the access-control-allow-methods header."
+                          }
+                        },
+                        "allowedOrigins": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Specifies the content for the access-control-allow-origins header."
+                          }
+                        },
+                        "exposeHeaders": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Specifies the content for the access-control-expose-headers header."
+                          }
+                        },
+                        "maxAge": {
+                          "type": "int",
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Specifies the content for the access-control-max-age header."
+                          }
+                        }
+                      },
+                      "nullable": true
+                    },
+                    "containerAppProbeHttpGet": {
+                      "type": "object",
+                      "properties": {
+                        "host": {
+                          "type": "string",
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Host name to connect to. Defaults to the pod IP."
+                          }
+                        },
+                        "httpHeaders": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/containerAppProbeHttpGetHeadersItem"
+                          },
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. HTTP headers to set in the request."
+                          }
+                        },
+                        "path": {
+                          "type": "string",
+                          "metadata": {
+                            "description": "Required. Path to access on the HTTP server."
+                          }
+                        },
+                        "port": {
+                          "type": "int",
+                          "metadata": {
+                            "description": "Required. Name or number of the port to access on the container."
+                          }
+                        },
+                        "scheme": {
+                          "type": "string",
+                          "allowedValues": [
+                            "HTTP",
+                            "HTTPS"
+                          ],
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Scheme to use for connecting to the host. Defaults to HTTP."
+                          }
+                        }
+                      }
+                    },
+                    "containerAppProbeHttpGetHeadersItem": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "metadata": {
+                            "description": "Required. Name of the header."
+                          }
+                        },
+                        "value": {
+                          "type": "string",
+                          "metadata": {
+                            "description": "Required. Value of the header."
+                          }
+                        }
+                      }
+                    },
+                    "containerAppProbeTcpSocket": {
+                      "type": "object",
+                      "properties": {
+                        "host": {
+                          "type": "string",
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Host name to connect to, defaults to the pod IP."
+                          }
+                        },
+                        "port": {
+                          "type": "int",
+                          "minValue": 1,
+                          "maxValue": 65535,
+                          "metadata": {
+                            "description": "Required. Number of the port to access on the container. Name must be an IANA_SVC_NAME."
+                          }
+                        }
+                      }
+                    },
+                    "volumeMount": {
+                      "type": "object",
+                      "properties": {
+                        "mountPath": {
+                          "type": "string",
+                          "metadata": {
+                            "description": "Required. Path within the container at which the volume should be mounted.Must not contain ':'."
+                          }
+                        },
+                        "subPath": {
+                          "type": "string",
+                          "nullable": true,
+                          "metadata": {
+                            "description": "Optional. Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root)."
+                          }
+                        },
+                        "volumeName": {
+                          "type": "string",
+                          "metadata": {
+                            "description": "Required. This must match the Name of a Volume."
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "parameters": {
+                    "name": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Required. Name of the Container App."
+                      }
+                    },
+                    "location": {
+                      "type": "string",
+                      "defaultValue": "[resourceGroup().location]",
+                      "metadata": {
+                        "description": "Optional. Location for all Resources."
+                      }
+                    },
+                    "disableIngress": {
+                      "type": "bool",
+                      "defaultValue": false,
+                      "metadata": {
+                        "description": "Optional. Bool to disable all ingress traffic for the container app."
+                      }
+                    },
+                    "ingressExternal": {
+                      "type": "bool",
+                      "defaultValue": true,
+                      "metadata": {
+                        "description": "Optional. Bool indicating if the App exposes an external HTTP endpoint."
+                      }
+                    },
+                    "clientCertificateMode": {
+                      "type": "string",
+                      "defaultValue": "ignore",
+                      "allowedValues": [
+                        "accept",
+                        "ignore",
+                        "require"
+                      ],
+                      "metadata": {
+                        "description": "Optional. Client certificate mode for mTLS."
+                      }
+                    },
+                    "corsPolicy": {
+                      "$ref": "#/definitions/corsPolicyType",
+                      "metadata": {
+                        "description": "Optional. Object userd to configure CORS policy."
+                      }
+                    },
+                    "stickySessionsAffinity": {
+                      "type": "string",
+                      "defaultValue": "none",
+                      "allowedValues": [
+                        "none",
+                        "sticky"
+                      ],
+                      "metadata": {
+                        "description": "Optional. Bool indicating if the Container App should enable session affinity."
+                      }
+                    },
+                    "ingressTransport": {
+                      "type": "string",
+                      "defaultValue": "auto",
+                      "allowedValues": [
+                        "auto",
+                        "http",
+                        "http2",
+                        "tcp"
+                      ],
+                      "metadata": {
+                        "description": "Optional. Ingress transport protocol."
+                      }
+                    },
+                    "ingressAllowInsecure": {
+                      "type": "bool",
+                      "defaultValue": true,
+                      "metadata": {
+                        "description": "Optional. Bool indicating if HTTP connections to is allowed. If set to false HTTP connections are automatically redirected to HTTPS connections."
+                      }
+                    },
+                    "ingressTargetPort": {
+                      "type": "int",
+                      "defaultValue": 80,
+                      "metadata": {
+                        "description": "Optional. Target Port in containers for traffic from ingress."
+                      }
+                    },
+                    "scaleMaxReplicas": {
+                      "type": "int",
+                      "defaultValue": 10,
+                      "metadata": {
+                        "description": "Optional. Maximum number of container replicas. Defaults to 10 if not set."
+                      }
+                    },
+                    "scaleMinReplicas": {
+                      "type": "int",
+                      "defaultValue": 3,
+                      "metadata": {
+                        "description": "Optional. Minimum number of container replicas. Defaults to 3 if not set."
+                      }
+                    },
+                    "scaleRules": {
+                      "type": "array",
+                      "defaultValue": [],
+                      "metadata": {
+                        "description": "Optional. Scaling rules."
+                      }
+                    },
+                    "activeRevisionsMode": {
+                      "type": "string",
+                      "defaultValue": "Single",
+                      "allowedValues": [
+                        "Multiple",
+                        "Single"
+                      ],
+                      "metadata": {
+                        "description": "Optional. Controls how active revisions are handled for the Container app."
+                      }
+                    },
+                    "environmentResourceId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Required. Resource ID of environment."
+                      }
+                    },
+                    "lock": {
+                      "$ref": "#/definitions/lockType",
+                      "metadata": {
+                        "description": "Optional. The lock settings of the service."
+                      }
+                    },
+                    "tags": {
+                      "type": "object",
+                      "nullable": true,
+                      "metadata": {
+                        "description": "Optional. Tags of the resource."
+                      }
+                    },
+                    "registries": {
+                      "type": "array",
+                      "defaultValue": [],
+                      "metadata": {
+                        "description": "Optional. Collection of private container registry credentials for containers used by the Container app."
+                      }
+                    },
+                    "managedIdentities": {
+                      "$ref": "#/definitions/managedIdentitiesType",
+                      "metadata": {
+                        "description": "Optional. The managed identity definition for this resource."
+                      }
+                    },
+                    "roleAssignments": {
+                      "$ref": "#/definitions/roleAssignmentType",
+                      "metadata": {
+                        "description": "Optional. Array of role assignments to create."
+                      }
+                    },
+                    "enableTelemetry": {
+                      "type": "bool",
+                      "defaultValue": true,
+                      "metadata": {
+                        "description": "Optional. Enable/Disable usage telemetry for module."
+                      }
+                    },
+                    "customDomains": {
+                      "type": "array",
+                      "defaultValue": [],
+                      "metadata": {
+                        "description": "Optional. Custom domain bindings for Container App hostnames."
+                      }
+                    },
+                    "exposedPort": {
+                      "type": "int",
+                      "defaultValue": 0,
+                      "metadata": {
+                        "description": "Optional. Exposed Port in containers for TCP traffic from ingress."
+                      }
+                    },
+                    "ipSecurityRestrictions": {
+                      "type": "array",
+                      "defaultValue": [],
+                      "metadata": {
+                        "description": "Optional. Rules to restrict incoming IP address."
+                      }
+                    },
+                    "trafficLabel": {
+                      "type": "string",
+                      "defaultValue": "label-1",
+                      "metadata": {
+                        "description": "Optional. Associates a traffic label with a revision. Label name should be consist of lower case alphanumeric characters or dashes."
+                      }
+                    },
+                    "trafficLatestRevision": {
+                      "type": "bool",
+                      "defaultValue": true,
+                      "metadata": {
+                        "description": "Optional. Indicates that the traffic weight belongs to a latest stable revision."
+                      }
+                    },
+                    "trafficRevisionName": {
+                      "type": "string",
+                      "defaultValue": "",
+                      "metadata": {
+                        "description": "Optional. Name of a revision."
+                      }
+                    },
+                    "trafficWeight": {
+                      "type": "int",
+                      "defaultValue": 100,
+                      "metadata": {
+                        "description": "Optional. Traffic weight assigned to a revision."
+                      }
+                    },
+                    "dapr": {
+                      "type": "object",
+                      "defaultValue": {},
+                      "metadata": {
+                        "description": "Optional. Dapr configuration for the Container App."
+                      }
+                    },
+                    "maxInactiveRevisions": {
+                      "type": "int",
+                      "defaultValue": 0,
+                      "metadata": {
+                        "description": "Optional. Max inactive revisions a Container App can have."
+                      }
+                    },
+                    "containers": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/container"
+                      },
+                      "metadata": {
+                        "description": "Required. List of container definitions for the Container App."
+                      }
+                    },
+                    "initContainersTemplate": {
+                      "type": "array",
+                      "defaultValue": [],
+                      "metadata": {
+                        "description": "Optional. List of specialized containers that run before app containers."
+                      }
+                    },
+                    "secrets": {
+                      "type": "secureObject",
+                      "defaultValue": {},
+                      "metadata": {
+                        "description": "Optional. The secrets of the Container App."
+                      }
+                    },
+                    "revisionSuffix": {
+                      "type": "string",
+                      "defaultValue": "",
+                      "metadata": {
+                        "description": "Optional. User friendly suffix that is appended to the revision name."
+                      }
+                    },
+                    "volumes": {
+                      "type": "array",
+                      "defaultValue": [],
+                      "metadata": {
+                        "description": "Optional. List of volume definitions for the Container App."
+                      }
+                    },
+                    "workloadProfileName": {
+                      "type": "string",
+                      "defaultValue": "",
+                      "metadata": {
+                        "description": "Optional. Workload profile name to pin for container app execution."
+                      }
+                    }
+                  },
+                  "variables": {
+                    "copy": [
+                      {
+                        "name": "formattedRoleAssignments",
+                        "count": "[length(coalesce(parameters('roleAssignments'), createArray()))]",
+                        "input": "[union(coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')], createObject('roleDefinitionId', coalesce(tryGet(variables('builtInRoleNames'), coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')].roleDefinitionIdOrName), if(contains(coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')].roleDefinitionIdOrName, '/providers/Microsoft.Authorization/roleDefinitions/'), coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')].roleDefinitionIdOrName, subscriptionResourceId('Microsoft.Authorization/roleDefinitions', coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')].roleDefinitionIdOrName)))))]"
+                      }
+                    ],
+                    "secretList": "[if(not(empty(parameters('secrets'))), parameters('secrets').secureList, createArray())]",
+                    "formattedUserAssignedIdentities": "[reduce(map(coalesce(tryGet(parameters('managedIdentities'), 'userAssignedResourceIds'), createArray()), lambda('id', createObject(format('{0}', lambdaVariables('id')), createObject()))), createObject(), lambda('cur', 'next', union(lambdaVariables('cur'), lambdaVariables('next'))))]",
+                    "identity": "[if(not(empty(parameters('managedIdentities'))), createObject('type', if(coalesce(tryGet(parameters('managedIdentities'), 'systemAssigned'), false()), if(not(empty(coalesce(tryGet(parameters('managedIdentities'), 'userAssignedResourceIds'), createObject()))), 'SystemAssigned,UserAssigned', 'SystemAssigned'), if(not(empty(coalesce(tryGet(parameters('managedIdentities'), 'userAssignedResourceIds'), createObject()))), 'UserAssigned', 'None')), 'userAssignedIdentities', if(not(empty(variables('formattedUserAssignedIdentities'))), variables('formattedUserAssignedIdentities'), null())), null())]",
+                    "builtInRoleNames": {
+                      "ContainerApp Reader": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ad2dd5fb-cd4b-4fd4-a9b6-4fed3630980b')]",
+                      "Contributor": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+                      "Owner": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
+                      "Reader": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
+                      "Role Based Access Control Administrator (Preview)": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'f58310d9-a9f6-439a-9e8d-f62e7b41a168')]",
+                      "User Access Administrator": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '18d7d88d-d35e-4fb5-a5c3-7773c20a72d9')]"
+                    }
+                  },
+                  "resources": {
+                    "avmTelemetry": {
+                      "condition": "[parameters('enableTelemetry')]",
+                      "type": "Microsoft.Resources/deployments",
+                      "apiVersion": "2024-03-01",
+                      "name": "[format('46d3xbcp.res.app-containerapp.{0}.{1}', replace('0.8.0', '.', '-'), substring(uniqueString(deployment().name, parameters('location')), 0, 4))]",
+                      "properties": {
+                        "mode": "Incremental",
+                        "template": {
+                          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                          "contentVersion": "1.0.0.0",
+                          "resources": [],
+                          "outputs": {
+                            "telemetry": {
+                              "type": "String",
+                              "value": "For more information, see https://aka.ms/avm/TelemetryInfo"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "containerApp": {
+                      "type": "Microsoft.App/containerApps",
+                      "apiVersion": "2023-05-01",
+                      "name": "[parameters('name')]",
+                      "tags": "[parameters('tags')]",
+                      "location": "[parameters('location')]",
+                      "identity": "[variables('identity')]",
+                      "properties": {
+                        "environmentId": "[parameters('environmentResourceId')]",
+                        "configuration": {
+                          "activeRevisionsMode": "[parameters('activeRevisionsMode')]",
+                          "dapr": "[if(not(empty(parameters('dapr'))), parameters('dapr'), null())]",
+                          "ingress": "[if(parameters('disableIngress'), null(), createObject('allowInsecure', if(not(equals(parameters('ingressTransport'), 'tcp')), parameters('ingressAllowInsecure'), false()), 'customDomains', if(not(empty(parameters('customDomains'))), parameters('customDomains'), null()), 'corsPolicy', if(and(not(equals(parameters('corsPolicy'), null())), not(equals(parameters('ingressTransport'), 'tcp'))), createObject('allowCredentials', coalesce(tryGet(parameters('corsPolicy'), 'allowCredentials'), false()), 'allowedHeaders', coalesce(tryGet(parameters('corsPolicy'), 'allowedHeaders'), createArray()), 'allowedMethods', coalesce(tryGet(parameters('corsPolicy'), 'allowedMethods'), createArray()), 'allowedOrigins', coalesce(tryGet(parameters('corsPolicy'), 'allowedOrigins'), createArray()), 'exposeHeaders', coalesce(tryGet(parameters('corsPolicy'), 'exposeHeaders'), createArray()), 'maxAge', tryGet(parameters('corsPolicy'), 'maxAge')), null()), 'clientCertificateMode', if(not(equals(parameters('ingressTransport'), 'tcp')), parameters('clientCertificateMode'), null()), 'exposedPort', parameters('exposedPort'), 'external', parameters('ingressExternal'), 'ipSecurityRestrictions', if(not(empty(parameters('ipSecurityRestrictions'))), parameters('ipSecurityRestrictions'), null()), 'targetPort', parameters('ingressTargetPort'), 'stickySessions', createObject('affinity', parameters('stickySessionsAffinity')), 'traffic', if(not(equals(parameters('ingressTransport'), 'tcp')), createArray(createObject('label', parameters('trafficLabel'), 'latestRevision', parameters('trafficLatestRevision'), 'revisionName', parameters('trafficRevisionName'), 'weight', parameters('trafficWeight'))), null()), 'transport', parameters('ingressTransport')))]",
+                          "maxInactiveRevisions": "[parameters('maxInactiveRevisions')]",
+                          "registries": "[if(not(empty(parameters('registries'))), parameters('registries'), null())]",
+                          "secrets": "[variables('secretList')]"
+                        },
+                        "template": {
+                          "containers": "[parameters('containers')]",
+                          "initContainers": "[if(not(empty(parameters('initContainersTemplate'))), parameters('initContainersTemplate'), null())]",
+                          "revisionSuffix": "[parameters('revisionSuffix')]",
+                          "scale": {
+                            "maxReplicas": "[parameters('scaleMaxReplicas')]",
+                            "minReplicas": "[parameters('scaleMinReplicas')]",
+                            "rules": "[if(not(empty(parameters('scaleRules'))), parameters('scaleRules'), null())]"
+                          },
+                          "volumes": "[if(not(empty(parameters('volumes'))), parameters('volumes'), null())]"
+                        },
+                        "workloadProfileName": "[parameters('workloadProfileName')]"
+                      }
+                    },
+                    "containerApp_lock": {
+                      "condition": "[and(not(empty(coalesce(parameters('lock'), createObject()))), not(equals(tryGet(parameters('lock'), 'kind'), 'None')))]",
+                      "type": "Microsoft.Authorization/locks",
+                      "apiVersion": "2020-05-01",
+                      "scope": "[format('Microsoft.App/containerApps/{0}', parameters('name'))]",
+                      "name": "[coalesce(tryGet(parameters('lock'), 'name'), format('lock-{0}', parameters('name')))]",
+                      "properties": {
+                        "level": "[coalesce(tryGet(parameters('lock'), 'kind'), '')]",
+                        "notes": "[if(equals(tryGet(parameters('lock'), 'kind'), 'CanNotDelete'), 'Cannot delete resource or child resources.', 'Cannot delete or modify the resource or child resources.')]"
+                      },
+                      "dependsOn": [
+                        "containerApp"
+                      ]
+                    },
+                    "containerApp_roleAssignments": {
+                      "copy": {
+                        "name": "containerApp_roleAssignments",
+                        "count": "[length(coalesce(variables('formattedRoleAssignments'), createArray()))]"
+                      },
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2022-04-01",
+                      "scope": "[format('Microsoft.App/containerApps/{0}', parameters('name'))]",
+                      "name": "[coalesce(tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'name'), guid(resourceId('Microsoft.App/containerApps', parameters('name')), coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].principalId, coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].roleDefinitionId))]",
+                      "properties": {
+                        "roleDefinitionId": "[coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].roleDefinitionId]",
+                        "principalId": "[coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].principalId]",
+                        "description": "[tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'description')]",
+                        "principalType": "[tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'principalType')]",
+                        "condition": "[tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'condition')]",
+                        "conditionVersion": "[if(not(empty(tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'condition'))), coalesce(tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'conditionVersion'), '2.0'), null())]",
+                        "delegatedManagedIdentityResourceId": "[tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'delegatedManagedIdentityResourceId')]"
+                      },
+                      "dependsOn": [
+                        "containerApp"
+                      ]
+                    }
+                  },
+                  "outputs": {
+                    "resourceId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "The resource ID of the Container App."
+                      },
+                      "value": "[resourceId('Microsoft.App/containerApps', parameters('name'))]"
+                    },
+                    "fqdn": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "The configuration of ingress fqdn."
+                      },
+                      "value": "[if(parameters('disableIngress'), 'IngressDisabled', reference('containerApp').configuration.ingress.fqdn)]"
+                    },
+                    "resourceGroupName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "The name of the resource group the Container App was deployed into."
+                      },
+                      "value": "[resourceGroup().name]"
+                    },
+                    "name": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "The name of the Container App."
+                      },
+                      "value": "[parameters('name')]"
+                    },
+                    "systemAssignedMIPrincipalId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "The principal ID of the system assigned identity."
+                      },
+                      "value": "[coalesce(tryGet(tryGet(reference('containerApp', '2023-05-01', 'full'), 'identity'), 'principalId'), '')]"
+                    },
+                    "location": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "The location the resource was deployed into."
+                      },
+                      "value": "[reference('containerApp', '2023-05-01', 'full').location]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'container-apps-environment')]",
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName'))]",
                 "[resourceId('Microsoft.Resources/deployments', 'voicelabidentity')]"
               ]
             }
@@ -9988,6 +12780,10 @@
             "AZURE_EMAIL_COMMUNICATION_SERVICE_NAME": {
               "type": "string",
               "value": "[if(parameters('enableAzureCommunicationServicesEmail'), variables('emailServiceName'), '')]"
+            },
+            "RALPH_LRS_URI": {
+              "type": "string",
+              "value": "[if(and(parameters('enableRalphLrs'), not(empty(parameters('ralphLrsImage')))), format('https://{0}', reference(resourceId('Microsoft.Resources/deployments', 'ralph-lrs'), '2022-09-01').outputs.fqdn.value), '')]"
             }
           }
         }
@@ -10049,6 +12845,10 @@
     "AZURE_EMAIL_COMMUNICATION_SERVICE_NAME": {
       "type": "string",
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_EMAIL_COMMUNICATION_SERVICE_NAME.value]"
+    },
+    "RALPH_LRS_URI": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.RALPH_LRS_URI.value]"
     }
   }
 }
