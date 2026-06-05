@@ -147,30 +147,6 @@ const useStyles = makeStyles({
     textAlign: 'center',
     justifySelf: 'center',
   },
-  featureList: {
-    listStyle: 'none',
-    margin: 0,
-    padding: 0,
-    display: 'grid',
-    gap: '8px',
-    width: '100%',
-    maxWidth: '46ch',
-    justifySelf: 'center',
-  },
-  featureItem: {
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: '8px',
-    color: t.brand.textSecondary,
-    fontSize: '0.9rem',
-    lineHeight: 1.5,
-    textAlign: 'left',
-  },
-  featureBullet: {
-    color: t.brand.text,
-    fontWeight: '700',
-    lineHeight: 1.5,
-  },
   legalRow: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -335,36 +311,9 @@ export function AuthGateScreen({
             <Text className={styles.title}>Let’s help you get there — intelligently</Text>
 
             <Text className={styles.aboutText}>
-              Wulo Academy is an AI-powered study companion that helps students
-              across Nigeria revise and pass WAEC, NECO, JAMB and JSSCE. Practise
-              real past questions in English, Maths and more, get instant
-              step-by-step feedback from an AI tutor, and follow a personalised
-              plan that targets your weak topics.
+              Practise past questions and pass WAEC, NECO, JAMB & JSSCE with an
+              AI tutor.
             </Text>
-
-            <ul className={styles.featureList}>
-              <li className={styles.featureItem}>
-                <span className={styles.featureBullet}>•</span>
-                <span>
-                  Thousands of WAEC / NECO / JAMB-style practice questions with
-                  worked solutions.
-                </span>
-              </li>
-              <li className={styles.featureItem}>
-                <span className={styles.featureBullet}>•</span>
-                <span>
-                  An AI tutor that explains every answer and adapts to your
-                  level.
-                </span>
-              </li>
-              <li className={styles.featureItem}>
-                <span className={styles.featureBullet}>•</span>
-                <span>
-                  Progress tracking that focuses your revision where it matters
-                  most.
-                </span>
-              </li>
-            </ul>
 
             {isLocalAuthOrigin() ? (
               <div className={styles.actionStack}>
@@ -412,8 +361,7 @@ export function AuthGateScreen({
                   </span>
                 </button>
                 <Text className={styles.helperNote}>
-                  New here? Just continue with Microsoft or Google — we’ll
-                  create your account automatically on first sign-in.
+                  New here? Sign in to create your account.
                 </Text>
               </div>
             )}
