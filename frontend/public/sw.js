@@ -19,7 +19,7 @@ self.addEventListener('push', event => {
   try {
     data = event.data ? event.data.json() : {}
   } catch (err) {
-    data = { title: 'Pathfinder', body: event.data ? event.data.text() : '' }
+    data = { title: 'Wulo Academy', body: event.data ? event.data.text() : '' }
   }
   const title = data.title || 'Time for a quick check-in'
   const options = {

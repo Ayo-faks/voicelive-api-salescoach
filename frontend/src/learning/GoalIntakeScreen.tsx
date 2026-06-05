@@ -486,7 +486,7 @@ export function GoalIntakeScreen({
       <div className={styles.header}>
         <span className={styles.brand}>
           <span className={styles.brandDot} />
-          Pathfinder
+          Wulo Academy
         </span>
         {phase === 'step' ? (
           <div className={styles.progress} aria-hidden>

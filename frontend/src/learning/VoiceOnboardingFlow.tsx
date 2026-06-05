@@ -113,7 +113,7 @@ const STEP_PROMPT: Record<StepKey, string> = {
 }
 
 const CONSENT_SAY =
-  'Welcome to Pathfinder. First, a quick check — please confirm you agree to the terms, privacy notice, and AI notice. Then we’ll set up your learning by voice.'
+  'Welcome to Wulo Academy. First, a quick check — please confirm you agree to the terms, privacy notice, and AI notice. Then we’ll set up your learning by voice.'
 const GENERATING_SAY = 'Perfect. Let me line up the best place for you to start.'
 
 let _blockCounter = 0
@@ -561,7 +561,7 @@ export function VoiceOnboardingFlow({
   )
 
   const statusTitle = useMemo(() => {
-    if (phase === 'consent') return 'Welcome to Pathfinder'
+    if (phase === 'consent') return 'Welcome to Wulo Academy'
     if (phase === 'generating') return 'Finding your starting point…'
     if (phase === 'results')
       return hasResults ? 'Here’s where to start' : 'Let’s try that again'
@@ -587,7 +587,7 @@ export function VoiceOnboardingFlow({
       <div className={styles.header}>
         <span className={styles.brand}>
           <span className={styles.brandDot} />
-          Pathfinder
+          Wulo Academy
         </span>
         <button
           type="button"
@@ -663,7 +663,7 @@ export function VoiceOnboardingFlow({
                   onChange={e => setAiNotice(e.target.checked)}
                   data-testid="onboarding-ai"
                 />
-                I understand Pathfinder uses AI to suggest activities and
+                I understand Wulo Academy uses AI to suggest activities and
                 pathways.
               </label>
               <label className={styles.consentRow}>
