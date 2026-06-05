@@ -36,6 +36,30 @@ def test_get_profile_unknown_scope_raises():
         get_profile("nope")
 
 
+def test_get_profile_learner_goals_shape():
+    profile = get_profile("learner_goals")
+
+    assert profile.id == "learner_goals"
+    assert profile.voice == "en-NG-EzinneNeural"
+    # Unlike the guided learner profile, goal intake must NOT force a tool call
+    # every turn — the agent asks the guided questions first, then calls once.
+    assert profile.forced_response_tool_name is None
+    assert _tool_names(profile) == {"set_goal_and_recommend"}
+
+
+def test_get_profile_learner_onboarding_shape():
+    profile = get_profile("learner_onboarding")
+
+    assert profile.id == "learner_onboarding"
+    assert profile.voice == "en-NG-EzinneNeural"
+    assert profile.forced_response_tool_name is None
+    # Owns getting-to-know-you (set_profile) AND goals (set_goal_and_recommend),
+    # but never consent.
+    assert _tool_names(profile) == {"set_profile", "set_goal_and_recommend"}
+    # The prompt explicitly instructs the agent never to record consent.
+    assert "never ask about or record consent" in profile.system_prompt.lower()
+
+
 def test_learner_get_next_card_delegates_to_taxonomy_gate():
     profile = get_profile("learner")
     result = profile.handle_tool_call(

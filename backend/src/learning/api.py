@@ -107,7 +107,7 @@ from src.learning.learner_voice import (
     LearnerVoiceTurnRequest,
     LearnerVoiceTurnResponse,
 )
-from src.learning.assistant_blocks import PlanBlock, PlanStep, ProfileBlock, ProfileChip
+from src.learning.assistant_blocks import PlanBlock, PlanStep, ProfileBlock, ProfileChip, ProseBlock
 from src.learning.assistant_planner import UnifiedAssistantPlanner
 from src.learning.xapi import (
     ApprovalEvent,
@@ -3175,13 +3175,28 @@ class LearningApi:
                 )
             )
 
-        # 4. Order today's cards so the weakest-skill cards come first.
+        # 4. Order today's cards so the weakest-skill cards come first. A goal
+        #    (Option A soft bias) may nudge specific skills, but only as a
+        #    SECONDARY key: mastery weakness_rank stays primary, so assessed
+        #    skills keep their adaptive order. The goal nudge therefore only
+        #    breaks ties among skills sharing a weakness tier (notably the
+        #    not-yet-assessed fallback tier), never overriding good pedagogy.
         weakness_rank = {
             skill_id: index for index, (skill_id, _est) in enumerate(ranked)
         }
+        goal_skill_ids = {
+            str(s).strip()
+            for s in (payload.get("goal_skill_ids") or [])
+            if str(s or "").strip()
+        }
+        fallback_rank = len(weakness_rank) + 1
         ordered_cards = sorted(
             cards,
-            key=lambda card: weakness_rank.get(card.skill_id or "", len(weakness_rank) + 1),
+            key=lambda card: (
+                weakness_rank.get(card.skill_id or "", fallback_rank),
+                0 if (card.skill_id or "") in goal_skill_ids else 1,
+                card.skill_id or "",
+            ),
         )[: planner.MAX_QUESTIONS]
 
         item_types: List[str] = ["check-in", "practice", "exit-ticket"]
@@ -3219,6 +3234,104 @@ class LearningApi:
             weak_topics=weak_topics,
         )
         return plan.model_dump()
+
+    # Spoken pacing line per goal timeframe (Option A soft bias). Pacing is
+    # expressed as guidance only — it never changes the planner's item count or
+    # mastery ordering, keeping the daily plan contract stable.
+    _GOAL_PACING_SPEAK = {
+        "this_term": "We'll keep the pace tight so you're ready this term.",
+        "this_year": "We'll spread this steadily across the year.",
+        "no_deadline": "No rush — we'll take steady steps.",
+    }
+
+    def set_goal_and_recommend(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        """Build instant "start here" recommendations from a stated goal.
+
+        This is the brain behind the post-onboarding goal intake (voice + text).
+        A goal is an Option A *soft bias* on the single source of truth for the
+        daily queue (:meth:`build_learner_plan`): the goal's subject/exam scope
+        the candidate cards and a ``target_date`` adds a spoken pacing hint,
+        while mastery probability still drives ordering. This method is pure —
+        it never persists the goal (the route / voice tool handler owns
+        persistence via the learner profile store) — so it stays storage-agnostic
+        and returns the shared AssistantBlock contract.
+        """
+        plan_payload: Dict[str, Any] = {
+            "student_id": str(payload.get("student_id") or "").strip(),
+            "tenant_id": payload.get("tenant_id") or PILOT_TENANT_ID,
+        }
+        for key in ("exam", "class_year", "subject"):
+            value = str(payload.get(key) or "").strip()
+            if value:
+                plan_payload[key] = value
+        goal_skill_ids = [
+            str(s).strip()
+            for s in (payload.get("goal_skill_ids") or [])
+            if str(s or "").strip()
+        ]
+        if goal_skill_ids:
+            plan_payload["goal_skill_ids"] = goal_skill_ids
+
+        plan = self.build_learner_plan(plan_payload)
+
+        today = plan.get("today") or []
+        steps = [
+            PlanStep(
+                title=str(item.get("title") or "Practice"),
+                skill_id=item.get("skill_id"),
+            )
+            for item in today
+            if isinstance(item, Mapping)
+        ]
+        subject_label = str(plan.get("subject") or "").strip()
+
+        target_date = str(payload.get("target_date") or "").strip().lower()
+        pacing_speak = self._GOAL_PACING_SPEAK.get(target_date, "")
+
+        if steps:
+            first = steps[0].title
+            lead = (
+                f"Great — let's start with {subject_label}."
+                if subject_label
+                else "Great — here's where to start."
+            )
+            summary = f"{lead} First up: {first}."
+            if pacing_speak:
+                summary = f"{summary} {pacing_speak}"
+            headline = (
+                f"Start here: {subject_label}" if subject_label else "Start here"
+            )
+            blocks: List[Any] = [
+                ProseBlock(
+                    speak=summary,
+                    text=summary,
+                    grounded=True,
+                ),
+                PlanBlock(
+                    speak="",
+                    headline=headline,
+                    steps=steps,
+                ),
+            ]
+        else:
+            fallback = (
+                "Thanks for sharing that. I couldn't line up a starting set just "
+                "yet — try a quick check-in and I'll tune your plan from there."
+            )
+            if pacing_speak:
+                fallback = f"{fallback} {pacing_speak}"
+            blocks = [
+                ProseBlock(
+                    speak=fallback,
+                    text=fallback,
+                    grounded=False,
+                )
+            ]
+
+        return {
+            "blocks": [b.model_dump() for b in blocks],
+            "session_complete": True,
+        }
 
     @staticmethod
     def _load_career_planner() -> Optional[DeterministicCareerPlanner]:

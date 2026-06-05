@@ -327,6 +327,7 @@ class StorageService:
         )
         connection.execute("UPDATE progress_reports SET source = 'pipeline' WHERE source IS NULL OR TRIM(source) = ''")
         self._ensure_insight_tables(connection)
+        self._ensure_column(connection, "learner_profiles", "goals_json", "TEXT NOT NULL DEFAULT '[]'")
 
     def _ensure_parental_consents_table(self, connection: sqlite3.Connection) -> None:
         connection.execute(
@@ -648,6 +649,7 @@ class StorageService:
                 year_group TEXT,
                 subjects_json TEXT NOT NULL DEFAULT '[]',
                 interests_json TEXT NOT NULL DEFAULT '[]',
+                goals_json TEXT NOT NULL DEFAULT '[]',
                 locale TEXT,
                 country TEXT,
                 age_band TEXT,
@@ -5230,6 +5232,11 @@ class StorageService:
             interests = json.loads(row["interests_json"] or "[]")
         except (TypeError, json.JSONDecodeError):
             interests = []
+        goals_raw = row["goals_json"] if "goals_json" in row.keys() else "[]"
+        try:
+            goals = json.loads(goals_raw or "[]")
+        except (TypeError, json.JSONDecodeError):
+            goals = []
         return {
             "user_id": row["user_id"],
             "display_name": row["display_name"],
@@ -5237,6 +5244,7 @@ class StorageService:
             "year_group": row["year_group"],
             "subjects": subjects,
             "interests": interests,
+            "goals": goals,
             "locale": row["locale"],
             "country": row["country"],
             "age_band": row["age_band"],
@@ -5270,6 +5278,8 @@ class StorageService:
                 column_updates["subjects_json"] = json.dumps(list(value or []))
             elif key == "interests":
                 column_updates["interests_json"] = json.dumps(list(value or []))
+            elif key == "goals":
+                column_updates["goals_json"] = json.dumps(list(value or []))
             elif key == "career_consent":
                 column_updates["career_consent"] = 1 if value else 0
             elif key == "analytics_consent":
@@ -5294,6 +5304,7 @@ class StorageService:
                     "year_group": None,
                     "subjects_json": "[]",
                     "interests_json": "[]",
+                    "goals_json": "[]",
                     "locale": None,
                     "country": None,
                     "age_band": None,

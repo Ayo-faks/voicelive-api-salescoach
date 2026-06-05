@@ -46,6 +46,7 @@ from src.learning.mastery_profile import build_child_mastery
 from src.learning.repository_factory import make_repository as make_learning_repository
 from src.learning.profile_config import (
     ALLOWED_CONSENT_KINDS,
+    MAX_GOALS,
     MINOR_AGE_BANDS,
     PROFILE_CONSENT_MIRRORS,
     age_band_from_dob,
@@ -237,6 +238,7 @@ ROLE_STUDENT = "student"
 ROLE_UNASSIGNED = "unassigned"
 B2C_ONBOARDING_FLAG = "PATHFINDER_B2C_ONBOARDING_ENABLED"
 LEARNER_ONBOARDING_FLAG = "PATHFINDER_LEARNER_ONBOARDING_ENABLED"
+LEARNER_GOAL_INTAKE_FLAG = "PATHFINDER_GOAL_INTAKE_ENABLED"
 UNSAFE_HTTP_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 PATHFINDER_LEARN_TEACHER_CLASS_IDS_ENV = "PATHFINDER_LEARN_TEACHER_CLASS_IDS"
 PATHFINDER_LEARN_LEARNER_STUDENT_IDS_ENV = "PATHFINDER_LEARN_LEARNER_STUDENT_IDS"
@@ -2098,6 +2100,14 @@ def _pathfinder_learner_onboarding_enabled() -> bool:
     }
 
 
+def _pathfinder_goal_intake_enabled() -> bool:
+    return os.environ.get(LEARNER_GOAL_INTAKE_FLAG, "false").strip().lower() in {
+        "true",
+        "1",
+        "yes",
+    }
+
+
 def _learner_profile_response(user_id: str) -> Dict[str, Any]:
     profile = storage_service.get_learner_profile(user_id) or {}
     consents = storage_service.latest_consents(user_id)
@@ -2256,8 +2266,227 @@ def learner_daily_plan():
     return jsonify(plan)
 
 
-@app.route("/api/learning/learner/careers", methods=["GET"])
-def learner_career_plan():
+# Map spoken/loose values the voice onboarding agent may pass onto the strict
+# profile enums. Keeps the tool forgiving ("maths" / "ss 2") without weakening
+# the server-side validator (validate_learner_profile_patch still gates).
+_VOICE_EXAM_ALIASES: Dict[str, str] = {
+    "waec": "WAEC",
+    "neco": "NECO",
+    "jamb": "JAMB",
+    "junior waec": "Junior WAEC",
+    "jss waec": "Junior WAEC",
+    "igcse": "IGCSE",
+    "a-level": "A-Level",
+    "a level": "A-Level",
+}
+_VOICE_YEAR_ALIASES: Dict[str, str] = {
+    "jss1": "JSS1", "js1": "JSS1", "jss 1": "JSS1",
+    "jss2": "JSS2", "js2": "JSS2", "jss 2": "JSS2",
+    "jss3": "JSS3", "js3": "JSS3", "jss 3": "JSS3",
+    "ss1": "SS1", "sss1": "SS1", "ss 1": "SS1",
+    "ss2": "SS2", "sss2": "SS2", "ss 2": "SS2",
+    "ss3": "SS3", "sss3": "SS3", "ss 3": "SS3",
+}
+_VOICE_AGE_BAND_ALIASES: Dict[str, str] = {
+    "under 13": "under-13", "under-13": "under-13", "under thirteen": "under-13",
+    "13-15": "13-15", "13 to 15": "13-15",
+    "16-17": "16-17", "16 to 17": "16-17",
+    "18-24": "18-24", "18 to 24": "18-24",
+    "25+": "25-plus", "25 plus": "25-plus", "25-plus": "25-plus",
+}
+
+
+def apply_learner_profile_from_voice(
+    user_id: str, fields: Mapping[str, Any]
+) -> Dict[str, Any]:
+    """Persist NON-CONSENT profile fields captured by the voice onboarding agent.
+
+    The voice agent (``learner_onboarding`` scope) collects the getting-to-know-you
+    fields — name, age band, exam, year group, subjects, interests — and routes
+    them here. Consents (terms/privacy/ai_notice and the under-13 guardian gate)
+    are deliberately NOT accepted on this path: they remain an explicit, auditable
+    text step, so a spoken "sure" can never stand in for legal consent. Loose
+    spoken values are normalised onto the strict enums, then the SAME
+    ``validate_learner_profile_patch`` + ``upsert_learner_profile`` used by the
+    text wizard apply, so grounding/validation behaviour is identical.
+
+    Returns the standard ``_learner_profile_response`` payload (profile, consents,
+    needs_onboarding) so the caller can tell whether the consent gate is still
+    outstanding.
+    """
+    patch: Dict[str, Any] = {}
+
+    name = str(fields.get("display_name") or fields.get("name") or "").strip()
+    if name:
+        patch["display_name"] = name
+
+    age_raw = str(fields.get("age_band") or "").strip().lower()
+    if age_raw:
+        patch["age_band"] = _VOICE_AGE_BAND_ALIASES.get(age_raw, age_raw)
+
+    exam_raw = str(fields.get("exam") or "").strip()
+    if exam_raw:
+        patch["exam"] = _VOICE_EXAM_ALIASES.get(exam_raw.lower(), exam_raw)
+
+    year_raw = str(fields.get("year_group") or "").strip()
+    if year_raw:
+        patch["year_group"] = _VOICE_YEAR_ALIASES.get(year_raw.lower(), year_raw)
+
+    subjects = fields.get("subjects")
+    if isinstance(subjects, list):
+        cleaned_subjects = [str(s).strip() for s in subjects if str(s or "").strip()]
+        if cleaned_subjects:
+            patch["subjects"] = cleaned_subjects
+
+    interests = fields.get("interests")
+    if isinstance(interests, list):
+        cleaned_interests = [str(s).strip() for s in interests if str(s or "").strip()]
+        if cleaned_interests:
+            patch["interests"] = cleaned_interests
+
+    locale = str(fields.get("locale") or "").strip()
+    if locale:
+        patch["locale"] = locale
+
+    if not patch:
+        return _learner_profile_response(user_id)
+
+    cleaned, error = validate_learner_profile_patch(patch)
+    if error is not None:
+        raise LearningApiError(error, status_code=400)
+
+    storage_service.upsert_learner_profile(user_id, cleaned)
+    _log_audit_event(
+        user_id=user_id,
+        action="learner.profile_update.voice",
+        resource_type="learner_profile",
+        resource_id=user_id,
+        metadata={"fields": sorted(cleaned.keys())},
+    )
+    return _learner_profile_response(user_id)
+
+
+def apply_learner_goal_and_recommend(
+    user_id: str,
+    student_id: str,
+    goal_input: Mapping[str, Any],
+    *,
+    tenant_id: str | None = None,
+) -> Dict[str, Any]:
+    """Persist a stated goal then return instant "start here" recommendations.
+
+    Single orchestration point shared by the text endpoint and the
+    ``learner_goals`` voice tool handler: it reads the learner profile, persists
+    the new goal (Option A soft bias — capped, validated, append-most-recent),
+    maps the goal + profile onto the planner taxonomy, and delegates the actual
+    plan + block rendering to ``learning_api.set_goal_and_recommend``. Lives in
+    ``app.py`` because it needs ``storage_service`` (which owns learner
+    profiles); ``LearningApi`` stays storage-agnostic.
+    """
+    profile = storage_service.get_learner_profile(user_id) or {}
+
+    new_goal: Dict[str, Any] = {}
+    subject_raw = str(goal_input.get("subject") or "").strip()
+    exam_raw = str(goal_input.get("exam") or "").strip()
+    target_date_raw = str(goal_input.get("target_date") or "").strip().lower()
+    note_raw = str(goal_input.get("note") or "").strip()
+    if subject_raw:
+        new_goal["subject"] = subject_raw
+    if exam_raw:
+        new_goal["exam"] = exam_raw
+    if target_date_raw:
+        new_goal["target_date"] = target_date_raw
+    if note_raw:
+        new_goal["note"] = note_raw
+
+    # Persist only when the goal carries at least one biasing signal. A note on
+    # its own is conversational colour, never a stored goal.
+    if any(k in new_goal for k in ("subject", "exam", "target_date")):
+        new_goal["created_at"] = datetime.now(timezone.utc).isoformat()
+        existing_goals = profile.get("goals")
+        existing_list = existing_goals if isinstance(existing_goals, list) else []
+        merged = (list(existing_list) + [new_goal])[-MAX_GOALS:]
+        cleaned, error = validate_learner_profile_patch({"goals": merged})
+        if error is None:
+            storage_service.upsert_learner_profile(user_id, {"goals": cleaned["goals"]})
+            profile = storage_service.get_learner_profile(user_id) or profile
+
+    # Map goal (most recent intent) + profile defaults onto the planner taxonomy,
+    # mirroring the learner_daily_plan route so both surfaces stay consistent.
+    plan_payload: Dict[str, Any] = {"student_id": student_id}
+    if tenant_id:
+        plan_payload["tenant_id"] = tenant_id
+
+    resolved_exam = new_goal.get("exam") or str(profile.get("exam") or "").strip()
+    if resolved_exam:
+        plan_payload["exam"] = resolved_exam
+
+    class_year = _LEARNER_PLAN_YEAR_GROUP_TO_CLASS_YEAR.get(
+        str(profile.get("year_group") or "").strip()
+    )
+    if class_year:
+        plan_payload["class_year"] = class_year
+
+    subject_alias = _LEARNER_PLAN_SUBJECT_ALIASES.get(subject_raw.lower())
+    if not subject_alias:
+        subjects = profile.get("subjects")
+        if isinstance(subjects, list):
+            for raw_subject in subjects:
+                alias = _LEARNER_PLAN_SUBJECT_ALIASES.get(
+                    str(raw_subject).strip().lower()
+                )
+                if alias:
+                    subject_alias = alias
+                    break
+    if subject_alias:
+        plan_payload["subject"] = subject_alias
+
+    if new_goal.get("target_date"):
+        plan_payload["target_date"] = new_goal["target_date"]
+
+    return learning_api.set_goal_and_recommend(plan_payload)
+
+
+@app.route("/api/learning/goals/recommend", methods=["POST"])
+def learner_goal_recommend():
+    """Capture a learner's goal and return instant "start here" recommendations."""
+    if not _pathfinder_learner_onboarding_enabled() or not _pathfinder_goal_intake_enabled():
+        return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
+
+    user, guard_response = _require_role(ROLE_LEARNER)
+    if guard_response is not None:
+        return guard_response
+
+    body = request.get_json(silent=True) or {}
+    if not isinstance(body, dict):
+        return jsonify({"error": "request body must be a JSON object"}), HTTP_BAD_REQUEST
+
+    owned_student_ids = _learning_student_ids_for_user(cast(Dict[str, Any], user))
+    requested = str(body.get("student_id") or "").strip()
+    if requested:
+        if requested not in owned_student_ids:
+            return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
+        student_id = requested
+    else:
+        student_id = next(iter(sorted(owned_student_ids)), "")
+    if not student_id:
+        return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
+
+    user_id = str(cast(Dict[str, Any], user).get("id") or "")
+    goal_input = {
+        "subject": body.get("subject"),
+        "exam": body.get("exam"),
+        "target_date": body.get("target_date"),
+        "note": body.get("note"),
+    }
+    try:
+        result = apply_learner_goal_and_recommend(user_id, student_id, goal_input)
+    except LearningApiError as exc:
+        return jsonify({"error": str(exc)}), exc.status_code
+    return jsonify(result)
+
+
+
     """Return mastery-ranked, consent-weighted career pathways for the learner."""
     if not _pathfinder_learner_onboarding_enabled():
         return jsonify({"error": "Not found"}), HTTP_NOT_FOUND

@@ -1069,6 +1069,33 @@ export async function runAssistantTurn(
   return jsonOrThrow<AssistantTurnResult>(response)
 }
 
+/** Coarse pacing buckets a learner goal can carry. */
+export type GoalTimeframe = 'this_term' | 'this_year' | 'no_deadline'
+
+/** The guided-then-freeform goal a learner states after onboarding. */
+export interface GoalRecommendRequest {
+  student_id?: string
+  subject?: string | null
+  exam?: string | null
+  target_date?: GoalTimeframe | null
+  note?: string | null
+}
+
+/**
+ * Capture a stated goal and get instant "start here" recommendations. The goal
+ * is persisted as an Option A soft bias on the daily plan, and the same shared
+ * block contract is returned so voice and text render identically.
+ */
+export async function recommendFromGoal(
+  payload: GoalRecommendRequest
+): Promise<AssistantTurnResult> {
+  const response = await fetch(
+    '/api/learning/goals/recommend',
+    withDefaults({ method: 'POST', body: JSON.stringify(payload) })
+  )
+  return jsonOrThrow<AssistantTurnResult>(response)
+}
+
 export interface LearnerVoiceSocketHandlers {
   onConnected?: () => void
   onResult?: (result: AssistantTurnResult) => void

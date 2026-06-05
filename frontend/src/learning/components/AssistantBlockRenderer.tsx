@@ -218,9 +218,9 @@ const useStyles = makeStyles({
     padding: '4px 10px',
     borderRadius: '999px',
     fontSize: '12px',
-    color: '#9bd4ff',
-    background: 'rgba(155,212,255,0.1)',
-    border: '1px solid rgba(155,212,255,0.25)',
+    color: 'rgba(255,255,255,0.78)',
+    background: 'rgba(255,255,255,0.08)',
+    border: '1px solid rgba(255,255,255,0.2)',
     textDecoration: 'none',
   },
   card: {
@@ -318,7 +318,7 @@ const useStyles = makeStyles({
     width: '8px',
     height: '8px',
     borderRadius: '50%',
-    background: 'rgba(155,212,255,0.7)',
+    background: 'rgba(255,255,255,0.55)',
     flexShrink: 0,
   },
   stepDone: {

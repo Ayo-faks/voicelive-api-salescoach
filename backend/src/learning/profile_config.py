@@ -73,8 +73,18 @@ GUARDIAN_EMAIL_REQUIRED_BAND: Final[str] = "under-13"
 
 MAX_SUBJECTS: Final[int] = 6
 MAX_INTERESTS: Final[int] = 12
+MAX_GOALS: Final[int] = 5
 MAX_DISPLAY_NAME_LEN: Final[int] = 80
 MAX_FREEFORM_LEN: Final[int] = 120
+
+# Coarse pacing buckets for a learner goal. Deliberately not free-form dates:
+# the planner only needs a pacing hint ("by this term" tightens the daily plan),
+# so a bounded enum keeps the spoken/typed answer trivially mappable.
+ALLOWED_GOAL_TIMEFRAMES: Final[tuple[str, ...]] = (
+    "this_term",
+    "this_year",
+    "no_deadline",
+)
 
 _BCP47_RE = re.compile(r"^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$")
 # Pragmatic RFC-5322 subset; full grammar is famously not worth implementing.
@@ -157,6 +167,75 @@ def normalise_interests(value: object) -> list[str] | None:
     return _coerce_string_list(value, limit=MAX_INTERESTS)
 
 
+def normalise_goal(value: object) -> dict | None:
+    """Validate a single learner goal dict (guided-then-freeform intake).
+
+    Returns the cleaned goal or ``None`` when the shape is invalid. All fields
+    are optional individually, but the goal must carry at least one biasing
+    signal (``subject``, ``exam``, or ``target_date``) so an empty goal can't be
+    stored. ``created_at`` is preserved when present (server stamps it otherwise).
+    """
+    if not isinstance(value, dict):
+        return None
+    cleaned: dict = {}
+
+    subject = value.get("subject")
+    if subject is not None:
+        if not isinstance(subject, str):
+            return None
+        subject = subject.strip()
+        if not subject or len(subject) > MAX_FREEFORM_LEN:
+            return None
+        cleaned["subject"] = subject
+
+    exam = value.get("exam")
+    if exam is not None:
+        if not _enum_check(exam, ALLOWED_EXAMS):
+            return None
+        cleaned["exam"] = exam
+
+    target_date = value.get("target_date")
+    if target_date is not None:
+        if not _enum_check(target_date, ALLOWED_GOAL_TIMEFRAMES):
+            return None
+        cleaned["target_date"] = target_date
+
+    note = value.get("note")
+    if note is not None:
+        if not isinstance(note, str):
+            return None
+        note = note.strip()
+        if not note:
+            note = None
+        elif len(note) > MAX_FREEFORM_LEN:
+            return None
+        if note is not None:
+            cleaned["note"] = note
+
+    # An empty goal carries no biasing signal — reject it.
+    if not any(k in cleaned for k in ("subject", "exam", "target_date")):
+        return None
+
+    created_at = value.get("created_at")
+    if isinstance(created_at, str) and created_at.strip():
+        cleaned["created_at"] = created_at.strip()
+    return cleaned
+
+
+def normalise_goals(value: object) -> list[dict] | None:
+    if not isinstance(value, list):
+        return None
+    if len(value) > MAX_GOALS:
+        return None
+    out: list[dict] = []
+    for item in value:
+        goal = normalise_goal(item)
+        if goal is None:
+            return None
+        out.append(goal)
+    return out
+
+
 def _enum_check(value: object, allowed: Iterable[str]) -> bool:
     return isinstance(value, str) and value in allowed
 
@@ -217,6 +296,15 @@ def validate_patch(patch: dict) -> tuple[dict, str | None]:
         if interests is None:
             return {}, f"interests must be a list of <= {MAX_INTERESTS} non-empty strings"
         cleaned["interests"] = interests
+
+    if "goals" in patch:
+        goals = normalise_goals(patch["goals"])
+        if goals is None:
+            return {}, (
+                f"goals must be a list of <= {MAX_GOALS} objects, each with at "
+                "least one of subject/exam/target_date"
+            )
+        cleaned["goals"] = goals
 
     if "locale" in patch:
         raw = patch["locale"]

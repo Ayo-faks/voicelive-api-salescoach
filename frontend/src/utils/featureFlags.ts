@@ -28,6 +28,13 @@ export interface FeatureFlags {
    * in-page `useLearnerSetup` exam picker.
    */
   pathfinder_learner_onboarding_enabled: boolean
+  /**
+   * When true, learners are routed to the post-onboarding goal-intake screen
+   * (`/goals`) where they state a study goal by voice or text and get instant
+   * "start here" recommendations. Default false — onboarding goes straight to
+   * `/home`.
+   */
+  pathfinder_goal_intake_enabled: boolean
 }
 
 export const featureFlags: FeatureFlags = Object.freeze({
@@ -37,6 +44,10 @@ export const featureFlags: FeatureFlags = Object.freeze({
   ),
   pathfinder_learner_onboarding_enabled: _readBool(
     import.meta.env.VITE_PATHFINDER_LEARNER_ONBOARDING_ENABLED,
+    false
+  ),
+  pathfinder_goal_intake_enabled: _readBool(
+    import.meta.env.VITE_PATHFINDER_GOAL_INTAKE_ENABLED,
     false
   ),
 })

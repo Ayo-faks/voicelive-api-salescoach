@@ -33,6 +33,14 @@ interface UseAskPathfinderVoiceOptions {
   subject?: string
   classYear?: string
   exam?: string
+  /**
+   * VoiceLive agent scope. Defaults to `learner_ask` (the dig-deep tutor). Pass
+   * `learner_goals` to drive the post-onboarding goal-intake agent over the same
+   * full-duplex transport.
+   */
+  scope?: string
+  /** Opening instruction spoken by the agent when the session connects. */
+  openingPrompt?: string
   /** A grounded, safeguarded gen-UI block produced by the assistant brain. */
   onBlock: (block: AssistantBlock, sessionComplete: boolean) => void
   /** The learner's own spoken question, once transcribed at the edge. */
@@ -55,9 +63,10 @@ function buildAskVoiceUrl({
   subject,
   classYear,
   exam,
+  scope,
 }: Pick<
   UseAskPathfinderVoiceOptions,
-  'childId' | 'subject' | 'classYear' | 'exam'
+  'childId' | 'subject' | 'classYear' | 'exam' | 'scope'
 >): string {
   const endpoint = '/ws/voice'
   // In the Vite dev server the app runs on :5173 while the backend (and its
@@ -70,7 +79,7 @@ function buildAskVoiceUrl({
     : location.origin
   const url = new URL(endpoint, origin)
   url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
-  url.searchParams.set('scope', 'learner_ask')
+  url.searchParams.set('scope', scope || 'learner_ask')
   url.searchParams.set('child_id', childId)
   if (exam) url.searchParams.set('exam', exam)
   if (classYear) url.searchParams.set('class_year', classYear)
@@ -84,6 +93,8 @@ export function useAskPathfinderVoice({
   subject,
   classYear,
   exam,
+  scope,
+  openingPrompt,
   onBlock,
   onUserTranscript,
   onError,
@@ -109,11 +120,13 @@ export function useAskPathfinderVoice({
   const onBlockRef = useRef(onBlock)
   const onUserTranscriptRef = useRef(onUserTranscript)
   const onErrorRef = useRef(onError)
+  const openingPromptRef = useRef(openingPrompt)
   useEffect(() => {
     onBlockRef.current = onBlock
     onUserTranscriptRef.current = onUserTranscript
     onErrorRef.current = onError
-  }, [onBlock, onUserTranscript, onError])
+    openingPromptRef.current = openingPrompt
+  }, [onBlock, onUserTranscript, onError, openingPrompt])
 
   const send = useCallback((message: Record<string, unknown>) => {
     const ws = wsRef.current
@@ -134,8 +147,8 @@ export function useAskPathfinderVoice({
   }, [recording, toggleRecording])
 
   const wsUrl = useMemo(
-    () => buildAskVoiceUrl({ childId, subject, classYear, exam }),
-    [childId, subject, classYear, exam]
+    () => buildAskVoiceUrl({ childId, subject, classYear, exam, scope }),
+    [childId, subject, classYear, exam, scope]
   )
 
   useEffect(() => {
@@ -165,7 +178,9 @@ export function useAskPathfinderVoice({
             content: [
               {
                 type: 'input_text',
-                text: 'Say a brief, friendly hello and ask what I would like help with today.',
+                text:
+                  openingPromptRef.current ||
+                  'Say a brief, friendly hello and ask what I would like help with today.',
               },
             ],
           },
@@ -248,7 +263,7 @@ export function useAskPathfinderVoice({
         void toggleRecordingRef.current?.()
       }
     }
-  }, [active, playAudio, stopAudio, wsUrl])
+  }, [active, childId, playAudio, stopAudio, wsUrl])
 
   // Auto-open the mic once per activation so the learner can just start talking.
   useEffect(() => {

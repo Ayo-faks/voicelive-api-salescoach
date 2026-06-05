@@ -51,7 +51,7 @@ const AGE_BAND_OPTIONS: Array<{ value: string; label: string }> = [
   { value: '18-24', label: '18–24' },
   { value: '25-plus', label: '25+' },
 ]
-const SUBJECTS_BY_EXAM: Record<string, string[]> = {
+export const SUBJECTS_BY_EXAM: Record<string, string[]> = {
   WAEC: [
     'Mathematics',
     'English Language',
@@ -106,10 +106,11 @@ const INTEREST_OPTIONS = [
   'Law',
   'Sports',
 ]
+export const LEARNER_INTEREST_OPTIONS = INTEREST_OPTIONS
 
 const MAX_SUBJECTS = 6
 const MAX_INTERESTS = 8
-const CURRENT_CONSENT_VERSION = '2026-05-01'
+export const CURRENT_CONSENT_VERSION = '2026-05-01'
 
 /**
  * Age bands that classify the registering user as a minor.

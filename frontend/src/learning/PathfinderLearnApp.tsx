@@ -19,7 +19,7 @@ import {
   UserCircleIcon,
   UsersIcon,
 } from '@heroicons/react/24/outline'
-import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import {
   ChatBubbleLeftRightIcon,
   MicrophoneIcon,
@@ -40,6 +40,8 @@ import {
 import { useLearnerSetup } from './hooks/useLearnerSetup'
 import { useLearnerProfile } from './hooks/useLearnerProfile'
 import LearnerOnboardingWizard from './onboarding/LearnerOnboardingWizard'
+import GoalIntakeScreen from './GoalIntakeScreen'
+import VoiceOnboardingFlow from './VoiceOnboardingFlow'
 import PathwaysExplorer from './routes/PathwaysExplorer'
 import ExamPrepLibrary from './routes/ExamPrepLibrary'
 import SkillLibrary from './routes/SkillLibrary'
@@ -918,6 +920,7 @@ export function CookieConsentBanner({
 export default function PathfinderLearnApp() {
   const styles = useStyles()
   const location = useLocation()
+  const navigate = useNavigate()
   const [authStatus, setAuthStatus] = useState<
     'loading' | 'authenticated' | 'unauthenticated'
   >('loading')
@@ -968,6 +971,7 @@ export default function PathfinderLearnApp() {
     !!appConfig?.learner_voice_fullscreen_enabled &&
     ['learner', 'kid', 'student'].includes(effectiveRole)
   const [practiceOpen, setPracticeOpen] = useState(false)
+  const [onboardingTextMode, setOnboardingTextMode] = useState(false)
   const activeLearnerIdForPractice =
     selectedLearnerId ?? learnerChildren?.[0]?.id ?? null
   const selectedLearnerName =
@@ -1166,12 +1170,55 @@ export default function PathfinderLearnApp() {
     if (!onboardingFlagEnabled || !isLearnerLikeRole) {
       return <Navigate to={defaultPathForRole(effectiveRole)} replace />
     }
+    // Voice-first onboarding (consent gate → narrated profile + goals) when the
+    // goal-intake flag is on, with a one-tap fall back to the classic typed
+    // wizard. The classic wizard then hands off to /goals so a text learner
+    // still sets a goal.
+    if (featureFlags.pathfinder_goal_intake_enabled && !onboardingTextMode) {
+      return (
+        <VoiceOnboardingFlow
+          studentId={activeLearnerIdForPractice ?? ''}
+          profile={learnerProfileGate.profile}
+          patch={learnerProfileGate.patch}
+          recordConsent={learnerProfileGate.recordConsent}
+          onComplete={() => navigate('/home')}
+          onUseTextInstead={() => setOnboardingTextMode(true)}
+        />
+      )
+    }
     return (
       <LearnerOnboardingWizard
         profile={learnerProfileGate.profile}
         isLoading={learnerProfileGate.isLoading}
         patch={learnerProfileGate.patch}
         recordConsent={learnerProfileGate.recordConsent}
+        onComplete={
+          featureFlags.pathfinder_goal_intake_enabled
+            ? () => navigate('/goals')
+            : undefined
+        }
+      />
+    )
+  }
+
+  const goalsRouteElement = () => {
+    if (
+      !onboardingFlagEnabled ||
+      !isLearnerLikeRole ||
+      !featureFlags.pathfinder_goal_intake_enabled
+    ) {
+      return <Navigate to={defaultPathForRole(effectiveRole)} replace />
+    }
+    // Goal intake is a post-onboarding step: a learner who still needs
+    // onboarding must finish the wizard first, otherwise completing goals would
+    // bounce to /home → back to /welcome ("Step 1 of 3") and invert the order.
+    if (learnerNeedsOnboarding) return <Navigate to="/welcome" replace />
+    return (
+      <GoalIntakeScreen
+        studentId={activeLearnerIdForPractice ?? ''}
+        onStart={() => navigate('/home')}
+        onSaveForLater={() => navigate('/home')}
+        onDone={() => navigate('/home')}
       />
     )
   }
@@ -1415,6 +1462,7 @@ export default function PathfinderLearnApp() {
                 element={<Navigate to="/.auth/logout" replace />}
               />
               <Route path="/welcome" element={welcomeRouteElement()} />
+              <Route path="/goals" element={goalsRouteElement()} />
               <Route path="/home" element={homeRouteElement()} />
               <Route
                 path="/family"
