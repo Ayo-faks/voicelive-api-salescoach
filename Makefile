@@ -1,6 +1,6 @@
 PYTHON ?= python
 
-.PHONY: lint lint-explanations verify-phase-1 verify-phase-2 verify-phase-3 verify-phase-4 loadtest-smoke
+.PHONY: lint lint-explanations verify-phase-1 verify-phase-2 verify-phase-3 verify-phase-4 loadtest-smoke loadtest-text-smoke loadtest-voice-smoke
 
 # Pathfinder Learn — W2 contract guard.
 # Fails CI if any ExplanationResult(...) construction site omits or empties
@@ -36,3 +36,17 @@ verify-phase-4:
 # the manual staging ramp.
 loadtest-smoke:
 	PYTHON=$(PYTHON) bash backend/loadtest/run_smoke.sh
+
+# Hermetic k6 load smoke for the Pathfinder Learn TEXT TUTOR journey
+# (diagnostic/start -> diagnostic/answer xN -> assistant/turn) against a local
+# real-socket server mounting the real /api/learning/* blueprint (in-memory repo,
+# no DB/model). No-ops with exit 0 if k6 is not installed.
+loadtest-text-smoke:
+	PYTHON=$(PYTHON) bash backend/loadtest/run_text_smoke.sh
+
+# Hermetic k6 load smoke for the Pathfinder Learn VOICE frame broker
+# (/ws/learning-voice) against a local real-socket server mounting the real
+# LearnerVoiceSocketHandler. Measures connect/auth/frame-relay, never Azure
+# VoiceLive. Set FIXTURE_BRAIN=1 to isolate pure transport. No-ops if k6 missing.
+loadtest-voice-smoke:
+	PYTHON=$(PYTHON) bash backend/loadtest/run_voice_smoke.sh

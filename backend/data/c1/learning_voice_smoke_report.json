@@ -1,0 +1,27 @@
+{
+  "mode": "k6-local-smoke",
+  "surface": "voice-broker",
+  "ws_url": "ws://127.0.0.1:8789/ws/learning-voice",
+  "operator": "smoke",
+  "turns_per_session": 3,
+  "run_at": "2026-06-05T06:48:34.117Z",
+  "slo": {
+    "p95_budget_ms": 800,
+    "p99_budget_ms": 1500,
+    "error_budget": 0.01
+  },
+  "turn_rtt_ms": {
+    "p50": 0,
+    "p90": 1,
+    "p95": 1,
+    "p99": 2,
+    "max": 24,
+    "avg": 0.448582995951417
+  },
+  "sessions": 1235,
+  "connect_ok_rate": 1,
+  "turn_result_rate": 1,
+  "session_error_rate": 0,
+  "thresholds_passed": true,
+  "note": "Synthetic JSON frames only — no audio, never touches Azure VoiceLive. Local smoke runs an in-process brain and is NOT production-representative; use --fixture-brain on the server to isolate pure transport cost. Staging is capped at 1 replica until Phase 3 autoscaling is applied."
+}

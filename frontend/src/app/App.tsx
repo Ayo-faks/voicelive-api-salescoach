@@ -4990,7 +4990,7 @@ export default function App() {
                 aria-label="Go to child practice home"
               >
                 <img
-                  src="/wulo-logo.png"
+                  src="/wulo-logo.png?v=2"
                   alt="Wulo logo"
                   className={styles.brandLogo}
                 />

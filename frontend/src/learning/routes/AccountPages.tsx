@@ -10,6 +10,9 @@ import {
 } from '@heroicons/react/24/outline'
 import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 
+const LAST_UPDATED = '5 June 2026'
+const PRIVACY_CONTACT = 'privacy@wulo.ai'
+
 const useStyles = makeStyles({
   shell: { display: 'grid', gap: '18px', maxWidth: '760px' },
   header: { display: 'grid', gap: '8px' },
@@ -28,6 +31,7 @@ const useStyles = makeStyles({
     letterSpacing: '-0.025em',
   },
   subtitle: { color: tokens.colorNeutralForeground2 },
+  meta: { fontSize: '0.8rem', color: tokens.colorNeutralForeground3 },
   card: {
     backgroundColor: tokens.colorNeutralBackground1,
     borderRadius: '12px',
@@ -260,6 +264,7 @@ export function PathfinderPrivacy() {
         <Text className={styles.subtitle}>
           What Wulo Academy collects from your learning, and what stays with you.
         </Text>
+        <Text className={styles.meta}>Last updated {LAST_UPDATED}</Text>
       </header>
       <article className={styles.card}>
         <Text className={styles.sectionTitle}>What we collect</Text>
@@ -286,6 +291,43 @@ export function PathfinderPrivacy() {
           wizard, and you can ask us to delete your learner profile.
         </Text>
       </article>
+      <article className={styles.card}>
+        <Text className={styles.sectionTitle}>Children and guardians</Text>
+        <Text className={styles.para}>
+          Wulo Academy is built for JSS1–SS3 learners, including children under
+          13. For under-13 learners we require a guardian-acknowledged account,
+          we collect only the minimum needed to run practice, and we never use a
+          child's data for advertising or profiling. Guardians can review,
+          export, or delete their child's learner profile by contacting us.
+        </Text>
+      </article>
+      <article className={styles.card}>
+        <Text className={styles.sectionTitle}>How long we keep your data</Text>
+        <Text className={styles.para}>
+          We keep your learner profile and practice history while your account
+          is active. If your account stays inactive for 24 months, or when you
+          ask us to delete it, we remove your personal data within 30 days,
+          except for limited records we must keep to meet legal obligations.
+        </Text>
+      </article>
+      <article className={styles.card}>
+        <Text className={styles.sectionTitle}>Where your data is processed</Text>
+        <Text className={styles.para}>
+          Wulo Academy runs on Microsoft Azure (Sweden Central). We use Microsoft
+          Azure AI to power tutoring and speech, and Google or Microsoft only to
+          verify your sign-in. We do not share your data with advertising
+          networks.
+        </Text>
+      </article>
+      <article className={styles.card}>
+        <Text className={styles.sectionTitle}>Contact us</Text>
+        <Text className={styles.para}>
+          Questions about your data, or want to exercise your rights? Email{' '}
+          <a href={`mailto:${PRIVACY_CONTACT}`}>{PRIVACY_CONTACT}</a>. Wulo
+          Academy is operated by the Wulo team; contact us for the registered
+          operating entity and postal address.
+        </Text>
+      </article>
     </div>
   )
 }
@@ -303,6 +345,7 @@ export function PathfinderTerms() {
         <Text className={styles.subtitle}>
           The agreement between you and Wulo Academy for using Wulo Academy.
         </Text>
+        <Text className={styles.meta}>Last updated {LAST_UPDATED}</Text>
       </header>
       <article className={styles.card}>
         <Text className={styles.sectionTitle}>Who Wulo Academy is for</Text>
@@ -332,6 +375,15 @@ export function PathfinderTerms() {
           teacher or counsellor.
         </Text>
       </article>
+      <article className={styles.card}>
+        <Text className={styles.sectionTitle}>Contact and changes</Text>
+        <Text className={styles.para}>
+          Wulo Academy is operated by the Wulo team. Questions about these terms?
+          Email <a href={`mailto:${PRIVACY_CONTACT}`}>{PRIVACY_CONTACT}</a>. We
+          may update these terms; we will post the new effective date here and,
+          for material changes, let you know in the app.
+        </Text>
+      </article>
     </div>
   )
 }
@@ -350,6 +402,7 @@ export function PathfinderAiNotice() {
           The tutor is an AI assistant — here is how it works, what it can do,
           and what it must not do.
         </Text>
+        <Text className={styles.meta}>Last updated {LAST_UPDATED}</Text>
       </header>
       <article className={styles.card}>
         <Text className={styles.sectionTitle}>What the AI tutor does</Text>
@@ -373,6 +426,14 @@ export function PathfinderAiNotice() {
           A counsellor signs off on the practice plans for sensitive topics and
           reviews flagged conversations. Pathways guidance stays exploratory and
           never makes promises about future earnings.
+        </Text>
+      </article>
+      <article className={styles.card}>
+        <Text className={styles.sectionTitle}>Your data and the AI</Text>
+        <Text className={styles.para}>
+          The tutor is powered by Microsoft Azure AI. Your practice answers help
+          personalise your learning. We do not sell your data, and we never use a
+          child's data to train advertising or third-party models.
         </Text>
       </article>
     </div>

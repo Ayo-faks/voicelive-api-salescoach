@@ -127,7 +127,7 @@ export function LogoutScreen() {
       <section className={styles.card}>
         <div className={styles.brandRow}>
           <img
-            src="/wulo-logo.png"
+            src="/wulo-logo.png?v=2"
             alt="Wulo logo"
             className={styles.brandMark}
           />

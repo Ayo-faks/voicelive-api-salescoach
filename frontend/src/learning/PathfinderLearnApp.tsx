@@ -1298,7 +1298,7 @@ export default function PathfinderLearnApp() {
             aria-label="Wulo Academy — go to home"
           >
             <img
-              src="/wulo-logo.png"
+              src="/wulo-logo.png?v=2"
               alt=""
               aria-hidden="true"
               className={styles.brandMark}
@@ -1359,7 +1359,7 @@ export default function PathfinderLearnApp() {
               aria-label="Wulo Academy — go to home"
             >
               <img
-                src="/wulo-logo.png"
+                src="/wulo-logo.png?v=2"
                 alt=""
                 aria-hidden="true"
                 className={styles.brandMark}

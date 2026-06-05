@@ -1,0 +1,29 @@
+{
+  "mode": "k6-local-smoke",
+  "surface": "text-tutor",
+  "base_url": "http://127.0.0.1:8790",
+  "operator": "loadtest",
+  "diagnostic_only": true,
+  "answers_per_journey": 5,
+  "run_at": "2026-06-05T06:51:46.797Z",
+  "slo": {
+    "p95_budget_ms": 800,
+    "p99_budget_ms": 1500,
+    "error_budget": 0.01
+  },
+  "latency_ms": {
+    "p50": 1.715265,
+    "p90": 3.5445155,
+    "p95": 4.546802999999999,
+    "p99": 8.174709850000001,
+    "max": 118.850453,
+    "avg": 2.222336229603726
+  },
+  "gated_route": "diagnostic",
+  "assistant_turn_ms": null,
+  "requests": 1716,
+  "error_rate": 0,
+  "journey_completed_rate": 1,
+  "thresholds_passed": true,
+  "note": "Synthetic load only (named operator, synthetic learners). Local smoke hits an in-process in-memory repo and is NOT representative of production latency; only the k6-live-staging mode reflects the deployed stack, and that is capped at 1 replica until the Phase 3 autoscaling change is applied."
+}

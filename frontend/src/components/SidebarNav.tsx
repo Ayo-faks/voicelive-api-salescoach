@@ -393,7 +393,7 @@ export function SidebarNav({
             >
               <span className={styles.brandPlatter}>
                 <img
-                  src="/wulo-logo.png"
+                  src="/wulo-logo.png?v=2"
                   alt="Wulo logo"
                   className={styles.brandLogo}
                 />

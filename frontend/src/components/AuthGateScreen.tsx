@@ -72,8 +72,11 @@ const useStyles = makeStyles({
   },
   brandLockup: {
     display: 'flex',
-    alignItems: 'baseline',
-    gap: '6px',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '2px',
+    textAlign: 'center',
   },
   brandPlatter: {
     width: '48px',
@@ -135,6 +138,53 @@ const useStyles = makeStyles({
     fontSize: '0.92rem',
     maxWidth: '30ch',
     textAlign: 'center',
+  },
+  aboutText: {
+    color: t.brand.textSecondary,
+    lineHeight: 1.6,
+    fontSize: '0.95rem',
+    maxWidth: '46ch',
+    textAlign: 'center',
+    justifySelf: 'center',
+  },
+  featureList: {
+    listStyle: 'none',
+    margin: 0,
+    padding: 0,
+    display: 'grid',
+    gap: '8px',
+    width: '100%',
+    maxWidth: '46ch',
+    justifySelf: 'center',
+  },
+  featureItem: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '8px',
+    color: t.brand.textSecondary,
+    fontSize: '0.9rem',
+    lineHeight: 1.5,
+    textAlign: 'left',
+  },
+  featureBullet: {
+    color: t.brand.text,
+    fontWeight: '700',
+    lineHeight: 1.5,
+  },
+  legalRow: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    marginTop: '4px',
+    color: t.brand.textTertiary,
+    fontSize: '0.78rem',
+  },
+  legalLink: {
+    color: t.brand.textTertiary,
+    textDecoration: 'underline',
+    cursor: 'pointer',
   },
   actionStack: {
     display: 'grid',
@@ -234,14 +284,14 @@ export function AuthGateScreen({
         <div className={styles.brandRow}>
           <span className={styles.brandPlatter}>
             <img
-              src="/wulo-logo.png"
+              src="/wulo-logo.png?v=2"
               alt="Wulo logo"
               className={styles.brandMark}
             />
           </span>
           <div className={styles.brandLockup}>
-            <Text className={styles.brandName}>{APP_TITLE}</Text>
             <Text className={styles.brandMeta}>{APP_RELEASE_LABEL}</Text>
+            <Text className={styles.brandName}>{APP_TITLE}</Text>
           </div>
         </div>
 
@@ -283,6 +333,38 @@ export function AuthGateScreen({
           <>
             <Text className={styles.eyebrow}>Welcome back</Text>
             <Text className={styles.title}>Let’s help you get there — intelligently</Text>
+
+            <Text className={styles.aboutText}>
+              Wulo Academy is an AI-powered study companion that helps students
+              across Nigeria revise and pass WAEC, NECO, JAMB and JSSCE. Practise
+              real past questions in English, Maths and more, get instant
+              step-by-step feedback from an AI tutor, and follow a personalised
+              plan that targets your weak topics.
+            </Text>
+
+            <ul className={styles.featureList}>
+              <li className={styles.featureItem}>
+                <span className={styles.featureBullet}>•</span>
+                <span>
+                  Thousands of WAEC / NECO / JAMB-style practice questions with
+                  worked solutions.
+                </span>
+              </li>
+              <li className={styles.featureItem}>
+                <span className={styles.featureBullet}>•</span>
+                <span>
+                  An AI tutor that explains every answer and adapts to your
+                  level.
+                </span>
+              </li>
+              <li className={styles.featureItem}>
+                <span className={styles.featureBullet}>•</span>
+                <span>
+                  Progress tracking that focuses your revision where it matters
+                  most.
+                </span>
+              </li>
+            </ul>
 
             {isLocalAuthOrigin() ? (
               <div className={styles.actionStack}>
@@ -335,6 +417,20 @@ export function AuthGateScreen({
                 </Text>
               </div>
             )}
+
+            <div className={styles.legalRow}>
+              <a className={styles.legalLink} href="/privacy">
+                Privacy
+              </a>
+              <span aria-hidden="true">·</span>
+              <a className={styles.legalLink} href="/terms">
+                Terms
+              </a>
+              <span aria-hidden="true">·</span>
+              <a className={styles.legalLink} href="/ai-transparency">
+                How we use AI
+              </a>
+            </div>
           </>
         )}
       </section>
