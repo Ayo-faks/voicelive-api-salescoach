@@ -282,7 +282,7 @@ export function AuthGateScreen({
         ) : (
           <>
             <Text className={styles.eyebrow}>Welcome back</Text>
-            <Text className={styles.title}>Your study companion for exam success</Text>
+            <Text className={styles.title}>Let’s help you get there — intelligently</Text>
 
             {isLocalAuthOrigin() ? (
               <div className={styles.actionStack}>

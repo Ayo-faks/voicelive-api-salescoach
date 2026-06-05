@@ -1,12 +1,13 @@
 {
-  "name": "Wulo — AI Speech Therapy Practice for Kids",
-  "short_name": "Wulo",
-  "description": "AI-powered speech therapy practice app for children. Helps kids improve articulation, phonological awareness, and language skills through interactive sessions with friendly virtual buddies.",
+  "name": "Wulo Academy — Pass WAEC, JAMB, NECO & JSSCE",
+  "short_name": "Wulo Academy",
+  "description": "AI study companion that helps Nigerian students pass WAEC, JAMB, NECO, JSSCE and SSCE. Practise past questions in English, Maths and more with an adaptive AI tutor and instant feedback.",
+  "lang": "en-NG",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FFF9F2",
-  "theme_color": "#FFF9F2",
-  "categories": ["health", "education", "kids"],
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
+  "categories": ["education", "productivity"],
   "icons": [
     { "src": "/icon-192x192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/icon-512x512.png", "sizes": "512x512", "type": "image/png" }
