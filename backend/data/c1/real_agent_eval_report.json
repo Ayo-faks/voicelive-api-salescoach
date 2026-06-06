@@ -2,13 +2,15 @@
   "mode": "real-agent-eval",
   "tutor_deployment": "gpt-4o",
   "safeguard_deployment": "gpt-4o",
+  "safeguard_production_pin": "gpt-4o",
+  "safeguard_pin_match": true,
   "endpoint": "https://aifoundry-voicelab-e5dj24rvkgx2c.cognitiveservices.azure.com/",
   "rag": {
     "nodes": 96,
     "corpus_files": 4,
     "dense_retrieval": false
   },
-  "wall_clock_s": 72.33,
+  "wall_clock_s": 39.66,
   "agents": {
     "A2_text_tutor": {
       "metrics": {
@@ -41,7 +43,7 @@
           "citations": [
             "{'label': 'Comparing fractions', 'topic_id': 'wiki.maths.jss3.fractions.compare'}"
           ],
-          "excerpt": "To compare two fractions, you can use cross-multiplication as a shortcut. For example, if you have \\( \\frac{a}{b} \\) and \\( \\frac{c}{d} \\), multiply \\( a \\) by "
+          "excerpt": "To compare two fractions, you can use cross-multiplication as a shortcut. Multiply the numerator of the first fraction by the denominator of the second, and the"
         },
         {
           "agent": "A2-text-tutor",
@@ -54,7 +56,7 @@
           "citations": [
             "{'label': 'Equivalent ratios', 'topic_id': 'wiki.maths.jss3.ratio.equivalent'}"
           ],
-          "excerpt": "Sure! Equivalent ratios are ratios that represent the same relationship when simplified. For example, the ratio 2:3 is equivalent to 4:6 because if you multiply"
+          "excerpt": "Sure! Equivalent ratios are like fractions that represent the same relationship. For example, the ratio 2:3 is equivalent to 4:6 because if you multiply both pa"
         },
         {
           "agent": "A2-text-tutor",
@@ -67,7 +69,7 @@
           "citations": [
             "{'label': 'Solving linear equations', 'topic_id': 'wiki.maths.ss3.simple-equations-and-variation.solving-linear-equations'}"
           ],
-          "excerpt": "To solve 2x + 3 = 11, follow these steps:  1. Start by isolating the term with the unknown (2x). Subtract 3 from both sides: 2x + 3 - 3 = 11 - 3, which simplifi"
+          "excerpt": "To solve the equation 2x + 3 = 11, follow these steps:  1. First, get rid of the constant term on the left side by subtracting 3 from both sides: 2x + 3 - 3 = 1"
         },
         {
           "agent": "A2-text-tutor",
@@ -94,7 +96,7 @@
           "citations": [
             "{'label': 'Simplifying algebraic expressions', 'topic_id': 'wiki.maths.jss3.algebraic-processes.simplifying-expressions'}"
           ],
-          "excerpt": "To simplify an algebraic expression, first collect like terms. Like terms have the same letter part, such as 3x and 5x, which combine to give 8x. If there are b"
+          "excerpt": "To simplify an algebraic expression, first collect like terms. Like terms have the same letter part, such as 3x and 5x, which can be added to give 8x. If there "
         },
         {
           "agent": "A2-text-tutor",
@@ -109,7 +111,7 @@
             "{'label': 'Quadratic equations', 'topic_id': 'wiki.maths.ss3.quadratic.intro'}",
             "{'label': 'Solving quadratics by factorisation', 'topic_id': 'wiki.maths.ss3.quadratics.factorisation'}"
           ],
-          "excerpt": "To solve a quadratic equation by factorisation, follow these steps:  1. Write the equation in the form ax^2 + bx + c = 0 (S2). 2. Find two numbers that multiply"
+          "excerpt": "To solve a quadratic equation by factorisation, follow these steps:  1. Write the equation in standard form: ax^2 + bx + c = 0 (S2). 2. Find two numbers that mu"
         },
         {
           "agent": "A2-text-tutor",
@@ -120,7 +122,7 @@
           "match": false,
           "reason": "grounded, no citation",
           "citations": [],
-          "excerpt": "You use the quadratic formula when the quadratic equation does not factorise easily or when the numbers involved are too complex for simple factorisation. The f"
+          "excerpt": "You use the quadratic formula when the quadratic equation does not factorise easily. This happens if you cannot find two numbers that multiply to give a*c and a"
         },
         {
           "agent": "A2-text-tutor",
@@ -134,7 +136,7 @@
             "{'label': 'Laws of indices', 'topic_id': 'wiki.maths.ss3.indices.laws'}",
             "{'label': 'Laws of indices', 'topic_id': 'wiki.maths.ss3.indices.laws-of-indices'}"
           ],
-          "excerpt": "The laws of indices are rules that help simplify expressions with powers. Here are the main ones: 1. When multiplying powers of the same base, add the indices: "
+          "excerpt": "The laws of indices are rules that help us simplify and work with powers. Here are the main ones:  1. When multiplying powers of the same base, add the indices:"
         },
         {
           "agent": "A2-text-tutor",
@@ -147,7 +149,7 @@
           "citations": [
             "{'label': 'Simultaneous linear equations', 'topic_id': 'wiki.maths.ss3.simultaneous.solve'}"
           ],
-          "excerpt": "To solve simultaneous linear equations, let\u2019s use the elimination method as an example. Suppose we have: 1) 2x + y = 10 2) x - y = 2.  Step 1: Add the equations"
+          "excerpt": "Sure! Let\u0019s solve this example using both the elimination and substitution methods:  Example: Solve the equations 2x + y = 7 and x - y = 1.  **Elimination metho"
         },
         {
           "agent": "A2-text-tutor",
@@ -160,7 +162,7 @@
           "citations": [
             "{'label': 'Mensuration: area and volume', 'topic_id': 'wiki.maths.ss3.mensuration.area-volume'}"
           ],
-          "excerpt": "To find the area or volume in mensuration, first identify the shape. For area, use the formula for the specific shape: e.g., rectangle = length * width, triangl"
+          "excerpt": "To find area or volume in mensuration, first identify the shape. For area, use the correct formula for the shape: rectangle (length * width), triangle (1/2 * ba"
         },
         {
           "agent": "A2-text-tutor",
@@ -173,7 +175,7 @@
           "citations": [
             "{'label': 'Tense agreement', 'topic_id': 'wiki.english.jss3.grammar.tense_agreement'}"
           ],
-          "excerpt": "A verb must agree with its subject to make the sentence clear and grammatically correct. For example, in the present tense, if the subject is singular like 'he'"
+          "excerpt": "A verb must agree with its subject to ensure the sentence is clear and grammatically correct. For example, in English, singular subjects take singular verbs ('S"
         },
         {
           "agent": "A2-text-tutor",
@@ -186,7 +188,7 @@
           "citations": [
             "{'label': 'Articles: a, an, the', 'topic_id': 'wiki.english.jss3.grammar.articles'}"
           ],
-          "excerpt": "You use 'a' before words that start with a consonant sound, like 'a book', and 'an' before words that start with a vowel sound, like 'an apple'. Remember, it\u2019s "
+          "excerpt": "You use 'a' before words that start with a consonant sound, like 'a boy'. Use 'an' before words that start with a vowel sound, like 'an apple'. Remember, it\u2019s a"
         },
         {
           "agent": "A2-text-tutor",
@@ -199,7 +201,7 @@
           "citations": [
             "{'label': 'Finding the main idea', 'topic_id': 'wiki.english.jss3.comprehension.main_idea'}"
           ],
-          "excerpt": "To find the main idea in a comprehension passage, focus on the single point the writer wants you to remember. Look for a sentence that summarises the whole pass"
+          "excerpt": "To find the main idea in a comprehension passage, focus on the single point the writer wants you to understand. Look for a sentence that summarises the entire p"
         },
         {
           "agent": "A2-text-tutor",
@@ -212,7 +214,7 @@
           "citations": [
             "{'label': 'Figures of speech', 'topic_id': 'wiki.english.ss3.figurative.devices'}"
           ],
-          "excerpt": "Figures of speech are special ways of using words to make your writing or speaking more interesting and expressive. For example, a simile compares two things us"
+          "excerpt": "Figures of speech are special ways of using words to make writing or speaking more interesting, clear, or dramatic. For example, a simile compares two things us"
         },
         {
           "agent": "A2-text-tutor",
@@ -225,7 +227,7 @@
           "citations": [
             "{'label': 'Summary and paraphrase', 'topic_id': 'wiki.english.ss3.summary.paraphrase'}"
           ],
-          "excerpt": "To write a good summary, focus on the main idea and remove extra details. For a paraphrase, keep all the meaning but use your own words by replacing key words w"
+          "excerpt": "To write a good summary, focus on the main idea and remove extra details. For a paraphrase, keep all the meaning but change the wording by using synonyms and re"
         },
         {
           "agent": "A2-text-tutor",
@@ -238,7 +240,7 @@
           "citations": [
             "{'label': 'The equation for photosynthesis', 'topic_id': 'wiki.biology.ss3.photosynthesis.word-and-chemical-equation'}"
           ],
-          "excerpt": "Photosynthesis is the process where green plants use carbon dioxide and water, in the presence of light energy and chlorophyll, to produce glucose and oxygen. I"
+          "excerpt": "Photosynthesis is the process where green plants use carbon dioxide and water, in the presence of light energy and chlorophyll, to produce glucose and oxygen. T"
         },
         {
           "agent": "A2-text-tutor",
@@ -264,7 +266,7 @@
           "citations": [
             "{'label': 'Natural selection', 'topic_id': 'wiki.biology.ss3.evolution-conservation.natural-selection'}"
           ],
-          "excerpt": "Natural selection is the process where individuals in a species with features that suit their environment best are more likely to survive, reproduce, and pass t"
+          "excerpt": "Natural selection is the process where individuals with features that suit their environment survive and reproduce more successfully than others. These helpful "
         },
         {
           "agent": "A2-text-tutor",
@@ -620,7 +622,7 @@
     "Real Azure OpenAI spend on shared quota; the case set is dozens of cases (tutor + safeguarding), not hundreds \u2014 broader than the original handful but still a sample, not exhaustive coverage.",
     "Retrieval is lexical by default; set AOAI_DENSE_RETRIEVAL=1 for the dense pass.",
     "Safeguarding content is synthetic, non-graphic, and author-written (not drawn from real disclosures); it spans critical/medium/benign but is not a clinically validated corpus.",
-    "Production pins the safeguarding classifier to gpt-4o-mini; that deployment is absent on this AI Foundry resource, so this run uses gpt-4o. Re-run with AOAI_SAFEGUARD_DEPLOYMENT pointed at the production deployment to measure the shipped model.",
+    "Safeguarding classifier evaluated on 'gpt-4o', which MATCHES the production pin ('gpt-4o') \u2014 this run measures the shipped model.",
     "A1 insights / A8 planning are covered by an OFFLINE harness: A1 drives the real CopilotInsightsPlanner.run_turn over a fake Copilot SDK client (scripted tool calls + scripted answer) so the budget hook and response parsing are exercised for real, but no live model judges the answer; A8 evaluates the deterministic StubLearningPlanner (the only LearningPlanner that exists). Neither makes a network call.",
     "A3 conversation / A4 voice are not separately scored: A3's text reasoning is the same ModelAssistantProvider path covered by A2, and A4 is the realtime voice transport over that reasoning."
   ]
