@@ -475,6 +475,7 @@ def test_agent_mesh_section_dark_without_history(monkeypatch, tmp_path):
         "mesh-veto-rate",
         "mesh-veto-drift",
         "mesh-rollback-proposals",
+        "mesh-mastery-calibration",
         "mesh-tutor-accuracy",
         "mesh-safeguarding-recall",
         "mesh-planner-eval",
@@ -579,6 +580,88 @@ def test_agent_mesh_section_reads_agent_eval_history(monkeypatch, tmp_path):
     assert tiles["mesh-planner-eval"]["value"] == "pass"
     assert tiles["mesh-planner-eval"]["status"] == "ok"
     assert tiles["mesh-planner-eval"]["source"] == "kql"
+
+
+def _calibration_payload(passed: bool):
+    return {
+        "metrics": [
+            {
+                "estimator": "BetaBKT",
+                "brier": 0.229,
+                "ece": 0.046,
+                "log_loss": 0.652,
+                "count": 1000,
+                "base_rate": 0.466,
+            },
+            {"estimator": "Elo", "brier": 0.180, "ece": 0.084, "log_loss": 0.541, "count": 1000, "base_rate": 0.466},
+        ],
+        "winners": {"brier": "Elo", "log_loss": "Elo", "ece": "BetaBKT"},
+        "better_estimator": "Elo",
+        "thresholds": {"max_brier": 0.25, "max_ece": 0.10},
+        "passed": passed,
+        "blocking_reasons": [] if passed else ["Elo.brier 0.2600 > 0.25"],
+    }
+
+
+def test_agent_mesh_section_reads_calibration_history(monkeypatch, tmp_path):
+    import json as _json
+
+    history = tmp_path / "history.jsonl"
+    row = {"seq": 1, "kind": "calibration", "ts": 1.0, "payload": _calibration_payload(True), "tags": {}}
+    history.write_text(_json.dumps(row) + "\n", encoding="utf-8")
+
+    monkeypatch.setenv("AGENT_MESH_HISTORY_PATH", str(history))
+    observability = _enabled_observability()
+    client = _client(_learning_api(observability))
+
+    response = client.get("/api/learning/observability/dashboard")
+    assert response.status_code == 200
+    body = response.get_json()
+
+    mesh = next(s for s in body["sections"] if s["id"] == "agent-mesh")
+    tiles = {tile["id"]: tile for tile in mesh["tiles"]}
+    cal = tiles["mesh-mastery-calibration"]
+    assert cal["status"] == "ok"
+    assert cal["source"] == "kql"
+    assert "Elo" in cal["value"]
+    assert "Brier 0.180" in cal["value"]
+
+
+def test_agent_mesh_calibration_tile_crit_on_fail(monkeypatch, tmp_path):
+    import json as _json
+
+    history = tmp_path / "history.jsonl"
+    row = {"seq": 1, "kind": "calibration", "ts": 1.0, "payload": _calibration_payload(False), "tags": {}}
+    history.write_text(_json.dumps(row) + "\n", encoding="utf-8")
+
+    monkeypatch.setenv("AGENT_MESH_HISTORY_PATH", str(history))
+    client = _client(_learning_api(_enabled_observability()))
+
+    body = client.get("/api/learning/observability/dashboard").get_json()
+    mesh = next(s for s in body["sections"] if s["id"] == "agent-mesh")
+    cal = {tile["id"]: tile for tile in mesh["tiles"]}["mesh-mastery-calibration"]
+    assert cal["status"] == "crit"
+    assert "blocking" in cal["detail"]
+
+
+def test_agent_mesh_calibration_tile_nodata_on_malformed(monkeypatch, tmp_path):
+    import json as _json
+
+    history = tmp_path / "history.jsonl"
+    # A malformed calibration payload (missing better_estimator/metrics) must
+    # degrade to a nodata tile, never raise/500.
+    row = {"seq": 1, "kind": "calibration", "ts": 1.0, "payload": {"unexpected": "shape"}, "tags": {}}
+    history.write_text(_json.dumps(row) + "\n", encoding="utf-8")
+
+    monkeypatch.setenv("AGENT_MESH_HISTORY_PATH", str(history))
+    client = _client(_learning_api(_enabled_observability()))
+
+    response = client.get("/api/learning/observability/dashboard")
+    assert response.status_code == 200
+    mesh = next(s for s in response.get_json()["sections"] if s["id"] == "agent-mesh")
+    cal = {tile["id"]: tile for tile in mesh["tiles"]}["mesh-mastery-calibration"]
+    assert cal["status"] == "nodata"
+    assert cal["source"] == "nodata"
 
 
 def test_observability_dashboard_degrades_without_signals():

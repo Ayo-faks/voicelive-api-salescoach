@@ -1,0 +1,4092 @@
+{
+  "schema": "calibration_events.v1",
+  "generated_by": "scripts/gen_calibration_fixture.py",
+  "seed": 20260606,
+  "model": "P(correct) = logistic(ability - difficulty); ability ~ N(0, 1.2); difficulty in [-2,-1,0,1,2]; outcomes ~ Bernoulli(P_true)",
+  "n_learners": 40,
+  "items_per_learner": 25,
+  "count": 1000,
+  "base_rate": 0.466,
+  "sequences": [
+    [
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      }
+    ],
+    [
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      }
+    ],
+    [
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      }
+    ],
+    [
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      }
+    ],
+    [
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      }
+    ],
+    [
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      }
+    ],
+    [
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      }
+    ],
+    [
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      }
+    ],
+    [
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      }
+    ],
+    [
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      }
+    ],
+    [
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      }
+    ],
+    [
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      }
+    ],
+    [
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      }
+    ],
+    [
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      }
+    ],
+    [
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 1.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -1.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": -2.0,
+        "correct": true
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 2.0,
+        "correct": false
+      },
+      {
+        "item_difficulty": 0.0,
+        "correct": false
+      }
+    ]
+  ]
+}

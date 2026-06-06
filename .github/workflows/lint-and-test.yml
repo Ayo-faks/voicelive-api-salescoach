@@ -80,6 +80,41 @@ jobs:
         echo "Grading committed real-agent eval report (fail on hard block)..."
         python scripts/ci_eval_gate.py --force
 
+  calibration-gate:
+    # Blocking mastery-calibration gate: replays the committed seeded fixture
+    # through the BetaBKT and Elo estimators head-to-head and fails the pipeline
+    # if the better estimator's Brier/ECE breaches the gate (Brier <= 0.25 AND
+    # ECE <= 0.10). Fully offline, deterministic, and credential-free — the fixture
+    # is the reproducible evidence (regenerate with scripts/gen_calibration_fixture.py).
+    if: github.event_name == 'push' || github.base_ref == 'main'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install Python dependencies
+      working-directory: ./backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Verify calibration fixture is reproducible
+      working-directory: ./backend
+      run: python scripts/gen_calibration_fixture.py --check
+
+    - name: Run blocking mastery-calibration gate
+      working-directory: ./backend
+      env:
+        PYTHONPATH: src:src/services
+      run: |
+        echo "Grading mastery calibration on the committed fixture (fail on gate breach)..."
+        python scripts/calibration_eval.py
+
   loadtest-smoke:
     # Hermetic k6 load smoke for /internal/agent-mesh/score: starts a local
     # real-socket server and runs the k6 script in 1-VU/5s SMOKE mode with SLO
