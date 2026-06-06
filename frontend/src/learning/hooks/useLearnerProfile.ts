@@ -156,7 +156,10 @@ export function useLearnerProfile(): UseLearnerProfileResult {
   const [legacySetup, legacyUpdate] = useLearnerSetup()
   const [profile, setProfile] = useState<LearnerProfile | null>(null)
   const [consentsLoaded, setConsentsLoaded] = useState(false)
-  const [needsOnboarding, setNeedsOnboarding] = useState(false)
+  // Assume onboarding is needed until the GET proves otherwise. Otherwise
+  // route guards that read `needsOnboarding` see `false` on first render and
+  // briefly admit a fresh learner into `/home` before the API resolves.
+  const [needsOnboarding, setNeedsOnboarding] = useState(flagEnabled)
   const [isLoading, setIsLoading] = useState(flagEnabled)
   const [error, setError] = useState<string | null>(null)
   const migrationDone = useRef(false)
