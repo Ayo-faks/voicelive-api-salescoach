@@ -1,0 +1,54 @@
+{
+  "CFDocument": {
+    "identifier": "9f6c3f2e-1a4f-4b80-9a8a-1f4f3c4f8a01",
+    "title": "NERDC JSS2 Mathematics Curriculum",
+    "creator": "Nigerian Educational Research and Development Council",
+    "officialSourceURL": "https://nerdc.gov.ng/curriculum/jss2-mathematics",
+    "version": "CASE 1.1",
+    "lastChangeDateTime": "2026-01-01T00:00:00Z"
+  },
+  "CFItems": [
+    {
+      "identifier": "skill-ratio-proportion",
+      "humanCodingScheme": "JSS2-MA-1",
+      "CFItemType": "Skill",
+      "fullStatement": "Apply ratio and proportion to solve real-world problems involving sharing and scaling.",
+      "abbreviatedStatement": "Ratio and proportion"
+    },
+    {
+      "identifier": "skill-fraction-operations",
+      "humanCodingScheme": "JSS2-MA-2",
+      "CFItemType": "Skill",
+      "fullStatement": "Perform the four basic operations on fractions and apply them to word problems.",
+      "abbreviatedStatement": "Fraction operations"
+    },
+    {
+      "identifier": "skill-linear-equations",
+      "humanCodingScheme": "JSS2-MA-3",
+      "CFItemType": "Skill",
+      "fullStatement": "Solve simple linear equations in one variable and interpret the solution.",
+      "abbreviatedStatement": "Linear equations"
+    },
+    {
+      "identifier": "skill-plane-geometry",
+      "humanCodingScheme": "JSS2-MA-4",
+      "CFItemType": "Skill",
+      "fullStatement": "Identify properties of plane shapes and calculate perimeter and area of polygons.",
+      "abbreviatedStatement": "Plane geometry"
+    }
+  ],
+  "CFAssociations": [
+    {
+      "identifier": "assoc-ratio-fraction",
+      "associationType": "isPeerOf",
+      "originNodeURI": { "identifier": "skill-ratio-proportion" },
+      "destinationNodeURI": { "identifier": "skill-fraction-operations" }
+    },
+    {
+      "identifier": "assoc-linear-geometry",
+      "associationType": "isPeerOf",
+      "originNodeURI": { "identifier": "skill-linear-equations" },
+      "destinationNodeURI": { "identifier": "skill-plane-geometry" }
+    }
+  ]
+}

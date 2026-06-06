@@ -168,7 +168,7 @@ Thumbs.db
 
 .pytest_cache
 .azure
-evidence/
+evidence/*
 !evidence/compliance/
 evidence/compliance/bundle.zip
 evidence/compliance/bundle.zip.manifest.json

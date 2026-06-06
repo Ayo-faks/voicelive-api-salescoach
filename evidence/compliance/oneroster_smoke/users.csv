@@ -1,0 +1,5 @@
+sourcedId,status,role,familyName,givenName
+user-teacher-1,active,teacher,Okafor,Ada
+user-student-1,active,student,Bello,Musa
+user-student-2,active,student,Eze,Chioma
+user-admin-1,active,administrator,Lawal,Tunde
