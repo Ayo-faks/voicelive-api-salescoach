@@ -1,0 +1,5 @@
+sourcedId,status,classSourcedId,userSourcedId,role
+enr-1,active,class-jss2a,user-teacher-1,teacher
+enr-2,active,class-jss2a,user-student-1,student
+enr-3,active,class-jss2b,user-student-2,student
+enr-4,active,class-jss2b,user-admin-1,administrator
