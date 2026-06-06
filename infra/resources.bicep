@@ -944,6 +944,10 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
               value: 'swedencentral'
             }
             {
+              name: 'AZURE_SPEECH_ENDPOINT'
+              value: speechService.properties.endpoint
+            }
+            {
               name: 'AZURE_AI_RESOURCE_NAME'
               value: aiFoundryResource.name
             }
