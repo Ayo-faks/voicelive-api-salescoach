@@ -2238,6 +2238,7 @@ class LearningApi:
         eval_records: List[Any] = []
         safeguarding_records: List[Any] = []
         agent_eval_records: List[Any] = []
+        calibration_records: List[Any] = []
         sink: Any = None
         try:
             sink = JsonlDurableSink(history_path)
@@ -2245,6 +2246,7 @@ class LearningApi:
             eval_records = sink.read(limit=20, kind="genaiops")
             safeguarding_records = sink.read(limit=256, kind="safeguarding")
             agent_eval_records = sink.read(limit=20, kind="agent_eval")
+            calibration_records = sink.read(limit=20, kind="calibration")
         except Exception:  # pragma: no cover - dashboard must never 500
             sink = None
 
@@ -2305,6 +2307,13 @@ class LearningApi:
         agent_eval_payload = agent_eval_records[-1].payload if agent_eval_records else {}
         eval_tiles = self._agent_eval_tiles(agent_eval_payload)
 
+        # Tile 8: mastery-estimator calibration (Brier/ECE head-to-head) — sourced
+        # from the latest ``calibration`` record the offline calibration eval
+        # writes. Naturally dark until ``scripts/calibration_eval.py --record``
+        # records a report.
+        calibration_payload = calibration_records[-1].payload if calibration_records else {}
+        calibration_tile = self._mastery_calibration_tile(calibration_payload)
+
         tiles = [
             {
                 "id": "mesh-merge-gate",
@@ -2353,8 +2362,68 @@ class LearningApi:
                 "source": mesh_source,
             },
         ]
+        tiles.append(calibration_tile)
         tiles.extend(eval_tiles)
         return {"id": "agent-mesh", "title": "Agent mesh (gate 2)", "tiles": tiles}
+
+    @staticmethod
+    def _mastery_calibration_tile(payload: Dict[str, Any]) -> Dict[str, Any]:
+        """Build the mastery-calibration tile from a durable ``calibration`` payload.
+
+        ``payload`` is a :meth:`CalibrationReport.as_dict` snapshot written by
+        ``scripts/calibration_eval.py --record``. Read-only and never-raising: an
+        absent or malformed payload degrades to a ``nodata`` tile, so the tile is
+        naturally dark until the runner records a report.
+        """
+
+        def _num(value: Any) -> Optional[float]:
+            return value if isinstance(value, (int, float)) and not isinstance(value, bool) else None
+
+        base = {
+            "id": "mesh-mastery-calibration",
+            "label": "Mastery calibration (Brier/ECE)",
+        }
+        nodata = {
+            **base,
+            "value": "no data yet",
+            "detail": "Mastery estimator calibration (Brier/ECE) from the latest calibration eval run",
+            "status": "nodata",
+            "source": "nodata",
+        }
+        if not isinstance(payload, dict):
+            return nodata
+        better_name = payload.get("better_estimator")
+        metrics = payload.get("metrics")
+        if not better_name or not isinstance(metrics, list):
+            return nodata
+        better = next(
+            (m for m in metrics if isinstance(m, dict) and m.get("estimator") == better_name),
+            None,
+        )
+        brier = _num(better.get("brier")) if isinstance(better, dict) else None
+        ece = _num(better.get("ece")) if isinstance(better, dict) else None
+        if brier is None or ece is None:
+            return {**nodata, "detail": "Calibration eval record present but unreadable"}
+        passed = bool(payload.get("passed"))
+        winners = payload.get("winners") if isinstance(payload.get("winners"), dict) else {}
+        brier_winner = winners.get("brier")
+        thresholds = payload.get("thresholds") if isinstance(payload.get("thresholds"), dict) else {}
+        max_brier = _num(thresholds.get("max_brier")) or 0.25
+        max_ece = _num(thresholds.get("max_ece")) or 0.10
+        reasons = payload.get("blocking_reasons") or []
+        detail = (
+            f"better={better_name} \u00b7 Brier {brier:.3f} (\u2264{max_brier:.2f}) \u00b7 "
+            f"ECE {ece:.3f} (\u2264{max_ece:.2f}) \u00b7 Brier winner {brier_winner}"
+        )
+        if not passed and reasons:
+            detail += f" \u00b7 blocking: {', '.join(map(str, reasons))}"
+        return {
+            **base,
+            "value": f"{better_name} \u00b7 Brier {brier:.3f}",
+            "detail": detail,
+            "status": "ok" if passed else "crit",
+            "source": "kql",
+        }
 
     @staticmethod
     def _agent_eval_tiles(payload: Dict[str, Any]) -> List[Dict[str, Any]]:
