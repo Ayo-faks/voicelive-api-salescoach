@@ -127,6 +127,10 @@ from src.learning.xapi import (
     student_fact_decision_event_to_xapi,
     student_profile_view_event_to_xapi,
 )
+from src.learning.memory_policy import (
+    SAFEGUARDING_HELP_RESOURCES,
+    classify as classify_memory_proposal,
+)
 
 
 PILOT_TENANT_ID = "tenant-phase-2"
@@ -1375,6 +1379,9 @@ class LearningApi:
         tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
         class_id = str(payload.get("class_id") or PILOT_CLASS_ID)
         actor_id = str(payload.get("actor_id") or "pathfinder-detector")
+        # B2C learner flag: when set, the proposer is the learner themself and
+        # we apply the consent + allowlist auto-approval policy.
+        is_learner = bool(payload.get("learner_self_authored"))
         body = {
             "tenant_id": tenant_id,
             "class_id": class_id,
@@ -1388,7 +1395,7 @@ class LearningApi:
             "provenance": payload.get("provenance") or [
                 Provenance(
                     source="LearningApi.propose_student_fact",
-                    rule_id="explicit_detector_submission",
+                    rule_id="learner_self_authored" if is_learner else "explicit_detector_submission",
                     confidence=0.8,
                     evidence_count=1,
                 ).model_dump()
@@ -1400,6 +1407,40 @@ class LearningApi:
             fact = StudentFactProposal.model_validate(body)
         except Exception as exc:
             raise LearningApiError(f"invalid student fact: {exc}", status_code=400) from exc
+
+        # Classify learner-authored proposals through the memory policy.
+        if is_learner:
+            classification = classify_memory_proposal(fact.key, str(fact.value or ""))
+            if classification.decision == "deny_safeguarding":
+                # Do NOT store; surface help resources. Log a structured line
+                # without echoing the raw value.
+                print(
+                    "[memory-safeguarding] tenant=%s student=%s key=%s match=%s"
+                    % (tenant_id, fact.student_id, fact.key, classification.reason or "")
+                )
+                return {
+                    "stored": False,
+                    "safeguarding": True,
+                    "reason": "safeguarding_match",
+                    "help": list(SAFEGUARDING_HELP_RESOURCES),
+                }
+            if classification.decision == "deny_pii":
+                return {
+                    "stored": False,
+                    "denied": True,
+                    "reason": "pii_or_denylist",
+                }
+            if classification.decision == "auto_approve":
+                consent = self.repository.get_memory_consent(fact.student_id)
+                if consent and consent.get("accepted_at") and not consent.get("withdrawn_at"):
+                    return self._auto_approve_student_fact(
+                        fact,
+                        actor_id=fact.student_id,
+                        expires_at=classification.expires_at,
+                    )
+                # consent missing → fall through to pending so a teacher (or
+                # the learner once they accept) can still see it.
+
         record = self.repository.save_student_fact(fact, actor_id=actor_id, status="pending")
         self._record_audit(
             tenant_id=tenant_id,
@@ -1408,6 +1449,47 @@ class LearningApi:
             kind="student_fact_proposed",
         )
         return {"fact": record, "queued": True, "audit": self._audit_events[-1]}
+
+    def _auto_approve_student_fact(
+        self,
+        fact: StudentFactProposal,
+        *,
+        actor_id: str,
+        expires_at: Optional[str],
+    ) -> Dict[str, Any]:
+        record = self.repository.save_student_fact(
+            fact,
+            actor_id=actor_id,
+            status="auto_approved",
+            expires_at=expires_at,
+        )
+        event = StudentFactDecisionEvent(
+            tenant_id=fact.tenant_id,
+            actor_id=actor_id,
+            fact_id=fact.fact_id,
+            student_id=fact.student_id,
+            action="auto_approved",
+            reason="auto:allowlist+consent",
+            lang=fact.lang,
+            provenance=list(fact.provenance),
+        )
+        statement = student_fact_decision_event_to_xapi(event)
+        decision = self.repository.record_student_fact_decision(event, statement)
+        self._emit_xapi(fact.tenant_id, actor_id, statement)
+        self._record_audit(
+            tenant_id=fact.tenant_id,
+            actor_id=actor_id,
+            label=f"Auto-approved learner-authored fact {fact.fact_id}",
+            kind="student_fact_auto_approved",
+        )
+        return {
+            "stored": True,
+            "auto_approved": True,
+            "expires_at": expires_at,
+            "fact": record,
+            "decision": decision,
+            "audit": self._audit_events[-1],
+        }
 
     def review_fact_staleness(
         self,
@@ -1538,13 +1620,91 @@ class LearningApi:
         class_id: Optional[str] = None,
         student_id: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
+        # Lazy-sweep expired auto-approved facts before reading.
+        try:
+            self.repository.expire_due_student_facts()
+        except NotImplementedError:  # pragma: no cover — defensive for older repos
+            pass
         facts = self.repository.list_student_facts(
             tenant_id,
             class_id=class_id,
             student_id=student_id,
             status=None,
         )
-        return [record for record in facts if record["status"] in {"approved", "edited_approved"}]
+        now_iso = datetime.now(timezone.utc).isoformat()
+        active_states = {"approved", "edited_approved", "auto_approved"}
+        return [
+            record for record in facts
+            if record["status"] in active_states
+            and (not record.get("expires_at") or record["expires_at"] > now_iso)
+        ]
+
+    # --- B2C learner memory: consent + panel + delete ---------------------
+
+    def get_memory_consent_status(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        learner_id = str(payload.get("learner_id") or payload.get("student_id") or "").strip()
+        if not learner_id:
+            raise LearningApiError("learner_id is required", status_code=400)
+        record = self.repository.get_memory_consent(learner_id) or {}
+        accepted_at = record.get("accepted_at")
+        withdrawn_at = record.get("withdrawn_at")
+        return {
+            "learner_id": learner_id,
+            "accepted": bool(accepted_at) and not withdrawn_at,
+            "accepted_at": accepted_at,
+            "withdrawn_at": withdrawn_at,
+            "policy_version": record.get("policy_version", "v1"),
+        }
+
+    def set_memory_consent(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        learner_id = str(payload.get("learner_id") or payload.get("student_id") or "").strip()
+        if not learner_id:
+            raise LearningApiError("learner_id is required", status_code=400)
+        accepted = bool(payload.get("accepted", True))
+        policy_version = str(payload.get("policy_version") or "v1")
+        self.repository.upsert_memory_consent(learner_id, accepted=accepted, policy_version=policy_version)
+        self._record_audit(
+            tenant_id=str(payload.get("tenant_id") or PILOT_TENANT_ID),
+            actor_id=learner_id,
+            label=f"Learner memory consent {'accepted' if accepted else 'withdrawn'}",
+            kind="learner_memory_consent",
+        )
+        return self.get_memory_consent_status({"learner_id": learner_id})
+
+    def list_learner_memory(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        learner_id = str(payload.get("learner_id") or payload.get("student_id") or "").strip()
+        if not learner_id:
+            raise LearningApiError("learner_id is required", status_code=400)
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        facts = self._approved_student_facts(tenant_id, student_id=learner_id)
+        consent = self.get_memory_consent_status({"learner_id": learner_id})
+        return {
+            "learner_id": learner_id,
+            "consent": consent,
+            "facts": facts,
+            "count": len(facts),
+        }
+
+    def delete_learner_memory(self, fact_id: str, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        learner_id = str(payload.get("learner_id") or payload.get("student_id") or "").strip()
+        if not learner_id:
+            raise LearningApiError("learner_id is required", status_code=400)
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        # Owner check: a learner may only delete their own facts.
+        existing = self.repository.list_student_facts(tenant_id, student_id=learner_id, status=None)
+        match = next((f for f in existing if f["id"] == fact_id), None)
+        if match is None:
+            raise LearningApiError(f"fact {fact_id} not found for this learner", status_code=404)
+        ok = self.repository.delete_student_fact(
+            tenant_id, fact_id, actor_id=learner_id, reason="learner_deleted"
+        )
+        self._record_audit(
+            tenant_id=tenant_id,
+            actor_id=learner_id,
+            label=f"Learner deleted memory fact {fact_id}",
+            kind="learner_memory_deleted",
+        )
+        return {"ok": ok, "fact_id": fact_id}
 
     def approve_plan(self, plan_id: str, payload: Mapping[str, Any]) -> Dict[str, Any]:
         return self._decide_plan(plan_id, payload, action="approved")
@@ -2078,7 +2238,6 @@ class LearningApi:
         eval_records: List[Any] = []
         safeguarding_records: List[Any] = []
         agent_eval_records: List[Any] = []
-        calibration_records: List[Any] = []
         sink: Any = None
         try:
             sink = JsonlDurableSink(history_path)
@@ -2086,7 +2245,6 @@ class LearningApi:
             eval_records = sink.read(limit=20, kind="genaiops")
             safeguarding_records = sink.read(limit=256, kind="safeguarding")
             agent_eval_records = sink.read(limit=20, kind="agent_eval")
-            calibration_records = sink.read(limit=20, kind="calibration")
         except Exception:  # pragma: no cover - dashboard must never 500
             sink = None
 
@@ -2147,13 +2305,6 @@ class LearningApi:
         agent_eval_payload = agent_eval_records[-1].payload if agent_eval_records else {}
         eval_tiles = self._agent_eval_tiles(agent_eval_payload)
 
-        # Tile 8: mastery-estimator calibration (Brier/ECE head-to-head) — sourced
-        # from the latest ``calibration`` record the offline calibration eval
-        # writes. Naturally dark until ``scripts/calibration_eval.py --record``
-        # records a report.
-        calibration_payload = calibration_records[-1].payload if calibration_records else {}
-        calibration_tile = self._mastery_calibration_tile(calibration_payload)
-
         tiles = [
             {
                 "id": "mesh-merge-gate",
@@ -2202,68 +2353,8 @@ class LearningApi:
                 "source": mesh_source,
             },
         ]
-        tiles.append(calibration_tile)
         tiles.extend(eval_tiles)
         return {"id": "agent-mesh", "title": "Agent mesh (gate 2)", "tiles": tiles}
-
-    @staticmethod
-    def _mastery_calibration_tile(payload: Dict[str, Any]) -> Dict[str, Any]:
-        """Build the mastery-calibration tile from a durable ``calibration`` payload.
-
-        ``payload`` is a :meth:`CalibrationReport.as_dict` snapshot written by
-        ``scripts/calibration_eval.py --record``. Read-only and never-raising: an
-        absent or malformed payload degrades to a ``nodata`` tile, so the tile is
-        naturally dark until the runner records a report.
-        """
-
-        def _num(value: Any) -> Optional[float]:
-            return value if isinstance(value, (int, float)) and not isinstance(value, bool) else None
-
-        base = {
-            "id": "mesh-mastery-calibration",
-            "label": "Mastery calibration (Brier/ECE)",
-        }
-        nodata = {
-            **base,
-            "value": "no data yet",
-            "detail": "Mastery estimator calibration (Brier/ECE) from the latest calibration eval run",
-            "status": "nodata",
-            "source": "nodata",
-        }
-        if not isinstance(payload, dict):
-            return nodata
-        better_name = payload.get("better_estimator")
-        metrics = payload.get("metrics")
-        if not better_name or not isinstance(metrics, list):
-            return nodata
-        better = next(
-            (m for m in metrics if isinstance(m, dict) and m.get("estimator") == better_name),
-            None,
-        )
-        brier = _num(better.get("brier")) if isinstance(better, dict) else None
-        ece = _num(better.get("ece")) if isinstance(better, dict) else None
-        if brier is None or ece is None:
-            return {**nodata, "detail": "Calibration eval record present but unreadable"}
-        passed = bool(payload.get("passed"))
-        winners = payload.get("winners") if isinstance(payload.get("winners"), dict) else {}
-        brier_winner = winners.get("brier")
-        thresholds = payload.get("thresholds") if isinstance(payload.get("thresholds"), dict) else {}
-        max_brier = _num(thresholds.get("max_brier")) or 0.25
-        max_ece = _num(thresholds.get("max_ece")) or 0.10
-        reasons = payload.get("blocking_reasons") or []
-        detail = (
-            f"better={better_name} \u00b7 Brier {brier:.3f} (\u2264{max_brier:.2f}) \u00b7 "
-            f"ECE {ece:.3f} (\u2264{max_ece:.2f}) \u00b7 Brier winner {brier_winner}"
-        )
-        if not passed and reasons:
-            detail += f" \u00b7 blocking: {', '.join(map(str, reasons))}"
-        return {
-            **base,
-            "value": f"{better_name} \u00b7 Brier {brier:.3f}",
-            "detail": detail,
-            "status": "ok" if passed else "crit",
-            "source": "kql",
-        }
 
     @staticmethod
     def _agent_eval_tiles(payload: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -4101,6 +4192,26 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
     @_wrap
     def _edit_and_approve_student_fact(fact_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         return learning_api.edit_and_approve_student_fact(fact_id, payload)
+
+    @app.route("/api/learning/memory", methods=["GET"])
+    @_wrap
+    def _learner_memory_list(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.list_learner_memory(payload)
+
+    @app.route("/api/learning/memory/<fact_id>", methods=["DELETE"])
+    @_wrap
+    def _learner_memory_delete(fact_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.delete_learner_memory(fact_id, payload)
+
+    @app.route("/api/learning/memory/consent", methods=["GET"])
+    @_wrap
+    def _learner_memory_consent_get(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.get_memory_consent_status(payload)
+
+    @app.route("/api/learning/memory/consent", methods=["POST"])
+    @_wrap
+    def _learner_memory_consent_set(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.set_memory_consent(payload)
 
     @app.route("/api/learning/students/<student_id>/profile", methods=["GET"])
     @_wrap
