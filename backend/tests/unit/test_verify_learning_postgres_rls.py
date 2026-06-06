@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from scripts.verify_learning_postgres_rls import (
+    EXPECTED_ALEMBIC_HEADS,
     REQUIRED_COLUMNS,
     assess_alembic_heads,
     assess_policy_coverage,
@@ -82,9 +83,10 @@ def test_assess_required_columns_covers_recent_learning_migrations() -> None:
 
 
 def test_assess_alembic_heads_requires_latest_learning_head() -> None:
-    ok = assess_alembic_heads([{"version_num": "20260524_000026"}])
+    latest_head = EXPECTED_ALEMBIC_HEADS[-1]
+    ok = assess_alembic_heads([{"version_num": latest_head}])
     missing = assess_alembic_heads([{"version_num": "20260523_000024"}])
 
     assert ok.ok is True
     assert missing.ok is False
-    assert "20260524_000026" in missing.detail
+    assert latest_head in missing.detail

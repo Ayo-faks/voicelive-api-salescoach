@@ -32,7 +32,18 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Callable, Dict, List, Mapping, MutableMapping, Optional, Protocol, Set
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Mapping,
+    MutableMapping,
+    Optional,
+    Protocol,
+    Sequence,
+    Set,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +74,27 @@ class _Socket(Protocol):
 RunTurn = Callable[[Mapping[str, Any]], Mapping[str, Any]]
 
 
+class SafeguardHook(Protocol):
+    """Fire-and-forget safeguarding sink injected by the route layer.
+
+    Called once per inbound learner utterance and once per outbound tutor
+    reply. Implementations MUST NOT block the turn (the production hook
+    offloads the async safeguarding pipeline to a background thread) and MUST
+    NOT raise — the handler still guards the call, but a slow or failing
+    detector must never interrupt a child's session.
+    """
+
+    def __call__(
+        self,
+        text: str,
+        *,
+        direction: str,
+        child_id: Optional[str],
+        session_id: Optional[str],
+        context_turns: Sequence[str],
+    ) -> None: ...
+
+
 class LearnerVoiceSocketHandler:
     """Pumps realtime frames through the unified assistant turn facade.
 
@@ -86,6 +118,13 @@ class LearnerVoiceSocketHandler:
         Server-side defaults merged *under* each client frame (e.g. ``user_id``
         resolved from the authenticated principal). Client values win, except
         for ``child_id`` which is always re-validated against ``owned_child_ids``.
+    safeguard:
+        Optional fire-and-forget safeguarding hook. When provided, every inbound
+        learner utterance and every outbound tutor reply is screened through the
+        layered safeguarding pipeline (L1 lexicon + L2 Content Safety + L3 LLM
+        classifier) for disclosures of harm. ``None`` (the default) disables
+        screening — the route layer injects the production hook behind the
+        ``LEARNER_VOICE_SAFEGUARDING_ENABLED`` flag (default on).
     """
 
     def __init__(
@@ -96,12 +135,14 @@ class LearnerVoiceSocketHandler:
         owned_child_ids: Optional[Set[str]] = None,
         bind_scope: Optional[Callable[[Mapping[str, Any]], None]] = None,
         default_payload: Optional[Mapping[str, Any]] = None,
+        safeguard: Optional[SafeguardHook] = None,
     ) -> None:
         self._ws = ws
         self._run_turn = run_turn
         self._owned = {str(c) for c in (owned_child_ids or set()) if str(c).strip()}
         self._bind_scope = bind_scope
         self._defaults: Dict[str, Any] = dict(default_payload or {})
+        self._safeguard = safeguard
         self._thread: List[Dict[str, str]] = []
         # Carried practice context so a spoken answer can continue a walk.
         self._carry: Dict[str, Any] = {}
@@ -159,6 +200,11 @@ class LearnerVoiceSocketHandler:
                 self._send(FRAME_ERROR, {"message": "scope_bind_failed"})
                 return
 
+        # Inbound safeguarding: screen the learner's own utterance before the
+        # brain runs, so a disclosure of harm is detected even if the turn later
+        # errors. Fire-and-forget — never blocks or fails the turn.
+        self._screen_inbound(payload)
+
         try:
             result = self._run_turn(payload)
         except Exception as exc:  # brain/validation error — never crash the socket
@@ -167,7 +213,66 @@ class LearnerVoiceSocketHandler:
             return
 
         self._remember(frame, result)
+        # Outbound safeguarding: screen the tutor's generated reply.
+        self._screen_outbound(payload, result)
         self._send(FRAME_TURN_RESULT, dict(result))
+
+    # ------------------------------------------------------------------
+    # Safeguarding
+    # ------------------------------------------------------------------
+    def _screen_inbound(self, payload: Mapping[str, Any]) -> None:
+        """Hand the learner's spoken/typed question to the safeguarding hook."""
+        if self._safeguard is None:
+            return
+        text = str(payload.get("question") or "").strip()
+        if not text:
+            return
+        # Prior turns only — the current question has not been remembered yet.
+        context = tuple(str(t.get("text") or "") for t in self._thread if t.get("text"))
+        self._dispatch_safeguarding(text, "inbound", payload, context)
+
+    def _screen_outbound(self, payload: Mapping[str, Any], result: Mapping[str, Any]) -> None:
+        """Hand the tutor's generated reply to the safeguarding hook."""
+        if self._safeguard is None:
+            return
+        parts: List[str] = []
+        for block in result.get("blocks") or []:
+            if not isinstance(block, Mapping):
+                continue
+            speak = str(block.get("speak") or block.get("text") or "").strip()
+            if speak:
+                parts.append(speak)
+        text = " ".join(parts).strip()
+        if not text:
+            return
+        context = tuple(str(t.get("text") or "") for t in self._thread if t.get("text"))
+        self._dispatch_safeguarding(text, "outbound", payload, context)
+
+    def _dispatch_safeguarding(
+        self,
+        text: str,
+        direction: str,
+        source: Mapping[str, Any],
+        context_turns: Sequence[str],
+    ) -> None:
+        """Invoke the injected hook, swallowing every error.
+
+        The hook itself offloads the async pipeline to a background thread; this
+        guard only protects against an unexpected failure constructing the call.
+        """
+        child_id = str(source.get("child_id") or "").strip() or None
+        session_id = str(source.get("session_id") or "").strip() or None
+        try:
+            self._safeguard(  # type: ignore[misc]
+                text,
+                direction=direction,
+                child_id=child_id,
+                session_id=session_id,
+                context_turns=context_turns,
+            )
+        except Exception:  # noqa: BLE001 — safeguarding must never break the turn
+            logger.debug("learner voice safeguarding dispatch failed", exc_info=True)
+
 
     def _build_payload(self, frame: Mapping[str, Any]) -> Optional[Dict[str, Any]]:
         """Merge defaults + carried context + the client frame, RLS-checked.

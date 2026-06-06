@@ -217,3 +217,130 @@ def test_brain_exception_is_contained() -> None:
     # Both frames produced an error, and the socket never crashed.
     assert len(sock.frames(FRAME_ERROR)) == 2
     assert all(e["message"] == "turn_failed" for e in sock.frames(FRAME_ERROR))
+
+
+# ---------------------------------------------------------------------------
+# Safeguarding (P1) — inbound + outbound screening is fire-and-forget.
+# ---------------------------------------------------------------------------
+
+
+class _RecordingSafeguard:
+    """Captures every safeguarding dispatch the handler makes."""
+
+    def __init__(self) -> None:
+        self.calls: List[Dict[str, Any]] = []
+
+    def __call__(
+        self,
+        text: str,
+        *,
+        direction: str,
+        child_id: Optional[str],
+        session_id: Optional[str],
+        context_turns: Any,
+    ) -> None:
+        self.calls.append(
+            {
+                "text": text,
+                "direction": direction,
+                "child_id": child_id,
+                "session_id": session_id,
+                "context_turns": tuple(context_turns),
+            }
+        )
+
+
+def test_safeguard_screens_inbound_and_outbound() -> None:
+    guard = _RecordingSafeguard()
+
+    def brain(payload: Mapping[str, Any]) -> Mapping[str, Any]:
+        return {
+            "blocks": [{"kind": "prose", "speak": "You are safe", "text": "You are safe"}],
+            "session_complete": False,
+        }
+
+    sock = FakeSocket(
+        [_frame(question="nobody likes me", child_id="my-kid", session_id="sess-1")]
+    )
+    LearnerVoiceSocketHandler(
+        sock, run_turn=brain, owned_child_ids={"my-kid"}, safeguard=guard
+    ).run()
+
+    directions = [c["direction"] for c in guard.calls]
+    assert directions == ["inbound", "outbound"]
+    inbound = guard.calls[0]
+    assert inbound["text"] == "nobody likes me"
+    assert inbound["child_id"] == "my-kid"
+    assert inbound["session_id"] == "sess-1"
+    # The learner's reply is screened too, and the child still gets a result.
+    assert guard.calls[1]["text"] == "You are safe"
+    assert len(sock.frames(FRAME_TURN_RESULT)) == 1
+
+
+def test_safeguard_inbound_fires_even_when_brain_errors() -> None:
+    guard = _RecordingSafeguard()
+
+    def brain(payload: Mapping[str, Any]) -> Mapping[str, Any]:
+        raise RuntimeError("boom")
+
+    sock = FakeSocket([_frame(question="i want to hurt myself", child_id="my-kid")])
+    LearnerVoiceSocketHandler(
+        sock, run_turn=brain, owned_child_ids={"my-kid"}, safeguard=guard
+    ).run()
+
+    # The disclosure was still screened even though the turn failed afterwards;
+    # no outbound screening happens because there is no reply.
+    assert [c["direction"] for c in guard.calls] == ["inbound"]
+    assert guard.calls[0]["text"] == "i want to hurt myself"
+    assert sock.frames(FRAME_ERROR)[0]["message"] == "turn_failed"
+
+
+def test_safeguard_failure_never_breaks_the_turn() -> None:
+    def exploding_guard(*args: Any, **kwargs: Any) -> None:
+        raise RuntimeError("detector down")
+
+    sock = FakeSocket([_frame(question="hi", child_id="my-kid")])
+    LearnerVoiceSocketHandler(
+        sock,
+        run_turn=lambda p: {"blocks": [{"speak": "ok"}], "session_complete": False},
+        owned_child_ids={"my-kid"},
+        safeguard=exploding_guard,
+    ).run()
+    # A failing detector is swallowed; the learner still gets their turn result.
+    assert len(sock.frames(FRAME_TURN_RESULT)) == 1
+    assert not sock.frames(FRAME_ERROR)
+
+
+def test_no_safeguard_hook_means_no_screening() -> None:
+    # The default (no hook) path must behave exactly as before.
+    sock = FakeSocket([_frame(question="hi", child_id="my-kid")])
+    LearnerVoiceSocketHandler(
+        sock,
+        run_turn=lambda p: {"blocks": [], "session_complete": False},
+        owned_child_ids={"my-kid"},
+    ).run()
+    assert len(sock.frames(FRAME_TURN_RESULT)) == 1
+
+
+def test_safeguard_inbound_context_excludes_current_question() -> None:
+    guard = _RecordingSafeguard()
+
+    def brain(payload: Mapping[str, Any]) -> Mapping[str, Any]:
+        return {
+            "blocks": [{"kind": "prose", "speak": "reply"}],
+            "session_complete": False,
+        }
+
+    sock = FakeSocket(
+        [_frame(question="first", child_id="my-kid"), _frame(question="second", child_id="my-kid")]
+    )
+    LearnerVoiceSocketHandler(
+        sock, run_turn=brain, owned_child_ids={"my-kid"}, safeguard=guard
+    ).run()
+
+    # The inbound screen on the *second* turn sees the first exchange as context
+    # but not the second question itself.
+    second_inbound = [c for c in guard.calls if c["direction"] == "inbound"][1]
+    assert "first" in second_inbound["context_turns"]
+    assert "second" not in second_inbound["context_turns"]
+

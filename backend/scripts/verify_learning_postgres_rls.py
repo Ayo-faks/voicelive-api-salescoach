@@ -24,7 +24,7 @@ from src.learning.repository import LEARNING_RLS_PROTECTED_TABLES  # noqa: E402
 from src.services.storage_postgres import PostgresStorageService  # noqa: E402
 
 
-EXPECTED_ALEMBIC_HEADS = ("20260524_000026",)
+EXPECTED_ALEMBIC_HEADS = ("20260606_000034",)
 REQUIRED_COLUMNS = {
     "learning_intervention_plans": ("parent_plan_id",),
     "learning_skills": (

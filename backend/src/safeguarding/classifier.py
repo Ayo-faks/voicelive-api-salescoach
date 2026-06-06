@@ -21,7 +21,13 @@ logger = logging.getLogger(__name__)
 
 
 ENV_MODEL = "SAFEGUARDING_CLASSIFIER_MODEL"
-DEFAULT_MODEL = "gpt-4o-mini"
+# Defense-in-depth: default to a model that is actually deployed on the
+# Foundry resources this app uses (gpt-4o), not gpt-4o-mini which is NOT
+# deployed there. With gpt-4o-mini as the default, the classifier's create()
+# call 404s and the L3 LLM safeguarding layer fails open to NONE — silently
+# disabling nuanced disclosure detection. Override per-environment with
+# ``SAFEGUARDING_CLASSIFIER_MODEL`` if a different deployment is provisioned.
+DEFAULT_MODEL = "gpt-4o"
 
 
 _SYSTEM_PROMPT = """\

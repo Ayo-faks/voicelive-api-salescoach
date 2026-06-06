@@ -1077,6 +1077,16 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
               name: 'SAFEGUARDING_SHADOW_MODE'
               value: safeguardingShadowMode ? '1' : '0'
             }
+            {
+              // Pin the L3 LLM safeguarding classifier to a model that is
+              // actually deployed on this Foundry resource. The code default
+              // (gpt-4o-mini) is NOT deployed here, so without this pin the
+              // classifier's create() call 404s and the layer fails open to
+              // NONE — silently disabling nuanced disclosure detection. gpt-4o
+              // is deployed and is a stronger model for soft disclosures.
+              name: 'SAFEGUARDING_CLASSIFIER_MODEL'
+              value: gptDeploymentName
+            }
           ],
           enablePostgresPersistence
             ? [

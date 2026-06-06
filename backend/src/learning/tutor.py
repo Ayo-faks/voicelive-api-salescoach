@@ -198,12 +198,14 @@ class SafetyDecision:
 def screen_outbound_text(text: str) -> SafetyDecision:
     """Deterministic, synchronous outbound guard for the text tutor path.
 
-    The realtime voice path already runs inbound/outbound safeguarding hooks;
-    the text path historically had none. This reuses the same deterministic L1
-    lexicon so a model-generated reply that trips any rule is blocked and
-    replaced with a safe message. Async L2/L3 (Content Safety + classifier)
-    stay on the realtime path; here we keep it sync and fail-open on empty
-    input but fail-safe on any detected harm.
+    The therapist/coach realtime voice path runs inbound/outbound safeguarding
+    hooks; the learner voice path runs the same async pipeline behind the
+    ``LEARNER_VOICE_SAFEGUARDING_ENABLED`` flag (default on). This synchronous
+    text-path guard reuses the same deterministic L1 lexicon so a
+    model-generated reply that trips any rule is blocked and replaced with a
+    safe message. Async L2/L3 (Content Safety + classifier) run on the realtime
+    voice paths; here we keep it sync and fail-open on empty input but fail-safe
+    on any detected harm.
     """
     if not text or not text.strip():
         return SafetyDecision(

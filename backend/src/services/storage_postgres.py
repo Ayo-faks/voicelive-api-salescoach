@@ -54,6 +54,7 @@ THERAPY_RLS_PROTECTED_TABLES = (
     "user_children",
     "sessions",
     "practice_plans",
+    "parental_consents",
     "child_memory_items",
     "child_memory_proposals",
     "child_memory_evidence_links",

@@ -19,11 +19,11 @@ those caveats:
          return ({grounded, citations, smalltalk}) — no fallible LLM judge.
 
   A5 — Safeguarding Classifier  (:class:`SafeguardingClassifier`)
-       * real Azure OpenAI deployment. Production pins gpt-4o-mini, but that
-         deployment does not exist on this AI Foundry resource, so the eval
-         defaults to gpt-4o (available here, and a stronger model is arguably
-         *more appropriate* for catching soft disclosures). Override with
-         AOAI_SAFEGUARD_DEPLOYMENT to match a specific production pin.
+       * real Azure OpenAI deployment. The classifier now defaults to gpt-4o
+         (``SafeguardingClassifier.DEFAULT_MODEL``), which IS deployed on the
+         Foundry resources this app uses and is the production pin. This eval
+         therefore measures the shipped model by default. Override with
+         AOAI_SAFEGUARD_DEPLOYMENT to evaluate a different deployment.
        * outcome ("intervene"/"pass") derived from the returned KCSIE severity.
 
 Both drivers use synthetic prompts only; no real learner data is referenced.
@@ -49,8 +49,8 @@ STILL BOUNDED (honest):
 Env:
   AZURE_OPENAI_ENDPOINT       (required) https://...cognitiveservices.azure.com/
   AOAI_TUTOR_DEPLOYMENT       (default "gpt-4o"; the production tutor model)
-  AOAI_SAFEGUARD_DEPLOYMENT   (default "gpt-4o"; production pins gpt-4o-mini,
-                              which is not deployed on this resource)
+  AOAI_SAFEGUARD_DEPLOYMENT   (default "gpt-4o"; the production safeguarding
+                              classifier pin, deployed on this resource)
   AOAI_DENSE_RETRIEVAL        (default off; "1" enables the dense embedder)
   AZURE_OPENAI_API_KEY        (optional; else DefaultAzureCredential token auth)
   EVAL_REPORT_PATH            (default data/c1/real_agent_eval_report.json)
@@ -76,7 +76,11 @@ from src.learning.assistant_llm import (
     ModelAssistantProvider,
 )
 from src.learning.rag import RagRetriever, WikiCorpus, load_wiki_corpus
-from src.safeguarding.classifier import SafeguardingClassifier
+from src.safeguarding.classifier import (
+    DEFAULT_MODEL as SAFEGUARD_DEFAULT_MODEL,
+    ENV_MODEL as SAFEGUARD_ENV_MODEL,
+    SafeguardingClassifier,
+)
 from src.safeguarding.models import Severity
 from src.agents.base import agent_mesh_enabled
 from src.agents.eval_report_adapter import (
@@ -466,6 +470,19 @@ def main() -> int:
     safeguard_deployment = os.environ.get("AOAI_SAFEGUARD_DEPLOYMENT", "gpt-4o").strip()
     out_path = os.environ.get("EVAL_REPORT_PATH", "data/c1/real_agent_eval_report.json")
 
+    # The model the safeguarding classifier ships with in production. An honest GO
+    # decision must evaluate the *shipped* model; surface any mismatch loudly so a
+    # reviewer cannot mistake a gpt-4o run for a gpt-4o-mini sign-off.
+    safeguard_production_pin = os.environ.get(SAFEGUARD_ENV_MODEL, SAFEGUARD_DEFAULT_MODEL).strip()
+    safeguard_pin_match = safeguard_deployment == safeguard_production_pin
+    if not safeguard_pin_match:
+        print(
+            "WARNING: safeguarding eval model '%s' != production pin '%s' — "
+            "this run does NOT measure the shipped model. Set "
+            "AOAI_SAFEGUARD_DEPLOYMENT=%s to evaluate the production pin."
+            % (safeguard_deployment, safeguard_production_pin, safeguard_production_pin)
+        )
+
     client = _build_client()
 
     provider, node_count, corpus_files = _build_tutor(client, tutor_deployment)
@@ -519,6 +536,8 @@ def main() -> int:
         "mode": "real-agent-eval",
         "tutor_deployment": tutor_deployment,
         "safeguard_deployment": safeguard_deployment,
+        "safeguard_production_pin": safeguard_production_pin,
+        "safeguard_pin_match": safeguard_pin_match,
         "endpoint": os.environ.get("AZURE_OPENAI_ENDPOINT", ""),
         "rag": {
             "nodes": node_count,
@@ -548,10 +567,17 @@ def main() -> int:
             "Safeguarding content is synthetic, non-graphic, and author-written (not drawn "
             "from real disclosures); it spans critical/medium/benign but is not a "
             "clinically validated corpus.",
-            "Production pins the safeguarding classifier to gpt-4o-mini; that deployment "
-            "is absent on this AI Foundry resource, so this run uses gpt-4o. Re-run with "
-            "AOAI_SAFEGUARD_DEPLOYMENT pointed at the production deployment to measure the "
-            "shipped model.",
+            (
+                f"Safeguarding classifier evaluated on '{safeguard_deployment}', which MATCHES "
+                f"the production pin ('{safeguard_production_pin}') — this run measures the "
+                "shipped model."
+                if safeguard_pin_match
+                else (
+                    f"Safeguarding classifier evaluated on '{safeguard_deployment}', which DIFFERS "
+                    f"from the production pin ('{safeguard_production_pin}'). Re-run with "
+                    "AOAI_SAFEGUARD_DEPLOYMENT set to the production pin to measure the shipped model."
+                )
+            ),
             "A1 insights / A8 planning are covered by an OFFLINE harness: A1 drives the real "
             "CopilotInsightsPlanner.run_turn over a fake Copilot SDK client (scripted tool "
             "calls + scripted answer) so the budget hook and response parsing are exercised "

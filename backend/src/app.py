@@ -65,6 +65,7 @@ from src.safeguarding import (
     configure_safeguarding_service,
     get_safeguarding_service,
 )
+from src.safeguarding import Direction as SafeguardingDirection
 from src.services.turn_router.handlers import ChitchatHandler
 from src.services.insights_websocket_handler import InsightsVoiceHandler
 from src.services.learner_voice_websocket_handler import LearnerVoiceSocketHandler
@@ -177,6 +178,8 @@ API_CHILD_MEMORY_PROPOSALS_ENDPOINT = "/api/children/<child_id>/memory/proposals
 API_INSTITUTIONAL_MEMORY_INSIGHTS_ENDPOINT = "/api/institutional-memory/insights"
 API_CHILD_RECOMMENDATIONS_ENDPOINT = "/api/children/<child_id>/recommendations"
 API_CHILD_REPORTS_ENDPOINT = "/api/children/<child_id>/reports"
+API_PARENT_CHILD_REPORTS_ENDPOINT = "/api/parent/children/<child_id>/reports"
+API_PARENT_REPORT_DETAIL_ENDPOINT = "/api/parent/reports/<report_id>"
 API_MEMORY_EVIDENCE_ENDPOINT = "/api/memory/<subject_type>/<subject_id>/evidence"
 API_RECOMMENDATION_DETAIL_ENDPOINT = "/api/recommendations/<recommendation_id>"
 API_REPORT_DETAIL_ENDPOINT = "/api/reports/<report_id>"
@@ -4817,6 +4820,99 @@ def child_progress_reports(child_id: str):
     return jsonify(reports)
 
 
+# Statuses a parent/guardian may see: only reports a therapist has finalised for
+# sharing. Drafts and archived reports are never exposed to parents.
+_PARENT_VISIBLE_REPORT_STATUSES = {"approved", "signed"}
+
+
+def _parent_visible_report(report: Mapping[str, Any]) -> bool:
+    """A report is parent-visible only if it is a finalised parent-audience report."""
+    audience = str(report.get("audience") or "").strip().lower()
+    status = str(report.get("status") or "").strip().lower()
+    return audience == "parent" and status in _PARENT_VISIBLE_REPORT_STATUSES
+
+
+@app.route(API_PARENT_CHILD_REPORTS_ENDPOINT, methods=["GET"])
+def parent_child_progress_reports(child_id: str):
+    """List finalised parent-facing progress reports for an owning parent.
+
+    Read-only counterpart to the therapist ``/api/children/<child_id>/reports``
+    route. Gated to the child's owning parent (or an admin) and restricted to
+    ``audience="parent"`` reports the therapist has approved or signed — drafts
+    are never shown to parents.
+    """
+    user, guard_response = _require_child_access(
+        child_id,
+        allowed_roles={ROLE_PARENT, ROLE_ADMIN},
+        allowed_relationships=["parent"],
+        enforce_data_consent=True,
+    )
+    if guard_response is not None:
+        return guard_response
+
+    try:
+        limit = max(1, min(50, int(request.args.get("limit") or 20)))
+    except (TypeError, ValueError):
+        return jsonify({"error": "limit must be a number between 1 and 50"}), HTTP_BAD_REQUEST
+
+    try:
+        reports = report_service.list_reports(
+            child_id,
+            audience="parent",
+            limit=limit,
+        )
+    except ValueError as error:
+        return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
+
+    visible = [r for r in reports if _parent_visible_report(r)]
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="report.parent_list",
+        resource_type="progress_report_collection",
+        resource_id=child_id,
+        child_id=child_id,
+        metadata={"count": len(visible)},
+    )
+    return jsonify(visible)
+
+
+@app.route(API_PARENT_REPORT_DETAIL_ENDPOINT, methods=["GET"])
+def get_parent_progress_report(report_id: str):
+    """Return one finalised parent-facing report for an owning parent."""
+    user, guard_response = _require_authenticated()
+    if guard_response is not None:
+        return guard_response
+
+    try:
+        report = report_service.get_report(report_id)
+    except ValueError:
+        return jsonify({"error": REPORT_NOT_FOUND}), HTTP_NOT_FOUND
+
+    _, child_guard = _require_child_access(
+        str(report.get("child_id") or ""),
+        allowed_roles={ROLE_PARENT, ROLE_ADMIN},
+        allowed_relationships=["parent"],
+        enforce_data_consent=True,
+    )
+    if child_guard is not None:
+        return child_guard
+
+    # Even an owning parent may only read finalised parent-audience reports —
+    # a therapist draft or a therapist-audience report is never exposed here.
+    if not _parent_visible_report(report):
+        return jsonify({"error": REPORT_NOT_FOUND}), HTTP_NOT_FOUND
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="report.parent_read",
+        resource_type="progress_report",
+        resource_id=report_id,
+        child_id=str(report.get("child_id") or ""),
+    )
+    return jsonify(report)
+
+
 @app.route(API_REPORT_DETAIL_ENDPOINT)
 def get_progress_report(report_id: str):
     """Return one saved progress report."""
@@ -5587,6 +5683,75 @@ def insights_voice_socket(ws: simple_websocket.ws.Server):
 sock.route("/ws/insights-voice")(insights_voice_socket)  # pyright: ignore[reportUnknownMemberType]
 
 
+def _learner_voice_safeguarding_enabled() -> bool:
+    """Whether learner voice turns are screened by the safeguarding pipeline.
+
+    Default ON — a child counselling/tutoring product must fail safe, so the
+    flag is opt-OUT (set ``LEARNER_VOICE_SAFEGUARDING_ENABLED=0`` to disable).
+    """
+    raw = os.getenv("LEARNER_VOICE_SAFEGUARDING_ENABLED", "true")
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _build_learner_safeguard_hook(user: Dict[str, Any]):
+    """Build the fire-and-forget safeguarding hook for one learner voice socket.
+
+    Returns ``None`` when safeguarding is flagged off or the service is not
+    initialised. The hook offloads the async pipeline to a daemon thread so the
+    synchronous learner-voice turn pump is never blocked, and routes parent
+    notifications through the same notifier the therapist path uses (the learner
+    is their own ``parent_user_id``; the resolver redirects minors to the
+    registered guardian).
+    """
+    if not _learner_voice_safeguarding_enabled():
+        return None
+    service = get_safeguarding_service()
+    if service is None or not service.enabled:
+        return None
+
+    subject_user_id = str(user.get("id") or "").strip() or None
+
+    def _hook(
+        text: str,
+        *,
+        direction: str,
+        child_id: Optional[str],
+        session_id: Optional[str],
+        context_turns,
+    ) -> None:
+        dir_enum = (
+            SafeguardingDirection.INBOUND
+            if direction == "inbound"
+            else SafeguardingDirection.OUTBOUND
+        )
+        ctx = tuple(context_turns or ())
+
+        def _run() -> None:
+            try:
+                asyncio.run(
+                    service.process_utterance(
+                        text=text,
+                        direction=dir_enum,
+                        user_id=subject_user_id,
+                        child_id=child_id,
+                        parent_user_id=subject_user_id,
+                        session_id=session_id,
+                        context_turns=ctx,
+                    )
+                )
+            except Exception:  # noqa: BLE001 — fail-open; never disturb the session
+                logger.debug("Learner voice safeguarding task failed", exc_info=True)
+
+        try:
+            threading.Thread(
+                target=_run, name="learner-voice-safeguard", daemon=True
+            ).start()
+        except Exception:  # noqa: BLE001
+            logger.debug("Learner voice safeguarding thread spawn failed", exc_info=True)
+
+    return _hook
+
+
 def learner_voice_socket(ws: simple_websocket.ws.Server):
     """Realtime transport for the unified learner assistant.
 
@@ -5652,6 +5817,7 @@ def learner_voice_socket(ws: simple_websocket.ws.Server):
         owned_child_ids=owned_child_ids,
         bind_scope=_bind_scope,
         default_payload=defaults,
+        safeguard=_build_learner_safeguard_hook(user),
     )
     try:
         handler.run()

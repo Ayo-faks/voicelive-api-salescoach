@@ -60,7 +60,8 @@ def postgres_database_url() -> str:
     configured_url = os.getenv("POSTGRES_TEST_DATABASE_URL", "").strip()
     if configured_url:
         _wait_for_postgres(configured_url)
-        return configured_url
+        yield configured_url
+        return
 
     docker_path = shutil.which("docker")
     if not docker_path:
@@ -490,3 +491,26 @@ def test_progress_reports_migration_creates_table_and_child_access_policy(postgr
         "archived_at",
     }.issubset({row[0] for row in column_rows})
     assert ("progress_reports_child_access_policy", "ALL") in policy_rows
+
+
+def test_parental_consents_migration_enables_child_access_rls(postgres_database_url: str):
+    """P7: parental_consents must be RLS-forced with the child-access policy."""
+    with psycopg.connect(postgres_database_url, autocommit=True) as connection:
+        connection.execute("DROP SCHEMA IF EXISTS public CASCADE")
+        connection.execute("CREATE SCHEMA public")
+
+    run_postgres_migrations(postgres_database_url)
+
+    with psycopg.connect(postgres_database_url) as connection:
+        table_row = connection.execute(
+            "SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE relname = 'parental_consents'"
+        ).fetchone()
+        policy_rows = connection.execute(
+            "SELECT policyname, cmd FROM pg_policies WHERE schemaname = 'public' AND tablename = 'parental_consents'"
+        ).fetchall()
+
+    assert table_row is not None
+    assert table_row[0] is True  # RLS enabled
+    assert table_row[1] is True  # RLS forced
+    assert ("parental_consents_child_access_policy", "ALL") in policy_rows
+
