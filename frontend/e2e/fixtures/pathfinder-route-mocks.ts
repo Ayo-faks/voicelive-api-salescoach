@@ -150,6 +150,36 @@ export async function installRouteMocks(
     })
   )
 
+  await page.route('**/api/learning/learner/plan**', (route) =>
+    fulfillJson(route, {
+      student_id: `${session.user_id}-self`,
+      exam: 'WAEC',
+      class_year: 'SS3',
+      subject: 'Mathematics',
+      source: 'fallback',
+      generated_at: '2026-04-01T10:00:00Z',
+      today: [],
+      weak_topics: [],
+    })
+  )
+  await page.route('**/api/learning/learner/careers**', (route) =>
+    fulfillJson(route, {
+      student_id: `${session.user_id}-self`,
+      source: 'demand',
+      career_consent: false,
+      generated_at: '2026-04-01T10:00:00Z',
+      pathways: [],
+    })
+  )
+  await page.route('**/api/learning/weekly-stats**', (route) =>
+    fulfillJson(route, {
+      sessions: { completed: 0, target: 5 },
+      streak_days: 0,
+      mastery_delta_pct: 0,
+      mastery_focus_label: '',
+    })
+  )
+
   // Teacher dashboard endpoints — empty payloads of the *correct shape* so the
   // component renders without crashing on `cells.map` / `plans.length`.
   await page.route('**/api/learning/class/mastery**', (route) =>

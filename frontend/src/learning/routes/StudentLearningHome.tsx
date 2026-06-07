@@ -498,6 +498,10 @@ const useStyles = makeStyles({
     display: 'grid',
     gridTemplateColumns: 'minmax(0, 1fr) 320px',
     gap: '24px',
+    width: '100%',
+    maxWidth: '1180px',
+    marginRight: 'auto',
+    marginLeft: 'auto',
     '@media (max-width: 1100px)': {
       gridTemplateColumns: 'minmax(0, 1fr)',
     },
@@ -517,7 +521,7 @@ const useStyles = makeStyles({
     color: t.brand.onInk,
     boxShadow: t.surface.raisedShadow,
     overflow: 'hidden',
-    '@media (max-width: 720px)': { padding: '24px' },
+    '@media (max-width: 720px)': { padding: '24px 20px' },
   },
   heroLayout: {
     display: 'grid',
@@ -527,10 +531,25 @@ const useStyles = makeStyles({
     '@media (max-width: 900px)': {
       gridTemplateColumns: '1fr',
       gap: '20px',
+      justifyItems: 'center',
+      textAlign: 'center',
     },
   },
   heroLeft: {
     minWidth: 0,
+    '@media (max-width: 900px)': {
+      display: 'grid',
+      justifyItems: 'center',
+    },
+  },
+  heroOrbWrap: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    '@media (max-width: 900px)': {
+      width: '100%',
+    },
   },
   heroOrbStage: {
     position: 'relative',
@@ -634,12 +653,19 @@ const useStyles = makeStyles({
     opacity: 0.82,
     maxWidth: '46ch',
     lineHeight: 1.5,
+    '@media (max-width: 900px)': {
+      marginRight: 'auto',
+      marginLeft: 'auto',
+    },
   },
   heroPills: {
     marginTop: '22px',
     display: 'flex',
     flexWrap: 'wrap',
     gap: '8px',
+    '@media (max-width: 900px)': {
+      justifyContent: 'center',
+    },
   },
   heroPill: {
     display: 'inline-flex',
@@ -659,6 +685,10 @@ const useStyles = makeStyles({
     flexWrap: 'wrap',
     gap: '10px',
     alignItems: 'center',
+    '@media (max-width: 900px)': {
+      justifyContent: 'center',
+      width: '100%',
+    },
   },
   heroCta: {
     marginTop: 0,
@@ -678,6 +708,11 @@ const useStyles = makeStyles({
     ':hover': {
       transform: 'translateY(-1px)',
       boxShadow: '0 10px 24px rgba(0,0,0,0.18)',
+    },
+    '@media (max-width: 520px)': {
+      width: '100%',
+      maxWidth: '340px',
+      justifyContent: 'center',
     },
   },
   heroSecondaryCta: {
@@ -2419,7 +2454,7 @@ export default function StudentLearningHome({
   return (
     <section className={styles.root} data-testid="route-student-home">
       <div className={styles.main}>
-        <article className={styles.hero}>
+        <article className={styles.hero} data-testid="learner-hero-card">
           <div className={styles.heroLayout}>
             <div className={styles.heroLeft}>
               <span className={styles.heroEyebrow}>
@@ -2526,14 +2561,7 @@ export default function StudentLearningHome({
               )}
             </div>
             {learnerTutorEnabled ? (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  alignSelf: 'center',
-                }}
-              >
+              <div className={styles.heroOrbWrap}>
                 <button
                   type="button"
                   className={styles.heroOrbStage}

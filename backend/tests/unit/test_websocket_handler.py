@@ -128,6 +128,18 @@ class TestVoiceProxyHandler:
 
         assert model == "gpt-5-preview"
 
+    def test_learner_tool_followup_response_instructs_model_to_speak_card(self):
+        """Learner tool output is card JSON, so the follow-up tells the model how to speak it."""
+        handler = VoiceProxyHandler(Mock())
+        profile = get_profile("learner")
+
+        message = handler._build_profile_tool_response_create(profile)
+
+        assert message["type"] == "response.create"
+        instructions = message["response"]["instructions"]
+        assert "card.speak" in instructions
+        assert "wrong format" in instructions
+
     @patch("src.services.websocket_handler.config")
     def test_build_query_params_with_azure_agent(self, mock_config):
         """Test building query params with Azure agent configuration."""

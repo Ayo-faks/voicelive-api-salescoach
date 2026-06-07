@@ -1161,9 +1161,12 @@ export default function PathfinderLearnApp() {
     effectiveRole
   )
   const learnerProfileGate = useLearnerProfile()
+  const learnerProfileGateLoading =
+    onboardingFlagEnabled && isLearnerLikeRole && learnerProfileGate.isLoading
   const learnerNeedsOnboarding =
     onboardingFlagEnabled &&
     isLearnerLikeRole &&
+    !learnerProfileGateLoading &&
     learnerProfileGate.needsOnboarding
 
   const welcomeRouteElement = () => {
@@ -1219,6 +1222,7 @@ export default function PathfinderLearnApp() {
     // Goal intake is a post-onboarding step: a learner who still needs
     // onboarding must finish the wizard first, otherwise completing goals would
     // bounce to /home → back to /welcome ("Step 1 of 3") and invert the order.
+    if (learnerProfileGateLoading) return null
     if (learnerNeedsOnboarding) return <Navigate to="/welcome" replace />
     return (
       <GoalIntakeScreen
@@ -1237,6 +1241,7 @@ export default function PathfinderLearnApp() {
   }
 
   const homeRouteElement = () => {
+    if (learnerProfileGateLoading) return null
     if (learnerNeedsOnboarding) return <Navigate to="/welcome" replace />
     return routeForRole(
       ['learner', 'kid', 'student'],

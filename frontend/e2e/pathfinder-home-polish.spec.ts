@@ -62,6 +62,47 @@ test.describe('Pathfinder · learner /home polish', () => {
     }
   })
 
+  test('mobile learner hero keeps primary elements centered and contained', async ({
+    browser,
+  }) => {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } })
+    const page = await ctx.newPage()
+    await installRouteMocks(page, {
+      role: 'learner',
+      userId: LEARNER_PERSONA.userId,
+    })
+    try {
+      await page.goto('/home')
+      const hero = page.getByTestId('learner-hero-card')
+      const centeredItems = [
+        page.getByTestId('learner-hero-title'),
+        page.getByTestId('start-checkin'),
+        page.getByTestId('start-learner-tutor'),
+      ]
+
+      await expect(hero).toBeVisible()
+      for (const item of centeredItems) {
+        await expect(item).toBeVisible()
+      }
+
+      const heroBox = await hero.boundingBox()
+      if (!heroBox) throw new Error('Expected learner hero card bounds')
+      const heroCenter = heroBox.x + heroBox.width / 2
+      const heroRight = heroBox.x + heroBox.width
+
+      for (const item of centeredItems) {
+        const box = await item.boundingBox()
+        if (!box) throw new Error('Expected centered learner hero item bounds')
+        const itemCenter = box.x + box.width / 2
+        expect(Math.abs(itemCenter - heroCenter)).toBeLessThan(3)
+        expect(box.x).toBeGreaterThanOrEqual(heroBox.x)
+        expect(box.x + box.width).toBeLessThanOrEqual(heroRight)
+      }
+    } finally {
+      await ctx.close()
+    }
+  })
+
   test('homepage Take a tour launches in-place instead of routing to pathways', async ({
     browser,
   }) => {

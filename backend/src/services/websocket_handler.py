@@ -1124,7 +1124,7 @@ class VoiceProxyHandler:
 
                 if event_type_str == "response.done" and profile_tool_response_pending:
                     profile_tool_response_pending = False
-                    await azure_conn.send({"type": "response.create"})
+                    await azure_conn.send(self._build_profile_tool_response_create(profile))
 
         except ConnectionClosed as e:
             logger.debug("Azure connection closed: code=%s, reason=%s", e.code, e.reason)
@@ -1328,6 +1328,21 @@ class VoiceProxyHandler:
             "type": "function",
             "name": profile.forced_response_tool_name,
         }
+
+    def _build_profile_tool_response_create(self, profile: AgentProfile | None) -> Dict[str, Any]:
+        message: Dict[str, Any] = {"type": "response.create"}
+        if profile is not None and profile.id == "learner":
+            message["response"] = {
+                "instructions": (
+                    "Use the get_next_card tool output from the previous item. "
+                    "It is JSON with a card object. If card.speak is present, "
+                    "read that aloud naturally. If card.speak is missing, read "
+                    "the card prompt or stem and options. Do not mention JSON, "
+                    "schemas, tool output, or wrong format to the learner unless "
+                    "the tool output contains an explicit error field."
+                )
+            }
+        return message
 
     async def _send_message(self, ws: simple_websocket.ws.Server, message: Dict[str, Any]) -> None:
         """Send a JSON message to a WebSocket."""

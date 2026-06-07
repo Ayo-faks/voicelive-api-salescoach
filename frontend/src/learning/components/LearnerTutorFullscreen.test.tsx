@@ -92,9 +92,19 @@ describe('LearnerTutorFullscreen', () => {
     expect(ws.url).toContain('subject=Mathematics')
 
     await waitFor(() => expect(ws.send).toHaveBeenCalled())
-    expect(
-      ws.send.mock.calls.map(call => JSON.parse(String(call[0])).type)
-    ).toContain('session.update')
+    const sentBodies = ws.send.mock.calls.map(call =>
+      JSON.parse(String(call[0]))
+    )
+    expect(sentBodies.map(body => body.type)).toContain('session.update')
+    expect(sentBodies).toContainEqual({
+      type: 'conversation.item.create',
+      item: {
+        type: 'message',
+        role: 'user',
+        content: [{ type: 'input_text', text: 'Start my tutoring session.' }],
+      },
+    })
+    expect(sentBodies).toContainEqual({ type: 'response.create' })
     expect(recorderMock.toggleRecording).toHaveBeenCalledTimes(1)
   })
 
@@ -208,9 +218,19 @@ describe('LearnerTutorFullscreen', () => {
     const sentBodies = ws.send.mock.calls.map(call =>
       JSON.parse(String(call[0]))
     )
-    expect(
-      sentBodies.some(body => body.type === 'conversation.item.create')
-    ).toBe(true)
+    expect(sentBodies).toContainEqual({
+      type: 'conversation.item.create',
+      item: {
+        type: 'message',
+        role: 'user',
+        content: [
+          {
+            type: 'input_text',
+            text: 'I choose option b. Previous card: mcq-1.',
+          },
+        ],
+      },
+    })
     expect(sentBodies.some(body => body.type === 'response.create')).toBe(true)
   })
 })
