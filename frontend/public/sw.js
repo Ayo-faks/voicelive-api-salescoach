@@ -24,8 +24,8 @@ self.addEventListener('push', event => {
   const title = data.title || 'Time for a quick check-in'
   const options = {
     body: data.body || 'Tap to continue your revision.',
-    icon: '/icon-192x192.png?v=3',
-    badge: '/favicon-48x48.png?v=3',
+    icon: '/wulo-logo.png?v=4',
+    badge: '/favicon.ico?v=4',
     tag: data.card_id || data.topic_id || 'pathfinder-revision',
     data: {
       url: data.url || (data.topic_id ? `/practice/${data.topic_id}` : '/home'),
