@@ -258,6 +258,11 @@ export function LearnerTutorFullscreen({
   const micRequestedRef = useRef(false)
   const recordingRef = useRef(false)
   const toggleRecordingRef = useRef<(() => Promise<void>) | null>(null)
+  // Set the instant Azure's server VAD reports the learner started speaking, so
+  // we can flush the tutor's already-buffered audio and drop any straggler
+  // `response.audio.delta` frames from the interrupted response until the next
+  // `response.created` (barge-in). Cleared when the next reply begins.
+  const bargedInRef = useRef(false)
   const [state, setState] = useState<TutorState>('connecting')
   const [card, setCard] = useState<LearnerVoiceCard | null>(null)
   const [sessionComplete, setSessionComplete] = useState(false)
@@ -347,10 +352,23 @@ export function LearnerTutorFullscreen({
         setState('listening')
         return
       }
+      // Barge-in: the learner started talking over the tutor. Azure's server
+      // VAD stops generating, but the browser has many audio chunks scheduled
+      // ahead in the Web Audio context — flush them so the tutor goes quiet
+      // immediately, and ignore any in-flight deltas from the now-dead response
+      // until the next reply starts. Without this the audio keeps playing (and
+      // the agent only appears to "duck" in volume) when the learner interrupts.
+      if (parsed.type === 'input_audio_buffer.speech_started') {
+        bargedInRef.current = true
+        stopAudio()
+        setState('listening')
+        return
+      }
       if (
         parsed.type === 'response.audio.delta' &&
         typeof parsed.delta === 'string'
       ) {
+        if (bargedInRef.current) return
         setState('speaking')
         playAudio(parsed.delta)
         return
@@ -359,6 +377,7 @@ export function LearnerTutorFullscreen({
         parsed.type === 'response.created' ||
         parsed.type === 'response.output_item.added'
       ) {
+        bargedInRef.current = false
         setState('thinking')
         return
       }

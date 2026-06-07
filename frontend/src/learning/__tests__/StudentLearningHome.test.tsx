@@ -144,7 +144,7 @@ describe('StudentLearningHome', () => {
       target: { value: 'NECO' },
     })
     fireEvent.change(screen.getByLabelText('Select class or year'), {
-      target: { value: 'SSS3' },
+      target: { value: 'SS3' },
     })
     fireEvent.change(screen.getByLabelText('Select subject'), {
       target: { value: 'English Language' },
@@ -170,7 +170,7 @@ describe('StudentLearningHome', () => {
 
     const saved = window.localStorage.getItem('pathfinder-parent-summary:last')
     expect(saved).toContain('NECO')
-    expect(saved).toContain('SSS3')
+    expect(saved).toContain('SS3')
     expect(saved).toContain('English Language')
   })
 
@@ -451,7 +451,7 @@ describe('StudentLearningHome', () => {
       target: { value: 'WAEC' },
     })
     fireEvent.change(screen.getByLabelText('Select class or year'), {
-      target: { value: 'SSS2' },
+      target: { value: 'SS2' },
     })
     fireEvent.change(screen.getByLabelText('Select subject'), {
       target: { value: 'Mathematics' },
@@ -466,7 +466,7 @@ describe('StudentLearningHome', () => {
         open: true,
         childId: 'student-001',
         exam: 'WAEC',
-        classYear: 'SSS2',
+        classYear: 'SS2',
         subject: 'Mathematics',
       })
     )

@@ -17,9 +17,23 @@ export const LEARNER_SETUP_STORAGE_KEY = 'pathfinder-learner-setup-v1'
 
 export const DEFAULT_LEARNER_SETUP: LearnerSetup = {
   exam: 'WAEC',
-  year: 'SSS2',
+  year: 'SS2',
   subject: 'Mathematics',
   firstName: '',
+}
+
+// Legacy setups persisted the senior years as triple-S (``SSS1``..``SSS3``).
+// The canonical Nigerian spelling used across profile storage and the class
+// dropdown is double-S (``SS1``..``SS3``). Migrate stored values on read so an
+// old localStorage entry still maps onto a real dropdown option.
+const LEGACY_YEAR_ALIASES: Readonly<Record<string, string>> = {
+  SSS1: 'SS1',
+  SSS2: 'SS2',
+  SSS3: 'SS3',
+}
+
+function normalizeYear(year: string): string {
+  return LEGACY_YEAR_ALIASES[year] ?? year
 }
 
 function readStored(): LearnerSetup {
@@ -36,7 +50,7 @@ function readStored(): LearnerSetup {
           : DEFAULT_LEARNER_SETUP.exam,
       year:
         typeof parsed.year === 'string' && parsed.year
-          ? parsed.year
+          ? normalizeYear(parsed.year)
           : DEFAULT_LEARNER_SETUP.year,
       subject:
         typeof parsed.subject === 'string' && parsed.subject

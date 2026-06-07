@@ -161,6 +161,44 @@ describe('LearnerTutorFullscreen', () => {
     ).toBeGreaterThan(0)
   })
 
+  it('stops playback and drops straggler audio when the learner barges in', async () => {
+    audioPlayerMock.playAudio.mockClear()
+    audioPlayerMock.stopAudio.mockClear()
+    render(
+      <LearnerTutorFullscreen open={true} onClose={() => {}} childId="stu-1" />
+    )
+    await waitFor(() => expect(FakeWebSocket.instances).toHaveLength(1))
+    const ws = FakeWebSocket.instances[0]
+
+    // The tutor starts speaking — audio deltas play.
+    act(() => {
+      ws.emit({ type: 'response.created' })
+      ws.emit({ type: 'response.audio.delta', delta: 'AAAA' })
+    })
+    expect(audioPlayerMock.playAudio).toHaveBeenCalledTimes(1)
+
+    // The learner barges in: Azure's server VAD reports speech started. The
+    // tutor must hard-stop the already-buffered audio immediately.
+    act(() => {
+      ws.emit({ type: 'input_audio_buffer.speech_started' })
+    })
+    expect(audioPlayerMock.stopAudio).toHaveBeenCalledTimes(1)
+
+    // Any straggler deltas from the now-interrupted response are ignored
+    // (no extra playback) until the next response begins.
+    act(() => {
+      ws.emit({ type: 'response.audio.delta', delta: 'BBBB' })
+    })
+    expect(audioPlayerMock.playAudio).toHaveBeenCalledTimes(1)
+
+    // Once a new reply starts, playback resumes normally.
+    act(() => {
+      ws.emit({ type: 'response.created' })
+      ws.emit({ type: 'response.audio.delta', delta: 'CCCC' })
+    })
+    expect(audioPlayerMock.playAudio).toHaveBeenCalledTimes(2)
+  })
+
   it('falls back and closes after microphone permission is denied', async () => {
     vi.useFakeTimers()
     recorderMock.toggleRecording.mockRejectedValue(new Error('denied'))

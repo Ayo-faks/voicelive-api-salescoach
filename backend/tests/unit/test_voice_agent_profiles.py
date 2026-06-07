@@ -93,7 +93,41 @@ def test_learner_get_next_card_returns_matching_mcq():
     assert result["card"]["skill_id"] == "differentiation"
 
 
-def test_learner_get_next_card_ignores_untracked_prev_card_id():
+def test_learner_get_next_card_accepts_profile_ss3_spelling():
+    # Regression: the learner profile stores the double-S "SS3"; the agent tool
+    # forwards it verbatim. It must canonicalise to the planner's "SSS3" and
+    # return a real card instead of failing with a class-format error.
+    profile = get_profile("learner")
+    result = profile.handle_tool_call(
+        "get_next_card",
+        {
+            "child_id": "stu-1",
+            "exam": "WAEC",
+            "class_year": "SS3",
+            "subject": "Mathematics",
+        },
+        AgentProfileContext(scope="learner"),
+    )
+
+    assert result["card"]["kind"] == "mcq-tap"
+
+
+def test_learner_get_next_card_accepts_ss3_from_session_context():
+    # The websocket handler stores the raw query-string class_year ("SS3") on
+    # the context; when the agent omits the arg the handler falls back to it.
+    profile = get_profile("learner")
+    result = profile.handle_tool_call(
+        "get_next_card",
+        {"child_id": "stu-1"},
+        AgentProfileContext(
+            scope="learner",
+            exam="WAEC",
+            class_year="SS3",
+            subject="Mathematics",
+        ),
+    )
+
+    assert result["card"]["kind"] == "mcq-tap"
     profile = get_profile("learner")
     result = profile.handle_tool_call(
         "get_next_card",

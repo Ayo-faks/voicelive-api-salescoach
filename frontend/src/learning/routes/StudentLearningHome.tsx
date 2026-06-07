@@ -247,7 +247,7 @@ function deriveWeeklyTiles(stats: {
 
 
 const examOptions = ['WAEC', 'NECO', 'JAMB', 'Junior WAEC']
-const yearOptions = ['JSS2', 'JSS3', 'SSS1', 'SSS2', 'SSS3']
+const yearOptions = ['JSS2', 'JSS3', 'SS1', 'SS2', 'SS3']
 const subjectOptions = [
   'Mathematics',
   'English Language',

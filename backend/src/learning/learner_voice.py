@@ -25,10 +25,10 @@ Session state lives client-side so we never trust caller-supplied
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, FrozenSet, List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, FrozenSet, List, Literal, Optional, Tuple, Union
 from uuid import uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 CardKind = Literal["greeting", "mcq-tap", "explanation", "progress", "mark-known"]
@@ -47,6 +47,51 @@ _VALID_EXAMS_FOR_CLASS: Dict[str, FrozenSet[str]] = {
     "SSS2": frozenset({"WAEC", "NECO", "JAMB"}),
     "SSS3": frozenset({"WAEC", "NECO", "JAMB"}),
 }
+
+
+# Canonical class-year aliases. The rest of the codebase (profile storage,
+# taxonomy, frontend contracts, daily-plan REST) uses the double-S Nigerian
+# spelling ``SS1/SS2/SS3``; this planner's content bank historically uses the
+# triple-S ``SSS1/SSS2/SSS3``. Without normalisation a perfectly valid stored
+# ``SS3`` fails the ``ClassYear`` Literal and the voice agent reports the class
+# as unrecognised. Normalise every accepted spelling onto the planner's
+# canonical form so all classes work regardless of which layer produced them.
+_CLASS_YEAR_ALIASES: Dict[str, str] = {
+    "JSS1": "JSS1",
+    "JS1": "JSS1",
+    "JUNIORSECONDARY1": "JSS1",
+    "JSS2": "JSS2",
+    "JS2": "JSS2",
+    "JUNIORSECONDARY2": "JSS2",
+    "JSS3": "JSS3",
+    "JS3": "JSS3",
+    "JUNIORSECONDARY3": "JSS3",
+    "SS1": "SSS1",
+    "SSS1": "SSS1",
+    "SENIORSECONDARY1": "SSS1",
+    "SS2": "SSS2",
+    "SSS2": "SSS2",
+    "SENIORSECONDARY2": "SSS2",
+    "SS3": "SSS3",
+    "SSS3": "SSS3",
+    "SENIORSECONDARY3": "SSS3",
+}
+
+
+def normalize_class_year(value: Any) -> Any:
+    """Map a learner class spelling onto the planner's canonical class year.
+
+    Accepts ``SS3``/``ss3``/``Senior Secondary 3``/``SSS3`` (and the JSS
+    equivalents) and returns the canonical planner key (e.g. ``"SSS3"``).
+    Unknown or empty values are returned unchanged so the ``ClassYear``
+    Literal still rejects genuinely invalid input instead of masking it.
+    """
+    if not isinstance(value, str):
+        return value
+    key = "".join(value.split()).upper()
+    if not key:
+        return value
+    return _CLASS_YEAR_ALIASES.get(key, value)
 
 
 class _BaseCard(BaseModel):
@@ -124,6 +169,13 @@ class LearnerVoiceTurnRequest(BaseModel):
     # taxonomy contains a question for this skill, the walkthrough is reordered
     # so it comes first; otherwise it is ignored and the normal order applies.
     skill_id: Optional[str] = None
+
+    @field_validator("class_year", mode="before")
+    @classmethod
+    def _normalize_class_year(cls, value: Any) -> Any:
+        # Canonicalise SS3/ss3/"Senior Secondary 3"/SSS3 etc. before the
+        # ClassYear Literal check so every layer's spelling is accepted.
+        return normalize_class_year(value)
 
 
 class LearnerVoiceTurnResponse(BaseModel):

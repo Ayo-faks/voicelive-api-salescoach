@@ -15,6 +15,7 @@ from src.learning.learner_voice import (
     MarkKnownCard,
     McqTapCard,
     ProgressCard,
+    normalize_class_year,
 )
 
 
@@ -34,6 +35,61 @@ def learning_api() -> LearningApi:
 # class_year normalisation (profile SS2 -> planner SSS2)
 # ---------------------------------------------------------------------------
 
+@pytest.mark.parametrize(
+    "raw, canonical",
+    [
+        # Senior secondary: profile double-S -> planner triple-S.
+        ("SS1", "SSS1"),
+        ("SS2", "SSS2"),
+        ("SS3", "SSS3"),
+        # Lower-case and whitespace/long-form spellings.
+        ("ss3", "SSS3"),
+        ("  SS3  ", "SSS3"),
+        ("Senior Secondary 3", "SSS3"),
+        ("senior secondary 1", "SSS1"),
+        # Already-canonical triple-S is a no-op.
+        ("SSS1", "SSS1"),
+        ("SSS3", "SSS3"),
+        # Junior secondary is unaffected.
+        ("JSS2", "JSS2"),
+        ("JSS3", "JSS3"),
+        ("jss3", "JSS3"),
+    ],
+)
+def test_normalize_class_year_maps_every_spelling(raw, canonical):
+    assert normalize_class_year(raw) == canonical
+
+
+@pytest.mark.parametrize("bad", ["", "  ", "SS9", "Grade 12", "primary 6"])
+def test_normalize_class_year_passes_unknown_through(bad):
+    # Unknown/empty input is returned unchanged so the ClassYear Literal still
+    # rejects genuinely invalid classes instead of silently masking them.
+    assert normalize_class_year(bad) == bad
+
+
+def test_normalize_class_year_ignores_non_string():
+    assert normalize_class_year(None) is None
+
+
+@pytest.mark.parametrize(
+    "raw, canonical",
+    [("SS1", "SSS1"), ("SS2", "SSS2"), ("SS3", "SSS3"), ("ss3", "SSS3"),
+     ("Senior Secondary 3", "SSS3"), ("SSS3", "SSS3"), ("JSS3", "JSS3")],
+)
+def test_request_model_canonicalises_class_year(raw, canonical):
+    # The pydantic model normalises before the Literal check, so the senior
+    # double-S spelling stored on the learner profile is accepted on every
+    # voice/turn path that builds a LearnerVoiceTurnRequest.
+    assert _req(class_year=raw).class_year == canonical
+
+
+def test_request_model_rejects_truly_invalid_class_year():
+    import pydantic
+
+    with pytest.raises(pydantic.ValidationError):
+        _req(class_year="SS9")
+
+
 def test_run_voice_turn_normalises_profile_year_group(learning_api: LearningApi):
     # The learner profile stores "SS2"; the planner enum wants "SSS2". The turn
     # must succeed (open the first card) instead of 400ing — this is the bug
@@ -52,6 +108,43 @@ def test_run_voice_turn_normalises_profile_year_group(learning_api: LearningApi)
     assert card.get("kind") == "mcq-tap"
     # The forced skill leads the walkthrough.
     assert card.get("skill_id") == "differentiation"
+
+
+@pytest.mark.parametrize(
+    "raw_year",
+    ["SS1", "SS2", "SS3", "ss3", "Senior Secondary 3"],
+)
+def test_run_voice_turn_starts_for_every_senior_spelling(
+    learning_api: LearningApi, raw_year: str
+):
+    # SS3 (and the rest of the senior band, in any spelling) must open a real
+    # MCQ card instead of reporting the class as "not in the right format".
+    turn = learning_api.run_learner_voice_turn(
+        {
+            "child_id": "stu-1",
+            "exam": "WAEC",
+            "class_year": raw_year,
+            "subject": "Mathematics",
+        }
+    )
+    card = turn.get("card")
+    assert card is not None
+    assert card.get("kind") == "mcq-tap"
+
+
+@pytest.mark.parametrize("raw_year", ["JSS2", "JSS3"])
+def test_run_voice_turn_junior_classes_unaffected(
+    learning_api: LearningApi, raw_year: str
+):
+    turn = learning_api.run_learner_voice_turn(
+        {
+            "child_id": "stu-1",
+            "exam": "Junior WAEC",
+            "class_year": raw_year,
+            "subject": "Mathematics",
+        }
+    )
+    assert turn.get("card") is not None
 
 
 def test_run_voice_turn_accepts_already_canonical_year(learning_api: LearningApi):
