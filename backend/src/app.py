@@ -2269,6 +2269,39 @@ def learner_daily_plan():
     return jsonify(plan)
 
 
+@app.route("/api/learning/weekly-stats", methods=["GET"])
+def learner_weekly_stats():
+    """Return real per-learner "This week" stats for the learner home card.
+
+    Derived from the learner's persisted ``MasteryEvent`` history so the tiles
+    are truthful per learner (never the old hardcoded 4/5 · 7 days · +12%).
+    Mirrors ``learner_daily_plan``'s flag gate, RBAC guard and ownership check.
+    """
+    if not _pathfinder_learner_onboarding_enabled():
+        return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
+
+    user, guard_response = _require_role(ROLE_LEARNER)
+    if guard_response is not None:
+        return guard_response
+
+    owned_student_ids = _learning_student_ids_for_user(cast(Dict[str, Any], user))
+    requested = str(request.args.get("student_id") or "").strip()
+    if requested:
+        if requested not in owned_student_ids:
+            return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
+        student_id = requested
+    else:
+        student_id = next(iter(sorted(owned_student_ids)), "")
+    if not student_id:
+        return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
+
+    try:
+        stats = learning_api.weekly_stats({"student_id": student_id})
+    except LearningApiError as exc:
+        return jsonify({"error": str(exc)}), exc.status_code
+    return jsonify(stats)
+
+
 # Map spoken/loose values the voice onboarding agent may pass onto the strict
 # profile enums. Keeps the tool forgiving ("maths" / "ss 2") without weakening
 # the server-side validator (validate_learner_profile_patch still gates).

@@ -16,7 +16,7 @@
  * legal basis, and the minor guardian gate is a safeguarding control. "Type
  * instead" hands off to the classic {@link LearnerOnboardingWizard}.
  */
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { makeStyles, mergeClasses } from '@fluentui/react-components'
 import {
   ArrowsPointingInIcon,
@@ -48,8 +48,12 @@ export interface VoiceOnboardingFlowProps {
   profile: LearnerProfile | null
   patch: (patch: LearnerProfilePatch) => Promise<LearnerProfileResponse>
   recordConsent: (input: ConsentInput) => Promise<LearnerProfileResponse>
-  /** Finished — typically navigate to /home. */
+  /** Finished — typically navigate to /home. Used by "Save to Today's path". */
   onComplete: () => void
+  /** "Start now" — begin the recommended exercise immediately, on the exact
+   * recommended skill when one is available. Falls back to {@link onComplete}
+   * when not provided. */
+  onStartPractice?: (skillId?: string) => void
   /** Learner prefers the classic typed wizard. */
   onUseTextInstead: () => void
 }
@@ -367,6 +371,7 @@ export function VoiceOnboardingFlow({
   patch,
   recordConsent,
   onComplete,
+  onStartPractice,
   onUseTextInstead,
 }: VoiceOnboardingFlowProps): JSX.Element {
   const styles = useStyles()
@@ -417,6 +422,31 @@ export function VoiceOnboardingFlow({
     () => SUBJECTS_BY_EXAM[exam ?? 'WAEC'] ?? SUBJECTS_BY_EXAM.WAEC,
     [exam]
   )
+
+  // Greet the learner by voice at the very start of onboarding. Browsers block
+  // audio autoplay until a user gesture, so the welcome (CONSENT_SAY) can't be
+  // narrated on mount — that's why narration previously only began on the
+  // second screen (after the "Continue" click unlocked audio). Instead we speak
+  // the welcome on the learner's FIRST interaction with the consent screen
+  // (typing their name, ticking a box, or any tap), which is the earliest point
+  // a browser will allow audio. Fires once, then detaches.
+  const greetedRef = useRef(false)
+  useEffect(() => {
+    if (phase !== 'consent' || greetedRef.current) return
+    const greet = () => {
+      if (greetedRef.current) return
+      greetedRef.current = true
+      window.removeEventListener('pointerdown', greet)
+      window.removeEventListener('keydown', greet)
+      speak(CONSENT_SAY)
+    }
+    window.addEventListener('pointerdown', greet)
+    window.addEventListener('keydown', greet)
+    return () => {
+      window.removeEventListener('pointerdown', greet)
+      window.removeEventListener('keydown', greet)
+    }
+  }, [phase, speak])
 
   const submitConsent = useCallback(async () => {
     setBusy(true)
@@ -534,8 +564,22 @@ export function VoiceOnboardingFlow({
 
   const startNow = useCallback(() => {
     tts.stop()
-    onComplete()
-  }, [tts, onComplete])
+    // Land the learner on the EXACT recommended skill: pull the first
+    // PlanBlock step's skill_id (same contract GoalIntakeScreen uses) and hand
+    // it to onStartPractice so /home opens practice on that skill rather than
+    // the planner's own first pick. Falls back to onComplete when the caller
+    // doesn't wire a practice handler.
+    if (onStartPractice) {
+      const planBlock = blocks.find(b => b.block.kind === 'plan')
+      const firstSkill =
+        planBlock && planBlock.block.kind === 'plan'
+          ? (planBlock.block.steps.find(s => s.skill_id)?.skill_id ?? undefined)
+          : undefined
+      onStartPractice(firstSkill ?? undefined)
+    } else {
+      onComplete()
+    }
+  }, [tts, onStartPractice, onComplete, blocks])
 
   const saveForLater = useCallback(() => {
     tts.stop()

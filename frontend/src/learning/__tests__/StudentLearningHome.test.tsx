@@ -18,6 +18,7 @@ vi.mock('../components/PracticeFullscreen', () => ({
     exam?: string
     classYear?: string
     subject?: string
+    skillId?: string
   }) => {
     practiceFullscreenMock(props)
     return props.open ? (
@@ -398,6 +399,33 @@ describe('StudentLearningHome', () => {
         exam: 'JAMB',
         classYear: 'JSS2',
         subject: 'Mathematics',
+      })
+    )
+  })
+
+  it('auto-opens practice from the goal-intake ?startPractice deep link and forwards the forced skill', async () => {
+    mockVoiceConfig()
+
+    render(
+      <MemoryRouter
+        initialEntries={['/home?startPractice=1&skillId=trigonometry']}
+      >
+        <StudentLearningHome studentId="student-001" />
+      </MemoryRouter>
+    )
+
+    // Practice opens without any click — the learner lands in the exercise,
+    // not the dashboard (goal-intake "Start now" regression guard).
+    expect(await screen.findByTestId('practice-fullscreen-mock')).toBeTruthy()
+    const lastProps =
+      practiceFullscreenMock.mock.calls[
+        practiceFullscreenMock.mock.calls.length - 1
+      ]?.[0]
+    expect(lastProps).toEqual(
+      expect.objectContaining({
+        open: true,
+        childId: 'student-001',
+        skillId: 'trigonometry',
       })
     )
   })

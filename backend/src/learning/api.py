@@ -19,7 +19,7 @@ import json
 import logging
 import os
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Protocol, Sequence, Tuple
 from urllib.parse import urlencode
@@ -65,6 +65,7 @@ from src.learning.models import (
     MasteryEstimate,
     MasteryEvent,
     Provenance,
+    parse_iso_timestamp,
     StudentFactProposal,
     StudentLearningEvidence,
     StudentLearningInsight,
@@ -210,6 +211,15 @@ DIAGNOSTICS_DIR = LEARNING_DATA_DIR / "diagnostics"
 PILOT_METRICS_PATH = LEARNING_DATA_DIR / "ops" / "phase_4_pilot_metrics.json"
 WIKI_CORPUS_PATH = LEARNING_DATA_DIR / "wiki" / "jss3_maths_wiki_seed.json"
 CAREER_LABOUR_MARKET_PATH = LEARNING_DATA_DIR / "career" / "labour_market_phase_3.json"
+
+# Learner profile year groups (``SS1/SS2/SS3``) -> planner ``ClassYear`` enum
+# (``SSS1/SSS2/SSS3``). Lets voice-turn callers pass the raw profile value
+# without 400ing; JSS values already match the enum and pass through.
+_VOICE_TURN_CLASS_YEAR_ALIASES: Dict[str, str] = {
+    "SS1": "SSS1",
+    "SS2": "SSS2",
+    "SS3": "SSS3",
+}
 
 
 def _discover_wiki_corpus_paths() -> tuple:
@@ -3275,6 +3285,16 @@ class LearningApi:
         the planner returns the next card. ``child_id`` is required so
         the realtime transport can RLS-scope reads in phase 2.1.
         """
+        # The learner profile stores year groups as ``SS1/SS2/SS3`` while the
+        # planner's ``ClassYear`` enum uses ``SSS1/SSS2/SSS3``. Surfaces that
+        # pass the profile value straight through (e.g. PracticeFullscreen after
+        # goal-intake "Start now") would otherwise 400 on the first turn. Map
+        # to the planner taxonomy here so every caller is forgiving, mirroring
+        # the daily-plan / goal-recommend routes.
+        class_year = payload.get("class_year")
+        normalized_class_year = _VOICE_TURN_CLASS_YEAR_ALIASES.get(
+            str(class_year or "").strip(), class_year
+        )
         try:
             request_model = LearnerVoiceTurnRequest(
                 child_id=str(payload.get("child_id") or "").strip(),
@@ -3284,8 +3304,9 @@ class LearningApi:
                 answer_option_id=payload.get("answer_option_id"),
                 advance=bool(payload.get("advance") or False),
                 exam=payload.get("exam"),
-                class_year=payload.get("class_year"),
+                class_year=normalized_class_year,
                 subject=payload.get("subject"),
+                skill_id=payload.get("skill_id"),
             )
         except Exception as exc:  # pydantic validation
             raise LearningApiError(f"invalid voice turn: {exc}", status_code=400) from exc
@@ -3677,6 +3698,173 @@ class LearningApi:
                 for pathway in plan.pathways
             ],
         }
+
+    # Weekly target for the learner home "This week" card. A practice "session"
+    # is counted as a distinct UTC day with at least one mastery event, so the
+    # tile reads truthfully ("3 / 5 days practised") rather than inventing a
+    # session boundary the underlying data does not record.
+    WEEKLY_SESSION_TARGET = 5
+
+    def weekly_stats(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        """Return real per-learner "This week" stats for the learner home card.
+
+        Everything is derived from the learner's persisted ``MasteryEvent``
+        history (the same source as :meth:`build_learner_plan`). A learner with
+        no history gets honest zeros and empty-state labels — never fabricated
+        progress. ``student_id`` is expected to have been ownership-checked by
+        the route before this method runs.
+
+        Return shape::
+
+            {
+              "sessions": {"completed": int, "target": int},
+              "streak_days": int,
+              "mastery_delta_pct": float,   # last 7d vs prior 7d, points
+              "mastery_focus_label": str,   # top recently-practised skill
+            }
+        """
+        tenant_id = str(payload.get("tenant_id") or PILOT_TENANT_ID)
+        student_id = str(payload.get("student_id") or "").strip()
+        if not student_id:
+            raise LearningApiError("student_id is required", status_code=400)
+
+        now = datetime.now(timezone.utc)
+        empty: Dict[str, Any] = {
+            "sessions": {"completed": 0, "target": self.WEEKLY_SESSION_TARGET},
+            "streak_days": 0,
+            "mastery_delta_pct": 0.0,
+            "mastery_focus_label": "",
+        }
+
+        try:
+            events = self.repository.list_mastery_events_for_student(
+                tenant_id, student_id, limit=200
+            )
+        except Exception:  # noqa: BLE001 - degrade to an empty week on storage errors
+            events = []
+        if not events:
+            return empty
+
+        # 1. Normalise each event to a tz-aware UTC datetime + probability.
+        timeline: List[tuple[datetime, str, Optional[float]]] = []
+        for record in events:
+            occurred = self._mastery_event_datetime(record)
+            if occurred is None:
+                continue
+            skill_id = str(record.get("skill_id") or "")
+            probability: Optional[float] = None
+            raw_estimate = record.get("estimate")
+            if isinstance(raw_estimate, Mapping):
+                value = raw_estimate.get("probability")
+                if isinstance(value, (int, float)):
+                    probability = float(value)
+            timeline.append((occurred, skill_id, probability))
+        if not timeline:
+            return empty
+
+        # 2. Sessions = distinct active UTC days in the trailing 7 days.
+        week_start = now - timedelta(days=7)
+        completed = len(
+            {
+                occurred.date()
+                for occurred, _skill, _prob in timeline
+                if occurred >= week_start
+            }
+        )
+
+        # 3. Streak = consecutive active days counting back from today (or
+        #    yesterday, so a streak isn't "broken" before today's practice).
+        active_days = {occurred.date() for occurred, _s, _p in timeline}
+        streak_days = 0
+        cursor = now.date()
+        if cursor not in active_days:
+            cursor = cursor - timedelta(days=1)
+        while cursor in active_days:
+            streak_days += 1
+            cursor = cursor - timedelta(days=1)
+
+        # 4. Mastery delta = mean probability of the last 7d vs the prior 7d, in
+        #    percentage points. Needs evidence in BOTH windows to be truthful.
+        prior_start = now - timedelta(days=14)
+        recent_probs = [
+            prob
+            for occurred, _s, prob in timeline
+            if prob is not None and occurred >= week_start
+        ]
+        prior_probs = [
+            prob
+            for occurred, _s, prob in timeline
+            if prob is not None and prior_start <= occurred < week_start
+        ]
+        if recent_probs and prior_probs:
+            mastery_delta_pct = round(
+                (
+                    sum(recent_probs) / len(recent_probs)
+                    - sum(prior_probs) / len(prior_probs)
+                )
+                * 100.0,
+                1,
+            )
+        else:
+            mastery_delta_pct = 0.0
+
+        # 5. Focus = most-practised skill in the trailing 7 days (ties broken by
+        #    most recent), falling back to the newest skill overall.
+        recent_skills = [
+            (occurred, skill_id)
+            for occurred, skill_id, _p in timeline
+            if skill_id and occurred >= week_start
+        ]
+        focus_skill = ""
+        if recent_skills:
+            counts: Dict[str, int] = {}
+            latest: Dict[str, datetime] = {}
+            for occurred, skill_id in recent_skills:
+                counts[skill_id] = counts.get(skill_id, 0) + 1
+                if skill_id not in latest or occurred > latest[skill_id]:
+                    latest[skill_id] = occurred
+            focus_skill = max(counts, key=lambda sid: (counts[sid], latest[sid]))
+        else:
+            focus_skill = max(timeline, key=lambda row: row[0])[1]
+
+        skill_labels = self._skill_label_lookup()
+        focus_label = (
+            skill_labels.get(focus_skill) or _humanize_skill_id(focus_skill)
+            if focus_skill
+            else ""
+        )
+
+        return {
+            "sessions": {
+                "completed": completed,
+                "target": self.WEEKLY_SESSION_TARGET,
+            },
+            "streak_days": streak_days,
+            "mastery_delta_pct": mastery_delta_pct,
+            "mastery_focus_label": focus_label,
+        }
+
+    @staticmethod
+    def _mastery_event_datetime(record: Mapping[str, Any]) -> Optional[datetime]:
+        """Best-effort tz-aware UTC timestamp for a persisted mastery event.
+
+        ``created_at`` may arrive as a ``datetime`` (Postgres) or an ISO string
+        (in-memory repo); fall back to the estimate's ``as_of`` when absent.
+        """
+        raw = record.get("created_at")
+        occurred: Optional[datetime] = None
+        if isinstance(raw, datetime):
+            occurred = raw
+        elif raw:
+            occurred = parse_iso_timestamp(str(raw))
+        if occurred is None:
+            estimate = record.get("estimate")
+            if isinstance(estimate, Mapping):
+                as_of = estimate.get("as_of")
+                occurred = parse_iso_timestamp(str(as_of)) if as_of else None
+        if occurred is not None and occurred.tzinfo is None:
+            occurred = occurred.replace(tzinfo=timezone.utc)
+        return occurred
 
     def _skill_label_lookup(self) -> Dict[str, str]:
         labels: Dict[str, str] = {}

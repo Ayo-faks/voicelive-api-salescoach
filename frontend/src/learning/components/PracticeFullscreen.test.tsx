@@ -65,6 +65,14 @@ describe('PracticeFullscreen', () => {
       configurable: true,
       value: vi.fn(),
     })
+    // Voice is ON by default and auto-speaks each card, so every render hits
+    // /api/learning/tts. Provide a successful audio response by default; tests
+    // that care about TTS override this spy.
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(new Blob(['FAKE_MP3'], { type: 'audio/mpeg' }), {
+        status: 200,
+      })
+    )
   })
 
   afterEach(() => {
@@ -72,6 +80,13 @@ describe('PracticeFullscreen', () => {
     learnerTutorMock.mockClear()
     cleanup()
     vi.restoreAllMocks()
+    // The voice on/off preference is persisted; reset it between tests so each
+    // starts with voice ON.
+    try {
+      window.localStorage.clear()
+    } catch {
+      /* ignore */
+    }
   })
 
   it('returns null when closed', () => {
@@ -97,6 +112,7 @@ describe('PracticeFullscreen', () => {
       exam: null,
       class_year: null,
       subject: null,
+      skill_id: null,
     })
     expect(screen.getByText('Pick the right ratio.')).toBeTruthy()
     expect(screen.getByTestId('practice-option-c')).toBeTruthy()
@@ -120,6 +136,7 @@ describe('PracticeFullscreen', () => {
       exam: null,
       class_year: null,
       subject: null,
+      skill_id: null,
       last_card_id: 'practice-card-1',
       last_kind: 'mcq-tap',
       answer_option_id: 'a',
@@ -158,7 +175,7 @@ describe('PracticeFullscreen', () => {
     expect(screen.queryByLabelText(/microphone/i)).toBeNull()
   })
 
-  it('fetches /api/learning/tts when 🔊 is clicked', async () => {
+  it('auto-speaks each card aloud on arrival (no tap needed)', async () => {
     runTurnSpy.mockResolvedValue({ card: mcqCard, session_complete: false })
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       new Response(new Blob(['FAKE_MP3'], { type: 'audio/mpeg' }), {
@@ -169,17 +186,44 @@ describe('PracticeFullscreen', () => {
       <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />
     )
 
-    fireEvent.click(await screen.findByTestId('practice-listen'))
+    await screen.findByTestId('practice-card')
 
+    // The card is read aloud automatically — TTS is fetched without any tap.
     await waitFor(() => {
-      expect(fetchSpy).toHaveBeenCalledTimes(1)
+      expect(fetchSpy).toHaveBeenCalled()
     })
-    const [url, init] = fetchSpy.mock.calls[0]
-    expect(url).toBe('/api/learning/tts')
+    const ttsCall = fetchSpy.mock.calls.find(
+      ([url]) => url === '/api/learning/tts'
+    )
+    expect(ttsCall).toBeTruthy()
+    const init = (ttsCall?.[1] ?? {}) as RequestInit
     expect(init).toEqual(
       expect.objectContaining({ method: 'POST', credentials: 'include' })
     )
-    expect(String((init as RequestInit).body)).toContain(mcqCard.stem)
+    expect(String(init.body)).toContain(mcqCard.stem)
+  })
+
+  it('turns the voice off and remembers the choice when toggled', async () => {
+    runTurnSpy.mockResolvedValue({ card: mcqCard, session_complete: false })
+    render(
+      <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />
+    )
+
+    const toggle = await screen.findByTestId('practice-voice-toggle')
+    expect(toggle.getAttribute('aria-pressed')).toBe('true')
+
+    fireEvent.click(toggle)
+
+    // Voice off stops playback and is persisted so it sticks across cards.
+    expect(pauseSpy).toHaveBeenCalled()
+    expect(window.localStorage.getItem('pf-practice-voice-enabled')).toBe('0')
+    await waitFor(() => {
+      expect(
+        screen
+          .getByTestId('practice-voice-toggle')
+          .getAttribute('aria-pressed')
+      ).toBe('false')
+    })
   })
 
   it('stops audio on close', async () => {
@@ -193,7 +237,7 @@ describe('PracticeFullscreen', () => {
     expect(pauseSpy).toHaveBeenCalled()
   })
 
-  it('hides Listen button when backend returns 503', async () => {
+  it('hides the voice toggle when TTS is unavailable (503)', async () => {
     runTurnSpy.mockResolvedValue({ card: mcqCard, session_complete: false })
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       new Response('', { status: 503 })
@@ -202,10 +246,12 @@ describe('PracticeFullscreen', () => {
       <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />
     )
 
-    fireEvent.click(await screen.findByTestId('practice-listen'))
+    await screen.findByTestId('practice-card')
 
+    // The auto-speak attempt hits 503 -> TTS marked unsupported -> the voice
+    // toggle disappears (nothing to control).
     await waitFor(() => {
-      expect(screen.queryByTestId('practice-listen')).toBeNull()
+      expect(screen.queryByTestId('practice-voice-toggle')).toBeNull()
     })
   })
 
@@ -228,6 +274,29 @@ describe('PracticeFullscreen', () => {
         exam: 'Junior WAEC',
         class_year: 'JSS2',
         subject: 'English Language',
+        skill_id: null,
+      })
+    })
+  })
+
+  it('forwards a forced skillId to the turn endpoint', async () => {
+    runTurnSpy.mockResolvedValue({ card: mcqCard, session_complete: false })
+    render(
+      <PracticeFullscreen
+        open={true}
+        onClose={() => {}}
+        childId="stu-1"
+        skillId="trigonometry"
+      />
+    )
+    await waitFor(() => {
+      expect(runTurnSpy).toHaveBeenCalledWith({
+        child_id: 'stu-1',
+        lang: undefined,
+        exam: null,
+        class_year: null,
+        subject: null,
+        skill_id: 'trigonometry',
       })
     })
   })

@@ -1,8 +1,9 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-const { recommendFromGoal } = vi.hoisted(() => ({
+const { recommendFromGoal, ttsPlay } = vi.hoisted(() => ({
   recommendFromGoal: vi.fn(),
+  ttsPlay: vi.fn(),
 }))
 
 vi.mock('../api', async () => {
@@ -14,7 +15,7 @@ vi.mock('../hooks/useTtsPlayer', () => ({
   useTtsPlayer: () => ({
     supported: true,
     playing: false,
-    play: vi.fn().mockResolvedValue(undefined),
+    play: ttsPlay.mockResolvedValue(undefined),
     stop: vi.fn(),
   }),
 }))
@@ -27,6 +28,7 @@ function setup(overrides: Record<string, unknown> = {}) {
     .fn()
     .mockResolvedValue({ profile: {}, consents: [], needs_onboarding: false })
   const onComplete = vi.fn()
+  const onStartPractice = vi.fn()
   const onUseTextInstead = vi.fn()
   render(
     <VoiceOnboardingFlow
@@ -35,11 +37,12 @@ function setup(overrides: Record<string, unknown> = {}) {
       patch={patch}
       recordConsent={recordConsent}
       onComplete={onComplete}
+      onStartPractice={onStartPractice}
       onUseTextInstead={onUseTextInstead}
       {...overrides}
     />
   )
-  return { patch, recordConsent, onComplete, onUseTextInstead }
+  return { patch, recordConsent, onComplete, onStartPractice, onUseTextInstead }
 }
 
 async function passConsent() {
@@ -51,6 +54,19 @@ async function passConsent() {
   fireEvent.click(screen.getByTestId('onboarding-privacy'))
   fireEvent.click(screen.getByTestId('onboarding-ai'))
   fireEvent.click(screen.getByTestId('onboarding-consent-continue'))
+}
+
+async function walkToResults() {
+  await passConsent()
+  fireEvent.click(await screen.findByText('WAEC'))
+  fireEvent.click(await screen.findByText('SS2'))
+  fireEvent.click(await screen.findByText('Mathematics'))
+  fireEvent.click(screen.getByTestId('onboarding-subjects-continue'))
+  fireEvent.click(screen.getByTestId('onboarding-interests-skip'))
+  fireEvent.click(await screen.findByText('Mathematics'))
+  fireEvent.click(await screen.findByText('This term'))
+  fireEvent.click(screen.getByTestId('onboarding-note-skip'))
+  await screen.findByTestId('onboarding-results')
 }
 
 afterEach(() => vi.clearAllMocks())
@@ -124,5 +140,69 @@ describe('VoiceOnboardingFlow', () => {
     const { onUseTextInstead } = setup()
     fireEvent.click(screen.getByTestId('onboarding-use-text'))
     expect(onUseTextInstead).toHaveBeenCalledTimes(1)
+  })
+
+  it('narrates the welcome on the first interaction with the consent screen', () => {
+    setup()
+    // No autoplay before a user gesture (browser policy) — silent on mount.
+    expect(ttsPlay).not.toHaveBeenCalled()
+
+    // The learner's first interaction (e.g. focusing the name field) unlocks
+    // audio and narrates the welcome — at the very beginning, not screen two.
+    fireEvent.pointerDown(screen.getByTestId('onboarding-name'))
+    expect(ttsPlay).toHaveBeenCalledTimes(1)
+    expect(ttsPlay.mock.calls[0][0]).toMatch(/Welcome to Wulo Academy/i)
+
+    // It only greets once, not on every subsequent interaction.
+    fireEvent.pointerDown(screen.getByTestId('onboarding-terms'))
+    expect(ttsPlay).toHaveBeenCalledTimes(1)
+  })
+
+  it('starts the recommended exercise on the forced skill from "Start now"', async () => {
+    recommendFromGoal.mockResolvedValue({
+      session_complete: true,
+      blocks: [
+        { kind: 'prose', speak: '', text: "Let's start.", citations: [] },
+        {
+          kind: 'plan',
+          speak: '',
+          headline: 'Start here: Mathematics',
+          steps: [
+            { title: 'Differentiation', skill_id: 'differentiation', done: false },
+            { title: 'Trigonometry', skill_id: 'trigonometry', done: false },
+          ],
+        },
+      ],
+    })
+    const { onStartPractice, onComplete } = setup()
+
+    await walkToResults()
+
+    // "Start now" must launch practice on the exact recommended skill, NOT just
+    // drop the learner on the dashboard via onComplete.
+    fireEvent.click(screen.getByTestId('onboarding-start-now'))
+    expect(onStartPractice).toHaveBeenCalledWith('differentiation')
+    expect(onComplete).not.toHaveBeenCalled()
+  })
+
+  it('"Save to Today\u2019s path" completes without starting practice', async () => {
+    recommendFromGoal.mockResolvedValue({
+      session_complete: true,
+      blocks: [
+        {
+          kind: 'plan',
+          speak: '',
+          headline: 'Start here: Mathematics',
+          steps: [{ title: 'Differentiation', skill_id: 'differentiation' }],
+        },
+      ],
+    })
+    const { onStartPractice, onComplete } = setup()
+
+    await walkToResults()
+
+    fireEvent.click(screen.getByTestId('onboarding-save-later'))
+    await waitFor(() => expect(onComplete).toHaveBeenCalledTimes(1))
+    expect(onStartPractice).not.toHaveBeenCalled()
   })
 })

@@ -19,7 +19,7 @@ import {
   WifiIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DiagnosticPanel from '../components/DiagnosticPanel'
 import LearnerTutorFullscreen, {
   type TutorVoiceSnapshot,
@@ -41,12 +41,13 @@ import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
 import type { LearnerSetup } from '../hooks/useLearnerSetup'
 import { useLearnerProfile } from '../hooks/useLearnerProfile'
 import { useDisclosureState } from '../hooks/useDisclosureState'
+import { useWeeklyStats } from '../hooks/useWeeklyStats'
 import { logEvent } from '../lib/telemetry'
 import { copyParentSummary, shareParentSummary } from '../lib/parent-share'
 import { featureFlags } from '../../utils/featureFlags'
 import { useOnboarding } from '../../onboarding/context'
 import { requestReplayTour } from '../../onboarding/bus'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../../services/api'
 import type { SafetyConfig } from '../../types'
 
@@ -188,6 +189,62 @@ const weeklyTiles: Array<{ label: string; value: string; delta: string }> = [
   { label: 'Streak', value: '7 days', delta: 'Personal best' },
   { label: 'Mastery', value: '+12%', delta: 'Ratio focus' },
 ]
+
+type WeeklyTile = { label: string; value: string; delta: string }
+
+// Placeholders shown while the real per-learner stats load, and the honest
+// empty state shown on error. Neither invents progress.
+const weeklyLoadingTiles: WeeklyTile[] = [
+  { label: 'Sessions', value: '…', delta: 'Loading' },
+  { label: 'Streak', value: '…', delta: 'Loading' },
+  { label: 'Mastery', value: '…', delta: 'Loading' },
+]
+const weeklyEmptyTiles: WeeklyTile[] = [
+  { label: 'Sessions', value: '0 / 5', delta: 'No sessions yet' },
+  { label: 'Streak', value: '0 days', delta: 'Start a streak' },
+  { label: 'Mastery', value: '—', delta: 'Practise to see progress' },
+]
+
+/** Derive the three "This week" tiles from real per-learner stats. Cold-start
+ * (no history) yields the honest empty state rather than fabricated numbers. */
+function deriveWeeklyTiles(stats: {
+  sessions: { completed: number; target: number }
+  streak_days: number
+  mastery_delta_pct: number
+  mastery_focus_label: string
+}): WeeklyTile[] {
+  const { completed, target } = stats.sessions
+  const streak = stats.streak_days
+  const focus = stats.mastery_focus_label
+  const hasData = completed > 0 || streak > 0 || focus !== ''
+  if (!hasData) return weeklyEmptyTiles
+
+  const sessionsDelta =
+    completed === 0
+      ? 'No sessions yet'
+      : completed >= target
+        ? 'On pace'
+        : `${target - completed} to go`
+
+  const streakValue = `${streak} day${streak === 1 ? '' : 's'}`
+  const streakDelta =
+    streak === 0
+      ? 'Start a streak'
+      : streak >= 7
+        ? 'On a roll'
+        : 'Keep it going'
+
+  const pct = Math.round(stats.mastery_delta_pct)
+  const masteryValue = focus === '' && pct === 0 ? '—' : `${pct > 0 ? '+' : ''}${pct}%`
+  const masteryDelta = focus !== '' ? focus : 'Mastery shift'
+
+  return [
+    { label: 'Sessions', value: `${completed} / ${target}`, delta: sessionsDelta },
+    { label: 'Streak', value: streakValue, delta: streakDelta },
+    { label: 'Mastery', value: masteryValue, delta: masteryDelta },
+  ]
+}
+
 
 const examOptions = ['WAEC', 'NECO', 'JAMB', 'Junior WAEC']
 const yearOptions = ['JSS2', 'JSS3', 'SSS1', 'SSS2', 'SSS3']
@@ -1723,13 +1780,56 @@ export default function StudentLearningHome({
   const [practiceAnswer, setPracticeAnswer] = useState<PracticeAnswer | null>(
     null
   )
-  const [practiceOpen, setPracticeOpen] = useState(false)
+  const [practiceOpen, setPracticeOpen] = useState<boolean>(
+    () =>
+      new URLSearchParams(window.location.search).get('startPractice') === '1'
+  )
+  // A forced lead skill carried in via ?skillId= (goal intake "Start now").
+  // Passed to PracticeFullscreen so the learner lands on the exact recommended
+  // skill rather than the planner's own first pick. Initialised from the URL so
+  // the intent survives the learner-home remount (learner-loading -> real id).
+  const [forcedPracticeSkill, setForcedPracticeSkill] = useState<string | null>(
+    () => new URLSearchParams(window.location.search).get('skillId')
+  )
   const [tutorOpen, setTutorOpen] = useState(false)
   const [, setTutorVoice] = useState<TutorVoiceSnapshot>({
     state: 'idle',
     inputLevel: 0,
     recording: false,
   })
+  // Goal intake → "Start now" deep-links here with ?startPractice=1 (plus an
+  // optional ?skillId=) so the learner lands inside an exercise, not the
+  // dashboard. The open intent is read from the URL in the state initialisers
+  // above (not an effect) so it survives the learner-home remount that happens
+  // when `learnerChildren` finishes loading; stripping the params only on close
+  // avoids the race where an early strip left the remounted home with practice
+  // shut and the param gone. Skip the Web-Push prompt while practice is open.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const closePractice = useCallback(() => {
+    setPracticeOpen(false)
+    setForcedPracticeSkill(null)
+    // Strip the deep-link params so a manual refresh doesn't reopen practice.
+    if (
+      searchParams.has('startPractice') ||
+      searchParams.has('skillId')
+    ) {
+      const next = new URLSearchParams(searchParams)
+      next.delete('startPractice')
+      next.delete('skillId')
+      setSearchParams(next, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
+  // Late-arriving deep link (param appears after mount without a remount, e.g.
+  // an in-app link): open practice once. The common goal-intake flow is already
+  // covered by the URL-seeded initialisers above; this is the belt-and-braces
+  // path. It never strips here — stripping is owned by `closePractice`.
+  useEffect(() => {
+    if (searchParams.get('startPractice') === '1') {
+      const skillId = searchParams.get('skillId')
+      if (skillId) setForcedPracticeSkill(skillId)
+      setPracticeOpen(true)
+    }
+  }, [searchParams])
   // Test-only escape hatch so Playwright can drive the voice pill into any
   // state without spinning up the full WebRTC stack. Reads ?__voiceState=
   // from the URL on mount and on history changes. Active only when the
@@ -1862,6 +1962,63 @@ export default function StudentLearningHome({
       cancelled = true
     }
   }, [studentId])
+  // "This week" tiles: real per-learner stats from `GET /api/learning/weekly-stats`
+  // when the onboarding flag is on. Flag-off (demo/tests) keeps the static
+  // `weeklyTiles`; loading shows neutral placeholders; error/cold-start shows an
+  // honest empty state — never the old fabricated 4/5 · 7 days · +12%.
+  const weekly = useWeeklyStats(studentId)
+  const resolvedWeeklyTiles: WeeklyTile[] =
+    weekly.status === 'idle'
+      ? weeklyTiles
+      : weekly.status === 'ready' && weekly.stats
+        ? deriveWeeklyTiles(weekly.stats)
+        : weekly.status === 'loading'
+          ? weeklyLoadingTiles
+          : weeklyEmptyTiles
+  // The "More to revise" plan, its minute badge, and the "Up next" copy are
+  // derived from the learner's real adaptive plan (weak topics + today's queue)
+  // when the onboarding flag is on. Flag-off (demo/tests) keeps the static
+  // arrays so the marketing demo is unchanged.
+  const onboardingFlagOn = featureFlags.pathfinder_learner_onboarding_enabled
+  const derivedRevisionPlan = useMemo<DailyPlanItem[]>(() => {
+    if (!onboardingFlagOn || weakTopicProfile.length === 0) {
+      return dailyRevisionPlan
+    }
+    return weakTopicProfile.slice(0, 3).map(topic => ({
+      id: `revise-${topic.skillId}`,
+      label: topic.label,
+      // Weaker mastery earns more revision time — pedagogy, not invented stats.
+      minutes: topic.mastery < 50 ? 6 : topic.mastery < 70 ? 4 : 3,
+      reason: topic.nextAction,
+    }))
+  }, [onboardingFlagOn, weakTopicProfile])
+  const revisionMinutesTotal = useMemo(
+    () => derivedRevisionPlan.reduce((sum, item) => sum + item.minutes, 0),
+    [derivedRevisionPlan]
+  )
+  const upNext = useMemo<{ label: string; skillId: string }>(() => {
+    if (onboardingFlagOn) {
+      const firstWeak = weakTopicProfile[0]
+      if (firstWeak) {
+        return {
+          label: `${firstWeak.label} · ${firstWeak.nextAction}`,
+          skillId: firstWeak.skillId,
+        }
+      }
+      const nextItem = todaysPath[0]
+      if (nextItem) {
+        return {
+          label: `${nextItem.title} · ${nextItem.meta}`,
+          skillId: nextItem.skillId ?? 'linear-equations',
+        }
+      }
+    }
+    return {
+      label:
+        "Linear equations · introduce slope using ratios you've practiced.",
+      skillId: 'linear-equations',
+    }
+  }, [onboardingFlagOn, weakTopicProfile, todaysPath])
   const [wrongAnswerExplanation, setWrongAnswerExplanation] =
     useState<WrongAnswerExplanation | null>(null)
   const [revisionPlanAdded, setRevisionPlanAdded] = useState(false)
@@ -3007,10 +3164,12 @@ export default function StudentLearningHome({
           >
             <div className={styles.pathRevisionHeader}>
               <Text className={styles.pathRevisionTitle}>More to revise</Text>
-              <span className={styles.softBadge}>12 min today</span>
+              <span className={styles.softBadge}>
+                {revisionMinutesTotal} min today
+              </span>
             </div>
             <div className={styles.planGrid}>
-              {dailyRevisionPlan.map(item => (
+              {derivedRevisionPlan.map(item => (
                 <div key={item.id} className={styles.insightCard}>
                   <span className={styles.weekLabel}>{item.minutes} min</span>
                   <Text className={styles.cardTitle}>{item.label}</Text>
@@ -3042,7 +3201,7 @@ export default function StudentLearningHome({
             </Text>
           </div>
           <div className={styles.weekGrid}>
-            {weeklyTiles.map(tile => (
+            {resolvedWeeklyTiles.map(tile => (
               <div key={tile.label} className={styles.weekTile}>
                 <span className={styles.weekLabel}>{tile.label}</span>
                 <span className={styles.weekValue}>{tile.value}</span>
@@ -3067,12 +3226,12 @@ export default function StudentLearningHome({
               margin: 0,
             }}
           >
-            Linear equations · introduce slope using ratios you've practiced.
+            {upNext.label}
           </p>
           <button
             type="button"
             className={styles.textAction}
-            onClick={() => startCheckIn('linear-equations')}
+            onClick={() => startCheckIn(upNext.skillId)}
             data-testid="preview-path"
           >
             Preview path
@@ -3084,28 +3243,51 @@ export default function StudentLearningHome({
             <Text className={styles.cardTitle}>Recent feedback</Text>
             <Text className={styles.cardCaption}>From your teacher</Text>
           </div>
-          <div className={styles.sideRow}>
-            <CheckBadgeIcon className={styles.sideRowIcon} aria-hidden="true" />
-            <div>
-              <div className={styles.sideRowText}>
-                "Strong work on fraction bars."
-              </div>
-              <div className={styles.sideRowMeta}>
-                Mrs. Adebayo · 2 days ago
-              </div>
-            </div>
-          </div>
-          <div className={styles.sideRow}>
-            <SparklesIcon className={styles.sideRowIcon} aria-hidden="true" />
-            <div>
-              <div className={styles.sideRowText}>
-                Approved for ratio recovery group
-              </div>
-              <div className={styles.sideRowMeta}>
-                Counsellor sign-off · last week
+          {onboardingFlagOn ? (
+            <div className={styles.sideRow} data-testid="feedback-empty">
+              <CheckBadgeIcon
+                className={styles.sideRowIcon}
+                aria-hidden="true"
+              />
+              <div>
+                <div className={styles.sideRowText}>No feedback yet</div>
+                <div className={styles.sideRowMeta}>
+                  Your teacher's notes will appear here after a review.
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <>
+              <div className={styles.sideRow}>
+                <CheckBadgeIcon
+                  className={styles.sideRowIcon}
+                  aria-hidden="true"
+                />
+                <div>
+                  <div className={styles.sideRowText}>
+                    "Strong work on fraction bars."
+                  </div>
+                  <div className={styles.sideRowMeta}>
+                    Mrs. Adebayo · 2 days ago
+                  </div>
+                </div>
+              </div>
+              <div className={styles.sideRow}>
+                <SparklesIcon
+                  className={styles.sideRowIcon}
+                  aria-hidden="true"
+                />
+                <div>
+                  <div className={styles.sideRowText}>
+                    Approved for ratio recovery group
+                  </div>
+                  <div className={styles.sideRowMeta}>
+                    Counsellor sign-off · last week
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </article>
 
         <article className={styles.card} data-testid="sidebar-trust">
@@ -3148,11 +3330,12 @@ export default function StudentLearningHome({
       {practiceOpen && (
         <PracticeFullscreen
           open={practiceOpen}
-          onClose={() => setPracticeOpen(false)}
+          onClose={closePractice}
           childId={studentId ?? 'demo-student'}
           exam={learnerSetup.exam}
           classYear={learnerSetup.year}
           subject={learnerSetup.subject}
+          skillId={forcedPracticeSkill ?? undefined}
         />
       )}
 

@@ -120,6 +120,10 @@ class LearnerVoiceTurnRequest(BaseModel):
     exam: Optional[Exam] = None
     class_year: Optional[ClassYear] = None
     subject: Optional[Subject] = None
+    # Optional forced lead skill (goal intake "Start now"). When the resolved
+    # taxonomy contains a question for this skill, the walkthrough is reordered
+    # so it comes first; otherwise it is ignored and the normal order applies.
+    skill_id: Optional[str] = None
 
 
 class LearnerVoiceTurnResponse(BaseModel):
@@ -837,9 +841,11 @@ class LearnerVoiceTurnPlanner:
 
     def __init__(self, bank: Optional[Tuple[_ScriptedQuestion, ...]] = None) -> None:
         self._bank = tuple(bank) if bank is not None else _CONTENT_BANK
-        # Per-session walkthrough cache keyed by the resolved taxonomy so the
-        # planner can map a ``last_card_id`` back to its question index.
-        self._sessions: Dict[Tuple[str, str, str], List[_ScriptedQuestion]] = {}
+        # Per-session walkthrough cache keyed by the resolved taxonomy *and* any
+        # forced lead skill so the planner can map a ``last_card_id`` back to its
+        # question index. Keying on the forced skill keeps two learners sharing a
+        # taxonomy but leading with different skills from colliding.
+        self._sessions: Dict[Tuple[Tuple[str, str, str], str], List[_ScriptedQuestion]] = {}
         self._index_by_card: Dict[str, Tuple[Tuple[str, str, str], int]] = {}
 
     # ------------------------------------------------------------------
@@ -904,7 +910,7 @@ class LearnerVoiceTurnPlanner:
         if invalid_card is not None:
             return LearnerVoiceTurnResponse(card=invalid_card)
 
-        walkthrough = self._walkthrough_for(taxonomy)
+        walkthrough = self._walkthrough_for(taxonomy, request.skill_id)
         if not walkthrough:
             return LearnerVoiceTurnResponse(card=self._no_content_card(taxonomy))
 
@@ -1010,14 +1016,28 @@ class LearnerVoiceTurnPlanner:
             )
         return None
 
-    def _walkthrough_for(self, taxonomy: Tuple[str, str, str]) -> List[_ScriptedQuestion]:
-        cached = self._sessions.get(taxonomy)
+    def _walkthrough_for(
+        self,
+        taxonomy: Tuple[str, str, str],
+        forced_skill_id: Optional[str] = None,
+    ) -> List[_ScriptedQuestion]:
+        forced = (forced_skill_id or "").strip()
+        key = (taxonomy, forced)
+        cached = self._sessions.get(key)
         if cached is not None:
             return cached
         exam, class_year, subject = taxonomy
         matches = _filter_bank(self._bank, exam=exam, class_year=class_year, subject=subject)
+        # Lead with the forced skill when it is present in this taxonomy. The
+        # reorder happens BEFORE the MAX_QUESTIONS truncation so the requested
+        # skill is never dropped off the tail.
+        if forced:
+            lead = [q for q in matches if q.skill_id == forced]
+            if lead:
+                rest = [q for q in matches if q.skill_id != forced]
+                matches = lead + rest
         walkthrough = matches[: self.MAX_QUESTIONS]
-        self._sessions[taxonomy] = walkthrough
+        self._sessions[key] = walkthrough
         return walkthrough
 
     def _no_content_card(self, taxonomy: Tuple[str, str, str]) -> MarkKnownCard:

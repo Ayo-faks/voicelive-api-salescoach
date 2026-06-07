@@ -114,6 +114,9 @@ const useStyles = makeStyles({
   },
 })
 
+/** localStorage key for the learner's "read each card aloud" preference. */
+const PRACTICE_VOICE_PREF_KEY = 'pf-practice-voice-enabled'
+
 export interface PracticeFullscreenProps {
   open: boolean
   onClose: () => void
@@ -122,6 +125,9 @@ export interface PracticeFullscreenProps {
   exam?: string
   classYear?: string
   subject?: string
+  /** Optional forced lead skill (goal intake "Start now"). The planner leads
+   * with this skill's card when the resolved taxonomy contains it. */
+  skillId?: string
 }
 
 export function PracticeFullscreen({
@@ -132,6 +138,7 @@ export function PracticeFullscreen({
   exam,
   classYear,
   subject,
+  skillId,
 }: PracticeFullscreenProps): JSX.Element | null {
   const styles = useStyles()
   const [card, setCard] = useState<LearnerVoiceCard | null>(null)
@@ -146,11 +153,34 @@ export function PracticeFullscreen({
     stop,
   } = useTtsPlayer()
 
+  // Voice is ON by default: the tutor reads each card aloud automatically (the
+  // learner already gestured to enter practice, so browser autoplay is
+  // unlocked). The learner can deactivate voice with the toggle; the choice is
+  // persisted so it sticks across cards and visits.
+  const [voiceEnabled, setVoiceEnabled] = useState<boolean>(() => {
+    try {
+      return window.localStorage.getItem(PRACTICE_VOICE_PREF_KEY) !== '0'
+    } catch {
+      return true
+    }
+  })
+  const toggleVoice = useCallback(() => {
+    setVoiceEnabled(prev => {
+      const next = !prev
+      try {
+        window.localStorage.setItem(PRACTICE_VOICE_PREF_KEY, next ? '1' : '0')
+      } catch {
+        /* ignore storage failures — preference is best-effort */
+      }
+      return next
+    })
+  }, [])
+
   const requestTurn = useCallback(
     async (
       next: Omit<
         LearnerVoiceTurnRequest,
-        'child_id' | 'lang' | 'exam' | 'class_year' | 'subject'
+        'child_id' | 'lang' | 'exam' | 'class_year' | 'subject' | 'skill_id'
       >
     ) => {
       if (!childId) return
@@ -163,6 +193,7 @@ export function PracticeFullscreen({
           exam: exam ?? null,
           class_year: classYear ?? null,
           subject: subject ?? null,
+          skill_id: skillId ?? null,
           ...next,
         })
         setCard(response.card)
@@ -177,7 +208,7 @@ export function PracticeFullscreen({
         setLoading(false)
       }
     },
-    [childId, lang, exam, classYear, subject]
+    [childId, lang, exam, classYear, subject, skillId]
   )
 
   const handleClose = useCallback(() => {
@@ -186,10 +217,21 @@ export function PracticeFullscreen({
     onClose()
   }, [onClose, stop])
 
+  // Read each new card aloud automatically when voice is on. Re-runs when the
+  // card changes (new question / explanation) and when the learner flips the
+  // voice toggle — so turning voice back on replays the current card, and
+  // turning it off stops playback. `play` already stops any prior audio first.
+  const cardId = card?.card_id
+  const cardSpeak = card?.speak
   useEffect(() => {
-    if (!card?.card_id) return
-    stop()
-  }, [card?.card_id, stop])
+    const text = cardSpeak?.trim()
+    if (!cardId) return
+    if (voiceEnabled && ttsSupported && text) {
+      void play(text)
+    } else {
+      stop()
+    }
+  }, [cardId, cardSpeak, voiceEnabled, ttsSupported, play, stop])
 
   // Reset state when the surface opens OR when the chosen taxonomy changes
   // (taxonomy changes flow through `requestTurn`'s identity), so a new
@@ -248,8 +290,6 @@ export function PracticeFullscreen({
     return ''
   }, [loading, sessionComplete, card])
 
-  const speakText = card?.speak?.trim() ?? ''
-
   if (!open) return null
 
   return (
@@ -276,15 +316,20 @@ export function PracticeFullscreen({
           <div className={styles.status} aria-live="polite">
             {statusText}
           </div>
-          {speakText && ttsSupported ? (
+          {ttsSupported ? (
             <button
               type="button"
               className={styles.listenButton}
-              onClick={() => (ttsPlaying ? stop() : void play(speakText))}
-              aria-label={ttsPlaying ? 'Stop' : 'Listen'}
-              data-testid="practice-listen"
+              onClick={toggleVoice}
+              aria-pressed={voiceEnabled}
+              aria-label={voiceEnabled ? 'Turn voice off' : 'Turn voice on'}
+              data-testid="practice-voice-toggle"
             >
-              {ttsPlaying ? 'Stop' : 'Listen 🔊'}
+              {voiceEnabled
+                ? ttsPlaying
+                  ? '🔊 Speaking…'
+                  : '🔊 Voice on'
+                : '🔇 Voice off'}
             </button>
           ) : null}
           <button
@@ -317,7 +362,7 @@ export function PracticeFullscreen({
       </div>
       <footer className={styles.footer}>
         <span className={styles.footerHint}>
-          Tap an option to answer · Tap 🔊 to hear it again
+          Tap an option to answer · Tap 🔊 to turn the voice on or off
         </span>
       </footer>
       {tutorOpen ? (

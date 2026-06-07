@@ -127,6 +127,34 @@ describe('GoalIntakeScreen (stepped flow)', () => {
     expect(onStart).toHaveBeenCalledTimes(1)
   })
 
+  it('forwards the first recommended skill id to onStart', async () => {
+    recommendFromGoal.mockResolvedValue({
+      session_complete: true,
+      blocks: [
+        { kind: 'prose', speak: '', text: 'Okay.', citations: [] },
+        {
+          kind: 'plan',
+          speak: '',
+          headline: 'Start here: Mathematics',
+          steps: [
+            { title: 'Differentiation', skill_id: 'differentiation', done: false },
+            { title: 'Trigonometry', skill_id: 'trigonometry', done: false },
+          ],
+        },
+      ],
+    })
+    const onStart = vi.fn()
+    render(
+      <GoalIntakeScreen studentId="stu-5" onStart={onStart} onDone={vi.fn()} />
+    )
+
+    walkToNote()
+    fireEvent.click(screen.getByTestId('goal-note-skip'))
+
+    fireEvent.click(await screen.findByTestId('goal-start-now'))
+    expect(onStart).toHaveBeenCalledWith('differentiation')
+  })
+
   it('skips from the intro without calling the API', () => {
     const onDone = vi.fn()
     render(<GoalIntakeScreen studentId="stu-4" onDone={onDone} />)

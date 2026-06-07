@@ -33,8 +33,10 @@ import { useTtsPlayer } from './hooks/useTtsPlayer'
 
 export interface GoalIntakeScreenProps {
   studentId: string
-  /** Begin answering the recommended plan now — defaults to {@link onDone}. */
-  onStart?: () => void
+  /** Begin answering the recommended plan now — defaults to {@link onDone}.
+   * Receives the first recommended skill id (when present) so the caller can
+   * land the learner on the exact recommended skill. */
+  onStart?: (skillId?: string) => void
   /** Stash the plan in Today's path to learn later — defaults to {@link onDone}. */
   onSaveForLater?: () => void
   /** Called when the learner finishes, skips, or closes — typically /home. */
@@ -427,8 +429,16 @@ export function GoalIntakeScreen({
 
   const startNow = useCallback(() => {
     tts.stop()
-    ;(onStart ?? onDone)()
-  }, [tts, onStart, onDone])
+    // Surface the first recommended skill (PlanBlock.steps[0].skill_id) so the
+    // caller can force it as the opening practice card.
+    const planBlock = blocks.find(b => b.block.kind === 'plan')
+    const firstSkill =
+      planBlock && planBlock.block.kind === 'plan'
+        ? (planBlock.block.steps.find(s => s.skill_id)?.skill_id ?? undefined)
+        : undefined
+    if (onStart) onStart(firstSkill ?? undefined)
+    else onDone()
+  }, [tts, onStart, onDone, blocks])
 
   const saveForLater = useCallback(() => {
     tts.stop()

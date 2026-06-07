@@ -1182,6 +1182,13 @@ export default function PathfinderLearnApp() {
           patch={learnerProfileGate.patch}
           recordConsent={learnerProfileGate.recordConsent}
           onComplete={() => navigate('/home')}
+          onStartPractice={(skillId) =>
+            navigate(
+              skillId
+                ? `/home?startPractice=1&skillId=${encodeURIComponent(skillId)}`
+                : '/home?startPractice=1'
+            )
+          }
           onUseTextInstead={() => setOnboardingTextMode(true)}
         />
       )
@@ -1216,7 +1223,13 @@ export default function PathfinderLearnApp() {
     return (
       <GoalIntakeScreen
         studentId={activeLearnerIdForPractice ?? ''}
-        onStart={() => navigate('/home')}
+        onStart={(skillId) =>
+          navigate(
+            skillId
+              ? `/home?startPractice=1&skillId=${encodeURIComponent(skillId)}`
+              : '/home?startPractice=1'
+          )
+        }
         onSaveForLater={() => navigate('/home')}
         onDone={() => navigate('/home')}
       />

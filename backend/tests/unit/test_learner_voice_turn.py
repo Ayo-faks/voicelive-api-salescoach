@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
+from src.learning.api import ITEM_BANK_PATH, LearningApi
+from src.learning.diagnostic import load_item_bank
 from src.learning.learner_voice import (
     ExplanationCard,
     LearnerVoiceTurnPlanner,
@@ -18,6 +22,49 @@ def _req(**kwargs):
     payload = {"child_id": "stu-1"}
     payload.update(kwargs)
     return LearnerVoiceTurnRequest(**payload)
+
+
+@pytest.fixture()
+def learning_api() -> LearningApi:
+    assert ITEM_BANK_PATH.exists(), f"item bank fixture missing at {ITEM_BANK_PATH}"
+    return LearningApi(item_bank=load_item_bank(Path(ITEM_BANK_PATH)))
+
+
+# ---------------------------------------------------------------------------
+# class_year normalisation (profile SS2 -> planner SSS2)
+# ---------------------------------------------------------------------------
+
+def test_run_voice_turn_normalises_profile_year_group(learning_api: LearningApi):
+    # The learner profile stores "SS2"; the planner enum wants "SSS2". The turn
+    # must succeed (open the first card) instead of 400ing — this is the bug
+    # goal-intake "Start now" exposed when it forwarded the raw profile year.
+    turn = learning_api.run_learner_voice_turn(
+        {
+            "child_id": "stu-1",
+            "exam": "WAEC",
+            "class_year": "SS2",
+            "subject": "Mathematics",
+            "skill_id": "differentiation",
+        }
+    )
+    card = turn.get("card")
+    assert card is not None
+    assert card.get("kind") == "mcq-tap"
+    # The forced skill leads the walkthrough.
+    assert card.get("skill_id") == "differentiation"
+
+
+def test_run_voice_turn_accepts_already_canonical_year(learning_api: LearningApi):
+    turn = learning_api.run_learner_voice_turn(
+        {
+            "child_id": "stu-1",
+            "exam": "WAEC",
+            "class_year": "SSS2",
+            "subject": "Mathematics",
+        }
+    )
+    assert turn.get("card") is not None
+
 
 
 # ---------------------------------------------------------------------------
@@ -104,6 +151,45 @@ def test_full_correct_walkthrough_completes_session_for_default_taxonomy():
 def test_invalid_payload_missing_child_id_raises():
     with pytest.raises(Exception):
         LearnerVoiceTurnRequest(child_id="")
+
+
+# ---------------------------------------------------------------------------
+# Forced lead skill (goal intake "Start now")
+# ---------------------------------------------------------------------------
+
+def test_forced_skill_leads_the_walkthrough():
+    planner = LearnerVoiceTurnPlanner()
+    # Default Mathematics order is differentiation -> trigonometry -> mean.
+    # Forcing "trigonometry" must promote it to the first card.
+    resp = planner.next_turn(_req(skill_id="trigonometry"))
+    assert isinstance(resp.card, McqTapCard)
+    assert resp.card.skill_id == "trigonometry"
+
+
+def test_forced_skill_keeps_a_coherent_forward_sequence():
+    planner = LearnerVoiceTurnPlanner()
+    first = planner.next_turn(_req(skill_id="trigonometry"))
+    assert isinstance(first.card, McqTapCard)
+    assert first.card.skill_id == "trigonometry"
+    # Correct answer (hypotenuse = 10 cm) advances to the next, distinct card.
+    second = planner.next_turn(
+        _req(
+            skill_id="trigonometry",
+            last_card_id=first.card.card_id,
+            last_kind="mcq-tap",
+            answer_option_id="b",
+        )
+    )
+    assert isinstance(second.card, McqTapCard)
+    assert second.card.skill_id != "trigonometry"
+
+
+def test_unknown_forced_skill_falls_back_to_default_order():
+    planner = LearnerVoiceTurnPlanner()
+    # A skill that does not exist in this taxonomy is ignored, not an error.
+    resp = planner.next_turn(_req(skill_id="not-a-real-skill"))
+    assert isinstance(resp.card, McqTapCard)
+    assert resp.card.skill_id == "differentiation"
 
 
 # ---------------------------------------------------------------------------

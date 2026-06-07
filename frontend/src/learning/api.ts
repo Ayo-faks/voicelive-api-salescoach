@@ -226,6 +226,13 @@ export type LearnerCareerPlanResponse = {
   pathways: LearnerCareerPathwayPayload[]
 }
 
+export type LearnerWeeklyStatsResponse = {
+  sessions: { completed: number; target: number }
+  streak_days: number
+  mastery_delta_pct: number
+  mastery_focus_label: string
+}
+
 export type ExamPrepSkill = {
   skill_id: string
   label: string
@@ -542,6 +549,17 @@ export async function fetchLearnerCareers(
     : '/api/learning/learner/careers'
   const response = await fetch(url, withDefaults({ method: 'GET' }))
   return jsonOrThrow<LearnerCareerPlanResponse>(response)
+}
+
+export async function fetchWeeklyStats(
+  query: { student_id?: string } = {}
+): Promise<LearnerWeeklyStatsResponse> {
+  const search = toSearchParams(query)
+  const url = search
+    ? `/api/learning/weekly-stats?${search}`
+    : '/api/learning/weekly-stats'
+  const response = await fetch(url, withDefaults({ method: 'GET' }))
+  return jsonOrThrow<LearnerWeeklyStatsResponse>(response)
 }
 
 export async function fetchExamPrepTopics(): Promise<ExamPrepTopicsResponse> {
@@ -937,6 +955,8 @@ export interface LearnerVoiceTurnRequest {
   exam?: string | null
   class_year?: string | null
   subject?: string | null
+  /** Optional forced lead skill — the planner leads with it when available. */
+  skill_id?: string | null
 }
 
 export interface LearnerVoiceTurnResponse {
