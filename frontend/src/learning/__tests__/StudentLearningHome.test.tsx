@@ -122,6 +122,10 @@ describe('StudentLearningHome', () => {
     expect(screen.getByTestId('b2c-learner-setup')).toBeTruthy()
     expect(screen.getByText('Welcome 👋')).toBeTruthy()
     expect(screen.queryByText(/Tobi/i)).toBeNull()
+    expect(screen.queryByText('Recent feedback')).toBeNull()
+    expect(screen.queryByText('From your teacher')).toBeNull()
+    expect(screen.queryByTestId('feedback-empty')).toBeNull()
+    expect(screen.getByText(/designed to be safe and responsible/i)).toBeTruthy()
 
     // The exam-path picker stays collapsed behind one secondary affordance so
     // it does not compete with the hero action (#13).

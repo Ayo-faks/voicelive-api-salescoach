@@ -3266,58 +3266,6 @@ export default function StudentLearningHome({
           </button>
         </article>
 
-        <article className={styles.card}>
-          <div className={styles.cardHeader}>
-            <Text className={styles.cardTitle}>Recent feedback</Text>
-            <Text className={styles.cardCaption}>From your teacher</Text>
-          </div>
-          {onboardingFlagOn ? (
-            <div className={styles.sideRow} data-testid="feedback-empty">
-              <CheckBadgeIcon
-                className={styles.sideRowIcon}
-                aria-hidden="true"
-              />
-              <div>
-                <div className={styles.sideRowText}>No feedback yet</div>
-                <div className={styles.sideRowMeta}>
-                  Your teacher's notes will appear here after a review.
-                </div>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className={styles.sideRow}>
-                <CheckBadgeIcon
-                  className={styles.sideRowIcon}
-                  aria-hidden="true"
-                />
-                <div>
-                  <div className={styles.sideRowText}>
-                    "Strong work on fraction bars."
-                  </div>
-                  <div className={styles.sideRowMeta}>
-                    Mrs. Adebayo · 2 days ago
-                  </div>
-                </div>
-              </div>
-              <div className={styles.sideRow}>
-                <SparklesIcon
-                  className={styles.sideRowIcon}
-                  aria-hidden="true"
-                />
-                <div>
-                  <div className={styles.sideRowText}>
-                    Approved for ratio recovery group
-                  </div>
-                  <div className={styles.sideRowMeta}>
-                    Counsellor sign-off · last week
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-        </article>
-
         <article className={styles.card} data-testid="sidebar-trust">
           <details
             className={styles.disclosure}
@@ -3348,7 +3296,7 @@ export default function StudentLearningHome({
                 margin: 0,
               }}
             >
-              Every recommendation is teacher-reviewed. Evidence and activity log
+              Every recommendation is designed to be safe and responsible. Evidence and activity log
               available in <Link to="/trust">Trust &amp; Safety</Link>.
             </p>
           </details>
