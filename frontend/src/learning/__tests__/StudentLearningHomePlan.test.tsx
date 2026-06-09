@@ -69,6 +69,9 @@ function mockConfigFetch() {
         })
       )
     }
+    if (url === '/api/learning/learner/careers?student_id=student-001') {
+      return Promise.resolve(jsonResponse({ profiles: [], pathways: [] }))
+    }
     return Promise.reject(new Error(`Unexpected URL ${url}`))
   })
 }
@@ -194,11 +197,11 @@ describe('StudentLearningHome weekly stats wiring', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText('3 / 5')).toBeTruthy()
+      expect(screen.getAllByText('3 / 5').length).toBeGreaterThan(0)
     })
-    expect(screen.getByText('5 days')).toBeTruthy()
-    expect(screen.getByText('+8%')).toBeTruthy()
-    expect(screen.getByText('Differentiation')).toBeTruthy()
+    expect(screen.getAllByText('5 days').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('+8%').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Differentiation').length).toBeGreaterThan(0)
     // The fabricated demo numbers must be gone.
     expect(screen.queryByText('4 / 5')).toBeNull()
     expect(screen.queryByText('7 days')).toBeNull()
@@ -222,10 +225,10 @@ describe('StudentLearningHome weekly stats wiring', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('No sessions yet')).toBeTruthy()
+      expect(screen.getAllByText('No sessions yet').length).toBeGreaterThan(0)
     })
-    expect(screen.getByText('0 / 5')).toBeTruthy()
-    expect(screen.getByText('0 days')).toBeTruthy()
+    expect(screen.getAllByText('0 / 5').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('0 days').length).toBeGreaterThan(0)
     // No invented mastery delta on a learner with no history.
     expect(screen.queryByText('+12%')).toBeNull()
   })
@@ -245,7 +248,7 @@ describe('StudentLearningHome weekly stats wiring', () => {
       expect(fetchWeeklyStatsMock).toHaveBeenCalled()
     })
     await waitFor(() => {
-      expect(screen.getByText('No sessions yet')).toBeTruthy()
+      expect(screen.getAllByText('No sessions yet').length).toBeGreaterThan(0)
     })
     expect(screen.queryByText('+12%')).toBeNull()
   })

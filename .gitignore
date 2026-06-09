@@ -129,6 +129,7 @@ backend/static/
 logs
 playwright-report/
 test-results/
+test-results-flow-capture/
 
 # Python
 __pycache__/

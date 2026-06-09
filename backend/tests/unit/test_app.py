@@ -899,6 +899,12 @@ class TestFlaskApp:
 
         assert _resolve_local_dev_role() == "kid"
 
+    def test_resolve_local_dev_role_accepts_learner_override(self, monkeypatch: pytest.MonkeyPatch):
+        """Test learner role can be used for no-auth local browser testing."""
+        monkeypatch.setenv("LOCAL_DEV_USER_ROLE", "learner")
+
+        assert _resolve_local_dev_role() == "learner"
+
     @patch("src.app.storage_service")
     def test_local_dev_auth_overlays_kid_role(self, mock_storage_service, monkeypatch: pytest.MonkeyPatch):
         """Test local dev kid role does not need to be persisted in the core user role schema."""
@@ -910,6 +916,35 @@ class TestFlaskApp:
 
         assert user is not None
         assert user["role"] == "kid"
+        mock_storage_service.update_user_role.assert_not_called()
+
+    @patch("src.app.storage_service")
+    def test_local_dev_auth_overlays_learner_role(self, mock_storage_service, monkeypatch: pytest.MonkeyPatch):
+        """Test learner local dev auth creates a usable session without mutating the core user role."""
+        monkeypatch.setenv("LOCAL_DEV_AUTH", "true")
+        monkeypatch.setenv("LOCAL_DEV_USER_ROLE", "learner")
+        monkeypatch.setenv("LOCAL_DEV_USER_ID", "dev-learner-001")
+        monkeypatch.setenv("LOCAL_DEV_USER_NAME", "Dev Learner")
+        monkeypatch.setenv("LOCAL_DEV_USER_EMAIL", "learner@localhost")
+        mock_storage_service.get_or_create_user.return_value = {
+            "id": "dev-learner-001",
+            "name": "Dev Learner",
+            "email": "learner@localhost",
+            "provider": "local-dev",
+            "role": "parent",
+        }
+
+        user = _get_authenticated_user_from_headers({})
+
+        assert user is not None
+        assert user["id"] == "dev-learner-001"
+        assert user["role"] == "learner"
+        mock_storage_service.get_or_create_user.assert_called_once_with(
+            "dev-learner-001",
+            "learner@localhost",
+            "Dev Learner",
+            "local-dev",
+        )
         mock_storage_service.update_user_role.assert_not_called()
 
     def test_get_child_sessions_requires_authentication(self):

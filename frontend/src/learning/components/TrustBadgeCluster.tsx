@@ -30,7 +30,7 @@ const useStyles = makeStyles({
     ':focus-visible': {
       outlineStyle: 'solid',
       outlineWidth: '2px',
-      outlineColor: t.brand.text,
+      outlineColor: 'var(--pf-text)',
       outlineOffset: '4px',
       borderRadius: t.radius.pill,
     },
@@ -44,11 +44,11 @@ const useStyles = makeStyles({
     paddingLeft: '8px',
     paddingRight: '10px',
     borderRadius: t.radius.pill,
-    backgroundColor: t.surface.cardMuted,
-    border: t.surface.hairline,
+    backgroundColor: 'var(--pf-surface-muted)',
+    border: 'var(--pf-hairline)',
     fontSize: '0.7rem',
     fontWeight: 600,
-    color: t.brand.text,
+    color: 'var(--pf-text)',
   },
   trustBadgeIcon: { width: '12px', height: '12px' },
 })

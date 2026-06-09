@@ -35,15 +35,15 @@ const useStyles = makeStyles({
     padding: '20px',
     maxWidth: '760px',
     margin: '0 auto',
-    backgroundColor: t.brand.page,
+    backgroundColor: 'var(--pf-page)',
     minHeight: '100vh',
   },
   card: {
-    backgroundColor: t.surface.card,
-    border: t.surface.hairline,
+    backgroundColor: 'var(--pf-surface)',
+    border: 'var(--pf-hairline)',
     borderRadius: t.radius.lg,
     padding: '20px',
-    boxShadow: t.surface.cardElevatedShadow,
+    boxShadow: 'var(--pf-shadow-card-elevated)',
   },
   inputRow: {
     display: 'grid',
@@ -54,30 +54,30 @@ const useStyles = makeStyles({
     gap: '6px',
     padding: '14px 16px',
     borderRadius: t.radius.md,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.cardMuted,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
   },
   hitTitle: {
     fontWeight: 600,
-    color: t.brand.text,
+    color: 'var(--pf-text)',
   },
   hitMeta: {
-    color: t.brand.textTertiary,
+    color: 'var(--pf-text-tertiary)',
     fontSize: '12px',
   },
   refusal: {
-    backgroundColor: t.status.warnBg,
-    color: t.status.warnFg,
-    border: '1px solid #e3d8a0',
+    backgroundColor: 'var(--pf-status-warn-bg)',
+    color: 'var(--pf-status-warn-fg)',
+    border: '1px solid var(--pf-status-warn-fg)',
     borderRadius: t.radius.md,
     padding: '14px 16px',
     display: 'grid',
     gap: '6px',
   },
   errorBox: {
-    backgroundColor: t.status.criticalBg,
-    color: t.status.criticalFg,
-    border: '1px solid #f3c9c4',
+    backgroundColor: 'var(--pf-status-critical-bg)',
+    color: 'var(--pf-status-critical-fg)',
+    border: '1px solid var(--pf-status-critical-fg)',
     borderRadius: t.radius.md,
     padding: '12px 14px',
   },
@@ -133,8 +133,8 @@ export function ExplanationSurface(props: ExplanationSurfaceProps) {
         <Text as="h2" weight="semibold" size={500}>
           Explain this for me
         </Text>
-        <Text as="p" size={200} style={{ color: t.brand.textTertiary }}>
-          Pathfinder will only answer from the approved wiki. If we can&apos;t
+        <Text as="p" size={200} style={{ color: 'var(--pf-text-tertiary)' }}>
+          Wulo Academy will only answer from the approved wiki. If we can&apos;t
           find a source we&apos;ll say so rather than guess.
         </Text>
         <div className={styles.inputRow} style={{ marginTop: 12 }}>
@@ -207,7 +207,7 @@ function HitsBlock(props: { hits: ExplainHit[] }) {
   const styles = useStyles()
   return (
     <div style={{ display: 'grid', gap: 12 }} data-testid="hits-block">
-      <Text size={200} style={{ color: t.brand.textTertiary }}>
+      <Text size={200} style={{ color: 'var(--pf-text-tertiary)' }}>
         Found {props.hits.length} grounded source
         {props.hits.length === 1 ? '' : 's'}. A learner-facing explanation will
         be generated from these in the next release.

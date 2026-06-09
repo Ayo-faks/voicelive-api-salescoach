@@ -835,7 +835,7 @@ export function AskPathfinder({
               <output
                 className={styles.typingRow}
                 data-testid="ask-pathfinder-typing"
-                aria-label="Pathfinder is thinking"
+                aria-label="Wulo Tutor is thinking"
               >
                 <span
                   className={styles.typingDot}

@@ -98,8 +98,6 @@ const NOTE_INDEX = QUESTIONS.length // the optional note is the step after Q3
 const TOTAL_STEPS = QUESTIONS.length + 1
 const STEP_DOT_IDS = ['subject', 'exam', 'timeframe', 'note'] as const
 
-const INTRO_SAY =
-  "Hi! In about a minute, I'll find the best place for you to start. Tap when you're ready."
 const NOTE_SAY =
   "Last one — anything else you'd like me to know? You can skip this."
 const GENERATING_SAY = 'Great. Let me line up the best place for you to start.'
@@ -117,8 +115,8 @@ const useStyles = makeStyles({
     position: 'fixed',
     inset: 0,
     zIndex: 120,
-    background: 'radial-gradient(circle at 50% 16%, #202024 0%, #070708 64%)',
-    color: '#f7f7f8',
+    background: 'var(--scrim-bg-goal)',
+    color: 'var(--scrim-fg)',
     display: 'grid',
     gridTemplateRows: 'auto 1fr auto',
     overflow: 'hidden',
@@ -146,26 +144,26 @@ const useStyles = makeStyles({
     width: '9px',
     height: '9px',
     borderRadius: '999px',
-    backgroundColor: '#fff',
-    boxShadow: '0 0 14px rgba(255,255,255,0.45)',
+    backgroundColor: 'var(--scrim-fill)',
+    boxShadow: 'var(--scrim-brand-dot-glow)',
   },
   progress: { display: 'inline-flex', gap: '7px', alignItems: 'center' },
   dot: {
     width: '7px',
     height: '7px',
     borderRadius: '999px',
-    background: 'rgba(255,255,255,0.22)',
+    background: 'var(--scrim-line-strong)',
     transition: 'background 220ms ease, transform 220ms ease',
   },
-  dotActive: { background: '#ffffff', transform: 'scale(1.25)' },
-  dotDone: { background: 'rgba(255,255,255,0.6)' },
+  dotActive: { background: 'var(--scrim-fill)', transform: 'scale(1.25)' },
+  dotDone: { background: 'var(--scrim-fg-soft)' },
   iconButton: {
     width: '40px',
     height: '40px',
     borderRadius: '999px',
-    border: '1px solid rgba(255,255,255,0.14)',
-    background: 'rgba(255,255,255,0.06)',
-    color: '#fff',
+    border: '1px solid var(--scrim-line-strong)',
+    background: 'var(--scrim-chip)',
+    color: 'var(--scrim-fg-strong)',
     display: 'grid',
     placeItems: 'center',
     cursor: 'pointer',
@@ -185,8 +183,7 @@ const useStyles = makeStyles({
     borderRadius: '999px',
     background:
       'radial-gradient(circle at 32% 26%, #ffffff 0%, #d8d8dd 34%, #53535a 68%, #101012 100%)',
-    boxShadow:
-      '0 0 60px rgba(255,255,255,0.18), inset 0 0 32px rgba(255,255,255,0.2)',
+    boxShadow: 'var(--scrim-orb-glow)',
     flexShrink: 0,
   },
   orbBreathing: {
@@ -206,8 +203,7 @@ const useStyles = makeStyles({
     animationDuration: '900ms',
     animationIterationCount: 'infinite',
     animationTimingFunction: 'ease-in-out',
-    boxShadow:
-      '0 0 90px rgba(255,255,255,0.34), inset 0 0 32px rgba(255,255,255,0.28)',
+    boxShadow: 'var(--scrim-orb-speaking-glow)',
   },
   orbThinking: {
     animationName: {
@@ -217,8 +213,7 @@ const useStyles = makeStyles({
     animationDuration: '2200ms',
     animationIterationCount: 'infinite',
     animationTimingFunction: 'linear',
-    background:
-      'conic-gradient(from 0deg, #ffffff, #9a9aa2, #ffffff, #54545b, #ffffff)',
+    background: 'var(--scrim-orb-thinking-bg)',
   },
   enter: {
     animationName: {
@@ -231,7 +226,7 @@ const useStyles = makeStyles({
   },
   status: { display: 'grid', gap: '6px', textAlign: 'center' },
   stateTitle: { fontSize: '1.32rem', fontWeight: 800, letterSpacing: '-0.01em' },
-  stateHint: { color: 'rgba(255,255,255,0.62)', fontSize: '0.92rem' },
+  stateHint: { color: 'var(--scrim-fg-soft)', fontSize: '0.92rem' },
   question: { display: 'grid', gap: '14px', justifyItems: 'center', width: 'min(560px, 100%)' },
   questionText: {
     fontSize: '1.16rem',
@@ -248,9 +243,9 @@ const useStyles = makeStyles({
   option: {
     padding: '14px 22px',
     borderRadius: '16px',
-    border: '1px solid rgba(255,255,255,0.16)',
-    background: 'rgba(255,255,255,0.07)',
-    color: '#f7f7f8',
+    border: '1px solid var(--scrim-line-strong)',
+    background: 'var(--scrim-chip)',
+    color: 'var(--scrim-fg)',
     cursor: 'pointer',
     fontSize: '1rem',
     fontWeight: 600,
@@ -263,7 +258,7 @@ const useStyles = makeStyles({
     animationTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
     animationFillMode: 'both',
     transition: 'background 140ms ease, transform 140ms ease',
-    ':hover': { background: 'rgba(255,255,255,0.12)', transform: 'translateY(-1px)' },
+    ':hover': { background: 'var(--scrim-chip-hover)', transform: 'translateY(-1px)' },
   },
   noteCard: { display: 'grid', gap: '14px', width: 'min(560px, 100%)', justifyItems: 'center' },
   note: {
@@ -271,9 +266,9 @@ const useStyles = makeStyles({
     minHeight: '64px',
     padding: '14px 16px',
     borderRadius: '16px',
-    border: '1px solid rgba(255,255,255,0.16)',
-    background: 'rgba(255,255,255,0.06)',
-    color: '#f7f7f8',
+    border: '1px solid var(--scrim-line-strong)',
+    background: 'var(--scrim-chip)',
+    color: 'var(--scrim-fg)',
     fontSize: '0.98rem',
     fontFamily: 'inherit',
   },
@@ -281,8 +276,8 @@ const useStyles = makeStyles({
   resultsSheet: {
     width: 'min(620px, 100%)',
     borderRadius: '20px',
-    background: '#ffffff',
-    color: '#101012',
+    background: 'var(--scrim-fill)',
+    color: 'var(--scrim-on-fill)',
     padding: '20px',
     display: 'grid',
     gap: '14px',
@@ -323,13 +318,13 @@ const useStyles = makeStyles({
     gap: '8px',
     padding: '14px 24px',
     borderRadius: '999px',
-    border: '1px solid rgba(255,255,255,0.18)',
-    background: 'linear-gradient(160deg, #4a4a4d 0%, #090909 100%)',
+    border: '1px solid var(--scrim-line-strong)',
+    background: 'var(--scrim-mic-bg)',
     color: '#ffffff',
     cursor: 'pointer',
     fontSize: '1rem',
     fontWeight: 700,
-    boxShadow: '0 16px 42px rgba(0,0,0,0.42)',
+    boxShadow: 'var(--scrim-mic-shadow)',
   },
   secondary: {
     display: 'inline-flex',
@@ -349,7 +344,7 @@ const useStyles = makeStyles({
     borderRadius: '999px',
     border: 'none',
     background: 'transparent',
-    color: 'rgba(255,255,255,0.6)',
+    color: 'var(--scrim-fg-soft)',
     cursor: 'pointer',
     fontSize: '0.92rem',
   },

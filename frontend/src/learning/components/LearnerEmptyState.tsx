@@ -9,9 +9,9 @@ const useStyles = makeStyles({
     placeItems: 'center',
     padding: '32px',
     borderRadius: t.radius.xl,
-    border: t.surface.hairline,
-    backgroundColor: t.brand.surface,
-    boxShadow: t.surface.raisedShadow,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    boxShadow: 'var(--pf-shadow-raised)',
     textAlign: 'center',
   },
   content: {
@@ -23,18 +23,18 @@ const useStyles = makeStyles({
   icon: {
     width: '44px',
     height: '44px',
-    color: t.brand.text,
+    color: 'var(--pf-text)',
   },
   title: {
     fontFamily: t.font.display,
     fontSize: '1.35rem',
     fontWeight: 700,
-    color: t.brand.text,
+    color: 'var(--pf-text)',
   },
   body: {
     fontSize: '0.92rem',
     lineHeight: 1.5,
-    color: t.brand.textSecondary,
+    color: 'var(--pf-text-secondary)',
   },
 })
 

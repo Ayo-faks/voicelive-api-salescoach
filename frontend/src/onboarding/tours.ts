@@ -6,10 +6,10 @@
 /**
  * Tour registry.
  *
- * Each tour is a self-contained definition with:
+      title: t('tour.welcome_learner.step2.title', 'Study with Wulo'),
  * - `id` — stable slug, also the key used in `ui_state.tours_seen`.
  * - `role` — audience gate (applied at runtime alongside `ui_state`).
- * - `autoTrigger` — optional route prefix that fires the tour once
+        'One action starts the right mode: Wulo can coach, ask a quick check, or move you into practice.'
  *   when the user lands there and hasn't seen it yet.
  * - `steps` — each step declares BOTH a CSS `selector` (for the runtime
  *   driver) AND a `testId` (for the Vitest contract test required by
@@ -278,10 +278,10 @@ export const welcomeLearnerTour: TourDefinition = {
     {
       selector: '[data-testid="start-checkin"]',
       testId: 'start-checkin',
-      title: t('tour.welcome_learner.step2.title', 'Daily check-in'),
+      title: t('tour.welcome_learner.step2.title', 'Study with Wulo'),
       body: t(
         'tour.welcome_learner.step2.body',
-        'Start each day here with a one-minute check-in. It calibrates the plan and unlocks today\u2019s practice.'
+        'One action starts the right mode: Wulo can coach, ask a quick check, or move you into practice.'
       ),
       placement: 'bottom',
     },
@@ -308,10 +308,10 @@ export const welcomeLearnerTour: TourDefinition = {
     {
       selector: '[data-testid="start-learner-tutor"]',
       testId: 'start-learner-tutor',
-      title: t('tour.welcome_learner.step5.title', 'Voice tutor'),
+      title: t('tour.welcome_learner.step5.title', 'Wulo Tutor'),
       body: t(
         'tour.welcome_learner.step5.body',
-        'Stuck on a question? Open the voice tutor to talk it through hands-free.'
+        'The same Wulo Tutor can talk it through hands-free when a learner needs coaching.'
       ),
       placement: 'bottom',
     },
@@ -411,7 +411,7 @@ export const dashboardTour: TourDefinition = {
       title: t('tour.dashboard.step2.title', 'Weakest subskills'),
       body: t(
         'tour.dashboard.step2.body',
-        'Pathfinder ranks the subskills the class is struggling with most. Tap one to see who needs help and what to schedule next.'
+        'Wulo Academy ranks the subskills the class is struggling with most. Tap one to see who needs help and what to schedule next.'
       ),
       placement: 'left',
     },

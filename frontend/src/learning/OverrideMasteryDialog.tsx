@@ -26,15 +26,15 @@ const useStyles = makeStyles({
     maxWidth: '560px',
     width: '100%',
     borderRadius: t.radius.lg,
-    border: t.surface.hairline,
-    backgroundColor: t.brand.surface,
-    boxShadow: t.surface.cardHoverShadow,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    boxShadow: 'var(--pf-shadow-card-hover)',
   },
   title: {
     fontFamily: t.font.display,
     fontSize: '1.18rem',
     fontWeight: 800,
-    color: t.brand.text,
+    color: 'var(--pf-text)',
   },
   body: {
     display: 'grid',
@@ -48,29 +48,29 @@ const useStyles = makeStyles({
     alignItems: 'center',
   },
   error: {
-    color: t.status.criticalFg,
+    color: 'var(--pf-status-critical-fg)',
     fontWeight: 600,
   },
   metricCaption: {
-    color: t.brand.textSecondary,
+    color: 'var(--pf-text-secondary)',
     fontWeight: 700,
   },
   fieldHelp: {
-    color: t.brand.textTertiary,
+    color: 'var(--pf-text-tertiary)',
     display: 'block',
     marginTop: '-4px',
   },
   intro: {
     padding: '12px 14px',
     borderRadius: t.radius.md,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.cardMuted,
-    color: t.brand.textSecondary,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
+    color: 'var(--pf-text-secondary)',
     lineHeight: '20px',
   },
   rangeInput: {
     width: '100%',
-    accentColor: t.brand.ink,
+    accentColor: 'var(--pf-ink)',
   },
   dialogActions: {
     display: 'flex',
@@ -84,9 +84,9 @@ const useStyles = makeStyles({
     paddingRight: '16px',
     paddingLeft: '16px',
     borderRadius: t.radius.pill,
-    border: `1px solid ${t.brand.ink}`,
-    backgroundColor: t.brand.ink,
-    color: t.brand.onInk,
+    border: `1px solid var(--pf-ink)`,
+    backgroundColor: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.82rem',
@@ -103,9 +103,9 @@ const useStyles = makeStyles({
     paddingRight: '16px',
     paddingLeft: '16px',
     borderRadius: t.radius.pill,
-    border: t.surface.hairline,
-    backgroundColor: t.brand.surface,
-    color: t.brand.text,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    color: 'var(--pf-text)',
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.82rem',
@@ -270,7 +270,7 @@ export function OverrideMasteryDialog({
             </Caption1>
             <Field
               label={`Uncertainty (${Math.round(uncertainty * 100)}%)`}
-              hint="How unsure you are. Lower = more confident. Raise this if you want Pathfinder to keep checking."
+              hint="How unsure you are. Lower = more confident. Raise this if you want Wulo Academy to keep checking."
               validationState={uncertaintyValid ? 'none' : 'error'}
             >
               <div className={styles.metricRow}>

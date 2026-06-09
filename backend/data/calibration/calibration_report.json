@@ -1,0 +1,176 @@
+{
+  "metrics": [
+    {
+      "estimator": "BetaBKT",
+      "count": 1000,
+      "base_rate": 0.466,
+      "brier": 0.228938,
+      "log_loss": 0.651729,
+      "ece": 0.045783,
+      "reliability": [
+        {
+          "bin_lower": 0.0,
+          "bin_upper": 0.1,
+          "mean_predicted": 0.07626315392030832,
+          "observed_frequency": 0.06896551724137931,
+          "count": 29
+        },
+        {
+          "bin_lower": 0.1,
+          "bin_upper": 0.2,
+          "mean_predicted": 0.14653198248767554,
+          "observed_frequency": 0.2916666666666667,
+          "count": 48
+        },
+        {
+          "bin_lower": 0.2,
+          "bin_upper": 0.3,
+          "mean_predicted": 0.2523886120028316,
+          "observed_frequency": 0.3072289156626506,
+          "count": 166
+        },
+        {
+          "bin_lower": 0.3,
+          "bin_upper": 0.4,
+          "mean_predicted": 0.3470256308265619,
+          "observed_frequency": 0.3782051282051282,
+          "count": 156
+        },
+        {
+          "bin_lower": 0.4,
+          "bin_upper": 0.5,
+          "mean_predicted": 0.4320579352645992,
+          "observed_frequency": 0.42857142857142855,
+          "count": 119
+        },
+        {
+          "bin_lower": 0.5,
+          "bin_upper": 0.6,
+          "mean_predicted": 0.5341807079586406,
+          "observed_frequency": 0.515,
+          "count": 200
+        },
+        {
+          "bin_lower": 0.6,
+          "bin_upper": 0.7,
+          "mean_predicted": 0.6583887922531247,
+          "observed_frequency": 0.6120689655172413,
+          "count": 116
+        },
+        {
+          "bin_lower": 0.7,
+          "bin_upper": 0.8,
+          "mean_predicted": 0.743891143341188,
+          "observed_frequency": 0.6494845360824743,
+          "count": 97
+        },
+        {
+          "bin_lower": 0.8,
+          "bin_upper": 0.9,
+          "mean_predicted": 0.835629026249078,
+          "observed_frequency": 0.7727272727272727,
+          "count": 66
+        },
+        {
+          "bin_lower": 0.9,
+          "bin_upper": 1.0,
+          "mean_predicted": 0.9015873015873016,
+          "observed_frequency": 0.3333333333333333,
+          "count": 3
+        }
+      ]
+    },
+    {
+      "estimator": "Elo",
+      "count": 1000,
+      "base_rate": 0.466,
+      "brier": 0.179929,
+      "log_loss": 0.541338,
+      "ece": 0.083764,
+      "reliability": [
+        {
+          "bin_lower": 0.0,
+          "bin_upper": 0.1,
+          "mean_predicted": 0.07896694713772794,
+          "observed_frequency": 0.0,
+          "count": 1
+        },
+        {
+          "bin_lower": 0.1,
+          "bin_upper": 0.2,
+          "mean_predicted": 0.16693800961235153,
+          "observed_frequency": 0.06329113924050633,
+          "count": 79
+        },
+        {
+          "bin_lower": 0.2,
+          "bin_upper": 0.3,
+          "mean_predicted": 0.25271406078105857,
+          "observed_frequency": 0.16,
+          "count": 150
+        },
+        {
+          "bin_lower": 0.3,
+          "bin_upper": 0.4,
+          "mean_predicted": 0.3516892206095582,
+          "observed_frequency": 0.2222222222222222,
+          "count": 171
+        },
+        {
+          "bin_lower": 0.4,
+          "bin_upper": 0.5,
+          "mean_predicted": 0.44307234862472833,
+          "observed_frequency": 0.4266666666666667,
+          "count": 150
+        },
+        {
+          "bin_lower": 0.5,
+          "bin_upper": 0.6,
+          "mean_predicted": 0.5459173996773141,
+          "observed_frequency": 0.6165413533834586,
+          "count": 133
+        },
+        {
+          "bin_lower": 0.6,
+          "bin_upper": 0.7,
+          "mean_predicted": 0.648856127631185,
+          "observed_frequency": 0.7368421052631579,
+          "count": 152
+        },
+        {
+          "bin_lower": 0.7,
+          "bin_upper": 0.8,
+          "mean_predicted": 0.7487269923804487,
+          "observed_frequency": 0.8319327731092437,
+          "count": 119
+        },
+        {
+          "bin_lower": 0.8,
+          "bin_upper": 0.9,
+          "mean_predicted": 0.8354311902416548,
+          "observed_frequency": 0.9318181818181818,
+          "count": 44
+        },
+        {
+          "bin_lower": 0.9,
+          "bin_upper": 1.0,
+          "mean_predicted": 0.9192900680296103,
+          "observed_frequency": 1.0,
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "winners": {
+    "brier": "Elo",
+    "log_loss": "Elo",
+    "ece": "BetaBKT"
+  },
+  "better_estimator": "Elo",
+  "thresholds": {
+    "max_brier": 0.25,
+    "max_ece": 0.1
+  },
+  "passed": true,
+  "blocking_reasons": []
+}

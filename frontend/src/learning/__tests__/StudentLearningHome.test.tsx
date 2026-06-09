@@ -36,6 +36,12 @@ vi.mock('../components/LearnerTutorFullscreen', () => ({
     exam?: string
     classYear?: string
     subject?: string
+    focusItem?: {
+      stem?: string
+      skillId?: string
+      rationale?: string
+      scored?: boolean
+    } | null
   }) => {
     learnerTutorMock(props)
     return props.open ? (
@@ -120,7 +126,7 @@ describe('StudentLearningHome', () => {
     })
 
     expect(screen.getByTestId('b2c-learner-setup')).toBeTruthy()
-    expect(screen.getByText('Welcome 👋')).toBeTruthy()
+    expect(screen.getByText(/Good afternoon, there/i)).toBeTruthy()
     expect(screen.queryByText(/Tobi/i)).toBeNull()
     expect(screen.queryByText('Recent feedback')).toBeNull()
     expect(screen.queryByText('From your teacher')).toBeNull()
@@ -138,7 +144,7 @@ describe('StudentLearningHome', () => {
     fireEvent.change(screen.getByLabelText('Your first name'), {
       target: { value: 'Tomi' },
     })
-    expect(screen.getByText(/Welcome back, Tomi/)).toBeTruthy()
+    expect(screen.getByText(/Good afternoon, Tomi/i)).toBeTruthy()
 
     fireEvent.change(screen.getByLabelText('Select exam'), {
       target: { value: 'NECO' },
@@ -150,11 +156,9 @@ describe('StudentLearningHome', () => {
       target: { value: 'English Language' },
     })
 
-    expect(
-      screen.getByText(/Your NECO English Language path is 42% mastered/i)
-    ).toBeTruthy()
+    expect(screen.getByText(/3 things today/i)).toBeTruthy()
     expect(screen.getByTestId('weak-topic-profile')).toBeTruthy()
-    expect(screen.getByText('Ratio and proportion')).toBeTruthy()
+    expect(screen.getAllByText('Ratio and proportion').length).toBeGreaterThan(0)
     expect(
       screen.getByText('Scaling both parts of a recipe or table')
     ).toBeTruthy()
@@ -177,7 +181,7 @@ describe('StudentLearningHome', () => {
   it('runs a cross-device five-step demo diagnostic and saves it locally', async () => {
     mockVoiceConfig()
 
-    render(<MemoryRouter><StudentLearningHome studentId="student-001" /></MemoryRouter>)
+    render(<MemoryRouter><StudentLearningHome studentId="student-001" learnerTutorEnabled={false} /></MemoryRouter>)
 
     await waitFor(() => {
       expect(globalThis.fetch).toHaveBeenCalledWith(
@@ -186,18 +190,15 @@ describe('StudentLearningHome', () => {
       )
     })
 
-    expect(screen.getByTestId('offline-ready-pill')).toBeTruthy()
-    expect(screen.getByText('Works offline')).toBeTruthy()
-
     fireEvent.click(
-      screen.getByRole('button', { name: /Pick up where we left off/i })
+      screen.getByRole('button', { name: /Study with Wulo/i })
     )
 
     expect(screen.getByTestId('short-demo-diagnostic')).toBeTruthy()
-    expect(screen.getByText('3-5 minute demo diagnostic')).toBeTruthy()
+    expect(screen.getByText('Wulo quick check')).toBeTruthy()
     expect(
       screen.getByText(
-        'Five short signals. Keyboard, mouse, or touch. Works offline.'
+        'A few short signals help Wulo tune today’s practice. Keyboard, mouse, or touch.'
       )
     ).toBeTruthy()
     expect(screen.getByTestId('demo-step-count').textContent).toContain(
@@ -260,7 +261,7 @@ describe('StudentLearningHome', () => {
   it('visibly adapts the next item after an incorrect answer', async () => {
     mockVoiceConfig()
 
-    render(<MemoryRouter><StudentLearningHome studentId="student-001" /></MemoryRouter>)
+    render(<MemoryRouter><StudentLearningHome studentId="student-001" learnerTutorEnabled={false} /></MemoryRouter>)
 
     await waitFor(() => {
       expect(globalThis.fetch).toHaveBeenCalledWith(
@@ -270,12 +271,12 @@ describe('StudentLearningHome', () => {
     })
 
     fireEvent.click(
-      screen.getByRole('button', { name: /Pick up where we left off/i })
+      screen.getByRole('button', { name: /Study with Wulo/i })
     )
     fireEvent.click(screen.getByRole('button', { name: /^4 cups/i }))
 
     expect(screen.getByTestId('adaptive-moment')).toBeTruthy()
-    expect(screen.getByText('Pathfinder adapted the next item')).toBeTruthy()
+    expect(screen.getByText('Wulo Academy adapted the next item')).toBeTruthy()
     expect(
       screen.getByText(/answer suggests doubling the rice was missed/i)
     ).toBeTruthy()
@@ -314,7 +315,7 @@ describe('StudentLearningHome', () => {
     ).toContain('Equivalent ratios')
   })
 
-  it('lets the student complete one generated-plan practice exercise and schedules retrieval', async () => {
+  it("opens the learner tutor from a Today's-path skill instead of rendering below the row", async () => {
     mockVoiceConfig()
 
     render(<MemoryRouter><StudentLearningHome studentId="student-001" /></MemoryRouter>)
@@ -326,41 +327,24 @@ describe('StudentLearningHome', () => {
       )
     })
 
-    fireEvent.click(screen.getByTestId('path-row-ratio-check'))
+    fireEvent.click(screen.getByTestId('hero-path-row-ratio-check'))
 
-    expect(screen.getByTestId('today-step-mcq')).toBeTruthy()
-    expect(screen.getByText('From generated plan')).toBeTruthy()
-    expect(
-      screen.getByText('Teacher-approved ratio recovery plan')
-    ).toBeTruthy()
-    expect(
-      screen.getByText(/A recipe uses 3 cups of water for 2 cups of rice/i)
-    ).toBeTruthy()
-
-    fireEvent.click(
-      within(screen.getByTestId('today-step-mcq')).getByRole('button', {
-        name: /9 cups/i,
+    expect(await screen.findByTestId('learner-tutor-mock')).toBeTruthy()
+    expect(screen.queryByTestId('today-step-mcq')).toBeNull()
+    const lastProps =
+      learnerTutorMock.mock.calls[learnerTutorMock.mock.calls.length - 1]?.[0]
+    expect(lastProps).toEqual(
+      expect.objectContaining({
+        open: true,
+        childId: 'student-001',
+        focusItem: expect.objectContaining({
+          stem: 'Ratio mini check-in',
+          skillId: 'ratio-proportion',
+          rationale: 'Ratio & proportion · adaptive',
+          scored: false,
+        }),
       })
     )
-
-    expect(screen.getByTestId('practice-feedback')).toBeTruthy()
-    expect(screen.getByText('Immediate feedback')).toBeTruthy()
-    expect(screen.getByText('Correct - the plan is working.')).toBeTruthy()
-    expect(screen.getByText('Spaced retrieval scheduled')).toBeTruthy()
-    expect(screen.getByTestId('spaced-retrieval-schedule')).toBeTruthy()
-    expect(
-      screen.getByText(/Today · 10 minutes after this exercise/i)
-    ).toBeTruthy()
-    expect(
-      screen.getByText(/Tomorrow · Before the next maths lesson/i)
-    ).toBeTruthy()
-    expect(
-      screen.getByText(/In 4 days · Short weekend retrieval/i)
-    ).toBeTruthy()
-
-    const saved = window.localStorage.getItem('pathfinder-practice-loop:last')
-    expect(saved).toContain('plan-jss2-ratio-recovery')
-    expect(saved).toContain('spacedRetrieval')
   })
 
   it("opens PracticeFullscreen from a Today's-path card", async () => {
@@ -456,7 +440,7 @@ describe('StudentLearningHome', () => {
     fireEvent.change(screen.getByLabelText('Select subject'), {
       target: { value: 'Mathematics' },
     })
-    fireEvent.click(screen.getByRole('button', { name: /Talk to your tutor/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Study with Wulo/i }))
 
     expect(await screen.findByTestId('learner-tutor-mock')).toBeTruthy()
     const lastProps =

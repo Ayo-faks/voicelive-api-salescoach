@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
+import {
+  pathfinderTokens as t,
+  pathfinderTokensDark as td,
+} from '../theme/pathfinder-tokens'
 
 /**
  * Pure-JS WCAG 2.1 contrast checks on the token hex values.
@@ -9,12 +12,12 @@ import { pathfinderTokens as t } from '../theme/pathfinder-tokens'
  */
 function channelLuminance(c: number): number {
   const s = c / 255
-  return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4)
+  return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
 }
 
 function relativeLuminance(hex: string): number {
   const h = hex.replace('#', '')
-  const [r, g, b] = [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16))
+  const [r, g, b] = [0, 2, 4].map(i => Number.parseInt(h.slice(i, i + 2), 16))
   return (
     0.2126 * channelLuminance(r) +
     0.7152 * channelLuminance(g) +
@@ -31,7 +34,35 @@ function contrastRatio(fg: string, bg: string): number {
 }
 
 const AA_NORMAL = 4.5
+const AA_LARGE_OR_UI = 3
 const surfaces = [t.brand.surface, t.brand.surfaceMuted, t.brand.page]
+const darkSurfaces = [td.brand.surface, td.brand.surfaceMuted, td.brand.page]
+const semanticPairs = [
+  [t.status.criticalFg, t.status.criticalBg],
+  [t.status.warnFg, t.status.warnBg],
+  [t.status.okFg, t.status.okBg],
+  [t.status.infoFg, t.status.infoBg],
+  [t.mastery.needsSupportFg, t.mastery.needsSupportBg],
+  [t.mastery.developingFg, t.mastery.developingBg],
+  [t.mastery.approachingFg, t.mastery.approachingBg],
+  [t.mastery.secureFg, t.mastery.secureBg],
+  [t.risk.low.fg, t.risk.low.bg],
+  [t.risk.review.fg, t.risk.review.bg],
+  [t.risk.high.fg, t.risk.high.bg],
+] as const
+const darkSemanticPairs = [
+  [td.status.criticalFg, td.status.criticalBg],
+  [td.status.warnFg, td.status.warnBg],
+  [td.status.okFg, td.status.okBg],
+  [td.status.infoFg, td.status.infoBg],
+  [td.mastery.needsSupportFg, td.mastery.needsSupportBg],
+  [td.mastery.developingFg, td.mastery.developingBg],
+  [td.mastery.approachingFg, td.mastery.approachingBg],
+  [td.mastery.secureFg, td.mastery.secureBg],
+  [td.risk.low.fg, td.risk.low.bg],
+  [td.risk.review.fg, td.risk.review.bg],
+  [td.risk.high.fg, td.risk.high.bg],
+] as const
 
 describe('design token contrast (WCAG AA)', () => {
   it('textSecondary clears AA on every neutral surface', () => {
@@ -61,6 +92,35 @@ describe('design token contrast (WCAG AA)', () => {
       relativeLuminance(t.brand.textTertiary)
     )
   })
+
+  it('dark primary and secondary text tokens clear AA on every dark neutral surface', () => {
+    for (const bg of darkSurfaces) {
+      expect(contrastRatio(td.brand.text, bg)).toBeGreaterThanOrEqual(AA_NORMAL)
+      expect(contrastRatio(td.brand.textSecondary, bg)).toBeGreaterThanOrEqual(
+        AA_NORMAL
+      )
+    }
+  })
+
+  it('dark tertiary text clears AA for large/UI metadata on every dark neutral surface', () => {
+    for (const bg of darkSurfaces) {
+      expect(contrastRatio(td.brand.textTertiary, bg)).toBeGreaterThanOrEqual(
+        AA_LARGE_OR_UI
+      )
+    }
+  })
+
+  it('dark ink-filled controls keep dark glyphs on light ink', () => {
+    expect(contrastRatio(td.brand.onInk, td.brand.ink)).toBeGreaterThanOrEqual(
+      AA_NORMAL
+    )
+  })
+
+  it('semantic badge pairs clear AA in light and dark mode', () => {
+    for (const [fg, bg] of [...semanticPairs, ...darkSemanticPairs]) {
+      expect(contrastRatio(fg, bg)).toBeGreaterThanOrEqual(AA_NORMAL)
+    }
+  })
 })
 
 describe('design token scales', () => {
@@ -72,10 +132,28 @@ describe('design token scales', () => {
   })
 
   it('exposes a >=44px control hit-height token', () => {
-    expect(parseInt(t.control.minHeight, 10)).toBeGreaterThanOrEqual(44)
+    expect(Number.parseInt(t.control.minHeight, 10)).toBeGreaterThanOrEqual(44)
   })
 
   it('exposes a non-square control radius', () => {
-    expect(parseInt(t.radius.control, 10)).toBeGreaterThan(0)
+    expect(Number.parseInt(t.radius.control, 10)).toBeGreaterThan(0)
+  })
+
+  it('exposes shared spacing, type, focus, and motion scales', () => {
+    expect(Number.parseInt(t.space.sm, 10)).toBeLessThan(
+      Number.parseInt(t.space.md, 10)
+    )
+    expect(Number.parseInt(t.space.pageX, 10)).toBeGreaterThanOrEqual(32)
+    expect(t.type.display.fontSize).toMatch(/rem$/)
+    expect(t.focus.outline).toContain(t.focus.ringSoft)
+    expect(t.motion.durationFast).toMatch(/ms$/)
+    expect(t.motion.easingStandard).toContain('cubic-bezier')
+  })
+
+  it('dark mode exposes its own visible focus ring', () => {
+    expect(td.focus.ring).not.toBe(t.focus.ring)
+    expect(contrastRatio(td.focus.ring, td.brand.page)).toBeGreaterThanOrEqual(
+      AA_NORMAL
+    )
   })
 })

@@ -27,15 +27,15 @@ const useStyles = makeStyles({
     fontSize: '0.72rem',
     letterSpacing: '0.12em',
     textTransform: 'uppercase',
-    color: t.brand.textSecondary,
+    color: 'var(--pf-text-secondary)',
   },
   title: {
     fontSize: '1.6rem',
     fontWeight: 800,
-    color: t.brand.text,
+    color: 'var(--pf-text)',
   },
   sub: {
-    color: t.brand.textSecondary,
+    color: 'var(--pf-text-secondary)',
     lineHeight: 1.5,
   },
   card: {
@@ -43,8 +43,8 @@ const useStyles = makeStyles({
     gap: '10px',
     padding: '18px',
     borderRadius: t.radius.xl,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.card,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
   },
   row: {
     display: 'flex',
@@ -54,22 +54,22 @@ const useStyles = makeStyles({
   icon: {
     width: '24px',
     height: '24px',
-    color: t.brand.text,
+    color: 'var(--pf-text)',
     flexShrink: 0,
   },
   rowTitle: {
     fontSize: '1rem',
     fontWeight: 700,
-    color: t.brand.text,
+    color: 'var(--pf-text)',
   },
   rowBody: {
     fontSize: '0.92rem',
-    color: t.brand.textSecondary,
+    color: 'var(--pf-text-secondary)',
     lineHeight: 1.5,
   },
   back: {
     fontSize: '0.9rem',
-    color: t.brand.text,
+    color: 'var(--pf-text)',
   },
 })
 

@@ -5,7 +5,7 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://127.0.0.1:${appPort}`
 const webServerCommand =
   // Vite reads VITE_* env vars at build time, so they must be exported
   // for the `npm run build` step as well as the runtime `start-local.sh`.
-  `VITE_PATHFINDER_LEARNER_ONBOARDING_ENABLED=true VITE_PATHFINDER_E2E_HOOKS=true npm run build && ` +
+  `VITE_PATHFINDER_LEARNER_ONBOARDING_ENABLED=true VITE_PATHFINDER_GOAL_INTAKE_ENABLED=true VITE_PATHFINDER_E2E_HOOKS=true npm run build && ` +
   `PUBLIC_APP_URL=${baseURL} ` +
   `PORT=${appPort} ` +
   `LOCAL_DEV_AUTH=true ` +
@@ -16,6 +16,7 @@ const webServerCommand =
   `INSIGHTS_RAIL_ENABLED=true ` +
   `INSIGHTS_VOICE_MODE=push_to_talk ` +
   `VITE_PATHFINDER_LEARNER_ONBOARDING_ENABLED=true ` +
+  `VITE_PATHFINDER_GOAL_INTAKE_ENABLED=true ` +
   `../scripts/start-local.sh`
 
 export default defineConfig({

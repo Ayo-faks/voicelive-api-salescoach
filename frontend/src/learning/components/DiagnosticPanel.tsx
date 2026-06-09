@@ -41,8 +41,8 @@ const useStyles = makeStyles({
     gap: '14px',
     padding: '20px',
     borderRadius: t.radius.xl,
-    border: `1px solid ${t.brand.line}`,
-    backgroundColor: t.brand.surface,
+    border: `1px solid var(--pf-line)`,
+    backgroundColor: 'var(--pf-surface)',
   },
   header: {
     display: 'flex',
@@ -53,7 +53,7 @@ const useStyles = makeStyles({
   prompt: {
     fontSize: '1.05rem',
     fontWeight: 600,
-    color: t.brand.text,
+    color: 'var(--pf-text)',
     lineHeight: 1.4,
   },
   meta: {
@@ -61,7 +61,7 @@ const useStyles = makeStyles({
     gap: '8px',
     flexWrap: 'wrap',
     fontSize: '0.78rem',
-    color: t.brand.textSecondary,
+    color: 'var(--pf-text-secondary)',
   },
   statusPill: {
     display: 'inline-flex',
@@ -70,9 +70,9 @@ const useStyles = makeStyles({
     paddingRight: '10px',
     paddingLeft: '10px',
     borderRadius: t.radius.pill,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.cardMuted,
-    color: t.brand.textSecondary,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
+    color: 'var(--pf-text-secondary)',
     boxSizing: 'border-box',
     fontSize: '0.72rem',
     fontWeight: 700,
@@ -88,11 +88,11 @@ const useStyles = makeStyles({
     gridColumn: '1 / -1',
     margin: 0,
     fontSize: '0.78rem',
-    color: t.brand.textSecondary,
+    color: 'var(--pf-text-secondary)',
   },
   feedback: {
     fontSize: '0.85rem',
-    color: t.brand.textSecondary,
+    color: 'var(--pf-text-secondary)',
   },
   feedbackCard: {
     display: 'flex',
@@ -100,11 +100,11 @@ const useStyles = makeStyles({
     gap: '12px',
     padding: '14px 16px',
     borderRadius: t.radius.control,
-    border: `1px solid ${t.brand.line}`,
-    backgroundColor: t.surface.cardMuted,
+    border: `1px solid var(--pf-line)`,
+    backgroundColor: 'var(--pf-surface-muted)',
   },
   feedbackCardCorrect: {
-    border: `1px solid ${t.status.okFg}`,
+    border: '1px solid var(--pf-status-ok-fg)',
     backgroundColor: 'rgba(34, 134, 58, 0.08)',
     animationName: {
       from: { opacity: 0, transform: 'scale(0.96)' },
@@ -117,7 +117,7 @@ const useStyles = makeStyles({
     },
   },
   feedbackCardWrong: {
-    border: `1px solid ${t.status.criticalFg}`,
+    border: '1px solid var(--pf-status-critical-fg)',
     backgroundColor: 'rgba(176, 0, 32, 0.06)',
   },
   feedbackIcon: {
@@ -126,8 +126,8 @@ const useStyles = makeStyles({
     width: '22px',
     height: '22px',
   },
-  feedbackIconCorrect: { color: t.status.okFg },
-  feedbackIconWrong: { color: t.status.criticalFg },
+  feedbackIconCorrect: { color: 'var(--pf-status-ok-fg)' },
+  feedbackIconWrong: { color: 'var(--pf-status-critical-fg)' },
   feedbackBody: {
     display: 'grid',
     gap: '6px',
@@ -137,12 +137,12 @@ const useStyles = makeStyles({
     margin: 0,
     fontSize: '0.95rem',
     fontWeight: t.weight.strong,
-    color: t.brand.text,
+    color: 'var(--pf-text)',
   },
   feedbackDetail: {
     margin: 0,
     fontSize: '0.85rem',
-    color: t.brand.textSecondary,
+    color: 'var(--pf-text-secondary)',
     lineHeight: 1.4,
   },
   feedbackActions: {
@@ -154,13 +154,13 @@ const useStyles = makeStyles({
   feedbackExplain: {
     margin: 0,
     fontSize: '0.82rem',
-    color: t.brand.text,
+    color: 'var(--pf-text)',
     lineHeight: 1.45,
   },
   completion: {
     fontSize: '0.9rem',
     fontWeight: 600,
-    color: t.brand.text,
+    color: 'var(--pf-text)',
   },
 })
 
@@ -301,7 +301,7 @@ export default function DiagnosticPanel({
       </div>
 
       {error && (
-        <Text role="alert" style={{ color: t.status.criticalFg }}>
+        <Text role="alert" style={{ color: 'var(--pf-status-critical-fg)' }}>
           Check-in could not start. Please try again.
         </Text>
       )}

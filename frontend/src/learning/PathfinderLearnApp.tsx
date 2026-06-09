@@ -15,7 +15,9 @@ import {
   DocumentTextIcon,
   InformationCircleIcon,
   MagnifyingGlassIcon,
+  MoonIcon,
   ShieldCheckIcon,
+  SunIcon,
   UserCircleIcon,
   UsersIcon,
 } from '@heroicons/react/24/outline'
@@ -57,13 +59,21 @@ import {
   PathfinderSettings,
   PathfinderTerms,
 } from './routes/AccountPages'
-import { pathfinderFluentTheme } from './theme/pathfinderFluentTheme'
+import {
+  pathfinderFluentTheme,
+  pathfinderFluentThemeDark,
+} from './theme/pathfinderFluentTheme'
 import { pathfinderTokens as t } from './theme/pathfinder-tokens'
+import { usePathfinderThemeStyles } from './theme/pathfinderThemeStyles'
 import AskPathfinder from './AskPathfinder'
 import {
   LearnerContext,
   defaultLearnerContext,
 } from './contexts/LearnerContext'
+import {
+  PathfinderThemeProvider,
+  usePathfinderTheme,
+} from './contexts/PathfinderThemeContext'
 import { OnboardingRuntime } from '../components/onboarding/OnboardingRuntime'
 import { HelpMenu } from '../components/onboarding/HelpMenu'
 import { requestReplayTour } from '../onboarding/bus'
@@ -114,7 +124,7 @@ export type LearningRole =
 const navItems: NavItem[] = [
   {
     to: '/home',
-    label: 'Learner',
+    label: 'Home',
     hint: 'Today',
     icon: AcademicCapIcon,
     allowedRoles: ['learner', 'kid', 'student'],
@@ -221,6 +231,7 @@ const _accountActions: AccountAction[] = [
 function formatRoleLabel(role: LearningRole | 'loading'): string {
   if (role === 'loading') return 'Loading account'
   if (role === 'pending_therapist') return 'Pending therapist'
+  if (role === 'learner' || role === 'kid' || role === 'student') return 'Student'
   return role.charAt(0).toUpperCase() + role.slice(1)
 }
 
@@ -263,39 +274,88 @@ const useStyles = makeStyles({
   provider: {},
   page: {
     minHeight: '100vh',
-    backgroundColor: t.brand.page,
-    color: t.brand.text,
+    backgroundColor: 'var(--pf-page)',
+    color: 'var(--pf-text)',
     fontFamily: t.font.text,
     display: 'grid',
-    gridTemplateColumns: '260px 1fr',
+    gridTemplateColumns: '260px minmax(0, 1fr)',
     gridTemplateRows: '1fr',
     '@media (max-width: 1000px)': { gridTemplateColumns: '1fr' },
+  },
+  routeBar: {
+    position: 'sticky',
+    top: 0,
+    zIndex: 30,
+    height: '48px',
+    display: 'none',
+    alignItems: 'center',
+    gap: '14px',
+    padding: '0 18px',
+    backgroundColor: 'var(--pf-surface)',
+    borderBottom: 'var(--pf-hairline)',
+    color: 'var(--pf-text-secondary)',
+    fontSize: '0.78rem',
+  },
+  routeBarTitle: {
+    color: 'var(--pf-text)',
+    fontWeight: 800,
+  },
+  routeBarPath: {
+    color: 'var(--pf-text-secondary)',
+  },
+  routeBarPill: {
+    marginLeft: 'auto',
+    display: 'inline-flex',
+    alignItems: 'center',
+    minHeight: '24px',
+    paddingRight: '12px',
+    paddingLeft: '12px',
+    borderRadius: t.radius.pill,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
+    color: 'var(--pf-text-tertiary)',
+    fontSize: '0.72rem',
+    fontWeight: 600,
+  },
+  stage: {
+    display: 'contents',
+  },
+  appFrame: {
+    display: 'contents',
   },
   sidebar: {
     position: 'sticky',
     top: 0,
     alignSelf: 'start',
-    height: '100vh',
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px',
-    padding: '20px 14px',
-    backgroundColor: t.brand.surface,
-    borderRight: t.surface.hairline,
+    gap: '4px',
+    minHeight: 0,
+    height: '100vh',
+    padding: 'var(--pf-space-xl) 14px',
+    backgroundColor: 'var(--pf-surface)',
+    borderRight: 'var(--pf-hairline)',
     boxSizing: 'border-box',
     '@media (max-width: 1000px)': { display: 'none' },
   },
   brand: {
     display: 'flex',
     alignItems: 'center',
-    gap: '10px',
-    padding: '4px 8px 18px',
+    gap: 'var(--pf-space-md)',
+    padding: 'var(--pf-space-xxs) var(--pf-space-sm) 18px',
     textDecoration: 'none',
     color: 'inherit',
     cursor: 'pointer',
     borderRadius: t.radius.md,
-    transition: 'opacity 120ms ease',
+    transition: 'opacity var(--pf-motion-fast) var(--pf-motion-ease)',
     ':hover': { opacity: 0.82 },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '4px',
+      boxShadow: 'var(--pf-focus-outline)',
+    },
   },
   brandMark: {
     width: '32px',
@@ -311,45 +371,52 @@ const useStyles = makeStyles({
     fontWeight: 600,
     letterSpacing: '-0.01em',
     lineHeight: 1,
-    color: t.brand.text,
+    color: 'var(--pf-text)',
   },
   brandSubtitle: {
     fontSize: '0.72rem',
-    color: t.brand.textTertiary,
+    color: 'var(--pf-text-tertiary)',
     letterSpacing: '0.01em',
   },
   navGroupLabel: {
-    fontSize: '0.75rem',
+    fontSize: 'var(--pf-type-caption-size)',
     textTransform: 'uppercase',
     letterSpacing: '0.08em',
-    color: t.brand.textTertiary,
-    padding: '12px 10px 6px',
+    color: 'var(--pf-text-tertiary)',
+    padding: 'var(--pf-space-md) 10px var(--pf-space-xs)',
     fontWeight: 600,
   },
   navLink: {
     display: 'grid',
     gridTemplateColumns: '20px 1fr auto',
     alignItems: 'center',
-    gap: '10px',
+    gap: 'var(--pf-space-md)',
     minHeight: t.control.minHeight,
-    padding: '8px 10px',
+    padding: 'var(--pf-space-sm) 10px',
     borderRadius: t.radius.sm,
     border: '1px solid transparent',
     boxSizing: 'border-box',
     backgroundColor: 'transparent',
     textDecoration: 'none',
-    color: t.brand.textSecondary,
+    color: 'var(--pf-text-secondary)',
     fontSize: '0.88rem',
     fontWeight: 600,
     transition:
-      'background-color .12s, border-color .12s, color .12s, box-shadow .12s',
+      'background-color var(--pf-motion-fast), border-color var(--pf-motion-fast), color var(--pf-motion-fast), box-shadow var(--pf-motion-fast)',
     ':hover': {
-      backgroundColor: t.brand.surfaceMuted,
-      borderTopColor: t.brand.line,
-      borderRightColor: t.brand.line,
-      borderBottomColor: t.brand.line,
-      borderLeftColor: t.brand.line,
-      color: t.brand.text,
+      backgroundColor: 'var(--pf-surface-muted)',
+      borderTopColor: 'var(--pf-line)',
+      borderRightColor: 'var(--pf-line)',
+      borderBottomColor: 'var(--pf-line)',
+      borderLeftColor: 'var(--pf-line)',
+      color: 'var(--pf-text)',
+    },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '3px',
+      boxShadow: 'var(--pf-focus-outline)',
     },
   },
   navIcon: { width: '18px', height: '18px' },
@@ -359,14 +426,69 @@ const useStyles = makeStyles({
     color: 'inherit',
     opacity: 0.7,
   },
+  themeToggle: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '2px',
+    minWidth: 0,
+    margin: 0,
+    padding: '3px',
+    borderRadius: t.radius.sm,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
+    boxSizing: 'border-box',
+  },
+  themeToggleButton: {
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 'var(--pf-space-xs)',
+    minHeight: '32px',
+    border: '1px solid transparent',
+    borderRadius: '7px',
+    backgroundColor: 'transparent',
+    color: 'var(--pf-text-secondary)',
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.75rem',
+    fontWeight: 800,
+    transition:
+      'background-color var(--pf-motion-fast), color var(--pf-motion-fast), border-color var(--pf-motion-fast)',
+    ':hover': {
+      backgroundColor: 'var(--pf-surface)',
+      color: 'var(--pf-text)',
+    },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '2px',
+      boxShadow: 'var(--pf-focus-outline)',
+    },
+  },
+  themeToggleButtonActive: {
+    backgroundColor: 'var(--pf-ink)',
+    borderTopColor: 'var(--pf-ink)',
+    borderRightColor: 'var(--pf-ink)',
+    borderBottomColor: 'var(--pf-ink)',
+    borderLeftColor: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
+    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.18)',
+    ':hover': {
+      backgroundColor: 'var(--pf-ink)',
+      color: 'var(--pf-on-ink)',
+    },
+  },
+  themeToggleIcon: { width: '15px', height: '15px', flexShrink: 0 },
   userCard: {
     marginTop: 'auto',
     display: 'grid',
-    gap: '10px',
+    gap: 'var(--pf-space-md)',
     padding: '10px',
     borderRadius: t.radius.sm,
-    border: t.surface.hairline,
-    backgroundColor: t.brand.surfaceMuted,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
   },
   userHeader: {
     display: 'grid',
@@ -381,8 +503,8 @@ const useStyles = makeStyles({
     borderRadius: '999px',
     display: 'grid',
     placeItems: 'center',
-    backgroundColor: t.brand.ink,
-    color: t.brand.onInk,
+    backgroundColor: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
     fontFamily: t.font.display,
     fontWeight: 700,
     fontSize: '0.85rem',
@@ -396,21 +518,21 @@ const useStyles = makeStyles({
     fontFamily: t.font.display,
     fontSize: '0.82rem',
     fontWeight: 600,
-    color: t.brand.text,
+    color: 'var(--pf-text)',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
   },
   userEmail: {
     fontSize: '0.75rem',
-    color: t.brand.textTertiary,
+    color: 'var(--pf-text-tertiary)',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
   },
   userRole: {
     fontSize: '0.75rem',
-    color: t.brand.textTertiary,
+    color: 'var(--pf-text-tertiary)',
     textTransform: 'uppercase',
     letterSpacing: '0.08em',
     fontWeight: 700,
@@ -419,40 +541,52 @@ const useStyles = makeStyles({
     display: 'grid',
     gap: '4px',
     paddingTop: '8px',
-    borderTop: t.surface.hairline,
+    borderTop: 'var(--pf-hairline)',
   },
   accountAction: {
     appearance: 'none',
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
+    gap: 'var(--pf-space-sm)',
     minHeight: t.control.minHeight,
-    padding: '6px 8px',
+    padding: 'var(--pf-space-xs) var(--pf-space-sm)',
     borderRadius: t.radius.sm,
     border: '1px solid transparent',
     backgroundColor: 'transparent',
-    color: t.brand.textSecondary,
+    color: 'var(--pf-text-secondary)',
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.78rem',
     fontWeight: 700,
     textAlign: 'left',
     textDecoration: 'none',
-    transition: 'background-color .12s, border-color .12s, color .12s',
+    transition:
+      'background-color var(--pf-motion-fast), border-color var(--pf-motion-fast), color var(--pf-motion-fast)',
     ':hover': {
-      backgroundColor: t.brand.surface,
-      borderTopColor: t.brand.line,
-      borderRightColor: t.brand.line,
-      borderBottomColor: t.brand.line,
-      borderLeftColor: t.brand.line,
-      color: t.brand.text,
+      backgroundColor: 'var(--pf-surface)',
+      borderTopColor: 'var(--pf-line)',
+      borderRightColor: 'var(--pf-line)',
+      borderBottomColor: 'var(--pf-line)',
+      borderLeftColor: 'var(--pf-line)',
+      color: 'var(--pf-text)',
+    },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '3px',
+      boxShadow: 'var(--pf-focus-outline)',
     },
   },
   accountActionIcon: { width: '16px', height: '16px', flexShrink: 0 },
   mobileAccountActions: {
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
+    gap: 'var(--pf-space-sm)',
+  },
+  mobileThemeToggle: {
+    minWidth: '132px',
+    '@media (max-width: 430px)': { minWidth: '108px' },
   },
   mobileUserPill: {
     display: 'grid',
@@ -460,26 +594,33 @@ const useStyles = makeStyles({
     width: '34px',
     height: '34px',
     borderRadius: '999px',
-    border: t.surface.hairline,
-    backgroundColor: t.brand.surfaceMuted,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
     textDecoration: 'none',
-    color: t.brand.text,
+    color: 'var(--pf-text)',
   },
   mobileAccountButton: {
     appearance: 'none',
     width: '34px',
     height: '34px',
     borderRadius: t.radius.sm,
-    border: t.surface.hairline,
-    backgroundColor: t.brand.surface,
-    color: t.brand.textSecondary,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    color: 'var(--pf-text-secondary)',
     cursor: 'pointer',
     display: 'grid',
     placeItems: 'center',
     textDecoration: 'none',
     ':hover': {
-      color: t.brand.text,
-      backgroundColor: t.brand.surfaceMuted,
+      color: 'var(--pf-text)',
+      backgroundColor: 'var(--pf-surface-muted)',
+    },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '3px',
+      boxShadow: 'var(--pf-focus-outline)',
     },
   },
   mobileAccountIcon: { width: '18px', height: '18px' },
@@ -498,6 +639,8 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     minWidth: 0,
+    minHeight: '100vh',
+    backgroundColor: 'var(--pf-page)',
   },
   mobileTopBar: {
     display: 'none',
@@ -505,23 +648,80 @@ const useStyles = makeStyles({
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '14px 16px',
-      backgroundColor: t.brand.surface,
-      borderBottom: t.surface.hairline,
+      padding: '14px var(--pf-space-lg)',
+      backgroundColor: 'var(--pf-surface)',
+      borderBottom: 'var(--pf-hairline)',
       position: 'sticky',
       top: 0,
       zIndex: 5,
     },
+    '@media (max-width: 720px)': {
+      padding: '10px 14px',
+    },
   },
   content: {
     flex: 1,
-    padding: '28px 36px 120px',
-    maxWidth: '1440px',
+    minHeight: 0,
+    overflowY: 'auto',
+    padding: 'var(--pf-space-page-y) var(--pf-space-page-x) 120px',
+    maxWidth: 'none',
     width: '100%',
-    margin: '0 auto',
+    margin: 0,
     boxSizing: 'border-box',
-    '@media (max-width: 1100px)': { padding: '24px 24px 120px' },
-    '@media (max-width: 720px)': { padding: '16px 14px 110px' },
+    '@media (max-width: 1100px)': {
+      padding: 'var(--pf-space-xxl) var(--pf-space-xxl) 120px',
+    },
+    '@media (max-width: 720px)': {
+      padding: 'var(--pf-space-lg) 14px 110px',
+    },
+  },
+  innerTopbar: {
+    minHeight: '60px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '0 22px',
+    backgroundColor: 'var(--pf-surface)',
+    borderBottom: 'var(--pf-hairline)',
+    '@media (max-width: 720px)': {
+      display: 'none',
+    },
+  },
+  innerTopbarTitle: {
+    fontSize: '0.88rem',
+    fontWeight: 800,
+    color: 'var(--pf-text)',
+  },
+  trustChips: {
+    marginLeft: 'auto',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    flexWrap: 'wrap',
+    '@media (max-width: 720px)': { marginLeft: 0 },
+  },
+  trustChip: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    minHeight: '28px',
+    paddingRight: '10px',
+    paddingLeft: '10px',
+    borderRadius: t.radius.pill,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
+    color: 'var(--pf-text-secondary)',
+    fontSize: '0.72rem',
+    fontWeight: 600,
+  },
+  trustDot: {
+    width: '7px',
+    height: '7px',
+    borderRadius: t.radius.pill,
+    backgroundColor: 'var(--pf-risk-low-fg)',
+  },
+  trustDotSafe: {
+    backgroundColor: 'var(--pf-status-info-fg)',
   },
   bottomNav: {
     display: 'none',
@@ -533,9 +733,9 @@ const useStyles = makeStyles({
       bottom: 0,
       left: 0,
       right: 0,
-      backgroundColor: t.brand.surface,
-      borderTop: t.surface.hairline,
-      padding: '8px 6px 12px',
+      backgroundColor: 'var(--pf-surface)',
+      borderTop: 'var(--pf-hairline)',
+      padding: 'var(--pf-space-sm) var(--pf-space-xs) var(--pf-space-md)',
       zIndex: 10,
     },
   },
@@ -544,29 +744,37 @@ const useStyles = makeStyles({
     justifyItems: 'center',
     gap: '3px',
     minHeight: '52px',
-    padding: '6px 2px',
+    padding: 'var(--pf-space-xs) 2px',
     textDecoration: 'none',
-    color: t.brand.textTertiary,
+    color: 'var(--pf-text-tertiary)',
     fontSize: '0.65rem',
     fontWeight: 600,
     borderRadius: t.radius.sm,
     border: '1px solid transparent',
     boxSizing: 'border-box',
-    transition: 'background-color .12s, border-color .12s, color .12s',
+    transition:
+      'background-color var(--pf-motion-fast), border-color var(--pf-motion-fast), color var(--pf-motion-fast)',
     ':hover': {
-      backgroundColor: t.brand.surfaceMuted,
-      borderTopColor: t.brand.line,
-      borderRightColor: t.brand.line,
-      borderBottomColor: t.brand.line,
-      borderLeftColor: t.brand.line,
-      color: t.brand.text,
+      backgroundColor: 'var(--pf-surface-muted)',
+      borderTopColor: 'var(--pf-line)',
+      borderRightColor: 'var(--pf-line)',
+      borderBottomColor: 'var(--pf-line)',
+      borderLeftColor: 'var(--pf-line)',
+      color: 'var(--pf-text)',
+    },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '2px',
+      boxShadow: 'var(--pf-focus-outline)',
     },
   },
   bottomNavIcon: { width: '22px', height: '22px' },
   voiceLauncher: {
     position: 'fixed',
-    right: '24px',
-    bottom: '24px',
+    right: 'var(--pf-space-xxl)',
+    bottom: 'var(--pf-space-xxl)',
     zIndex: 40,
     width: '60px',
     height: '60px',
@@ -581,14 +789,14 @@ const useStyles = makeStyles({
       '0 12px 36px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.18)',
     transformOrigin: 'center',
     transition:
-      'transform .18s cubic-bezier(0.2, 0.8, 0.2, 1), filter .15s ease, box-shadow .2s ease',
+      'transform var(--pf-motion-normal) var(--pf-motion-ease), filter var(--pf-motion-fast), box-shadow var(--pf-motion-normal)',
     animationName: {
       from: { opacity: 0, transform: 'translateY(18px) scale(0.5)' },
       '60%': { opacity: 1, transform: 'translateY(-2px) scale(1.06)' },
       to: { opacity: 1, transform: 'translateY(0) scale(1)' },
     },
     animationDuration: '420ms',
-    animationTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+    animationTimingFunction: 'var(--pf-motion-spring)',
     animationFillMode: 'both',
     ':hover': {
       filter: 'brightness(1.08)',
@@ -597,17 +805,28 @@ const useStyles = makeStyles({
         '0 18px 42px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.22)',
     },
     ':active': { transform: 'scale(0.92)' },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '4px',
+      boxShadow:
+        'var(--pf-focus-outline), 0 18px 42px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.22)',
+    },
     '@media (max-width: 1000px)': {
-      bottom: '88px',
-      right: '16px',
-      width: '54px',
-      height: '54px',
+      bottom: '150px',
+      right: 'var(--pf-space-lg)',
+      width: '48px',
+      height: '48px',
+    },
+    '@media (max-width: 360px)': {
+      bottom: '216px',
     },
   },
   voiceLauncherGlyph: { width: '24px', height: '24px' },
   chatLauncher: {
     position: 'fixed',
-    right: '24px',
+    right: 'var(--pf-space-xxl)',
     bottom: '96px',
     zIndex: 40,
     width: '60px',
@@ -623,7 +842,7 @@ const useStyles = makeStyles({
       '0 12px 36px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.18)',
     transformOrigin: 'center',
     transition:
-      'transform .18s cubic-bezier(0.2, 0.8, 0.2, 1), filter .15s ease, box-shadow .2s ease',
+      'transform var(--pf-motion-normal) var(--pf-motion-ease), filter var(--pf-motion-fast), box-shadow var(--pf-motion-normal)',
     animationName: {
       from: { opacity: 0, transform: 'translateY(18px) scale(0.5)' },
       '60%': { opacity: 1, transform: 'translateY(-2px) scale(1.06)' },
@@ -631,7 +850,7 @@ const useStyles = makeStyles({
     },
     animationDuration: '420ms',
     animationDelay: '60ms',
-    animationTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+    animationTimingFunction: 'var(--pf-motion-spring)',
     animationFillMode: 'both',
     ':hover': {
       filter: 'brightness(1.08)',
@@ -640,17 +859,28 @@ const useStyles = makeStyles({
         '0 18px 42px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.22)',
     },
     ':active': { transform: 'scale(0.92)' },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '4px',
+      boxShadow:
+        'var(--pf-focus-outline), 0 18px 42px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.22)',
+    },
     '@media (max-width: 1000px)': {
-      bottom: '152px',
-      right: '16px',
-      width: '54px',
-      height: '54px',
+      bottom: '206px',
+      right: 'var(--pf-space-lg)',
+      width: '48px',
+      height: '48px',
+    },
+    '@media (max-width: 360px)': {
+      bottom: '272px',
     },
   },
   chatLauncherGlyph: { width: '24px', height: '24px' },
   chatPanel: {
     position: 'fixed',
-    right: '24px',
+    right: 'var(--pf-space-xxl)',
     bottom: '96px',
     zIndex: 45,
     width: 'min(420px, calc(100vw - 48px))',
@@ -658,15 +888,14 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
-    borderRadius: '18px',
-    border: '1px solid rgba(255,255,255,0.06)',
-    boxShadow:
-      '0 24px 64px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)',
-    background: '#0d0d0f',
+    borderRadius: t.radius.xl,
+    border: '1px solid var(--scrim-card-line)',
+    boxShadow: 'var(--pf-shadow-card-elevated)',
+    background: 'var(--scrim-bg-voice-agent)',
     transformOrigin: 'bottom right',
     willChange: 'transform, opacity',
     transition:
-      'right 280ms cubic-bezier(0.22, 1, 0.36, 1), left 280ms cubic-bezier(0.22, 1, 0.36, 1), top 280ms cubic-bezier(0.22, 1, 0.36, 1), bottom 280ms cubic-bezier(0.22, 1, 0.36, 1), width 280ms cubic-bezier(0.22, 1, 0.36, 1), height 280ms cubic-bezier(0.22, 1, 0.36, 1)',
+      'right var(--pf-motion-slow) var(--pf-motion-ease), left var(--pf-motion-slow) var(--pf-motion-ease), top var(--pf-motion-slow) var(--pf-motion-ease), bottom var(--pf-motion-slow) var(--pf-motion-ease), width var(--pf-motion-slow) var(--pf-motion-ease), height var(--pf-motion-slow) var(--pf-motion-ease)',
     animationName: {
       from: {
         opacity: 0,
@@ -685,7 +914,7 @@ const useStyles = makeStyles({
       },
     },
     animationDuration: '320ms',
-    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    animationTimingFunction: 'var(--pf-motion-ease)',
     animationFillMode: 'both',
     '@media (max-width: 1000px)': {
       right: '12px',
@@ -706,20 +935,20 @@ const useStyles = makeStyles({
         filter: 'blur(4px)',
       },
     },
-    animationDuration: '220ms',
-    animationTimingFunction: 'cubic-bezier(0.4, 0, 1, 1)',
+    animationDuration: 'var(--pf-motion-slow)',
+    animationTimingFunction: 'var(--pf-motion-ease)',
     animationFillMode: 'forwards',
     pointerEvents: 'none',
   },
   chatPanelExpanded: {
-    right: '24px',
-    left: '24px',
-    top: '24px',
-    bottom: '24px',
+    right: 'var(--pf-space-xxl)',
+    left: 'var(--pf-space-xxl)',
+    top: 'var(--pf-space-xxl)',
+    bottom: 'var(--pf-space-xxl)',
     width: 'auto',
     height: 'auto',
     transition:
-      'right 280ms cubic-bezier(0.22, 1, 0.36, 1), left 280ms cubic-bezier(0.22, 1, 0.36, 1), top 280ms cubic-bezier(0.22, 1, 0.36, 1), bottom 280ms cubic-bezier(0.22, 1, 0.36, 1), width 280ms cubic-bezier(0.22, 1, 0.36, 1), height 280ms cubic-bezier(0.22, 1, 0.36, 1)',
+      'right var(--pf-motion-slow) var(--pf-motion-ease), left var(--pf-motion-slow) var(--pf-motion-ease), top var(--pf-motion-slow) var(--pf-motion-ease), bottom var(--pf-motion-slow) var(--pf-motion-ease), width var(--pf-motion-slow) var(--pf-motion-ease), height var(--pf-motion-slow) var(--pf-motion-ease)',
     '@media (max-width: 1000px)': {
       right: '12px',
       left: '12px',
@@ -732,13 +961,13 @@ const useStyles = makeStyles({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '10px 14px',
-    background: 'linear-gradient(180deg, #1a1a1c 0%, #0d0d0f 100%)',
-    borderBottom: '1px solid rgba(255,255,255,0.06)',
-    color: '#ffffff',
+    background: 'var(--scrim-card)',
+    borderBottom: '1px solid var(--scrim-card-line)',
+    color: 'var(--scrim-fg-strong)',
   },
   chatPanelTitle: {
     fontFamily: t.font.text,
-    fontSize: '13px',
+    fontSize: 'var(--pf-type-caption-size)',
     fontWeight: 600,
     letterSpacing: '0.02em',
   },
@@ -746,7 +975,7 @@ const useStyles = makeStyles({
     appearance: 'none',
     border: 'none',
     background: 'transparent',
-    color: '#ffffff',
+    color: 'var(--scrim-fg-strong)',
     cursor: 'pointer',
     width: '28px',
     height: '28px',
@@ -754,6 +983,12 @@ const useStyles = makeStyles({
     display: 'grid',
     placeItems: 'center',
     ':hover': { background: 'rgba(255,255,255,0.08)' },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--scrim-fg-strong)',
+      outlineOffset: '2px',
+    },
   },
   chatPanelMinimizeGlyph: { width: '16px', height: '16px' },
   chatPanelBody: {
@@ -773,16 +1008,16 @@ const useStyles = makeStyles({
     overflowY: 'auto',
     display: 'grid',
     gridTemplateColumns: 'minmax(0, 1fr) auto',
-    gap: '14px',
+    gap: 'var(--pf-space-lg)',
     alignItems: 'center',
-    padding: '16px 18px',
-    borderRadius: '8px',
-    backgroundColor: t.brand.surface,
-    borderTop: t.surface.hairline,
-    borderRight: t.surface.hairline,
-    borderBottom: t.surface.hairline,
-    borderLeft: t.surface.hairline,
-    boxShadow: '0 18px 48px rgba(30, 41, 59, 0.22)',
+    padding: 'var(--pf-space-lg) 18px',
+    borderRadius: t.radius.sm,
+    backgroundColor: 'var(--pf-surface)',
+    borderTop: 'var(--pf-hairline)',
+    borderRight: 'var(--pf-hairline)',
+    borderBottom: 'var(--pf-hairline)',
+    borderLeft: 'var(--pf-hairline)',
+    boxShadow: 'var(--pf-shadow-card-elevated)',
     boxSizing: 'border-box',
     '@media (max-width: 1200px)': {
       left: '24px',
@@ -796,7 +1031,7 @@ const useStyles = makeStyles({
       maxHeight: '28vh',
       gridTemplateColumns: '1fr',
       alignItems: 'stretch',
-      gap: '10px',
+      gap: 'var(--pf-space-md)',
       padding: '14px',
     },
     '@media (max-width: 560px)': {
@@ -806,24 +1041,24 @@ const useStyles = makeStyles({
   },
   cookieBannerCopy: {
     display: 'grid',
-    gap: '5px',
+    gap: 'var(--pf-space-xs)',
     minWidth: 0,
   },
   cookieBannerTitle: {
     fontFamily: t.font.display,
     fontSize: '0.95rem',
     fontWeight: 700,
-    color: t.brand.text,
+    color: 'var(--pf-text)',
   },
   cookieBannerText: {
-    fontSize: '0.82rem',
-    lineHeight: 1.45,
-    color: t.brand.textSecondary,
+    fontSize: 'var(--pf-type-caption-size)',
+    lineHeight: 'var(--pf-type-caption-line)',
+    color: 'var(--pf-text-secondary)',
   },
   cookieBannerActions: {
     display: 'flex',
     justifyContent: 'flex-end',
-    gap: '8px',
+    gap: 'var(--pf-space-sm)',
     flexWrap: 'wrap',
     '@media (max-width: 1000px)': {
       justifyContent: 'flex-start',
@@ -838,13 +1073,20 @@ const useStyles = makeStyles({
     paddingRight: '14px',
     paddingLeft: '14px',
     borderRadius: t.radius.pill,
-    border: t.surface.hairline,
-    backgroundColor: t.brand.surface,
-    color: t.brand.text,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    color: 'var(--pf-text)',
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.8rem',
     fontWeight: 700,
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '3px',
+      boxShadow: 'var(--pf-focus-outline)',
+    },
   },
   cookieButtonPrimary: {
     appearance: 'none',
@@ -855,13 +1097,20 @@ const useStyles = makeStyles({
     paddingRight: '14px',
     paddingLeft: '14px',
     borderRadius: t.radius.pill,
-    border: `1px solid ${t.brand.ink}`,
-    backgroundColor: t.brand.ink,
-    color: t.brand.onInk,
+    border: '1px solid var(--pf-ink)',
+    backgroundColor: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.8rem',
     fontWeight: 700,
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '3px',
+      boxShadow: 'var(--pf-focus-outline)',
+    },
   },
 })
 
@@ -918,7 +1167,19 @@ export function CookieConsentBanner({
 }
 
 export default function PathfinderLearnApp() {
+  return (
+    <PathfinderThemeProvider>
+      <PathfinderLearnAppShell />
+    </PathfinderThemeProvider>
+  )
+}
+
+function PathfinderLearnAppShell() {
+  usePathfinderThemeStyles()
   const styles = useStyles()
+  const { mode, setMode } = usePathfinderTheme()
+  const fluentTheme =
+    mode === 'dark' ? pathfinderFluentThemeDark : pathfinderFluentTheme
   const location = useLocation()
   const navigate = useNavigate()
   const [authStatus, setAuthStatus] = useState<
@@ -1261,9 +1522,9 @@ export default function PathfinderLearnApp() {
           style={({ isActive }) =>
             isActive
               ? {
-                  backgroundColor: t.brand.ink,
-                  borderColor: t.brand.ink,
-                  color: t.brand.onInk,
+                  backgroundColor: 'var(--pf-ink)',
+                  borderColor: 'var(--pf-ink)',
+                  color: 'var(--pf-on-ink)',
                   boxShadow: extraClass
                     ? 'none'
                     : '0 1px 2px rgba(0, 0, 0, 0.18)',
@@ -1280,6 +1541,70 @@ export default function PathfinderLearnApp() {
         </NavLink>
       )
     })
+
+  const renderThemeToggle = (testId: string, extraClass?: string) => (
+    <fieldset
+      className={mergeClasses(styles.themeToggle, extraClass)}
+      data-testid={testId}
+    >
+      <legend className={styles.srOnly}>Theme</legend>
+      <button
+        type="button"
+        className={mergeClasses(
+          styles.themeToggleButton,
+          mode === 'light' && styles.themeToggleButtonActive
+        )}
+        aria-pressed={mode === 'light'}
+        onClick={() => setMode('light')}
+      >
+        <SunIcon className={styles.themeToggleIcon} aria-hidden="true" />
+        <span>Light</span>
+      </button>
+      <button
+        type="button"
+        className={mergeClasses(
+          styles.themeToggleButton,
+          mode === 'dark' && styles.themeToggleButtonActive
+        )}
+        aria-pressed={mode === 'dark'}
+        onClick={() => setMode('dark')}
+      >
+        <MoonIcon className={styles.themeToggleIcon} aria-hidden="true" />
+        <span>Dark</span>
+      </button>
+    </fieldset>
+  )
+
+  const routeTitleByPath: Record<string, string> = {
+    '/': 'Welcome · role picker',
+    '/welcome': 'Welcome · role picker',
+    '/goals': 'Goal intake · orb',
+    '/home': 'Learning home',
+    '/family': 'Parent family home',
+    '/teacher': 'Teacher mastery heatmap',
+    '/exam-prep': 'Exam prep + diagnostic',
+    '/library': 'Skill library',
+    '/profile': 'Mastery profile',
+    '/pathways': 'Pathways explorer',
+    '/safety': 'Trust & safety console',
+    '/observability': 'Observability dashboard',
+    '/account': 'Account & settings',
+    '/account/settings': 'Settings',
+    '/account/privacy': 'Privacy',
+    '/account/terms': 'Terms',
+    '/account/ai-notice': 'AI notice',
+  }
+  const routeChromeTitle =
+    routeTitleByPath[location.pathname] ??
+    (location.pathname.startsWith('/exam-prep')
+      ? routeTitleByPath['/exam-prep']
+      : 'Wulo Academy')
+  const innerChromeTitle =
+    visibleNavItems.find(
+      item =>
+        location.pathname === item.to ||
+        location.pathname.startsWith(`${item.to}/`)
+    )?.label ?? routeChromeTitle
 
   const renderAccountCard = () => {
     if (!authSession?.authenticated) return null
@@ -1332,7 +1657,11 @@ export default function PathfinderLearnApp() {
 
   if (effectiveRole === 'unassigned' && authSession?.authenticated) {
     return (
-      <FluentProvider theme={pathfinderFluentTheme} className={styles.provider}>
+      <FluentProvider
+        theme={fluentTheme}
+        className={styles.provider}
+        data-theme={mode}
+      >
         <WelcomeRolePicker onChosen={handleOnboardingChosen} />
       </FluentProvider>
     )
@@ -1345,7 +1674,11 @@ export default function PathfinderLearnApp() {
   }
 
   return (
-    <FluentProvider theme={pathfinderFluentTheme} className={styles.provider}>
+    <FluentProvider
+      theme={fluentTheme}
+      className={styles.provider}
+      data-theme={mode}
+    >
       <OnboardingRuntime
         role={authSession?.role ?? null}
         userMode="workspace"
@@ -1356,6 +1689,18 @@ export default function PathfinderLearnApp() {
         authenticated={authStatus === 'authenticated'}
       >
       <div className={styles.page} data-testid="pathfinder-learn-app">
+        <div className={styles.routeBar} aria-label="Current Wulo Academy route">
+          <span className={styles.routeBarTitle}>{routeChromeTitle}</span>
+          <span className={styles.routeBarPath}>
+            {location.pathname === '/' ? 'entry · /' : location.pathname}
+          </span>
+          <span className={styles.routeBarPill}>
+            {formatRoleLabel(effectiveRole)}
+          </span>
+        </div>
+
+        <div className={styles.stage}>
+          <div className={styles.appFrame}>
         <aside className={styles.sidebar} aria-label="Wulo Academy primary">
           <NavLink
             to="/home"
@@ -1399,6 +1744,8 @@ export default function PathfinderLearnApp() {
             ) : null}
           </nav>
 
+          {renderThemeToggle('pathfinder-theme-toggle')}
+
           {authSession?.authenticated ? (
             <HelpMenu
               currentRole={authSession.role ?? null}
@@ -1435,6 +1782,10 @@ export default function PathfinderLearnApp() {
             </NavLink>
             {authSession?.authenticated ? (
               <div className={styles.mobileAccountActions}>
+                {renderThemeToggle(
+                  'pathfinder-theme-toggle-mobile',
+                  styles.mobileThemeToggle
+                )}
                 <a
                   href="/account"
                   className={styles.mobileAccountButton}
@@ -1463,6 +1814,30 @@ export default function PathfinderLearnApp() {
                 </a>
               </div>
             ) : null}
+          </div>
+
+          <div className={styles.innerTopbar}>
+            <div className={styles.innerTopbarTitle}>{innerChromeTitle}</div>
+            <div className={styles.trustChips} aria-label="Wulo Academy status">
+              <span
+                className={styles.trustChip}
+                data-testid="offline-ready-pill"
+              >
+                <span className={styles.trustDot} aria-hidden="true" />
+                Works offline · synced
+              </span>
+              <span className={styles.trustChip}>
+                <span
+                  className={mergeClasses(styles.trustDot, styles.trustDotSafe)}
+                  aria-hidden="true"
+                />
+                Safeguarding active
+              </span>
+              <span className={styles.trustChip}>
+                <span className={styles.trustDot} aria-hidden="true" />
+                Wulo Tutor ready
+              </span>
+            </div>
           </div>
 
           <div className={styles.content}>
@@ -1580,6 +1955,7 @@ export default function PathfinderLearnApp() {
             {renderNavLinks(styles.bottomNavLink)}
           </nav>
         </main>
+          </div>
         {['learner', 'kid', 'student'].includes(effectiveRole) && (
           <LearnerContext.Provider value={askPathfinderContextValue}>
             <AskPathfinder
@@ -1634,7 +2010,8 @@ export default function PathfinderLearnApp() {
             type="button"
             className={styles.chatLauncher}
             onClick={() => setChatOpen(true)}
-            aria-label="Open Wulo Academy text assistant"
+            aria-label="Ask Wulo Tutor"
+            title="Ask Wulo Tutor"
             data-testid="pathfinder-chat-launcher"
           >
             <ChatBubbleLeftRightIcon
@@ -1650,12 +2027,12 @@ export default function PathfinderLearnApp() {
               chatExpanded && styles.chatPanelExpanded,
               chatClosing && styles.chatPanelClosing
             )}
-            aria-label="Wulo Academy text assistant"
+            aria-label="Wulo Tutor"
             data-testid="pathfinder-chat-panel"
           >
             <header className={styles.chatPanelHeader}>
               <span className={styles.chatPanelTitle}>
-                Wulo Academy Assistant
+                Wulo Tutor
               </span>
               <button
                 type="button"
@@ -1694,6 +2071,7 @@ export default function PathfinderLearnApp() {
         <CookieConsentBanner
           onResolved={() => setCookieConsentResolved(true)}
         />
+        </div>
       </div>
       </OnboardingRuntime>
     </FluentProvider>

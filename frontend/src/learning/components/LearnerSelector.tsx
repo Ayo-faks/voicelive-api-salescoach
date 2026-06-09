@@ -10,16 +10,16 @@ type LearnerSelectorProps = {
 
 const useStyles = makeStyles({
   shell: {
-    display: 'flex',
+    display: 'none',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: '12px',
     marginBottom: '18px',
     padding: '12px 14px',
     borderRadius: t.radius.lg,
-    border: t.surface.hairline,
-    backgroundColor: t.brand.surface,
-    boxShadow: t.surface.raisedShadow,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    boxShadow: 'var(--pf-shadow-raised)',
     '@media (max-width: 720px)': {
       alignItems: 'stretch',
       flexDirection: 'column',
@@ -34,11 +34,11 @@ const useStyles = makeStyles({
     fontFamily: t.font.display,
     fontSize: '0.95rem',
     fontWeight: 700,
-    color: t.brand.text,
+    color: 'var(--pf-text)',
   },
   hint: {
     fontSize: '0.76rem',
-    color: t.brand.textTertiary,
+    color: 'var(--pf-text-tertiary)',
   },
   dropdown: {
     minWidth: '220px',
@@ -62,13 +62,13 @@ export default function LearnerSelector({
   return (
     <section className={styles.shell} data-testid="learner-selector-shell">
       <div className={styles.copy}>
-        <Text className={styles.label}>Learner</Text>
+        <Text className={styles.label}>Student</Text>
         <Text className={styles.hint}>
-          Diagnostic and voice practice are scoped to this learner.
+          Diagnostic and voice practice are scoped to this student.
         </Text>
       </div>
       <Dropdown
-        aria-label="Learner"
+        aria-label="Student"
         className={styles.dropdown}
         value={selectedChild?.name ?? ''}
         selectedOptions={selectedLearnerId ? [selectedLearnerId] : []}

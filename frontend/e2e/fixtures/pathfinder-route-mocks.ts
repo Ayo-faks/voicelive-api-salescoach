@@ -10,7 +10,7 @@
  */
 import type { Page, Route } from '@playwright/test'
 
-export type RouteRole = 'learner' | 'admin' | 'therapist'
+export type RouteRole = 'learner' | 'parent' | 'admin' | 'therapist'
 
 interface MockOptions {
   role: RouteRole
@@ -222,6 +222,46 @@ export async function installRouteMocks(
         cost_per_student_gbp: 0,
         meets_pilot_thresholds: false,
       },
+    })
+  )
+
+  await page.route('**/api/learning/observability/dashboard**', (route) =>
+    fulfillJson(route, {
+      tenant_id: 'e2e',
+      generated_at: '2026-04-01T10:00:00Z',
+      overall_status: 'warn',
+      sections: [
+        {
+          id: 'product',
+          title: 'Product signals',
+          tiles: [
+            {
+              id: 'active-learners',
+              label: 'Active learners',
+              value: '128',
+              detail: 'Pilot learners seen in the last 7 days.',
+              status: 'ok',
+              source: 'fixture',
+            },
+            {
+              id: 'voice-sessions',
+              label: 'Voice sessions',
+              value: '42',
+              detail: 'Tutor voice sessions completed this week.',
+              status: 'warn',
+              source: 'fixture',
+            },
+            {
+              id: 'safety-actions',
+              label: 'Safety actions',
+              value: '0',
+              detail: 'No unresolved safeguarding escalations in fixture data.',
+              status: 'ok',
+              source: 'fixture',
+            },
+          ],
+        },
+      ],
     })
   )
 }

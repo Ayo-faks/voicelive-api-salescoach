@@ -449,11 +449,21 @@ XAPIStatement
   timestamp: ISO-8601 UTC
 ```
 
-### Pending: LRS backend
+### LRS backend — shipped
 
-`XAPIEmitter` Protocol is defined. No concrete implementation. Currently statements are returned in `DiagnosticRunResult.xapi_statements` (in-memory only).
+`RalphXAPISink` (xapi.py) is the concrete [ralph](https://github.com/openfun/ralph)-compatible `XAPIEmitter`. It is wired into `LearningApi` via `build_ralph_sink_from_env(repository=...)`, which reads `RALPH_BASE_URL` / `RALPH_AUTH_TOKEN` / `RALPH_TIMEOUT_SECONDS`. Every emit goes sink → `repository.emit_xapi_statement(...)` (persisted to `learning_xapi_statements` with a `sink_status`) → `observability.record_xapi(...)`.
 
-**Target:** wire [ralph](https://github.com/openfun/ralph) as `XAPIEmitter` — FastAPI + Pydantic, writes to Elasticsearch/ClickHouse, queryable for analytics dashboards.
+Per-statement `sink_status`:
+
+| Status | Meaning |
+|---|---|
+| `ralph_synced` | POST to `{RALPH_BASE_URL}/xAPI/statements` returned 2xx |
+| `ralph_queued` | No endpoint configured or `offline=True` — buffered for `flush()` |
+| `ralph_failed` | POST attempted and failed — buffered and appended to `learning_offline_queue` for replay |
+
+Transport is the `XAPITransport` Protocol (`UrllibXAPITransport` in prod, `InMemoryXAPITransport` in tests). Offline-first by default: with no `RALPH_BASE_URL` set, statements queue and replay on reconnect. Covered by `test_learning_ralph_sink.py` and `test_learning_offline_drainer.py`.
+
+**Remaining (deployment, not code):** provision a Ralph instance (FastAPI + Pydantic over Elasticsearch/ClickHouse) and set `RALPH_BASE_URL` so `sink_status` flips from `ralph_queued` to `ralph_synced`.
 
 ---
 
@@ -665,6 +675,48 @@ All tables carry `tenant_id` and are subject to the existing multi-tenant RLS po
         └─────────────┘  │  (pending)  │  └─────────────────┘
                          └─────────────┘
 ```
+
+---
+
+## 16. Learning paradigm & terminology
+
+This section fixes the **correct learning-science and ML terminology** for what
+Pathfinder Learn actually implements, so product, pitch, and engineering docs
+stay precise. The core paradigm is **adaptive learning** built on a
+psychometrics + knowledge-tracing stack, with a separate human-gated LLM tutor
+layered on top for explanation and dialogue.
+
+### 16.1 What it is
+
+| Loose phrase | Correct term | Where it lives |
+|---|---|---|
+| "Adaptive learning" | **Computerized Adaptive Testing (CAT)** driven by **Item Response Theory (IRT)** — each item is chosen to maximise information about the learner's latent ability `θ` | `DeterministicItemSelector` (round-robin, difficulty-ascending) → target swap `catsim` `MaxInfoSelector` / `UrrySelector` — §4 |
+| "It learns the student" | **Knowledge tracing** via **Bayesian Knowledge Tracing (BKT)** — a Beta-Bernoulli conjugate update per `(student, skill)` response | `BetaBKT` in `mastery.py`; alternate **Elo rating** estimator — §5 |
+| "Mastery" | **Mastery estimation with explicit uncertainty** (mastery-learning pedagogy) — probability + calibrated uncertainty, rendered as 3 mastery × 2 uncertainty heatmap bands | `MasteryEstimate{kind:"beta", a, b}` in `models.py` |
+| "It forgets / revises" | **Forgetting-curve decay** (spaced-repetition principle) — confidence decays by half-life over elapsed time | `MasteryEstimate.age_adjusted_uncertainty()` (`0.5 ** (elapsed_days / half_life_days)`); Web Push revision nudges |
+| "Personalised daily plan" | **Adaptive sequencing** — weakest-skill-first ranking from the learner's own mastery history | `LearningApi.build_learner_plan` → `LearnerDailyPlan` (`source="mastery"` vs `"fallback"`) |
+| "Diagnostic" | **Formative / diagnostic assessment** ("skill check") | Workflow 1 — §4 |
+| "Career match" | **Deterministic, provenance-stamped recommendation ranking** (weighted mastery × labour-market demand, consent-gated) | `DeterministicCareerPlanner` — §7 |
+| "AI tutor" | **Instruction-tuned, retrieval-grounded LLM generation with HITL gating** — *not* the learning algorithm; the pedagogy is the CAT/BKT loop above | Voice tutor profiles + `OrchestratorAdvisor` / `CriticAgent` quality gate |
+
+### 16.2 What it is NOT
+
+- **Not self-supervised / "self-learning"** in the ML sense — no model trains
+  itself online on learner data. The learner *model* (BKT) updates via closed-form
+  Bayesian arithmetic, not gradient descent.
+- **Not reinforcement learning** for sequencing — the planner is deterministic,
+  provenance-stamped, and teacher-approved (fail-closed), never an RL policy.
+- **Not "in-context learning" as the core method.** ICL / few-shot prompting only
+  describes the *LLM tutor's* prompting layer, not the mastery engine. Do not use
+  "in-context learning" to describe the adaptive pedagogy.
+
+### 16.3 One-line description
+
+> An **adaptive-learning** system using **IRT-based computerized adaptive testing**
+> for item selection, **Bayesian Knowledge Tracing** for the learner/mastery model
+> (with explicit uncertainty and forgetting-curve decay), **deterministic
+> mastery-ranked adaptive sequencing** for the daily plan, and a separate
+> **human-gated LLM tutor** for explanation and dialogue.
 
 ---
 

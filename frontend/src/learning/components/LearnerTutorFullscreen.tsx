@@ -35,8 +35,8 @@ const useStyles = makeStyles({
     padding: 0,
     border: 0,
     zIndex: 120,
-    background: 'radial-gradient(circle at 50% 18%, #202024 0%, #070708 64%)',
-    color: '#f7f7f8',
+    background: 'var(--scrim-bg-tutor)',
+    color: 'var(--scrim-fg)',
     display: 'grid',
     gridTemplateRows: 'auto 1fr auto',
   },
@@ -45,7 +45,7 @@ const useStyles = makeStyles({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '18px 24px',
-    borderBottom: '1px solid rgba(255,255,255,0.07)',
+    borderBottom: '1px solid var(--scrim-line-soft)',
   },
   brand: {
     display: 'inline-flex',
@@ -58,16 +58,16 @@ const useStyles = makeStyles({
     width: '9px',
     height: '9px',
     borderRadius: '999px',
-    backgroundColor: '#fff',
-    boxShadow: '0 0 14px rgba(255,255,255,0.45)',
+    backgroundColor: 'var(--scrim-fill)',
+    boxShadow: 'var(--scrim-brand-dot-glow)',
   },
   iconButton: {
     width: '40px',
     height: '40px',
     borderRadius: '999px',
-    border: '1px solid rgba(255,255,255,0.14)',
-    background: 'rgba(255,255,255,0.06)',
-    color: '#fff',
+    border: '1px solid var(--scrim-line-strong)',
+    background: 'var(--scrim-chip)',
+    color: 'var(--scrim-fg-strong)',
     display: 'grid',
     placeItems: 'center',
     cursor: 'pointer',
@@ -87,8 +87,7 @@ const useStyles = makeStyles({
     borderRadius: '999px',
     background:
       'radial-gradient(circle at 32% 26%, #ffffff 0%, #d8d8dd 34%, #53535a 68%, #101012 100%)',
-    boxShadow:
-      '0 0 60px rgba(255,255,255,0.18), inset 0 0 32px rgba(255,255,255,0.2)',
+    boxShadow: 'var(--scrim-orb-glow)',
   },
   orbActive: {
     animationName: {
@@ -109,7 +108,7 @@ const useStyles = makeStyles({
     fontWeight: 850,
   },
   stateHint: {
-    color: 'rgba(255,255,255,0.64)',
+    color: 'var(--scrim-fg-soft)',
     fontSize: '0.9rem',
   },
   cardSlot: {
@@ -136,30 +135,30 @@ const useStyles = makeStyles({
     width: '64px',
     height: '64px',
     borderRadius: '999px',
-    border: '1px solid rgba(255,255,255,0.18)',
-    background: 'linear-gradient(160deg, #4a4a4d 0%, #090909 100%)',
+    border: '1px solid var(--scrim-line-strong)',
+    background: 'var(--scrim-mic-bg)',
     color: '#fff',
     display: 'grid',
     placeItems: 'center',
     cursor: 'pointer',
-    boxShadow: '0 16px 42px rgba(0,0,0,0.42)',
+    boxShadow: 'var(--scrim-mic-shadow)',
   },
   micButtonRecording: {
-    boxShadow: '0 0 0 8px rgba(255,255,255,0.08), 0 18px 48px rgba(0,0,0,0.5)',
+    boxShadow: 'var(--scrim-mic-recording-shadow)',
   },
   micGlyph: { width: '25px', height: '25px' },
   level: {
     width: '72px',
     height: '8px',
     borderRadius: '999px',
-    background: 'rgba(255,255,255,0.12)',
+    background: 'var(--scrim-line-strong)',
     overflow: 'hidden',
   },
   levelFill: {
     display: 'block',
     height: '100%',
     borderRadius: '999px',
-    background: '#ffffff',
+    background: 'var(--scrim-fill)',
     transition: 'width 120ms ease',
   },
 })
@@ -446,7 +445,7 @@ export function LearnerTutorFullscreen({
       <header className={styles.header}>
         <span className={styles.brand}>
           <span className={styles.brandDot} />
-          Pathfinder tutor
+          Wulo Tutor
         </span>
         <button
           type="button"

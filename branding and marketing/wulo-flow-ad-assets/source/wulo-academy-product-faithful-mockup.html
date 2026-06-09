@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wulo Academy — Product-Faithful Ambient UI Mockup</title>
+  <style>
+    /*
+     * Built on the real frontend/src/learning/theme/pathfinder-tokens.ts:
+     * monochrome, Apple x ChatGPT inspired, near-white page, white cards,
+     * hairline borders, Manrope, muted status colour only for risk/mastery,
+     * 44px tap targets, AA contrast. No invented brand accent hues.
+     * Orb states use the real InsightsOrb palette (teal idle/listening,
+     * gold speaking). This is a design target, NOT a runtime screen.
+     */
+    :root {
+      --ink: #0a0a0a;
+      --ink-soft: #1c1c1e;
+      --ink-muted: #3a3a3c;
+      --text-secondary: #5c5c61;
+      --text-tertiary: #6e6e73;
+      --line: #e5e5ea;
+      --line-soft: #f0f0f3;
+      --surface: #ffffff;
+      --surface-muted: #fafafa;
+      --page: #f7f7f8;
+      --on-ink: #ffffff;
+
+      --ok-bg: #f3f6f3;       --ok-fg: #1b5e20;
+      --warn-bg: #f6f6f7;     --warn-fg: #7a5b00;
+      --crit-bg: #fef0ef;     --crit-fg: #86181d;
+      --info-bg: #f1f2f4;     --info-fg: #1f3a68;
+
+      --mastery-secure-bg: #e3e6e3;  --mastery-secure-fg: #0f3d12;
+      --mastery-dev-bg: #f2f2f3;     --mastery-dev-fg: #7a5b00;
+
+      /* InsightsOrb real palette */
+      --orb-teal-light: #20a39e;
+      --orb-teal: #0d8a84;
+      --orb-teal-dark: #06625e;
+      --orb-gold-light: #e6c98a;
+      --orb-gold: #b89455;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 14px;
+      --radius-xl: 18px;
+      --radius-xxl: 22px;
+      --radius-pill: 999px;
+      --radius-control: 10px;
+
+      --shadow-raised: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.04);
+      --shadow-elevated: inset 0 1px 0 rgba(255,255,255,0.86), 0 1px 2px rgba(0,0,0,0.04), 0 12px 32px rgba(0,0,0,0.045);
+      --hairline: 1px solid #e5e5ea;
+
+      font-family: "Manrope", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #e9e9ec;
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .shot {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      background: var(--page);
+      overflow: hidden;
+      transform-origin: center;
+    }
+
+    /* ---- App chrome: slim left rail ---- */
+    .rail {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 76px;
+      background: var(--surface);
+      border-right: var(--hairline);
+      display: grid;
+      grid-template-rows: 72px 1fr auto;
+      justify-items: center;
+      padding: 16px 0 18px;
+    }
+    .brand {
+      width: 40px; height: 40px;
+      border-radius: var(--radius-md);
+      background: var(--ink);
+      color: var(--on-ink);
+      display: grid; place-items: center;
+      font-weight: 700; font-size: 20px;
+    }
+    .rail-items { display: grid; gap: 8px; align-content: start; margin-top: 14px; }
+    .rail-btn {
+      width: 48px; height: 44px;
+      border-radius: var(--radius-control);
+      display: grid; place-items: center;
+      color: var(--text-tertiary);
+      font-size: 18px;
+    }
+    .rail-btn.active { background: var(--page); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+    .rail-foot { display: grid; gap: 10px; justify-items: center; }
+    .avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: var(--ink); color: var(--on-ink);
+      display: grid; place-items: center; font-weight: 700; font-size: 15px;
+    }
+
+    /* ---- Top bar ---- */
+    .topbar {
+      position: absolute;
+      left: 76px; right: 0; top: 0;
+      height: 72px;
+      border-bottom: var(--hairline);
+      background: rgba(255,255,255,0.86);
+      backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px;
+    }
+    .crumb { display: flex; align-items: baseline; gap: 12px; }
+    .crumb b { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+    .crumb span { font-size: 14px; color: var(--text-tertiary); }
+    .top-right { display: flex; align-items: center; gap: 10px; }
+
+    .chip {
+      height: 36px;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 0 12px;
+      border-radius: var(--radius-pill);
+      border: var(--hairline);
+      background: var(--surface);
+      color: var(--text-secondary);
+      font-size: 13px; font-weight: 600;
+    }
+    .chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--orb-teal); }
+    .chip.safety { background: var(--ok-bg); color: var(--ok-fg); border-color: transparent; }
+    .chip.offline { background: var(--info-bg); color: var(--info-fg); border-color: transparent; }
+
+    /* ---- Canvas grid ---- */
+    .canvas {
+      position: absolute;
+      left: 76px; right: 0; top: 72px; bottom: 0;
+      padding: 28px 32px 30px;
+      display: grid;
+      grid-template-columns: 1fr 392px;
+      grid-template-rows: auto 1fr;
+      gap: 22px;
+    }
+
+    .greeting { grid-column: 1 / 2; grid-row: 1 / 2; }
+    .greeting h1 {
+      margin: 0;
+      font-size: 30px; font-weight: 700; letter-spacing: -0.02em;
+    }
+    .greeting p {
+      margin: 8px 0 0;
+      font-size: 16px; color: var(--text-secondary); max-width: 640px; line-height: 1.45;
+    }
+
+    .left-col { grid-column: 1 / 2; grid-row: 2 / 3; display: grid; grid-template-rows: auto auto 1fr; gap: 22px; min-height: 0; }
+    .right-col { grid-column: 2 / 3; grid-row: 1 / 3; display: grid; grid-template-rows: auto auto auto; gap: 22px; align-content: start; }
+
+    .card {
+      background: var(--surface);
+      border: var(--hairline);
+      border-radius: var(--radius-xxl);
+      box-shadow: var(--shadow-elevated);
+      padding: 22px 24px;
+    }
+    .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .card-head h2 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+    .card-head .meta { font-size: 13px; color: var(--text-tertiary); font-weight: 600; }
+    .label-tag {
+      font-size: 12px; font-weight: 700; letter-spacing: 0.02em;
+      padding: 5px 9px; border-radius: var(--radius-pill);
+      background: var(--page); color: var(--text-secondary); border: var(--hairline);
+    }
+
+    /* ---- This week tiles ---- */
+    .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .tile {
+      border: var(--hairline); border-radius: var(--radius-lg);
+      background: var(--surface-muted);
+      padding: 16px;
+    }
+    .tile .t-label { font-size: 13px; color: var(--text-tertiary); font-weight: 600; }
+    .tile .t-value { font-size: 28px; font-weight: 700; margin: 8px 0 4px; letter-spacing: -0.02em; }
+    .tile .t-delta { font-size: 12px; color: var(--ok-fg); font-weight: 600; }
+
+    /* ---- Today's path ---- */
+    .path-list { display: grid; gap: 12px; }
+    .path-item {
+      display: grid; grid-template-columns: 40px 1fr auto auto; gap: 14px; align-items: center;
+      padding: 14px 16px;
+      border: var(--hairline); border-radius: var(--radius-lg);
+      background: var(--surface);
+    }
+    .path-item.now { box-shadow: inset 0 0 0 1.5px var(--ink); }
+    .step-num {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: grid; place-items: center;
+      background: var(--ink); color: var(--on-ink);
+      font-weight: 700; font-size: 14px;
+    }
+    .path-item.done .step-num { background: var(--ok-bg); color: var(--ok-fg); }
+    .path-body b { display: block; font-size: 15px; font-weight: 600; }
+    .path-body small { display: block; margin-top: 3px; font-size: 13px; color: var(--text-tertiary); }
+    .mins { font-size: 13px; color: var(--text-secondary); font-weight: 600; }
+    .status-pill {
+      font-size: 12px; font-weight: 700;
+      padding: 6px 11px; border-radius: var(--radius-pill);
+    }
+    .status-pill.now { background: var(--ink); color: var(--on-ink); }
+    .status-pill.next { background: var(--page); color: var(--text-secondary); border: var(--hairline); }
+
+    /* ---- Weak topics → repair ---- */
+    .weak-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .weak {
+      border: var(--hairline); border-radius: var(--radius-lg);
+      padding: 16px; background: var(--surface);
+    }
+    .weak .w-top { display: flex; align-items: center; justify-content: space-between; }
+    .weak .w-name { font-size: 14px; font-weight: 700; }
+    .mastery-chip {
+      font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: var(--radius-pill);
+      background: var(--mastery-dev-bg); color: var(--mastery-dev-fg);
+    }
+    .meter { height: 7px; border-radius: var(--radius-pill); background: var(--line-soft); margin: 12px 0 10px; overflow: hidden; }
+    .meter span { display: block; height: 100%; background: var(--ink); border-radius: inherit; }
+    .weak small { font-size: 12px; color: var(--text-secondary); line-height: 1.35; }
+
+    /* ---- Voice tutor card (right) ---- */
+    .tutor { text-align: center; padding-top: 26px; }
+    .orb-wrap { position: relative; height: 168px; display: grid; place-items: center; margin-bottom: 6px; }
+    .orb-halo {
+      position: absolute; width: 150px; height: 150px; border-radius: 50%;
+      border: 1px solid var(--line);
+    }
+    .orb {
+      width: 104px; height: 104px; border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, var(--orb-teal-light), var(--orb-teal) 55%, var(--orb-teal-dark) 100%);
+      box-shadow: 0 10px 30px rgba(13,138,132,0.42);
+    }
+    .tutor .state { font-size: 16px; font-weight: 700; margin-top: 2px; }
+    .tutor .sub { font-size: 13px; color: var(--text-tertiary); margin-top: 4px; }
+    .wave { display: inline-flex; gap: 4px; align-items: center; height: 22px; margin-top: 14px; }
+    .wave span { width: 3px; border-radius: 999px; background: var(--orb-teal); opacity: 0.85; height: calc(6px + var(--h)*1px); }
+    .states-row { display: flex; justify-content: center; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+    .state-dot { font-size: 11px; font-weight: 700; color: var(--text-tertiary); padding: 5px 9px; border-radius: var(--radius-pill); background: var(--page); border: var(--hairline); }
+    .state-dot.on { background: var(--ink); color: var(--on-ink); border-color: transparent; }
+
+    /* ---- Diagnostic / explanation (right) ---- */
+    .diag .row { display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line-soft); }
+    .diag .row:last-child { border-bottom: 0; }
+    .diag .row i {
+      width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+      font-style: normal; font-weight: 700; font-size: 12px;
+      background: var(--page); color: var(--ink-soft); border: var(--hairline);
+    }
+    .diag .row.flag i { background: var(--crit-bg); color: var(--crit-fg); border-color: transparent; }
+    .diag .row.fix i { background: var(--ok-bg); color: var(--ok-fg); border-color: transparent; }
+    .diag .row b { font-size: 13.5px; font-weight: 700; display: block; }
+    .diag .row small { font-size: 12.5px; color: var(--text-secondary); display: block; margin-top: 2px; line-height: 1.35; }
+
+    /* ---- Parent summary (right) ---- */
+    .summary .bubble {
+      background: var(--page); border: var(--hairline); border-radius: var(--radius-lg);
+      padding: 14px 16px; font-size: 13.5px; color: var(--ink-soft); line-height: 1.45;
+    }
+    .summary .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+    .btn {
+      height: 44px; border-radius: var(--radius-control); border: var(--hairline);
+      background: var(--surface); color: var(--ink); font-weight: 700; font-size: 14px;
+      display: grid; place-items: center;
+    }
+    .btn.primary { background: var(--ink); color: var(--on-ink); border-color: transparent; }
+
+    .pathways { display: grid; gap: 12px; }
+    .pw {
+      display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px;
+      border: var(--hairline); border-radius: var(--radius-lg); padding: 14px 16px; background: var(--surface);
+    }
+    .pw b { font-size: 14px; font-weight: 700; }
+    .pw small { display: block; font-size: 12px; color: var(--text-secondary); margin-top: 3px; line-height: 1.35; }
+    .fit { font-size: 12px; font-weight: 700; color: var(--ok-fg); background: var(--ok-bg); padding: 6px 10px; border-radius: var(--radius-pill); white-space: nowrap; }
+
+    .footnote {
+      position: absolute; left: 108px; bottom: 14px;
+      font-size: 12px; color: var(--text-tertiary); font-weight: 600;
+    }
+
+    /* ---- Dual tutor launchers (voice + text), faithful to real app ---- */
+    .launchers {
+      position: absolute; right: 470px; bottom: 52px;
+      display: grid; gap: 14px; justify-items: end;
+    }
+    .launcher {
+      width: 56px; height: 56px; border-radius: 50%;
+      display: grid; place-items: center;
+      border: var(--hairline);
+      box-shadow: var(--shadow-raised);
+      font-size: 22px;
+    }
+    .launcher.voice { background: var(--ink); color: var(--on-ink); border-color: transparent; }
+    .launcher.text { background: var(--surface); color: var(--ink); }
+    .launcher .lbl {
+      position: absolute; right: 66px; white-space: nowrap;
+      font-size: 12px; font-weight: 700; color: var(--text-secondary);
+      background: var(--surface); border: var(--hairline);
+      padding: 6px 10px; border-radius: var(--radius-pill);
+      box-shadow: var(--shadow-raised);
+    }
+
+    @media (max-width: 1920px) { .shot { transform: scale(calc(100vw / 1920)); } }
+    @media (max-height: 1080px) { .shot { transform: scale(min(calc(100vw / 1920), calc(100vh / 1080))); } }
+  </style>
+</head>
+<body>
+  <main class="shot" aria-label="Wulo Academy product-faithful ambient UI mockup">
+    <!-- Slim rail -->
+    <aside class="rail">
+      <div class="brand">W</div>
+      <div class="rail-items">
+        <div class="rail-btn active" title="Learner">⌂</div>
+        <div class="rail-btn" title="Practice">◎</div>
+        <div class="rail-btn" title="Tutor">◌</div>
+        <div class="rail-btn" title="Pathways">↗</div>
+        <div class="rail-btn" title="Mastery">▤</div>
+        <div class="rail-btn" title="Trust &amp; safety">⛉</div>
+      </div>
+      <div class="rail-foot">
+        <div class="rail-btn" title="Settings">⚙</div>
+        <div class="avatar">A</div>
+      </div>
+    </aside>
+
+    <!-- Top bar: trust + offline chrome always visible -->
+    <header class="topbar">
+      <div class="crumb">
+        <b>Learner</b>
+        <span>Today · WAEC · JSS3 Maths</span>
+      </div>
+      <div class="top-right">
+        <span class="chip offline">◍ Works offline · synced</span>
+        <span class="chip safety">⛉ Safeguarding active</span>
+        <span class="chip"><span class="dot"></span>Tutor ready</span>
+        <span class="avatar">A</span>
+      </div>
+    </header>
+
+    <section class="canvas">
+      <!-- Greeting -->
+      <div class="greeting">
+        <h1>Good afternoon, Ayoola.</h1>
+        <p>One thing at a time. Wulo brings the next step forward and keeps the rest quiet until you need it.</p>
+      </div>
+
+      <!-- Left column -->
+      <div class="left-col">
+        <!-- This week -->
+        <section class="card">
+          <div class="card-head">
+            <h2>This week</h2>
+            <span class="meta">Real per-learner stats</span>
+          </div>
+          <div class="tiles">
+            <div class="tile"><div class="t-label">Sessions</div><div class="t-value">4 / 5</div><div class="t-delta">On pace</div></div>
+            <div class="tile"><div class="t-label">Streak</div><div class="t-value">7 days</div><div class="t-delta">Personal best</div></div>
+            <div class="tile"><div class="t-label">Mastery</div><div class="t-value">+12%</div><div class="t-delta">Ratio focus</div></div>
+          </div>
+        </section>
+
+        <!-- Today's path -->
+        <section class="card">
+          <div class="card-head">
+            <h2>Today’s path</h2>
+            <span class="label-tag">Adaptive · 16 min</span>
+          </div>
+          <div class="path-list">
+            <div class="path-item now">
+              <span class="step-num">1</span>
+              <span class="path-body"><b>Ratio mini check-in</b><small>Ratio &amp; proportion · adaptive</small></span>
+              <span class="mins">5 min</span>
+              <span class="status-pill now">Now</span>
+            </div>
+            <div class="path-item">
+              <span class="step-num">2</span>
+              <span class="path-body"><b>Fraction bar practice</b><small>Fraction operations · 6 items</small></span>
+              <span class="mins">8 min</span>
+              <span class="status-pill next">Next</span>
+            </div>
+            <div class="path-item done">
+              <span class="step-num">✓</span>
+              <span class="path-body"><b>Exit ticket: scaling recipes</b><small>Teacher reviewed</small></span>
+              <span class="mins">3 min</span>
+              <span class="status-pill next">Done</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Weak topics → repair -->
+        <section class="card">
+          <div class="card-head">
+            <h2>Where to focus</h2>
+            <span class="meta">Mistakes become interventions</span>
+          </div>
+          <div class="weak-grid">
+            <div class="weak">
+              <div class="w-top"><span class="w-name">Ratio &amp; proportion</span><span class="mastery-chip">Developing</span></div>
+              <div class="meter"><span style="width:42%"></span></div>
+              <small>Compared part-to-part instead of part-to-whole. Next: one scaffolded worked example.</small>
+            </div>
+            <div class="weak">
+              <div class="w-top"><span class="w-name">Fraction operations</span><span class="mastery-chip">Developing</span></div>
+              <div class="meter"><span style="width:58%"></span></div>
+              <small>Common denominator step skipped. Next: fraction bar with retrieval in 2 days.</small>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right column -->
+      <div class="right-col">
+        <!-- Voice tutor -->
+        <section class="card tutor">
+          <div class="orb-wrap">
+            <div class="orb-halo"></div>
+            <div class="orb"></div>
+          </div>
+          <div class="state">Listening</div>
+          <div class="sub">“Why is the answer 9 cups?”</div>
+          <div class="wave" aria-hidden="true">
+            <span style="--h:6"></span><span style="--h:14"></span><span style="--h:22"></span><span style="--h:10"></span><span style="--h:26"></span><span style="--h:16"></span><span style="--h:28"></span><span style="--h:12"></span><span style="--h:20"></span><span style="--h:8"></span><span style="--h:24"></span><span style="--h:14"></span>
+          </div>
+          <div class="states-row">
+            <span class="state-dot">Idle</span>
+            <span class="state-dot on">Listening</span>
+            <span class="state-dot">Thinking</span>
+            <span class="state-dot">Speaking</span>
+          </div>
+        </section>
+
+        <!-- Diagnostic explanation -->
+        <section class="card diag">
+          <div class="card-head">
+            <h2>Why it was marked</h2>
+            <span class="label-tag">Diagnostic</span>
+          </div>
+          <div class="row flag"><i>!</i><div><b>Misconception detected</b><small>Used part-to-part ratio where part-to-whole was needed.</small></div></div>
+          <div class="row"><i>“</i><div><b>Evidence from your answer</b><small>You set rice : water = 3 : 4 but solved for total cups.</small></div></div>
+          <div class="row fix"><i>✓</i><div><b>Repair activity queued</b><small>One worked step now, retrieval check Thursday.</small></div></div>
+        </section>
+
+        <!-- Parent summary + pathways -->
+        <section class="card summary">
+          <div class="card-head">
+            <h2>Parent summary</h2>
+            <span class="label-tag">Ready to share</span>
+          </div>
+          <div class="bubble">Ayoola practised ratios for 16 minutes and improved 12%. Still working on part-to-whole reasoning — a short repair task is set for Thursday.</div>
+          <div class="actions">
+            <div class="btn">Copy</div>
+            <div class="btn primary">Share to WhatsApp</div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <div class="footnote">Wulo Academy · monochrome system from pathfinder-tokens.ts · ambient = rhythm &amp; reveal, not new palette · concept mockup, not a runtime screen</div>
+
+    <!-- Dual tutor entry points, faithful to PathfinderLearnApp: voice + text -->
+    <div class="launchers">
+      <div class="launcher text" title="Open Wulo Academy text assistant" data-testid="pathfinder-chat-launcher">
+        <span class="lbl">Text tutor</span>
+        ▢
+      </div>
+      <div class="launcher voice" title="Open Wulo Academy voice assistant" data-testid="voice-agent-launcher">
+        <span class="lbl">Voice tutor</span>
+        ◓
+      </div>
+    </div>
+  </main>
+</body>
+</html>

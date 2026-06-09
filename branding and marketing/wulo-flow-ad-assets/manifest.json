@@ -1,0 +1,42 @@
+{
+  "generatedAt": "2026-06-08T16:07:32.286Z",
+  "source": "frontend/e2e/capture-wulo-flow-real-app.spec.ts",
+  "intent": "Google Flow Omni reference screenshots for Wulo voice-agent, tutor explanation, mastery, career, and parent-summary moments rendered from real app routes with seeded demo API data.",
+  "shots": [
+    {
+      "shot": "01-real-app-voice-tutor-entry",
+      "file": "images/01-real-app-voice-tutor-entry.png",
+      "size": "1920x1080"
+    },
+    {
+      "shot": "02-real-app-voice-practice-question",
+      "file": "images/02-real-app-voice-practice-question.png",
+      "size": "1920x1080"
+    },
+    {
+      "shot": "03-real-app-voice-explanation-tutor",
+      "file": "images/03-real-app-voice-explanation-tutor.png",
+      "size": "1920x1080"
+    },
+    {
+      "shot": "04-real-app-live-tutor-dig-deeper",
+      "file": "images/04-real-app-live-tutor-dig-deeper.png",
+      "size": "1920x1080"
+    },
+    {
+      "shot": "05-real-app-diagnostic-explain-mistake",
+      "file": "images/05-real-app-diagnostic-explain-mistake.png",
+      "size": "1920x1080"
+    },
+    {
+      "shot": "06-real-app-career-pathways",
+      "file": "images/06-real-app-career-pathways.png",
+      "size": "1920x1080"
+    },
+    {
+      "shot": "07-real-app-parent-summary",
+      "file": "images/07-real-app-parent-summary.png",
+      "size": "1920x1080"
+    }
+  ]
+}

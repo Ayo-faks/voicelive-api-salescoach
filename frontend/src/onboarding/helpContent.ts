@@ -69,10 +69,10 @@ export const HELP_TOPICS: HelpTopic[] = [
   },
   {
     id: 'replay-welcome-learner',
-    title: t('help.replay_welcome_learner.title', 'Replay the Pathfinder tour'),
+    title: t('help.replay_welcome_learner.title', 'Replay the Wulo Academy tour'),
     body: t(
       'help.replay_welcome_learner.body',
-      'Walks through your daily check-in, today\u2019s plan, the voice tutor, and sharing.'
+      'Walks through Study with Wulo, today\u2019s plan, coaching, and sharing.'
     ),
     replayTourId: 'welcome-learner',
   },

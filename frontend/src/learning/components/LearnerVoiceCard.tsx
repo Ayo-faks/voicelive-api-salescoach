@@ -8,31 +8,31 @@ const useStyles = makeStyles({
     gap: '18px',
     padding: '24px',
     borderRadius: '20px',
-    border: '1px solid rgba(255,255,255,0.08)',
-    background: 'rgba(20,20,24,0.85)',
-    boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+    border: '1px solid var(--scrim-card-line)',
+    background: 'var(--scrim-card)',
+    boxShadow: 'var(--pf-shadow-card-elevated)',
   },
   speak: {
     fontSize: '15px',
     lineHeight: 1.5,
-    color: 'rgba(255,255,255,0.78)',
+    color: 'var(--scrim-fg-soft)',
     fontStyle: 'italic',
   },
   headline: {
     fontSize: '24px',
     fontWeight: 600,
     margin: 0,
-    color: '#ffffff',
+    color: 'var(--scrim-fg-strong)',
   },
   sub: {
     fontSize: '15px',
-    color: 'rgba(255,255,255,0.65)',
+    color: 'var(--scrim-fg-soft)',
     margin: 0,
   },
   stem: {
     fontSize: '18px',
     lineHeight: 1.45,
-    color: '#ffffff',
+    color: 'var(--scrim-fg-strong)',
     margin: 0,
   },
   options: {
@@ -49,21 +49,21 @@ const useStyles = makeStyles({
     gap: '12px',
     padding: '14px 16px',
     borderRadius: '14px',
-    border: '1px solid rgba(255,255,255,0.12)',
-    background: 'rgba(255,255,255,0.04)',
-    color: '#f4f4f6',
+    border: '1px solid var(--scrim-line-strong)',
+    background: 'var(--scrim-chip)',
+    color: 'var(--scrim-fg)',
     fontSize: '15px',
     lineHeight: 1.4,
     textAlign: 'left',
     cursor: 'pointer',
     transition: 'background .15s ease, transform .12s ease',
-    ':hover': { background: 'rgba(255,255,255,0.08)' },
+    ':hover': { background: 'var(--scrim-chip-hover)' },
     ':active': { transform: 'scale(0.98)' },
     ':disabled': { opacity: 0.5, cursor: 'wait' },
   },
   optionLabel: {
     fontWeight: 600,
-    color: '#9bd4ff',
+    color: 'var(--scrim-vopt-label)',
     minWidth: '20px',
   },
   steps: {
@@ -72,14 +72,14 @@ const useStyles = makeStyles({
     gap: '10px',
     margin: 0,
     paddingLeft: '20px',
-    color: 'rgba(255,255,255,0.85)',
+    color: 'var(--scrim-fg)',
     fontSize: '15px',
     lineHeight: 1.5,
   },
   title: {
     fontSize: '20px',
     fontWeight: 600,
-    color: '#ffffff',
+    color: 'var(--scrim-fg-strong)',
     margin: 0,
   },
   primaryAction: {
@@ -87,7 +87,7 @@ const useStyles = makeStyles({
     padding: '12px 20px',
     borderRadius: '999px',
     border: 'none',
-    background: 'linear-gradient(160deg, #4a4a4d 0%, #0a0a0a 100%)',
+    background: 'var(--scrim-mic-bg)',
     color: '#ffffff',
     fontSize: '14px',
     fontWeight: 600,
@@ -166,8 +166,8 @@ export function LearnerVoiceCardRenderer({
         <>
           <h3 className={styles.title}>{card.title}</h3>
           <ol className={styles.steps}>
-            {card.steps.map((step, index) => (
-              <li key={index}>{step}</li>
+            {card.steps.map(step => (
+              <li key={step}>{step}</li>
             ))}
           </ol>
           <button

@@ -140,13 +140,13 @@ const useStyles = makeStyles({
     fontWeight: 700,
     letterSpacing: '-0.025em',
   },
-  subtitle: { color: tokens.colorNeutralForeground2 },
+  subtitle: { color: 'var(--pf-text-secondary)' },
   headerMeta: {
     display: 'flex',
     gap: '8px',
     flexWrap: 'wrap',
   },
-  actions: { display: 'flex', gap: '8px', flexWrap: 'wrap' },
+  actions: { display: 'flex', gap: 'var(--pf-space-sm)', flexWrap: 'wrap' },
   actionButton: {
     appearance: 'none',
     display: 'inline-flex',
@@ -157,13 +157,20 @@ const useStyles = makeStyles({
     paddingRight: '15px',
     paddingLeft: '15px',
     borderRadius: t.radius.pill,
-    border: t.surface.hairline,
-    backgroundColor: t.brand.surface,
-    color: t.brand.text,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    color: 'var(--pf-text)',
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.84rem',
     fontWeight: 700,
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '3px',
+      boxShadow: 'var(--pf-focus-outline)',
+    },
   },
   primaryActionButton: {
     appearance: 'none',
@@ -175,13 +182,20 @@ const useStyles = makeStyles({
     paddingRight: '15px',
     paddingLeft: '15px',
     borderRadius: t.radius.pill,
-    border: `1px solid ${t.brand.ink}`,
-    backgroundColor: t.brand.ink,
-    color: t.brand.onInk,
+    border: '1px solid var(--pf-ink)',
+    backgroundColor: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.84rem',
     fontWeight: 700,
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '3px',
+      boxShadow: 'var(--pf-focus-outline)',
+    },
   },
   pill: {
     display: 'inline-flex',
@@ -191,9 +205,9 @@ const useStyles = makeStyles({
     paddingRight: '10px',
     paddingLeft: '10px',
     borderRadius: t.radius.pill,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.cardMuted,
-    color: t.brand.textSecondary,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
+    color: 'var(--pf-text-secondary)',
     boxSizing: 'border-box',
     fontSize: '0.72rem',
     fontWeight: 700,
@@ -209,9 +223,9 @@ const useStyles = makeStyles({
     paddingRight: '10px',
     paddingLeft: '10px',
     borderRadius: t.radius.pill,
-    border: `1px solid ${t.brand.ink}`,
-    backgroundColor: t.brand.ink,
-    color: t.brand.onInk,
+    border: '1px solid var(--pf-ink)',
+    backgroundColor: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
     boxSizing: 'border-box',
     fontSize: '0.72rem',
     fontWeight: 700,
@@ -238,28 +252,28 @@ const useStyles = makeStyles({
     '@media (max-width: 640px)': { gridTemplateColumns: '1fr' },
   },
   leaderCard: {
-    padding: '14px',
-    borderRadius: t.radius.md,
-    border: t.surface.hairline,
-    backgroundColor: t.brand.surface,
-    boxShadow: t.surface.cardElevatedShadow,
+    padding: 'var(--pf-space-lg)',
+    borderRadius: t.radius.sm,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    boxShadow: 'var(--pf-shadow-card-elevated)',
     display: 'grid',
     gap: '4px',
   },
   leaderNarrative: {
-    padding: '16px',
-    borderRadius: t.radius.md,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.cardMuted,
+    padding: 'var(--pf-space-lg)',
+    borderRadius: t.radius.sm,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
     display: 'grid',
     gap: '8px',
   },
   metricCard: {
-    padding: '14px',
-    borderRadius: t.radius.md,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.card,
-    boxShadow: t.surface.cardElevatedShadow,
+    padding: 'var(--pf-space-lg)',
+    borderRadius: t.radius.sm,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    boxShadow: 'var(--pf-shadow-card-elevated)',
     display: 'grid',
     gap: '4px',
   },
@@ -268,39 +282,39 @@ const useStyles = makeStyles({
     fontWeight: 700,
     textTransform: 'uppercase',
     letterSpacing: '0.04em',
-    color: tokens.colorNeutralForeground2,
+    color: 'var(--pf-text-secondary)',
   },
   metricValue: { fontSize: '1.4rem', fontWeight: 800 },
   metricDetail: {
     fontSize: '0.72rem',
-    color: tokens.colorNeutralForeground3,
+    color: 'var(--pf-text-tertiary)',
   },
   twoCol: {
     display: 'grid',
     gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)',
-    gap: '16px',
+    gap: 'var(--pf-space-lg)',
     '@media (max-width: 1000px)': { gridTemplateColumns: '1fr' },
   },
   chartCard: {
-    padding: '16px',
-    borderRadius: t.radius.md,
-    border: t.surface.hairline,
-    boxShadow: t.surface.cardElevatedShadow,
+    padding: 'var(--pf-space-lg)',
+    borderRadius: t.radius.sm,
+    border: 'var(--pf-hairline)',
+    boxShadow: 'var(--pf-shadow-card-elevated)',
     display: 'grid',
     gap: '8px',
   },
   chartBox: { height: '260px', width: '100%' },
   canaryCard: {
-    padding: '16px',
-    borderRadius: t.radius.md,
-    border: t.surface.hairline,
-    borderLeft: `3px solid ${t.status.okFg}`,
-    backgroundColor: t.surface.card,
-    boxShadow: t.surface.cardElevatedShadow,
+    padding: 'var(--pf-space-lg)',
+    borderRadius: t.radius.sm,
+    border: 'var(--pf-hairline)',
+    borderLeft: '3px solid var(--pf-status-ok-fg)',
+    backgroundColor: 'var(--pf-surface)',
+    boxShadow: 'var(--pf-shadow-card-elevated)',
     display: 'grid',
     gap: '10px',
   },
-  canaryTitle: { fontWeight: 800, color: t.brand.text },
+  canaryTitle: { fontWeight: 800, color: 'var(--pf-text)' },
   canaryStages: {
     display: 'flex',
     alignItems: 'center',
@@ -314,9 +328,9 @@ const useStyles = makeStyles({
     paddingRight: '9px',
     paddingLeft: '9px',
     borderRadius: t.radius.pill,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.cardMuted,
-    color: t.brand.textSecondary,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
+    color: 'var(--pf-text-secondary)',
     boxSizing: 'border-box',
     fontSize: '0.72rem',
     fontWeight: 700,
@@ -330,14 +344,14 @@ const useStyles = makeStyles({
     paddingRight: '9px',
     paddingLeft: '9px',
     borderRadius: t.radius.pill,
-    border: `1px solid ${t.brand.ink}`,
+    border: '1px solid var(--pf-ink)',
     boxSizing: 'border-box',
     fontSize: '0.72rem',
     fontWeight: 700,
     lineHeight: 1.35,
     whiteSpace: 'nowrap',
-    backgroundColor: t.brand.ink,
-    color: t.brand.onInk,
+    backgroundColor: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
   },
   rollbackBtn: {
     appearance: 'none',
@@ -351,23 +365,30 @@ const useStyles = makeStyles({
     paddingLeft: '15px',
     borderRadius: t.radius.pill,
     fontWeight: 700,
-    backgroundColor: t.brand.surface,
-    color: t.status.criticalFg,
-    border: `1px solid ${t.status.criticalFg}`,
+    backgroundColor: 'var(--pf-surface)',
+    color: 'var(--pf-status-critical-fg)',
+    border: '1px solid var(--pf-status-critical-fg)',
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.84rem',
     ':hover': {
-      backgroundColor: t.status.criticalBg,
-      color: t.status.criticalFg,
-      border: `1px solid ${t.status.criticalFg}`,
+      backgroundColor: 'var(--pf-status-critical-bg)',
+      color: 'var(--pf-status-critical-fg)',
+      border: '1px solid var(--pf-status-critical-fg)',
+    },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '3px',
+      boxShadow: 'var(--pf-focus-outline)',
     },
   },
   auditCard: {
-    padding: '16px',
-    borderRadius: t.radius.md,
-    border: t.surface.hairline,
-    boxShadow: t.surface.cardElevatedShadow,
+    padding: 'var(--pf-space-lg)',
+    borderRadius: t.radius.sm,
+    border: 'var(--pf-hairline)',
+    boxShadow: 'var(--pf-shadow-card-elevated)',
     display: 'grid',
     gap: '8px',
   },
@@ -381,19 +402,19 @@ const useStyles = makeStyles({
     gridTemplateColumns: '120px 130px 1fr 80px',
     gap: '8px',
     padding: '8px 0',
-    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    borderBottom: '1px solid var(--pf-line)',
     fontSize: '0.78rem',
     alignItems: 'center',
     '@media (max-width: 700px)': { gridTemplateColumns: '1fr' },
   },
   auditTs: {
-    color: tokens.colorNeutralForeground3,
+    color: 'var(--pf-text-tertiary)',
     fontVariantNumeric: 'tabular-nums',
   },
   auditActor: { fontWeight: 700 },
   riskBadgeLow: {
-    backgroundColor: t.risk.low.bg,
-    color: t.risk.low.fg,
+    backgroundColor: 'var(--pf-risk-low-bg)',
+    color: 'var(--pf-risk-low-fg)',
     padding: '2px 8px',
     borderRadius: '999px',
     fontSize: '0.7rem',
@@ -401,8 +422,8 @@ const useStyles = makeStyles({
     justifySelf: 'start',
   },
   riskBadgeReview: {
-    backgroundColor: t.risk.review.bg,
-    color: t.risk.review.fg,
+    backgroundColor: 'var(--pf-risk-review-bg)',
+    color: 'var(--pf-risk-review-fg)',
     padding: '2px 8px',
     borderRadius: '999px',
     fontSize: '0.7rem',
@@ -410,8 +431,8 @@ const useStyles = makeStyles({
     justifySelf: 'start',
   },
   riskBadgeHigh: {
-    backgroundColor: t.risk.high.fg,
-    color: t.brand.onInk,
+    backgroundColor: 'var(--pf-risk-high-fg)',
+    color: 'var(--pf-on-ink)',
     padding: '2px 8px',
     borderRadius: '999px',
     fontSize: '0.7rem',
@@ -424,11 +445,11 @@ const useStyles = makeStyles({
     alignItems: 'center',
     flexWrap: 'wrap',
     padding: '12px 14px',
-    borderRadius: t.radius.md,
-    backgroundColor: t.surface.card,
-    border: t.surface.hairline,
-    boxShadow: t.surface.cardElevatedShadow,
-    color: t.brand.text,
+    borderRadius: t.radius.sm,
+    backgroundColor: 'var(--pf-surface)',
+    border: 'var(--pf-hairline)',
+    boxShadow: 'var(--pf-shadow-card-elevated)',
+    color: 'var(--pf-text)',
     fontWeight: 600,
   },
   govBannerMeta: {
@@ -700,14 +721,14 @@ export default function TrustSafetyConsole() {
           <div className={styles.chartBox}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={safetyTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke={t.brand.line} />
+                <CartesianGrid strokeDasharray="3 3" stroke={'var(--pf-line)'} />
                 <XAxis
                   dataKey="week"
-                  tick={{ fontSize: 12, fill: t.brand.textTertiary }}
+                  tick={{ fontSize: 12, fill: 'var(--pf-text-tertiary)' }}
                 />
                 <YAxis
                   domain={[95, 100]}
-                  tick={{ fontSize: 12, fill: t.brand.textTertiary }}
+                  tick={{ fontSize: 12, fill: 'var(--pf-text-tertiary)' }}
                 />
                 <Tooltip />
                 <Legend wrapperStyle={{ fontSize: '0.78rem' }} />
@@ -715,14 +736,14 @@ export default function TrustSafetyConsole() {
                   type="monotone"
                   dataKey="safety"
                   name="Safety pass rate"
-                  stroke={t.brand.ink}
+                  stroke={'var(--pf-ink)'}
                   strokeWidth={2.5}
                 />
                 <Line
                   type="monotone"
                   dataKey="dsr"
                   name="Data requests"
-                  stroke={t.brand.inkMuted}
+                  stroke={'var(--pf-ink-muted)'}
                   strokeWidth={2.5}
                   strokeDasharray="5 4"
                 />
@@ -730,7 +751,7 @@ export default function TrustSafetyConsole() {
                   type="monotone"
                   dataKey="provenance"
                   name="Evidence coverage"
-                  stroke={t.brand.textSecondary}
+                  stroke={'var(--pf-text-secondary)'}
                   strokeWidth={2.5}
                   strokeDasharray="2 5"
                 />

@@ -181,9 +181,9 @@ const useStyles = makeStyles({
     alignSelf: 'flex-start',
     minHeight: '24px',
     borderRadius: t.radius.pill,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.cardMuted,
-    color: t.brand.textSecondary,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
+    color: 'var(--pf-text-secondary)',
     boxSizing: 'border-box',
     fontSize: '0.72rem',
     fontWeight: 700,
@@ -200,9 +200,9 @@ const useStyles = makeStyles({
     alignSelf: 'flex-start',
     minHeight: '24px',
     borderRadius: t.radius.pill,
-    border: `1px solid ${t.brand.ink}`,
-    backgroundColor: t.brand.ink,
-    color: t.brand.onInk,
+    border: `1px solid var(--pf-ink)`,
+    backgroundColor: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
     boxSizing: 'border-box',
     fontSize: '0.72rem',
     fontWeight: 700,
@@ -222,8 +222,8 @@ const useStyles = makeStyles({
   chartCard: {
     padding: '16px',
     borderRadius: t.radius.md,
-    border: t.surface.hairline,
-    boxShadow: t.surface.cardElevatedShadow,
+    border: 'var(--pf-hairline)',
+    boxShadow: 'var(--pf-shadow-card-elevated)',
     display: 'grid',
     gap: '10px',
   },
@@ -234,16 +234,16 @@ const useStyles = makeStyles({
   riskCard: {
     padding: '16px',
     borderRadius: t.radius.md,
-    border: t.surface.hairline,
-    borderLeft: `3px solid ${t.status.warnFg}`,
-    backgroundColor: t.surface.card,
-    boxShadow: t.surface.cardElevatedShadow,
+    border: 'var(--pf-hairline)',
+    borderLeft: '3px solid var(--pf-status-warn-fg)',
+    backgroundColor: 'var(--pf-surface)',
+    boxShadow: 'var(--pf-shadow-card-elevated)',
     display: 'grid',
     gap: '8px',
   },
   riskTitle: {
     fontWeight: 700,
-    color: t.brand.text,
+    color: 'var(--pf-text)',
   },
   sideStack: {
     display: 'grid',
@@ -253,8 +253,8 @@ const useStyles = makeStyles({
   trajectoryCard: {
     padding: '16px',
     borderRadius: t.radius.md,
-    border: t.surface.hairline,
-    boxShadow: t.surface.cardElevatedShadow,
+    border: 'var(--pf-hairline)',
+    boxShadow: 'var(--pf-shadow-card-elevated)',
     display: 'grid',
     gap: '10px',
   },
@@ -266,9 +266,9 @@ const useStyles = makeStyles({
   parentSummaryCard: {
     padding: '18px',
     borderRadius: t.radius.xl,
-    border: t.surface.hairline,
-    backgroundColor: t.brand.surface,
-    boxShadow: t.surface.cardElevatedShadow,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    boxShadow: 'var(--pf-shadow-card-elevated)',
     display: 'grid',
     gap: '14px',
   },
@@ -290,15 +290,15 @@ const useStyles = makeStyles({
     gap: '8px',
     padding: '12px',
     borderRadius: t.radius.md,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.cardMuted,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
   },
   parentSummaryList: {
     display: 'grid',
     gap: '6px',
     margin: 0,
     paddingLeft: '18px',
-    color: t.brand.textSecondary,
+    color: 'var(--pf-text-secondary)',
     fontSize: '0.88rem',
     lineHeight: 1.45,
   },
@@ -440,7 +440,7 @@ export default function StudentMasteryProfile({
             <p
               style={{
                 margin: '6px 0 0',
-                color: t.brand.textSecondary,
+                color: 'var(--pf-text-secondary)',
                 lineHeight: 1.45,
               }}
             >
@@ -490,7 +490,7 @@ export default function StudentMasteryProfile({
                   justifyContent: 'center',
                   height: '100%',
                   textAlign: 'center',
-                  color: t.brand.textSecondary,
+                  color: 'var(--pf-text-secondary)',
                   padding: '0 16px',
                 }}
               >
@@ -507,28 +507,28 @@ export default function StudentMasteryProfile({
                 role="img"
                 aria-label={`Skill radar — mastery versus the ${setup.year} target of 75 percent: ${radarSummary}.`}
               >
-                <PolarGrid stroke={t.brand.line} />
+                <PolarGrid stroke={'var(--pf-line)'} />
                 <PolarAngleAxis
                   dataKey="skill"
-                  tick={{ fontSize: 12, fill: t.brand.textSecondary }}
+                  tick={{ fontSize: 12, fill: 'var(--pf-text-secondary)' }}
                 />
                 <PolarRadiusAxis
                   angle={30}
                   domain={[0, 100]}
-                  tick={{ fontSize: 10, fill: t.brand.textTertiary }}
+                  tick={{ fontSize: 10, fill: 'var(--pf-text-tertiary)' }}
                 />
                 <Radar
                   name="Mastery"
                   dataKey="mastery"
-                  stroke={t.brand.ink}
-                  fill={t.brand.ink}
+                  stroke={'var(--pf-ink)'}
+                  fill={'var(--pf-ink)'}
                   fillOpacity={0.35}
                 />
                 <Radar
                   name="Target"
                   dataKey="target"
-                  stroke={t.brand.inkMuted}
-                  fill={t.brand.inkMuted}
+                  stroke={'var(--pf-ink-muted)'}
+                  fill={'var(--pf-ink-muted)'}
                   fillOpacity={0.1}
                 />
               </RadarChart>
@@ -605,7 +605,7 @@ export default function StudentMasteryProfile({
                   justifyContent: 'center',
                   height: '100%',
                   textAlign: 'center',
-                  color: t.brand.textSecondary,
+                  color: 'var(--pf-text-secondary)',
                   padding: '0 16px',
                 }}
               >
@@ -622,21 +622,21 @@ export default function StudentMasteryProfile({
                   role="img"
                   aria-label={`Mastery trajectory by week — ${trajectorySummary}.`}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke={t.brand.line} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={'var(--pf-line)'} />
                   <XAxis
                     dataKey="week"
-                    tick={{ fontSize: 12, fill: t.brand.textTertiary }}
+                    tick={{ fontSize: 12, fill: 'var(--pf-text-tertiary)' }}
                   />
                   <YAxis
                     domain={[0, 100]}
-                    tick={{ fontSize: 12, fill: t.brand.textTertiary }}
+                    tick={{ fontSize: 12, fill: 'var(--pf-text-tertiary)' }}
                   />
                   <Tooltip />
                   <Line
                     type="monotone"
                     dataKey="score"
                     name="Mastery"
-                    stroke={t.brand.ink}
+                    stroke={'var(--pf-ink)'}
                     strokeWidth={2.5}
                     dot
                   />

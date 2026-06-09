@@ -170,7 +170,7 @@ describe('Pathfinder role routing helpers', () => {
     expect(parentLabels).toContain('Profile')
     expect(parentLabels).not.toContain('Teacher')
     expect(parentLabels).not.toContain('Trust & Safety')
-    expect(learnerLabels).toContain('Learner')
+    expect(learnerLabels).toContain('Home')
     expect(learnerLabels).not.toContain('Library')
   })
 

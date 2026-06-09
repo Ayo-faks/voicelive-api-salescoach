@@ -1,4 +1,4 @@
-import { Card, makeStyles, Text, tokens } from '@fluentui/react-components'
+import { Card, makeStyles, Text } from '@fluentui/react-components'
 import {
   ArrowPathIcon,
   ChartBarSquareIcon,
@@ -30,15 +30,15 @@ const SOURCE_LABEL: Record<ObservabilityTileSource, string> = {
 }
 
 const useStyles = makeStyles({
-  shell: { display: 'grid', gap: '20px' },
+  shell: { display: 'grid', gap: 'var(--pf-space-xl)' },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-    gap: '16px',
+    gap: 'var(--pf-space-lg)',
     flexWrap: 'wrap',
   },
-  headerCopy: { display: 'grid', gap: '8px' },
+  headerCopy: { display: 'grid', gap: 'var(--pf-space-sm)' },
   title: {
     fontFamily: t.font.display,
     fontSize: 'clamp(1.6rem, 2.4vw, 2rem)',
@@ -49,8 +49,12 @@ const useStyles = makeStyles({
     gap: '10px',
   },
   titleIcon: { width: '26px', height: '26px' },
-  subtitle: { color: tokens.colorNeutralForeground2, maxWidth: '60ch' },
-  headerActions: { display: 'flex', alignItems: 'center', gap: '12px' },
+  subtitle: { color: 'var(--pf-text-secondary)', maxWidth: '60ch' },
+  headerActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--pf-space-md)',
+  },
   overallPill: {
     display: 'inline-flex',
     alignItems: 'center',
@@ -59,7 +63,7 @@ const useStyles = makeStyles({
     paddingRight: '14px',
     paddingLeft: '14px',
     borderRadius: t.radius.pill,
-    border: t.surface.hairline,
+    border: 'var(--pf-hairline)',
     fontSize: '0.78rem',
     fontWeight: 700,
   },
@@ -72,13 +76,20 @@ const useStyles = makeStyles({
     paddingRight: '15px',
     paddingLeft: '15px',
     borderRadius: t.radius.pill,
-    border: `1px solid ${t.brand.ink}`,
-    backgroundColor: t.brand.ink,
-    color: t.brand.onInk,
+    border: '1px solid var(--pf-ink)',
+    backgroundColor: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.82rem',
     fontWeight: 700,
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '3px',
+      boxShadow: 'var(--pf-focus-outline)',
+    },
   },
   refreshButtonBusy: { opacity: 0.65, cursor: 'progress' },
   refreshIcon: { width: '16px', height: '16px' },
@@ -87,11 +98,11 @@ const useStyles = makeStyles({
       from: { transform: 'rotate(0deg)' },
       to: { transform: 'rotate(360deg)' },
     },
-    animationDuration: '0.8s',
+    animationDuration: '800ms',
     animationIterationCount: 'infinite',
     animationTimingFunction: 'linear',
   },
-  section: { display: 'grid', gap: '12px' },
+  section: { display: 'grid', gap: 'var(--pf-space-md)' },
   sectionTitle: {
     fontSize: '1.05rem',
     fontWeight: 700,
@@ -100,18 +111,18 @@ const useStyles = makeStyles({
   tileGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-    gap: '12px',
+    gap: 'var(--pf-space-lg)',
     '@media (max-width: 980px)': { gridTemplateColumns: 'repeat(2, 1fr)' },
     '@media (max-width: 620px)': { gridTemplateColumns: '1fr' },
   },
   tile: {
     display: 'grid',
-    gap: '8px',
-    padding: '16px',
-    borderRadius: t.radius.lg,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.card,
-    boxShadow: t.surface.raisedShadow,
+    gap: 'var(--pf-space-sm)',
+    padding: 'var(--pf-space-lg)',
+    borderRadius: t.radius.sm,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    boxShadow: 'var(--pf-shadow-card-elevated)',
   },
   tileTop: {
     display: 'flex',
@@ -122,7 +133,7 @@ const useStyles = makeStyles({
   tileLabel: {
     fontSize: '0.78rem',
     fontWeight: 700,
-    color: t.brand.textSecondary,
+    color: 'var(--pf-text-secondary)',
     textTransform: 'uppercase',
     letterSpacing: '0.04em',
   },
@@ -133,7 +144,11 @@ const useStyles = makeStyles({
     letterSpacing: '-0.02em',
     lineHeight: 1.1,
   },
-  tileDetail: { fontSize: '0.82rem', color: t.brand.textSecondary, lineHeight: 1.4 },
+  tileDetail: {
+    fontSize: '0.82rem',
+    color: 'var(--pf-text-secondary)',
+    lineHeight: 1.4,
+  },
   badge: {
     display: 'inline-flex',
     alignItems: 'center',
@@ -152,26 +167,38 @@ const useStyles = makeStyles({
     paddingRight: '8px',
     paddingLeft: '8px',
     borderRadius: t.radius.pill,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.cardMuted,
-    color: t.brand.textTertiary,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
+    color: 'var(--pf-text-tertiary)',
     fontSize: '0.66rem',
     fontWeight: 700,
     width: 'fit-content',
   },
-  statusOk: { backgroundColor: t.status.okBg, color: t.status.okFg },
-  statusWarn: { backgroundColor: t.status.warnBg, color: t.status.warnFg },
-  statusCrit: { backgroundColor: t.status.criticalBg, color: t.status.criticalFg },
-  statusNodata: { backgroundColor: t.status.infoBg, color: t.status.infoFg },
+  statusOk: {
+    backgroundColor: 'var(--pf-status-ok-bg)',
+    color: 'var(--pf-status-ok-fg)',
+  },
+  statusWarn: {
+    backgroundColor: 'var(--pf-status-warn-bg)',
+    color: 'var(--pf-status-warn-fg)',
+  },
+  statusCrit: {
+    backgroundColor: 'var(--pf-status-critical-bg)',
+    color: 'var(--pf-status-critical-fg)',
+  },
+  statusNodata: {
+    backgroundColor: 'var(--pf-status-info-bg)',
+    color: 'var(--pf-status-info-fg)',
+  },
   stateCard: {
     display: 'grid',
     gap: '8px',
-    padding: '24px',
-    borderRadius: t.radius.lg,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.card,
+    padding: 'var(--pf-space-xxl)',
+    borderRadius: t.radius.sm,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
   },
-  generatedAt: { fontSize: '0.74rem', color: t.brand.textTertiary },
+  generatedAt: { fontSize: '0.74rem', color: 'var(--pf-text-tertiary)' },
 })
 
 function statusClass(
@@ -268,8 +295,8 @@ export default function ObservabilityDashboard() {
             Observability
           </Text>
           <Text className={styles.subtitle}>
-            Live product, service-health and safety signals for the Pathfinder
-            Learn pilot. Tiles are badged by source: live counters seen by this
+            Live product, service-health and safety signals for the Wulo Academy
+            pilot. Tiles are badged by source: live counters seen by this
             service, pilot data snapshots, or no data yet.
           </Text>
         </div>

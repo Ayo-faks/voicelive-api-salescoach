@@ -14,7 +14,7 @@ const useStyles = makeStyles({
     paddingRight: '12px',
     borderRadius: t.radius.pill,
     backgroundColor: 'rgba(255,255,255,0.92)',
-    color: t.brand.text,
+    color: 'var(--pf-text)',
     fontSize: '0.78rem',
     fontWeight: 700,
     letterSpacing: '0.01em',
@@ -25,7 +25,7 @@ const useStyles = makeStyles({
     width: '6px',
     height: '6px',
     borderRadius: '999px',
-    backgroundColor: t.brand.text,
+    backgroundColor: 'var(--pf-text)',
   },
   voiceWave: {
     display: 'inline-flex',
@@ -36,7 +36,7 @@ const useStyles = makeStyles({
   voiceWaveBar: {
     width: '2.5px',
     borderRadius: '2px',
-    backgroundColor: t.brand.text,
+    backgroundColor: 'var(--pf-text)',
     animationName: {
       '0%, 100%': { transform: 'scaleY(0.4)' },
       '50%': { transform: 'scaleY(1)' },
@@ -54,7 +54,7 @@ const useStyles = makeStyles({
     width: '8px',
     height: '8px',
     borderRadius: '999px',
-    backgroundColor: t.brand.text,
+    backgroundColor: 'var(--pf-text)',
     animationName: {
       '0%, 100%': { opacity: 0.4, transform: 'scale(0.85)' },
       '50%': { opacity: 1, transform: 'scale(1.15)' },
@@ -77,7 +77,7 @@ const useStyles = makeStyles({
     width: '4px',
     height: '4px',
     borderRadius: '999px',
-    backgroundColor: t.brand.text,
+    backgroundColor: 'var(--pf-text)',
   },
 })
 

@@ -12,14 +12,8 @@ import { VoiceAgentDynamicSurface } from './VoiceAgentDynamicSurface'
 
 // Pathfinder is monochrome: no brand accent hues. On the dark fullscreen scrim
 // the orb/ring/mic render as a silver-to-graphite gradient rather than teal.
-const ORB_HIGHLIGHT = '#ffffff'
-const ORB_MID = '#c7c7cc'
-const ORB_DEEP = '#1c1c1e'
-const RING_STROKE = 'rgba(255,255,255,0.28)'
-const RING_GLOW = 'rgba(255,255,255,0.18)'
-const MIC_GRADIENT = 'linear-gradient(160deg, #3a3a3c 0%, #0a0a0a 100%)'
-const MIC_SHADOW =
-  '0 12px 36px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.18)'
+const ORB_GRADIENT =
+  'radial-gradient(circle at 32% 26%, #ffffff 0%, #d8d8dd 34%, #53535a 68%, #101012 100%)'
 
 interface VoiceAgentFullscreenProps {
   open: boolean
@@ -51,12 +45,12 @@ const useStyles = makeStyles({
     position: 'fixed',
     inset: 0,
     zIndex: 9999,
-    backgroundColor: 'rgba(10, 10, 10, 0.92)',
+    background: 'var(--scrim-bg-voice-agent)',
     backdropFilter: 'blur(28px) saturate(140%)',
     WebkitBackdropFilter: 'blur(28px) saturate(140%)',
     display: 'grid',
     gridTemplateRows: 'auto 1fr auto',
-    color: '#ffffff',
+    color: 'var(--scrim-fg-strong)',
     fontFamily: t.font.text,
     animationName: {
       from: { opacity: 0 },
@@ -80,14 +74,14 @@ const useStyles = makeStyles({
     fontSize: '0.95rem',
     fontWeight: 600,
     letterSpacing: '-0.01em',
-    color: 'rgba(255,255,255,0.92)',
+    color: 'var(--scrim-fg)',
   },
   brandDot: {
     width: '8px',
     height: '8px',
     borderRadius: '999px',
-    backgroundColor: ORB_HIGHLIGHT,
-    boxShadow: `0 0 12px ${RING_GLOW}`,
+    backgroundColor: 'var(--scrim-fill)',
+    boxShadow: 'var(--scrim-brand-dot-glow)',
   },
   iconButton: {
     appearance: 'none',
@@ -96,17 +90,17 @@ const useStyles = makeStyles({
     width: '40px',
     height: '40px',
     borderRadius: '999px',
-    border: '1px solid rgba(255,255,255,0.14)',
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    color: '#ffffff',
+    border: '1px solid var(--scrim-line-strong)',
+    backgroundColor: 'var(--scrim-chip)',
+    color: 'var(--scrim-fg-strong)',
     cursor: 'pointer',
     transition: 'background-color .15s, transform .15s, border-color .15s',
     ':hover': {
-      backgroundColor: 'rgba(255,255,255,0.12)',
-      borderTopColor: 'rgba(255,255,255,0.22)',
-      borderRightColor: 'rgba(255,255,255,0.22)',
-      borderBottomColor: 'rgba(255,255,255,0.22)',
-      borderLeftColor: 'rgba(255,255,255,0.22)',
+      backgroundColor: 'var(--scrim-chip-hover)',
+      borderTopColor: 'var(--scrim-line-strong)',
+      borderRightColor: 'var(--scrim-line-strong)',
+      borderBottomColor: 'var(--scrim-line-strong)',
+      borderLeftColor: 'var(--scrim-line-strong)',
     },
     ':active': { transform: 'scale(0.96)' },
   },
@@ -128,7 +122,7 @@ const useStyles = makeStyles({
     position: 'absolute',
     inset: 0,
     borderRadius: '999px',
-    border: `1px solid ${RING_STROKE}`,
+    border: '1px solid var(--scrim-ring-color)',
     boxSizing: 'border-box',
     transformOrigin: 'center',
   },
@@ -153,9 +147,8 @@ const useStyles = makeStyles({
     width: '60%',
     height: '60%',
     borderRadius: '999px',
-    background: `radial-gradient(circle at 30% 30%, ${ORB_HIGHLIGHT} 0%, ${ORB_MID} 55%, ${ORB_DEEP} 100%)`,
-    boxShadow:
-      '0 0 40px rgba(255,255,255,0.18), inset 0 0 40px rgba(255,255,255,0.18)',
+    background: ORB_GRADIENT,
+    boxShadow: 'var(--scrim-orb-glow)',
     transition: 'transform .4s cubic-bezier(0.22, 0.61, 0.36, 1)',
   },
   orbBreathing: {
@@ -187,21 +180,21 @@ const useStyles = makeStyles({
     fontSize: 'clamp(1.4rem, 2.4vw, 1.8rem)',
     fontWeight: 600,
     letterSpacing: '-0.02em',
-    color: '#ffffff',
+    color: 'var(--scrim-fg-strong)',
   },
   stateHint: {
     fontSize: '0.95rem',
-    color: 'rgba(255,255,255,0.6)',
+    color: 'var(--scrim-fg-soft)',
   },
   transcript: {
     marginTop: '12px',
     padding: '14px 18px',
     borderRadius: '14px',
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.08)',
+    background: 'var(--scrim-card)',
+    border: '1px solid var(--scrim-card-line)',
     fontSize: '0.95rem',
     lineHeight: 1.5,
-    color: 'rgba(255,255,255,0.92)',
+    color: 'var(--scrim-fg)',
     maxWidth: '720px',
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
@@ -210,7 +203,7 @@ const useStyles = makeStyles({
     fontSize: '0.7rem',
     textTransform: 'uppercase',
     letterSpacing: '0.08em',
-    color: 'rgba(255,255,255,0.5)',
+    color: 'var(--scrim-fg-muted)',
     marginBottom: '6px',
   },
   errorBox: {
@@ -240,8 +233,8 @@ const useStyles = makeStyles({
     display: 'grid',
     placeItems: 'center',
     color: '#ffffff',
-    background: MIC_GRADIENT,
-    boxShadow: MIC_SHADOW,
+    background: 'var(--scrim-mic-bg)',
+    boxShadow: 'var(--scrim-mic-shadow)',
     transition: 'transform .12s ease, box-shadow .15s ease, filter .15s ease',
     ':hover': { filter: 'brightness(1.06)' },
     ':active': { transform: 'scale(0.96)' },
@@ -259,20 +252,20 @@ const useStyles = makeStyles({
     paddingRight: '18px',
     paddingLeft: '18px',
     borderRadius: '999px',
-    border: '1px solid rgba(255,255,255,0.14)',
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    color: '#ffffff',
+    border: '1px solid var(--scrim-line-strong)',
+    backgroundColor: 'var(--scrim-chip)',
+    color: 'var(--scrim-fg-strong)',
     font: 'inherit',
     fontSize: '0.88rem',
     fontWeight: 600,
     cursor: 'pointer',
     transition: 'background-color .15s, border-color .15s',
     ':hover': {
-      backgroundColor: 'rgba(255,255,255,0.12)',
-      borderTopColor: 'rgba(255,255,255,0.22)',
-      borderRightColor: 'rgba(255,255,255,0.22)',
-      borderBottomColor: 'rgba(255,255,255,0.22)',
-      borderLeftColor: 'rgba(255,255,255,0.22)',
+      backgroundColor: 'var(--scrim-chip-hover)',
+      borderTopColor: 'var(--scrim-line-strong)',
+      borderRightColor: 'var(--scrim-line-strong)',
+      borderBottomColor: 'var(--scrim-line-strong)',
+      borderLeftColor: 'var(--scrim-line-strong)',
     },
     ':disabled': { opacity: 0.5, cursor: 'not-allowed' },
   },
@@ -413,7 +406,7 @@ export function VoiceAgentFullscreen({
       <header className={styles.header}>
         <div className={styles.brandRow}>
           <span className={styles.brandDot} aria-hidden="true" />
-          Pathfinder voice
+          Wulo Academy voice
         </div>
         <button
           ref={closeRef}

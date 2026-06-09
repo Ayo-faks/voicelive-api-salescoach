@@ -2,12 +2,10 @@ import { Text, makeStyles } from '@fluentui/react-components'
 import {
   AcademicCapIcon,
   ArrowRightIcon,
-  BoltIcon,
   BookOpenIcon,
   BriefcaseIcon,
   CalculatorIcon,
   ChartBarIcon,
-  CheckBadgeIcon,
   ChevronRightIcon,
   ClockIcon,
   DocumentDuplicateIcon,
@@ -16,7 +14,6 @@ import {
   PlayCircleIcon,
   ShareIcon,
   SparklesIcon,
-  WifiIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -24,6 +21,7 @@ import DiagnosticPanel from '../components/DiagnosticPanel'
 import LearnerTutorFullscreen, {
   type TutorVoiceSnapshot,
 } from '../components/LearnerTutorFullscreen'
+import type { LearnerFocusItem } from '../contexts/LearnerContext'
 import PracticeFullscreen from '../components/PracticeFullscreen'
 import {
   scheduleRevisionCards,
@@ -496,51 +494,51 @@ const generatedPlanPractice: PracticeExercise = {
 const useStyles = makeStyles({
   root: {
     display: 'grid',
-    gridTemplateColumns: 'minmax(0, 1fr) 320px',
-    gap: '24px',
+    gridTemplateColumns: 'minmax(0, 1fr)',
+    gap: 'var(--pf-space-xl)',
     width: '100%',
-    maxWidth: '1180px',
+    maxWidth: 'none',
     marginRight: 'auto',
     marginLeft: 'auto',
     '@media (max-width: 1100px)': {
       gridTemplateColumns: 'minmax(0, 1fr)',
     },
+    '@media (max-width: 560px)': {
+      paddingBottom: '154px',
+    },
+    '@media (max-width: 360px)': {
+      paddingBottom: '154px',
+    },
   },
-  main: { display: 'grid', gap: '20px', minWidth: 0 },
+  main: { display: 'grid', gap: 'var(--pf-space-xl)', minWidth: 0 },
   side: {
-    display: 'grid',
-    gap: '16px',
+    display: 'none',
+    gap: 'var(--pf-space-lg)',
     alignContent: 'start',
+    position: 'sticky',
+    top: 'var(--pf-space-xxl)',
     '@media (max-width: 1100px)': { gridTemplateColumns: '1fr' },
   },
   hero: {
     position: 'relative',
-    padding: '32px',
-    borderRadius: t.radius.xxl,
-    backgroundColor: t.brand.ink,
-    color: t.brand.onInk,
-    boxShadow: t.surface.raisedShadow,
-    overflow: 'hidden',
-    '@media (max-width: 720px)': { padding: '24px 20px' },
+    padding: 0,
+    borderRadius: t.radius.sm,
+    backgroundColor: 'transparent',
+    color: 'var(--pf-text)',
+    border: 'none',
+    boxShadow: 'none',
+    overflow: 'visible',
+    minHeight: 'auto',
+    '@media (max-width: 720px)': { padding: 0 },
   },
   heroLayout: {
     display: 'grid',
-    gridTemplateColumns: 'minmax(0, 1fr) auto',
-    gap: '32px',
-    alignItems: 'center',
-    '@media (max-width: 900px)': {
-      gridTemplateColumns: '1fr',
-      gap: '20px',
-      justifyItems: 'center',
-      textAlign: 'center',
-    },
+    gap: 'var(--pf-space-xl)',
   },
   heroLeft: {
     minWidth: 0,
-    '@media (max-width: 900px)': {
-      display: 'grid',
-      justifyItems: 'center',
-    },
+    display: 'grid',
+    gap: 'var(--pf-space-lg)',
   },
   heroOrbWrap: {
     display: 'flex',
@@ -571,7 +569,7 @@ const useStyles = makeStyles({
     ':focus-visible': {
       outlineStyle: 'solid',
       outlineWidth: '2px',
-      outlineColor: 'rgba(255,255,255,0.7)',
+      outlineColor: 'var(--pf-hero-focus)',
       outlineOffset: '8px',
       borderRadius: '999px',
     },
@@ -631,63 +629,58 @@ const useStyles = makeStyles({
   },
   heroEyebrow: {
     fontSize: '0.72rem',
-    letterSpacing: '0.12em',
+    letterSpacing: '0',
     textTransform: 'uppercase',
-    opacity: 0.65,
+    color: 'var(--pf-text-tertiary)',
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
+    fontWeight: 700,
   },
   heroTitle: {
     fontFamily: t.font.display,
-    fontSize: '2.4rem',
-    lineHeight: 1.05,
+    fontSize: '1.5rem',
+    lineHeight: 1.12,
     fontWeight: 600,
-    letterSpacing: '-0.025em',
-    margin: '10px 0 8px',
-    color: t.brand.onInk,
-    '@media (max-width: 720px)': { fontSize: '1.9rem' },
+    letterSpacing: '0',
+    margin: 0,
+    color: 'var(--pf-text)',
+    '@media (max-width: 720px)': { fontSize: '1.3rem' },
   },
   heroSub: {
-    fontSize: '1rem',
-    opacity: 0.82,
+    fontSize: '0.9rem',
+    color: 'var(--pf-text-secondary)',
     maxWidth: '46ch',
-    lineHeight: 1.5,
-    '@media (max-width: 900px)': {
-      marginRight: 'auto',
-      marginLeft: 'auto',
-    },
-  },
-  heroPills: {
-    marginTop: '22px',
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '8px',
-    '@media (max-width: 900px)': {
-      justifyContent: 'center',
-    },
-  },
-  heroPill: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '6px',
-    padding: '6px 12px',
-    borderRadius: t.radius.pill,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    border: '1px solid rgba(255,255,255,0.16)',
-    fontSize: '0.78rem',
-    fontWeight: 500,
-    letterSpacing: '-0.01em',
+    lineHeight: 1.35,
+    margin: 0,
   },
   heroActions: {
-    marginTop: '24px',
     display: 'flex',
     flexWrap: 'wrap',
     gap: '10px',
     alignItems: 'center',
-    '@media (max-width: 900px)': {
-      justifyContent: 'center',
-      width: '100%',
+    justifyContent: 'space-between',
+    paddingTop: 'var(--pf-space-md)',
+    borderTop: 'var(--pf-hairline)',
+    '@media (max-width: 560px)': {
+      position: 'fixed',
+      right: '12px',
+      bottom: '78px',
+      left: '12px',
+      zIndex: 35,
+      display: 'grid',
+      gridTemplateColumns: '1fr',
+      gap: '8px',
+      alignItems: 'center',
+      padding: '8px',
+      border: 'var(--pf-hairline)',
+      borderRadius: t.radius.pill,
+      backgroundColor: 'var(--pf-surface)',
+      boxShadow: 'var(--pf-shadow-card-elevated)',
+    },
+    '@media (max-width: 360px)': {
+      gridTemplateColumns: '1fr',
+      borderRadius: t.radius.lg,
     },
   },
   heroCta: {
@@ -697,8 +690,8 @@ const useStyles = makeStyles({
     gap: '10px',
     padding: '12px 18px',
     borderRadius: t.radius.pill,
-    backgroundColor: t.brand.onInk,
-    color: t.brand.ink,
+    backgroundColor: 'var(--pf-hero-cta-bg)',
+    color: 'var(--pf-hero-cta-fg)',
     fontWeight: 600,
     fontSize: '0.92rem',
     cursor: 'pointer',
@@ -711,9 +704,210 @@ const useStyles = makeStyles({
     },
     '@media (max-width: 520px)': {
       width: '100%',
-      maxWidth: '340px',
+      maxWidth: 'none',
       justifyContent: 'center',
+      minHeight: '44px',
+      paddingRight: '12px',
+      paddingLeft: '12px',
+      fontSize: '0.82rem',
     },
+    '@media (max-width: 360px)': {
+      minHeight: '42px',
+    },
+  },
+  heroHeaderRow: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 'var(--pf-space-lg)',
+    '@media (max-width: 760px)': {
+      flexDirection: 'column',
+    },
+  },
+  heroCopy: {
+    display: 'grid',
+    gap: '6px',
+    minWidth: 0,
+  },
+  heroMetricGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: 'var(--pf-space-md)',
+    '@media (max-width: 720px)': { gridTemplateColumns: '1fr' },
+  },
+  heroMetricCard: {
+    display: 'grid',
+    gap: 'var(--pf-space-xs)',
+    padding: 'var(--pf-space-lg)',
+    borderRadius: t.radius.sm,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    boxShadow: 'var(--pf-shadow-card)',
+  },
+  heroWorkGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1.4fr) minmax(240px, 0.9fr)',
+    gap: 'var(--pf-space-lg)',
+    alignItems: 'start',
+    '@media (max-width: 940px)': { gridTemplateColumns: '1fr' },
+  },
+  heroPanel: {
+    display: 'grid',
+    gap: 'var(--pf-space-md)',
+    padding: 'var(--pf-space-lg)',
+    borderRadius: t.radius.sm,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    boxShadow: 'var(--pf-shadow-card)',
+  },
+  heroPanelHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 'var(--pf-space-md)',
+    paddingBottom: 'var(--pf-space-sm)',
+    borderBottom: 'var(--pf-hairline)',
+  },
+  heroPathList: {
+    display: 'grid',
+    gap: 0,
+  },
+  heroPathRow: {
+    appearance: 'none',
+    width: '100%',
+    display: 'grid',
+    gridTemplateColumns: '36px minmax(0, 1fr) auto auto',
+    alignItems: 'center',
+    gap: 'var(--pf-space-md)',
+    paddingTop: 'var(--pf-space-md)',
+    paddingBottom: 'var(--pf-space-md)',
+    borderTop: 'none',
+    borderRight: 'none',
+    borderBottom: 'var(--pf-hairline)',
+    borderLeft: 'none',
+    backgroundColor: 'transparent',
+    color: 'var(--pf-text)',
+    cursor: 'pointer',
+    font: 'inherit',
+    textAlign: 'left',
+    ':last-child': { borderBottom: 'none' },
+    ':hover': { backgroundColor: 'var(--pf-surface-muted)' },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '2px',
+      boxShadow: 'var(--pf-focus-outline)',
+    },
+    '@media (max-width: 560px)': {
+      gridTemplateColumns: '36px minmax(0, 1fr)',
+    },
+  },
+  heroStepIcon: {
+    width: '36px',
+    height: '36px',
+    borderRadius: t.radius.sm,
+    display: 'grid',
+    placeItems: 'center',
+    backgroundColor: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
+  },
+  heroStepBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    minHeight: '22px',
+    borderRadius: t.radius.pill,
+    paddingRight: '9px',
+    paddingLeft: '9px',
+    backgroundColor: 'var(--pf-surface-muted)',
+    color: 'var(--pf-text-secondary)',
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    '@media (max-width: 560px)': { display: 'none' },
+  },
+  heroPlayButton: {
+    appearance: 'none',
+    width: '36px',
+    height: '36px',
+    borderRadius: t.radius.pill,
+    border: '1px solid var(--pf-ink)',
+    backgroundColor: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
+    display: 'grid',
+    placeItems: 'center',
+    cursor: 'pointer',
+    '@media (max-width: 560px)': { display: 'none' },
+  },
+  focusList: {
+    display: 'grid',
+    gap: 'var(--pf-space-md)',
+  },
+  focusItem: {
+    display: 'grid',
+    gap: 'var(--pf-space-xs)',
+    paddingBottom: 'var(--pf-space-md)',
+    borderBottom: 'var(--pf-hairline)',
+    ':last-child': { borderBottom: 'none', paddingBottom: 0 },
+  },
+  focusItemTop: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 'var(--pf-space-sm)',
+  },
+  focusBar: {
+    width: '100%',
+    height: '8px',
+    borderRadius: t.radius.pill,
+    backgroundColor: 'var(--pf-line-soft)',
+    overflow: 'hidden',
+  },
+  focusFill: {
+    height: '100%',
+    borderRadius: t.radius.pill,
+    backgroundColor: 'var(--pf-ink)',
+  },
+  tutorMiniButton: {
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: t.control.minHeight,
+    paddingRight: '14px',
+    paddingLeft: '10px',
+    borderRadius: t.radius.pill,
+    border: '1px solid var(--pf-ink)',
+    backgroundColor: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.82rem',
+    fontWeight: 700,
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '3px',
+      boxShadow: 'var(--pf-focus-outline)',
+    },
+    '@media (max-width: 520px)': {
+      width: '100%',
+      justifyContent: 'center',
+      minHeight: '44px',
+      paddingRight: '12px',
+      paddingLeft: '10px',
+      fontSize: '0.82rem',
+    },
+    '@media (max-width: 360px)': {
+      minHeight: '42px',
+    },
+  },
+  studyActionContent: {
+    width: '100%',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '9px',
   },
   heroSecondaryCta: {
     marginTop: 0,
@@ -722,17 +916,17 @@ const useStyles = makeStyles({
     gap: '10px',
     padding: '12px 18px',
     borderRadius: t.radius.pill,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    color: t.brand.onInk,
+    backgroundColor: 'var(--pf-hero-chip-bg)',
+    color: 'var(--pf-hero-fg)',
     fontWeight: 700,
     fontSize: '0.92rem',
     cursor: 'pointer',
-    border: '1px solid rgba(255,255,255,0.18)',
+    border: '1px solid var(--pf-hero-chip-border)',
     fontFamily: 'inherit',
     transition: 'transform .15s ease, background-color .15s ease',
     ':hover': {
       transform: 'translateY(-1px)',
-      backgroundColor: 'rgba(255,255,255,0.13)',
+      backgroundColor: 'var(--pf-hero-chip-hover-bg)',
     },
   },
   tutorOrbCta: {
@@ -747,15 +941,15 @@ const useStyles = makeStyles({
     paddingRight: '20px',
     borderRadius: t.radius.pill,
     background:
-      'linear-gradient(140deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%)',
-    color: t.brand.onInk,
+      'linear-gradient(140deg, var(--pf-hero-chip-bg) 0%, rgba(255,255,255,0.04) 100%)',
+    color: 'var(--pf-hero-fg)',
     fontWeight: 700,
     fontSize: '0.92rem',
     cursor: 'pointer',
-    borderTop: '1px solid rgba(255,255,255,0.22)',
-    borderRight: '1px solid rgba(255,255,255,0.22)',
-    borderBottom: '1px solid rgba(255,255,255,0.22)',
-    borderLeft: '1px solid rgba(255,255,255,0.22)',
+    borderTop: '1px solid var(--pf-hero-chip-border)',
+    borderRight: '1px solid var(--pf-hero-chip-border)',
+    borderBottom: '1px solid var(--pf-hero-chip-border)',
+    borderLeft: '1px solid var(--pf-hero-chip-border)',
     fontFamily: 'inherit',
     backdropFilter: 'blur(6px)',
     transitionProperty: 'transform, box-shadow, background-color, border-color',
@@ -765,17 +959,17 @@ const useStyles = makeStyles({
       '0 6px 20px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.12)',
     ':hover': {
       transform: 'translateY(-1px)',
-      borderTopColor: 'rgba(255,255,255,0.4)',
-      borderRightColor: 'rgba(255,255,255,0.4)',
-      borderBottomColor: 'rgba(255,255,255,0.4)',
-      borderLeftColor: 'rgba(255,255,255,0.4)',
+      borderTopColor: 'var(--pf-hero-chip-hover-border)',
+      borderRightColor: 'var(--pf-hero-chip-hover-border)',
+      borderBottomColor: 'var(--pf-hero-chip-hover-border)',
+      borderLeftColor: 'var(--pf-hero-chip-hover-border)',
       boxShadow:
         '0 12px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
     },
     ':focus-visible': {
       outlineStyle: 'solid',
       outlineWidth: '2px',
-      outlineColor: 'rgba(255,255,255,0.65)',
+      outlineColor: 'var(--pf-hero-focus)',
       outlineOffset: '3px',
     },
     '@media (prefers-reduced-motion: reduce)': {
@@ -807,6 +1001,10 @@ const useStyles = makeStyles({
     animationDuration: '2400ms',
     animationIterationCount: 'infinite',
     animationTimingFunction: 'ease-in-out',
+    '@media (max-width: 520px)': {
+      width: '28px',
+      height: '28px',
+    },
     '@media (prefers-reduced-motion: reduce)': {
       animationName: 'none',
     },
@@ -857,7 +1055,7 @@ const useStyles = makeStyles({
     borderRadius: t.radius.pill,
     border: '1px solid rgba(255,255,255,0.22)',
     backgroundColor: 'rgba(255,255,255,0.08)',
-    color: t.brand.onInk,
+    color: 'var(--pf-on-ink)',
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.84rem',
@@ -868,30 +1066,35 @@ const useStyles = makeStyles({
     },
   },
   card: {
-    backgroundColor: t.surface.card,
-    border: t.surface.hairline,
-    borderRadius: t.radius.xl,
-    padding: '20px 22px',
-    boxShadow: t.surface.raisedShadow,
+    backgroundColor: 'var(--pf-surface)',
+    border: 'var(--pf-hairline)',
+    borderRadius: t.radius.sm,
+    padding: 'var(--pf-space-xl) var(--pf-space-xxl)',
+    boxShadow: 'var(--pf-shadow-card-elevated)',
+    transition:
+      'box-shadow var(--pf-motion-normal) var(--pf-motion-ease), transform var(--pf-motion-normal) var(--pf-motion-ease)',
+    '@media (max-width: 560px)': {
+      padding: 'var(--pf-space-lg)',
+    },
   },
   cardHeader: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: '10px',
+    gap: 'var(--pf-space-md)',
     flexWrap: 'wrap',
-    marginBottom: '14px',
+    marginBottom: 'var(--pf-space-lg)',
   },
   cardTitle: {
     fontFamily: t.font.display,
     fontSize: '1.05rem',
     fontWeight: 600,
     letterSpacing: '-0.01em',
-    color: t.brand.text,
+    color: 'var(--pf-text)',
   },
   cardCaption: {
     fontSize: '0.78rem',
-    color: t.brand.textTertiary,
+    color: 'var(--pf-text-tertiary)',
   },
   softBadge: {
     display: 'inline-flex',
@@ -899,11 +1102,11 @@ const useStyles = makeStyles({
     flexShrink: 0,
     minHeight: '24px',
     borderRadius: t.radius.pill,
-    border: t.surface.hairline,
+    border: 'var(--pf-hairline)',
     paddingRight: '10px',
     paddingLeft: '10px',
-    backgroundColor: t.surface.cardMuted,
-    color: t.brand.textSecondary,
+    backgroundColor: 'var(--pf-surface-muted)',
+    color: 'var(--pf-text-secondary)',
     fontSize: '0.72rem',
     fontWeight: 700,
     lineHeight: 1.35,
@@ -916,19 +1119,19 @@ const useStyles = makeStyles({
     gap: '12px',
     padding: '12px 16px',
     borderRadius: t.radius.md,
-    backgroundColor: t.brand.surfaceMuted,
-    border: t.surface.hairline,
-    color: t.brand.textSecondary,
+    backgroundColor: 'var(--pf-surface-muted)',
+    border: 'var(--pf-hairline)',
+    color: 'var(--pf-text-secondary)',
     fontSize: '0.85rem',
   },
   pathList: {
     display: 'grid',
-    gap: '10px',
+    gap: 'var(--pf-space-md)',
   },
   pathRevisionFooter: {
     marginTop: '14px',
     paddingTop: '14px',
-    borderTop: `1px solid ${t.brand.line}`,
+    borderTop: '1px solid var(--pf-line)',
     display: 'grid',
     gap: '10px',
   },
@@ -941,20 +1144,36 @@ const useStyles = makeStyles({
   pathRevisionTitle: {
     fontSize: '0.9rem',
     fontWeight: 600,
-    color: t.brand.textSecondary,
+    color: 'var(--pf-text-secondary)',
   },
   pathRow: {
     display: 'grid',
-    gridTemplateColumns: '40px 1fr auto auto',
+    gridTemplateColumns: '40px minmax(0, 1fr) auto auto',
     alignItems: 'center',
-    gap: '14px',
-    padding: '14px 16px',
-    borderRadius: t.radius.md,
-    backgroundColor: t.brand.surfaceMuted,
-    boxShadow: `inset 0 0 0 1px ${t.brand.line}`,
+    gap: 'var(--pf-space-md)',
+    padding: 'var(--pf-space-md) var(--pf-space-lg)',
+    borderRadius: t.radius.sm,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    boxShadow: 'none',
     cursor: 'pointer',
+    transition:
+      'background-color var(--pf-motion-fast), border-color var(--pf-motion-fast), box-shadow var(--pf-motion-fast), transform var(--pf-motion-fast)',
     ':hover': {
-      backgroundColor: t.brand.lineSoft,
+      backgroundColor: 'var(--pf-surface-muted)',
+      borderTopColor: 'var(--pf-text-tertiary)',
+      borderRightColor: 'var(--pf-text-tertiary)',
+      borderBottomColor: 'var(--pf-text-tertiary)',
+      borderLeftColor: 'var(--pf-text-tertiary)',
+      boxShadow: 'var(--pf-shadow-card-hover)',
+      transform: 'translateY(-1px)',
+    },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '3px',
+      boxShadow: 'var(--pf-focus-outline)',
     },
   },
   pathRowShell: {
@@ -966,23 +1185,32 @@ const useStyles = makeStyles({
   },
   openPracticeButton: {
     appearance: 'none',
-    minWidth: '138px',
-    minHeight: '68px',
+    minWidth: '132px',
+    minHeight: '64px',
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
     gap: '8px',
     paddingRight: '14px',
     paddingLeft: '14px',
-    borderRadius: t.radius.md,
-    border: `1px solid ${t.brand.ink}`,
-    backgroundColor: t.brand.ink,
-    color: t.brand.onInk,
+    borderRadius: t.radius.sm,
+    border: '1px solid var(--pf-ink)',
+    backgroundColor: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.82rem',
     fontWeight: 700,
+    transition:
+      'filter var(--pf-motion-fast), transform var(--pf-motion-fast), box-shadow var(--pf-motion-fast)',
     ':hover': { filter: 'brightness(1.06)' },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '3px',
+      boxShadow: 'var(--pf-focus-outline)',
+    },
   },
   openPracticeIcon: {
     width: '28px',
@@ -992,11 +1220,11 @@ const useStyles = makeStyles({
   pathIcon: {
     width: '40px',
     height: '40px',
-    borderRadius: t.radius.md,
+    borderRadius: t.radius.sm,
     display: 'grid',
     placeItems: 'center',
-    backgroundColor: t.brand.ink,
-    color: t.brand.onInk,
+    backgroundColor: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
   },
   pathTitle: {
     display: 'grid',
@@ -1004,7 +1232,7 @@ const useStyles = makeStyles({
   },
   pathTitleText: {
     fontWeight: 600,
-    color: t.brand.text,
+    color: 'var(--pf-text)',
     fontSize: '0.94rem',
   },
   textAction: {
@@ -1018,13 +1246,29 @@ const useStyles = makeStyles({
     paddingRight: '13px',
     paddingLeft: '13px',
     borderRadius: t.radius.pill,
-    border: t.surface.hairline,
-    backgroundColor: t.brand.surface,
-    color: t.brand.text,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    color: 'var(--pf-text)',
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.78rem',
     fontWeight: 700,
+    transition:
+      'background-color var(--pf-motion-fast), border-color var(--pf-motion-fast), color var(--pf-motion-fast), box-shadow var(--pf-motion-fast)',
+    ':hover': {
+      backgroundColor: 'var(--pf-surface-muted)',
+      borderTopColor: 'var(--pf-text-tertiary)',
+      borderRightColor: 'var(--pf-text-tertiary)',
+      borderBottomColor: 'var(--pf-text-tertiary)',
+      borderLeftColor: 'var(--pf-text-tertiary)',
+    },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '3px',
+      boxShadow: 'var(--pf-focus-outline)',
+    },
   },
   setupGrid: {
     display: 'grid',
@@ -1040,16 +1284,16 @@ const useStyles = makeStyles({
     fontSize: '0.72rem',
     textTransform: 'uppercase',
     letterSpacing: '0.06em',
-    color: t.brand.textTertiary,
+    color: 'var(--pf-text-tertiary)',
     fontWeight: 700,
   },
   select: {
     width: '100%',
     minHeight: '46px',
     borderRadius: t.radius.lg,
-    border: `1px solid ${t.brand.line}`,
-    backgroundColor: t.brand.surface,
-    color: t.brand.text,
+    border: '1px solid var(--pf-line)',
+    backgroundColor: 'var(--pf-surface)',
+    color: 'var(--pf-text)',
     paddingRight: '14px',
     paddingLeft: '14px',
     font: 'inherit',
@@ -1064,24 +1308,25 @@ const useStyles = makeStyles({
   },
   insightCard: {
     display: 'grid',
-    gap: '10px',
-    padding: '16px',
-    borderRadius: t.radius.xl,
-    border: t.surface.hairline,
-    backgroundColor: t.brand.surface,
-    boxShadow: t.surface.raisedShadow,
+    gap: 'var(--pf-space-md)',
+    padding: 'var(--pf-space-lg)',
+    borderRadius: t.radius.sm,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    boxShadow: 'none',
   },
   meterTrack: {
     width: '100%',
     height: '8px',
     borderRadius: t.radius.pill,
-    backgroundColor: t.brand.lineSoft,
+    backgroundColor: 'var(--pf-line-soft)',
     overflow: 'hidden',
   },
   meterFill: {
     height: '100%',
     borderRadius: t.radius.pill,
-    backgroundColor: t.brand.ink,
+    background:
+      'linear-gradient(90deg, var(--pf-ink) 0%, var(--pf-text-secondary) 100%)',
   },
   planGrid: {
     display: 'grid',
@@ -1099,9 +1344,9 @@ const useStyles = makeStyles({
     gap: '12px',
     alignItems: 'start',
     padding: '14px 16px',
-    borderRadius: t.radius.lg,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.cardMuted,
+    borderRadius: t.radius.sm,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
     '@media (max-width: 560px)': { gridTemplateColumns: '1fr' },
   },
   sharePanel: {
@@ -1109,8 +1354,8 @@ const useStyles = makeStyles({
     gap: '12px',
     padding: '16px',
     borderRadius: t.radius.xl,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.cardMuted,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
   },
   shareActions: {
     display: 'flex',
@@ -1135,7 +1380,7 @@ const useStyles = makeStyles({
     padding: '22px',
     borderRadius: t.radius.xxl,
     border: '1px solid rgba(255,255,255,0.68)',
-    backgroundColor: t.brand.surface,
+    backgroundColor: 'var(--pf-surface)',
     boxShadow: '0 24px 70px rgba(0,0,0,0.28)',
   },
   modalHeader: {
@@ -1149,9 +1394,9 @@ const useStyles = makeStyles({
     width: '36px',
     height: '36px',
     borderRadius: t.radius.pill,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.cardMuted,
-    color: t.brand.text,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
+    color: 'var(--pf-text)',
     display: 'grid',
     placeItems: 'center',
     cursor: 'pointer',
@@ -1167,16 +1412,16 @@ const useStyles = makeStyles({
     gap: '5px',
     padding: '13px 14px',
     borderRadius: t.radius.lg,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.cardMuted,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
   },
   pathMeta: {
     fontSize: '0.78rem',
-    color: t.brand.textTertiary,
+    color: 'var(--pf-text-tertiary)',
   },
   minutes: {
     fontSize: '0.78rem',
-    color: t.brand.textSecondary,
+    color: 'var(--pf-text-secondary)',
     display: 'inline-flex',
     alignItems: 'center',
     gap: '4px',
@@ -1186,9 +1431,9 @@ const useStyles = makeStyles({
     gap: '16px',
     padding: '18px',
     borderRadius: t.radius.xxl,
-    border: t.surface.hairline,
-    backgroundColor: t.brand.surface,
-    boxShadow: t.surface.raisedShadow,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    boxShadow: 'var(--pf-shadow-raised)',
   },
   demoHeader: {
     display: 'flex',
@@ -1201,7 +1446,7 @@ const useStyles = makeStyles({
     fontFamily: t.font.display,
     fontSize: '1.24rem',
     fontWeight: 700,
-    color: t.brand.text,
+    color: 'var(--pf-text)',
     letterSpacing: '0',
   },
   demoProgress: {
@@ -1213,34 +1458,34 @@ const useStyles = makeStyles({
     width: '34px',
     height: '8px',
     borderRadius: t.radius.pill,
-    backgroundColor: t.brand.lineSoft,
+    backgroundColor: 'var(--pf-line-soft)',
   },
   demoDotActive: {
     width: '34px',
     height: '8px',
     borderRadius: t.radius.pill,
-    backgroundColor: t.brand.ink,
+    backgroundColor: 'var(--pf-ink)',
   },
   demoPromptCard: {
     display: 'grid',
     gap: '12px',
     padding: '18px',
     borderRadius: t.radius.xl,
-    backgroundColor: t.surface.cardMuted,
-    border: t.surface.hairline,
+    backgroundColor: 'var(--pf-surface-muted)',
+    border: 'var(--pf-hairline)',
   },
   adaptiveMoment: {
     display: 'grid',
     gap: '8px',
     padding: '14px 16px',
     borderRadius: t.radius.lg,
-    border: `1px solid ${t.brand.ink}`,
-    backgroundColor: t.brand.surfaceMuted,
+    border: '1px solid var(--pf-ink)',
+    backgroundColor: 'var(--pf-surface-muted)',
     boxShadow: '0 10px 24px rgba(15, 42, 58, 0.08)',
   },
   adaptiveMomentBody: {
     margin: 0,
-    color: t.brand.textSecondary,
+    color: 'var(--pf-text-secondary)',
     fontSize: '0.88rem',
     lineHeight: 1.45,
   },
@@ -1255,13 +1500,13 @@ const useStyles = makeStyles({
     borderRadius: t.radius.md,
     display: 'grid',
     placeItems: 'center',
-    backgroundColor: t.brand.ink,
-    color: t.brand.onInk,
+    backgroundColor: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
     flexShrink: 0,
   },
   demoPrompt: {
     margin: 0,
-    color: t.brand.text,
+    color: 'var(--pf-text)',
     fontFamily: t.font.display,
     fontSize: 'clamp(1.2rem, 5vw, 1.55rem)',
     lineHeight: 1.18,
@@ -1270,7 +1515,7 @@ const useStyles = makeStyles({
   },
   demoHelper: {
     margin: 0,
-    color: t.brand.textSecondary,
+    color: 'var(--pf-text-secondary)',
     fontSize: '0.9rem',
     lineHeight: 1.45,
   },
@@ -1288,9 +1533,9 @@ const useStyles = makeStyles({
     gap: '12px',
     padding: '14px 16px',
     borderRadius: t.radius.lg,
-    border: `1px solid ${t.brand.line}`,
-    backgroundColor: t.brand.surface,
-    color: t.brand.text,
+    border: '1px solid var(--pf-line)',
+    backgroundColor: 'var(--pf-surface)',
+    color: 'var(--pf-text)',
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '1rem',
@@ -1299,7 +1544,7 @@ const useStyles = makeStyles({
     boxShadow: '0 8px 18px rgba(15, 42, 58, 0.08)',
   },
   demoOptionMeta: {
-    color: t.brand.textTertiary,
+    color: 'var(--pf-text-tertiary)',
     fontSize: '0.76rem',
     fontWeight: 700,
   },
@@ -1309,7 +1554,7 @@ const useStyles = makeStyles({
     gap: '10px',
     alignItems: 'center',
     flexWrap: 'wrap',
-    color: t.brand.textSecondary,
+    color: 'var(--pf-text-secondary)',
     fontSize: '0.82rem',
   },
   demoCompleteGrid: {
@@ -1321,21 +1566,21 @@ const useStyles = makeStyles({
     gap: '16px',
     padding: '18px',
     borderRadius: t.radius.xxl,
-    border: t.surface.hairline,
-    backgroundColor: t.brand.surface,
-    boxShadow: t.surface.raisedShadow,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    boxShadow: 'var(--pf-shadow-raised)',
   },
   practicePromptCard: {
     display: 'grid',
     gap: '10px',
     padding: '16px',
     borderRadius: t.radius.xl,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.cardMuted,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
   },
   practicePrompt: {
     margin: 0,
-    color: t.brand.text,
+    color: 'var(--pf-text)',
     fontFamily: t.font.display,
     fontSize: 'clamp(1.16rem, 5vw, 1.48rem)',
     fontWeight: 700,
@@ -1356,9 +1601,9 @@ const useStyles = makeStyles({
     alignContent: 'center',
     padding: '14px 16px',
     borderRadius: t.radius.lg,
-    border: `1px solid ${t.brand.line}`,
-    backgroundColor: t.brand.surface,
-    color: t.brand.text,
+    border: '1px solid var(--pf-line)',
+    backgroundColor: 'var(--pf-surface)',
+    color: 'var(--pf-text)',
     cursor: 'pointer',
     font: 'inherit',
     textAlign: 'left',
@@ -1372,9 +1617,9 @@ const useStyles = makeStyles({
     alignContent: 'center',
     padding: '14px 16px',
     borderRadius: t.radius.lg,
-    border: `2px solid ${t.brand.ink}`,
-    backgroundColor: t.brand.ink,
-    color: t.brand.onInk,
+    border: '2px solid var(--pf-ink)',
+    backgroundColor: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
     cursor: 'pointer',
     font: 'inherit',
     textAlign: 'left',
@@ -1394,8 +1639,8 @@ const useStyles = makeStyles({
     gap: '8px',
     padding: '14px 16px',
     borderRadius: t.radius.lg,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.cardMuted,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
   },
   retrievalList: {
     display: 'grid',
@@ -1409,8 +1654,8 @@ const useStyles = makeStyles({
     gap: '3px',
     padding: '10px 12px',
     borderRadius: t.radius.md,
-    border: t.surface.hairline,
-    backgroundColor: t.brand.surface,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
   },
   careerAskGrid: {
     display: 'grid',
@@ -1420,12 +1665,12 @@ const useStyles = makeStyles({
     width: '100%',
     minHeight: '46px',
     borderRadius: t.radius.lg,
-    border: `1px solid ${t.brand.line}`,
+    border: '1px solid var(--pf-line)',
     boxSizing: 'border-box',
     paddingRight: '14px',
     paddingLeft: '14px',
-    color: t.brand.text,
-    backgroundColor: t.brand.surface,
+    color: 'var(--pf-text)',
+    backgroundColor: 'var(--pf-surface)',
     font: 'inherit',
     fontSize: '0.95rem',
     fontWeight: 700,
@@ -1446,9 +1691,9 @@ const useStyles = makeStyles({
     paddingRight: '14px',
     paddingLeft: '14px',
     borderRadius: t.radius.pill,
-    border: `1px solid ${t.brand.ink}`,
-    backgroundColor: t.brand.ink,
-    color: t.brand.onInk,
+    border: '1px solid var(--pf-ink)',
+    backgroundColor: 'var(--pf-ink)',
+    color: 'var(--pf-on-ink)',
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.9rem',
@@ -1464,9 +1709,9 @@ const useStyles = makeStyles({
     paddingRight: '14px',
     paddingLeft: '14px',
     borderRadius: t.radius.pill,
-    border: t.surface.hairline,
-    backgroundColor: t.brand.surface,
-    color: t.brand.text,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    color: 'var(--pf-text)',
     cursor: 'pointer',
     font: 'inherit',
     fontSize: '0.9rem',
@@ -1491,18 +1736,18 @@ const useStyles = makeStyles({
     '@media (max-width: 520px)': { gridTemplateColumns: '1fr' },
   },
   weekTile: {
-    padding: '16px',
-    borderRadius: t.radius.lg,
-    backgroundColor: t.brand.surfaceMuted,
-    border: t.surface.hairline,
+    padding: 'var(--pf-space-lg)',
+    borderRadius: t.radius.sm,
+    backgroundColor: 'var(--pf-surface-muted)',
+    border: 'var(--pf-hairline)',
     display: 'grid',
-    gap: '4px',
+    gap: 'var(--pf-space-xxs)',
   },
   weekLabel: {
     fontSize: '0.72rem',
     textTransform: 'uppercase',
     letterSpacing: '0.06em',
-    color: t.brand.textTertiary,
+    color: 'var(--pf-text-tertiary)',
     fontWeight: 600,
   },
   weekValue: {
@@ -1510,17 +1755,17 @@ const useStyles = makeStyles({
     fontSize: '1.5rem',
     fontWeight: 600,
     letterSpacing: '-0.02em',
-    color: t.brand.text,
+    color: 'var(--pf-text)',
   },
-  weekDelta: { fontSize: '0.78rem', color: t.brand.textSecondary },
+  weekDelta: { fontSize: '0.78rem', color: 'var(--pf-text-secondary)' },
   deviceOverviewCard: {
     display: 'grid',
     gap: '14px',
     padding: '18px',
     borderRadius: t.radius.xl,
-    border: t.surface.hairline,
-    backgroundColor: t.brand.surface,
-    boxShadow: t.surface.raisedShadow,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface)',
+    boxShadow: 'var(--pf-shadow-raised)',
   },
   deviceOverviewGrid: {
     display: 'grid',
@@ -1533,16 +1778,16 @@ const useStyles = makeStyles({
     gap: '5px',
     padding: '13px 14px',
     borderRadius: t.radius.lg,
-    border: t.surface.hairline,
-    backgroundColor: t.surface.cardMuted,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
   },
   deviceModeValue: {
-    color: t.brand.text,
+    color: 'var(--pf-text)',
     fontSize: '0.95rem',
     fontWeight: 700,
   },
   deviceModeDetail: {
-    color: t.brand.textSecondary,
+    color: 'var(--pf-text-secondary)',
     fontSize: '0.8rem',
     lineHeight: 1.45,
   },
@@ -1568,7 +1813,7 @@ const useStyles = makeStyles({
     fontSize: '0.72rem',
     textTransform: 'uppercase',
     letterSpacing: '0.08em',
-    color: t.brand.textTertiary,
+    color: 'var(--pf-text-tertiary)',
     fontWeight: 600,
     margin: '4px 0',
   },
@@ -1577,25 +1822,25 @@ const useStyles = makeStyles({
     alignItems: 'flex-start',
     gap: '10px',
     padding: '10px 0',
-    borderBottom: t.surface.hairline,
+    borderBottom: 'var(--pf-hairline)',
     ':last-child': { borderBottom: 'none' },
   },
   sideRowIcon: {
     width: '18px',
     height: '18px',
-    color: t.brand.text,
+    color: 'var(--pf-text)',
     flexShrink: 0,
     marginTop: '2px',
   },
   sideRowText: {
     fontSize: '0.85rem',
-    color: t.brand.text,
+    color: 'var(--pf-text)',
     fontWeight: 500,
     lineHeight: 1.35,
   },
   sideRowMeta: {
     fontSize: '0.74rem',
-    color: t.brand.textTertiary,
+    color: 'var(--pf-text-tertiary)',
     marginTop: '2px',
   },
   // Disclosure (item 2)
@@ -1610,22 +1855,24 @@ const useStyles = makeStyles({
     gap: '12px',
     cursor: 'pointer',
     listStyle: 'none',
-    color: t.brand.text,
+    color: 'var(--pf-text)',
     '::-webkit-details-marker': { display: 'none' },
     ':focus-visible': {
       outlineStyle: 'solid',
       outlineWidth: '2px',
-      outlineColor: t.brand.text,
+      outlineColor: 'var(--pf-focus-ring)',
       outlineOffset: '4px',
       borderRadius: t.radius.md,
+      boxShadow: 'var(--pf-focus-outline)',
     },
   },
   disclosureChevron: {
     width: '18px',
     height: '18px',
-    color: t.brand.textTertiary,
+    color: 'var(--pf-text-tertiary)',
     transitionProperty: 'transform',
-    transitionDuration: '180ms',
+    transitionDuration: 'var(--pf-motion-normal)',
+    transitionTimingFunction: 'var(--pf-motion-ease)',
     '@media (prefers-reduced-motion: reduce)': {
       transitionDuration: '0ms',
     },
@@ -1643,7 +1890,7 @@ const useStyles = makeStyles({
     paddingRight: '12px',
     borderRadius: t.radius.pill,
     backgroundColor: 'rgba(255,255,255,0.92)',
-    color: t.brand.text,
+    color: 'var(--pf-text)',
     fontSize: '0.78rem',
     fontWeight: 700,
     letterSpacing: '0.01em',
@@ -1654,7 +1901,7 @@ const useStyles = makeStyles({
     width: '6px',
     height: '6px',
     borderRadius: '999px',
-    backgroundColor: t.brand.text,
+    backgroundColor: 'var(--pf-text)',
   },
   voiceWave: {
     display: 'inline-flex',
@@ -1665,7 +1912,7 @@ const useStyles = makeStyles({
   voiceWaveBar: {
     width: '2.5px',
     borderRadius: '2px',
-    backgroundColor: t.brand.text,
+    backgroundColor: 'var(--pf-text)',
     animationName: {
       '0%, 100%': { transform: 'scaleY(0.4)' },
       '50%': { transform: 'scaleY(1)' },
@@ -1683,7 +1930,7 @@ const useStyles = makeStyles({
     width: '8px',
     height: '8px',
     borderRadius: '999px',
-    backgroundColor: t.brand.text,
+    backgroundColor: 'var(--pf-text)',
     animationName: {
       '0%, 100%': { opacity: 0.4, transform: 'scale(0.85)' },
       '50%': { opacity: 1, transform: 'scale(1.15)' },
@@ -1706,7 +1953,7 @@ const useStyles = makeStyles({
     width: '4px',
     height: '4px',
     borderRadius: '999px',
-    backgroundColor: t.brand.text,
+    backgroundColor: 'var(--pf-text)',
   },
   // Trust badge cluster (item 4)
   trustBadgeWrap: {
@@ -1730,7 +1977,7 @@ const useStyles = makeStyles({
     ':focus-visible': {
       outlineStyle: 'solid',
       outlineWidth: '2px',
-      outlineColor: t.brand.text,
+      outlineColor: 'var(--pf-text)',
       outlineOffset: '4px',
       borderRadius: t.radius.pill,
     },
@@ -1744,11 +1991,11 @@ const useStyles = makeStyles({
     paddingLeft: '8px',
     paddingRight: '10px',
     borderRadius: t.radius.pill,
-    backgroundColor: t.surface.cardMuted,
-    border: t.surface.hairline,
+    backgroundColor: 'var(--pf-surface-muted)',
+    border: 'var(--pf-hairline)',
     fontSize: '0.7rem',
     fontWeight: 600,
-    color: t.brand.text,
+    color: 'var(--pf-text)',
   },
   trustBadgeIcon: { width: '12px', height: '12px' },
   // Parent share card (item 3)
@@ -1794,6 +2041,7 @@ export default function StudentLearningHome({
   pushConsentDeferred,
 }: StudentLearningHomeProps) {
   const styles = useStyles()
+  const demoDiagnosticRef = useRef<HTMLElement | null>(null)
   const learnerProfile = useLearnerProfile()
   const learnerSetup = learnerProfile.setup
   const setLearnerSetup = learnerProfile.updateSetup
@@ -1827,6 +2075,8 @@ export default function StudentLearningHome({
     () => new URLSearchParams(window.location.search).get('skillId')
   )
   const [tutorOpen, setTutorOpen] = useState(false)
+  const [tutorFocusItem, setTutorFocusItem] =
+    useState<LearnerFocusItem | null>(null)
   const [, setTutorVoice] = useState<TutorVoiceSnapshot>({
     state: 'idle',
     inputLevel: 0,
@@ -2144,6 +2394,17 @@ export default function StudentLearningHome({
     }
   }, [])
 
+  useEffect(() => {
+    if (!demoActive) return
+    window.requestAnimationFrame(() => {
+      demoDiagnosticRef.current?.scrollIntoView?.({
+        behavior: 'auto',
+        block: 'start',
+      })
+      demoDiagnosticRef.current?.focus({ preventScroll: true })
+    })
+  }, [demoActive])
+
   // -- Slice 3: welcome-learner tour kickoff + completion mirror -------
   // A non-null `learnerProfile.profile` implies the /api/learners/me/profile
   // endpoint accepted the caller (RBAC: learner role + flag on), so we use it
@@ -2201,6 +2462,24 @@ export default function StudentLearningHome({
     setPanelKey(value => value + 1)
   }
 
+  function openTutorForPathItem(item: Activity) {
+    if (!learnerTutorEnabled) {
+      startCheckIn(item.skillId, item.subject)
+      return
+    }
+    setDemoActive(false)
+    setDemoCompleted(false)
+    setCheckInActive(false)
+    setCompleted(false)
+    setTutorFocusItem({
+      stem: item.title,
+      skillId: item.skillId,
+      rationale: item.meta,
+      scored: false,
+    })
+    setTutorOpen(true)
+  }
+
   function startDemoDiagnostic() {
     setActiveSkill(null)
     setActiveSubject(null)
@@ -2214,6 +2493,19 @@ export default function StudentLearningHome({
     setAdaptiveMoment(null)
     setWrongAnswerExplanation(null)
     setDemoActive(true)
+  }
+
+  function startStudyWithWulo() {
+    if (!learnerTutorEnabled) {
+      startDemoDiagnostic()
+      return
+    }
+    setDemoActive(false)
+    setDemoCompleted(false)
+    setCheckInActive(false)
+    setCompleted(false)
+    setTutorFocusItem(null)
+    setTutorOpen(true)
   }
 
   function saveDemoLocally(answers: DemoAnswer[], stepCount: number) {
@@ -2408,6 +2700,11 @@ export default function StudentLearningHome({
     }
   }
 
+  const learnerDisplayName = learnerSetup.firstName.trim() || 'there'
+  const todaysPathMinutesTotal = todaysPath.reduce(
+    (sum, item) => sum + item.minutes,
+    0
+  )
   const parentSummaryText = `Your Wulo Academy update: ${learnerSetup.exam} ${learnerSetup.year} ${learnerSetup.subject}. Current focus: Ratio and proportion at 42% mastery. Today: 5 min diagnostic, explain one mistake, practise one similar question. Career signals: data/business and health sciences are worth exploring while chemistry and algebra improve.`
 
   function persistShare() {
@@ -2457,59 +2754,139 @@ export default function StudentLearningHome({
         <article className={styles.hero} data-testid="learner-hero-card">
           <div className={styles.heroLayout}>
             <div className={styles.heroLeft}>
-              <span className={styles.heroEyebrow}>
-                <SparklesIcon
-                  style={{ width: 14, height: 14 }}
-                  aria-hidden="true"
-                />
-                Wulo Academy
-              </span>
-              <h1 className={styles.heroTitle} data-testid="learner-hero-title">
-                {learnerSetup.firstName.trim()
-                  ? `Welcome back, ${learnerSetup.firstName.trim()} 👋`
-                  : 'Welcome 👋'}
-              </h1>
-              <p className={styles.heroSub} data-testid="learner-hero-sub">
-                Your {learnerSetup.exam} {learnerSetup.subject} path is 42%
-                mastered. Let’s hit your next goal.
-              </p>
-              <div className={styles.heroPills}>
-                <span className={styles.heroPill}>
-                  <BoltIcon
-                    style={{ width: 14, height: 14 }}
-                    aria-hidden="true"
-                  />
-                  7-day streak
-                </span>
-                <span
-                  className={styles.heroPill}
-                  data-testid="offline-ready-pill"
-                >
-                  <WifiIcon
-                    style={{ width: 14, height: 14 }}
-                    aria-hidden="true"
-                  />
-                  Works offline
-                </span>
+              <div className={styles.heroHeaderRow}>
+                <div className={styles.heroCopy}>
+                  <h1
+                    className={styles.heroTitle}
+                    data-testid="learner-hero-title"
+                  >
+                    Good afternoon, {learnerDisplayName}
+                  </h1>
+                  <p className={styles.heroSub} data-testid="learner-hero-sub">
+                    {todaysPath.length} things today · about{' '}
+                    {todaysPathMinutesTotal} minutes · you’re on pace for
+                    Friday’s target.
+                  </p>
+                </div>
               </div>
-              <div className={styles.heroActions}>
-                <button
-                  type="button"
-                  className={styles.heroCta}
-                  onClick={startDemoDiagnostic}
-                  data-testid="start-checkin"
-                >
-                  <PlayCircleIcon
-                    style={{ width: 18, height: 18 }}
-                    aria-hidden="true"
-                  />
-                  Pick up where we left off
-                  <ArrowRightIcon
-                    style={{ width: 16, height: 16 }}
-                    aria-hidden="true"
-                  />
-                </button>
+
+              <div className={styles.heroMetricGrid}>
+                {resolvedWeeklyTiles.map(tile => (
+                  <div key={tile.label} className={styles.heroMetricCard}>
+                    <span className={styles.weekLabel}>{tile.label}</span>
+                    <span className={styles.weekValue}>{tile.value}</span>
+                    <span className={styles.weekDelta}>{tile.delta}</span>
+                  </div>
+                ))}
               </div>
+
+              <div className={styles.heroWorkGrid}>
+                <section className={styles.heroPanel}>
+                  <div className={styles.heroPanelHeader}>
+                    <Text className={styles.cardTitle}>Today’s path</Text>
+                    <span className={styles.softBadge}>
+                      {todaysPath.length} steps
+                    </span>
+                  </div>
+                  <div className={styles.heroPathList}>
+                    {todaysPath.map(item => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className={styles.heroPathRow}
+                        onClick={() => openTutorForPathItem(item)}
+                        data-testid={`hero-path-row-${item.id}`}
+                      >
+                        <span className={styles.heroStepIcon} aria-hidden="true">
+                          <PlayCircleIcon style={{ width: 19, height: 19 }} />
+                        </span>
+                        <span className={styles.pathTitle}>
+                          <span className={styles.pathTitleText}>
+                            {item.title}
+                          </span>
+                          <span className={styles.pathMeta}>{item.meta}</span>
+                        </span>
+                        <span className={styles.heroStepBadge}>
+                          {item.type === 'check-in'
+                            ? 'Now'
+                            : item.type === 'practice'
+                              ? 'Next'
+                              : 'Done'}
+                        </span>
+                        <span className={styles.heroPlayButton} aria-hidden="true">
+                          <PlayCircleIcon style={{ width: 18, height: 18 }} />
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className={styles.heroActions}>
+                    <button
+                      type="button"
+                      className={styles.tutorMiniButton}
+                      onClick={startStudyWithWulo}
+                      data-testid={
+                        learnerTutorEnabled
+                          ? 'start-learner-tutor'
+                          : 'start-checkin'
+                      }
+                    >
+                      <span
+                        className={styles.studyActionContent}
+                        data-testid={
+                          learnerTutorEnabled ? 'start-checkin' : undefined
+                        }
+                      >
+                        <span className={styles.tutorOrb} aria-hidden="true">
+                          <span className={styles.tutorOrbHalo} />
+                        </span>
+                        <span>Study with Wulo</span>
+                        <ArrowRightIcon
+                          style={{ width: 16, height: 16 }}
+                          aria-hidden="true"
+                        />
+                      </span>
+                    </button>
+                  </div>
+                </section>
+
+                <section className={styles.heroPanel}>
+                  <div className={styles.heroPanelHeader}>
+                    <Text className={styles.cardTitle}>Where to focus</Text>
+                    <span className={styles.softBadge}>Repair</span>
+                  </div>
+                  <div className={styles.focusList}>
+                    {weakTopicProfile.slice(0, 3).map(topic => (
+                      <div key={topic.skillId} className={styles.focusItem}>
+                        <div className={styles.focusItemTop}>
+                          <span className={styles.pathTitleText}>
+                            {topic.label}
+                          </span>
+                          <span className={styles.softBadge}>
+                            {topic.mastery < 50
+                              ? 'Needs support'
+                              : topic.mastery < 70
+                                ? 'Developing'
+                                : 'Approaching'}
+                          </span>
+                        </div>
+                        <div
+                          className={styles.focusBar}
+                          aria-label={`${topic.label} mastery`}
+                        >
+                          <span
+                            className={styles.focusFill}
+                            style={{ width: `${topic.mastery}%` }}
+                          />
+                        </div>
+                        <span className={styles.pathMeta}>
+                          Next: {topic.nextAction}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </div>
+
               {voiceConfig?.enabled && safetyConfig?.learner_voice_disabled && (
                 <div
                   data-testid="voice-checkin-disabled-notice"
@@ -2560,21 +2937,6 @@ export default function StudentLearningHome({
                 </div>
               )}
             </div>
-            {learnerTutorEnabled ? (
-              <div className={styles.heroOrbWrap}>
-                <button
-                  type="button"
-                  className={styles.heroOrbStage}
-                  onClick={() => setTutorOpen(true)}
-                  data-testid="start-learner-tutor"
-                  aria-label="Talk to your tutor"
-                  style={{ position: 'relative' }}
-                >
-                  <span className={styles.heroOrbBigHalo} aria-hidden="true" />
-                  <span className={styles.heroOrbBig} aria-hidden="true" />
-                </button>
-              </div>
-            ) : null}
           </div>
         </article>
 
@@ -2690,17 +3052,19 @@ export default function StudentLearningHome({
             const StepIcon = step.icon
             return (
               <article
+                ref={demoDiagnosticRef}
                 className={styles.demoCard}
                 data-testid="short-demo-diagnostic"
+                tabIndex={-1}
               >
                 <div className={styles.demoHeader}>
                   <div>
                     <Text className={styles.demoTitle}>
-                      3-5 minute demo diagnostic
+                      Wulo quick check
                     </Text>
                     <p className={styles.demoHelper}>
-                      Five short signals. Keyboard, mouse, or touch. Works
-                      offline.
+                      A few short signals help Wulo tune today’s practice.
+                      Keyboard, mouse, or touch.
                     </p>
                   </div>
                   <div
@@ -2794,7 +3158,7 @@ export default function StudentLearningHome({
             data-testid="short-demo-complete"
           >
             <div className={styles.demoCompleteGrid}>
-              <Text className={styles.demoTitle}>Demo diagnostic complete</Text>
+              <Text className={styles.demoTitle}>Wulo quick check complete</Text>
               <p className={styles.demoHelper}>
                 Numeracy, reading, voice, subject knowledge, and career interest
                 signals are saved locally for teacher review.
@@ -2951,7 +3315,7 @@ export default function StudentLearningHome({
               </div>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 <DocumentTextIcon
-                  style={{ width: 22, height: 22, color: t.brand.text }}
+                  style={{ width: 22, height: 22, color: 'var(--pf-text)' }}
                   aria-hidden="true"
                 />
                 <ChevronRightIcon
@@ -3025,10 +3389,8 @@ export default function StudentLearningHome({
                       className={styles.pathRow}
                       style={{ textAlign: 'left', font: 'inherit' }}
                       onClick={() => {
-                        setExpandedStepId(prev =>
-                          prev === item.id ? null : item.id
-                        )
-                        startCheckIn(item.skillId)
+                        setExpandedStepId(null)
+                        openTutorForPathItem(item)
                       }}
                       data-testid={`path-row-${item.id}`}
                       aria-expanded={isExpanded}
@@ -3053,7 +3415,7 @@ export default function StudentLearningHome({
                         style={{
                           width: 18,
                           height: 18,
-                          color: t.brand.textTertiary,
+                          color: 'var(--pf-text-tertiary)',
                         }}
                         aria-hidden="true"
                       />
@@ -3249,7 +3611,7 @@ export default function StudentLearningHome({
           <p
             style={{
               fontSize: '0.88rem',
-              color: t.brand.textSecondary,
+              color: 'var(--pf-text-secondary)',
               lineHeight: 1.5,
               margin: 0,
             }}
@@ -3291,7 +3653,7 @@ export default function StudentLearningHome({
               className={styles.disclosureBody}
               style={{
                 fontSize: '0.82rem',
-                color: t.brand.textSecondary,
+                color: 'var(--pf-text-secondary)',
                 lineHeight: 1.5,
                 margin: 0,
               }}
@@ -3320,12 +3682,14 @@ export default function StudentLearningHome({
           open={tutorOpen}
           onClose={() => {
             setTutorOpen(false)
+            setTutorFocusItem(null)
             setTutorVoice({ state: 'idle', inputLevel: 0, recording: false })
           }}
           childId={studentId ?? 'demo-student'}
           exam={learnerSetup.exam}
           classYear={learnerSetup.year}
           subject={learnerSetup.subject}
+          focusItem={tutorFocusItem}
           onVoiceStateChange={setTutorVoice}
         />
       )}

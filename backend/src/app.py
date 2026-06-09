@@ -14,7 +14,6 @@ import json
 import logging
 import os
 from pathlib import Path
-import socket
 import sys
 import threading
 import time
@@ -42,14 +41,15 @@ from src.learning.api import (
     register_learning_api,
 )
 from src.learning.errors import LearningApiError
-from src.learning.mastery_profile import build_child_mastery
 from src.learning.repository_factory import make_repository as make_learning_repository
 from src.learning.profile_config import (
     ALLOWED_CONSENT_KINDS,
+    ALLOWED_AGE_BANDS,
+    ALLOWED_EXAMS,
+    ALLOWED_YEAR_GROUPS,
     MAX_GOALS,
-    MINOR_AGE_BANDS,
     PROFILE_CONSENT_MIRRORS,
-    age_band_from_dob,
+    normalise_goal,
     profile_needs_onboarding,
     validate_patch as validate_learner_profile_patch,
 )
@@ -65,10 +65,8 @@ from src.safeguarding import (
     configure_safeguarding_service,
     get_safeguarding_service,
 )
-from src.safeguarding import Direction as SafeguardingDirection
 from src.services.turn_router.handlers import ChitchatHandler
 from src.services.insights_websocket_handler import InsightsVoiceHandler
-from src.services.learner_voice_websocket_handler import LearnerVoiceSocketHandler
 from src.services.voice_agent_action_service import (
     VoiceAgentActionError,
     VoiceAgentActionService,
@@ -170,16 +168,14 @@ API_FAMILY_INTAKE_PROPOSAL_APPROVE_ENDPOINT = "/api/family-intake/proposals/<pro
 API_FAMILY_INTAKE_PROPOSAL_REJECT_ENDPOINT = "/api/family-intake/proposals/<proposal_id>/reject"
 API_FAMILY_INTAKE_PROPOSAL_RESUBMIT_ENDPOINT = "/api/family-intake/proposals/<proposal_id>/resubmit"
 API_CHILD_SESSIONS_ENDPOINT = "/api/children/<child_id>/sessions"
-API_CHILD_MASTERY_ENDPOINT = "/api/children/<child_id>/mastery"
 API_CHILD_PLANS_ENDPOINT = "/api/children/<child_id>/plans"
+API_CHILD_MASTERY_ENDPOINT = "/api/children/<child_id>/mastery"
 API_CHILD_MEMORY_SUMMARY_ENDPOINT = "/api/children/<child_id>/memory/summary"
 API_CHILD_MEMORY_ITEMS_ENDPOINT = "/api/children/<child_id>/memory/items"
 API_CHILD_MEMORY_PROPOSALS_ENDPOINT = "/api/children/<child_id>/memory/proposals"
 API_INSTITUTIONAL_MEMORY_INSIGHTS_ENDPOINT = "/api/institutional-memory/insights"
 API_CHILD_RECOMMENDATIONS_ENDPOINT = "/api/children/<child_id>/recommendations"
 API_CHILD_REPORTS_ENDPOINT = "/api/children/<child_id>/reports"
-API_PARENT_CHILD_REPORTS_ENDPOINT = "/api/parent/children/<child_id>/reports"
-API_PARENT_REPORT_DETAIL_ENDPOINT = "/api/parent/reports/<report_id>"
 API_MEMORY_EVIDENCE_ENDPOINT = "/api/memory/<subject_type>/<subject_id>/evidence"
 API_RECOMMENDATION_DETAIL_ENDPOINT = "/api/recommendations/<recommendation_id>"
 API_REPORT_DETAIL_ENDPOINT = "/api/reports/<report_id>"
@@ -189,6 +185,8 @@ API_REPORT_SUMMARY_REWRITE_ENDPOINT = "/api/reports/<report_id>/summary-rewrite"
 API_REPORT_APPROVE_ENDPOINT = "/api/reports/<report_id>/approve"
 API_REPORT_SIGN_ENDPOINT = "/api/reports/<report_id>/sign"
 API_REPORT_ARCHIVE_ENDPOINT = "/api/reports/<report_id>/archive"
+API_PARENT_CHILD_REPORTS_ENDPOINT = "/api/parent/children/<child_id>/reports"
+API_PARENT_REPORT_DETAIL_ENDPOINT = "/api/parent/reports/<report_id>"
 API_SESSION_DETAIL_ENDPOINT = "/api/sessions/<session_id>"
 API_SESSION_FEEDBACK_ENDPOINT = "/api/sessions/<session_id>/feedback"
 API_PLANS_ENDPOINT = "/api/plans"
@@ -466,31 +464,6 @@ def _initialize_safeguarding_service() -> None:
             return None
         try:
             user = storage_service.get_user(parent_user_id)  # type: ignore[attr-defined]
-            role = ""
-            if isinstance(user, dict):
-                role = str(user.get("role") or "").strip().lower()
-
-            # Self-learner accounts act as their own "parent" in the safeguarding
-            # matrix (parent_user_id == the learner's own user_id). For minors we
-            # must redirect the parent-channel alert to the registered guardian,
-            # never to the child's own inbox.
-            if role in {ROLE_LEARNER, ROLE_KID, ROLE_STUDENT}:
-                profile = storage_service.get_learner_profile(parent_user_id) or {}  # type: ignore[attr-defined]
-                age_band = profile.get("age_band")
-                # Minors, and unknown-age self-learners (fail safe), route to the
-                # guardian. If no guardian email is on file we return None so the
-                # admin backstop still fires but the child is never emailed.
-                if age_band in MINOR_AGE_BANDS or not age_band:
-                    guardian_email = profile.get("guardian_email")
-                    if guardian_email and str(guardian_email).strip():
-                        return str(guardian_email).strip()
-                    return None
-                # Adult self-learner (18+) is their own guardian.
-                if isinstance(user, dict):
-                    return user.get("email")
-                return None
-
-            # Parent / guardian / staff operator: their own email is the contact.
             if isinstance(user, dict):
                 return user.get("email")
         except Exception:  # noqa: BLE001
@@ -1004,57 +977,6 @@ def _enforce_request_security_controls() -> Optional[Tuple[Any, int]]:
     return None
 
 
-@app.before_request
-def _disable_ws_permessage_deflate() -> None:
-    """Keep WebSocket frames uncompressed so they survive intermediary proxies.
-
-    ``simple_websocket`` unconditionally accepts ``PerMessageDeflate`` whenever
-    a client offers it. Compressed frames get mangled by proxies that sit
-    between the browser and Flask (notably Vite's dev ws proxy, which raises
-    "Invalid frame header"), surfacing in the UI as a perpetual
-    "Voice connection hiccup — retrying as you speak" loop. The frames here are
-    tiny JSON, so compression buys nothing; dropping the client's offer means
-    ``wsproto`` never negotiates the extension and frames stay plain. This is a
-    no-op for same-origin production traffic.
-    """
-    if request.path.startswith("/ws/"):
-        request.environ.pop("HTTP_SEC_WEBSOCKET_EXTENSIONS", None)
-
-
-def _shutdown_ws_socket(ws: Any) -> None:
-    """Send the WebSocket close frame and hard-shutdown the raw TCP socket.
-
-    flask_sock on the Werkzeug dev server returns a normal ``Response`` after
-    the view exits, which Werkzeug writes onto the *already-upgraded* socket.
-    Those stray ``HTTP/1.1 200 OK`` bytes land in the middle of the WebSocket
-    frame stream, so the browser parses them as a corrupt frame ("Invalid frame
-    header"), tears the connection down as a 1006 abnormal closure, and the
-    learner sees the perpetual "Voice connection hiccup" banner. By sending the
-    close frame and then shutting down the underlying socket ourselves, that
-    trailing HTTP write hits a closed socket and fails silently (BrokenPipe,
-    swallowed by Werkzeug) instead of poisoning the stream. Same-origin
-    production servers (gunicorn/eventlet) are unaffected — their flask_sock
-    response path never writes a body onto the hijacked socket.
-    """
-    try:
-        ws.close(1000)
-    except Exception:
-        logger.debug("Failed to send websocket close frame", exc_info=True)
-    raw_sock = getattr(ws, "sock", None)
-    if raw_sock is None:
-        return
-    try:
-        raw_sock.shutdown(socket.SHUT_RDWR)
-    except OSError:
-        pass
-    except Exception:
-        logger.debug("Failed to shutdown websocket socket", exc_info=True)
-    try:
-        raw_sock.close()
-    except Exception:
-        logger.debug("Failed to close websocket socket", exc_info=True)
-
-
 @app.teardown_request
 def _clear_storage_request_actor(_error: Optional[BaseException]) -> None:
     storage_service.clear_request_actor()
@@ -1454,7 +1376,14 @@ def _learning_student_guard(user: Mapping[str, Any], student_id: str) -> Optiona
 
 def _learning_admin_endpoint(path: str, method: str) -> bool:
     return (
-        path in {"/api/learning/audit", "/api/learning/kpis", "/api/learning/observability/config", "/api/learning/observability/dashboard", "/api/learning/metrics"}
+        path
+        in {
+            "/api/learning/audit",
+            "/api/learning/kpis",
+            "/api/learning/observability/config",
+            "/api/learning/observability/dashboard",
+            "/api/learning/metrics",
+        }
         or (path == "/api/learning/skills" and method == "POST")
         or (path.startswith("/api/learning/skills/") and method == "POST")
     )
@@ -1627,22 +1556,6 @@ def _learner_voice_fullscreen_enabled(user: Optional[Dict[str, Any]]) -> bool:
     if role not in LEARNING_LEARNER_ROLES:
         return False
     raw = os.getenv("LEARNER_VOICE_FULLSCREEN_ENABLED", "false")
-    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
-
-
-def _pathfinder_voicelive_enabled(user: Optional[Dict[str, Any]]) -> bool:
-    """Whether the AskPathfinder voice surface uses Azure VoiceLive.
-
-    When off, the client falls back to the browser Web Speech API. Gated to
-    learner roles so the neural-voice realtime path is only offered where the
-    ``learner_ask`` VoiceLive scope is authorized.
-    """
-    if user is None:
-        return False
-    role = str(user.get("role") or "")
-    if role not in LEARNING_LEARNER_ROLES:
-        return False
-    raw = os.getenv("PATHFINDER_VOICELIVE_ENABLED", "false")
     return str(raw).strip().lower() in {"1", "true", "yes", "on"}
 
 
@@ -1841,7 +1754,6 @@ def get_config():
             "voice_agent_dynamic_ui_enabled": _voice_agent_dynamic_ui_enabled(cast(Dict[str, Any], user) if user else None),
             "voice_agent_actions_enabled": _voice_agent_actions_enabled(cast(Dict[str, Any], user) if user else None),
             "learner_voice_fullscreen_enabled": _learner_voice_fullscreen_enabled(cast(Dict[str, Any], user) if user else None),
-            "pathfinder_voicelive_enabled": _pathfinder_voicelive_enabled(cast(Dict[str, Any], user) if user else None),
             "safety": dict(safety_gates.public_status_payload()),
             "onboarding": {
                 # Kill switch for the v2 onboarding/guidance system
@@ -2103,14 +2015,6 @@ def _pathfinder_learner_onboarding_enabled() -> bool:
     }
 
 
-def _pathfinder_goal_intake_enabled() -> bool:
-    return os.environ.get(LEARNER_GOAL_INTAKE_FLAG, "false").strip().lower() in {
-        "true",
-        "1",
-        "yes",
-    }
-
-
 def _learner_profile_response(user_id: str) -> Dict[str, Any]:
     profile = storage_service.get_learner_profile(user_id) or {}
     consents = storage_service.latest_consents(user_id)
@@ -2119,6 +2023,202 @@ def _learner_profile_response(user_id: str) -> Dict[str, Any]:
         "consents": consents,
         "needs_onboarding": profile_needs_onboarding(profile, consents),
     }
+
+
+def _flag_enabled(name: str, default: str = "false") -> bool:
+    return os.environ.get(name, default).strip().lower() in {"true", "1", "yes", "on"}
+
+
+def _require_learner_user() -> Tuple[Optional[Dict[str, Any]], Optional[Tuple[Any, int]]]:
+    user, guard_response = _require_authenticated()
+    if guard_response is not None or user is None:
+        return None, guard_response
+    if str(user.get("role") or "") not in {ROLE_LEARNER, ROLE_KID, ROLE_STUDENT}:
+        return None, (jsonify({"error": "Learner role required"}), HTTP_FORBIDDEN)
+    return user, None
+
+
+def _learner_request_student_id(user: Mapping[str, Any]) -> Tuple[Optional[str], Optional[Tuple[Any, int]]]:
+    payload = _learning_payload()
+    requested_student_id = str(payload.get("student_id") or payload.get("actor_id") or "").strip()
+    owned_student_ids = _learning_student_ids_for_user(user)
+    if requested_student_id:
+        if requested_student_id not in owned_student_ids:
+            return None, (jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN)
+        return requested_student_id, None
+    if owned_student_ids:
+        return sorted(owned_student_ids)[0], None
+    return str(user.get("id") or ""), None
+
+
+def _profile_class_year(year_group: Any) -> Optional[str]:
+    value = str(year_group or "").strip().upper().replace(" ", "")
+    if not value:
+        return None
+    if value.startswith("SS") and not value.startswith("SSS"):
+        return f"SSS{value[2:]}"
+    return value
+
+
+def _enum_from_spoken(value: Any, allowed: Tuple[str, ...]) -> Any:
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    normalized = text.lower().replace(" to ", "-").replace("_", "-").replace(" ", "")
+    for item in allowed:
+        item_normalized = item.lower().replace(" ", "")
+        if normalized == item_normalized or normalized == item_normalized.replace("-", ""):
+            return item
+    return text
+
+
+def _learner_plan_payload(user: Mapping[str, Any], student_id: str) -> Dict[str, Any]:
+    user_id = str(user.get("id") or "")
+    profile = storage_service.get_learner_profile(user_id) or {}
+    payload: Dict[str, Any] = {"student_id": student_id, "tenant_id": PILOT_TENANT_ID}
+    exam = str(profile.get("exam") or "").strip()
+    if exam:
+        payload["exam"] = exam
+    class_year = _profile_class_year(profile.get("year_group"))
+    if class_year:
+        payload["class_year"] = class_year
+    subjects = profile.get("subjects")
+    if isinstance(subjects, list) and subjects:
+        subject = str(subjects[0] or "").strip()
+        if subject:
+            payload["subject"] = subject
+    return payload
+
+
+def _learning_api_response(callable_result) -> Tuple[Any, int] | Any:
+    try:
+        return jsonify(callable_result())
+    except LearningApiError as error:
+        return jsonify({"error": str(error)}), error.status_code
+
+
+def apply_learner_profile_from_voice(user_id: str, fields: Mapping[str, Any]) -> Dict[str, Any]:
+    patch: Dict[str, Any] = {}
+    if fields.get("display_name"):
+        patch["display_name"] = str(fields.get("display_name") or "").strip()
+    if fields.get("age_band") is not None:
+        patch["age_band"] = _enum_from_spoken(fields.get("age_band"), ALLOWED_AGE_BANDS)
+    if fields.get("exam") is not None:
+        patch["exam"] = _enum_from_spoken(fields.get("exam"), ALLOWED_EXAMS)
+    if fields.get("year_group") is not None:
+        patch["year_group"] = _enum_from_spoken(fields.get("year_group"), ALLOWED_YEAR_GROUPS)
+    if fields.get("subjects") is not None:
+        patch["subjects"] = fields.get("subjects")
+    if fields.get("interests") is not None:
+        patch["interests"] = fields.get("interests")
+
+    if patch:
+        cleaned, error = validate_learner_profile_patch(patch)
+        if error is not None:
+            raise ValueError(error)
+        storage_service.upsert_learner_profile(user_id, cleaned)
+    return _learner_profile_response(user_id)
+
+
+def apply_learner_goal_and_recommend(
+    *,
+    user_id: str,
+    student_id: str,
+    goal_input: Mapping[str, Any],
+) -> Dict[str, Any]:
+    candidate: Dict[str, Any] = {}
+    for key in ("subject", "exam", "target_date", "note"):
+        value = goal_input.get(key)
+        if value is not None and str(value).strip():
+            candidate[key] = str(value).strip()
+    if "exam" in candidate:
+        candidate["exam"] = _enum_from_spoken(candidate["exam"], ALLOWED_EXAMS)
+    if "target_date" in candidate:
+        candidate["target_date"] = candidate["target_date"].strip().lower().replace(" ", "_").replace("-", "_")
+
+    goal = normalise_goal(candidate)
+    if goal is not None:
+        goal["created_at"] = datetime.now(timezone.utc).isoformat()
+        profile = storage_service.get_learner_profile(user_id) or {}
+        existing_goals = profile.get("goals") if isinstance(profile.get("goals"), list) else []
+        storage_service.upsert_learner_profile(
+            user_id,
+            {"goals": [*cast(List[Dict[str, Any]], existing_goals), goal][-MAX_GOALS:]},
+        )
+
+    recommendation_payload: Dict[str, Any] = {"student_id": student_id, "tenant_id": PILOT_TENANT_ID}
+    for key in ("subject", "exam", "target_date"):
+        value = goal.get(key) if goal is not None else candidate.get(key)
+        if value:
+            recommendation_payload[key] = value
+    return learning_api.set_goal_and_recommend(recommendation_payload)
+
+
+@app.route("/api/learning/learner/plan", methods=["GET"])
+def learner_daily_plan():
+    if not _flag_enabled(LEARNER_ONBOARDING_FLAG):
+        return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
+    user, guard_response = _require_learner_user()
+    if guard_response is not None or user is None:
+        return guard_response
+    student_id, student_guard = _learner_request_student_id(user)
+    if student_guard is not None or not student_id:
+        return student_guard
+    return _learning_api_response(lambda: learning_api.build_learner_plan(_learner_plan_payload(user, student_id)))
+
+
+@app.route("/api/learning/goals/recommend", methods=["POST"])
+def learner_goal_recommend():
+    if not _flag_enabled(LEARNER_ONBOARDING_FLAG) or not _flag_enabled(LEARNER_GOAL_INTAKE_FLAG):
+        return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
+    user, guard_response = _require_learner_user()
+    if guard_response is not None or user is None:
+        return guard_response
+    student_id, student_guard = _learner_request_student_id(user)
+    if student_guard is not None or not student_id:
+        return student_guard
+    payload = cast(Dict[str, Any], request.get_json(silent=True) or {})
+    user_id = str(user.get("id") or "")
+    return _learning_api_response(
+        lambda: apply_learner_goal_and_recommend(user_id=user_id, student_id=student_id, goal_input=payload)
+    )
+
+
+@app.route("/api/learning/weekly-stats", methods=["GET"])
+def learner_weekly_stats():
+    if not _flag_enabled(LEARNER_ONBOARDING_FLAG):
+        return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
+    user, guard_response = _require_learner_user()
+    if guard_response is not None or user is None:
+        return guard_response
+    student_id, student_guard = _learner_request_student_id(user)
+    if student_guard is not None or not student_id:
+        return student_guard
+    return _learning_api_response(lambda: learning_api.weekly_stats({"student_id": student_id, "tenant_id": PILOT_TENANT_ID}))
+
+
+@app.route("/api/learning/learner/careers", methods=["GET"])
+def learner_career_plan():
+    if not _flag_enabled(LEARNER_ONBOARDING_FLAG):
+        return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
+    user, guard_response = _require_learner_user()
+    if guard_response is not None or user is None:
+        return guard_response
+    student_id, student_guard = _learner_request_student_id(user)
+    if student_guard is not None or not student_id:
+        return student_guard
+    profile = storage_service.get_learner_profile(str(user.get("id") or "")) or {}
+    return _learning_api_response(
+        lambda: learning_api.build_career_plan(
+            {
+                "student_id": student_id,
+                "tenant_id": PILOT_TENANT_ID,
+                "career_consent": bool(profile.get("career_consent", False)),
+            }
+        )
+    )
 
 
 @app.route(API_LEARNERS_ME_PROFILE_ENDPOINT, methods=["GET", "PATCH"])
@@ -2139,12 +2239,6 @@ def learner_self_profile():
     data = cast(Dict[str, Any], request.get_json(silent=True) or {})
     cleaned, error = validate_learner_profile_patch(data)
     if error is not None:
-        logger.warning(
-            "learner.profile_update.rejected user_id=%s fields=%s error=%s",
-            user_id,
-            sorted(data.keys()) if isinstance(data, dict) else "<non-object>",
-            error,
-        )
         return jsonify({"error": error}), HTTP_BAD_REQUEST
 
     storage_service.upsert_learner_profile(user_id, cleaned)
@@ -2202,381 +2296,6 @@ def learner_self_consent():
         metadata={"kind": kind, "version": version, "granted": bool(granted_raw)},
     )
     return jsonify(_learner_profile_response(user_id))
-
-
-_LEARNER_PLAN_YEAR_GROUP_TO_CLASS_YEAR: Dict[str, str] = {
-    "JSS1": "JSS1",
-    "JSS2": "JSS2",
-    "JSS3": "JSS3",
-    "SS1": "SSS1",
-    "SS2": "SSS2",
-    "SS3": "SSS3",
-}
-
-_LEARNER_PLAN_SUBJECT_ALIASES: Dict[str, str] = {
-    "maths": "Mathematics",
-    "mathematics": "Mathematics",
-    "english language": "English",
-    "english": "English",
-}
-
-
-@app.route("/api/learning/learner/plan", methods=["GET"])
-def learner_daily_plan():
-    """Return an adaptive, mastery-ranked daily plan for the calling learner."""
-    if not _pathfinder_learner_onboarding_enabled():
-        return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
-
-    user, guard_response = _require_role(ROLE_LEARNER)
-    if guard_response is not None:
-        return guard_response
-
-    owned_student_ids = _learning_student_ids_for_user(cast(Dict[str, Any], user))
-    requested = str(request.args.get("student_id") or "").strip()
-    if requested:
-        if requested not in owned_student_ids:
-            return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
-        student_id = requested
-    else:
-        student_id = next(iter(sorted(owned_student_ids)), "")
-    if not student_id:
-        return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
-
-    user_id = str(cast(Dict[str, Any], user).get("id") or "")
-    profile = storage_service.get_learner_profile(user_id) or {}
-
-    plan_payload: Dict[str, Any] = {"student_id": student_id}
-    exam = str(profile.get("exam") or "").strip()
-    if exam:
-        plan_payload["exam"] = exam
-    class_year = _LEARNER_PLAN_YEAR_GROUP_TO_CLASS_YEAR.get(
-        str(profile.get("year_group") or "").strip()
-    )
-    if class_year:
-        plan_payload["class_year"] = class_year
-    subjects = profile.get("subjects")
-    if isinstance(subjects, list):
-        for raw_subject in subjects:
-            alias = _LEARNER_PLAN_SUBJECT_ALIASES.get(str(raw_subject).strip().lower())
-            if alias:
-                plan_payload["subject"] = alias
-                break
-
-    try:
-        plan = learning_api.build_learner_plan(plan_payload)
-    except LearningApiError as exc:
-        return jsonify({"error": str(exc)}), exc.status_code
-    return jsonify(plan)
-
-
-@app.route("/api/learning/weekly-stats", methods=["GET"])
-def learner_weekly_stats():
-    """Return real per-learner "This week" stats for the learner home card.
-
-    Derived from the learner's persisted ``MasteryEvent`` history so the tiles
-    are truthful per learner (never the old hardcoded 4/5 · 7 days · +12%).
-    Mirrors ``learner_daily_plan``'s flag gate, RBAC guard and ownership check.
-    """
-    if not _pathfinder_learner_onboarding_enabled():
-        return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
-
-    user, guard_response = _require_role(ROLE_LEARNER)
-    if guard_response is not None:
-        return guard_response
-
-    owned_student_ids = _learning_student_ids_for_user(cast(Dict[str, Any], user))
-    requested = str(request.args.get("student_id") or "").strip()
-    if requested:
-        if requested not in owned_student_ids:
-            return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
-        student_id = requested
-    else:
-        student_id = next(iter(sorted(owned_student_ids)), "")
-    if not student_id:
-        return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
-
-    try:
-        stats = learning_api.weekly_stats({"student_id": student_id})
-    except LearningApiError as exc:
-        return jsonify({"error": str(exc)}), exc.status_code
-    return jsonify(stats)
-
-
-# Map spoken/loose values the voice onboarding agent may pass onto the strict
-# profile enums. Keeps the tool forgiving ("maths" / "ss 2") without weakening
-# the server-side validator (validate_learner_profile_patch still gates).
-_VOICE_EXAM_ALIASES: Dict[str, str] = {
-    "waec": "WAEC",
-    "neco": "NECO",
-    "jamb": "JAMB",
-    "junior waec": "Junior WAEC",
-    "jss waec": "Junior WAEC",
-    "igcse": "IGCSE",
-    "a-level": "A-Level",
-    "a level": "A-Level",
-}
-_VOICE_YEAR_ALIASES: Dict[str, str] = {
-    "jss1": "JSS1", "js1": "JSS1", "jss 1": "JSS1",
-    "jss2": "JSS2", "js2": "JSS2", "jss 2": "JSS2",
-    "jss3": "JSS3", "js3": "JSS3", "jss 3": "JSS3",
-    "ss1": "SS1", "sss1": "SS1", "ss 1": "SS1",
-    "ss2": "SS2", "sss2": "SS2", "ss 2": "SS2",
-    "ss3": "SS3", "sss3": "SS3", "ss 3": "SS3",
-}
-_VOICE_AGE_BAND_ALIASES: Dict[str, str] = {
-    "under 13": "under-13", "under-13": "under-13", "under thirteen": "under-13",
-    "13-15": "13-15", "13 to 15": "13-15",
-    "16-17": "16-17", "16 to 17": "16-17",
-    "18-24": "18-24", "18 to 24": "18-24",
-    "25+": "25-plus", "25 plus": "25-plus", "25-plus": "25-plus",
-}
-
-
-def apply_learner_profile_from_voice(
-    user_id: str, fields: Mapping[str, Any]
-) -> Dict[str, Any]:
-    """Persist NON-CONSENT profile fields captured by the voice onboarding agent.
-
-    The voice agent (``learner_onboarding`` scope) collects the getting-to-know-you
-    fields — name, age band, exam, year group, subjects, interests — and routes
-    them here. Consents (terms/privacy/ai_notice and the under-13 guardian gate)
-    are deliberately NOT accepted on this path: they remain an explicit, auditable
-    text step, so a spoken "sure" can never stand in for legal consent. Loose
-    spoken values are normalised onto the strict enums, then the SAME
-    ``validate_learner_profile_patch`` + ``upsert_learner_profile`` used by the
-    text wizard apply, so grounding/validation behaviour is identical.
-
-    Returns the standard ``_learner_profile_response`` payload (profile, consents,
-    needs_onboarding) so the caller can tell whether the consent gate is still
-    outstanding.
-    """
-    patch: Dict[str, Any] = {}
-
-    name = str(fields.get("display_name") or fields.get("name") or "").strip()
-    if name:
-        patch["display_name"] = name
-
-    age_raw = str(fields.get("age_band") or "").strip().lower()
-    if age_raw:
-        patch["age_band"] = _VOICE_AGE_BAND_ALIASES.get(age_raw, age_raw)
-
-    exam_raw = str(fields.get("exam") or "").strip()
-    if exam_raw:
-        patch["exam"] = _VOICE_EXAM_ALIASES.get(exam_raw.lower(), exam_raw)
-
-    year_raw = str(fields.get("year_group") or "").strip()
-    if year_raw:
-        patch["year_group"] = _VOICE_YEAR_ALIASES.get(year_raw.lower(), year_raw)
-
-    subjects = fields.get("subjects")
-    if isinstance(subjects, list):
-        cleaned_subjects = [str(s).strip() for s in subjects if str(s or "").strip()]
-        if cleaned_subjects:
-            patch["subjects"] = cleaned_subjects
-
-    interests = fields.get("interests")
-    if isinstance(interests, list):
-        cleaned_interests = [str(s).strip() for s in interests if str(s or "").strip()]
-        if cleaned_interests:
-            patch["interests"] = cleaned_interests
-
-    locale = str(fields.get("locale") or "").strip()
-    if locale:
-        patch["locale"] = locale
-
-    if not patch:
-        return _learner_profile_response(user_id)
-
-    cleaned, error = validate_learner_profile_patch(patch)
-    if error is not None:
-        raise LearningApiError(error, status_code=400)
-
-    storage_service.upsert_learner_profile(user_id, cleaned)
-    _log_audit_event(
-        user_id=user_id,
-        action="learner.profile_update.voice",
-        resource_type="learner_profile",
-        resource_id=user_id,
-        metadata={"fields": sorted(cleaned.keys())},
-    )
-    return _learner_profile_response(user_id)
-
-
-def apply_learner_goal_and_recommend(
-    user_id: str,
-    student_id: str,
-    goal_input: Mapping[str, Any],
-    *,
-    tenant_id: str | None = None,
-) -> Dict[str, Any]:
-    """Persist a stated goal then return instant "start here" recommendations.
-
-    Single orchestration point shared by the text endpoint and the
-    ``learner_goals`` voice tool handler: it reads the learner profile, persists
-    the new goal (Option A soft bias — capped, validated, append-most-recent),
-    maps the goal + profile onto the planner taxonomy, and delegates the actual
-    plan + block rendering to ``learning_api.set_goal_and_recommend``. Lives in
-    ``app.py`` because it needs ``storage_service`` (which owns learner
-    profiles); ``LearningApi`` stays storage-agnostic.
-    """
-    profile = storage_service.get_learner_profile(user_id) or {}
-
-    new_goal: Dict[str, Any] = {}
-    subject_raw = str(goal_input.get("subject") or "").strip()
-    exam_raw = str(goal_input.get("exam") or "").strip()
-    target_date_raw = str(goal_input.get("target_date") or "").strip().lower()
-    note_raw = str(goal_input.get("note") or "").strip()
-    if subject_raw:
-        new_goal["subject"] = subject_raw
-    if exam_raw:
-        new_goal["exam"] = exam_raw
-    if target_date_raw:
-        new_goal["target_date"] = target_date_raw
-    if note_raw:
-        new_goal["note"] = note_raw
-
-    # Persist only when the goal carries at least one biasing signal. A note on
-    # its own is conversational colour, never a stored goal.
-    if any(k in new_goal for k in ("subject", "exam", "target_date")):
-        new_goal["created_at"] = datetime.now(timezone.utc).isoformat()
-        existing_goals = profile.get("goals")
-        existing_list = existing_goals if isinstance(existing_goals, list) else []
-        merged = (list(existing_list) + [new_goal])[-MAX_GOALS:]
-        cleaned, error = validate_learner_profile_patch({"goals": merged})
-        if error is None:
-            storage_service.upsert_learner_profile(user_id, {"goals": cleaned["goals"]})
-            profile = storage_service.get_learner_profile(user_id) or profile
-
-    # Map goal (most recent intent) + profile defaults onto the planner taxonomy,
-    # mirroring the learner_daily_plan route so both surfaces stay consistent.
-    plan_payload: Dict[str, Any] = {"student_id": student_id}
-    if tenant_id:
-        plan_payload["tenant_id"] = tenant_id
-
-    resolved_exam = new_goal.get("exam") or str(profile.get("exam") or "").strip()
-    if resolved_exam:
-        plan_payload["exam"] = resolved_exam
-
-    class_year = _LEARNER_PLAN_YEAR_GROUP_TO_CLASS_YEAR.get(
-        str(profile.get("year_group") or "").strip()
-    )
-    if class_year:
-        plan_payload["class_year"] = class_year
-
-    subject_alias = _LEARNER_PLAN_SUBJECT_ALIASES.get(subject_raw.lower())
-    if not subject_alias:
-        subjects = profile.get("subjects")
-        if isinstance(subjects, list):
-            for raw_subject in subjects:
-                alias = _LEARNER_PLAN_SUBJECT_ALIASES.get(
-                    str(raw_subject).strip().lower()
-                )
-                if alias:
-                    subject_alias = alias
-                    break
-    if subject_alias:
-        plan_payload["subject"] = subject_alias
-
-    if new_goal.get("target_date"):
-        plan_payload["target_date"] = new_goal["target_date"]
-
-    return learning_api.set_goal_and_recommend(plan_payload)
-
-
-@app.route("/api/learning/goals/recommend", methods=["POST"])
-def learner_goal_recommend():
-    """Capture a learner's goal and return instant "start here" recommendations."""
-    if not _pathfinder_learner_onboarding_enabled() or not _pathfinder_goal_intake_enabled():
-        return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
-
-    user, guard_response = _require_role(ROLE_LEARNER)
-    if guard_response is not None:
-        return guard_response
-
-    body = request.get_json(silent=True) or {}
-    if not isinstance(body, dict):
-        return jsonify({"error": "request body must be a JSON object"}), HTTP_BAD_REQUEST
-
-    owned_student_ids = _learning_student_ids_for_user(cast(Dict[str, Any], user))
-    requested = str(body.get("student_id") or "").strip()
-    if requested:
-        if requested not in owned_student_ids:
-            return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
-        student_id = requested
-    else:
-        student_id = next(iter(sorted(owned_student_ids)), "")
-    if not student_id:
-        return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
-
-    user_id = str(cast(Dict[str, Any], user).get("id") or "")
-    goal_input = {
-        "subject": body.get("subject"),
-        "exam": body.get("exam"),
-        "target_date": body.get("target_date"),
-        "note": body.get("note"),
-    }
-    try:
-        result = apply_learner_goal_and_recommend(user_id, student_id, goal_input)
-    except LearningApiError as exc:
-        return jsonify({"error": str(exc)}), exc.status_code
-    return jsonify(result)
-
-
-
-    """Return mastery-ranked, consent-weighted career pathways for the learner."""
-    if not _pathfinder_learner_onboarding_enabled():
-        return jsonify({"error": "Not found"}), HTTP_NOT_FOUND
-
-    # Mastery-ranked careers surface on /pathways for the learner themselves and
-    # for the parent/admin who owns the child (same audience and ownership model
-    # as the /profile mastery view). Access is still scoped to owned children.
-    user, guard_response = _require_role(
-        ROLE_LEARNER, ROLE_KID, ROLE_STUDENT, ROLE_PARENT, ROLE_ADMIN
-    )
-    if guard_response is not None:
-        return guard_response
-
-    owned_student_ids = _learning_student_ids_for_user(cast(Dict[str, Any], user))
-    requested = str(request.args.get("student_id") or "").strip()
-    if requested:
-        if requested not in owned_student_ids:
-            return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
-        student_id = requested
-    else:
-        student_id = next(iter(sorted(owned_student_ids)), "")
-    if not student_id:
-        return jsonify({"error": CHILD_ACCESS_REQUIRED}), HTTP_FORBIDDEN
-
-    user_id = str(cast(Dict[str, Any], user).get("id") or "")
-    profile = storage_service.get_learner_profile(user_id) or {}
-    career_consent = bool(profile.get("career_consent"))
-
-    try:
-        plan = learning_api.build_career_plan(
-            {"student_id": student_id, "career_consent": career_consent}
-        )
-    except LearningApiError as exc:
-        return jsonify({"error": str(exc)}), exc.status_code
-    return jsonify(plan)
-
-
-@app.route("/api/learning/exam-prep/topics", methods=["GET"])
-def exam_prep_topics():
-    """Return the full exam-prep topic catalogue grouped by subject.
-
-    This is read-only learner content (the diagnostic topic breakdown the
-    exam-prep library binds to), so it is intentionally not gated behind the
-    learner-onboarding feature flag.
-    """
-    _user, guard_response = _require_role(ROLE_LEARNER)
-    if guard_response is not None:
-        return guard_response
-
-    try:
-        catalogue = learning_api.build_exam_prep_topics()
-    except LearningApiError as exc:
-        return jsonify({"error": str(exc)}), exc.status_code
-    return jsonify(catalogue)
 
 
 @app.route(API_ADMIN_INVITE_CODES_ENDPOINT, methods=["GET", "POST"])
@@ -2815,10 +2534,9 @@ def get_children():
 
     if request.method == "POST":
         user_dict = cast(Dict[str, Any], user)
-        user_id = str(user_dict.get("id"))
         role = str(user_dict.get("role") or "")
-        if role not in {ROLE_THERAPIST, ROLE_ADMIN, ROLE_PARENT}:
-            return jsonify({"error": "Therapist or parent role required"}), HTTP_FORBIDDEN
+        if role not in {ROLE_THERAPIST, ROLE_PARENT, ROLE_ADMIN}:
+            return jsonify({"error": "Therapist role required"}), HTTP_FORBIDDEN
 
         data = cast(Dict[str, Any], request.get_json(silent=True) or {})
         name = str(data.get("name") or "").strip()
@@ -2826,27 +2544,22 @@ def get_children():
             return jsonify({"error": "name is required"}), HTTP_BAD_REQUEST
 
         workspace_id = str(data.get("workspace_id") or "").strip() or None
-
+        relationship = "therapist"
         if role == ROLE_PARENT:
+            workspace = storage_service.get_default_workspace_for_user(str(user_dict.get("id") or ""))
+            if workspace is None:
+                workspace = storage_service.ensure_personal_workspace(
+                    user_id=str(user_dict.get("id") or ""),
+                    name=str(user_dict.get("name") or ""),
+                    email=str(user_dict.get("email") or ""),
+                )
+            workspace_id = workspace_id or (str(workspace.get("id") or "") if workspace else None)
             relationship = "parent"
-            if workspace_id is None:
-                try:
-                    workspace = storage_service.ensure_personal_workspace(
-                        user_id=user_id,
-                        name=str(user_dict.get("name") or ""),
-                        email=str(user_dict.get("email") or ""),
-                    )
-                    if workspace is not None:
-                        workspace_id = str(workspace.get("id") or "") or None
-                except Exception as error:  # pragma: no cover - defensive
-                    logger.exception("Failed to ensure parent workspace: %s", error)
-        else:
-            relationship = "therapist"
 
         try:
             child = storage_service.create_child(
                 name=name,
-                created_by_user_id=user_id,
+                created_by_user_id=str(user_dict.get("id")),
                 relationship=relationship,
                 date_of_birth=str(data.get("date_of_birth") or "").strip() or None,
                 notes=str(data.get("notes") or "").strip() or None,
@@ -2855,12 +2568,12 @@ def get_children():
         except ValueError as error:
             return jsonify({"error": str(error)}), HTTP_FORBIDDEN
         _log_audit_event(
-            user_id=user_id,
+            user_id=str(cast(Dict[str, Any], user).get("id")),
             action="child.create",
             resource_type="child",
             resource_id=str(child.get("id")),
             child_id=str(child.get("id")),
-            metadata={"workspace_id": child.get("workspace_id"), "relationship": relationship},
+            metadata={"workspace_id": child.get("workspace_id")},
         )
         return jsonify(child), 201
 
@@ -2875,6 +2588,77 @@ def get_children():
         metadata={"count": len(children)},
     )
     return jsonify(children)
+
+
+def build_child_mastery(child_id: str) -> Dict[str, Any]:
+    sessions = storage_service.list_sessions_for_child(child_id)
+    scores_by_skill: Dict[str, List[float]] = {}
+    trajectory: List[Dict[str, Any]] = []
+    for session in sessions:
+        raw_score = session.get("overall_score")
+        if raw_score is None and isinstance(session.get("ai_assessment"), Mapping):
+            raw_score = cast(Mapping[str, Any], session.get("ai_assessment")).get("overall_score")
+        if not isinstance(raw_score, (int, float)):
+            continue
+        exercise = session.get("exercise") if isinstance(session.get("exercise"), Mapping) else {}
+        skill = str(cast(Mapping[str, Any], exercise).get("name") or session.get("exercise_name") or "Practice").strip()
+        score = float(raw_score)
+        scores_by_skill.setdefault(skill, []).append(score)
+        trajectory.append(
+            {
+                "session_id": session.get("id"),
+                "timestamp": session.get("timestamp"),
+                "skill": skill,
+                "score": score,
+            }
+        )
+
+    scored_session_count = sum(len(scores) for scores in scores_by_skill.values())
+    if scored_session_count == 0:
+        return {
+            "child_id": child_id,
+            "has_data": False,
+            "scored_session_count": 0,
+            "skills": [],
+            "trajectory": [],
+        }
+
+    skills = [
+        {
+            "skill": skill,
+            "mastery": int(round(sum(scores) / len(scores))),
+            "sessions": len(scores),
+        }
+        for skill, scores in sorted(scores_by_skill.items())
+    ]
+    return {
+        "child_id": child_id,
+        "has_data": True,
+        "scored_session_count": scored_session_count,
+        "skills": skills,
+        "trajectory": trajectory,
+    }
+
+
+@app.route(API_CHILD_MASTERY_ENDPOINT)
+def get_child_mastery(child_id: str):
+    user, guard_response = _require_child_access(
+        child_id,
+        allowed_roles={ROLE_THERAPIST, ROLE_ADMIN},
+        allowed_relationships=["therapist"],
+        enforce_data_consent=True,
+    )
+    if guard_response is not None:
+        return guard_response
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")) if user is not None else None,
+        action="child.mastery.read",
+        resource_type="child_mastery",
+        resource_id=child_id,
+        child_id=child_id,
+    )
+    return jsonify(build_child_mastery(child_id))
 
 
 @app.route(API_CHILD_DETAIL_ENDPOINT, methods=["DELETE"])
@@ -3755,29 +3539,6 @@ def get_child_sessions(child_id: str):
         metadata={"count": len(sessions)},
     )
     return jsonify(sessions)
-
-
-@app.route(API_CHILD_MASTERY_ENDPOINT)
-def get_child_mastery(child_id: str):
-    """Return an aggregated mastery profile (skill radar + trajectory)."""
-    user, guard_response = _require_child_access(child_id, enforce_data_consent=True)
-    if guard_response is not None:
-        return guard_response
-
-    sessions = storage_service.list_sessions_for_child(child_id)
-    mastery = build_child_mastery(sessions)
-    _log_audit_event(
-        user_id=str(cast(Dict[str, Any], user).get("id")),
-        action="mastery.read",
-        resource_type="child_mastery",
-        resource_id=child_id,
-        child_id=child_id,
-        metadata={
-            "skills": len(mastery["skills"]),
-            "scored_sessions": mastery["scored_session_count"],
-        },
-    )
-    return jsonify(mastery)
 
 
 @app.route(API_CHILD_PLANS_ENDPOINT)
@@ -4853,99 +4614,6 @@ def child_progress_reports(child_id: str):
     return jsonify(reports)
 
 
-# Statuses a parent/guardian may see: only reports a therapist has finalised for
-# sharing. Drafts and archived reports are never exposed to parents.
-_PARENT_VISIBLE_REPORT_STATUSES = {"approved", "signed"}
-
-
-def _parent_visible_report(report: Mapping[str, Any]) -> bool:
-    """A report is parent-visible only if it is a finalised parent-audience report."""
-    audience = str(report.get("audience") or "").strip().lower()
-    status = str(report.get("status") or "").strip().lower()
-    return audience == "parent" and status in _PARENT_VISIBLE_REPORT_STATUSES
-
-
-@app.route(API_PARENT_CHILD_REPORTS_ENDPOINT, methods=["GET"])
-def parent_child_progress_reports(child_id: str):
-    """List finalised parent-facing progress reports for an owning parent.
-
-    Read-only counterpart to the therapist ``/api/children/<child_id>/reports``
-    route. Gated to the child's owning parent (or an admin) and restricted to
-    ``audience="parent"`` reports the therapist has approved or signed — drafts
-    are never shown to parents.
-    """
-    user, guard_response = _require_child_access(
-        child_id,
-        allowed_roles={ROLE_PARENT, ROLE_ADMIN},
-        allowed_relationships=["parent"],
-        enforce_data_consent=True,
-    )
-    if guard_response is not None:
-        return guard_response
-
-    try:
-        limit = max(1, min(50, int(request.args.get("limit") or 20)))
-    except (TypeError, ValueError):
-        return jsonify({"error": "limit must be a number between 1 and 50"}), HTTP_BAD_REQUEST
-
-    try:
-        reports = report_service.list_reports(
-            child_id,
-            audience="parent",
-            limit=limit,
-        )
-    except ValueError as error:
-        return jsonify({"error": str(error)}), HTTP_BAD_REQUEST
-
-    visible = [r for r in reports if _parent_visible_report(r)]
-
-    _log_audit_event(
-        user_id=str(cast(Dict[str, Any], user).get("id")),
-        action="report.parent_list",
-        resource_type="progress_report_collection",
-        resource_id=child_id,
-        child_id=child_id,
-        metadata={"count": len(visible)},
-    )
-    return jsonify(visible)
-
-
-@app.route(API_PARENT_REPORT_DETAIL_ENDPOINT, methods=["GET"])
-def get_parent_progress_report(report_id: str):
-    """Return one finalised parent-facing report for an owning parent."""
-    user, guard_response = _require_authenticated()
-    if guard_response is not None:
-        return guard_response
-
-    try:
-        report = report_service.get_report(report_id)
-    except ValueError:
-        return jsonify({"error": REPORT_NOT_FOUND}), HTTP_NOT_FOUND
-
-    _, child_guard = _require_child_access(
-        str(report.get("child_id") or ""),
-        allowed_roles={ROLE_PARENT, ROLE_ADMIN},
-        allowed_relationships=["parent"],
-        enforce_data_consent=True,
-    )
-    if child_guard is not None:
-        return child_guard
-
-    # Even an owning parent may only read finalised parent-audience reports —
-    # a therapist draft or a therapist-audience report is never exposed here.
-    if not _parent_visible_report(report):
-        return jsonify({"error": REPORT_NOT_FOUND}), HTTP_NOT_FOUND
-
-    _log_audit_event(
-        user_id=str(cast(Dict[str, Any], user).get("id")),
-        action="report.parent_read",
-        resource_type="progress_report",
-        resource_id=report_id,
-        child_id=str(report.get("child_id") or ""),
-    )
-    return jsonify(report)
-
-
 @app.route(API_REPORT_DETAIL_ENDPOINT)
 def get_progress_report(report_id: str):
     """Return one saved progress report."""
@@ -4972,6 +4640,75 @@ def get_progress_report(report_id: str):
         resource_type="progress_report",
         resource_id=report_id,
         child_id=str(report.get("child_id") or ""),
+    )
+    return jsonify(report)
+
+
+FINAL_PARENT_REPORT_STATUSES = {"approved", "signed"}
+
+
+@app.route(API_PARENT_CHILD_REPORTS_ENDPOINT)
+def list_parent_child_reports(child_id: str):
+    user, guard_response = _require_child_access(
+        child_id,
+        allowed_roles={ROLE_PARENT},
+        allowed_relationships=["parent"],
+        enforce_data_consent=True,
+    )
+    if guard_response is not None:
+        return guard_response
+
+    try:
+        limit = max(1, min(50, int(request.args.get("limit") or 20)))
+    except (TypeError, ValueError):
+        return jsonify({"error": "limit must be a number between 1 and 50"}), HTTP_BAD_REQUEST
+
+    reports = [
+        report
+        for report in report_service.list_reports(child_id, audience="parent", limit=limit)
+        if str(report.get("status") or "") in FINAL_PARENT_REPORT_STATUSES
+    ]
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")) if user is not None else None,
+        action="parent.report.list",
+        resource_type="progress_report_collection",
+        resource_id=child_id,
+        child_id=child_id,
+        metadata={"count": len(reports)},
+    )
+    return jsonify(reports)
+
+
+@app.route(API_PARENT_REPORT_DETAIL_ENDPOINT)
+def get_parent_progress_report(report_id: str):
+    user, guard_response = _require_role(ROLE_PARENT)
+    if guard_response is not None or user is None:
+        return guard_response
+
+    try:
+        report = report_service.get_report(report_id)
+    except ValueError:
+        return jsonify({"error": REPORT_NOT_FOUND}), HTTP_NOT_FOUND
+
+    child_id = str(report.get("child_id") or "")
+    _, child_guard = _require_child_access(
+        child_id,
+        allowed_roles={ROLE_PARENT},
+        allowed_relationships=["parent"],
+        enforce_data_consent=True,
+    )
+    if child_guard is not None:
+        return child_guard
+
+    if str(report.get("audience") or "") != "parent" or str(report.get("status") or "") not in FINAL_PARENT_REPORT_STATUSES:
+        return jsonify({"error": REPORT_NOT_FOUND}), HTTP_NOT_FOUND
+
+    _log_audit_event(
+        user_id=str(cast(Dict[str, Any], user).get("id")),
+        action="parent.report.read",
+        resource_type="progress_report",
+        resource_id=report_id,
+        child_id=child_id,
     )
     return jsonify(report)
 
@@ -5646,11 +5383,6 @@ def voice_proxy(ws: simple_websocket.ws.Server):
         ws.close(4403, "voice_learner_forbidden")
         return
 
-    if scope == "learner_ask" and not _pathfinder_voicelive_enabled(user):
-        logger.info("Rejected learner_ask VoiceLive connection: flag disabled")
-        ws.close(4404, "voice_voicelive_disabled")
-        return
-
     try:
         loop = asyncio.get_event_loop()
     except RuntimeError:
@@ -5714,152 +5446,6 @@ def insights_voice_socket(ws: simple_websocket.ws.Server):
 
 
 sock.route("/ws/insights-voice")(insights_voice_socket)  # pyright: ignore[reportUnknownMemberType]
-
-
-def _learner_voice_safeguarding_enabled() -> bool:
-    """Whether learner voice turns are screened by the safeguarding pipeline.
-
-    Default ON — a child counselling/tutoring product must fail safe, so the
-    flag is opt-OUT (set ``LEARNER_VOICE_SAFEGUARDING_ENABLED=0`` to disable).
-    """
-    raw = os.getenv("LEARNER_VOICE_SAFEGUARDING_ENABLED", "true")
-    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
-
-
-def _build_learner_safeguard_hook(user: Dict[str, Any]):
-    """Build the fire-and-forget safeguarding hook for one learner voice socket.
-
-    Returns ``None`` when safeguarding is flagged off or the service is not
-    initialised. The hook offloads the async pipeline to a daemon thread so the
-    synchronous learner-voice turn pump is never blocked, and routes parent
-    notifications through the same notifier the therapist path uses (the learner
-    is their own ``parent_user_id``; the resolver redirects minors to the
-    registered guardian).
-    """
-    if not _learner_voice_safeguarding_enabled():
-        return None
-    service = get_safeguarding_service()
-    if service is None or not service.enabled:
-        return None
-
-    subject_user_id = str(user.get("id") or "").strip() or None
-
-    def _hook(
-        text: str,
-        *,
-        direction: str,
-        child_id: Optional[str],
-        session_id: Optional[str],
-        context_turns,
-    ) -> None:
-        dir_enum = (
-            SafeguardingDirection.INBOUND
-            if direction == "inbound"
-            else SafeguardingDirection.OUTBOUND
-        )
-        ctx = tuple(context_turns or ())
-
-        def _run() -> None:
-            try:
-                asyncio.run(
-                    service.process_utterance(
-                        text=text,
-                        direction=dir_enum,
-                        user_id=subject_user_id,
-                        child_id=child_id,
-                        parent_user_id=subject_user_id,
-                        session_id=session_id,
-                        context_turns=ctx,
-                    )
-                )
-            except Exception:  # noqa: BLE001 — fail-open; never disturb the session
-                logger.debug("Learner voice safeguarding task failed", exc_info=True)
-
-        try:
-            threading.Thread(
-                target=_run, name="learner-voice-safeguard", daemon=True
-            ).start()
-        except Exception:  # noqa: BLE001
-            logger.debug("Learner voice safeguarding thread spawn failed", exc_info=True)
-
-    return _hook
-
-
-def learner_voice_socket(ws: simple_websocket.ws.Server):
-    """Realtime transport for the unified learner assistant.
-
-    The voice twin of ``POST /api/learning/assistant/turn``: it authenticates the
-    socket, binds the learner's RLS scope, then pumps every frame through the
-    same ``run_assistant_turn`` brain so voice and text share one vocabulary of
-    :class:`AssistantBlock` results. STT/TTS happen at the client edge — this
-    layer streams blocks, not audio.
-    """
-    environ = cast(Dict[str, Any], getattr(ws, "environ", {}) or {})
-    ws_headers = {
-        "X-MS-CLIENT-PRINCIPAL": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL", ""),
-        "X-MS-CLIENT-PRINCIPAL-ID": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_ID", ""),
-        "X-MS-CLIENT-PRINCIPAL-NAME": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_NAME", ""),
-        "X-MS-CLIENT-PRINCIPAL-IDP": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_IDP", ""),
-        "X-MS-CLIENT-PRINCIPAL-EMAIL": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_EMAIL", ""),
-    }
-    user = _get_authenticated_user_from_headers(ws_headers)
-    if user is None:
-        logger.warning("Rejected unauthenticated learner voice WebSocket connection")
-        ws.close(4401, "learning_voice_unauthorized")
-        return
-
-    role = str(user.get("role") or "")
-    if role == ROLE_PENDING_THERAPIST:
-        ws.close(4403, "learning_voice_forbidden")
-        return
-
-    # Learner roles are scoped to the children they own; teachers/admins pass
-    # through with no child binding (an empty owned set disables the per-frame
-    # child check, matching the text endpoint's learning policy).
-    owned_child_ids: set[str] = set()
-    if role in LEARNING_LEARNER_ROLES:
-        owned_child_ids = _learning_student_ids_for_user(user)
-        # The unified assistant turn is self-directed: the client sends
-        # ``child_id == the learner's own id`` (see AskPathfinder.buildContext),
-        # exactly as the text twin ``/api/learning/assistant/turn`` does — which
-        # never gates on ``child_id``. So a learner may always act on their own
-        # id; the per-frame check still rejects any *other* unowned child. Without
-        # this, a learner who also owns children (non-empty owned set that
-        # excludes their own id) is wrongly rejected with ``child_access_required``
-        # and the voice surface shows the connection-hiccup banner.
-        self_id = str(user.get("id") or "").strip()
-        if self_id:
-            owned_child_ids.add(self_id)
-
-    query = parse_qs(str(environ.get("QUERY_STRING") or ""), keep_blank_values=False)
-    default_user_id = str((query.get("user_id") or [""])[0] or user.get("id") or "").strip()
-    defaults: Dict[str, Any] = {}
-    if default_user_id:
-        defaults["user_id"] = default_user_id
-
-    def _bind_scope(payload: Mapping[str, Any]) -> None:
-        tenant_id, class_id = _learning_scope_from_request(payload)
-        authorized = _learning_authorized_tenant_ids(user)
-        if authorized and tenant_id not in authorized:
-            tenant_id = sorted(authorized)[0]
-        _bind_learning_storage_scope(tenant_id, class_id)
-
-    handler = LearnerVoiceSocketHandler(
-        ws,
-        run_turn=learning_api.run_assistant_turn,
-        owned_child_ids=owned_child_ids,
-        bind_scope=_bind_scope,
-        default_payload=defaults,
-        safeguard=_build_learner_safeguard_hook(user),
-    )
-    try:
-        handler.run()
-    finally:
-        _shutdown_ws_socket(ws)
-
-
-sock.route("/ws/learning-voice")(learner_voice_socket)  # pyright: ignore[reportUnknownMemberType]
-
 
 
 def main():

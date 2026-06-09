@@ -68,10 +68,12 @@ describe('PracticeFullscreen', () => {
     // Voice is ON by default and auto-speaks each card, so every render hits
     // /api/learning/tts. Provide a successful audio response by default; tests
     // that care about TTS override this spy.
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(new Blob(['FAKE_MP3'], { type: 'audio/mpeg' }), {
-        status: 200,
-      })
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+      Promise.resolve(
+        new Response(new Blob(['FAKE_MP3'], { type: 'audio/mpeg' }), {
+          status: 200,
+        })
+      )
     )
   })
 
@@ -177,10 +179,12 @@ describe('PracticeFullscreen', () => {
 
   it('auto-speaks each card aloud on arrival (no tap needed)', async () => {
     runTurnSpy.mockResolvedValue({ card: mcqCard, session_complete: false })
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(new Blob(['FAKE_MP3'], { type: 'audio/mpeg' }), {
-        status: 200,
-      })
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+      Promise.resolve(
+        new Response(new Blob(['FAKE_MP3'], { type: 'audio/mpeg' }), {
+          status: 200,
+        })
+      )
     )
     render(
       <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />
@@ -239,8 +243,8 @@ describe('PracticeFullscreen', () => {
 
   it('hides the voice toggle when TTS is unavailable (503)', async () => {
     runTurnSpy.mockResolvedValue({ card: mcqCard, session_complete: false })
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response('', { status: 503 })
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+      Promise.resolve(new Response('', { status: 503 }))
     )
     render(
       <PracticeFullscreen open={true} onClose={() => {}} childId="stu-1" />

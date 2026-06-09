@@ -2350,35 +2350,35 @@ class StorageService:
                         SELECT status
                         FROM child_invitation_email_deliveries
                         WHERE invitation_id = child_invitations.id
-                        ORDER BY created_at DESC
+                        ORDER BY created_at DESC, rowid DESC
                         LIMIT 1
                     ) AS email_delivery_status,
                     (
                         SELECT attempted
                         FROM child_invitation_email_deliveries
                         WHERE invitation_id = child_invitations.id
-                        ORDER BY created_at DESC
+                        ORDER BY created_at DESC, rowid DESC
                         LIMIT 1
                     ) AS email_delivery_attempted,
                     (
                         SELECT delivered
                         FROM child_invitation_email_deliveries
                         WHERE invitation_id = child_invitations.id
-                        ORDER BY created_at DESC
+                        ORDER BY created_at DESC, rowid DESC
                         LIMIT 1
                     ) AS email_delivery_delivered,
                     (
                         SELECT provider_message_id
                         FROM child_invitation_email_deliveries
                         WHERE invitation_id = child_invitations.id
-                        ORDER BY created_at DESC
+                        ORDER BY created_at DESC, rowid DESC
                         LIMIT 1
                     ) AS email_delivery_provider_message_id,
                     (
                         SELECT error
                         FROM child_invitation_email_deliveries
                         WHERE invitation_id = child_invitations.id
-                        ORDER BY created_at DESC
+                        ORDER BY created_at DESC, rowid DESC
                         LIMIT 1
                     ) AS email_delivery_error
                 FROM child_invitations
@@ -2417,35 +2417,35 @@ class StorageService:
                         SELECT status
                         FROM child_invitation_email_deliveries
                         WHERE invitation_id = child_invitations.id
-                        ORDER BY created_at DESC
+                        ORDER BY created_at DESC, rowid DESC
                         LIMIT 1
                     ) AS email_delivery_status,
                     (
                         SELECT attempted
                         FROM child_invitation_email_deliveries
                         WHERE invitation_id = child_invitations.id
-                        ORDER BY created_at DESC
+                        ORDER BY created_at DESC, rowid DESC
                         LIMIT 1
                     ) AS email_delivery_attempted,
                     (
                         SELECT delivered
                         FROM child_invitation_email_deliveries
                         WHERE invitation_id = child_invitations.id
-                        ORDER BY created_at DESC
+                        ORDER BY created_at DESC, rowid DESC
                         LIMIT 1
                     ) AS email_delivery_delivered,
                     (
                         SELECT provider_message_id
                         FROM child_invitation_email_deliveries
                         WHERE invitation_id = child_invitations.id
-                        ORDER BY created_at DESC
+                        ORDER BY created_at DESC, rowid DESC
                         LIMIT 1
                     ) AS email_delivery_provider_message_id,
                     (
                         SELECT error
                         FROM child_invitation_email_deliveries
                         WHERE invitation_id = child_invitations.id
-                        ORDER BY created_at DESC
+                        ORDER BY created_at DESC, rowid DESC
                         LIMIT 1
                     ) AS email_delivery_error
                 FROM child_invitations

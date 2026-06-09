@@ -10,6 +10,7 @@
     "test": "vitest run --config vitest.config.ts",
     "test:e2e": "playwright test",
     "test:e2e:onboarding": "playwright test e2e/onboarding-tours.spec.ts",
+    "capture:flow-assets": "playwright test e2e/capture-wulo-flow-real-app.spec.ts --config=playwright.flow-capture.config.ts",
     "verify:staging": "bash ../scripts/verify-staging-dashboard.sh",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",

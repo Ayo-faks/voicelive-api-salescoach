@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wulo Academy — Whole-Platform Mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /*
+     * Whole-platform mockup. Standalone HTML, NO app code touched.
+     * In-app surfaces use the real monochrome frontend/src/learning/theme/
+     * pathfinder-tokens.ts. Tutor + onboarding use the real dark scrim + silver
+     * orb from LearnerTutorFullscreen / VoiceAgentFullscreen / GoalIntakeScreen.
+     */
+    :root {
+      --ink:#0a0a0a; --ink-soft:#1c1c1e; --ink-muted:#3a3a3c;
+      --text-secondary:#5c5c61; --text-tertiary:#6e6e73;
+      --line:#e5e5ea; --line-soft:#f0f0f3;
+      --surface:#ffffff; --surface-muted:#fafafa; --page:#f7f7f8; --on-ink:#ffffff;
+      --ok-bg:#f3f6f3; --ok-fg:#1b5e20;
+      --warn-bg:#f6f6f7; --warn-fg:#7a5b00;
+      --crit-bg:#fef0ef; --crit-fg:#86181d;
+      --info-bg:#f1f2f4; --info-fg:#1f3a68;
+      --m-needs-bg:#f4e3e3; --m-needs-fg:#86181d;
+      --m-dev-bg:#f2f2f3;   --m-dev-fg:#7a5b00;
+      --m-appr-bg:#ededee;  --m-appr-fg:#1b5e20;
+      --m-secure-bg:#e3e6e3;--m-secure-fg:#0f3d12;
+      --r-sm:8px; --r-md:12px; --r-lg:14px; --r-xl:18px; --r-xxl:22px; --r-pill:999px; --r-ctl:10px;
+      --shadow-raised:0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.04);
+      --shadow-elevated:inset 0 1px 0 rgba(255,255,255,.86), 0 1px 2px rgba(0,0,0,.04), 0 12px 32px rgba(0,0,0,.045);
+      --hairline:1px solid #e5e5ea;
+      --font:"Manrope",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+
+      /* ---- tutor / orb "scrim" palette (defaults = DARK) ---- */
+      --scrim-bg:radial-gradient(circle at 50% 18%, #202024 0%, #070708 64%);
+      --scrim-fg:#f7f7f8;
+      --scrim-fg-soft:rgba(255,255,255,.64);
+      --scrim-fg-mute:rgba(255,255,255,.5);
+      --scrim-line:rgba(255,255,255,.1);
+      --scrim-line-strong:rgba(255,255,255,.12);
+      --scrim-chip:rgba(255,255,255,.06);
+      --scrim-card:rgba(20,20,24,.85);
+      --scrim-panel:rgba(20,20,24,.7);
+      --scrim-card-line:rgba(255,255,255,.08);
+      --scrim-head-line:rgba(255,255,255,.07);
+      --scrim-fill:#ffffff;        /* solid pills / dots / active toggle */
+      --scrim-onfill:#0a0a0a;      /* text on those fills */
+      --ring-color:rgba(255,255,255,.28);
+      --orb-glow:0 0 60px rgba(255,255,255,.18), inset 0 0 32px rgba(255,255,255,.2);
+      --wave-color:rgba(255,255,255,.8);
+      --vopt-lab:#9bd4ff;
+      --mic-bg:linear-gradient(160deg,#4a4a4d 0%,#090909 100%);
+      --mic-ring:0 0 0 8px rgba(255,255,255,.08), 0 18px 48px rgba(0,0,0,.5);
+      --msg-u-bg:#ffffff; --msg-u-fg:#0a0a0a;
+      --msg-a-bg:rgba(255,255,255,.06);
+      --send-bg:#ffffff; --send-fg:#0a0a0a;
+      --vp-stage-bg:#e9e9ec;
+    }
+
+    /* ===== LIGHT MODE: flip the tutor/onboarding scrim to white (in-app stays light) ===== */
+    body[data-theme="light"] {
+      --scrim-bg:radial-gradient(circle at 50% 14%, #ffffff 0%, #eceef1 72%);
+      --scrim-fg:#0a0a0a;
+      --scrim-fg-soft:rgba(20,20,22,.6);
+      --scrim-fg-mute:rgba(20,20,22,.42);
+      --scrim-line:#e5e5ea;
+      --scrim-line-strong:#dcdce1;
+      --scrim-chip:#ffffff;
+      --scrim-card:#ffffff;
+      --scrim-panel:#ffffff;
+      --scrim-card-line:#e5e5ea;
+      --scrim-head-line:#e9e9ec;
+      --scrim-fill:#0a0a0a;
+      --scrim-onfill:#ffffff;
+      --ring-color:rgba(10,10,12,.16);
+      --orb-glow:0 20px 54px rgba(0,0,0,.2), inset 0 0 26px rgba(255,255,255,.55);
+      --wave-color:rgba(10,10,12,.62);
+      --vopt-lab:#1f5fd0;
+      --mic-bg:linear-gradient(160deg,#2c2c2e 0%,#0a0a0a 100%);
+      --mic-ring:0 0 0 8px rgba(10,10,12,.06), 0 18px 40px rgba(0,0,0,.22);
+      --msg-u-bg:#0a0a0a; --msg-u-fg:#ffffff;
+      --msg-a-bg:#f2f2f4;
+      --send-bg:#0a0a0a; --send-fg:#ffffff;
+    }
+
+    /* ===== DARK MODE: flip the in-app surfaces dark (tutor scrim already dark by default) ===== */
+    body[data-theme="dark"] {
+      --ink:#f5f5f7; --ink-soft:#e4e4e7; --ink-muted:#c8c8cc;
+      --text-secondary:#a2a2a9; --text-tertiary:#86868c;
+      --line:#2c2c30; --line-soft:#232327;
+      --surface:#1b1b1e; --surface-muted:#202024; --page:#0d0d0f; --on-ink:#0a0a0a;
+      --hairline:1px solid #2c2c30;
+      --shadow-raised:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.5);
+      --shadow-elevated:inset 0 1px 0 rgba(255,255,255,.04), 0 1px 2px rgba(0,0,0,.4), 0 12px 32px rgba(0,0,0,.55);
+      --vp-stage-bg:#000000;
+    }
+    /* keep "ink-filled" chips readable when --ink becomes light in dark mode */
+    body[data-theme="dark"] .btn.ink,
+    body[data-theme="dark"] .rail .b .logo,
+    body[data-theme="dark"] .rail .foot .av,
+    body[data-theme="dark"] .badge.b-now,
+    body[data-theme="dark"] .play,
+    body[data-theme="dark"] .pp.on,
+    body[data-theme="dark"] .meter span { color:#0d0d0f; }
+    body[data-theme="dark"] .frame { border-color:#2c2c30; box-shadow:0 24px 70px rgba(0,0,0,.6); }
+
+    * { box-sizing:border-box; }
+    html,body { height:100%; }
+    body {
+      margin:0; font-family:var(--font); color:var(--ink);
+      background:#0c0c0d; -webkit-font-smoothing:antialiased;
+      display:grid; grid-template-columns:300px 1fr; height:100vh; overflow:hidden;
+    }
+
+    /* ============ LEFT INDEX (contact sheet / coverage proof) ============ */
+    .index {
+      background:#0c0c0d; color:#e7e7ea; border-right:1px solid #1d1d20;
+      overflow-y:auto; padding:20px 16px 40px;
+    }
+    .index h1 { font-size:15px; font-weight:800; letter-spacing:.2px; margin:0 0 2px; }
+    .index .sub { font-size:11.5px; color:#8a8a90; margin:0 0 18px; line-height:1.5; }
+    .grp { margin:18px 0 8px; font-size:10.5px; letter-spacing:1.4px; text-transform:uppercase; color:#6b6b71; display:flex; justify-content:space-between; }
+    .grp span { color:#4f4f55; }
+    .idx-item {
+      display:flex; gap:10px; align-items:center; width:100%; text-align:left;
+      background:transparent; border:1px solid transparent; color:#c9c9ce;
+      padding:8px 10px; border-radius:9px; font:inherit; font-size:12.5px; cursor:pointer;
+    }
+    .idx-item:hover { background:#161618; color:#fff; }
+    .idx-item.active { background:#1c1c1f; border-color:#2c2c30; color:#fff; }
+    .idx-item .n { width:22px; height:22px; border-radius:6px; background:#161618; color:#9a9aa0;
+      display:grid; place-items:center; font-size:11px; font-weight:700; flex:none; }
+    .idx-item.active .n { background:#fff; color:#0a0a0a; }
+    .idx-foot { margin-top:24px; font-size:11px; color:#6b6b71; line-height:1.6; border-top:1px solid #1d1d20; padding-top:14px; }
+
+    /* ============ VIEWPORT ============ */
+    .viewport { position:relative; overflow:auto; background:var(--vp-stage-bg); }
+    .vp-bar {
+      position:sticky; top:0; z-index:40; height:48px; background:var(--surface); border-bottom:var(--hairline);
+      display:flex; align-items:center; gap:14px; padding:0 18px; font-size:12.5px; color:var(--text-secondary);
+    }
+    .vp-bar b { color:var(--ink); font-weight:700; }
+    .vp-bar .pill { font-size:11px; color:var(--text-tertiary);
+      border:var(--hairline); border-radius:var(--r-pill); padding:4px 12px; background:var(--surface-muted); }
+    /* light / dark toggle */
+    .theme-tg { margin-left:auto; display:inline-flex; gap:3px; background:var(--surface-muted); border:var(--hairline); border-radius:var(--r-pill); padding:3px; }
+    .theme-tg button { font:inherit; font-size:11px; font-weight:700; color:var(--text-tertiary); background:transparent; border:0; border-radius:var(--r-pill); padding:5px 12px; cursor:pointer; display:inline-flex; align-items:center; gap:5px; }
+    .theme-tg button.on { background:var(--ink); color:var(--on-ink); }
+    .stage { padding:26px; min-height:calc(100vh - 48px); }
+
+    .screen { display:none; }
+    .screen.active { display:block; }
+
+    /* frame for in-app surfaces */
+    .frame {
+      width:1180px; max-width:100%; margin:0 auto; background:var(--page);
+      border-radius:16px; overflow:hidden; box-shadow:0 24px 70px rgba(0,0,0,.22);
+      border:1px solid #d6d6da; display:grid; grid-template-columns:230px 1fr; min-height:720px;
+    }
+    .fullframe {
+      width:1180px; max-width:100%; margin:0 auto; border-radius:16px; overflow:hidden;
+      box-shadow:0 24px 70px rgba(0,0,0,.32); border:1px solid #000; min-height:720px;
+    }
+
+    /* ---- app rail (full labelled, per real PathfinderLearnApp) ---- */
+    .rail { background:var(--surface); border-right:var(--hairline); padding:18px 14px; display:flex; flex-direction:column; gap:4px; }
+    .rail .b { display:flex; align-items:center; gap:10px; padding:4px 6px 16px; }
+    .rail .b .logo { width:34px; height:34px; border-radius:9px; background:var(--ink); color:#fff; display:grid; place-items:center; font-weight:800; font-size:17px; }
+    .rail .b .nm { font-weight:800; font-size:14px; letter-spacing:.1px; }
+    .rail .b .nm small { display:block; font-size:10px; font-weight:600; color:var(--text-tertiary); letter-spacing:.3px; }
+    .nav { display:flex; align-items:center; gap:11px; padding:9px 11px; border-radius:var(--r-ctl); color:var(--text-secondary); font-size:13px; font-weight:600; }
+    .nav .ic { width:18px; height:18px; flex:none; color:currentColor; }
+    .nav.active { background:var(--page); color:var(--ink); box-shadow:inset 0 0 0 1px var(--line); }
+    .nav.adm::after { content:"admin"; margin-left:auto; font-size:9px; letter-spacing:.6px; color:var(--text-tertiary); text-transform:uppercase; }
+    .rail .sep { height:1px; background:var(--line); margin:12px 4px; }
+    .rail .foot { margin-top:auto; display:flex; align-items:center; gap:10px; padding:8px 6px; }
+    .rail .foot .av { width:32px; height:32px; border-radius:50%; background:var(--ink); color:#fff; display:grid; place-items:center; font-weight:700; font-size:13px; }
+    .rail .foot .who { font-size:12px; font-weight:700; } .rail .foot .who small { display:block; font-size:10.5px; color:var(--text-tertiary); font-weight:600; }
+
+    /* ---- app main + topbar ---- */
+    .main { display:flex; flex-direction:column; min-width:0; }
+    .topbar { height:60px; border-bottom:var(--hairline); background:var(--surface); display:flex; align-items:center; gap:12px; padding:0 22px; }
+    .topbar .h { font-size:14px; font-weight:800; }
+    .trust { display:flex; align-items:center; gap:8px; margin-left:auto; }
+    .chip { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:600; padding:5px 10px; border-radius:var(--r-pill); border:var(--hairline); background:var(--surface-muted); color:var(--text-secondary); }
+    .chip .dot { width:7px; height:7px; border-radius:50%; background:var(--ok-fg); }
+    .chip.safe .dot { background:var(--info-fg); }
+    .content { padding:24px 26px 30px; overflow:auto; }
+
+    /* ---- generic content atoms ---- */
+    .greet { font-size:22px; font-weight:800; margin:0 0 2px; }
+    .greet + .gsub { color:var(--text-secondary); font-size:13px; margin:0 0 20px; }
+    .cols { display:grid; grid-template-columns:1.5fr 1fr; gap:20px; align-items:start; }
+    .card { background:var(--surface); border:var(--hairline); border-radius:var(--r-xl); box-shadow:var(--shadow-elevated); padding:18px; }
+    .card h3 { font-size:13px; font-weight:800; margin:0 0 14px; display:flex; align-items:center; gap:8px; }
+    .card h3 .tag { margin-left:auto; font-size:10.5px; font-weight:700; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.5px; }
+    .stat-row { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+    .stat { background:var(--surface); border:var(--hairline); border-radius:var(--r-lg); padding:14px 16px; box-shadow:var(--shadow-raised); }
+    .stat .k { font-size:11px; color:var(--text-tertiary); font-weight:700; text-transform:uppercase; letter-spacing:.5px; }
+    .stat .v { font-size:26px; font-weight:800; margin:6px 0 2px; }
+    .stat .d { font-size:11.5px; color:var(--ok-fg); font-weight:700; }
+    .item { display:flex; align-items:center; gap:12px; padding:12px 0; border-top:var(--hairline); }
+    .item:first-of-type { border-top:0; }
+    .item .ico { width:36px; height:36px; border-radius:10px; background:var(--page); border:var(--hairline); display:grid; place-items:center; flex:none; color:var(--ink); }
+    .item .tt { font-size:13px; font-weight:700; } .item .mm { font-size:11.5px; color:var(--text-tertiary); }
+    .item .rt { margin-left:auto; display:flex; align-items:center; gap:8px; }
+    .badge { font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:var(--r-pill); }
+    .b-now { background:var(--ink); color:#fff; } .b-next { background:var(--info-bg); color:var(--info-fg); } .b-done { background:var(--ok-bg); color:var(--ok-fg); }
+    .play { width:34px; height:34px; border-radius:50%; background:var(--ink); color:#fff; display:grid; place-items:center; flex:none; }
+    .gap { padding:12px 0; border-top:var(--hairline); } .gap:first-child { border-top:0; }
+    .gap .top { display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; }
+    .meter { height:8px; border-radius:99px; background:var(--line-soft); margin:8px 0 6px; overflow:hidden; }
+    .meter span { display:block; height:100%; background:var(--ink); border-radius:99px; }
+    .meter.target span { background:var(--m-dev-fg); }
+    .gap .act { font-size:11.5px; color:var(--text-secondary); }
+    .btn { display:inline-flex; align-items:center; gap:7px; font:inherit; font-size:12.5px; font-weight:700; border-radius:var(--r-ctl); padding:9px 14px; cursor:pointer; border:var(--hairline); background:var(--surface); color:var(--ink); min-height:40px; }
+    .btn.ink { background:var(--ink); color:#fff; border-color:var(--ink); }
+    .btn.full { width:100%; justify-content:center; }
+    .ms { font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:var(--r-pill); }
+    .ms.secure { background:var(--m-secure-bg); color:var(--m-secure-fg); }
+    .ms.appr { background:var(--m-appr-bg); color:var(--m-appr-fg); }
+    .ms.dev { background:var(--m-dev-bg); color:var(--m-dev-fg); }
+    .ms.needs { background:var(--m-needs-bg); color:var(--m-needs-fg); }
+    .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .grid2 { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+    .gcard { background:var(--surface); border:var(--hairline); border-radius:var(--r-lg); padding:16px; box-shadow:var(--shadow-raised); }
+    .gcard .gt { font-size:13px; font-weight:800; } .gcard .gm { font-size:11.5px; color:var(--text-tertiary); margin-top:3px; }
+    .pillrow { display:flex; flex-wrap:wrap; gap:7px; margin-top:10px; }
+    .pp { font-size:11px; font-weight:600; padding:4px 10px; border-radius:var(--r-pill); background:var(--page); border:var(--hairline); color:var(--text-secondary); }
+    .pp.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+    .toolbar { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+    .search { flex:1; display:flex; align-items:center; gap:8px; border:var(--hairline); border-radius:var(--r-ctl); padding:10px 12px; background:var(--surface); font-size:12.5px; color:var(--text-tertiary); }
+    table.heat { width:100%; border-collapse:separate; border-spacing:0; font-size:12px; }
+    table.heat th, table.heat td { padding:10px 12px; text-align:left; border-bottom:var(--hairline); }
+    table.heat th { font-size:10.5px; text-transform:uppercase; letter-spacing:.5px; color:var(--text-tertiary); font-weight:700; }
+    .cell { display:inline-flex; flex-direction:column; gap:4px; min-width:64px; }
+    .cell .pct { font-weight:800; font-size:12.5px; }
+    .cell .unc { height:4px; width:54px; border-radius:99px; background:var(--line-soft); overflow:hidden; }
+    .cell .unc span { display:block; height:100%; }
+    .lead { color:var(--text-secondary); font-size:13px; line-height:1.6; }
+    .kgrid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+    .ev { display:grid; grid-template-columns:120px 1fr 130px 100px; gap:12px; align-items:center; padding:12px 0; border-top:var(--hairline); font-size:12px; }
+    .ev:first-of-type { border-top:0; }
+    .sev { font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:var(--r-pill); justify-self:start; }
+    .sev.high { background:var(--crit-bg); color:var(--crit-fg); } .sev.med { background:var(--warn-bg); color:var(--warn-fg); } .sev.low { background:var(--info-bg); color:var(--info-fg); }
+
+    /* ============ FULL-BLEED SCRIM (orb tutor + onboarding) — themeable ============ */
+    .dark {
+      position:relative; width:100%; height:720px; color:var(--scrim-fg);
+      background:var(--scrim-bg);
+      display:grid; grid-template-rows:auto 1fr auto;
+    }
+    .dark.center { grid-template-rows:1fr; place-items:center; }
+    .d-head { display:flex; align-items:center; justify-content:space-between; padding:18px 24px; border-bottom:1px solid var(--scrim-head-line); }
+    .d-brand { display:inline-flex; align-items:center; gap:10px; font-size:13px; font-weight:800; }
+    .d-brand .dot { width:9px; height:9px; border-radius:99px; background:var(--scrim-fill); box-shadow:0 0 14px rgba(120,120,120,.35); }
+    .d-modes { display:flex; gap:6px; background:var(--scrim-chip); border:1px solid var(--scrim-line-strong); border-radius:99px; padding:4px; }
+    .d-mode { font-size:12px; font-weight:700; color:var(--scrim-fg-soft); padding:6px 14px; border-radius:99px; display:inline-flex; gap:7px; align-items:center; cursor:pointer; }
+    .d-mode.on { background:var(--scrim-fill); color:var(--scrim-onfill); }
+    .d-x { width:40px; height:40px; border-radius:99px; border:1px solid var(--scrim-line-strong); background:var(--scrim-chip); color:var(--scrim-fg); display:grid; place-items:center; cursor:pointer; }
+    .d-body { display:grid; justify-items:center; align-content:start; gap:22px; padding:40px 20px 20px; overflow-y:auto; }
+
+    .orbwrap { position:relative; width:min(300px,52vw); aspect-ratio:1; display:grid; place-items:center; }
+    .ring { position:absolute; inset:0; border-radius:99px; border:1px solid var(--ring-color); animation:ring 2400ms cubic-bezier(.4,0,.2,1) infinite; }
+    .ring:nth-child(2){ animation-delay:800ms; } .ring:nth-child(3){ animation-delay:1600ms; }
+    @keyframes ring { 0%{ transform:scale(.6); opacity:.6; } 100%{ transform:scale(1.35); opacity:0; } }
+    .orb {
+      width:62%; aspect-ratio:1; border-radius:99px;
+      background:radial-gradient(circle at 32% 26%, #ffffff 0%, #d8d8dd 34%, #53535a 68%, #101012 100%);
+      box-shadow:var(--orb-glow);
+      animation:breathe 1400ms ease-in-out infinite;
+    }
+    @keyframes breathe { 0%,100%{ transform:scale(.98);} 50%{ transform:scale(1.04);} }
+    .d-state { display:grid; gap:6px; text-align:center; }
+    .d-state .t { font-size:1.32rem; font-weight:800; }
+    .d-state .h { color:var(--scrim-fg-soft); font-size:.9rem; }
+    .wave { display:flex; gap:4px; align-items:flex-end; justify-content:center; height:22px; }
+    .wave i { width:3px; background:var(--wave-color); border-radius:99px; animation:wv .9s ease-in-out infinite; }
+    .wave i:nth-child(2){ animation-delay:.15s;} .wave i:nth-child(3){ animation-delay:.3s;} .wave i:nth-child(4){ animation-delay:.45s;} .wave i:nth-child(5){ animation-delay:.6s;}
+    @keyframes wv { 0%,100%{ height:6px;} 50%{ height:22px;} }
+
+    .vcard { width:min(640px,100%); border-radius:20px; border:1px solid var(--scrim-card-line); background:var(--scrim-card); padding:22px 24px; display:grid; gap:14px; }
+    .vcard .stem { font-size:1rem; font-weight:700; }
+    .vopts { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .vopt { border:1px solid var(--scrim-line-strong); border-radius:14px; padding:12px 14px; font-size:.92rem; display:flex; gap:10px; align-items:center; }
+    .vopt .lab { color:var(--vopt-lab); font-weight:800; }
+    .vopt.sel { border-color:var(--scrim-fg-soft); background:var(--scrim-chip); }
+
+    .d-foot { display:flex; align-items:center; justify-content:center; gap:14px; padding:18px 24px 30px; }
+    .mic { width:64px; height:64px; border-radius:99px; border:1px solid var(--scrim-line-strong); background:var(--mic-bg); color:#fff; display:grid; place-items:center; cursor:pointer; box-shadow:var(--mic-ring); }
+    .lvl { width:88px; height:8px; border-radius:99px; background:var(--scrim-line-strong); overflow:hidden; }
+    .lvl span { display:block; height:100%; width:62%; background:var(--scrim-fill); border-radius:99px; }
+
+    /* text-chat transcript */
+    .chat { width:min(680px,100%); display:grid; gap:14px; }
+    .msg { max-width:78%; padding:12px 15px; border-radius:16px; font-size:.95rem; line-height:1.5; }
+    .msg.u { justify-self:end; background:var(--msg-u-bg); color:var(--msg-u-fg); border-bottom-right-radius:5px; }
+    .msg.a { justify-self:start; background:var(--msg-a-bg); border:1px solid var(--scrim-card-line); border-bottom-left-radius:5px; }
+    .composer { width:min(680px,100%); display:flex; gap:10px; align-items:center; background:var(--scrim-chip); border:1px solid var(--scrim-line-strong); border-radius:16px; padding:10px 12px; }
+    .composer .ph { flex:1; color:var(--scrim-fg-mute); font-size:.95rem; }
+    .send { width:40px; height:40px; border-radius:12px; background:var(--send-bg); color:var(--send-fg); display:grid; place-items:center; }
+
+    /* onboarding role tiles */
+    .roles { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; width:min(820px,92%); }
+    .role { background:var(--scrim-chip); border:1px solid var(--scrim-line); border-radius:18px; padding:26px 22px; display:grid; gap:8px; }
+    .role .ri { width:46px; height:46px; border-radius:13px; background:var(--scrim-chip); border:1px solid var(--scrim-line); display:grid; place-items:center; }
+    .role h4 { margin:6px 0 0; font-size:16px; font-weight:800; } .role p { margin:0; font-size:12.5px; color:var(--scrim-fg-soft); line-height:1.5; }
+    .role.dis { opacity:.5; } .role .soon { font-size:10px; font-weight:800; letter-spacing:.6px; color:var(--scrim-onfill); background:var(--scrim-fill); border-radius:99px; padding:3px 9px; justify-self:start; text-transform:uppercase; }
+
+    /* wizard (rendered on scrim) */
+    .wiz { width:min(560px,92%); background:var(--scrim-panel); border:1px solid var(--scrim-line); border-radius:20px; padding:26px; display:grid; gap:18px; }
+    .steps { display:flex; gap:8px; } .steps i { height:5px; flex:1; border-radius:99px; background:var(--scrim-line-strong); } .steps i.on { background:var(--scrim-fill); }
+    .fld { display:grid; gap:7px; } .fld label { font-size:12px; font-weight:700; color:var(--scrim-fg-soft); }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; }
+    .chip2 { font-size:12.5px; font-weight:700; padding:8px 13px; border-radius:99px; border:1px solid var(--scrim-line-strong); color:var(--scrim-fg); }
+    .chip2.on { background:var(--scrim-fill); color:var(--scrim-onfill); border-color:var(--scrim-fill); }
+    .consent { display:flex; gap:10px; align-items:flex-start; font-size:12px; color:var(--scrim-fg-soft); line-height:1.5; }
+    .box { width:18px; height:18px; border-radius:5px; border:1px solid var(--scrim-fg-mute); flex:none; display:grid; place-items:center; }
+    .box.k { background:var(--scrim-fill); } .box.k::after { content:"✓"; color:var(--scrim-onfill); font-size:12px; font-weight:800; }
+    .dots4 { display:flex; gap:8px; justify-content:center; } .dots4 i { width:8px; height:8px; border-radius:99px; background:var(--scrim-line-strong);} .dots4 i.on { background:var(--scrim-fill); }
+
+    .dseg { font-size:.78rem; letter-spacing:1.5px; text-transform:uppercase; color:var(--scrim-fg-mute); }
+    .progress-fs { width:100%; max-width:640px; }
+
+    /* empty state */
+    .empty { display:grid; place-items:center; gap:12px; text-align:center; padding:70px 20px; }
+    .empty .ei { width:60px; height:60px; border-radius:18px; background:var(--page); border:var(--hairline); display:grid; place-items:center; }
+    @media (max-width:1100px){ body{ grid-template-columns:1fr; } .index{ display:none; } }
+  </style>
+</head>
+<body data-theme="light">
+  <!-- =================== LEFT INDEX =================== -->
+  <nav class="index">
+    <h1>Wulo Academy</h1>
+    <p class="sub">Whole-platform mockup · 26 surfaces across 4 zones. Built on the real monochrome design tokens; tutor &amp; onboarding use the real dark orb scrim.</p>
+
+    <div class="grp">Onboarding <span>4</span></div>
+    <button class="idx-item" data-go="role"><span class="n">1</span>Welcome · role picker</button>
+    <button class="idx-item" data-go="wizard"><span class="n">2</span>Learner wizard · 3 steps</button>
+    <button class="idx-item" data-go="voiceonb"><span class="n">3</span>Voice-first onboarding</button>
+    <button class="idx-item" data-go="goal"><span class="n">4</span>Goal intake · orb</button>
+
+    <div class="grp">Learner <span>7</span></div>
+    <button class="idx-item" data-go="home"><span class="n">5</span>Learning home</button>
+    <button class="idx-item" data-go="mastery"><span class="n">6</span>Mastery profile</button>
+    <button class="idx-item" data-go="pathways"><span class="n">7</span>Pathways explorer</button>
+    <button class="idx-item" data-go="library"><span class="n">8</span>Skill library</button>
+    <button class="idx-item" data-go="examprep"><span class="n">9</span>Exam prep + diagnostic</button>
+    <button class="idx-item" data-go="account"><span class="n">10</span>Account &amp; settings</button>
+    <button class="idx-item" data-go="trust"><span class="n">11</span>Learner trust page</button>
+
+    <div class="grp">Family &amp; School <span>5</span></div>
+    <button class="idx-item" data-go="family"><span class="n">12</span>Parent family home</button>
+    <button class="idx-item" data-go="teacher"><span class="n">13</span>Teacher mastery heatmap</button>
+    <button class="idx-item" data-go="console"><span class="n">14</span>Trust &amp; safety console</button>
+    <button class="idx-item" data-go="safeguard"><span class="n">15</span>Safeguarding events</button>
+    <button class="idx-item" data-go="observ"><span class="n">16</span>Observability dashboard</button>
+
+    <div class="grp">Tutor &amp; learning surfaces <span>10</span></div>
+    <button class="idx-item" data-go="voicefs"><span class="n">17</span>Voice tutor · fullscreen orb</button>
+    <button class="idx-item" data-go="textfs"><span class="n">18</span>Text tutor · fullscreen</button>
+    <button class="idx-item" data-go="practice"><span class="n">19</span>Practice · narrated MCQ</button>
+    <button class="idx-item" data-go="dynamic"><span class="n">20</span>Agent dynamic surface</button>
+    <button class="idx-item" data-go="voicecard"><span class="n">21</span>Voice card renderer</button>
+    <button class="idx-item" data-go="ctapill"><span class="n">22</span>Voice CTA pill states</button>
+    <button class="idx-item" data-go="explain"><span class="n">23</span>Explanation surface</button>
+    <button class="idx-item" data-go="diagnostic"><span class="n">24</span>Inline diagnostic panel</button>
+    <button class="idx-item" data-go="emptyst"><span class="n">25</span>Learner empty state</button>
+    <button class="idx-item" data-go="askfab"><span class="n">26</span>Ask Pathfinder FAB + rail</button>
+
+    <div class="idx-foot">Functionality unchanged — visual mockup only. In-app surfaces use <code style="color:#9a9aa0">pathfinder-tokens.ts</code>. Orb matches <code style="color:#9a9aa0">LearnerTutorFullscreen</code>.</div>
+  </nav>
+
+  <!-- =================== VIEWPORT =================== -->
+  <main class="viewport">
+    <div class="vp-bar">
+      <b id="vpTitle">Welcome · role picker</b>
+      <span id="vpRoute">entry · /</span>
+      <div class="theme-tg" id="themeTg">
+        <button data-theme-set="light" class="on">☀︎ Light</button>
+        <button data-theme-set="dark">☾ Dark</button>
+      </div>
+      <span class="pill" id="vpGroup">Onboarding</span>
+    </div>
+    <div class="stage" id="stage"><!-- screens injected --></div>
+  </main>
+
+  <script>
+    // ---------- shared app shell ----------
+    const NAV = [
+      ['home','Learner','/home','M12 3 2 9l10 6 10-6-10-6Zm0 13L4 11v4l8 5 8-5v-4l-8 5Z'],
+      ['family','Family','/family','M7 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm10 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3ZM2 19a5 5 0 0 1 10 0Zm10 0a5 5 0 0 1 10 0Z'],
+      ['teacher','Teacher','/teacher','M3 13h4v8H3Zm7-6h4v14h-4Zm7-4h4v18h-4Z',true],
+      ['examprep','Exam prep','/exam-prep','M4 4h12a2 2 0 0 1 2 2v14l-4-2-4 2V6H4Z'],
+      ['library','Library','/library','M4 5h6v14H4Zm10 0h6v14h-6Z',true],
+      ['mastery','Profile','/profile','M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-4 0-7 2-7 5v1h14v-1c0-3-3-5-7-5Z'],
+      ['pathways','Pathways','/pathways','M10 4a6 6 0 1 0 4.2 10.2l4.3 4.3 1.4-1.4-4.3-4.3A6 6 0 0 0 10 4Zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z'],
+      ['console','Trust & Safety','/safety','M12 2 4 5v6c0 5 3.4 8.6 8 11 4.6-2.4 8-6 8-11V5Z',true],
+      ['observ','Observability','/observability','M4 4h16v12H4Zm2 14h12v2H6Z',true],
+    ];
+    function railSVG(d){ return `<svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="${d}"/></svg>`; }
+    function shell(active, content){
+      const items = NAV.map(([id,label,route,d,adm])=>`<div class="nav ${id===active?'active':''} ${adm?'adm':''}">${railSVG(d)}<span>${label}</span></div>`).join('');
+      const cur = NAV.find(n=>n[0]===active) || ['home','Learner','/home'];
+      return `<div class="frame">
+        <aside class="rail">
+          <div class="b"><div class="logo">W</div><div class="nm">Wulo Academy<small>Pathfinder Learn</small></div></div>
+          ${items}
+          <div class="sep"></div>
+          <div class="nav">${railSVG('M12 8a4 4 0 1 0 4 4 4 4 0 0 0-4-4Zm8.4 4 1.6 1.2-1.5 2.6-1.9-.6a6.7 6.7 0 0 1-1.6.9L16 20h-3l-.5-1.9a6.7 6.7 0 0 1-1.6-.9l-1.9.6L7 15.2 8.6 14a6.6 6.6 0 0 1 0-2L7 10.8l1.5-2.6 1.9.6a6.7 6.7 0 0 1 1.6-.9L13 6h3l.5 1.9a6.7 6.7 0 0 1 1.6.9l1.9-.6L21.5 11Z')}<span>Settings</span></div>
+          <div class="foot"><div class="av">A</div><div class="who">Amara O.<small>SS2 · WAEC track</small></div></div>
+        </aside>
+        <section class="main">
+          <header class="topbar">
+            <div class="h">${cur[1]}</div>
+            <div class="trust">
+              <span class="chip"><span class="dot"></span>Works offline · synced</span>
+              <span class="chip safe"><span class="dot"></span>Safeguarding active</span>
+              <span class="chip"><span class="dot"></span>Tutor ready</span>
+            </div>
+          </header>
+          <div class="content">${content}</div>
+        </section>
+      </div>`;
+    }
+
+    // ---------- screen content ----------
+    const S = {};
+
+    /* 1 role picker */
+    S.role = ()=>({group:'Onboarding',route:'entry · /',html:`<div class="fullframe"><div class="dark center"><div style="display:grid;gap:26px;justify-items:center;text-align:center;width:100%">
+      <div class="dseg">Welcome to Wulo Academy</div>
+      <h2 style="margin:0;font-size:30px;font-weight:800">Who's here today?</h2>
+      <div class="roles">
+        <div class="role"><div class="ri">🎓</div><h4>I'm learning</h4><p>Practice, get unstuck with a tutor, and prep for WAEC, NECO &amp; JAMB.</p></div>
+        <div class="role"><div class="ri">👪</div><h4>I'm a parent or guardian</h4><p>Add your children, follow progress, and approve what they study.</p></div>
+        <div class="role dis"><div class="ri">🏫</div><span class="soon">Coming soon</span><h4>I'm a teacher (schools)</h4><p>Class heatmaps, approvals and safeguarding for cohorts.</p></div>
+      </div>
+    </div></div></div>`});
+
+    /* 2 wizard */
+    S.wizard = ()=>({group:'Onboarding',route:'onboarding · /start',html:`<div class="fullframe"><div class="dark center"><div class="wiz">
+      <div class="steps"><i class="on"></i><i class="on"></i><i></i></div>
+      <div class="dseg">Step 2 of 3 · Your exam</div>
+      <h3 style="margin:0;font-size:20px;font-weight:800">What are you working towards?</h3>
+      <div class="fld"><label>Exam</label><div class="chips"><span class="chip2 on">WAEC</span><span class="chip2">NECO</span><span class="chip2">JAMB</span><span class="chip2">IGCSE</span></div></div>
+      <div class="fld"><label>Year group</label><div class="chips"><span class="chip2">JSS1</span><span class="chip2">JSS2</span><span class="chip2">JSS3</span><span class="chip2">SS1</span><span class="chip2 on">SS2</span><span class="chip2">SS3</span></div></div>
+      <div class="fld"><label>Subjects · pick up to 6</label><div class="chips"><span class="chip2 on">Mathematics</span><span class="chip2 on">English</span><span class="chip2 on">Physics</span><span class="chip2">Chemistry</span><span class="chip2">Biology</span><span class="chip2">Economics</span></div></div>
+      <div style="display:flex;gap:10px;justify-content:space-between"><span class="chip2">Back</span><span class="chip2 on" style="padding:10px 22px">Continue →</span></div>
+    </div></div></div>`});
+
+    /* 3 voice onboarding */
+    S.voiceonb = ()=>({group:'Onboarding',route:'onboarding · voice-first',html:`<div class="fullframe"><div class="dark">
+      <div class="d-head"><div class="d-brand"><span class="dot"></span>Wulo Academy</div><div class="d-x">✕</div></div>
+      <div class="d-body">
+        <div class="orbwrap"><span class="ring"></span><span class="ring"></span><span class="ring"></span><div class="orb"></div></div>
+        <div class="d-state"><div class="t">"Which subject feels hardest right now?"</div><div class="h">Tutor is asking · tap a card or just answer out loud</div></div>
+        <div class="vcard"><div class="stem">Pick the one you want to fix first</div>
+          <div class="vopts"><div class="vopt sel"><span class="lab">A</span>Mathematics</div><div class="vopt"><span class="lab">B</span>Physics</div><div class="vopt"><span class="lab">C</span>English</div><div class="vopt"><span class="lab">D</span>Chemistry</div></div>
+        </div>
+        <div class="dots4"><i class="on"></i><i class="on"></i><i></i><i></i></div>
+      </div>
+      <div class="d-foot"><div class="lvl"><span></span></div><div class="mic">🎙️</div><div class="wave"><i></i><i></i><i></i><i></i><i></i></div></div>
+    </div></div>`});
+
+    /* 4 goal intake orb */
+    S.goal = ()=>({group:'Onboarding',route:'onboarding · goal intake',html:`<div class="fullframe"><div class="dark center"><div class="d-body" style="padding:0">
+      <div class="orbwrap"><div class="orb"></div></div>
+      <div class="d-state"><div class="dseg">Goal intake</div><div class="t">When is your exam?</div><div class="h">Tap the closest answer — you can change this anytime</div></div>
+      <div class="vopts" style="width:min(520px,90%)"><div class="vopt"><span class="lab">1</span>This term</div><div class="vopt sel"><span class="lab">2</span>Next 3 months</div><div class="vopt"><span class="lab">3</span>Later this year</div></div>
+      <div class="dots4"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+    </div></div></div>`});
+
+    /* 5 home */
+    S.home = ()=>({group:'Learner',route:'/home',active:'home',html:shell('home',`
+      <h2 class="greet">Good afternoon, Amara</h2><p class="gsub">3 things today · about 22 minutes · you're on pace for Friday's target.</p>
+      <div class="stat-row">
+        <div class="stat"><div class="k">This week</div><div class="v">4 / 5</div><div class="d">On pace</div></div>
+        <div class="stat"><div class="k">Streak</div><div class="v">7 days</div><div class="d">Personal best</div></div>
+        <div class="stat"><div class="k">Mastery</div><div class="v">+12%</div><div class="d">Ratios &amp; fractions</div></div>
+      </div>
+      <div class="cols">
+        <div class="card"><h3>Today's path <span class="tag">3 steps</span></h3>
+          <div class="item"><div class="ico">📐</div><div><div class="tt">Ratios check-in</div><div class="mm">Maths · 6 min · diagnostic</div></div><div class="rt"><span class="badge b-now">Now</span><div class="play">▶</div></div></div>
+          <div class="item"><div class="ico">✍️</div><div><div class="tt">Comprehension practice</div><div class="mm">English · 9 min · 5 questions</div></div><div class="rt"><span class="badge b-next">Next</span><div class="play">▶</div></div></div>
+          <div class="item"><div class="ico">⚡</div><div><div class="tt">Forces exit ticket</div><div class="mm">Physics · 7 min · spaced recall</div></div><div class="rt"><span class="badge b-done">Done</span><div class="play" style="background:var(--ok-bg);color:var(--ok-fg)">✓</div></div></div>
+        </div>
+        <div class="card"><h3>Where to focus <span class="tag">repair</span></h3>
+          <div class="gap"><div class="top"><span>Equivalent fractions</span><span class="ms needs">Needs support</span></div><div class="meter"><span style="width:42%"></span></div><div class="act">Next: 4-question repair set with the tutor</div></div>
+          <div class="gap"><div class="top"><span>Simultaneous equations</span><span class="ms dev">Developing</span></div><div class="meter"><span style="width:61%"></span></div><div class="act">Next: worked example + 3 tries</div></div>
+          <div class="gap"><div class="top"><span>Comprehension inference</span><span class="ms appr">Approaching</span></div><div class="meter"><span style="width:78%"></span></div><div class="act">Next: 1 stretch passage</div></div>
+        </div>
+      </div>`)});
+
+    /* 6 mastery */
+    S.mastery = ()=>({group:'Learner',route:'/profile',active:'mastery',html:shell('mastery',`
+      <h2 class="greet">Amara's mastery</h2><p class="gsub">SS2 · WAEC track · updated after today's session</p>
+      <div class="cols">
+        <div class="card"><h3>Skill map</h3>
+          <div style="display:grid;place-items:center;padding:6px 0 14px">
+            <svg width="280" height="240" viewBox="0 0 280 240">
+              <polygon points="140,30 250,95 210,210 70,210 30,95" fill="none" style="stroke:var(--line)"/>
+              <polygon points="140,80 220,110 195,185 95,190 70,110" fill="rgba(127,127,127,.12)" style="stroke:var(--ink)" stroke-width="2"/>
+              <polygon points="140,55 235,102 202,198 82,200 50,102" fill="none" stroke="#7a5b00" stroke-dasharray="4 4"/>
+              <g font-size="10" fill="#6e6e73" text-anchor="middle"><text x="140" y="22">Algebra</text><text x="262" y="98">Number</text><text x="214" y="226">Geometry</text><text x="66" y="226">Data</text><text x="18" y="98">Ratios</text></g>
+            </svg>
+          </div>
+          <div style="font-size:11px;color:var(--text-tertiary)">Solid = current mastery · dashed = target for WAEC</div>
+        </div>
+        <div class="card"><h3>What we noticed</h3>
+          <p class="lead"><b>Strongest:</b> Number operations is secure.<br><b>Below target:</b> Ratios &amp; equivalent fractions.<br><b>Trend:</b> +12% over the last 4 sessions.</p>
+          <div class="sep" style="height:1px;background:var(--line);margin:14px 0"></div>
+          <h3 style="margin-top:0">What Wulo did</h3>
+          <p class="lead">Re-sequenced this week toward ratio repair, added a worked example before each retry, and scheduled spaced recall for Thursday.</p>
+          <div class="card" style="background:var(--info-bg);border:0;box-shadow:none;margin-top:12px;padding:13px 15px"><div style="font-size:12.5px;font-weight:700;color:var(--info-fg)">At home this week</div><div style="font-size:12px;color:var(--info-fg);margin-top:4px">Ask Amara to explain one fraction problem out loud. 5 minutes is plenty.</div></div>
+        </div>
+      </div>`)});
+
+    /* 7 pathways */
+    S.pathways = ()=>({group:'Learner',route:'/pathways',active:'pathways',html:shell('pathways',`
+      <h2 class="greet">Career pathways</h2><p class="gsub">Matched to your subjects and interests — not a fixed plan, a place to explore.</p>
+      <div class="toolbar"><div class="search">🔎 Search pathways…</div><span class="pp on">All</span><span class="pp">Data</span><span class="pp">Energy</span><span class="pp">Health</span><span class="pp">Creative</span></div>
+      <div class="grid3">
+        <div class="gcard"><div style="display:flex;justify-content:space-between"><div class="gt">Data Analyst</div><span class="ms appr">82% fit</span></div><div class="gm">₦180k–₦450k/mo · demand ↑ · Lagos &amp; remote</div><div class="pillrow"><span class="pp">Statistics</span><span class="pp">Spreadsheets</span><span class="pp">SQL</span></div><div style="font-size:11.5px;color:var(--text-secondary);margin-top:10px">Builds on your strong Maths.</div></div>
+        <div class="gcard"><div style="display:flex;justify-content:space-between"><div class="gt">Renewable Energy Tech</div><span class="ms dev">74% fit</span></div><div class="gm">₦150k–₦380k/mo · demand ↑ · nationwide</div><div class="pillrow"><span class="pp">Physics</span><span class="pp">Electrical basics</span></div><div style="font-size:11.5px;color:var(--text-secondary);margin-top:10px">Closes 2 skill gaps in forces.</div></div>
+        <div class="gcard"><div style="display:flex;justify-content:space-between"><div class="gt">Community Health Worker</div><span class="ms dev">69% fit</span></div><div class="gm">₦120k–₦300k/mo · steady · local</div><div class="pillrow"><span class="pp">Biology</span><span class="pp">Communication</span></div><div style="font-size:11.5px;color:var(--text-secondary);margin-top:10px">Matches your care interest.</div></div>
+      </div>`)});
+
+    /* 8 library */
+    S.library = ()=>({group:'Learner',route:'/library',active:'library',html:shell('library',`
+      <h2 class="greet">Skill library</h2><p class="gsub">Every skill, its prerequisites and the concepts it unlocks.</p>
+      <div class="toolbar"><div class="search">🔎 Search skills…</div><span class="pp on">All subjects</span><span class="pp">Maths</span><span class="pp">English</span><span class="pp">Physics</span></div>
+      <div class="grid3">
+        <div class="gcard"><div class="gt">Equivalent fractions</div><div class="gm">Mathematics · JSS3</div><div class="pillrow"><span class="pp">needs: simplifying</span><span class="pp">KC: ratio</span></div><div style="margin-top:10px"><span class="ms needs">Needs support</span></div></div>
+        <div class="gcard"><div class="gt">Simultaneous equations</div><div class="gm">Mathematics · SS1</div><div class="pillrow"><span class="pp">needs: linear eq</span><span class="pp">KC: algebra</span></div><div style="margin-top:10px"><span class="ms dev">Developing</span></div></div>
+        <div class="gcard"><div class="gt">Forces &amp; motion</div><div class="gm">Physics · SS2</div><div class="pillrow"><span class="pp">needs: vectors</span><span class="pp">KC: mechanics</span></div><div style="margin-top:10px"><span class="ms secure">Secure</span></div></div>
+        <div class="gcard"><div class="gt">Reading inference</div><div class="gm">English · SS1</div><div class="pillrow"><span class="pp">needs: vocabulary</span><span class="pp">KC: comprehension</span></div><div style="margin-top:10px"><span class="ms appr">Approaching</span></div></div>
+        <div class="gcard"><div class="gt">Balancing equations</div><div class="gm">Chemistry · SS2</div><div class="pillrow"><span class="pp">needs: formulae</span><span class="pp">KC: reactions</span></div><div style="margin-top:10px"><span class="ms dev">Developing</span></div></div>
+        <div class="gcard"><div class="gt">Probability basics</div><div class="gm">Mathematics · SS2</div><div class="pillrow"><span class="pp">needs: fractions</span><span class="pp">KC: data</span></div><div style="margin-top:10px"><span class="ms appr">Approaching</span></div></div>
+      </div>`)});
+
+    /* 9 exam prep + diagnostic */
+    S.examprep = ()=>({group:'Learner',route:'/exam-prep',active:'examprep',html:shell('examprep',`
+      <h2 class="greet">Exam prep</h2><p class="gsub">Past-paper topics with a quick diagnostic before you start.</p>
+      <div class="toolbar"><div class="search">🔎 Search topics…</div><span class="pp on">WAEC</span><span class="pp">NECO</span><span class="pp">JAMB</span></div>
+      <div class="cols">
+        <div class="card"><h3>Topics</h3>
+          <div class="item"><div class="ico">📐</div><div><div class="tt">Ratio, proportion &amp; rates</div><div class="mm">SS2 · WAEC · 4 skills</div></div><div class="rt"><span class="mm">8 min</span><div class="play">▶</div></div></div>
+          <div class="item"><div class="ico">📊</div><div><div class="tt">Statistics &amp; probability</div><div class="mm">SS2 · WAEC · 5 skills</div></div><div class="rt"><span class="mm">10 min</span><div class="play">▶</div></div></div>
+          <div class="item"><div class="ico">📈</div><div><div class="tt">Algebraic graphs</div><div class="mm">SS2 · WAEC · 3 skills</div></div><div class="rt"><span class="mm">7 min</span><div class="play">▶</div></div></div>
+        </div>
+        <div class="card"><h3>Diagnostic <span class="tag">2 of 4</span></h3>
+          <p class="lead" style="font-weight:700;color:var(--ink)">If 3 pencils cost ₦150, what do 7 cost?</p>
+          <div class="vopts" style="grid-template-columns:1fr 1fr;margin-top:6px">
+            <div class="pp" style="padding:11px;justify-content:center">₦300</div><div class="pp on" style="padding:11px;justify-content:center">₦350</div>
+            <div class="pp" style="padding:11px;justify-content:center">₦450</div><div class="pp" style="padding:11px;justify-content:center">₦210</div>
+          </div>
+          <div class="card" style="background:var(--ok-bg);border:0;box-shadow:none;margin-top:14px;padding:12px 14px"><div style="font-weight:700;color:var(--ok-fg);font-size:12.5px">✓ Correct — unit cost is ₦50</div><div style="font-size:11.5px;color:var(--ok-fg);margin-top:3px">Find one, then scale. <u>Explain</u></div></div>
+        </div>
+      </div>`)});
+
+    /* 10 account */
+    S.account = ()=>({group:'Learner',route:'/account',active:'home',html:shell('home',`
+      <div style="max-width:760px;margin:0 auto">
+      <h2 class="greet">Account</h2><p class="gsub">Settings, privacy and how AI is used.</p>
+      <div class="card" style="padding:0">
+        ${['⚙️ Settings|Voice, language, accessibility, notifications','🔒 Privacy|What we collect, your controls, retention','📄 Terms|Who it is for and what we promise','✨ AI notice|How AI is used, limits, teacher review','↩︎ Sign out|End this session on this device'].map(r=>{const [t,d]=r.split('|');return `<div class="item" style="padding:16px 18px"><div class="tt" style="flex:1">${t}<div class="mm" style="font-weight:500">${d}</div></div><span style="color:var(--text-tertiary)">›</span></div>`}).join('')}
+      </div>
+      <div class="card" style="margin-top:18px"><h3>AI notice</h3><p class="lead">Wulo explains its reasoning, never replaces a teacher's judgement, and routes anything sensitive to a human. Plans and new facts wait for teacher or guardian approval before they reach a learner.</p></div>
+      </div>`)});
+
+    /* 11 learner trust */
+    S.trust = ()=>({group:'Learner',route:'/safety',active:'home',html:shell('home',`
+      <div style="max-width:780px;margin:0 auto">
+      <h2 class="greet">You're safe here</h2><p class="gsub">Plain-English promises about how Wulo works.</p>
+      <div class="grid2">
+        <div class="gcard"><div class="gt">👩‍🏫 Teacher-reviewed</div><p class="lead" style="margin:8px 0 0">New study plans wait for a teacher or guardian before they reach you.</p></div>
+        <div class="gcard"><div class="gt">📑 Evidence log</div><p class="lead" style="margin:8px 0 0">Every decision is recorded so an adult can check the reasoning.</p></div>
+        <div class="gcard"><div class="gt">💡 Explainable</div><p class="lead" style="margin:8px 0 0">You can always ask "why was this marked?" and get a real answer.</p></div>
+        <div class="gcard"><div class="gt">🛡️ Guardrails</div><p class="lead" style="margin:8px 0 0">Anything sensitive is paused and routed to a trusted adult.</p></div>
+      </div>
+      </div>`)});
+
+    /* 12 family */
+    S.family = ()=>({group:'Family & School',route:'/family',active:'family',html:shell('family',`
+      <h2 class="greet">Your family</h2><p class="gsub">Add children, follow progress and approve what they study.</p>
+      <div class="cols">
+        <div class="card"><h3>Children</h3>
+          <div class="item"><div class="ico">A</div><div><div class="tt">Amara · SS2</div><div class="mm">WAEC track · last active today</div></div><div class="rt"><span class="badge b-now">Selected</span></div></div>
+          <div class="item"><div class="ico">K</div><div><div class="tt">Kelechi · JSS2</div><div class="mm">NECO track · last active yesterday</div></div><div class="rt"><span class="pp">Select</span></div></div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-top:var(--hairline)"><div class="ico">+</div><div style="flex:1"><div class="tt">Add a child</div><div class="mm">Name + optional date of birth</div></div><span class="btn ink" style="min-height:34px;padding:7px 14px;flex:none">Add child</span></div>
+        </div>
+        <div class="card"><h3>Pending your approval</h3>
+          <div class="gap"><div class="top"><span>New plan: ratio repair week</span><span class="ms dev">Amara</span></div><div class="act" style="margin:6px 0 10px">Adds 3 sessions targeting equivalent fractions.</div><div style="display:flex;gap:8px"><span class="btn ink" style="min-height:34px;padding:7px 16px">Approve</span><span class="btn" style="min-height:34px;padding:7px 16px">Review</span></div></div>
+        </div>
+      </div>`)});
+
+    /* 13 teacher */
+    S.teacher = ()=>({group:'Family & School',route:'/teacher',active:'teacher',html:shell('teacher',`
+      <h2 class="greet">JSS2 A · Mastery</h2><p class="gsub">28 learners · updated 4 min ago</p>
+      <div class="toolbar"><span class="pp on">All</span><span class="pp">Needs support</span><span class="pp">Developing</span><span class="pp">Secure</span><span class="pp" style="margin-left:auto">Class: JSS2 A ▾</span></div>
+      <div class="card" style="padding:6px 18px 14px">
+      <table class="heat"><thead><tr><th>Learner</th><th>Ratios</th><th>Algebra</th><th>Geometry</th><th>Comprehension</th></tr></thead><tbody>
+        ${[['Amara O.',['needs',42],['dev',61],['secure',88],['appr',78]],['Kelechi N.',['dev',58],['appr',74],['dev',64],['secure',90]],['Tunde A.',['secure',86],['secure',82],['appr',77],['dev',60]],['Zainab M.',['needs',38],['needs',44],['dev',55],['appr',72]]].map(r=>`<tr><td style="font-weight:700">${r[0]}</td>${r.slice(1).map(c=>`<td><span class="cell"><span class="pct">${c[1]}%</span><span class="unc"><span class="ms ${c[0]}" style="display:block;width:${c[1]}%;height:100%;padding:0;border-radius:99px"></span></span></span></td>`).join('')}</tr>`).join('')}
+      </tbody></table></div>
+      <div class="card" style="margin-top:16px"><h3>Pending approvals <span class="tag">2</span></h3>
+        <div style="display:flex;align-items:center;gap:12px;padding:6px 0"><div class="ico">📋</div><div style="flex:1"><div class="tt">Plan: ratio repair · Amara O.</div><div class="mm">3 sessions · targets equivalent fractions</div></div><div style="display:flex;gap:8px;flex:none"><span class="btn ink" style="min-height:34px;padding:7px 14px">Approve</span><span class="btn" style="min-height:34px;padding:7px 14px">Reject</span></div></div>
+      </div>`)});
+
+    /* 14 console */
+    S.console = ()=>({group:'Family & School',route:'/safety',active:'console',html:shell('console',`
+      <h2 class="greet">Trust &amp; Safety</h2><p class="gsub">Cohort health, safeguarding and audit — pilot view</p>
+      <div class="kgrid" style="margin-bottom:18px">
+        ${[['Cohort progress','71%','+5% wk'],['At-risk learners','3','watch'],['Approvals pending','2','action'],['Cost / learner','₦340','on budget']].map(k=>`<div class="stat"><div class="k">${k[0]}</div><div class="v" style="font-size:22px">${k[1]}</div><div class="d">${k[2]}</div></div>`).join('')}
+      </div>
+      <div class="cols">
+        <div class="card"><h3>Safety trend</h3>
+          <svg width="100%" height="170" viewBox="0 0 460 170" preserveAspectRatio="none">
+            <polyline fill="none" style="stroke:var(--line)" stroke-width="1" points="0,150 460,150"/>
+            <polyline fill="none" style="stroke:var(--ink)" stroke-width="2" points="10,120 90,100 170,108 250,72 330,60 420,40"/>
+            <polyline fill="none" stroke="#7a5b00" stroke-width="1.5" stroke-dasharray="4 4" points="10,140 90,132 170,118 250,110 330,95 420,88"/>
+          </svg>
+          <div style="font-size:11px;color:var(--text-tertiary)">Solid = safety score · dashed = DSR resolution · W1–W6</div>
+        </div>
+        <div class="card"><h3>Audit log</h3>
+          ${[['09:42','tutor','Plan drafted','low'],['09:31','guardian','Plan approved','low'],['08:58','system','Safeguarding flag','high']].map(a=>`<div class="ev" style="grid-template-columns:70px 1fr 70px"><span class="mm">${a[0]}</span><span><b style="font-size:12px">${a[2]}</b><div class="mm">${a[1]}</div></span><span class="sev ${a[3]==='high'?'high':'low'}">${a[3]}</span></div>`).join('')}
+        </div>
+      </div>`)});
+
+    /* 15 safeguarding events */
+    S.safeguard = ()=>({group:'Family & School',route:'/safety · events',active:'console',html:shell('console',`
+      <h2 class="greet">Safeguarding events</h2><p class="gsub">Routed to a trusted adult — never handled by the model alone.</p>
+      <div class="toolbar"><span class="pp on">Open</span><span class="pp">Acknowledged</span><span class="pp">All</span></div>
+      <div class="card">
+        <div class="ev"><span class="mm">Today 08:58</span><span><b style="font-size:12.5px">Distress language detected</b><div class="mm">Kelechi N. · maths session</div></span><span class="sev high">High</span><span class="pp">Open ›</span></div>
+        <div class="ev"><span class="mm">Yesterday 16:10</span><span><b style="font-size:12.5px">Off-topic personal disclosure</b><div class="mm">Amara O. · English session</div></span><span class="sev med">Review</span><span class="pp">Open ›</span></div>
+      </div>
+      <div class="card" style="margin-top:16px"><h3>Case · Distress language <span class="tag">High</span></h3>
+        <p class="lead">Tutor paused the session and surfaced the turn for human review. No automated response was sent.</p>
+        <div class="card" style="background:var(--surface-muted);border:var(--hairline);box-shadow:none;margin:12px 0;padding:12px 14px;font-style:italic;font-size:12.5px;color:var(--text-secondary)">"i'm really stressed about everything at home…"</div>
+        <div style="display:flex;gap:8px"><span class="btn ink" style="min-height:36px">Mark acknowledged</span><span class="btn" style="min-height:36px">Escalate to DSL</span></div>
+      </div>`)});
+
+    /* 16 observability */
+    S.observ = ()=>({group:'Family & School',route:'/observability',active:'observ',html:shell('observ',`
+      <h2 class="greet">Observability</h2><p class="gsub">System health, data quality and pilot metrics</p>
+      <h3 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-tertiary)">System health</h3>
+      <div class="grid3" style="margin-bottom:18px">
+        <div class="gcard"><div class="gm">API latency p95</div><div class="gt" style="font-size:22px">182ms <span class="ms secure" style="font-size:10px">Healthy</span></div></div>
+        <div class="gcard"><div class="gm">Voice endpoint</div><div class="gt" style="font-size:22px">99.4% <span class="ms secure" style="font-size:10px">Healthy</span></div></div>
+        <div class="gcard"><div class="gm">DB replication</div><div class="gt" style="font-size:22px">OK <span class="ms dev" style="font-size:10px">Watch</span></div></div>
+      </div>
+      <h3 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-tertiary)">Pilot metrics</h3>
+      <div class="grid3">
+        ${[['Active learners','214'],['Sessions / day','1,038'],['Diagnostic completion','87%'],['Voice success','96%'],['Provenance coverage','100%'],['Approvals turnaround','6h']].map(m=>`<div class="gcard"><div class="gm">${m[0]}</div><div class="gt" style="font-size:22px">${m[1]}</div></div>`).join('')}
+      </div>`)});
+
+    /* 17 voice fullscreen */
+    S.voicefs = ()=>({group:'Tutor & learning',route:'tutor · voice · fullscreen',html:`<div class="fullframe"><div class="dark">
+      <div class="d-head">
+        <div class="d-brand"><span class="dot"></span>Wulo Academy</div>
+        <div class="d-modes"><span class="d-mode on">🎙️ Voice</span><span class="d-mode">⌨︎ Text</span></div>
+        <div class="d-x">✕</div>
+      </div>
+      <div class="d-body">
+        <div class="orbwrap"><span class="ring"></span><span class="ring"></span><span class="ring"></span><div class="orb"></div></div>
+        <div class="d-state"><div class="t">Listening…</div><div class="h">Tell me where you got stuck on the fractions question</div></div>
+        <div class="vcard"><div class="stem">Why was this marked wrong?</div>
+          <div class="vopts"><div class="vopt sel"><span class="lab">A</span>I added the numerators</div><div class="vopt"><span class="lab">B</span>I forgot the common denominator</div></div>
+        </div>
+      </div>
+      <div class="d-foot"><div class="lvl"><span></span></div><div class="mic">🎙️</div><div class="wave"><i></i><i></i><i></i><i></i><i></i></div></div>
+    </div></div>`});
+
+    /* 18 text fullscreen */
+    S.textfs = ()=>({group:'Tutor & learning',route:'tutor · text · fullscreen',html:`<div class="fullframe"><div class="dark">
+      <div class="d-head">
+        <div class="d-brand"><span class="dot"></span>Wulo Academy</div>
+        <div class="d-modes"><span class="d-mode">🎙️ Voice</span><span class="d-mode on">⌨︎ Text</span></div>
+        <div class="d-x">✕</div>
+      </div>
+      <div class="d-body" style="align-content:center">
+        <div class="orbwrap" style="width:min(150px,28vw)"><div class="orb" style="animation:breathe 4200ms ease-in-out infinite"></div></div>
+        <div class="chat">
+          <div class="msg u">Why did I get the pencils question wrong?</div>
+          <div class="msg a">You scaled by adding ₦50 each time instead of finding the unit cost first. 3 pencils = ₦150, so one is ₦50. Then 7 × ₦50 = ₦350. Want to try a similar one?</div>
+          <div class="msg u">Yes, give me one</div>
+          <div class="msg a">If 4 notebooks cost ₦480, what do 9 cost? Take your time.</div>
+        </div>
+        <div class="composer"><span class="ph">Type your answer…</span><div class="send">↑</div></div>
+      </div>
+    </div></div>`});
+
+    /* 19 practice */
+    S.practice = ()=>({group:'Tutor & learning',route:'practice · fullscreen',html:`<div class="fullframe"><div class="dark">
+      <div class="d-head"><div class="d-brand"><span class="dot"></span>Practice</div><div style="display:flex;gap:10px;align-items:center"><span class="d-mode on">🔊 Listen</span><div class="d-x">✕</div></div></div>
+      <div class="d-body" style="align-content:center">
+        <div class="dseg">Card 2 of 5</div>
+        <div class="vcard" style="width:min(620px,100%)"><div class="stem">Simplify 6/8 to its lowest terms.</div>
+          <div class="vopts"><div class="vopt"><span class="lab">A</span>2/3</div><div class="vopt sel"><span class="lab">B</span>3/4</div><div class="vopt"><span class="lab">C</span>4/6</div><div class="vopt"><span class="lab">D</span>1/2</div></div>
+        </div>
+        <div class="d-state"><div class="h">Tap an answer or say it out loud · 🔊 narration on</div></div>
+      </div>
+      <div class="d-foot"><div class="mic">🔊</div></div>
+    </div></div>`});
+
+    /* 20 dynamic surface */
+    S.dynamic = ()=>({group:'Tutor & learning',route:'agent · dynamic UI',html:`<div class="fullframe"><div class="dark center"><div class="d-body" style="padding:0;width:min(700px,92%)">
+      <div class="dseg">Agent-generated surface</div>
+      <div class="vcard" style="width:100%"><div class="stem">Here's how your week is trending</div>
+        <svg width="100%" height="150" viewBox="0 0 460 150" preserveAspectRatio="none"><polyline fill="none" stroke="#9bd4ff" stroke-width="2.5" points="10,120 100,96 190,104 280,66 370,52 450,34"/></svg>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="vopt" style="padding:6px 12px">📈 Mastery +12%</span><span class="vopt" style="padding:6px 12px">🔁 3 repairs done</span></div>
+      </div>
+      <div class="vcard" style="width:100%"><div class="stem">Shall I schedule a ratio repair for Thursday?</div>
+        <div style="display:flex;gap:10px"><span class="vopt sel" style="justify-content:center;flex:1">Yes, schedule it</span><span class="vopt" style="justify-content:center;flex:1">Not now</span></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center"><span class="d-mode on">Approve plan</span><span class="d-mode">Edit</span></div>
+    </div></div></div>`});
+
+    /* 21 voice card renderer */
+    S.voicecard = ()=>({group:'Tutor & learning',route:'voice card renderer',html:`<div class="fullframe"><div class="dark center"><div class="d-body" style="padding:0;width:min(700px,92%)">
+      <div class="dseg">Voice card types</div>
+      <div class="vcard" style="width:100%"><div style="font-size:1.1rem;font-weight:800">Hi Amara — ready for 3 quick questions?</div><div class="h" style="color:rgba(255,255,255,.6)">greeting card</div><span class="d-mode on" style="justify-self:start">Start</span></div>
+      <div class="vcard" style="width:100%"><div class="stem">Which is equivalent to 1/2?</div><div class="vopts"><div class="vopt"><span class="lab">A</span>2/3</div><div class="vopt sel"><span class="lab">B</span>3/6</div></div><div class="h" style="color:rgba(255,255,255,.6)">mcq-tap card</div></div>
+      <div class="vcard" style="width:100%;text-align:center"><div style="font-size:36px;font-weight:800">3 / 6</div><div class="h" style="color:rgba(255,255,255,.6)">progress card</div><span class="d-mode on">Keep going</span></div>
+    </div></div></div>`});
+
+    /* 22 cta pill states */
+    S.ctapill = ()=>({group:'Tutor & learning',route:'VoiceCtaPill · states',html:`<div class="fullframe"><div class="dark center"><div style="display:grid;gap:18px;width:min(420px,90%)">
+      <div class="dseg" style="text-align:center">Voice CTA pill · 6 states</div>
+      ${[['Tap to start','dot'],['Connecting…','pulse'],['Listening…','wave'],['Thinking…','pulse'],['Tutor speaking','pulse'],['Try again','dot']].map(s=>`<div style="display:flex;align-items:center;gap:12px;justify-content:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:99px;padding:12px 20px">${s[1]==='wave'?'<div class="wave" style="height:16px"><i></i><i></i><i></i></div>':'<span style="width:9px;height:9px;border-radius:99px;background:#fff;'+(s[1]==='pulse'?'animation:breathe 1.2s infinite':'')+'"></span>'}<span style="font-weight:700;font-size:.95rem">${s[0]}</span></div>`).join('')}
+    </div></div></div>`});
+
+    /* 23 explanation surface */
+    S.explain = ()=>({group:'Tutor & learning',route:'explanation · grounded',active:'home',html:shell('home',`
+      <div style="max-width:760px;margin:0 auto">
+      <h2 class="greet">Ask for an explanation</h2><p class="gsub">Grounded in reviewed sources — if there's no source, it says so.</p>
+      <div class="card"><div class="search" style="margin-bottom:12px">e.g. how do I simplify a fraction?</div><span class="btn ink">Ask</span></div>
+      <div class="card" style="margin-top:16px"><h3>Simplifying fractions</h3><p class="lead">Divide the top and bottom by their highest common factor. For 6/8, the HCF is 2, so 6/8 = 3/4.</p>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px"><span class="pp">Source: WAEC Maths syllabus</span><span class="pp">Confidence: high</span></div>
+      </div>
+      <div class="card" style="margin-top:16px;background:var(--warn-bg);border:1px solid #e8d9a8"><div style="font-weight:700;color:var(--warn-fg)">No reviewed source found</div><p class="lead" style="margin:6px 0 0;color:var(--warn-fg)">I won't guess on this one. Try rephrasing, or ask your teacher to add a source.</p></div>
+      </div>`)});
+
+    /* 24 diagnostic panel */
+    S.diagnostic = ()=>({group:'Tutor & learning',route:'diagnostic · inline',active:'examprep',html:shell('examprep',`
+      <div style="max-width:720px;margin:0 auto"><div class="card"><h3>Quick diagnostic <span class="tag">2 of 4</span></h3>
+        <p class="lead" style="color:var(--ink);font-weight:700">Simplify 6/8 to its lowest terms.</p>
+        <div class="vopts" style="grid-template-columns:1fr 1fr;margin:10px 0"><div class="pp" style="padding:11px;justify-content:center">2/3</div><div class="pp on" style="padding:11px;justify-content:center">3/4</div><div class="pp" style="padding:11px;justify-content:center">4/6</div><div class="pp" style="padding:11px;justify-content:center">1/2</div></div>
+        <div class="card" style="background:var(--crit-bg);border:0;box-shadow:none;padding:13px 15px"><div style="font-weight:700;color:var(--crit-fg)">✕ Not quite</div><p style="font-size:12px;color:var(--crit-fg);margin:5px 0 0">You stopped at 4/6 — keep dividing by the common factor. <u>Explain</u> · <u>Try again</u></p></div>
+        <div style="font-size:11.5px;color:var(--text-tertiary);margin-top:10px">Concept missed: highest common factor</div>
+      </div></div>`)});
+
+    /* 25 empty state */
+    S.emptyst = ()=>({group:'Tutor & learning',route:'cold start · empty',active:'family',html:shell('family',`
+      <div class="card"><div class="empty"><div class="ei">＋</div><div style="font-size:16px;font-weight:800">No learners linked yet</div><p class="lead" style="max-width:380px">Add your first child to see their path, mastery and weekly summary here.</p><span class="btn ink">Add a child</span></div></div>`)});
+
+    /* 26 ask fab + rail */
+    S.askfab = ()=>({group:'Tutor & learning',route:'AskPathfinder · launchers',active:'home',html:`<div style="position:relative">${shell('home',`
+      <h2 class="greet">Good afternoon, Amara</h2><p class="gsub">The tutor is always one tap away — text or voice, your choice.</p>
+      <div class="cols"><div class="card"><h3>Today's path</h3>
+        <div class="item"><div class="ico">📐</div><div><div class="tt">Ratios check-in</div><div class="mm">Maths · 6 min</div></div><div class="rt"><span class="badge b-now">Now</span><div class="play">▶</div></div></div>
+        <div class="item"><div class="ico">✍️</div><div><div class="tt">Comprehension practice</div><div class="mm">English · 9 min</div></div><div class="rt"><span class="badge b-next">Next</span><div class="play">▶</div></div></div>
+      </div><div class="card"><h3>Tutor launchers</h3><p class="lead">Both float bottom-right on every learner screen.</p>
+        <div style="display:grid;gap:10px;margin-top:10px"><div class="item" style="border:0"><div class="ico" style="background:var(--surface);">⌨︎</div><div><div class="tt">Text tutor</div><div class="mm">data-testid: pathfinder-chat-launcher</div></div></div>
+        <div class="item" style="border:0"><div class="ico" style="background:var(--ink);color:#fff">🎙️</div><div><div class="tt">Voice tutor</div><div class="mm">data-testid: voice-agent-launcher</div></div></div></div>
+      </div></div>`)}
+      <div style="position:absolute;right:46px;bottom:34px;display:grid;gap:14px;justify-items:end;z-index:5">
+        <div style="display:flex;align-items:center;gap:10px"><span style="background:#fff;border:var(--hairline);border-radius:99px;padding:6px 12px;font-size:12px;font-weight:700;box-shadow:var(--shadow-raised)">Text tutor</span><div style="width:56px;height:56px;border-radius:50%;background:#fff;border:var(--hairline);box-shadow:0 12px 30px rgba(0,0,0,.18);display:grid;place-items:center;font-size:22px">⌨︎</div></div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="background:#fff;border:var(--hairline);border-radius:99px;padding:6px 12px;font-size:12px;font-weight:700;box-shadow:var(--shadow-raised)">Voice tutor</span><div style="width:60px;height:60px;border-radius:50%;background:var(--ink);color:#fff;box-shadow:0 14px 34px rgba(0,0,0,.32);display:grid;place-items:center;font-size:22px">🎙️</div></div>
+      </div></div>`});
+
+    // ---------- router ----------
+    const stage = document.getElementById('stage');
+    const titleEl = document.getElementById('vpTitle');
+    const routeEl = document.getElementById('vpRoute');
+    const groupEl = document.getElementById('vpGroup');
+    const items = [...document.querySelectorAll('.idx-item')];
+    function go(id){
+      const item = items.find(b=>b.dataset.go===id) || items[0];
+      const data = S[id]();
+      stage.innerHTML = `<div class="screen active">${data.html}</div>`;
+      titleEl.textContent = item.textContent.replace(/^\d+/,'').trim();
+      routeEl.textContent = data.route || '';
+      groupEl.textContent = data.group || '';
+      items.forEach(b=>b.classList.toggle('active', b===item));
+      stage.scrollTop = 0; document.querySelector('.viewport').scrollTop = 0;
+      if (history.replaceState) history.replaceState(null,'','#'+item.dataset.go);
+    }
+    items.forEach(b=> b.addEventListener('click', ()=>go(b.dataset.go)));
+    const initial = (location.hash||'').replace('#','');
+    go(S[initial] ? initial : 'role');
+    window.addEventListener('hashchange', ()=>{ const h=(location.hash||'').replace('#',''); if(S[h]) go(h); });
+
+    // ---------- light / dark theme ----------
+    const themeBtns = [...document.querySelectorAll('#themeTg button')];
+    function setTheme(t){
+      document.body.dataset.theme = t;
+      themeBtns.forEach(b=> b.classList.toggle('on', b.dataset.themeSet===t));
+      try { localStorage.setItem('wulo-mock-theme', t); } catch(e){}
+    }
+    themeBtns.forEach(b=> b.addEventListener('click', ()=> setTheme(b.dataset.themeSet)));
+    let savedTheme = 'light';
+    try { savedTheme = localStorage.getItem('wulo-mock-theme') || 'light'; } catch(e){}
+    const urlTheme = new URLSearchParams(location.search).get('theme');
+    setTheme(urlTheme==='dark'||urlTheme==='light' ? urlTheme : savedTheme);
+  </script>
+</body>
+</html>

@@ -46,19 +46,26 @@ from src.services.voice_agent_profiles import AgentProfile, AgentProfileContext,
 
 logger = logging.getLogger(__name__)
 
+_LEARNER_FOCUS_RETRIEVER: Any = None
+
 # WebSocket constants
 AZURE_VOICE_API_VERSION = "2025-05-01-preview"
 AZURE_COGNITIVE_SERVICES_DOMAIN = "cognitiveservices.azure.com"
-
-# Learner-scoped profiles share audio-only modality, the profile voice, and the
-# profile instruction block (no on-screen avatar). ``learner`` walks practice
-# cards; ``learner_ask`` is the ask-anything AskPathfinder voice surface.
-LEARNER_VOICE_PROFILE_IDS = frozenset({"learner", "learner_ask"})
 
 
 def _is_local_dev_auth_enabled() -> bool:
     """Resolve LOCAL_DEV_AUTH dynamically so test and shell env changes are honored."""
     return str(os.environ.get("LOCAL_DEV_AUTH", str(config.get("local_dev_auth", False)))).strip().lower() == "true"
+
+
+def _get_learner_focus_retriever() -> Any:
+    """Lazily build the shared learner grounding retriever for focused voice sessions."""
+    global _LEARNER_FOCUS_RETRIEVER
+    if _LEARNER_FOCUS_RETRIEVER is None:
+        from src.learning.rag import build_default_retriever
+
+        _LEARNER_FOCUS_RETRIEVER = build_default_retriever()
+    return _LEARNER_FOCUS_RETRIEVER
 
 
 # Session configuration defaults
@@ -82,43 +89,6 @@ PHOTO_AVATAR_DEFAULT_SCENE = {
 SESSION_UPDATE_TYPE = "session.update"
 PROXY_CONNECTED_TYPE = "proxy.connected"
 ERROR_TYPE = "error"
-
-# Learner Dig-Deeper grounding: map the realtime taxonomy onto the curriculum
-# corpus axes so a focus item can be pre-warmed against the bundled wiki seeds
-# before the first tool call. Mirrors the REST/turn-based planner mapping.
-_FOCUS_SUBJECT_TO_CORPUS = {"Mathematics": "maths", "English Language": "english"}
-_FOCUS_CLASS_TO_YEAR_GROUP = {
-    "JSS2": "JSS3",
-    "JSS3": "JSS3",
-    "SSS1": "SS3",
-    "SSS2": "SS3",
-    "SSS3": "SS3",
-}
-_LEARNER_FOCUS_RETRIEVER: Any = None
-_LEARNER_FOCUS_RETRIEVER_LOADED = False
-
-
-def _get_learner_focus_retriever() -> Any:
-    """Lazily build (and cache) the shared curriculum retriever for grounding.
-
-    Loaded on first learner focus injection only — never at import — so the
-    bundled wiki corpus is not read for practice sessions. Returns ``None`` on
-    any failure so grounding degrades gracefully (the model still has the focus
-    anchor + get_next_card tool).
-    """
-    global _LEARNER_FOCUS_RETRIEVER, _LEARNER_FOCUS_RETRIEVER_LOADED
-    if _LEARNER_FOCUS_RETRIEVER_LOADED:
-        return _LEARNER_FOCUS_RETRIEVER
-    _LEARNER_FOCUS_RETRIEVER_LOADED = True
-    try:
-        from src.learning.rag import build_default_retriever
-
-        _LEARNER_FOCUS_RETRIEVER = build_default_retriever()
-    except Exception:  # noqa: BLE001
-        logger.exception("Failed to build learner focus retriever; grounding disabled")
-        _LEARNER_FOCUS_RETRIEVER = None
-    return _LEARNER_FOCUS_RETRIEVER
-
 
 # Stage 8 structured_conversation custom event types (Wulo-namespaced so they
 # never collide with Azure Realtime event types).
@@ -403,10 +373,6 @@ class VoiceProxyHandler:
             return value or default
 
         scope = first("scope", "practice") or "practice"
-        scored_raw = first("focus_scored")
-        focus_scored: bool | None = None
-        if scored_raw is not None:
-            focus_scored = scored_raw.strip().lower() in {"1", "true", "yes", "on"}
         return AgentProfileContext(
             scope=scope,
             child_id=first("child_id"),
@@ -417,7 +383,7 @@ class VoiceProxyHandler:
             focus_skill_id=first("focus_skill_id"),
             focus_topic=first("focus_topic"),
             focus_misconception=first("focus_misconception"),
-            focus_scored=focus_scored,
+            focus_scored=(first("focus_scored", "false") or "").lower() in {"1", "true", "yes"},
         )
 
     async def _get_agent_id_from_client(self, client_ws: simple_websocket.ws.Server) -> Optional[str]:
@@ -504,7 +470,7 @@ class VoiceProxyHandler:
             is_photo_avatar = custom_avatar.get("is_photo_avatar", False)
             voice_name = custom_avatar.get("voice_name") or voice_name
 
-        if profile.id in LEARNER_VOICE_PROFILE_IDS:
+        if profile.id == "learner":
             voice_name = profile.voice
 
         avatar_config_value = self._build_avatar_config(avatar_character, avatar_style, is_photo_avatar)
@@ -558,7 +524,7 @@ class VoiceProxyHandler:
         # through the avatar/WebRTC stream and does not emit
         # `response.audio.delta` frames over the realtime websocket, so the
         # browser never hears the tutor. Practice/teacher flows keep the avatar.
-        is_audio_only_profile = profile.id in LEARNER_VOICE_PROFILE_IDS
+        is_audio_only_profile = profile.id == "learner"
         if is_audio_only_profile:
             modalities: list[Modality] = [Modality.TEXT, Modality.AUDIO]
             avatar_for_session: Any = None
@@ -589,7 +555,7 @@ class VoiceProxyHandler:
 
         personalization_block = self._build_personalization_instruction_block(agent_config)
 
-        if profile.id in LEARNER_VOICE_PROFILE_IDS:
+        if profile.id == "learner":
             session["instructions"] = append_phoneme_rule(
                 self._build_profile_instruction_block(profile, profile_context)
             )
@@ -619,104 +585,73 @@ class VoiceProxyHandler:
             f"- class_year: {profile_context.class_year or 'default'}",
             f"- subject: {profile_context.subject or 'default'}",
         ]
-        block = f"{profile.system_prompt.strip()}\n\n" + "\n".join(context_lines)
-        focus_block = self._build_focus_instruction_block(profile_context)
-        if focus_block:
-            block = f"{block}\n\n{focus_block}"
-        return block
+        blocks = [profile.system_prompt.strip()]
 
-    def _build_focus_instruction_block(
-        self,
-        profile_context: AgentProfileContext,
-    ) -> str | None:
-        """Anchor the realtime tutor on the learner's Dig-Deeper focus item.
+        focus_stem = str(profile_context.focus_stem or "").strip()
+        if focus_stem:
+            focus_lines = [
+                "DIG-DEEPER FOCUS ITEM:",
+                f"- Stem: {focus_stem}",
+            ]
+            if profile_context.focus_skill_id:
+                focus_lines.append(f"- Skill: {profile_context.focus_skill_id}")
+            if profile_context.focus_topic:
+                focus_lines.append(f"- Topic: {profile_context.focus_topic}")
+            if profile_context.focus_misconception:
+                focus_lines.append(f"- Likely misconception: {profile_context.focus_misconception}")
+            if profile_context.focus_scored:
+                focus_lines.append(
+                    "- This item is already scored; you may give a full worked solution after checking what the learner needs."
+                )
+            else:
+                focus_lines.append(
+                    "- Stay Socratic and never reveal the final answer until the learner has attempted it."
+                )
 
-        When the learner arrives on a specific question we (a) state the item so
-        the model stays on it, (b) keep guidance Socratic while the item is
-        unscored (never hand over the answer mid-assessment), and (c) pre-warm
-        the curriculum corpus so factual claims are grounded BEFORE the first
-        ``get_next_card`` tool call. Every injected source traces to a retrieval
-        hit; if nothing grounds we still anchor on the item and let the model
-        defer rather than invent.
-        """
-        stem = (profile_context.focus_stem or "").strip()
-        skill_id = (profile_context.focus_skill_id or "").strip()
-        topic = (profile_context.focus_topic or "").strip()
-        misconception = (profile_context.focus_misconception or "").strip()
-        if not (stem or skill_id or topic):
-            return None
+            grounding_lines = self._build_focus_grounding_lines(profile_context)
+            if grounding_lines:
+                focus_lines.extend(grounding_lines)
+            blocks.append("\n".join(focus_lines))
 
-        lines: List[str] = ["DIG-DEEPER FOCUS ITEM:"]
-        if stem:
-            lines.append(f"- The learner is working through: {stem}")
-        if topic:
-            lines.append(f"- Topic: {topic}")
-        if skill_id:
-            lines.append(f"- Skill: {skill_id}")
-        if misconception:
-            lines.append(f"- Watch for this misconception: {misconception}")
-        if profile_context.focus_scored is False:
-            lines.append(
-                "- This item is NOT yet scored: stay Socratic — guide with hints "
-                "and questions, never reveal the final answer until it is scored."
-            )
-        elif profile_context.focus_scored is True:
-            lines.append(
-                "- This item is already scored: you may explain it fully and walk "
-                "through the worked solution."
-            )
+        blocks.append("\n".join(context_lines))
+        return "\n\n".join(block for block in blocks if block)
 
-        sources = self._retrieve_focus_sources(profile_context, query=stem or topic or skill_id)
-        if sources:
-            lines.append("")
-            lines.append(
-                "GROUNDING SOURCES (cite as [S1], [S2]; state only what these "
-                "support — if a fact is not here, say you are not sure):"
-            )
-            for index, snippet in enumerate(sources, start=1):
-                lines.append(f"[S{index}] {snippet}")
-        else:
-            lines.append("")
-            lines.append(
-                "No curriculum source was retrieved for this item — explain only "
-                "from the item itself and say you are not sure rather than guess."
-            )
-        return "\n".join(lines)
-
-    def _retrieve_focus_sources(
-        self,
-        profile_context: AgentProfileContext,
-        *,
-        query: str,
-        limit: int = 3,
-    ) -> List[str]:
-        query = (query or "").strip()
-        if not query:
+    def _build_focus_grounding_lines(self, profile_context: AgentProfileContext) -> List[str]:
+        focus_stem = str(profile_context.focus_stem or "").strip()
+        if not focus_stem:
             return []
-        retriever = _get_learner_focus_retriever()
-        if retriever is None:
-            return []
-        subject = _FOCUS_SUBJECT_TO_CORPUS.get((profile_context.subject or "").strip())
-        year_group = _FOCUS_CLASS_TO_YEAR_GROUP.get((profile_context.class_year or "").strip())
         try:
-            from src.learning.rag import retrieve_or_refuse
+            retriever = _get_learner_focus_retriever()
+        except Exception:  # noqa: BLE001 - grounding must degrade closed
+            logger.exception("Failed to build learner focus retriever")
+            retriever = None
+        if retriever is None:
+            return ["- No curriculum source was retrieved; defer rather than invent unsupported facts."]
 
-            hits, _refusal = retrieve_or_refuse(
+        try:
+            from src.learning import rag as rag_module
+
+            hits, _refusal = rag_module.retrieve_or_refuse(
                 retriever,
-                query,
-                subject=subject,  # type: ignore[arg-type]
-                year_group=year_group,  # type: ignore[arg-type]
+                focus_stem,
+                subject=profile_context.subject,
+                year_group=profile_context.class_year,
             )
-        except Exception:  # noqa: BLE001
-            logger.exception("Focus grounding retrieval failed; continuing ungrounded")
-            return []
-        snippets: List[str] = []
-        for hit in hits[:limit]:
-            body = str(getattr(getattr(hit, "node", None), "body_markdown", "") or "").strip()
-            if body:
-                snippets.append(body)
-        return snippets
+        except Exception:  # noqa: BLE001 - grounding must degrade closed
+            logger.exception("Learner focus retrieval failed")
+            hits = []
 
+        if not hits:
+            return ["- No curriculum source was retrieved; defer rather than invent unsupported facts."]
+
+        lines = ["GROUNDING SOURCES:"]
+        for index, hit in enumerate(hits[:3], start=1):
+            node = getattr(hit, "node", None)
+            text = str(getattr(node, "body_markdown", "") or getattr(hit, "text", "") or "").strip()
+            if not text:
+                continue
+            lines.append(f"[S{index}] {text[:500]}")
+        return lines if len(lines) > 1 else ["- No curriculum source was retrieved; defer rather than invent unsupported facts."]
 
     def _combine_instructions(self, base_instructions: Any, personalization_block: Optional[str]) -> Optional[str]:
         base_text = str(base_instructions or "").strip()
@@ -1144,11 +1079,6 @@ class VoiceProxyHandler:
         if tool_call is None:
             return False
         name, call_id, arguments = tool_call
-        if profile.id == "learner_ask" and not str(arguments.get("question") or "").strip():
-            # VoiceLive can emit incomplete argument snapshots before the final
-            # function_call item is done. For learner_ask, wait until the
-            # required question argument is present.
-            return False
         if name not in profile.tool_handlers:
             return False
         if handled_tool_call_ids is not None:
@@ -1188,53 +1118,50 @@ class VoiceProxyHandler:
         elif profile.id == "learner_ask":
             blocks = result.get("blocks")
             if isinstance(blocks, list):
-                session_complete = bool(result.get("session_complete", False))
-                for block in self._screen_assistant_blocks(blocks):
+                screened_blocks = self._screen_assistant_blocks(blocks, profile_context)
+                for block in screened_blocks:
                     await self._send_message(
                         client_ws,
                         {
                             "type": "wulo.assistant_block",
                             "payload": {
                                 "block": block,
-                                "session_complete": session_complete,
+                                "session_complete": bool(result.get("session_complete", False)),
                             },
                         },
                     )
         return True
 
-    @staticmethod
-    def _screen_assistant_blocks(blocks: list[Any]) -> list[dict[str, Any]]:
-        """Defense-in-depth outbound screen on gen-UI blocks before emission.
+    def _screen_assistant_blocks(
+        self,
+        blocks: List[Any],
+        _profile_context: AgentProfileContext,
+    ) -> List[Dict[str, Any]]:
+        return [dict(block) for block in blocks if isinstance(block, dict)]
 
-        ``run_assistant_turn`` already runs grounding + ``screen_outbound_text``
-        on the prose it produces, but the card/block emission point historically
-        forwarded planner output to the client unscreened. We re-screen the
-        speakable/visible text of each block here and drop any block the
-        safeguarding lexicon rejects, so a regression in the brain can never push
-        unsafe text to a child's screen.
-        """
-        from src.learning.tutor import screen_outbound_text  # lazy: avoid import cycle
-
-        screened: list[dict[str, Any]] = []
-        for raw in blocks:
-            if not isinstance(raw, dict):
-                continue
-            text_parts = [
-                str(raw.get(key) or "")
-                for key in ("speak", "text", "title", "body")
-            ]
-            combined = " ".join(part for part in text_parts if part).strip()
-            if combined:
-                try:
-                    decision = screen_outbound_text(combined)
-                except Exception:  # screening must never crash the turn
-                    logger.exception("Outbound block screening failed")
-                    continue
-                if not getattr(decision, "allowed", True):
-                    logger.warning("Dropped assistant block failing outbound screen")
-                    continue
-            screened.append(raw)
-        return screened
+    def _build_profile_tool_response_create(self, profile: AgentProfile) -> Dict[str, Any]:
+        if profile.id == "learner":
+            return {
+                "type": "response.create",
+                "response": {
+                    "instructions": (
+                        "Speak only from the tool output card. Prefer card.speak verbatim. "
+                        "If card.speak is empty, briefly describe the card in natural speech. "
+                        "Do not say raw JSON or claim the card is in the wrong format."
+                    )
+                },
+            }
+        if profile.id == "learner_ask":
+            return {
+                "type": "response.create",
+                "response": {
+                    "instructions": (
+                        "Speak only from the ask_pathfinder tool output blocks. "
+                        "If no block is available, say you do not have a grounded answer yet."
+                    )
+                },
+            }
+        return {"type": "response.create"}
 
     def _extract_profile_tool_call(self, event_dict: Dict[str, Any]) -> tuple[str, str, Dict[str, Any]] | None:
         event_type = str(event_dict.get("type") or "")
@@ -1244,15 +1171,6 @@ class VoiceProxyHandler:
             arguments = self._coerce_tool_arguments(event_dict.get("arguments"))
             if name and call_id:
                 return name, call_id, arguments
-
-        if event_type == "response.output_item.done":
-            item = event_dict.get("item")
-            if isinstance(item, dict) and str(item.get("type") or "") == "function_call":
-                name = str(item.get("name") or "").strip()
-                call_id = str(item.get("call_id") or item.get("id") or "").strip()
-                arguments = self._coerce_tool_arguments(item.get("arguments"))
-                if name and call_id:
-                    return name, call_id, arguments
 
         if event_type == "conversation.item.created":
             item = event_dict.get("item")
@@ -1328,21 +1246,6 @@ class VoiceProxyHandler:
             "type": "function",
             "name": profile.forced_response_tool_name,
         }
-
-    def _build_profile_tool_response_create(self, profile: AgentProfile | None) -> Dict[str, Any]:
-        message: Dict[str, Any] = {"type": "response.create"}
-        if profile is not None and profile.id == "learner":
-            message["response"] = {
-                "instructions": (
-                    "Use the get_next_card tool output from the previous item. "
-                    "It is JSON with a card object. If card.speak is present, "
-                    "read that aloud naturally. If card.speak is missing, read "
-                    "the card prompt or stem and options. Do not mention JSON, "
-                    "schemas, tool output, or wrong format to the learner unless "
-                    "the tool output contains an explicit error field."
-                )
-            }
-        return message
 
     async def _send_message(self, ws: simple_websocket.ws.Server, message: Dict[str, Any]) -> None:
         """Send a JSON message to a WebSocket."""

@@ -98,7 +98,8 @@ This project includes a dev container for easy setup and a build script for  dev
 2. **Fill in the .env file**
    - Copy `.env.template` to `.env`
    - Fill in your Azure AI Foundry and Speech service keys and endpoints (you can run `azd provision` to create these resources if you haven't already)
-   - For local auth testing, set `LOCAL_DEV_AUTH=true` and keep `LOCAL_DEV_USER_ROLE=therapist`
+   - For learner testing without Easy Auth, prefer `./scripts/run-dev.sh`. It starts the backend with `LOCAL_DEV_AUTH=true` and a learner identity by default.
+   - For other local personas, set `LOCAL_DEV_AUTH=true` plus `LOCAL_DEV_USER_ROLE=therapist`, `parent`, `admin`, `learner`, `kid`, or `student` before starting the backend.
    - Keep `DATABASE_BACKEND=sqlite` for local runs. The runtime default is `postgres` (used by Azure), which requires `DATABASE_URL`; without the override a fresh `python src/app.py` will abort with `DATABASE_URL is required`.
 
 3. **Build and run**
@@ -108,6 +109,19 @@ This project includes a dev container for easy setup and a build script for  dev
 
    # Start the server
    cd backend && python -m src.app
+   ```
+
+   For the usual no-auth learner workflow, run both local services from the repo
+   root instead:
+
+   ```bash
+   ./scripts/run-dev.sh
+   ```
+
+   To use the built-backend entrypoint as a learner, pass the role override:
+
+   ```bash
+   LOCAL_DEV_USER_ROLE=learner ./scripts/start-local.sh
    ```
 
    To iterate on the frontend against a local Flask backend instead of the
