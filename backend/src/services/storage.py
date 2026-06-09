@@ -279,6 +279,7 @@ class StorageService:
                         self._ensure_recommendation_tables(connection)
                         self._ensure_progress_report_table(connection)
                         self._ensure_insight_tables(connection)
+                        self._ensure_learner_ask_tables(connection)
                         self._ensure_migrations(connection)
                         self._seed_children(connection)
                         logger.info("SQLite committing...")
@@ -327,6 +328,7 @@ class StorageService:
         )
         connection.execute("UPDATE progress_reports SET source = 'pipeline' WHERE source IS NULL OR TRIM(source) = ''")
         self._ensure_insight_tables(connection)
+        self._ensure_learner_ask_tables(connection)
         self._ensure_column(connection, "learner_profiles", "goals_json", "TEXT NOT NULL DEFAULT '[]'")
 
     def _ensure_parental_consents_table(self, connection: sqlite3.Connection) -> None:
@@ -1004,6 +1006,42 @@ class StorageService:
         connection.execute(
             "CREATE INDEX IF NOT EXISTS idx_insight_messages_conversation_created "
             "ON insight_messages (conversation_id, created_at)"
+        )
+
+    def _ensure_learner_ask_tables(self, connection: sqlite3.Connection) -> None:
+        """Create the learner "Ask Wulo" conversation + message tables.
+
+        Mirrors the Alembic ``20260607_000035`` migration so the in-process
+        SQLite/in-memory backends self-provision without a migration run.
+        """
+        connection.execute(
+            """CREATE TABLE IF NOT EXISTS learner_ask_conversations (
+                id TEXT PRIMARY KEY,
+                learner_id TEXT NOT NULL,
+                title TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                deleted_at TEXT
+            )"""
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_learner_ask_conversations_learner_updated "
+            "ON learner_ask_conversations (learner_id, updated_at DESC)"
+        )
+        connection.execute(
+            """CREATE TABLE IF NOT EXISTS learner_ask_messages (
+                id TEXT PRIMARY KEY,
+                conversation_id TEXT NOT NULL REFERENCES learner_ask_conversations(id) ON DELETE CASCADE,
+                role TEXT NOT NULL,
+                text TEXT,
+                blocks_json TEXT,
+                session_complete INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL
+            )"""
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_learner_ask_messages_conversation_created "
+            "ON learner_ask_messages (conversation_id, created_at)"
         )
 
     def _ensure_column(self, connection: sqlite3.Connection, table_name: str, column_name: str, definition: str):
@@ -5196,6 +5234,189 @@ class StorageService:
                 (title, self._utc_now(), conversation_id),
             )
         return True
+
+    # ------------------------------------------------------------------
+    # Learner "Ask Wulo" conversations (learner-scoped thread history).
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _row_to_learner_ask_message(row: sqlite3.Row) -> Dict[str, Any]:
+        blocks_raw = row["blocks_json"]
+        try:
+            blocks = json.loads(blocks_raw) if blocks_raw else []
+        except (TypeError, json.JSONDecodeError):
+            blocks = []
+        return {
+            "id": row["id"],
+            "conversation_id": row["conversation_id"],
+            "role": row["role"],
+            "text": row["text"],
+            "blocks": blocks if isinstance(blocks, list) else [],
+            "session_complete": bool(row["session_complete"]),
+            "created_at": row["created_at"],
+        }
+
+    def create_learner_ask_conversation(
+        self,
+        *,
+        learner_id: str,
+        title: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        conversation_id = f"ask-conv-{uuid4().hex[:12]}"
+        now = self._utc_now()
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT INTO learner_ask_conversations (
+                    id, learner_id, title, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?)
+                """,
+                (conversation_id, learner_id, title, now, now),
+            )
+        return {
+            "id": conversation_id,
+            "learner_id": learner_id,
+            "title": title,
+            "created_at": now,
+            "updated_at": now,
+        }
+
+    def list_learner_ask_conversations(
+        self,
+        learner_id: str,
+        *,
+        limit: int = 50,
+    ) -> List[Dict[str, Any]]:
+        clamped_limit = max(1, min(int(limit or 50), 200))
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT id, learner_id, title, created_at, updated_at
+                FROM learner_ask_conversations
+                WHERE learner_id = ? AND deleted_at IS NULL
+                ORDER BY updated_at DESC
+                LIMIT ?
+                """,
+                (learner_id, clamped_limit),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def get_learner_ask_conversation(
+        self,
+        conversation_id: str,
+        *,
+        learner_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT id, learner_id, title, created_at, updated_at
+                FROM learner_ask_conversations
+                WHERE id = ? AND deleted_at IS NULL
+                """,
+                (conversation_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        payload = dict(row)
+        if learner_id is not None and payload.get("learner_id") != learner_id:
+            return None
+        return payload
+
+    def list_learner_ask_messages(
+        self,
+        conversation_id: str,
+    ) -> List[Dict[str, Any]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT id, conversation_id, role, text, blocks_json,
+                       session_complete, created_at
+                FROM learner_ask_messages
+                WHERE conversation_id = ?
+                ORDER BY created_at ASC, id ASC
+                """,
+                (conversation_id,),
+            ).fetchall()
+        return [self._row_to_learner_ask_message(row) for row in rows]
+
+    def append_learner_ask_message(
+        self,
+        conversation_id: str,
+        *,
+        role: str,
+        text: Optional[str] = None,
+        blocks: Optional[List[Dict[str, Any]]] = None,
+        session_complete: bool = False,
+    ) -> Dict[str, Any]:
+        message_id = f"ask-msg-{uuid4().hex[:12]}"
+        now = self._utc_now()
+        blocks_json = json.dumps(blocks, ensure_ascii=True) if blocks else None
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT INTO learner_ask_messages (
+                    id, conversation_id, role, text, blocks_json,
+                    session_complete, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    message_id,
+                    conversation_id,
+                    role,
+                    text,
+                    blocks_json,
+                    1 if session_complete else 0,
+                    now,
+                ),
+            )
+            connection.execute(
+                "UPDATE learner_ask_conversations SET updated_at = ? WHERE id = ?",
+                (now, conversation_id),
+            )
+        return {
+            "id": message_id,
+            "conversation_id": conversation_id,
+            "role": role,
+            "text": text,
+            "blocks": list(blocks or []),
+            "session_complete": bool(session_complete),
+            "created_at": now,
+        }
+
+    def update_learner_ask_conversation_title(
+        self,
+        conversation_id: str,
+        title: str,
+    ) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                "UPDATE learner_ask_conversations SET title = ?, updated_at = ? WHERE id = ?",
+                (title, self._utc_now(), conversation_id),
+            )
+        return None
+
+    def delete_learner_ask_conversation(
+        self,
+        conversation_id: str,
+        *,
+        learner_id: Optional[str] = None,
+    ) -> bool:
+        now = self._utc_now()
+        with self._connect() as connection:
+            if learner_id is not None:
+                cursor = connection.execute(
+                    "UPDATE learner_ask_conversations SET deleted_at = ? "
+                    "WHERE id = ? AND learner_id = ? AND deleted_at IS NULL",
+                    (now, conversation_id, learner_id),
+                )
+            else:
+                cursor = connection.execute(
+                    "UPDATE learner_ask_conversations SET deleted_at = ? "
+                    "WHERE id = ? AND deleted_at IS NULL",
+                    (now, conversation_id),
+                )
+            return cursor.rowcount > 0
 
     # ------------------------------------------------------------------
     # Learner profile + consent audit (Pathfinder learner onboarding).

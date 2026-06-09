@@ -1,0 +1,224 @@
+{
+  "version": "1.0.0",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "pathfinder.ingest",
+      "rule_id": "ingest",
+      "confidence": 1.0,
+      "evidence_count": 1
+    }
+  ],
+  "nodes": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.843685+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.jss1.introduction-to-computing.what-a-computer-is",
+      "version": "1.0.0",
+      "title": "What a computer is",
+      "subject": "computer_science",
+      "year_group": "JSS1",
+      "topic": "introduction to computing",
+      "subtopic": "what a computer is",
+      "misconception_codes": [],
+      "body_markdown": "A computer is an electronic machine that accepts data, processes it following a set of instructions, and gives out useful information. The data you put in is called input, the work the computer does on it is called processing, and the result that comes out is called output. A computer is fast, accurate, and can store very large amounts of information for a long time without getting tired. Because it follows instructions exactly, the quality of its results depends on the quality of the data and instructions it is given. People use computers in schools, banks, hospitals, shops, and offices to calculate, keep records, send messages, and control machines.",
+      "anchors": [
+        "sec-computer_science-jss1-introduction-to-computing-what-a-computer-is"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.844022+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.jss1.computer-system.hardware-and-software",
+      "version": "1.0.0",
+      "title": "Hardware and software",
+      "subject": "computer_science",
+      "year_group": "JSS1",
+      "topic": "computer system",
+      "subtopic": "hardware and software",
+      "misconception_codes": [],
+      "body_markdown": "A computer system is made up of two main parts: hardware and software. Hardware refers to the physical parts of the computer that you can touch, such as the monitor, keyboard, mouse, system unit, and printer. Software refers to the sets of instructions, called programs, that tell the hardware what to do. Without software the hardware cannot work, and without hardware the software has nothing to run on. Software is grouped into system software, such as the operating system that manages the whole computer, and application software, such as word processors and games that help people do particular jobs.",
+      "anchors": [
+        "sec-computer_science-jss1-computer-system-hardware-and-software"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.844067+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.jss2.input-and-output.input-and-output-devices",
+      "version": "1.0.0",
+      "title": "Input and output devices",
+      "subject": "computer_science",
+      "year_group": "JSS2",
+      "topic": "input and output",
+      "subtopic": "input and output devices",
+      "misconception_codes": [],
+      "body_markdown": "An input device is any part used to enter data and instructions into the computer. Common input devices include the keyboard for typing text and numbers, the mouse for pointing and selecting, the scanner for copying pictures and documents, and the microphone for sound. An output device is any part that gives out the results of processing in a form people can understand. Common output devices include the monitor or screen, which shows results as text and pictures, the printer, which produces results on paper, and the speaker, which gives out sound. Some devices, like a touch screen, can act as both input and output.",
+      "anchors": [
+        "sec-computer_science-jss2-input-and-output-input-and-output-devices"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.844104+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.jss3.central-processing-unit.parts-of-the-cpu",
+      "version": "1.0.0",
+      "title": "Parts of the central processing unit",
+      "subject": "computer_science",
+      "year_group": "JSS3",
+      "topic": "central processing unit",
+      "subtopic": "parts of the cpu",
+      "misconception_codes": [],
+      "body_markdown": "The central processing unit, often called the CPU, is the part of the computer that does the actual work of processing data. It is often described as the brain of the computer. The CPU has three main parts. The control unit directs the flow of data and tells the other parts what to do, like a teacher giving instructions. The arithmetic and logic unit carries out calculations such as addition and subtraction and makes comparisons such as deciding which of two numbers is larger. The main memory holds the data and instructions the CPU is working on at that moment. Together these parts make the computer follow a program step by step.",
+      "anchors": [
+        "sec-computer_science-jss3-central-processing-unit-parts-of-the-cpu"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.844140+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.algorithms.algorithms-and-flowcharts",
+      "version": "1.0.0",
+      "title": "Algorithms and flowcharts",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "algorithms",
+      "subtopic": "algorithms and flowcharts",
+      "misconception_codes": [],
+      "body_markdown": "An algorithm is a clear, step by step set of instructions for solving a problem or completing a task. A good algorithm is precise, finite, and arranged in the correct order, so that anyone who follows the steps gets the same correct result. For example, the algorithm for boiling water is to fetch water, pour it into a pot, place the pot on heat, and wait until it bubbles. A flowchart is a diagram that shows an algorithm using simple shapes joined by arrows. An oval shows the start and stop, a rectangle shows a process, a parallelogram shows input or output, and a diamond shows a decision. Drawing a flowchart helps a programmer plan a solution before writing actual code.",
+      "anchors": [
+        "sec-computer_science-ss1-algorithms-algorithms-and-flowcharts"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.844177+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss2.programming-languages.low-level-and-high-level-languages",
+      "version": "1.0.0",
+      "title": "Low-level and high-level languages",
+      "subject": "computer_science",
+      "year_group": "SS2",
+      "topic": "programming languages",
+      "subtopic": "low-level and high-level languages",
+      "misconception_codes": [],
+      "body_markdown": "A programming language is the set of words and rules used to write instructions that a computer can carry out. Languages are grouped into low-level and high-level. A low-level language is close to the way the machine works and is hard for people to read; machine language, written in ones and zeros, and assembly language belong to this group. A high-level language is close to human language and is easier to write and understand; examples include Python, Java, and Basic. Programs written in a high-level language must first be translated into machine language by a translator such as a compiler or an interpreter before the computer can run them.",
+      "anchors": [
+        "sec-computer_science-ss2-programming-languages-low-level-and-high-level-languages"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.844211+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss3.computer-networks.networks-and-the-internet",
+      "version": "1.0.0",
+      "title": "Computer networks and the internet",
+      "subject": "computer_science",
+      "year_group": "SS3",
+      "topic": "computer networks",
+      "subtopic": "networks and the internet",
+      "misconception_codes": [],
+      "body_markdown": "A computer network is a group of two or more computers joined together so they can share data and resources such as printers and an internet connection. A network that covers a small area, such as one office or school, is called a local area network. A network that covers a large area, such as a whole country, is called a wide area network. The internet is the largest network in the world, joining millions of computers across many countries. Through the internet people send electronic mail, browse websites, share files, and hold video calls. Networking saves money and time because users can share one resource instead of buying many.",
+      "anchors": [
+        "sec-computer_science-ss3-computer-networks-networks-and-the-internet"
+      ],
+      "status": "approved"
+    }
+  ]
+}

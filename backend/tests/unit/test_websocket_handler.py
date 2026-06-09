@@ -158,6 +158,19 @@ class TestVoiceProxyHandler:
         assert "card.speak" in instructions
         assert "wrong format" in instructions
 
+    def test_learner_ask_tool_followup_response_prefers_block_speak(self):
+        """learner_ask follow-up steers the neural model to the normalized speak
+        field so raw LaTeX/backslashes in block.text are never voiced."""
+        handler = VoiceProxyHandler(Mock())
+        profile = get_profile("learner_ask")
+
+        message = handler._build_profile_tool_response_create(profile)
+
+        assert message["type"] == "response.create"
+        instructions = message["response"]["instructions"]
+        assert "speak field verbatim" in instructions
+        assert "backslash" in instructions.lower()
+
     @patch("src.services.websocket_handler.config")
     def test_build_query_params_with_azure_agent(self, mock_config):
         """Test building query params with Azure agent configuration."""

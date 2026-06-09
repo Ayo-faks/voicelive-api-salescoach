@@ -1045,11 +1045,31 @@ export type AssistantBlock =
 export interface AssistantTurnResult {
   blocks: AssistantBlock[]
   session_complete: boolean
+  /** The thread this turn was saved to; echo it back to extend the same thread. */
+  conversation_id?: string
 }
 
 export interface AssistantThreadTurn {
   role: string
   text: string
+}
+
+/** A saved Ask Wulo conversation thread (list view). */
+export interface AskConversationSummary {
+  id: string
+  title: string
+  created_at: string
+  updated_at: string
+}
+
+/** One persisted message within a saved Ask Wulo thread. */
+export interface AskConversationMessage {
+  id: string
+  role: 'user' | 'assistant'
+  text?: string | null
+  blocks?: AssistantBlock[]
+  session_complete?: boolean
+  created_at: string
 }
 
 /** The full payload `POST /api/learning/assistant/turn` understands. */
@@ -1076,6 +1096,8 @@ export interface AssistantTurnRequest {
   attempt_history?: unknown
   thread?: AssistantThreadTurn[]
   lang?: string
+  /** Extend an existing saved thread; omit to start a new one. */
+  conversation_id?: string | null
 }
 
 /** Text transport: one HTTP turn returning the shared block contract. */
@@ -1087,6 +1109,45 @@ export async function runAssistantTurn(
     withDefaults({ method: 'POST', body: JSON.stringify(payload) })
   )
   return jsonOrThrow<AssistantTurnResult>(response)
+}
+
+/** List a learner's saved Ask Wulo threads, newest first. */
+export async function listAskConversations(
+  userId: string
+): Promise<AskConversationSummary[]> {
+  const url = `/api/learning/assistant/conversations?user_id=${encodeURIComponent(userId)}`
+  const response = await fetch(url, withDefaults({ method: 'GET' }))
+  const result = await jsonOrThrow<{ conversations?: AskConversationSummary[] }>(
+    response
+  )
+  return result.conversations ?? []
+}
+
+/** Load one saved Ask Wulo thread with its full message history. */
+export async function getAskConversation(
+  conversationId: string,
+  userId: string
+): Promise<{
+  conversation: AskConversationSummary
+  messages: AskConversationMessage[]
+}> {
+  const url = `/api/learning/assistant/conversations/${encodeURIComponent(
+    conversationId
+  )}?user_id=${encodeURIComponent(userId)}`
+  const response = await fetch(url, withDefaults({ method: 'GET' }))
+  return jsonOrThrow(response)
+}
+
+/** Soft-delete a saved Ask Wulo thread. */
+export async function deleteAskConversation(
+  conversationId: string,
+  userId: string
+): Promise<void> {
+  const url = `/api/learning/assistant/conversations/${encodeURIComponent(
+    conversationId
+  )}?user_id=${encodeURIComponent(userId)}`
+  const response = await fetch(url, withDefaults({ method: 'DELETE' }))
+  await jsonOrThrow(response)
 }
 
 /** Coarse pacing buckets a learner goal can carry. */

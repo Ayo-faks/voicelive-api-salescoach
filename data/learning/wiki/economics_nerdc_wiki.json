@@ -1,0 +1,224 @@
+{
+  "version": "1.0.0",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "pathfinder.ingest",
+      "rule_id": "ingest",
+      "confidence": 1.0,
+      "evidence_count": 1
+    }
+  ],
+  "nodes": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.844800+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss1.basic-concepts.scarcity-choice-and-opportunity-cost",
+      "version": "1.0.0",
+      "title": "Scarcity, choice and opportunity cost",
+      "subject": "economics",
+      "year_group": "SS1",
+      "topic": "basic concepts",
+      "subtopic": "scarcity, choice and opportunity cost",
+      "misconception_codes": [],
+      "body_markdown": "Economics studies how people use limited resources to satisfy their unlimited wants. Because resources such as money, land, and time are scarce while human wants are endless, no person or country can have everything it desires. This forces everyone to make a choice about which wants to satisfy first. Whenever a choice is made, something else has to be given up. The next best alternative that is given up when a choice is made is called the opportunity cost. For example, if a student spends her last money on a textbook instead of a meal, the meal she gives up is the opportunity cost of the book. Scarcity, choice, and opportunity cost are therefore the foundation of all economic decisions.",
+      "anchors": [
+        "sec-economics-ss1-basic-concepts-scarcity-choice-and-opportunity-cost"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.844837+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss1.factors-of-production.the-factors-of-production",
+      "version": "1.0.0",
+      "title": "The factors of production",
+      "subject": "economics",
+      "year_group": "SS1",
+      "topic": "factors of production",
+      "subtopic": "the factors of production",
+      "misconception_codes": [],
+      "body_markdown": "The factors of production are the resources used to produce goods and services. There are four of them. Land means all the free gifts of nature used in production, such as soil, rivers, forests, and minerals; its reward is rent. Labour means the human effort, both physical and mental, used in production; its reward is wages or salary. Capital means the man-made goods used to produce other goods, such as tools, machines, and factory buildings; its reward is interest. The entrepreneur is the person who organises the other three factors, takes business risks, and makes decisions; the reward for this is profit. Production can only take place when these factors are brought together.",
+      "anchors": [
+        "sec-economics-ss1-factors-of-production-the-factors-of-production"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.844870+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss1.demand.the-law-of-demand",
+      "version": "1.0.0",
+      "title": "The law of demand",
+      "subject": "economics",
+      "year_group": "SS1",
+      "topic": "demand",
+      "subtopic": "the law of demand",
+      "misconception_codes": [],
+      "body_markdown": "Demand is the quantity of a good that buyers are willing and able to buy at a given price within a period of time. For demand to count in economics, the wish to buy must be backed by the money to pay. The law of demand states that, other things being equal, the higher the price of a good the lower the quantity demanded, and the lower the price the higher the quantity demanded. This is why traders often sell more when they reduce their prices. Apart from price, demand is also affected by the income of buyers, the prices of other goods, people's tastes, and the size of the population.",
+      "anchors": [
+        "sec-economics-ss1-demand-the-law-of-demand"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.844903+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss2.supply.the-law-of-supply",
+      "version": "1.0.0",
+      "title": "The law of supply",
+      "subject": "economics",
+      "year_group": "SS2",
+      "topic": "supply",
+      "subtopic": "the law of supply",
+      "misconception_codes": [],
+      "body_markdown": "Supply is the quantity of a good that sellers are willing and able to offer for sale at a given price within a period of time. The law of supply states that, other things being equal, the higher the price of a good the greater the quantity supplied, and the lower the price the smaller the quantity supplied. Producers are willing to bring more goods to the market when prices are high because they expect to earn more profit. Besides price, supply is affected by the cost of production, the state of technology, the number of sellers, government taxes, and natural conditions such as weather, which matters greatly for farm produce.",
+      "anchors": [
+        "sec-economics-ss2-supply-the-law-of-supply"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.844936+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss2.money.functions-of-money",
+      "version": "1.0.0",
+      "title": "The functions of money",
+      "subject": "economics",
+      "year_group": "SS2",
+      "topic": "money",
+      "subtopic": "functions of money",
+      "misconception_codes": [],
+      "body_markdown": "Money is anything that is generally accepted as a means of payment for goods and services and in settlement of debts. Before money, people traded by exchanging goods directly, a system called barter, which was difficult because both traders had to want what the other offered. Money solves this problem and performs several functions. It serves as a medium of exchange, accepted by everyone in buying and selling. It is a measure of value, allowing the worth of different goods to be compared. It is a store of value, since it can be saved and used later. It also acts as a standard for future payments, making it possible to borrow and lend.",
+      "anchors": [
+        "sec-economics-ss2-money-functions-of-money"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845050+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss3.national-income.national-income-concepts",
+      "version": "1.0.0",
+      "title": "National income",
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "national income",
+      "subtopic": "national income concepts",
+      "misconception_codes": [],
+      "body_markdown": "National income is the total money value of all goods and services produced by a country within a given period, usually one year. It measures the size of a nation's economy and shows whether the country is growing richer or poorer over time. A common measure is the gross domestic product, which is the value of everything produced inside the country's borders. When the income earned abroad by the country's citizens is added and the income earned by foreigners at home is removed, we get the gross national product. Dividing national income by the population gives income per head, which gives a rough idea of the average standard of living of the people.",
+      "anchors": [
+        "sec-economics-ss3-national-income-national-income-concepts"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845086+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss3.inflation.meaning-and-effects-of-inflation",
+      "version": "1.0.0",
+      "title": "Inflation",
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "inflation",
+      "subtopic": "meaning and effects of inflation",
+      "misconception_codes": [],
+      "body_markdown": "Inflation is a continuous and general rise in the prices of goods and services over a period of time. When inflation is high, the same amount of money buys fewer goods than before, so the value of money falls. Inflation can be caused by too much money chasing too few goods, by a rise in the cost of producing goods, or by people demanding more than the economy can supply. Inflation hurts people on fixed incomes, such as pensioners, because their money buys less. It also discourages saving. Governments try to control inflation by managing the supply of money, encouraging more production, and reducing wasteful spending.",
+      "anchors": [
+        "sec-economics-ss3-inflation-meaning-and-effects-of-inflation"
+      ],
+      "status": "approved"
+    }
+  ]
+}

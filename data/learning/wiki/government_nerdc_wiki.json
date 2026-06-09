@@ -1,0 +1,224 @@
+{
+  "version": "1.0.0",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "pathfinder.ingest",
+      "rule_id": "ingest",
+      "confidence": 1.0,
+      "evidence_count": 1
+    }
+  ],
+  "nodes": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845122+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.government.ss1.meaning-of-government.meaning-of-government",
+      "version": "1.0.0",
+      "title": "The meaning of government",
+      "subject": "government",
+      "year_group": "SS1",
+      "topic": "meaning of government",
+      "subtopic": "meaning of government",
+      "misconception_codes": [],
+      "body_markdown": "Government can be understood in three main ways. First, it is the group of people and institutions that make and enforce the laws of a state, including the lawmakers, the leaders who carry out the laws, and the courts. Second, it is a process or art of ruling a society, that is, the way power is used to direct the affairs of a country. Third, it is a field of study that examines how states are organised and governed. The main duties of any government are to maintain law and order, protect citizens from internal and external threats, provide social services such as roads and schools, and manage the economy for the good of all.",
+      "anchors": [
+        "sec-government-ss1-meaning-of-government-meaning-of-government"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845158+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.government.ss1.political-concepts.power-authority-and-sovereignty",
+      "version": "1.0.0",
+      "title": "Power, authority and sovereignty",
+      "subject": "government",
+      "year_group": "SS1",
+      "topic": "political concepts",
+      "subtopic": "power, authority and sovereignty",
+      "misconception_codes": [],
+      "body_markdown": "Power is the ability of a person or group to make others do what they want, even against their will. Authority is power that is recognised as rightful and legal, so that people obey it because they accept that the holder has the right to give orders; a police officer directing traffic has authority. Sovereignty is the supreme power of a state to make and enforce laws within its territory without being controlled by any outside body. Internal sovereignty is supreme power over the people and groups inside the country, while external sovereignty means the state is independent and free from the control of other states. These three ideas explain how a state is governed.",
+      "anchors": [
+        "sec-government-ss1-political-concepts-power-authority-and-sovereignty"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845233+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.government.ss1.constitution.the-constitution",
+      "version": "1.0.0",
+      "title": "The constitution",
+      "subject": "government",
+      "year_group": "SS1",
+      "topic": "constitution",
+      "subtopic": "the constitution",
+      "misconception_codes": [],
+      "body_markdown": "A constitution is the body of rules and principles, written or unwritten, by which a state is governed. It sets out how power is shared among the parts of government, how leaders are chosen, and the rights and duties of citizens. A written constitution has its main rules gathered in one document, as in Nigeria and the United States. An unwritten constitution, as in Britain, is drawn from many sources such as laws, court decisions, and long-standing customs. A rigid constitution is hard to change and needs a special procedure, while a flexible constitution can be changed like an ordinary law. The constitution is usually the supreme law, so any other law that conflicts with it is void.",
+      "anchors": [
+        "sec-government-ss1-constitution-the-constitution"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845319+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.government.ss2.arms-of-government.the-three-arms-of-government",
+      "version": "1.0.0",
+      "title": "The three arms of government",
+      "subject": "government",
+      "year_group": "SS2",
+      "topic": "arms of government",
+      "subtopic": "the three arms of government",
+      "misconception_codes": [],
+      "body_markdown": "Government work is shared among three arms so that no single body holds all power. The legislature is the arm that makes the laws; in Nigeria it is the National Assembly, made up of the Senate and the House of Representatives. The executive is the arm that carries out and enforces the laws; it includes the President or governor, ministers, and the civil service. The judiciary is the arm that interprets the laws and settles disputes through the courts. Sharing duties in this way is meant to prevent the abuse of power and to protect the freedom of citizens, since each arm can check the actions of the others.",
+      "anchors": [
+        "sec-government-ss2-arms-of-government-the-three-arms-of-government"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845355+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.government.ss2.separation-of-powers.separation-of-powers-and-checks-and-balances",
+      "version": "1.0.0",
+      "title": "Separation of powers",
+      "subject": "government",
+      "year_group": "SS2",
+      "topic": "separation of powers",
+      "subtopic": "separation of powers and checks and balances",
+      "misconception_codes": [],
+      "body_markdown": "Separation of powers is the principle that the three arms of government, the legislature, the executive, and the judiciary, should have separate duties and be staffed by different people. The aim is to stop the concentration of power in one hand, which could lead to tyranny. Closely linked to it is the idea of checks and balances, which allows each arm to limit the others. For example, the legislature makes laws but the executive can refuse to sign a bill, and the judiciary can declare a law unconstitutional. The legislature in turn can question the executive and approve appointments. Through these controls, the arms keep one another within their lawful limits.",
+      "anchors": [
+        "sec-government-ss2-separation-of-powers-separation-of-powers-and-checks-and-balances"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845389+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.government.ss2.federalism.federalism",
+      "version": "1.0.0",
+      "title": "Federalism",
+      "subject": "government",
+      "year_group": "SS2",
+      "topic": "federalism",
+      "subtopic": "federalism",
+      "misconception_codes": [],
+      "body_markdown": "Federalism is a system of government in which power is shared between a central national government and smaller regional or state governments, with each level having duties given to it by the constitution. Neither level is completely under the control of the other in its own area of responsibility. Nigeria practises federalism, with a federal government at the centre and many state governments below it, as well as local governments. Federalism suits large countries with many ethnic groups because it lets different communities manage some of their own affairs while remaining part of one nation. It can, however, lead to disputes between the centre and the states over power and resources.",
+      "anchors": [
+        "sec-government-ss2-federalism-federalism"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845424+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.government.ss3.nigerian-government.colonial-constitutional-development",
+      "version": "1.0.0",
+      "title": "Constitutional development in Nigeria",
+      "subject": "government",
+      "year_group": "SS3",
+      "topic": "nigerian government",
+      "subtopic": "colonial constitutional development",
+      "misconception_codes": [],
+      "body_markdown": "Before independence, Nigeria was governed under a series of constitutions introduced by the British colonial rulers, each named after the governor of the time. The Clifford Constitution of 1922 first allowed a few Nigerians to be elected into a legislative council. The Richards Constitution of 1946 divided the country into regions. The Macpherson Constitution of 1951 widened Nigerian participation and was drawn up after wide consultation. The Lyttleton Constitution of 1954 made Nigeria a federation with greater powers for the regions. These steps gradually increased the role of Nigerians in governing themselves and prepared the way for full independence in 1960. Studying them shows how self-government was achieved in stages.",
+      "anchors": [
+        "sec-government-ss3-nigerian-government-colonial-constitutional-development"
+      ],
+      "status": "approved"
+    }
+  ]
+}

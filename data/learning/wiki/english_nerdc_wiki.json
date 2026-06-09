@@ -1,0 +1,194 @@
+{
+  "version": "1.0.0",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "pathfinder.ingest",
+      "rule_id": "ingest",
+      "confidence": 1.0,
+      "evidence_count": 1
+    }
+  ],
+  "nodes": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.846139+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.english.jss1.parts-of-speech.nouns",
+      "version": "1.0.0",
+      "title": "Nouns",
+      "subject": "english",
+      "year_group": "JSS1",
+      "topic": "parts of speech",
+      "subtopic": "nouns",
+      "misconception_codes": [],
+      "body_markdown": "A noun is a word that names a person, an animal, a place, a thing, or an idea. Examples are teacher, goat, Lagos, table, and honesty. Nouns are grouped into several kinds. A common noun names any one of a class of things, such as boy or city. A proper noun names a particular person or place and always begins with a capital letter, such as Ada or Kano. A concrete noun names something that can be seen or touched, like a chair, while an abstract noun names an idea or feeling that cannot be touched, like love or fear. A collective noun names a group, such as a team or a flock. Nouns can be singular for one or plural for more than one.",
+      "anchors": [
+        "sec-english-jss1-parts-of-speech-nouns"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.846171+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.english.jss2.tenses.the-simple-tenses",
+      "version": "1.0.0",
+      "title": "The simple tenses",
+      "subject": "english",
+      "year_group": "JSS2",
+      "topic": "tenses",
+      "subtopic": "the simple tenses",
+      "misconception_codes": [],
+      "body_markdown": "Tense shows the time at which the action of a verb takes place. English has three simple tenses. The simple present tense describes an action that happens regularly or a fact that is always true, as in she sings every morning. The simple past tense describes an action that was completed at a time before now, as in she sang yesterday, and most past tense verbs end in the letters e and d. The simple future tense describes an action that will happen later, and it is usually formed with the word will, as in she will sing tomorrow. Using the correct tense helps a listener know exactly when something happened.",
+      "anchors": [
+        "sec-english-jss2-tenses-the-simple-tenses"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.846233+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.english.jss3.punctuation.using-punctuation-marks",
+      "version": "1.0.0",
+      "title": "Using punctuation marks",
+      "subject": "english",
+      "year_group": "JSS3",
+      "topic": "punctuation",
+      "subtopic": "using punctuation marks",
+      "misconception_codes": [],
+      "body_markdown": "Punctuation marks are signs used in writing to make the meaning clear and to show the reader where to pause or stop. The full stop is placed at the end of a complete statement. The comma shows a short pause within a sentence and is used to separate items in a list. The question mark is placed at the end of a sentence that asks something. The exclamation mark shows strong feeling such as surprise or joy. The apostrophe shows that letters have been left out, as in do not becoming don't, or shows ownership, as in the girl's book. Correct punctuation prevents confusion and helps the reader understand the writer's exact meaning.",
+      "anchors": [
+        "sec-english-jss3-punctuation-using-punctuation-marks"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.846307+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.english.ss1.concord.subject-and-verb-agreement",
+      "version": "1.0.0",
+      "title": "Subject and verb agreement",
+      "subject": "english",
+      "year_group": "SS1",
+      "topic": "concord",
+      "subtopic": "subject and verb agreement",
+      "misconception_codes": [],
+      "body_markdown": "Concord, also called agreement, is the rule that a verb must match its subject in number and person. A singular subject takes a singular verb, and a plural subject takes a plural verb. For example, we say the boy runs fast, but the boys run fast. When two subjects are joined by the word and, they usually take a plural verb, as in Ada and Musa are here. When subjects are joined by or or nor, the verb agrees with the subject nearer to it. Some words such as everybody, each, and nobody are singular and take a singular verb. Mastering concord helps a writer or speaker avoid one of the most common errors in English.",
+      "anchors": [
+        "sec-english-ss1-concord-subject-and-verb-agreement"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.846342+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.english.ss2.comprehension.reading-comprehension-skills",
+      "version": "1.0.0",
+      "title": "Reading comprehension skills",
+      "subject": "english",
+      "year_group": "SS2",
+      "topic": "comprehension",
+      "subtopic": "reading comprehension skills",
+      "misconception_codes": [],
+      "body_markdown": "Reading comprehension is the ability to read a passage and understand its meaning well enough to answer questions on it. To comprehend a passage, a reader should first read it through once to get the general idea, then read it again more slowly to grasp the details. Skimming means reading quickly to find the main point, while scanning means searching for a particular piece of information. A good reader works out the meaning of difficult words from the way they are used in the sentence, a skill called using context. When answering questions, the reader should base every answer on what the passage actually says rather than on personal opinion, and should use his or her own words where asked.",
+      "anchors": [
+        "sec-english-ss2-comprehension-reading-comprehension-skills"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.846376+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.english.ss3.writing-skills.formal-letter-writing",
+      "version": "1.0.0",
+      "title": "Formal letter writing",
+      "subject": "english",
+      "year_group": "SS3",
+      "topic": "writing skills",
+      "subtopic": "formal letter writing",
+      "misconception_codes": [],
+      "body_markdown": "A formal letter is written to someone in an official position, such as a head teacher, a manager, or a government office, and it follows a fixed layout. It begins with the writer's address and the date at the top right, followed by the receiver's title and address on the left. After this comes a greeting such as Dear Sir or Dear Madam. The letter then states its purpose in a clear heading and develops the message in well ordered paragraphs, using polite and serious language. It ends with a closing such as Yours faithfully, followed by the writer's signature and full name. Because the tone is official, slang and short forms are avoided in a formal letter.",
+      "anchors": [
+        "sec-english-ss3-writing-skills-formal-letter-writing"
+      ],
+      "status": "approved"
+    }
+  ]
+}

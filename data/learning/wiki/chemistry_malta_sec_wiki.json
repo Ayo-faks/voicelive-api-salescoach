@@ -1,0 +1,494 @@
+{
+  "version": "1.0.0",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "pathfinder.ingest",
+      "rule_id": "ingest",
+      "confidence": 1.0,
+      "evidence_count": 1
+    }
+  ],
+  "nodes": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Chemistry-Year-10-Textbook-Version-1.01.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Malta Ministry for Education 2023 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:41:54.180822+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Chemistry Year 10 Textbook v1.01, Malta Directorate for Learning and Assessment Programmes (SEC06, 2023)"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.physical-and-chemical-changes.usability-of-materials",
+      "version": "1.0.0",
+      "title": "Usability of Materials",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "Physical and Chemical Changes",
+      "subtopic": "Usability of Materials",
+      "misconception_codes": [],
+      "body_markdown": "Some elements and compounds are naturally found and used in their native state. Such examples are gold which is used in jewellery and electronic contacts whereas limestone (calcium carbonate) is used in the building industry. Other substances are obtained from ores or other chemicals by using different chemical reactions. For example, iron(III) oxide , also known as haematite, contains iron which has many uses in various alloys and structures. However, iron needs to be extracted from iron(III) oxide before it can be of any use. Therefore, iron(III) oxide needs to be chemically changed to iron metal.",
+      "anchors": [
+        "sec-chemistry-ss1-physical-and-chemical-changes-usability-of-materials"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Chemistry-Year-10-Textbook-Version-1.01.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Malta Ministry for Education 2023 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:41:54.181984+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Chemistry Year 10 Textbook v1.01, Malta Directorate for Learning and Assessment Programmes (SEC06, 2023)"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.physical-and-chemical-changes.melting",
+      "version": "1.0.0",
+      "title": "Melting",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "Physical and Chemical Changes",
+      "subtopic": "Melting",
+      "misconception_codes": [],
+      "body_markdown": "When a solid is heated the particles vibrate faster as they gain kinetic energy and the attractive forces between particles are weakened. Eventually, at the melting point, the attractive forces are no longer able to hold the particles in an ordered way. So the solid melts to change the state and become a liquid as the particles lose their fixed arrangement . Different substances have different melting points. In fact this property can be used to distinguish substances from each other.",
+      "anchors": [
+        "sec-chemistry-ss1-physical-and-chemical-changes-melting"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Chemistry-Year-10-Textbook-Version-1.01.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Malta Ministry for Education 2023 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:41:54.182111+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Chemistry Year 10 Textbook v1.01, Malta Directorate for Learning and Assessment Programmes (SEC06, 2023)"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.physical-and-chemical-changes.evaporation-and-boiling",
+      "version": "1.0.0",
+      "title": "Evaporation and Boiling",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "Physical and Chemical Changes",
+      "subtopic": "Evaporation and Boiling",
+      "misconception_codes": [],
+      "body_markdown": "During evaporation, the particles of the liquid become free to form a gas (or vapour ). Evaporation occurs on the surface of a liquid at any temperature. The process occurs slowly and cannot be observed by the naked eye. Evaporation occurs when there is exposure of a liquid to air and liquid molecules change into vapour. Boiling occurs in the entire mass of a liquid and bubbles of gas can be observed throughout the liquid. For pure liquids, b oiling occurs at a fixed temperature ( boiling point), while evaporation can happen at any temperature depending on varying environmental conditions. Both evaporation and boiling require heat energy.",
+      "anchors": [
+        "sec-chemistry-ss1-physical-and-chemical-changes-evaporation-and-boiling"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Chemistry-Year-10-Textbook-Version-1.01.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Malta Ministry for Education 2023 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:41:54.182204+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Chemistry Year 10 Textbook v1.01, Malta Directorate for Learning and Assessment Programmes (SEC06, 2023)"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.physical-and-chemical-changes.freezing",
+      "version": "1.0.0",
+      "title": "Freezing",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "Physical and Chemical Changes",
+      "subtopic": "Freezing",
+      "misconception_codes": [],
+      "body_markdown": "On cooling, liquid particles lose kinetic energy and so can become more strongly attracted to each other. Eventually at the freezing point the forces of attraction are sufficient to remove any remaining freedom of movement and the particles come together to form an ordered solid arrangement. The freezing point of different substances has a different value. This value may be used to distinguish between substances.",
+      "anchors": [
+        "sec-chemistry-ss1-physical-and-chemical-changes-freezing"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Chemistry-Year-10-Textbook-Version-1.01.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Malta Ministry for Education 2023 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:41:54.182322+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Chemistry Year 10 Textbook v1.01, Malta Directorate for Learning and Assessment Programmes (SEC06, 2023)"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.physical-and-chemical-changes.sublimation",
+      "version": "1.0.0",
+      "title": "Sublimation",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "Physical and Chemical Changes",
+      "subtopic": "Sublimation",
+      "misconception_codes": [],
+      "body_markdown": "Under certain conditions, some solids turn straight into a gas when heated. This process is called sublimation. An example is solid carbon dioxide, also called ‘dry ice’. At atmospheric pressure, it turns straight into gaseous carbon dioxide. Liquid carbon dioxide can only exist under high pressure, such as in fire extinguishers. Iron(III) chloride also sublimes at atmospheric pressure. On heating, particles in a solid gain kinetic energy and as they move faster, they overcome the attractive forces causing the particles to separate from each other to form a gas.",
+      "anchors": [
+        "sec-chemistry-ss1-physical-and-chemical-changes-sublimation"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Chemistry-Year-10-Textbook-Version-1.01.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Malta Ministry for Education 2023 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:41:54.182958+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Chemistry Year 10 Textbook v1.01, Malta Directorate for Learning and Assessment Programmes (SEC06, 2023)"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.rates-of-chemical-reactions.what-is-the-rate-of-a-chemical-reaction",
+      "version": "1.0.0",
+      "title": "What Is the Rate of a Chemical Reaction ?",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "Rates of Chemical Reactions",
+      "subtopic": "What Is the Rate of a Chemical Reaction ?",
+      "misconception_codes": [],
+      "body_markdown": "The rate of a chemical reaction is an indication of how rapidly the reactants are changed into products, or the products are formed from the reactants. Some reactions are very slow like the rusting of iron, and some proceed at a moderate rat e like glue setting . Others are extremely fast like fireworks. The rate of a chemical reaction can be defined as: the decrease in the concentration of reactants per unit time or the increase in the concentration of the products per unit time.",
+      "anchors": [
+        "sec-chemistry-ss1-rates-of-chemical-reactions-what-is-the-rate-of-a-chemical-reaction"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Chemistry-Year-10-Textbook-Version-1.01.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Malta Ministry for Education 2023 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:41:54.184884+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Chemistry Year 10 Textbook v1.01, Malta Directorate for Learning and Assessment Programmes (SEC06, 2023)"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.rates-of-chemical-reactions.temperature",
+      "version": "1.0.0",
+      "title": "Temperature",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "Rates of Chemical Reactions",
+      "subtopic": "Temperature",
+      "misconception_codes": [],
+      "body_markdown": "Temperature is a measure of the kinetic energy that the particles in a substance have. The greater the temperature, the greater is the value of the kinetic energy of the particles in a substance. Since a specific quantity of kinetic energy is needed for a fruitful (successful) collision to happen, then temperature is a very important factor in determining whether a chemical reaction will happen or not. Consequently, temperature affects the rate of a chemical reaction. At low temperatures particles move relatively slowly as they have a low kinetic energy. Also, few collisions between the particles lead to the formation of the product at a slow rate of reaction. As the temperature increases the particles move rapidly as the kinetic energy of the particles increases. The frequency and energy of collisions increase resulting in a faster rate of reaction. Experiment: To find how temperature affects the rate of a reaction The reaction which will be used to investigate the effect of temperature on the rate of reaction is the reaction between sodium thiosulfate with hydrochloric acid. This reaction produces a yellow precipitate of sulfur. Na2S2O3(aq) + 2HCl(aq) → 2NaCl(aq) + H2O(l) + SO2(g) + S(s) The rate of this reaction is measured by looking at the rate at which the product (sulfur) is formed. The solid sulfur makes the colourless solution go cloudy. This reaction is usually carried out in a flask placed on a piece of white paper with a black cross on it. The time taken for the",
+      "anchors": [
+        "sec-chemistry-ss1-rates-of-chemical-reactions-temperature"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Chemistry-Year-10-Textbook-Version-1.01.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Malta Ministry for Education 2023 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:41:54.185321+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Chemistry Year 10 Textbook v1.01, Malta Directorate for Learning and Assessment Programmes (SEC06, 2023)"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.rates-of-chemical-reactions.concentration",
+      "version": "1.0.0",
+      "title": "Concentration",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "Rates of Chemical Reactions",
+      "subtopic": "Concentration",
+      "misconception_codes": [],
+      "body_markdown": "The reaction between magnesium and hydrochloric acid is a useful reaction to monitor the rate of a reaction. The volume of hydrogen produced over a given time is used as an indication of the rate of the reaction. When investigating the concentration on the rate of a reaction, the temperature, mass, and size of magnesium are kept the same. The volume of hydrochloric acid used is kept the same and is present in excess so that the quantity of magnesium limits the reaction. The only variable which will be altered is the concentration of the acid used. As the concentration of the acid increases, the rate of reaction increases. Collision theory and temperature Two main founders of the collision theory were Max Trautz (a German chemist) and William Lewis (a British physical chemist) who published their work between 1916-1918. The interesting thing is that since their work emerged during World War I, both chemists were unaware of each other’s publications. Trautz worked mostly on areas related to chemical kinetics, and he focused his interest on the activation energy of molecules. Max Trautz: William Lewis: Qr code Description automatically generated Qr code Description automatically generated Investigating how the rate of reaction may be affected by concentration of hydrochloric acid Variables: Independent variable Concentration of acid Dependent variable Volume of hydrogen (cm3) Controlled variables Temperature Mass and surface area of magnesium Volume of acid Method: 1. 0.1 g magnesium ribbon is placed in a conical flask with side arm connected to a",
+      "anchors": [
+        "sec-chemistry-ss1-rates-of-chemical-reactions-concentration"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Chemistry-Year-10-Textbook-Version-1.01.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Malta Ministry for Education 2023 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:41:54.185508+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Chemistry Year 10 Textbook v1.01, Malta Directorate for Learning and Assessment Programmes (SEC06, 2023)"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.rates-of-chemical-reactions.pressure",
+      "version": "1.0.0",
+      "title": "Pressure",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "Rates of Chemical Reactions",
+      "subtopic": "Pressure",
+      "misconception_codes": [],
+      "body_markdown": "The rate of reaction involving gases as the reactants, will be affected by a change in pressure. This ONLY applies when gases are involved. A higher pressure will increase the rate of a reaction, while a lower pressure will decrease it. Reaction rates for solids and liquids remain unaffected by increases in pressure. Collision Theory: pressure and rate of gaseous reactions The pressure generated by a gas in an enclosed container is the result of the collisions of the gas particles with the wall of the container. Therefore, for a given mass of a gas, the way to increase its pressure is to compress it into a smaller volume. Since the number of particles per unit volume is higher, this leads to a higher number of collisions with the wall of its container thereby increasing pressure. The higher the pressure, the higher the concentration of the reactant gases in a given volume. This results in an increase in successful collisions between gaseous reactants, hence a higher rate of reaction follows.",
+      "anchors": [
+        "sec-chemistry-ss1-rates-of-chemical-reactions-pressure"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Chemistry-Year-10-Textbook-Version-1.01.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Malta Ministry for Education 2023 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:41:54.190014+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Chemistry Year 10 Textbook v1.01, Malta Directorate for Learning and Assessment Programmes (SEC06, 2023)"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.groups-in-the-periodic-table.physical-properties-of-the-halogens",
+      "version": "1.0.0",
+      "title": "Physical Properties of the Halogens",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "Groups in the Periodic Table",
+      "subtopic": "Physical Properties of the Halogens",
+      "misconception_codes": [],
+      "body_markdown": "The physical properties of the halogens are summarised in the table below. Halogen State at room temperature Colour Image Fluorine Gas Pale yellow Chlorine Gas Greenish yellow Bromine Liquid Reddish brown Iodine Solid Dark Violet Source of images: https://images-of-elements.com/ Note that on going down the group the halogens change from gases to liquids to solids since the melting and boiling point of group 7 elements increases down the group. Their colour becomes darker as well.",
+      "anchors": [
+        "sec-chemistry-ss1-groups-in-the-periodic-table-physical-properties-of-the-halogens"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Chemistry-Year-10-Textbook-Version-1.01.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Malta Ministry for Education 2023 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:41:54.190171+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Chemistry Year 10 Textbook v1.01, Malta Directorate for Learning and Assessment Programmes (SEC06, 2023)"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.groups-in-the-periodic-table.chemical-properties-of-the-halogens",
+      "version": "1.0.0",
+      "title": "Chemical Properties of the Halogens",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "Groups in the Periodic Table",
+      "subtopic": "Chemical Properties of the Halogens",
+      "misconception_codes": [],
+      "body_markdown": "The halogens react with hydrogen to produce compounds called hydrogen halides. hydrogen + halogen ⟶ hydrogen halide H2(g) + X2(g) ⟶ 2HX(g) hydrogen + chlorine ⟶ hydrogen chloride H2(g) + Cl2(g) ⟶ 2HCl(g) The table below describes what is observed when halogens react with hydrogen. Halogen Reaction with hydrogen Fluorine Explodes in the cold and dark. Chlorine Explodes in sunlight. Bromine Reaction occurs at high temperatures. Iodine Very slow reaction when heated strongly. The hydrogen halides are gases at room temperature. They dissolve in water to produce acidic solutions. Hydrogen chloride dissolves in water to produce hydrochloric acid, HCl(aq). As can be seen from the above reactions t he reactivity of the halogens decreases down the group.",
+      "anchors": [
+        "sec-chemistry-ss1-groups-in-the-periodic-table-chemical-properties-of-the-halogens"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Chemistry-Year-10-Textbook-Version-1.01.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Malta Ministry for Education 2023 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:41:54.194359+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Chemistry Year 10 Textbook v1.01, Malta Directorate for Learning and Assessment Programmes (SEC06, 2023)"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.substances-found-in-rocks.metal-sources-in-the-earth-scrust",
+      "version": "1.0.0",
+      "title": "Metal Sources in the Earth’scrust",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "Substances Found in Rocks",
+      "subtopic": "Metal Sources in the Earth’scrust",
+      "misconception_codes": [],
+      "body_markdown": "Metals are found as ores which are rocks found in the Earth’s crust which contain free metals and/or metal compounds. Metals which are chemically unreactive are found in their free (native) state in the Earth’s crust. Examples include gold and platinum. More reactive metals are naturally found combined with other elements. They have to be chemically extracted from compounds found in ores. Examples include iron from haematite and aluminium from bauxite. The method of extraction of metals depends on their reactivity as discussed in section 6.3.",
+      "anchors": [
+        "sec-chemistry-ss1-substances-found-in-rocks-metal-sources-in-the-earth-scrust"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Chemistry-Year-10-Textbook-Version-1.01.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Malta Ministry for Education 2023 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:41:54.196162+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Chemistry Year 10 Textbook v1.01, Malta Directorate for Learning and Assessment Programmes (SEC06, 2023)"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.substances-found-in-rocks.economic-and-environmental-considerations",
+      "version": "1.0.0",
+      "title": "Economic and Environmental Considerations",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "Substances Found in Rocks",
+      "subtopic": "Economic and Environmental Considerations",
+      "misconception_codes": [],
+      "body_markdown": "The environmental impact of iron ore mining in all its phases from excavation to processing to transportation may have detrimental effects on air quality, water quality, and living organisms. About 98% of iron ore on the global market is used in iron and steel production. The high demand for iron, necessitates continuous mining and processing, which generates a large amount of solid and liquid waste. The main sources of emissions during both the construction and operation phases include the products of combustion such as oxides of nitrogen, carbon dioxide, carbon monoxide, and sulfur dioxide from the operation of equipment. Dust emissions are proportional to the disturbed land area and the level of activity which vary substantially from day to day with varying meteorological conditions. Some animals are more susceptible to change than others. Large mammals such as black bears and wolves show behavioural changes and are sensitive to noise levels caused by iron ore mining. These disturbances increase the distances moved by the animals and m ay effectively result in starvation and a decrease in their population. Water is one of the major natural resources that is being polluted by iron ore mining operations. Metals are leached out, and acidic water carries them downstream to the sea. Water bodies are polluted during iron ore mining operations. Communities that live near quarries and mining sites suffer from noise, air, land, and even water pollution. In the long run, and most especially if the company is not following safety and security protocols,",
+      "anchors": [
+        "sec-chemistry-ss1-substances-found-in-rocks-economic-and-environmental-considerations"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Chemistry-Year-10-Textbook-Version-1.01.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Malta Ministry for Education 2023 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:41:54.196405+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Chemistry Year 10 Textbook v1.01, Malta Directorate for Learning and Assessment Programmes (SEC06, 2023)"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.substances-found-in-rocks.uses-of-iron-advantages-and-disadvantages",
+      "version": "1.0.0",
+      "title": "Uses of Iron – Advantages and Disadvantages",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "Substances Found in Rocks",
+      "subtopic": "Uses of Iron – Advantages and Disadvantages",
+      "misconception_codes": [],
+      "body_markdown": "Iron is an important element for living things that have red blood. It is a main component of haemoglobin, a protein in red blood cells that carries oxygen and carbon dioxide. Iron is one of the three ferromagnetic elements. The other two are cobalt and nickel. Iron is less brittle than stone yet, compared to wood or copper, it is extremely strong. If properly heated it is relatively easy to shape into various forms because it is malleable. Such properties make iron versatile for various uses. Cast iron is very brittle (it cracks easily) but it has a greater resistance to corrosion than either pure iron or steel. Cast iron is used for manhole covers on roads and pavements and as engine blocks for petrol and diesel engines. Pure iron is called wrought iron. Wrought iron is malleable and is mainly used in ornamental work for gates. Iron is also the catalyst in the Haber Process. The large majority of iron from the blast furnace is converted to steel. A disadvantage of using iron is that it rusts when exposed to air. The rate of rusting is accelerated when it is used near the sea because of the salt present. Therefore to protect iron from rusting some rusting prevention must be employed which increases both the initial cost, as well as the cost of ownership, of iron made objects.",
+      "anchors": [
+        "sec-chemistry-ss1-substances-found-in-rocks-uses-of-iron-advantages-and-disadvantages"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Chemistry-Year-10-Textbook-Version-1.01.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Malta Ministry for Education 2023 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:41:54.197078+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Chemistry Year 10 Textbook v1.01, Malta Directorate for Learning and Assessment Programmes (SEC06, 2023)"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.substances-found-in-rocks.the-three-rs-reduce-reuse-recycle",
+      "version": "1.0.0",
+      "title": "The Three Rs: Reduce, Reuse, Recycle",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "Substances Found in Rocks",
+      "subtopic": "The Three Rs: Reduce, Reuse, Recycle",
+      "misconception_codes": [],
+      "body_markdown": "Reducing the amount you buy by purchasing only the goods that we need, is the most important of all the options to manage waste. If every household reduces its waste this would be a way to reduce the problem. You can begin with analysing – what you throw away and what goods you need at home. Today many materials we use such as aluminium and iron which we discussed in this chapter, glass, building materials like limestone, steel and wood, clay ceramics and most plastics are made from limited natural resources. Some items made from these materials can be reused, and this saves the most energy and reduces the impact on the environment. For example, glass bottles only need to be washed and sterilised before they can be filled again. Other products cannot be reused in this way, but they can be recycled.",
+      "anchors": [
+        "sec-chemistry-ss1-substances-found-in-rocks-the-three-rs-reduce-reuse-recycle"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Chemistry-Year-10-Textbook-Version-1.01.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Malta Ministry for Education 2023 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:41:54.200712+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Chemistry Year 10 Textbook v1.01, Malta Directorate for Learning and Assessment Programmes (SEC06, 2023)"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.substances-found-in-rocks.carbon-nanotubes",
+      "version": "1.0.0",
+      "title": "Carbon Nanotubes",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "Substances Found in Rocks",
+      "subtopic": "Carbon Nanotubes",
+      "misconception_codes": [],
+      "body_markdown": "Graphene can also be rolled into a cylinder to produce an interesting type of fullerene called a nanotube. Fullerenes are a group of carbon allotropes which consist of molecules that form hollow tubes or spheres. Carbon nanotubes have high tensile strength and are resistant to breaking or stretching. As in graphene, nanotubes can also conduct electricity which makes them useful in composites and specialised materials, electronics, and nanotechnology. Source of text and picture: www.savemyexams.co.uk Nobel prize in chemistry The Nobel Prize in Chemistry 1996 was awarded jointly to Robert F. Curl Jr., Sir Harold W. Kroto and Richard E. Smalley \"for their discovery of fullerenes”. Qr code Description automatically generated",
+      "anchors": [
+        "sec-chemistry-ss1-substances-found-in-rocks-carbon-nanotubes"
+      ],
+      "status": "approved"
+    }
+  ]
+}

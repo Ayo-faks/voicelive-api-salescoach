@@ -1,0 +1,374 @@
+{
+  "version": "1.0.0",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "pathfinder.ingest",
+      "rule_id": "ingest",
+      "confidence": 1.0,
+      "evidence_count": 1
+    }
+  ],
+  "nodes": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-10/classification-of-matter/02-classification-of-matter-01",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:43:29.635814+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.classification-of-matter.materials",
+      "version": "1.0.0",
+      "title": "Materials",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "classification of matter",
+      "subtopic": "Materials",
+      "misconception_codes": [],
+      "body_markdown": "All the objects that we see in the world around us, are made of matter . Matter makes up the air we breathe, the ground we walk on, the food we eat and the animals and plants that live around us. Even our own human bodies are made of matter! Different objects can be made of different types of materials (the matter from which objects are made). For example, a cupboard (an object ) is made of wood, nails, hinges and knobs (the materials ). The properties of the materials will affect the properties of the object. In the example of the cupboard, the strength of the wood and metals make the cupboard strong and durable. It is very important to understand the properties of materials, so that we can use them in our homes, in industry and in other applications. Some of the properties of matter that you should know are: Materials can be strong and resist bending (e.g. bricks, rocks) or weak and bend easily (e.g. clothes) Materials that conduct heat (e.g. metals) are called thermal conductors . Materials that conduct electricity (e.g. copper wire) are electrical conductors . Brittle materials break easily (e.g. plastic). Materials that are malleable can be easily formed into different shapes (e.g. clay, dough). Ductile materials are able to be formed into long wires (e.g. copper). Magnetic materials have a magnetic field (e.g. iron). Density is the mass per unit volume. Examples of dense materials include concrete and stones. The boiling and melting",
+      "anchors": [
+        "sec-chemistry-ss1-classification-of-matter-materials"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-10/classification-of-matter/02-classification-of-matter-02",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:43:32.293409+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.classification-of-matter.mixtures",
+      "version": "1.0.0",
+      "title": "Mixtures",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "classification of matter",
+      "subtopic": "Mixtures",
+      "misconception_codes": [],
+      "body_markdown": "We see mixtures all the time in our everyday lives. A stew, for example, is a mixture of different foods such as meat and vegetables; sea water is a mixture of water, salt and other substances, and air is a mixture of gases such as carbon dioxide, oxygen and nitrogen. A mixture is a combination of two or more substances, where these substances are not bonded (or joined) to each other and no chemical reaction occurs between the substances. In a mixture, the substances that make up the mixture: In the example we used of sand and water, neither of these substances has changed in any way when they are mixed together. The sand is still sand and the water is still water. To separate something by “mechanical means”, means that there is no chemical process involved. In our sand and water example, it is possible to separate the mixture by simply pouring the water through a filter. Something physical is done to the mixture, rather than something chemical . We can group mixtures further by dividing them into those that are heterogeneous and those that are homogeneous. A heterogeneous mixture does not have a definite composition. Cereal in milk is an example of a heterogeneous mixture. Soil is another example. Soil has pebbles, plant matter and sand in it. Although you may add one substance to the other, they will stay separate in the mixture. We say that these heterogeneous mixtures are non-uniform , in other words they are",
+      "anchors": [
+        "sec-chemistry-ss1-classification-of-matter-mixtures"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-10/classification-of-matter/02-classification-of-matter-03",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:43:34.915720+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.classification-of-matter.pure-substances",
+      "version": "1.0.0",
+      "title": "Pure substances",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "classification of matter",
+      "subtopic": "Pure substances",
+      "misconception_codes": [],
+      "body_markdown": "Any material that is not a mixture, is called a pure substance . Pure substances include elements and compounds . It is much more difficult to break down pure substances into their parts, and complex chemical methods are needed to do this. We can use melting and boiling points and chromatography to test for pure substances. Pure substances have a sharply defined (one temperature) melting or boiling point. Impure substances have a temperature range over which they melt or boil. Chromatography is the process of separating substances into their individual components. If a substance is pure then chromatography will only produce one substance at the end of the process. If a substance is impure then several substances will be seen at the end of the process. Place a smartie in the centre of a piece of filter paper. Carefully drop a few drops of water onto the smartie, until the smartie is quite wet and there is a ring of water on the filter paper. After some time you should see a coloured ring on the paper around the smartie. This is because the food colouring that is used to make the smartie colourful dissolves in the water and is carried through the paper away from the smartie. An element is a chemical substance that can't be divided or changed into other chemical substances by any ordinary chemical means. The smallest unit of an element is the atom . An element is a substance that cannot be broken down into",
+      "anchors": [
+        "sec-chemistry-ss1-classification-of-matter-pure-substances"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-10/classification-of-matter/02-classification-of-matter-04",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:43:35.544276+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.classification-of-matter.names-and-formulae-of-substances",
+      "version": "1.0.0",
+      "title": "Names and formulae of substances",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "classification of matter",
+      "subtopic": "Names and formulae of substances",
+      "misconception_codes": [],
+      "body_markdown": "Think about what you call your friends. Some of your friends might have full names (long names) and a nickname (short name). These are the words we use to tell others who or what we are referring to. Their full name is like the substances name and their nickname is like the substances formulae. Without these names your friends would have no idea which of them you are referring to. Chemical substances have names, just like people have names. This helps scientists to communicate efficiently. It is easy to describe elements and mixtures. We simply use the names that we find on the periodic table for elements and we use words to describe mixtures. But how are compounds named? In the example of iron sulfide that was used earlier, the compound name is a combination of the names of the elements but slightly changed. The following are some guidelines for naming compounds: The compound name will always include the names of the elements that are part of it. A compound may contain ions (an ion is an atom that has lost or gained electrons). These ions can either be simple (consist of only one element) or compound (consist of several elements). Some of the more common ions and their formulae are given in Table 2.3 and in Table 2.4 . You should know all these ions. Prefixes can be used to describe the ratio of the elements that are in the compound. This is used for non-metals. For metals, we",
+      "anchors": [
+        "sec-chemistry-ss1-classification-of-matter-names-and-formulae-of-substances"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-10/classification-of-matter/02-classification-of-matter-05",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:43:38.275338+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.classification-of-matter.metals-metalloids-and-non-metals",
+      "version": "1.0.0",
+      "title": "Metals, metalloids and non-metals",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "classification of matter",
+      "subtopic": "Metals, metalloids and non-metals",
+      "misconception_codes": [],
+      "body_markdown": "The elements in the periodic table can also be divided according to whether they are metals , metalloids or non-metals . The zigzag line separates all the elements that are metals from those that are non-metals. Metals are found on the left of the line, and non-metals are those on the right. Along the line you find the metalloids. You should notice that there are more metals then non-metals. Metals, metalloids and non-metals all have their own specific properties. Figure 2.6: A simplified diagram showing part of the periodic table. Metals are good conductors of heat and are therefore used in cooking utensils such as pots and pans. Metals are good conductors of electricity, and are therefore used in electrical conducting wires. Metals have a characteristic shiny appearance and are often used to make jewellery. This means that they can be bent into shape without breaking (malleable) and can be stretched into thin wires (ductile) such as copper. Metals usually have a high melting point and can therefore be used to make cooking pots and other equipment that needs to become very hot, without being damaged. Only three main metals (iron, cobalt and nickel) are magnetic, the others are non-magnetic. You can see how the properties of metals make them very useful in certain applications. Collect a number of metal items from your home or school. Some examples are listed below: What is the function of each of these objects? Discuss why you think metal was used to make each",
+      "anchors": [
+        "sec-chemistry-ss1-classification-of-matter-metals-metalloids-and-non-metals"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-10/classification-of-matter/02-classification-of-matter-06",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:43:40.800820+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.classification-of-matter.electrical-conductors-semi-conductors-and-insulators",
+      "version": "1.0.0",
+      "title": "Electrical conductors, semi-conductors and insulators",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "classification of matter",
+      "subtopic": "Electrical conductors, semi-conductors and insulators",
+      "misconception_codes": [],
+      "body_markdown": "An electrical conductor is a substance that allows an electrical current to pass through it. Electrical conductors are usually metals. Copper is one of the best electrical conductors, and this is why it is used to make conducting wire. In reality, silver actually has an even higher electrical conductivity than copper, but silver is too expensive to use. In the overhead power lines that we see above us, aluminium is used. The aluminium usually surrounds a steel core which adds makes it stronger so that it doesn't break when it is stretched across distances. Sometimes gold is used to make wire because it is very resistant to surface corrosion. Corrosion is when a material starts to deteriorate because of its reactions with oxygen and water in the air. An insulator is a non-conducting material that does not carry any charge. Examples of insulators are plastic and wood. Semi-conductors behave like insulators when they are cold, and like conductors when they are hot. The elements silicon and germanium are examples of semi-conductors. To investigate the electrical conductivity of a number of substances a selection of test substances (e.g. a piece of plastic, aluminium can, metal pencil sharpener, magnet, wood, chalk, cloth). Set up the circuit as shown above, so that the test substance is held between the two crocodile clips. The wire leads should be connected to the cells and the light bulb should also be connected into the circuit. Place the test substances one by one between the crocodile clips",
+      "anchors": [
+        "sec-chemistry-ss1-classification-of-matter-electrical-conductors-semi-conductors-and-insulators"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-10/classification-of-matter/02-classification-of-matter-07",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:43:43.505728+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.classification-of-matter.thermal-conductors-and-insulators",
+      "version": "1.0.0",
+      "title": "Thermal conductors and insulators",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "classification of matter",
+      "subtopic": "Thermal conductors and insulators",
+      "misconception_codes": [],
+      "body_markdown": "A thermal conductor is a material that allows energy in the form of heat, to be transferred within the material, without any movement of the material itself. An easy way to understand this concept is through a simple demonstration. To demonstrate the ability of different substances to conduct heat. two cups (made from the same material e.g. plastic) Pour boiling water into the two cups so that they are about half full. Place a metal spoon into one cup and a plastic spoon in the other. Be careful when working with boiling water and when you touch the spoons as you can easily burn yourself. The metal spoon heats up faster than the plastic spoon. In other words, the metal conducts heat well, but the plastic does not. Metal is a good thermal conductor, while plastic is a poor thermal conductor. An insulator is a material that does not allow a transfer of electricity or energy. Materials that are poor thermal conductors can also be described as being good thermal insulators. Well-insulated buildings need less energy for heating than buildings that have no insulation. Two building materials that are being used more and more worldwide, are mineral wool and polystyrene . Mineral wool is a good insulator because it holds air still in the matrix of the wool so that heat is not lost. Since air is a poor conductor and a good insulator, this helps to keep energy within the building. Polystyrene is also a good insulator and is",
+      "anchors": [
+        "sec-chemistry-ss1-classification-of-matter-thermal-conductors-and-insulators"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-10/classification-of-matter/02-classification-of-matter-08",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:43:46.584305+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.classification-of-matter.magnetic-and-non-magnetic-materials",
+      "version": "1.0.0",
+      "title": "Magnetic and non-magnetic materials",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "classification of matter",
+      "subtopic": "Magnetic and non-magnetic materials",
+      "misconception_codes": [],
+      "body_markdown": "We have now looked at a number of ways in which matter can be grouped, such as into metals, semi-metals and non-metals; electrical conductors and insulators, and thermal conductors and insulators. One way in which we can further group metals, is to divide them into those that are magnetic and those that are non-magnetic. Magnetism is a force that certain kinds of objects, which are called 'magnetic' objects, can exert on each other without physically touching. A magnetic object is surrounded by a magnetic 'field' that gets weaker as one moves further away from the object. A metal is said to be ferromagnetic if it can be magnetised (i.e. made into a magnet). If you hold a magnet very close to a metal object, it may happen that its own electrical field will be induced and the object becomes magnetic. Some metals keep their magnetism for longer than others. Look at iron and steel for example. Iron loses its magnetism quite quickly if it is taken away from the magnet. Steel on the other hand will stay magnetic for a longer time. Steel is often used to make permanent magnets that can be used for a variety of purposes. Magnets are used to sort the metals in a scrap yard, in compasses to find direction, in the magnetic strips of video tapes and ATM cards where information must be stored, in computers and TV's, as well as in generators and electric motors. You can test whether an object is magnetic",
+      "anchors": [
+        "sec-chemistry-ss1-classification-of-matter-magnetic-and-non-magnetic-materials"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-10/classification-of-matter/02-classification-of-matter-10",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:43:51.818159+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.classification-of-matter.end-of-chapter-exercises",
+      "version": "1.0.0",
+      "title": "End of chapter exercises",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "classification of matter",
+      "subtopic": "End of chapter exercises",
+      "misconception_codes": [],
+      "body_markdown": "Which of the following can be classified as a mixture: A substance that cannot be separated into two or more substances by ordinary chemical (or physical) means A substance that contains two or more substances, in definite proportion by weight Classify each of the following substances as an element , a compound , a homogeneous mixture , or a heterogeneous mixture : salt, pure water, soil, salt water, pure air, carbon dioxide, gold and bronze. Look at the table below. In the first column (A) is a list of substances. In the second column (B) is a description of the group that each of these substances belongs in. Match up the substance in Column A with the description in Column B. You are given a test tube that contains a mixture of iron filings and sulfur. You are asked to weigh the amount of iron in the sample. Suggest one method that you could use to separate the iron filings from the sulfur. What property of metals allows you to do this? Given the following descriptions, write the chemical formula for each of the following substances: a compound that contains only potassium and bromine Give the names of each of the following compounds: Give the formula for each of the following compounds: For each of the following materials, say what properties of the material make it important in carrying out its particular function.",
+      "anchors": [
+        "sec-chemistry-ss1-classification-of-matter-end-of-chapter-exercises"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-10/states-of-matter-and-the-kinetic-molecular-theory/03-states-of-matter-and-the-kinetic-molecular-theory-01",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:43:54.320314+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.states-of-matter-and-the-kinetic-molecular-theory.states-of-matter",
+      "version": "1.0.0",
+      "title": "States of matter",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "states of matter and the kinetic molecular theory",
+      "subtopic": "States of matter",
+      "misconception_codes": [],
+      "body_markdown": "In this chapter we will explore the states of matter and then look at the kinetic molecular theory. Matter exists in three states: solid, liquid and gas. We will also examine how the kinetic theory of matter helps explain boiling and melting points as well as other properties of matter. All matter is made up of particles. We can see this when we look at diffusion. Diffusion is the movement of particles from areas of higher concentration to areas of lower concentration. Diffusion can be seen as a spreading out of particles resulting in an even distribution of the particles. You can see diffusion when you place a drop of food colouring in water. The colour slowly spreads out through the water. If matter were not made of particles that are constantly moving then we would only see a clump of colour when we put the food colouring in water, as there would be nothing that could move about and mix in with the water. Diffusion is a result of the constant thermal motion of particles. In 1828 Robert Brown observed that pollen grains suspended in water moved about in a rapid, irregular motion. What is now known as Brownian motion is the random movement of microscopic particles suspended in a liquid or a gas. It is caused by collisions between these particles and the particles of the liquid or gas, and is the mechanism by which diffusion occurs. Matter exists in one of three states, namely solid, liquid and",
+      "anchors": [
+        "sec-chemistry-ss1-states-of-matter-and-the-kinetic-molecular-theory-states-of-matter"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-10/states-of-matter-and-the-kinetic-molecular-theory/03-states-of-matter-and-the-kinetic-molecular-theory-02",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:43:56.810337+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.states-of-matter-and-the-kinetic-molecular-theory.the-kinetic-molecular-theory",
+      "version": "1.0.0",
+      "title": "The kinetic molecular theory",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "states of matter and the kinetic molecular theory",
+      "subtopic": "The kinetic molecular theory",
+      "misconception_codes": [],
+      "body_markdown": "The kinetic theory of matter helps us to explain why matter exists in different phases (i.e. solid, liquid and gas), and how matter can change from one phase to another. The kinetic theory of matter also helps us to understand other properties of matter. Broadly, the kinetic theory of matter says that all matter is composed of particles which have a certain amount of energy which allows them to move at different speeds depending on the temperature (energy). There are spaces between the particles and also attractive forces between particles when they come close together. Table 3.1 summarises the characteristics of the particles that are in each phase of matter. Low energy - particles vibrate around a fixed point. Particles have more energy than in the solid phase but less than in the gas phase. Particles have high energy and are constantly moving. Very little space between particles. Particles are tightly packed together. Bigger spaces than in solids but smaller than in gases. Very strong forces. Solids have a fixed volume. Weaker forces than in solids, but stronger forces than in gases. Weak forces because of the large distance between particles. Solids become liquids or gases if their temperature is increased. A liquid becomes a gas if its temperature is increased. A liquid becomes a solid if its temperature decreases. In general a gas becomes a liquid or solid when it is cooled. Particles have less energy and therefore move closer together so that the attractive forces become stronger, and",
+      "anchors": [
+        "sec-chemistry-ss1-states-of-matter-and-the-kinetic-molecular-theory-the-kinetic-molecular-theory"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-10/states-of-matter-and-the-kinetic-molecular-theory/03-states-of-matter-and-the-kinetic-molecular-theory-04",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:01.948440+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.chemistry.ss1.states-of-matter-and-the-kinetic-molecular-theory.end-of-chapter-exercises",
+      "version": "1.0.0",
+      "title": "End of chapter exercises",
+      "subject": "chemistry",
+      "year_group": "SS1",
+      "topic": "states of matter and the kinetic molecular theory",
+      "subtopic": "End of chapter exercises",
+      "misconception_codes": [],
+      "body_markdown": "Give one word or term for each of the following descriptions. The change in phase from a solid to a gas. What change in phase takes place when a liquid reaches its boiling point? Refer to the table below which gives the melting and boiling points of a number of elements and then answer the questions that follow. ( Data from http://www.chemicalelements.com ) What state of matter (i.e. solid, liquid or gas) will each of these elements be in at room temperature (25℃)? Which of these elements has the strongest forces between its atoms? Give a reason for your answer. Which of these elements has the weakest forces between its atoms? Give a reason for your answer. Complete the following submicroscopic diagrams to show what magnesium will look like in the solid, liquid and gas phase.",
+      "anchors": [
+        "sec-chemistry-ss1-states-of-matter-and-the-kinetic-molecular-theory-end-of-chapter-exercises"
+      ],
+      "status": "approved"
+    }
+  ]
+}

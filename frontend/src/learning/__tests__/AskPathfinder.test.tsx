@@ -44,11 +44,13 @@ describe('AskPathfinder — unified assistant surface', () => {
   beforeEach(() => {
     fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
+    window.localStorage.clear()
   })
 
   afterEach(() => {
     vi.unstubAllGlobals()
     vi.restoreAllMocks()
+    window.localStorage.clear()
   })
 
   async function ask(question: string) {
@@ -248,5 +250,147 @@ describe('AskPathfinder — unified assistant surface', () => {
     expect(
       screen.getByTestId('ask-pathfinder-drawer').getAttribute('data-mode')
     ).toBe('voice')
+  })
+
+  it('persists the conversation and rehydrates it on remount', async () => {
+    fetchMock.mockResolvedValueOnce(turnResponse([prose('Remembered answer.')]))
+    const value: LearnerContextValue = {
+      ...defaultLearnerContext,
+      userId: 'learner-1',
+    }
+    const first = render(
+      <LearnerContext.Provider value={value}>
+        <AskPathfinder />
+      </LearnerContext.Provider>
+    )
+    fireEvent.click(screen.getByTestId('ask-pathfinder-fab'))
+
+    await ask('remember this')
+    await screen.findByText('Remembered answer.')
+
+    // Simulate a page reload: unmount and mount a fresh tree for the same child.
+    first.unmount()
+    render(
+      <LearnerContext.Provider value={value}>
+        <AskPathfinder />
+      </LearnerContext.Provider>
+    )
+    fireEvent.click(screen.getByTestId('ask-pathfinder-fab'))
+
+    expect(screen.getByText('remember this')).toBeTruthy()
+    expect(screen.getByText('Remembered answer.')).toBeTruthy()
+  })
+
+  it('clears the thread and its saved copy when starting a new conversation', async () => {
+    fetchMock.mockResolvedValueOnce(turnResponse([prose('Old answer.')]))
+    renderDrawer({ userId: 'learner-1' })
+
+    await ask('old question')
+    await screen.findByText('Old answer.')
+    expect(
+      window.localStorage.getItem('pathfinder-ask-thread:learner-1')
+    ).toBeTruthy()
+
+    fireEvent.click(screen.getByTestId('ask-pathfinder-new'))
+
+    await waitFor(() =>
+      expect(screen.queryByText('Old answer.')).toBeNull()
+    )
+    expect(screen.queryByText('old question')).toBeNull()
+    expect(
+      window.localStorage.getItem('pathfinder-ask-thread:learner-1')
+    ).toBeNull()
+  })
+
+  it('keeps separate saved threads per child', async () => {
+    fetchMock.mockResolvedValueOnce(turnResponse([prose('Child one answer.')]))
+    renderDrawer({ userId: 'child-1' })
+
+    await ask('child one question')
+    await screen.findByText('Child one answer.')
+
+    expect(
+      window.localStorage.getItem('pathfinder-ask-thread:child-1')
+    ).toContain('Child one answer.')
+    expect(
+      window.localStorage.getItem('pathfinder-ask-thread:child-2')
+    ).toBeNull()
+  })
+
+  it('round-trips the backend conversation_id between turns', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        blocks: [prose('First answer.')],
+        session_complete: false,
+        conversation_id: 'ask-conv-abc',
+      }),
+    } as unknown as Response)
+    fetchMock.mockResolvedValueOnce(turnResponse([prose('Second answer.')]))
+    renderDrawer({ userId: 'learner-1' })
+
+    await ask('first question')
+    await screen.findByText('First answer.')
+    // First turn opens a fresh thread, so no id is sent.
+    expect(bodyOf(0).conversation_id).toBeNull()
+
+    await ask('second question')
+    await screen.findByText('Second answer.')
+    // The id echoed by the first turn is carried into the next request.
+    expect(bodyOf(1).conversation_id).toBe('ask-conv-abc')
+  })
+
+  it('lists saved conversations and resumes one from history', async () => {
+    fetchMock.mockImplementation((url: string, init?: RequestInit) => {
+      const method = init?.method ?? 'GET'
+      if (url.startsWith('/api/learning/assistant/conversations/')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            conversation: {
+              id: 'ask-conv-1',
+              title: 'Fractions help',
+              created_at: '2026-06-01T10:00:00Z',
+              updated_at: '2026-06-01T10:05:00Z',
+            },
+            messages: [
+              { id: 'm1', role: 'user', text: 'saved question', created_at: '' },
+              {
+                id: 'm2',
+                role: 'assistant',
+                blocks: [prose('saved answer')],
+                created_at: '',
+              },
+            ],
+          }),
+        } as unknown as Response)
+      }
+      if (url.startsWith('/api/learning/assistant/conversations')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            conversations: [
+              {
+                id: 'ask-conv-1',
+                title: 'Fractions help',
+                created_at: '2026-06-01T10:00:00Z',
+                updated_at: '2026-06-01T10:05:00Z',
+              },
+            ],
+          }),
+        } as unknown as Response)
+      }
+      void method
+      return Promise.resolve(turnResponse([prose('unused')]))
+    })
+    renderDrawer({ userId: 'learner-1' })
+
+    fireEvent.click(screen.getByTestId('ask-pathfinder-history'))
+    const item = await screen.findByTestId('ask-pathfinder-history-item')
+    expect(item.textContent).toContain('Fractions help')
+
+    fireEvent.click(item)
+    await screen.findByText('saved answer')
+    expect(screen.getByText('saved question')).toBeTruthy()
   })
 })

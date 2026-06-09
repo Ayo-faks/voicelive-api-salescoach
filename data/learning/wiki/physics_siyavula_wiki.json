@@ -1,0 +1,734 @@
+{
+  "version": "1.0.0",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "pathfinder.ingest",
+      "rule_id": "ingest",
+      "confidence": 1.0,
+      "evidence_count": 1
+    }
+  ],
+  "nodes": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-11/vectors-in-two-dimensions/01-vectors-in-two-dimensions-01",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:04.135127+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss2.vectors-in-two-dimensions.introduction",
+      "version": "1.0.0",
+      "title": "Introduction",
+      "subject": "physics",
+      "year_group": "SS2",
+      "topic": "vectors in two dimensions",
+      "subtopic": "Introduction",
+      "misconception_codes": [],
+      "body_markdown": "The following topics are covered in this chapter. How to sketch vectors and how to sketch vectors on the Cartesian plane. In this topic learners will refresh how to sketch vectors from grade 10 and will then apply these skills to sketching the vectors on the Cartesian plane. They will learn about vectors that are perpendicular to an axis and parallel to an axis. In addition the different ways of specifying direction are given with an emphasis on the angle the vector makes with the positive x-axis. How to determine the resultant of several vectors in two dimensions using graphical and algebraic techniques. In grade 10 learners learnt about the resultant of vectors in one-dimension and different techniques of determining this. This work is now extended to finding the resultant of vectors in two dimensions. The same techniques from grade 10 are used and expanded on for determining the resultant. Using trigonometry to determine the direction of the resultant In grade 10 the direction was simply given as positive or negative. Now that learners are moving into two dimensions, new ways of specifying the direction are needed. We use the angle that the vector makes with the positive x-axis as the main way to specify direction. Learners will need to be familiar with sine, cosine and tangent from trigonometry and how to calculate these ratios for right-angled triangles. How to break vectors up into components and carry out simple calculations using components In grade 10 you learnt about vectors in",
+      "anchors": [
+        "sec-physics-ss2-vectors-in-two-dimensions-introduction"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-11/vectors-in-two-dimensions/01-vectors-in-two-dimensions-02",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:06.787256+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss2.vectors-in-two-dimensions.resultant-of-perpendicular-vectors",
+      "version": "1.0.0",
+      "title": "Resultant of perpendicular vectors",
+      "subject": "physics",
+      "year_group": "SS2",
+      "topic": "vectors in two dimensions",
+      "subtopic": "Resultant of perpendicular vectors",
+      "misconception_codes": [],
+      "body_markdown": "In grade 10 you learnt about the resultant vector in one dimension, we are going to extend this to two dimensions. As a reminder, if you have a number of vectors (think forces for now) acting at the same time you can represent the result of all of them together with a single vector known as the resultant. The resultant vector will have the same effect as all the vectors adding together. We will focus on examples involving forces but it is very important to remember that this applies to all physical quantities that can be described by vectors, forces, displacements, accelerations, velocities and more. The first thing to make a note of is that in Grade 10 we worked with vectors all acting in a line, on a single axis. We are now going to go further and start to deal with two dimensions. We can represent this by using the Cartesian plane which consists of two perpendicular (at a right angle) axes. The axes are a x-axis and a y-axis. We normally draw the x-axis from left to right (horizontally) and the y-axis up and down (vertically). In the diagram the vectors have the same magnitude because the arrows are the same length and they have the same direction . They are all parallel to the x-direction and parallel to each other. Just as in the case of the x-direction, a vector doesn't have to start at the origin but can be placed anywhere on the Cartesian plane.",
+      "anchors": [
+        "sec-physics-ss2-vectors-in-two-dimensions-resultant-of-perpendicular-vectors"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-11/vectors-in-two-dimensions/01-vectors-in-two-dimensions-03",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:09.096528+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss2.vectors-in-two-dimensions.components-of-vectors",
+      "version": "1.0.0",
+      "title": "Components of vectors",
+      "subject": "physics",
+      "year_group": "SS2",
+      "topic": "vectors in two dimensions",
+      "subtopic": "Components of vectors",
+      "misconception_codes": [],
+      "body_markdown": "In the discussion of vector addition we saw that a number of vectors acting together can be combined to give a single vector (the resultant). In much the same way a single vector can be broken down into a number of vectors which when added give that original vector. These vectors which sum to the original are called components of the original vector. The process of breaking a vector into its components is called resolving into components . In practise it is most useful to resolve a vector into components which are at right angles to one another, usually horizontal and vertical. Think about all the problems we've solved so far. If we have vectors parallel to the x- and y-axes problems are straightforward to solve. When resolving into components that are parallel to the x- and y-axes we are always dealing with a right-angled triangle. This means that we can use trigonometric identities to determine the magnitudes of the components (we know the directions because they are aligned with the axes). Note that the angle is measured counter-clockwise from the positive x-axis. Next we resolve the force into components parallel to the axes. Since these directions are perpendicular to one another, the components form a right-angled triangle with the original force as its hypotenuse. Notice how the two components acting together give the original vector as their resultant. Now we can use trigonometry to calculate the magnitudes of the components of the original displacement: Resolve each of the following",
+      "anchors": [
+        "sec-physics-ss2-vectors-in-two-dimensions-components-of-vectors"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-11/vectors-in-two-dimensions/01-vectors-in-two-dimensions-04",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:11.599262+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss2.vectors-in-two-dimensions.chapter-summary",
+      "version": "1.0.0",
+      "title": "Chapter summary",
+      "subject": "physics",
+      "year_group": "SS2",
+      "topic": "vectors in two dimensions",
+      "subtopic": "Chapter summary",
+      "misconception_codes": [],
+      "body_markdown": "Vectors can be used to represent many physical quantities that have a magnitude and direction, like forces. Vectors may be represented as arrows where the length of the arrow indicates the magnitude and the arrowhead indicates the direction of the vector. Vectors in two dimensions can be drawn on the Cartesian plane. Vectors can be added graphically using the head-to-tail method or the tail-to-tail method. A closed vector diagram is a set of vectors drawn on the Cartesian using the tail-to-head method and that has a resultant with a magnitude of zero. Vectors can be added algebraically using Pythagoras' theorem or using components. The direction of a vector can be found using simple trigonometric calculations. The components of a vector are a series of vectors that, when combined, give the original vector as their resultant.",
+      "anchors": [
+        "sec-physics-ss2-vectors-in-two-dimensions-chapter-summary"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-11/vectors-in-two-dimensions/01-vectors-in-two-dimensions-05",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:14.053332+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss2.vectors-in-two-dimensions.end-of-chapter-exercises",
+      "version": "1.0.0",
+      "title": "End of chapter exercises",
+      "subject": "physics",
+      "year_group": "SS2",
+      "topic": "vectors in two dimensions",
+      "subtopic": "End of chapter exercises",
+      "misconception_codes": [],
+      "body_markdown": "Draw the following forces as vectors on the Cartesian plane originating at the origin: Draw the following forces as vectors on the Cartesian plane: Find the resultant in the x-direction, R_x, and y-direction, R_y for the following forces: Sketch the resultant of the following force vectors using the tail-to-head method: Draw the Cartesian plane with the vectors in the x-direction: Next we draw the Cartesian plane with the vectors in the y-direction: Where the two lines intersect is the head of the resultant vector which will originate at the origin so: Now we can draw the lines to show us where the head of the resultant must be: Four forces act simultaneously at a point, find the resultant if the forces are: We note that we have more than two vectors so we must first find the resultant in the x-direction and the resultant in the y-direction. In the x-direction we only have one vector and so this is the resultant. Resolve each of the following vectors into components: Next we resolve the force into components parallel to the axes. Since these directions are perpendicular to one another, the components form a right-angled triangle with the original force as its hypotenuse. Now we can use trigonometry to calculate the magnitudes of the components of the original force: A point is acted on by two forces and the resultant is zero. The forces have equal magnitudes but opposite directions. Two vectors act on the same point. What should the angle between",
+      "anchors": [
+        "sec-physics-ss2-vectors-in-two-dimensions-end-of-chapter-exercises"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-11/newtons-laws/02-newtons-laws-01",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:16.552962+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss2.newtons-laws.introduction",
+      "version": "1.0.0",
+      "title": "Introduction",
+      "subject": "physics",
+      "year_group": "SS2",
+      "topic": "newtons laws",
+      "subtopic": "Introduction",
+      "misconception_codes": [],
+      "body_markdown": "In this chapter learners will explore Newtons three laws of motion and Newtons law of universal gravitation. Learners will also learn more about forces and the different kinds of forces. The following provides a summary of the topics covered in this chapter. The types of forces covered are: normal force, frictional force, applied force and tension. In this section learners will see how to take a problem and draw diagrams to show all the forces acting on a body. They will learn what a force diagram is and what a free body diagram is. Newton's three laws of motion are discussed in this section. Each law is covered in detail and practical applications such as rockets, lifts and seat belts are covered. This topic explores gravity and Newton's law of universal gravitation. Learners are introduced to the ideas of weight and mass as well as the acceleration due to gravity. In this chapter we will learn how a net force is needed to modify the motion of an object. We will recall what a force is and learn about how force and motion are related. We are also introduced to Newton's three laws and we will learn more about the force of gravity.",
+      "anchors": [
+        "sec-physics-ss2-newtons-laws-introduction"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-11/newtons-laws/02-newtons-laws-02",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:22.437604+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss2.newtons-laws.force",
+      "version": "1.0.0",
+      "title": "Force",
+      "subject": "physics",
+      "year_group": "SS2",
+      "topic": "newtons laws",
+      "subtopic": "Force",
+      "misconception_codes": [],
+      "body_markdown": "A force is anything that can cause a change to objects. Forces can do things like: change the direction of a moving object. A force can be classified as either a contact force or a non-contact force . A contact force must touch or be in contact with an object to cause a change. Examples of contact forces are: the force that is used to push or pull things, like on a door to open or close it the force that a sculptor uses to turn clay into a pot the force of the wind to turn a windmill A non-contact force does not have to touch an object to cause a change. Examples of non-contact forces are the forces due to: gravity, like the Earth pulling the Moon towards itself; electricity, like a proton and an electron attracting each other; and magnetism, like a magnet pulling a paper clip towards itself. This chapter will often refer to the resultant force acting on an object. The resultant force is simply the vector sum of all the forces acting on the object. It is very important to remember that all the forces must be acting on the same object. The resultant force is the force that has the same effect as all the other forces added together. A lot of the physics topics you will study revolve around the impact or effect of forces. Although there are many different forces, will learn some fundamental principles for approaching the problems and applications",
+      "anchors": [
+        "sec-physics-ss2-newtons-laws-force"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-11/newtons-laws/02-newtons-laws-03",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:26.955146+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss2.newtons-laws.newton-s-laws",
+      "version": "1.0.0",
+      "title": "Newton's laws",
+      "subject": "physics",
+      "year_group": "SS2",
+      "topic": "newtons laws",
+      "subtopic": "Newton's laws",
+      "misconception_codes": [],
+      "body_markdown": "In this section we will look at the effect of forces on objects and how we can make things move. This will link together what you have learnt about motion and what you have learnt about forces. Sir Isaac Newton was a scientist who lived in England (1642-1727) who was interested in the motion of objects under various conditions. He suggested that a stationary object will remain stationary unless a force acts on it and that a moving object will continue moving unless a force slows it down, speeds it up or changes its direction of motion. From this he formulated what is known as Newton's first law of motion: An object continues in a state of rest or uniform motion (motion with a constant velocity) unless it is acted on by an unbalanced (net or resultant) force. This property of an object, to continue in its current state of motion unless acted upon by a net force, is called inertia . Let us consider the following situations: An ice skater pushes herself away from the side of the ice rink and skates across the ice. She will continue to move in a straight line across the ice unless something stops her. Objects are also like that. If we kick a soccer ball across a soccer field, according to Newton's first law, the soccer ball should keep on moving forever! However, in real life this does not happen. Is Newton's Law wrong? Not really. Newton's first law applies to situations",
+      "anchors": [
+        "sec-physics-ss2-newtons-laws-newton-s-laws"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-11/newtons-laws/02-newtons-laws-04",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:29.472024+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss2.newtons-laws.forces-between-masses",
+      "version": "1.0.0",
+      "title": "Forces between masses",
+      "subject": "physics",
+      "year_group": "SS2",
+      "topic": "newtons laws",
+      "subtopic": "Forces between masses",
+      "misconception_codes": [],
+      "body_markdown": "Gravity is arguably the first force that people really learn about. People don't really think of it as learning about gravity because it is such a big part of our everyday lives. Babies learning to crawl or walk are struggling against gravity, games involving jumping, climbing or balls all give people a sense of the effect of gravity. The saying “everything that goes up, must come down” is all about gravity. Rain falls from the sky because of gravity and so much more. We all know that these things happen but we don't often stop to ask what is gravity, what causes it and how can we describe it more accurately than “everything that goes up, must come down”? All of the examples mentioned involve objects with mass falling to the ground, they are being attracted to the Earth. Gravity is the name we give to the force that arises between objects because of their mass. It is always an attractive force. It is a non-contact force, therefore it acts at a distance. The Earth is responsible for a gravitational force on the moon which keeps it in its orbit around the Earth and the gravitational force the moon exerts on the Earth is the dominant cause of ocean tides. Sir Isaac Newton was the first scientist to precisely define the gravitational force, and to show that it could explain both falling bodies and astronomical motions. The gravitational force is relatively simple. It is always attractive , and it depends",
+      "anchors": [
+        "sec-physics-ss2-newtons-laws-forces-between-masses"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-11/newtons-laws/02-newtons-laws-05",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:31.939163+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss2.newtons-laws.chapter-summary",
+      "version": "1.0.0",
+      "title": "Chapter summary",
+      "subject": "physics",
+      "year_group": "SS2",
+      "topic": "newtons laws",
+      "subtopic": "Chapter summary",
+      "misconception_codes": [],
+      "body_markdown": "Frictional force is the force that opposes the motion of an object in contact with a surface and it acts parallel to the surface the object is in contact with. The magnitude of friction is proportional to the normal force. For every surface we can determine a constant factor, the coefficient of friction, that allows us to calculate what the frictional force would be if we know the magnitude of the normal force. We know that static friction and kinetic friction have different magnitudes so we have different coefficients for the two types of friction: Newton's first law: An object continues in a state of rest or uniform motion (motion with a constant velocity) unless it is acted on by an unbalanced (net or resultant) force. Newton's third law: If body A exerts a force on body B, then body B exerts a force of equal magnitude on body A, but in the opposite direction.",
+      "anchors": [
+        "sec-physics-ss2-newtons-laws-chapter-summary"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-11/newtons-laws/02-newtons-laws-06",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:32.471810+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss2.newtons-laws.end-of-chapter-exercises-part-1",
+      "version": "1.0.0",
+      "title": "End of chapter exercises part 1",
+      "subject": "physics",
+      "year_group": "SS2",
+      "topic": "newtons laws",
+      "subtopic": "End of chapter exercises part 1",
+      "misconception_codes": [],
+      "body_markdown": "A force acts on an object. Name three effects that the force can have on the object. A force can change the shape of the object. A force can change the direction in which the object is moving. A force can accelerate or stop a body. Identify each of the following forces as contact or non-contact forces. The force between the north pole of a magnet and a paper clip. The force required to open the door of a taxi. The force required to stop a soccer ball. A constant, resultant force acts on a body which can move freely in a straight line. Which physical quantity will remain constant? Which of the following cannot be the resultant of these two forces? If the box has a uniform horizontal acceleration of magnitude, a, the frictional force acting on the box is... Thabo stands in a train carriage which is moving eastwards. The train suddenly brakes. Thabo continues to move eastwards due to the effect of: Since the box does not move the frictional force acting on the box is equal to the component of the gravitational force parallel to the plane. A body moving at a CONSTANT VELOCITY on a horizontal plane, has a number of unequal forces acting on it. Which one of the following statements is TRUE? At least two of the forces must be acting in the same direction. Friction between the body and the plane causes a resultant force. The vector sum of the forces causes",
+      "anchors": [
+        "sec-physics-ss2-newtons-laws-end-of-chapter-exercises-part-1"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-11/newtons-laws/02-newtons-laws-07",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:34.857844+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss2.newtons-laws.end-of-chapter-exercises-part-2",
+      "version": "1.0.0",
+      "title": "End of chapter exercises part 2",
+      "subject": "physics",
+      "year_group": "SS2",
+      "topic": "newtons laws",
+      "subtopic": "End of chapter exercises part 2",
+      "misconception_codes": [],
+      "body_markdown": "Calculate the force between the man and the Earth. What is the man's weight on the new planet? The mass of the new planet is four times the mass of the Earth so we get: Would his weight be bigger or smaller on the new planet? Explain how you arrived at your answer. His weight is bigger on the new planet. The new planet has the same radius as the Earth, but a larger mass. Since the mass of the planet is proportional to the force of gravity (or the weight) the man's weight must be larger. The magnitude of the gravitational force which the astronaut experiences in the satellite. We first work out the mass of the astronaut: Now we can work out the gravitational force in the satellite: We first work out the mass of the object: On the planet we have twice the Earth's mass and half the Earth's radius: If we double each mass and halve the distance between them we now have: How does the gravitational force of attraction between two objects change when The gravitational force will be four times as much. the distance between the centres of the objects is doubled. The gravitational force will be one fourth as much or four times smaller. the mass of one object is halved, and the distance between the centres of the objects is halved. The gravitational force will be twice as much. Read each of the following statements and say whether you agree or not.",
+      "anchors": [
+        "sec-physics-ss2-newtons-laws-end-of-chapter-exercises-part-2"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-12/momentum-and-impulse/02-momentum-and-impulse-01",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:38.989510+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss3.momentum-and-impulse.introduction",
+      "version": "1.0.0",
+      "title": "Introduction",
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "momentum and impulse",
+      "subtopic": "Introduction",
+      "misconception_codes": [],
+      "body_markdown": "In Grade 10 we studied motion but not what caused the motion, in Grade 11 we learnt about forces and how they can alter the motion of an object. In this chapter we will focus on what happens when two bodies undergo a contact interaction and how their motion is affected. We learn more about how force and motion are related. We are introduced to two new concepts, momentum and impulse. We can begin by considering some scenarios to set the context. Most people have some intuition for physics based on their everyday experiences but they haven't formalised it. We can use our intuitive answers to lead into more structured thinking about physical events. Momentum transfer doesn't require a contact interaction but we won't consider any non-contact scenarios in this chapter. Everyone has experienced a mosquito landing on their arm and it can happen quite unnoticed. Consider the case of a falcon landing on your arm (ignore the sharp claws for now). You would definitely notice, why? What makes a mosquito different to a falcon? Would you still notice if the mosquito flew the same way as a falcon, or if the falcon copied the flight of a mosquito before landing? You probably would still notice, but try to think about what makes them so different. Look at a motorcycle, motorcar and truck. Which of them is more likely to result in less damage in a collision situation, why? What factors would you change to reduce potential damage. Why is",
+      "anchors": [
+        "sec-physics-ss3-momentum-and-impulse-introduction"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-12/momentum-and-impulse/02-momentum-and-impulse-02",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:41.307970+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss3.momentum-and-impulse.momentum",
+      "version": "1.0.0",
+      "title": "Momentum",
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "momentum and impulse",
+      "subtopic": "Momentum",
+      "misconception_codes": [],
+      "body_markdown": "Momentum is a physical quantity which is closely related to forces. Momentum is a property which applies to moving objects, in fact it is mass in motion. If something has mass and it is moving then it has momentum. The linear momentum of a particle (object) is a vector quantity equal to the product of the mass of the particle (object) and its velocity. Momentum is directly proportional to both the mass and velocity of an object. A small car travelling at the same velocity as a big truck will have a smaller momentum than the truck. The smaller the mass, the smaller the momentum for a fixed velocity. If the mass is constant then the greater the velocity the greater the momentum. The momentum will always be in the same direction as the velocity because mass is a scalar not a vector. Different objects can also have the same momentum, for example a car travelling slowly can have the same momentum as a motorcycle travelling relatively fast. We can easily demonstrate this. Even though the motorcycle is considerably lighter than the car, the fact that the motorcycle is travelling much faster than the car means that the momentum of both vehicles is the same. A vector multiplied by a scalar has the same direction as the original vector but a magnitude that is scaled by the multiplicative factor. This means that whenever we calculate the momentum of an object, we should include the direction of the momentum. The mass",
+      "anchors": [
+        "sec-physics-ss3-momentum-and-impulse-momentum"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-12/momentum-and-impulse/02-momentum-and-impulse-03",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:43.813691+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss3.momentum-and-impulse.newton-s-second-law-revisited",
+      "version": "1.0.0",
+      "title": "Newton's Second Law revisited",
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "momentum and impulse",
+      "subtopic": "Newton's Second Law revisited",
+      "misconception_codes": [],
+      "body_markdown": "You have learnt about Newton's Laws of motion in Grade 11. We know that an object will continue in its state of motion unless acted on by a force so unless a force acts the momentum will not change. The net or resultant force acting on an object is equal to the rate of change of momentum. Mathematically, Newton's Second Law can be stated as: If a force is acting on an object whose mass is not changing, then Newton's Second Law describes the relationship between the motion of an object and the net force on the object through: We can therefore say that because a net force causes an object to change its motion, it also causes its momentum to change. Remember: momentum and velocity are vectors so we have to choose a direction as positive. For this example we choose the initial direction of motion as positive, in other words, downwards is positive. When the tennis ball bounces back it changes direction. The final velocity will thus have a negative value because it is in the negative direction. The momentum after the bounce can be calculated as follows: Now let us look at what happens to the momentum of the tennis ball. The momentum changes during this bounce. We keep our initial choice of downwards as positive. This means that the final momentum will have a negative number. The question explicitly gives a number of values which we identify and convert into SI units: We are asked to",
+      "anchors": [
+        "sec-physics-ss3-momentum-and-impulse-newton-s-second-law-revisited"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-12/momentum-and-impulse/02-momentum-and-impulse-04",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:46.444249+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss3.momentum-and-impulse.conservation-of-momentum",
+      "version": "1.0.0",
+      "title": "Conservation of momentum",
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "momentum and impulse",
+      "subtopic": "Conservation of momentum",
+      "misconception_codes": [],
+      "body_markdown": "In this section we are going to look at momentum when two objects interact with each other and, specifically, treat both objects as one system. To do this properly we first need to define what we mean we talk about a system, then we need to look at what happens to momentum overall and we will explore the applications of momentum in these interactions. A system is a physical configuration of particles and or objects that we study. For example, earlier we looked at what happens when a ball bounces off a wall. The system that we were studying was just the wall and the ball. The wall must be connected to the Earth and something must have thrown or hit the ball but we ignore those. A system is a subset of the physical world that we are studying. The system exists in some larger environment. In the problems that we are solving we actually treat our system as being isolated from the environment. That means that we can completely ignore the environment. In reality, the environment can affect the system but we ignore that for isolated systems. We try to choose isolated systems when it makes sense to ignore the surrounding environment. An external force is a force acting on the pieces of the system that we are studying that is not caused by a component of the system. It is a choice we make to treat objects as an isolated system but we can only do this",
+      "anchors": [
+        "sec-physics-ss3-momentum-and-impulse-conservation-of-momentum"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-12/momentum-and-impulse/02-momentum-and-impulse-05",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:49.393451+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss3.momentum-and-impulse.impulse",
+      "version": "1.0.0",
+      "title": "Impulse",
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "momentum and impulse",
+      "subtopic": "Impulse",
+      "misconception_codes": [],
+      "body_markdown": "When a net force acts on a body it will result in an acceleration which alters the motion of the body. A large net force will cause a larger acceleration than a small net force. The total change in motion of the object can be the same if the large and small forces act for different time intervals. The combination of the force and time that it acts is a useful quantity which leads us to define impulse. Impulse is the product of the net force and the time interval for which the force acts. However, from Newton's Second Law, we know that Therefore we can define the impulse-momentum theorem: The graphs below show how the force acting on a body changes with time. The area under the graph, shaded in, represents the impulse of the body. the resultant force acting on the object. the time of contact between bat and ball we need the ball's mass, initial velocity and final velocity, which we are given. Firstly let us change units for the mass Now we calculate the change in momentum, Finally since impulse is just the change in momentum of the ball, Analyse the Force vs. time graph provided and answer the following questions: A graph of force versus time is provided. We are asked to determine both impulse and change in momentum from it. We know that the area under the graph is the impulse and we can relate impulse to change in momentum with the impulse-momentum theorem.",
+      "anchors": [
+        "sec-physics-ss3-momentum-and-impulse-impulse"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-12/momentum-and-impulse/02-momentum-and-impulse-06",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:51.899574+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss3.momentum-and-impulse.physics-in-action-impulse",
+      "version": "1.0.0",
+      "title": "Physics in action: Impulse",
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "momentum and impulse",
+      "subtopic": "Physics in action: Impulse",
+      "misconception_codes": [],
+      "body_markdown": "A very important application of impulse is improving safety and reducing injuries. In many cases, an object needs to be brought to rest from a certain initial velocity. This means there is a certain specified change in momentum. If the time during which the momentum changes can be increased then the force that must be applied will be less and so it will cause less damage. This is the principle behind arrestor beds for trucks, airbags, and bending your knees when you jump off a chair and land on the ground. Air bags are used in motor vehicles because they are able to reduce the effect of the force experienced by a person during an accident. Air bags extend the time required to stop the momentum of the driver and passenger. During a collision, the motion of the driver and passenger carries them towards the windshield. If they are stopped by a collision with the windshield, it would result in a large force exerted over a short time in order to bring them to a stop. If instead of hitting the windshield, the driver and passenger hit an air bag, then the time of the impact is increased. Increasing the time of the impact results in a decrease in the force. Therefore if t is increased, for a constant change in momentum, the force on the body is reduced. The same principle explains why wicket keepers in cricket use padded gloves or why there are padded mats in gymnastics.",
+      "anchors": [
+        "sec-physics-ss3-momentum-and-impulse-physics-in-action-impulse"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-12/momentum-and-impulse/02-momentum-and-impulse-07",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:54.171461+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss3.momentum-and-impulse.test-yourself-now",
+      "version": "1.0.0",
+      "title": "Test yourself now",
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "momentum and impulse",
+      "subtopic": "Test yourself now",
+      "misconception_codes": [],
+      "body_markdown": "Newton's Second Law: The resultant force acting on a body will cause the body to accelerate in the direction of the resultant force The acceleration of the body is directly proportional to the magnitude of the resultant force and inversely proportional to the mass of the object. Newton's Third Law: If body A exerts a force on body B then body B will exert an equal but opposite force on body A. Momentum: The momentum of an object is defined as its mass multiplied by its velocity. Momentum of a System: The total momentum of a system is the sum of the momenta of each of the objects in the system. Principle of Conservation of Linear Momentum: `The total linear momentum of an isolated system is constant' or `In an isolated system the total momentum before a collision (or explosion) is equal to the total momentum after the collision (or explosion)'. Elastic collision: both total momentum and total kinetic energy are conserved. Inelastic collision: only total momentum is conserved, total kinetic energy is not conserved. Impulse: the product of the net force and the time interval for which the force acts. Law of Momentum: The applied resultant force acting on an object is equal to the rate of change of the object's momentum and this force is in the direction of the change in momentum. Impulse-momentum theorem: the impulse is equal to the change in momentum. Table 2.1: Units used in momentum and impulse .",
+      "anchors": [
+        "sec-physics-ss3-momentum-and-impulse-test-yourself-now"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-12/momentum-and-impulse/02-momentum-and-impulse-08",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:56.961800+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss3.momentum-and-impulse.end-of-chapter-exercises",
+      "version": "1.0.0",
+      "title": "End of chapter exercises",
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "momentum and impulse",
+      "subtopic": "End of chapter exercises",
+      "misconception_codes": [],
+      "body_markdown": "[SC 2003/11]A projectile is fired vertically upwards from the ground. At the highest point of its motion, the projectile explodes and separates into two pieces of equal mass. If one of the pieces is projected vertically upwards after the explosion, the second piece will... drop to the ground at zero initial speed. be projected downwards at the same initial speed as the first piece. be projected upwards at the same initial speed as the first piece. be projected downwards at twice the initial speed as the first piece. The total linear momentum of the system is not conserved during this collision. The law of conservation of energy does not apply to this system. The change in momentum of the wall is equal to the change in momentum of the ball. Energy is transferred from the ball to the wall. [IEB 2003/11 HG1] A cricket ball and a tennis ball move horizontally towards you with the same momentum . A cricket ball has greater mass than a tennis ball. You apply the same force in stopping each ball. How does the time taken to stop each ball compare? It will take longer to stop the cricket ball. It will take longer to stop the tennis ball. It will take the same time to stop each of the balls. One cannot say how long without knowing the kind of collision the ball has when stopping. Since their momenta are the same, and the stopping force applied to them is the same, it",
+      "anchors": [
+        "sec-physics-ss3-momentum-and-impulse-end-of-chapter-exercises"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-12/vertical-projectile-motion-in-one-dimension/03-vertical-projectile-motion-in-one-dimension-01",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:59.180993+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss3.vertical-projectile-motion-in-one-dimension.introduction",
+      "version": "1.0.0",
+      "title": "Introduction",
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "vertical projectile motion in one dimension",
+      "subtopic": "Introduction",
+      "misconception_codes": [],
+      "body_markdown": "In this chapter we are going to look at the motion of objects that are either projected, thrown, or shot directly into the air, be it vertically upwards, downwards or when objects are dropped. This is something that everyone has experienced while playing games and we all have a strong intuition that 'what goes up, must come down', but now we'll study why that is the case.",
+      "anchors": [
+        "sec-physics-ss3-vertical-projectile-motion-in-one-dimension-introduction"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-12/vertical-projectile-motion-in-one-dimension/03-vertical-projectile-motion-in-one-dimension-02",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:44:59.984193+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss3.vertical-projectile-motion-in-one-dimension.vertical-projectile-motion",
+      "version": "1.0.0",
+      "title": "Vertical projectile motion",
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "vertical projectile motion in one dimension",
+      "subtopic": "Vertical projectile motion",
+      "misconception_codes": [],
+      "body_markdown": "When we talk about a projectile we mean a body or particle that is project or launched and then moves under the influence of only gravity . We know from Newton's Law of Universal Gravitation that an object in the Earth's gravitational field experiences a force pulling it towards the centre of the Earth. If this is the only force acting on the object then the object will accelerate towards the centre of the Earth. A person standing on the Earth's surface will interpret this acceleration as objects always falling downwards. For the rest of this chapter we will deal only with the case where the force due to gravity is the only force acting on the projectile that is falling. Any projectile can be described as falling, even if its motion is upwards initially. Figure 3.1: Objects moving upwards or downwards in the Earth's gravitational field always accelerate towards the centre of the Earth. This looks like a downwards acceleration to someone standing on the Earth's surface. We don't draw both vectors on the object because we would be mixing velocity and acceleration which are two different physical quantities. This has two implications for projectiles that pass through a point on both the upward and downward part of their motion when in free-fall: This is very useful when solving problems because if you have any information about the upward motion you can learn something about the downward motion as well and vice versa. Work with a friend. Copy the",
+      "anchors": [
+        "sec-physics-ss3-vertical-projectile-motion-in-one-dimension-vertical-projectile-motion"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-12/vertical-projectile-motion-in-one-dimension/03-vertical-projectile-motion-in-one-dimension-03",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:45:02.396764+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss3.vertical-projectile-motion-in-one-dimension.chapter-summary",
+      "version": "1.0.0",
+      "title": "Chapter summary",
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "vertical projectile motion in one dimension",
+      "subtopic": "Chapter summary",
+      "misconception_codes": [],
+      "body_markdown": "Projectiles are objects that move through the air. In vertical projectile motion we deal with objects that fall under the influence of gravity and only vertically. The equations of motion can be used to solve vertical projectile problems. Graphs for vertical projectile motion are similar to graphs for motion at constant acceleration. Table 3.1: Units used in vertical projectile motion .",
+      "anchors": [
+        "sec-physics-ss3-vertical-projectile-motion-in-one-dimension-chapter-summary"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/physical-sciences/grade-12/vertical-projectile-motion-in-one-dimension/03-vertical-projectile-motion-in-one-dimension-04",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:45:04.926654+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Physical Sciences Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss3.vertical-projectile-motion-in-one-dimension.end-of-chapter-exercises",
+      "version": "1.0.0",
+      "title": "End of chapter exercises",
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "vertical projectile motion in one dimension",
+      "subtopic": "End of chapter exercises",
+      "misconception_codes": [],
+      "body_markdown": "[SC 2001/11 HG1] A bullet fired vertically upwards reaches a maximum height and falls back to the ground. Which one of the following statements is true with reference to the acceleration of the bullet during its motion, if air resistance is ignored? The acceleration: [IEB 2002/11 HG1] Two balls, P and Q, are simultaneously thrown into the air from the same height above the ground. P is thrown vertically upwards and Q vertically downwards with the same initial speed. Which of the following is true of both balls just before they hit the ground? (Ignore any air resistance. Take downwards as the positive direction.) P has a negative acceleration; Q has a positive acceleration A. The same velocity and the same acceleration. Which of the following is true with reference to the speeds with which the balls are projected? [SC 2002/03 HG1] A stone falls freely from rest from a certain height. Which one of the following quantities could be represented on the y-axis of the graph below? A stone is thrown vertically upwards and it returns to the ground. If friction is ignored, its acceleration as it reaches the highest point of its motion is greater than just after it left the throwers hand. less than just before it hits the ground. the same as when it left the throwers hand. less than it will be when it strikes the ground. c) the same as when it left the throwers hand. [IEB 2004/11 HG1] A stone is thrown vertically",
+      "anchors": [
+        "sec-physics-ss3-vertical-projectile-motion-in-one-dimension-end-of-chapter-exercises"
+      ],
+      "status": "approved"
+    }
+  ]
+}

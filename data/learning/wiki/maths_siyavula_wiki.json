@@ -1,0 +1,2174 @@
+{
+  "version": "1.0.0",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "pathfinder.ingest",
+      "rule_id": "ingest",
+      "confidence": 1.0,
+      "evidence_count": 1
+    }
+  ],
+  "nodes": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-7/working-with-whole-numbers/01-working-with-whole-numbers",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:39:24.774239+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 7"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss1.working-with-whole-numbers.revision",
+      "version": "1.0.0",
+      "title": "Revision",
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "working with whole numbers",
+      "subtopic": "Revision",
+      "misconception_codes": [],
+      "body_markdown": "In this chapter you will learn more about whole numbers. You will learn about different ways to express whole numbers as sums and products. You will learn about different ways of doing calculations, and different ways of recording your work when doing calculations. You will strengthen your skills to do calculations and to solve problems. Do not use a calculator at all in section 1.1. Write each of the following sums as a single number: The word sum is used to indicate two or more numbers that have to be added. The answer obtained when the numbers are added, is also called the sum . We say: 20 is the sum of 15 and 5. Write each of the numbers below as a sum of units, tens, hundreds, thousands, ten thousands and hundred thousands, like the numbers were given in question 1(e) and (f). When a number is written as a sum of units, tens, hundreds, thousands etc., it is called the expanded notation . Arrange the numbers in question 3 from smallest to biggest. Write the numbers in expanded notation (for example, 791 = 700 + 90 + 1). Arrange the numbers in question 5 from biggest to smallest. 600 000 + 40 000 + 27 000 + 100 + 20 + 34 500 000 + 280 000 + 7 000 + 300 + 170 + 38 300 000 + 110 000 + 12 000 + 400 + 110 + 3 In each case, add the two numbers.",
+      "anchors": [
+        "sec-maths-jss1-working-with-whole-numbers-revision"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-7/exponents/02-exponents",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:39:27.346238+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 7"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss1.exponents.quick-squares-and-cubes",
+      "version": "1.0.0",
+      "title": "Quick squares and cubes",
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "exponents",
+      "subtopic": "Quick squares and cubes",
+      "misconception_codes": [],
+      "body_markdown": "In this chapter, you will learn about a very short way to describe calculations like this: You already know a short way to describe calculations like this: Instead of saying \"ten times ten\", we may say \"ten squared\" and we may write 10^2. Instead of saying \"10 times 10 times 10\", we may say \"10 cubed\" and we may write 10 3 . Can you think of two numbers, so that the square of the one number is equal to the cube of the other number? Can you think of two numbers, so that when you add their squares, you get the square of another number? 5 is a repeated factor of 250. It is repeated 3 times. Which numbers in question 1 have repeated factors? In each case, state what number is repeated as a factor and how many times it is repeated. A number that can be expressed as a product of one repeated factor is called a power of that number. 32 is a power of 2, because 32 = 2 × 2 × 2 × 2 × 2 Express each number as a power of 2, 3, 5 or 10. Calculate each of the following. You can use each answer to get the next answer. Because the factor 2 is repeated 5 times, 32 is called the fifth power of 2 , or 2 to the power 5 . 125 can also be called \"5 to the power 3\" or \"5 cubed\". The seventh power of",
+      "anchors": [
+        "sec-maths-jss1-exponents-quick-squares-and-cubes"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-7/geometry-of-straight-lines/03-geometry-of-straight-lines",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:39:29.547539+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 7"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss1.geometry-of-straight-lines.line-segments-lines-and-rays",
+      "version": "1.0.0",
+      "title": "Line segments, lines and rays",
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "geometry of straight lines",
+      "subtopic": "Line segments, lines and rays",
+      "misconception_codes": [],
+      "body_markdown": "You probably know exactly what is meant by a line. In this chapter, you will learn about line segments and rays and how they differ from lines. You will also learn more about parallel and perpendicular lines and how we indicate them on a diagram. Measure each side of this quadrilateral. Write the measurements at each side. Each side of a quadrilateral is a line segment . A line segment has a definite starting point and a definite endpoint. We can draw and measure line segments. We can think of lines that have no ends, although we cannot draw them completely. We draw line segments to represent lines. When we draw a line segment to represent a line, we may put arrows at both ends to show that it goes on indefinitely on both sides. The word line is used to indicate a line that goes on in both directions. We can only see and draw part of a line. A line cannot be measured. Did you draw the whole of line AB? Explain. We can also think of a line that has a definite starting point but goes on indefinitely at the other end. This is called a half-line or a ray . We can draw the starting point and part of a ray, using an arrow to indicate that it goes on at the one end. Did you draw the whole of ray EF? Explain. Do line segments XY and GH meet anywhere? Two lines that are a",
+      "anchors": [
+        "sec-maths-jss1-geometry-of-straight-lines-line-segments-lines-and-rays"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-7/construction-of-geometric-figures/04-construction-of-geometric-figures",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:39:31.885728+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 7"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss1.construction-of-geometric-figures.angles-revision",
+      "version": "1.0.0",
+      "title": "Angles revision",
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "construction of geometric figures",
+      "subtopic": "Angles revision",
+      "misconception_codes": [],
+      "body_markdown": "In this chapter, you will learn to draw geometric figures accurately. You will also explore the properties that different figures have. When two lines point in different directions, we say they are at an angle to each other. If the directions are almost the same, we say the angle between them is small. If the directions are very different, we say the angle between them is big. Arrowheads on the lines mean that the lines keep on going. The length of an angle's arms does not change the size of the angle. Whether the arms are long or short, the angle size stays the same. There are two angles at a vertex so it is important to show which one we are talking about There are many different ways to label angles. Look at the examples below: Are these lines at an angle to each other? Do the lines have to meet to be at an angle? Use a pencil and your ruler to draw the lines a bit longer so they meet. Did you change the angle between the lines when you extended them? Arrange the angles from biggest to smallest. Just write the letters (a) to (f) in the correct order. How can you check that an angle is a right angle without using any special mathematics equipment? ( Hint : Think about where you can find right angles around you.) Are these two angles the same size? Describe how you found your answer. ( Hint : A",
+      "anchors": [
+        "sec-maths-jss1-construction-of-geometric-figures-angles-revision"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-7/geometry-of-shapes/05-geometry-of-shapes",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:39:35.564605+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 7"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss1.geometry-of-shapes.triangles-quadrilaterals-circles-and-others",
+      "version": "1.0.0",
+      "title": "Triangles, quadrilaterals, circles and others",
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "geometry of shapes",
+      "subtopic": "Triangles, quadrilaterals, circles and others",
+      "misconception_codes": [],
+      "body_markdown": "In this chapter, you will learn about different kinds of 2D shapes. You will learn the names given to different shapes. You will also learn about the different properties that different types of shapes have in relation to their sides and angles. A triangle is a closed figure with three straight sides and three angles. A quadrilateral has four straight sides and four angles. A circle is round and the edge is always at the same distance from the centre. Which shapes on the opposite page are circles? Which shapes on the opposite page are triangles? Which shapes on the opposite page are quadrilaterals? Make a drawing of one triangle with three acute angles, and another triangle with one obtuse angle. Draw a quadrilateral with two obtuse angles. Can you draw a triangle with two obtuse angles? Draw a triangle with one right angle, and a triangle without any right angles. Can you draw a triangle with two right angles? Can you draw a quadrilateral with four right angles? These four lines form quadrilateral ABCD. The two red sides, BC and AD, are called opposite sides of quadrilateral ABCD. Which other two sides of ABCD are also opposite sides? The lines DA and AB in the figure in question 7 are called adjacent sides . They meet at a point that is one of the vertices (corner points) of the quadrilateral. Name another two adjacent sides in ABCD. AB is adjacent to DA in the quadrilateral ABCD. Which other side",
+      "anchors": [
+        "sec-maths-jss1-geometry-of-shapes-triangles-quadrilaterals-circles-and-others"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-7/term-revision-and-assessment-01/06-term-revision-and-assessment-01",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:39:37.943179+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 7"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss1.term-revision-and-assessment-01.revision",
+      "version": "1.0.0",
+      "title": "Revision",
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "term revision and assessment 01",
+      "subtopic": "Revision",
+      "misconception_codes": [],
+      "body_markdown": "You should not use a calculator for any of the questions in this section. Do show your steps of working. Make the number sentences below true. Into the first block in each question, write a multiplication or division sign. Into the second block, write either 10, 100 or 1 000. Circle all the numbers given below that will round off to 60 000. 62 495; 54 498 ; 65 000; 56 002 ; 67 024 Write the missing numbers in the blocks. Two three-digit numbers are added together as shown, and produce a three-digit answer - but some of the digits are missing. Fill in the missing digits so as to make the calculation correct. He wishes to sort them by placing them in the sorting diagram below. Help Ismail by placing the numbers in the correct blocks. Write down, using only numbers from the cloud: \"Every even number (greater than or equal to 6) can be written as the sum of a pair of odd prime numbers , for example 10 = 3 + 7.\" Write down two pairs of odd prime numbers that each sum to 20. Choose any even number greater than 30 and write it as a sum of two odd prime numbers. Write the following as a product of prime factors: Find both the (i) HCF and (ii) LCM of 576 and 600. LCM (leave your answer as a product of prime factors) How many hours will it take the Adams family to reach their",
+      "anchors": [
+        "sec-maths-jss1-term-revision-and-assessment-01-revision"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-7/fractions/07-fractions",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:39:40.155400+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 7"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss1.fractions.measuring-accurately-with-parts-of-a-unit",
+      "version": "1.0.0",
+      "title": "Measuring accurately with parts of a unit",
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "fractions",
+      "subtopic": "Measuring accurately with parts of a unit",
+      "misconception_codes": [],
+      "body_markdown": "In this chapter you will learn how to say precisely how long something is. With whole numbers only, we cannot always say precisely how long something is. Fractions were invented for that purpose. You will also learn to calculate with fractions. In this activity, you will measure lengths with a unit called a greystick . The grey measuring stick below is exactly 1 greystick long. You will use this stick to measure different objects. The red bar below is exactly 2 greysticks long. As you can see, the yellow bar below is longer than 1 greystick but shorter than 2 greysticks. To try to measure the yellow bar accurately, we will divide one greystick into six equal parts: So each of these parts is one sixth of a greystick. Do you think one can say the yellow bar is one and four sixths of a greystick long? Describe the length of the blue bar in words. This greystick ruler is divided into seven equal parts: Each part is one seventh of a greystick. In each case below, say what the smaller parts of the greystick may be called. Write your answers in words. How did you find out what to call the small parts? Write all your answers to the following questions in words . How many twelfths of a greystick is the same length as one sixth of a greystick? How many twenty-fourths is the same length as one sixth of a greystick? How many twenty-fourths is the same",
+      "anchors": [
+        "sec-maths-jss1-fractions-measuring-accurately-with-parts-of-a-unit"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-7/the-decimal-notation-for-fractions/08-the-decimal-notation-for-fractions",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:39:42.352830+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 7"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss1.the-decimal-notation-for-fractions.other-symbols-for-tenths-and-hundredths",
+      "version": "1.0.0",
+      "title": "Other symbols for tenths and hundredths",
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "the decimal notation for fractions",
+      "subtopic": "Other symbols for tenths and hundredths",
+      "misconception_codes": [],
+      "body_markdown": "In this chapter you will learn more about decimal fractions and how they relate to common fractions and percentages. You will also learn to order and compare decimal fractions, and how to calculate with decimal fractions. What part of the rectangle below is coloured yellow? What part of the rectangle is red? What part is blue? What part is green, and what part is not coloured? 0,1 is another way to write (1)/(10) and 0,1 and (1)/(10) are different notations for the same number. (1)/(10) is called the (common) fraction notation and 0,1 is called the decimal notation . Write the answers for 1(a) and (b) in decimal notation. 3 tenths and 7 hundredths of a rectangle is coloured red, and 2 tenths and 6 hundredths of the rectangle is coloured brown. What part of the rectangle (how many tenths and how many hundredths) is not coloured? Write your answer in fraction notation and in decimal notation. On Monday, Steve ate 3 tenths and 7 hundredths of a strip of licorice. On Tuesday, Steve ate 2 tenths and 5 hundredths of a strip of licorice. How much licorice did he eat on Monday and Tuesday together? Write your answer in fraction notation and in decimal notation. Lebogang's answer for question 4 is 5 tenths and 12 hundredths . Susan's answer is 6 tenths and 2 hundredths . Who is right, or are they both wrong? The same quantity can be expressed in different ways in tenths and hundredths. For example,",
+      "anchors": [
+        "sec-maths-jss1-the-decimal-notation-for-fractions-other-symbols-for-tenths-and-hundredths"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-7/relationships-between-variables/09-relationships-between-variables",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:39:44.552560+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 7"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss1.relationships-between-variables.constant-and-variable-quantities",
+      "version": "1.0.0",
+      "title": "Constant and variable quantities",
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "relationships between variables",
+      "subtopic": "Constant and variable quantities",
+      "misconception_codes": [],
+      "body_markdown": "In this chapter you will learn about quantities that change, such as the height of a tree. As the tree grows, the height changes. A quantity that changes is called a variable quantity or just a variable . It is often the case that when one quantity changes, another quantity also changes. For example, as you make more and more calls on a phone, the total cost increases. In this case, we say there is a relationship between the amount of money you have to pay and the number of calls you make. You will learn how to describe a relationship between two quantities in different ways. How many fingers does a person who is 14 years old have? How many fingers does a person who is 41 years old have? Does the number of fingers on a person's hand depend on their age? Explain. There are two quantities in the above situation: age and the number of fingers on a person's hand. The number of fingers remains the same, irrespective of a person's age. So we say the number of fingers is a constant quantity. However, age changes, or varies, so we say age is a variable quantity. Now consider each situation below. For each situation, state whether one quantity influences the other. If it does, try to say how the one quantity will influence the other quantity. Also say whether there is a constant in the situation. The number of calls you make and the amount of airtime",
+      "anchors": [
+        "sec-maths-jss1-relationships-between-variables-constant-and-variable-quantities"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-7/perimeter-and-area-of-shapes/10-perimeter-and-area-of-shapes",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:39:46.868550+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 7"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss1.perimeter-and-area-of-shapes.perimeter-of-polygons",
+      "version": "1.0.0",
+      "title": "Perimeter of polygons",
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "perimeter and area of shapes",
+      "subtopic": "Perimeter of polygons",
+      "misconception_codes": [],
+      "body_markdown": "You will remember from Grade 6 that perimeter is the distance around the outermost border of something. Area is the size of a flat surface of something. In this chapter, you will learn to use different formulae to calculate the perimeter and area of squares, rectangles and triangles. You will solve problems using these formulae, and you will also learn how to convert between different units of area. The perimeter of a shape is the total distance around the shape, or the lengths of its sides added together. Perimeter ( P ) is measured in units such as millimetres (mm), centimetres (cm) and metres (m). Use a compass and/or a ruler to measure the length of each side in figures A to C. Write the measurements in mm on each figure. Write down the perimeter of each figure. The following shapes consist of arrows that are equal in length. What is the perimeter of each shape in number of arrows? If each arrow is 30 mm long, what is the perimeter of each shape in mm? If the sides of a square are all s units long: If the length of a rectangle is l units and the breadth (width) is b units: Calculate the perimeter of a square if the length of one of its sides is 17,5 cm. One side of an equilateral triangle is 32 cm. Calculate the triangle's perimeter. Two sides of a triangle are 2,5 cm each. Calculate the length of the third side if",
+      "anchors": [
+        "sec-maths-jss1-perimeter-and-area-of-shapes-perimeter-of-polygons"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-7/surface-area-and-volume-of-objects/11-surface-area-and-volume-of-objects",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:39:49.195241+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 7"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss1.surface-area-and-volume-of-objects.surface-area-of-cubes-and-rectangular-prisms",
+      "version": "1.0.0",
+      "title": "Surface area of cubes and rectangular prisms",
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "surface area and volume of objects",
+      "subtopic": "Surface area of cubes and rectangular prisms",
+      "misconception_codes": [],
+      "body_markdown": "In this chapter, you will investigate the formulae we can use to calculate the area of the outer surfaces of cubes and rectangular prisms. Using nets of these 3D objects will help you to understand how we get to these formulae. You will then explore the formulae we can use to calculate the amount of space that solid cubes and rectangular prisms take up. The amount of space is known as their volume. You will then come to understand the difference between the volume and the capacity of cubes and rectangular prisms. You will also learn about the units that are used to calculate surface area, volume and capacity, and you will find out how to convert between different units of measurement. Follow the instructions below to make a paper cube. Step 1: Cut off part of an A4 sheet so that you are left with a square. Step 2: Cut the square into two equal halves. Step 3: Fold each half square lengthwise down the middle to form two double-layered strips. Step 4: Fold each strip into four square sections, and put the two parts together to form a paper cube. Use sticky tape to keep it together. Number each face of the cube. How many faces does the cube have? Measure the side length of one face of the cube. Calculate the area of one face of the cube. Add up the areas of all the faces of the cube. The surface area of an object is the",
+      "anchors": [
+        "sec-maths-jss1-surface-area-and-volume-of-objects-surface-area-of-cubes-and-rectangular-prisms"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-7/term-revision-and-assessment-02/12-term-revision-and-assessment-02",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:39:51.864593+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 7"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss1.term-revision-and-assessment-02.revision",
+      "version": "1.0.0",
+      "title": "Revision",
+      "subject": "maths",
+      "year_group": "JSS1",
+      "topic": "term revision and assessment 02",
+      "subtopic": "Revision",
+      "misconception_codes": [],
+      "body_markdown": "You should not use a calculator for any of the questions in this chapter, unless you are told to use one. Do show all your steps of working. Three quarters of a number is 63. What is the number? Write down all the fractions in this list that are smaller than one eighth: (2)/(8); (1)/(7); (1)/(9); (2)/(17) The Stone Hill Primary U13A soccer team had a good season, winning five sixths of its matches. If the team played 12 matches that season, how many were lost ? For each sequence below, write down whether it is increasing, decreasing, or neither: In a survey of 80 Grade 7 learners, 60% felt that Justin Bieber was the best singer. How many learners think he is the best singer? Moeketsi collected R450 of the total of R3 000 collected by his class for the ABC for Life charity. What percentage of the total did Moeketsi collect? BestWear had a sale on all its dresses. What was the percentage reduction on a dress that used to cost R600, but on sale was going for R480? Re-order the following numbers from smallest to largest: What is the value of the 7 in 4,5678? Write your answer as a common fraction. Fill in the missing numbers in the boxes below. Join all the pairs of numbers that multiply together to give 1 . The first has been done for you. Note that you will not use all the numbers on the right-hand side. A certain portion",
+      "anchors": [
+        "sec-maths-jss1-term-revision-and-assessment-02-revision"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-8/whole-numbers/01-whole-numbers-01",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:39:53.910207+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 8"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss2.whole-numbers.introduction",
+      "version": "1.0.0",
+      "title": "Introduction",
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "whole numbers",
+      "subtopic": "Introduction",
+      "misconception_codes": [],
+      "body_markdown": "Natural numbers are those numbers that we use for counting. The set of whole numbers includes all the natural numbers along with zero. In this chapter, we will begin by revising whole numbers and the ways of grouping and classifying them. We will also be working with different properties of operations with numbers. To see how whole numbers are used in real life, we will solve some word problems involving these numbers.",
+      "anchors": [
+        "sec-maths-jss2-whole-numbers-introduction"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-8/whole-numbers/01-whole-numbers-02",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:39:56.426695+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 8"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss2.whole-numbers.ordering-and-comparing-whole-numbers",
+      "version": "1.0.0",
+      "title": "Ordering and comparing whole numbers",
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "whole numbers",
+      "subtopic": "Ordering and comparing whole numbers",
+      "misconception_codes": [],
+      "body_markdown": "When writing whole numbers, you should pay careful attention to the place value of each digit in the number. This is especially important when you do calculations with whole numbers, because placing the digits incorrectly will cause errors. A number that cannot be expressed as a product of two whole numbers, except as the product of 1 multiplied by the number itself, is called a prime number . For example, the number 4 can be expressed as 4 × 1 or 2 × 2. And the number 12 can be expressed as 12 × 1 or 6 × 2 or 4 × 3. Follow these rules to decide if each number is even, odd, or neither: Consecutive means “next to each other” or “following each other without missing anything”. Sometimes, another property of numbers is used to clarify which consecutive numbers should be used. For example, if we need to decide whether a list of given numbers shows consecutive odd numbers or not, then we need to use the properties of odd numbers. Similarly, the list of even numbers will start at 2 and count up in twos. We use a place value table to compare whole numbers. This is especially useful when working with big numbers. Place value tables let us look closely at what the digits in numbers mean. Digits in places further left represent bigger numbers.",
+      "anchors": [
+        "sec-maths-jss2-whole-numbers-ordering-and-comparing-whole-numbers"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-8/whole-numbers/01-whole-numbers-03",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:39:58.904330+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 8"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss2.whole-numbers.properties-of-whole-numbers",
+      "version": "1.0.0",
+      "title": "Properties of whole numbers",
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "whole numbers",
+      "subtopic": "Properties of whole numbers",
+      "misconception_codes": [],
+      "body_markdown": "We say that addition and multiplication are commutative . This means that the numbers can be swapped around, so their order does not change the answer. For example, the sum does not change if we swap around these numbers: If three or more numbers must be multiplied, it does not matter which two of the numbers are multiplied first. In the same way, if three or more numbers must be added, it does not matter which two of the numbers are added first. This is called the associative property of addition and multiplication. We can also say that addition and multiplication are associative. For example, the sum does not change if we group numbers together in different ways: Try to group the numbers differently. Do you get the same answer? Lebogang and Nathi both must calculate 25 × 24. They know that 24 = 6 × 4. Will they get the same answer or not? Use your calculator to check: The distributive property is a useful property because it allows us to do this: Both answers are 18. Notice that we must use brackets in the first example to show that the addition operation must be done first. Otherwise, we would have done the multiplication first. For example, the expression 3 × 2 + 4 means “multiply 3 by 2; then add 4”. It does not mean “add 2 and 4; then multiply by 3”. The expression 4 + 3 × 2 also means “multiply 3 by 2; then add",
+      "anchors": [
+        "sec-maths-jss2-whole-numbers-properties-of-whole-numbers"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-8/whole-numbers/01-whole-numbers-04",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:01.711258+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 8"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss2.whole-numbers.calculations-using-whole-numbers",
+      "version": "1.0.0",
+      "title": "Calculations using whole numbers",
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "whole numbers",
+      "subtopic": "Calculations using whole numbers",
+      "misconception_codes": [],
+      "body_markdown": "To estimate is to try to get close to an answer without actually doing the required calculations with the given numbers. An estimate may also be called an approximation. The difference between an estimate and the actual answer is called the error. Calculating with “easy” numbers that are close to given numbers is a good way to obtain approximate answers (or estimates), for example: Calculate with “easy” numbers close to the given numbers to produce approximate answers for this product. Do not use a calculator. When you have made your approximations, use a calculator to find the exact answer and calculate the error. You could also take 80 and 50 as your easy numbers. The actual answer is bigger than the approximation. The error is 388, so the estimation was an underestimation. Calculate using easy numbers, and without using a calculator. When you have made your approximations, use a calculator to find the precise answer and calculate the error. The actual answer is smaller than the approximation. Calculate with easy numbers close to the given numbers to produce approximate answers for each product below. Do not use a calculator. When you have made your approximations, use a calculator to find the precise answers. Let’s revise some basic addition, subtraction and multiplication facts. Remember that the sum is what you get after you have done your addition. We can add in any order. The difference is what is left after you have done your subtraction. We must subtract in the given",
+      "anchors": [
+        "sec-maths-jss2-whole-numbers-calculations-using-whole-numbers"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-8/whole-numbers/01-whole-numbers-05",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:06.356901+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 8"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss2.whole-numbers.multiples-and-factors",
+      "version": "1.0.0",
+      "title": "Multiples and factors",
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "whole numbers",
+      "subtopic": "Multiples and factors",
+      "misconception_codes": [],
+      "body_markdown": "If n is a natural number, then 2n represents the multiples of 2. When you need to answer the question: “Of which numbers is 20 a multiple?”, you look for factors of the number 20. 20 is a multiple of 1; 2; 4; 5; 10 and 20, and all of these numbers are factors of 20. Factors come in pairs. The following pairs are factors of 20: A natural number can be divided by its factors, without leaving a remainder. So, the factor of a natural number can divide that number perfectly without leaving a remainder. For example, 2 is one of the factors of 14, because 14 ÷ 2 = 7, with no remainder. The multiples of 5 are 1 × 5, 2 × 5, 3 × 5, 4 × 5, and so on. We call something a multiple of 5 if it is equal to 5 multiplied by another natural number. So, a multiple of any natural number is a value that is equal to the original number multiplied by another natural number. You can think of the multiples as the “times table” of the original number. To find the factors of a number, start by dividing by 1. We always get 1 and the number itself as factors of the number. 2 does not go into 45 without a remainder: 4 does not go into 45 without a remainder: Continuing in this way, we get all of the factors of 45. The first five multiples of 45",
+      "anchors": [
+        "sec-maths-jss2-whole-numbers-multiples-and-factors"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-8/whole-numbers/01-whole-numbers-06",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:08.946651+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 8"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss2.whole-numbers.solving-problems-with-whole-numbers",
+      "version": "1.0.0",
+      "title": "Solving problems with whole numbers",
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "whole numbers",
+      "subtopic": "Solving problems with whole numbers",
+      "misconception_codes": [],
+      "body_markdown": "If you use “BODMAS” or “BEDMAS” correctly to remember the order of operations, you will get the same answer. But, evaluating an expression using terms will help more with algebra later on! Do not use a calculator. Follow the correct order of operations to find the answer. Thinking about “terms” is a useful way to help us to simplify. Terms are separated by addition and subtraction symbols, and joined into one by multiplication and division symbols, and brackets. To evaluate an expression, we must: This expression has three terms: 7, −2 × 1 × 3, and +3 × 5. We must simplify the second and third terms. Remember that terms are separated by addition and subtraction symbols, and joined into one by multiplication and division symbols, and brackets. First separate into terms, then simplify, and then add or subtract from left to right. Instead of saying, for example “60 calls per day”, people often say “at a rate of 60 calls per day”. The word ‘per’ is often used to describe a rate and can mean for every , for , in each , in , out of , or every . To answer this rate question, you divide the total number of trees by the number that can be cut in one day: So, it will take 200 days for all the trees to be cut down if the rate of cutting stays the same. It is important to check that your answer makes sense. In this question we",
+      "anchors": [
+        "sec-maths-jss2-whole-numbers-solving-problems-with-whole-numbers"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-8/whole-numbers/01-whole-numbers-07",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:11.553901+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 8"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss2.whole-numbers.working-with-money-budgets-savings-discount-interest-and-exchange-rates",
+      "version": "1.0.0",
+      "title": "Working with money: Budgets, savings, discount, interest and exchange rates",
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "whole numbers",
+      "subtopic": "Working with money: Budgets, savings, discount, interest and exchange rates",
+      "misconception_codes": [],
+      "body_markdown": "In business and in everyday life, we use money to pay for services and goods. There are different financial models, and it is useful to understand how the prices are set. It is also important to save money and budget for different expenses. A budget is a plan about how you will spend, and save, your money. Budgets are a very important part of planning for a sound financial future. How much will Anita save each month, if she keeps to her budget? When people start a business, they need to be able to work with cash flows and monitor their sales. There are different costs involved to make the sales. These costs are needed to perform business. For example, to make clothes you need to buy fabric, a sewing machine, needles, and threads. These are costs, and when you want to sell clothes you made, you will factor these costs in so you can make a profit . When the money you get exceeds the expenses or the initial costs, then you make a profit. If you make less money then you spend, then you make a loss . The amount that Phillip earned from selling the packets of sweets is greater than the amount that he spent to buy them. Phillip’s income was greater than his expenses. The difference between Phillip’s income and expenses is: The amount for which a dealer buys an article from a producer or manufacturer is called the cost price . The price marked",
+      "anchors": [
+        "sec-maths-jss2-whole-numbers-working-with-money-budgets-savings-discount-interest-and-exchange-rates"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-8/integers/02-integers-01",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:19.652106+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 8"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss2.integers.introduction",
+      "version": "1.0.0",
+      "title": "Introduction",
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "integers",
+      "subtopic": "Introduction",
+      "misconception_codes": [],
+      "body_markdown": "In this chapter, you will work with whole numbers smaller than 0. These numbers are called negative numbers. The whole numbers larger than 0, 0 itself, and the negative whole numbers together are called integers. Negative numbers have certain properties that make them useful for various purposes. You will learn about these properties and how they make it possible to do calculations using negative numbers.",
+      "anchors": [
+        "sec-maths-jss2-integers-introduction"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-8/integers/02-integers-02",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:20.154196+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 8"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss2.integers.calculations-with-integers",
+      "version": "1.0.0",
+      "title": "Calculations with integers",
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "integers",
+      "subtopic": "Calculations with integers",
+      "misconception_codes": [],
+      "body_markdown": "When calculating with small integers, you can use the number line: Evaluate the following without using a calculator: To subtract 8 from 2, we must start at 2 on the number line and count 8 to the left. To add 1 to −9, we must start at −9 on the number line and count 1 to the right. The following statement is true if the unknown number is 5: Another number will make the following statement true: If you add this number, it should have the same effect as to subtract 5. That number is “negative 5”. It has the property that if you add it to another number, the effect will be the same as when you subtract its positive opposite: Adding a negative number has the same effect as subtracting a positive number. For example: 20 + ( - 15) = 20 - 15 = 5. Gcina is working with the number line below. She needs to start at the blue dot at −6 and end at the red dot at 5. What must Gcina do to get from the starting point at −6 to the end point at 5? Write the number sentence to match this problem. Moving from the blue dot (−6) to the red dot (5) looks like this: Since the arrows are moving to the right, this is addition. Adding positive numbers means going to the right, while subtracting positive numbers means going to the left. You can count the number of arrows.",
+      "anchors": [
+        "sec-maths-jss2-integers-calculations-with-integers"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-8/integers/02-integers-03",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:22.488304+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 8"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss2.integers.counting-ordering-and-comparing-integers",
+      "version": "1.0.0",
+      "title": "Counting, ordering and comparing integers",
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "integers",
+      "subtopic": "Counting, ordering and comparing integers",
+      "misconception_codes": [],
+      "body_markdown": "The numbers 1; 2; 3; 4 etc. are called natural numbers. The natural numbers along with 0 make up the whole numbers. The whole numbers and the negatives of the natural numbers together are called integers . The set of integers is defined as follows: Here are the important facts about integers. You can show this fact on a number line: A number line helps us to arrange integers in order. You can see that the distance from the negative number on the left of 0 is the same as the distance to the opposite positive number on the right of 0. For example, there are 9 units from −9 to 0, and also 9 units from 0 to 9. The distance between two points on the number line is how far apart the points are, in other words, how many spaces there are in between them. In the number line above, you can actually just count the spaces between one point and another. The diagram below shows a section of a number line with two labelled points, Point P and Point K. How far apart are the points from each other? Imagine putting your finger on Point P and just hop your finger over one unit at a time until you reach Point K. If you add up all of these hops, you can find the total distance between the points. The distance between Point P and Point K is 2. You can count the hops on the number",
+      "anchors": [
+        "sec-maths-jss2-integers-counting-ordering-and-comparing-integers"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-8/integers/02-integers-04",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:24.961456+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 8"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss2.integers.properties-of-integers",
+      "version": "1.0.0",
+      "title": "Properties of integers",
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "integers",
+      "subtopic": "Properties of integers",
+      "misconception_codes": [],
+      "body_markdown": "Multiplication of whole numbers is associative . The associative property of multiplication means that in a product with several factors, the factors can be placed in any sequence, and the calculations can be performed in any sequence. For example, the following sequences of calculations will all produce the same answer: The answer in each case is 300. Check this for yourself! Multiplication with integers is also associative. Addition with integers is associative. Calculating the following illustrates this property: When rearranging integers in addition, you need to be careful not to leave the minus sign behind. For example, 20 - 30 = 20 + ( - 30) = - 30 + 20 = - 10. You probably agree with the following statements: We may say that for each “positive” number, there is a corresponding or opposite negative number. Two positive and negative numbers that correspond, for example 3 and (−3), are called additive inverses. They cancel each other out when you add them. When you add any number to its additive inverse, the answer is 0 (the additive property of 0). For example, 120 + ( - 120) = 0. When the product of two numbers is 1, the numbers are multiplicative inverses of each other. These numbers can also be called the “reciprocals” of one another. For example, - (1)/(2) is the reciprocal of - 2.",
+      "anchors": [
+        "sec-maths-jss2-integers-properties-of-integers"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-8/integers/02-integers-05",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:27.586664+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 8"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss2.integers.solving-problems",
+      "version": "1.0.0",
+      "title": "Solving problems",
+      "subject": "maths",
+      "year_group": "JSS2",
+      "topic": "integers",
+      "subtopic": "Solving problems",
+      "misconception_codes": [],
+      "body_markdown": "Knowing how to order and compare integers will help you solve many everyday problems. You can compare different temperatures, understand bank accounts better, and work with distances between objects around you. At a high school in Amajuba, there is a water tank, a classroom and a sports field. A student named Olwethu, who must have been bored, drew a number line on the ground all the way across the school grounds – you can see it in the picture below. He also labelled the number line in metres. According to the number line, the sports field is at position 0 metres, the water tank is at 45 metres and Olwethu’s classroom is at 105 metres. Olwethu walks from the water tank to his classroom, and then to the sports field. What is the total distance that Olwethu walks? The question has a lot of information in it. It is important to read the question slowly and make sure that you feel like you have the story in your mind. Read the question a few times if you need to. A very good strategy for a question with a picture is to draw more information on this picture or draw a separate sketch to simplify the question. You can start by calculating the first distance from the starting position to the first place Olwethu passes. Remember that finding a distance means subtracting the smaller number from the larger number. From the water tank to his classroom, the distance is 60 metres.",
+      "anchors": [
+        "sec-maths-jss2-integers-solving-problems"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-9/whole-numbers/01-whole-numbers",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:31.539634+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 9"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss3.whole-numbers.properties-of-numbers",
+      "version": "1.0.0",
+      "title": "Properties of numbers",
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "whole numbers",
+      "subtopic": "Properties of numbers",
+      "misconception_codes": [],
+      "body_markdown": "In this chapter you will engage with different kinds of numbers that are used for counting, measuring, solving equations and many other purposes. The numbers that we use to count are called natural numbers : Natural numbers have the following properties: When you add two or more natural numbers, you get a natural number again. When you multiply two or more natural numbers, you get a natural number again. Mathematicians describe this by saying: The system of natural numbers is closed under addition and multiplication . However, when a natural number is subtracted from another natural number the answer is not always a natural number again. For example, there is no natural number that provides the answer to 5 - 20. Similarly, when a natural number is divided by another natural number the answer is not always a natural number again. For example, there is no natural number that provides the answer to 10 ÷ 3. When subtraction or division is done with natural numbers, the answers are not always natural numbers. The system of natural numbers is not closed under subtraction or division . Is there a smallest natural number, that means a natural number that is smaller than all other natural numbers? If so, what is it? Is there a largest natural number, in other words, a natural number that is larger than all other natural numbers? If so, what is it? In each of the following cases, say whether the answer is a natural number or not.",
+      "anchors": [
+        "sec-maths-jss3-whole-numbers-properties-of-numbers"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-9/integers/02-integers",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:33.999853+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 9"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss3.integers.integers",
+      "version": "1.0.0",
+      "title": "Integers",
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "integers",
+      "subtopic": "Integers",
+      "misconception_codes": [],
+      "body_markdown": "Numbers such as -7 and - 500, the additive inverses of whole numbers, are included with all the whole numbers and called integers . Fractions can be negative too, e.g.- (3)/(4) and 3,46. 1. Adding a negative number is just like subtracting the corresponding positive number 2. Subtracting a negative number is just like adding the corresponding positive number 3. The product of a positive number and a negative number is a negative number In each case, state what number will make the equation true. Also state which of the properties of integers in the table above, is demonstrated by the equation. Adding a negative number has the same effect as subtracting a corresponding natural number. We may say that for each \"positive\" number there is a corresponding or opposite negative number. Two positive and negative numbers that correspond, for example 3 and (-3), are called additive inverses . Say whether you agree (âœ“) or (âœ—) disagree with each statement. Calculate each of the following. Note that brackets are used for two purposes in these expressions: to indicate that certain operations are to be done first, and to show the integers. If you worked correctly, your answers for question 1 should be 15; 60; 60; -25; -100 and -100. If your answers are different, check to see where you went wrong and correct your work. Calculate each of the following where you can. What property of integers is demonstrated in your answers for questions 3(a) and (g)? In question 3",
+      "anchors": [
+        "sec-maths-jss3-integers-integers"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-9/fractions/03-fractions",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:36.481775+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 9"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss3.fractions.equivalent-fractions",
+      "version": "1.0.0",
+      "title": "Equivalent fractions",
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "fractions",
+      "subtopic": "Equivalent fractions",
+      "misconception_codes": [],
+      "body_markdown": "How much money is each of the following amounts? Did you notice that all the answers are the same? That is because(1)/(5) , (2)/(10) and (4)/(20) are equivalent fractions . They are different ways of writing the same number. Consider this bar. It is divided into five equal parts. Each piece is one fifth of the whole bar. Draw lines on the bar below so that it is approximately divided into ten equal parts. What part of the whole bar is each of your ten parts? How many tenths is the same as one fifth? How many tenths is the same as two fifths? How many fifths is the same as eight tenths? How many twenty-fifths is the same as two fifths? How many fifths is the same as 20 twenty-fifths? In question 3(b) you found that (4)/(5) is equivalent to (20)/(25): these are just two different ways This can be expressed by writing (4)/(5) = (20)/(25) which means that (4)/(5) and (20)/(25) are equivalent to each other. Write down all the other pairs of equivalent fractions which you found while doing questions 2 and 3. Into what kind of fraction parts is the blue bar divided? Into what kind of fraction parts is the red bar divided? If you want to mark the yellow bar in twentieths like the blue bar, into how many parts do you have to divide each of the fifths? If you want to mark the yellow bar in fortieths like the red bar, into",
+      "anchors": [
+        "sec-maths-jss3-fractions-equivalent-fractions"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-9/the-decimal-notation-for-fractions/04-the-decimal-notation-for-fractions",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:38.926666+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 9"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss3.the-decimal-notation-for-fractions.equivalent-forms",
+      "version": "1.0.0",
+      "title": "Equivalent forms",
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "the decimal notation for fractions",
+      "subtopic": "Equivalent forms",
+      "misconception_codes": [],
+      "body_markdown": "In this chapter you will do more work with fractions written in decimal notation. When fractions are written in the decimal notation, calculations can be done in the same way than for whole numbers. It is important to always keep in mind that the common fraction form, the decimal form and the percentage form are just different ways to represent exactly the same number. These numbers are called the rational numbers. Decimal fractions and common fractions are simply different ways of expressing the same number. They are different notations showing the same value. Notation means a set of symbols to show a special thing. To write a decimal fraction as a common fraction: Write the decimal with a denominator that is a power of ten (10,100,1000,ect.) and then simplify it if possible. To write a common fraction as a decimal fraction: Change the common fraction to an equivalent fraction with a power of ten as a denominator. If you are permitted to use your calculator, simply type in 3 ÷ 4 and the answer will be given as 0,75. On some calculators you will need to press an additional button to convert the exact fraction to a decimal. You are not permitted to use a calculator in this exercise. Write the following decimal fractions as common fractions in their simplest form: Write the following common fractions as decimal fractions: Write the following percentages as common fractions in their simplest form: Write the following decimal fractions as percentages: Write the following",
+      "anchors": [
+        "sec-maths-jss3-the-decimal-notation-for-fractions-equivalent-forms"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-9/exponents/05-exponents",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:41.269917+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 9"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss3.exponents.revision",
+      "version": "1.0.0",
+      "title": "Revision",
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "exponents",
+      "subtopic": "Revision",
+      "misconception_codes": [],
+      "body_markdown": "You will also solve simple equations in exponential form. In Grade 8 you learnt about scientific notation.In this chapter we will extend the scientific notation to include very small numbers such as 0,0000123. Write the following in exponential notation: Write each of the numbers in exponential notation in some different ways if possible: Which learner did the calculation correctly? Give reasons for your answer. Calculate: 5 + 3 × 2^2 - 10, with explanations. Use the laws of exponents to calculate the following: Complete the table. Substitute the given number for y . The first column has been done as an example. Complete the table. Substitute the given number for y . From the table, is y^4 ÷ y^2 = y^3 ÷ y^1 = y^2 ? Explain why. From the table above, is 2 × 5^x =(2 × 5)^x ? Explain. Which expressions in question 6 are equivalent? Explain. Below is a calculation that Wilson did as homework. Mark each problem correct or incorrect and explain the mistakes. This decision was not taken blindly - mathematicians were well aware that it makes good sense to use negative exponents in this meaning. One major advantage is that the negative exponents, when used in this meaning, have the same properties as positive exponents, for example: Express each of the following in the exponential notation in two ways: with positive exponents and with negative exponents. In each case, check whether the statement is true or false. If it is false, write a correct",
+      "anchors": [
+        "sec-maths-jss3-exponents-revision"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-9/patterns/06-patterns",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:43.721304+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 9"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss3.patterns.patterns",
+      "version": "1.0.0",
+      "title": "Patterns",
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "patterns",
+      "subtopic": "Patterns",
+      "misconception_codes": [],
+      "body_markdown": "Blue and yellow square tiles are combined to form the above arrangements. How many yellow tiles are there in each arrangement? How many blue tiles are there in each arrangement? If more arrangements are made in the same way, how many blue tiles and how many yellow tiles will there be in arrangement 5? Check your answer by drawing the arrangement on the grid on the right. How many blue tiles will there be in a similar arrangement with 26 yellow tiles? Describe how you thought to produce your answer for (f)? In these arrangements there are red tiles too. Complete this table. How many red tiles are there in each arrangement? The number of red tiles in arrangements like those in question 2 is constant. It is always 4, no matter how many blue and yellow tiles there are. The number of blue tiles is different for different arrangements. We can say the number of blue tiles varies . We can also say the number of blue tiles is a variable . Is the number of yellow tiles in the above arrangements a constant or is it a variable? Look at these three arrangements. They consist of black squares, grey squares and white squares. Draw another arrangement of the same kind, but with a different length, on the grid provided on the right. Describe what is constant in these arrangements. What are the variables in these arrangements? The smallest arrangement above may be called arrangement 1, the next bigger",
+      "anchors": [
+        "sec-maths-jss3-patterns-patterns"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-9/functions-and-relationships/07-functions-and-relationships",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:46.248289+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 9"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss3.functions-and-relationships.functions-and-relationships",
+      "version": "1.0.0",
+      "title": "Functions and relationships",
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "functions and relationships",
+      "subtopic": "Functions and relationships",
+      "misconception_codes": [],
+      "body_markdown": "You are going to choose a number, multiply it by 5, and subtract the answer from 50. Choose any number from set A and do the above calculations. Choose any number from set B and do the above calculations. If you choose any other number from set B, do you think the answer will also be a negative number? Output numbers are numbers that you obtain when you apply the rule to the input numbers. Write down the output numbers that will be obtained when the formula 50 - 5x is applied to set B. In this question your set of input numbers will be the even numbers 2; 4; 6; 8; 10; ... What will all the output numbers be if the rule 2n + 1 is applied to the set of even numbers? Write a list. What will the output numbers be if the rule 2n- 1 is applied? What will the output numbers be if the rule 2n + 5 is applied? What will the output numbers be if the rule 3n + 1 is applied? What kind of output numbers will be obtained by applying the rule (x)/(10) + 10 to natural numbers smaller than 10? If you use the rule 30x + 2, and use input numbers that are positive fractions with denominators 2, 3 and 5, what kind of output numbers will you obtain? A quantity that changes is called a variable quantity or just a variable . If one variable quantity is influenced",
+      "anchors": [
+        "sec-maths-jss3-functions-and-relationships-functions-and-relationships"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-9/algebraic-expressions/08-algebraic-expressions",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:47.175164+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 9"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss3.algebraic-expressions.algebraic-language",
+      "version": "1.0.0",
+      "title": "Algebraic language",
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "algebraic expressions",
+      "subtopic": "Algebraic language",
+      "misconception_codes": [],
+      "body_markdown": "An algebraic expression is a description of a set of operations that are to be done in a certain order. In this chapter, you will learn to specify a different set of operations that will produce the same results as a given set of operations. Two different expressions that produce the same results are called equivalent expressions. Multiply a number by 5 and then subtract 3 from the answer. Add 5 to a number and then multiply the answer by 3. An algebraic expression indicates a sequence of operations that can also be described in words. In some cases they can be described with flow diagrams. Expressions in brackets should always be calculated first. If there are no brackets in an algebraic expression, it means that multiplication and division must be done first, and addition and subtraction afterwards. If you wish to say \"add 12 and 3, then multiply by 5\", the numerical expression should be 5 × (12 + 3) or (12 + 3) × 5. An expression with one term only, like 3x^2, is a monomial . An expression which is a sum of two terms, like 5x + 4, is called a binomial . An expression which is a sum of three terms, like 3x^3 + 2x + 9, is called a trinomial . The symbol x is often used to represent the variable in an algebraic expression, but other letter symbols may also be used. In the monomial 3x^2, the 3 is called the coefficient of",
+      "anchors": [
+        "sec-maths-jss3-algebraic-expressions-algebraic-language"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-9/equations/09-equations",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:49.625224+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 9"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss3.equations.solving-equations-by-inspection",
+      "version": "1.0.0",
+      "title": "Solving equations by inspection",
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "equations",
+      "subtopic": "Solving equations by inspection",
+      "misconception_codes": [],
+      "body_markdown": "In this chapter, you will find numbers that make statements true. This is called solution of equations. You will solve equations in two different ways, by inspection and by â€˜reversingâ€™ them. You will find that two equations can have the same solution. Such equations are called equivalent equations. You will also discover that not all statements are algebraic equations. Some statements are algebraic identities and others are in fact algebraic impossibilities. You will learn what the difference is between these three types of statements. Six equations are listed below the table. Use the table to find out for which of the given values of x it will be true that the left-hand side of the equation is equal to the right-hand side. \"Searching\" for the solution of an equation by using tables is called solution by inspection . Two equations can have the same solution. For example, 5x= 10 and x + 2 = 4 have the same solution; x= 2 is the solution for both equations. Two equations are called equivalent if they have the same solution. Which of the equations in question 1 have the same solutions? Explain. Complete the flow diagrams. You have to fill in all the missing numbers. To find the second input number you may say to yourself, \"After I added 7, I had 12. What did I have before I added 7? \" To find the input number that corresponds to 13, you may ask yourself, \" What did I have before I",
+      "anchors": [
+        "sec-maths-jss3-equations-solving-equations-by-inspection"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-9/revision-and-assessment/10-revision-and-assessment",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:52.090509+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 9"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss3.revision-and-assessment.revision",
+      "version": "1.0.0",
+      "title": "Revision",
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "revision and assessment",
+      "subtopic": "Revision",
+      "misconception_codes": [],
+      "body_markdown": "Remember to show all the steps in your working. Write all the numbers from the cloud in the table below, and place a tick in all the column(s) of the type of numbers they are. The first number has been completed for you: The Ndlovu family is travelling to the Kruger National Park on holiday. Here is a summary of their journey: Calculate the length of time the journey took, in hours. Give your answer as mixed number. Calculate the average speed of the journey, correct to one decimal place. A car travelling at an average speed of 110 km/h takes 2 (1)/(4) hours to complete a journey. If the return journey needs to be completed in 2 hours, calculate the average speed that must be maintained. If four tins of bully beef cost R75,80, how much money would seven similar tins cost? A farmer has enough chicken feed to feed 300 hens for 20 days. If he buys 100 more hens, how long would the same amount of chicken feed last before it runs out? How long will it take R5 000 invested at 7,2% simple interest p.a. to grow to R5 900? Chardonnay wishes to buy a new TV set costing R7 499. She does not have enough money and so needs to buy it on hire purchase. The store requires a 10% deposit and then equal monthly payments of Rx for 2 years. If the simple interest charged on the account is 15%, calculate the value of",
+      "anchors": [
+        "sec-maths-jss3-revision-and-assessment-revision"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-9/construction-of-geometric-figures/11-construction-of-geometric-figures",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:54.436150+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 9"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss3.construction-of-geometric-figures.construction-of-geometric-figures",
+      "version": "1.0.0",
+      "title": "Construction of geometric figures",
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "construction of geometric figures",
+      "subtopic": "Construction of geometric figures",
+      "misconception_codes": [],
+      "body_markdown": "You are given line segment MN with point P at a distance from it. You must construct a line that is perpendicular to MN, so that the perpendicular passes through point P. Use your compass to draw a circle whose centre is the one end point of the line segment (N) and passes through the point (P). Repeat step 1, but make the centre of your circle the other end point of the line segment (M). You are given line segment XY with point Z on it. You must construct a perpendicular line passing through Z. Use your compass to draw a circle whose centre is Z. Make its radius smaller than ZX. Note the two points where the circle intersects XY. Set your compass wider than it was for the circle with centre Z. Draw two circles of the s ame size whose centres are at the two points where the first (black) circle intersects XY. The two circles (green) will overlap. Draw a circle with centre B to mark off an equal length on both arms of the angle. Label the points of intersection D and E: DB = BE. Draw two equal circles with centres at D and at E. Make sure the circles overlap. Draw a line from B through the points where the two equal circles intersect. This line will bisect the angle. Can you explain why the method above works to bisect an angle? Can you also see that we need not draw full",
+      "anchors": [
+        "sec-maths-jss3-construction-of-geometric-figures-construction-of-geometric-figures"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-9/geometry-of-2d-shapes/12-geometry-of-2d-shapes",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:40:56.912570+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 9"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.jss3.geometry-of-2d-shapes.geometry-of-2d-shapes",
+      "version": "1.0.0",
+      "title": "Geometry of 2d shapes",
+      "subject": "maths",
+      "year_group": "JSS3",
+      "topic": "geometry of 2d shapes",
+      "subtopic": "Geometry of 2d shapes",
+      "misconception_codes": [],
+      "body_markdown": "The size of an exterior angle is equal to the sum of the opposite interior angles. The longest side of the triangle is opposite the biggest angle. The sum of the two shorter sides of the triangle is bigger than the length of the longest side. The square of the length of one side is equal to the sum of the squares of the other sides. The square of the length of one side is bigger than the sum of the squares of the other sides. At least one pair of opposite angles is equal. At least one pair of adjacent angles is equal. Two adjacent sides are equal, and the other two adjacent sides are also equal. At least one pair of opposite sides is parallel. At least one diagonal bisects the other one. At least one diagonal bisects a pair of opposite angles. Both diagonals bisect a pair of opposite angles. A square is a special kind of rectangle. A rectangle is a special kind of square. A parallelogram is a special kind of rectangle. A rectangle is a special kind of parallelogram. If you know that two triangles are congruent, then each side in the one triangle will be equal to each corresponding side in the second triangle. Also, each angle in the one triangle will be equal to each corresponding angle in the second triangle. When proving that triangles are similar, you either need to show that the corresponding angles are equal or you must show",
+      "anchors": [
+        "sec-maths-jss3-geometry-of-2d-shapes-geometry-of-2d-shapes"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-10/algebraic-expressions/01-algebraic-expressions-00",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:41:00.983866+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss1.algebraic-expressions.introduction",
+      "version": "1.0.0",
+      "title": "Introduction",
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "algebraic expressions",
+      "subtopic": "Introduction",
+      "misconception_codes": [],
+      "body_markdown": "Over human history, all peoples and cultures have contributed to the field of Mathematics. Topics like algebra may seem obvious now, but for many centuries mathematicians had to make do without it. Over the next three grades, you will explore more advanced and abstract mathematics. It may not be obvious how this applies to everyday life, but the truth is, mathematics is required for nearly everything you will do one day. Enjoy your mathematical journey. Remember, there is no such thing as a “maths person” or “not a maths person”. We can all do mathematics, it just takes practice. In this chapter, we will begin by revising the real number system and then learn about estimating surds and rounding real numbers. We will also be expanding on prior knowledge of factorisation and delve into more complex calculations involving binomial and trinomial expressions.",
+      "anchors": [
+        "sec-maths-ss1-algebraic-expressions-introduction"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-10/algebraic-expressions/01-algebraic-expressions-02",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:41:06.248040+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss1.algebraic-expressions.rational-and-irrational-numbers",
+      "version": "1.0.0",
+      "title": "Rational and irrational numbers",
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "algebraic expressions",
+      "subtopic": "Rational and irrational numbers",
+      "misconception_codes": [],
+      "body_markdown": "The following numbers are all rational numbers: We see that all numerators and all denominators are integers. These are not rational numbers, because either the numerator or the denominator is not an integer. All integers and fractions with integer numerators and non-zero integer denominators are rational numbers. Remember that when the denominator of a fraction is zero then the fraction is undefined. You can write any rational number as a decimal number but not all decimal numbers are rational numbers. These types of decimal numbers are rational numbers: Notation: You can use a dot or a bar over the repeated digits to indicate that the decimal is a recurring decimal. If the bar covers more than one digit, then all numbers beneath the bar are recurring. If you are asked to identify whether a number is rational or irrational, first write the number in decimal form. If the number terminates then it is rational. If it goes on forever, then look for a repeated pattern of digits. If there is no repeated pattern, then the number is irrational. When you write irrational numbers in decimal form, you may continue writing them for many, many decimal places. However, this is not convenient and it is often necessary to round off. Rounding off an irrational number makes the number a rational number that approximates the irrational number. Which of the following are not rational numbers? Irrational, decimal does not terminate and has no repeated pattern. The following two videos explain how to",
+      "anchors": [
+        "sec-maths-ss1-algebraic-expressions-rational-and-irrational-numbers"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-10/algebraic-expressions/01-algebraic-expressions-03",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:41:11.392177+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss1.algebraic-expressions.rounding-off",
+      "version": "1.0.0",
+      "title": "Rounding off",
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "algebraic expressions",
+      "subtopic": "Rounding off",
+      "misconception_codes": [],
+      "body_markdown": "count three places after the decimal and place a | between the third and fourth numbers; The following video explains how to round off. Round off the following numbers to the indicated number of decimal places: If the number is not a decimal you first need to write the number as a decimal. Round off each of the following to the indicated number of decimal places: We first write the fraction as a decimal and then we can round off. ABDE is a square and so the area is just the length squared. BCD is a right-angled triangle and so we have the perpendicular height. The area is: Using you answers in (a) and (b) calculate the area of ABCDE. The area of ABCDE is the sum of the areas of ABDE and BCD. Without rounding off, what is the area of ABCDE? Calculate A without rounding off your answer in (a), compare this answer with your answer in (b). Each person can carry 3 boxes. So we need to divide 31 by 3 to find out how many people are needed to carry 31 boxes.",
+      "anchors": [
+        "sec-maths-ss1-algebraic-expressions-rounding-off"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-10/algebraic-expressions/01-algebraic-expressions-04",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:41:14.587985+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss1.algebraic-expressions.estimating-surds",
+      "version": "1.0.0",
+      "title": "Estimating surds",
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "algebraic expressions",
+      "subtopic": "Estimating surds",
+      "misconception_codes": [],
+      "body_markdown": "The following video explains how to estimate a surd. Determine between which two consecutive integers the following numbers lie, without using a calculator: Without using a calculator, rank all the numbers in ascending order. Remember that negative numbers are smaller than positive numbers. It may also be helpful to write the fractions as decimals to help you estimate the number. For the surds you can estimate between which two numbers the surd lies and use that to help you rank these numbers.",
+      "anchors": [
+        "sec-maths-ss1-algebraic-expressions-estimating-surds"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-10/algebraic-expressions/01-algebraic-expressions-05",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:41:16.381939+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss1.algebraic-expressions.products",
+      "version": "1.0.0",
+      "title": "Products",
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "algebraic expressions",
+      "subtopic": "Products",
+      "misconception_codes": [],
+      "body_markdown": "Mathematical expressions are just like sentences and their parts have special names. You should be familiar with the words used to describe the parts of mathematical expressions. These words are given in the table below, using the following expression as an example: Here we multiply (or expand) two linear binomials: The product of two identical binomials is known as the square of the binomial and is written as: If the two terms are of the form ax + b and ax - b then their product is: This product yields the difference of two squares. To find the product of a binomial and a trinomial, multiply out the brackets: This video shows some examples of multiplying a binomial and a trinomial. What is the value of b, in (x+b)(x-1)=x^2 + 3x - 4 What is the value of g, in (x-2)(x+g)=x^2 - 6x + 8 From the constant term we see that -2g = 8, therefore g = -4. We can check the x term: -4x - 2x = -6x. For which of these values of k will b be positive? For which of these values of k will c be positive? For what real values of k will c be positive? For what real values of k will b be positive? From earlier we see that k > 4 will make b positive.",
+      "anchors": [
+        "sec-maths-ss1-algebraic-expressions-products"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-10/algebraic-expressions/01-algebraic-expressions-06",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:41:19.551475+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss1.algebraic-expressions.factorisation",
+      "version": "1.0.0",
+      "title": "Factorisation",
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "algebraic expressions",
+      "subtopic": "Factorisation",
+      "misconception_codes": [],
+      "body_markdown": "Factorisation is the opposite process of expanding brackets. For example, expanding brackets would require 2(x + 1) to be written as 2x + 2. Factorisation would be to start with 2x + 2 and end up with 2(x + 1). The two expressions 2(x + 1) and 2x+2 are equivalent; they have the same value for all values of x. Factorising based on common factors relies on there being factors common to all the terms. And 2(x - 1) - a(x - 1) can be factorised as follows: The following video shows an example of factorising by taking out a common factor. Use a “switch around” strategy to find the common factor. To spot a difference of two squares, look for expressions: with terms that have different signs (one positive, one negative); The following video explains factorising the difference of two squares. there is no common factor to all four terms, but we can factorise as follows: Find the factors of 7x + 14y + bx + 2by. Factorising is the reverse of calculating the product of factors. In order to factorise a quadratic, we need to find the factors which, when multiplied together, equal the original quadratic. Another type of quadratic is made up of the difference of squares. We know that: This means that if we ever come across a quadratic that is made up of a difference of squares, we can immediately write down the factors. These types of quadratics are very simple to factorise. However, many",
+      "anchors": [
+        "sec-maths-ss1-algebraic-expressions-factorisation"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-10/algebraic-expressions/01-algebraic-expressions-07",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:41:22.217345+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss1.algebraic-expressions.simplification-of-fractions",
+      "version": "1.0.0",
+      "title": "Simplification of fractions",
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "algebraic expressions",
+      "subtopic": "Simplification of fractions",
+      "misconception_codes": [],
+      "body_markdown": "We have studied procedures for working with fractions in earlier grades. Note: dividing by a fraction is the same as multiplying by the reciprocal of the fraction. In some cases of simplifying an algebraic expression, the expression will be a fraction. For example, has a quadratic binomial in the numerator and a linear binomial in the denominator. We have to apply the different factorisation methods in order to factorise the numerator and the denominator before we can simplify the expression. If x=-3 then the denominator, x + 3 = 0 and the fraction is undefined. This video shows some examples of simplifying fractions. Simplify (assume all denominators are non-zero): What are the restrictions in the following: Now we can determine the restrictions. There are three restrictions in this case:",
+      "anchors": [
+        "sec-maths-ss1-algebraic-expressions-simplification-of-fractions"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-10/algebraic-expressions/01-algebraic-expressions-08",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:41:25.869570+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss1.algebraic-expressions.chapter-summary",
+      "version": "1.0.0",
+      "title": "Chapter summary",
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "algebraic expressions",
+      "subtopic": "Chapter summary",
+      "misconception_codes": [],
+      "body_markdown": "Fractions with both numerator and denominator as integers Irrational numbers are numbers that cannot be written as a fraction with the numerator and denominator as integers. A binomial is an expression with two terms. The product of two identical binomials is known as the square of the binomial. Factorising is the opposite process of expanding the brackets. The product of a binomial and a trinomial is: Taking out a common factor is the basic factorisation method. We often need to use grouping to factorise polynomials. To factorise a quadratic we find the two binomials that were multiplied together to give the quadratic. We can simplify fractions by incorporating the methods we have learnt to factorise expressions. Only factors can be cancelled out in fractions, never terms. To add or subtract fractions, the denominators of all the fractions must be the same.",
+      "anchors": [
+        "sec-maths-ss1-algebraic-expressions-chapter-summary"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-10/algebraic-expressions/01-algebraic-expressions-09",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:41:28.710291+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss1.algebraic-expressions.end-of-chapter-exercises",
+      "version": "1.0.0",
+      "title": "End of chapter exercises",
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "algebraic expressions",
+      "subtopic": "End of chapter exercises",
+      "misconception_codes": [],
+      "body_markdown": "In the following list, there are two false statements and one true statement. Which of the statements is true ? State whether the following numbers are real, non-real or undefined. This is the square root of a negative number and so is non-real. We are dividing by 0 and so this is undefined. This is the square root of a positive number and so is real. State whether each of the following numbers are rational or irrational. Irrational. It cannot be simplified to a fraction of integers. Rational. Can be simplified to an integer Rational. Can be simplified to an integers. If a is an integer, b is an integer and c is irrational, which of the following are rational numbers? We have a fraction of integers and so this is rational. When we divide a number by itself we get 1 and so this is rational. We are dividing an integer by an irrational number and so this is irrational. Which of the numbers are non-real numbers? Without using a calculator, rank all the real numbers in ascending order. Which of the numbers are irrational numbers? Which of the numbers are rational numbers? Write each decimal as a simple fraction. This is a rational number because both the numerator and denominator are integers. Write the following fractions as decimal numbers: Irrational, there is no repeating pattern. Rational, there is a repeating pattern of digits. Write the following rational numbers to 2 decimal places. Round off the following irrational numbers",
+      "anchors": [
+        "sec-maths-ss1-algebraic-expressions-end-of-chapter-exercises"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-10/exponents/02-exponents-00",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:41:31.433031+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss1.exponents.introduction",
+      "version": "1.0.0",
+      "title": "Introduction",
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "exponents",
+      "subtopic": "Introduction",
+      "misconception_codes": [],
+      "body_markdown": "Exponents are also very useful to describe very large and very small numbers. For example, the SKA will be detecting incredibly weak signals from objects which are so far away that to write out the strength of the signal or the number of kilometres away in full would be impractical. Outside of astronomy, exponents are used by many other professions such as computer programmers, engineers, economists, financial analysts, biologists and demographers. If you want to know more about how exponents are used then take a look at the following presentation. Interested in finding out why raising a real number to the power of zero is one? Try work it out for yourself. If you get stuck, you can see an example of how to show this is true at this link. Look at the following examples to see these identities in action: If your final answer is easier to work out without a calculator, then write it out in full - not in exponential notation, as in examples 1 and 5. It is convention to write your final answer with positive exponents. In this chapter, we will revise the exponent laws and use these laws to simplify and solve more complex expressions and equations. To revise what exponents are you can watch the following video.",
+      "anchors": [
+        "sec-maths-ss1-exponents-introduction"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-10/exponents/02-exponents-01",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:41:34.015433+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss1.exponents.revision-of-exponent-laws",
+      "version": "1.0.0",
+      "title": "Revision of exponent laws",
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "exponents",
+      "subtopic": "Revision of exponent laws",
+      "misconception_codes": [],
+      "body_markdown": "There are several laws we can use to make working with exponential numbers easier. Some of these laws might have been done in earlier grades, but we list all the laws here for easy reference: The following two videos explain the exponent laws. At first glance it appears that we cannot simplify this expression. However, if we reduce the bases to prime bases, then we can apply the exponent laws. When you have a fraction that is one term over one term, use the method of Finding Prime Bases - in other words use prime factorisation on the bases. When working with exponents, all the laws of operation for algebra apply. When you have a fraction that has more than one term in the numerator or denominator, change to prime bases if necessary and then factorise.",
+      "anchors": [
+        "sec-maths-ss1-exponents-revision-of-exponent-laws"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-10/exponents/02-exponents-03",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:41:39.263258+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss1.exponents.exponential-equations",
+      "version": "1.0.0",
+      "title": "Exponential equations",
+      "subject": "maths",
+      "year_group": "SS1",
+      "topic": "exponents",
+      "subtopic": "Exponential equations",
+      "misconception_codes": [],
+      "body_markdown": "Exponential equations have the unknown variable in the exponent. Here are some examples: If we can write a single term with the same base on each side of the equation, we can equate the exponents. This is one method to solve exponential equations. Also notice that if a = 1, then x and y can be different. 3^x = 81 or 3^x = -1. However 3^x = -1 is undefined, so: Learners may find Worked Example 13 much easier using the k-substitution method. You may choose to return to this example once the k-substitution has been taught. The solution using k-substitution is as follows: In order to get the equation into a form which we can factorise, we need to rewrite the equation: Now that we have rearranged the equation, we can see that we are left with a difference of two squares. Therefore: Use trial and error to find the value of x correct to 2 decimal places",
+      "anchors": [
+        "sec-maths-ss1-exponents-exponential-equations"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-11/exponents-and-surds/01-exponents-and-surds-01",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:41:43.174948+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss2.exponents-and-surds.revision",
+      "version": "1.0.0",
+      "title": "Revision",
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "exponents and surds",
+      "subtopic": "Revision",
+      "misconception_codes": [],
+      "body_markdown": "The diagram below shows the structure of the number system: Use the list of words below to describe each of the following numbers (in some cases multiple words will be applicable): We use exponential notation to show that a number or variable is multiplied by itself a certain number of times. The exponent, also called the index or power, indicates the number of times the multiplication is repeated. For x^2, we say x is squared and for y^3, we say that y is cubed. In the last example we have k^6; we say that k is raised to the sixth power. We also have the following definitions for exponents. It is important to remember that we always write the final answer with a positive exponent. We use the following laws for working with exponents:",
+      "anchors": [
+        "sec-maths-ss2-exponents-and-surds-revision"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-11/exponents-and-surds/01-exponents-and-surds-02",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:41:43.586889+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss2.exponents-and-surds.rational-exponents-and-surds",
+      "version": "1.0.0",
+      "title": "Rational exponents and surds",
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "exponents and surds",
+      "subtopic": "Rational exponents and surds",
+      "misconception_codes": [],
+      "body_markdown": "The laws of exponents can also be extended to include the rational numbers. A rational number is any number that can be written as a fraction with an integer in the numerator and in the denominator. We also have the following definitions for working with rational exponents. When dealing with exponents, a root refers to a number that is repeatedly multiplied by itself a certain number of times to get another number. A radical refers to a number written as shown below. The radical symbol and degree show which root is being determined. The radicand is the number under the radical symbol. Write each of the following as a radical and simplify where possible: Simplify the following and write answers with positive exponents: Use the laws to re-write the following expression as a power of x: The additional laws listed below make simplifying surds easier: It is often easier to work with fractions that have rational denominators instead of surd denominators. By rationalising the denominator, we convert a fraction with a surd in the denominator to a fraction that has a rational denominator. The term in the denominator has changed from a surd to a rational number. Expressing the surd in the numerator is the preferred way of writing expressions. To eliminate the surd from the denominator, we must multiply the fraction by an expression that will result in a difference of two squares in the denominator. Rationalise the denominator in each of the following:",
+      "anchors": [
+        "sec-maths-ss2-exponents-and-surds-rational-exponents-and-surds"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-11/exponents-and-surds/01-exponents-and-surds-03",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:41:46.054828+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss2.exponents-and-surds.solving-surd-equations",
+      "version": "1.0.0",
+      "title": "Solving surd equations",
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "exponents and surds",
+      "subtopic": "Solving surd equations",
+      "misconception_codes": [],
+      "body_markdown": "We also need to be able to solve equations that involve surds. The zero law states: if a × b = 0, then a = 0 or b = 0. Use the additive inverse to get all other terms on the right hand side and only the square root on the left hand side. Solve for the unknown variable (remember to check that the solution is valid):",
+      "anchors": [
+        "sec-maths-ss2-exponents-and-surds-solving-surd-equations"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-11/exponents-and-surds/01-exponents-and-surds-04",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:41:48.603162+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss2.exponents-and-surds.applications-of-exponentials",
+      "version": "1.0.0",
+      "title": "Applications of exponentials",
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "exponents and surds",
+      "subtopic": "Applications of exponentials",
+      "misconception_codes": [],
+      "body_markdown": "There are many real world applications that require exponents. For example, exponentials are used to determine population growth and they are also used in finance to calculate different types of interest. Note this answer is given in scientific notation as it is a very big number. Note this answer is also given in scientific notation as it is a very big number.",
+      "anchors": [
+        "sec-maths-ss2-exponents-and-surds-applications-of-exponentials"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-11/equations-and-inequalities/02-equations-and-inequalities-01",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:41:56.730373+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss2.equations-and-inequalities.revision",
+      "version": "1.0.0",
+      "title": "Revision",
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "equations and inequalities",
+      "subtopic": "Revision",
+      "misconception_codes": [],
+      "body_markdown": "The following are examples of quadratic equations: A quadratic equation has at most two solutions, also referred to as roots. There are some situations, however, in which a quadratic equation has either one solution or no solutions. Graph of a quadratic equation with two roots: x = -2 and x = 2. Graph of a quadratic equation with one root: x = 0. Graph of a quadratic equation with no real roots. One method for solving quadratic equations is factorisation. The standard form of a quadratic equation is ax^2+bx+c=0 and it is the starting point for solving any equation by factorisation. It is very important to note that one side of the equation must be equal to zero. Now solve for the variable in each of the following: To obtain the two roots we use the fact that if a× b=0, then a=0 and/or b=0. This is called the zero product law. Always check the solution by substituting the answer back into the original equation. The graph shows the roots of the equation x=-2 or x=5. This graph does not form part of the answer as the question did not ask for a sketch. It is shown here for illustration purposes only. Even though the question did not ask for a sketch, it is often very useful to draw the graph. We can let f(y) = y^2-7 and draw a rough sketch of the graph to see where the two roots of the equation lie. To find the solution we",
+      "anchors": [
+        "sec-maths-ss2-equations-and-inequalities-revision"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-11/equations-and-inequalities/02-equations-and-inequalities-02",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:41:59.323305+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss2.equations-and-inequalities.completing-the-square",
+      "version": "1.0.0",
+      "title": "Completing the square",
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "equations and inequalities",
+      "subtopic": "Completing the square",
+      "misconception_codes": [],
+      "body_markdown": "Can you solve each equation using two different methods? We have seen that expressions of the form x^2 - b^2 are known as differences of squares and can be factorised as (x-b)(x+b). This simple factorisation leads to another technique for solving quadratic equations known as completing the square. Consider the equation x^2-2x-1=0. We cannot easily factorise this expression. When we expand the perfect square (x-1)^2 and examine the terms we see that (x-1)^2 = x^2-2x+1. We compare the two equations and notice that only the constant terms are different. We can create a perfect square by adding and subtracting the same amount to the original equation. Very important: Always remember to include both a positive and a negative answer when taking the square root, since 2^2 = 4 and (-2)^2 = 4. Method for solving quadratic equations by completing the square Write the left hand side as a difference of two squares. Solve by completing the square: x^2-10x-11=0 Important: When taking a square root always remember that there is a positive and negative answer, since (6)^2 = 36 and (-6)^2 = 36. Solve by completing the square: 2x^2 - 6x - 10 = 0 Remember: When taking a square root there is a positive and a negative answer. Solve the following equations by completing the square:",
+      "anchors": [
+        "sec-maths-ss2-equations-and-inequalities-completing-the-square"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-11/equations-and-inequalities/02-equations-and-inequalities-03",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:01.821253+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss2.equations-and-inequalities.quadratic-formula",
+      "version": "1.0.0",
+      "title": "Quadratic formula",
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "equations and inequalities",
+      "subtopic": "Quadratic formula",
+      "misconception_codes": [],
+      "body_markdown": "It is not always possible to solve a quadratic equation by factorisation and it can take a long time to complete the square. The method of completing the square provides a way to derive a formula that can be used to solve any quadratic equation. The quadratic formula provides an easy and fast way to solve quadratic equations. We add the constant to both sides and take the square root of both sides of the equation, being careful to include a positive and negative answer. Solve for x and leave your answer in simplest surd form: 2x^2+3x=7 The expression cannot be factorised, so the general quadratic formula must be used. Always write down the formula first and then substitute the values of a, b and c. Find the roots of the function f(x)= x^2-5x+8. To determine the roots of f(x), we let x^2-5x+8 = 0. Solve the following using the quadratic formula.",
+      "anchors": [
+        "sec-maths-ss2-equations-and-inequalities-quadratic-formula"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-11/equations-and-inequalities/02-equations-and-inequalities-04",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:04.286688+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss2.equations-and-inequalities.substitution",
+      "version": "1.0.0",
+      "title": "Substitution",
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "equations and inequalities",
+      "subtopic": "Substitution",
+      "misconception_codes": [],
+      "body_markdown": "It is often useful to make a substitution for a repeated expression in a quadratic equation. This makes the equation simpler and much easier to solve. We notice that x^2 - 2x is a repeated expression and we therefore let k = x^2 - 2x so that the equation becomes We check these two roots against the restrictions for k and confirm that both are valid. We check these roots against the restrictions for x and confirm that all three values are valid. The roots of the equation are x = -1, x = 1 and x = 3. Solve the following quadratic equations by substitution: We notice that x^2 + 5x is a repeated expression and we therefore let k = x^2 + 5x so that the equation becomes We now use these values for k to solve for the original variable x The roots of the equation are x = -1, x = -4, x = -2 and x = -3. The roots of the equation are x = 1, x = 4 and x = -2. We note that the denominator is equivalent to x^2 + 3x. We notice that x^2 + 3x is a repeated expression and we therefore let k = x^2 + 3x so that the equation becomes We can now use values obtained for k to solve for the original variable x The roots of the equation are x = -7, x = 4, x = -1 and x = -2. We notice",
+      "anchors": [
+        "sec-maths-ss2-equations-and-inequalities-substitution"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-11/equations-and-inequalities/02-equations-and-inequalities-05",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:06.922544+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss2.equations-and-inequalities.finding-the-equation",
+      "version": "1.0.0",
+      "title": "Finding the equation",
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "equations and inequalities",
+      "subtopic": "Finding the equation",
+      "misconception_codes": [],
+      "body_markdown": "We have seen that the roots are the solutions obtained from solving a quadratic equation. Given the roots, we are also able to work backwards to determine the original quadratic equation. Notice that the signs in the brackets are opposite of the given roots. Note that if each term in the equation is multiplied by a constant then there could be other possible equations which would have the same roots. For example, The quadratic equation is 2x^2 - 5x - 12 = 0. Write down as the product of two factors Find a quadratic equation for a graph that has x-intercepts of (-4;0) and (4;0). The x-intercepts are the same as the roots of the equation, so: We note that this solution gives us integer values as required. One root of the equation 2x^2 - 3x = p is 2(1)/(2). Find p and the other root. Solve the following quadratic equations by either factorisation, using the quadratic formula or completing the square: We will solve this equation by completing the square for practice:",
+      "anchors": [
+        "sec-maths-ss2-equations-and-inequalities-finding-the-equation"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-11/equations-and-inequalities/02-equations-and-inequalities-06",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:10.036287+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss2.equations-and-inequalities.nature-of-roots",
+      "version": "1.0.0",
+      "title": "Nature of roots",
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "equations and inequalities",
+      "subtopic": "Nature of roots",
+      "misconception_codes": [],
+      "body_markdown": "Use the quadratic formula to determine the roots of the quadratic equations given below and take special note of: This is the expression under the square root in the quadratic formula. The discriminant determines the nature of the roots of a quadratic equation. The word ‘nature’ refers to the types of numbers the roots can be — namely real, rational, irrational or imaginary. Δ is the Greek symbol for the letter D. If Δ < 0, then roots are imaginary (non-real) and beyond the scope of this book. If Δ = 0, the roots are equal and we can say that there is only one root. If Δ > 0, the roots are unequal and there are two further possibilities. Δ is the square of a rational number: the roots are rational. Δ is not the square of a rational number: the roots are irrational and can be expressed in decimal or surd form. Show that the roots of x^2-2x-7=0 are irrational. For roots to be real and irrational, we need to calculate Δ and show that it is greater than zero and not a perfect square. We know that 32 > 0 and is not a perfect square. The graph below shows the roots of the equation x^2 - 2x - 7 = 0. Note that the graph does not form part of the answer and is included for illustration purposes only. We have calculated that Δ > 0 and is not a perfect square, therefore we can conclude",
+      "anchors": [
+        "sec-maths-ss2-equations-and-inequalities-nature-of-roots"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-11/equations-and-inequalities/02-equations-and-inequalities-07",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:10.661299+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss2.equations-and-inequalities.quadratic-inequalities",
+      "version": "1.0.0",
+      "title": "Quadratic inequalities",
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "equations and inequalities",
+      "subtopic": "Quadratic inequalities",
+      "misconception_codes": [],
+      "body_markdown": "Quadratic inequalities can be of the following forms: To solve a quadratic inequality we must determine which part of the graph of a quadratic function lies above or below the x-axis. An inequality can therefore be solved graphically using a graph or algebraically using a table of signs to determine where the function is positive and negative. From the factorised quadratic we see that the values for which the inequality is equal to zero are x=3 and x=2. These are called the critical values of the inequality and they are used to complete a table of signs. We must determine where each factor of the inequality is positive and negative on the number line: In the final row of the table we determine where the inequality is positive and negative by finding the product of the factors and their respective signs. The graph below does not form part of the answer and is included for illustration purposes only. A graph of the quadratic helps us determine the answer to the inequality. We can find the answer graphically by seeing where the graph lies above or below the x-axis. From this rough sketch, we can see that both inequalities give the same solution; the values of x that lie between the two x-intercepts. Important: When working with an inequality in which the variable is in the denominator, a different approach is needed. Always remember to check for restrictions. It is very important to recognise that we cannot use the same method",
+      "anchors": [
+        "sec-maths-ss2-equations-and-inequalities-quadratic-inequalities"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-11/equations-and-inequalities/02-equations-and-inequalities-08",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:13.240442+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 11"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss2.equations-and-inequalities.simultaneous-equations",
+      "version": "1.0.0",
+      "title": "Simultaneous equations",
+      "subject": "maths",
+      "year_group": "SS2",
+      "topic": "equations and inequalities",
+      "subtopic": "Simultaneous equations",
+      "misconception_codes": [],
+      "body_markdown": "Simultaneous linear equations can be solved using three different methods: substitution, elimination or using a graph to determine where the two lines intersect. For solving systems of simultaneous equations with linear and non-linear equations, we mostly use the substitution method. Graphical solution is useful for showing where the two equations intersect. In general, to solve for the values of n unknown variables requires a system of n independent equations. Substitute into the second equation. By doing this we reduce the number of equations and the number of variables by one. We now have one equation with one unknown variable which can be solved. Use the solution to substitute back into the first equation to find the value of the other unknown variable. Make one of the variables the subject of both equations. Equate the two equations; by doing this we reduce the number of equations and the number of variables by one. Use the solution to substitute back into either original equation, to find the corresponding value of the other unknown variable. Draw the graph of each equation on the same system of axes. The final solutions to the system of equations are the coordinates of the points where the two graphs intersect. From the diagram we see that the graphs intersect at (-3;-8) and (2;-3). The solutions to the system of simultaneous equations are (-3;-8) and (2;-3). Solve the following systems of equations algebraically. Leave your answer in surd form, where appropriate. Next equate the two equations and solve",
+      "anchors": [
+        "sec-maths-ss2-equations-and-inequalities-simultaneous-equations"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-12/sequences-and-series/01-sequences-and-series-01",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:17.427409+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss3.sequences-and-series.arithmetic-sequences",
+      "version": "1.0.0",
+      "title": "Arithmetic sequences",
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "sequences and series",
+      "subtopic": "Arithmetic sequences",
+      "misconception_codes": [],
+      "body_markdown": "In earlier grades we learnt about number patterns, which included linear sequences with a common difference and quadratic sequences with a common second difference. We also looked at completing a sequence and how to determine the general term of a sequence. In this chapter we also look at geometric sequences, which have a constant ratio between consecutive terms. We will learn about arithmetic and geometric series, which are the summing of the terms in sequences. This is an example of a non-numeric arithmetic sequence. For a general arithmetic sequence with first term a and a common difference d, we can generate the following terms: n is the position of the term in the sequence; To test whether a sequence is an arithmetic sequence or not, check if the difference between any two consecutive terms is constant: If this is not true, then the sequence is not an arithmetic sequence. Write down the formula and the known values: A graph was not required for this question but it has been included to show that the points of the arithmetic sequence lie in a straight line. The arithmetic mean between two numbers is the number half-way between the two numbers. In other words, it is the average of the two numbers. The arithmetic mean and the two terms form an arithmetic sequence. Now determine the general term for the sequence: What are the important characteristics of an arithmetic sequence? Determine the formula for the general term. Insert seven arithmetic means between the",
+      "anchors": [
+        "sec-maths-ss3-sequences-and-series-arithmetic-sequences"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-12/sequences-and-series/01-sequences-and-series-02",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:19.852836+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss3.sequences-and-series.geometric-sequences",
+      "version": "1.0.0",
+      "title": "Geometric sequences",
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "sequences and series",
+      "subtopic": "Geometric sequences",
+      "misconception_codes": [],
+      "body_markdown": "This means that the ratio between consecutive numbers in a geometric sequence is a constant (positive or negative). We will explain what we mean by ratio after looking at the following example. Influenza (commonly called “flu”) is caused by the influenza virus, which infects the respiratory tract (nose, throat, lungs). It can cause mild to severe illness that most of us get during winter time. The influenza virus is spread from person to person in respiratory droplets of coughs and sneezes. This is called “droplet spread”. This can happen when droplets from a cough or sneeze of an infected person are propelled through the air and deposited on the mouth or nose of people nearby. It is good practice to cover your mouth when you cough or sneeze so as not to infect others around you when you have the flu. Regular hand washing is an effective way to prevent the spread of infection and illness. Assume that you have the flu virus, and you forgot to cover your mouth when two friends came to visit while you were sick in bed. They leave, and the next day they also have the flu. Let's assume that each friend in turn spreads the virus to two of their friends by the same droplet spread the following day. Assuming this pattern continues and each sick person infects 2 other friends, we can represent these events in the following manner: Each person infects two more people with the flu virus. We can tabulate",
+      "anchors": [
+        "sec-maths-ss3-sequences-and-series-geometric-sequences"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-12/sequences-and-series/01-sequences-and-series-03",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:22.269797+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss3.sequences-and-series.series",
+      "version": "1.0.0",
+      "title": "Series",
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "sequences and series",
+      "subtopic": "Series",
+      "misconception_codes": [],
+      "body_markdown": "If we sum only a finite number of terms, we get a finite series. For example, consider the following sequence of numbers We can calculate the sum of the first four terms: This is an example of a finite series since we are only summing four terms. m is the lower bound (or start index), shown below the summation symbol; n is the upper bound (or end index), shown above the summation symbol; Note that this is also sometimes written as: When we write out all the terms in a sum, it is referred to as the expanded form. Expand the sequence and find the value of the series: Write the following series in sigma notation: First test for an arithmetic series: is there a common difference? There is a common difference of -7, therefore this is an arithmetic series. For any constant c that is not dependent on the index i:",
+      "anchors": [
+        "sec-maths-ss3-sequences-and-series-series"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-12/sequences-and-series/01-sequences-and-series-04",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:25.039389+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss3.sequences-and-series.finite-arithmetic-series",
+      "version": "1.0.0",
+      "title": "Finite arithmetic series",
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "sequences and series",
+      "subtopic": "Finite arithmetic series",
+      "misconception_codes": [],
+      "body_markdown": "When we sum a finite number of terms in an arithmetic sequence, we get a finite arithmetic series. The sum of the first one hundred integers If we sum an arithmetic sequence, it takes a long time to work it out term-by-term. We therefore derive the general formula for evaluating a finite arithmetic series. We start with the general formula for an arithmetic sequence of n terms and sum it from the first term (a) to the last term in the sequence (l): This general formula is useful if the last term in the series is known. We substitute l = a + (n-1)d into the above formula and simplify: The general formula for determining the sum of an arithmetic series is given by: This example demonstrates how useful the general formula for determining an arithmetic series is, especially when the series has a large number of terms. but n must be a positive integer, therefore n = 37. We could have solved for n using the quadratic formula but factorising by inspection is usually the quickest method. Calculating the value of a term given the sum of n terms: Similarly, we could determine the third and fourth term in a series: This is an arithmetic series with a = -2 and d = -2: but n must be a positive integer, therefore n=10. Explain why there are two possible answers. There are two series that satisfy the given parameters: Now consider the quotient of the two series: but n",
+      "anchors": [
+        "sec-maths-ss3-sequences-and-series-finite-arithmetic-series"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-12/sequences-and-series/01-sequences-and-series-05",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:27.671023+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss3.sequences-and-series.finite-geometric-series",
+      "version": "1.0.0",
+      "title": "Finite geometric series",
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "sequences and series",
+      "subtopic": "Finite geometric series",
+      "misconception_codes": [],
+      "body_markdown": "When we sum a known number of terms in a geometric sequence, we get a finite geometric series. We generate a geometric sequence using the general form: The general formula for determining the sum of a geometric series is given by: This formula is easier to use when r < 1. This formula is easier to use when r > 1. Find the first three terms in the series.",
+      "anchors": [
+        "sec-maths-ss3-sequences-and-series-finite-geometric-series"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-12/sequences-and-series/01-sequences-and-series-06",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:30.292850+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss3.sequences-and-series.infinite-series",
+      "version": "1.0.0",
+      "title": "Infinite series",
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "sequences and series",
+      "subtopic": "Infinite series",
+      "misconception_codes": [],
+      "body_markdown": "So far we have been working only with finite sums, meaning that whenever we determined the sum of a series, we only considered the sum of the first n terms. We now consider what happens when we add an infinite number of terms together. Surely if we sum infinitely many numbers, no matter how small they are, the answer goes to infinity? In some cases the answer does indeed go to infinity (like when we sum all the positive integers), but surprisingly there are some cases where the answer is a finite real number. We can conclude that the sum of the series If the sum of a series gets closer and closer to a certain value as we increase the number of terms in the sum, we say that the series converges. In other words, there is a limit to the sum of a converging series. If a series does not converge, we say that it diverges. The sum of an infinite series usually tends to infinity, but there are some special cases where it does not. There is a simple test for determining whether a geometric series converges or diverges; if -1 < r < 1, then the infinite series will converge. If r lies outside this interval, then the infinite series will diverge. We derive the formula for calculating the value to which a geometric series converges as follows: The sum of an infinite geometric series is given by the formula We need to know the value",
+      "anchors": [
+        "sec-maths-ss3-sequences-and-series-infinite-series"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-12/sequences-and-series/01-sequences-and-series-08",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:35.708029+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss3.sequences-and-series.end-of-chapter-exercises",
+      "version": "1.0.0",
+      "title": "End of chapter exercises",
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "sequences and series",
+      "subtopic": "End of chapter exercises",
+      "misconception_codes": [],
+      "body_markdown": "Calculate the total number of matches to be played in the competition. Number of terms = end index - start index + 1 = (6 - 2) + 1 = 5 How much did he save in the seventh working month? Given the geometric sequence: 6+p ; 10+p ; 15+p Show that the constant ratio is (5)/(4). Determine the tenth term of this sequence correct to one decimal place. If the pattern continues, find the number of letters in the column containing M's. so the letter “s” will be in the last column.",
+      "anchors": [
+        "sec-maths-ss3-sequences-and-series-end-of-chapter-exercises"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-12/functions/02-functions-01",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:38.196598+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss3.functions.revision",
+      "version": "1.0.0",
+      "title": "Revision",
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "functions",
+      "subtopic": "Revision",
+      "misconception_codes": [],
+      "body_markdown": "Draw a graph of 2y + x - 8 = 0 and determine the significant characteristics of this linear function. To draw the straight line graph we can use the gradient-intercept method: Alternative method: we can also determine and plot the x- and y-intercepts as follows: Decreasing function: as x increases, y decreases. Shape: a > 0, therefore the graph is a “smile”. The function is decreasing for x < 0 and increasing for x > 0. Symmetry: f and g are symmetrical about the y-axis. The function g decreases as x increases and function f increases as x increases. The two graphs intersect at the point (0;1). Sketch the graphs on the same set of axes and determine the following for each function: Given m: (x)/(2) - (y)/(3) = 1 and n: - (y)/(3) = 1. Determine the x- and y-intercepts and sketch both graphs on the same system of axes. Write the linear function in standard form: For each of the functions, determine the intercepts, asymptotes, domain and range.",
+      "anchors": [
+        "sec-maths-ss3-functions-revision"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-12/functions/02-functions-02",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:38.734467+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss3.functions.functions-and-relations",
+      "version": "1.0.0",
+      "title": "Functions and relations",
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "functions",
+      "subtopic": "Functions and relations",
+      "misconception_codes": [],
+      "body_markdown": "A rule which associates each element of set (A) with at least one element in set (B). A rule which uniquely associates elements of one set (A) with the elements of another set (B); each element in set (A) maps to only one element in set (B). Functions can be one-to-one relations or many-to-one relations. A many-to-one relation associates two or more values of the independent (input) variable with a single value of the dependent (output) variable. The domain is the set of values to which the rule is applied (A) and the range is the set of values (also called the images or function values) determined by the rule. Example of a one-to-one function: y = x + 1 Given the graph of a relation, there is a simple test for whether or not the relation is a function. This test is called the vertical line test. If it is possible to draw any vertical line (a line of constant x) which crosses the graph of the relation more than once, then the relation is not a function. If more than one intersection point exists, then the intersections correspond to multiple values of y for a single value of x (one-to-many). If any vertical line cuts the graph only once, then the relation is a function (one-to-one or many-to-one). The red vertical line cuts the circle twice and therefore the circle is not a function. The red vertical line only cuts the parabola once and therefore the parabola is",
+      "anchors": [
+        "sec-maths-ss3-functions-functions-and-relations"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-12/functions/02-functions-04",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:44.133417+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss3.functions.linear-functions",
+      "version": "1.0.0",
+      "title": "Linear functions",
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "functions",
+      "subtopic": "Linear functions",
+      "misconception_codes": [],
+      "body_markdown": "To determine the inverse function of y=ax+q: Therefore the inverse of y=ax+q is y=(1)/(a)x-(q)/(a). If a linear function is invertible, then its inverse will also be linear. Determine and sketch the inverse of the function f(x) = 2x - 3. State the domain, range and intercepts. The y-intercept is obtained by letting x=0: The x-intercept is obtained by letting y=0: Is the relation a function? Explain your answer. It is a function. Every x-value relates to only one y-value, it is a one-to-one relation. Explain why the line y = x is an axis of symmetry for a function and its inverse. To reflect a function about the y-axis, we replace every x with -x. Similarly, to reflect a function about the x-axis, we replace every y with -y. To reflect a function about the line y=x, we replace x with y and y with x, which is how we determine the inverse. Will the line y = -x be an axis of symmetry for a function and its inverse? Decreasing function. The function values decrease as x increases.",
+      "anchors": [
+        "sec-maths-ss3-functions-linear-functions"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-12/functions/02-functions-05",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:46.808487+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss3.functions.quadratic-functions",
+      "version": "1.0.0",
+      "title": "Quadratic functions",
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "functions",
+      "subtopic": "Quadratic functions",
+      "misconception_codes": [],
+      "body_markdown": "Notice that the inverse does not pass the vertical line test and therefore is not a function. The vertical line test shows that the inverse of a parabola is not a function. However, we can limit the domain of the parabola so that the inverse of the parabola is a function. The domain of the function is equal to the range of the inverse. The range of the function is equal to the domain of the inverse. Similarly, a restriction on the domain of the function results in a restriction on the range of the inverse and vice versa. The inverse does not pass the vertical line test and is not a function. Inverses - domain, range, intercepts, restrictions Textbook Exercise 2.4 Determine the inverse for each of the following functions: Yes. It passes the vertical line test and is a one-to-one relation. Determine the coordinates of the point(s) of intersection of the function and its inverse. Therefore, we get the points (0;0) or (2;2). Sketch both graphs on the same system of axes. Restrict the domain of h so that the inverse is a function. From the graph we see that the straight line passes through the origin, therefore c=0. To determine the coordinates of the point(s) of intersection, we equate g and f: Sketch the graph of the inverse on the same system of axes. Is the inverse a function? Explain your answer. No. For certain values of x, the inverse cuts a vertical line in two places.",
+      "anchors": [
+        "sec-maths-ss3-functions-quadratic-functions"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/mathematics/grade-12/functions/02-functions-06",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:49.306216+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Mathematics Grade 12"
+          }
+        }
+      ],
+      "node_id": "wiki.maths.ss3.functions.exponential-functions",
+      "version": "1.0.0",
+      "title": "Exponential functions",
+      "subject": "maths",
+      "year_group": "SS3",
+      "topic": "functions",
+      "subtopic": "Exponential functions",
+      "misconception_codes": [],
+      "body_markdown": "The value of b affects the direction of the graph: To determine the inverse of the exponential function, we interchange the x- and y-variables: For straight line functions and parabolic functions, we could easily manipulate the inverse to make y the subject of the formula. For the inverse of an exponential function, however, y is the index and we do not know a method of solving for the index. Note that the brackets around the number (x) are not compulsory, we use them to avoid confusion. The logarithm of a number (x) with a certain base (b) is equal to the exponent (y), the value to which that certain base must be raised to equal the number (x). Restrictions on the definition of logarithms Discuss the following statements and determine whether they are true or false: Write the following exponential expressions in logarithmic form and express each in words: Write the following logarithmic expressions in exponential form: Write the following in logarithmic form: Express each of the following logarithms in words and then write in exponential form: The logarithm of c to base d is equal to b. In earlier grades, we used the following exponential laws for working with exponents: The logarithmic laws are based on the exponential laws and make working with logarithms much easier. The last two logarithmic laws in the list above are not covered in this section. They are discussed at the end of the chapter and are included for enrichment only. IMPORTANT: PROOFS ARE",
+      "anchors": [
+        "sec-maths-ss3-functions-exponential-functions"
+      ],
+      "status": "approved"
+    }
+  ]
+}

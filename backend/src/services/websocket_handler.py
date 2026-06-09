@@ -1196,6 +1196,9 @@ class VoiceProxyHandler:
                 "response": {
                     "instructions": (
                         "Speak only from the ask_pathfinder tool output blocks. "
+                        "Prefer each block's speak field verbatim — it is the "
+                        "spoken form. Never read the block's text/citations or any "
+                        "LaTeX, markup, or backslashes aloud. "
                         "If no block is available, say you do not have a grounded answer yet."
                     )
                 },

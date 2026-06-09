@@ -1,0 +1,194 @@
+{
+  "version": "1.0.0",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "pathfinder.ingest",
+      "rule_id": "ingest",
+      "confidence": 1.0,
+      "evidence_count": 1
+    }
+  ],
+  "nodes": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845460+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.history.ss1.meaning-of-history.meaning-and-importance-of-history",
+      "version": "1.0.0",
+      "title": "The meaning and importance of history",
+      "subject": "history",
+      "year_group": "SS1",
+      "topic": "meaning of history",
+      "subtopic": "meaning and importance of history",
+      "misconception_codes": [],
+      "body_markdown": "History is the study of past human events, especially the actions of people and societies, arranged in the order in which they happened. A historian tries to find out what happened, why it happened, and what effects it had. History is important for several reasons. It helps a people understand who they are and where they came from, building a sense of identity and pride. It teaches lessons from past successes and mistakes that can guide present decisions. It records the achievements of earlier generations so they are not forgotten, and it helps explain how the present situation of a society came about. For these reasons every nation values the careful study of its history.",
+      "anchors": [
+        "sec-history-ss1-meaning-of-history-meaning-and-importance-of-history"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845535+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.history.ss1.sources-of-history.sources-of-history",
+      "version": "1.0.0",
+      "title": "Sources of history",
+      "subject": "history",
+      "year_group": "SS1",
+      "topic": "sources of history",
+      "subtopic": "sources of history",
+      "misconception_codes": [],
+      "body_markdown": "Historians rebuild the past using sources, which are the materials that give information about earlier times. There are three main kinds. Oral sources are spoken accounts handed down from one generation to the next, such as stories, songs, and the memories of elders. Written sources are records kept in writing, such as letters, diaries, official documents, newspapers, and books. Archaeological sources are physical remains dug from the ground, such as pottery, tools, bones, coins, and the ruins of buildings. Each kind has strengths and weaknesses, so a careful historian compares several sources to check facts before drawing a conclusion. In societies without writing, oral and archaeological sources are especially valuable.",
+      "anchors": [
+        "sec-history-ss1-sources-of-history-sources-of-history"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845584+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.history.ss2.trans-saharan-trade.the-trans-saharan-trade",
+      "version": "1.0.0",
+      "title": "The trans-Saharan trade",
+      "subject": "history",
+      "year_group": "SS2",
+      "topic": "trans-saharan trade",
+      "subtopic": "the trans-saharan trade",
+      "misconception_codes": [],
+      "body_markdown": "The trans-Saharan trade was the exchange of goods carried across the Sahara Desert between North Africa and the kingdoms of West Africa for many centuries. Traders crossed the desert in large groups called caravans, using camels that could travel long distances with little water. From the north came salt, cloth, horses, and manufactured goods, while from the West African south came gold, kola nuts, leather, and enslaved people. The trade made West African empires such as Ghana, Mali, and Songhai wealthy and powerful, and it helped spread the religion of Islam, Arabic learning, and new building styles into the region. The rise of sea trade along the coast later reduced its importance.",
+      "anchors": [
+        "sec-history-ss2-trans-saharan-trade-the-trans-saharan-trade"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845619+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.history.ss2.old-oyo-empire.the-old-oyo-empire",
+      "version": "1.0.0",
+      "title": "The Old Oyo Empire",
+      "subject": "history",
+      "year_group": "SS2",
+      "topic": "old oyo empire",
+      "subtopic": "the old oyo empire",
+      "misconception_codes": [],
+      "body_markdown": "The Old Oyo Empire was a powerful Yoruba state that grew in the savanna of present day south western Nigeria and reached its height between the seventeenth and eighteenth centuries. It was ruled by a king called the Alaafin, whose power was balanced by a council of chiefs known as the Oyo Mesi, led by the Bashorun. A secret society called the Ogboni also helped check the king's authority. Oyo built a strong cavalry, using horses bought through trade, which allowed it to control many neighbouring towns and collect tribute from them. The empire grew rich from trade and farming. In the nineteenth century internal disputes and the rise of new powers led to its decline.",
+      "anchors": [
+        "sec-history-ss2-old-oyo-empire-the-old-oyo-empire"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845658+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.history.ss3.colonial-rule.indirect-rule-in-nigeria",
+      "version": "1.0.0",
+      "title": "Indirect rule in Nigeria",
+      "subject": "history",
+      "year_group": "SS3",
+      "topic": "colonial rule",
+      "subtopic": "indirect rule in nigeria",
+      "misconception_codes": [],
+      "body_markdown": "Indirect rule was the system by which the British governed Nigeria through existing traditional rulers rather than only through British officials. Under this system, chiefs and emirs continued to rule their people, collect taxes, and settle disputes, but they did so under the supervision of British officers and according to British wishes. The system was developed by Lord Lugard and worked most smoothly in the north, where the emirs already had a well organised system of administration. It was less successful in parts of the east, where many communities had no single powerful chief, and the appointment of warrant chiefs there caused resentment. Indirect rule allowed Britain to govern a large territory cheaply.",
+      "anchors": [
+        "sec-history-ss3-colonial-rule-indirect-rule-in-nigeria"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845695+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.history.ss3.amalgamation.the-amalgamation-of-1914",
+      "version": "1.0.0",
+      "title": "The amalgamation of 1914",
+      "subject": "history",
+      "year_group": "SS3",
+      "topic": "amalgamation",
+      "subtopic": "the amalgamation of 1914",
+      "misconception_codes": [],
+      "body_markdown": "The amalgamation of 1914 was the joining together of the Northern and Southern Protectorates of Nigeria into one country under a single colonial government, carried out by Lord Lugard. Before then the two areas had been administered separately. The British united them mainly for administrative convenience and to use the revenue of the wealthier south to support the north. Lugard became the first Governor General of the united Nigeria. Although the amalgamation created the country we know today, the north and south kept many of their separate systems and remained very different in religion, education, and administration. Many historians trace some of Nigeria's later challenges of unity to the way this joining was done.",
+      "anchors": [
+        "sec-history-ss3-amalgamation-the-amalgamation-of-1914"
+      ],
+      "status": "approved"
+    }
+  ]
+}

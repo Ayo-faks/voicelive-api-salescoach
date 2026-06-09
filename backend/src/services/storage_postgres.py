@@ -4004,6 +4004,198 @@ class PostgresStorageService:
         return True
 
     # ------------------------------------------------------------------
+    # Learner "Ask Wulo" conversations (learner-scoped thread history).
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _row_to_learner_ask_message(row: Any) -> Dict[str, Any]:
+        blocks_raw = row["blocks_json"]
+        try:
+            blocks = json.loads(blocks_raw) if blocks_raw else []
+        except (TypeError, json.JSONDecodeError):
+            blocks = []
+        return {
+            "id": row["id"],
+            "conversation_id": row["conversation_id"],
+            "role": row["role"],
+            "text": row["text"],
+            "blocks": blocks if isinstance(blocks, list) else [],
+            "session_complete": bool(row["session_complete"]),
+            "created_at": row["created_at"],
+        }
+
+    def create_learner_ask_conversation(
+        self,
+        *,
+        learner_id: str,
+        title: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        conversation_id = f"ask-conv-{uuid4().hex[:12]}"
+        now = self._utc_now()
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO learner_ask_conversations (
+                        id, learner_id, title, created_at, updated_at
+                    ) VALUES (%s, %s, %s, %s, %s)
+                    """,
+                    (conversation_id, learner_id, title, now, now),
+                )
+        return {
+            "id": conversation_id,
+            "learner_id": learner_id,
+            "title": title,
+            "created_at": now,
+            "updated_at": now,
+        }
+
+    def list_learner_ask_conversations(
+        self,
+        learner_id: str,
+        *,
+        limit: int = 50,
+    ) -> List[Dict[str, Any]]:
+        clamped_limit = max(1, min(int(limit or 50), 200))
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, learner_id, title, created_at, updated_at
+                    FROM learner_ask_conversations
+                    WHERE learner_id = %s AND deleted_at IS NULL
+                    ORDER BY updated_at DESC
+                    LIMIT %s
+                    """,
+                    (learner_id, clamped_limit),
+                )
+                return [dict(row) for row in cur.fetchall()]
+
+    def get_learner_ask_conversation(
+        self,
+        conversation_id: str,
+        *,
+        learner_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, learner_id, title, created_at, updated_at
+                    FROM learner_ask_conversations
+                    WHERE id = %s AND deleted_at IS NULL
+                    """,
+                    (conversation_id,),
+                )
+                row = cur.fetchone()
+        if row is None:
+            return None
+        payload = dict(row)
+        if learner_id is not None and payload.get("learner_id") != learner_id:
+            return None
+        return payload
+
+    def list_learner_ask_messages(
+        self,
+        conversation_id: str,
+    ) -> List[Dict[str, Any]]:
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, conversation_id, role, text, blocks_json,
+                           session_complete, created_at
+                    FROM learner_ask_messages
+                    WHERE conversation_id = %s
+                    ORDER BY created_at ASC, id ASC
+                    """,
+                    (conversation_id,),
+                )
+                rows = cur.fetchall()
+        return [self._row_to_learner_ask_message(row) for row in rows]
+
+    def append_learner_ask_message(
+        self,
+        conversation_id: str,
+        *,
+        role: str,
+        text: Optional[str] = None,
+        blocks: Optional[List[Dict[str, Any]]] = None,
+        session_complete: bool = False,
+    ) -> Dict[str, Any]:
+        message_id = f"ask-msg-{uuid4().hex[:12]}"
+        now = self._utc_now()
+        blocks_json = json.dumps(blocks, ensure_ascii=True) if blocks else None
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO learner_ask_messages (
+                        id, conversation_id, role, text, blocks_json,
+                        session_complete, created_at
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (
+                        message_id,
+                        conversation_id,
+                        role,
+                        text,
+                        blocks_json,
+                        1 if session_complete else 0,
+                        now,
+                    ),
+                )
+                cur.execute(
+                    "UPDATE learner_ask_conversations SET updated_at = %s WHERE id = %s",
+                    (now, conversation_id),
+                )
+        return {
+            "id": message_id,
+            "conversation_id": conversation_id,
+            "role": role,
+            "text": text,
+            "blocks": list(blocks or []),
+            "session_complete": bool(session_complete),
+            "created_at": now,
+        }
+
+    def update_learner_ask_conversation_title(
+        self,
+        conversation_id: str,
+        title: str,
+    ) -> None:
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE learner_ask_conversations SET title = %s, updated_at = %s WHERE id = %s",
+                    (title, self._utc_now(), conversation_id),
+                )
+        return None
+
+    def delete_learner_ask_conversation(
+        self,
+        conversation_id: str,
+        *,
+        learner_id: Optional[str] = None,
+    ) -> bool:
+        now = self._utc_now()
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                if learner_id is not None:
+                    cur.execute(
+                        "UPDATE learner_ask_conversations SET deleted_at = %s "
+                        "WHERE id = %s AND learner_id = %s AND deleted_at IS NULL",
+                        (now, conversation_id, learner_id),
+                    )
+                else:
+                    cur.execute(
+                        "UPDATE learner_ask_conversations SET deleted_at = %s "
+                        "WHERE id = %s AND deleted_at IS NULL",
+                        (now, conversation_id),
+                    )
+                return cur.rowcount > 0
+
+    # ------------------------------------------------------------------
     # Learner profile + consent audit (Pathfinder learner onboarding).
     # ------------------------------------------------------------------
 

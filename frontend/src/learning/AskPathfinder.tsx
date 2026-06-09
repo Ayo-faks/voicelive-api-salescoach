@@ -24,15 +24,23 @@ import {
 import { makeStyles, mergeClasses } from '@fluentui/react-components'
 import {
   ChatBubbleLeftRightIcon,
+  ClockIcon,
   MicrophoneIcon,
   PaperAirplaneIcon,
   PencilSquareIcon,
+  PlusIcon,
   StopIcon,
+  TrashIcon,
   XMarkIcon,
 } from '@heroicons/react/24/solid'
 import {
+  deleteAskConversation,
+  getAskConversation,
+  listAskConversations,
   openLearnerVoiceSocket,
   runAssistantTurn,
+  type AskConversationMessage,
+  type AskConversationSummary,
   type AssistantBlock,
   type AssistantConfirmationBlock,
   type AssistantThreadTurn,
@@ -62,6 +70,79 @@ let counter = 0
 function nextId(prefix: string): string {
   counter += 1
   return `${prefix}-${Date.now().toString(36)}-${counter}`
+}
+
+// Map a saved-thread message (backend shape) into the live transcript items the
+// renderer understands. Assistant turns carry one or more grounded blocks; a
+// user turn carries plain text.
+function messagesToTranscript(
+  messages: AskConversationMessage[]
+): TranscriptItem[] {
+  const out: TranscriptItem[] = []
+  for (const message of messages) {
+    if (message.role === 'user') {
+      out.push({ id: nextId('u'), role: 'user', text: message.text ?? '' })
+    } else {
+      for (const block of message.blocks ?? []) {
+        out.push({ id: nextId('a'), role: 'assistant', block })
+      }
+    }
+  }
+  return out
+}
+
+// Compact, locale-aware label for a saved thread (e.g. "12 Jun, 14:30"). Falls
+// back to the raw value if it cannot be parsed.
+function formatHistoryDate(value: string): string {
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return value
+  return parsed.toLocaleString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+// --- Local conversation persistence --------------------------------------
+//
+// Option A of conversation memory: the running transcript is mirrored to
+// `localStorage`, keyed by child, so it survives a page reload, a cancelled
+// voice session, or closing the drawer. This is a device-local rolling thread;
+// durable, cross-device, multi-thread history is the backend follow-up.
+const THREAD_STORAGE_PREFIX = 'pathfinder-ask-thread:'
+// Cap the persisted tail so storage never grows unbounded on a long session.
+const MAX_PERSISTED_ITEMS = 100
+
+function threadStorageKey(childId: string): string {
+  return `${THREAD_STORAGE_PREFIX}${childId}`
+}
+
+function loadThread(childId: string): TranscriptItem[] {
+  if (typeof window === 'undefined' || !childId) return []
+  try {
+    const raw = window.localStorage.getItem(threadStorageKey(childId))
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? (parsed as TranscriptItem[]) : []
+  } catch {
+    return []
+  }
+}
+
+function saveThread(childId: string, items: TranscriptItem[]): void {
+  if (typeof window === 'undefined' || !childId) return
+  try {
+    const key = threadStorageKey(childId)
+    if (items.length === 0) {
+      window.localStorage.removeItem(key)
+      return
+    }
+    const tail = items.slice(-MAX_PERSISTED_ITEMS)
+    window.localStorage.setItem(key, JSON.stringify(tail))
+  } catch {
+    /* Quota or serialization failure — persistence is best-effort. */
+  }
 }
 
 interface SpeechRecognitionLike {
@@ -204,8 +285,86 @@ const useStyles = makeStyles({
     display: 'grid',
     placeItems: 'center',
     ':hover': { background: 'var(--pf-surface-muted)' },
+    ':disabled': { opacity: 0.4, cursor: 'not-allowed' },
   },
   closeGlyph: { width: '18px', height: '18px' },
+  closeBtnActive: {
+    background: 'var(--pf-surface-muted)',
+    color: 'var(--pf-text)',
+  },
+  headerActions: { display: 'flex', alignItems: 'center', gap: '2px' },
+  historyPanel: {
+    flex: 1,
+    overflowY: 'auto',
+    padding: '10px 12px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+  },
+  historyEmpty: {
+    color: 'var(--pf-text-tertiary)',
+    fontSize: '13px',
+    padding: '8px 4px',
+  },
+  historyList: {
+    listStyle: 'none',
+    margin: 0,
+    padding: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+  },
+  historyItem: {
+    display: 'flex',
+    alignItems: 'stretch',
+    gap: '4px',
+  },
+  historyOpenBtn: {
+    flex: 1,
+    appearance: 'none',
+    border: '1px solid var(--pf-line)',
+    background: 'var(--pf-surface)',
+    color: 'var(--pf-text)',
+    cursor: 'pointer',
+    textAlign: 'left',
+    padding: '8px 10px',
+    borderRadius: '10px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+    minWidth: 0,
+    ':hover': { background: 'var(--pf-surface-muted)' },
+  },
+  historyItemActive: {
+    borderTopColor: 'var(--pf-text-tertiary)',
+    borderRightColor: 'var(--pf-text-tertiary)',
+    borderBottomColor: 'var(--pf-text-tertiary)',
+    borderLeftColor: 'var(--pf-text-tertiary)',
+  },
+  historyTitle: {
+    fontSize: '14px',
+    fontWeight: 500,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  historyDate: {
+    fontSize: '12px',
+    color: 'var(--pf-text-tertiary)',
+  },
+  historyDeleteBtn: {
+    appearance: 'none',
+    border: 'none',
+    background: 'transparent',
+    color: 'var(--pf-text-tertiary)',
+    cursor: 'pointer',
+    padding: '6px',
+    borderRadius: '8px',
+    display: 'grid',
+    placeItems: 'center',
+    ':hover': { background: 'var(--pf-surface-muted)', color: 'var(--pf-text)' },
+  },
+  historyDeleteGlyph: { width: '16px', height: '16px' },
   transcript: {
     flex: 1,
     overflowY: 'auto',
@@ -332,11 +491,45 @@ export function AskPathfinder({
   const [listening, setListening] = useState(false)
   const [voiceError, setVoiceError] = useState<string | null>(null)
 
+  // Backend thread memory (Option B): the id of the saved conversation this
+  // transcript belongs to. `null` means "a fresh thread" — the first persisted
+  // turn mints one server-side and echoes the id back here. The history panel
+  // lists past threads and resumes any of them.
+  const [conversationId, setConversationId] = useState<string | null>(null)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [historyLoading, setHistoryLoading] = useState(false)
+  const [conversations, setConversations] = useState<AskConversationSummary[]>(
+    []
+  )
+
   const socketRef = useRef<LearnerVoiceSocket | null>(null)
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
   const transcriptRef = useRef<TranscriptItem[]>([])
   transcriptRef.current = transcript
   const transcriptScrollRef = useRef<HTMLDivElement | null>(null)
+
+  // Local conversation memory (Option A): rehydrate the child's saved thread on
+  // mount and whenever the active child changes, then mirror every change back
+  // to localStorage so the conversation survives reloads, cancelled voice
+  // sessions, and closing the drawer. `skipNextSaveRef` suppresses the one save
+  // that would otherwise fire in the same commit as a load — before the loaded
+  // transcript has applied — which would clobber the new child's key with the
+  // previous child's thread.
+  const childId = learner.userId ?? ''
+  const skipNextSaveRef = useRef(false)
+  useEffect(() => {
+    skipNextSaveRef.current = true
+    setTranscript(loadThread(childId))
+    setSessionComplete(false)
+    setConversationId(null)
+  }, [childId])
+  useEffect(() => {
+    if (skipNextSaveRef.current) {
+      skipNextSaveRef.current = false
+      return
+    }
+    saveThread(childId, transcript)
+  }, [childId, transcript])
 
   // Keep the newest reply in view: as soon as a turn is appended (or the
   // assistant starts thinking) pin the transcript to the bottom so the learner
@@ -480,7 +673,7 @@ export function AskPathfinder({
     recording: liveRecording,
     toggleRecording: liveToggleRecording,
   } = useAskPathfinderVoice({
-    active: mode === 'voice' && voiceLiveEnabled,
+    active: open && mode === 'voice' && voiceLiveEnabled,
     childId: learner.userId ?? '',
     subject: learner.learnerSetup?.subject,
     classYear: learner.learnerSetup?.yearGroup,
@@ -509,6 +702,7 @@ export function AskPathfinder({
       const payload: AssistantTurnRequest = {
         ...buildContext(),
         thread: buildThread(),
+        conversation_id: conversationId,
         ...partial,
       }
       setBusy(true)
@@ -520,6 +714,7 @@ export function AskPathfinder({
       }
       try {
         const result = await runAssistantTurn(payload)
+        if (result.conversation_id) setConversationId(result.conversation_id)
         appendResult(result)
         speak(result)
       } catch {
@@ -538,7 +733,7 @@ export function AskPathfinder({
         setBusy(false)
       }
     },
-    [appendResult, buildContext, buildThread, busy, mode, speak]
+    [appendResult, buildContext, buildThread, busy, conversationId, mode, speak]
   )
 
   const send = useCallback(
@@ -685,10 +880,87 @@ export function AskPathfinder({
 
   const closeSurface = useCallback(() => {
     setOpen(false)
+    setMode('text')
     stopListening()
     closeSocket()
     if (typeof window !== 'undefined') window.speechSynthesis?.cancel()
   }, [closeSocket, stopListening])
+
+  // Start a fresh thread: clear the live transcript and its saved copy. The
+  // save effect mirrors the empty state (which removes the storage key). A new
+  // backend thread is minted on the next persisted turn.
+  const startNewConversation = useCallback(() => {
+    setTranscript([])
+    setSessionComplete(false)
+    setDraft('')
+    setVoiceError(null)
+    setConversationId(null)
+    setHistoryOpen(false)
+    if (typeof window !== 'undefined') window.speechSynthesis?.cancel()
+  }, [])
+
+  // --- Thread history (Option B) -------------------------------------------
+
+  // Open the history panel and refresh the list of saved threads for this
+  // learner. Failures are swallowed to an empty list — history is additive and
+  // must never block the live conversation.
+  const openHistory = useCallback(async () => {
+    setHistoryOpen(true)
+    if (!childId) {
+      setConversations([])
+      return
+    }
+    setHistoryLoading(true)
+    try {
+      setConversations(await listAskConversations(childId))
+    } catch {
+      setConversations([])
+    } finally {
+      setHistoryLoading(false)
+    }
+  }, [childId])
+
+  // Resume a saved thread: load its messages, replace the live transcript, and
+  // adopt its id so the next turn extends it.
+  const resumeConversation = useCallback(
+    async (id: string) => {
+      if (!childId) return
+      setHistoryLoading(true)
+      try {
+        const { messages } = await getAskConversation(id, childId)
+        setTranscript(messagesToTranscript(messages))
+        setConversationId(id)
+        setSessionComplete(false)
+        setHistoryOpen(false)
+        if (typeof window !== 'undefined') window.speechSynthesis?.cancel()
+      } catch {
+        setVoiceError('Could not open that conversation. Try again.')
+      } finally {
+        setHistoryLoading(false)
+      }
+    },
+    [childId]
+  )
+
+  // Soft-delete a saved thread. If it is the one on screen, start fresh.
+  const removeConversation = useCallback(
+    async (id: string) => {
+      if (!childId) return
+      try {
+        await deleteAskConversation(id, childId)
+      } catch {
+        /* Best-effort — leave the list as-is on failure. */
+        return
+      }
+      setConversations(prev => prev.filter(item => item.id !== id))
+      if (conversationId === id) {
+        setTranscript([])
+        setSessionComplete(false)
+        setConversationId(null)
+      }
+    },
+    [childId, conversationId]
+  )
 
   useEffect(() => {
     return () => {
@@ -789,15 +1061,96 @@ export function AskPathfinder({
                 </button>
               </div>
             </div>
-            <button
-              type="button"
-              className={styles.closeBtn}
-              onClick={closeSurface}
-              aria-label="Close Ask Wulo Academy"
-            >
-              <XMarkIcon className={styles.closeGlyph} aria-hidden="true" />
-            </button>
+            <div className={styles.headerActions}>
+              <button
+                type="button"
+                className={mergeClasses(
+                  styles.closeBtn,
+                  historyOpen && styles.closeBtnActive
+                )}
+                onClick={() => {
+                  if (historyOpen) setHistoryOpen(false)
+                  else void openHistory()
+                }}
+                aria-pressed={historyOpen}
+                aria-label="Conversation history"
+                title="Conversation history"
+                data-testid="ask-pathfinder-history"
+              >
+                <ClockIcon className={styles.closeGlyph} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className={styles.closeBtn}
+                onClick={startNewConversation}
+                disabled={busy || transcript.length === 0}
+                aria-label="Start a new conversation"
+                title="New conversation"
+                data-testid="ask-pathfinder-new"
+              >
+                <PlusIcon className={styles.closeGlyph} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className={styles.closeBtn}
+                onClick={closeSurface}
+                aria-label="Close Ask Wulo Academy"
+              >
+                <XMarkIcon className={styles.closeGlyph} aria-hidden="true" />
+              </button>
+            </div>
           </header>
+
+          {historyOpen && (
+            <div
+              className={styles.historyPanel}
+              data-testid="ask-pathfinder-history-panel"
+            >
+              {historyLoading ? (
+                <span className={styles.historyEmpty}>Loading…</span>
+              ) : conversations.length === 0 ? (
+                <span className={styles.historyEmpty}>
+                  No saved conversations yet.
+                </span>
+              ) : (
+                <ul className={styles.historyList}>
+                  {conversations.map(item => (
+                    <li key={item.id} className={styles.historyItem}>
+                      <button
+                        type="button"
+                        className={mergeClasses(
+                          styles.historyOpenBtn,
+                          conversationId === item.id && styles.historyItemActive
+                        )}
+                        onClick={() => void resumeConversation(item.id)}
+                        data-testid="ask-pathfinder-history-item"
+                      >
+                        <span className={styles.historyTitle}>
+                          {item.title || 'Conversation'}
+                        </span>
+                        <span className={styles.historyDate}>
+                          {formatHistoryDate(item.updated_at)}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.historyDeleteBtn}
+                        onClick={() => void removeConversation(item.id)}
+                        aria-label={`Delete ${item.title || 'conversation'}`}
+                        title="Delete conversation"
+                        data-testid="ask-pathfinder-history-delete"
+                      >
+                        <TrashIcon
+                          className={styles.historyDeleteGlyph}
+                          aria-hidden="true"
+                        />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
 
           <div
             className={styles.transcript}

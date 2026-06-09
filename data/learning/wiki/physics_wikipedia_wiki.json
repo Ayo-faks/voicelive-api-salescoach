@@ -1,0 +1,224 @@
+{
+  "version": "1.0.0",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "pathfinder.ingest",
+      "rule_id": "ingest",
+      "confidence": 1.0,
+      "evidence_count": 1
+    }
+  ],
+  "nodes": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikipedia.org/wiki/Theory_of_relativity",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T16:30:49.344255+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Theory of relativity, Wikipedia"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss3.relativity.overview",
+      "version": "1.0.0",
+      "title": "Theory of Relativity",
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "Relativity",
+      "subtopic": "Overview",
+      "misconception_codes": [],
+      "body_markdown": "The theory of relativity comprises two physics theories by Albert Einstein: special relativity and general relativity, proposed and published in 1905 and 1915, respectively. Special relativity applies to all physical phenomena in the absence of gravity. General relativity explains the law of gravitation and its relation to the forces of nature. It applies to the cosmological and astrophysical realm, including astronomy. The theory transformed theoretical physics and astronomy during the 20th century, superseding a 200-year-old theory of mechanics created primarily by Isaac Newton. It introduced concepts including 4-dimensional spacetime as a unified entity of space and time, relativity of simultaneity, kinematic and gravitational time dilation, and length contraction. In the field of physics, relativity improved the science of elementary particles and their fundamental interactions, along with ushering in the nuclear age. With relativity, cosmology and astrophysics predicted extraordinary astronomical phenomena such as neutron stars, black holes, and gravitational waves.",
+      "anchors": [
+        "sec-physics-ss3-relativity-overview"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikipedia.org/wiki/Special_relativity",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T16:30:50.712619+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Special relativity, Wikipedia"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss3.relativity.special-relativity",
+      "version": "1.0.0",
+      "title": "Special Relativity",
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "Relativity",
+      "subtopic": "Special Relativity",
+      "misconception_codes": [],
+      "body_markdown": "In physics, the special theory of relativity, or simply special relativity, is a scientific theory of the relationship between space and time. In Albert Einstein's 1905 paper, \"On the Electrodynamics of Moving Bodies\", the theory is presented as being based on just two postulates: The laws of physics are invariant (identical) in all inertial frames of reference (that is, frames of reference with no acceleration). This is known as the principle of relativity. The speed of light in vacuum is the same for all observers, regardless of the motion of light source or observer. This is known as the principle of light constancy, or the principle of light speed invariance. The first postulate was first formulated by Galileo Galilei (see Galilean invariance).",
+      "anchors": [
+        "sec-physics-ss3-relativity-special-relativity"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikipedia.org/wiki/General_relativity",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T16:30:51.978455+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "General relativity, Wikipedia"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss3.relativity.general-relativity",
+      "version": "1.0.0",
+      "title": "General Relativity",
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "Relativity",
+      "subtopic": "General Relativity",
+      "misconception_codes": [],
+      "body_markdown": "General relativity, also known as the general theory of relativity, and as Einstein's theory of gravity, is the geometric theory of gravitation published by Albert Einstein in May 1916 and is the accepted description of the gravitation of macroscopic objects in modern physics. General relativity generalizes special relativity and refines Isaac Newton's law of universal gravitation, providing a unified description of gravity as a geometric property of space and time, or four-dimensional spacetime. In particular, the curvature of spacetime is directly related to the energy, momentum, and stress of whatever is present, including matter and radiation. The relation is specified by the Einstein field equations, a system of second-order partial differential equations. John Archibald Wheeler summarized it: \"Space-time tells matter how to move; matter tells space-time how to curve.\" Newton's law of universal gravitation, which describes gravity in classical mechanics, can be seen as a prediction of general relativity for the almost flat spacetime geometry around stationary mass distributions. Some predictions of general relativity, however, are beyond Newton's law of universal gravitation in classical physics. These predictions concern the passage of time, the geometry of space, the motion of bodies in free fall, and the propagation of light, and include gravitational time dilation, gravitational lensing, the gravitational redshift of light, the Shapiro time delay, singularities and black holes. So far, all tests of general relativity have been in agreement with the theory. The time-dependent solutions of general relativity enable us to extrapolate the history of the universe into the past",
+      "anchors": [
+        "sec-physics-ss3-relativity-general-relativity"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikipedia.org/wiki/Mass%E2%80%93energy_equivalence",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T16:30:53.286359+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Mass–energy equivalence, Wikipedia"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss3.relativity.mass-energy-equivalence",
+      "version": "1.0.0",
+      "title": "Mass-Energy Equivalence (E=mc squared)",
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "Relativity",
+      "subtopic": "Mass-Energy Equivalence",
+      "misconception_codes": [],
+      "body_markdown": "In physics, mass–energy equivalence is the relationship between mass and energy in a system's rest frame. The two differ only by a multiplicative constant and the units of measurement. The principle is described by the physicist Albert Einstein's formula: . In a reference frame where the system is moving, its relativistic energy and relativistic mass (instead of rest mass) obey the same formula. The formula defines the energy (E) of a particle in its rest frame as the product of mass (m) with the speed of light squared (c2). Because the speed of light is a large number and it is squared, the formula implies that a small amount of mass corresponds to an enormous amount of energy. Rest mass, also called invariant mass, is a fundamental physical property of matter, independent of velocity. Massless particles such as photons have zero invariant mass, but massless free particles have both momentum and energy. The equivalence principle implies that when mass is lost in chemical reactions or nuclear reactions, a corresponding amount of energy will be released. The energy can be released to the environment (outside of the system being considered) as radiant energy, such as light, or as thermal energy. The principle is fundamental to many fields of physics, including nuclear and particle physics. Mass–energy equivalence arose from special relativity as a paradox described by the French polymath Henri Poincaré (1854–1912). Einstein was the first to propose the equivalence of mass and energy as a general principle and a consequence of",
+      "anchors": [
+        "sec-physics-ss3-relativity-mass-energy-equivalence"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikipedia.org/wiki/Time_dilation",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T16:30:54.489781+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Time dilation, Wikipedia"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss3.relativity.time-dilation",
+      "version": "1.0.0",
+      "title": "Time Dilation",
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "Relativity",
+      "subtopic": "Time Dilation",
+      "misconception_codes": [],
+      "body_markdown": "Time dilation is the difference in elapsed time as measured by two clocks, either because of a relative velocity, a consequence of special relativity, or a difference in gravitational potential between their locations due to gravitational time dilation. When unspecified, \"time dilation\" usually refers to the effect due to velocity. The dilation compares co-moving clock readings between events measured in different inertial frames and is not observed by visual comparison of clocks across moving frames. These predictions of the theory of relativity have been repeatedly confirmed by experiment, and they are of practical concern, for instance in the operation of satellite navigation systems such as GPS and Galileo.",
+      "anchors": [
+        "sec-physics-ss3-relativity-time-dilation"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikipedia.org/wiki/Length_contraction",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T16:30:55.670862+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Length contraction, Wikipedia"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss3.relativity.length-contraction",
+      "version": "1.0.0",
+      "title": "Length Contraction",
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "Relativity",
+      "subtopic": "Length Contraction",
+      "misconception_codes": [],
+      "body_markdown": "Length contraction is the phenomenon that a moving object's length is measured to be shorter than its proper length, which is the length as measured in the object's own rest frame. It is also known as Lorentz contraction or Lorentz–FitzGerald contraction (after Hendrik Lorentz and George Francis FitzGerald) and is usually only noticeable at a substantial fraction of the speed of light. Length contraction is only in the direction in which the body is travelling. For standard objects, this effect is negligible at everyday speeds, and can be ignored for all regular purposes, only becoming significant as the object approaches the speed of light relative to the observer.",
+      "anchors": [
+        "sec-physics-ss3-relativity-length-contraction"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikipedia.org/wiki/Spacetime",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T16:30:56.990654+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Spacetime, Wikipedia"
+          }
+        }
+      ],
+      "node_id": "wiki.physics.ss3.relativity.spacetime",
+      "version": "1.0.0",
+      "title": "Spacetime",
+      "subject": "physics",
+      "year_group": "SS3",
+      "topic": "Relativity",
+      "subtopic": "Spacetime",
+      "misconception_codes": [],
+      "body_markdown": "In physics, spacetime, also called the space-time continuum, is a mathematical model that fuses the three dimensions of space and the one dimension of time into a single four-dimensional continuum. Spacetime diagrams are useful in visualizing and understanding relativistic effects, such as how different observers perceive where and when events occur. Until the turn of the 20th century, the assumption had been that the three-dimensional geometry of the universe (its description in terms of locations, shapes, distances, and directions) was distinct from time (the measurement of when events occur within the universe). However, space and time took on new meanings with the Lorentz transformation and special theory of relativity. In 1908, Hermann Minkowski presented a geometric interpretation of special relativity that fused time and the three spatial dimensions into a single four-dimensional continuum now known as Minkowski space. This interpretation proved vital to the general theory of relativity, wherein spacetime is curved by mass and energy.",
+      "anchors": [
+        "sec-physics-ss3-relativity-spacetime"
+      ],
+      "status": "approved"
+    }
+  ]
+}

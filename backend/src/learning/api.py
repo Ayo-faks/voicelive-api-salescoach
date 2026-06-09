@@ -3180,7 +3180,125 @@ class LearningApi:
             profile_block=profile_block,
             plan_block=plan_block,
         )
-        return result.model_dump()
+        out = result.model_dump()
+
+        # Thread persistence (Option B): a real question (text or voice) opens or
+        # extends a learner-scoped conversation so history is browsable later.
+        learner_id = str(payload.get("user_id") or "").strip()
+        conversation_id = str(payload.get("conversation_id") or "").strip() or None
+        if question and learner_id:
+            conversation_id = self._persist_ask_turn(
+                learner_id=learner_id,
+                conversation_id=conversation_id,
+                question=question,
+                blocks=out.get("blocks") or [],
+                session_complete=bool(out.get("session_complete")),
+            )
+        if conversation_id:
+            out["conversation_id"] = conversation_id
+        return out
+
+    def _ask_history_store(self) -> Optional[Any]:
+        """Return the backing store iff it supports learner-ask thread history."""
+        store = getattr(self.repository, "storage", None)
+        if store is None or not hasattr(store, "append_learner_ask_message"):
+            return None
+        return store
+
+    @staticmethod
+    def _ask_thread_title(question: str) -> str:
+        text = " ".join((question or "").split())
+        if not text:
+            return "New conversation"
+        if len(text) <= 60:
+            return text
+        return text[:57].rstrip() + "…"
+
+    def _persist_ask_turn(
+        self,
+        *,
+        learner_id: str,
+        conversation_id: Optional[str],
+        question: str,
+        blocks: List[Dict[str, Any]],
+        session_complete: bool,
+    ) -> Optional[str]:
+        """Best-effort append of one user+assistant turn. Never raises."""
+        store = self._ask_history_store()
+        if store is None or not learner_id:
+            return conversation_id
+        try:
+            owned = (
+                store.get_learner_ask_conversation(conversation_id, learner_id=learner_id)
+                if conversation_id
+                else None
+            )
+            if owned is None:
+                created = store.create_learner_ask_conversation(
+                    learner_id=learner_id, title=self._ask_thread_title(question)
+                )
+                conversation_id = created["id"]
+            if question:
+                store.append_learner_ask_message(
+                    conversation_id, role="user", text=question
+                )
+            store.append_learner_ask_message(
+                conversation_id,
+                role="assistant",
+                blocks=list(blocks or []),
+                session_complete=bool(session_complete),
+            )
+        except Exception:  # pragma: no cover - persistence is non-critical
+            logger.exception("failed to persist learner ask turn")
+        return conversation_id
+
+    def list_ask_conversations(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        """List a learner's saved Ask Wulo threads, newest first."""
+        learner_id = str(payload.get("user_id") or "").strip()
+        store = self._ask_history_store()
+        if store is None or not learner_id:
+            return {"conversations": []}
+        try:
+            limit = int(payload.get("limit") or 50)
+        except (TypeError, ValueError):
+            limit = 50
+        return {
+            "conversations": store.list_learner_ask_conversations(
+                learner_id, limit=limit
+            )
+        }
+
+    def get_ask_conversation(
+        self, conversation_id: str, payload: Mapping[str, Any]
+    ) -> Dict[str, Any]:
+        """Return one thread with its full message history (learner-scoped)."""
+        learner_id = str(payload.get("user_id") or "").strip()
+        store = self._ask_history_store()
+        if store is None or not learner_id:
+            raise LearningApiError("conversation not found", status_code=404)
+        conversation = store.get_learner_ask_conversation(
+            conversation_id, learner_id=learner_id
+        )
+        if conversation is None:
+            raise LearningApiError("conversation not found", status_code=404)
+        return {
+            "conversation": conversation,
+            "messages": store.list_learner_ask_messages(conversation_id),
+        }
+
+    def delete_ask_conversation(
+        self, conversation_id: str, payload: Mapping[str, Any]
+    ) -> Dict[str, Any]:
+        """Soft-delete a learner's saved thread."""
+        learner_id = str(payload.get("user_id") or "").strip()
+        store = self._ask_history_store()
+        if store is None or not learner_id:
+            raise LearningApiError("conversation not found", status_code=404)
+        if not store.delete_learner_ask_conversation(
+            conversation_id, learner_id=learner_id
+        ):
+            raise LearningApiError("conversation not found", status_code=404)
+        return {"deleted": True, "id": conversation_id}
 
     @staticmethod
     def _build_profile_block(payload: Mapping[str, Any]) -> Optional[ProfileBlock]:
@@ -4311,7 +4429,7 @@ def _request_user_agent() -> Optional[str]:
 
 
 def _read_payload() -> Dict[str, Any]:
-    if request.method == "GET":
+    if request.method in ("GET", "DELETE"):
         return {k: v for k, v in request.args.items()}
     if request.form:
         return {k: v for k, v in request.form.items()}
@@ -4572,6 +4690,21 @@ def register_learning_api(app: Flask, api: Optional[LearningApi] = None) -> Lear
     @_wrap
     def _assistant_turn(payload: Dict[str, Any]) -> Dict[str, Any]:
         return learning_api.run_assistant_turn(payload)
+
+    @app.route("/api/learning/assistant/conversations", methods=["GET"])
+    @_wrap
+    def _list_ask_conversations(payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.list_ask_conversations(payload)
+
+    @app.route("/api/learning/assistant/conversations/<conversation_id>", methods=["GET"])
+    @_wrap
+    def _get_ask_conversation(conversation_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.get_ask_conversation(conversation_id, payload)
+
+    @app.route("/api/learning/assistant/conversations/<conversation_id>", methods=["DELETE"])
+    @_wrap
+    def _delete_ask_conversation(conversation_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        return learning_api.delete_ask_conversation(conversation_id, payload)
 
     @app.route("/api/learning/subjects", methods=["GET"])
     @_wrap

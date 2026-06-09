@@ -1,0 +1,194 @@
+{
+  "version": "1.0.0",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "pathfinder.ingest",
+      "rule_id": "ingest",
+      "confidence": 1.0,
+      "evidence_count": 1
+    }
+  ],
+  "nodes": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845919+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.agricultural_science.jss1.introduction-to-agriculture.meaning-and-importance-of-agriculture",
+      "version": "1.0.0",
+      "title": "Meaning and importance of agriculture",
+      "subject": "agricultural_science",
+      "year_group": "JSS1",
+      "topic": "introduction to agriculture",
+      "subtopic": "meaning and importance of agriculture",
+      "misconception_codes": [],
+      "body_markdown": "Agriculture is the cultivation of crops and the rearing of animals for the use of people. It is one of the oldest and most important occupations because it provides the food that everyone needs to live. Besides food, agriculture supplies raw materials for industries, such as cotton for textile factories and hides for leather. It provides work and income for a large part of the population, especially in rural areas. It also earns foreign money for a country when farm produce such as cocoa is sold abroad. Because of these roles in feeding the people, supplying industry, creating jobs, and earning income, agriculture is often called the backbone of many African economies.",
+      "anchors": [
+        "sec-agricultural_science-jss1-introduction-to-agriculture-meaning-and-importance-of-agriculture"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845954+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.agricultural_science.jss1.branches-of-agriculture.branches-of-agriculture",
+      "version": "1.0.0",
+      "title": "Branches of agriculture",
+      "subject": "agricultural_science",
+      "year_group": "JSS1",
+      "topic": "branches of agriculture",
+      "subtopic": "branches of agriculture",
+      "misconception_codes": [],
+      "body_markdown": "Agriculture is a wide subject divided into several branches. Crop production deals with the growing of plants such as maize, yam, and vegetables for food and raw materials. Animal production, also called livestock farming, deals with the rearing of animals such as cattle, goats, poultry, and fish for meat, milk, and eggs. Forestry is the care and management of forests for timber and the protection of the environment. Agricultural economics studies how farm resources are used and how produce is bought and sold. Agricultural engineering deals with farm tools, machines, and structures. Each branch depends on the others, and together they make up the whole field of agriculture.",
+      "anchors": [
+        "sec-agricultural_science-jss1-branches-of-agriculture-branches-of-agriculture"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845993+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.agricultural_science.jss2.farm-tools.simple-farm-tools",
+      "version": "1.0.0",
+      "title": "Simple farm tools",
+      "subject": "agricultural_science",
+      "year_group": "JSS2",
+      "topic": "farm tools",
+      "subtopic": "simple farm tools",
+      "misconception_codes": [],
+      "body_markdown": "Simple farm tools are the hand implements that farmers use to carry out everyday tasks, especially on small farms. The hoe is used for making heaps and ridges, weeding, and turning the soil. The cutlass, or matchet, is used for clearing bushes, cutting, and harvesting. The rake is used for gathering leaves and levelling the soil, while the spade and the shovel are used for digging and lifting soil. The axe is used for cutting down trees and splitting wood. To last long, these tools should be cleaned after use, kept dry to prevent rust, sharpened when blunt, and stored properly in a shed. Well kept tools make farm work easier and faster.",
+      "anchors": [
+        "sec-agricultural_science-jss2-farm-tools-simple-farm-tools"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.846026+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.agricultural_science.jss3.soil.types-of-soil",
+      "version": "1.0.0",
+      "title": "Types of soil",
+      "subject": "agricultural_science",
+      "year_group": "JSS3",
+      "topic": "soil",
+      "subtopic": "types of soil",
+      "misconception_codes": [],
+      "body_markdown": "Soil is the loose top layer of the earth in which plants grow. There are three main types based on the size of their particles. Sandy soil has large particles, feels gritty, drains water quickly, and does not hold nutrients well. Clay soil has very fine particles, feels sticky when wet, holds water and nutrients but drains poorly and can become waterlogged. Loamy soil is a mixture of sand, clay, and silt together with decayed organic matter; it drains well yet holds enough water and nutrients, which makes it the best soil for most crops. A farmer who knows the type of soil on the farm can choose suitable crops and improve the soil where needed.",
+      "anchors": [
+        "sec-agricultural_science-jss3-soil-types-of-soil"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.846060+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.agricultural_science.ss1.agricultural-ecology.land-and-its-uses",
+      "version": "1.0.0",
+      "title": "Land and its uses in agriculture",
+      "subject": "agricultural_science",
+      "year_group": "SS1",
+      "topic": "agricultural ecology",
+      "subtopic": "land and its uses",
+      "misconception_codes": [],
+      "body_markdown": "Land is the natural surface of the earth on which farming takes place, and it is one of the most important resources in agriculture. It provides the space for growing crops and grazing animals, and it holds the soil, water, and minerals that plants need. Land is used in agriculture for crop cultivation, for building structures such as barns and pens, for grazing livestock, and for keeping forests and fish ponds. Because the amount of good farmland is limited and the population keeps growing, land must be used wisely. Practices such as crop rotation, controlling erosion, and avoiding overgrazing help to keep land fertile and productive for future seasons.",
+      "anchors": [
+        "sec-agricultural_science-ss1-agricultural-ecology-land-and-its-uses"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.846102+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.agricultural_science.ss2.animal-production.farm-animals-and-their-products",
+      "version": "1.0.0",
+      "title": "Farm animals and their products",
+      "subject": "agricultural_science",
+      "year_group": "SS2",
+      "topic": "animal production",
+      "subtopic": "farm animals and their products",
+      "misconception_codes": [],
+      "body_markdown": "Farm animals, also called livestock, are kept by farmers for the useful products and services they provide. Cattle supply beef, milk, hides for leather, and can be used to pull farm implements. Goats and sheep provide meat, milk, and skins, and they do well in many parts of the country. Poultry, such as fowls and turkeys, supply eggs and meat and grow quickly. Pigs are reared mainly for pork. Fish raised in ponds provide a cheap source of protein. Besides food, animals supply manure that improves soil fertility. To keep livestock healthy and productive, the farmer must provide good feed, clean water, proper housing, and regular care against pests and diseases.",
+      "anchors": [
+        "sec-agricultural_science-ss2-animal-production-farm-animals-and-their-products"
+      ],
+      "status": "approved"
+    }
+  ]
+}

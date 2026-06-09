@@ -1,0 +1,374 @@
+{
+  "version": "1.0.0",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "pathfinder.ingest",
+      "rule_id": "ingest",
+      "confidence": 1.0,
+      "evidence_count": 1
+    }
+  ],
+  "nodes": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/life-sciences/grade-10/introduction-to-life-sciences/00-introduction-to-life-sciences-01",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:53.316024+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Life Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss1.introduction-to-life-sciences.life-sciences-orientation",
+      "version": "1.0.0",
+      "title": "Life Sciences Orientation",
+      "subject": "biology",
+      "year_group": "SS1",
+      "topic": "introduction to life sciences",
+      "subtopic": "Life Sciences Orientation",
+      "misconception_codes": [],
+      "body_markdown": "The aim of this chapter is to provide you with an overview of the skills that you will need to develop as a Life Scientist. In this chapter you will learn how to gather evidence using the scientific method . The scientific method is a systematic way of testing a theory. It involves gathering and analysing information in order to come to an objective conclusion about the validity of a theory. The scientific method requires that we constantly re-examine our understanding, by testing new evidence with our current theories, and making changes to those theories if the evidence does not meet the test. The scientific method is a powerful tool you will use throughout the Physical Sciences and Life Sciences. Life Sciences is the scientific study of living things. It involves many levels of investiagtion: from the study of the interactions of organic molecules to the interactions of animals and plants with their environment. The list below contains some of the various branches of Life Sciences. Here are some reasons to study Life Sciences: In order to guide your progress through the year, and make sure that you benefit in the ways listed above, there are three specific aims for the year: Ever wondered what you can do with Life Sciences after school? Below are some careers which you could study:",
+      "anchors": [
+        "sec-biology-ss1-introduction-to-life-sciences-life-sciences-orientation"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/life-sciences/grade-10/introduction-to-life-sciences/00-introduction-to-life-sciences-02",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:55.736386+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Life Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss1.introduction-to-life-sciences.the-scientific-method",
+      "version": "1.0.0",
+      "title": "The Scientific Method",
+      "subject": "biology",
+      "year_group": "SS1",
+      "topic": "introduction to life sciences",
+      "subtopic": "The Scientific Method",
+      "misconception_codes": [],
+      "body_markdown": "Science investigation and research requires many skills and processes to come together in order to be successful and worthwhile. Watch this interesting video about \"The Times and Troubles of the Scientific Method\" The scientific method is the basic skill process in the world of science. Since the beginning of time humans have been curious as to why and how things happen in the world around us. The scientific method provides scientists with a well structured scientific platform to help find the answers to their questions. Using the scientific method there are very few things we can't investigate. Recording and writing up an investigation is an integral part of the scientific method. What follows is a step-by-step guide to the scientific method. Scientists are curious people, and most investigations arise from a scientist noticing something that they don't understand. Therefore the first step to any scientific investigation is: Figure 0.1: Overview of scientific method. Once you have a general question, background research needs to be undertaken. Your background research will ensure that you are not investigating something that has already been researched and answered. It will also tell you about interesting connections, theories, explanations and methods that people have used in the past to answer questions related to yours. Science always builds on the work of others, and it ensures that our theories are constantly improved and refined. It is important to acknowledge the work of the people upon whose work your theory relies in the form of referencing .",
+      "anchors": [
+        "sec-biology-ss1-introduction-to-life-sciences-the-scientific-method"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/life-sciences/grade-10/introduction-to-life-sciences/00-introduction-to-life-sciences-03",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:42:58.623061+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Life Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss1.introduction-to-life-sciences.important-principles-and-relationships-in-life-sciences",
+      "version": "1.0.0",
+      "title": "Important principles and relationships in Life Sciences",
+      "subject": "biology",
+      "year_group": "SS1",
+      "topic": "introduction to life sciences",
+      "subtopic": "Important principles and relationships in Life Sciences",
+      "misconception_codes": [],
+      "body_markdown": "Depending on the system it is advantageous to either have a large surface to volume ratio or a small surface to volume ratio. The concept of surface area to volume ratio is difficult for some learners to grasp. The following explanation may help them to understand the concept better: A cell’s surface area must be large enough to meet the needs of its volume. This is highlighted in the following examples: In living organisms, the structure of a particular biological feature is related to what function it performs. Thus for all the structures you will study in Life Sciences, the important questions to ask are the following:",
+      "anchors": [
+        "sec-biology-ss1-introduction-to-life-sciences-important-principles-and-relationships-in-life-sciences"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/life-sciences/grade-10/introduction-to-life-sciences/00-introduction-to-life-sciences-04",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:43:01.175654+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Life Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss1.introduction-to-life-sciences.presenting-data",
+      "version": "1.0.0",
+      "title": "Presenting data",
+      "subject": "biology",
+      "year_group": "SS1",
+      "topic": "introduction to life sciences",
+      "subtopic": "Presenting data",
+      "misconception_codes": [],
+      "body_markdown": "Drawings and diagrams are an essential part of communication in science, and especially Life Sciences. Remember it is not an artwork or sketch! But rather it is a clear representation of what you observe which can be used to interpret what you saw. Make a list of what makes the above drawings good and bad. Figure 0.2: Identify the features of the images that make each one good or bad. Diagrams of apparatus are generally drawn in two-dimensions so that the shape of each item of apparatus is simplified and looks similar to a section through the apparatus. One of the clearest and most concise ways to represent data is via graphs. Graphs can immediately provide a graphical display of trends and patterns that words and numbers in a table don't necessarily convey. Figure 0.3: Graph showing change in plant height over 10 days Table headings are always written ABOVE the table. Graph headings are always written BELOW the graph. Figure 0.4: Bar graph showing how many learners use each type of transport the independent variable (x-axis) represents information which is continuous, such as numerical ranges, i.e. 0-9, 10-19, 20-29, etc. Figure 0.5: A histogram showing the number of learners in a Grade 10 Life sciences class with a particular percentage test score Table 0.1: Table showing recordings and calculations for construction of a pie chart Figure 0.6: Pie chart showing the relative proportions of different categories of organisms in an ecosystem It is very important to be able to",
+      "anchors": [
+        "sec-biology-ss1-introduction-to-life-sciences-presenting-data"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/life-sciences/grade-10/introduction-to-life-sciences/00-introduction-to-life-sciences-05",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:43:04.026697+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Life Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss1.introduction-to-life-sciences.mathematical-skills-in-life-sciences",
+      "version": "1.0.0",
+      "title": "Mathematical skills in Life Sciences",
+      "subject": "biology",
+      "year_group": "SS1",
+      "topic": "introduction to life sciences",
+      "subtopic": "Mathematical skills in Life Sciences",
+      "misconception_codes": [],
+      "body_markdown": "Mathematical skills are important in Life Sciences. Below are explanations of some of the skills you will encounter. NB. You must state the UNITS at the end of each calculation, e.g. cm, degrees, kg, etc. A scale is given in a diagram, drawing or electron micrograph so that the actual size of the object that is being shown can be determined. The object could be bigger or smaller in real life. Example: To measure the diameter of a chloroplast with a scale line of 1 µm. Measure the length of the scale line on the micrograph in mm, e.g. 1 µm = 17mm Measure the diameter of the organelle in millimetres, e.g. = 60mm Answer: The true diameter of the chloroplast is 3.53 μm. To find an average of a set of numbers, you add all the items and divide the total by the number of items. Example: Find the average height in a class of 10 learners with the following heights in cm: 173, 135, 142, 167, 189, 140, 139, 164, 172, 181 cm. Answer: The average height of the learners is 160,2 cm To calculate a percentage, multiply the fraction by 100. Example: There are 48 learners and 4 of them are left handed. Calculate the percentage of learners in your class that are left-handed. Therefore, to calculate the percentage of learners that are left-handed: Example: Using the same class of learners, calculate the percentage of learners that are right-handed. To calculate the percentage of the class that",
+      "anchors": [
+        "sec-biology-ss1-introduction-to-life-sciences-mathematical-skills-in-life-sciences"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/life-sciences/grade-10/the-chemistry-of-life/01-the-chemistry-of-life-01",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:43:07.084258+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Life Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss1.the-chemistry-of-life.overview",
+      "version": "1.0.0",
+      "title": "Overview",
+      "subject": "biology",
+      "year_group": "SS1",
+      "topic": "the chemistry of life",
+      "subtopic": "Overview",
+      "misconception_codes": [],
+      "body_markdown": "In this first chapter, learners will be introduced to the main 'building blocks' of life. This section should draw on their basic understanding from 'Matter and Materials' in Natural Sciences. Learners will study the molecular structure and biological functions of key molecules important to life. They will study the chemistry of proteins, carbohydrates, lipids, vitamins and nucleic acids and will learn the role of each nutrient class in plant and animal life. They will also learn how their diet allows them to obtain sufficient quantities of each of these nutrients. There are a variety of practicals and investigations in this section, which provide an opportunity for learners to practice applying the scientific method. In this chapter we will study the molecular structure and biological functions of key molecules important to life. We will study the chemistry of proteins, carbohydrates, lipids, vitamins and nucleic acids and will learn the role of each nutrient class in plant and animal life. We will also learn how our diet allows us to obtain sufficient quantities of each of these nutrients. There are a variety of practicals and investigations in this section, which provide an opportunity for you to practice applying the scientific method. In order to understand the chemistry of living systems, it is important to understand how all living systems are arranged from the smallest unit (atomic scale) to the largest unit (ecosystems). A simple way to describe the levels of organisation of livings things can be given as follows:",
+      "anchors": [
+        "sec-biology-ss1-the-chemistry-of-life-overview"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/life-sciences/grade-10/the-chemistry-of-life/01-the-chemistry-of-life-02",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:43:09.684167+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Life Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss1.the-chemistry-of-life.molecules-for-life",
+      "version": "1.0.0",
+      "title": "Molecules for life",
+      "subject": "biology",
+      "year_group": "SS1",
+      "topic": "the chemistry of life",
+      "subtopic": "Molecules for life",
+      "misconception_codes": [],
+      "body_markdown": "Revise the concept of the atom, elements, molecules and compounds. Although life at the macro level is diverse, the chemistry making up that life is remarkably similar. All living things are made up of basic building blocks called elements . An element is a substance that cannot be broken down into simpler substances using chemical means. Carbon, oxygen, hydrogen, nitrogen, sulfur, calcium, sodium and iron are examples of elements you will come across in Life Sciences. Because all compounds contain more than one atom, all compounds are molecules. However, not all molecules are compounds. Compounds are divided into organic and inorganic compounds. Organic compounds always contain carbon, but not all compounds that contain carbon are organic. A general rule of thumb is that organic compounds contain carbon, with at least one of these carbons bonded to hydrogen atoms. Carbon dioxide is therefore an inorganic compound even though it contains carbon. The major organic compounds found in living organisms include: carbohydrates , fats , proteins and nucleic acids . These will be discussed in detail later in this chapter. Table 1.1: The composition of macromolecules in humans by percentage.",
+      "anchors": [
+        "sec-biology-ss1-the-chemistry-of-life-molecules-for-life"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/life-sciences/grade-10/the-chemistry-of-life/01-the-chemistry-of-life-03",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:43:12.205932+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Life Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss1.the-chemistry-of-life.inorganic-compounds",
+      "version": "1.0.0",
+      "title": "Inorganic compounds",
+      "subject": "biology",
+      "year_group": "SS1",
+      "topic": "the chemistry of life",
+      "subtopic": "Inorganic compounds",
+      "misconception_codes": [],
+      "body_markdown": "The main focus of this section should be: Learn about some of the amazing life-supporting properties of water Temperature regulation : in humans, the sweat glands produce sweat which cools the body as it evaporates from the body surface in a process called perspiration . In a similar way, plants are cooled by the loss of water vapour from their leaves, in a process called transpiration . Form and support : water is an important constituent of the body and plays an important role in providing form and support in animals and plants. Animals, such as worms and jellyfish, use water in special chambers in their body to give their bodies support. This use of water pressure to provide body form, and enable movement is called a hydrostatic skeleton . Plants grow upright and keep their shape due to the pressure of water ( turgor pressure) inside the cells. Transport medium : water transports substances around the body. For example, water is the main constituent of blood and enables blood cells, hormones and dissolved gases, electrolytes and nutrients to be transported around the body. Lubricating agent : water is the main constituent of saliva which helps chewing and swallowing and also allows food to pass easily along the alimentary canal. Water is also the main constituent of tears which help keep the eyes lubricated. Solvent for biological chemicals : the liquid in which substances dissolve is called a solvent. Water is known as the universal solvent as more substances dissolve",
+      "anchors": [
+        "sec-biology-ss1-the-chemistry-of-life-inorganic-compounds"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/life-sciences/grade-10/the-chemistry-of-life/01-the-chemistry-of-life-04",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:43:14.792428+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Life Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss1.the-chemistry-of-life.organic-compounds",
+      "version": "1.0.0",
+      "title": "Organic compounds",
+      "subject": "biology",
+      "year_group": "SS1",
+      "topic": "the chemistry of life",
+      "subtopic": "Organic compounds",
+      "misconception_codes": [],
+      "body_markdown": "Learners will study carbohydrates, lipids, proteins and nucleic acids under the following headings: There is also an explanation of enzymes in the section of proteins. This section of the chapter contains the most practical work, and therefore plenty of time should be allocated to covering this section. Each of these classes of compounds consists of large molecules built from small subunits. The smallest of these subunits is called a monomer . Several monomers bond together to form polymers . Each of these polymers is characterised by a specific structure owing to the chemical bonds formed. These structures are related to the function of the compound in living organisms. We will therefore study each class of compounds under the following headings: Carbohydrates consist of carbon (C), hydrogen (H) and oxygen (O). Figure 1.6: A glucose molecule is made up of carbon (gray spheres), hydrogen (white spheres) and oxygen (red spheres). Carbohydrates are made up of monomers known as monosaccharides . The monosaccharide that makes up most carbohydrates is glucose. Other monosaccharides include fructose, galactose and deoxyribose (discussed later). These monomers can be joined together by glycosidic bonds. When two monosaccharides are chemically bonded together, they form disaccharides . An example of a disaccharide is sucrose (table sugar), which is made up of glucose and fructose. Other dissacharides include lactose, made up of glucose and galactose, and maltose, made up of two glucose molecules. Monosaccharides and dissachardies are often referred to as sugars, or simple carbohydrates. Several monosaccharides join together to form",
+      "anchors": [
+        "sec-biology-ss1-the-chemistry-of-life-organic-compounds"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/life-sciences/grade-10/the-chemistry-of-life/01-the-chemistry-of-life-05",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:43:17.167695+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Life Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss1.the-chemistry-of-life.vitamins",
+      "version": "1.0.0",
+      "title": "Vitamins",
+      "subject": "biology",
+      "year_group": "SS1",
+      "topic": "the chemistry of life",
+      "subtopic": "Vitamins",
+      "misconception_codes": [],
+      "body_markdown": "This section should be linked to the digestive system and healthy diet that were covered in Grade 9 Natural Sciences. Vitamins are organic compounds required by organisms as vital nutrients in limited amounts. Vitamins are therefore essential to a balanced diet. The sources, functions and deficiency diseases of the main vitamins should be revised. Vitamins are organic compounds required by organisms as vital nutrients in limited amounts. Vitamins are therefore essential to a balanced diet. Vitamins have a variety of functions in the body. Some vitamins are coenzymes, which means that they help enzymes to catalyse a reaction efficiently. Some are responsible for regulating metabolism or act as regulators of cell and tissue growth and differentiation. Figure 1.22: Sources of essentials vitamins.",
+      "anchors": [
+        "sec-biology-ss1-the-chemistry-of-life-vitamins"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/life-sciences/grade-10/the-chemistry-of-life/01-the-chemistry-of-life-06",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:43:19.504849+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Life Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss1.the-chemistry-of-life.recommended-dietary-allowance",
+      "version": "1.0.0",
+      "title": "Recommended Dietary Allowance",
+      "subject": "biology",
+      "year_group": "SS1",
+      "topic": "the chemistry of life",
+      "subtopic": "Recommended Dietary Allowance",
+      "misconception_codes": [],
+      "body_markdown": "In order to ensure that we consume adequate quantities of all the food types, nutritionists have compiled a list of guidelines known as the Recommended Dietary Allowance (RDA). The RDA defines the required intake of each nutrient type to meet the basic nutrient needs of almost all individuals in a gender group at a given life stage. Learners DO NOT need to learn this table by heart, but they must be able to use it and interpret it if they are given such a table in tests / exams. Recommended dietary allowance of vitamins and minerals Table 1.6: RDA for males and females between 19 years and 30 years. The table below shows the relative quantities of macronutrients recommended for average adult (25-year old) male and female individuals. Malnutrition, which is the lack of a balanced diet, is a major problem in South Africa. Key vitamins have been added to wheat and maize-meal in order to provide the recommended amounts. Iodine has been added to salt. Figure 1.23: Breastfeeding infants for first 6 months of life is vital to the infants' survival. From our understanding of recommended dietary allowance we can understand what it is we consume and how important it is to our diet. The activity below requires you to use the information provided in these tables (and any other information you can find) in order to evaluate your diet with regards to the recommended daily allowances. The table below lists the energy components of some common food items.",
+      "anchors": [
+        "sec-biology-ss1-the-chemistry-of-life-recommended-dietary-allowance"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://www.siyavula.com/read/za/life-sciences/grade-10/the-chemistry-of-life/01-the-chemistry-of-life-08",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-3.0",
+            "ingested_at": "2026-06-09T15:43:25.069612+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "Siyavula Life Sciences Grade 10"
+          }
+        }
+      ],
+      "node_id": "wiki.biology.ss1.the-chemistry-of-life.end-of-chapter-exercises",
+      "version": "1.0.0",
+      "title": "End of chapter exercises",
+      "subject": "biology",
+      "year_group": "SS1",
+      "topic": "the chemistry of life",
+      "subtopic": "End of chapter exercises",
+      "misconception_codes": [],
+      "body_markdown": "Which one of the following is not a biological role of water? Which combination of the following substances is best to prevent rickets? The diagram below is a schematic drawing , which means that the molecules represented may not resemble their actual chemical shape. Use the information provided in the diagram to answer the following questions: The table below gives nutrients present in various dry seeds. The following histogram shows the different amounts of nutrients found in one of the four seeds. The graph below illustrates that enzymes: The following diagrams show the enzyme lock-and key method of action. Explain briefly how you would test for glucose. Study the graph below. The graph shows total protein (in grams) present in a 100 grams of different food items. Use the graph to answer questions below. Name the two foods from which vegetarians would obtain the most protein. Which food would be the best for a non-vegetarian person who is suffering from kwashiorkor and anaemia? Name and explain the process which proteins undergo when heated excessively. Study the information in the following diagrams and the table below, for three different meals X, Y and Z. Name three polysaccharide carbohydrates in meal X. Giving one reason for each answer, which meal will: Meal Z is relatively low in lipids (fat) yet high in energy content. Which of the food components in Z provides the energy? Which of the three meals can be regarded as the healthiest? The following information (given in the table",
+      "anchors": [
+        "sec-biology-ss1-the-chemistry-of-life-end-of-chapter-exercises"
+      ],
+      "status": "approved"
+    }
+  ]
+}

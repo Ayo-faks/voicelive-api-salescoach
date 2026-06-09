@@ -1,0 +1,164 @@
+{
+  "version": "1.0.0",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "pathfinder.ingest",
+      "rule_id": "ingest",
+      "confidence": 1.0,
+      "evidence_count": 1
+    }
+  ],
+  "nodes": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845728+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.literature.jss2.elements-of-literature.genres-of-literature",
+      "version": "1.0.0",
+      "title": "The three genres of literature",
+      "subject": "literature",
+      "year_group": "JSS2",
+      "topic": "elements of literature",
+      "subtopic": "genres of literature",
+      "misconception_codes": [],
+      "body_markdown": "Literature is the art that uses words to express ideas, feelings, and experiences in a creative way. It is divided into three main genres. Prose is writing in ordinary sentences and paragraphs, the way people normally speak and write; novels and short stories are examples. Drama is writing meant to be acted out on a stage by performers who take the parts of characters; a play is the usual form. Poetry is writing arranged in lines and verses, often using rhythm, sound, and strong imagery to create feeling in few words. Each genre has its own features, but all three use language to entertain, teach, and make readers think more deeply about life.",
+      "anchors": [
+        "sec-literature-jss2-elements-of-literature-genres-of-literature"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845762+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.literature.jss3.figures-of-speech.common-figures-of-speech",
+      "version": "1.0.0",
+      "title": "Common figures of speech",
+      "subject": "literature",
+      "year_group": "JSS3",
+      "topic": "figures of speech",
+      "subtopic": "common figures of speech",
+      "misconception_codes": [],
+      "body_markdown": "Figures of speech are expressions that use words in a special, non literal way to create a stronger effect. A simile compares two different things using the words like or as, for example, she is as brave as a lion. A metaphor compares two things by saying one is the other, for example, the boy is a lion in the classroom. Personification gives human qualities to things that are not human, as in the wind whispered through the trees. Hyperbole is a deliberate exaggeration used for effect, such as saying I have told you a thousand times. Writers use figures of speech in both prose and poetry to make their language vivid and memorable.",
+      "anchors": [
+        "sec-literature-jss3-figures-of-speech-common-figures-of-speech"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845796+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.literature.ss1.literary-devices.imagery-and-symbolism",
+      "version": "1.0.0",
+      "title": "Imagery and symbolism",
+      "subject": "literature",
+      "year_group": "SS1",
+      "topic": "literary devices",
+      "subtopic": "imagery and symbolism",
+      "misconception_codes": [],
+      "body_markdown": "Imagery is the use of words that appeal to the senses so that readers can picture, hear, or even feel what is being described. When a poet writes about the golden light of the setting sun or the sharp smell of rain on dry earth, the reader experiences the scene more strongly. Symbolism is the use of an object, person, or action to stand for a larger idea beyond itself. For example, a dove may stand for peace, a river may stand for the passage of time, and darkness may stand for fear or ignorance. Both devices allow writers to express deep meaning indirectly, inviting readers to think carefully and find the ideas hidden beneath the surface of the words.",
+      "anchors": [
+        "sec-literature-ss1-literary-devices-imagery-and-symbolism"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845830+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.literature.ss2.drama.elements-of-drama",
+      "version": "1.0.0",
+      "title": "The elements of drama",
+      "subject": "literature",
+      "year_group": "SS2",
+      "topic": "drama",
+      "subtopic": "elements of drama",
+      "misconception_codes": [],
+      "body_markdown": "Drama is literature written to be performed before an audience. It has several elements. The plot is the arrangement of events from the opening situation, through a rising conflict, to a climax and finally a resolution. Characters are the people in the play, and the way the playwright reveals their nature is called characterisation. Dialogue is the conversation between characters, through which the story is told, since a play has little description. The setting is the time and place of the action. Theme is the central idea or message the play explores. Dramatic devices such as soliloquy, where a character speaks thoughts aloud alone, and dramatic irony, where the audience knows more than a character, deepen the audience's understanding.",
+      "anchors": [
+        "sec-literature-ss2-drama-elements-of-drama"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.845867+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.literature.ss3.poetry.appreciating-a-poem",
+      "version": "1.0.0",
+      "title": "Appreciating a poem",
+      "subject": "literature",
+      "year_group": "SS3",
+      "topic": "poetry",
+      "subtopic": "appreciating a poem",
+      "misconception_codes": [],
+      "body_markdown": "To appreciate a poem means to read it closely and explain how its parts work together to create meaning and feeling. A reader first looks at the subject matter, that is, what the poem is about. Next comes the theme, the deeper idea or message behind the subject. The mood is the feeling the poem creates, such as joy, sorrow, or anger, and the tone is the poet's attitude towards the subject. The reader also studies the form, including the number of lines and verses, and the sound devices such as rhyme and rhythm. Finally, the reader notes the figures of speech and imagery the poet uses. Bringing these observations together produces a full appreciation of the poem.",
+      "anchors": [
+        "sec-literature-ss3-poetry-appreciating-a-poem"
+      ],
+      "status": "approved"
+    }
+  ]
+}

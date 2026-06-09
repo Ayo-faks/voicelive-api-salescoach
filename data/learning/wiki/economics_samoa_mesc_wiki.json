@@ -1,0 +1,434 @@
+{
+  "version": "1.0.0",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "pathfinder.ingest",
+      "rule_id": "ingest",
+      "confidence": 1.0,
+      "evidence_count": 1
+    }
+  ],
+  "nodes": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Economics-Year-12.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Government of Samoa MESC 2004 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:37:15.921042+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Economics Year 12, Government of Samoa MESC (2004)"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss3.economics-the-basics.unlimited-wants-limited-resources",
+      "version": "1.0.0",
+      "title": "Unlimited Wants - Limited Resources",
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "Economics: The Basics",
+      "subtopic": "Unlimited Wants - Limited Resources",
+      "misconception_codes": [],
+      "body_markdown": "Scarcity: When there are not enough resources to satisfy the desire or want for it. People must choose which wants they will satisfy. Thus scarcity leads to: Choice: A decision between all the alternatives available. When a choice is made, the second choice is known as the opportunity cost. All choices result in an . . . Opportunity cost: The next best alternative that is not chosen. Unit 1 8",
+      "anchors": [
+        "sec-economics-ss3-economics-the-basics-unlimited-wants-limited-resources"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Economics-Year-12.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Government of Samoa MESC 2004 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:37:15.921160+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Economics Year 12, Government of Samoa MESC (2004)"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss3.economics-the-basics.free-goods-and-economic-goods",
+      "version": "1.0.0",
+      "title": "Free Goods and Economic Goods",
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "Economics: The Basics",
+      "subtopic": "Free Goods and Economic Goods",
+      "misconception_codes": [],
+      "body_markdown": "An economic good is scarce and thus it will have an opportunity cost. Most goods are economic goods. A free good is not scarce and therefore it will not have an opportunity cost. There are very few free goods. Fresh air in Sämoa is an example of a free good. The person who stays in the public hospital when he or she is sick does not pay for the stay but the taxpayer pays for the doctor’s services and the doctor’s services are an economic good.",
+      "anchors": [
+        "sec-economics-ss3-economics-the-basics-free-goods-and-economic-goods"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Economics-Year-12.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Government of Samoa MESC 2004 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:37:15.921266+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Economics Year 12, Government of Samoa MESC (2004)"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss3.business-structure.business-structure",
+      "version": "1.0.0",
+      "title": "Business Structure",
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "Business Structure",
+      "subtopic": "Business Structure",
+      "misconception_codes": [],
+      "body_markdown": "Businesses come in all shapes and sizes. They are organised in many different ways according to the needs of the particular business and the way it has developed since it was established. The ownership and financial structure of a business are closely linked. As businesses expand, the need for finance often increases, and as a result the ownership structure may change to increase the number of people with a financial interest in the business. The management structure often reflects the style and philosophy of the business owners. Some owners like a team approach, where a group of people, each with a particular skill, work together to run the business. Other businesses have just one person who manages everything.",
+      "anchors": [
+        "sec-economics-ss3-business-structure-business-structure"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Economics-Year-12.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Government of Samoa MESC 2004 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:37:15.921388+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Economics Year 12, Government of Samoa MESC (2004)"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss3.business-structure.ownership-and-management",
+      "version": "1.0.0",
+      "title": "Ownership and Management",
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "Business Structure",
+      "subtopic": "Ownership and Management",
+      "misconception_codes": [],
+      "body_markdown": "Ownership The ownership of a business determines who receives the profit, who has the authority to make management decisions, and who is responsible for any debts the business may incur. The owners of a business contribute their own money and expect a share of profit in return for the risk they take. They are not necessarily involved in management decision-making but may have delegated this responsibility to others who are accountable back to them for those decisions. Unit 2 10 Management Managers are involved in the day-to-day running of the business and have four basic responsibilities: planning for the future; organising all the necessary resources; directing – putting plans into action and controlling the business’s performance; making corrections where necessary.",
+      "anchors": [
+        "sec-economics-ss3-business-structure-ownership-and-management"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Economics-Year-12.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Government of Samoa MESC 2004 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:37:15.922160+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Economics Year 12, Government of Samoa MESC (2004)"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss3.service-industries.service-industries",
+      "version": "1.0.0",
+      "title": "Service Industries",
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "Service Industries",
+      "subtopic": "Service Industries",
+      "misconception_codes": [],
+      "body_markdown": "Interdependence, two-way reliance, exists between firms and what we call service industries. These are also businesses and include firms in the transport, finance, accounting, communications and marketing industries. Marketing firms are involved in giving advice on the best way to compete. Firms selling similar products in the same market will compete for customers using price or non-price competition. Price competition strategies involve reducing the price below your competitors so consumers will buy your product. Non-price competition involves strategies other than price to persuade customers to buy your product.",
+      "anchors": [
+        "sec-economics-ss3-service-industries-service-industries"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Economics-Year-12.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Government of Samoa MESC 2004 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:37:15.922800+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Economics Year 12, Government of Samoa MESC (2004)"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss3.service-industries.price-competition",
+      "version": "1.0.0",
+      "title": "Price Competition",
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "Service Industries",
+      "subtopic": "Price Competition",
+      "misconception_codes": [],
+      "body_markdown": "Price competition occurs when firms reduce their prices to attract more customers. This will increase the firm’s market share, although the amount of profit per item will be reduced. We know that when price decreases, the quantity consumers demand increases, so the producer sells more. The problem in price cutting, is that it may start a price war with other producers in the same industry until the profit margin has been reduced so far, that it is not economically possible for a producer to remain in business. In extreme cases this leads to the ‘death’ of one competitor – the producer who cannot slash their price any further. The ‘winner’ then has more control over price in the market because there are fewer competitors and less choice for consumers. A good example of a price war in recent times, was the introduction of a new brand of petrol, Challenge, into the New Zealand market. Where Challenge opened new petrol stations, existing competitors had to lower their prices to match the prices of the newcomer to the market, in order to maintain market share. A business can use many price competition strategies to attract customers – each strategy means a reduction in price. These include: discounts, sales, buy-one-get- one-free promotions, interest free terms and ‘loss-leaders’. Retailers are the biggest users of ‘loss-leaders’ where they heavily promote some products which they sell at a loss (that is with no profit) in order to attract more people into the store in the hope",
+      "anchors": [
+        "sec-economics-ss3-service-industries-price-competition"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Economics-Year-12.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Government of Samoa MESC 2004 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:37:15.924180+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Economics Year 12, Government of Samoa MESC (2004)"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss3.service-industries.direct-mail",
+      "version": "1.0.0",
+      "title": "Direct Mail",
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "Service Industries",
+      "subtopic": "Direct Mail",
+      "misconception_codes": [],
+      "body_markdown": "As an economy it is important that we make the best use of our scarce resources. We need to make sure that we get maximum output for every unit of input – whether inputs are human resources, natural resources or capital resources. This idea of output per unit of input is called productivity. Workers can increase their skills by focusing on producing one main commodity, that is specialising , or by focusing on one part of the production process (division of labour). Both specialising and division of labour increase productivity. Improvement in technology and greater investment can also increase productivity. Increasing the scale of operations will have an impact on the output per unit of input. This can result in economies or diseconomies of scale. Productivity Production is the making of goods and services. It is measured in terms of output or the quantity produced. Productivity shows the relationship between outputs and inputs. It is the rate of output. This provides a better measure of a firm’s performance than production. The formula for calculating productivity is: output input Unit 4 28 This formula can be used to calculate productivity of labour (output per worker), productivity of capital (output per machine or unit of capital), and productivity of land (output per hectare). Unless otherwise stated, productivity refers, in this course, to the productivity of labour. An increase in productivity is considered positive. It can mean that as a result of increased production with current resources, sales can increase without incurring any",
+      "anchors": [
+        "sec-economics-ss3-service-industries-direct-mail"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Economics-Year-12.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Government of Samoa MESC 2004 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:37:15.926258+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Economics Year 12, Government of Samoa MESC (2004)"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss3.market-equilibrium.market-equilibrium",
+      "version": "1.0.0",
+      "title": "Market Equilibrium",
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "Market Equilibrium",
+      "subtopic": "Market Equilibrium",
+      "misconception_codes": [],
+      "body_markdown": "In the previous units we reviewed supply and demand tools which show how consumers and producers interact in the market and we looked at the non-price factors that affect demand and supply. Market diagrams were developed for both supply and demand to show how prices are determined in the market. In this unit we will use what we learned and the skills we practised in the earlier units to identify what happens to market equilibrium when any of those non-price factors change.",
+      "anchors": [
+        "sec-economics-ss3-market-equilibrium-market-equilibrium"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Economics-Year-12.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Government of Samoa MESC 2004 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:37:15.927168+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Economics Year 12, Government of Samoa MESC (2004)"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss3.government-intervention.price-minimum",
+      "version": "1.0.0",
+      "title": "Price Minimum",
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "Government Intervention",
+      "subtopic": "Price Minimum",
+      "misconception_codes": [],
+      "body_markdown": "A price minimum is a price control means a government uses to protect the producer or to protect a resource such as labour. A price minimum or price floor is a legal limit on the lowest price a good or service may be sold for. That means a government has made it illegal to sell the good or service for less than this price. The aim of the price minimum is to help producers to earn an income, particularly producers in a market where the prices frequently change, such as producers of oil and wool. In such situations, the producers have very little control and they have to accept the price given by the world market which is determined by supply and demand. When the world prices are high, that industry can make a profit, but when the price is low, the producers suffer. In the 1980s the New Zealand government set a price floor to protect wool producers. They set a minimum price above equilibrium. Unfortunately, this situation creates a surplus or excess supply because at a higher price, the quantity demanded decreases. The producers are left with surplus stock that is stockpiled (stored in warehouses) until a buyer is willing to purchase it. In the 1980s, the New Zealand government bought up excess wool from the producers and hoped prices would rise. Another example of the use of price minimum is when a government decides that the price of labour (wage levels) is below what they consider people",
+      "anchors": [
+        "sec-economics-ss3-government-intervention-price-minimum"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Economics-Year-12.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Government of Samoa MESC 2004 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:37:15.927518+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Economics Year 12, Government of Samoa MESC (2004)"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss3.circular-flow.circular-flow",
+      "version": "1.0.0",
+      "title": "Circular Flow",
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "Circular Flow",
+      "subtopic": "Circular Flow",
+      "misconception_codes": [],
+      "body_markdown": "The circular flow diagram or model shows the relationships between sectors of the economy. The idea of the circular flow was introduced in earlier books and focused on the household or consumer and producer sectors. The Year 11 book introduced two other sectors to the model, the government and financial institution sectors. In this unit we look at the circular flow model which includes the overseas sector as well as review the role of the other sectors. We will look at the appropriate real flows and money flows between all these sectors.",
+      "anchors": [
+        "sec-economics-ss3-circular-flow-circular-flow"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Economics-Year-12.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Government of Samoa MESC 2004 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:37:15.927856+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Economics Year 12, Government of Samoa MESC (2004)"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss3.circular-flow.the-overseas-sector",
+      "version": "1.0.0",
+      "title": "The Overseas Sector",
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "Circular Flow",
+      "subtopic": "The Overseas Sector",
+      "misconception_codes": [],
+      "body_markdown": "A closed economy is an economy which trades domestically only – that is, it does not sell to overseas countries and it does not buy from overseas countries. An open economy is when a country trades with other countries. Since different countries have different human, capital and natural resources they are able to produce different goods and services, or are able to produce them better than other countries. Sämoa has natural conditions which are ideal for producing bananas, copra and cacao beans. Therefore Sämoan producers are able to produce enough of these crops to satisfy the domestic demand and have a surplus left over that is able to be exported overseas. Japan is able to manufacture radios at a cost that is much lower than Sämoan firms can make radios for, because of factors such as technology, economies of scale and the management systems they use. Therefore, Sämoans can import radios more cheaply from Japan, rather than buy Sämoan assembled radios. UNIT 9 83 By taking part in international trade, countries can increase their standard of living. In our example, the bananas, copra and cacao beans (exports) and the Japanese radios (imports) are the real flows. The money flows are the payments for these goods – import payments going to Japan and export receipts received by Sämoan producers (growers). Money that is taken out of a country’s economy, such as import payments, are known as a withdrawal from the circular flow . Money which is put into the economy, such",
+      "anchors": [
+        "sec-economics-ss3-circular-flow-the-overseas-sector"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Economics-Year-12.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Government of Samoa MESC 2004 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:37:15.928083+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Economics Year 12, Government of Samoa MESC (2004)"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss3.circular-flow.the-financial-sector",
+      "version": "1.0.0",
+      "title": "The Financial Sector",
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "Circular Flow",
+      "subtopic": "The Financial Sector",
+      "misconception_codes": [],
+      "body_markdown": "In Economics there are two things that consumers can do with their income. They can spend it or they can save it. Consumers usually save their money in a financial institution where they can earn interest. Firms that want to invest (increase their stock of capital goods) usually need to borrow money in order to do that. Investment usually takes place when producers feel confident about the future – they expect to sell more in the future. Firms may not have the finance to buy the extra capital. Therefore, they usually borrow money in order to invest. Firms will borrow the funds from the same financial institutions that the households save with (usually banks). In effect, they borrow from the consumer and the financial institution acts as an intermediary – a go-between. 84 Household savings is another example of a withdrawal from the circular flow, and investment is an injection. The financial sector and households are interdependent. The financial sector and producers are also interdependent. The financial sector relies on households to give them savings so that they have funds to loan out. Households rely on the financial sector to pay them interest on savings. The financial sector relies on producers to borrow and pay interest so that the financial sector earns income. Producers rely on the financial sector so they can borrow and invest in capital goods. Consumer spending Income",
+      "anchors": [
+        "sec-economics-ss3-circular-flow-the-financial-sector"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Economics-Year-12.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Government of Samoa MESC 2004 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:37:15.928552+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Economics Year 12, Government of Samoa MESC (2004)"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss3.the-market.the-market",
+      "version": "1.0.0",
+      "title": "The Market",
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "The Market",
+      "subtopic": "The Market",
+      "misconception_codes": [],
+      "body_markdown": "Earlier we described markets as any place or situation where buyers or consumers and sellers or producers can exchange goods and services . Consumers and producers must be able to communicate in some way either in person, on the phone, by mail, over the Internet. By communicating, consumers and producers agree on the price of a good or service. This is how prices can be determined – in the marketplace.",
+      "anchors": [
+        "sec-economics-ss3-the-market-the-market"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "local:Economics-Year-12.pdf",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "© Government of Samoa MESC 2004 (educational; testing-only)",
+            "ingested_at": "2026-06-09T16:37:15.928778+00:00",
+            "ingest_pipeline": "learning.scrape.pdf",
+            "source_title": "Economics Year 12, Government of Samoa MESC (2004)"
+          }
+        }
+      ],
+      "node_id": "wiki.economics.ss3.the-market.households-producers",
+      "version": "1.0.0",
+      "title": "Households Producers",
+      "subject": "economics",
+      "year_group": "SS3",
+      "topic": "The Market",
+      "subtopic": "Households Producers",
+      "misconception_codes": [],
+      "body_markdown": "We have discussed the role of money in the economy in the Business Studies books Year 9 and 10 texts. We looked at how money was created to ease the problems of barter. In order to meet the growing demand for exchange of goods and services, money has evolved from being payment with actual notes and coins. Today’s different forms of money include non-cash methods of payment such as credit card, cheques or EFTPOS (electronic funds transfer at point of sale).",
+      "anchors": [
+        "sec-economics-ss3-the-market-households-producers"
+      ],
+      "status": "approved"
+    }
+  ]
+}

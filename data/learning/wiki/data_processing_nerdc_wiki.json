@@ -1,0 +1,194 @@
+{
+  "version": "1.0.0",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "pathfinder.ingest",
+      "rule_id": "ingest",
+      "confidence": 1.0,
+      "evidence_count": 1
+    }
+  ],
+  "nodes": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.844277+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.data_processing.jss1.data-and-information.data-and-information",
+      "version": "1.0.0",
+      "title": "Data and information",
+      "subject": "data_processing",
+      "year_group": "JSS1",
+      "topic": "data and information",
+      "subtopic": "data and information",
+      "misconception_codes": [],
+      "body_markdown": "Data means raw facts and figures that have not yet been organised or given meaning, such as a list of marks, names, or dates. On its own, data may not tell us much. Information is data that has been processed, arranged, and given meaning so that it becomes useful for making decisions. For example, the scores of all the pupils in a class are data; when you arrange them and work out the class average and the highest score, you produce information. Data processing is the act of turning data into information through steps such as collecting, sorting, calculating, and presenting. Good information should be accurate, complete, and available at the right time.",
+      "anchors": [
+        "sec-data_processing-jss1-data-and-information-data-and-information"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.844406+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.data_processing.jss2.word-processing.word-processing",
+      "version": "1.0.0",
+      "title": "Word processing",
+      "subject": "data_processing",
+      "year_group": "JSS2",
+      "topic": "word processing",
+      "subtopic": "word processing",
+      "misconception_codes": [],
+      "body_markdown": "Word processing is the use of a computer program to create, edit, format, save, and print text documents such as letters, reports, and notes. A word processor lets you type text and then change it easily without rewriting the whole page. You can correct spelling mistakes, move sentences, and add or remove words. Formatting tools let you change the size and style of the letters, make words bold or underlined, and arrange the text in the centre or along the margins. You can also save your work to use again later and print as many copies as you need. Common word processing tasks include preparing assignments, official letters, and class lists.",
+      "anchors": [
+        "sec-data_processing-jss2-word-processing-word-processing"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.844445+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.data_processing.jss3.spreadsheets.spreadsheet-basics",
+      "version": "1.0.0",
+      "title": "Spreadsheet basics",
+      "subject": "data_processing",
+      "year_group": "JSS3",
+      "topic": "spreadsheets",
+      "subtopic": "spreadsheet basics",
+      "misconception_codes": [],
+      "body_markdown": "A spreadsheet is a program that arranges data in rows and columns so that numbers can be stored, calculated, and analysed easily. The point where a row and a column meet is called a cell, and each cell has an address made from its column letter and row number. You can type numbers, words, or formulas into cells. A formula lets the spreadsheet do calculations automatically, so if you change one number the answers update by themselves. Spreadsheets are useful for keeping accounts, working out totals and averages, and drawing charts. Common spreadsheet programs are used in offices and schools to manage marks, budgets, and stock records.",
+      "anchors": [
+        "sec-data_processing-jss3-spreadsheets-spreadsheet-basics"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.844492+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.data_processing.ss1.data-processing-cycle.the-data-processing-cycle",
+      "version": "1.0.0",
+      "title": "The data processing cycle",
+      "subject": "data_processing",
+      "year_group": "SS1",
+      "topic": "data processing cycle",
+      "subtopic": "the data processing cycle",
+      "misconception_codes": [],
+      "body_markdown": "The data processing cycle is the series of steps by which raw data is turned into useful information. It begins with input, where data is collected and entered into the system. Next comes processing, where the data is sorted, calculated, compared, or summarised according to a set of instructions. Then comes output, where the finished information is presented to the user as a report, screen display, or printout. Storage runs alongside these stages, keeping data and results safely for future use. Because the output of one cycle can become the input of another, the activity is described as a cycle that repeats whenever new data arrives.",
+      "anchors": [
+        "sec-data_processing-ss1-data-processing-cycle-the-data-processing-cycle"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.844530+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.data_processing.ss2.database-management.database-management-systems",
+      "version": "1.0.0",
+      "title": "Database management systems",
+      "subject": "data_processing",
+      "year_group": "SS2",
+      "topic": "database management",
+      "subtopic": "database management systems",
+      "misconception_codes": [],
+      "body_markdown": "A database is an organised collection of related data stored so that it can be found and used easily. A database management system is the software used to create a database and to add, find, change, and remove data within it. Data is usually kept in tables made of records and fields. A field is a single item such as a surname or age, and a record is a complete set of fields about one person or thing. The database management system helps keep data accurate, avoids needless repetition, and controls who may view or change the data. Banks, schools, and hospitals rely on such systems to keep large amounts of records safe and well organised.",
+      "anchors": [
+        "sec-data_processing-ss2-database-management-database-management-systems"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-09T15:29:47.844699+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.data_processing.ss3.data-security.data-security-and-integrity",
+      "version": "1.0.0",
+      "title": "Data security and integrity",
+      "subject": "data_processing",
+      "year_group": "SS3",
+      "topic": "data security",
+      "subtopic": "data security and integrity",
+      "misconception_codes": [],
+      "body_markdown": "Data security means protecting data from loss, damage, and access by people who are not allowed to use it. Threats to data include theft, fire, computer viruses, and careless mistakes. Several methods are used to keep data safe. Passwords and user accounts make sure only authorised people can open files. Making regular backup copies means data can be recovered if the original is lost. Antivirus programs guard against harmful software. Data integrity means keeping data correct and complete from the time it is entered until it is used, by checking entries for errors and preventing unauthorised changes. Good security and integrity build trust in the information a system produces.",
+      "anchors": [
+        "sec-data_processing-ss3-data-security-data-security-and-integrity"
+      ],
+      "status": "approved"
+    }
+  ]
+}
