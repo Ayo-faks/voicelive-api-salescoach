@@ -42,7 +42,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 ARG COPILOT_CLI_VERSION=v1.0.17
 
-RUN apt-get update && apt-get install -y \
+# The devcontainers base image ships a yarn apt source whose signing key has
+# expired (NO_PUBKEY 62D54FD4003F6525), which makes `apt-get update` fail with an
+# "is not signed" error. Drop the stale yarn repo before updating package lists.
+RUN rm -f /etc/apt/sources.list.d/yarn.list \
+    && apt-get update && apt-get install -y \
     build-essential \
     bash \
     curl \
