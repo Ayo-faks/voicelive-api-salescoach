@@ -300,3 +300,35 @@ def test_notifier_medium_only_uses_in_app():
     assert result.channels_delivered == ["in_app"]
     assert len(rows) == 1
     assert emails == []
+
+
+# ---------------------------------------------------------------------------
+# Status surface
+# ---------------------------------------------------------------------------
+
+
+def test_service_status_reports_live_posture():
+    pipeline = SafeguardingPipeline(content_safety=_FakeContentSafety(), classifier=_FakeClassifier())
+    repo = InMemorySafeguardingRepository()
+    svc = SafeguardingService(pipeline=pipeline, repository=repo, notifier=None)
+
+    status = svc.status()
+    assert status["enabled"] is True
+    assert status["layers"] == {"lexicon": True, "content_safety": True, "classifier": True}
+    assert status["repository"] == "in_memory"
+    assert status["durable"] is False
+    # No notifier wired -> notifications off, shadow flag inert.
+    assert status["shadow_mode"] is False
+    assert status["notifications_enabled"] is False
+
+
+def test_service_status_without_detectors_marks_layers_off():
+    pipeline = SafeguardingPipeline(content_safety=None, classifier=None)
+    repo = InMemorySafeguardingRepository()
+    svc = SafeguardingService(pipeline=pipeline, repository=repo, notifier=None)
+
+    status = svc.status()
+    assert status["layers"]["lexicon"] is True
+    assert status["layers"]["content_safety"] is False
+    assert status["layers"]["classifier"] is False
+

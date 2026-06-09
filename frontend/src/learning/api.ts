@@ -1187,6 +1187,8 @@ export interface LearnerVoiceSocketHandlers {
 export interface LearnerVoiceSocket {
   /** Send one turn frame (a `type: 'turn'` envelope is added automatically). */
   send: (frame: Record<string, unknown>) => void
+  /** Whether the underlying socket is OPEN and able to deliver a frame. */
+  isOpen: () => boolean
   /** Politely say goodbye and close the socket. */
   close: () => void
 }
@@ -1256,6 +1258,7 @@ export function openLearnerVoiceSocket(
         socket.send(JSON.stringify({ type: 'turn', ...frame }))
       }
     },
+    isOpen: () => socket.readyState === WebSocket.OPEN,
     close: () => {
       closing = true
       try {

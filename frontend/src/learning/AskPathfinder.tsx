@@ -707,11 +707,14 @@ export function AskPathfinder({
       }
       setBusy(true)
       setVoiceError(null)
-      if (mode === 'voice' && socketRef.current) {
+      if (mode === 'voice' && socketRef.current?.isOpen()) {
         // Result arrives asynchronously via the socket onResult handler.
         socketRef.current.send(payload as Record<string, unknown>)
         return
       }
+      // Text mode, or a voice socket that is not OPEN (failed/closed/never
+      // upgraded): fall back to the HTTP turn so `busy` is always cleared in
+      // `finally` and the orb can never spin forever waiting on a dropped frame.
       try {
         const result = await runAssistantTurn(payload)
         if (result.conversation_id) setConversationId(result.conversation_id)

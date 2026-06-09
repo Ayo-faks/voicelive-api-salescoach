@@ -1,0 +1,704 @@
+{
+  "version": "1.0.0",
+  "lang": "en",
+  "provenance": [
+    {
+      "source": "pathfinder.ingest",
+      "rule_id": "ingest",
+      "confidence": 1.0,
+      "evidence_count": 1
+    }
+  ],
+  "nodes": [
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Binary_representation",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:44:43.288163+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.binary-representation.binary-representation",
+      "version": "1.0.0",
+      "title": "Binary representation",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Binary representation",
+      "subtopic": "Binary representation",
+      "misconception_codes": [],
+      "body_markdown": "Recognise the use of binary numbers in computer systems - 2016 CIE Syllabus p10 You already know the denary number system (although you might not have known what it is called). Denary is the number system we use in our everyday lives and has ten numerals: 0, 1, 2, 3, 4, 5, 6, 7, 8 and 9. Because it has ten numerals we call it base-10. When writing larger numbers needing more than one numeral each numeral is worth ten times the numeral to its right. In computing we also use the hexadecimal and binary number systems. In binary we have only two digits 0 and 1 so we call this base-2. Computers as we know them today are electronic machines which at their most basic level are simply a collection of billions and billions of switches which can be either on (represented by the digit 1) and off (represented by the digit 0). For Humans to be able to work with computers we need ways of representing all of the data we use in binary. Everything you see on your computer screen can be converted in to binary so that it can be processed by the computer. In this section you will learn how all numbers, text, pictures, videos and sounds can be represented in binary. In denary if we want to use numbers bigger than 9 we have to start using multiple numerals. Each numeral is worth ten-times the numeral to its right. The number three-thousand, one-hundred and",
+      "anchors": [
+        "sec-computer_science-ss1-binary-representation-binary-representation"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Communication_security",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:44:44.859880+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.communication-security.communication-security",
+      "version": "1.0.0",
+      "title": "Communication security",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Communication security",
+      "subtopic": "Communication security",
+      "misconception_codes": [],
+      "body_markdown": "Show understanding of the security aspects of using the Internet and understand what methods are available to help minimise the risks - 2016 CIE Syllabus p11 Show understanding of the Internet risks associated with malware, including viruses, spyware and hacking - 2016 CIE Syllabus p11 Explain how anti-virus and other protection software helps to protect the user from security risks - 2016 CIE Syllabus p11",
+      "anchors": [
+        "sec-computer_science-ss1-communication-security-communication-security"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Computer_architecture",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:44:45.976009+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.computer-architecture.computer-architecture",
+      "version": "1.0.0",
+      "title": "Computer architecture",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Computer architecture",
+      "subtopic": "Computer architecture",
+      "misconception_codes": [],
+      "body_markdown": "Show understanding of the basic Von Neumann model for a computer system and the stored program concept - 2016 CIE Syllabus p11 The Von-Neumann Architecture, and stored-program concept, works where machine code instructions and data are stored, and loaded from memory into the processor to be executed in sequential order . Von-Neumann Architecture is used for general purpose machines, where instructions and data are held in the same memory location - this is our main memory , or RAM.",
+      "anchors": [
+        "sec-computer_science-ss1-computer-architecture-computer-architecture"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Constants%2C_variables_and_data_types",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:44:47.422654+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.constants-variables-and-data-types.constants-variables-and-data-types",
+      "version": "1.0.0",
+      "title": "Constants, variables and data types",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Constants, variables and data types",
+      "subtopic": "Constants, variables and data types",
+      "misconception_codes": [],
+      "body_markdown": "A constant is a value used in programming which will not change throughout the program. The variable name can usually be any combination of letters and numbers. Some words and letter combinations may not be used as variable names , these are normally called reserved words. Good programming style suggests that variable names are descriptive and reflect the data that is assigned to them e.g. pupil_name, car_reg, patient_number. Variables can represent a number of Data Types The two most common data types are Numeric (numbers) and String (text) Most computer systems distinguish between different data types. This is important as it can help to make data storage more efficient and data processing more effective. The most common data types are: In some programming languages e.g. Java , C#, Python the data type of each variable must be declared before it can be used during the program. For example in Java if you wanted to use an integer variable called age and a assign a value to it. You would have to use the commands int age ; age = 64 ; These are called Strongly Typed languages - N.B. the \"typed\" refers to setting the data type not typing on a keyboard Other languages such as Basic do not require you to set the data type of variables. These are called \"Weakly Typed\" languages",
+      "anchors": [
+        "sec-computer_science-ss1-constants-variables-and-data-types-constants-variables-and-data-types"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Data_storage",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:44:50.818856+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.data-storage.data-storage",
+      "version": "1.0.0",
+      "title": "Data storage",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Data storage",
+      "subtopic": "Data storage",
+      "misconception_codes": [],
+      "body_markdown": "Show understanding that sound (music), pictures, video, text and numbers are stored in different formats - 2016 CIE Syllabus p10 Sound (music), pictures, video, text and numbers are stored in a variety of different formats depending on what is being stored. Identify and describe methods of error detection and correction, such as parity checks, check digits, checksums and Automatic Repeat reQuests (ARQ) - 2016 CIE Syllabus p10 Parity checking is one method used to check whether data has been changed or corrupted following transmission from one device or medium to another device or medium. The parity of a number is either odd or even, and in a parity check extra 'bits' are added so that the number of 1s are either always odd or always even. One way, it works is by allocating one bit out of each byte of data to be a parity bit (also known as check bit) before transmission occurs. Even or odd parity is decided between the sender and receiver. A byte with even parity has an even number of 1s in it. Conversely, a byte with an odd parity has an odd number of 1s. Take for example the following byte in which the first bit has been omitted. If a sender has agreed to even parity then we note there is currently an even number of 1s in the byte so the first bit should have 0 in it. If the sender had agreed to odd parity the first bit should have a",
+      "anchors": [
+        "sec-computer_science-ss1-data-storage-data-storage"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Ethics",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:44:54.214375+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.ethics.ethics",
+      "version": "1.0.0",
+      "title": "Ethics",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Ethics",
+      "subtopic": "Ethics",
+      "misconception_codes": [],
+      "body_markdown": "Computer ethics concern things that we should or should not do in our dealings with computer systems. Show understanding of computer ethics, including copyright issues and plagiarism - 2016 CIE Syllabus p14 Copyright is something that is defined in international treaties and in various local laws around the world. It concerns the use of intellectual property. Copyright law recognises the fact that both the owner and the users of intellectual property have certain rights. The exact details vary slightly between countries but in general: There are however some exceptions, known as fair use which allow work to be copied with a few conditions. The rules vary between countries. In the UK you are allowed to copy work if it is for: Distinguish between free software, freeware and shareware - 2016 CIE Syllabus p14 Show understanding of the ethical issues raised by the spread of electronic communication and computer systems, including hacking, cracking and production of malware - 2016 CIE Syllabus p14",
+      "anchors": [
+        "sec-computer_science-ss1-ethics-ethics"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Fundamentals_of_computer_systems",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:44:54.053755+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.fundamentals-of-computer-systems.fundamentals-of-computer-systems",
+      "version": "1.0.0",
+      "title": "Fundamentals of computer systems",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Fundamentals of computer systems",
+      "subtopic": "Fundamentals of computer systems",
+      "misconception_codes": [],
+      "body_markdown": "You have probably had a lot of experience with computers. They are a type of machine or device which can be programmed. Computers range from the desktop or laptop you are probably reading this on, to a computer in a vending machine or supermarket checkout. Computers are everywhere in out modern life, and are incredibly important to the functioning of the modern world. All computer systems work in a similar way. They have inputs, processes and outputs. Take making a phone call on a mobile phone as an example. Considering that computers are currently used for so much in the modern world, keeping them running well and constantly is an important consideration. A Crittical system is one which needs to constantly be running, or else there is a risk of death, serious injury, or financial problems. Why does a life support system need to be reliable? [3] In a question like this, you should look at the number of marks, and try to make roughly that number of developed points. A life support system is a particular type of critical system. A critical system is one which would cause death, serious injury or financial loss if switched off. In the case of a life support system, failure can cause death of the patient. If a life support system was not reliable, it could cause death of a patient. For this reason it will need to be reliable. Other examples of critical systems include utilities, banking, emergency communications and air traffic",
+      "anchors": [
+        "sec-computer_science-ss1-fundamentals-of-computer-systems-fundamentals-of-computer-systems"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Hexadecimal",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:44:55.226852+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.hexadecimal.hexadecimal",
+      "version": "1.0.0",
+      "title": "Hexadecimal",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Hexadecimal",
+      "subtopic": "Hexadecimal",
+      "misconception_codes": [],
+      "body_markdown": "Represent integers as hexadecimal numbers - 2016 CIE Syllabus p10 In hexadecimal we have 16 numerals, shown together with binary and denary in the table below: - convert positive hexadecimal integers to and from denary - convert positive hexadecimal integers to and from binary - 2016 CIE Syllabus p10 Hexadecimal is used as an intermediate step between binary and denary because it is easier for a computer to convert between binary and hexadecimal than between binary and denary whilst at the same time being easier for a Human to process than a binary number would be. It is also used because a single hexadecmical numeral can store 1 nibble and we can store a whole byte using only 2 hexadecimal numerals. Depending on the application this can have benefits in both storage space and processing time. One example of how hexadecimal is used in computers would be HTML colour codes. In HTML colours are defined by how much red, green and blue there is on a scale of 0 to 255. The range 0 to 255 was chosen because that is the range of numbers that can be fitted into a single byte and a single byte can be represented as two hexadecimal numerals. HTML colour codes start with a hash symbol followed by 3 pairs of hexadecimal numbers. The first two numerals show how much red, the second pair show how much green and the final pair show how much blue. For example the HTML colour code #00FF00 would",
+      "anchors": [
+        "sec-computer_science-ss1-hexadecimal-hexadecimal"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/High-_and_low-level_languages",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:44:56.311663+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.high-and-low-level-languages.high-and-low-level-languages",
+      "version": "1.0.0",
+      "title": "High- and low-level languages",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "High- and low-level languages",
+      "subtopic": "High- and low-level languages",
+      "misconception_codes": [],
+      "body_markdown": "Show understanding of the need for both high-level and low-level languages - 2016 CIE Syllabus p13 Show understanding of the need for compilers when translating programs written in a high-level language - 2016 CIE Syllabus p13 Show understanding of the use of interpreters with high-level language programs - 2016 CIE Syllabus p13 Show understanding of the need for for assemblers when translating programs written in assembly language - 2016 CIE Syllabus p13 Lain wants to build a computer game. She decides on using an assembly language as it would offer the best performance. Give an explanation as to why she should consider using a higher level language [2] High level languages are easier to code than low level languages (1 mark) They are closer to English and the same output can be achieved in fewer lines of code (1 mark) Accept any valid explanations on the advantages of high level languages relating to the context(processor specific, performance inst needed, complex problem)",
+      "anchors": [
+        "sec-computer_science-ss1-high-and-low-level-languages-high-and-low-level-languages"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Input_devices",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:45:01.640084+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.input-devices.input-devices",
+      "version": "1.0.0",
+      "title": "Input devices",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Input devices",
+      "subtopic": "Input devices",
+      "misconception_codes": [],
+      "body_markdown": "- Describe the principles of operation (how each device works) of these input devices: 2D and 3D scanners, barcode readers, Quick Response (QR) code readers, digital cameras, keyboards, mice, touch screens, interactive whiteboard, microphones - Describe how these principles are applied to real-life scenarios, for example: scanning of passports at airports, barcode readers at supermarket checkouts, and touch screens on mobile devices - 2016 CIE Syllabus p11 An input device is a hardware device, often a peripheral device, which is used as part of a computer system. Input devices allow a computer system to receive data from the real world. For instance a microphone can be used to input audio data in to a computer system. There are many different kinds of input device, some of which are described below: Scanners use light to make digital copies of real world objects. 2D scanners are usually used to make digital copies of documents or pictures, but can also be used to create a 2D image of other objects as well. In a flat bed scanner the document is placed on a glass plate. A light is then shone on the piece of paper and a light sensor used to detect the light which is bounced back. Wand scanners, also known as hand-held scanners, work on the same principal except that the user will move the scanner across the document manually. They can be used in conjunction with a printer to create copies of documents. 3D scanners use reflected laser light to",
+      "anchors": [
+        "sec-computer_science-ss1-input-devices-input-devices"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Internet_principles_of_operation",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:45:02.822190+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.internet-principles-of-operation.internet-principles-of-operation",
+      "version": "1.0.0",
+      "title": "Internet principles of operation",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Internet principles of operation",
+      "subtopic": "Internet principles of operation",
+      "misconception_codes": [],
+      "body_markdown": "Show understanding of the role of the browser and Internet server - 2016 CIE Syllabus p11 Show understanding of what is meant by hypertext transfer protocol (http and https) and HTML - 2016 CIE Syllabus p11 Distinguish between HTML structure and presentation - 2016 CIE Syllabus p11 Show understanding of the concepts of MAC address, Internet Protocol (IP) address, Uniform Resource Locator (URL) and cookies - 2016 CIE Syllabus p11",
+      "anchors": [
+        "sec-computer_science-ss1-internet-principles-of-operation-internet-principles-of-operation"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Logic_gates",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:45:05.582486+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.logic-gates.logic-gates",
+      "version": "1.0.0",
+      "title": "Logic gates",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Logic gates",
+      "subtopic": "Logic gates",
+      "misconception_codes": [],
+      "body_markdown": "Logic gates are the basic building blocks of any digital system. It is a circuit having one or more than one input and only one output. There are four main types of gate; NOT, AND, OR and XOR. There are also three gates which are the inverse of one of the main gates; NAND, NOR and XNOR. These inverse gates are the equivalent of the main gate type followed by a NOT. - Draw truth tables and recognise a logic gate from its truth table - Produce truth tables for given logic circuits - 2016 CIE Syllabus p12 A truth table shows all of the possible inputs and outputs for a logic circuit. The example below is for a NOT gate. It shows that if the input is a 1 then the output is a 0 and vice-versa. - Understand and define the functions of NOT, AND, OR, NAND, NOR and XOR (EOR) gates, including the binary output produced from all the possible binary inputs - Recognise and use ... standard symbols used to represent logic gates - 2016 CIE Syllabus p12 A NOT gate will invert, or flip, any input. If the input is a 1 then it will output a 0 and vice-versa. An AND gate will return a 1 if, and only if, both of the inputs were a 1. If either, or both, inputs are a 0 then the output will also be 0. An OR gate will return a 1 if either, or both, of",
+      "anchors": [
+        "sec-computer_science-ss1-logic-gates-logic-gates"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Memory",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:45:07.498134+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.memory.memory",
+      "version": "1.0.0",
+      "title": "Memory",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Memory",
+      "subtopic": "Memory",
+      "misconception_codes": [],
+      "body_markdown": "Show understanding of the difference between: primary, secondary and off-line storage and provide examples of each - 2016 CIE Syllabus p13 Main memory is used to store program instruction and data, using the System Bus to communicate with CPU. Main memory is often created using Random Access Memory (or RAM) or Read Only Memory (ROM). Modern computers will have gigabytes of RAM, meaning that large programs can run and multiple programs can run at once. The more main memory that you have the larger the number of programs you can run at once. Use the illustration to help you answer these questions:",
+      "anchors": [
+        "sec-computer_science-ss1-memory-memory"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Operators",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:45:12.642802+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.operators.operators",
+      "version": "1.0.0",
+      "title": "Operators",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Operators",
+      "subtopic": "Operators",
+      "misconception_codes": [],
+      "body_markdown": "There are types of operators that are often used. If there are multiple conditions involved, you will need to use the AND or OR operators. AND will return true only if both conditions are true. If either or both of the conditions are false, the result will be false. OR will return true if either or both of the conditions are true. The result will only be false if both of the conditions are false. Another operator, NOT, can be used to reverse the outcome from a comparison.",
+      "anchors": [
+        "sec-computer_science-ss1-operators-operators"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Output_devices",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:45:13.770097+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.output-devices.output-devices",
+      "version": "1.0.0",
+      "title": "Output devices",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Output devices",
+      "subtopic": "Output devices",
+      "misconception_codes": [],
+      "body_markdown": "Describe the principles of operation of the following output devices: inkjet, laser and 3D printers; 2D and 3D cutters; speakers and headphones; actuators; flat-panel display screens, including Liquid Crystal Display (LCD) and Light-Emitting Diodes (LED) display; LCD projectors and Digital Light Projectors (DLP) - 2016 CIE Syllabus p13 Describe how these principles are applied to real-life scenarios, for example: printing single items on demand or in large volumes; use of small screens on mobile devices - 2016 CIE Syllabus p13",
+      "anchors": [
+        "sec-computer_science-ss1-output-devices-output-devices"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Problem-solving",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:45:14.939087+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.problem-solving.problem-solving",
+      "version": "1.0.0",
+      "title": "Problem-solving",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Problem-solving",
+      "subtopic": "Problem-solving",
+      "misconception_codes": [],
+      "body_markdown": "Show understanding that every computer system is made up of sub-systems, which in turn are made up of further sub-systems - 2016 CIE Syllabus p14 Use top-down design, structure diagrams, flowcharts, pseudocode, library routines and subroutines - 2016 CIE Syllabus p14 Work out the purpose of a given algorithm - 2016 CIE Syllabus p14 Explain standard methods of solution - 2016 CIE Syllabus p14 Suggest and apply suitable test data - 2016 CIE Syllabus p14 Understand the need for validation and verification checks to be made on input data - 2016 CIE Syllabus p14 Use trace tables to find the value of variables at each step in an algorithm - 2016 CIE Syllabus p14 Identify errors in given algorithms and suggest ways of removing these errors - 2016 CIE Syllabus p14 Comment on the effectiveness of a given solution - 2016 CIE Syllabus p14",
+      "anchors": [
+        "sec-computer_science-ss1-problem-solving-problem-solving"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Pseudocode",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:45:18.413372+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.pseudocode.pseudocode",
+      "version": "1.0.0",
+      "title": "Pseudocode",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Pseudocode",
+      "subtopic": "Pseudocode",
+      "misconception_codes": [],
+      "body_markdown": "Pseudocode is a non-language-specific way of writing code. It is used during the design phase of a project as a quick way of devising algorithms before the language to be used is known and without needing to spend too much time using the exact syntax correct. Once pseudocode algorithms have been written it should then be easier to use this to help write the program code. Pseudocode is a structured way of writing algorithms which looks very much like program code. Since pseudocode is an informal way of writing code there are different ways of writing it even at GCSE level. You should be aware both of what pseudo you are expected to be able to read and how you should write code for your course. Also you should be aware of whether or not a pseudocode fact sheet is provided. When devising an algorithm the programmer will need to use variables and assign values to them. Many languages require a variable to be defined and given a data type before use. DEFINE x AS integer The five basic data types that can be used here include: Understand and use pseudocode for assignment, using ← - 2016 CIE Syllabus p15 Assigning a value to a variable is indicated in pseudocode using an arrow symbol (←). The arrow points from the value being assigned towards the variable it is being assigned to. The following line of pseudocode should be read as 'a becomes equal to 34'. The assignment operator can also",
+      "anchors": [
+        "sec-computer_science-ss1-pseudocode-pseudocode"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Search_Algorithms",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:45:21.186255+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.search-algorithms.search-algorithms",
+      "version": "1.0.0",
+      "title": "Search Algorithms",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Search Algorithms",
+      "subtopic": "Search Algorithms",
+      "misconception_codes": [],
+      "body_markdown": "If you have a list (or array) that is not sorted, then the simplest searching algorithm is linear search. It goes through the list item by item and compares to the item being searched for. If a comparison succeeds, the algorithm has found the item. If all comparisons fail, the item doesn't exist in the array or list. In the simplest variant, the algorithm returns a boolean to indicate success or failure. Consider the list of strings \"Cat\",\"Mouse\",\"Frog\",\"Lion\",\"Panda\",\"Llama\",\"Bee\", in this order. How many comparisons would it take to find \"Panda\"? And how many when searching for \"Camel\"? It would take 7 to reach the conclusion the string is not in the list. If your list is in ascending order, or is put in ascending order by a sorting algorithm, then you can perform a binary search. This involves splitting the data into half at each comparison, thereby 'zooming in' more quickly into the part of the list where the item must be, if it exists in the list. This results in much better performance. This only took 3 comparisons using binary search, it would have taken 7 using linear search. It gets even better when the list is large. For example, a 1,000,000,000 item list would only take a maximum of 30 comparisons using binary search! It's very useful to have sorted data. Sorted data is also useful for linear search. How could a modified linear search algorithm make fewer than 7 comparisons when searching Miles? The modified linear search",
+      "anchors": [
+        "sec-computer_science-ss1-search-algorithms-search-algorithms"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Security",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:45:22.312110+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.security.security",
+      "version": "1.0.0",
+      "title": "Security",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Security",
+      "subtopic": "Security",
+      "misconception_codes": [],
+      "body_markdown": "Show understanding of the need to keep data safe from accidental damage, including corruption and human errors - 2016 CIE Syllabus p14 Show understanding of the need to keep data safe from malicious actions, including unauthorised viewing, deleting, copying and corruption - 2016 CIE Syllabus p14 Show understanding of how data are kept safe when stored and transmitted - 2016 CIE Syllabus p14 Show understanding of the need to keep online systems safe from attacks including denial of service attacks, phishing, pharming and human errors - 2016 CIE Syllabus p14 Describe how (this knowledge) can be applied to real-life scenarios including, for example, online banking, shopping - 2016 CIE Syllabus p14",
+      "anchors": [
+        "sec-computer_science-ss1-security-security"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Serial_and_parallel_data_transmission",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:45:23.525361+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.serial-and-parallel-data-transmission.serial-and-parallel-data-transmission",
+      "version": "1.0.0",
+      "title": "Serial and parallel data transmission",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Serial and parallel data transmission",
+      "subtopic": "Serial and parallel data transmission",
+      "misconception_codes": [],
+      "body_markdown": "Show understanding of what is meant by transmission of data - 2016 CIE Syllabus p10 Distinguish between serial and parallel data transmission - 2016 CIE Syllabus p11 Distinguish between simplex, duplex and half-duplex data transmission - 2016 CIE Syllabus p11 Show understanding of the reasons for choosing serial or parallel data transmission - 2016 CIE Syllabus p11 Show understanding of the need to check for errors - 2016 CIE Syllabus p11 Explain how parity bits are used for error detection - 2016 CIE Syllabus p11 Show understanding of the use of serial and parallel data transmission, in Universal Serial Bus (USB) and Integrated Circuit (IC) - 2016 CIE Syllabus p11",
+      "anchors": [
+        "sec-computer_science-ss1-serial-and-parallel-data-transmission-serial-and-parallel-data-transmission"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Sort_Algorithms",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:45:24.636533+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.sort-algorithms.sort-algorithms",
+      "version": "1.0.0",
+      "title": "Sort Algorithms",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Sort Algorithms",
+      "subtopic": "Sort Algorithms",
+      "misconception_codes": [],
+      "body_markdown": "Sort algorithms are a part of all GCSE Computer Science courses. Even when a course does not require knowing the name and definition of one or more of the sorting algorithms below, it is required to be able to understand and use these algorithms in a specific context. Bubble sort is a simple sorting algorithm that works by repeatedly stepping through the list to be sorted, comparing each pair and swapping them if they are in the wrong order. The pass through the list is repeated until no swaps are needed, which indicates that the list is sorted. The algorithm gets its name from the way larger elements \"bubble\" to the top of the list. It is a very slow way of sorting data and rarely used in industry. There are much faster sorting algorithms out there such as insertion sort which we will discuss next. Let us take the array of numbers \"5 1 4 2 8\", and sort the array from lowest number to greatest number using bubble sort algorithm. In each step, elements written in bold are being compared. 1) Sort the following lists using a bubble sort. How many passes are needed? (a) Sort into alphabetical order: Cat, George, Henry, Mouse (Pass 1) Cat, George, Henry, Mouse (Pass 2) 2 passes (b) Sort into alphabetical order: C, G, A, N, C, P (Pass 1) C, A, G, C, N, P (Pass 2) A, C, C, G, N, P (Pass 3) A, C, C, G, N, P",
+      "anchors": [
+        "sec-computer_science-ss1-sort-algorithms-sort-algorithms"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Storage",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:45:25.724664+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.storage.storage",
+      "version": "1.0.0",
+      "title": "Storage",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Storage",
+      "subtopic": "Storage",
+      "misconception_codes": [],
+      "body_markdown": "Show understanding of the difference between: primary, secondary and off-line storage and provide examples of each - 2016 CIE Syllabus p13 Describe the principles of operation of a range of types of storage device and media including magnetic, optical and solid state - 2016 CIE Syllabus p13 Describe how these principles are applied to currently available storage solutions - 2016 CIE Syllabus p13 Calculate the storage requirement of a file - 2016 CIE Syllabus p13",
+      "anchors": [
+        "sec-computer_science-ss1-storage-storage"
+      ],
+      "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://en.wikibooks.org/wiki/GCSE_Computer_Science/Storage_devices",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC-BY-SA-4.0",
+            "ingested_at": "2026-06-09T23:45:26.807665+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "GCSE Computer Science, Wikibooks"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss1.storage-devices.storage-devices",
+      "version": "1.0.0",
+      "title": "Storage devices",
+      "subject": "computer_science",
+      "year_group": "SS1",
+      "topic": "Storage devices",
+      "subtopic": "Storage devices",
+      "misconception_codes": [],
+      "body_markdown": "Show understanding of the difference between: primary, secondary and off-line storage and provide examples of each - 2016 CIE Syllabus p13 Describe the principles of operation of a range of types of storage device and media including magnetic, optical and solid state - 2016 CIE Syllabus p13 Describe how these principles are applied to currently available storage solutions - 2016 CIE Syllabus p13 Calculate the storage requirement of a file - 2016 CIE Syllabus p13",
+      "anchors": [
+        "sec-computer_science-ss1-storage-devices-storage-devices"
+      ],
+      "status": "approved"
+    }
+  ]
+}

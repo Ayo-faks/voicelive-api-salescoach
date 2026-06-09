@@ -237,7 +237,13 @@ export interface LearnerTutorFullscreenProps {
 
 export type TutorPresentationMode = 'floating' | 'fullscreen'
 
-function stateCopy(state: TutorState, recording: boolean) {
+function stateCopy(state: TutorState, recording: boolean, hasCard: boolean) {
+  if (!hasCard && state !== 'error') {
+    return {
+      title: 'Loading exercise',
+      hint: 'Preparing your first exercise card',
+    }
+  }
   if (state === 'connecting')
     return { title: 'Connecting', hint: 'Opening your tutor session' }
   if (state === 'thinking')
@@ -255,6 +261,26 @@ function stateCopy(state: TutorState, recording: boolean) {
         hint: 'Answer naturally, or tap an option on the card',
       }
     : { title: 'Ready', hint: 'Tap the mic to talk to your tutor' }
+}
+
+function buildStartPrompt(focusItem?: LearnerFocusItem | null): string {
+  if (!focusItem?.stem) return 'Start my tutoring session.'
+  const focusStem = focusItem.stem.trim()
+  const rationale = focusItem.rationale?.trim()
+  const scored =
+    typeof focusItem.scored === 'boolean'
+      ? focusItem.scored
+        ? 'The learner already attempted this.'
+        : 'Treat this as a fresh attempt.'
+      : ''
+  return [
+    `Start from this focus item: ${focusStem}`,
+    rationale ? `Context: ${rationale}` : '',
+    scored,
+    'Return the first exercise card immediately.',
+  ]
+    .filter(Boolean)
+    .join(' ')
 }
 
 export function LearnerTutorFullscreen({
@@ -288,6 +314,8 @@ export function LearnerTutorFullscreen({
     classYear,
     subject,
     focusItem,
+    autoStartRecording: false,
+    startPrompt: buildStartPrompt(focusItem),
     onClose,
     onVoiceStateChange,
   })
@@ -298,7 +326,7 @@ export function LearnerTutorFullscreen({
 
   const floating = mode === 'floating'
 
-  const copy = stateCopy(state, recording)
+  const copy = stateCopy(state, recording, Boolean(card))
 
   if (!open) return null
 

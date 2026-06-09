@@ -47,6 +47,28 @@ class SafeguardingService:
     def enabled(self) -> bool:
         return self._pipeline.enabled
 
+    def status(self) -> dict:
+        """Secret-free runtime posture for an admin status surface.
+
+        Surfaces whether safeguarding is active, whether it is in shadow mode
+        (in-app only, no outbound alerts), which detection layers are live, and
+        whether events persist durably (postgres) or only in memory.
+        """
+        snapshot = self._pipeline.status()
+        snapshot["repository"] = (
+            "postgres"
+            if type(self._repo).__name__ == "PostgresSafeguardingRepository"
+            else "in_memory"
+        )
+        snapshot["durable"] = snapshot["repository"] == "postgres"
+        if self._notifier is not None:
+            snapshot["shadow_mode"] = self._notifier.shadow_mode
+            snapshot["notifications_enabled"] = self._notifier.enabled
+        else:
+            snapshot["shadow_mode"] = False
+            snapshot["notifications_enabled"] = False
+        return snapshot
+
     async def process_utterance(
         self,
         *,

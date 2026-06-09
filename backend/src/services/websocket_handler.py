@@ -1168,14 +1168,41 @@ class VoiceProxyHandler:
         card = result.get("card")
         if isinstance(card, dict):
             speak = card.get("speak")
-            if isinstance(speak, str) and speak:
+            if not isinstance(speak, str) or not speak.strip():
+                # Some card builders intentionally leave ``speak`` empty and
+                # rely on model fallback narration. That fallback can voice raw
+                # math/markup ("back slash ..."). Build a safe spoken fallback
+                # from display fields and normalize it before Azure sees it.
+                candidate_parts: List[str] = []
+                for key in ("prompt", "stem", "title", "headline", "next_action_label"):
+                    value = card.get(key)
+                    if isinstance(value, str) and value.strip():
+                        candidate_parts.append(value.strip())
+                steps = card.get("steps")
+                if isinstance(steps, list):
+                    for step in steps[:2]:
+                        if isinstance(step, str) and step.strip():
+                            candidate_parts.append(step.strip())
+                if candidate_parts:
+                    speak = " ".join(candidate_parts)
+                    card["speak"] = normalize_for_tts(speak)
+            elif speak.strip():
                 card["speak"] = normalize_for_tts(speak)
         blocks = result.get("blocks")
         if isinstance(blocks, list):
             for block in blocks:
                 if isinstance(block, dict):
                     speak = block.get("speak")
-                    if isinstance(speak, str) and speak:
+                    if not isinstance(speak, str) or not speak.strip():
+                        candidate_parts: List[str] = []
+                        for key in ("title", "headline", "text"):
+                            value = block.get(key)
+                            if isinstance(value, str) and value.strip():
+                                candidate_parts.append(value.strip())
+                        if candidate_parts:
+                            speak = " ".join(candidate_parts)
+                            block["speak"] = normalize_for_tts(speak)
+                    elif speak.strip():
                         block["speak"] = normalize_for_tts(speak)
 
     def _build_profile_tool_response_create(self, profile: AgentProfile) -> Dict[str, Any]:
@@ -1185,7 +1212,8 @@ class VoiceProxyHandler:
                 "response": {
                     "instructions": (
                         "Speak only from the tool output card. Prefer card.speak verbatim. "
-                        "If card.speak is empty, briefly describe the card in natural speech. "
+                        "If card.speak is empty, give a short generic continuation like "
+                        "'Let's continue' and wait for the next card. "
                         "Do not say raw JSON or claim the card is in the wrong format."
                     )
                 },

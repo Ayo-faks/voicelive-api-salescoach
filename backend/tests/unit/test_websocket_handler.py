@@ -605,13 +605,31 @@ class TestVoiceProxyHandler:
         assert result["card"]["stem"] == r"Differentiate y = 3x^2 + 4x"
         assert result["card"]["options"] == [r"6x \cdot 4", "other"]
 
+    def test_normalize_result_speech_builds_card_speak_fallback_when_missing(self):
+        """Cards with empty/missing speak get a normalized safe spoken fallback."""
+        handler = VoiceProxyHandler(Mock())
+        result = {
+            "card": {
+                "stem": r"Differentiate y = 3x^2 + 4x",
+                "speak": "",
+                "title": "Quick derivative",
+            }
+        }
+
+        handler._normalize_result_speech(result)
+
+        assert isinstance(result["card"]["speak"], str)
+        assert result["card"]["speak"].strip() != ""
+        assert "\\" not in result["card"]["speak"]
+        assert "squared" in result["card"]["speak"]
+
     def test_normalize_result_speech_normalizes_each_block(self):
-        """Each block.speak is normalized; blocks without speak are left alone."""
+        """Each block gets normalized spoken text, including speak-less blocks."""
         handler = VoiceProxyHandler(Mock())
         result = {
             "blocks": [
                 {"kind": "prose", "speak": r"Use \frac{1}{2} here.", "text": r"Use \frac{1}{2} here."},
-                {"kind": "prose", "text": "No speak field."},
+                {"kind": "prose", "text": r"Solve \frac{3}{4} + \frac{1}{4}."},
             ]
         }
 
@@ -619,9 +637,12 @@ class TestVoiceProxyHandler:
 
         assert "\\" not in result["blocks"][0]["speak"]
         assert "over" in result["blocks"][0]["speak"]
-        # Display text untouched, and the speak-less block is unaffected.
+        # Display text untouched, and the speak-less block gains safe speech.
         assert result["blocks"][0]["text"] == r"Use \frac{1}{2} here."
-        assert result["blocks"][1] == {"kind": "prose", "text": "No speak field."}
+        assert result["blocks"][1]["text"] == r"Solve \frac{3}{4} + \frac{1}{4}."
+        assert "speak" in result["blocks"][1]
+        assert "\\" not in result["blocks"][1]["speak"]
+        assert "over" in result["blocks"][1]["speak"]
 
     def test_profile_instruction_block_omits_focus_when_absent(self):
         """Without a focus item the learner instructions have no Dig-Deeper block."""

@@ -128,6 +128,7 @@ from src.learning.xapi import (
     student_fact_decision_event_to_xapi,
     student_profile_view_event_to_xapi,
 )
+from src.services.tts_normalizer import normalize_for_tts
 from src.learning.memory_policy import (
     SAFEGUARDING_HELP_RESOURCES,
     classify as classify_memory_proposal,
@@ -2982,7 +2983,12 @@ class LearningApi:
     # ------------------------------------------------------------------
     @staticmethod
     def voice_enabled() -> bool:
+        # Legacy flag: PATHFINDER_VOICE_ENABLED. Newer surfaces and staging use
+        # PATHFINDER_VOICELIVE_ENABLED. Accept either so local/staging config
+        # cannot silently disable voice.
         raw = os.environ.get(VOICE_FEATURE_FLAG_ENV, "")
+        if not str(raw).strip():
+            raw = os.environ.get("PATHFINDER_VOICELIVE_ENABLED", "")
         return raw.strip().lower() in {"1", "true", "yes", "on"}
 
     def get_voice_config(self, _payload: Mapping[str, Any]) -> Dict[str, Any]:
@@ -3181,6 +3187,17 @@ class LearningApi:
             plan_block=plan_block,
         )
         out = result.model_dump()
+
+        # Keep spoken payloads safe across HTTP + websocket clients: normalize
+        # math/LaTeX/backslash artifacts in ``speak`` so TTS never reads raw
+        # control characters ("back slash ..."). Display text remains unchanged.
+        blocks = out.get("blocks")
+        if isinstance(blocks, list):
+            for block in blocks:
+                if isinstance(block, dict):
+                    speak = block.get("speak")
+                    if isinstance(speak, str) and speak.strip():
+                        block["speak"] = normalize_for_tts(speak)
 
         # Thread persistence (Option B): a real question (text or voice) opens or
         # extends a learner-scoped conversation so history is browsable later.

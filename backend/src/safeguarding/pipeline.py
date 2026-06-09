@@ -93,6 +93,26 @@ class SafeguardingPipeline:
     def enabled(self) -> bool:
         return not _safeguarding_disabled()
 
+    @property
+    def content_safety_configured(self) -> bool:
+        return self._content_safety is not None and self._content_safety.configured
+
+    @property
+    def classifier_configured(self) -> bool:
+        return self._classifier is not None
+
+    def status(self) -> dict:
+        """Coarse, secret-free snapshot of which layers are live."""
+        return {
+            "enabled": self.enabled,
+            "hosted_environment": _is_hosted_environment(),
+            "layers": {
+                "lexicon": True,  # L1 is always compiled in.
+                "content_safety": self.content_safety_configured,
+                "classifier": self.classifier_configured,
+            },
+        }
+
     async def analyse(
         self,
         text: str,

@@ -219,6 +219,36 @@
         "sec-computer_science-ss3-computer-networks-networks-and-the-internet"
       ],
       "status": "approved"
+    },
+    {
+      "lang": "en",
+      "provenance": [
+        {
+          "source": "https://nerdc.gov.ng/ (NERDC scheme of work topic taxonomy; explanations authored clean-room)",
+          "rule_id": "scrape",
+          "confidence": 1.0,
+          "evidence_count": 1,
+          "metadata": {
+            "license": "CC0-1.0",
+            "ingested_at": "2026-06-10T12:10:00+00:00",
+            "ingest_pipeline": "learning.scrape",
+            "source_title": "NERDC Scheme of Work"
+          }
+        }
+      ],
+      "node_id": "wiki.computer_science.ss3.programming-paradigms.object-oriented-programming",
+      "version": "1.0.0",
+      "title": "Object-oriented programming",
+      "subject": "computer_science",
+      "year_group": "SS3",
+      "topic": "programming paradigms",
+      "subtopic": "object-oriented programming",
+      "misconception_codes": [],
+      "body_markdown": "Object-oriented programming, often called OOP, is a way of writing programs by organising code into objects. An object combines data and the actions that work on that data. A class is a blueprint used to create objects, while an object is an actual instance of that class. OOP is commonly explained with four core ideas: encapsulation (keeping related data and methods together and controlling access), inheritance (allowing a new class to reuse features of an existing class), polymorphism (allowing one interface to work in different forms), and abstraction (showing only essential details and hiding unnecessary complexity). OOP helps programmers build software that is easier to organise, reuse, test, and maintain.",
+      "anchors": [
+        "sec-computer_science-ss3-programming-paradigms-object-oriented-programming"
+      ],
+      "status": "approved"
     }
   ]
 }

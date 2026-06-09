@@ -18,7 +18,7 @@ import sys
 import threading
 import time
 import uuid
-from typing import Any, Dict, List, Mapping, Optional, Tuple, cast
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Set, Tuple, cast
 from urllib.parse import parse_qs, urlsplit
 
 import simple_websocket.ws  # pyright: ignore[reportMissingTypeStubs]
@@ -61,12 +61,14 @@ from src.services.insights_service import (
 )
 from src.services.azure_openai_auth import build_openai_client
 from src.safeguarding import (
+    Direction as SafeguardingDirection,
     build_safeguarding_blueprint,
     configure_safeguarding_service,
     get_safeguarding_service,
 )
 from src.services.turn_router.handlers import ChitchatHandler
 from src.services.insights_websocket_handler import InsightsVoiceHandler
+from src.services.learner_voice_websocket_handler import LearnerVoiceSocketHandler
 from src.services.voice_agent_action_service import (
     VoiceAgentActionError,
     VoiceAgentActionService,
@@ -5464,6 +5466,138 @@ def insights_voice_socket(ws: simple_websocket.ws.Server):
 
 
 sock.route("/ws/insights-voice")(insights_voice_socket)  # pyright: ignore[reportUnknownMemberType]
+
+
+def _build_learner_voice_safeguard() -> Optional[Callable[..., None]]:
+    """Fire-and-forget safeguarding hook for the learner voice socket.
+
+    Disabled when ``LEARNER_VOICE_SAFEGUARDING_ENABLED`` is falsy (default on).
+    Each call offloads the async safeguarding pipeline onto a daemon thread so a
+    slow or failing detector never blocks a child's turn. The hook never raises
+    into the realtime loop — a detector or persistence failure must not interrupt
+    the session.
+    """
+    flag = str(os.getenv("LEARNER_VOICE_SAFEGUARDING_ENABLED", "1") or "1").strip().lower()
+    if flag in {"0", "false", "no", "off"}:
+        return None
+
+    def _hook(
+        text: str,
+        *,
+        direction: str,
+        child_id: Optional[str],
+        session_id: Optional[str],
+        context_turns: Sequence[str],
+    ) -> None:
+        service = get_safeguarding_service()
+        if service is None or not service.enabled:
+            return
+        screen_dir = (
+            SafeguardingDirection.OUTBOUND
+            if str(direction).lower() == "outbound"
+            else SafeguardingDirection.INBOUND
+        )
+        turns = tuple(str(t) for t in context_turns)
+
+        def _run() -> None:
+            try:
+                asyncio.run(
+                    service.process_utterance(
+                        text=text,
+                        direction=screen_dir,
+                        child_id=child_id,
+                        session_id=session_id,
+                        context_turns=turns,
+                    )
+                )
+            except Exception:  # noqa: BLE001 — safeguarding must never surface
+                logger.debug("learner voice safeguarding task failed", exc_info=True)
+
+        try:
+            threading.Thread(
+                target=_run, name="learner-voice-safeguard", daemon=True
+            ).start()
+        except Exception:  # noqa: BLE001
+            logger.debug("learner voice safeguarding dispatch failed", exc_info=True)
+
+    return _hook
+
+
+def learner_voice_socket(ws: simple_websocket.ws.Server) -> None:
+    """Realtime transport twin of ``POST /api/learning/assistant/turn``.
+
+    The text drawer and this socket share one brain (``run_assistant_turn``).
+    WebSocket frames bypass the HTTP ``before_request`` guards, so this route
+    re-implements the same authentication, tenant pinning, RLS scope binding and
+    child-ownership checks inline before handing frames to the handler.
+    """
+    environ = cast(Dict[str, Any], getattr(ws, "environ", {}) or {})
+    ws_headers = {
+        "X-MS-CLIENT-PRINCIPAL": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL", ""),
+        "X-MS-CLIENT-PRINCIPAL-ID": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_ID", ""),
+        "X-MS-CLIENT-PRINCIPAL-NAME": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_NAME", ""),
+        "X-MS-CLIENT-PRINCIPAL-IDP": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_IDP", ""),
+        "X-MS-CLIENT-PRINCIPAL-EMAIL": environ.get("HTTP_X_MS_CLIENT_PRINCIPAL_EMAIL", ""),
+    }
+    user = _get_authenticated_user_from_headers(ws_headers)
+    if user is None:
+        logger.warning("Rejected unauthenticated learner voice WebSocket connection")
+        ws.close(4401, "learning_voice_unauthorized")
+        return
+
+    role = str(user.get("role") or "")
+    user_id = str(user.get("id") or "").strip()
+
+    # Pin the tenant to the caller's identity so a client frame can never widen
+    # the RLS scope (cross-tenant access), mirroring the HTTP before_request gate.
+    authorized_tenant_ids = _learning_authorized_tenant_ids(user)
+    tenant_id = sorted(authorized_tenant_ids)[0] if authorized_tenant_ids else PILOT_TENANT_ID
+
+    # Children the caller owns. Learner roles are bound to their own children;
+    # therapists/admins are not child-bound at this layer (mirrors HTTP policy).
+    owned_child_ids: Set[str] = set()
+    if role in LEARNING_LEARNER_ROLES:
+        owned_child_ids = {
+            str(c) for c in _learning_student_ids_for_user(user) if str(c).strip()
+        }
+
+    # WebSocket frames bypass before_request, so make the storage request actor
+    # available on this worker thread for the brain's repository (RLS) calls.
+    storage_service.set_request_actor(
+        user_id or None,
+        role or None,
+        str(user.get("email") or "") or None,
+    )
+
+    def _bind_scope(payload: Mapping[str, Any]) -> None:
+        class_id = str(payload.get("class_id") or "").strip() or None
+        _bind_learning_storage_scope(tenant_id, class_id)
+
+    # Defaults merged *under* each frame: pin identity + tenant so the brain runs
+    # as the authenticated learner regardless of client-supplied values.
+    default_payload: Dict[str, Any] = {"tenant_id": tenant_id}
+    if user_id:
+        default_payload["user_id"] = user_id
+
+    handler = LearnerVoiceSocketHandler(
+        ws,
+        run_turn=learning_api.run_assistant_turn,
+        owned_child_ids=owned_child_ids,
+        bind_scope=_bind_scope,
+        default_payload=default_payload,
+        safeguard=_build_learner_voice_safeguard(),
+    )
+    try:
+        handler.run()
+    finally:
+        storage_service.clear_request_actor()
+        try:
+            ws.close(1000)
+        except Exception:
+            logger.debug("Failed to close learner voice websocket cleanly", exc_info=True)
+
+
+sock.route("/ws/learning-voice")(learner_voice_socket)  # pyright: ignore[reportUnknownMemberType]
 
 
 def main():

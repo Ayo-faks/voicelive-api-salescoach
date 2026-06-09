@@ -33,6 +33,21 @@ def build_safeguarding_blueprint(
 ) -> Blueprint:
     bp = Blueprint("safeguarding", __name__, url_prefix="/api/admin/safeguarding")
 
+    @bp.route("/status", methods=["GET"])
+    def status():  # noqa: ANN202
+        user, guard = require_admin()
+        if guard is not None:
+            return guard
+        service = get_service()
+        if service is None:
+            return (
+                jsonify({"configured": False, "enabled": False}),
+                HTTP_SERVICE_UNAVAILABLE,
+            )
+        payload = dict(service.status())
+        payload["configured"] = True
+        return jsonify(payload), HTTP_OK
+
     @bp.route("/events", methods=["GET"])
     def list_events():  # noqa: ANN202
         user, guard = require_admin()
