@@ -127,6 +127,12 @@ export function useLearnerVoiceSession({
   // already-buffered tutor audio can be flushed and in-flight deltas dropped
   // until the next reply begins.
   const bargedInRef = useRef(false)
+  // Whether the realtime socket ever reached the OPEN state.
+  const openedRef = useRef(false)
+  // Whether the session has produced anything the learner can see/hear (a
+  // card, audio, or a started response). Once true, later transport errors or
+  // closes are treated as transient/graceful rather than hard failures.
+  const progressRef = useRef(false)
   const [state, setState] = useState<TutorState>('connecting')
   const [card, setCard] = useState<LearnerVoiceCard | null>(null)
   const [sessionComplete, setSessionComplete] = useState(false)
@@ -214,9 +220,12 @@ export function useLearnerVoiceSession({
     setState('connecting')
     setFallback(null)
     setError(null)
+    openedRef.current = false
+    progressRef.current = false
     const ws = new WebSocket(wsUrl)
     wsRef.current = ws
     ws.onopen = () => {
+      openedRef.current = true
       setState('listening')
       ws.send(JSON.stringify({ type: 'session.update', session: {} }))
       if (!startOnOpen) return
@@ -235,6 +244,8 @@ export function useLearnerVoiceSession({
     ws.onmessage = event => {
       const parsed = JSON.parse(String(event.data)) as IncomingEvent
       if (parsed.type === 'wulo.learner_card' && parsed.payload?.card) {
+        progressRef.current = true
+        setError(null)
         setCard(parsed.payload.card)
         setSessionComplete(Boolean(parsed.payload.session_complete))
         setState('listening')
@@ -251,6 +262,8 @@ export function useLearnerVoiceSession({
         typeof parsed.delta === 'string'
       ) {
         if (bargedInRef.current) return
+        progressRef.current = true
+        setError(null)
         setState('speaking')
         playAudio(parsed.delta)
         return
@@ -259,6 +272,8 @@ export function useLearnerVoiceSession({
         parsed.type === 'response.created' ||
         parsed.type === 'response.output_item.added'
       ) {
+        progressRef.current = true
+        setError(null)
         bargedInRef.current = false
         setState('thinking')
         return
@@ -268,11 +283,42 @@ export function useLearnerVoiceSession({
       }
     }
     ws.onerror = () => {
-      setError('Voice connection failed. Check your connection and try again.')
+      // A transport-level error after the realtime session is already working
+      // (a card streamed, audio playing, or a response in flight) is almost
+      // always a transient blip. The tutor is visibly speaking / showing a
+      // card, so a hard "connection failed" banner would be misleading. Let the
+      // close handler decide if anything is actually broken.
+      if (progressRef.current) return
+      if (openedRef.current) {
+        setError(
+          'The tutor disconnected before it could start. Tap the mic to try again.'
+        )
+      } else {
+        setError(
+          'Could not reach the tutor. Check your connection and try again.'
+        )
+      }
       setState('error')
     }
     ws.onclose = () => {
-      if (wsRef.current === ws) wsRef.current = null
+      const wasCurrent = wsRef.current === ws
+      if (wasCurrent) wsRef.current = null
+      // Intentional teardown (close()/unmount) nulls wsRef before closing, so
+      // wasCurrent is false there — never surface an error for those.
+      if (!wasCurrent) return
+      // A spontaneous close after the session produced content is a graceful
+      // end, not a failure.
+      if (progressRef.current) return
+      if (openedRef.current) {
+        setError(
+          'The tutor disconnected before it could start. Tap the mic to try again.'
+        )
+      } else {
+        setError(
+          'Could not reach the tutor. Check your connection and try again.'
+        )
+      }
+      setState('error')
     }
 
     return () => {

@@ -5,6 +5,8 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
+from azure.ai.voicelive.models import Modality
+
 from src.services.websocket_handler import VoiceProxyHandler
 from src.services.voice_agent_profiles import AgentProfileContext, get_profile
 
@@ -340,6 +342,60 @@ class TestVoiceProxyHandler:
             "name": "ask_pathfinder",
         }
 
+    def test_extract_profile_tool_call_ignores_empty_item_created_args(self):
+        """A function_call item with no args yet must not pre-empt the real call.
+
+        Azure streams function arguments AFTER the ``conversation.item.created``
+        event, so that event carries ``arguments == ''``. If we acted on it we
+        would run the tool with no arguments AND mark the call_id handled, which
+        then blocks the authoritative ``response.function_call_arguments.done``
+        event (with the real arguments) — the model then sees no grounded block
+        and refuses. Guard: empty-arg item.created yields no tool call.
+        """
+        handler = VoiceProxyHandler(Mock())
+
+        empty_item = {
+            "type": "conversation.item.created",
+            "item": {
+                "type": "function_call",
+                "name": "ask_pathfinder",
+                "call_id": "call_1",
+                "arguments": "",
+            },
+        }
+        assert handler._extract_profile_tool_call(empty_item) is None
+
+        done_event = {
+            "type": "response.function_call_arguments.done",
+            "name": "ask_pathfinder",
+            "call_id": "call_1",
+            "arguments": '{"question": "what is photosynthesis"}',
+        }
+        extracted = handler._extract_profile_tool_call(done_event)
+        assert extracted is not None
+        name, call_id, arguments = extracted
+        assert name == "ask_pathfinder"
+        assert call_id == "call_1"
+        assert arguments == {"question": "what is photosynthesis"}
+
+    def test_extract_profile_tool_call_honours_item_created_with_args(self):
+        """A function_call item that already carries args is still actionable."""
+        handler = VoiceProxyHandler(Mock())
+        item_event = {
+            "type": "conversation.item.created",
+            "item": {
+                "type": "function_call",
+                "name": "ask_pathfinder",
+                "call_id": "call_2",
+                "arguments": '{"question": "what is osmosis"}',
+            },
+        }
+        extracted = handler._extract_profile_tool_call(item_event)
+        assert extracted is not None
+        name, call_id, arguments = extracted
+        assert name == "ask_pathfinder"
+        assert arguments == {"question": "what is osmosis"}
+
     def test_practice_response_create_keeps_existing_tool_choice_behavior(self):
         """Practice VoiceLive sessions keep the existing auto tool behavior."""
         handler = VoiceProxyHandler(Mock())
@@ -348,6 +404,29 @@ class TestVoiceProxyHandler:
         handler._apply_profile_response_tool_choice(message, get_profile("practice"))
 
         assert "response" not in message
+
+    def test_learner_ask_session_config_is_audio_only_with_instructions(self):
+        """learner_ask must send its grounded system prompt and stay audio-only.
+
+        Regression guard: when the avatar modality is left on (or instructions
+        are dropped) the Ask Wulo voice surface transcribes the learner but
+        never calls ask_pathfinder or streams reply audio to the browser.
+        """
+        handler = VoiceProxyHandler(Mock())
+        profile = get_profile("learner_ask")
+        context = AgentProfileContext(scope="learner_ask", child_id="stu-1")
+
+        session = handler._build_session_config(None, profile, context)
+
+        # Instructions carry the profile's "you MUST call ask_pathfinder" prompt.
+        assert "ask_pathfinder" in str(session.get("instructions") or "")
+        # Audio-only: no AVATAR modality, no avatar config, so audio.delta
+        # frames reach the websocket instead of the avatar WebRTC stream.
+        assert Modality.AVATAR not in list(session["modalities"])
+        assert session.get("avatar") is None
+        # The ask_pathfinder tool is wired so the model can ground its answer.
+        tool_names = {getattr(t, "name", None) for t in session["tools"]}
+        assert "ask_pathfinder" in tool_names
 
     @pytest.mark.asyncio
     async def test_profile_tool_call_sends_output_without_starting_active_response(self):
@@ -491,6 +570,45 @@ class TestVoiceProxyHandler:
         assert handled is True
         azure_conn.send.assert_awaited_once()
         handler._send_message.assert_not_awaited()
+
+    def test_normalize_result_speech_normalizes_card_speak_only(self):
+        """Spoken card.speak is TTS-normalized; display fields stay verbatim."""
+        handler = VoiceProxyHandler(Mock())
+        result = {
+            "card": {
+                "stem": r"Differentiate y = 3x^2 + 4x",
+                "speak": r"Differentiate y = 3x^2 + 4x with respect to x.",
+                "options": [r"6x \cdot 4", "other"],
+            }
+        }
+
+        handler._normalize_result_speech(result)
+
+        # Spoken text is converted to natural speech (no caret, no backslash).
+        assert "^" not in result["card"]["speak"]
+        assert "\\" not in result["card"]["speak"]
+        assert "squared" in result["card"]["speak"]
+        # Display fields are untouched.
+        assert result["card"]["stem"] == r"Differentiate y = 3x^2 + 4x"
+        assert result["card"]["options"] == [r"6x \cdot 4", "other"]
+
+    def test_normalize_result_speech_normalizes_each_block(self):
+        """Each block.speak is normalized; blocks without speak are left alone."""
+        handler = VoiceProxyHandler(Mock())
+        result = {
+            "blocks": [
+                {"kind": "prose", "speak": r"Use \frac{1}{2} here.", "text": r"Use \frac{1}{2} here."},
+                {"kind": "prose", "text": "No speak field."},
+            ]
+        }
+
+        handler._normalize_result_speech(result)
+
+        assert "\\" not in result["blocks"][0]["speak"]
+        assert "over" in result["blocks"][0]["speak"]
+        # Display text untouched, and the speak-less block is unaffected.
+        assert result["blocks"][0]["text"] == r"Use \frac{1}{2} here."
+        assert result["blocks"][1] == {"kind": "prose", "text": "No speak field."}
 
     def test_profile_instruction_block_omits_focus_when_absent(self):
         """Without a focus item the learner instructions have no Dig-Deeper block."""

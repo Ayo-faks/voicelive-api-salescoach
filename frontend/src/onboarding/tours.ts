@@ -306,16 +306,6 @@ export const welcomeLearnerTour: TourDefinition = {
       placement: 'top',
     },
     {
-      selector: '[data-testid="learner-help-fab"]',
-      testId: 'learner-help-fab',
-      title: t('tour.welcome_learner.step5.title', 'Wulo Tutor'),
-      body: t(
-        'tour.welcome_learner.step5.body',
-        'The same Wulo Tutor can talk it through hands-free when a learner needs coaching.'
-      ),
-      placement: 'bottom',
-    },
-    {
       selector: '[data-testid="career-pathway-suggestions"]',
       testId: 'career-pathway-suggestions',
       title: t('tour.welcome_learner.step6.title', 'Career pathways'),

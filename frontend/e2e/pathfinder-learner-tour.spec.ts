@@ -10,7 +10,7 @@
  *      `PATCH /api/learners/me/profile`.
  *   2. The tour does NOT re-run when the profile already carries a
  *      `tour_seen_at` timestamp (cross-device cache).
- *   3. All 7 anchor testids declared on `welcomeLearnerTour` are present
+ *   3. All 6 anchor testids declared on `welcomeLearnerTour` are present
  *      on `/home` so future Joyride steps cannot silently rot.
  *
  * The spec is fully route-mocked (`page.route`) so it does not depend on
@@ -55,7 +55,6 @@ const LEARNER_ANCHOR_TESTIDS = [
   'start-learner-tutor',
   'weak-topic-profile',
   'daily-revision-plan',
-  'learner-help-fab',
   'career-pathway-suggestions',
   'parent-share-summary',
 ] as const
@@ -200,7 +199,7 @@ test.describe('Pathfinder · learner welcome tour (Slice 3)', () => {
     ).toHaveLength(0)
   })
 
-  test.skip('all 7 anchor testids referenced by welcomeLearnerTour are present on /home', async ({
+  test.skip('all 6 anchor testids referenced by welcomeLearnerTour are present on /home', async ({
     page,
   }) => {
     const profilePatches: ProfileMockOptions['profilePatches'] = []

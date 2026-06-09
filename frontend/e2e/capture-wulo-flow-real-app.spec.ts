@@ -499,12 +499,12 @@ test.describe('Wulo Flow ad real app captures', () => {
     await capture(page, '03-real-app-voice-explanation-tutor', manifest)
 
     await page.goto('/home', { waitUntil: 'domcontentloaded' })
-    await expect(page.getByTestId('learner-help-fab')).toBeVisible()
-    await page.getByTestId('learner-help-fab').click()
+    await expect(page.getByTestId('start-learner-tutor')).toBeVisible()
+    await page.getByTestId('start-learner-tutor').click()
     await expect(page.getByTestId('learner-tutor')).toBeVisible()
     await expect(page.getByTestId('learner-tutor')).toHaveAttribute(
       'data-mode',
-      'floating'
+      'fullscreen'
     )
     await capture(page, '04-real-app-live-tutor-dig-deeper', manifest)
 

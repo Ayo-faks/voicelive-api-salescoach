@@ -458,7 +458,7 @@ describe('StudentLearningHome', () => {
     )
   })
 
-  it('opens the global voice help assistant in floating mode', async () => {
+  it('does not render a standalone floating voice help FAB on learner home', async () => {
     mockVoiceConfig()
 
     render(<MemoryRouter><StudentLearningHome studentId="student-001" /></MemoryRouter>)
@@ -470,19 +470,11 @@ describe('StudentLearningHome', () => {
       )
     })
 
-    fireEvent.click(screen.getByTestId('learner-help-fab'))
-
-    expect(await screen.findByTestId('learner-tutor-mock')).toBeTruthy()
-    const lastProps =
-      learnerTutorMock.mock.calls[learnerTutorMock.mock.calls.length - 1]?.[0]
-    expect(lastProps).toEqual(
-      expect.objectContaining({
-        open: true,
-        childId: 'student-001',
-        focusItem: null,
-        initialMode: 'floating',
-      })
-    )
+    // "Study with Wulo" is the single primary voice entry point; the old
+    // bottom-left floating voice FAB has been removed.
+    expect(screen.queryByTestId('learner-help-fab')).toBeNull()
+    expect(screen.queryByLabelText('Open voice help')).toBeNull()
+    expect(screen.getByRole('button', { name: /Study with Wulo/i })).toBeTruthy()
   })
 
   it('no longer renders the standalone Career Navigator card', () => {

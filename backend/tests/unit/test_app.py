@@ -120,6 +120,30 @@ class TestFlaskApp:
         assert "appinsights_connection_string" in data
         assert "planner" in data
 
+    @patch.dict("os.environ", {"PATHFINDER_VOICELIVE_ENABLED": "true"})
+    @patch("src.app.storage_service")
+    def test_get_config_exposes_voicelive_flag_for_learner(self, mock_storage_service):
+        """When the env flag is on, learner roles get VoiceLive (not Web Speech)."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload(role="learner")
+
+        response = self.client.get("/api/config", headers=self._auth_headers())
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["pathfinder_voicelive_enabled"] is True
+
+    @patch.dict("os.environ", {"PATHFINDER_VOICELIVE_ENABLED": "false"})
+    @patch("src.app.storage_service")
+    def test_get_config_voicelive_flag_off_when_env_disabled(self, mock_storage_service):
+        """With the env flag off the client falls back to Web Speech."""
+        mock_storage_service.get_or_create_user.return_value = self._user_payload(role="learner")
+
+        response = self.client.get("/api/config", headers=self._auth_headers())
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["pathfinder_voicelive_enabled"] is False
+
     @patch("src.app.planning_service")
     @patch("src.app.storage_service")
     def test_get_config_route_includes_planner_readiness(self, mock_storage_service, mock_planning_service):

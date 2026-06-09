@@ -165,12 +165,16 @@ const useStyles = makeStyles({
   fallback: {
     width: 'min(620px, 100%)',
     borderRadius: '14px',
-    border: '1px solid rgba(255, 205, 105, 0.38)',
-    background: 'rgba(255, 205, 105, 0.12)',
-    color: '#ffe2a8',
+    border: '1px solid var(--pf-line)',
+    background: 'var(--pf-status-warn-bg)',
+    color: 'var(--pf-status-warn-fg)',
     padding: '13px 15px',
     fontSize: '0.92rem',
     lineHeight: 1.45,
+  },
+  fallbackError: {
+    background: 'var(--pf-status-critical-bg)',
+    color: 'var(--pf-status-critical-fg)',
   },
   footer: {
     display: 'flex',
@@ -352,8 +356,11 @@ export function LearnerTutorFullscreen({
             {copy.hint}
           </span>
         </div>
-        {fallback || error ? (
-          <div className={styles.fallback} role="alert">
+        {state === 'error' && (fallback || error) ? (
+          <div
+            className={`${styles.fallback} ${fallback ? '' : styles.fallbackError}`}
+            role="alert"
+          >
             {fallback ?? error}
           </div>
         ) : null}

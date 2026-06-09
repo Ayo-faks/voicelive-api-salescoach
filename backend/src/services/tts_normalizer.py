@@ -127,6 +127,134 @@ _LETTER_NAME_PATTERNS: List[Tuple[re.Pattern[str], str]] = [
 
 _DEPRECATED_UPPERCASE_TH = re.compile(r"(?<![A-Za-z0-9])/TH/(?![A-Za-z0-9])")
 
+# --- Math / LaTeX speech normalisation -------------------------------------
+# Spoken-text only: keep displayed card content untouched. The goal is that
+# Azure TTS never voices literal control sequences ("back slash times") or
+# raw caret / Unicode exponents, and that simple maths reads naturally
+# (``3x^2 + 4x`` -> "3x squared + 4x").
+
+# LaTeX command tokens that do not read as their own English word. Anything not
+# listed simply has its leading backslash stripped so the bare word is spoken
+# (``\alpha`` -> "alpha"); the literal word "backslash" is never voiced.
+_LATEX_WORD_MAP: Dict[str, str] = {
+    "times": "times",
+    "cdot": "times",
+    "div": "divided by",
+    "pm": "plus or minus",
+    "mp": "minus or plus",
+    "leq": "less than or equal to",
+    "le": "less than or equal to",
+    "geq": "greater than or equal to",
+    "ge": "greater than or equal to",
+    "neq": "not equal to",
+    "ne": "not equal to",
+    "approx": "approximately",
+    "equiv": "is equivalent to",
+    "infty": "infinity",
+    "sum": "the sum of",
+    "prod": "the product of",
+    "int": "the integral of",
+    "deg": "degrees",
+    "circ": "degrees",
+    "ldots": "and so on",
+    "dots": "and so on",
+    "cdots": "and so on",
+}
+
+# Unicode superscript characters -> their plain-digit equivalents.
+_SUPERSCRIPT_DIGITS: Dict[str, str] = {
+    "\u2070": "0",
+    "\u00b9": "1",
+    "\u00b2": "2",
+    "\u00b3": "3",
+    "\u2074": "4",
+    "\u2075": "5",
+    "\u2076": "6",
+    "\u2077": "7",
+    "\u2078": "8",
+    "\u2079": "9",
+    "\u207f": "n",
+}
+
+# Unicode maths operators -> spoken words (Azure can voice these inconsistently).
+_UNICODE_MATH_OPERATORS: Dict[str, str] = {
+    "\u00d7": " times ",  # ×
+    "\u00f7": " divided by ",  # ÷
+    "\u2212": " minus ",  # −
+    "\u00b7": " times ",  # ·
+    "\u2264": " less than or equal to ",  # ≤
+    "\u2265": " greater than or equal to ",  # ≥
+    "\u2260": " not equal to ",  # ≠
+    "\u2248": " approximately ",  # ≈
+}
+
+_FRAC_PATTERN = re.compile(r"\\[dt]?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}")
+_SQRT_PATTERN = re.compile(r"\\sqrt\s*\{([^{}]*)\}")
+_CARET_BRACED = re.compile(r"\^\{([^{}]+)\}")
+_CARET_SIMPLE = re.compile(r"\^(-?\w+)")
+_LATEX_COMMAND_PATTERN = re.compile(r"\\([A-Za-z]+)")
+_SUPERSCRIPT_RUN = re.compile("[" + "".join(_SUPERSCRIPT_DIGITS) + "]+")
+_BACKSLASH_RUN = re.compile(r"\\+")
+_MULTISPACE = re.compile(r"[ \t]{2,}")
+
+
+def _spoken_exponent(exp: str) -> str:
+    """Return a natural-language rendering of an exponent token."""
+    exp = exp.strip()
+    if exp == "2":
+        return " squared"
+    if exp == "3":
+        return " cubed"
+    return f" to the power of {exp}"
+
+
+def _normalize_math_for_speech(text: str) -> str:
+    """Rewrite maths / LaTeX fragments into naturally spoken English.
+
+    Applied only to spoken-bound text. Leaves prose without maths untouched so
+    instruction prompts are never mangled.
+    """
+    if not text:
+        return text
+    if (
+        "\\" not in text
+        and "^" not in text
+        and not any(ch in text for ch in _SUPERSCRIPT_DIGITS)
+        and not any(ch in text for ch in _UNICODE_MATH_OPERATORS)
+    ):
+        return text
+
+    # \frac{a}{b} -> "a over b"; \sqrt{x} -> "the square root of x".
+    text = _FRAC_PATTERN.sub(lambda m: f" {m.group(1)} over {m.group(2)} ", text)
+    text = _SQRT_PATTERN.sub(lambda m: f" the square root of {m.group(1)} ", text)
+
+    # Caret exponents: x^2 -> "x squared", x^{10} -> "to the power of 10".
+    text = _CARET_BRACED.sub(lambda m: _spoken_exponent(m.group(1)), text)
+    text = _CARET_SIMPLE.sub(lambda m: _spoken_exponent(m.group(1)), text)
+
+    # Unicode superscript runs: x² -> "x squared".
+    text = _SUPERSCRIPT_RUN.sub(
+        lambda m: _spoken_exponent("".join(_SUPERSCRIPT_DIGITS[ch] for ch in m.group(0))),
+        text,
+    )
+
+    # Remaining LaTeX commands: mapped phrase, else strip the backslash.
+    def _command(match: re.Match[str]) -> str:
+        name = match.group(1)
+        word = _LATEX_WORD_MAP.get(name.lower())
+        return f" {word} " if word else f" {name} "
+
+    text = _LATEX_COMMAND_PATTERN.sub(_command, text)
+
+    # Unicode maths operators.
+    for symbol, word in _UNICODE_MATH_OPERATORS.items():
+        if symbol in text:
+            text = text.replace(symbol, word)
+
+    # Drop any stray backslashes so the word "backslash" is never voiced.
+    text = _BACKSLASH_RUN.sub(" ", text)
+    return _MULTISPACE.sub(" ", text)
+
 
 def _escape_xml(value: str) -> str:
     """XML-escape text destined for SSML attribute values or text nodes."""
@@ -216,6 +344,10 @@ def normalize_for_tts(
         else:
             replacement = _wrap_ssml_phoneme(key)
         rewritten = pattern.sub(replacement, rewritten)
+
+    # Third sweep: make maths / LaTeX fragments speakable so Azure never voices
+    # literal control sequences ("back slash times") or caret/Unicode exponents.
+    rewritten = _normalize_math_for_speech(rewritten)
 
     # Restore masked SSML phoneme blocks.
     def _unmask(match: re.Match[str]) -> str:

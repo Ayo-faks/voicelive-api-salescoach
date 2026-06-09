@@ -1559,6 +1559,23 @@ def _learner_voice_fullscreen_enabled(user: Optional[Dict[str, Any]]) -> bool:
     return str(raw).strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _pathfinder_voicelive_enabled(user: Optional[Dict[str, Any]]) -> bool:
+    """Whether the AskPathfinder voice surface uses Azure VoiceLive.
+
+    When off, the client falls back to the browser Web Speech API (which can
+    fail with "Speech service unreachable" when the browser's speech service
+    is offline). Gated to learner roles so the neural-voice realtime path is
+    only offered where the ``learner_ask`` VoiceLive scope is authorized.
+    """
+    if user is None:
+        return False
+    role = str(user.get("role") or "")
+    if role not in LEARNING_LEARNER_ROLES:
+        return False
+    raw = os.getenv("PATHFINDER_VOICELIVE_ENABLED", "false")
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
 def _log_audit_event(
     *,
     user_id: Optional[str],
@@ -1754,6 +1771,7 @@ def get_config():
             "voice_agent_dynamic_ui_enabled": _voice_agent_dynamic_ui_enabled(cast(Dict[str, Any], user) if user else None),
             "voice_agent_actions_enabled": _voice_agent_actions_enabled(cast(Dict[str, Any], user) if user else None),
             "learner_voice_fullscreen_enabled": _learner_voice_fullscreen_enabled(cast(Dict[str, Any], user) if user else None),
+            "pathfinder_voicelive_enabled": _pathfinder_voicelive_enabled(cast(Dict[str, Any], user) if user else None),
             "safety": dict(safety_gates.public_status_payload()),
             "onboarding": {
                 # Kill switch for the v2 onboarding/guidance system

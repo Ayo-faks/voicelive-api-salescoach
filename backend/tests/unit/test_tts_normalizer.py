@@ -133,3 +133,56 @@ class TestHelpers:
     def test_wrap_as_ssml_without_lexicon(self):
         out = wrap_as_ssml("hello", voice="en-GB-SoniaNeural")
         assert "<lexicon" not in out
+
+
+class TestMathSpeechNormalisation:
+    def test_latex_backslash_command_not_voiced_literally(self):
+        out = normalize_for_tts(r"y = 3 \times x")
+        assert "\\" not in out
+        assert "times" in out
+
+    def test_frac_reads_as_over(self):
+        out = normalize_for_tts(r"\frac{1}{2} of the class")
+        assert "1 over 2" in out
+        assert "\\" not in out
+
+    def test_sqrt_reads_naturally(self):
+        out = normalize_for_tts(r"\sqrt{9} equals 3")
+        assert "the square root of 9" in out
+        assert "\\" not in out
+
+    def test_caret_exponents(self):
+        assert "x squared" in normalize_for_tts("x^2 + 1")
+        assert "x cubed" in normalize_for_tts("x^3")
+        assert "to the power of 10" in normalize_for_tts("x^{10}")
+
+    def test_unicode_superscript(self):
+        out = normalize_for_tts("y = 3x\u00b2 + 4x")
+        assert "squared" in out
+        assert "\u00b2" not in out
+
+    def test_unicode_operators(self):
+        out = normalize_for_tts("6 \u00f7 2 \u00d7 3")
+        assert "divided by" in out
+        assert "times" in out
+        assert "\u00f7" not in out and "\u00d7" not in out
+
+    def test_stray_backslash_removed(self):
+        out = normalize_for_tts(r"answer is a \ b")
+        assert "\\" not in out
+
+    def test_plain_prose_untouched(self):
+        text = "Explain why your answer was wrong, then encourage the learner."
+        assert normalize_for_tts(text) == text
+
+    def test_idempotent_on_math(self):
+        once = normalize_for_tts(r"area = \frac{1}{2} b h, side x\u00b2")
+        twice = normalize_for_tts(once)
+        assert once == twice
+        assert "\\" not in once
+
+    def test_math_and_phoneme_coexist(self):
+        out = normalize_for_tts(r"the /sh/ sound and \frac{1}{2}")
+        assert '<phoneme alphabet="ipa" ph="\u0283">' in out
+        assert "1 over 2" in out
+

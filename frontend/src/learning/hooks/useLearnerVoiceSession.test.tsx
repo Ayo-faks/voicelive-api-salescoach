@@ -98,7 +98,7 @@ describe('useLearnerVoiceSession', () => {
     })
   })
 
-  it('transitions through card, thinking, speaking, barge-in, and error states', async () => {
+  it('transitions through card, thinking, speaking, barge-in, and ignores transport blips after content', async () => {
     render(<HookHarness startOnOpen />)
     await waitFor(() => expect(FakeWebSocket.instances).toHaveLength(1))
     const ws = FakeWebSocket.instances[0]
@@ -141,9 +141,42 @@ describe('useLearnerVoiceSession', () => {
     act(() => {
       ws.onerror?.()
     })
+    // A transport blip after the tutor has already streamed a card must NOT be
+    // surfaced as a hard "voice connection failed" error — the tutor is still
+    // visibly working.
+    expect(screen.getByTestId('voice-state').textContent).toBe('listening')
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('surfaces a reachable-connection error if the socket fails before opening', () => {
+    render(<HookHarness />)
+    const ws = FakeWebSocket.instances[0]
+
+    act(() => {
+      ws.onerror?.()
+    })
+
     expect(screen.getByTestId('voice-state').textContent).toBe('error')
     expect(screen.getByRole('alert').textContent).toContain(
-      'Voice connection failed'
+      'Could not reach the tutor'
+    )
+  })
+
+  it('reports a disconnect when the socket closes after opening but before any content', async () => {
+    render(<HookHarness />)
+    await waitFor(() => expect(FakeWebSocket.instances).toHaveLength(1))
+    const ws = FakeWebSocket.instances[0]
+    await waitFor(() =>
+      expect(screen.getByTestId('voice-state').textContent).toBe('listening')
+    )
+
+    act(() => {
+      ws.onclose?.()
+    })
+
+    expect(screen.getByTestId('voice-state').textContent).toBe('error')
+    expect(screen.getByRole('alert').textContent).toContain(
+      'disconnected before it could start'
     )
   })
 })

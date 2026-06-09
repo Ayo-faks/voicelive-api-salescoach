@@ -90,6 +90,13 @@ SESSION_UPDATE_TYPE = "session.update"
 PROXY_CONNECTED_TYPE = "proxy.connected"
 ERROR_TYPE = "error"
 
+# Learner voice profiles share audio-only output (no on-screen avatar) and have
+# their own grounded system prompts/tools. Both the guided practice tutor
+# ("learner") and the ask-anything tutor ("learner_ask") must be treated alike
+# when wiring voice, modalities, and instructions, or the ask surface silently
+# transcribes without ever calling its tool or streaming reply audio.
+LEARNER_VOICE_PROFILE_IDS = frozenset({"learner", "learner_ask"})
+
 # Stage 8 structured_conversation custom event types (Wulo-namespaced so they
 # never collide with Azure Realtime event types).
 WULO_TALLY_CONFIGURE_TYPE = "wulo.tally_configure"
@@ -472,7 +479,7 @@ class VoiceProxyHandler:
             is_photo_avatar = custom_avatar.get("is_photo_avatar", False)
             voice_name = custom_avatar.get("voice_name") or voice_name
 
-        if profile.id == "learner":
+        if profile.id in LEARNER_VOICE_PROFILE_IDS:
             voice_name = profile.voice
 
         avatar_config_value = self._build_avatar_config(avatar_character, avatar_style, is_photo_avatar)
@@ -526,7 +533,7 @@ class VoiceProxyHandler:
         # through the avatar/WebRTC stream and does not emit
         # `response.audio.delta` frames over the realtime websocket, so the
         # browser never hears the tutor. Practice/teacher flows keep the avatar.
-        is_audio_only_profile = profile.id == "learner"
+        is_audio_only_profile = profile.id in LEARNER_VOICE_PROFILE_IDS
         if is_audio_only_profile:
             modalities: list[Modality] = [Modality.TEXT, Modality.AUDIO]
             avatar_for_session: Any = None
@@ -557,7 +564,7 @@ class VoiceProxyHandler:
 
         personalization_block = self._build_personalization_instruction_block(agent_config)
 
-        if profile.id == "learner":
+        if profile.id in LEARNER_VOICE_PROFILE_IDS:
             session["instructions"] = append_phoneme_rule(
                 self._build_profile_instruction_block(profile, profile_context)
             )
@@ -1096,6 +1103,13 @@ class VoiceProxyHandler:
             logger.exception("Voice profile tool call failed: %s", name)
             result = {"error": str(exc) or "Tool call failed"}
 
+        # The realtime model is told to speak ``card.speak`` verbatim and the
+        # learner edge speaks ``block.speak`` directly, so any LaTeX/markup left
+        # in those spoken fields (a literal backslash, ``^2``, ``\frac`` …) would
+        # be voiced as "back slash" etc. Normalize spoken text only — displayed
+        # fields (stem/prompt/option text) are left untouched.
+        self._normalize_result_speech(result)
+
         output = json.dumps(result, separators=(",", ":"))
         await azure_conn.send(
             {
@@ -1143,6 +1157,27 @@ class VoiceProxyHandler:
     ) -> List[Dict[str, Any]]:
         return [dict(block) for block in blocks if isinstance(block, dict)]
 
+    def _normalize_result_speech(self, result: Dict[str, Any]) -> None:
+        """Normalize the spoken text of tool-output cards/blocks for TTS.
+
+        Mutates ``result`` in place so the same normalized spoken text is sent
+        both to Azure (the ``function_call_output`` the model voices) and to the
+        client. Only the spoken ``speak`` field is touched; displayed fields
+        such as ``stem``/``prompt`` and option labels keep their original markup.
+        """
+        card = result.get("card")
+        if isinstance(card, dict):
+            speak = card.get("speak")
+            if isinstance(speak, str) and speak:
+                card["speak"] = normalize_for_tts(speak)
+        blocks = result.get("blocks")
+        if isinstance(blocks, list):
+            for block in blocks:
+                if isinstance(block, dict):
+                    speak = block.get("speak")
+                    if isinstance(speak, str) and speak:
+                        block["speak"] = normalize_for_tts(speak)
+
     def _build_profile_tool_response_create(self, profile: AgentProfile) -> Dict[str, Any]:
         if profile.id == "learner":
             return {
@@ -1182,7 +1217,15 @@ class VoiceProxyHandler:
                 name = str(item.get("name") or "").strip()
                 call_id = str(item.get("call_id") or item.get("id") or "").strip()
                 arguments = self._coerce_tool_arguments(item.get("arguments"))
-                if name and call_id:
+                # Azure streams the function arguments AFTER emitting the
+                # function_call item, so ``conversation.item.created`` usually
+                # carries empty arguments. Acting on it would run the tool with
+                # no arguments AND mark the call_id handled, which then blocks
+                # the authoritative ``response.function_call_arguments.done``
+                # event (which carries the real arguments) from ever running.
+                # Only treat the item event as a tool call when it already has
+                # arguments; otherwise defer to function_call_arguments.done.
+                if name and call_id and arguments:
                     return name, call_id, arguments
         return None
 

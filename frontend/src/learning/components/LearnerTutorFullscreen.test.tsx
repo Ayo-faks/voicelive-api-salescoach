@@ -224,7 +224,7 @@ describe('LearnerTutorFullscreen', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
-  it('shows a visible connection error when the websocket fails', async () => {
+  it('shows a visible connection error when the websocket fails before any content', async () => {
     render(
       <LearnerTutorFullscreen open={true} onClose={() => {}} childId="stu-1" />
     )
@@ -235,7 +235,7 @@ describe('LearnerTutorFullscreen', () => {
     })
 
     expect(screen.getByRole('alert').textContent).toContain(
-      'Voice connection failed'
+      'disconnected before it could start'
     )
   })
 

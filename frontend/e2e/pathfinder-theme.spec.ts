@@ -236,8 +236,10 @@ test.describe('Pathfinder Learn theme system', () => {
         )
         await page.reload()
         await expectThemeRoot(page, mode)
-        await page.getByTestId('learner-help-fab').click()
+        await page.getByTestId('start-learner-tutor').click()
         const tutor = page.getByTestId('learner-tutor')
+        await expect(tutor).toBeVisible()
+        await page.getByTestId('learner-tutor-collapse').click()
         await expect(tutor).toHaveAttribute('data-mode', 'floating')
         const values = await page.getByTestId('learner-tutor-orb').evaluate(
           (orb) => {
