@@ -155,12 +155,12 @@ const useStyles = makeStyles({
     fontSize: '0.9rem',
     fontWeight: 800,
   },
-  brandDot: {
-    width: '9px',
-    height: '9px',
-    borderRadius: '999px',
-    backgroundColor: 'var(--scrim-fill)',
-    boxShadow: 'var(--scrim-brand-dot-glow)',
+  brandMark: {
+    width: '22px',
+    height: '22px',
+    borderRadius: '6px',
+    objectFit: 'contain',
+    flexShrink: 0,
   },
   textLink: {
     border: 'none',
@@ -627,7 +627,12 @@ export function VoiceOnboardingFlow({
     >
       <div className={styles.header}>
         <span className={styles.brand}>
-          <span className={styles.brandDot} />
+          <img
+            src="/wulo-logo.png?v=2"
+            alt=""
+            aria-hidden="true"
+            className={styles.brandMark}
+          />
           Wulo Academy
         </span>
         <button
