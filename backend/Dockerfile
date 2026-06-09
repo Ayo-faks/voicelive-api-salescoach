@@ -1,4 +1,4 @@
-FROM node:20-alpine AS frontend-builder
+FROM mcr.microsoft.com/devcontainers/javascript-node:1-20-bookworm AS frontend-builder
 
 WORKDIR /app
 
@@ -26,8 +26,10 @@ ENV VITE_PATHFINDER_GOAL_INTAKE_ENABLED=${VITE_PATHFINDER_GOAL_INTAKE_ENABLED}
 
 RUN npx --yes tsc && npx --yes vite build
 
-# Stage 2: Python runtime (using Ubuntu 20.04 base to avoid OpenSSL 3 issues with speechsdk)
-FROM python:3.11-slim-bullseye
+# Stage 2: Python runtime (using Debian Bullseye base to avoid OpenSSL 3 issues with speechsdk)
+FROM mcr.microsoft.com/devcontainers/python:1-3.11-bullseye
+
+USER root
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
