@@ -42,6 +42,7 @@ vi.mock('../components/LearnerTutorFullscreen', () => ({
       rationale?: string
       scored?: boolean
     } | null
+    initialMode?: 'floating' | 'fullscreen'
   }) => {
     learnerTutorMock(props)
     return props.open ? (
@@ -452,6 +453,34 @@ describe('StudentLearningHome', () => {
         exam: 'WAEC',
         classYear: 'SS2',
         subject: 'Mathematics',
+        initialMode: 'fullscreen',
+      })
+    )
+  })
+
+  it('opens the global voice help assistant in floating mode', async () => {
+    mockVoiceConfig()
+
+    render(<MemoryRouter><StudentLearningHome studentId="student-001" /></MemoryRouter>)
+
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        '/api/learning/voice/config',
+        expect.objectContaining({ method: 'GET' })
+      )
+    })
+
+    fireEvent.click(screen.getByTestId('learner-help-fab'))
+
+    expect(await screen.findByTestId('learner-tutor-mock')).toBeTruthy()
+    const lastProps =
+      learnerTutorMock.mock.calls[learnerTutorMock.mock.calls.length - 1]?.[0]
+    expect(lastProps).toEqual(
+      expect.objectContaining({
+        open: true,
+        childId: 'student-001',
+        focusItem: null,
+        initialMode: 'floating',
       })
     )
   })

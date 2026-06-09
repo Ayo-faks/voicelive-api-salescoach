@@ -8,6 +8,16 @@ import {
 const THEME_STORAGE_KEY = 'pathfinder-theme'
 const COOKIE_STORAGE_KEY = 'pathfinder.cookie-consent.v1'
 
+test.use({
+  permissions: ['microphone'],
+  launchOptions: {
+    args: [
+      '--use-fake-ui-for-media-stream',
+      '--use-fake-device-for-media-stream',
+    ],
+  },
+})
+
 type ThemeMode = 'light' | 'dark'
 
 const screenshotOptions = {
@@ -169,7 +179,6 @@ test.describe('Pathfinder Learn theme system', () => {
         await seedTheme(page, mode)
         await installThemeMocks(page, surface.role)
         await page.setViewportSize({ width: 1440, height: 1080 })
-
         await page.goto(surface.path)
         await expectThemeRoot(page, mode)
         await expect(page.getByTestId(surface.testId)).toBeVisible({
@@ -182,6 +191,106 @@ test.describe('Pathfinder Learn theme system', () => {
       })
     }
   }
+
+  test.describe('learner voice tutor theme tokens', () => {
+    test('floating panel uses pf surfaces and orb background differs between light and dark', async ({
+      page,
+    }) => {
+      await installThemeMocks(page)
+      await page.routeWebSocket('**/ws/voice**', (ws) => {
+        ws.onMessage((message) => {
+          let type: string | undefined
+          try {
+            type = JSON.parse(String(message)).type
+          } catch {
+            type = undefined
+          }
+          if (type === 'response.create') {
+            ws.send(
+              JSON.stringify({
+                type: 'wulo.learner_card',
+                payload: {
+                  session_complete: false,
+                  card: {
+                    card_id: 'theme-help-card',
+                    kind: 'mark-known',
+                    speak: 'Theme check.',
+                    prompt: 'Theme check.',
+                    confirm_label: 'Continue',
+                  },
+                },
+              })
+            )
+          }
+        })
+      })
+
+      const readTutorTokens = async (mode: ThemeMode) => {
+        await page.goto('/home')
+        await page.evaluate(
+          ([themeKey, cookieKey, themeMode]) => {
+            window.localStorage.setItem(themeKey, themeMode)
+            window.localStorage.setItem(cookieKey, 'accepted')
+          },
+          [THEME_STORAGE_KEY, COOKIE_STORAGE_KEY, mode]
+        )
+        await page.reload()
+        await expectThemeRoot(page, mode)
+        await page.getByTestId('learner-help-fab').click()
+        const tutor = page.getByTestId('learner-tutor')
+        await expect(tutor).toHaveAttribute('data-mode', 'floating')
+        const values = await page.getByTestId('learner-tutor-orb').evaluate(
+          (orb) => {
+            const panel = orb.closest('[data-testid="learner-tutor"]') as HTMLElement
+            const root = orb.closest('[data-theme]') as HTMLElement
+            const resolve = (property: string, target: 'background' | 'color') => {
+              const probe = document.createElement('span')
+              probe.style.position = 'absolute'
+              if (target === 'background') {
+                probe.style.background = `var(${property})`
+              } else {
+                probe.style.color = `var(${property})`
+              }
+              root.appendChild(probe)
+              const resolved =
+                target === 'background'
+                  ? window.getComputedStyle(probe).backgroundImage !== 'none'
+                    ? window.getComputedStyle(probe).backgroundImage
+                    : window.getComputedStyle(probe).backgroundColor
+                  : window.getComputedStyle(probe).color
+              probe.remove()
+              return resolved
+            }
+            const orbStyle = window.getComputedStyle(orb)
+            const panelStyle = window.getComputedStyle(panel)
+            return {
+              orbBackground: orbStyle.backgroundImage,
+              resolvedOrbToken: resolve('--scrim-orb-bg', 'background'),
+              panelBackground: panelStyle.backgroundColor,
+              resolvedSurface: resolve('--pf-surface', 'background'),
+              panelColor: panelStyle.color,
+              resolvedText: resolve('--pf-text', 'color'),
+            }
+          }
+        )
+        await page.getByTestId('learner-tutor-close').click()
+        return values
+      }
+
+      const lightValues = await readTutorTokens('light')
+      const darkValues = await readTutorTokens('dark')
+
+      expect(lightValues.orbBackground).toBe(lightValues.resolvedOrbToken)
+      expect(darkValues.orbBackground).toBe(darkValues.resolvedOrbToken)
+      expect(lightValues.orbBackground).not.toBe(darkValues.orbBackground)
+      expect(lightValues.orbBackground).not.toContain('#101012')
+      expect(darkValues.orbBackground).not.toContain('#101012')
+      expect(lightValues.panelBackground).toBe(lightValues.resolvedSurface)
+      expect(darkValues.panelBackground).toBe(darkValues.resolvedSurface)
+      expect(lightValues.panelColor).toBe(lightValues.resolvedText)
+      expect(darkValues.panelColor).toBe(darkValues.resolvedText)
+    })
+  })
 
   for (const mode of ['light', 'dark'] as const) {
     test(`practice fullscreen uses ${mode} scrim palette`, async ({ page }) => {

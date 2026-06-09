@@ -40,7 +40,7 @@ test.describe('Pathfinder · routed surfaces', () => {
     await expect(page).toHaveURL(/\/home$/)
     await expect(page.getByTestId('pathfinder-learn-app')).toBeVisible()
     await expect(
-      page.getByRole('navigation', { name: 'Pathfinder views' })
+      page.getByRole('navigation', { name: 'Wulo Academy views' })
     ).toBeVisible()
   })
 
@@ -73,7 +73,7 @@ test.describe('Pathfinder · routed surfaces', () => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/home')
     await expect(
-      page.getByRole('navigation', { name: 'Pathfinder bottom nav' })
+      page.getByRole('navigation', { name: 'Wulo Academy bottom nav' })
     ).toBeVisible()
     await expect(page.getByTestId('route-student-home')).toBeVisible()
     await expect(page).toHaveScreenshot('route-student-home-mobile.png', {
@@ -96,14 +96,14 @@ test.describe('Pathfinder · routed surfaces', () => {
     })
 
     await page
-      .getByRole('navigation', { name: 'Pathfinder views' })
+      .getByRole('navigation', { name: 'Wulo Academy views' })
       .getByRole('link', { name: 'Teacher' })
       .click()
     await expect(page).toHaveURL(/\/teacher$/)
     await expect(page.getByTestId('route-teacher-dashboard')).toBeVisible()
 
     await page
-      .getByRole('navigation', { name: 'Pathfinder views' })
+      .getByRole('navigation', { name: 'Wulo Academy views' })
       .getByRole('link', { name: 'Pathways' })
       .click()
     await expect(page).toHaveURL(/\/pathways$/)

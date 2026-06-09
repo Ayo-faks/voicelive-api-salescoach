@@ -353,33 +353,37 @@ async function installCaptureBrowserDoubles(page: Page) {
               const openEvent = new Event('open');
               this.onopen?.(openEvent);
               this.dispatchEvent(openEvent);
-              window.setTimeout(() => {
-                const messageEvent = new MessageEvent('message', {
-                  data: JSON.stringify({
-                    type: 'wulo.learner_card',
-                    payload: {
-                      session_complete: false,
-                      card: {
-                        card_id: 'dig-deeper-live-tutor',
-                        kind: 'explanation',
-                        speak: 'I can dig deeper while staying grounded in the learner profile and the exact question they missed.',
-                        title: 'Live tutor: dig deeper on the misconception',
-                        steps: [
-                          'I heard the learner ask for help on ratio scaling.',
-                          'I connect the mistake to the mastery profile: part-to-whole confusion.',
-                          'I give one smaller scaffold, then update the next intervention.',
-                        ],
-                        next_action_label: 'Ask another follow-up',
-                      },
-                    },
-                  }),
-                });
-                this.onmessage?.(messageEvent);
-                this.dispatchEvent(messageEvent);
-              }, 250);
             }, 50);
           }
-          send() {}
+          send(message) {
+            let type = '';
+            try { type = JSON.parse(String(message)).type; } catch {}
+            if (type !== 'response.create') return;
+            window.setTimeout(() => {
+              const messageEvent = new MessageEvent('message', {
+                data: JSON.stringify({
+                  type: 'wulo.learner_card',
+                  payload: {
+                    session_complete: false,
+                    card: {
+                      card_id: 'dig-deeper-live-tutor',
+                      kind: 'explanation',
+                      speak: 'I can dig deeper while staying grounded in the learner profile and the exact question they missed.',
+                      title: 'Live tutor: dig deeper on the misconception',
+                      steps: [
+                        'I heard the learner ask for help on ratio scaling.',
+                        'I connect the mistake to the mastery profile: part-to-whole confusion.',
+                        'I give one smaller scaffold, then update the next intervention.',
+                      ],
+                      next_action_label: 'Ask another follow-up',
+                    },
+                  },
+                }),
+              });
+              this.onmessage?.(messageEvent);
+              this.dispatchEvent(messageEvent);
+            }, 250);
+          }
           close() {
             this.readyState = FlowVoiceWebSocket.CLOSED;
             const closeEvent = new Event('close');
@@ -483,18 +487,25 @@ test.describe('Wulo Flow ad real app captures', () => {
     )
     await capture(page, '02-real-app-voice-practice-question', manifest)
 
-    await page.getByTestId('practice-option-a').click()
+    const firstPracticeOption = page
+      .locator('[data-testid^="practice-option-"]')
+      .first()
+    await expect(firstPracticeOption).toBeEnabled()
+    await firstPracticeOption.click()
     await expect(page.getByTestId('practice-card')).toHaveAttribute(
       'data-card-kind',
       'explanation'
     )
     await capture(page, '03-real-app-voice-explanation-tutor', manifest)
 
-    await page.getByTestId('practice-talk').click()
+    await page.goto('/home', { waitUntil: 'domcontentloaded' })
+    await expect(page.getByTestId('learner-help-fab')).toBeVisible()
+    await page.getByTestId('learner-help-fab').click()
     await expect(page.getByTestId('learner-tutor')).toBeVisible()
-    await expect(
-      page.getByTestId('learner-tutor').getByTestId('practice-card')
-    ).toHaveAttribute('data-card-kind', 'explanation')
+    await expect(page.getByTestId('learner-tutor')).toHaveAttribute(
+      'data-mode',
+      'floating'
+    )
     await capture(page, '04-real-app-live-tutor-dig-deeper', manifest)
 
     await page.goto('/home', { waitUntil: 'domcontentloaded' })
@@ -513,16 +524,19 @@ test.describe('Wulo Flow ad real app captures', () => {
     await capture(page, '06-real-app-career-pathways', manifest)
 
     await page.goto('/home', { waitUntil: 'domcontentloaded' })
-    await page.getByTestId('parent-share-summary').scrollIntoViewIfNeeded()
+    await expect(page.getByTestId('route-student-home')).toBeVisible()
+    const parentShareSummary = page.getByTestId('parent-share-summary')
+    await expect(parentShareSummary).toBeVisible()
+    await parentShareSummary.scrollIntoViewIfNeeded()
     await page.getByTestId('parent-disclosure-summary').click()
     await expect(page.getByTestId('parent-share-preview')).toBeVisible()
-    await page.getByTestId('parent-share-summary').evaluate(element => {
+    await parentShareSummary.evaluate(element => {
       const rect = element.getBoundingClientRect()
       const targetTop =
         window.scrollY + rect.top - Math.max(24, (window.innerHeight - rect.height) / 2)
       window.scrollTo(0, Math.max(0, targetTop))
     })
-    await expect(page.getByTestId('parent-share-summary')).toBeInViewport({
+    await expect(parentShareSummary).toBeInViewport({
       ratio: 0.95,
     })
     await capture(page, '07-real-app-parent-summary', manifest)

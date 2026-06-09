@@ -42,6 +42,22 @@ class TestVoiceProxyHandler:
 
         assert handler._has_authenticated_principal(mock_ws) is False
 
+    def test_profile_context_includes_current_card_query_params(self):
+        """Learner practice voice can bind the current card over /ws/voice."""
+        handler = VoiceProxyHandler(Mock())
+        mock_ws = Mock(
+            environ={
+                "QUERY_STRING": "scope=learner&child_id=stu-1&last_card_id=card-7&last_kind=mcq-tap"
+            }
+        )
+
+        context = handler._get_profile_context(mock_ws)
+
+        assert context.scope == "learner"
+        assert context.child_id == "stu-1"
+        assert context.last_card_id == "card-7"
+        assert context.last_kind == "mcq-tap"
+
     @pytest.mark.asyncio
     async def test_handle_connection_rejects_missing_principal(self):
         """Test handle_connection fails closed when Easy Auth headers are missing."""

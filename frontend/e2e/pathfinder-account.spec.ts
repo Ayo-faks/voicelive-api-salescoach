@@ -1,7 +1,7 @@
 /**
  * Pathfinder · Account & settings navigation.
  *
- * Verifies that the learner sidebar opens a Pathfinder-themed account hub
+ * Verifies that the learner sidebar opens a Wulo Academy account hub
  * (not the legacy SalesCoach Settings page) and that each linked surface
  * — Settings, Privacy, Terms, AI notice — renders the Pathfinder content
  * we ship for learners.
@@ -15,7 +15,7 @@ const accountLinks = [
   { testId: 'account-action-settings', path: '/account/settings', routeTestId: 'route-account-settings', heading: 'Settings' },
   { testId: 'account-action-privacy', path: '/account/privacy', routeTestId: 'route-account-privacy', heading: 'Privacy' },
   { testId: 'account-action-terms', path: '/account/terms', routeTestId: 'route-account-terms', heading: 'Terms of use' },
-  { testId: 'account-action-ai-notice', path: '/account/ai-notice', routeTestId: 'route-account-ai-notice', heading: 'How Pathfinder uses AI' },
+  { testId: 'account-action-ai-notice', path: '/account/ai-notice', routeTestId: 'route-account-ai-notice', heading: 'How Wulo Academy uses AI' },
 ]
 
 test.describe('Pathfinder · Account & settings', () => {
@@ -45,7 +45,7 @@ test.describe('Pathfinder · Account & settings', () => {
     await expect(page).toHaveURL(/\/account$/)
     await expect(page.getByTestId('route-account-hub')).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Account & settings' })).toBeVisible()
-    await expect(page.getByText('Pathfinder · Account')).toBeVisible()
+    await expect(page.getByText('Wulo Academy · Account')).toBeVisible()
 
     const hub = page.getByTestId('route-account-hub')
     for (const link of accountLinks) {
@@ -63,8 +63,8 @@ test.describe('Pathfinder · Account & settings', () => {
       await expect(page).toHaveURL(new RegExp(`${link.path.replace(/\//g, '\\/')}$`))
       await expect(page.getByTestId(link.routeTestId)).toBeVisible()
       await expect(page.getByRole('heading', { name: link.heading })).toBeVisible()
-      // Each Pathfinder page wears the Pathfinder eyebrow, not the legacy chrome.
-      await expect(page.getByText(/Pathfinder ·/)).toBeVisible()
+      // Each page wears the Wulo Academy eyebrow, not the legacy chrome.
+      await expect(page.getByText(/Wulo Academy ·/)).toBeVisible()
       // Pathfinder shell should still be mounted around the page.
       await expect(page.getByTestId('pathfinder-learn-app')).toBeVisible()
 

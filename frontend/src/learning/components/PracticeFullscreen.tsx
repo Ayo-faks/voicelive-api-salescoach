@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { makeStyles } from '@fluentui/react-components'
+import { MicrophoneIcon } from '@heroicons/react/24/outline'
 import { XMarkIcon } from '@heroicons/react/24/solid'
 import {
   runLearnerVoiceTurn,
@@ -7,7 +8,7 @@ import {
   type LearnerVoiceTurnRequest,
 } from '../api'
 import { useTtsPlayer } from '../hooks/useTtsPlayer'
-import LearnerTutorFullscreen from './LearnerTutorFullscreen'
+import { useLearnerVoiceSession } from '../hooks/useLearnerVoiceSession'
 import { LearnerVoiceCardRenderer } from './LearnerVoiceCard'
 
 const useStyles = makeStyles({
@@ -103,6 +104,62 @@ const useStyles = makeStyles({
     textTransform: 'uppercase',
     color: 'var(--scrim-fg-muted)',
   },
+  voiceAnswerStrip: {
+    width: 'min(640px, 100%)',
+    display: 'grid',
+    gridTemplateColumns: 'auto minmax(0, 1fr) auto',
+    alignItems: 'center',
+    gap: '14px',
+    padding: '12px 14px',
+    borderRadius: '18px',
+    border: '1px solid var(--scrim-line-strong)',
+    background: 'var(--scrim-card)',
+  },
+  voiceMicButton: {
+    width: '54px',
+    height: '54px',
+    borderRadius: '999px',
+    border: '1px solid var(--scrim-line-strong)',
+    background: 'var(--scrim-mic-bg)',
+    color: '#ffffff',
+    display: 'grid',
+    placeItems: 'center',
+    cursor: 'pointer',
+    boxShadow: 'var(--scrim-mic-shadow)',
+    ':disabled': { opacity: 0.5, cursor: 'not-allowed' },
+  },
+  voiceMicButtonRecording: {
+    boxShadow: 'var(--scrim-mic-recording-shadow)',
+  },
+  voiceMicGlyph: { width: '22px', height: '22px' },
+  voiceIndicator: {
+    display: 'grid',
+    gap: '3px',
+    minWidth: 0,
+  },
+  voiceIndicatorTitle: {
+    fontSize: '13px',
+    fontWeight: 800,
+    color: 'var(--scrim-fg-strong)',
+  },
+  voiceIndicatorHint: {
+    fontSize: '12px',
+    color: 'var(--scrim-fg-muted)',
+  },
+  voiceLevel: {
+    width: '64px',
+    height: '8px',
+    borderRadius: '999px',
+    background: 'var(--scrim-line-strong)',
+    overflow: 'hidden',
+  },
+  voiceLevelFill: {
+    display: 'block',
+    height: '100%',
+    borderRadius: '999px',
+    background: 'var(--scrim-fill)',
+    transition: 'width 120ms ease',
+  },
   errorBanner: {
     background: 'rgba(255, 80, 80, 0.12)',
     border: '1px solid rgba(255, 80, 80, 0.4)',
@@ -145,7 +202,6 @@ export function PracticeFullscreen({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sessionComplete, setSessionComplete] = useState(false)
-  const [tutorOpen, setTutorOpen] = useState(false)
   const {
     supported: ttsSupported,
     playing: ttsPlaying,
@@ -175,6 +231,32 @@ export function PracticeFullscreen({
       return next
     })
   }, [])
+
+  const voiceSession = useLearnerVoiceSession({
+    open: open && Boolean(childId) && Boolean(card),
+    childId,
+    exam,
+    classYear,
+    subject,
+    lastCardId: card?.card_id ?? null,
+    lastKind: card?.kind ?? null,
+    autoStartRecording: false,
+    closeOnMicDeniedMs: null,
+    startOnOpen: false,
+  })
+  const voiceCard = voiceSession.card
+  const visibleCard = voiceCard ?? card
+  const visibleSessionComplete = voiceCard
+    ? voiceSession.sessionComplete
+    : sessionComplete
+
+  const voiceStateLabel = useMemo(() => {
+    if (voiceSession.state === 'connecting') return 'Connecting'
+    if (voiceSession.state === 'thinking') return 'Thinking'
+    if (voiceSession.state === 'speaking') return 'Speaking'
+    if (voiceSession.state === 'error') return 'Voice needs attention'
+    return voiceSession.recording ? 'Listening' : 'Ready'
+  }, [voiceSession.recording, voiceSession.state])
 
   const requestTurn = useCallback(
     async (
@@ -212,17 +294,17 @@ export function PracticeFullscreen({
   )
 
   const handleClose = useCallback(() => {
+    voiceSession.close()
     stop()
-    setTutorOpen(false)
     onClose()
-  }, [onClose, stop])
+  }, [onClose, stop, voiceSession])
 
   // Read each new card aloud automatically when voice is on. Re-runs when the
   // card changes (new question / explanation) and when the learner flips the
   // voice toggle — so turning voice back on replays the current card, and
   // turning it off stops playback. `play` already stops any prior audio first.
-  const cardId = card?.card_id
-  const cardSpeak = card?.speak
+  const cardId = visibleCard?.card_id
+  const cardSpeak = visibleCard?.speak
   useEffect(() => {
     const text = cardSpeak?.trim()
     if (!cardId) return
@@ -242,7 +324,6 @@ export function PracticeFullscreen({
       setCard(null)
       setSessionComplete(false)
       setError(null)
-      setTutorOpen(false)
       return
     }
     setCard(null)
@@ -264,31 +345,43 @@ export function PracticeFullscreen({
 
   const handleMcqAnswer = useCallback(
     (optionId: string) => {
-      if (!card || card.kind !== 'mcq-tap') return
+      if (!visibleCard || visibleCard.kind !== 'mcq-tap') return
+      if (voiceCard) {
+        voiceSession.sendLearnerReply(
+          `I choose option ${optionId}. Previous card: ${visibleCard.card_id}.`
+        )
+        return
+      }
       void requestTurn({
-        last_card_id: card.card_id,
+        last_card_id: visibleCard.card_id,
         last_kind: 'mcq-tap',
         answer_option_id: optionId,
       })
     },
-    [card, requestTurn]
+    [requestTurn, visibleCard, voiceCard, voiceSession]
   )
 
   const handleAdvance = useCallback(() => {
-    if (!card) return
+    if (!visibleCard) return
+    if (voiceCard) {
+      voiceSession.sendLearnerReply(
+        `Next card please. Previous card: ${visibleCard.card_id}.`
+      )
+      return
+    }
     void requestTurn({
-      last_card_id: card.card_id,
-      last_kind: card.kind,
+      last_card_id: visibleCard.card_id,
+      last_kind: visibleCard.kind,
       advance: true,
     })
-  }, [card, requestTurn])
+  }, [requestTurn, visibleCard, voiceCard, voiceSession])
 
   const statusText = useMemo(() => {
     if (loading) return 'Thinking…'
-    if (sessionComplete) return 'All done for today.'
-    if (card) return 'Tap an answer to continue.'
+    if (visibleSessionComplete) return 'All done for today.'
+    if (visibleCard) return 'Tap or speak an answer to continue.'
     return ''
-  }, [loading, sessionComplete, card])
+  }, [loading, visibleSessionComplete, visibleCard])
 
   if (!open) return null
 
@@ -332,27 +425,18 @@ export function PracticeFullscreen({
                 : '🔇 Voice off'}
             </button>
           ) : null}
-          <button
-            type="button"
-            className={styles.listenButton}
-            onClick={() => setTutorOpen(true)}
-            aria-label="Talk to tutor"
-            data-testid="practice-talk"
-          >
-            🎙️ Talk to tutor
-          </button>
         </div>
         {error ? (
           <div className={styles.errorBanner} role="alert">
             {error}
           </div>
         ) : null}
-        <div className={styles.cardSlot}>
-          {card ? (
+        <div className={styles.cardSlot} data-testid="practice-card-slot">
+          {visibleCard ? (
             <LearnerVoiceCardRenderer
-              card={card}
-              disabled={loading}
-              sessionComplete={sessionComplete}
+              card={visibleCard}
+              disabled={loading || voiceSession.state === 'thinking'}
+              sessionComplete={visibleSessionComplete}
               onMcqAnswer={handleMcqAnswer}
               onAdvance={handleAdvance}
               onFinish={handleClose}
@@ -361,20 +445,48 @@ export function PracticeFullscreen({
         </div>
       </div>
       <footer className={styles.footer}>
+        <div className={styles.voiceAnswerStrip} data-testid="practice-voice-answer">
+          <button
+            type="button"
+            className={`${styles.voiceMicButton} ${voiceSession.recording ? styles.voiceMicButtonRecording : ''}`}
+            onClick={() => void voiceSession.toggleRecording()}
+            disabled={!card}
+            aria-label={voiceSession.recording ? 'Stop voice answer' : 'Answer by voice'}
+            data-testid="practice-voice-mic"
+          >
+            <MicrophoneIcon className={styles.voiceMicGlyph} aria-hidden="true" />
+          </button>
+          <span className={styles.voiceIndicator}>
+            <span
+              className={styles.voiceIndicatorTitle}
+              data-testid="practice-voice-state"
+            >
+              {voiceStateLabel}
+            </span>
+            <span className={styles.voiceIndicatorHint}>
+              Speak your answer, or tap an option above
+            </span>
+          </span>
+          <span className={styles.voiceLevel} aria-hidden="true">
+            <span
+              className={styles.voiceLevelFill}
+              style={{ width: `${Math.round(voiceSession.inputLevel * 100)}%` }}
+            />
+          </span>
+        </div>
+        {voiceSession.fallback || voiceSession.error ? (
+          <div
+            className={styles.errorBanner}
+            role="alert"
+            data-testid="practice-voice-error"
+          >
+            {voiceSession.fallback ?? voiceSession.error}
+          </div>
+        ) : null}
         <span className={styles.footerHint}>
-          Tap an option to answer · Tap 🔊 to turn the voice on or off
+          Tap 🔊 to turn the voice on or off
         </span>
       </footer>
-      {tutorOpen ? (
-        <LearnerTutorFullscreen
-          open={tutorOpen}
-          onClose={() => setTutorOpen(false)}
-          childId={childId}
-          exam={exam}
-          classYear={classYear}
-          subject={subject}
-        />
-      ) : null}
     </dialog>
   )
 }

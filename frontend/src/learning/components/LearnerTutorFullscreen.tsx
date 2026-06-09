@@ -1,27 +1,20 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { makeStyles } from '@fluentui/react-components'
-import { MicrophoneIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import { useAudioPlayer } from '../../hooks/useAudioPlayer'
-import { useRecorder } from '../../hooks/useRecorder'
-import type { LearnerVoiceCard } from '../api'
+import {
+  ArrowsPointingInIcon,
+  ArrowsPointingOutIcon,
+  MicrophoneIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline'
 import type { LearnerFocusItem } from '../contexts/LearnerContext'
+import {
+  type TutorState,
+  type TutorVoiceSnapshot,
+  useLearnerVoiceSession,
+} from '../hooks/useLearnerVoiceSession'
 import { LearnerVoiceCardRenderer } from './LearnerVoiceCard'
 
-const MIC_DENIED_COPY =
-  'Tutor needs your microphone to listen. Tap 🔊 Listen on cards instead.'
-
-export type TutorState =
-  | 'connecting'
-  | 'listening'
-  | 'thinking'
-  | 'speaking'
-  | 'error'
-
-export type TutorVoiceSnapshot = {
-  state: TutorState | 'idle'
-  inputLevel: number
-  recording: boolean
-}
+export type { TutorState, TutorVoiceSnapshot } from '../hooks/useLearnerVoiceSession'
 
 const useStyles = makeStyles({
   scrim: {
@@ -40,12 +33,41 @@ const useStyles = makeStyles({
     display: 'grid',
     gridTemplateRows: 'auto 1fr auto',
   },
+  floatingPanel: {
+    position: 'fixed',
+    right: '24px',
+    bottom: '24px',
+    width: 'min(420px, calc(100vw - 32px))',
+    maxHeight: 'min(620px, calc(100vh - 48px))',
+    margin: 0,
+    padding: 0,
+    border: '1px solid var(--pf-line)',
+    borderRadius: '18px',
+    zIndex: 120,
+    background: 'var(--pf-surface)',
+    color: 'var(--pf-text)',
+    boxShadow: 'var(--pf-shadow-card-elevated)',
+    display: 'grid',
+    gridTemplateRows: 'auto minmax(0, 1fr) auto',
+    overflow: 'hidden',
+    '@media (max-width: 540px)': {
+      right: '12px',
+      left: '12px',
+      bottom: '12px',
+      width: 'auto',
+      maxHeight: 'calc(100vh - 24px)',
+    },
+  },
   header: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '18px 24px',
     borderBottom: '1px solid var(--scrim-line-soft)',
+  },
+  floatingHeader: {
+    padding: '14px 16px',
+    borderBottom: '1px solid var(--pf-line)',
   },
   brand: {
     display: 'inline-flex',
@@ -72,6 +94,16 @@ const useStyles = makeStyles({
     placeItems: 'center',
     cursor: 'pointer',
   },
+  floatingIconButton: {
+    border: '1px solid var(--pf-line)',
+    background: 'var(--pf-surface-muted)',
+    color: 'var(--pf-text)',
+  },
+  headerControls: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
   icon: { width: '19px', height: '19px' },
   body: {
     display: 'grid',
@@ -81,13 +113,26 @@ const useStyles = makeStyles({
     padding: '34px 20px 20px',
     overflowY: 'auto',
   },
+  floatingBody: {
+    gap: '16px',
+    padding: '20px 16px 14px',
+  },
   orb: {
     width: 'min(220px, 48vw)',
     aspectRatio: '1',
     borderRadius: '999px',
-    background:
-      'radial-gradient(circle at 32% 26%, #ffffff 0%, #d8d8dd 34%, #53535a 68%, #101012 100%)',
+    background: 'var(--scrim-orb-bg)',
     boxShadow: 'var(--scrim-orb-glow)',
+  },
+  floatingOrb: {
+    width: '112px',
+  },
+  orbSpeaking: {
+    boxShadow: 'var(--scrim-orb-speaking-glow)',
+  },
+  orbThinking: {
+    background: 'var(--scrim-orb-thinking-bg)',
+    boxShadow: 'var(--scrim-orb-thinking-glow)',
   },
   orbActive: {
     animationName: {
@@ -111,6 +156,9 @@ const useStyles = makeStyles({
     color: 'var(--scrim-fg-soft)',
     fontSize: '0.9rem',
   },
+  floatingStateHint: {
+    color: 'var(--pf-text-secondary)',
+  },
   cardSlot: {
     width: 'min(680px, 100%)',
   },
@@ -130,6 +178,9 @@ const useStyles = makeStyles({
     justifyContent: 'center',
     gap: '14px',
     padding: '18px 24px 30px',
+  },
+  floatingFooter: {
+    padding: '14px 16px 18px',
   },
   micButton: {
     width: '64px',
@@ -177,50 +228,10 @@ export interface LearnerTutorFullscreenProps {
    */
   focusItem?: LearnerFocusItem | null
   onVoiceStateChange?: (snapshot: TutorVoiceSnapshot) => void
+  initialMode?: TutorPresentationMode
 }
 
-type IncomingEvent = Record<string, unknown> & {
-  type?: string
-  delta?: string
-  payload?: {
-    card?: LearnerVoiceCard
-    session_complete?: boolean
-  }
-}
-
-function buildLearnerVoiceUrl({
-  childId,
-  exam,
-  classYear,
-  subject,
-  focusItem,
-}: Pick<
-  LearnerTutorFullscreenProps,
-  'childId' | 'exam' | 'classYear' | 'subject' | 'focusItem'
->): string {
-  const endpoint = '/ws/voice'
-  const isLocalDevServer = location.port !== '' && location.port !== '8000'
-  const origin = isLocalDevServer
-    ? `${location.protocol}//${location.hostname}:8000`
-    : location.origin
-  const url = new URL(endpoint, origin)
-  url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
-  url.searchParams.set('scope', 'learner')
-  url.searchParams.set('child_id', childId)
-  if (exam) url.searchParams.set('exam', exam)
-  if (classYear) url.searchParams.set('class_year', classYear)
-  if (subject) url.searchParams.set('subject', subject)
-  if (focusItem) {
-    if (focusItem.stem) url.searchParams.set('focus_stem', focusItem.stem)
-    if (focusItem.skillId)
-      url.searchParams.set('focus_skill_id', focusItem.skillId)
-    if (focusItem.misconception)
-      url.searchParams.set('focus_misconception', focusItem.misconception)
-    if (typeof focusItem.scored === 'boolean')
-      url.searchParams.set('focus_scored', focusItem.scored ? 'true' : 'false')
-  }
-  return url.toString()
-}
+export type TutorPresentationMode = 'floating' | 'fullscreen'
 
 function stateCopy(state: TutorState, recording: boolean) {
   if (state === 'connecting')
@@ -251,185 +262,37 @@ export function LearnerTutorFullscreen({
   subject,
   focusItem,
   onVoiceStateChange,
+  initialMode = 'fullscreen',
 }: LearnerTutorFullscreenProps): JSX.Element | null {
   const styles = useStyles()
-  const wsRef = useRef<WebSocket | null>(null)
-  const micRequestedRef = useRef(false)
-  const recordingRef = useRef(false)
-  const toggleRecordingRef = useRef<(() => Promise<void>) | null>(null)
-  // Set the instant Azure's server VAD reports the learner started speaking, so
-  // we can flush the tutor's already-buffered audio and drop any straggler
-  // `response.audio.delta` frames from the interrupted response until the next
-  // `response.created` (barge-in). Cleared when the next reply begins.
-  const bargedInRef = useRef(false)
-  const [state, setState] = useState<TutorState>('connecting')
-  const [card, setCard] = useState<LearnerVoiceCard | null>(null)
-  const [sessionComplete, setSessionComplete] = useState(false)
-  const [fallback, setFallback] = useState<string | null>(null)
-  const { playAudio, stopAudio } = useAudioPlayer()
-
-  const send = useCallback((message: Record<string, unknown>) => {
-    const ws = wsRef.current
-    if (!ws || ws.readyState !== WebSocket.OPEN) return
-    ws.send(JSON.stringify(message))
-  }, [])
-
-  const { recording, inputLevel, toggleRecording } = useRecorder({
-    mode: 'stream',
-    onAudioChunk: base64 => {
-      send({ type: 'input_audio_buffer.append', audio: base64 })
-    },
+  const [mode, setMode] = useState<TutorPresentationMode>(initialMode)
+  const {
+    state,
+    recording,
+    inputLevel,
+    card,
+    sessionComplete,
+    fallback,
+    error,
+    toggleRecording,
+    sendLearnerReply,
+    close,
+  } = useLearnerVoiceSession({
+    open,
+    childId,
+    exam,
+    classYear,
+    subject,
+    focusItem,
+    onClose,
+    onVoiceStateChange,
   })
 
-  useEffect(() => {
-    recordingRef.current = recording
-    toggleRecordingRef.current = toggleRecording
-  }, [recording, toggleRecording])
-
-  useEffect(() => {
-    if (!onVoiceStateChange) return
-    onVoiceStateChange({
-      state: open ? state : 'idle',
-      inputLevel,
-      recording,
-    })
-  }, [onVoiceStateChange, open, state, inputLevel, recording])
-
-  useEffect(
-    () => () => {
-      onVoiceStateChange?.({ state: 'idle', inputLevel: 0, recording: false })
-    },
-    [onVoiceStateChange]
-  )
-
-  useEffect(
-    () => () => {
-      if (recordingRef.current) {
-        void toggleRecordingRef.current?.()
-      }
-    },
-    []
-  )
-
-  const wsUrl = useMemo(
-    () => buildLearnerVoiceUrl({ childId, exam, classYear, subject, focusItem }),
-    [childId, exam, classYear, subject, focusItem]
-  )
-
-  useEffect(() => {
-    if (!open) {
-      micRequestedRef.current = false
-      return
-    }
-
-    setState('connecting')
-    setFallback(null)
-    const ws = new WebSocket(wsUrl)
-    wsRef.current = ws
-    ws.onopen = () => {
-      setState('listening')
-      ws.send(JSON.stringify({ type: 'session.update', session: {} }))
-      ws.send(
-        JSON.stringify({
-          type: 'conversation.item.create',
-          item: {
-            type: 'message',
-            role: 'user',
-            content: [
-              { type: 'input_text', text: 'Start my tutoring session.' },
-            ],
-          },
-        })
-      )
-      ws.send(JSON.stringify({ type: 'response.create' }))
-    }
-    ws.onmessage = event => {
-      const parsed = JSON.parse(String(event.data)) as IncomingEvent
-      if (parsed.type === 'wulo.learner_card' && parsed.payload?.card) {
-        setCard(parsed.payload.card)
-        setSessionComplete(Boolean(parsed.payload.session_complete))
-        setState('listening')
-        return
-      }
-      // Barge-in: the learner started talking over the tutor. Azure's server
-      // VAD stops generating, but the browser has many audio chunks scheduled
-      // ahead in the Web Audio context — flush them so the tutor goes quiet
-      // immediately, and ignore any in-flight deltas from the now-dead response
-      // until the next reply starts. Without this the audio keeps playing (and
-      // the agent only appears to "duck" in volume) when the learner interrupts.
-      if (parsed.type === 'input_audio_buffer.speech_started') {
-        bargedInRef.current = true
-        stopAudio()
-        setState('listening')
-        return
-      }
-      if (
-        parsed.type === 'response.audio.delta' &&
-        typeof parsed.delta === 'string'
-      ) {
-        if (bargedInRef.current) return
-        setState('speaking')
-        playAudio(parsed.delta)
-        return
-      }
-      if (
-        parsed.type === 'response.created' ||
-        parsed.type === 'response.output_item.added'
-      ) {
-        bargedInRef.current = false
-        setState('thinking')
-        return
-      }
-      if (parsed.type === 'response.done') {
-        setState('listening')
-      }
-    }
-    ws.onerror = () => setState('error')
-    ws.onclose = () => {
-      if (wsRef.current === ws) wsRef.current = null
-    }
-
-    return () => {
-      wsRef.current = null
-      ws.close()
-      stopAudio()
-    }
-  }, [open, playAudio, stopAudio, wsUrl])
-
-  useEffect(() => {
-    if (!open || micRequestedRef.current) return
-    micRequestedRef.current = true
-    void toggleRecording().catch(() => {
-      setFallback(MIC_DENIED_COPY)
-      setState('error')
-      window.setTimeout(onClose, 4000)
-    })
-  }, [open, onClose, toggleRecording])
-
   const handleClose = useCallback(() => {
-    stopAudio()
-    if (recording) {
-      void toggleRecording().finally(onClose)
-      return
-    }
-    onClose()
-  }, [onClose, recording, stopAudio, toggleRecording])
+    close()
+  }, [close])
 
-  const sendLearnerReply = useCallback(
-    (text: string) => {
-      setState('thinking')
-      send({
-        type: 'conversation.item.create',
-        item: {
-          type: 'message',
-          role: 'user',
-          content: [{ type: 'input_text', text }],
-        },
-      })
-      send({ type: 'response.create' })
-    },
-    [send]
-  )
+  const floating = mode === 'floating'
 
   const copy = stateCopy(state, recording)
 
@@ -438,36 +301,60 @@ export function LearnerTutorFullscreen({
   return (
     <dialog
       open
-      className={styles.scrim}
+      className={floating ? styles.floatingPanel : styles.scrim}
       aria-label="Wulo Academy learner tutor"
       data-testid="learner-tutor"
+      data-mode={mode}
     >
-      <header className={styles.header}>
+      <header
+        className={`${styles.header} ${floating ? styles.floatingHeader : ''}`}
+      >
         <span className={styles.brand}>
           <span className={styles.brandDot} />
           Wulo Tutor
         </span>
-        <button
-          type="button"
-          className={styles.iconButton}
-          onClick={handleClose}
-          aria-label="Close tutor"
-        >
-          <XMarkIcon className={styles.icon} aria-hidden="true" />
-        </button>
+        <span className={styles.headerControls}>
+          <button
+            type="button"
+            className={`${styles.iconButton} ${floating ? styles.floatingIconButton : ''}`}
+            onClick={() => setMode(floating ? 'fullscreen' : 'floating')}
+            aria-label={floating ? 'Expand tutor' : 'Collapse tutor'}
+            data-testid={floating ? 'learner-tutor-expand' : 'learner-tutor-collapse'}
+          >
+            {floating ? (
+              <ArrowsPointingOutIcon className={styles.icon} aria-hidden="true" />
+            ) : (
+              <ArrowsPointingInIcon className={styles.icon} aria-hidden="true" />
+            )}
+          </button>
+          <button
+            type="button"
+            className={`${styles.iconButton} ${floating ? styles.floatingIconButton : ''}`}
+            onClick={handleClose}
+            aria-label="Close tutor"
+            data-testid="learner-tutor-close"
+          >
+            <XMarkIcon className={styles.icon} aria-hidden="true" />
+          </button>
+        </span>
       </header>
-      <main className={styles.body}>
+      <main className={`${styles.body} ${floating ? styles.floatingBody : ''}`}>
         <div
-          className={`${styles.orb} ${recording || state === 'speaking' ? styles.orbActive : ''}`}
+          className={`${styles.orb} ${floating ? styles.floatingOrb : ''} ${state === 'thinking' ? styles.orbThinking : ''} ${state === 'speaking' ? styles.orbSpeaking : ''} ${recording || state === 'speaking' ? styles.orbActive : ''}`}
           aria-hidden="true"
+          data-testid="learner-tutor-orb"
         />
         <div className={styles.status} aria-live="polite">
           <span className={styles.stateTitle}>{copy.title}</span>
-          <span className={styles.stateHint}>{copy.hint}</span>
+          <span
+            className={`${styles.stateHint} ${floating ? styles.floatingStateHint : ''}`}
+          >
+            {copy.hint}
+          </span>
         </div>
-        {fallback ? (
+        {fallback || error ? (
           <div className={styles.fallback} role="alert">
-            {fallback}
+            {fallback ?? error}
           </div>
         ) : null}
         {card ? (
@@ -491,7 +378,7 @@ export function LearnerTutorFullscreen({
           </div>
         ) : null}
       </main>
-      <footer className={styles.footer}>
+      <footer className={`${styles.footer} ${floating ? styles.floatingFooter : ''}`}>
         <button
           type="button"
           className={`${styles.micButton} ${recording ? styles.micButtonRecording : ''}`}

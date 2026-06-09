@@ -19,6 +19,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DiagnosticPanel from '../components/DiagnosticPanel'
 import LearnerTutorFullscreen, {
+  type TutorPresentationMode,
   type TutorVoiceSnapshot,
 } from '../components/LearnerTutorFullscreen'
 import type { LearnerFocusItem } from '../contexts/LearnerContext'
@@ -2026,6 +2027,43 @@ const useStyles = makeStyles({
     borderBottomWidth: '0',
     borderLeftWidth: '0',
   },
+  helpVoiceFab: {
+    position: 'fixed',
+    left: '24px',
+    bottom: '96px',
+    zIndex: 41,
+    width: '60px',
+    height: '60px',
+    borderRadius: t.radius.pill,
+    border: '1px solid var(--pf-line)',
+    cursor: 'pointer',
+    display: 'grid',
+    placeItems: 'center',
+    color: 'var(--pf-on-ink)',
+    background: 'var(--pf-ink)',
+    boxShadow: 'var(--pf-shadow-card-elevated)',
+    transition:
+      'transform var(--pf-motion-normal) var(--pf-motion-ease), box-shadow var(--pf-motion-normal)',
+    ':hover': {
+      transform: 'translateY(-2px) scale(1.04)',
+      boxShadow: 'var(--pf-shadow-card-hover)',
+    },
+    ':active': { transform: 'scale(0.94)' },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '4px',
+      boxShadow: 'var(--pf-focus-outline), var(--pf-shadow-card-elevated)',
+    },
+    '@media (max-width: 1000px)': {
+      left: '16px',
+      bottom: '150px',
+      width: '52px',
+      height: '52px',
+    },
+  },
+  helpVoiceFabGlyph: { width: '24px', height: '24px' },
 })
 
 type StudentLearningHomeProps = {
@@ -2075,6 +2113,8 @@ export default function StudentLearningHome({
     () => new URLSearchParams(window.location.search).get('skillId')
   )
   const [tutorOpen, setTutorOpen] = useState(false)
+  const [tutorInitialMode, setTutorInitialMode] =
+    useState<TutorPresentationMode>('fullscreen')
   const [tutorFocusItem, setTutorFocusItem] =
     useState<LearnerFocusItem | null>(null)
   const [, setTutorVoice] = useState<TutorVoiceSnapshot>({
@@ -2477,6 +2517,7 @@ export default function StudentLearningHome({
       rationale: item.meta,
       scored: false,
     })
+    setTutorInitialMode('fullscreen')
     setTutorOpen(true)
   }
 
@@ -2505,6 +2546,18 @@ export default function StudentLearningHome({
     setCheckInActive(false)
     setCompleted(false)
     setTutorFocusItem(null)
+    setTutorInitialMode('fullscreen')
+    setTutorOpen(true)
+  }
+
+  function openVoiceHelp() {
+    if (!learnerTutorEnabled) return
+    setDemoActive(false)
+    setDemoCompleted(false)
+    setCheckInActive(false)
+    setCompleted(false)
+    setTutorFocusItem(null)
+    setTutorInitialMode('floating')
     setTutorOpen(true)
   }
 
@@ -3677,6 +3730,21 @@ export default function StudentLearningHome({
         />
       )}
 
+      {learnerTutorEnabled && !tutorOpen && !practiceOpen && (
+        <button
+          type="button"
+          className={styles.helpVoiceFab}
+          onClick={openVoiceHelp}
+          aria-label="Open voice help"
+          data-testid="learner-help-fab"
+        >
+          <MicrophoneIcon
+            className={styles.helpVoiceFabGlyph}
+            aria-hidden="true"
+          />
+        </button>
+      )}
+
       {learnerTutorEnabled && tutorOpen && (
         <LearnerTutorFullscreen
           open={tutorOpen}
@@ -3691,6 +3759,7 @@ export default function StudentLearningHome({
           subject={learnerSetup.subject}
           focusItem={tutorFocusItem}
           onVoiceStateChange={setTutorVoice}
+          initialMode={tutorInitialMode}
         />
       )}
 

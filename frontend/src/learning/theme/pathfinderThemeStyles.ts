@@ -106,12 +106,16 @@ export const usePathfinderThemeStyles = makeStaticStyles({
     '--scrim-on-fill': '#0a0a0a',
     '--scrim-ring-color': 'rgba(255,255,255,0.28)',
     '--scrim-brand-dot-glow': '0 0 14px rgba(255,255,255,0.45)',
+    '--scrim-orb-bg':
+      'radial-gradient(circle at 32% 26%, #ffffff 0%, #d8d8dd 34%, #53535a 68%, #101012 100%)',
     '--scrim-orb-glow':
       '0 0 60px rgba(255,255,255,0.18), inset 0 0 32px rgba(255,255,255,0.2)',
     '--scrim-orb-speaking-glow':
       '0 0 90px rgba(255,255,255,0.34), inset 0 0 32px rgba(255,255,255,0.28)',
     '--scrim-orb-thinking-bg':
       'conic-gradient(from 0deg, #ffffff, #9a9aa2, #ffffff, #54545b, #ffffff)',
+    '--scrim-orb-thinking-glow':
+      '0 0 76px rgba(255,255,255,0.28), inset 0 0 30px rgba(255,255,255,0.24)',
     '--scrim-wave-color': 'rgba(255,255,255,0.8)',
     '--scrim-vopt-label': '#9bd4ff',
     '--scrim-mic-bg': 'linear-gradient(160deg, #4a4a4d 0%, #090909 100%)',
@@ -150,10 +154,16 @@ export const usePathfinderThemeStyles = makeStaticStyles({
     '--scrim-on-fill': '#ffffff',
     '--scrim-ring-color': 'rgba(10,10,12,0.16)',
     '--scrim-brand-dot-glow': '0 0 14px rgba(10,10,12,0.2)',
+    '--scrim-orb-bg':
+      'radial-gradient(circle at 32% 26%, #ffffff 0%, #f1f2f4 38%, #b9bbc2 70%, #565961 100%)',
     '--scrim-orb-glow':
       '0 20px 54px rgba(0,0,0,0.2), inset 0 0 26px rgba(255,255,255,0.55)',
     '--scrim-orb-speaking-glow':
       '0 20px 70px rgba(0,0,0,0.26), inset 0 0 26px rgba(255,255,255,0.62)',
+    '--scrim-orb-thinking-bg':
+      'conic-gradient(from 0deg, #ffffff, #cfd1d8, #ffffff, #787b84, #ffffff)',
+    '--scrim-orb-thinking-glow':
+      '0 22px 64px rgba(0,0,0,0.24), inset 0 0 28px rgba(255,255,255,0.6)',
     '--scrim-wave-color': 'rgba(10,10,12,0.62)',
     '--scrim-vopt-label': '#1f5fd0',
     '--scrim-mic-bg': 'linear-gradient(160deg, #2c2c2e 0%, #0a0a0a 100%)',
@@ -218,5 +228,15 @@ export const usePathfinderThemeStyles = makeStaticStyles({
     '--pf-focus-ring': dark.focus.ring,
     '--pf-focus-ring-soft': dark.focus.ringSoft,
     '--pf-focus-outline': dark.focus.outline,
+    '--scrim-orb-bg':
+      'radial-gradient(circle at 32% 26%, #ffffff 0%, #d8d8dd 34%, #53535a 68%, #101012 100%)',
+    '--scrim-orb-glow':
+      '0 0 60px rgba(255,255,255,0.18), inset 0 0 32px rgba(255,255,255,0.2)',
+    '--scrim-orb-speaking-glow':
+      '0 0 90px rgba(255,255,255,0.34), inset 0 0 32px rgba(255,255,255,0.28)',
+    '--scrim-orb-thinking-bg':
+      'conic-gradient(from 0deg, #ffffff, #9a9aa2, #ffffff, #54545b, #ffffff)',
+    '--scrim-orb-thinking-glow':
+      '0 0 76px rgba(255,255,255,0.28), inset 0 0 30px rgba(255,255,255,0.24)',
   },
 })

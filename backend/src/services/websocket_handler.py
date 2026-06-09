@@ -379,6 +379,8 @@ class VoiceProxyHandler:
             exam=first("exam"),
             class_year=first("class_year"),
             subject=first("subject"),
+            last_card_id=first("last_card_id"),
+            last_kind=first("last_kind"),
             focus_stem=first("focus_stem"),
             focus_skill_id=first("focus_skill_id"),
             focus_topic=first("focus_topic"),
@@ -584,6 +586,8 @@ class VoiceProxyHandler:
             f"- exam: {profile_context.exam or 'default'}",
             f"- class_year: {profile_context.class_year or 'default'}",
             f"- subject: {profile_context.subject or 'default'}",
+            f"- current_card_id: {profile_context.last_card_id or 'none'}",
+            f"- current_card_kind: {profile_context.last_kind or 'none'}",
         ]
         blocks = [profile.system_prompt.strip()]
 

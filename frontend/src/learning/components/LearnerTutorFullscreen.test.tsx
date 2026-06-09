@@ -224,6 +224,44 @@ describe('LearnerTutorFullscreen', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
+  it('shows a visible connection error when the websocket fails', async () => {
+    render(
+      <LearnerTutorFullscreen open={true} onClose={() => {}} childId="stu-1" />
+    )
+    await waitFor(() => expect(FakeWebSocket.instances).toHaveLength(1))
+
+    act(() => {
+      FakeWebSocket.instances[0].onerror?.()
+    })
+
+    expect(screen.getByRole('alert').textContent).toContain(
+      'Voice connection failed'
+    )
+  })
+
+  it('expands and collapses without remounting the voice session', async () => {
+    render(
+      <LearnerTutorFullscreen
+        open={true}
+        onClose={() => {}}
+        childId="stu-1"
+        initialMode="floating"
+      />
+    )
+    await waitFor(() => expect(FakeWebSocket.instances).toHaveLength(1))
+
+    const tutor = screen.getByTestId('learner-tutor')
+    expect(tutor.getAttribute('data-mode')).toBe('floating')
+
+    fireEvent.click(screen.getByTestId('learner-tutor-expand'))
+    expect(tutor.getAttribute('data-mode')).toBe('fullscreen')
+    expect(FakeWebSocket.instances).toHaveLength(1)
+
+    fireEvent.click(screen.getByTestId('learner-tutor-collapse'))
+    expect(tutor.getAttribute('data-mode')).toBe('floating')
+    expect(FakeWebSocket.instances).toHaveLength(1)
+  })
+
   it('sends a text response when the learner taps a rendered option', async () => {
     render(
       <LearnerTutorFullscreen open={true} onClose={() => {}} childId="stu-1" />
@@ -271,4 +309,5 @@ describe('LearnerTutorFullscreen', () => {
     })
     expect(sentBodies.some(body => body.type === 'response.create')).toBe(true)
   })
+
 })

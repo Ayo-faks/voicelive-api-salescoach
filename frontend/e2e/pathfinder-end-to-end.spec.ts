@@ -82,6 +82,7 @@ test.describe('Pathfinder · end-to-end learning loop', () => {
       const completed = page.getByTestId('diagnostic-completed')
       if (await completed.isVisible().catch(() => false)) break
       const input = page.getByTestId('diagnostic-answer-input')
+      await expect(input).toBeEditable()
       await input.fill(`answer-${i}`)
       await page.getByTestId('diagnostic-submit').click()
       await expect(page.getByTestId('diagnostic-feedback')).toBeVisible()

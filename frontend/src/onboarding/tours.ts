@@ -276,8 +276,8 @@ export const welcomeLearnerTour: TourDefinition = {
       placement: 'auto',
     },
     {
-      selector: '[data-testid="start-checkin"]',
-      testId: 'start-checkin',
+      selector: '[data-testid="start-learner-tutor"]',
+      testId: 'start-learner-tutor',
       title: t('tour.welcome_learner.step2.title', 'Study with Wulo'),
       body: t(
         'tour.welcome_learner.step2.body',
@@ -306,8 +306,8 @@ export const welcomeLearnerTour: TourDefinition = {
       placement: 'top',
     },
     {
-      selector: '[data-testid="start-learner-tutor"]',
-      testId: 'start-learner-tutor',
+      selector: '[data-testid="learner-help-fab"]',
+      testId: 'learner-help-fab',
       title: t('tour.welcome_learner.step5.title', 'Wulo Tutor'),
       body: t(
         'tour.welcome_learner.step5.body',
