@@ -13,7 +13,7 @@ services:
     docker:
       path: Dockerfile
       context: ../
-      remoteBuild: true
+      remoteBuild: false
 resources:
   voicelab:
     type: host.containerapp
