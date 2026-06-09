@@ -69,6 +69,8 @@ import {
   navItemsForRole,
 } from '../PathfinderLearnApp'
 
+const SIDEBAR_COLLAPSED_STORAGE_KEY = 'wulo-academy.sidebar-collapsed.v1'
+
 const legacyLearnerSession: AuthSession = {
   authenticated: true,
   user_id: 'learner-legacy',
@@ -229,6 +231,24 @@ describe('PathfinderLearnApp learner bootstrapping', () => {
     expect(
       screen.getByTestId('mobile-account-sign-out').getAttribute('href')
     ).toBe('/logout')
+  })
+
+  it('collapses the desktop sidebar into an icon rail and persists the choice', async () => {
+    renderLearningApp()
+
+    const app = await screen.findByTestId('pathfinder-learn-app')
+    const toggle = await screen.findByTestId('sidebar-collapse-toggle')
+
+    expect(app.getAttribute('data-sidebar')).toBe('expanded')
+    expect(toggle.getAttribute('aria-label')).toBe('Collapse sidebar')
+
+    fireEvent.click(toggle)
+
+    expect(app.getAttribute('data-sidebar')).toBe('collapsed')
+    expect(toggle.getAttribute('aria-label')).toBe('Expand sidebar')
+    expect(window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY)).toBe(
+      'true'
+    )
   })
 
   it('creates and selects a self-learner for a legacy learner with no children', async () => {

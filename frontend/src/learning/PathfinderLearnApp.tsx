@@ -11,6 +11,8 @@ import {
   BookOpenIcon,
   ChartBarIcon,
   ChartBarSquareIcon,
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
   Cog6ToothIcon,
   DocumentTextIcon,
   InformationCircleIcon,
@@ -80,6 +82,7 @@ import { requestReplayTour } from '../onboarding/bus'
 import { featureFlags } from '../utils/featureFlags'
 
 export const COOKIE_CONSENT_STORAGE_KEY = 'pathfinder.cookie-consent.v1'
+const SIDEBAR_COLLAPSED_STORAGE_KEY = 'wulo-academy.sidebar-collapsed.v1'
 
 function getStoredCookieConsent(): string | null {
   if (typeof window === 'undefined') return null
@@ -87,6 +90,26 @@ function getStoredCookieConsent(): string | null {
     return window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY)
   } catch {
     return null
+  }
+}
+
+function getStoredSidebarCollapsed(): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    return window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+function storeSidebarCollapsed(collapsed: boolean): void {
+  try {
+    window.localStorage.setItem(
+      SIDEBAR_COLLAPSED_STORAGE_KEY,
+      collapsed ? 'true' : 'false'
+    )
+  } catch {
+    // Sidebar remains usable for the current session when storage is blocked.
   }
 }
 
@@ -282,6 +305,10 @@ const useStyles = makeStyles({
     gridTemplateRows: '1fr',
     '@media (max-width: 1000px)': { gridTemplateColumns: '1fr' },
   },
+  pageSidebarCollapsed: {
+    gridTemplateColumns: '76px minmax(0, 1fr)',
+    '@media (max-width: 1000px)': { gridTemplateColumns: '1fr' },
+  },
   routeBar: {
     position: 'sticky',
     top: 0,
@@ -338,6 +365,11 @@ const useStyles = makeStyles({
     boxSizing: 'border-box',
     '@media (max-width: 1000px)': { display: 'none' },
   },
+  sidebarCollapsed: {
+    alignItems: 'center',
+    paddingRight: '10px',
+    paddingLeft: '10px',
+  },
   brand: {
     display: 'flex',
     alignItems: 'center',
@@ -357,6 +389,12 @@ const useStyles = makeStyles({
       boxShadow: 'var(--pf-focus-outline)',
     },
   },
+  brandCollapsed: {
+    justifyContent: 'center',
+    width: '44px',
+    paddingRight: 0,
+    paddingLeft: 0,
+  },
   brandMark: {
     width: '32px',
     height: '32px',
@@ -365,6 +403,9 @@ const useStyles = makeStyles({
     flexShrink: 0,
   },
   brandText: { display: 'grid', gap: '2px' },
+  collapsedHidden: {
+    display: 'none',
+  },
   brandTitle: {
     fontFamily: t.font.display,
     fontSize: '0.98rem',
@@ -385,6 +426,9 @@ const useStyles = makeStyles({
     color: 'var(--pf-text-tertiary)',
     padding: 'var(--pf-space-md) 10px var(--pf-space-xs)',
     fontWeight: 600,
+  },
+  navGroupLabelCollapsed: {
+    display: 'none',
   },
   navLink: {
     display: 'grid',
@@ -419,7 +463,18 @@ const useStyles = makeStyles({
       boxShadow: 'var(--pf-focus-outline)',
     },
   },
+  navLinkCollapsed: {
+    gridTemplateColumns: '1fr',
+    justifyItems: 'center',
+    gap: 0,
+    width: '44px',
+    minHeight: '44px',
+    padding: 0,
+    marginRight: 'auto',
+    marginLeft: 'auto',
+  },
   navIcon: { width: '18px', height: '18px' },
+  navIconCollapsed: { width: '20px', height: '20px' },
   navHint: {
     fontSize: '0.7rem',
     fontWeight: 500,
@@ -481,6 +536,33 @@ const useStyles = makeStyles({
     },
   },
   themeToggleIcon: { width: '15px', height: '15px', flexShrink: 0 },
+  themeToggleCompactButton: {
+    appearance: 'none',
+    display: 'grid',
+    placeItems: 'center',
+    width: '44px',
+    height: '44px',
+    marginRight: 'auto',
+    marginLeft: 'auto',
+    borderRadius: t.radius.sm,
+    border: 'var(--pf-hairline)',
+    backgroundColor: 'var(--pf-surface-muted)',
+    color: 'var(--pf-text-secondary)',
+    cursor: 'pointer',
+    transition:
+      'background-color var(--pf-motion-fast), color var(--pf-motion-fast), border-color var(--pf-motion-fast)',
+    ':hover': {
+      backgroundColor: 'var(--pf-surface)',
+      color: 'var(--pf-text)',
+    },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '2px',
+      boxShadow: 'var(--pf-focus-outline)',
+    },
+  },
   userCard: {
     marginTop: 'auto',
     display: 'grid',
@@ -489,6 +571,12 @@ const useStyles = makeStyles({
     borderRadius: t.radius.sm,
     border: 'var(--pf-hairline)',
     backgroundColor: 'var(--pf-surface-muted)',
+  },
+  userCardCollapsed: {
+    width: '52px',
+    justifyItems: 'center',
+    gap: '8px',
+    padding: '8px 0',
   },
   userHeader: {
     display: 'grid',
@@ -578,7 +666,54 @@ const useStyles = makeStyles({
       boxShadow: 'var(--pf-focus-outline)',
     },
   },
+  accountActionCollapsed: {
+    justifyContent: 'center',
+    width: '36px',
+    height: '36px',
+    minHeight: '36px',
+    padding: 0,
+  },
   accountActionIcon: { width: '16px', height: '16px', flexShrink: 0 },
+  sidebarCollapseButton: {
+    appearance: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 'var(--pf-space-sm)',
+    width: '100%',
+    minHeight: t.control.minHeight,
+    padding: 'var(--pf-space-xs) var(--pf-space-sm)',
+    borderRadius: t.radius.sm,
+    border: '1px solid transparent',
+    backgroundColor: 'transparent',
+    color: 'var(--pf-text-secondary)',
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '0.78rem',
+    fontWeight: 800,
+    transition:
+      'background-color var(--pf-motion-fast), border-color var(--pf-motion-fast), color var(--pf-motion-fast)',
+    ':hover': {
+      backgroundColor: 'var(--pf-surface-muted)',
+      borderTopColor: 'var(--pf-line)',
+      borderRightColor: 'var(--pf-line)',
+      borderBottomColor: 'var(--pf-line)',
+      borderLeftColor: 'var(--pf-line)',
+      color: 'var(--pf-text)',
+    },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '3px',
+      boxShadow: 'var(--pf-focus-outline)',
+    },
+  },
+  sidebarCollapseButtonCollapsed: {
+    width: '44px',
+    padding: 0,
+  },
+  sidebarCollapseIcon: { width: '18px', height: '18px', flexShrink: 0 },
   mobileAccountActions: {
     display: 'flex',
     alignItems: 'center',
@@ -1177,7 +1312,7 @@ export default function PathfinderLearnApp() {
 function PathfinderLearnAppShell() {
   usePathfinderThemeStyles()
   const styles = useStyles()
-  const { mode, setMode } = usePathfinderTheme()
+  const { mode, setMode, toggle: toggleTheme } = usePathfinderTheme()
   const fluentTheme =
     mode === 'dark' ? pathfinderFluentThemeDark : pathfinderFluentTheme
   const location = useLocation()
@@ -1194,6 +1329,9 @@ function PathfinderLearnAppShell() {
   const [appConfig, setAppConfig] = useState<AppConfig | null>(null)
   const [voiceOpen, setVoiceOpen] = useState(false)
   const [chatOpen, setChatOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(
+    getStoredSidebarCollapsed
+  )
   // Sequence first-run dismissables (#19): hold the onboarding tour until the
   // cookie banner has been resolved, so they never stack on first load.
   const [cookieConsentResolved, setCookieConsentResolved] = useState(
@@ -1256,6 +1394,13 @@ function PathfinderLearnAppShell() {
     }),
     [askPathfinderLearnerId, learnerSetup.subject, learnerSetup.year]
   )
+  const toggleSidebarCollapsed = useCallback(() => {
+    setSidebarCollapsed(current => {
+      const next = !current
+      storeSidebarCollapsed(next)
+      return next
+    })
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -1513,12 +1658,17 @@ function PathfinderLearnAppShell() {
   const renderNavLinks = (extraClass?: string) =>
     visibleNavItems.map(item => {
       const Icon = item.icon
+      const compact = !extraClass && sidebarCollapsed
       return (
         <NavLink
           key={item.to}
           to={item.to}
           data-testid={item.testId}
-          className={extraClass ?? styles.navLink}
+          className={mergeClasses(
+            extraClass ?? styles.navLink,
+            compact && styles.navLinkCollapsed
+          )}
+          title={compact ? item.label : undefined}
           style={({ isActive }) =>
             isActive
               ? {
@@ -1533,47 +1683,74 @@ function PathfinderLearnAppShell() {
           }
         >
           <Icon
-            className={extraClass ? styles.bottomNavIcon : styles.navIcon}
+            className={mergeClasses(
+              extraClass ? styles.bottomNavIcon : styles.navIcon,
+              compact && styles.navIconCollapsed
+            )}
             aria-hidden="true"
           />
-          {item.label}
-          {!extraClass && <span className={styles.navHint}>{item.hint}</span>}
+          {compact ? <span className={styles.srOnly}>{item.label}</span> : item.label}
+          {!extraClass && !compact && (
+            <span className={styles.navHint}>{item.hint}</span>
+          )}
         </NavLink>
       )
     })
 
-  const renderThemeToggle = (testId: string, extraClass?: string) => (
-    <fieldset
-      className={mergeClasses(styles.themeToggle, extraClass)}
-      data-testid={testId}
-    >
-      <legend className={styles.srOnly}>Theme</legend>
-      <button
-        type="button"
-        className={mergeClasses(
-          styles.themeToggleButton,
-          mode === 'light' && styles.themeToggleButtonActive
-        )}
-        aria-pressed={mode === 'light'}
-        onClick={() => setMode('light')}
+  const renderThemeToggle = (
+    testId: string,
+    extraClass?: string,
+    compact = false
+  ) => {
+    if (compact) {
+      const nextMode = mode === 'dark' ? 'light' : 'dark'
+      const ThemeIcon = mode === 'dark' ? MoonIcon : SunIcon
+      return (
+        <button
+          type="button"
+          className={styles.themeToggleCompactButton}
+          data-testid={testId}
+          aria-label={`Switch to ${nextMode} theme`}
+          title={`Switch to ${nextMode} theme`}
+          onClick={toggleTheme}
+        >
+          <ThemeIcon className={styles.themeToggleIcon} aria-hidden="true" />
+        </button>
+      )
+    }
+    return (
+      <fieldset
+        className={mergeClasses(styles.themeToggle, extraClass)}
+        data-testid={testId}
       >
-        <SunIcon className={styles.themeToggleIcon} aria-hidden="true" />
-        <span>Light</span>
-      </button>
-      <button
-        type="button"
-        className={mergeClasses(
-          styles.themeToggleButton,
-          mode === 'dark' && styles.themeToggleButtonActive
-        )}
-        aria-pressed={mode === 'dark'}
-        onClick={() => setMode('dark')}
-      >
-        <MoonIcon className={styles.themeToggleIcon} aria-hidden="true" />
-        <span>Dark</span>
-      </button>
-    </fieldset>
-  )
+        <legend className={styles.srOnly}>Theme</legend>
+        <button
+          type="button"
+          className={mergeClasses(
+            styles.themeToggleButton,
+            mode === 'light' && styles.themeToggleButtonActive
+          )}
+          aria-pressed={mode === 'light'}
+          onClick={() => setMode('light')}
+        >
+          <SunIcon className={styles.themeToggleIcon} aria-hidden="true" />
+          <span>Light</span>
+        </button>
+        <button
+          type="button"
+          className={mergeClasses(
+            styles.themeToggleButton,
+            mode === 'dark' && styles.themeToggleButtonActive
+          )}
+          aria-pressed={mode === 'dark'}
+          onClick={() => setMode('dark')}
+        >
+          <MoonIcon className={styles.themeToggleIcon} aria-hidden="true" />
+          <span>Dark</span>
+        </button>
+      </fieldset>
+    )
+  }
 
   const routeTitleByPath: Record<string, string> = {
     '/': 'Welcome · role picker',
@@ -1606,11 +1783,59 @@ function PathfinderLearnAppShell() {
         location.pathname.startsWith(`${item.to}/`)
     )?.label ?? routeChromeTitle
 
-  const renderAccountCard = () => {
+  const renderAccountCard = (compact = false) => {
     if (!authSession?.authenticated) return null
     const accountInitial = (authSession.name || authSession.email || '?')
       .charAt(0)
       .toUpperCase()
+    if (compact) {
+      return (
+        <div
+          className={mergeClasses(styles.userCard, styles.userCardCollapsed)}
+          data-testid="sidebar-user-card"
+        >
+          <span
+            className={styles.userAvatar}
+            aria-label={authSession.name || authSession.email || 'User'}
+            title={authSession.name || authSession.email || 'User'}
+          >
+            {accountInitial}
+          </span>
+          <a
+            href="/account"
+            className={mergeClasses(
+              styles.accountAction,
+              styles.accountActionCollapsed
+            )}
+            aria-label="Account & settings"
+            title="Account & settings"
+            data-testid="account-actions-trigger"
+          >
+            <Cog6ToothIcon
+              className={styles.accountActionIcon}
+              aria-hidden="true"
+            />
+            <span className={styles.srOnly}>Account & settings</span>
+          </a>
+          <a
+            href="/logout"
+            className={mergeClasses(
+              styles.accountAction,
+              styles.accountActionCollapsed
+            )}
+            aria-label="Sign out"
+            title="Sign out"
+            data-testid="account-action-sign-out"
+          >
+            <ArrowRightStartOnRectangleIcon
+              className={styles.accountActionIcon}
+              aria-hidden="true"
+            />
+            <span className={styles.srOnly}>Sign out</span>
+          </a>
+        </div>
+      )
+    }
     return (
       <div className={styles.userCard} data-testid="sidebar-user-card">
         <div className={styles.userHeader}>
@@ -1688,7 +1913,14 @@ function PathfinderLearnAppShell() {
         }
         authenticated={authStatus === 'authenticated'}
       >
-      <div className={styles.page} data-testid="pathfinder-learn-app">
+      <div
+        className={mergeClasses(
+          styles.page,
+          sidebarCollapsed && styles.pageSidebarCollapsed
+        )}
+        data-testid="pathfinder-learn-app"
+        data-sidebar={sidebarCollapsed ? 'collapsed' : 'expanded'}
+      >
         <div className={styles.routeBar} aria-label="Current Wulo Academy route">
           <span className={styles.routeBarTitle}>{routeChromeTitle}</span>
           <span className={styles.routeBarPath}>
@@ -1701,11 +1933,21 @@ function PathfinderLearnAppShell() {
 
         <div className={styles.stage}>
           <div className={styles.appFrame}>
-        <aside className={styles.sidebar} aria-label="Wulo Academy primary">
+        <aside
+          className={mergeClasses(
+            styles.sidebar,
+            sidebarCollapsed && styles.sidebarCollapsed
+          )}
+          aria-label="Wulo Academy primary"
+        >
           <NavLink
             to="/home"
-            className={styles.brand}
+            className={mergeClasses(
+              styles.brand,
+              sidebarCollapsed && styles.brandCollapsed
+            )}
             aria-label="Wulo Academy — go to home"
+            title="Wulo Academy"
           >
             <img
               src="/wulo-logo.png?v=2"
@@ -1713,12 +1955,24 @@ function PathfinderLearnAppShell() {
               aria-hidden="true"
               className={styles.brandMark}
             />
-            <div className={styles.brandText}>
+            <div
+              className={mergeClasses(
+                styles.brandText,
+                sidebarCollapsed && styles.collapsedHidden
+              )}
+            >
               <Text className={styles.brandTitle}>Wulo Academy</Text>
             </div>
           </NavLink>
 
-          <div className={styles.navGroupLabel}>Workspaces</div>
+          <div
+            className={mergeClasses(
+              styles.navGroupLabel,
+              sidebarCollapsed && styles.navGroupLabelCollapsed
+            )}
+          >
+            Workspaces
+          </div>
           <nav
             aria-label="Wulo Academy views"
             style={{ display: 'grid', gap: '2px' }}
@@ -1727,9 +1981,13 @@ function PathfinderLearnAppShell() {
             {practiceFullscreenEnabled && activeLearnerIdForPractice ? (
               <button
                 type="button"
-                className={styles.navLink}
+                className={mergeClasses(
+                  styles.navLink,
+                  sidebarCollapsed && styles.navLinkCollapsed
+                )}
                 onClick={() => setPracticeOpen(true)}
                 aria-label="Open Wulo Academy practice"
+                title="Practice"
                 data-testid="sidebar-practice-link"
                 style={{
                   fontFamily: 'inherit',
@@ -1737,16 +1995,30 @@ function PathfinderLearnAppShell() {
                   cursor: 'pointer',
                 }}
               >
-                <BookOpenIcon className={styles.navIcon} aria-hidden="true" />
-                Practice
-                <span className={styles.navHint}>Cards</span>
+                <BookOpenIcon
+                  className={mergeClasses(
+                    styles.navIcon,
+                    sidebarCollapsed && styles.navIconCollapsed
+                  )}
+                  aria-hidden="true"
+                />
+                {sidebarCollapsed ? (
+                  <span className={styles.srOnly}>Practice</span>
+                ) : (
+                  'Practice'
+                )}
+                {!sidebarCollapsed && <span className={styles.navHint}>Cards</span>}
               </button>
             ) : null}
           </nav>
 
-          {renderThemeToggle('pathfinder-theme-toggle')}
+          {renderThemeToggle(
+            'pathfinder-theme-toggle',
+            undefined,
+            sidebarCollapsed
+          )}
 
-          {authSession?.authenticated ? (
+          {authSession?.authenticated && !sidebarCollapsed ? (
             <HelpMenu
               currentRole={authSession.role ?? null}
               directReplayTourId={
@@ -1759,7 +2031,33 @@ function PathfinderLearnAppShell() {
             />
           ) : null}
 
-          {renderAccountCard()}
+          {renderAccountCard(sidebarCollapsed)}
+
+          <button
+            type="button"
+            className={mergeClasses(
+              styles.sidebarCollapseButton,
+              sidebarCollapsed && styles.sidebarCollapseButtonCollapsed
+            )}
+            onClick={toggleSidebarCollapsed}
+            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-expanded={!sidebarCollapsed}
+            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            data-testid="sidebar-collapse-toggle"
+          >
+            {sidebarCollapsed ? (
+              <ChevronDoubleRightIcon
+                className={styles.sidebarCollapseIcon}
+                aria-hidden="true"
+              />
+            ) : (
+              <ChevronDoubleLeftIcon
+                className={styles.sidebarCollapseIcon}
+                aria-hidden="true"
+              />
+            )}
+            {sidebarCollapsed ? null : <span>Collapse sidebar</span>}
+          </button>
         </aside>
 
         <main className={styles.main}>
