@@ -23,17 +23,18 @@ import {
 } from 'react'
 import { makeStyles, mergeClasses } from '@fluentui/react-components'
 import {
-  ChatBubbleLeftRightIcon,
   ClockIcon,
   MicrophoneIcon,
   PaperAirplaneIcon,
   PencilSquareIcon,
   PlusIcon,
+  SparklesIcon,
   StopIcon,
   TrashIcon,
   XMarkIcon,
 } from '@heroicons/react/24/solid'
 import {
+  AssistantTurnTimeoutError,
   deleteAskConversation,
   getAskConversation,
   listAskConversations,
@@ -173,27 +174,36 @@ const useStyles = makeStyles({
   fab: {
     position: 'fixed',
     right: '24px',
-    bottom: '168px',
+    bottom: '24px',
     zIndex: 40,
     width: '60px',
     height: '60px',
     borderRadius: '999px',
+    border: 'none',
     cursor: 'pointer',
     display: 'grid',
     placeItems: 'center',
-    color: 'var(--pf-ink)',
-    background: 'var(--pf-surface)',
-    border: '1px solid var(--pf-line)',
-    boxShadow: 'var(--pf-shadow-card-elevated)',
+    color: '#ffffff',
+    background: 'linear-gradient(160deg, #3a3a3c 0%, #0a0a0a 100%)',
+    boxShadow:
+      '0 12px 36px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.18)',
     transition:
-      'transform .18s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow .15s ease',
+      'transform .18s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow .15s ease, filter .15s ease',
     ':hover': {
-      boxShadow: 'var(--pf-shadow-card-hover)',
+      filter: 'brightness(1.08)',
+      boxShadow:
+        '0 18px 42px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.22)',
       transform: 'translateY(-2px) scale(1.04)',
     },
     ':active': { transform: 'scale(0.92)' },
+    ':focus-visible': {
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'var(--pf-focus-ring)',
+      outlineOffset: '4px',
+    },
     '@media (max-width: 1000px)': {
-      bottom: '216px',
+      bottom: '88px',
       right: '16px',
       width: '54px',
       height: '54px',
@@ -384,12 +394,19 @@ const useStyles = makeStyles({
   },
   typingRow: {
     alignSelf: 'flex-start',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '5px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    minWidth: '180px',
+    maxWidth: '70%',
     padding: '11px 14px',
     borderRadius: '12px 12px 12px 4px',
     background: 'var(--pf-surface-muted)',
+  },
+  typingDots: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '5px',
   },
   typingDot: {
     width: '7px',
@@ -403,6 +420,44 @@ const useStyles = makeStyles({
     animationDuration: '1.2s',
     animationIterationCount: 'infinite',
     animationTimingFunction: 'ease-in-out',
+    '@media (prefers-reduced-motion: reduce)': {
+      animationName: 'none',
+      opacity: 0.6,
+    },
+  },
+  typingLabel: {
+    fontSize: '12px',
+    color: 'var(--pf-text-tertiary)',
+    animationName: {
+      from: { opacity: 0, transform: 'translateY(2px)' },
+      to: { opacity: 1, transform: 'translateY(0)' },
+    },
+    animationDuration: '0.35s',
+    animationTimingFunction: 'ease-out',
+    '@media (prefers-reduced-motion: reduce)': {
+      animationName: 'none',
+    },
+  },
+  shimmerLine: {
+    height: '9px',
+    borderRadius: '5px',
+    backgroundImage:
+      'linear-gradient(90deg, var(--pf-text-tertiary) 25%, var(--pf-surface-muted) 50%, var(--pf-text-tertiary) 75%)',
+    backgroundSize: '200% 100%',
+    opacity: 0.18,
+    animationName: {
+      '0%': { backgroundPosition: '200% 0' },
+      '100%': { backgroundPosition: '-200% 0' },
+    },
+    animationDuration: '1.6s',
+    animationIterationCount: 'infinite',
+    animationTimingFunction: 'linear',
+    '@media (prefers-reduced-motion: reduce)': {
+      animationName: 'none',
+    },
+  },
+  shimmerLineShort: {
+    width: '60%',
   },
   empty: { color: 'var(--pf-text-tertiary)', fontStyle: 'italic' },
   voiceStage: {
@@ -477,6 +532,69 @@ const useStyles = makeStyles({
   iconGlyph: { width: '18px', height: '18px' },
 })
 
+// Staged copy shown while Wulo works on an answer. Purely presentational — the
+// timings approximate the real pipeline (retrieval → generation → safety
+// screen) so the wait reads as progress instead of a stall. The shimmer lines
+// reserve the space where the answer will land, so the layout doesn't jump.
+const THINKING_STAGES: ReadonlyArray<{ at: number; label: string }> = [
+  { at: 0, label: 'Reading your sources…' },
+  { at: 2500, label: 'Thinking it through…' },
+  { at: 6500, label: 'Writing your answer…' },
+]
+
+// Staged "what Wulo is doing" label. While `active`, advances through
+// THINKING_STAGES on their timers; resets to the first stage whenever a new
+// wait begins. Shared by the text-mode ThinkingIndicator and the voice orb
+// hint so both surfaces narrate the same pipeline.
+function useThinkingStage(active: boolean): string {
+  const [stage, setStage] = useState(0)
+  useEffect(() => {
+    setStage(0)
+    if (!active) return
+    const timers = THINKING_STAGES.slice(1).map((entry, index) =>
+      setTimeout(() => setStage(index + 1), entry.at)
+    )
+    return () => {
+      for (const timer of timers) clearTimeout(timer)
+    }
+  }, [active])
+  return THINKING_STAGES[stage]?.label ?? THINKING_STAGES[0].label
+}
+
+function ThinkingIndicator(): JSX.Element {
+  const styles = useStyles()
+  const label = useThinkingStage(true)
+  return (
+    <output
+      className={styles.typingRow}
+      data-testid="ask-pathfinder-typing"
+      aria-label="Wulo Tutor is thinking"
+    >
+      <span className={styles.typingDots}>
+        <span
+          className={styles.typingDot}
+          style={{ animationDelay: '0ms' }}
+        />
+        <span
+          className={styles.typingDot}
+          style={{ animationDelay: '160ms' }}
+        />
+        <span
+          className={styles.typingDot}
+          style={{ animationDelay: '320ms' }}
+        />
+        <span className={styles.typingLabel} key={label}>
+          {label}
+        </span>
+      </span>
+      <span className={styles.shimmerLine} />
+      <span
+        className={mergeClasses(styles.shimmerLine, styles.shimmerLineShort)}
+      />
+    </output>
+  )
+}
+
 export function AskPathfinder({
   voiceLiveEnabled = false,
 }: { voiceLiveEnabled?: boolean } = {}) {
@@ -508,6 +626,14 @@ export function AskPathfinder({
   transcriptRef.current = transcript
   const transcriptScrollRef = useRef<HTMLDivElement | null>(null)
 
+  // Ids of assistant blocks that arrived over a live transport *this session*.
+  // Only these type themselves in; everything else — a localStorage rehydrate,
+  // a thread resumed from history, reopening the drawer — renders instantly so
+  // opening an old conversation never replays every answer. Cleared whenever
+  // the transcript is replaced wholesale or the surface closes (a reopen
+  // remounts every block, which must not re-animate).
+  const liveIdsRef = useRef<Set<string>>(new Set())
+
   // Local conversation memory (Option A): rehydrate the child's saved thread on
   // mount and whenever the active child changes, then mirror every change back
   // to localStorage so the conversation survives reloads, cancelled voice
@@ -519,6 +645,7 @@ export function AskPathfinder({
   const skipNextSaveRef = useRef(false)
   useEffect(() => {
     skipNextSaveRef.current = true
+    liveIdsRef.current.clear()
     setTranscript(loadThread(childId))
     setSessionComplete(false)
     setConversationId(null)
@@ -668,14 +795,13 @@ export function AskPathfinder({
   )
 
   const appendResult = useCallback((result: AssistantTurnResult) => {
-    setTranscript(prev => [
-      ...prev,
-      ...result.blocks.map(block => ({
-        id: nextId('a'),
-        role: 'assistant' as const,
-        block,
-      })),
-    ])
+    const items = result.blocks.map(block => ({
+      id: nextId('a'),
+      role: 'assistant' as const,
+      block,
+    }))
+    for (const item of items) liveIdsRef.current.add(item.id)
+    setTranscript(prev => [...prev, ...items])
     setSessionComplete(result.session_complete)
   }, [])
 
@@ -684,10 +810,9 @@ export function AskPathfinder({
   // the audio player inside the hook, so no edge TTS here.
   const appendVoiceBlock = useCallback(
     (block: AssistantBlock, complete: boolean) => {
-      setTranscript(prev => [
-        ...prev,
-        { id: nextId('a'), role: 'assistant' as const, block },
-      ])
+      const item = { id: nextId('a'), role: 'assistant' as const, block }
+      liveIdsRef.current.add(item.id)
+      setTranscript(prev => [...prev, item])
       setSessionComplete(complete)
       setBusy(false)
     },
@@ -753,13 +878,16 @@ export function AskPathfinder({
         if (result.conversation_id) setConversationId(result.conversation_id)
         appendResult(result)
         speak(result)
-      } catch {
+      } catch (err) {
+        const timedOut = err instanceof AssistantTurnTimeoutError
         appendResult({
           blocks: [
             {
               kind: 'prose',
               speak: '',
-              text: 'Offline for the moment. Try again when you have a connection.',
+              text: timedOut
+                ? 'Wulo is taking too long. Try again in a moment.'
+                : 'Offline for the moment. Try again when you have a connection.',
               citations: [],
             },
           ],
@@ -919,6 +1047,8 @@ export function AskPathfinder({
     setMode('text')
     stopListening()
     closeSocket()
+    // Reopening remounts the whole transcript; nothing in it is "fresh" then.
+    liveIdsRef.current.clear()
     if (typeof window !== 'undefined') window.speechSynthesis?.cancel()
   }, [closeSocket, stopListening])
 
@@ -926,6 +1056,7 @@ export function AskPathfinder({
   // save effect mirrors the empty state (which removes the storage key). A new
   // backend thread is minted on the next persisted turn.
   const startNewConversation = useCallback(() => {
+    liveIdsRef.current.clear()
     setTranscript([])
     setSessionComplete(false)
     setDraft('')
@@ -964,6 +1095,7 @@ export function AskPathfinder({
       setHistoryLoading(true)
       try {
         const { messages } = await getAskConversation(id, childId)
+        liveIdsRef.current.clear()
         setTranscript(messagesToTranscript(messages))
         setConversationId(id)
         setSessionComplete(false)
@@ -1018,11 +1150,19 @@ export function AskPathfinder({
     : listening
       ? stopListening
       : startListening
+  // The orb narrates the same staged pipeline as the text-mode indicator
+  // while Wulo works on a voice answer, instead of a static "Thinking…".
+  const voiceThinking = isVoice
+    ? voiceLiveEnabled
+      ? liveVoiceState === 'thinking'
+      : busy && !listening
+    : false
+  const voiceThinkingLabel = useThinkingStage(voiceThinking)
   const voiceHint = voiceLiveEnabled
     ? liveVoiceState === 'speaking'
       ? 'Wulo Academy is speaking…'
       : liveVoiceState === 'thinking'
-        ? 'Thinking…'
+        ? voiceThinkingLabel
         : liveVoiceState === 'connecting'
           ? 'Connecting…'
           : micActive
@@ -1033,7 +1173,7 @@ export function AskPathfinder({
       : listening
         ? 'Listening… tap to stop.'
         : busy
-          ? 'Thinking…'
+          ? voiceThinkingLabel
           : 'Tap to talk.'
 
   return (
@@ -1046,10 +1186,7 @@ export function AskPathfinder({
           aria-label="Open Ask Wulo Academy"
           data-testid="ask-pathfinder-fab"
         >
-          <ChatBubbleLeftRightIcon
-            className={styles.fabGlyph}
-            aria-hidden="true"
-          />
+          <SparklesIcon className={styles.fabGlyph} aria-hidden="true" />
         </button>
       )}
       {open && (
@@ -1211,6 +1348,7 @@ export function AskPathfinder({
                   block={item.block}
                   disabled={busy}
                   sessionComplete={sessionComplete}
+                  animate={liveIdsRef.current.has(item.id)}
                   onMcqAnswer={handleMcqAnswer}
                   onAdvance={handleAdvance}
                   onFinish={handleFinish}
@@ -1219,26 +1357,7 @@ export function AskPathfinder({
                 />
               )
             )}
-            {busy && (
-              <output
-                className={styles.typingRow}
-                data-testid="ask-pathfinder-typing"
-                aria-label="Wulo Tutor is thinking"
-              >
-                <span
-                  className={styles.typingDot}
-                  style={{ animationDelay: '0ms' }}
-                />
-                <span
-                  className={styles.typingDot}
-                  style={{ animationDelay: '160ms' }}
-                />
-                <span
-                  className={styles.typingDot}
-                  style={{ animationDelay: '320ms' }}
-                />
-              </output>
-            )}
+            {busy && <ThinkingIndicator />}
           </div>
 
           {isVoice ? (

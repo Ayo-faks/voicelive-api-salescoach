@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import AskPathfinder from '../AskPathfinder'
-import type { AssistantBlock } from '../api'
+import { ASSISTANT_TURN_TIMEOUT_MS, type AssistantBlock } from '../api'
 import {
   LearnerContext,
   defaultLearnerContext,
@@ -420,5 +420,49 @@ describe('AskPathfinder — unified assistant surface', () => {
     fireEvent.click(item)
     await screen.findByText('saved answer')
     expect(screen.getByText('saved question')).toBeTruthy()
+  })
+
+  it('shows a timeout message instead of spinning forever when the turn stalls', async () => {
+    // A fetch that never settles unless aborted — the request-level timeout in
+    // runAssistantTurn must fire and surface a clear retry message.
+    fetchMock.mockImplementationOnce(
+      (_url: string, init?: RequestInit) =>
+        new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () =>
+            reject(new DOMException('aborted', 'AbortError'))
+          )
+        })
+    )
+    renderDrawer({ userId: 'learner-1' })
+    vi.useFakeTimers()
+    try {
+      await ask('what is photosynthesis?')
+      await vi.advanceTimersByTimeAsync(ASSISTANT_TURN_TIMEOUT_MS + 50)
+    } finally {
+      vi.useRealTimers()
+    }
+    await waitFor(() =>
+      expect(
+        screen.getByText('Wulo is taking too long. Try again in a moment.')
+      ).toBeTruthy()
+    )
+    // The composer is usable again — the orb is not stuck busy.
+    const send = screen.getByTestId('ask-pathfinder-send') as HTMLButtonElement
+    expect(send.disabled).toBe(true) // disabled only because input is empty…
+    fireEvent.change(screen.getByTestId('ask-pathfinder-input'), {
+      target: { value: 'retry' },
+    })
+    expect((screen.getByTestId('ask-pathfinder-send') as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  it('shows the offline message on a plain network failure (not the timeout copy)', async () => {
+    fetchMock.mockRejectedValueOnce(new Error('network down'))
+    renderDrawer({ userId: 'learner-1' })
+    await ask('what is photosynthesis?')
+    await waitFor(() =>
+      expect(
+        screen.getByText('Offline for the moment. Try again when you have a connection.')
+      ).toBeTruthy()
+    )
   })
 })

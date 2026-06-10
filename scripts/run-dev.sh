@@ -70,6 +70,10 @@ start_backend() {
     # by design; uses the same Azure OpenAI creds as chat, embedding deployment
     # text-embedding-3-small (calibrated threshold lives in rag.py).
     export PATHFINDER_RAG_EMBEDDINGS_ENABLED=true
+    # Text tutor model override — gpt-5.4-mini answers ~3x faster than gpt-4o
+    # under the tutor's JSON envelope (see docs/session-2026-06-10-*). Voice
+    # paths still use MODEL_DEPLOYMENT_NAME.
+    export PATHFINDER_ASSISTANT_MODEL_DEPLOYMENT=gpt-5.4-mini
     # Local dev identity / storage (caller shell override wins, else learner):
     export LOCAL_DEV_AUTH=true
     export LOCAL_DEV_USER_ROLE="${_caller_role:-learner}"

@@ -83,6 +83,13 @@ def _build_retriever(embedding_threshold: float | None) -> RagRetriever:
 def _run(threshold: float | None) -> int:
     retriever = _build_retriever(threshold)
     dense_on = retriever._embedder is not None  # noqa: SLF001 — harness introspection
+    if dense_on:
+        # Corpus vectors are no longer built lazily on the request path —
+        # warm synchronously here so every query below runs hybrid. A cold
+        # full-corpus warmup needs ~150K embedding tokens against a 50K TPM
+        # quota, so ride out several minutes of 429s rather than the
+        # production default's fail-fast budget.
+        dense_on = retriever.warm(max_failures=60, retry_sleep_s=10.0)
     label = f"threshold={threshold}" if threshold is not None else "default"
     print(f"\n=== dense={'ON' if dense_on else 'OFF (lexical-only)'} | {label} ===")
     failures = 0

@@ -31,6 +31,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import time
 from typing import Any, Dict, List, Mapping, Optional, Sequence
 
 from src.learning import taxonomy
@@ -46,6 +47,10 @@ logger = logging.getLogger(__name__)
 
 ASSISTANT_LLM_FLAG_ENV = "PATHFINDER_ASSISTANT_LLM_ENABLED"
 ASSISTANT_MAX_TURNS_ENV = "PATHFINDER_ASSISTANT_MAX_TURNS"
+# Optional override so the text tutor can run on a faster/cheaper deployment
+# (e.g. gpt-4o-mini, ~2-4x faster decode) without touching the voice pipeline,
+# which keeps using the shared model_deployment_name.
+ASSISTANT_MODEL_ENV = "PATHFINDER_ASSISTANT_MODEL_DEPLOYMENT"
 
 _DEFAULT_MAX_TURNS = 12
 _DEFAULT_TEMPERATURE = 0.3
@@ -154,19 +159,19 @@ def _smalltalk_reply(kind: str, context: Mapping[str, Any]) -> str:
         )
     if kind == "capability":
         return (
-            "I'm Pathfinder, your study tutor for WAEC/NECO/JAMB prep. I can "
+            "I'm Wulo, your study tutor for WAEC/NECO/JAMB prep. I can "
             "explain how a topic works, talk through a question you got wrong, "
             "and set short practice cards — always grounded in your study "
             f"material. What would you like to start with{subject_clause}?"
         )
     # greeting
     return (
-        "Hi! I'm Pathfinder, your study tutor. I can explain a tricky topic, "
+        "Hi! I'm Wulo, your study tutor. I can explain a tricky topic, "
         "work through a question you found hard, or give you a quick practice "
         f"card. What would you like to look at today{subject_clause}?"
     )
 
-_SYSTEM_PROMPT = """You are Pathfinder, a patient study tutor for Nigerian \
+_SYSTEM_PROMPT = """You are Wulo, a patient study tutor for Nigerian \
 secondary-school learners (JSS3 and SS3) preparing for Junior WAEC/JSSCE and \
 WAEC/NECO/JAMB. Speak in clear, warm Nigerian English (en-NG).
 
@@ -250,6 +255,12 @@ class ModelAssistantProvider:
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.max_turns = max_turns
+        # Mutable call kwargs; adapted in _call_model when the deployment
+        # rejects max_tokens / temperature (gpt-5.x families).
+        self._model_kwargs: Dict[str, Any] = {
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
 
     # ------------------------------------------------------------------
     # Construction
@@ -277,7 +288,12 @@ class ModelAssistantProvider:
             logger.warning("Assistant LLM enabled but Azure OpenAI is not configured; using deterministic provider")
             return None
 
-        model = str(settings.get("model_deployment_name") or "").strip()
+        model = str(
+            settings.get(ASSISTANT_MODEL_ENV)
+            or os.environ.get(ASSISTANT_MODEL_ENV)
+            or settings.get("model_deployment_name")
+            or ""
+        ).strip()
         if not model:
             logger.warning("Assistant LLM enabled but no model deployment name resolved; using deterministic provider")
             return None
@@ -463,12 +479,42 @@ class ModelAssistantProvider:
 
         messages.append({"role": "user", "content": grounded.question})
 
-        completion = self.client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            response_format={"type": "json_object"},
-            temperature=self.temperature,
-            max_tokens=self.max_tokens,
+        # Newer model families (gpt-5.x) reject `max_tokens` (use
+        # `max_completion_tokens`) and some reject non-default `temperature`.
+        # Adapt on the 400 instead of hardcoding a model matrix so the
+        # PATHFINDER_ASSISTANT_MODEL_DEPLOYMENT override works with any
+        # deployment; the adapted kwargs are remembered for later turns.
+        kwargs: Dict[str, Any] = dict(self._model_kwargs)
+        model_started = time.perf_counter()
+        completion = None
+        for _attempt in range(3):
+            try:
+                completion = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    response_format={"type": "json_object"},
+                    **kwargs,
+                )
+                break
+            except Exception as exc:  # noqa: BLE001
+                msg = str(exc)
+                adapted = False
+                if "max_tokens" in msg and "max_tokens" in kwargs:
+                    kwargs.pop("max_tokens")
+                    kwargs["max_completion_tokens"] = self.max_tokens
+                    adapted = True
+                if "temperature" in msg and "temperature" in kwargs:
+                    kwargs.pop("temperature")
+                    adapted = True
+                if not adapted:
+                    raise
+                self._model_kwargs = dict(kwargs)
+        if completion is None:
+            raise RuntimeError("assistant model call failed after parameter adaptation")
+        logger.info(
+            "wulo.assistant_model completion_ms=%d model=%s",
+            int((time.perf_counter() - model_started) * 1000),
+            self.model,
         )
         content = completion.choices[0].message.content
         if not content:
@@ -514,5 +560,6 @@ class ModelAssistantProvider:
 __all__ = [
     "ASSISTANT_LLM_FLAG_ENV",
     "ASSISTANT_MAX_TURNS_ENV",
+    "ASSISTANT_MODEL_ENV",
     "ModelAssistantProvider",
 ]

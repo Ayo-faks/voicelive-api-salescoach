@@ -19,6 +19,7 @@ import json
 import logging
 import os
 import threading
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Protocol, Sequence, Tuple
@@ -367,7 +368,7 @@ class DeterministicAssistantProvider:
             suffix = f" in {subject}" if subject else ""
             return AssistantReply(
                 answer=(
-                    "I'm Pathfinder, your study tutor for WAEC/NECO/JAMB prep. "
+                    "I'm Wulo, your study tutor for WAEC/NECO/JAMB prep. "
                     "I can explain a tricky topic, break down a wrong answer, "
                     f"and guide short practice steps{suffix}."
                 ),
@@ -381,7 +382,7 @@ class DeterministicAssistantProvider:
             subject_hint = f" in {subject}" if subject else ""
             return AssistantReply(
                 answer=(
-                    "Hi! I'm Pathfinder, your study tutor. I can explain a tricky topic, "
+                    "Hi! I'm Wulo, your study tutor. I can explain a tricky topic, "
                     "work through a question you found hard, or give you a quick practice card. "
                     f"What would you like to look at today{subject_hint}?"
                 ),
@@ -587,6 +588,9 @@ class LearningApi:
                 top_k=DEFAULT_TOP_K,
                 embedder=build_default_embedder(),
             )
+            # Pre-warm corpus vectors off the request path so no learner turn
+            # ever pays the (rate-limit-paced) corpus embedding cost.
+            self.rag_retriever.warm_async()
 
         # Upgrade the deterministic assistant to the model-backed Dig-Deeper
         # tutor when the caller didn't inject a provider AND the LLM flag is on
@@ -3123,6 +3127,7 @@ class LearningApi:
         the :class:`LearnerVoiceTurnRequest` shape for the card brain, so no
         existing grounding/safeguarding behaviour changes.
         """
+        turn_started = time.perf_counter()
         question = str(payload.get("question") or "").strip()
         intent = payload.get("intent")
 
@@ -3213,6 +3218,16 @@ class LearningApi:
             )
         if conversation_id:
             out["conversation_id"] = conversation_id
+        # Structured turn timing — Log Analytics:
+        # ContainerAppConsoleLogs_CL | where Log_s has "wulo.assistant_turn"
+        logger.info(
+            "wulo.assistant_turn total_ms=%d question_chars=%d intent=%s blocks=%d session_complete=%s",
+            int((time.perf_counter() - turn_started) * 1000),
+            len(question),
+            str(intent or "-"),
+            len(out.get("blocks") or []),
+            bool(out.get("session_complete")),
+        )
         return out
 
     def _ask_history_store(self) -> Optional[Any]:

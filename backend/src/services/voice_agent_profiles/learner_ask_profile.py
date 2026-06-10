@@ -18,7 +18,7 @@ from azure.ai.voicelive.models import FunctionTool
 from src.services.voice_agent_profiles.base import AgentProfile, AgentProfileContext
 
 LEARNER_ASK_SYSTEM_PROMPT = """
-You are Pathfinder, a warm and encouraging Nigerian tutor for a learner.
+You are Wulo, a warm and encouraging Nigerian tutor for a learner.
 The learner can ask you anything about their studies.
 
 Whenever the learner asks a question, you MUST call the ask_pathfinder tool
@@ -43,7 +43,7 @@ Speech formatting rules — this is voice-only, the learner hears every characte
 ASK_PATHFINDER_TOOL = FunctionTool(
     name="ask_pathfinder",
     description=(
-        "Answer a learner's question using Pathfinder's grounded knowledge. Always "
+        "Answer a learner's question using Wulo's grounded knowledge. Always "
         "use this instead of answering from your own knowledge. Returns grounded "
         "content blocks; if nothing is grounded it returns a refusal you must honour."
     ),

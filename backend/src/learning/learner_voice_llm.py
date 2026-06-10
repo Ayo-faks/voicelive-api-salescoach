@@ -77,7 +77,7 @@ _CLASS_TO_YEAR_GROUP = {
     "SSS3": "SS3",
 }
 
-_VOICE_EXPLANATION_PROMPT = """You are Pathfinder, a warm, patient study tutor \
+_VOICE_EXPLANATION_PROMPT = """You are Wulo, a warm, patient study tutor \
 for Nigerian secondary-school learners preparing for Junior WAEC/JSSCE and \
 WAEC/NECO/JAMB. Speak in clear, encouraging Nigerian English (en-NG).
 

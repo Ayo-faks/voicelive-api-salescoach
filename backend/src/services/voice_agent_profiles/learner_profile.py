@@ -30,7 +30,7 @@ def _resolve_planner() -> LearnerVoiceTurnPlanner:
 
 
 LEARNER_SYSTEM_PROMPT = """
-You are Pathfinder, a warm and encouraging Nigerian tutor for a learner.
+You are Wulo, a warm and encouraging Nigerian tutor for a learner.
 Use the session context values: child_id, exam, class_year, and subject.
 Always call get_next_card before giving lesson content or a question.
 Never invent questions, answers, skills, progress, or facts about the learner.
@@ -53,7 +53,7 @@ Speech formatting rules — this is voice-only, the learner hears every characte
 GET_NEXT_CARD_TOOL = FunctionTool(
     name="get_next_card",
     description=(
-        "Fetch the next learner practice card from Pathfinder. Always use this "
+        "Fetch the next learner practice card from Wulo. Always use this "
         "instead of inventing lesson content."
     ),
     parameters={

@@ -97,6 +97,9 @@ param pathfinderVoiceEnabled string = 'true'
 @description('Set PATHFINDER_ASSISTANT_LLM_ENABLED for the backend runtime (model-backed assistant provider).')
 param pathfinderAssistantLlmEnabled string = 'true'
 
+@description('Azure OpenAI deployment used ONLY by the Pathfinder text tutor (PATHFINDER_ASSISTANT_MODEL_DEPLOYMENT). Empty = fall back to MODEL_DEPLOYMENT_NAME. gpt-5.4-mini cuts tutor turn latency ~3x vs gpt-4o.')
+param pathfinderAssistantModelDeployment string = 'gpt-5.4-mini'
+
 @description('Enable optional Ralph LRS container app for Pathfinder Learn xAPI replay.')
 param enableRalphLrs bool = false
 
@@ -418,6 +421,15 @@ param openAiModelDeployments array = [
     sku: {
       name: 'Standard'
       capacity: 10
+    }
+  }
+  {
+    name: 'gpt-5.4-mini'
+    model: 'gpt-5.4-mini'
+    version: '2026-03-17'
+    sku: {
+      name: 'GlobalStandard'
+      capacity: 50
     }
   }
   {
@@ -1027,6 +1039,10 @@ module voicelab 'br/public:avm/res/app/container-app:0.8.0' = {
             {
               name: 'PATHFINDER_ASSISTANT_LLM_ENABLED'
               value: pathfinderAssistantLlmEnabled
+            }
+            {
+              name: 'PATHFINDER_ASSISTANT_MODEL_DEPLOYMENT'
+              value: pathfinderAssistantModelDeployment
             }
             {
               name: 'PATHFINDER_B2C_ONBOARDING_ENABLED'

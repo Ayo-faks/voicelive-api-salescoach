@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Any, Mapping, Optional
+import threading
+from typing import Any, Callable, Mapping, Optional
 
 from azure.core.credentials import AzureKeyCredential
 from azure.core.credentials_async import AsyncTokenCredential
@@ -22,6 +23,27 @@ MANAGED_IDENTITY_MARKERS = (
     "CONTAINER_APP_NAME",
     "CONTAINER_APP_ENV_DNS_SUFFIX",
 )
+
+# One process-wide credential + bearer provider, shared by every Azure OpenAI
+# client (chat, embeddings, voice planner). DefaultAzureCredential is
+# thread-safe and caches tokens internally, so the first token fetch (paid by
+# the boot-time embedding warmup) also pre-pays the AAD round-trip for the
+# first learner chat turn instead of each client probing the credential chain
+# from scratch (~1-3s in Container Apps).
+_credential_lock = threading.Lock()
+_shared_credential: Optional[DefaultAzureCredential] = None
+_shared_token_provider: Optional[Callable[[], str]] = None
+
+
+def _get_shared_token_provider() -> Callable[[], str]:
+    global _shared_credential, _shared_token_provider
+    with _credential_lock:
+        if _shared_token_provider is None:
+            _shared_credential = DefaultAzureCredential()
+            _shared_token_provider = get_bearer_token_provider(
+                _shared_credential, COGNITIVE_SERVICES_SCOPE
+            )
+        return _shared_token_provider
 
 
 def _has_managed_identity_markers() -> bool:
@@ -42,8 +64,7 @@ def build_openai_client(settings: Mapping[str, Any]) -> Optional[AzureOpenAI]:
 
     api_version = str(settings.get("api_version") or "").strip() or "2024-12-01-preview"
     if _should_use_token_auth(settings):
-        credential = DefaultAzureCredential()
-        token_provider = get_bearer_token_provider(credential, COGNITIVE_SERVICES_SCOPE)
+        token_provider = _get_shared_token_provider()
         return AzureOpenAI(
             api_version=api_version,
             azure_endpoint=endpoint,

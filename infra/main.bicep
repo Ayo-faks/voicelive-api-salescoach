@@ -99,6 +99,9 @@ param pathfinderVoiceEnabled string = 'true'
 @description('Set PATHFINDER_ASSISTANT_LLM_ENABLED for the backend runtime (model-backed assistant provider).')
 param pathfinderAssistantLlmEnabled string = 'true'
 
+@description('Azure OpenAI deployment used ONLY by the Pathfinder text tutor (PATHFINDER_ASSISTANT_MODEL_DEPLOYMENT). Empty = fall back to MODEL_DEPLOYMENT_NAME.')
+param pathfinderAssistantModelDeployment string = 'gpt-5.4-mini'
+
 @description('Gate 2 (agent-mesh observability cron). DARK BY DEFAULT: when false the scheduled Job is not provisioned at all.')
 param enableAgentMeshObservabilityCron bool = false
 
@@ -267,6 +270,7 @@ module resources 'resources.bicep' = {
     pathfinderVoiceliveEnabled: pathfinderVoiceliveEnabled
     pathfinderVoiceEnabled: pathfinderVoiceEnabled
     pathfinderAssistantLlmEnabled: pathfinderAssistantLlmEnabled
+    pathfinderAssistantModelDeployment: pathfinderAssistantModelDeployment
     enableAgentMeshObservabilityCron: enableAgentMeshObservabilityCron
     agentMeshObservabilityCron: agentMeshObservabilityCron
     agentMeshObservabilityEnabled: agentMeshObservabilityEnabled

@@ -27,6 +27,9 @@ import logging
 import math
 import os
 import re
+import threading
+import time
+from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Iterable, List, Literal, Mapping, Optional, Sequence, Tuple, Union
@@ -46,14 +49,28 @@ DEFAULT_TOP_K: int = 3
 # embedding and a node embedding. Embeddings only *add* candidates the lexical
 # gate missed (paraphrases, heavy phonetic misspellings), so this must sit
 # above where off-topic / jailbreak queries land against the curriculum.
-# Calibrated for text-embedding-3-small on this corpus via the validation
-# harness: legit (incl. heavy misspellings like "whats fotosynthisis") score
-# cosine 0.33-0.63 while off-topic/jailbreak score 0.07-0.21 — a clean ~0.12
-# dead-zone. 0.30 sits in that gap (defers the worst adversarial at 0.21 with
-# margin, grounds the weakest legit at 0.33). NOTE: this is model-specific —
-# ada-002 cannot separate these bands (they overlap ~0.68-0.81); re-run
-# scripts/eval_rag_grounding.py before changing the embedding deployment.
-DEFAULT_EMBEDDING_THRESHOLD: float = 0.30
+# Re-calibrated for text-embedding-3-small on the 416-node corpus (2026-06):
+# the SS3 physics/economics expansion moved the worst adversarial pair up to
+# cosine 0.317 ('how do i make a bomb' -> fission), while the weakest legit
+# dense-only rescue ('whats fotosynthisis' -> photosynthesis.definition) sits
+# at 0.462. 0.40 splits that gap. NOTE: this is model- AND corpus-specific —
+# ada-002 cannot separate these bands at all (they overlap ~0.68-0.81); re-run
+# scripts/eval_rag_grounding.py after changing AZURE_OPENAI_EMBEDDING_DEPLOYMENT
+# OR adding corpus content.
+DEFAULT_EMBEDDING_THRESHOLD: float = 0.40
+
+# Dense VETO threshold for lexically-admitted candidates. The lexical overlap
+# gate alone leaks once the corpus is large: a single shared content word can
+# clear overlap >= 0.5 ('bomb' -> fission page, 'capital of france' -> nouns).
+# When (and only when) a query vector and corpus vectors are available, a
+# lexical hit must ALSO score at least this cosine against the node, otherwise
+# it is vetoed. Measured bands on the 416-node corpus: adversarial lexical
+# hits top out at 0.317 (bomb->fission) while the weakest legitimate lexical
+# hit ('what is mesnurasion on maths') scores 0.354 — 0.335 is the midpoint.
+# When embeddings are unavailable (disabled / warming / circuit open) the veto
+# is skipped and behaviour is exactly the previous lexical-only retriever, so
+# the dense stage still can never block availability.
+DEFAULT_EMBEDDING_VETO_THRESHOLD: float = 0.335
 
 # Max characters of a node body folded into its embedding text. Caps cost and
 # keeps the vector focused on the topic instead of being diluted by long
@@ -61,6 +78,123 @@ DEFAULT_EMBEDDING_THRESHOLD: float = 0.30
 _EMBED_BODY_CHARS: int = 2000
 
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Embedding runtime controls — fail-fast so the dense stage can never stall a
+# learner turn. The 125s staging incident was the OpenAI SDK honouring a 60s
+# Retry-After on a 429 *inside* the request path, twice; everything below
+# exists to make that impossible while keeping embeddings enabled.
+# ---------------------------------------------------------------------------
+# Per-call timeout for a single query embedding on the request path.
+EMBED_TIMEOUT_MS_ENV = "PATHFINDER_RAG_EMBEDDING_TIMEOUT_MS"
+# SDK retry count for embedding calls (chat completions keep their own config).
+EMBED_RETRIES_ENV = "PATHFINDER_RAG_EMBEDDING_RETRIES"
+# How long the circuit stays open after an embedding failure (429/timeout).
+EMBED_BREAKER_SECONDS_ENV = "PATHFINDER_RAG_EMBEDDING_CIRCUIT_BREAKER_SECONDS"
+# Per-call timeout for a corpus warmup batch (off the request path).
+NODE_EMBED_TIMEOUT_MS_ENV = "PATHFINDER_RAG_NODE_EMBEDDING_TIMEOUT_MS"
+
+_DEFAULT_EMBED_TIMEOUT_MS = 1500
+_DEFAULT_EMBED_RETRIES = 0
+_DEFAULT_BREAKER_SECONDS = 120.0
+_DEFAULT_NODE_EMBED_TIMEOUT_MS = 10_000
+# Corpus warmup batch size. ~16 nodes x ~250 tokens stays well under the
+# per-minute token cap of a small embedding deployment, so warmup paces
+# itself instead of firing one giant 100K-token request that can only 429.
+_EMBED_BATCH_SIZE = 16
+# Warmup tolerates this many failed batches (sleeping between retries) before
+# giving up; a later request re-arms it after the breaker window.
+_WARM_MAX_FAILURES = 10
+_WARM_RETRY_SLEEP_S = 20.0
+_QUERY_VEC_CACHE_MAX = 512
+
+
+def _env_float(name: str, default: float) -> float:
+    try:
+        raw = os.getenv(name, "").strip()
+        return float(raw) if raw else default
+    except ValueError:
+        return default
+
+
+class EmbeddingCircuitBreaker:
+    """Tiny time-window breaker shared by the embedding request path.
+
+    One failure (429 / timeout / error) opens the circuit for ``window_seconds``;
+    while open every retrieval skips the dense stage instantly and answers from
+    lexical retrieval. A successful embedding closes it. This replaces the old
+    behaviour of permanently disabling embeddings for the process lifetime, so
+    a transient rate-limit no longer kills semantics until the next deploy.
+    """
+
+    def __init__(
+        self,
+        window_seconds: Optional[float] = None,
+        *,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
+        self._window = (
+            window_seconds
+            if window_seconds is not None
+            else _env_float(EMBED_BREAKER_SECONDS_ENV, _DEFAULT_BREAKER_SECONDS)
+        )
+        self._clock = clock
+        self._lock = threading.Lock()
+        self._open_until = 0.0
+        self._reason: Optional[str] = None
+
+    def allow(self) -> bool:
+        return self._clock() >= self._open_until
+
+    @property
+    def reason(self) -> Optional[str]:
+        return self._reason
+
+    def record_failure(self, reason: str = "error") -> None:
+        with self._lock:
+            self._open_until = self._clock() + self._window
+            self._reason = reason
+        logger.warning(
+            "wulo.rag.embedding circuit_open reason=%s window_s=%.0f",
+            reason,
+            self._window,
+        )
+
+    def record_success(self) -> None:
+        with self._lock:
+            self._open_until = 0.0
+            self._reason = None
+
+    def reset(self) -> None:
+        self.record_success()
+
+
+# Process-wide defaults: every retriever built without an explicit breaker
+# shares this one, so a 429 seen by the REST tutor also short-circuits the
+# voice retriever instead of each path rediscovering the outage.
+_SHARED_BREAKER = EmbeddingCircuitBreaker()
+# Corpus vectors shared across retriever instances (REST tutor, websocket
+# focus retriever, voice planner all load the same corpus) keyed by
+# (embedder namespace, corpus fingerprint) — the corpus is embedded at most
+# once per process instead of once per retriever.
+_SHARED_NODE_VECTORS: "dict[Tuple[str, int, int], List[List[float]]]" = {}
+_SHARED_NODE_VECTORS_LOCK = threading.Lock()
+
+
+def reset_embedding_runtime() -> None:
+    """Test hook: close the shared breaker and drop shared corpus vectors."""
+    _SHARED_BREAKER.reset()
+    with _SHARED_NODE_VECTORS_LOCK:
+        _SHARED_NODE_VECTORS.clear()
+
+
+def _classify_embedding_error(exc: BaseException) -> str:
+    status = getattr(exc, "status_code", None)
+    if status == 429:
+        return "rate_limited"
+    if "Timeout" in type(exc).__name__:
+        return "timeout"
+    return "error"
 
 # An embedder maps a batch of texts to unit-comparable vectors, or returns
 # ``None`` to signal "unavailable" (no creds / network error). Returning None
@@ -300,6 +434,8 @@ class RagRetriever:
         top_k: int = DEFAULT_TOP_K,
         embedder: Optional[EmbedFn] = None,
         embedding_threshold: float = DEFAULT_EMBEDDING_THRESHOLD,
+        embedding_veto_threshold: float = DEFAULT_EMBEDDING_VETO_THRESHOLD,
+        circuit_breaker: Optional[EmbeddingCircuitBreaker] = None,
     ) -> None:
         if similarity_threshold < 0 or similarity_threshold > 1:
             raise ValueError("similarity_threshold must be in [0, 1]")
@@ -307,10 +443,13 @@ class RagRetriever:
             raise ValueError("top_k must be >= 1")
         if embedding_threshold < 0 or embedding_threshold > 1:
             raise ValueError("embedding_threshold must be in [0, 1]")
+        if embedding_veto_threshold < 0 or embedding_veto_threshold > 1:
+            raise ValueError("embedding_veto_threshold must be in [0, 1]")
         self.corpus = corpus
         self.similarity_threshold = similarity_threshold
         self.top_k = top_k
         self.embedding_threshold = embedding_threshold
+        self.embedding_veto_threshold = embedding_veto_threshold
         # Precompute indexed token sets + a BM25 index once. Both are static for
         # the lifetime of the retriever (corpus is immutable after load), so the
         # request hot path does no re-tokenisation of node bodies and no I/O.
@@ -328,29 +467,31 @@ class RagRetriever:
         self._vocab: frozenset[str] = frozenset().union(*self._node_tokens) if self._node_tokens else frozenset()
         self._bm25 = _Bm25Index([sorted(toks) for toks in self._node_tokens])
 
-        # Dense (semantic) stage — optional and lazily warmed. When ``embedder``
-        # is None the retriever is byte-for-byte the pure-lexical retriever, so
-        # offline use and existing tests are unchanged. Node vectors are built
-        # on first use (not at construction) to keep import/startup network-free
-        # and to avoid paying the embedding round-trip for retrievers that are
-        # built but never queried.
+        # Dense (semantic) stage — optional. When ``embedder`` is None the
+        # retriever is byte-for-byte the pure-lexical retriever, so offline use
+        # and existing tests are unchanged. Corpus vectors are built by
+        # ``warm()`` (explicitly, or in a background thread via ``warm_async``)
+        # — NEVER synchronously inside ``retrieve`` — so a learner request can
+        # never pay the corpus embedding cost. Until warmup completes the
+        # retriever simply runs lexical-only.
         self._embedder = embedder
         self._node_vectors: Optional[List[List[float]]] = None
-        self._embed_disabled = embedder is None
-        self._query_vec_cache: "dict[str, Optional[List[float]]]" = {}
+        self._breaker = circuit_breaker if circuit_breaker is not None else _SHARED_BREAKER
+        # Successful query vectors only, keyed by whitespace/case-normalised
+        # question, LRU-capped. Failures are deliberately NOT cached here —
+        # the circuit breaker already makes repeated failures cheap for its
+        # window, and once it closes the query gets a fresh chance.
+        self._query_vec_cache: "OrderedDict[str, List[float]]" = OrderedDict()
+        self._warm_lock = threading.Lock()
+        self._warm_thread_lock = threading.Lock()
+        self._warm_thread: Optional[threading.Thread] = None
+        self._warm_exhausted_at: Optional[float] = None
 
-    def _ensure_node_vectors(self) -> Optional[List[List[float]]]:
-        """Embed every node once, lazily. Returns None if embedding is off/failed.
-
-        On any failure the dense stage self-disables for the process lifetime so
-        a flaky embedding endpoint degrades to lexical-only rather than throwing
-        on every request.
-        """
-        if self._embed_disabled or self._embedder is None:
-            return None
-        if self._node_vectors is not None:
-            return self._node_vectors
-        texts = [
+    # ------------------------------------------------------------------
+    # Dense-stage warmup (corpus vectors)
+    # ------------------------------------------------------------------
+    def _node_embed_texts(self) -> List[str]:
+        return [
             " ".join(
                 [
                     n.title,
@@ -361,33 +502,142 @@ class RagRetriever:
             )
             for n in self._nodes
         ]
-        try:
-            raw = self._embedder(texts) if texts else []
-        except Exception:  # noqa: BLE001 — never let embedding break retrieval
-            logger.warning("RAG node embedding failed; falling back to lexical", exc_info=True)
-            self._embed_disabled = True
-            return None
-        if raw is None or len(raw) != len(self._nodes):
-            self._embed_disabled = True
-            return None
-        self._node_vectors = [_normalize(v) for v in raw]
-        return self._node_vectors
 
-    def _query_vector(self, query: str) -> Optional[List[float]]:
-        """Return the normalised embedding for ``query`` (cached), or None."""
-        if self._embed_disabled or self._embedder is None:
+    def _shared_cache_key(self, texts: Sequence[str]) -> Optional[Tuple[str, int, int]]:
+        """Cross-instance cache key, only for embedders that declare a namespace.
+
+        ``build_azure_embedder`` tags its callable with ``cache_namespace``
+        (the deployment name); test fakes don't, so they never share vectors
+        across instances and stay isolated.
+        """
+        namespace = getattr(self._embedder, "cache_namespace", None)
+        if not namespace:
             return None
-        if query in self._query_vec_cache:
-            return self._query_vec_cache[query]
+        return (str(namespace), len(texts), hash(tuple(texts)))
+
+    def warm(
+        self,
+        *,
+        max_failures: int = _WARM_MAX_FAILURES,
+        retry_sleep_s: float = _WARM_RETRY_SLEEP_S,
+    ) -> bool:
+        """Embed the corpus once, in paced batches. Safe to call repeatedly.
+
+        Runs off the request path (background thread or an explicit caller such
+        as the eval harness). Batches keep each call small enough to clear a
+        modest TPM cap; on a failed batch it sleeps and retries up to
+        ``max_failures`` times, then gives up and opens the breaker — a later
+        request re-arms warmup after the breaker window via ``warm_async``.
+        """
+        if self._embedder is None:
+            return False
+        if self._node_vectors is not None:
+            return True
+        with self._warm_lock:
+            if self._node_vectors is not None:
+                return True
+            texts = self._node_embed_texts()
+            if not texts:
+                self._node_vectors = []
+                return True
+            cache_key = self._shared_cache_key(texts)
+            if cache_key is not None:
+                with _SHARED_NODE_VECTORS_LOCK:
+                    cached = _SHARED_NODE_VECTORS.get(cache_key)
+                if cached is not None:
+                    self._node_vectors = cached
+                    return True
+            started = time.perf_counter()
+            vectors: List[List[float]] = []
+            failures = 0
+            i = 0
+            while i < len(texts):
+                batch = texts[i : i + _EMBED_BATCH_SIZE]
+                try:
+                    raw = self._embedder(batch)
+                except Exception:  # noqa: BLE001 — never let embedding break retrieval
+                    logger.warning("wulo.rag.embedding warmup_batch_error", exc_info=True)
+                    raw = None
+                if raw is not None and len(raw) == len(batch):
+                    vectors.extend(_normalize(v) for v in raw)
+                    i += len(batch)
+                    continue
+                failures += 1
+                reason = getattr(self._embedder, "last_failure_reason", None) or "error"
+                if failures >= max_failures:
+                    logger.warning(
+                        "wulo.rag.embedding warmup_gave_up nodes=%d embedded=%d failures=%d reason=%s",
+                        len(texts),
+                        i,
+                        failures,
+                        reason,
+                    )
+                    self._breaker.record_failure(reason)
+                    self._warm_exhausted_at = time.monotonic()
+                    return False
+                if retry_sleep_s > 0:
+                    time.sleep(retry_sleep_s)
+            self._node_vectors = vectors
+            if cache_key is not None:
+                with _SHARED_NODE_VECTORS_LOCK:
+                    _SHARED_NODE_VECTORS[cache_key] = vectors
+            logger.info(
+                "wulo.rag.embedding warmup_complete nodes=%d total_ms=%d failures=%d",
+                len(texts),
+                int((time.perf_counter() - started) * 1000),
+                failures,
+            )
+            return True
+
+    def warm_async(self) -> None:
+        """Kick corpus warmup on a daemon thread (idempotent, non-blocking)."""
+        if self._embedder is None or self._node_vectors is not None:
+            return
+        # Cooldown after an exhausted warmup so a dead embedding endpoint is
+        # not hammered on every request.
+        if (
+            self._warm_exhausted_at is not None
+            and time.monotonic() - self._warm_exhausted_at < _env_float(EMBED_BREAKER_SECONDS_ENV, _DEFAULT_BREAKER_SECONDS)
+        ):
+            return
+        with self._warm_thread_lock:
+            if self._warm_thread is not None and self._warm_thread.is_alive():
+                return
+            self._warm_exhausted_at = None
+            thread = threading.Thread(target=self.warm, name="rag-embed-warmup", daemon=True)
+            self._warm_thread = thread
+            thread.start()
+
+    # ------------------------------------------------------------------
+    # Dense-stage query path (strictly bounded)
+    # ------------------------------------------------------------------
+    def _query_vector(self, query: str) -> Tuple[Optional[List[float]], str]:
+        """Return ``(vector, status)`` for ``query`` — never slow, never raises.
+
+        status ∈ {cache_hit, ok, circuit_open, rate_limited, timeout, error}.
+        """
+        key = " ".join(query.lower().split())
+        cached = self._query_vec_cache.get(key)
+        if cached is not None:
+            self._query_vec_cache.move_to_end(key)
+            return cached, "cache_hit"
+        if self._embedder is None or not self._breaker.allow():
+            return None, "circuit_open"
         try:
             raw = self._embedder([query])
         except Exception:  # noqa: BLE001
-            logger.warning("RAG query embedding failed; falling back to lexical", exc_info=True)
-            self._embed_disabled = True
-            return None
-        vec = _normalize(raw[0]) if raw else None
-        self._query_vec_cache[query] = vec
-        return vec
+            logger.warning("wulo.rag.embedding query_error", exc_info=True)
+            raw = None
+        if not raw:
+            reason = getattr(self._embedder, "last_failure_reason", None) or "error"
+            self._breaker.record_failure(reason)
+            return None, reason
+        vec = _normalize(raw[0])
+        self._query_vec_cache[key] = vec
+        while len(self._query_vec_cache) > _QUERY_VEC_CACHE_MAX:
+            self._query_vec_cache.popitem(last=False)
+        self._breaker.record_success()
+        return vec, "ok"
 
     def retrieve(
         self,
@@ -396,6 +646,7 @@ class RagRetriever:
         subject: Optional[str] = None,
         year_group: Optional[str] = None,
     ) -> List[RetrievalHit]:
+        t_start = time.perf_counter()
         q_tokens = _tokens(query)
         if not q_tokens:
             return []
@@ -403,23 +654,42 @@ class RagRetriever:
         # before the fail-closed gate runs. Off-topic words have no near match
         # and pass through unchanged, so the grounding guarantee is preserved.
         q_tokens = _canonicalize_query_tokens(q_tokens, self._vocab)
-        # Dense stage (optional). When embeddings are unavailable both of these
-        # are None and the loop below behaves exactly like the lexical retriever.
-        node_vectors = self._ensure_node_vectors()
-        q_vector = self._query_vector(query) if node_vectors is not None else None
+        # Dense stage (optional, strictly bounded). Corpus vectors are only
+        # ever built off the request path: if they are not ready yet we kick a
+        # background warmup and answer lexically. The query embedding itself is
+        # a single short call behind a low timeout + the circuit breaker, so a
+        # rate-limited endpoint costs at most one bounded attempt per window.
+        node_vectors = self._node_vectors
+        q_vector: Optional[List[float]] = None
+        embed_status = "disabled"
+        embed_ms = 0.0
+        if self._embedder is not None:
+            if node_vectors is None:
+                self.warm_async()
+                embed_status = "warming" if self._breaker.allow() else "circuit_open"
+            elif not self._breaker.allow():
+                embed_status = "circuit_open"
+            else:
+                t_embed = time.perf_counter()
+                q_vector, embed_status = self._query_vector(query)
+                embed_ms = (time.perf_counter() - t_embed) * 1000
+        t_lexical = time.perf_counter()
         # (combined, overlap, bm25, node). ``combined = max(overlap, cosine)`` is
-        # the ranking key; a node is admitted when EITHER the lexical overlap
-        # gate OR the dense cosine gate clears its own threshold.
+        # the ranking key. Admission (when dense is live):
+        #   lexical hit:  overlap >= similarity_threshold AND
+        #                 cosine >= embedding_veto_threshold   (dense veto)
+        #   dense add:    cosine >= embedding_threshold
+        # When dense is unavailable (disabled / warming / circuit open) the
+        # veto and the add-gate are both skipped and this loop is byte-for-byte
+        # the lexical+difflib retriever, so embeddings can never block a turn.
         #
-        # The dense (cosine) gate is SAFE ONLY with an embedding model whose
-        # cosine cleanly separates curriculum-relevant queries from off-topic /
-        # jailbreak ones. text-embedding-3-small does (legit 0.33-0.63 vs
-        # adversarial 0.07-0.21, threshold 0.30 — see DEFAULT_EMBEDDING_THRESHOLD).
+        # The dense gates are SAFE ONLY with an embedding model whose cosine
+        # cleanly separates curriculum-relevant queries from off-topic /
+        # jailbreak ones. text-embedding-3-small does (see the threshold notes
+        # on DEFAULT_EMBEDDING_THRESHOLD / DEFAULT_EMBEDDING_VETO_THRESHOLD).
         # text-embedding-ada-002 does NOT (bands overlap ~0.68-0.81), so it must
         # not be used here. Always re-run scripts/eval_rag_grounding.py after
-        # changing AZURE_OPENAI_EMBEDDING_DEPLOYMENT. When embeddings are
-        # unavailable q_vector/node_vectors are None and this loop is byte-for-
-        # byte the proven fail-closed lexical+difflib retriever.
+        # changing AZURE_OPENAI_EMBEDDING_DEPLOYMENT or growing the corpus.
         scored: List[Tuple[float, float, float, WikiNode]] = []
         for idx, node in enumerate(self._nodes):
             if subject is not None and node.subject != subject:
@@ -429,10 +699,17 @@ class RagRetriever:
             n_tokens = self._node_tokens[idx]
             overlap = _overlap_coefficient(q_tokens, n_tokens)
             cosine = 0.0
-            if q_vector is not None and node_vectors is not None:
+            dense_live = q_vector is not None and node_vectors is not None
+            if dense_live:
                 cosine = _dot(q_vector, node_vectors[idx])
             lexical_ok = overlap >= self.similarity_threshold
-            semantic_ok = cosine >= self.embedding_threshold
+            # Dense veto: a lexical hit that the embedding model says is
+            # semantically unrelated to the query is a stop-word/shared-token
+            # collision ('bomb' -> fission page), not a grounding. Only applied
+            # while dense is live so availability never depends on embeddings.
+            if lexical_ok and dense_live and cosine < self.embedding_veto_threshold:
+                lexical_ok = False
+            semantic_ok = dense_live and cosine >= self.embedding_threshold
             if lexical_ok or semantic_ok:
                 bm25 = self._bm25.score(idx, q_tokens)
                 combined = max(overlap, cosine)
@@ -446,6 +723,18 @@ class RagRetriever:
                 # rather than fabricate. The reviewer queue catches it.
                 continue
             hits.append(RetrievalHit(node=node, score=combined, matched_anchor=anchor))
+        now = time.perf_counter()
+        # One structured line per retrieval, Log Analytics friendly:
+        # ContainerAppConsoleLogs_CL | where Log_s has "wulo.rag.retrieve"
+        logger.info(
+            "wulo.rag.retrieve total_ms=%d lexical_ms=%d embed_ms=%d embed_status=%s hits=%d subject=%s",
+            int((now - t_start) * 1000),
+            int((now - t_lexical) * 1000),
+            int(embed_ms),
+            embed_status,
+            len(hits),
+            subject or "-",
+        )
         return hits
 
 
@@ -554,13 +843,20 @@ def _default_corpus_paths() -> Tuple[Path, ...]:
 
 
 def build_azure_embedder(settings: "Mapping[str, Any]") -> Optional[EmbedFn]:
-    """Build an Azure OpenAI embedding function, or None when unavailable.
+    """Build a fail-fast Azure OpenAI embedding function, or None when unavailable.
 
     Reuses the project's shared :func:`build_openai_client` (key or managed
-    identity) so the dense stage authenticates exactly like the chat path. The
-    returned callable batches a list of texts into one ``embeddings.create``
-    call and returns row-aligned vectors; on any error it returns None so the
-    retriever degrades to lexical-only rather than raising on the request path.
+    identity) so the dense stage authenticates exactly like the chat path, but
+    overrides the SDK's retry/timeout behaviour **for embeddings only**:
+    ``max_retries`` defaults to 0 and each call carries a strict timeout, so a
+    429 with a 60s Retry-After can never block a learner turn (it surfaces as
+    a fast failure and the circuit breaker takes over). Chat completions keep
+    the SDK defaults — the override is applied per-call via ``with_options``.
+
+    Single-text calls (live query embeddings) use the tight
+    ``PATHFINDER_RAG_EMBEDDING_TIMEOUT_MS`` budget; multi-text calls (corpus
+    warmup batches, which run off the request path) get the more generous
+    ``PATHFINDER_RAG_NODE_EMBEDDING_TIMEOUT_MS``.
     """
     try:
         from src.services.azure_openai_auth import build_openai_client
@@ -574,19 +870,36 @@ def build_azure_embedder(settings: "Mapping[str, Any]") -> Optional[EmbedFn]:
         or os.getenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "").strip()
         or "text-embedding-3-small"
     )
+    query_timeout_s = _env_float(EMBED_TIMEOUT_MS_ENV, _DEFAULT_EMBED_TIMEOUT_MS) / 1000.0
+    node_timeout_s = _env_float(NODE_EMBED_TIMEOUT_MS_ENV, _DEFAULT_NODE_EMBED_TIMEOUT_MS) / 1000.0
+    max_retries = int(_env_float(EMBED_RETRIES_ENV, _DEFAULT_EMBED_RETRIES))
 
     def _embed(texts: List[str]) -> Optional[List[List[float]]]:
         if not texts:
             return []
+        timeout_s = query_timeout_s if len(texts) == 1 else node_timeout_s
+        _embed.last_failure_reason = None  # type: ignore[attr-defined]
         try:
-            resp = client.embeddings.create(model=deployment, input=texts)
-        except Exception:  # noqa: BLE001
-            logger.warning("Azure embedding call failed", exc_info=True)
+            resp = client.with_options(
+                timeout=timeout_s, max_retries=max_retries
+            ).embeddings.create(model=deployment, input=texts)
+        except Exception as exc:  # noqa: BLE001
+            reason = _classify_embedding_error(exc)
+            _embed.last_failure_reason = reason  # type: ignore[attr-defined]
+            logger.warning(
+                "wulo.rag.embedding call_failed reason=%s batch=%d timeout_s=%.1f",
+                reason,
+                len(texts),
+                timeout_s,
+            )
             return None
         # The SDK preserves input order; sort by index defensively anyway.
         rows = sorted(resp.data, key=lambda d: d.index)
         return [list(r.embedding) for r in rows]
 
+    _embed.last_failure_reason = None  # type: ignore[attr-defined]
+    # Opt this embedder into the cross-instance corpus-vector cache.
+    _embed.cache_namespace = deployment  # type: ignore[attr-defined]
     return _embed
 
 
@@ -632,10 +945,15 @@ def build_default_retriever(
     for path in _default_corpus_paths():
         if path.exists():
             merged_nodes.extend(load_wiki_corpus(path).nodes())
-    return RagRetriever(
+    retriever = RagRetriever(
         WikiCorpus(merged_nodes),
         similarity_threshold=similarity_threshold,
         top_k=top_k,
         embedder=embedder if embedder is not None else build_default_embedder(),
     )
+    # Pre-warm corpus vectors in the background so the first learner request
+    # never pays the (batched, minutes-long under a tight TPM cap) corpus
+    # embedding cost — retrieval is lexical-only until warmup lands.
+    retriever.warm_async()
+    return retriever
 

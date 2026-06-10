@@ -214,5 +214,28 @@ describe('AssistantBlockRenderer · prose streaming reveal', () => {
     expect(para()).toBe('Divide both by 2.')
     expect(el.getAttribute('data-streaming')).toBeNull()
   })
+
+  it('renders restored turns instantly when animate is false', () => {
+    // A resumed/rehydrated transcript passes animate={false}; even in a real
+    // browser environment the full screened answer must appear immediately,
+    // with no streaming flag and no caret — opening an old session must never
+    // replay the typewriter.
+    vi.stubEnv('MODE', 'development')
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 0)
+    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {})
+
+    const block: AssistantProseBlock = {
+      kind: 'prose',
+      speak: '',
+      text: 'Divide both by 2.',
+      citations: [],
+      grounded: true,
+    }
+    renderBlock(block, { animate: false })
+
+    const el = screen.getByTestId('assistant-block')
+    expect(el.querySelector('p')?.textContent).toBe('Divide both by 2.')
+    expect(el.getAttribute('data-streaming')).toBeNull()
+  })
 })
 

@@ -22,7 +22,7 @@ from azure.ai.voicelive.models import FunctionTool
 from src.services.voice_agent_profiles.base import AgentProfile, AgentProfileContext
 
 LEARNER_GOALS_SYSTEM_PROMPT = """
-You are Pathfinder, a warm and encouraging Nigerian tutor welcoming a learner
+You are Wulo, a warm and encouraging Nigerian tutor welcoming a learner
 who has just finished signing up. Your job is to capture their study goal so you
 can recommend where to start. Keep it light and quick — this is not a quiz.
 

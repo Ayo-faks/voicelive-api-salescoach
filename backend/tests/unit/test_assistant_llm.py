@@ -285,7 +285,7 @@ def test_greeting_answers_warmly_without_grounding() -> None:
 
     assert client.calls == []  # no model call
     assert "won't guess" not in reply["answer"]  # not the defer message
-    assert "Pathfinder" in reply["answer"]
+    assert "Wulo" in reply["answer"]
     assert reply["smalltalk"] is True
     assert reply["grounded"] is False
 
@@ -420,3 +420,63 @@ def test_from_settings_returns_none_when_not_configured() -> None:
         fallback=FakeFallback(),
     )
     assert provider is None
+
+
+def test_from_settings_prefers_assistant_model_override() -> None:
+    # PATHFINDER_ASSISTANT_MODEL_DEPLOYMENT lets the text tutor run on a
+    # faster deployment (e.g. gpt-4o-mini) without touching the voice model.
+    retriever = FakeRetriever([])
+    provider = ModelAssistantProvider.from_settings(
+        {
+            "PATHFINDER_ASSISTANT_LLM_ENABLED": "true",
+            "PATHFINDER_ASSISTANT_MODEL_DEPLOYMENT": "gpt-4o-mini",
+            "azure_openai_endpoint": "https://example.openai.azure.com",
+            "azure_openai_api_key": "test-key",
+            "model_deployment_name": "gpt-4o",
+        },
+        rag_retriever=retriever,  # type: ignore[arg-type]
+        fallback=FakeFallback(),
+    )
+    assert provider is not None
+    assert provider.model == "gpt-4o-mini"
+
+
+class _AdaptingChatCompletions:
+    """Rejects max_tokens + temperature like the gpt-5.x families do."""
+
+    def __init__(self, content: str) -> None:
+        self._content = content
+        self.calls: List[Dict[str, Any]] = []
+
+    def create(self, **kwargs: Any) -> FakeCompletion:
+        self.calls.append(kwargs)
+        if "max_tokens" in kwargs:
+            raise RuntimeError("Unsupported parameter: 'max_tokens' is not supported with this model. Use 'max_completion_tokens' instead.")
+        if "temperature" in kwargs and kwargs["temperature"] != 1:
+            raise RuntimeError("Unsupported value: 'temperature' does not support 0.3 with this model.")
+        return FakeCompletion(self._content)
+
+
+def test_call_adapts_params_for_gpt5_style_deployments() -> None:
+    retriever = FakeRetriever([
+        _hit("wiki-photo", "Photosynthesis", "biology", "Plants make glucose from light."),
+    ])
+    client = FakeClient(_model_json("Plants use light to make glucose.", [1]))
+    client.chat.completions = _AdaptingChatCompletions(
+        _model_json("Plants use light to make glucose.", [1])
+    )
+    fallback = FakeFallback()
+    provider = _provider(client, retriever, fallback)
+
+    reply = provider.ask("what is photosynthesis?", {"thread": [], "memory_allowed": False})
+
+    assert reply["answer"] == "Plants use light to make glucose."
+    assert reply["grounded"] is True
+    final = client.chat.completions.calls[-1]
+    assert "max_tokens" not in final
+    assert final["max_completion_tokens"] == 600
+    assert "temperature" not in final
+    # Adapted kwargs are remembered — a second turn must succeed first try.
+    calls_before = len(client.chat.completions.calls)
+    provider.ask("and why does it matter?", {"thread": [], "memory_allowed": False})
+    assert len(client.chat.completions.calls) == calls_before + 1

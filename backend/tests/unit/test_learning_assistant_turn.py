@@ -155,5 +155,5 @@ def test_greeting_turn_returns_smalltalk_prose_not_profile_template(client: Any)
     assert len(blocks) == 1
     assert blocks[0]["kind"] == "prose"
     assert blocks[0]["smalltalk"] is True
-    assert "Hi! I'm Pathfinder" in blocks[0]["text"]
+    assert "Hi! I'm Wulo" in blocks[0]["text"]
     assert "Start with Ratio and proportion" not in blocks[0]["text"]

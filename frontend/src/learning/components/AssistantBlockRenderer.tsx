@@ -425,23 +425,29 @@ function shouldAnimateReveal(): boolean {
 
 /**
  * Reveal `full` one character at a time so a freshly-arrived grounded answer
- * visibly "streams in" instead of popping in whole. The animation runs once,
- * when the block first mounts — older transcript items keep their existing
- * React instance (keyed by id) and so never re-animate. The text itself is the
+ * visibly "streams in" instead of popping in whole. The text itself is the
  * complete, already safety-screened answer from the backend; we only animate
  * how much of it is on screen, so no unscreened token ever reaches the learner.
- * Honours `prefers-reduced-motion` (and test/SSR environments) by showing the
- * whole answer immediately.
+ *
+ * `animate` is the caller's verdict on freshness: only the turn that just
+ * arrived from the live transport should type in. Restored transcripts —
+ * localStorage rehydrate, resuming a saved thread from history, reopening the
+ * drawer — pass `animate={false}` and render instantly, so opening an old
+ * session never replays every answer. Honours `prefers-reduced-motion` (and
+ * test/SSR environments) by showing the whole answer immediately.
  */
-function useTypewriter(full: string): { shown: string; done: boolean } {
+function useTypewriter(
+  full: string,
+  animate: boolean,
+): { shown: string; done: boolean } {
   const [count, setCount] = useState(() =>
-    shouldAnimateReveal() ? 0 : full.length,
+    animate && shouldAnimateReveal() ? 0 : full.length,
   )
   const fullRef = useRef(full)
   fullRef.current = full
 
   useEffect(() => {
-    if (!shouldAnimateReveal()) {
+    if (!animate || !shouldAnimateReveal()) {
       setCount(full.length)
       return
     }
@@ -467,16 +473,22 @@ function useTypewriter(full: string): { shown: string; done: boolean } {
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
-  }, [full])
+  }, [full, animate])
 
   return { shown: full.slice(0, count), done: count >= full.length }
 }
 
-function ProseBlockView({ block }: { block: AssistantProseBlock }): JSX.Element {
+function ProseBlockView({
+  block,
+  animate,
+}: {
+  block: AssistantProseBlock
+  animate: boolean
+}): JSX.Element {
   const styles = useStyles()
   const deferred = block.grounded === false && block.smalltalk !== true
   const fullText = stripSourceMarkers(block.text)
-  const { shown, done } = useTypewriter(fullText)
+  const { shown, done } = useTypewriter(fullText, animate)
   return (
     <div
       className={mergeClasses(styles.prose, deferred && styles.proseDeferred)}
@@ -653,6 +665,12 @@ export interface AssistantBlockRendererProps {
   block: AssistantBlock
   disabled: boolean
   sessionComplete: boolean
+  /**
+   * Whether a prose block should type itself in. Defaults to true (a lone
+   * block is presumed live); transcript hosts pass false for restored turns so
+   * reopening a saved session renders instantly instead of replaying.
+   */
+  animate?: boolean
   onMcqAnswer: (optionId: string) => void
   onAdvance: () => void
   onFinish: () => void
@@ -670,6 +688,7 @@ export function AssistantBlockRenderer({
   block,
   disabled,
   sessionComplete,
+  animate = true,
   onMcqAnswer,
   onAdvance,
   onFinish,
@@ -689,7 +708,7 @@ export function AssistantBlockRenderer({
     )
   }
   if (block.kind === 'prose') {
-    return <ProseBlockView block={block} />
+    return <ProseBlockView block={block} animate={animate} />
   }
   if (block.kind === 'profile') {
     return <ProfileBlockView block={block} />

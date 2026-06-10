@@ -1101,14 +1101,45 @@ export interface AssistantTurnRequest {
 }
 
 /** Text transport: one HTTP turn returning the shared block contract. */
+
+/**
+ * Client-side guard so the floating assistant can never spin forever: well
+ * over the normal 4–6s grounded answer, but far below the old worst case
+ * (60–120s of server-side embedding retries, now also fixed server-side).
+ */
+export const ASSISTANT_TURN_TIMEOUT_MS = 25_000
+
+/** Thrown when the turn exceeds {@link ASSISTANT_TURN_TIMEOUT_MS}. */
+export class AssistantTurnTimeoutError extends Error {
+  constructor() {
+    super('assistant turn timed out')
+    this.name = 'AssistantTurnTimeoutError'
+  }
+}
+
 export async function runAssistantTurn(
-  payload: AssistantTurnRequest
+  payload: AssistantTurnRequest,
+  opts?: { timeoutMs?: number }
 ): Promise<AssistantTurnResult> {
-  const response = await fetch(
-    '/api/learning/assistant/turn',
-    withDefaults({ method: 'POST', body: JSON.stringify(payload) })
-  )
-  return jsonOrThrow<AssistantTurnResult>(response)
+  const timeoutMs = opts?.timeoutMs ?? ASSISTANT_TURN_TIMEOUT_MS
+  const controller = new AbortController()
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const response = await fetch(
+      '/api/learning/assistant/turn',
+      withDefaults({
+        method: 'POST',
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      })
+    )
+    return await jsonOrThrow<AssistantTurnResult>(response)
+  } catch (err) {
+    if (controller.signal.aborted) throw new AssistantTurnTimeoutError()
+    throw err
+  } finally {
+    window.clearTimeout(timer)
+  }
 }
 
 /** List a learner's saved Ask Wulo threads, newest first. */

@@ -129,7 +129,7 @@ def test_greeting_uses_smalltalk_not_weak_topic_template(client: Any) -> None:
     body = resp.get_json()
     assert body.get("smalltalk") is True
     assert body.get("grounded") is not True
-    assert "Hi! I'm Pathfinder" in body["answer"]
+    assert "Hi! I'm Wulo" in body["answer"]
     assert "Start with Ratio and proportion" not in body["answer"]
 
 
@@ -140,7 +140,7 @@ def test_route_forwards_smalltalk_flag() -> None:
     class _SmalltalkProvider:
         def ask(self, question: str, context: Dict[str, Any]) -> Dict[str, Any]:
             return {
-                "answer": "Hi! I'm Pathfinder, your study tutor.",
+                "answer": "Hi! I'm Wulo, your study tutor.",
                 "citations": [],
                 "grounded": False,
                 "smalltalk": True,

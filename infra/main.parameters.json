@@ -101,6 +101,9 @@
       "pathfinderAssistantLlmEnabled": {
         "value": "${PATHFINDER_ASSISTANT_LLM_ENABLED=true}"
       },
+      "pathfinderAssistantModelDeployment": {
+        "value": "${PATHFINDER_ASSISTANT_MODEL_DEPLOYMENT=gpt-5.4-mini}"
+      },
       "enableAgentMeshObservabilityCron": {
         "value": "${ENABLE_AGENT_MESH_OBSERVABILITY_CRON=false}"
       },
