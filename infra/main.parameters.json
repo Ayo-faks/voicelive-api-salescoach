@@ -18,7 +18,7 @@
         "value": "${AZURE_PRINCIPAL_TYPE}"
       },
       "useFoundryAgents": {
-        "value": false
+        "value": "${USE_AZURE_AI_AGENTS=false}"
       },
       "microsoftProviderClientId": {
         "value": "${MICROSOFT_PROVIDER_CLIENT_ID=}"
