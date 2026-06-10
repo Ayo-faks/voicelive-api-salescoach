@@ -442,6 +442,146 @@ class TestVoiceProxyHandler:
         tool_names = {getattr(t, "name", None) for t in session["tools"]}
         assert "ask_pathfinder" in tool_names
 
+    def test_forced_tool_session_starts_unpinned_for_opening_greeting(self):
+        """The session must NOT pin the forced tool at creation time.
+
+        The client's opening "say hello" response would otherwise be forced
+        through the grounded brain, which correctly refuses non-questions —
+        the learner saw an unprompted "No grounded source" defer block the
+        moment voice mode opened. The pin is applied on
+        input_audio_buffer.speech_started instead, so the greeting stays free
+        chitchat speech while every learner-spoken turn IS forced.
+        """
+        handler = VoiceProxyHandler(Mock())
+        for scope in ("learner_ask", "learner"):
+            session = handler._build_session_config(
+                None, get_profile(scope), AgentProfileContext(scope=scope, child_id="stu-1")
+            )
+            assert session.get("tool_choice") is None, scope
+
+    def test_practice_session_does_not_pin_tool_choice(self):
+        """Profiles without a forced tool keep the default auto behaviour."""
+        handler = VoiceProxyHandler(Mock())
+
+        session = handler._build_session_config(
+            None, get_profile("practice"), AgentProfileContext(scope="practice")
+        )
+
+        assert session.get("tool_choice") is None
+
+    def test_tool_followup_response_opts_out_of_forced_tool(self):
+        """The speak-the-blocks follow-up must not re-trigger the pinned tool.
+
+        With the session-level tool_choice pinned to the profile's forced tool,
+        the post-tool follow-up response would otherwise be forced to call the
+        tool again — looping tool -> follow-up -> tool forever instead of
+        voicing the blocks.
+        """
+        handler = VoiceProxyHandler(Mock())
+        for scope in ("learner", "learner_ask"):
+            message = handler._build_profile_tool_response_create(get_profile(scope))
+            assert message["response"]["tool_choice"] == "none", scope
+
+    @pytest.mark.asyncio
+    async def test_forced_tool_unpins_for_followup_and_repins_on_next_speech(self):
+        """VoiceLive ignores per-response tool_choice overrides, so the proxy
+        must unpin the session-level forced tool before the speak-the-blocks
+        follow-up (or the follow-up is hijacked into another tool call and no
+        audio is ever spoken) and re-pin it the moment the learner speaks again
+        (so the next VAD auto-created response is forced through the tool —
+        the prod bug where voice answers were audible but no
+        wulo.assistant_block ever reached the client).
+        """
+
+        from src.services.voice_agent_profiles.base import AgentProfile
+
+        profile = AgentProfile(
+            id="learner_ask",
+            system_prompt="test",
+            tools=[],
+            voice="x",
+            temperature=0.6,
+            max_response_output_tokens=900,
+            forced_response_tool_name="ask_pathfinder",
+            tool_handlers={
+                "ask_pathfinder": lambda args, ctx: {
+                    "blocks": [{"kind": "prose", "text": "hi", "speak": "hi", "citations": []}],
+                    "session_complete": False,
+                }
+            },
+        )
+
+        class FakeEvent:
+            def __init__(self, payload):
+                self._payload = payload
+                self.type = payload.get("type")
+
+            def as_dict(self):
+                return dict(self._payload)
+
+        class FakeAzureConn:
+            def __init__(self, events):
+                self._events = events
+                self.sent = []
+
+            def __aiter__(self):
+                async def gen():
+                    for e in self._events:
+                        yield e
+
+                return gen()
+
+            async def send(self, message):
+                self.sent.append(message)
+
+        events = [
+            FakeEvent(
+                {
+                    "type": "response.function_call_arguments.done",
+                    "name": "ask_pathfinder",
+                    "call_id": "call-9",
+                    "arguments": '{"question":"what is photosynthesis"}',
+                }
+            ),
+            FakeEvent({"type": "response.done"}),
+            FakeEvent({"type": "input_audio_buffer.speech_started"}),
+        ]
+        azure_conn = FakeAzureConn(events)
+        handler = VoiceProxyHandler(Mock())
+        handler._send_message = AsyncMock()
+        client_ws = Mock(environ={})
+        client_ws.send = Mock()
+
+        await handler._forward_azure_to_client(
+            azure_conn,
+            client_ws,
+            profile=profile,
+            profile_context=AgentProfileContext(scope="learner_ask", child_id="stu-1"),
+        )
+
+        types = [m.get("type") for m in azure_conn.sent]
+        # tool output -> unpin -> follow-up response -> re-pin on next speech
+        assert types == [
+            "conversation.item.create",
+            "session.update",
+            "response.create",
+            "session.update",
+        ]
+        unpin, repin = azure_conn.sent[1], azure_conn.sent[3]
+        assert unpin["session"]["tool_choice"] == "none"
+        assert repin["session"]["tool_choice"] == {
+            "type": "function",
+            "name": "ask_pathfinder",
+        }
+        # The block still reached the browser.
+        block_messages = [
+            call.args[1]
+            for call in handler._send_message.await_args_list
+            if call.args[1].get("type") == "wulo.assistant_block"
+        ]
+        assert len(block_messages) == 1
+        assert block_messages[0]["payload"]["block"]["kind"] == "prose"
+
     @pytest.mark.asyncio
     async def test_profile_tool_call_sends_output_without_starting_active_response(self):
         """Tool output is sent first; the follow-up response is queued after response.done."""

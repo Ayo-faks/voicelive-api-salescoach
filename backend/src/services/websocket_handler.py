@@ -562,6 +562,18 @@ class VoiceProxyHandler:
             tools=list(profile.tools or [FINISH_SESSION_TOOL]),
         )
 
+        # NOTE: the profile's forced tool is deliberately NOT pinned here.
+        # The session starts unpinned so the client's opening "say hello"
+        # response stays free chitchat speech — pinning it would force the
+        # greeting through the grounded brain, which (correctly) refuses
+        # non-questions and the learner sees an unprompted "No grounded
+        # source" defer block. The pin is applied via session.update the
+        # moment the learner starts speaking (input_audio_buffer.speech_started
+        # in _forward_azure_to_client), which is before server VAD auto-creates
+        # the response — so every learner-spoken turn IS forced through the
+        # tool. Per-response tool_choice is ignored by VoiceLive, hence the
+        # session-level dance.
+
         personalization_block = self._build_personalization_instruction_block(agent_config)
 
         if profile.id in LEARNER_VOICE_PROFILE_IDS:
@@ -1070,7 +1082,45 @@ class VoiceProxyHandler:
 
                 if event_type_str == "response.done" and profile_tool_response_pending:
                     profile_tool_response_pending = False
+                    # VoiceLive (2025-05-01-preview) ignores a per-response
+                    # tool_choice override, so the session-level forced-tool pin
+                    # would hijack the speak-the-blocks follow-up into ANOTHER
+                    # tool call (looping tool -> follow-up -> tool, with no audio
+                    # ever spoken). Unpin at the session level for the follow-up;
+                    # the pin is restored the moment the learner speaks again
+                    # (input_audio_buffer.speech_started below), before server
+                    # VAD auto-creates the next response.
+                    if profile is not None and profile.forced_response_tool_name:
+                        await azure_conn.send(
+                            {"type": "session.update", "session": {"tool_choice": "none"}}
+                        )
                     await azure_conn.send(self._build_profile_tool_response_create(profile))
+
+                if (
+                    event_type_str == "input_audio_buffer.speech_started"
+                    and profile is not None
+                    and profile.forced_response_tool_name
+                ):
+                    # The learner started speaking: pin the forced tool NOW,
+                    # before server VAD auto-creates the response at
+                    # speech_stopped. This is what guarantees every spoken
+                    # question routes through the grounded brain (and its
+                    # safeguarding screen) instead of being answered from
+                    # conversation context — the prod bug where answers were
+                    # audible but no wulo.assistant_block ever reached the
+                    # client. The session deliberately starts unpinned so the
+                    # opening greeting stays free chitchat speech.
+                    await azure_conn.send(
+                        {
+                            "type": "session.update",
+                            "session": {
+                                "tool_choice": {
+                                    "type": "function",
+                                    "name": profile.forced_response_tool_name,
+                                }
+                            },
+                        }
+                    )
 
         except ConnectionClosed as e:
             logger.debug("Azure connection closed: code=%s, reason=%s", e.code, e.reason)
@@ -1272,29 +1322,36 @@ class VoiceProxyHandler:
         return safe
 
     def _build_profile_tool_response_create(self, profile: AgentProfile) -> Dict[str, Any]:
+        # The session pins tool_choice to the profile's forced tool (so VAD
+        # auto-created responses always call it). This follow-up response only
+        # voices the tool output, so it must opt out per-response — otherwise
+        # the session-level pin would force ANOTHER tool call here, looping
+        # tool -> follow-up -> tool forever.
         if profile.id == "learner":
             return {
                 "type": "response.create",
                 "response": {
+                    "tool_choice": "none",
                     "instructions": (
                         "Speak only from the tool output card. Prefer card.speak verbatim. "
                         "If card.speak is empty, give a short generic continuation like "
                         "'Let's continue' and wait for the next card. "
                         "Do not say raw JSON or claim the card is in the wrong format."
-                    )
+                    ),
                 },
             }
         if profile.id == "learner_ask":
             return {
                 "type": "response.create",
                 "response": {
+                    "tool_choice": "none",
                     "instructions": (
                         "Speak only from the ask_pathfinder tool output blocks. "
                         "Prefer each block's speak field verbatim — it is the "
                         "spoken form. Never read the block's text/citations or any "
                         "LaTeX, markup, or backslashes aloud. "
                         "If no block is available, say you do not have a grounded answer yet."
-                    )
+                    ),
                 },
             }
         return {"type": "response.create"}
